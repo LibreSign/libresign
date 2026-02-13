@@ -22,14 +22,14 @@ Feature: page/sign_identify_account
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                                        | value                   |
-      | (jq).ocs.data.data\|length                                 | 1                       |
-      | (jq).ocs.data.data[0].statusText                           | available for signature |
-      | (jq).ocs.data.data[0].signers\|length                      | 1                       |
-      | (jq).ocs.data.data[0].signers[0].me                        | true                    |
-      | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1                       |
-      | (jq).ocs.data.data[0].signers[0].identifyMethods[0].method | account                 |
-      | (jq).ocs.data.data[0].signers[0].identifyMethods[0].value  | signer1                 |
+      | key                                                        | value         |
+      | (jq).ocs.data.data\|length                                 | 1             |
+      | (jq).ocs.data.data[0].statusText                           | Ready to sign |
+      | (jq).ocs.data.data[0].signers\|length                      | 1             |
+      | (jq).ocs.data.data[0].signers[0].me                        | true          |
+      | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1             |
+      | (jq).ocs.data.data[0].signers[0].identifyMethods[0].method | account       |
+      | (jq).ocs.data.data[0].signers[0].identifyMethods[0].value  | signer1       |
     And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     # invalid UUID, need to be the signer UUID
     When as user "signer1"
@@ -75,14 +75,14 @@ Feature: page/sign_identify_account
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                                        | value                   |
-      | (jq).ocs.data.data\|length                                 | 1                       |
-      | (jq).ocs.data.data[0].statusText                           | available for signature |
-      | (jq).ocs.data.data[0].signers\|length                      | 1                       |
-      | (jq).ocs.data.data[0].signers[0].me                        | true                    |
-      | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1                       |
-      | (jq).ocs.data.data[0].signers[0].identifyMethods[0].method | account                 |
-      | (jq).ocs.data.data[0].signers[0].identifyMethods[0].value  | signer1                 |
+      | key                                                        | value         |
+      | (jq).ocs.data.data\|length                                 | 1             |
+      | (jq).ocs.data.data[0].statusText                           | Ready to sign |
+      | (jq).ocs.data.data[0].signers\|length                      | 1             |
+      | (jq).ocs.data.data[0].signers[0].me                        | true          |
+      | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1             |
+      | (jq).ocs.data.data[0].signers[0].identifyMethods[0].method | account       |
+      | (jq).ocs.data.data[0].signers[0].identifyMethods[0].value  | signer1       |
     And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
