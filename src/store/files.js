@@ -122,6 +122,37 @@ export const useFilesStore = function(...args) {
 				}
 				return null
 			},
+			getFileIdByUuid(uuid) {
+				for (const [key, file] of Object.entries(this.files)) {
+					if (file.uuid === uuid) {
+						return file.id || key
+					}
+				}
+				return null
+			},
+			async selectFileByUuid(uuid) {
+				let fileId = this.getFileIdByUuid(uuid)
+
+				if (!fileId || fileId < 0) {
+					const files = await this.getAllFiles({
+						'uuids[]': [uuid],
+						force_fetch: true,
+					})
+
+					for (const [key, file] of Object.entries(files)) {
+						this.addFile(file)
+						fileId = file.id
+						break
+					}
+				}
+
+				if (!fileId) {
+					return null
+				}
+
+				this.selectFile(fileId)
+				return fileId
+			},
 			getFile(file) {
 				if (typeof file === 'object' && file !== null) {
 					return file
