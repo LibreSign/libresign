@@ -9,16 +9,16 @@
     "packages-dev": [
         {
             "name": "nextcloud/ocp",
-            "version": "v32.0.5",
+            "version": "v32.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "a79703d9f38e964b003ae1cc805b6531d142fa93"
+                "reference": "83cf79e2922fe1c969adeeac8dbb10e173a8d781"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/a79703d9f38e964b003ae1cc805b6531d142fa93",
-                "reference": "a79703d9f38e964b003ae1cc805b6531d142fa93",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/83cf79e2922fe1c969adeeac8dbb10e173a8d781",
+                "reference": "83cf79e2922fe1c969adeeac8dbb10e173a8d781",
                 "shasum": ""
             },
             "require": {
@@ -51,9 +51,9 @@
             "description": "Composer package containing Nextcloud's public OCP API and the unstable NCU API",
             "support": {
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
-                "source": "https://github.com/nextcloud-deps/ocp/tree/v32.0.5"
+                "source": "https://github.com/nextcloud-deps/ocp/tree/v32.0.6"
             },
-            "time": "2026-01-09T00:57:52+00:00"
+            "time": "2026-02-06T01:05:41+00:00"
         },
         {
             "name": "nextcloud/rector",
@@ -500,5 +500,5 @@
     "prefer-lowest": false,
     "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

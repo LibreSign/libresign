@@ -423,12 +423,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "c34a484ad6a6d6aa05b12f23862483269c7ef9e0"
+                "reference": "6ce31e5724b4a720bb968aafd4f6affc1f22e5c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/c34a484ad6a6d6aa05b12f23862483269c7ef9e0",
-                "reference": "c34a484ad6a6d6aa05b12f23862483269c7ef9e0",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/6ce31e5724b4a720bb968aafd4f6affc1f22e5c4",
+                "reference": "6ce31e5724b4a720bb968aafd4f6affc1f22e5c4",
                 "shasum": ""
             },
             "require": {
@@ -464,7 +464,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/master"
             },
-            "time": "2026-02-09T19:49:58+00:00"
+            "time": "2026-02-13T01:14:34+00:00"
         },
         {
             "name": "psr/clock",
@@ -673,12 +673,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "0827484199a3d7d67a4f0f72637f235ca29b48d6"
+                "reference": "9ad81949d95f2c5abc5eee283ca8349db6b42be9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/0827484199a3d7d67a4f0f72637f235ca29b48d6",
-                "reference": "0827484199a3d7d67a4f0f72637f235ca29b48d6",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/9ad81949d95f2c5abc5eee283ca8349db6b42be9",
+                "reference": "9ad81949d95f2c5abc5eee283ca8349db6b42be9",
                 "shasum": ""
             },
             "conflict": {
@@ -786,6 +786,7 @@
                 "causal/oidc": "<4",
                 "cecil/cecil": "<7.47.1",
                 "centreon/centreon": "<22.10.15",
+                "cesargb/laravel-magiclink": ">=2,<2.25.1",
                 "cesnet/simplesamlphp-module-proxystatistics": "<3.1",
                 "chriskacerguis/codeigniter-restserver": "<=2.7.1",
                 "chrome-php/chrome": "<1.14",
@@ -1688,7 +1689,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-02-11T19:25:13+00:00"
+            "time": "2026-02-12T23:09:51+00:00"
         }
     ],
     "aliases": [],
@@ -1704,5 +1705,5 @@
     "platform-overrides": {
         "php": "8.2"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
