@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Crl;
 
 use DateTime;
-use OCA\Libresign\Service\CrlService;
+use OCA\Libresign\Service\Crl\CrlService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -58,7 +58,14 @@ class Cleanup extends Command {
 
 		try {
 			$cleanupDate = new DateTime();
-			$cleanupDate->modify("-{$period}");
+			$result = @$cleanupDate->modify("-{$period}");
+			if ($result === false) {
+				throw new \InvalidArgumentException("Invalid period format: {$period}");
+			}
+			$now = new DateTime();
+			if ($cleanupDate > $now) {
+				throw new \InvalidArgumentException('Period must result in a past date for cleanup');
+			}
 		} catch (\Exception $e) {
 			$io->error("Invalid period format: {$period}. Use formats like '1 year', '6 months', '30 days'");
 			return Command::FAILURE;
@@ -68,33 +75,33 @@ class Cleanup extends Command {
 		$io->text("Period: {$period}");
 		$io->text('Cleanup date: ' . $cleanupDate->format('Y-m-d H:i:s'));
 
-		$stats = $this->crlService->getStatistics();
-
-		$totalCertificates = array_sum($stats);
-		$validCertificates = $stats['issued'] ?? 0;
-		$revokedCertificates = $stats['revoked'] ?? 0;
-		$expiredCertificates = $stats['expired'] ?? 0;
-
-		$io->section('Current Statistics');
-		$io->table(
-			['Metric', 'Count'],
-			[
-				['Total Certificates', $totalCertificates],
-				['Valid Certificates', $validCertificates],
-				['Revoked Certificates', $revokedCertificates],
-				['Expired Certificates', $expiredCertificates],
-			]
-		);
-
-		if ($isDryRun) {
-			$io->section('Dry Run Results');
-			$io->text('Would clean up expired certificates older than ' . $cleanupDate->format('Y-m-d H:i:s'));
-			$io->warning('Use --dry-run=false or remove --dry-run to perform actual cleanup');
-			return Command::SUCCESS;
-		}
-
-		$io->section('Performing Cleanup');
 		try {
+			$stats = $this->crlService->getStatistics();
+
+			$totalCertificates = array_sum($stats);
+			$validCertificates = $stats['issued'] ?? 0;
+			$revokedCertificates = $stats['revoked'] ?? 0;
+			$expiredCertificates = $stats['expired'] ?? 0;
+
+			$io->section('Current Statistics');
+			$io->table(
+				['Metric', 'Count'],
+				[
+					['Total Certificates', $totalCertificates],
+					['Valid Certificates', $validCertificates],
+					['Revoked Certificates', $revokedCertificates],
+					['Expired Certificates', $expiredCertificates],
+				]
+			);
+
+			if ($isDryRun) {
+				$io->section('Dry Run Results');
+				$io->text('Would clean up expired certificates older than ' . $cleanupDate->format('Y-m-d H:i:s'));
+				$io->warning('Use --dry-run=false or remove --dry-run to perform actual cleanup');
+				return Command::SUCCESS;
+			}
+
+			$io->section('Performing Cleanup');
 			$deletedCount = $this->crlService->cleanupExpiredCertificates($cleanupDate);
 
 			if ($deletedCount > 0) {

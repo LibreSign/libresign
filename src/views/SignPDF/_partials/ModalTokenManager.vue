@@ -3,9 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="signMethodsStore.modal.sms"
+	<NcDialog v-if="signMethodsStore.modal.token"
 		:name="t('libresign', 'Sign with your phone number.')"
-		@closing="signMethodsStore.closeModal('sms')">
+		@closing="signMethodsStore.closeModal('token')">
 		<div v-if="tokenRequested" class="code-request">
 			<h3 class="phone">
 				{{ newPhoneNumber }}
@@ -91,13 +91,14 @@ export default {
 	},
 	computed: {
 		activeTokenMethod() {
-			const tokenMethods = ['sms', 'whatsapp', 'signal', 'telegram', 'xmpp']
+			const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 			return tokenMethods.find(method =>
 				Object.hasOwn(this.signMethodsStore.settings, method)
-			) || 'sms'
+			)
 		},
 		activeIdentifyMethod() {
-			return this.activeTokenMethod
+			const signatureMethodData = this.signMethodsStore.settings[this.activeTokenMethod]
+			return signatureMethodData.identifyMethod
 		},
 	},
 	methods: {
@@ -155,17 +156,17 @@ export default {
 				)
 					showSuccess(data.ocs.data.message)
 				}
-			this.tokenRequested = true
-		} catch (err) {
-			const errorMessage = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
+				this.tokenRequested = true
+			} catch (err) {
+				const errorMessage = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
 
-			if (errorMessage && errorMessage.includes('Invalid configuration')) {
-				const method = this.activeTokenMethod.charAt(0).toUpperCase() + this.activeTokenMethod.slice(1)
-				showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
-			} else {
-				showError(errorMessage)
-			}
-		} finally {
+				if (errorMessage && errorMessage.includes('Invalid configuration')) {
+					const method = this.activeTokenMethod.charAt(0).toUpperCase() + this.activeTokenMethod.slice(1)
+					showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
+				} else {
+					showError(errorMessage)
+				}
+			} finally {
 				this.loading = false
 			}
 		},

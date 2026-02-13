@@ -14,6 +14,7 @@ use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\SerialNumberService;
+use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -29,14 +30,13 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppDataFactory $appDataFactory;
 	private IDateTimeFormatter $dateTimeFormatter;
 	private ITempManager $tempManager;
-	private OpenSslHandler $openSslHandler;
 	protected CertificatePolicyService $certificatePolicyService;
 	private SerialNumberService $serialNumberService;
 	private IURLGenerator $urlGenerator;
 	private CaIdentifierService $caIdentifierService;
 	private CrlMapper $crlMapper;
 	private LoggerInterface $logger;
-	private string $tempDir;
+	private SubjectAlternativeNameService $subjectAlternativeNameService;
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
@@ -46,10 +46,10 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->certificatePolicyService = \OCP\Server::get(CertificatePolicyService::class);
 		$this->serialNumberService = \OCP\Server::get(SerialNumberService::class);
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
-		$this->tempDir = $this->tempManager->getTemporaryFolder('certificate');
 		$this->caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
 		$this->crlMapper = \OCP\Server::get(CrlMapper::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
+		$this->subjectAlternativeNameService = \OCP\Server::get(SubjectAlternativeNameService::class);
 		$this->caIdentifierService->generateCaId('openssl');
 	}
 
@@ -66,6 +66,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->caIdentifierService,
 			$this->logger,
 			$this->crlMapper,
+			$this->subjectAlternativeNameService,
 		);
 	}
 

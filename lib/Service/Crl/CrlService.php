@@ -7,12 +7,14 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\Crl;
 
 use DateTime;
 use OCA\Libresign\Db\CrlMapper;
+use OCA\Libresign\Enum\CertificateEngineType;
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Service\Certificate\FileService;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -24,14 +26,30 @@ class CrlService {
 		private CrlMapper $crlMapper,
 		private LoggerInterface $logger,
 		private CertificateEngineFactory $certificateEngineFactory,
+		private CrlUrlParserService $crlUrlParserService,
+		private FileService $certificateFileService,
 	) {
 	}
 
-	private static function isValidReasonCode(int $reasonCode): bool {
-		return CRLReason::isValid($reasonCode);
+	public function getRootCertificateFromCrlUrls(array $crlUrls): string {
+		foreach ($crlUrls as $crlUrl) {
+			$crlInfo = $this->crlUrlParserService->parseUrl($crlUrl);
+			if ($crlInfo === null) {
+				continue;
+			}
+			$engineType = CertificateEngineType::tryFromValue($crlInfo['engineType']);
+			if ($engineType === null) {
+				continue;
+			}
+			return $this->certificateFileService->getRootCertificateByGeneration(
+				$crlInfo['instanceId'],
+				$crlInfo['generation'],
+				$engineType
+			);
+		}
+
+		return '';
 	}
-
-
 
 	public function revokeCertificate(
 		string $serialNumber,
@@ -300,5 +318,4 @@ class CrlService {
 			'length' => $length,
 		];
 	}
-
 }

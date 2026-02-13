@@ -10,13 +10,13 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 
-class Signal extends TwofactorGatewayToken {
+class SmsToken extends TwofactorGatewayToken {
 	public function __construct(
 		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
 	) {
-		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Signal
-		$this->setFriendlyName($this->identifyService->getL10n()->t('Signal'));
+		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by SMS token
+		$this->setFriendlyName($this->identifyService->getL10n()->t('SMS token'));
 		parent::__construct(
 			$identifyService,
 			$tokenService,
