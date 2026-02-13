@@ -140,21 +140,71 @@ final class FileListServiceTest extends TestCase {
 		];
 	}
 
-	public function testFileWithoutSignersHasEmptyStructure(): void {
+	public function testFileWithoutSignersUsesStatusMapping(): void {
 		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$file->setStatus(0); // DRAFT status
 
 		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([]);
 		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
 		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
 
-		$this->l10n->method('t')->willReturnCallback(fn ($text) => $text);
+		$this->fileMapper->method('getTextOfStatus')->with(0)->willReturn('Draft');
 
 		$service = $this->getService();
 		$result = $service->formatSingleFile($this->user, $file);
 
 		$this->assertEmpty($result['signers']);
-		$this->assertEquals('no signers', $result['statusText']);
+		$this->assertEquals('Draft', $result['statusText']);
 		$this->assertEmpty($result['visibleElements']);
+	}
+
+	public function testDraftFileWithSignersHasConsistentStatusText(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$file->setStatus(0); // DRAFT status
+
+		$signer = $this->createSigner(100, 1);
+
+		$identifyMethod = $this->createIdentifyMethod(IdentifyMethodService::IDENTIFY_ACCOUNT, 'test-user');
+
+		$this->user->method('getUID')->willReturn('other-user');
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([100 => [$identifyMethod]]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+
+		$this->fileMapper->method('getTextOfStatus')->with(0)->willReturn('Draft');
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertNotEmpty($result['signers']);
+		$this->assertEquals('Draft', $result['statusText']);
+	}
+
+	public function testStatusTextIsConsistentBetweenFormattingMethods(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$file->setStatus(0); // DRAFT status
+
+		$signer = $this->createSigner(100, 1);
+
+		$identifyMethod = $this->createIdentifyMethod(IdentifyMethodService::IDENTIFY_ACCOUNT, 'test-user');
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([100 => [$identifyMethod]]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+
+		$this->fileMapper->method('getTextOfStatus')->with(0)->willReturn('Draft');
+
+		$service = $this->getService();
+
+		$result1 = $service->formatSingleFile($this->user, $file);
+
+		$result2 = $service->formatFileWithChildren($file, [], $this->user);
+
+		$this->assertEquals('Draft', $result1['statusText']);
+		$this->assertEquals('Draft', $result2['statusText']);
 	}
 
 	public function testSignersAreSortedBySigningOrderThenById(): void {
