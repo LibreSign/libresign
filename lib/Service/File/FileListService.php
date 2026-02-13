@@ -256,6 +256,8 @@ class FileListService {
 
 		$file['statusText'] = $this->fileMapper->getTextOfStatus((int)$file['status']);
 
+		$file['signersCount'] = count($file['signers']);
+
 		if (count($file['signers']) > 0) {
 			usort($file['signers'], function ($a, $b) {
 				$orderA = $a['signingOrder'] ?? PHP_INT_MAX;
@@ -540,6 +542,7 @@ class FileListService {
 			'metadata' => $metadata,
 			'signatureFlow' => SignatureFlow::fromNumeric($mainEntity->getSignatureFlow())->value,
 			'signers' => $signers,
+			'signersCount' => count($signers),
 			'requested_by' => [
 				'userId' => $mainEntity->getUserId(),
 				'displayName' => $this->userManager->get($mainEntity->getUserId())?->getDisplayName() ?? $mainEntity->getUserId(),
@@ -785,6 +788,7 @@ class FileListService {
 				'name' => $file->getName(),
 				'status' => $file->getStatus(),
 				'statusText' => $this->fileMapper->getTextOfStatus($file->getStatus()),
+				'signersCount' => count($signers),
 				'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]),
 				'metadata' => $metadata,
 				'signers' => $signersFormatted,
