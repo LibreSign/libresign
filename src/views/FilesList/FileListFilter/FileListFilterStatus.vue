@@ -88,7 +88,6 @@ export default {
 
 					chips.push({
 						id: status.id,
-						icon: status.icon || '',
 						text: status.label,
 						onclick: () => {
 							this.selectedOptions = this.selectedOptions.filter(v => v !== status.id)
@@ -124,7 +123,6 @@ export default {
 
 					chips.push({
 						id: status.id,
-						icon: status.icon || '',
 						text: status.label,
 						onclick: () => {
 							this.selectedOptions = this.selectedOptions.filter(v => v !== id)
