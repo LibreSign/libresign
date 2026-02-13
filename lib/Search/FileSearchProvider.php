@@ -79,7 +79,7 @@ class FileSearchProvider implements IProvider {
 		);
 	}
 
-	private function formatResult(File $file): SearchResultEntry {
+	private function formatResult(File $file, IUser $user): SearchResultEntry {
 		$userFolder = $this->rootFolder->getUserFolder($file->getUserId());
 		$thumbnailUrl = '';
 		$subline = '';
@@ -108,16 +108,24 @@ class FileSearchProvider implements IProvider {
 		} catch (\Exception $e) {
 		}
 
-		$link = $this->urlGenerator->linkToRoute(
-			'files.View.showFile',
-			['fileid' => $file->getNodeId()]
-		);
+		if ($file->getUserId() === $user->getUID()) {
+			$link = $this->urlGenerator->linkToRouteAbsolute(
+				'libresign.page.indexFPath',
+				['path' => 'filelist/sign']
+			);
+			$link .= '?uuid=' . urlencode($file->getUuid());
+		} else {
+			$link = $this->urlGenerator->linkToRouteAbsolute(
+				'libresign.page.indexFPath',
+				['path' => 'validation/' . $file->getUuid()]
+			);
+		}
 
 		$searchResultEntry = new SearchResultEntry(
 			$thumbnailUrl,
 			$file->getName(),
 			$subline,
-			$this->urlGenerator->getAbsoluteURL($link),
+			$link,
 			$icon,
 		);
 
