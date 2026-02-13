@@ -290,6 +290,7 @@ namespace OCA\Libresign;
  *     name: non-falsy-string,
  *     status: int,
  *     statusText: string,
+ *     signersCount: int,
  *     file: string,
  *     metadata: LibresignValidateMetadata,
  *     signers: list<LibresignEnvelopeChildSignerSummary>,
@@ -309,6 +310,7 @@ namespace OCA\Libresign;
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  *     visibleElements: LibresignVisibleElement[],
  *     signers: LibresignSigner[],
+ *     signersCount: int,
  *     requested_by: array{
  *         userId: string,
  *         displayName: string,
@@ -333,6 +335,7 @@ namespace OCA\Libresign;
  *     signers: list<LibresignSigner>,
  *     status: int,
  *     statusText: string,
+ *     signersCount: int,
  *     uuid: string,
  *     visibleElements: LibresignVisibleElement[],
  * }
