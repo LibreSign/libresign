@@ -19,8 +19,6 @@ const mocks = vi.hoisted(() => {
 	}
 })
 
-let action
-
 vi.mock('@nextcloud/files', () => ({
 	FileAction: class {
 		constructor(config) {
@@ -58,15 +56,17 @@ describe('showStatusInlineAction', () => {
 	let action
 
 	beforeAll(async () => {
+		mocks.capturedActionRef.value = null
+		vi.resetModules()
 		mocks.mockLoadState.mockReturnValue(true)
 		await import('../../actions/showStatusInlineAction.js')
 		action = mocks.capturedActionRef.value
 	})
 
 	beforeEach(() => {
-		mockGetSidebar.mockClear()
-		mockLoadState.mockClear()
-		mockLoadState.mockReturnValue(true)
+		mocks.mockGetSidebar.mockClear()
+		mocks.mockLoadState.mockClear()
+		mocks.mockLoadState.mockReturnValue(true)
 
 		// Mock window.OCA.Files.Sidebar for Nextcloud 32
 		if (!global.window) {
