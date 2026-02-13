@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Collaboration\Collaborators;
 use OC\Collaboration\Collaborators\SearchResult;
 use OC\KnownUser\KnownUserService;
 use OCA\Libresign\Collaboration\Collaborators\AccountPhonePlugin;
+use OCA\Libresign\Service\Identify\SearchNormalizer;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Accounts\IAccountManager;
@@ -75,6 +76,10 @@ class AccountPhonePluginTest extends TestCase {
 		$context = new SignerSearchContext();
 		$context->set($method, '+12025551234', '+12025551234');
 
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturn('+12025551234');
+
 		$plugin = new AccountPhonePlugin(
 			$appConfig,
 			$accountManager,
@@ -83,6 +88,7 @@ class AccountPhonePluginTest extends TestCase {
 			$knownUserService,
 			$userManager,
 			$context,
+			$searchNormalizer,
 		);
 
 		$searchResult = new SearchResult();
@@ -128,6 +134,10 @@ class AccountPhonePluginTest extends TestCase {
 		$context = new SignerSearchContext();
 		$context->set('sms', '+12025550001', '+12025550001');
 
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturn('+12025550001');
+
 		$plugin = new AccountPhonePlugin(
 			$appConfig,
 			$accountManager,
@@ -136,6 +146,7 @@ class AccountPhonePluginTest extends TestCase {
 			$knownUserService,
 			$userManager,
 			$context,
+			$searchNormalizer,
 		);
 
 		$searchResult = new SearchResult();
@@ -179,6 +190,10 @@ class AccountPhonePluginTest extends TestCase {
 		$context = new SignerSearchContext();
 		$context->set('sms', '+12025551234', '+12025551234');
 
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturn('+12025550001');
+
 		$plugin = new AccountPhonePlugin(
 			$appConfig,
 			$accountManager,
@@ -187,6 +202,7 @@ class AccountPhonePluginTest extends TestCase {
 			$knownUserService,
 			$userManager,
 			$context,
+			$searchNormalizer,
 		);
 
 		$searchResult = new SearchResult();
@@ -229,6 +245,10 @@ class AccountPhonePluginTest extends TestCase {
 		$context = new SignerSearchContext();
 		$context->set('sms', '+12025551234', '+12025551234');
 
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturn('+12025551234');
+
 		$plugin = new AccountPhonePlugin(
 			$appConfig,
 			$accountManager,
@@ -237,6 +257,7 @@ class AccountPhonePluginTest extends TestCase {
 			$knownUserService,
 			$userManager,
 			$context,
+			$searchNormalizer,
 		);
 
 		$searchResult = new SearchResult();
@@ -245,6 +266,63 @@ class AccountPhonePluginTest extends TestCase {
 		$results = $searchResult->asArray();
 		$items = array_merge($results['account-phone'] ?? [], $results['exact']['account-phone'] ?? []);
 		$this->assertSame(AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE, $items[0]['value']['shareType']);
+	}
+
+	public function testSearchFiltersUsersWithInvalidPhoneNumbers(): void {
+		$appConfig = $this->applyAppConfig([
+			'shareapi_allow_share_dialog_user_enumeration' => 'yes',
+		]);
+
+		// Return user with phone number that cannot be normalized
+		$accountManager = $this->createStub(IAccountManager::class);
+		$accountManager->method('searchUsers')
+			->willReturn(['999999999' => 'target']);
+
+		$currentUser = $this->createStub(IUser::class);
+		$currentUser->method('getUID')->willReturn('current');
+
+		$userSession = $this->createStub(IUserSession::class);
+		$userSession->method('getUser')->willReturn($currentUser);
+
+		$user = $this->createStub(IUser::class);
+		$user->method('getUID')->willReturn('target');
+		$user->method('isEnabled')->willReturn(true);
+		$user->method('getDisplayName')->willReturn('Target User');
+
+		$userManager = $this->createStub(IUserManager::class);
+		$userManager->method('get')->willReturn($user);
+
+		$groupManager = $this->createStub(IGroupManager::class);
+		$groupManager->method('getUserGroupIds')->willReturn(['sales']);
+
+		$knownUserService = $this->createStub(KnownUserService::class);
+		$knownUserService->method('isKnownToUser')->willReturn(true);
+
+		$context = new SignerSearchContext();
+		$context->set('sms', '999999999', '999999999');
+
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->with('999999999', 'sms')
+			->willReturn(null); // Cannot normalize
+
+		$plugin = new AccountPhonePlugin(
+			$appConfig,
+			$accountManager,
+			$groupManager,
+			$userSession,
+			$knownUserService,
+			$userManager,
+			$context,
+			$searchNormalizer,
+		);
+
+		$searchResult = new SearchResult();
+		$plugin->search('999999999', 10, 0, $searchResult);
+
+		$results = $searchResult->asArray();
+		$items = array_merge($results['account-phone'] ?? [], $results['exact']['account-phone'] ?? []);
+		$this->assertCount(0, $items); // User should be filtered out
 	}
 
 	public static function providerSearchScenarios(): array {
