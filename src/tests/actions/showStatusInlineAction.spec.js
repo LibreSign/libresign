@@ -19,8 +19,6 @@ const mocks = vi.hoisted(() => {
 	}
 })
 
-let action
-
 vi.mock('@nextcloud/files', () => ({
 	FileAction: class {
 		constructor(config) {
@@ -61,6 +59,12 @@ describe('showStatusInlineAction', () => {
 		mocks.mockLoadState.mockReturnValue(true)
 		await import('../../actions/showStatusInlineAction.js')
 		action = mocks.capturedActionRef.value
+	})
+
+	beforeEach(() => {
+		mocks.mockGetSidebar.mockClear()
+		mocks.mockLoadState.mockClear()
+		mocks.mockLoadState.mockReturnValue(true)
 	})
 
 	it('has correct id', () => {
