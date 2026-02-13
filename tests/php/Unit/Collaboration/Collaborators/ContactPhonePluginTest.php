@@ -83,6 +83,10 @@ class ContactPhonePluginTest extends TestCase {
 		$context = new SignerSearchContext();
 		$context->set($method, '+12025551234', '+12025551234');
 
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturnCallback(fn(string $input) => $input);
+
 		$plugin = new ContactPhonePlugin(
 			$appConfig,
 			$contactsManager,
@@ -91,7 +95,7 @@ class ContactPhonePluginTest extends TestCase {
 			$userSession,
 			$knownUserService,
 			$context,
-			$this->createSearchNormalizerMock('+12025551234'),
+			$searchNormalizer,
 		);
 
 		$searchResult = new SearchResult();
@@ -137,6 +141,10 @@ class ContactPhonePluginTest extends TestCase {
 		$context = new SignerSearchContext();
 		$context->set('sms', '+12025551234', '+12025551234');
 
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturnCallback(fn(string $input) => $input);
+
 		$plugin = new ContactPhonePlugin(
 			$appConfig,
 			$contactsManager,
@@ -145,7 +153,7 @@ class ContactPhonePluginTest extends TestCase {
 			$userSession,
 			$knownUserService,
 			$context,
-			$this->createSearchNormalizerMock('+12025551234'),
+			$searchNormalizer,
 		);
 
 		$searchResult = new SearchResult();
@@ -197,6 +205,10 @@ class ContactPhonePluginTest extends TestCase {
 		$context = new SignerSearchContext();
 		$context->set('sms', '+12025550001', '+12025550001');
 
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturnCallback(fn(string $input) => $input);
+
 		$plugin = new ContactPhonePlugin(
 			$appConfig,
 			$contactsManager,
@@ -205,7 +217,7 @@ class ContactPhonePluginTest extends TestCase {
 			$userSession,
 			$knownUserService,
 			$context,
-			$this->createSearchNormalizerMock('+12025550001'),
+			$searchNormalizer,
 		);
 
 		$searchResult = new SearchResult();
@@ -264,6 +276,10 @@ class ContactPhonePluginTest extends TestCase {
 		$context = new SignerSearchContext();
 		$context->set('sms', '+12025551234', '+12025551234');
 
+		$searchNormalizer = $this->createMock(SearchNormalizer::class);
+		$searchNormalizer->method('tryNormalizePhoneNumber')
+			->willReturnCallback(fn(string $input) => $input);
+
 		$plugin = new ContactPhonePlugin(
 			$appConfig,
 			$contactsManager,
@@ -272,7 +288,7 @@ class ContactPhonePluginTest extends TestCase {
 			$userSession,
 			$knownUserService,
 			$context,
-			$this->createSearchNormalizerMock('+12025551234'),
+			$searchNormalizer,
 		);
 
 		$searchResult = new SearchResult();
@@ -453,13 +469,6 @@ class ContactPhonePluginTest extends TestCase {
 				'expectedCount' => 0,
 			],
 		];
-	}
-
-	private function createSearchNormalizerMock(string $phoneNumber): SearchNormalizer {
-		$searchNormalizer = $this->createMock(SearchNormalizer::class);
-		$searchNormalizer->method('tryNormalizePhoneNumber')
-			->willReturn($phoneNumber); // Return the normalized number
-		return $searchNormalizer;
 	}
 
 	private function applyAppConfig(array $config) {
