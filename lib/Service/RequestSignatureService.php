@@ -623,7 +623,16 @@ class RequestSignatureService {
 				->reorderAfterDeletion($file->getId(), $deletedOrder);
 
 			$this->propagateSignerDeletionToChildren($file, $signRequest);
+			$this->revertStatusToDraftIfNoSignersRemain($file);
 		} catch (\Throwable) {
+		}
+	}
+
+	private function revertStatusToDraftIfNoSignersRemain(FileEntity $file): void {
+		$remaining = $this->signRequestMapper->getByFileId($file->getId());
+		if (empty($remaining)) {
+			$file->setStatus(FileStatus::DRAFT->value);
+			$this->fileStatusService->update($file);
 		}
 	}
 
