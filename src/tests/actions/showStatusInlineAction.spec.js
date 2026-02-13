@@ -19,8 +19,6 @@ const mocks = vi.hoisted(() => {
 	}
 })
 
-let action
-
 vi.mock('@nextcloud/files', () => ({
 	FileAction: class {
 		constructor(config) {
