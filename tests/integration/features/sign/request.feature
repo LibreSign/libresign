@@ -542,30 +542,30 @@ Feature: request-signature
     And the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should be a JSON array with the following mandatory values
-      | key                                            | value                   |
-      | (jq).ocs.data.data[0].name                     | document                |
-      | (jq).ocs.data.data[0].status                   | 1                       |
-      | (jq).ocs.data.data[0].statusText               | available for signature |
-      | (jq).ocs.data.data[0].requested_by.userId      | admin                   |
-      | (jq).ocs.data.data[0].signers\|length          | 2                       |
-      | (jq).ocs.data.data[0].signers[0].email         | signer1@domain.test     |
-      | (jq).ocs.data.data[0].signers[0].me            | false                   |
-      | (jq).ocs.data.data[0].signers[1].email         |                         |
-      | (jq).ocs.data.data[0].signers[1].me            | false                   |
+      | key                                            | value               |
+      | (jq).ocs.data.data[0].name                     | document            |
+      | (jq).ocs.data.data[0].status                   | 1                   |
+      | (jq).ocs.data.data[0].statusText               | Ready to sign       |
+      | (jq).ocs.data.data[0].requested_by.userId      | admin               |
+      | (jq).ocs.data.data[0].signers\|length          | 2                   |
+      | (jq).ocs.data.data[0].signers[0].email         | signer1@domain.test |
+      | (jq).ocs.data.data[0].signers[0].me            | false               |
+      | (jq).ocs.data.data[0].signers[1].email         |                     |
+      | (jq).ocs.data.data[0].signers[1].me            | false               |
     And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
       | users | [{"identify":{"email":"signer1@domain.test"}}] |
     And the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should be a JSON array with the following mandatory values
-      | key                                            | value                   |
-      | (jq).ocs.data.data[0].name                     | document                |
-      | (jq).ocs.data.data[0].status                   | 1                       |
-      | (jq).ocs.data.data[0].statusText               | available for signature |
-      | (jq).ocs.data.data[0].requested_by.userId      | admin                   |
-      | (jq).ocs.data.data[0].signers\|length          | 1                       |
-      | (jq).ocs.data.data[0].signers[0].email         | signer1@domain.test     |
-      | (jq).ocs.data.data[0].signers[0].me            | false                   |
+      | key                                            | value               |
+      | (jq).ocs.data.data[0].name                     | document            |
+      | (jq).ocs.data.data[0].status                   | 1                   |
+      | (jq).ocs.data.data[0].statusText               | Ready to sign       |
+      | (jq).ocs.data.data[0].requested_by.userId      | admin               |
+      | (jq).ocs.data.data[0].signers\|length          | 1                   |
+      | (jq).ocs.data.data[0].signers[0].email         | signer1@domain.test |
+      | (jq).ocs.data.data[0].signers[0].me            | false               |
 
   Scenario: Not notify with status 0 and notify with status 1
     Given run the command "libresign:configure:openssl --cn test" with result code 0
