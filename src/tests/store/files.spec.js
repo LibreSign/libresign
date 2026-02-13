@@ -765,6 +765,53 @@ describe('files store - critical business rules', () => {
 		})
 	})
 
+	describe('RULE: file lookup by UUID', () => {
+		it('returns file id when uuid matches', () => {
+			const store = useFilesStore()
+			store.files[10] = { id: 10, uuid: 'abc-123-def' }
+
+			expect(store.getFileIdByUuid('abc-123-def')).toBe(10)
+			expect(store.getFileIdByUuid('invalid-uuid')).toBe(null)
+		})
+
+		it('selects file when uuid exists', async () => {
+			const store = useFilesStore()
+			store.files[10] = { id: 10, uuid: 'xyz-789-uvw' }
+
+			const result = await store.selectFileByUuid('xyz-789-uvw')
+			expect(result).toBe(10)
+			expect(store.selectedFileId).toBe(10)
+		})
+
+		it('fetches file when uuid missing', async () => {
+			const store = useFilesStore()
+			const addFileSpy = vi.spyOn(store, 'addFile')
+			const getAllSpy = vi.spyOn(store, 'getAllFiles').mockResolvedValue({
+				10: { id: 10, uuid: 'new-uuid-pqr', signers: [] },
+			})
+
+			const result = await store.selectFileByUuid('new-uuid-pqr')
+
+			expect(getAllSpy).toHaveBeenCalledWith({
+				'uuids[]': ['new-uuid-pqr'],
+				force_fetch: true,
+			})
+			expect(addFileSpy).toHaveBeenCalled()
+			expect(result).toBe(10)
+			expect(store.selectedFileId).toBe(10)
+		})
+
+		it('returns null when uuid not found', async () => {
+			const store = useFilesStore()
+			vi.spyOn(store, 'getAllFiles').mockResolvedValue({})
+
+			const result = await store.selectFileByUuid('nonexistent-uuid')
+
+			expect(result).toBe(null)
+			expect(store.selectedFileId).toBe(0)
+		})
+	})
+
 	describe('RULE: selected file refresh', () => {
 		it('updates selected file when flushed', async () => {
 			const store = useFilesStore()
