@@ -442,11 +442,17 @@ export default {
 }
 
 	.files-list__row-mtime,
+	.files-list__row-signers,
 	.files-list__row-status {
 		color: var(--color-text-maxcontrast);
 	}
 	.files-list__row-status {
 		width: calc(var(--row-height) * 2.5);
+		justify-content: center;
+	}
+
+	.files-list__row-signers {
+		width: calc(var(--row-height) * 2);
 		justify-content: center;
 	}
 
@@ -467,11 +473,13 @@ export default {
 }
 
 @media screen and (max-width: 768px) {
-	.files-list__row-status {
+	.files-list__row-status,
+	.files-list__row-signers {
 		width: calc(var(--row-height) * 0.8) !important;
 	}
 
-	:deep(.files-list__row-status) {
+	:deep(.files-list__row-status),
+	:deep(.files-list__row-signers) {
 		width: calc(var(--row-height) * 0.8) !important;
 	}
 }
@@ -572,6 +580,10 @@ tbody.files-list__tbody.files-list__tbody--grid {
 		inset-inline-end: var(--item-padding);
 		width: var(--clickable-area);
 		height: var(--clickable-area);
+	}
+
+	.files-list__row-signers {
+		display: none; // Hide signers count in grid view
 	}
 
 	.files-list__row-mtime {
