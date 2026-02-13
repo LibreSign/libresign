@@ -21,12 +21,10 @@ class SearchNormalizer {
 	}
 
 	public function normalize(string $search, string $method): string {
-		// Non-phone methods return unchanged
 		if (!in_array($method, self::PHONE_BASED_METHODS, true)) {
 			return $search;
 		}
 
-		// Already in international format
 		if (str_starts_with($search, '+')) {
 			return $search;
 		}
@@ -36,9 +34,30 @@ class SearchNormalizer {
 			return $search;
 		}
 
-		// convertToStandardFormat validates and normalizes, returns null if invalid
 		$standardFormat = $this->phoneNumberUtil->convertToStandardFormat($search, $defaultRegion);
 
 		return $standardFormat ?? $search;
+	}
+
+	public function tryNormalizePhoneNumber(string $phoneNumber, string $method): ?string {
+		if (!in_array($method, self::PHONE_BASED_METHODS, true)) {
+			return null;
+		}
+
+		$phoneNumber = trim($phoneNumber);
+		if ($phoneNumber === '') {
+			return null;
+		}
+
+		if (str_starts_with($phoneNumber, '+')) {
+			return $phoneNumber;
+		}
+
+		$defaultRegion = $this->config->getSystemValueString('default_phone_region', '');
+		if ($defaultRegion === '') {
+			return null;
+		}
+
+		return $this->phoneNumberUtil->convertToStandardFormat($phoneNumber, $defaultRegion);
 	}
 }
