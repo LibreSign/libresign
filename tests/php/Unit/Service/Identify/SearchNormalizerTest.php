@@ -28,74 +28,118 @@ class SearchNormalizerTest extends TestCase {
 		$this->normalizer = new SearchNormalizer($this->config, $this->phoneNumberUtil);
 	}
 
-	public function testNonPhoneMethodPassesThroughUnchanged(): void {
-		$result = $this->normalizer->normalize('test@example.com', 'email');
-		$this->assertEquals('test@example.com', $result);
-	}
-
-	public function testPhoneAlreadyInInternationalFormatPassesThroughUnchanged(): void {
-		$result = $this->normalizer->normalize('+5521969501266', 'sms');
-		$this->assertEquals('+5521969501266', $result);
-	}
-
-	public function testPhoneWithoutRegionConfigurationPassesThroughUnchanged(): void {
-		$this->config->expects($this->once())
-			->method('getSystemValueString')
+	#[DataProvider('providerNormalizeScenarios')]
+	public function testNormalize(
+		string $input,
+		string $method,
+		string $defaultRegion,
+		string $expected,
+		string $description,
+	): void {
+		$this->config->method('getSystemValueString')
 			->with('default_phone_region', '')
-			->willReturn('');
+			->willReturn($defaultRegion);
 
-		$result = $this->normalizer->normalize('21969501266', 'sms');
-		$this->assertEquals('21969501266', $result);
+		$result = $this->normalizer->normalize($input, $method);
+		$this->assertEquals($expected, $result, $description);
 	}
 
-	#[DataProvider('providerValidPhoneNumbersNormalizedCorrectly')]
-	public function testValidPhoneNumbersNormalizedToE164Format(string $input, string $region, string $expected): void {
-		$this->config->expects($this->once())
-			->method('getSystemValueString')
-			->with('default_phone_region', '')
-			->willReturn($region);
-
-		$result = $this->normalizer->normalize($input, 'sms');
-		$this->assertEquals($expected, $result);
-	}
-
-	public static function providerValidPhoneNumbersNormalizedCorrectly(): array {
+	public static function providerNormalizeScenarios(): array {
 		return [
-			'Brazil mobile' => ['21969501266', 'BR', '+5521969501266'],
-			'USA mobile' => ['2025551234', 'US', '+12025551234'],
-			'Germany mobile' => ['30123456', 'DE', '+4930123456'],
-			'France landline' => ['123456789', 'FR', '+33123456789'],
-			'Australia number' => ['212345678', 'AU', '+61212345678'],
+			// Non-phone methods pass through unchanged
+			['test@example.com', 'email', 'BR', 'test@example.com', 'Non-phone method (email) passes through'],
+			['john_doe', 'account', 'BR', 'john_doe', 'Non-phone method (account) passes through'],
+			['pass123', 'password', 'BR', 'pass123', 'Non-phone method (password) passes through'],
+
+			// International format passes through unchanged
+			['+5521969501266', 'sms', 'BR', '+5521969501266', 'International format (BR) passes through'],
+			['+12025551234', 'whatsapp', 'US', '+12025551234', 'International format (US) passes through'],
+			['+4930123456', 'telegram', 'DE', '+4930123456', 'International format (DE) passes through'],
+
+			// Without region, returns original
+			['21969501266', 'sms', '', '21969501266', 'Without region returns original'],
+
+			// Valid numbers normalize correctly
+			['21969501266', 'sms', 'BR', '+5521969501266', 'BR mobile normalizes'],
+			['11987654321', 'whatsapp', 'BR', '+5511987654321', 'BR São Paulo normalizes'],
+			['2025551234', 'telegram', 'US', '+12025551234', 'US number normalizes'],
+			['4155551234', 'signal', 'US', '+14155551234', 'US California normalizes'],
+			['30123456', 'sms', 'DE', '+4930123456', 'DE Berlin normalizes'],
+			['123456789', 'whatsapp', 'FR', '+33123456789', 'FR number normalizes'],
+
+			// Invalid numbers return original
+			['123', 'whatsapp', 'BR', '123', 'Too short returns original'],
+			['999999999', 'sms', 'BR', '999999999', 'BR without DDD returns original'],
+
+			// All phone methods work identically
+			['21987776666', 'whatsapp', 'BR', '+5521987776666', 'WhatsApp normalizes'],
+			['21987776666', 'sms', 'BR', '+5521987776666', 'SMS normalizes'],
+			['21987776666', 'telegram', 'BR', '+5521987776666', 'Telegram normalizes'],
+			['21987776666', 'signal', 'BR', '+5521987776666', 'Signal normalizes'],
 		];
 	}
 
-	public function testInvalidPhoneNumbersReturnOriginalInput(): void {
-		$this->config->expects($this->once())
-			->method('getSystemValueString')
+	#[DataProvider('providerTryNormalizePhoneNumberScenarios')]
+	public function testTryNormalizePhoneNumber(
+		string $input,
+		string $method,
+		string $defaultRegion,
+		?string $expected,
+		string $description,
+	): void {
+		$this->config->method('getSystemValueString')
 			->with('default_phone_region', '')
-			->willReturn('BR');
+			->willReturn($defaultRegion);
 
-		$result = $this->normalizer->normalize('123', 'whatsapp');
-		$this->assertEquals('123', $result);
+		$result = $this->normalizer->tryNormalizePhoneNumber($input, $method);
+		$this->assertSame($expected, $result, $description);
 	}
 
-	#[DataProvider('providerAllPhoneMethodsNormalizeIdentically')]
-	public function testAllPhoneMethodsUseNormalization(string $method): void {
-		$this->config->expects($this->once())
-			->method('getSystemValueString')
-			->with('default_phone_region', '')
-			->willReturn('BR');
-
-		$result = $this->normalizer->normalize('21987776666', $method);
-		$this->assertEquals('+5521987776666', $result);
-	}
-
-	public static function providerAllPhoneMethodsNormalizeIdentically(): array {
+	public static function providerTryNormalizePhoneNumberScenarios(): array {
 		return [
-			['whatsapp'],
-			['sms'],
-			['telegram'],
-			['signal'],
+			// Non-phone methods return null (difference from normalize())
+			['test@example.com', 'email', 'BR', null, 'Non-phone method (email) returns null'],
+			['john_doe', 'account', 'BR', null, 'Non-phone method (account) returns null'],
+			['pass123', 'password', 'BR', null, 'Non-phone method (password) returns null'],
+
+			// Empty/whitespace returns null (difference from normalize())
+			['', 'sms', 'BR', null, 'Empty string returns null'],
+			['   ', 'whatsapp', 'BR', null, 'Whitespace returns null'],
+			['  ', 'telegram', 'US', null, 'Spaces return null'],
+
+			// International format passes through
+			['+5521969501266', 'sms', 'BR', '+5521969501266', 'International format (BR) passes through'],
+			['+12025551234', 'whatsapp', 'US', '+12025551234', 'International format (US) passes through'],
+			['+4930123456', 'telegram', 'DE', '+4930123456', 'International format (DE) passes through'],
+
+			// Valid normalization with region
+			['21969501266', 'sms', 'BR', '+5521969501266', 'BR mobile normalizes'],
+			['11987654321', 'whatsapp', 'BR', '+5511987654321', 'BR São Paulo normalizes'],
+			['2025551234', 'telegram', 'US', '+12025551234', 'US number normalizes'],
+			['4155551234', 'signal', 'US', '+14155551234', 'US California normalizes'],
+			['30123456', 'sms', 'DE', '+4930123456', 'DE Berlin normalizes'],
+			['123456789', 'whatsapp', 'FR', '+33123456789', 'FR number normalizes'],
+
+			// Without region returns null (difference from normalize())
+			['21969501266', 'sms', '', null, 'Without region returns null'],
+			['2025551234', 'whatsapp', '', null, 'US number without region returns null'],
+			['11987654321', 'telegram', '', null, 'BR number without region returns null'],
+
+			// Invalid numbers return null (difference from normalize())
+			['999999999', 'sms', 'BR', null, 'BR without DDD returns null'],
+			['12345', 'whatsapp', 'BR', null, 'Too short returns null'],
+			['123', 'telegram', 'US', null, 'Very short returns null'],
+			['00000000', 'signal', 'BR', null, 'Invalid pattern returns null'],
+
+			// All phone methods work identically
+			['21987776666', 'whatsapp', 'BR', '+5521987776666', 'WhatsApp normalizes'],
+			['21987776666', 'sms', 'BR', '+5521987776666', 'SMS normalizes'],
+			['21987776666', 'telegram', 'BR', '+5521987776666', 'Telegram normalizes'],
+			['21987776666', 'signal', 'BR', '+5521987776666', 'Signal normalizes'],
+
+			// Edge cases
+			['+1234', 'sms', 'BR', '+1234', 'Short international format passes through'],
+			['  21969501266  ', 'sms', 'BR', '+5521969501266', 'Trimmed number normalizes'],
 		];
 	}
 }
