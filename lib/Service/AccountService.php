@@ -201,6 +201,8 @@ class AccountService {
 		$info['crl_sort'] = $this->getUserConfigCrlSort($user);
 		$info['grid_view'] = $this->getUserConfigByKey('grid_view', $user) === '1';
 		$info['signer_identify_tab'] = $this->getUserConfigByKey('signer_identify_tab', $user);
+		$info['sorting_mode'] = $this->getUserConfigByKey('sorting_mode', $user) ?: 'name';
+		$info['sorting_direction'] = $this->getUserConfigByKey('sorting_direction', $user) ?: 'asc';
 
 		return array_filter($info);
 	}
