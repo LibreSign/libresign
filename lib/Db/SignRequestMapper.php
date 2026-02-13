@@ -731,6 +731,11 @@ class SignRequestMapper extends CachedQBMapper {
 						$sort['sortDirection'] == 'asc' ? 'asc' : 'desc'
 					);
 					break;
+				case 'signers':
+					if (!$count) {
+						$qb->addOrderBy($qb->createFunction('COUNT(DISTINCT sr.id)'), $sort['sortDirection'] == 'asc' ? 'asc' : 'desc');
+					}
+					break;
 			}
 		}
 
