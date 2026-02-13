@@ -24,6 +24,7 @@ describe('longPolling services', () => {
 		getMock = vi.fn()
 		generateOcsUrlMock = vi.fn(() => '/ocs/wait-status')
 		vi.clearAllMocks()
+		vi.resetModules()
 	})
 
 	afterEach(() => {
