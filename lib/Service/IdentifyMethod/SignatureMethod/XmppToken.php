@@ -10,13 +10,13 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 
-class Whatsapp extends TwofactorGatewayToken {
+class XmppToken extends TwofactorGatewayToken {
 	public function __construct(
 		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
 	) {
-		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by WhatsApp
-		$this->setFriendlyName($this->identifyService->getL10n()->t('WhatsApp'));
+		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by XMPP token
+		$this->setFriendlyName($this->identifyService->getL10n()->t('XMPP token'));
 		parent::__construct(
 			$identifyService,
 			$tokenService,

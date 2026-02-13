@@ -35,7 +35,7 @@ export const REQUIREMENT_TO_MODAL = Object.freeze({
 	identificationDocuments: 'uploadDocuments',
 	emailCode: 'emailToken',
 	createSignature: 'createSignature',
-	tokenCode: 'sms',
+	tokenCode: 'token', // Maps to token modal (which handles all token methods: SMS, WhatsApp, Telegram, Signal, XMPP)
 	uploadCertificate: 'uploadCertificate',
 	createPassword: 'createPassword',
 	passwordSignature: 'password',

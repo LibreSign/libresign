@@ -63,6 +63,7 @@ class IdentifyMethodService {
 		private Telegram $telegram,
 		private Whatsapp $Whatsapp,
 		private Xmpp $xmpp,
+		private SubjectAlternativeNameService $subjectAlternativeNameService,
 	) {
 	}
 
@@ -364,52 +365,7 @@ class IdentifyMethodService {
 		if (!empty($chainArr['subject']['UID'])) {
 			return $chainArr['subject']['UID'];
 		}
-		if (!empty($chainArr['subject']['CN'])) {
-			$cn = $chainArr['subject']['CN'];
-			if (is_array($cn)) {
-				$cn = $cn[0];
-			}
-			if (preg_match('/^(?<key>.*):(?<value>.*), /', (string)$cn, $matches)) {
-				return $matches['key'] . ':' . $matches['value'];
-			}
-		}
-		if (!empty($chainArr['extensions']['subjectAltName'])) {
-			$subjectAltName = $chainArr['extensions']['subjectAltName'];
-			if (is_array($subjectAltName)) {
-				$subjectAltName = $subjectAltName[0];
-			}
-			preg_match('/^(?<key>(email|account)):(?<value>.*)$/', (string)$subjectAltName, $matches);
-			if ($matches) {
-				if (str_ends_with($matches['value'], $host)) {
-					$uid = str_replace('@' . $host, '', $matches['value']);
-					$userFound = $this->userManager->get($uid);
-					if ($userFound) {
-						return 'account:' . $uid;
-					} else {
-						$userFound = $this->userManager->getByEmail($matches['value']);
-						if ($userFound) {
-							$userFound = current($userFound);
-							return 'account:' . $userFound->getUID();
-						} else {
-							return 'email:' . $matches['value'];
-						}
-					}
-				} else {
-					$userFound = $this->userManager->getByEmail($matches['value']);
-					if ($userFound) {
-						$userFound = current($userFound);
-						return 'account:' . $userFound->getUID();
-					} else {
-						$userFound = $this->userManager->get($matches['value']);
-						if ($userFound) {
-							return 'account:' . $userFound->getUID();
-						} else {
-							return $matches['key'] . ':' . $matches['value'];
-						}
-					}
-				}
-			}
-		}
-		return null;
+
+		return $this->subjectAlternativeNameService->resolveUid($chainArr, $host);
 	}
 }

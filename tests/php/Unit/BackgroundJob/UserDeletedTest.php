@@ -14,7 +14,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\CRLReason;
-use OCA\Libresign\Service\CrlService;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\Attributes\DataProvider;

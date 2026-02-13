@@ -16,6 +16,7 @@ use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\CaIdentifierService;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\IAppConfig;
@@ -42,6 +43,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		private LoggerInterface $logger,
 		private CaIdentifierService $caIdentifierService,
 		private DocMdpHandler $docMdpHandler,
+		private CrlService $crlService,
 	) {
 		parent::__construct($l10n, $folderService, $logger);
 	}
@@ -212,7 +214,13 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	private function isLibreSignRootCA(string $certificate, array $parsed): bool {
-		$rootCertificatePem = $this->getRootCertificatePem();
+		$crlUrls = $parsed['crl_urls'] ?? [];
+		$rootCertificatePem = is_array($crlUrls) ? $this->crlService->getRootCertificateFromCrlUrls($crlUrls) : '';
+
+		if (empty($rootCertificatePem)) {
+			$rootCertificatePem = $this->getRootCertificatePem();
+		}
+
 		if (empty($rootCertificatePem)) {
 			return false;
 		}

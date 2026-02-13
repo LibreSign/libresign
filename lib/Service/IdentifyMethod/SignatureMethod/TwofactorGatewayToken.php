@@ -87,9 +87,17 @@ class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
 		if ($method === 'email') {
 			$code = $this->tokenService->sendCodeByEmail($identifier, $displayName);
 		} else {
-			$code = $this->tokenService->sendCodeByGateway($identifier, $method);
+			$gatewayName = $this->getGatewayName($method);
+			$code = $this->tokenService->sendCodeByGateway($identifier, $gatewayName);
 		}
 		$this->getEntity()->setCode($code);
 		$this->identifyService->save($this->getEntity());
+	}
+
+	private function getGatewayName(string $identifyMethod): string {
+		return match ($identifyMethod) {
+			'whatsapp' => 'gowhatsapp',
+			default => strtolower($identifyMethod),
+		};
 	}
 }

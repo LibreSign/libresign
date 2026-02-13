@@ -134,11 +134,11 @@
 			:useModal="true"
 			:errors="signStore.errors"
 			@certificate:uploaded="onSignatureFileCreated" />
-		<TokenManager v-if="signMethodsStore.modal.sms"
+		<TokenManager v-if="signMethodsStore.modal.token"
 			:phone-number="user?.account?.phoneNumber || ''"
 			@change="signWithTokenCode"
 			@update:phone="val => $emit('update:phone', val)"
-			@close="signMethodsStore.closeModal('sms')" />
+			@close="signMethodsStore.closeModal('token')" />
 		<EmailManager v-if="signMethodsStore.modal.emailToken"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
@@ -381,13 +381,20 @@ export default {
 			})
 		},
 		async signWithTokenCode(token) {
-			const tokenMethods = ['sms', 'whatsapp', 'signal', 'telegram', 'xmpp']
+			const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 			const activeMethod = tokenMethods.find(method =>
 				Object.hasOwn(this.signMethodsStore.settings, method)
-			) || 'sms'
+			)
+
+			if (!activeMethod) {
+				throw new Error('No active token method found')
+			}
+
+			const signatureMethodData = this.signMethodsStore.settings[activeMethod]
+			const identifyMethod = signatureMethodData.identifyMethod
 
 			await this.submitSignature({
-				method: activeMethod,
+				method: identifyMethod,
 				token,
 			})
 		},
@@ -481,7 +488,7 @@ export default {
 			} else if (this.signMethodsStore.needSignWithPassword()) {
 				this.actionHandler.showModal('password')
 			} else if (this.signMethodsStore.needTokenCode()) {
-				this.actionHandler.showModal('sms')
+				this.actionHandler.showModal('token')
 			}
 		},
 		executeSigningAction(action) {

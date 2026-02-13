@@ -9018,7 +9018,7 @@
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp"
+                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
                                     },
                                     "identify": {
                                         "type": "string",
@@ -9178,7 +9178,7 @@
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp"
+                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
                                     },
                                     "identify": {
                                         "type": "string",

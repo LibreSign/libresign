@@ -7,15 +7,18 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Unit\Service\Crl;
 
 use DateTime;
 use OCA\Libresign\Db\Crl;
 use OCA\Libresign\Db\CrlMapper;
+use OCA\Libresign\Enum\CertificateEngineType;
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
-use OCA\Libresign\Service\CrlService;
+use OCA\Libresign\Service\Certificate\FileService;
+use OCA\Libresign\Service\Crl\CrlService;
+use OCA\Libresign\Service\Crl\CrlUrlParserService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -26,13 +29,125 @@ class CrlServiceTest extends TestCase {
 	private CrlMapper&MockObject $crlMapper;
 	private LoggerInterface&MockObject $logger;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
+	private CrlUrlParserService&MockObject $crlUrlParserService;
+	private FileService&MockObject $certificateFileService;
 
 	protected function setUp(): void {
 		$this->crlMapper = $this->createMock(CrlMapper::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$this->crlUrlParserService = $this->createMock(CrlUrlParserService::class);
+		$this->certificateFileService = $this->createMock(FileService::class);
 
-		$this->service = new CrlService($this->crlMapper, $this->logger, $this->certificateEngineFactory);
+		$this->service = new CrlService(
+			$this->crlMapper,
+			$this->logger,
+			$this->certificateEngineFactory,
+			$this->crlUrlParserService,
+			$this->certificateFileService,
+		);
+	}
+
+	#[DataProvider('rootCertificateFromCrlUrlProvider')]
+	public function testGetRootCertificateFromCrlUrlsReturnsCertificate(
+		array $crlUrls,
+		array $parseResults,
+		string $instanceId,
+		int $generation,
+		CertificateEngineType $engineType,
+		string $expectedCert,
+	): void {
+		$this->crlUrlParserService->expects($this->exactly(count($crlUrls)))
+			->method('parseUrl')
+			->willReturnCallback(function () use (&$parseResults): ?array {
+				return array_shift($parseResults);
+			});
+
+		$this->certificateFileService->expects($this->once())
+			->method('getRootCertificateByGeneration')
+			->with($instanceId, $generation, $engineType)
+			->willReturn($expectedCert);
+
+		$result = $this->service->getRootCertificateFromCrlUrls($crlUrls);
+
+		$this->assertSame($expectedCert, $result);
+	}
+
+	#[DataProvider('rootCertificateFromCrlUrlEmptyProvider')]
+	public function testGetRootCertificateFromCrlUrlsReturnsEmpty(
+		array $crlUrls,
+		array $parseResults,
+	): void {
+		if (empty($crlUrls)) {
+			$this->crlUrlParserService->expects($this->never())
+				->method('parseUrl');
+		} else {
+			$this->crlUrlParserService->expects($this->exactly(count($crlUrls)))
+				->method('parseUrl')
+				->willReturnCallback(function () use (&$parseResults): ?array {
+					return array_shift($parseResults);
+				});
+		}
+
+		$this->certificateFileService->expects($this->never())
+			->method('getRootCertificateByGeneration');
+
+		$result = $this->service->getRootCertificateFromCrlUrls($crlUrls);
+
+		$this->assertSame('', $result);
+	}
+
+	public static function rootCertificateFromCrlUrlProvider(): array {
+		return [
+			'First CRL URL resolves' => [
+				['https://ca.example.com/crl/libresign_inst001_2_o.crl'],
+				[[
+					'instanceId' => 'inst001',
+					'generation' => 2,
+					'engineType' => 'o',
+				]],
+				'inst001',
+				2,
+				CertificateEngineType::OpenSSL,
+				'CERT-OPENSSL-GEN2',
+			],
+			'Second CRL URL resolves' => [
+				['https://ca.example.com/crl/invalid.crl', 'https://ca.example.com/crl/libresign_inst002_5_c.crl'],
+				[
+					null,
+					[
+						'instanceId' => 'inst002',
+						'generation' => 5,
+						'engineType' => 'c',
+					],
+				],
+				'inst002',
+				5,
+				CertificateEngineType::CFSSL,
+				'CERT-CFSSL-GEN5',
+			],
+		];
+	}
+
+	public static function rootCertificateFromCrlUrlEmptyProvider(): array {
+		return [
+			'No CRL URLs' => [
+				[],
+				[],
+			],
+			'All URLs unparseable' => [
+				['https://ca.example.com/crl/invalid.crl'],
+				[null],
+			],
+			'Invalid engine type' => [
+				['https://ca.example.com/crl/libresign_inst003_1_x.crl'],
+				[[
+					'instanceId' => 'inst003',
+					'generation' => 1,
+					'engineType' => 'x',
+				]],
+			],
+		];
 	}
 
 	public static function revokeUserCertificatesProvider(): array {
@@ -212,10 +327,6 @@ class CrlServiceTest extends TestCase {
 		$this->assertEquals(0x30, ord($result[0]));
 	}
 
-
-
-
-
 	public function testGetRevokedCertificatesReturnsFormattedArray(): void {
 		$entity1 = $this->createRevokedCertificateEntity(123456, 'user1@example.com', 1);
 		$entity2 = $this->createRevokedCertificateEntity(789012, 'user2@example.com', 2);
@@ -256,7 +367,6 @@ class CrlServiceTest extends TestCase {
 	}
 
 	private function createRevokedCertificateEntity(int $serialNumber, string $owner, int $reasonCode): Crl {
-		// Create a real Crl entity and set its properties
 		$crl = new Crl();
 		$crl->setSerialNumber($serialNumber);
 		$crl->setOwner($owner);

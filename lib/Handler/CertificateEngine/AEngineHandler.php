@@ -892,8 +892,8 @@ abstract class AEngineHandler implements IEngineHandler {
 				$generation = (int)$matches[2];
 				$engineType = $matches[3];
 
-				/** @var \OCA\Libresign\Service\CrlService */
-				$crlService = \OC::$server->get(\OCA\Libresign\Service\CrlService::class);
+				/** @var \OCA\Libresign\Service\Crl\CrlService */
+				$crlService = \OC::$server->get(\OCA\Libresign\Service\Crl\CrlService::class);
 
 				$crlData = $crlService->generateCrlDer($instanceId, $generation, $engineType);
 
@@ -902,7 +902,6 @@ abstract class AEngineHandler implements IEngineHandler {
 
 			$this->logger->debug('CRL URL does not match expected pattern', ['url' => $crlUrl, 'pattern' => $pattern]);
 			return null;
-
 		} catch (\Exception $e) {
 			$this->logger->warning('Failed to generate local CRL: ' . $e->getMessage());
 			return null;
@@ -1200,8 +1199,8 @@ abstract class AEngineHandler implements IEngineHandler {
 
 	private function checkCertificateRevoked(string $serialNumber): bool {
 		try {
-			/** @var \OCA\Libresign\Service\CrlService */
-			$crlService = \OC::$server->get(\OCA\Libresign\Service\CrlService::class);
+			/** @var \OCA\Libresign\Service\Crl\CrlService */
+			$crlService = \OC::$server->get(\OCA\Libresign\Service\Crl\CrlService::class);
 			$status = $crlService->getCertificateStatus($serialNumber);
 			return $status['status'] === 'revoked';
 		} catch (\Exception $e) {

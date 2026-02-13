@@ -10,9 +10,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\Enum\CRLReason;
-use OCA\Libresign\Service\CrlService;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -45,6 +46,7 @@ class CrlApiController extends AEnvironmentAwareController {
 	 *
 	 * 200: CRL entries retrieved successfully
 	 */
+	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/crl/list', requirements: ['apiVersion' => '(v1)'])]
 	public function list(
 		?int $page = null,
@@ -91,6 +93,7 @@ class CrlApiController extends AEnvironmentAwareController {
 	 * 400: Invalid parameters
 	 * 404: Certificate not found
 	 */
+	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/crl/revoke', requirements: ['apiVersion' => '(v1)'])]
 	public function revoke(
 		string $serialNumber,
@@ -102,6 +105,11 @@ class CrlApiController extends AEnvironmentAwareController {
 				'success' => false,
 				'message' => 'Serial number is required',
 			], Http::STATUS_BAD_REQUEST);
+		}
+
+		// Use default reason code if not provided
+		if ($reasonCode === null) {
+			$reasonCode = 0; // Unspecified
 		}
 
 		$reason = CRLReason::tryFrom($reasonCode);

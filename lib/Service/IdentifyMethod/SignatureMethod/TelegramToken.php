@@ -10,13 +10,13 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 
-class Telegram extends TwofactorGatewayToken {
+class TelegramToken extends TwofactorGatewayToken {
 	public function __construct(
 		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
 	) {
-		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Telegram
-		$this->setFriendlyName($this->identifyService->getL10n()->t('Telegram'));
+		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Telegram token
+		$this->setFriendlyName($this->identifyService->getL10n()->t('Telegram token'));
 		parent::__construct(
 			$identifyService,
 			$tokenService,

@@ -11,7 +11,7 @@ namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Events\SignedEvent;
-use OCA\Libresign\Service\CrlService;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Override;
