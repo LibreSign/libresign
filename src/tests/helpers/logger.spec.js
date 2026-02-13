@@ -31,6 +31,7 @@ vi.mock('@nextcloud/logger', () => ({
 
 describe('logger', () => {
 	it('exports a logger instance', async () => {
+		vi.resetModules()
 		const logger = (await import('../../helpers/logger.js')).default
 
 		expect(logger).toBeDefined()
@@ -38,6 +39,7 @@ describe('logger', () => {
 	})
 
 	it('exports logger methods', async () => {
+		vi.resetModules()
 		const logger = (await import('../../helpers/logger.js')).default
 
 		expect(logger.debug).toBeDefined()
