@@ -85,7 +85,7 @@ class ContactPhonePluginTest extends TestCase {
 
 		$searchNormalizer = $this->createMock(SearchNormalizer::class);
 		$searchNormalizer->method('tryNormalizePhoneNumber')
-			->willReturnCallback(fn(string $input) => $input);
+			->willReturnCallback(fn (string $input) => $input);
 
 		$plugin = new ContactPhonePlugin(
 			$appConfig,
@@ -143,7 +143,7 @@ class ContactPhonePluginTest extends TestCase {
 
 		$searchNormalizer = $this->createMock(SearchNormalizer::class);
 		$searchNormalizer->method('tryNormalizePhoneNumber')
-			->willReturnCallback(fn(string $input) => $input);
+			->willReturnCallback(fn (string $input) => $input);
 
 		$plugin = new ContactPhonePlugin(
 			$appConfig,
@@ -207,7 +207,7 @@ class ContactPhonePluginTest extends TestCase {
 
 		$searchNormalizer = $this->createMock(SearchNormalizer::class);
 		$searchNormalizer->method('tryNormalizePhoneNumber')
-			->willReturnCallback(fn(string $input) => $input);
+			->willReturnCallback(fn (string $input) => $input);
 
 		$plugin = new ContactPhonePlugin(
 			$appConfig,
@@ -278,7 +278,7 @@ class ContactPhonePluginTest extends TestCase {
 
 		$searchNormalizer = $this->createMock(SearchNormalizer::class);
 		$searchNormalizer->method('tryNormalizePhoneNumber')
-			->willReturnCallback(fn(string $input) => $input);
+			->willReturnCallback(fn (string $input) => $input);
 
 		$plugin = new ContactPhonePlugin(
 			$appConfig,
