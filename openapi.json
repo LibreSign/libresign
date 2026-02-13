@@ -1622,6 +1622,9 @@
                     },
                     "pdfVersion": {
                         "type": "string"
+                    },
+                    "status_changed_at": {
+                        "type": "string"
                     }
                 }
             },
