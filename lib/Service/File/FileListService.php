@@ -273,6 +273,8 @@ class FileListService {
 			$file['visibleElements'] = [];
 		}
 
+		$file['signersCount'] = count($file['signers']);
+
 		ksort($file);
 		/** @var LibresignFileDetail */
 		return $file;
