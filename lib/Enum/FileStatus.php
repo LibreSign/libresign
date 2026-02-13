@@ -32,7 +32,7 @@ enum FileStatus: int {
 			// TRANSLATORS Name of the status that the document is still as a draft
 			self::DRAFT => $l10n->t('draft'),
 			// TRANSLATORS Name of the status that the document can be signed
-			self::ABLE_TO_SIGN => $l10n->t('available for signature'),
+			self::ABLE_TO_SIGN => $l10n->t('Ready to sign'),
 			// TRANSLATORS Name of the status when the document has already been partially signed
 			self::PARTIAL_SIGNED => $l10n->t('partially signed'),
 			// TRANSLATORS Name of the status when the document has been completely signed
