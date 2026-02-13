@@ -76,7 +76,7 @@ class IdentifyController extends AEnvironmentAwareController {
 			return new DataResponse([]);
 		}
 
-		$shareTypes = $this->getShareTypes($method);
+		$shareTypes = $this->getShareTypes();
 		$offset = $limit * ($page - 1);
 
 		$this->signerSearchContext->set($method, $search, $rawSearch);
@@ -89,8 +89,8 @@ class IdentifyController extends AEnvironmentAwareController {
 		$result = $this->resultFilter->excludeEmpty($result);
 
 		$return = $this->resultFormatter->formatForNcSelect($result);
-		$return = $this->resultEnricher->addHerselfAccount($return, $search);
-		$return = $this->resultEnricher->addHerselfEmail($return, $search);
+		$return = $this->resultEnricher->addHerselfAccount($return, $search, $method);
+		$return = $this->resultEnricher->addHerselfEmail($return, $search, $method);
 		$return = $this->resultFormatter->replaceShareTypeWithMethod($return);
 		$return = $this->resultEnricher->addEmailNotificationPreference($return);
 		$return = $this->resultFilter->excludeNotAllowed($return);
@@ -112,7 +112,7 @@ class IdentifyController extends AEnvironmentAwareController {
 		$refProperty->setValue($this->collaboratorSearch, $plugins);
 	}
 
-	private function getShareTypes(string $method): array {
+	private function getShareTypes(): array {
 		$shareTypes = [];
 		$settings = $this->identifyEmailMethod->getSettings();
 		if ($settings['enabled']) {
@@ -124,11 +124,9 @@ class IdentifyController extends AEnvironmentAwareController {
 		}
 
 		$shareTypes[] = SignerPlugin::TYPE_SIGNER;
-		if (in_array($method, self::PHONE_METHODS, true)) {
-			$shareTypes[] = AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE;
-			$shareTypes[] = ContactPhonePlugin::TYPE_SIGNER_CONTACT_PHONE;
-			$shareTypes[] = ManualPhonePlugin::TYPE_SIGNER_MANUAL_PHONE;
-		}
+		$shareTypes[] = AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE;
+		$shareTypes[] = ContactPhonePlugin::TYPE_SIGNER_CONTACT_PHONE;
+		$shareTypes[] = ManualPhonePlugin::TYPE_SIGNER_MANUAL_PHONE;
 		return $shareTypes;
 	}
 }
