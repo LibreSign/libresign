@@ -64,9 +64,9 @@ describe('showStatusInlineAction', () => {
 	})
 
 	beforeEach(() => {
-		mockGetSidebar.mockClear()
-		mockLoadState.mockClear()
-		mockLoadState.mockReturnValue(true)
+		mocks.mockGetSidebar.mockClear()
+		mocks.mockLoadState.mockClear()
+		mocks.mockLoadState.mockReturnValue(true)
 
 		// Mock window.OCA.Files.Sidebar for Nextcloud 32
 		if (!global.window) {
