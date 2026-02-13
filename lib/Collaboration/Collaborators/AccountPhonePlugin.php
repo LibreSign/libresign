@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Collaboration\Collaborators;
 
 use OC\KnownUser\KnownUserService;
+use OCA\Libresign\Service\Identify\SearchNormalizer;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OCP\Accounts\IAccountManager;
 use OCP\Collaboration\Collaborators\ISearchPlugin;
@@ -31,6 +32,7 @@ class AccountPhonePlugin implements ISearchPlugin {
 		private KnownUserService $knownUserService,
 		private IUserManager $userManager,
 		private SignerSearchContext $searchContext,
+		private SearchNormalizer $searchNormalizer,
 	) {
 	}
 
@@ -71,6 +73,12 @@ class AccountPhonePlugin implements ISearchPlugin {
 		$matches = $this->accountManager->searchUsers(IAccountManager::PROPERTY_PHONE, [$search]);
 		$items = [];
 		foreach ($matches as $phone => $userId) {
+			// Filter out users with phone numbers that cannot be normalized
+			$normalizedPhone = $this->searchNormalizer->tryNormalizePhoneNumber((string)$phone, $method);
+			if ($normalizedPhone === null) {
+				continue;
+			}
+
 			$userId = (string)$userId;
 			if ($userId === $currentUser->getUID()) {
 				continue;
@@ -108,11 +116,11 @@ class AccountPhonePlugin implements ISearchPlugin {
 			$displayName = $user->getDisplayName() !== '' ? $user->getDisplayName() : $userId;
 			$items[] = [
 				'label' => $displayName,
-				'shareWithDisplayNameUnique' => $phone,
+				'shareWithDisplayNameUnique' => $normalizedPhone,
 				'method' => $method,
 				'value' => [
 					'shareType' => self::TYPE_SIGNER_ACCOUNT_PHONE,
-					'shareWith' => $phone,
+					'shareWith' => $normalizedPhone,
 				],
 			];
 		}
