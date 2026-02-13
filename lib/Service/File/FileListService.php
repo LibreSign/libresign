@@ -254,23 +254,23 @@ class FileListService {
 			$file['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $file['signUuid']]);
 		}
 
-		if (empty($file['signers'])) {
-			$file['statusText'] = $this->l10n->t('no signers');
-			$file['visibleElements'] = [];
-		} else {
+		$file['statusText'] = $this->fileMapper->getTextOfStatus((int)$file['status']);
+
+		if (count($file['signers']) > 0) {
 			usort($file['signers'], function ($a, $b) {
 				$orderA = $a['signingOrder'] ?? PHP_INT_MAX;
 				$orderB = $b['signingOrder'] ?? PHP_INT_MAX;
 				return $orderA <=> $orderB ?: (($a['signRequestId'] ?? 0) <=> ($b['signRequestId'] ?? 0));
 			});
 
-			$file['statusText'] = $this->fileMapper->getTextOfStatus((int)$file['status']);
 			$file['visibleElements'] = [];
 			foreach ($file['signers'] as $signer) {
 				if (!empty($signer['visibleElements']) && is_array($signer['visibleElements'])) {
 					$file['visibleElements'] = array_merge($file['visibleElements'], $signer['visibleElements']);
 				}
 			}
+		} else {
+			$file['visibleElements'] = [];
 		}
 
 		ksort($file);
@@ -546,7 +546,7 @@ class FileListService {
 			],
 		];
 
-		if ($mainEntity->getNodeType() === 'envelope' && $user && !empty($childFiles) && !empty($signers)) {
+		if ($mainEntity->getNodeType() === 'envelope' && $user && !empty($childFiles) && count($signers) > 0) {
 			$signers = $this->applyEnvelopeVisibleElementsByKey(
 				$signers,
 				$identifyMethods,
