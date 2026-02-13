@@ -45,6 +45,7 @@ describe('selectCustonOption', () => {
 	})
 
 	it('returns option wrapped when id exists', async () => {
+		vi.resetModules()
 		const { selectCustonOption, options } = await import('../../helpers/certification.js')
 		const expectedOption = options.find((item) => item.id === 'CN')
 
@@ -55,6 +56,7 @@ describe('selectCustonOption', () => {
 	})
 
 	it('returns empty option when id does not exist', async () => {
+		vi.resetModules()
 		const { selectCustonOption } = await import('../../helpers/certification.js')
 
 		const result = selectCustonOption('UNKNOWN')
