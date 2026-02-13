@@ -1700,6 +1700,8 @@ export type components = {
             /** Format: int64 */
             status: number;
             statusText: string;
+            /** Format: int64 */
+            signersCount: number;
             uuid: string;
             visibleElements: components["schemas"]["VisibleElement"][];
         };
@@ -1715,6 +1717,8 @@ export type components = {
             /** Format: int64 */
             status: number;
             statusText: string;
+            /** Format: int64 */
+            signersCount: number;
             file: string;
             metadata: components["schemas"]["ValidateMetadata"];
             signers: components["schemas"]["EnvelopeChildSignerSummary"][];
@@ -1793,6 +1797,8 @@ export type components = {
             signatureFlow: "none" | "parallel" | "ordered_numeric";
             visibleElements: components["schemas"]["VisibleElement"][];
             signers: components["schemas"]["Signer"][];
+            /** Format: int64 */
+            signersCount: number;
             requested_by: {
                 userId: string;
                 displayName: string;
