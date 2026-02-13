@@ -144,7 +144,9 @@ class ContactPhonePluginTest extends TestCase {
 			$userManager,
 			$userSession,
 			$knownUserService,
-			$context,			$this->createSearchNormalizerMock('+12025551234'),		);
+			$context,
+			$this->createSearchNormalizerMock('+12025551234'),
+		);
 
 		$searchResult = new SearchResult();
 		$plugin->search('+12025551234', 10, 0, $searchResult);
