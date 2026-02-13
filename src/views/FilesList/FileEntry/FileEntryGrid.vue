@@ -25,6 +25,13 @@
 				:signers="source.signers || []" />
 		</td>
 
+		<!-- Signers Count -->
+		<td class="files-list__row-signers"
+			@click="openDetailsIfAvailable">
+			<FileEntrySigners :signers-count="source.signersCount || 0"
+				:signers="source.signers || []" />
+		</td>
+
 		<!-- Mtime -->
 		<td :style="mtimeOpacity"
 			class="files-list__row-mtime"
@@ -48,6 +55,7 @@ import FileEntryActions from './FileEntryActions.vue'
 import FileEntryCheckbox from './FileEntryCheckbox.vue'
 import FileEntryName from './FileEntryName.vue'
 import FileEntryPreview from './FileEntryPreview.vue'
+import FileEntrySigners from './FileEntrySigners.vue'
 import FileEntryStatus from './FileEntryStatus.vue'
 
 import FileEntryMixin from './FileEntryMixin.js'
@@ -62,6 +70,7 @@ export default {
 		FileEntryCheckbox,
 		FileEntryName,
 		FileEntryPreview,
+		FileEntrySigners,
 		FileEntryStatus,
 	},
 	mixins: [
