@@ -127,6 +127,56 @@ class ResultEnricherTest extends TestCase {
 		];
 	}
 
+	#[DataProvider('providerAddHerselfAccountMethodFilter')]
+	public function testAddHerselfAccountMethodFilter(string $method, int $expectedCount): void {
+		$this->userSession->method('getUser')
+			->willReturn($this->currentUser);
+		$this->currentUser->method('getUID')
+			->willReturn('john');
+		$this->currentUser->method('getDisplayName')
+			->willReturn('John Doe');
+
+		$this->accountMethod->method('getSettings')
+			->willReturn(['enabled' => true]);
+
+		$result = $this->enricher->addHerselfAccount([], 'john', $method);
+		$this->assertCount($expectedCount, $result);
+	}
+
+	public static function providerAddHerselfAccountMethodFilter(): array {
+		return [
+			'no method filter' => ['', 1],
+			'matching account method' => ['account', 1],
+			'non-matching email method' => ['email', 0],
+			'non-matching phone method' => ['whatsapp', 0],
+		];
+	}
+
+	#[DataProvider('providerAddHerselfEmailMethodFilter')]
+	public function testAddHerselfEmailMethodFilter(string $method, int $expectedCount): void {
+		$this->userSession->method('getUser')
+			->willReturn($this->currentUser);
+		$this->currentUser->method('getEMailAddress')
+			->willReturn('john@company.com');
+		$this->currentUser->method('getDisplayName')
+			->willReturn('John Doe');
+
+		$this->emailMethod->method('getSettings')
+			->willReturn(['enabled' => true]);
+
+		$result = $this->enricher->addHerselfEmail([], 'john@company.com', $method);
+		$this->assertCount($expectedCount, $result);
+	}
+
+	public static function providerAddHerselfEmailMethodFilter(): array {
+		return [
+			'no method filter' => ['', 1],
+			'matching email method' => ['email', 1],
+			'non-matching account method' => ['account', 0],
+			'non-matching phone method' => ['sms', 0],
+		];
+	}
+
 	#[DataProvider('providerAddEmailNotificationPreference')]
 	public function testAddEmailNotificationPreference(string $method, bool $shouldHaveEmail, bool $acceptsNotifications): void {
 		if ($method === 'account') {
