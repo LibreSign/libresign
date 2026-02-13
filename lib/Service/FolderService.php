@@ -83,8 +83,9 @@ class FolderService {
 	 * @throws NotFoundException
 	 */
 	public function getFileByNodeId(?int $nodeId = null): File {
-		if ($this->getUserId()) {
-
+		// For guests, files are stored in appdata, not in user folder
+		// Skip getUserFolder search for guests to avoid false positives
+		if ($this->getUserId() && !$this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
 			$file = $this->root->getUserFolder($this->getUserId())->getFirstNodeById($nodeId);
 			if ($file instanceof File) {
 				return $file;
