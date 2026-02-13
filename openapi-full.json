@@ -507,6 +507,7 @@
                     "signers",
                     "status",
                     "statusText",
+                    "signersCount",
                     "uuid",
                     "visibleElements"
                 ],
@@ -584,6 +585,10 @@
                     "statusText": {
                         "type": "string"
                     },
+                    "signersCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     "uuid": {
                         "type": "string"
                     },
@@ -605,6 +610,7 @@
                     "name",
                     "status",
                     "statusText",
+                    "signersCount",
                     "file",
                     "metadata",
                     "signers"
@@ -635,6 +641,10 @@
                     },
                     "statusText": {
                         "type": "string"
+                    },
+                    "signersCount": {
+                        "type": "integer",
+                        "format": "int64"
                     },
                     "file": {
                         "type": "string"
@@ -828,6 +838,7 @@
                     "signatureFlow",
                     "visibleElements",
                     "signers",
+                    "signersCount",
                     "requested_by",
                     "filesCount",
                     "files"
@@ -893,6 +904,10 @@
                         "items": {
                             "$ref": "#/components/schemas/Signer"
                         }
+                    },
+                    "signersCount": {
+                        "type": "integer",
+                        "format": "int64"
                     },
                     "requested_by": {
                         "type": "object",
