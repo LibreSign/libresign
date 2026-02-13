@@ -80,6 +80,11 @@ export default {
 					sort: true,
 				},
 				{
+					title: t('libresign', 'Signers'),
+					id: 'signers',
+					sort: true,
+				},
+				{
 					title: t('libresign', 'Created at'),
 					id: 'created_at',
 					sort: true,
