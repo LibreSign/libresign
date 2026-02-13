@@ -2052,6 +2052,7 @@ export type components = {
                 h: number;
             }[];
             pdfVersion?: string;
+            status_changed_at?: string;
         };
         VisibleElement: {
             /** Format: int64 */
