@@ -14,10 +14,10 @@ const DEFAULT_SORTING_DIRECTION = 'desc'
 
 export const useFilesSortingStore = defineStore('filesSorting', {
 	state: () => {
-		const initialSorting = loadState('libresign', 'sorting', { sorting_mode: 'created_at', sorting_direction: DEFAULT_SORTING_DIRECTION })
+		const initialSorting = loadState('libresign', 'sorting', { files_list_sorting_mode: 'name', files_list_sorting_direction: DEFAULT_SORTING_DIRECTION })
 		return {
-			sortingMode: initialSorting.sorting_mode || 'created_at',
-			sortingDirection: initialSorting.sorting_direction || DEFAULT_SORTING_DIRECTION,
+			sortingMode: initialSorting.files_list_sorting_mode || 'name',
+			sortingDirection: initialSorting.files_list_sorting_direction || DEFAULT_SORTING_DIRECTION,
 		}
 	},
 
@@ -43,10 +43,10 @@ export const useFilesSortingStore = defineStore('filesSorting', {
 
 		async saveSorting() {
 			try {
-				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'sorting_mode' }), {
+				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_sorting_mode' }), {
 					value: this.sortingMode,
 				})
-				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'sorting_direction' }), {
+				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_sorting_direction' }), {
 					value: this.sortingDirection,
 				})
 			} catch (error) {
