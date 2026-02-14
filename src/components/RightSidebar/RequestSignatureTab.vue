@@ -674,7 +674,7 @@ export default {
 		subscribe('libresign:edit-signer', this.editSigner)
 		this.filesStore.disableIdentifySigner()
 
-		this.activeTab = this.userConfigStore.signer_identify_tab || ''
+		this.activeTab = this.userConfigStore.files_list_signer_identify_tab || ''
 
 		this.adminSignatureFlow = loadState('libresign', 'signature_flow', 'none')
 
@@ -709,7 +709,7 @@ export default {
 		}, 1000)
 
 		this.debouncedTabChange = debounce((tabId) => {
-			this.userConfigStore.update('signer_identify_tab', tabId)
+			this.userConfigStore.update('files_list_signer_identify_tab', tabId)
 		}, 500)
 	},
 	methods: {
@@ -866,7 +866,7 @@ export default {
 		},
 		addSigner() {
 			this.signerToEdit = {}
-			this.activeTab = this.userConfigStore.signer_identify_tab || ''
+			this.activeTab = this.userConfigStore.files_list_signer_identify_tab || ''
 			this.filesStore.enableIdentifySigner()
 		},
 		editSigner(signer) {
