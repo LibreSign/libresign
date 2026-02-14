@@ -17,7 +17,7 @@ vi.mock('@nextcloud/event-bus', () => ({
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: () => ({ sorting_mode: 'created_at', sorting_direction: 'desc' }),
+	loadState: () => ({ files_list_sorting_mode: 'name', files_list_sorting_direction: 'asc' }),
 }))
 
 vi.mock('@nextcloud/axios', () => ({
@@ -85,11 +85,11 @@ describe('filesSorting store', () => {
 
 		expect(putMock).toHaveBeenCalledTimes(2)
 		expect(putMock).toHaveBeenCalledWith(
-			'/apps/libresign/api/v1/account/config/sorting_mode',
+			'/apps/libresign/api/v1/account/config/files_list_sorting_mode',
 			{ value: 'created_at' }
 		)
 		expect(putMock).toHaveBeenCalledWith(
-			'/apps/libresign/api/v1/account/config/sorting_direction',
+			'/apps/libresign/api/v1/account/config/files_list_sorting_direction',
 			{ value: 'desc' }
 		)
 	})
