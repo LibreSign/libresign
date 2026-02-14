@@ -17,7 +17,7 @@ vi.mock('@nextcloud/event-bus', () => ({
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: () => ({ sorting_mode: 'name', sorting_direction: 'asc' }),
+	loadState: () => ({ sorting_mode: 'created_at', sorting_direction: 'desc' }),
 }))
 
 vi.mock('@nextcloud/axios', () => ({
@@ -42,7 +42,7 @@ describe('filesSorting store', () => {
 
 		await store.toggleSortingDirection()
 
-		expect(store.sortingDirection).toBe('desc')
+		expect(store.sortingDirection).toBe('asc')
 		expect(emitMock).toHaveBeenCalledWith('libresign:sorting:update')
 	})
 
@@ -86,11 +86,11 @@ describe('filesSorting store', () => {
 		expect(putMock).toHaveBeenCalledTimes(2)
 		expect(putMock).toHaveBeenCalledWith(
 			'/apps/libresign/api/v1/account/config/sorting_mode',
-			{ value: 'name' }
+			{ value: 'created_at' }
 		)
 		expect(putMock).toHaveBeenCalledWith(
 			'/apps/libresign/api/v1/account/config/sorting_direction',
-			{ value: 'asc' }
+			{ value: 'desc' }
 		)
 	})
 
@@ -108,8 +108,8 @@ describe('filesSorting store', () => {
 	it('maintains initial state from loadState', () => {
 		const store = useFilesSortingStore()
 
-		expect(store.sortingMode).toBe('name')
-		expect(store.sortingDirection).toBe('asc')
+		expect(store.sortingMode).toBe('created_at')
+		expect(store.sortingDirection).toBe('desc')
 	})
 
 	it('emits event after toggling direction', async () => {
