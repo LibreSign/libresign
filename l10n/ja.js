@@ -163,6 +163,7 @@ OC.L10N.register(
     "Yes" : "はい",
     "No" : "いいえ",
     "Reset to default" : "デフォルトに戻す",
+    "Background image" : "背景画像",
     "Learn more" : "もっと見る",
     "Invalid URL" : "無効なURL",
     "Username" : "ユーザー名",
