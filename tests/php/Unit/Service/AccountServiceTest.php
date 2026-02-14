@@ -575,3 +575,96 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->deleteSignatureElement(null, 'session999', 200);
 	}
 }
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		// Simulate old config values exist
+		$this->config
+			->method('getUserValue')
+			->willReturnCallback(function ($uid, $app, $key, $default = null) {
+				$values = [
+					'grid_view' => '1',
+					'signer_identify_tab' => 'email',
+					'sorting_mode' => 'date',
+					'sorting_direction' => 'desc',
+					'files_list_grid_view' => null,
+					'files_list_signer_identify_tab' => null,
+					'files_list_sorting_mode' => null,
+					'files_list_sorting_direction' => null,
+				];
+				return $values[$key] ?? $default;
+			});
+
+		// Expect old values to be copied to new keys
+		$this->config
+			->expects($this->exactly(4))
+			->method('setUserValue')
+			->withConsecutive(
+				['testuser', 'libresign', 'files_list_grid_view', '1'],
+				['testuser', 'libresign', 'files_list_signer_identify_tab', 'email'],
+				['testuser', 'libresign', 'files_list_sorting_mode', 'date'],
+				['testuser', 'libresign', 'files_list_sorting_direction', 'desc']
+			);
+
+		// Expect old keys to be deleted after migration
+		$this->config
+			->expects($this->exactly(4))
+			->method('deleteUserValue')
+			->withConsecutive(
+				['testuser', 'libresign', 'grid_view'],
+				['testuser', 'libresign', 'signer_identify_tab'],
+				['testuser', 'libresign', 'sorting_mode'],
+				['testuser', 'libresign', 'sorting_direction']
+			);
+
+		$this->appConfig
+			->method('getValueBool')
+			->willReturn(false);
+
+		$this->validateHelper
+			->method('userCanApproveValidationDocuments')
+			->willReturn(false);
+
+		// Trigger migration by calling getConfig
+		$this->getService()->getConfig($user);
+	}
+
+	public function testMigrateFilesListConfigSkipsWhenNewKeysExist(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		// Simulate new config values already exist
+		$this->config
+			->method('getUserValue')
+			->willReturnCallback(function ($uid, $app, $key, $default = null) {
+				$values = [
+					'grid_view' => '1',
+					'files_list_grid_view' => '0', // New key already has value
+					'files_list_signer_identify_tab' => 'account',
+					'files_list_sorting_mode' => 'name',
+					'files_list_sorting_direction' => 'asc',
+				];
+				return $values[$key] ?? $default;
+			});
+
+		// Should NOT set or delete anything when new keys exist
+		$this->config
+			->expects($this->never())
+			->method('setUserValue');
+
+		$this->config
+			->expects($this->never())
+			->method('deleteUserValue');
+
+		$this->appConfig
+			->method('getValueBool')
+			->willReturn(false);
+
+		$this->validateHelper
+			->method('userCanApproveValidationDocuments')
+			->willReturn(false);
+
+		// Trigger migration by calling getConfig
+		$this->getService()->getConfig($user);
+	}
