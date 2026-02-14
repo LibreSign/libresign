@@ -38,7 +38,6 @@ OC.L10N.register(
     "User not found" : "No s'ha trobat l'usuari",
     "Identification Document" : "Document identificatiu",
     "draft" : "esborrany",
-    "available for signature" : "disponible per a signar",
     "partially signed" : "signat parcialment",
     "signed" : "signat",
     "deleted" : "suprimit",
@@ -351,6 +350,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Obre a LibreSign",
     "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}",
     "Deleted" : "Suprimit",
+    "available for signature" : "disponible per a signar",
     "Select other file" : "Seleccioneu un altre fitxer",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Utilitzeu la roda del ratolí per ampliar o reduir la imatge i trobar la millor visió de la vostra signatura."
 },
