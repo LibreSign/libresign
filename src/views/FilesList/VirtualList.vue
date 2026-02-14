@@ -4,7 +4,7 @@
 -->
 <template>
 	<div class="files-list"
-		:class="{ 'files-list--grid': userConfigStore.grid_view }"
+		:class="{ 'files-list--grid': userConfigStore.files_list_grid_view }"
 		data-cy-files-list>
 		<div class="files-list__filters">
 			<slot name="filters" />
@@ -38,7 +38,7 @@
 			</thead>
 			<!-- Body -->
 			<tbody class="files-list__tbody"
-				:class="userConfigStore.grid_view ? 'files-list__tbody--grid' : 'files-list__tbody--list'"
+			:class="userConfigStore.files_list_grid_view ? 'files-list__tbody--grid' : 'files-list__tbody--list'"
 				data-cy-files-list-tbody>
 				<component :is="dataComponent"
 					v-for="(item) in filesStore.filesSorted()"
