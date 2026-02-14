@@ -10,13 +10,13 @@ import { loadState } from '@nextcloud/initial-state'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
-const DEFAULT_SORTING_DIRECTION = 'asc'
+const DEFAULT_SORTING_DIRECTION = 'desc'
 
 export const useFilesSortingStore = defineStore('filesSorting', {
 	state: () => {
-		const initialSorting = loadState('libresign', 'sorting', { sorting_mode: 'name', sorting_direction: DEFAULT_SORTING_DIRECTION })
+		const initialSorting = loadState('libresign', 'sorting', { sorting_mode: 'created_at', sorting_direction: DEFAULT_SORTING_DIRECTION })
 		return {
-			sortingMode: initialSorting.sorting_mode || 'name',
+			sortingMode: initialSorting.sorting_mode || 'created_at',
 			sortingDirection: initialSorting.sorting_direction || DEFAULT_SORTING_DIRECTION,
 		}
 	},
@@ -36,7 +36,7 @@ export const useFilesSortingStore = defineStore('filesSorting', {
 			}
 			// else sort ASC by this new key
 			this.sortingMode = key
-			this.sortingDirection = DEFAULT_SORTING_DIRECTION
+			this.sortingDirection = 'asc'
 			this.saveSorting()
 			emit('libresign:sorting:update')
 		},
