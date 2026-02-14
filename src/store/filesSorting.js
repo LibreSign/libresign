@@ -43,10 +43,10 @@ export const useFilesSortingStore = defineStore('filesSorting', {
 
 		async saveSorting() {
 			try {
-				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'sorting_mode' }), {
+				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_sorting_mode' }), {
 					value: this.sortingMode,
 				})
-				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'sorting_direction' }), {
+				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_sorting_direction' }), {
 					value: this.sortingDirection,
 				})
 			} catch (error) {
