@@ -59,9 +59,11 @@ describe('showStatusInlineAction', () => {
 		// Reset modules and import the action
 		vi.resetModules()
 		await import('../../actions/showStatusInlineAction.js')
-		action = mocks.capturedActionRef.value
 
-		// Mock window.OCA.Files.Sidebar for Nextcloud 32
+		// Capture the registered action
+		action = capturedActionRef.value
+
+		// Mock window.OCA.Files.Sidebar for Nextcloud 32 compatibility
 		if (!global.window) {
 			global.window = {}
 		}
@@ -73,6 +75,19 @@ describe('showStatusInlineAction', () => {
 				},
 			},
 		}
+	})
+
+	afterEach(() => {
+		// Clean up all mocks after each test
+		vi.unmock('@nextcloud/files')
+		vi.unmock('@nextcloud/initial-state')
+		vi.unmock('@nextcloud/l10n')
+		vi.unmock('../../constants.js')
+		vi.unmock('../../utils/fileStatus.js')
+	})
+
+	it('has correct id', () => {
+		expect(action.id).toBe('show-status-inline')
 	})
 
 	it('has empty display name', () => {
