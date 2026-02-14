@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock @nextcloud packages before any other imports
 vi.mock('@nextcloud/logger', () => ({
@@ -25,30 +25,27 @@ vi.mock('@nextcloud/logger', () => ({
 	})),
 }))
 
-const mockVue = {
-	use: vi.fn(),
-}
+const mockUse = vi.fn()
 
-vi.mock('vue', async () => {
-	const actual = await vi.importActual('vue')
-	const Vue = actual.default ?? actual
-	return {
-		...actual,
-		default: Object.assign(Vue, {
-			use: mockVue.use,
-		}),
-	}
-})
+vi.mock('vue', () => ({
+	default: {
+		use: mockUse,
+	},
+}))
 
 vi.mock('vuelidate', () => ({
 	default: {},
 }))
 
 describe('vuelidate plugin', () => {
+	beforeEach(() => {
+		mockUse.mockClear()
+	})
+
 	it('registers Vuelidate plugin with Vue', async () => {
 		vi.resetModules()
 		await import('../../plugins/vuelidate.js')
 
-		expect(mockVue.use).toHaveBeenCalled()
+		expect(mockUse).toHaveBeenCalled()
 	})
 })
