@@ -9,10 +9,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use OCA\Libresign\AppInfo\Application;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDBConnection;
-use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
