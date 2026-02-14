@@ -3,67 +3,74 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-
-const mocks = vi.hoisted(() => {
-	const mockRegisterFileAction = vi.fn()
-	const mockGetSidebar = vi.fn()
-	const mockLoadState = vi.fn()
-	const capturedActionRef = { value: null }
-
-	return {
-		capturedActionRef,
-		mockRegisterFileAction,
-		mockGetSidebar,
-		mockLoadState
-	}
-})
-
-vi.mock('@nextcloud/files', () => ({
-	FileAction: class {
-		constructor(config) {
-			Object.assign(this, config)
-		}
-	},
-	registerFileAction: (actionInstance) => {
-		mocks.capturedActionRef.value = actionInstance
-		mocks.mockRegisterFileAction(actionInstance)
-	},
-	getSidebar: mocks.mockGetSidebar,
-}))
-
-vi.mock('@nextcloud/initial-state', () => ({
-	loadState: (...args) => mocks.mockLoadState(...args),
-}))
-
-vi.mock('@nextcloud/l10n', () => ({
-	t: (app, text) => text,
-}))
-
-vi.mock('../../constants.js', () => ({
-	FILE_STATUS: {
-		DRAFT: 0,
-		SIGNED: 3,
-	},
-}))
-
-vi.mock('../../utils/fileStatus.js', () => ({
-	getStatusLabel: (status) => `Status ${status}`,
-	getStatusSvgInline: (status) => `<svg>${status}</svg>`,
-}))
+import { beforeAll, beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
 
 describe('showStatusInlineAction', () => {
 	let action
+	let capturedActionRef
+	let mockRegisterFileAction
+	let mockGetSidebar
+	let mockLoadState
 
 	beforeEach(async () => {
+		// Clean up global state
+		delete globalThis._nc_files_scope
+
+		// Create fresh mocks for this test
+		capturedActionRef = { value: null }
+		mockRegisterFileAction = vi.fn()
+		mockGetSidebar = vi.fn()
+		mockLoadState = vi.fn(() => true)
+
+		// Setup mocks with fresh state
+		vi.doMock('@nextcloud/files', () => ({
+			FileAction: class {
+				constructor(config) {
+					Object.assign(this, config)
+				}
+			},
+			registerFileAction: (actionInstance) => {
+				capturedActionRef.value = actionInstance
+				mockRegisterFileAction(actionInstance)
+			},
+			getSidebar: mockGetSidebar,
+		}))
+
+		vi.doMock('@nextcloud/initial-state', () => ({
+			loadState: (...args) => mockLoadState(...args),
+		}))
+
+		vi.doMock('@nextcloud/l10n', () => ({
+			t: (app, text) => text,
+		}))
+
+		vi.doMock('../../constants.js', () => ({
+			FILE_STATUS: {
+				DRAFT: 0,
+				SIGNED: 3,
+			},
+		}))
+
+		vi.doMock('../../utils/fileStatus.js', () => ({
+			getStatusLabel: (status) => `Status ${status}`,
+			getStatusSvgInline: (status) => `<svg>${status}</svg>`,
+		}))
+
+		// Reset modules and import the action
 		vi.resetModules()
-		mocks.capturedActionRef.value = null
-		mocks.mockRegisterFileAction.mockClear()
-		mocks.mockGetSidebar.mockClear()
-		mocks.mockLoadState.mockClear()
-		mocks.mockLoadState.mockReturnValue(true)
 		await import('../../actions/showStatusInlineAction.js')
-		action = mocks.capturedActionRef.value
+
+		// Capture the registered action
+		action = capturedActionRef.value
+	})
+
+	afterEach(() => {
+		// Clean up all mocks after each test
+		vi.unmock('@nextcloud/files')
+		vi.unmock('@nextcloud/initial-state')
+		vi.unmock('@nextcloud/l10n')
+		vi.unmock('../../constants.js')
+		vi.unmock('../../utils/fileStatus.js')
 	})
 
 	it('has correct id', () => {
@@ -178,7 +185,7 @@ describe('showStatusInlineAction', () => {
 				open: vi.fn(),
 				setActiveTab: vi.fn(),
 			}
-			mocks.mockGetSidebar.mockReturnValue(mockSidebar)
+			mockGetSidebar.mockReturnValue(mockSidebar)
 
 			const node = { fileid: 123, name: 'test.pdf' }
 			const result = await action.exec({ nodes: [node] })
@@ -191,7 +198,7 @@ describe('showStatusInlineAction', () => {
 
 	describe('enabled', () => {
 		it('returns false when certificate is not ok', () => {
-			mocks.mockLoadState.mockReturnValue(false)
+			mockLoadState.mockReturnValue(false)
 
 			const result = action.enabled({
 				nodes: [{
@@ -206,7 +213,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns false when nodes do not have status', () => {
-			mocks.mockLoadState.mockReturnValue(true)
+			mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -219,7 +226,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns true for PDF with status', () => {
-			mocks.mockLoadState.mockReturnValue(true)
+			mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -234,7 +241,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns true for folder with status', () => {
-			mocks.mockLoadState.mockReturnValue(true)
+			mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -249,7 +256,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns false for non-PDF/non-folder', () => {
-			mocks.mockLoadState.mockReturnValue(true)
+			mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -265,7 +272,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns true for multiple PDFs with status', () => {
-			mocks.mockLoadState.mockReturnValue(true)
+			mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [
@@ -290,7 +297,7 @@ describe('showStatusInlineAction', () => {
 
 	describe('registration', () => {
 		it('registers file action', () => {
-			expect(mocks.mockRegisterFileAction).toHaveBeenCalled()
+			expect(mockRegisterFileAction).toHaveBeenCalled()
 		})
 	})
 })
