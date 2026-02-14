@@ -12,6 +12,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDBConnection;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
@@ -122,9 +123,7 @@ class Version17001Date20260210000000 extends SimpleMigrationStep {
 		$query->selectDistinct('userid')
 			->from('preferences')
 			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
-			->andWhere($query->expr()->in('configkey', $query->createParameter('keys')));
-
-		$query->setParameter('keys', $oldKeys, \Doctrine\DBAL\Connection::PARAM_STR_ARRAY);
+			->andWhere($query->expr()->in('configkey', $query->createNamedParameter($oldKeys, IQueryBuilder::PARAM_STR_ARRAY)));
 
 		$result = $query->executeQuery();
 		$userIds = $result->fetchAll(\PDO::FETCH_COLUMN);
