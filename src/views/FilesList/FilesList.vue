@@ -94,6 +94,7 @@ import RequestPicker from '../../components/Request/RequestPicker.vue'
 import { useFilesStore } from '../../store/files.js'
 import { useFiltersStore } from '../../store/filters.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 
 export default {
 	name: 'FilesList',
@@ -115,10 +116,12 @@ export default {
 		const filesStore = useFilesStore()
 		const filtersStore = useFiltersStore()
 		const userConfigStore = useUserConfigStore()
+		const sidebarStore = useSidebarStore()
 		return {
 			filesStore,
 			filtersStore,
 			userConfigStore,
+			sidebarStore,
 		}
 	},
 	data() {
@@ -152,6 +155,7 @@ export default {
 		await this.filesStore.getAllFiles({ force_fetch: true })
 		this.loading = false
 		this.filesStore.disableIdentifySigner()
+		this.checkAndOpenFileFromUri()
 	},
 	beforeUnmount() {
 		this.filesStore.selectFile()
@@ -162,6 +166,16 @@ export default {
 		},
 		toggleGridView() {
 			this.userConfigStore.update('grid_view', !this.userConfigStore.grid_view)
+		},
+		checkAndOpenFileFromUri() {
+			const uuid = this.$route.query.uuid
+			if (uuid) {
+				this.filesStore.selectFileByUuid(uuid).then((fileId) => {
+					if (fileId) {
+						this.sidebarStore.activeRequestSignatureTab()
+					}
+				})
+			}
 		},
 	},
 }
