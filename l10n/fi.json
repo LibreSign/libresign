@@ -45,12 +45,10 @@
     "Form filling and commenting allowed" : "Lomakkeen täyttäminen ja kommentointi sallittu",
     "not LibreSign file" : "ei LibreSign-tiedosto",
     "draft" : "luonnos",
-    "available for signature" : "saatavilla allekirjoitusta varten",
     "partially signed" : "osittain allekirjoitettu",
     "signed" : "allekirjoitettu",
     "deleted" : "poistettu",
     "Draft" : "Luonnos",
-    "Pending" : "Odottaa",
     "Signed" : "Allekirjoitettu",
     "User not found." : "Käyttäjää ei löytynyt.",
     "Digitally signed by LibreSign." : "Digitaalisesti allekirjoitettu LibreSignilla.",
@@ -119,7 +117,7 @@
     "Two-letter ISO 3166 country code" : "Kaksikirjaiminen ISO 3166 -maakoodi",
     "Name of an organization" : "Organisaation nimi",
     "Name of an organizational unit" : "Organisaatioyksikön nimi",
-    "no signers" : "ei allekirjoittajia",
+    "Pending" : "Odottaa",
     "You need to sign this document" : "Sinun tulee allekirjoittaa tämä asiakirja",
     "No file provided" : "Tiedostoa ei annettu",
     "Link expired." : "Linkki vanhentui.",
@@ -475,6 +473,8 @@
     "New signature request" : "Uusi allekirjoituspyyntö",
     "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
     "Deleted" : "Poistettu",
+    "available for signature" : "saatavilla allekirjoitusta varten",
+    "no signers" : "ei allekirjoittajia",
     "Select other file" : "Valitse muu tiedosto"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

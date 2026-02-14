@@ -33,7 +33,6 @@
     "signed" : "aláírva",
     "deleted" : "törölve",
     "Draft" : "Piszkozat",
-    "Pending" : "Folyamatban",
     "Signed" : "Aláírva",
     "User not found." : "A felhasználó nem található.",
     "Validate in %s." : "Ellenőrzés itt: %s.",
@@ -107,7 +106,7 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Egy terület vagy helység neve, például város, megye vagy más földrajzi régió",
     "Name of an organization" : "Egy szervezet neve",
     "Name of an organizational unit" : "Egy szervezeti egység neve",
-    "no signers" : "nincsenek aláírók",
+    "Pending" : "Folyamatban",
     "You need to sign this document" : "Alá kell írnia ezt a dokumentumot",
     "You cannot request signature for this document, please contact your administrator" : "Nem kérhet aláírást erre a dokumentumra, lépjen kapcsolatba a rendszergazdával",
     "Invalid file identifier" : "Érvénytelen fájlazonosító",
@@ -361,6 +360,7 @@
     "Open in LibreSign" : "Megnyitás a LibreSignban",
     "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}",
     "Deleted" : "Törölve",
+    "no signers" : "nincsenek aláírók",
     "Select other file" : "Válasszon másik fájlt",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Használja az egérgörgőt hogy nagyítsa vagy kicsinyítse a képet, és találja meg hogy néz ki a legjobban az aláírása."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

@@ -25,12 +25,10 @@ OC.L10N.register(
     "Element updated with success" : "Elementas sėkmingai atnaujintas",
     "User not found" : "Naudotojas nerastas",
     "draft" : "juodraštis",
-    "available for signature" : "prieinamas pasirašymui",
     "partially signed" : "dalinai pasirašytas",
     "signed" : "pasirašytas",
     "deleted" : "ištrintas",
     "Draft" : "Juodraštis",
-    "Pending" : "Laukiantis",
     "Signed" : "Pasirašytas",
     "User not found." : "Naudotojas nerastas.",
     "Unsigned file." : "Nepasirašytas failas.",
@@ -64,6 +62,7 @@ OC.L10N.register(
     "You must have an email. You can define the email in your profile." : "Jūs privalote turėti el. paštą. Galite apibrėžti el. paštą savo profilyje.",
     "Empty file" : "Tuščias failas",
     "Invalid file provided. Need to be a .pfx file." : "Pateiktas neteisingas failas. Turi būti .pfx failas.",
+    "Pending" : "Laukiantis",
     "Invalid file identifier" : "Neteisingas failo identifikatorius",
     "Link expired." : "Nuoroda nebegalioja.",
     "Invalid code." : "Neteisingas kodas.",
@@ -230,6 +229,7 @@ OC.L10N.register(
     "Subscription password." : "Prenumeratos slaptažodis.",
     "Forgot password?" : "Pamiršote slaptažodį?",
     "Complete" : "Baigti",
-    "Deleted" : "Ištrinta"
+    "Deleted" : "Ištrinta",
+    "available for signature" : "prieinamas pasirašymui"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

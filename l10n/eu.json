@@ -33,7 +33,6 @@
     "signed" : "sinatuta",
     "deleted" : "ezabatua",
     "Draft" : "Zirriborroa",
-    "Pending" : "Zain",
     "Signed" : "Sinatuta",
     "User not found." : "Ez da erabiltzailea aurkitu.",
     "Validate in %s." : "Balioztatu %s-n",
@@ -101,7 +100,7 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Hiri, herri, eskualde edo antzeko eremu geografiko baten izena",
     "Name of an organization" : "Erakunde baten izena",
     "Name of an organizational unit" : "Erakunde bateko sail baten izena",
-    "no signers" : "sinatzailerik ez",
+    "Pending" : "Zain",
     "You need to sign this document" : "Dokumentu hau sinatu behar duzu",
     "You cannot request signature for this document, please contact your administrator" : "Ezin duzu dokumentu honen sinadura eskatu, mesedez, jarri harremanetan administratzailearekin",
     "Invalid file identifier" : "Fitxategi identifikatzaile baliogabea",
@@ -365,6 +364,7 @@
     "Open in LibreSign" : "Ireki LibreSign-en",
     "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
     "Deleted" : "Ezabatuta",
+    "no signers" : "sinatzailerik ez",
     "Select other file" : "Hautatu beste fitxategi bat",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Erabili saguaren gurpila irudia handitzeko edo txikitzeko eta aurkitu zure sinaduraren ikuspegirik onena."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
