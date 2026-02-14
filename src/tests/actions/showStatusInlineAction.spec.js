@@ -62,6 +62,8 @@ describe('showStatusInlineAction', () => {
 		mocks.mockGetSidebar.mockClear()
 		mocks.mockLoadState.mockClear()
 		mocks.mockLoadState.mockReturnValue(true)
+		await import('../../actions/showStatusInlineAction.js')
+		action = mocks.capturedActionRef.value
 
 		// Mock window.OCA.Files.Sidebar for Nextcloud 32
 		if (!global.window) {
