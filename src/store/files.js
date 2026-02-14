@@ -42,9 +42,7 @@ export const useFilesStore = function(...args) {
 				}
 
 				if (this.selectedFileId === fileId) {
-					const sidebarStore = useSidebarStore()
-					sidebarStore.hideSidebar()
-					this.selectedFileId = 0
+					this.selectFile()
 				}
 
 				del(this.files, fileId)
@@ -90,6 +88,10 @@ export const useFilesStore = function(...args) {
 			},
 			selectFile(fileId) {
 				this.selectedFileId = fileId ?? 0
+				if (!fileId) {
+					const sidebarStore = useSidebarStore()
+					sidebarStore.hideSidebar()
+				}
 			},
 			async selectFileByNodeId(nodeId) {
 				let fileId = this.getFileIdByNodeId(nodeId)
@@ -607,9 +609,7 @@ export const useFilesStore = function(...args) {
 				}
 
 				if (this.selectedFileId && !this.files[this.selectedFileId]) {
-					const sidebarStore = useSidebarStore()
-					sidebarStore.hideSidebar()
-					this.selectedFileId = 0
+					this.selectFile()
 				}
 
 				this.loading = false

@@ -128,6 +128,33 @@ describe('files store - critical business rules', () => {
 
 			expect(store.selectedFileId).toBe(0)
 		})
+
+		it('selectFile without arguments resets to 0 (deselection)', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 123
+
+			store.selectFile()
+
+			expect(store.selectedFileId).toBe(0)
+		})
+
+		it('selectFile with fileId sets the file', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 0
+
+			store.selectFile(456)
+
+			expect(store.selectedFileId).toBe(456)
+		})
+
+		it('selectFile with 0 is treated as deselection', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 789
+
+			store.selectFile(0)
+
+			expect(store.selectedFileId).toBe(0)
+		})
 	})
 
 	describe('RULE: file settings are merged, not replaced', () => {
