@@ -4,7 +4,7 @@
 -->
 <template>
 	<VirtualList ref="table"
-		:data-component="userConfigStore.grid_view ? FileEntryGrid : FileEntry"
+		:data-component="userConfigStore.files_list_grid_view ? FileEntryGrid : FileEntry"
 		:loading="loading"
 		:caption="caption">
 		<template #filters>

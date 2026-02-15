@@ -191,6 +191,7 @@ class AccountService {
 	 * @return array<string, mixed>
 	 */
 	public function getConfig(?IUser $user = null): array {
+
 		$info['identificationDocumentsFlow'] = $this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false);
 		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
@@ -199,24 +200,24 @@ class AccountService {
 		$info['id_docs_sort'] = $this->getUserConfigIdDocsSort($user);
 		$info['crl_filters'] = $this->getUserConfigCrlFilters($user);
 		$info['crl_sort'] = $this->getUserConfigCrlSort($user);
-		$info['grid_view'] = $this->getUserConfigByKey('grid_view', $user) === '1';
-		$info['signer_identify_tab'] = $this->getUserConfigByKey('signer_identify_tab', $user);
-		$info['sorting_mode'] = $this->getUserConfigByKey('sorting_mode', $user) ?: 'name';
-		$info['sorting_direction'] = $this->getUserConfigByKey('sorting_direction', $user) ?: 'asc';
+		$info['files_list_grid_view'] = $this->getUserConfigByKey('files_list_grid_view', $user) === '1';
+		$info['files_list_signer_identify_tab'] = $this->getUserConfigByKey('files_list_signer_identify_tab', $user);
+		$info['files_list_sorting_mode'] = $this->getUserConfigByKey('files_list_sorting_mode', $user) ?: 'name';
+		$info['files_list_sorting_direction'] = $this->getUserConfigByKey('files_list_sorting_direction', $user) ?: 'asc';
 
 		return array_filter($info);
 	}
 
 	public function getConfigFilters(?IUser $user = null): array {
-		$info['filter_modified'] = $this->getUserConfigByKey('filter_modified', $user);
-		$info['filter_status'] = $this->getUserConfigByKey('filter_status', $user);
+		$info['files_list_filter_modified'] = $this->getUserConfigByKey('files_list_filter_modified', $user);
+		$info['files_list_filter_status'] = $this->getUserConfigByKey('files_list_filter_status', $user);
 
 		return $info;
 	}
 
 	public function getConfigSorting(?IUser $user = null): array {
-		$info['sorting_mode'] = $this->getUserConfigByKey('sorting_mode', $user) ?: 'name';
-		$info['sorting_direction'] = $this->getUserConfigByKey('sorting_direction', $user) ?: 'asc';
+		$info['files_list_sorting_mode'] = $this->getUserConfigByKey('files_list_sorting_mode', $user) ?: 'name';
+		$info['files_list_sorting_direction'] = $this->getUserConfigByKey('files_list_sorting_direction', $user) ?: 'asc';
 
 		return $info;
 	}
