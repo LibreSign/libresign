@@ -87,8 +87,8 @@ export default {
 			const url = new URL(previewUrl)
 
 			// Request tiny previews
-			url.searchParams.set('x', this.userConfigStore.grid_view ? '128' : '32')
-			url.searchParams.set('y', this.userConfigStore.grid_view ? '128' : '32')
+			url.searchParams.set('x', this.userConfigStore.files_list_grid_view ? '128' : '32')
+			url.searchParams.set('y', this.userConfigStore.files_list_grid_view ? '128' : '32')
 			url.searchParams.set('mimeFallback', 'true')
 
 			// Handle cropping
