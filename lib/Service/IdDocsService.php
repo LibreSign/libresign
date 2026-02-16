@@ -108,7 +108,10 @@ class IdDocsService {
 		}
 	}
 
-	public function addFilesToDocumentFolder(array $files, SignRequest $signRequest): void {
+	public function addFilesToDocumentFolder(
+		array $files,
+		SignRequest $signRequest,
+	): void {
 		foreach ($files as $fileIndex => $file) {
 			$this->validateTypeOfFile($fileIndex, $file);
 		}
@@ -135,8 +138,20 @@ class IdDocsService {
 	}
 
 	public function deleteIdDoc(int $nodeId, IUser $user): void {
-		$this->validateHelper->validateIdDocIsOwnedByUser($nodeId, $user->getUID());
-		$idDocs = $this->idDocsMapper->getByUserIdAndNodeId($user->getUID(), $nodeId);
+		if ($this->validateHelper->userCanApproveValidationDocuments($user, false)) {
+			$idDocs = $this->idDocsMapper->getByNodeId($nodeId);
+		} else {
+			$this->validateHelper->validateIdDocIsOwnedByUser($nodeId, $user->getUID());
+			$idDocs = $this->idDocsMapper->getByUserIdAndNodeId($user->getUID(), $nodeId);
+		}
+		$this->idDocsMapper->delete($idDocs);
+		$file = $this->fileMapper->getById($idDocs->getFileId());
+		$this->fileMapper->delete($file);
+	}
+
+	public function deleteIdDocBySignRequest(int $nodeId, SignRequest $signRequest): void {
+		$this->validateHelper->validateIdDocBelongsToSignRequest($nodeId, $signRequest->getId());
+		$idDocs = $this->idDocsMapper->getBySignRequestIdAndNodeId($signRequest->getId(), $nodeId);
 		$this->idDocsMapper->delete($idDocs);
 		$file = $this->fileMapper->getById($idDocs->getFileId());
 		$this->fileMapper->delete($file);
