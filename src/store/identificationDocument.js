@@ -7,37 +7,37 @@ import { defineStore } from 'pinia'
 
 import { loadState } from '@nextcloud/initial-state'
 
-export const useIdentificationDocumentStore = function(...args) {
-	const store = defineStore('identificationDocument', {
-		state: () => ({
-			modal: false,
-			enabled: loadState('libresign', 'needIdentificationDocuments', false),
-			waitingApproval: loadState('libresign', 'identificationDocumentsWaitingApproval', false),
-		}),
-		actions: {
-			needIdentificationDocument() {
-				return this.enabled && !this.waitingApproval
-			},
-			setEnabled(enabled) {
-				this.enabled = enabled
-			},
-			setWaitingApproval(waitingApproval) {
-				this.waitingApproval = waitingApproval
-			},
-			showModal() {
-				this.modal = true
-			},
-			closeModal() {
-				this.modal = false
-			},
+export const useIdentificationDocumentStore = defineStore('identificationDocument', {
+	state: () => ({
+		modal: false,
+		enabled: loadState('libresign', 'needIdentificationDocuments', false),
+		waitingApproval: loadState('libresign', 'identificationDocumentsWaitingApproval', false),
+	}),
+	actions: {
+		isDocumentPending() {
+			if (!this.enabled) return false
+			return true
 		},
-	})
-
-	const identificationDocumentStore = store(...args)
-
-	if (!identificationDocumentStore._initialized) {
-		identificationDocumentStore._initialized = true
-	}
-
-	return identificationDocumentStore
-}
+		needIdentificationDocument() {
+			if (this.waitingApproval) {
+				return true
+			}
+			return this.enabled
+		},
+		showDocumentsComponent() {
+			return this.enabled
+		},
+		setEnabled(enabled) {
+			this.enabled = enabled
+		},
+		setWaitingApproval(waitingApproval) {
+			this.waitingApproval = waitingApproval
+		},
+		showModal() {
+			this.modal = true
+		},
+		closeModal() {
+			this.modal = false
+		},
+	},
+})
