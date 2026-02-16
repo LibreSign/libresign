@@ -35,6 +35,65 @@ describe('identificationDocument store', () => {
 		expect(store.needIdentificationDocument()).toBe(true)
 	})
 
+	it('is document pending when enabled', () => {
+		const store = useIdentificationDocumentStore()
+
+		store.setEnabled(true)
+
+		expect(store.isDocumentPending()).toBe(true)
+	})
+
+	it('is not document pending when disabled', () => {
+		const store = useIdentificationDocumentStore()
+
+		store.setEnabled(false)
+
+		expect(store.isDocumentPending()).toBe(false)
+	})
+
+	it('shows documents component when enabled', () => {
+		const store = useIdentificationDocumentStore()
+
+		store.setEnabled(true)
+
+		expect(store.showDocumentsComponent()).toBe(true)
+	})
+
+	it('does not show documents component when disabled', () => {
+		const store = useIdentificationDocumentStore()
+
+		store.setEnabled(false)
+
+		expect(store.showDocumentsComponent()).toBe(false)
+	})
+
+	it('needs identification document when enabled but not waiting', () => {
+		const store = useIdentificationDocumentStore()
+
+		store.setEnabled(true)
+		store.setWaitingApproval(false)
+
+		expect(store.needIdentificationDocument()).toBe(true)
+	})
+
+	it('needs identification document when waiting for approval', () => {
+		const store = useIdentificationDocumentStore()
+
+		store.setEnabled(false)
+		store.setWaitingApproval(true)
+
+		expect(store.needIdentificationDocument()).toBe(true)
+	})
+
+	it('does not need identification document when disabled and not waiting', () => {
+		const store = useIdentificationDocumentStore()
+
+		store.setEnabled(false)
+		store.setWaitingApproval(false)
+
+		expect(store.needIdentificationDocument()).toBe(false)
+	})
+
 	it('toggles modal visibility', () => {
 		const store = useIdentificationDocumentStore()
 
