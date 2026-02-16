@@ -13,6 +13,7 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
@@ -1904,6 +1905,249 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[[['documentElementId' => 171]], 171, null, LibresignException::class],
 			[[['documentElementId' => 171]], null, null, LibresignException::class],
 		];
+	}
+
+	public function testGetSignRequestToSignUsesUuid(): void {
+		$service = $this->getService();
+
+		$uuid = '123e4567-e89b-12d3-a456-426614174000';
+		$file = new File();
+		$file->setId(10);
+		$file->setNodeType('file');
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(20);
+		$signRequest->setFileId(10);
+		$signRequest->setSigningOrder(0);
+
+		$this->validateHelper->expects($this->once())
+			->method('fileCanBeSigned')
+			->with($file);
+		$this->validateHelper->expects($this->once())
+			->method('validateUuidFormat')
+			->with($uuid);
+		$this->signRequestMapper->expects($this->once())
+			->method('getByUuid')
+			->with($uuid)
+			->willReturn($signRequest);
+		$this->sequentialSigningService->expects($this->once())
+			->method('setFile')
+			->with($file);
+		$this->sequentialSigningService->method('isOrderedNumericFlow')
+			->willReturn(false);
+
+		$result = $service->getSignRequestToSign($file, $uuid, null);
+
+		$this->assertSame($signRequest, $result);
+	}
+
+	public function testGetSignRequestToSignCreatesApproverSignRequest(): void {
+		$service = $this->getService();
+
+		$file = new File();
+		$file->setId(10);
+		$file->setNodeType('file');
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('approver');
+		$user->method('getDisplayName')->willReturn('Approver Name');
+		$user->method('getEMailAddress')->willReturn('approver@example.test');
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(30);
+		$signRequest->setFileId(10);
+		$signRequest->setSigningOrder(0);
+
+		$this->validateHelper->expects($this->once())
+			->method('fileCanBeSigned')
+			->with($file);
+		$this->validateHelper->expects($this->once())
+			->method('userCanApproveValidationDocuments')
+			->with($user, false)
+			->willReturn(true);
+		$this->idDocsMapper->expects($this->once())
+			->method('getByFileId')
+			->with(10)
+			->willReturn(new IdDocs());
+		$this->sequentialSigningService->expects($this->exactly(2))
+			->method('setFile')
+			->with($file);
+		$this->signRequestService->expects($this->once())
+			->method('createOrUpdateSignRequest')
+			->with(
+				identifyMethods: [IdentifyMethodService::IDENTIFY_ACCOUNT => 'approver'],
+				displayName: 'Approver Name',
+				description: '',
+				notify: false,
+				fileId: 10,
+				signingOrder: 0,
+				fileStatus: FileStatus::ABLE_TO_SIGN->value,
+			)
+			->willReturn($signRequest);
+		$this->sequentialSigningService->method('isOrderedNumericFlow')
+			->willReturn(false);
+
+		$result = $service->getSignRequestToSign($file, null, $user);
+
+		$this->assertSame($signRequest, $result);
+	}
+
+	public static function providerGetSignRequestToSignIdentifyMethod(): array {
+		return [
+			'email matches uid' => [
+				IdentifyMethodService::IDENTIFY_EMAIL,
+				'user-1',
+				'user-1',
+				'user-1@example.test',
+				false,
+			],
+			'email matches address' => [
+				IdentifyMethodService::IDENTIFY_EMAIL,
+				'user-1@example.test',
+				'user-1',
+				'user-1@example.test',
+				false,
+			],
+			'account matches uid' => [
+				IdentifyMethodService::IDENTIFY_ACCOUNT,
+				'user-1',
+				'user-1',
+				'user-1@example.test',
+				false,
+			],
+			'no match' => [
+				IdentifyMethodService::IDENTIFY_EMAIL,
+				'other@example.test',
+				'user-1',
+				'user-1@example.test',
+				true,
+			],
+		];
+	}
+
+	#[DataProvider('providerGetSignRequestToSignIdentifyMethod')]
+	public function testGetSignRequestToSignFindsByIdentifyMethod(
+		string $identifierKey,
+		string $identifierValue,
+		string $userId,
+		string $userEmail,
+		bool $expectException,
+	): void {
+		$service = $this->getService();
+
+		$file = new File();
+		$file->setId(10);
+		$file->setNodeType('file');
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn($userId);
+		$user->method('getEMailAddress')->willReturn($userEmail);
+		$user->method('getDisplayName')->willReturn('User Name');
+
+		$signRequestA = new SignRequest();
+		$signRequestA->setId(101);
+		$signRequestA->setFileId(10);
+		$signRequestA->setSigningOrder(0);
+
+		$signRequestB = new SignRequest();
+		$signRequestB->setId(102);
+		$signRequestB->setFileId(10);
+		$signRequestB->setSigningOrder(0);
+
+		$identifyMethodA = new IdentifyMethod();
+		$identifyMethodA->setIdentifierKey($identifierKey);
+		$identifyMethodA->setIdentifierValue($identifierValue);
+
+		$identifyMethodB = new IdentifyMethod();
+		$identifyMethodB->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+		$identifyMethodB->setIdentifierValue('other@example.test');
+
+		$this->validateHelper->expects($this->once())
+			->method('fileCanBeSigned')
+			->with($file);
+		$this->validateHelper->method('userCanApproveValidationDocuments')
+			->willReturn(false);
+		$this->signRequestMapper->expects($this->once())
+			->method('getByFileId')
+			->with(10)
+			->willReturn([$signRequestA, $signRequestB]);
+		$identifyMethodCalls = $expectException ? 2 : 1;
+		$this->identifyMethodMapper->expects($this->exactly($identifyMethodCalls))
+			->method('getIdentifyMethodsFromSignRequestId')
+			->willReturnMap([
+				[101, [$identifyMethodA]],
+				[102, [$identifyMethodB]],
+			]);
+		$setFileCalls = $expectException ? 0 : 1;
+		$this->sequentialSigningService->expects($this->exactly($setFileCalls))
+			->method('setFile')
+			->with($file);
+		$this->sequentialSigningService->method('isOrderedNumericFlow')
+			->willReturn(false);
+
+		if ($expectException) {
+			$this->expectException(LibresignException::class);
+			$this->expectExceptionMessage('Invalid data to sign file');
+		}
+
+		$result = $service->getSignRequestToSign($file, null, $user);
+
+		if (!$expectException) {
+			$this->assertSame($signRequestA, $result);
+		}
+	}
+
+	public function testGetSignRequestToSignFallsBackWhenApproverCreationFails(): void {
+		$service = $this->getService();
+
+		$file = new File();
+		$file->setId(10);
+		$file->setNodeType('file');
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('approver');
+		$user->method('getEMailAddress')->willReturn('approver@example.test');
+		$user->method('getDisplayName')->willReturn('Approver Name');
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(201);
+		$signRequest->setFileId(10);
+		$signRequest->setSigningOrder(0);
+
+		$identifyMethod = new IdentifyMethod();
+		$identifyMethod->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
+		$identifyMethod->setIdentifierValue('approver');
+
+		$this->validateHelper->expects($this->once())
+			->method('fileCanBeSigned')
+			->with($file);
+		$this->validateHelper->expects($this->once())
+			->method('userCanApproveValidationDocuments')
+			->with($user, false)
+			->willReturn(true);
+		$this->idDocsMapper->expects($this->once())
+			->method('getByFileId')
+			->with(10)
+			->willThrowException(new \Exception('Missing id docs'));
+		$this->signRequestService->expects($this->never())
+			->method('createOrUpdateSignRequest');
+		$this->signRequestMapper->expects($this->once())
+			->method('getByFileId')
+			->with(10)
+			->willReturn([$signRequest]);
+		$this->identifyMethodMapper->expects($this->once())
+			->method('getIdentifyMethodsFromSignRequestId')
+			->with(201)
+			->willReturn([$identifyMethod]);
+		$this->sequentialSigningService->expects($this->once())
+			->method('setFile')
+			->with($file);
+		$this->sequentialSigningService->method('isOrderedNumericFlow')
+			->willReturn(false);
+
+		$result = $service->getSignRequestToSign($file, null, $user);
+
+		$this->assertSame($signRequest, $result);
 	}
 	public function testGetSignRequestsToSignForStandaloneFile(): void {
 		$service = $this->getService();

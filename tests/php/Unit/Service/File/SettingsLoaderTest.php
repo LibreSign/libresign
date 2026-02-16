@@ -12,6 +12,7 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\IdDocsMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
 use OCA\Libresign\Service\File\FileResponseOptions;
@@ -20,6 +21,7 @@ use OCA\Libresign\Service\IdDocsPolicyService;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IUser;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use stdClass;
 
@@ -143,126 +145,164 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertTrue($fileData->settings['canSign']);
 	}
 
-	public function testGetIdentificationDocumentsStatusDisabled(): void {
-		$user = $this->createMock(IUser::class);
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(false);
-
-		$service = $this->getService();
-		$status = $service->getIdentificationDocumentsStatus($user);
-
-		$this->assertEquals(SettingsLoader::IDENTIFICATION_DOCUMENTS_DISABLED, $status);
+	public static function providerGetIdentificationDocumentsStatus(): array {
+		return [
+			'disabled returns DISABLED' => [
+				'idDocsEnabled' => false,
+				'hasUser' => true,
+				'userGroups' => [],
+				'approvalGroups' => [],
+				'signRequestId' => null,
+				'fileStatuses' => [],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_DISABLED,
+			],
+			'no files returns NEED_SEND' => [
+				'idDocsEnabled' => true,
+				'hasUser' => true,
+				'userGroups' => ['users'],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_SEND,
+			],
+			'all files deleted returns NEED_SEND' => [
+				'idDocsEnabled' => true,
+				'hasUser' => true,
+				'userGroups' => ['users'],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [FileStatus::DELETED->value, FileStatus::DELETED->value],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_SEND,
+			],
+			'mixed signed and draft returns NEED_APPROVAL' => [
+				'idDocsEnabled' => true,
+				'hasUser' => true,
+				'userGroups' => ['users'],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [FileStatus::SIGNED->value, FileStatus::DRAFT->value],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL,
+			],
+			'all files signed returns APPROVED' => [
+				'idDocsEnabled' => true,
+				'hasUser' => true,
+				'userGroups' => ['users'],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [FileStatus::SIGNED->value, FileStatus::SIGNED->value],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_APPROVED,
+			],
+			'user in approval group bypasses to APPROVED' => [
+				'idDocsEnabled' => true,
+				'hasUser' => true,
+				'userGroups' => ['approvers'],
+				'approvalGroups' => ['admin', 'approvers'],
+				'signRequestId' => null,
+				'fileStatuses' => [],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_APPROVED,
+			],
+			'signRequest with draft file returns NEED_APPROVAL' => [
+				'idDocsEnabled' => true,
+				'hasUser' => false,
+				'userGroups' => [],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => 42,
+				'fileStatuses' => [FileStatus::DRAFT->value],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL,
+			],
+			'signRequest with no files returns NEED_SEND' => [
+				'idDocsEnabled' => true,
+				'hasUser' => false,
+				'userGroups' => [],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => 99,
+				'fileStatuses' => [],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_SEND,
+			],
+			'signRequest with all signed returns APPROVED' => [
+				'idDocsEnabled' => true,
+				'hasUser' => false,
+				'userGroups' => [],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => 50,
+				'fileStatuses' => [FileStatus::SIGNED->value],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_APPROVED,
+			],
+			'null user and null signRequest returns NEED_SEND' => [
+				'idDocsEnabled' => true,
+				'hasUser' => false,
+				'userGroups' => [],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_SEND,
+			],
+			'single ABLE_TO_SIGN file returns NEED_APPROVAL' => [
+				'idDocsEnabled' => true,
+				'hasUser' => true,
+				'userGroups' => ['users'],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [FileStatus::ABLE_TO_SIGN->value],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL,
+			],
+			'mixed deleted and signed returns NEED_APPROVAL' => [
+				'idDocsEnabled' => true,
+				'hasUser' => true,
+				'userGroups' => ['users'],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [FileStatus::DELETED->value, FileStatus::SIGNED->value],
+				'expected' => SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL,
+			],
+		];
 	}
 
-	public function testGetIdentificationDocumentsStatusNeedSend(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('user123');
-
+	#[DataProvider('providerGetIdentificationDocumentsStatus')]
+	public function testGetIdentificationDocumentsStatus(
+		bool $idDocsEnabled,
+		bool $hasUser,
+		array $userGroups,
+		array $approvalGroups,
+		?int $signRequestId,
+		array $fileStatuses,
+		int $expected,
+	): void {
 		$this->appConfig->method('getValueBool')
 			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(true);
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn(['admin']);
+			->willReturn($idDocsEnabled);
 
-		$this->groupManager->method('getUserGroupIds')
-			->with($user)
-			->willReturn(['users']);
+		if ($idDocsEnabled) {
+			$this->appConfig->method('getValueArray')
+				->with(Application::APP_ID, 'approval_group', ['admin'])
+				->willReturn($approvalGroups);
+		}
 
-		$this->idDocsMapper->method('getFilesOfAccount')->with('user123')->willReturn([]);
+		$user = null;
+		$signRequest = null;
+		$files = array_map(function (int $status) {
+			$file = new File();
+			$file->setStatus($status);
+			return $file;
+		}, $fileStatuses);
 
-		$service = $this->getService();
-		$status = $service->getIdentificationDocumentsStatus($user);
+		if ($hasUser) {
+			$user = $this->createMock(IUser::class);
+			$user->method('getUID')->willReturn('testuser');
+			$this->groupManager->method('getUserGroupIds')->with($user)->willReturn($userGroups);
+			$this->idDocsMapper->method('getFilesOfAccount')->with('testuser')->willReturn($files);
+		}
 
-		$this->assertEquals(SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_SEND, $status);
-	}
-
-	public function testGetIdentificationDocumentsStatusAllDeleted(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('user123');
-
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(true);
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn(['admin']);
-
-		$this->groupManager->method('getUserGroupIds')
-			->with($user)
-			->willReturn(['users']);
-
-		$file1 = new File();
-		$file1->setStatus(FileStatus::DELETED->value);
-
-		$file2 = new File();
-		$file2->setStatus(FileStatus::DELETED->value);
-
-		$this->idDocsMapper->method('getFilesOfAccount')->with('user123')->willReturn([$file1, $file2]);
+		if ($signRequestId !== null) {
+			$signRequest = new SignRequest();
+			$signRequest->setId($signRequestId);
+			$this->idDocsMapper->method('getFilesOfSignRequest')->with($signRequestId)->willReturn($files);
+		}
 
 		$service = $this->getService();
-		$status = $service->getIdentificationDocumentsStatus($user);
+		$status = $service->getIdentificationDocumentsStatus($user, $signRequest);
 
-		$this->assertEquals(SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_SEND, $status);
-	}
-
-	public function testGetIdentificationDocumentsStatusNeedApproval(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('user123');
-
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(true);
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn(['admin']);
-
-		$this->groupManager->method('getUserGroupIds')
-			->with($user)
-			->willReturn(['users']);
-
-		$file1 = new File();
-		$file1->setStatus(FileStatus::SIGNED->value);
-
-		$file2 = new File();
-		$file2->setStatus(FileStatus::DRAFT->value);
-
-		$this->idDocsMapper->method('getFilesOfAccount')->with('user123')->willReturn([$file1, $file2]);
-
-		$service = $this->getService();
-		$status = $service->getIdentificationDocumentsStatus($user);
-
-		$this->assertEquals(SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL, $status);
-	}
-
-	public function testGetIdentificationDocumentsStatusApproved(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('user123');
-
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(true);
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn(['admin']);
-
-		$this->groupManager->method('getUserGroupIds')
-			->with($user)
-			->willReturn(['users']);
-
-		$file1 = new File();
-		$file1->setStatus(FileStatus::SIGNED->value);
-
-		$file2 = new File();
-		$file2->setStatus(FileStatus::SIGNED->value);
-
-		$this->idDocsMapper->method('getFilesOfAccount')->with('user123')->willReturn([$file1, $file2]);
-
-		$service = $this->getService();
-		$status = $service->getIdentificationDocumentsStatus($user);
-
-		$this->assertEquals(SettingsLoader::IDENTIFICATION_DOCUMENTS_APPROVED, $status);
+		$this->assertEquals($expected, $status);
 	}
 
 	public function testLoadSettingsWithSignerIdentifiedNeedSend(): void {
@@ -324,97 +364,127 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals(SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_SEND, $status);
 	}
 
-	public function testGetUserIdentificationSettingsDisabled(): void {
-		$user = $this->createMock(IUser::class);
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(false);
-
-		$service = $this->getService();
-		$result = $service->getUserIdentificationSettings($user);
-
-		$this->assertFalse($result['needIdentificationDocuments']);
-		$this->assertFalse($result['identificationDocumentsWaitingApproval']);
+	public static function providerGetUserIdentificationSettings(): array {
+		return [
+			'disabled → no identification needed' => [
+				'idDocsEnabled' => false,
+				'hasUser' => true,
+				'userGroups' => [],
+				'approvalGroups' => [],
+				'signRequestId' => null,
+				'fileStatuses' => [],
+				'expectedNeedDocs' => false,
+				'expectedWaitingApproval' => false,
+			],
+			'need send → needs documents, not waiting' => [
+				'idDocsEnabled' => true,
+				'hasUser' => true,
+				'userGroups' => ['users'],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [],
+				'expectedNeedDocs' => true,
+				'expectedWaitingApproval' => false,
+			],
+			'need approval → needs documents, waiting' => [
+				'idDocsEnabled' => true,
+				'hasUser' => true,
+				'userGroups' => ['users'],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [FileStatus::DRAFT->value],
+				'expectedNeedDocs' => true,
+				'expectedWaitingApproval' => true,
+			],
+			'approved → no identification needed' => [
+				'idDocsEnabled' => true,
+				'hasUser' => true,
+				'userGroups' => ['users'],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [FileStatus::SIGNED->value, FileStatus::SIGNED->value],
+				'expectedNeedDocs' => false,
+				'expectedWaitingApproval' => false,
+			],
+			'signRequest all signed → no identification needed' => [
+				'idDocsEnabled' => true,
+				'hasUser' => false,
+				'userGroups' => [],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => 50,
+				'fileStatuses' => [FileStatus::SIGNED->value],
+				'expectedNeedDocs' => false,
+				'expectedWaitingApproval' => false,
+			],
+			'signRequest with draft → needs documents, waiting' => [
+				'idDocsEnabled' => true,
+				'hasUser' => false,
+				'userGroups' => [],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => 42,
+				'fileStatuses' => [FileStatus::DRAFT->value],
+				'expectedNeedDocs' => true,
+				'expectedWaitingApproval' => true,
+			],
+			'null user without signRequest → needs documents, not waiting' => [
+				'idDocsEnabled' => true,
+				'hasUser' => false,
+				'userGroups' => [],
+				'approvalGroups' => ['admin'],
+				'signRequestId' => null,
+				'fileStatuses' => [],
+				'expectedNeedDocs' => true,
+				'expectedWaitingApproval' => false,
+			],
+		];
 	}
 
-	public function testGetUserIdentificationSettingsNeedSend(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('user456');
-
+	#[DataProvider('providerGetUserIdentificationSettings')]
+	public function testGetUserIdentificationSettings(
+		bool $idDocsEnabled,
+		bool $hasUser,
+		array $userGroups,
+		array $approvalGroups,
+		?int $signRequestId,
+		array $fileStatuses,
+		bool $expectedNeedDocs,
+		bool $expectedWaitingApproval,
+	): void {
 		$this->appConfig->method('getValueBool')
 			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(true);
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn(['admin']);
+			->willReturn($idDocsEnabled);
 
-		$this->groupManager->method('getUserGroupIds')
-			->with($user)
-			->willReturn(['users']);
+		if ($idDocsEnabled) {
+			$this->appConfig->method('getValueArray')
+				->with(Application::APP_ID, 'approval_group', ['admin'])
+				->willReturn($approvalGroups);
+		}
 
-		$this->idDocsMapper->method('getFilesOfAccount')->with('user456')->willReturn([]);
+		$user = null;
+		$signRequest = null;
+		$files = array_map(function (int $status) {
+			$file = new File();
+			$file->setStatus($status);
+			return $file;
+		}, $fileStatuses);
 
-		$service = $this->getService();
-		$result = $service->getUserIdentificationSettings($user);
+		if ($hasUser) {
+			$user = $this->createMock(IUser::class);
+			$user->method('getUID')->willReturn('testuser');
+			$this->groupManager->method('getUserGroupIds')->with($user)->willReturn($userGroups);
+			$this->idDocsMapper->method('getFilesOfAccount')->with('testuser')->willReturn($files);
+		}
 
-		$this->assertTrue($result['needIdentificationDocuments']);
-		$this->assertFalse($result['identificationDocumentsWaitingApproval']);
-	}
-
-	public function testGetUserIdentificationSettingsNeedApproval(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('user789');
-
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(true);
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn(['admin']);
-
-		$this->groupManager->method('getUserGroupIds')
-			->with($user)
-			->willReturn(['users']);
-
-		$file = new File();
-		$file->setStatus(FileStatus::DRAFT->value);
-
-		$this->idDocsMapper->method('getFilesOfAccount')->with('user789')->willReturn([$file]);
+		if ($signRequestId !== null) {
+			$signRequest = new SignRequest();
+			$signRequest->setId($signRequestId);
+			$this->idDocsMapper->method('getFilesOfSignRequest')->with($signRequestId)->willReturn($files);
+		}
 
 		$service = $this->getService();
-		$result = $service->getUserIdentificationSettings($user);
+		$result = $service->getUserIdentificationSettings($user, $signRequest);
 
-		$this->assertTrue($result['needIdentificationDocuments']);
-		$this->assertTrue($result['identificationDocumentsWaitingApproval']);
-	}
-
-	public function testGetUserIdentificationSettingsApproved(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('user999');
-
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(true);
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn(['admin']);
-
-		$this->groupManager->method('getUserGroupIds')
-			->with($user)
-			->willReturn(['users']);
-
-		$file1 = new File();
-		$file1->setStatus(FileStatus::SIGNED->value);
-
-		$file2 = new File();
-		$file2->setStatus(FileStatus::SIGNED->value);
-
-		$this->idDocsMapper->method('getFilesOfAccount')->with('user999')->willReturn([$file1, $file2]);
-
-		$service = $this->getService();
-		$result = $service->getUserIdentificationSettings($user);
-
-		$this->assertFalse($result['needIdentificationDocuments']);
-		$this->assertFalse($result['identificationDocumentsWaitingApproval']);
+		$this->assertEquals($expectedNeedDocs, $result['needIdentificationDocuments']);
+		$this->assertEquals($expectedWaitingApproval, $result['identificationDocumentsWaitingApproval']);
 	}
 }
