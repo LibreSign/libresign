@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit;
+namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Files_Trashbin\Trash\ITrashManager;
 use OCA\Libresign\AppInfo\Application;
