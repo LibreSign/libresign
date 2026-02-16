@@ -47,7 +47,7 @@ use Throwable;
 class AccountService {
 	private ?SignRequest $signRequest = null;
 	private ?\OCA\Libresign\Db\File $fileData = null;
-	private \OCP\Files\File $fileToSign;
+	private ?\OCP\Files\File $fileToSign = null;
 
 	public function __construct(
 		private IL10N $l10n,
