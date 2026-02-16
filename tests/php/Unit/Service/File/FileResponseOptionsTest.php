@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\File;
 
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Service\File\FileResponseOptions;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;
@@ -79,5 +80,23 @@ class FileResponseOptionsTest extends TestCase {
 		$this->assertTrue($this->options->isShowSettings());
 		$this->assertSame($user, $this->options->getMe());
 		$this->assertEquals('example.com', $this->options->getHost());
+	}
+
+	public function testDefaultSignRequestIsNull(): void {
+		$this->assertNull($this->options->getSignRequest());
+	}
+
+	public function testCanSetSignRequest(): void {
+		$signRequest = $this->createMock(SignRequest::class);
+		$result = $this->options->setSignRequest($signRequest);
+		$this->assertSame($signRequest, $this->options->getSignRequest());
+		$this->assertSame($this->options, $result);
+	}
+
+	public function testCanSetSignRequestToNull(): void {
+		$signRequest = $this->createMock(SignRequest::class);
+		$this->options->setSignRequest($signRequest);
+		$this->options->setSignRequest(null);
+		$this->assertNull($this->options->getSignRequest());
 	}
 }
