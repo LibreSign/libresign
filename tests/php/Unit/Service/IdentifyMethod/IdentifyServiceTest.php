@@ -14,6 +14,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Tests\Unit\TestCase;
@@ -42,6 +43,7 @@ final class IdentifyServiceTest extends TestCase {
 	private IUserManager&MockObject $userManager;
 	private IURLGenerator&MockObject $urlGenerator;
 	private LoggerInterface&MockObject $logger;
+	private FolderService&MockObject $folderService;
 	private IdentifyService $service;
 
 	public function setUp(): void {
@@ -60,6 +62,7 @@ final class IdentifyServiceTest extends TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
 
 		$this->service = new IdentifyService(
 			$this->identifyMethodMapper,
@@ -75,6 +78,7 @@ final class IdentifyServiceTest extends TestCase {
 			$this->userManager,
 			$this->urlGenerator,
 			$this->logger,
+			$this->folderService,
 		);
 	}
 

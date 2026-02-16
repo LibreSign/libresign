@@ -72,6 +72,7 @@
 <script>
 import { translate as t } from '@nextcloud/l10n'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import { FILE_STATUS } from '../constants.js'
 import { getStatusIcon } from '../utils/fileStatus.js'
 
 export default {
@@ -105,7 +106,7 @@ export default {
 	},
 	computed: {
 		isInProgress() {
-			return this.status === 5
+			return this.status === FILE_STATUS.SIGNING_IN_PROGRESS
 		},
 
 		statusIconPath() {

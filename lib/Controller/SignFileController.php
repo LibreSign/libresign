@@ -20,6 +20,7 @@ use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\AsyncSigningService;
+use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestMetadataService;
@@ -47,6 +48,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		protected SignFileService $signFileService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileService $fileService,
+		private SettingsLoader $settingsLoader,
 		private WorkerHealthService $workerHealthService,
 		private AsyncSigningService $asyncSigningService,
 		private RequestMetadataService $requestMetadataService,
@@ -117,13 +119,21 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
+			$isIdDocApproval = $this->request->getParam('idDocApproval') === 'true';
+
+			if ($isIdDocApproval && $signRequestUuid) {
+				$libreSignFile = $this->signFileService->getFileByUuid($signRequestUuid);
+				$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, null, $user);
+			} else {
+				$libreSignFile = $this->signFileService->getLibresignFile($fileId, $signRequestUuid);
+				$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $signRequestUuid, $user);
+			}
+
 			$this->validateHelper->canSignWithIdentificationDocumentStatus(
 				$user,
-				$this->fileService->getIdentificationDocumentsStatus($user?->getUID() ?? '')
+				$this->settingsLoader->getIdentificationDocumentsStatus($user, $signRequest)
 			);
 
-			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $signRequestUuid);
-			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $signRequestUuid, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $signRequest, $user);
 			$this->validateHelper->validateCredentials($signRequest, $method, $identifyValue, $token);
 

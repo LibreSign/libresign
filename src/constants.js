@@ -22,10 +22,20 @@ export const FILE_STATUS = Object.freeze({
  * Synchronized with backend SignRequestStatus enum (lib/Enum/SignRequestStatus.php)
  */
 export const SIGN_REQUEST_STATUS = Object.freeze({
-	PENDING: 0,
-	SIGNED: 1,
-	REJECTED: 2,
-	DELETED: 3,
+	DRAFT: 0,
+	ABLE_TO_SIGN: 1,
+	SIGNED: 2,
+})
+
+/**
+ * Identification documents status constants
+ * Synchronized with backend SettingsLoader constants (lib/Service/File/SettingsLoader.php)
+ */
+export const IDENTIFICATION_DOCUMENTS_STATUS = Object.freeze({
+	DISABLED: 0,
+	NEED_SEND: 1,
+	NEED_APPROVAL: 2,
+	APPROVED: 3,
 })
 
 /**

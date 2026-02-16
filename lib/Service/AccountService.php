@@ -322,11 +322,8 @@ class AccountService {
 	}
 
 	/**
-	 * Get PDF node by UUID
-	 *
 	 * @psalm-suppress MixedReturnStatement
 	 * @throws Throwable
-	 * @return \OCP\Files\File
 	 */
 	public function getPdfByUuid(string $uuid): File {
 		$fileData = $this->fileMapper->getByUuid($uuid);
@@ -339,11 +336,10 @@ class AccountService {
 		if ($nodeId === null) {
 			throw new DoesNotExistException('Not found');
 		}
-		$file = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
-		if (!$file instanceof File) {
-			throw new DoesNotExistException('Not found');
-		}
-		return $file;
+
+		$userId = $this->fileMapper->getStorageUserIdByUuid($uuid);
+		$this->folderService->setUserId($userId);
+		return $this->folderService->getFileByNodeId($nodeId);
 	}
 
 	public function getFileByNodeId(int $nodeId): File {

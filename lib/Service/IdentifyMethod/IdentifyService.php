@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -40,6 +41,7 @@ class IdentifyService {
 		private IUserManager $userManager,
 		private IURLGenerator $urlGenerator,
 		private LoggerInterface $logger,
+		private FolderService $folderService,
 	) {
 	}
 
@@ -176,5 +178,9 @@ class IdentifyService {
 
 	public function getLogger(): LoggerInterface {
 		return $this->logger;
+	}
+
+	public function getFolderService(): FolderService {
+		return $this->folderService;
 	}
 }

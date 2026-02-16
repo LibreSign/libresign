@@ -13,7 +13,8 @@ import axios from '@nextcloud/axios'
 import { useFilesStore } from './files.js'
 import { useSidebarStore } from './sidebar.js'
 import { useSignMethodsStore } from './signMethods.js'
-import { FILE_STATUS } from '../constants.js'
+import { useIdentificationDocumentStore } from './identificationDocument.js'
+import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 
 const defaultState = {
 	errors: [],
@@ -45,11 +46,18 @@ export const useSignStore = defineStore('sign', {
 			}
 
 			const mySigner = state.document?.signers?.find(signer => signer.me)
-			if (!mySigner) {
+			const isIdDocApprover = state.document?.settings?.isApprover
+
+			if (!mySigner && !isIdDocApprover) {
 				return false
 			}
 
-			if (mySigner.status !== 1) {
+			if (mySigner && mySigner.status !== SIGN_REQUEST_STATUS.ABLE_TO_SIGN) {
+				return false
+			}
+
+			const identificationDocumentStore = useIdentificationDocumentStore()
+			if (identificationDocumentStore.isDocumentPending()) {
 				return false
 			}
 
@@ -58,6 +66,11 @@ export const useSignStore = defineStore('sign', {
 	},
 
 	actions: {
+		getSignatureMethodsForFile(file) {
+			const currentUserAsSigner = file.signers.find(row => row.me)
+			return currentUserAsSigner?.signatureMethods || file.settings?.signatureMethods || {}
+		},
+
 		async initFromState() {
 			this.errors = loadState('libresign', 'errors', [])
 
@@ -89,9 +102,7 @@ export const useSignStore = defineStore('sign', {
 				sidebarStore.activeSignTab()
 
 				const signMethodsStore = useSignMethodsStore()
-				const signer = file.signers.find(row => row.me) || {}
-
-				signMethodsStore.settings = signer.signatureMethods || {}
+				signMethodsStore.settings = this.getSignatureMethodsForFile(file)
 
 				return
 			}
@@ -122,12 +133,20 @@ export const useSignStore = defineStore('sign', {
 
 		buildSignUrl(signRequestUuid, options = {}) {
 			const { documentId } = options
+			const isApprover = this.document?.settings?.isApprover
 
+			let url
 			if (signRequestUuid) {
-				return generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: signRequestUuid }) + '?async=true'
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: signRequestUuid }) + '?async=true'
+			} else {
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: documentId }) + '?async=true'
 			}
 
-			return generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: documentId }) + '?async=true'
+			if (isApprover) {
+				url += '&idDocApproval=true'
+			}
+
+			return url
 		},
 
 		parseSignResponse(data) {

@@ -275,6 +275,126 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+
+	#[DataProvider('providerGetFolderNameWithStringIdentifier')]
+	public function testGetFolderNameWithStringIdentifier(array $data, string $identifier, ?string $expectExact, ?string $expectRegex): void {
+		$service = $this->getInstance();
+		$actual = $service->getFolderName($data, $identifier);
+
+		if ($expectExact !== null) {
+			self::assertSame($expectExact, $actual);
+		} else {
+			self::assertMatchesRegularExpression($expectRegex, $actual);
+		}
+	}
+
+	public static function providerGetFolderNameWithStringIdentifier(): array {
+		$defaultDateRegex = '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{6}';
+
+		return [
+			'string-id-empty-defaults' => [
+				'data' => [
+					'name' => 'Doc',
+					'settings' => [],
+				],
+				'identifier' => '',
+				'expectExact' => null,
+				'expectRegex' => '/^' . $defaultDateRegex . '_Doc$/',
+			],
+			'string-id-empty-defaults-without-name' => [
+				'data' => [
+					'name' => '',
+					'settings' => [],
+				],
+				'identifier' => '',
+				'expectExact' => null,
+				'expectRegex' => '/^' . $defaultDateRegex . '$/',
+			],
+			'string-id-empty-only-userId' => [
+				'data' => [
+					'settings' => [
+						'separator' => '_',
+						'folderPatterns' => [
+							['name' => 'userId'],
+						],
+					],
+				],
+				'identifier' => '',
+				'expectExact' => '',
+				'expectRegex' => null,
+			],
+			'string-id-zero-only-userId' => [
+				'data' => [
+					'settings' => [
+						'separator' => '_',
+						'folderPatterns' => [
+							['name' => 'userId'],
+						],
+					],
+				],
+				'identifier' => '0',
+				'expectExact' => '',
+				'expectRegex' => null,
+			],
+			'string-id-nonempty' => [
+				'data' => [
+					'name' => 'Doc',
+					'settings' => [
+						'separator' => '-',
+						'folderPatterns' => [
+							['name' => 'name'],
+							['name' => 'userId'],
+						],
+					],
+				],
+				'identifier' => 'guest-123',
+				'expectExact' => 'Doc-guest-123',
+				'expectRegex' => null,
+			],
+		];
+	}
+
+	#[DataProvider('providerGetFolderNameWithNonStringIdentifier')]
+	public function testGetFolderNameWithNonStringIdentifier(array $data, mixed $identifier, string $expected): void {
+		$service = $this->getInstance();
+		$actual = $service->getFolderName($data, $identifier);
+
+		self::assertSame($expected, $actual);
+	}
+
+	public static function providerGetFolderNameWithNonStringIdentifier(): array {
+		return [
+			'null-identifier-ignored' => [
+				'data' => [
+					'name' => 'Doc',
+					'settings' => [
+						'separator' => '-',
+						'folderPatterns' => [
+							['name' => 'name'],
+							['name' => 'userId'],
+						],
+					],
+				],
+				'identifier' => null,
+				'expected' => 'Doc',
+			],
+			'int-identifier-ignored' => [
+				'data' => [
+					'name' => 'Doc',
+					'settings' => [
+						'separator' => '-',
+						'folderPatterns' => [
+							['name' => 'name'],
+							['name' => 'userId'],
+						],
+					],
+				],
+				'identifier' => 123,
+				'expected' => 'Doc',
+			],
+		];
+	}
+
 	public function testGetFolderForFileUsesEnvelopeFolderWhenProvided(): void {
 		$envelopeFolderId = 456;
 		$data = [

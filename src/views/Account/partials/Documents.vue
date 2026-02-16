@@ -13,42 +13,47 @@
 				{{ t('libresign', 'Your identification documents are waiting for approval.') }}
 			</NcNoteCard>
 
-			<ul class="documents-list">
-				<NcListItem v-for="(doc, index) in list"
+			<div class="documents-list">
+				<div v-for="(doc, index) in list"
 					:key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`"
-					:name="doc.file_type.name"
-					:bold="false">
-					<template #subname>
-						{{ doc.statusText }}
-					</template>
-					<template #actions>
-						<NcActionButton v-if="doc.status === -1"
+					class="document-card">
+					<div class="document-header">
+						<div class="document-info">
+							<h3>{{ doc.file_type.name }}</h3>
+							<p class="document-status">{{ doc.statusText }}</p>
+						</div>
+					</div>
+					<div class="document-actions">
+						<NcButton v-if="doc.status === -1 && isAuthenticatedUser"
+							type="tertiary"
 							:aria-label="t('libresign', 'Choose from Files')"
 							@click="toggleFilePicker(doc.file_type.key)">
 							<template #icon>
 								<FolderIcon :size="20" />
 							</template>
 							{{ t('libresign', 'Choose from Files') }}
-						</NcActionButton>
-						<NcActionButton v-if="doc.status === -1"
+						</NcButton>
+						<NcButton v-if="doc.status === -1"
+							type="tertiary"
 							:aria-label="t('libresign', 'Upload file')"
 							@click="inputFile(doc.file_type.key)">
 							<template #icon>
 								<UploadIcon :size="20" />
 							</template>
 							{{ t('libresign', 'Upload file') }}
-						</NcActionButton>
-						<NcActionButton v-if="doc.status !== -1"
+						</NcButton>
+						<NcButton v-if="doc.status !== -1"
+							type="tertiary"
 							:aria-label="t('libresign', 'Delete file')"
 							@click="deleteFile(doc)">
 							<template #icon>
 								<DeleteIcon :size="20" />
 							</template>
 							{{ t('libresign', 'Delete file') }}
-						</NcActionButton>
-					</template>
-				</NcListItem>
-			</ul>
+						</NcButton>
+					</div>
+				</div>
+			</div>
 		</template>
 
 		<FilePicker v-if="showFilePicker"
@@ -62,15 +67,17 @@
 
 <script>
 import { translate as t } from '@nextcloud/l10n'
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
-import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+
+import { IDENTIFICATION_DOCUMENTS_STATUS } from '../../../constants.js'
 
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
@@ -91,8 +98,7 @@ export default {
 		DeleteIcon,
 		FilePicker,
 		FolderIcon,
-		NcActionButton,
-		NcListItem,
+		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,
 		UploadIcon,
@@ -138,7 +144,10 @@ export default {
 			return Object.values(this.documents)
 		},
 		hasDocumentsWaitingApproval() {
-			return this.list.some(doc => doc.status === 2)
+			return this.list.some(doc => doc.status === IDENTIFICATION_DOCUMENTS_STATUS.NEED_APPROVAL)
+		},
+		isAuthenticatedUser() {
+			return Boolean(getCurrentUser())
 		},
 		enabledFlow() {
 			const config = loadState('libresign', 'config', {})
@@ -206,7 +215,7 @@ export default {
 					await this.loadDocuments()
 				})
 				.catch(({ response }) => {
-					showError(response.data.ocs.data.message)
+					showError(response?.data?.ocs?.data?.message || this.t('libresign', 'Upload failed'))
 				})
 			this.loading = false
 		},
@@ -235,9 +244,11 @@ export default {
 				})
 			this.loading = false
 		},
-		async deleteFile({ nodeId }) {
+		async deleteFile(doc) {
 			this.loading = true
-			await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/id-docs/${nodeId}`))
+			const nodeId = doc.file.file.nodeId
+			const params = this.signRequestUuid ? { uuid: this.signRequestUuid } : {}
+			await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/id-docs/${nodeId}`), { params })
 				.then(async () => {
 					showSuccess(t('libresign', 'File was deleted.'))
 					await this.loadDocuments()
@@ -272,7 +283,92 @@ export default {
 	h2 {
 		font-size: 1.25rem;
 		font-weight: 600;
-		margin-bottom: 12px;
+		margin-bottom: 24px;
+	}
+}
+
+.documents-list {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+.document-card {
+	background: var(--color-background-hover);
+	border: 1px solid var(--color-border);
+	border-radius: 8px;
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	transition: background-color 0.2s ease;
+
+	&:hover {
+		background-color: var(--color-background-dark);
+	}
+}
+
+.document-header {
+	display: flex;
+	align-items: center;
+}
+
+.document-info {
+	flex: 1;
+
+	h3 {
+		font-size: 1rem;
+		font-weight: 500;
+		margin: 0;
+		padding: 0;
+		color: var(--color-main-text);
+	}
+
+	.document-status {
+		font-size: 0.875rem;
+		color: var(--color-text-maxcontrast);
+		margin: 6px 0 0 0;
+		padding: 0;
+	}
+}
+
+.document-actions {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	align-items: center;
+
+	:deep(.nc-button) {
+		white-space: nowrap;
+		font-size: 0.85rem;
+	}
+
+	:deep(.button-vue__icon) {
+		margin-right: 6px;
+	}
+
+	:deep(.button-vue) {
+		padding: 6px 12px;
+		min-height: 36px;
+	}
+}
+
+@media (max-width: 768px) {
+	.document-card {
+		padding: 16px;
+	}
+
+	.document-actions {
+		flex-direction: column;
+		align-items: stretch;
+
+		:deep(.nc-button) {
+			width: 100%;
+			justify-content: center;
+		}
 	}
 }
 </style>
