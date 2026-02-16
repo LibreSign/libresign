@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+
+namespace OCA\Libresign\Tests\Unit\Middleware;
+
 use OC\AppFramework\Bootstrap\Coordinator;
 use OC\AppFramework\Services\InitialState;
 use OC\InitialStateService;
