@@ -36,7 +36,7 @@ describe('sidebar store - visibility rules', () => {
 			store.show = false
 			store.activeTab = ''
 
-			expect(store.canShow()).toBe(false)
+			expect(store.canShow).toBe(false)
 		})
 
 		it('can show sidebar when it has active tab', () => {
@@ -44,7 +44,7 @@ describe('sidebar store - visibility rules', () => {
 			store.show = false
 			store.activeTab = 'sign-tab'
 
-			expect(store.canShow()).toBe(true)
+			expect(store.canShow).toBe(true)
 		})
 
 		it('cannot show if already visible', () => {
@@ -52,7 +52,7 @@ describe('sidebar store - visibility rules', () => {
 			store.show = true
 			store.activeTab = 'sign-tab'
 
-			expect(store.canShow()).toBe(false)
+			expect(store.canShow).toBe(false)
 		})
 	})
 
@@ -62,7 +62,7 @@ describe('sidebar store - visibility rules', () => {
 			store.show = false
 			store.activeTab = 'sign-tab'
 
-			expect(store.isVisible()).toBe(false)
+			expect(store.isVisible).toBe(false)
 		})
 
 		it('not visible if show=true but without tab', () => {
@@ -70,7 +70,7 @@ describe('sidebar store - visibility rules', () => {
 			store.show = true
 			store.activeTab = ''
 
-			expect(store.isVisible()).toBe(false)
+			expect(store.isVisible).toBe(false)
 		})
 
 		it('visible only when show=true AND has active tab', () => {
@@ -78,7 +78,7 @@ describe('sidebar store - visibility rules', () => {
 			store.show = true
 			store.activeTab = 'sign-tab'
 
-			expect(store.isVisible()).toBe(true)
+			expect(store.isVisible).toBe(true)
 		})
 	})
 

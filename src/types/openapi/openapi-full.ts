@@ -244,23 +244,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/index.php/apps/libresign/p/id-docs/approve/{uuid}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Show signature page for identification document approval */
-        get: operations["page-sign-id-doc"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/index.php/apps/libresign/p/pdf/{uuid}": {
         parameters: {
             query?: never;
@@ -1911,6 +1894,7 @@ export type components = {
             signerFileUuid: string | null;
             phoneNumber: string;
             hasSignatureFile: boolean;
+            isApprover?: boolean;
             needIdentificationDocuments: boolean;
             identificationDocumentsWaitingApproval: boolean;
         };
@@ -2039,6 +2023,8 @@ export type components = {
             }[];
             metadata?: components["schemas"]["ValidateMetadata"];
             signers?: components["schemas"]["Signer"][];
+            /** Format: int64 */
+            signersCount?: number;
             settings?: components["schemas"]["Settings"];
             messages?: {
                 /** @enum {string} */
@@ -2397,29 +2383,6 @@ export interface operations {
             header?: never;
             path: {
                 /** @description Sign request uuid */
-                uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/html": string;
-                };
-            };
-        };
-    };
-    "page-sign-id-doc": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description File UUID for the identification document approval */
                 uuid: string;
             };
             cookie?: never;
@@ -4177,7 +4140,10 @@ export interface operations {
     };
     "id_docs-delete": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Sign request UUID for unauthenticated access */
+                uuid?: string | null;
+            };
             header: {
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
