@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+
+namespace OCA\Libresign\Tests\Unit\Handler\CertificateEngine;
+
 use bovigo\vfs\vfsStream;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateHelper;
