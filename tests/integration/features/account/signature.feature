@@ -238,6 +238,22 @@ Feature: account/signature
     When sending "delete" to ocs "/apps/libresign/api/v1/signature/elements/<NODE_ID>"
     Then the response should have a status code 200
 
+  Scenario: CRUD of signature element authenticated with public sign header
+    Given user "signer1" exists
+    And as user "signer1"
+    And set the custom http header "libresign-sign-request-uuid" with "11111111-1111-1111-1111-111111111111" as value to next request
+    When sending "post" to ocs "/apps/libresign/api/v1/signature/elements"
+      | elements | [{"type":"signature","file":{"base64":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="}}] |
+    Then the response should have a status code 200
+    When sending "get" to ocs "/apps/libresign/api/v1/signature/elements"
+    Then the response should be a JSON array with the following mandatory values
+      | key                            | value     |
+      | (jq).ocs.data.elements\|length | 1         |
+      | (jq).ocs.data.elements[0].type | signature |
+    And fetch field "(NODE_ID)ocs.data.elements.0.file.nodeId" from previous JSON response
+    When sending "delete" to ocs "/apps/libresign/api/v1/signature/elements/<NODE_ID>"
+    Then the response should have a status code 200
+
   Scenario: CRUD of signature element to signer by email without account
     Given run the command "config:app:set guests whitelist --value=libresign" with result code 0
     And run the command "libresign:configure:openssl --cn test" with result code 0
