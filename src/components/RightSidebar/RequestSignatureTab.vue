@@ -304,7 +304,7 @@ import VisibleElements from '../Request/VisibleElements.vue'
 
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
-import { FILE_STATUS } from '../../constants.js'
+import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router.js'
 import { useFilesStore } from '../../store/files.js'
@@ -796,7 +796,7 @@ export default {
 		},
 		hasAnyDraftSigner(file) {
 			const signers = Array.isArray(file?.signers) ? file.signers : []
-			return signers.some(signer => signer.status === 0)
+			return signers.some(signer => signer.status === SIGN_REQUEST_STATUS.DRAFT)
 		},
 		hasSequentialDraftSigners(file) {
 			const signers = Array.isArray(file?.signers) ? file.signers : []
@@ -815,7 +815,7 @@ export default {
 			const signers = Array.isArray(file?.signers) ? file.signers : []
 			return signers.some(signer => {
 				const signerOrder = signer.signingOrder || 1
-				return signerOrder === order && signer.status === 0
+				return signerOrder === order && signer.status === SIGN_REQUEST_STATUS.DRAFT
 			})
 		},
 		isSignElementsAvailable() {

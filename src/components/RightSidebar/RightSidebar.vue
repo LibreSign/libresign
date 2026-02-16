@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcAppSidebar v-if="sidebarStore.isVisible()"
+	<NcAppSidebar v-if="sidebarStore.isVisible"
 		ref="rightAppSidebar"
 		:name="fileName"
 		:subtitle="subTitle"
@@ -70,6 +70,9 @@ export default {
 			if (this.$refs?.rightAppSidebar?.$refs?.tabs) {
 				this.$refs.rightAppSidebar.$refs.tabs.activeTab = newValue
 			}
+		},
+		'$route.name'(routeName) {
+			this.sidebarStore.handleRouteChange(routeName)
 		},
 	},
 	methods: {
