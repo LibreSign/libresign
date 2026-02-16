@@ -27,6 +27,10 @@ class SessionService {
 	}
 
 	public function getSessionId(): string {
+		$uuid = $this->session->get('libresign-uuid');
+		if (is_string($uuid) && $uuid !== '') {
+			return $uuid;
+		}
 		return $this->session->getId();
 	}
 
