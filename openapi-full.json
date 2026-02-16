@@ -1293,6 +1293,9 @@
                     "hasSignatureFile": {
                         "type": "boolean"
                     },
+                    "isApprover": {
+                        "type": "boolean"
+                    },
                     "needIdentificationDocuments": {
                         "type": "boolean"
                     },
@@ -1718,6 +1721,11 @@
                         "items": {
                             "$ref": "#/components/schemas/Signer"
                         }
+                    },
+                    "signersCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "settings": {
                         "$ref": "#/components/schemas/Settings"
@@ -2412,46 +2420,6 @@
                         "name": "uuid",
                         "in": "path",
                         "description": "Sign request uuid",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "text/html": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/index.php/apps/libresign/p/id-docs/approve/{uuid}": {
-            "get": {
-                "operationId": "page-sign-id-doc",
-                "summary": "Show signature page for identification document approval",
-                "tags": [
-                    "page"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "uuid",
-                        "in": "path",
-                        "description": "File UUID for the identification document approval",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -6786,6 +6754,7 @@
                     "id_docs"
                 ],
                 "security": [
+                    {},
                     {
                         "bearer_auth": []
                     },
@@ -6814,6 +6783,15 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "uuid",
+                        "in": "query",
+                        "description": "Sign request UUID for unauthenticated access",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
                         }
                     },
                     {
