@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+
+namespace OCA\Libresign\Tests\Unit\Handler;
+
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\PdfTk\Pdf;
