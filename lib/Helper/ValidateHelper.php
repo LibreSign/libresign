@@ -385,6 +385,14 @@ class ValidateHelper {
 		}
 	}
 
+	public function validateIdDocBelongsToSignRequest(int $nodeId, int $signRequestId): void {
+		try {
+			$this->idDocsMapper->getBySignRequestIdAndNodeId($signRequestId, $nodeId);
+		} catch (\Throwable) {
+			throw new LibresignException($this->l10n->t('Not allowed'));
+		}
+	}
+
 	public function fileCanBeSigned(File $file): void {
 		$statusList = [
 			FileStatus::ABLE_TO_SIGN->value,
@@ -701,6 +709,14 @@ class ValidateHelper {
 		$this->sequentialSigningService->setFile($file);
 
 		if ($status === \OCA\Libresign\Enum\SignRequestStatus::DRAFT) {
+			try {
+				$idDocs = $this->idDocsMapper->getByFileId($signRequest->getFileId());
+				if (!empty($idDocs)) {
+					return;
+				}
+			} catch (\Throwable) {
+			}
+
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $this->l10n->t('You are not allowed to sign this document yet')]],
