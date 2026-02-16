@@ -213,6 +213,25 @@ export default {
 			})
 			const childFiles = response?.data?.ocs?.data?.data || []
 			this.document.files = Array.isArray(childFiles) ? childFiles : []
+
+			const allVisibleElements = this.aggregateVisibleElementsByFiles(this.document.files)
+			if (allVisibleElements.length > 0) {
+				this.document.visibleElements = allVisibleElements
+			}
+		},
+		aggregateVisibleElementsByFiles(files) {
+			if (!Array.isArray(files) || files.length === 0) {
+				return []
+			}
+
+			const allVisibleElements = []
+			files.forEach(file => {
+				if (Array.isArray(file?.visibleElements)) {
+					allVisibleElements.push(...file.visibleElements)
+				}
+			})
+
+			return allVisibleElements
 		},
 		buildFilePagesMap() {
 			this.filePagesMap = {}
