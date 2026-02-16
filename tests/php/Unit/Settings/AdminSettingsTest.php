@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Unit\Settings;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Settings\AdminSettings;
