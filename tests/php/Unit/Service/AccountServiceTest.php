@@ -44,6 +44,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -148,9 +149,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider providerTestValidateCertificateDataUsingDataProvider
-	 */
+	#[DataProvider('provideValidateCertificateDataCases')]
 	public function testValidateCertificateDataUsingDataProvider($arguments, $expectedErrorMessage):void {
 		if (is_callable($arguments)) {
 			$arguments = $arguments($this);
@@ -160,9 +159,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->validateCertificateData($arguments);
 	}
 
-	public static function providerTestValidateCertificateDataUsingDataProvider():array {
+	public static function provideValidateCertificateDataCases():array {
 		return [
-			[
+			'emptyCertificateEmail' => [
 				[
 					'uuid' => '12345678-1234-1234-1234-123456789012',
 					'user' => [
@@ -171,7 +170,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				'You must have an email. You can define the email in your profile.'
 			],
-			[
+			'invalidCertificateEmail' => [
 				[
 					'uuid' => '12345678-1234-1234-1234-123456789012',
 					'user' => [
@@ -314,6 +313,147 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(\OCP\IUser::class);
 		$actual = $this->getService()->canRequestSign($user);
 		$this->assertTrue($actual);
+	}
+
+	#[DataProvider('provideValidateCreateToSignCases')]
+	public function testValidateCreateToSignUsingDataProvider($arguments, $expectedErrorMessage):void {
+		if (is_callable($arguments)) {
+			$arguments = $arguments($this);
+		}
+
+		$this->expectExceptionMessage($expectedErrorMessage);
+		$this->getService()->validateCreateToSign($arguments);
+	}
+
+	public static function provideValidateCreateToSignCases():array {
+		return [
+			'invalidUuid' => [
+				[
+					'uuid' => 'invalid uuid'
+				],
+				'Invalid UUID'
+			],
+			'uuidNotFound' => [
+				function ($self):array {
+					$uuid = '12345678-1234-1234-1234-123456789012';
+					$self->signRequestMapper = $self->createMock(SignRequestMapper::class);
+					$self->signRequestMapper
+						->method('getByUuid')
+						->will($self->returnCallback(function ():void {
+							throw new \Exception('Beep, beep, not found!', 1);
+						}));
+					return [
+						'uuid' => $uuid
+					];
+				},
+				'UUID not found'
+			],
+			'emailMismatch' => [
+				function ($self):array {
+					$signRequest = $self->createMock(SignRequest::class);
+					$signRequest
+						->method('__call')
+						->with($self->equalTo('getEmail'), $self->anything())
+						->will($self->returnValue('valid@test.coop'));
+					$self->signRequestMapper
+						->method('getByUuid')
+						->will($self->returnValue($signRequest));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'user' => [
+							'email' => 'invalid@test.coop',
+						],
+						'signPassword' => '132456789'
+					];
+				},
+				'This is not your file'
+			],
+			'userAlreadyExists' => [
+				function ($self):array {
+					$signRequest = $self->createMock(SignRequest::class);
+					$signRequest
+						->method('__call')
+						->with($self->equalTo('getEmail'), $self->anything())
+						->will($self->returnValue('valid@test.coop'));
+					$self->signRequestMapper
+						->method('getByUuid')
+						->will($self->returnValue($signRequest));
+					$self->userManager
+						->method('userExists')
+						->will($self->returnValue(true));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'user' => [
+							'email' => 'valid@test.coop',
+						],
+						'signPassword' => '123456789'
+					];
+				},
+				'User already exists'
+			],
+			'emptyPassword' => [
+				function ($self):array {
+					$signRequest = $self->createMock(SignRequest::class);
+					$signRequest
+						->method('__call')
+						->with($self->equalTo('getEmail'), $self->anything())
+						->will($self->returnValue('valid@test.coop'));
+					$self->signRequestMapper
+						->method('getByUuid')
+						->will($self->returnValue($signRequest));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'user' => [
+							'email' => 'valid@test.coop',
+						],
+						'signPassword' => '132456789',
+						'password' => ''
+					];
+				},
+				'Password is mandatory'
+			],
+			'fileNotFound' => [
+				function ($self):array {
+					$signRequest = $this->createMock(SignRequest::class);
+					$signRequest
+						->method('__call')
+						->willReturnCallback(fn (string $method)
+							=> match ($method) {
+								'getEmail' => 'valid@test.coop',
+								'getFileId' => 171,
+								'getUserId' => 'username',
+							}
+						);
+					$file = $this->createMock(\OCA\Libresign\Db\File::class);
+					$self->fileMapper
+						->method('getById')
+						->will($self->returnValue($file));
+					$self->signRequestMapper
+						->method('getByUuid')
+						->will($self->returnValue($signRequest));
+
+					$self->root
+						->method('getById')
+						->will($self->returnValue([]));
+					$folder = $this->createMock(\OCP\Files\Folder::class);
+					$folder
+						->method('getById')
+						->willReturn([]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'user' => [
+							'email' => 'valid@test.coop',
+						],
+						'signPassword' => '132456789',
+						'password' => '123456789'
+					];
+				},
+				'File not found'
+			],
+		];
 	}
 
 	public function testDeleteSignatureElementWithUserDeletesFromDB(): void {
