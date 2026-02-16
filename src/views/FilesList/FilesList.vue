@@ -32,7 +32,7 @@
 				type="tertiary"
 				@click="toggleGridView">
 				<template #icon>
-					<ListViewIcon v-if="userConfigStore.grid_view" />
+					<ListViewIcon v-if="userConfigStore.files_list_grid_view" />
 					<ViewGridIcon v-else />
 				</template>
 			</NcButton>
@@ -136,7 +136,7 @@ export default {
 			return HomeSvg
 		},
 		gridViewButtonLabel() {
-			return this.userConfigStore.grid_view
+			return this.userConfigStore.files_list_grid_view
 				? t('libresign', 'Switch to list view')
 				: t('libresign', 'Switch to grid view')
 		},
@@ -165,7 +165,7 @@ export default {
 			this.filesStore.updateAllFiles()
 		},
 		toggleGridView() {
-			this.userConfigStore.update('grid_view', !this.userConfigStore.grid_view)
+			this.userConfigStore.update('files_list_grid_view', !this.userConfigStore.files_list_grid_view)
 		},
 		checkAndOpenFileFromUri() {
 			const uuid = this.$route.query.uuid
