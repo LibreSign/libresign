@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Activity\Settings;
+namespace OCA\Libresign\Tests\Unit\Activity;
 
 use OCA\Libresign\Activity\Settings\FileSigned;
 use OCA\Libresign\Events\SignedEvent;

@@ -7,6 +7,9 @@
 
 declare(strict_types=1);
 
+
+namespace OCA\Libresign\Tests\Unit\Service;
+
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;

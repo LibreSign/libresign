@@ -1,11 +1,15 @@
 <?php
 
 declare(strict_types=1);
+
+namespace OCA\Libresign\Tests\Unit\Service;
+
 /**
  * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use Imagick;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\IAppConfig;
