@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Handler;
 
-use RuntimeException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\PdfTk\Pdf;
@@ -14,6 +13,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\MockObject\MockObject;
+use RuntimeException;
 
 /**
  * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors

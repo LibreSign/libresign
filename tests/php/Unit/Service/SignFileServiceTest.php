@@ -9,8 +9,8 @@ namespace OCA\Libresign\Tests\Unit\Service;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use DateTime;
 use bovigo\vfs\vfsStream;
+use DateTime;
 use OC\User\NoUserException;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\Db\File;
