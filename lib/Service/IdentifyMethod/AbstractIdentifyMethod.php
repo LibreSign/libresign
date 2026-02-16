@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use DateTime;
-use DateTimeInterface;
 use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\IdentifyMethod;
@@ -237,7 +236,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	protected function renewSession(): void {
 		$this->identifyService->getSessionService()->setIdentifyMethodId($this->getEntity()->getId());
-		$renewalInterval = (int)$this->identifyService->getAppConfig()->getValueInt(Application::APP_ID, 'renewal_interval', SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = $this->getRuntimeConfigInt('renewal_interval', SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
@@ -255,7 +254,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfRenewalIntervalExpired(): void {
-		$renewalInterval = (int)$this->identifyService->getAppConfig()->getValueInt(Application::APP_ID, 'renewal_interval', SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = $this->getRuntimeConfigInt('renewal_interval', SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
@@ -268,24 +267,17 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 		$createdAt = $signRequest->getCreatedAt();
 		$lastAttempt = $this->getEntity()->getLastAttemptDate();
+		$identifiedAt = $this->getEntity()->getIdentifiedAtDate();
 		$lastActionDate = max(
 			$startTime,
 			$createdAt,
 			$lastAttempt,
+			$identifiedAt,
 		);
 		$now = $this->identifyService->getTimeFactory()->getDateTime();
-		$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Times', [
-			'renewalInterval' => $renewalInterval,
-			'startTime' => $startTime,
-			'createdAt' => $createdAt,
-			'lastAttempt' => $lastAttempt,
-			'lastActionDate' => $lastActionDate,
-			'now' => $now->format(DateTimeInterface::ATOM),
-		]);
 		$endRenewal = (clone $lastActionDate)
 			->add(new \DateInterval('PT' . $renewalInterval . 'S'));
 		if ($endRenewal < $now) {
-			$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
 			if ($this->getName() === 'email') {
 				$blur = new Blur($this->getEntity()->getIdentifierValue());
 				throw new LibresignException(json_encode([
@@ -312,6 +304,12 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			'email' => JSActions::ACTION_RENEW_EMAIL,
 			default => throw new InvalidArgumentException('Invalid identify method name'),
 		};
+	}
+
+	private function getRuntimeConfigInt(string $key, int $default): int {
+		$appConfig = $this->identifyService->getAppConfig();
+		$appConfig->clearCache(true);
+		return (int)$appConfig->getValueInt(Application::APP_ID, $key, $default);
 	}
 
 	protected function throwIfAlreadySigned(): void {
