@@ -51,6 +51,7 @@ final class SessionServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			'authenticated keeps raw session id' => ['admin', 'public-uuid', 'session-raw-id'],
 			'anonymous uses public uuid when available' => [null, 'public-uuid', 'public-uuid'],
+			'anonymous ignores non-string public uuid' => [null, 123, 'session-raw-id'],
 			'anonymous falls back to raw session id' => [null, null, 'session-raw-id'],
 		];
 	}
