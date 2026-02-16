@@ -32,22 +32,26 @@ final class SessionServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	#[DataProvider('providerGetSessionId')]
-	public function testGetSessionIdUsesUuidWhenAvailable(mixed $uuidInSession, string $sessionId, string $expected): void {
+	public function testGetSessionIdResolvesByContext(?string $userId, mixed $uuid, string $expected): void {
 		$this->session->method('get')
-			->with('libresign-uuid')
-			->willReturn($uuidInSession);
+			->willReturnCallback(function (string $key) use ($userId, $uuid) {
+				return match ($key) {
+					'user_id' => $userId,
+					'libresign-uuid' => $uuid,
+					default => null,
+				};
+			});
 		$this->session->method('getId')
-			->willReturn($sessionId);
+			->willReturn('session-raw-id');
 
 		$this->assertSame($expected, $this->getService()->getSessionId());
 	}
 
 	public static function providerGetSessionId(): array {
 		return [
-			'uuid string present' => ['54afbd0a-a065-4eaf-b611-48ec381b116a', 'session-123', '54afbd0a-a065-4eaf-b611-48ec381b116a'],
-			'uuid empty string' => ['', 'session-123', 'session-123'],
-			'uuid null' => [null, 'session-123', 'session-123'],
-			'uuid non-string' => [123, 'session-123', 'session-123'],
+			'authenticated keeps raw session id' => ['admin', 'public-uuid', 'session-raw-id'],
+			'anonymous uses public uuid when available' => [null, 'public-uuid', 'public-uuid'],
+			'anonymous falls back to raw session id' => [null, null, 'session-raw-id'],
 		];
 	}
 }
