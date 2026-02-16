@@ -52,6 +52,7 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 
+import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
 
 export default {
@@ -173,22 +174,22 @@ export default {
 		},
 		chipType() {
 			switch (this.signer.status) {
-			case 2: // SIGNED
+			case SIGN_REQUEST_STATUS.SIGNED:
 				return 'success'
-			case 1: // ABLE_TO_SIGN (pending)
+			case SIGN_REQUEST_STATUS.ABLE_TO_SIGN:
 				return 'warning'
-			case 0: // DRAFT
+			case SIGN_REQUEST_STATUS.DRAFT:
 			default:
 				return 'secondary'
 			}
 		},
 		statusIconPath() {
 			switch (this.signer.status) {
-			case 2: // SIGNED
+			case SIGN_REQUEST_STATUS.SIGNED:
 				return this.mdiCheckCircle
-			case 1: // ABLE_TO_SIGN (pending)
+			case SIGN_REQUEST_STATUS.ABLE_TO_SIGN:
 				return this.mdiClockOutline
-			case 0: // DRAFT
+			case SIGN_REQUEST_STATUS.DRAFT:
 			default:
 				return this.mdiCircleOutline
 			}

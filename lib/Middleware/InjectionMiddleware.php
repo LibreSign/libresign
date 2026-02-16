@@ -28,6 +28,7 @@ use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Middleware\Attribute\RequireSignerUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\UuidResolverService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
@@ -58,6 +59,7 @@ class InjectionMiddleware extends Middleware {
 		private FileMapper $fileMapper,
 		private IInitialState $initialState,
 		private SignFileService $signFileService,
+		private UuidResolverService $uuidResolverService,
 		private IL10N $l10n,
 		private IAppConfig $appConfig,
 		private IURLGenerator $urlGenerator,
@@ -147,15 +149,28 @@ class InjectionMiddleware extends Middleware {
 			$intance = $attribute->newInstance();
 			$user = $this->userSession->getUser();
 			$this->redirectSignedToValidationIfNeeded($intance);
+
+			$isIdDocApproval = $intance->allowIdDocs() && $this->request->getParam('idDocApproval') === 'true';
+
 			if (!($intance->skipIfAuthenticated() && $user instanceof IUser)) {
-				/** @var AEnvironmentPageAwareController $controller */
-				$controller->validateSignRequestUuid(
-					uuid: $uuid,
-				);
-				/** @var AEnvironmentPageAwareController $controller */
-				$controller->loadNextcloudFileFromSignRequestUuid(
-					uuid: $uuid,
-				);
+				if ($isIdDocApproval) {
+					try {
+						$resolution = $this->uuidResolverService->resolveUuidForUser($uuid, $user);
+						/** @var AEnvironmentPageAwareController $controller */
+						$controller->loadIdDocApprovalFromResolution($resolution);
+					} catch (LibresignException $e) {
+						throw $e;
+					}
+				} else {
+					/** @var AEnvironmentPageAwareController $controller */
+					$controller->validateSignRequestUuid(
+						uuid: $uuid,
+					);
+					/** @var AEnvironmentPageAwareController $controller */
+					$controller->loadNextcloudFileFromSignRequestUuid(
+						uuid: $uuid,
+					);
+				}
 			}
 		}
 	}
@@ -195,7 +210,13 @@ class InjectionMiddleware extends Middleware {
 
 		try {
 			$user = $this->userSession->getUser();
-			$this->validateHelper->validateSigner($uuid, $user);
+			$isIdDocApproval = $this->request->getParam('idDocApproval') === 'true';
+
+			if ($isIdDocApproval) {
+				$this->uuidResolverService->resolveUuidForUser($uuid, $user);
+			} else {
+				$this->validateHelper->validateSigner($uuid, $user);
+			}
 		} catch (LibresignException $e) {
 			throw new LibresignException($e->getMessage());
 		}

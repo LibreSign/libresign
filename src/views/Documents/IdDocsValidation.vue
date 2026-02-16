@@ -90,26 +90,28 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="(doc, index) in filteredDocuments" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
+				<tr v-for="(doc, index) in filteredDocuments" :key="`doc-${index}-${doc.file.file.nodeId}-${doc.file_type.type}`">
 					<td class="id-docs-table__cell--spacer id-docs-table__cell--frozen-left id-docs-table__cell--frozen-spacer">
-						<NcAvatar :user="doc.account?.uid"
-							:display-name="doc.account?.display_name || doc.account?.uid"
+						<NcAvatar :user="doc.account?.userId ?? doc.account?.displayName"
+							:display-name="doc.account?.displayName || doc.account?.userId"
 							:size="32"
 							:disable-menu="true" />
 					</td>
 					<td class="id-docs-table__cell--frozen-left id-docs-table__cell--frozen-owner">
-						{{ doc.account?.display_name || doc.account?.uid || '-' }}
+						{{ doc.account?.displayName || doc.account?.userId || '-' }}
 					</td>
 					<td>
 						{{ doc.file_type.name }}
 					</td>
 					<td>
-						{{ doc.statusText }}
+						{{ doc.file.statusText }}
 					</td>
 					<td>
 						<template v-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
-							<NcAvatar :user="doc.account?.uid"
+							<NcAvatar v-if="doc.file.signers[0].uid"
+								:user="doc.file.signers[0].uid"
 								:display-name="doc.file.signers[0].displayName"
+								:size="32"
 								:disable-menu="true" />
 							{{ doc.file.signers[0].displayName }}
 						</template>
@@ -119,19 +121,25 @@
 					</td>
 					<td class="id-docs-table__cell--frozen-right">
 						<NcActions :force-name="true" :inline="4">
-							<NcActionButton @click="openFile(doc)">
-								<template #icon>
-									<FileDocumentOutlineIcon :size="20" />
-								</template>
-								{{ t('libresign', 'Open file') }}
-							</NcActionButton>
-							<NcActionButton @click="openValidationURL(doc)">
-								<template #icon>
-									<EyeIcon :size="20" />
-								</template>
-								{{ t('libresign', 'View') }}
-							</NcActionButton>
-							<NcActionButton v-if="doc.file?.status !== 3" @click="openApprove(doc)">
+							<template v-if="doc.file?.status === FILE_STATUS.SIGNED">
+								<NcActionButton @click="openValidationURL(doc)">
+									<template #icon>
+										<EyeIcon :size="20" />
+									</template>
+									{{ t('libresign', 'Validate') }}
+								</NcActionButton>
+							</template>
+							<template v-else>
+								<NcActionButton @click="openFile(doc)">
+									<template #icon>
+										<FileDocumentOutlineIcon :size="20" />
+									</template>
+									{{ t('libresign', 'Open file') }}
+								</NcActionButton>
+							</template>
+							<NcActionButton v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN"
+								:aria-label="t('libresign', 'Sign')"
+								@click="openApprove(doc)">
 								<template #icon>
 									<PencilIcon :size="20" />
 								</template>
@@ -165,6 +173,7 @@ import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
+import { FILE_STATUS } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
@@ -212,6 +221,7 @@ export default {
 		const userConfigStore = useUserConfigStore()
 
 		return {
+			FILE_STATUS,
 			userConfigStore,
 			documentList: [],
 			loading: true,
@@ -248,15 +258,15 @@ export default {
 			if (this.filters.owner) {
 				const ownerLower = this.filters.owner.toLowerCase()
 				docs = docs.filter(doc => {
-					const displayName = doc.account?.display_name || doc.account?.uid || ''
+					const displayName = doc.account?.displayName || doc.account?.userId || ''
 					return displayName.toLowerCase().includes(ownerLower)
 				})
 			}
 
 			if (this.filters.status?.value === 'signed') {
-				docs = docs.filter(doc => doc.file?.status === 3)
+				docs = docs.filter(doc => doc.file?.status === FILE_STATUS.SIGNED)
 			} else if (this.filters.status?.value === 'pending') {
-				docs = docs.filter(doc => doc.file?.status !== 3)
+				docs = docs.filter(doc => doc.file?.status !== FILE_STATUS.SIGNED)
 			}
 
 			return docs
@@ -333,12 +343,13 @@ export default {
 			this.$router.push({
 				name: 'IdDocsApprove',
 				params: { uuid },
+				query: { idDocApproval: 'true' },
 			})
 		},
 
 		async deleteDocument(doc) {
 			try {
-				await axios.delete(generateOcsUrl('/apps/libresign/api/v1/id-docs/{nodeId}', { nodeId: doc.nodeId }))
+				await axios.delete(generateOcsUrl('/apps/libresign/api/v1/id-docs/{nodeId}', { nodeId: doc.file.file.nodeId }))
 				await this.loadDocuments()
 			} catch (error) {
 				showError(error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to delete document'))
@@ -356,7 +367,7 @@ export default {
 			openDocument({
 				fileUrl,
 				filename: doc.file.name,
-				nodeId: doc.nodeId,
+				nodeId: doc.file.file.nodeId,
 			})
 		},
 

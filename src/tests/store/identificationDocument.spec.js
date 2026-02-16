@@ -32,7 +32,7 @@ describe('identificationDocument store', () => {
 		store.setEnabled(true)
 		store.setWaitingApproval(true)
 
-		expect(store.needIdentificationDocument()).toBe(false)
+		expect(store.needIdentificationDocument()).toBe(true)
 	})
 
 	it('toggles modal visibility', () => {

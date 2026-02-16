@@ -122,6 +122,7 @@ const SigningProgress = () => import('../components/validation/SigningProgress.v
 import logoGray from '../../img/logo-gray.svg'
 import { openDocument } from '../utils/viewer.js'
 import { getStatusLabel } from '../utils/fileStatus.js'
+import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 import logger from '../logger.js'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
@@ -626,7 +627,7 @@ export default {
 				this.$set(file, 'opened', false)
 			})
 			this.hasInfo = true
-			const isSignedStatus = status => status === 3 || status === 'SIGNED'
+			const isSignedStatus = status => Number(status) === FILE_STATUS.SIGNED
 			const isSignedDoc = isSignedStatus(this.document?.status)
 			const allFilesSigned = Array.isArray(this.document?.files)
 				&& this.document.files.length > 0
@@ -650,7 +651,7 @@ export default {
 					return
 				}
 
-				const isSignedStatus = status => status === 3 || status === 'SIGNED'
+				const isSignedStatus = status => Number(status) === FILE_STATUS.SIGNED
 				const isSigned = isSignedStatus(this.document?.status)
 				const allFilesSigned = Array.isArray(this.document?.files)
 					&& this.document.files.length > 0
@@ -687,7 +688,7 @@ export default {
 		},
 		isCurrentSignerSigned() {
 			const signer = this.document?.signers?.find(row => row.me)
-			return !!signer?.signed || signer?.status === 2 || signer?.status === 'SIGNED'
+			return !!signer?.signed || Number(signer?.status) === SIGN_REQUEST_STATUS.SIGNED
 		},
 	},
 }

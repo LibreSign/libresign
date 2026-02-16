@@ -13,6 +13,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\UuidResolverService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -43,6 +44,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileMapper&MockObject $fileMapper;
 	private IInitialState $initialState;
 	private SignFileService&MockObject $signFileService;
+	private UuidResolverService&MockObject $uuidResolverService;
 	private IL10N&MockObject $l10n;
 	private IappConfig&MockObject $appConfig;
 	private IurlGenerator&MockObject $urlGenerator;
@@ -68,6 +70,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 		$this->initialState = new InitialState($this->initialStateService, 'libresign');
 		$this->signFileService = $this->createMock(SignFileService::class);
+		$this->uuidResolverService = $this->createMock(UuidResolverService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->userId = null;
 	}
@@ -83,6 +86,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileMapper,
 			$this->initialState,
 			$this->signFileService,
+			$this->uuidResolverService,
 			$this->l10n,
 			$this->appConfig,
 			$this->urlGenerator,

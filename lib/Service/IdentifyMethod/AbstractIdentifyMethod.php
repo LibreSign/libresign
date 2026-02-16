@@ -20,6 +20,7 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\AbstractSignatureMethod;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
+use OCP\Files\NotFoundException;
 use OCP\IUser;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
@@ -177,25 +178,25 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			$children = $this->identifyService->getFileMapper()->getChildrenFiles($fileEntity->getId());
 			foreach ($children as $child) {
 				$filesToCheck[] = [
+					'uuid' => $child->getUuid(),
 					'nodeId' => $child->getNodeId(),
-					'userId' => $child->getUserId(),
-					'name' => $child->getName(),
 				];
 			}
 		} else {
 			$filesToCheck[] = [
+				'uuid' => $fileEntity->getUuid(),
 				'nodeId' => $fileEntity->getNodeId(),
-				'userId' => $fileEntity->getUserId(),
-				'name' => $fileEntity->getName(),
 			];
 		}
 
 		foreach ($filesToCheck as $fileInfo) {
-			$fileToSign = $this->identifyService->getRootFolder()
-				->getUserFolder($fileInfo['userId'])
-				->getFirstNodeById($fileInfo['nodeId']);
-
-			if (!$fileToSign instanceof \OCP\Files\File) {
+			$storageUserId = $this->identifyService->getFileMapper()
+				->getStorageUserIdByUuid($fileInfo['uuid']);
+			$folderService = $this->identifyService->getFolderService();
+			$folderService->setUserId($storageUserId);
+			try {
+				$folderService->getFileByNodeId($fileInfo['nodeId']);
+			} catch (NotFoundException) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
 					'errors' => [['message' => $this->identifyService->getL10n()->t('File not found')]],

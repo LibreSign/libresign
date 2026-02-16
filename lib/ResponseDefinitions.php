@@ -100,6 +100,7 @@ namespace OCA\Libresign;
  *     signerFileUuid: ?string,
  *     phoneNumber: string,
  *     hasSignatureFile: bool,
+ *     isApprover?: bool,
  *     needIdentificationDocuments: bool,
  *     identificationDocumentsWaitingApproval: bool,
  * }
@@ -237,6 +238,7 @@ namespace OCA\Libresign;
  *     pages?: list<array{number: int, url: string, resolution: array{w: float, h: float}}>,
  *     metadata?: LibresignValidateMetadata,
  *     signers?: LibresignSigner[],
+ *     signersCount?: int<0, max>,
  *     settings?: LibresignSettings,
  *     messages?: array{
  *         type: 'info',

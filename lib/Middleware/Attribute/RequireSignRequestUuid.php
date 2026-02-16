@@ -15,6 +15,7 @@ class RequireSignRequestUuid {
 	public function __construct(
 		protected bool $skipIfAuthenticated = false,
 		protected bool $redirectIfSignedToValidation = false,
+		protected bool $allowIdDocs = false,
 	) {
 	}
 
@@ -24,5 +25,9 @@ class RequireSignRequestUuid {
 
 	public function redirectIfSignedToValidation(): bool {
 		return $this->redirectIfSignedToValidation;
+	}
+
+	public function allowIdDocs(): bool {
+		return $this->allowIdDocs;
 	}
 }
