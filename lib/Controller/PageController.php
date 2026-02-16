@@ -453,7 +453,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[RequireSignRequestUuid(allowIdDocs: true)]
+	#[RequireSignRequestUuid(allowIdDocs: true, allowFileUuid: true)]
 	#[AnonRateLimit(limit: 300, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/pdf/{uuid}')]
 	public function getPdf($uuid) {
@@ -478,7 +478,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[RequireSignRequestUuid(allowIdDocs: true)]
+	#[RequireSignRequestUuid(allowIdDocs: true, allowFileUuid: true)]
 	#[PublicPage]
 	#[RequireSetupOk]
 	#[AnonRateLimit(limit: 300, period: 60)]
