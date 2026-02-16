@@ -4,7 +4,7 @@
 -->
 
 <template>
-	<NcButton v-if="sidebarStore.canShow()"
+	<NcButton v-if="sidebarStore.canShow"
 		:aria-label="t('libresign', 'Open sidebar')"
 		:title="t('libresign', 'Open sidebar')"
 		close-after-click="true"
