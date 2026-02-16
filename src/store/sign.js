@@ -42,7 +42,6 @@ export const useSignStore = defineStore('sign', {
 		ableToSign(state) {
 			const allowedStatuses = [FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED]
 			if (!allowedStatuses.includes(state.document?.status)) {
-				console.log('[LibreSign] File status does not allow signing:', state.document?.status)
 				return false
 			}
 
@@ -50,18 +49,15 @@ export const useSignStore = defineStore('sign', {
 			const isIdDocApprover = state.document?.settings?.isApprover
 
 			if (!mySigner && !isIdDocApprover) {
-				console.log('[LibreSign] Current user is not a signer or approver for this document')
 				return false
 			}
 
 			if (mySigner && mySigner.status !== SIGN_REQUEST_STATUS.ABLE_TO_SIGN) {
-				console.log('[LibreSign] Signer status does not allow signing:', mySigner.status)
 				return false
 			}
 
 			const identificationDocumentStore = useIdentificationDocumentStore()
 			if (identificationDocumentStore.isDocumentPending()) {
-				console.log('[LibreSign] Identification document is pending, cannot sign')
 				return false
 			}
 
