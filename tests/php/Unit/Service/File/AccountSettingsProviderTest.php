@@ -19,6 +19,7 @@ use OCP\Accounts\IAccountProperty;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IUser;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -61,90 +62,114 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertEquals('123456789', $result);
 	}
 
-	public function testGetSettingsWithUserCanSignAndHasSignature(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('user123');
+	public static function providerGetSettings(): array {
+		return [
+			'user in authorized group with signature file' => [
+				'hasUser' => true,
+				'approvalGroups' => ['admin', 'users'],
+				'userGroups' => ['users', 'editors'],
+				'hasPfx' => true,
+				'expectedCanRequestSign' => true,
+				'expectedHasSignatureFile' => true,
+				'expectedIsApprover' => true,
+			],
+			'user not in authorized group with signature file' => [
+				'hasUser' => true,
+				'approvalGroups' => ['admin'],
+				'userGroups' => ['users', 'editors'],
+				'hasPfx' => true,
+				'expectedCanRequestSign' => false,
+				'expectedHasSignatureFile' => true,
+				'expectedIsApprover' => false,
+			],
+			'user in authorized group without signature file' => [
+				'hasUser' => true,
+				'approvalGroups' => ['users'],
+				'userGroups' => ['users'],
+				'hasPfx' => false,
+				'expectedCanRequestSign' => true,
+				'expectedHasSignatureFile' => false,
+				'expectedIsApprover' => true,
+			],
+			'null user returns all false' => [
+				'hasUser' => false,
+				'approvalGroups' => [],
+				'userGroups' => [],
+				'hasPfx' => false,
+				'expectedCanRequestSign' => false,
+				'expectedHasSignatureFile' => false,
+				'expectedIsApprover' => false,
+			],
+			'empty approval groups' => [
+				'hasUser' => true,
+				'approvalGroups' => [],
+				'userGroups' => ['users'],
+				'hasPfx' => true,
+				'expectedCanRequestSign' => false,
+				'expectedHasSignatureFile' => true,
+				'expectedIsApprover' => false,
+			],
+			'user in one of multiple approval groups without signature' => [
+				'hasUser' => true,
+				'approvalGroups' => ['admin', 'approvers'],
+				'userGroups' => ['approvers'],
+				'hasPfx' => false,
+				'expectedCanRequestSign' => true,
+				'expectedHasSignatureFile' => false,
+				'expectedIsApprover' => true,
+			],
+			'user in multiple matching groups' => [
+				'hasUser' => true,
+				'approvalGroups' => ['admin', 'managers'],
+				'userGroups' => ['admin', 'managers', 'users'],
+				'hasPfx' => true,
+				'expectedCanRequestSign' => true,
+				'expectedHasSignatureFile' => true,
+				'expectedIsApprover' => true,
+			],
+		];
+	}
 
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn(['admin', 'users']);
+	#[DataProvider('providerGetSettings')]
+	public function testGetSettings(
+		bool $hasUser,
+		array $approvalGroups,
+		array $userGroups,
+		bool $hasPfx,
+		bool $expectedCanRequestSign,
+		bool $expectedHasSignatureFile,
+		bool $expectedIsApprover,
+	): void {
+		$user = null;
+		if ($hasUser) {
+			$user = $this->createMock(IUser::class);
+			$user->method('getUID')->willReturn('testuser');
 
-		$this->groupManager->method('getUserGroupIds')
-			->willReturn(['users', 'editors']);
+			$this->appConfig->method('getValueArray')
+				->with(Application::APP_ID, 'approval_group', ['admin'])
+				->willReturn($approvalGroups);
 
-		$this->pkcs12Handler->method('getPfxOfCurrentSigner')
-			->with('user123')
-			->willReturn('signature_content');
+			if (!empty($approvalGroups)) {
+				$this->groupManager->method('getUserGroupIds')
+					->willReturn($userGroups);
+			}
+
+			if ($hasPfx) {
+				$this->pkcs12Handler->method('getPfxOfCurrentSigner')
+					->with('testuser')
+					->willReturn('signature_content');
+			} else {
+				$this->pkcs12Handler->method('getPfxOfCurrentSigner')
+					->with('testuser')
+					->willThrowException(new LibresignException('No signature file'));
+			}
+		}
 
 		$service = $this->getService();
 		$result = $service->getSettings($user);
 
-		$this->assertTrue($result['canRequestSign']);
-		$this->assertTrue($result['hasSignatureFile']);
-	}
-
-	public function testGetSettingsWithUserCannotSign(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('user123');
-
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn(['admin']);
-
-		$this->groupManager->method('getUserGroupIds')
-			->willReturn(['users', 'editors']);
-
-		$this->pkcs12Handler->method('getPfxOfCurrentSigner')
-			->with('user123')
-			->willReturn('signature_content');
-
-		$service = $this->getService();
-		$result = $service->getSettings($user);
-
-		$this->assertFalse($result['canRequestSign']);
-		$this->assertTrue($result['hasSignatureFile']);
-	}
-
-	public function testGetSettingsWithUserNoSignatureFile(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('user123');
-
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn(['users']);
-
-		$this->groupManager->method('getUserGroupIds')
-			->willReturn(['users']);
-
-		$this->pkcs12Handler->method('getPfxOfCurrentSigner')
-			->with('user123')
-			->willThrowException(new LibresignException('No signature file'));
-
-		$service = $this->getService();
-		$result = $service->getSettings($user);
-
-		$this->assertTrue($result['canRequestSign']);
-		$this->assertFalse($result['hasSignatureFile']);
-	}
-
-	public function testGetSettingsWithNullUser(): void {
-		$service = $this->getService();
-		$result = $service->getSettings(null);
-
-		$this->assertFalse($result['canRequestSign']);
-		$this->assertFalse($result['hasSignatureFile']);
-	}
-
-	public function testGetSettingsWithEmptyAuthorizedGroups(): void {
-		$user = $this->createMock(IUser::class);
-
-		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'approval_group', ['admin'])
-			->willReturn([]);
-
-		$service = $this->getService();
-		$result = $service->getSettings($user);
-
-		$this->assertFalse($result['canRequestSign']);
+		$this->assertEquals($expectedCanRequestSign, $result['canRequestSign']);
+		$this->assertEquals($expectedHasSignatureFile, $result['hasSignatureFile']);
+		$this->assertEquals($expectedIsApprover, $result['isApprover']);
 	}
 }
