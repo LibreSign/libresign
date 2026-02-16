@@ -417,6 +417,7 @@ OC.L10N.register(
     "Signature hash algorithm" : "Hashovací algoritmus pre podpis",
     "Hash algorithm used for signature." : "Hashovací algoritmus použitý pre podpis",
     "Reset to default" : "Nastaviť predvolené",
+    "Background image" : "Obrázok pozadia",
     "Remove background" : "Odstrániť pozadie",
     "Learn more" : "Dozvedieť sa viac",
     "Invalid URL" : "Neplatná URL",
