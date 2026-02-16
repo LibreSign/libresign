@@ -14,9 +14,9 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocsMapper;
-use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -56,7 +56,6 @@ class FileService {
 
 	private string $fileContent = '';
 	private ?File $file = null;
-	private ?SignRequest $signRequest = null;
 	private array $certData = [];
 	private stdClass $fileData;
 	private FileResponseOptions $options;
@@ -95,8 +94,31 @@ class FileService {
 		private MessagesLoader $messagesLoader,
 		private FileStatusService $fileStatusService,
 	) {
-		$this->fileData = new stdClass();
+		$this->initializeFileData();
 		$this->options = new FileResponseOptions();
+	}
+
+	private function initializeFileData(): void {
+		$this->fileData = new stdClass();
+		$this->fileData->id = 0;
+		$this->fileData->uuid = '';
+		$this->fileData->name = '';
+		$this->fileData->status = FileStatus::DRAFT->value;
+		$this->fileData->statusText = '';
+		$this->fileData->nodeId = 0;
+		$this->fileData->nodeType = 'file';
+		$this->fileData->created_at = '';
+		$this->fileData->signUuid = null;
+		$this->fileData->metadata = [];
+		$this->fileData->signatureFlow = SignatureFlow::PARALLEL->value;
+		$this->fileData->signers = [];
+		$this->fileData->signersCount = 0;
+		$this->fileData->requested_by = [
+			'userId' => '',
+			'displayName' => '',
+		];
+		$this->fileData->filesCount = 0;
+		$this->fileData->files = [];
 	}
 
 	public function update(File $file): File {
@@ -104,7 +126,8 @@ class FileService {
 	}
 
 	public function getNodeFromData(array $data): Node {
-		if (!$this->folderService->getUserId()) {
+		$data['userManager'] = $data['userManager'] ?? '';
+		if (!$this->folderService->getUserId() && $data['userManager'] instanceof \OCP\IUser) {
 			$this->folderService->setUserId($data['userManager']->getUID());
 		}
 
@@ -174,7 +197,11 @@ class FileService {
 
 		$name = preg_replace('/\s+/', '_', $name);
 		$name = $name !== '' ? $name : 'document';
-		return $name . '.' . $extension;
+		$extensionSuffix = '.' . $extension;
+		if (str_ends_with(strtolower($name), strtolower($extensionSuffix))) {
+			return $name;
+		}
+		return $name . $extensionSuffix;
 	}
 
 	/**
@@ -227,6 +254,11 @@ class FileService {
 		return $this;
 	}
 
+	public function setSignRequest(?\OCA\Libresign\Db\SignRequest $signRequest): self {
+		$this->options->setSignRequest($signRequest);
+		return $this;
+	}
+
 	public function setSignerIdentified(bool $identified = true): self {
 		$this->options->setSignerIdentified($identified);
 		return $this;
@@ -246,13 +278,9 @@ class FileService {
 	 * @return static
 	 */
 	public function setFile(File $file): self {
+		$this->initializeFileData();
 		$this->file = $file;
 		$this->fileData->status = $this->file->getStatus();
-		return $this;
-	}
-
-	public function setSignRequest(SignRequest $signRequest): self {
-		$this->signRequest = $signRequest;
 		return $this;
 	}
 
@@ -299,6 +327,7 @@ class FileService {
 		if ($file === null) {
 			throw new InvalidArgumentException($this->l10n->t('No file provided'));
 		}
+		$this->initializeFileData();
 		$this->uploadHelper->validateUploadedFile($file);
 
 		$this->fileContent = file_get_contents($file['tmp_name']);
@@ -381,15 +410,20 @@ class FileService {
 	}
 
 	private function loadSignRequestData(): void {
-		if (empty($this->fileData->signers) || !is_array($this->fileData->signers)) {
+		if (empty($this->fileData->uuid)) {
 			return;
 		}
 
-		foreach ($this->fileData->signers as $signer) {
-			if (!empty($signer->me) && isset($signer->sign_uuid)) {
-				$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer->sign_uuid]);
-				$this->fileData->signUuid = $signer->sign_uuid;
-				return;
+		// Always use file's UUID for the PDF URL
+		$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $this->fileData->uuid]);
+
+		// Set signUuid if current user is a signer (for reference/tracking)
+		if (!empty($this->fileData->signers) && is_array($this->fileData->signers)) {
+			foreach ($this->fileData->signers as $signer) {
+				if (!empty($signer->me) && isset($signer->sign_uuid)) {
+					$this->fileData->signUuid = $signer->sign_uuid;
+					break;
+				}
 			}
 		}
 	}
@@ -400,10 +434,6 @@ class FileService {
 
 	private function loadSettings(): void {
 		$this->settingsLoader->loadSettings($this->fileData, $this->options);
-	}
-
-	public function getIdentificationDocumentsStatus(string $userId = ''): int {
-		return $this->settingsLoader->getIdentificationDocumentsStatus($userId);
 	}
 
 	private function loadLibreSignData(): void {
