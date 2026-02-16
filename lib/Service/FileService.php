@@ -414,10 +414,8 @@ class FileService {
 			return;
 		}
 
-		// Always use file's UUID for the PDF URL
 		$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $this->fileData->uuid]);
 
-		// Set signUuid if current user is a signer (for reference/tracking)
 		if (!empty($this->fileData->signers) && is_array($this->fileData->signers)) {
 			foreach ($this->fileData->signers as $signer) {
 				if (!empty($signer->me) && isset($signer->sign_uuid)) {
