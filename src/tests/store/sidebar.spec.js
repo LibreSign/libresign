@@ -171,4 +171,86 @@ describe('sidebar store - visibility rules', () => {
 			expect(store.show).toBe(true)
 		})
 	})
+
+	describe('business rule: handleRouteChange should hide sidebar for non-sidebar routes', () => {
+		it('keeps sidebar visible for allowed routes - fileslist', () => {
+			const store = useSidebarStore()
+			store.show = true
+			store.activeTab = 'sign-tab'
+
+			store.handleRouteChange('fileslist')
+
+			expect(store.show).toBe(true)
+		})
+
+		it('keeps sidebar visible for SignPDF route', () => {
+			const store = useSidebarStore()
+			store.show = true
+			store.activeTab = 'sign-tab'
+
+			store.handleRouteChange('SignPDF')
+
+			expect(store.show).toBe(true)
+		})
+
+		it('keeps sidebar visible for ValidationFile route', () => {
+			const store = useSidebarStore()
+			store.show = true
+			store.activeTab = 'sign-tab'
+
+			store.handleRouteChange('ValidationFile')
+
+			expect(store.show).toBe(true)
+		})
+
+		it('keeps sidebar visible for IdDocsApprove route', () => {
+			const store = useSidebarStore()
+			store.show = true
+			store.activeTab = 'sign-tab'
+
+			store.handleRouteChange('IdDocsApprove')
+
+			expect(store.show).toBe(true)
+		})
+
+		it('hides sidebar for non-allowed routes', () => {
+			const store = useSidebarStore()
+			store.show = true
+			store.activeTab = 'sign-tab'
+
+			store.handleRouteChange('SomeOtherRoute')
+
+			expect(store.show).toBe(false)
+		})
+
+		it('hides sidebar when navigating to home', () => {
+			const store = useSidebarStore()
+			store.show = true
+			store.activeTab = 'sign-tab'
+
+			store.handleRouteChange('home')
+
+			expect(store.show).toBe(false)
+		})
+
+		it('handles undefined route name gracefully', () => {
+			const store = useSidebarStore()
+			store.show = true
+			store.activeTab = 'sign-tab'
+
+			store.handleRouteChange(undefined)
+
+			expect(store.show).toBe(true)
+		})
+
+		it('handles null route name gracefully', () => {
+			const store = useSidebarStore()
+			store.show = true
+			store.activeTab = 'sign-tab'
+
+			store.handleRouteChange(null)
+
+			expect(store.show).toBe(true)
+		})
+	})
 })

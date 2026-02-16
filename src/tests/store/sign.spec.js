@@ -6,7 +6,7 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useSignStore } from '../../store/sign.js'
-import { FILE_STATUS } from '../../constants.js'
+import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
 
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path, params) => {
@@ -55,6 +55,15 @@ vi.mock('../../store/signMethods.js', () => {
 	}
 	return {
 		useSignMethodsStore: vi.fn(() => signMethodsInstance),
+	}
+})
+
+vi.mock('../../store/identificationDocument.js', () => {
+	const identificationDocumentInstance = {
+		isDocumentPending: vi.fn(() => false),
+	}
+	return {
+		useIdentificationDocumentStore: vi.fn(() => identificationDocumentInstance),
 	}
 })
 
@@ -156,6 +165,42 @@ describe('useSignStore', () => {
 			}
 			expect(store.ableToSign).toBe(false)
 		})
+
+		it('returns true for approver without signer', () => {
+			const store = useSignStore()
+			store.document = {
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [],
+				settings: { isApprover: true },
+			}
+			expect(store.ableToSign).toBe(true)
+		})
+
+		it('returns false for approver when identification document is pending', async () => {
+			const { useIdentificationDocumentStore } = await import('../../store/identificationDocument.js')
+			const identificationDocumentStore = useIdentificationDocumentStore()
+			identificationDocumentStore.isDocumentPending.mockReturnValue(true)
+
+			const store = useSignStore()
+			store.document = {
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [],
+				settings: { isApprover: true },
+			}
+			expect(store.ableToSign).toBe(false)
+
+			identificationDocumentStore.isDocumentPending.mockReturnValue(false)
+		})
+
+		it('returns false for approver when document status is DRAFT', () => {
+			const store = useSignStore()
+			store.document = {
+				status: FILE_STATUS.DRAFT,
+				signers: [],
+				settings: { isApprover: true },
+			}
+			expect(store.ableToSign).toBe(false)
+		})
 	})
 
 	describe('buildSignUrl', () => {
@@ -208,6 +253,54 @@ describe('useSignStore', () => {
 			const url = store.buildSignUrl(validUuid, { documentId: 100 })
 
 			expect(url).toContain(`/sign/uuid/${validUuid}`)
+		})
+
+		it('appends idDocApproval param when user is approver', () => {
+			const store = useSignStore()
+			store.document = {
+				settings: { isApprover: true },
+			}
+			const url = store.buildSignUrl('some-uuid', { documentId: 1 })
+
+			expect(url).toContain('&idDocApproval=true')
+		})
+
+		it('does not append idDocApproval param when user is not approver', () => {
+			const store = useSignStore()
+			store.document = {
+				settings: { isApprover: false },
+			}
+			const url = store.buildSignUrl('some-uuid', { documentId: 1 })
+
+			expect(url).not.toContain('idDocApproval')
+		})
+	})
+
+	describe('getSignatureMethodsForFile', () => {
+		it('returns signatureMethods from current user signer', () => {
+			const store = useSignStore()
+			const file = {
+				signers: [{ me: true, signatureMethods: { clickToSign: true } }],
+				settings: { signatureMethods: { emailToken: true } },
+			}
+			expect(store.getSignatureMethodsForFile(file)).toEqual({ clickToSign: true })
+		})
+
+		it('falls back to file.settings.signatureMethods when no signer with me: true', () => {
+			const store = useSignStore()
+			const file = {
+				signers: [{ me: false, signatureMethods: { clickToSign: true } }],
+				settings: { signatureMethods: { emailToken: true } },
+			}
+			expect(store.getSignatureMethodsForFile(file)).toEqual({ emailToken: true })
+		})
+
+		it('returns empty object when no signer and no settings', () => {
+			const store = useSignStore()
+			const file = {
+				signers: [],
+			}
+			expect(store.getSignatureMethodsForFile(file)).toEqual({})
 		})
 	})
 
