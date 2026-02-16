@@ -203,6 +203,45 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame($nodeFromFileId, $result);
 	}
 
+	#[DataProvider('nodeFromDataFileNameProvider')]
+	public function testGetNodeFromDataResolvesFileNameWithoutDuplicateExtension(string $inputName, string $expectedName): void {
+		$content = '%PDF-1.4';
+		$extension = 'pdf';
+		$node = $this->createMock(\OCP\Files\File::class);
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+
+		$this->contentProvider->method('getContentFromData')->willReturn($content);
+		$this->mimeService->method('getExtension')->willReturn($extension);
+		$this->pdfValidator->expects($this->once())
+			->method('validate')
+			->with($content, $inputName);
+		$this->folderService->method('getFolderForFile')->willReturn($folder);
+		$folder->expects($this->once())
+			->method('newFile')
+			->with($expectedName, $content)
+			->willReturn($node);
+
+		$service = $this->createFileService();
+
+		$data = [
+			'name' => $inputName,
+			'file' => [],
+			'userManager' => '',
+		];
+
+		$result = $service->getNodeFromData($data);
+		$this->assertSame($node, $result);
+	}
+
+	public static function nodeFromDataFileNameProvider(): array {
+		return [
+			'keeps extension with spaces' => ['My File.pdf', 'My_File.pdf'],
+			'keeps extension with trim' => ['  invoice.pdf  ', 'invoice.pdf'],
+			'keeps extension case-insensitive' => ['report.PDF', 'report.PDF'],
+			'appends extension when missing' => ['My File', 'My_File.pdf'],
+		];
+	}
+
 	public function testDeleteRemovesEmptyFolder(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setId(1);

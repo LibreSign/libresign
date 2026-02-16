@@ -191,14 +191,17 @@ class FileController extends AEnvironmentAwareController {
 	 */
 	private function validate(?string $type = null, $identifier = null): DataResponse {
 		try {
+			$signRequest = null;
 			if ($type === 'Uuid' && !empty($identifier)) {
 				try {
 					$this->fileService->setFileByUuid((string)$identifier);
 				} catch (LibresignException) {
 					$this->fileService->setFileBySignerUuid((string)$identifier);
+					$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId((string)$identifier);
 				}
 			} elseif ($type === 'SignerUuid' && !empty($identifier)) {
 				$this->fileService->setFileBySignerUuid((string)$identifier);
+				$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId((string)$identifier);
 			} elseif ($type === 'FileId' && !empty($identifier)) {
 				$this->fileService->setFileById((int)$identifier);
 			} elseif ($this->request->getParam('fileId')) {
@@ -208,7 +211,12 @@ class FileController extends AEnvironmentAwareController {
 					$this->fileService->setFileByUuid((string)$this->request->getParam('uuid'));
 				} catch (LibresignException) {
 					$this->fileService->setFileBySignerUuid((string)$this->request->getParam('uuid'));
+					$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId((string)$this->request->getParam('uuid'));
 				}
+			}
+
+			if ($signRequest) {
+				$this->fileService->setSignRequest($signRequest);
 			}
 
 			$return = $this->fileService
@@ -294,7 +302,7 @@ class FileController extends AEnvironmentAwareController {
 		$return = $this->fileListService->listAssociatedFilesOfSignFlow($user, $page, $length, $filter, $sort);
 
 		if ($user) {
-			$return['settings'] = $this->settingsLoader->getUserIdentificationSettings($user->getUID());
+			$return['settings'] = $this->settingsLoader->getUserIdentificationSettings($user);
 		}
 
 		return new DataResponse($return, Http::STATUS_OK);

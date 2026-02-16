@@ -23,7 +23,6 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
-use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -42,6 +41,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
+use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
@@ -120,6 +120,7 @@ class SignFileService {
 		private TsaValidationService $tsaValidationService,
 		private PfxProvider $pfxProvider,
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
+		private SignRequestService $signRequestService,
 	) {
 	}
 
@@ -1179,49 +1180,88 @@ class SignFileService {
 		throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 	}
 
+	private function getOrCreateApproverSignRequest(FileEntity $file, IUser $user): ?SignRequestEntity {
+		if (!$this->validateHelper->userCanApproveValidationDocuments($user, false)) {
+			return null;
+		}
+
+		try {
+			$this->idDocsMapper->getByFileId($file->getId());
+		} catch (\Throwable) {
+			return null;
+		}
+
+		try {
+			$this->sequentialSigningService->setFile($file);
+			$signRequest = $this->signRequestService->createOrUpdateSignRequest(
+				identifyMethods: [IdentifyMethodService::IDENTIFY_ACCOUNT => $user->getUID()],
+				displayName: $user->getDisplayName(),
+				description: '',
+				notify: false,
+				fileId: $file->getId(),
+				signingOrder: 0,
+				fileStatus: FileStatus::ABLE_TO_SIGN->value,
+			);
+
+			return $signRequest;
+		} catch (\Throwable $e) {
+			$this->logger->error('Failed to create/get SignRequest for approver', [
+				'exception' => $e,
+				'fileId' => $file->getId(),
+				'userId' => $user->getUID(),
+			]);
+			return null;
+		}
+	}
+
+	/**
+	 * @param SignRequestEntity[] $signRequests
+	 * @param IUser $user
+	 * @return SignRequestEntity|null
+	 */
+	private function findSignRequestByIdentifyMethod(array $signRequests, IUser $user): ?SignRequestEntity {
+		foreach ($signRequests as $signRequest) {
+			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+			foreach ($identifyMethods as $method) {
+				if ($method->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL
+					&& ($method->getIdentifierValue() === $user->getUID()
+						|| $method->getIdentifierValue() === $user->getEMailAddress())
+				) {
+					return $signRequest;
+				}
+				if ($method->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT
+					&& $method->getIdentifierValue() === $user->getUID()
+				) {
+					return $signRequest;
+				}
+			}
+		}
+		return null;
+	}
+
 	public function getSignRequestToSign(FileEntity $libresignFile, ?string $signRequestUuid, ?IUser $user): SignRequestEntity {
 		$this->validateHelper->fileCanBeSigned($libresignFile);
 		try {
-			if ($libresignFile->isEnvelope()) {
-				$childFiles = $this->fileMapper->getChildrenFiles($libresignFile->getId());
-				$allSignRequests = [];
-				foreach ($childFiles as $childFile) {
-					$childSignRequests = $this->signRequestMapper->getByFileId($childFile->getId());
-					$allSignRequests = array_merge($allSignRequests, $childSignRequests);
-				}
-				$signRequests = $allSignRequests;
-			} else {
-				$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
-			}
-
 			if (!empty($signRequestUuid)) {
 				$signRequest = $this->getSignRequestByUuid($signRequestUuid);
-			} else {
-				$signRequest = array_reduce($signRequests, function (?SignRequestEntity $carry, SignRequestEntity $signRequest) use ($user): ?SignRequestEntity {
-					$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-					$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($user) {
-						if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL
-							&& $user
-							&& (
-								$identifyMethod->getIdentifierValue() === $user->getUID()
-								|| $identifyMethod->getIdentifierValue() === $user->getEMailAddress()
-							)
-						) {
-							return true;
-						}
-						if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT
-							&& $user
-							&& $identifyMethod->getIdentifierValue() === $user->getUID()
-						) {
-							return true;
-						}
-						return false;
-					});
-					if (count($found) > 0) {
-						return $signRequest;
+			} elseif ($user) {
+				$signRequest = $this->getOrCreateApproverSignRequest($libresignFile, $user);
+			}
+
+			if (!isset($signRequest)) {
+				if ($libresignFile->isEnvelope()) {
+					$childFiles = $this->fileMapper->getChildrenFiles($libresignFile->getId());
+					$allSignRequests = [];
+					foreach ($childFiles as $childFile) {
+						$childSignRequests = $this->signRequestMapper->getByFileId($childFile->getId());
+						$allSignRequests = array_merge($allSignRequests, $childSignRequests);
 					}
-					return $carry;
-				});
+					$signRequests = $allSignRequests;
+				} else {
+					$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
+				}
+
+				$signRequest = $this->findSignRequestByIdentifyMethod($signRequests, $user);
 			}
 
 			if (!$signRequest) {
@@ -1459,7 +1499,9 @@ class SignFileService {
 				'errors' => [['message' => $this->l10n->t('File not found')]],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
-		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
+		$storageUserId = $this->fileMapper->getStorageUserIdByUuid($fileData->getUuid());
+		$this->folderService->setUserId($storageUserId);
+		$fileToSign = $this->folderService->getFileByNodeId($nodeId);
 		if (!$fileToSign instanceof File) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
@@ -1467,46 +1509,6 @@ class SignFileService {
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
 		return [$fileToSign];
-	}
-
-	/**
-	 * @return array<FileEntity>
-	 */
-	public function getNextcloudFilesWithEntities(FileEntity $fileData): array {
-		if ($fileData->getNodeType() === 'envelope') {
-			$children = $this->fileMapper->getChildrenFiles($fileData->getId());
-			$result = [];
-			foreach ($children as $child) {
-				$nodeId = $child->getNodeId();
-				if ($nodeId === null) {
-					throw new LibresignException(json_encode([
-						'action' => JSActions::ACTION_DO_NOTHING,
-						'errors' => [['message' => $this->l10n->t('File not found')]],
-					]), AppFrameworkHttp::STATUS_NOT_FOUND);
-				}
-				$file = $this->root->getUserFolder($child->getUserId())->getFirstNodeById($nodeId);
-				if ($file instanceof File) {
-					$result[] = $child;
-				}
-			}
-			return $result;
-		}
-
-		$nodeId = $fileData->getNodeId();
-		if ($nodeId === null) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [['message' => $this->l10n->t('File not found')]],
-			]), AppFrameworkHttp::STATUS_NOT_FOUND);
-		}
-		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
-		if (!$fileToSign instanceof File) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [['message' => $this->l10n->t('File not found')]],
-			]), AppFrameworkHttp::STATUS_NOT_FOUND);
-		}
-		return [$fileData];
 	}
 
 	public function validateSigner(string $uuid, ?IUser $user = null): void {

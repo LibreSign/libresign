@@ -130,7 +130,6 @@ class FileProgressController extends AEnvironmentAwareController {
 		if (!$hasAnyError && $this->progressService->isProgressComplete($progress)) {
 			$response['file'] = $this->fileService
 				->setFile($file)
-				->setSignRequest($signRequest)
 				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 				->setHost($this->request->getServerHost())
 				->setMe($this->userSession->getUser())

@@ -34,7 +34,7 @@ enum FileStatus: int {
 			// TRANSLATORS Name of the status that the document can be signed
 			self::ABLE_TO_SIGN => $l10n->t('Ready to sign'),
 			// TRANSLATORS Name of the status when the document has already been partially signed
-			self::PARTIAL_SIGNED => $l10n->t('partially signed'),
+			self::PARTIAL_SIGNED => $l10n->t('Partially signed'),
 			// TRANSLATORS Name of the status when the document has been completely signed
 			self::SIGNED => $l10n->t('signed'),
 			// TRANSLATORS Name of the status when the document was deleted

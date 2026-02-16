@@ -74,6 +74,30 @@ class IdDocsMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
+	public function getByNodeId(int $nodeId): IdDocs {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id.*')
+			->from($this->getTableName(), 'id')
+			->join('id', 'libresign_file', 'f', 'f.id = id.file_id')
+			->where(
+				$qb->expr()->orX(
+					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('f.signed_node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
+				)
+			);
+		return $this->findEntity($qb);
+	}
+
+	public function getBySignRequestIdAndNodeId(int $signRequestId, int $nodeId): IdDocs {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id.*')
+			->from($this->getTableName(), 'id')
+			->join('id', 'libresign_file', 'f', 'f.id = id.file_id')
+			->where($qb->expr()->eq('id.sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)));
+		return $this->findEntity($qb);
+	}
+
 	public function getByFileId(int $fileId): IdDocs {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
@@ -129,85 +153,122 @@ class IdDocsMapper extends QBMapper {
 
 	private function getQueryBuilder(array $filter = [], bool $count = false): IQueryBuilder {
 		$qb = $this->db->getQueryBuilder();
-		if ($count) {
-			$qb->select($qb->func()->count())
-				->setFirstResult(0)
-				->setMaxResults(null);
-		} else {
-			$qb
-				->select(
-					'f.id',
-					'f.uuid',
-					'f.name',
-					'f.callback',
-					'f.status',
-					'f.node_id',
-					'id.file_type',
-					'f.created_at',
-				)
-				->groupBy(
-					'f.id',
-					'f.uuid',
-					'f.name',
-					'f.callback',
-					'f.status',
-					'f.node_id',
-					'f.created_at',
-					'id.file_type',
-				);
-			if (isset($filter['length']) && isset($filter['page'])) {
-				$qb->setFirstResult($filter['length'] * ($filter['page'] - 1));
-				$qb->setMaxResults($filter['length']);
-			}
-
-			if (!empty($filter['sort'])) {
-				$allowedSortFields = [
-					'owner' => 'u.displayname',
-					'file_type' => 'id.file_type',
-					'status' => 'f.status',
-					'created_at' => 'f.created_at',
-				];
-
-				foreach ($filter['sort'] as $field => $direction) {
-					if (!isset($allowedSortFields[$field])) {
-						continue;
-					}
-					$direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
-					$qb->addOrderBy($allowedSortFields[$field], $direction);
-				}
-			} else {
-				$qb->orderBy('f.created_at', 'DESC');
-			}
-		}
-		$qb
-			->from($this->getTableName(), 'id')
-			->join('id', 'libresign_file', 'f', 'f.id = id.file_id');
 
 		$needsUserJoin = !$count || !empty($filter['userId']) || (!empty($filter['sort']) && isset($filter['sort']['owner']));
 
-		if ($needsUserJoin) {
-			if (!$count) {
+		if ($count) {
+			$qb->select($qb->func()->count());
+		} else {
+			$qb->select(
+				'f.id',
+				'f.uuid',
+				'f.name',
+				'f.callback',
+				'f.status',
+				'f.node_id',
+				'f.user_id',
+				'id.file_type',
+				'id.sign_request_id',
+				'f.created_at',
+			);
+
+			$qb->selectAlias('sr.display_name', 'sign_request_display_name');
+
+			if ($needsUserJoin) {
 				$qb->selectAlias('u.uid_lower', 'account_uid')
-					->selectAlias('u.displayname', 'account_displayname')
-					->addGroupBy('u.uid_lower')
-					->addGroupBy('u.displayname');
+					->selectAlias('u.displayname', 'account_displayname');
 			}
+
+			$qb->selectAlias(
+				$qb->createFunction(
+					'CASE WHEN u.displayname IS NOT NULL THEN u.displayname ELSE sr.display_name END'
+				),
+				'owner_display_name'
+			);
+		}
+
+		$qb->from($this->getTableName(), 'id')
+			->join('id', 'libresign_file', 'f', 'f.id = id.file_id')
+			->leftJoin('id', 'libresign_sign_request', 'sr', 'id.sign_request_id = sr.id');
+
+		if ($needsUserJoin) {
 			$joinType = !empty($filter['userId']) ? 'join' : 'leftJoin';
 			$qb->$joinType('id', 'users', 'u', 'id.user_id = u.uid');
 		}
 
 		if (!empty($filter['userId'])) {
 			$qb->where(
-				$qb->expr()->eq('id.user_id', $qb->createNamedParameter($filter['userId'])),
+				$qb->expr()->eq('id.user_id', $qb->createNamedParameter($filter['userId']))
 			);
 		}
-		if (!empty($filter['approved'])) {
-			if ($filter['approved'] === 'yes') {
-				$qb->andWhere(
-					$qb->expr()->eq('f.status', $qb->createNamedParameter(FileStatus::SIGNED->value, Types::INTEGER)),
-				);
+
+		if (!empty($filter['signRequestId'])) {
+			$qb->andWhere(
+				$qb->expr()->eq('id.sign_request_id', $qb->createNamedParameter($filter['signRequestId'], IQueryBuilder::PARAM_INT))
+			);
+		}
+
+		if (!empty($filter['approved']) && $filter['approved'] === 'yes') {
+			$qb->andWhere(
+				$qb->expr()->eq('f.status', $qb->createNamedParameter(FileStatus::SIGNED->value, Types::INTEGER))
+			);
+		}
+
+		if (!$count) {
+			$qb->groupBy(
+				'f.id',
+				'f.uuid',
+				'f.name',
+				'f.callback',
+				'f.status',
+				'f.node_id',
+				'f.user_id',
+				'id.sign_request_id',
+				'sr.display_name',
+				'f.created_at',
+				'id.file_type',
+			);
+
+			if ($needsUserJoin) {
+				$qb->addGroupBy('u.uid_lower')
+					->addGroupBy('u.displayname');
+			}
+
+			$qb->addGroupBy('owner_display_name');
+		}
+
+		if (!$count) {
+			if (!empty($filter['sort'])) {
+				foreach ($filter['sort'] as $field => $direction) {
+					$direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
+
+					switch ($field) {
+						case 'owner':
+							$qb->addOrderBy('owner_display_name', $direction);
+							break;
+						case 'file_type':
+							$qb->addOrderBy('id.file_type', $direction);
+							break;
+						case 'status':
+							$qb->addOrderBy('f.status', $direction);
+							break;
+						case 'created_at':
+							$qb->addOrderBy('f.created_at', $direction);
+							break;
+					}
+				}
+			} else {
+				$qb->orderBy('f.created_at', 'DESC');
 			}
 		}
+
+		if ($count) {
+			$qb->setFirstResult(0)->setMaxResults(null);
+		} elseif (isset($filter['length'], $filter['page'])) {
+			$qb->setFirstResult($filter['length'] * ($filter['page'] - 1))
+				->setMaxResults($filter['length']);
+		}
+
 		return $qb;
 	}
 
@@ -225,45 +286,42 @@ class IdDocsMapper extends QBMapper {
 	}
 
 	private function formatListRow(array $row, string $url): array {
-		$row['nodeId'] = (int)$row['node_id'];
-		$row['status'] = (int)$row['status'];
-		$row['statusText'] = $this->getIdDocStatusText((int)$row['status']);
-		$row['account'] = [
-			'uid' => $row['account_uid'],
-			'displayName' => $row['account_displayname']
-		];
-		$row['file_type'] = [
-			'type' => $row['file_type'],
-			'name' => $this->fileTypeMapper->getNameOfType($row['file_type']),
-			'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
-			'key' => $row['file_type'],
-		];
-		$row['created_at'] = (new \DateTime())
+		$createdAt = (new \DateTime())
 			->setTimestamp((int)$row['created_at'])
 			->format('Y-m-d H:i:s');
-		$row['file'] = [
-			'name' => $row['name'],
-			'status' => $row['status'],
-			'statusText' => $this->getIdDocStatusText((int)$row['status']),
-			'created_at' => $row['created_at'],
-			'file' => [
-				'type' => 'pdf',
-				'nodeId' => (int)$row['node_id'],
-				'url' => $url . $row['uuid'],
+
+		$userId = $row['user_id'] ?? null;
+		$displayName = $row['account_displayname'] ?? $row['sign_request_display_name'] ?? $userId ?? '';
+
+		return [
+			'account' => [
+				'userId' => $userId,
+				'displayName' => $displayName,
 			],
-			'callback' => $row['callback'],
-			'uuid' => $row['uuid'],
+			'file_type' => [
+				'type' => $row['file_type'],
+				'name' => $this->fileTypeMapper->getNameOfType($row['file_type']),
+				'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
+			],
+			'created_at' => $createdAt,
+			'file' => [
+				'name' => $row['name'],
+				'status' => (int)$row['status'],
+				'statusText' => $this->getIdDocStatusText((int)$row['status']),
+				'created_at' => $createdAt,
+				'user_id' => $row['user_id'],
+				'file' => [
+					'type' => 'pdf',
+					'nodeId' => (int)$row['node_id'],
+					'signedNodeId' => (int)$row['node_id'],
+					'url' => $url . $row['uuid'],
+				],
+				'callback' => $row['callback'],
+				'uuid' => $row['uuid'],
+				'signers' => [],
+			],
+			'id' => (int)$row['id'],
 		];
-		unset(
-			$row['node_id'],
-			$row['name'],
-			$row['account_displayname'],
-			$row['account_uid'],
-			$row['callback'],
-			$row['uuid'],
-			$row['account_uid'],
-		);
-		return $row;
 	}
 
 	/**
@@ -279,6 +337,7 @@ class IdDocsMapper extends QBMapper {
 					$data = [
 						'description' => $signer->getDescription(),
 						'displayName' => $signer->getDisplayName(),
+						'uid' => $file['file']['user_id'] ?? null,
 						'request_sign_date' => (new \DateTime())
 							->setTimestamp($signer->getCreatedAt()->getTimestamp())
 							->format('Y-m-d H:i:s'),
@@ -300,6 +359,58 @@ class IdDocsMapper extends QBMapper {
 			unset($files[$key]['id']);
 		}
 		return $files;
+	}
+
+	/**
+	 * Get all identification document files for a specific user account
+	 *
+	 * @param string $userId The user identifier
+	 * @return File[] Array of File entities associated with the user's identification documents
+	 */
+	public function getFilesOfAccount(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('lf.*')
+			->from('libresign_file', 'lf')
+			->join('lf', $this->getTableName(), 'lid', 'lid.file_id = lf.id')
+			->where(
+				$qb->expr()->eq('lid.user_id', $qb->createNamedParameter($userId))
+			);
+
+		$cursor = $qb->executeQuery();
+		$return = [];
+		while ($row = $cursor->fetch()) {
+			/** @var File */
+			$file = $this->fileMapper->mapRowToEntity($row);
+			$return[] = $file;
+		}
+		return $return;
+	}
+
+	/**
+	 * Get all identification document files for a specific sign request
+	 *
+	 * @param int $signRequestId The sign request identifier
+	 * @return File[] Array of File entities associated with the sign request's identification documents
+	 */
+	public function getFilesOfSignRequest(int $signRequestId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('lf.*')
+			->from('libresign_file', 'lf')
+			->join('lf', $this->getTableName(), 'lid', 'lid.file_id = lf.id')
+			->where(
+				$qb->expr()->eq('lid.sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT))
+			);
+
+		$cursor = $qb->executeQuery();
+		$return = [];
+		while ($row = $cursor->fetch()) {
+			/** @var File */
+			$file = $this->fileMapper->mapRowToEntity($row);
+			$return[] = $file;
+		}
+		return $return;
 	}
 
 	private function getIdDocStatusText(int $status): string {

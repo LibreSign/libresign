@@ -29,6 +29,7 @@ class AccountSettingsProvider {
 	public function getSettings(?IUser $user = null): array {
 		$return['canRequestSign'] = $this->canRequestSign($user);
 		$return['hasSignatureFile'] = $this->hasSignatureFile($user);
+		$return['isApprover'] = $this->isApprover($user);
 		return $return;
 	}
 
@@ -41,7 +42,7 @@ class AccountSettingsProvider {
 		if (!$user) {
 			return false;
 		}
-		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'groups_request_sign', ['admin']);
+		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
 		if (empty($authorized)) {
 			return false;
 		}
@@ -62,5 +63,17 @@ class AccountSettingsProvider {
 		} catch (LibresignException) {
 			return false;
 		}
+	}
+
+	private function isApprover(?IUser $user = null): bool {
+		if (!$user) {
+			return false;
+		}
+		$approvalGroups = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
+		if (empty($approvalGroups)) {
+			return false;
+		}
+		$userGroups = $this->groupManager->getUserGroupIds($user);
+		return (bool)array_intersect($userGroups, $approvalGroups);
 	}
 }

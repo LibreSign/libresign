@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\File;
 
+use OCA\Libresign\Db\SignRequest;
 use OCP\IUser;
 
 class FileResponseOptions {
@@ -18,6 +19,7 @@ class FileResponseOptions {
 	private bool $validateFile = false;
 	private bool $signerIdentified = false;
 	private ?IUser $me = null;
+	private ?SignRequest $signRequest = null;
 	private ?int $identifyMethodId = null;
 	private string $host = '';
 
@@ -82,6 +84,15 @@ class FileResponseOptions {
 
 	public function getMe(): ?IUser {
 		return $this->me;
+	}
+
+	public function setSignRequest(?SignRequest $signRequest): self {
+		$this->signRequest = $signRequest;
+		return $this;
+	}
+
+	public function getSignRequest(): ?SignRequest {
+		return $this->signRequest;
 	}
 
 	public function setIdentifyMethodId(?int $id): self {

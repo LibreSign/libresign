@@ -10,15 +10,19 @@ export const useSidebarStore = defineStore('sidebar', {
 	state: () => ({
 		show: false,
 		activeTab: '',
+		sidebarRoutes: ['fileslist', 'SignPDF', 'ValidationFile', 'IdDocsApprove'],
 	}),
 
-	actions: {
+	getters: {
 		canShow() {
 			return this.show === false && this.activeTab.length > 0
 		},
 		isVisible() {
 			return this.show === true && this.activeTab.length > 0
 		},
+	},
+
+	actions: {
 		showSidebar() {
 			set(this, 'show', true)
 		},
@@ -40,6 +44,11 @@ export const useSidebarStore = defineStore('sidebar', {
 		},
 		hideSidebar() {
 			set(this, 'show', false)
+		},
+		handleRouteChange(routeName) {
+			if (routeName && !this.sidebarRoutes.includes(routeName)) {
+				this.hideSidebar()
+			}
 		},
 		toggleSidebar() {
 			set(this, 'show', !this.show)

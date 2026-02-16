@@ -25,8 +25,6 @@ use OCP\DB\Types;
  * @method ?string getSignedHash()
  * @method void setUserId(?string $userId)
  * @method ?string getUserId()
- * @method void setSignRequestId(?int $signRequestId)
- * @method ?int getSignRequestId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
  * @method void setCreatedAt(\DateTime $createdAt)
@@ -57,7 +55,6 @@ class File extends Entity {
 	protected string $name = '';
 	protected ?int $status = null;
 	protected ?string $userId = null;
-	protected ?int $signRequestId = null;
 	protected ?int $signedNodeId = null;
 	protected ?string $signedHash = null;
 	protected ?string $callback = null;
@@ -76,7 +73,6 @@ class File extends Entity {
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);
 		$this->addType('nodeId', Types::INTEGER);
-		$this->addType('signRequestId', Types::INTEGER);
 		$this->addType('signedNodeId', Types::INTEGER);
 		$this->addType('signedHash', Types::STRING);
 		$this->addType('userId', Types::STRING);

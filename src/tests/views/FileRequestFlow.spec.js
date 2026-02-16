@@ -60,7 +60,7 @@ const mockSignStore = {
 
 const mockSidebarStore = {
 	hideSidebar: vi.fn(),
-	isVisible: vi.fn(() => false),
+	isVisible: false,
 }
 
 const mockFilesStore = {
@@ -87,7 +87,7 @@ describe('Request.vue - File Request Business Logic', () => {
 	let wrapper
 	const createWrapper = ({ selectedFileId = 0, sidebarVisible = false } = {}) => {
 		mockFilesStore.selectedFileId = selectedFileId
-		mockSidebarStore.isVisible.mockReturnValue(sidebarVisible)
+		mockSidebarStore.isVisible = sidebarVisible
 		return mount(Request, {
 			mocks: {
 				$route: mockRoute,
@@ -114,7 +114,7 @@ describe('Request.vue - File Request Business Logic', () => {
 		mockSignStore.uuid = 'test-uuid'
 		mockSignStore.signers = []
 		mockSidebarStore.hideSidebar.mockClear()
-		mockSidebarStore.isVisible.mockClear()
+		mockSidebarStore.isVisible = false
 		mockFilesStore.selectFile.mockClear()
 		mockFilesStore.disableIdentifySigner.mockClear()
 		mockFilesStore.selectedFileId = 0
