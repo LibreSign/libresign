@@ -13,6 +13,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\AEnvironmentPageAwareController;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
