@@ -15,7 +15,7 @@
 			v-model="newName"
 			:label="t('libresign', 'File name')"
 			:autofocus="true"
-			:minlength="3"
+			:minlength="1"
 			:maxlength="255"
 			:required="true"
 			enterkeyhint="done"
@@ -120,7 +120,7 @@ export default {
 		async onRename() {
 			const trimmedName = this.newName.trim()
 
-			if (!trimmedName || trimmedName.length < 3) {
+			if (!trimmedName || trimmedName.length < 1) {
 				this.stopRenaming()
 				return
 			}
