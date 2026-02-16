@@ -27,6 +27,7 @@ use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
@@ -1234,6 +1235,68 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$e->getMessage(),
 				'Error message should mention identification document requirement'
 			);
+		}
+	}
+
+	public static function providerValidateIdDocBelongsToSignRequest(): array {
+		return [
+			'success - document belongs to sign request' => [
+				'nodeId' => 123,
+				'signRequestId' => 456,
+				'exception' => null,
+				'shouldThrow' => false,
+			],
+			'throws when document not found' => [
+				'nodeId' => 123,
+				'signRequestId' => 456,
+				'exception' => new DoesNotExistException('Not found'),
+				'shouldThrow' => true,
+			],
+			'throws on any database error' => [
+				'nodeId' => 123,
+				'signRequestId' => 456,
+				'exception' => new \Exception('Database error'),
+				'shouldThrow' => true,
+			],
+		];
+	}
+
+	#[DataProvider('providerValidateIdDocBelongsToSignRequest')]
+	public function testValidateIdDocBelongsToSignRequest(
+		int $nodeId,
+		int $signRequestId,
+		?\Throwable $exception,
+		bool $shouldThrow,
+	): void {
+		if ($exception === null) {
+			$idDoc = new IdDocs();
+			$idDoc->setFileId($nodeId);
+			$idDoc->setSignRequestId($signRequestId);
+
+			$this->idDocsMapper
+				->expects($this->once())
+				->method('getBySignRequestIdAndNodeId')
+				->with($signRequestId, $nodeId)
+				->willReturn($idDoc);
+		} else {
+			$this->idDocsMapper
+				->expects($this->once())
+				->method('getBySignRequestIdAndNodeId')
+				->with($signRequestId, $nodeId)
+				->willThrowException($exception);
+		}
+
+		$validateHelper = $this->getValidateHelper();
+
+		if ($shouldThrow) {
+			$this->expectException(LibresignException::class);
+			$this->expectExceptionMessage('Not allowed');
+		}
+
+		$validateHelper->validateIdDocBelongsToSignRequest($nodeId, $signRequestId);
+
+		if (!$shouldThrow) {
+			$this->assertTrue(true);
 		}
 	}
 }
