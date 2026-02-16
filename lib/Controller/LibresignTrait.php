@@ -70,6 +70,32 @@ trait LibresignTrait {
 		$this->loadEntitiesFromUuid($uuid);
 	}
 
+	/**
+	 * Load identification document approval entities from uuid resolver result
+	 * Used when an approver is signing an identification document
+	 *
+	 * @param array $resolution Contains: 'file' => File entity, 'signRequest' => null, 'type' => 'id_doc'
+	 * @throws LibresignException
+	 */
+	public function loadIdDocApprovalFromResolution(array $resolution): void {
+		if ($resolution['type'] !== 'id_doc') {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('Invalid id-doc request')]],
+			]), AppFrameworkHttp::STATUS_BAD_REQUEST);
+		}
+
+		if (!$resolution['file'] instanceof FileEntity) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('Invalid file')]],
+			]), AppFrameworkHttp::STATUS_NOT_FOUND);
+		}
+
+		$this->signRequestEntity = null;
+		$this->fileEntity = $resolution['file'];
+	}
+
 	public function getSignRequestEntity(): ?SignRequestEntity {
 		return $this->signRequestEntity;
 	}
