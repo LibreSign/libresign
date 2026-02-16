@@ -1071,29 +1071,29 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v1.4.0",
+            "version": "v1.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "84f90fc1eb24e6fbfc13642b1a91ed5960c7b21c"
+                "reference": "7876b05d451d751e448a5560aad89a9cb224b710"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/84f90fc1eb24e6fbfc13642b1a91ed5960c7b21c",
-                "reference": "84f90fc1eb24e6fbfc13642b1a91ed5960c7b21c",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/7876b05d451d751e448a5560aad89a9cb224b710",
+                "reference": "7876b05d451d751e448a5560aad89a9cb224b710",
                 "shasum": ""
             },
             "require": {
-                "behat/behat": "^3.23",
+                "behat/behat": "^3.29",
                 "estahn/json-query-wrapper": "*",
-                "guzzlehttp/guzzle": "^7.9",
+                "guzzlehttp/guzzle": "^7.10",
                 "libresign/behat-builtin-extension": "^0.6.3",
                 "php": ">=8.1",
                 "phpunit/phpunit": "*"
             },
             "require-dev": {
-                "bamarni/composer-bin-plugin": "^1.8",
-                "donatj/mock-webserver": "^2.8"
+                "bamarni/composer-bin-plugin": "^1.9",
+                "donatj/mock-webserver": "^2.9"
             },
             "type": "library",
             "extra": {
@@ -1125,9 +1125,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v1.4.0"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v1.4.2"
             },
-            "time": "2025-08-01T16:10:37+00:00"
+            "time": "2026-02-16T21:51:37+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -5525,5 +5525,5 @@
     "platform-overrides": {
         "php": "8.2"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
