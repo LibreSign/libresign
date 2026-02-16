@@ -24,6 +24,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdDocsService;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -353,17 +354,34 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$signRequest = $self->createMock(SignRequest::class);
 					$signRequest
 						->method('__call')
-						->with($self->equalTo('getEmail'), $self->anything())
-						->will($self->returnValue('valid@test.coop'));
+						->willReturnCallback(fn (string $method)
+							=> match ($method) {
+								'getEmail' => 'valid@test.coop',
+								'getId' => 10,
+							}
+						);
 					$self->signRequestMapper
 						->method('getByUuid')
 						->will($self->returnValue($signRequest));
+					$identifyMethod = $self->createMock(IIdentifyMethod::class);
+					$identifyMethod
+						->method('validateToCreateAccount')
+						->willReturnCallback(function ():void {
+							throw new \OCA\Libresign\Exception\LibresignException('This is not your file');
+						});
+					$self->identifyMethodService
+						->method('getIdentifyMethodsFromSignRequestId')
+						->willReturn(['email' => [$identifyMethod]]);
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
 						'user' => [
 							'email' => 'invalid@test.coop',
+							'identify' => [
+								'email' => 'invalid@test.coop',
+							],
 						],
-						'signPassword' => '132456789'
+						'signPassword' => '132456789',
+						'password' => '123456789',
 					];
 				},
 				'This is not your file'
@@ -373,20 +391,33 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$signRequest = $self->createMock(SignRequest::class);
 					$signRequest
 						->method('__call')
-						->with($self->equalTo('getEmail'), $self->anything())
-						->will($self->returnValue('valid@test.coop'));
+						->willReturnCallback(fn (string $method)
+							=> match ($method) {
+								'getEmail' => 'valid@test.coop',
+								'getId' => 11,
+							}
+						);
 					$self->signRequestMapper
 						->method('getByUuid')
 						->will($self->returnValue($signRequest));
-					$self->userManager
-						->method('userExists')
-						->will($self->returnValue(true));
+					$identifyMethod = $self->createMock(IIdentifyMethod::class);
+					$identifyMethod
+						->method('validateToCreateAccount')
+						->willReturnCallback(function ():void {
+							throw new \OCA\Libresign\Exception\LibresignException('User already exists');
+						});
+					$self->identifyMethodService
+						->method('getIdentifyMethodsFromSignRequestId')
+						->willReturn(['email' => [$identifyMethod]]);
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
 						'user' => [
-							'email' => 'valid@test.coop',
+							'identify' => [
+								'email' => 'valid@test.coop',
+							],
 						],
-						'signPassword' => '123456789'
+						'signPassword' => '123456789',
+						'signPassword' => '123456789',
 					];
 				},
 				'User already exists'
@@ -396,15 +427,25 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$signRequest = $self->createMock(SignRequest::class);
 					$signRequest
 						->method('__call')
-						->with($self->equalTo('getEmail'), $self->anything())
-						->will($self->returnValue('valid@test.coop'));
+						->willReturnCallback(fn (string $method)
+							=> match ($method) {
+								'getEmail' => 'valid@test.coop',
+								'getId' => 12,
+							}
+						);
 					$self->signRequestMapper
 						->method('getByUuid')
 						->will($self->returnValue($signRequest));
+					$identifyMethod = $self->createMock(IIdentifyMethod::class);
+					$self->identifyMethodService
+						->method('getIdentifyMethodsFromSignRequestId')
+						->willReturn(['email' => [$identifyMethod]]);
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
 						'user' => [
-							'email' => 'valid@test.coop',
+							'identify' => [
+								'email' => 'valid@test.coop',
+							],
 						],
 						'signPassword' => '132456789',
 						'password' => ''
@@ -414,28 +455,41 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'fileNotFound' => [
 				function ($self):array {
-					$signRequest = $this->createMock(SignRequest::class);
+					$signRequest = $self->createMock(SignRequest::class);
 					$signRequest
 						->method('__call')
 						->willReturnCallback(fn (string $method)
 							=> match ($method) {
 								'getEmail' => 'valid@test.coop',
 								'getFileId' => 171,
+								'getId' => 13,
 								'getUserId' => 'username',
 							}
 						);
-					$file = $this->createMock(\OCA\Libresign\Db\File::class);
+					$file = $self->createMock(\OCA\Libresign\Db\File::class);
+					$file
+						->method('__call')
+						->willReturnCallback(fn (string $method)
+							=> match ($method) {
+								'getNodeId' => 999,
+								'getUserId' => 'username',
+							}
+						);
 					$self->fileMapper
 						->method('getById')
 						->will($self->returnValue($file));
 					$self->signRequestMapper
 						->method('getByUuid')
 						->will($self->returnValue($signRequest));
+					$identifyMethod = $self->createMock(IIdentifyMethod::class);
+					$self->identifyMethodService
+						->method('getIdentifyMethodsFromSignRequestId')
+						->willReturn(['email' => [$identifyMethod]]);
 
 					$self->root
 						->method('getById')
 						->will($self->returnValue([]));
-					$folder = $this->createMock(\OCP\Files\Folder::class);
+					$folder = $self->createMock(\OCP\Files\Folder::class);
 					$folder
 						->method('getById')
 						->willReturn([]);
@@ -445,7 +499,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
 						'user' => [
-							'email' => 'valid@test.coop',
+							'identify' => [
+								'email' => 'valid@test.coop',
+							],
 						],
 						'signPassword' => '132456789',
 						'password' => '123456789'
