@@ -504,7 +504,7 @@ class AccountService {
 			try {
 				$file = $this->folderService->getFileByNodeId($element->getNodeId());
 				$file->delete();
-			} catch (NotFoundException) {
+			} catch (\Throwable) {
 			}
 			return;
 		}
