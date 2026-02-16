@@ -5,7 +5,7 @@ declare(strict_types=1);
  * SPDX-FileCopyrightText: 2020-2025 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod\SignatureMethod;
+namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\IdentifyMethod;
