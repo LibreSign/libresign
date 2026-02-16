@@ -379,6 +379,38 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->deleteSignatureElement($user, 'session123', 123);
 	}
 
+	public function testDeleteSignatureElementWithUserWhenFileDeleteFails(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$element = new UserElement();
+		$element->setNodeId(123);
+
+		$this->userElementMapper
+			->expects($this->once())
+			->method('findOne')
+			->willReturn($element);
+
+		$this->userElementMapper
+			->expects($this->once())
+			->method('delete')
+			->with($element);
+
+		$file = $this->createMock(File::class);
+		$file->expects($this->once())
+			->method('delete')
+			->willThrowException(new \Exception('storage error'));
+
+		$this->folderService
+			->expects($this->once())
+			->method('getFileByNodeId')
+			->with(123)
+			->willReturn($file);
+
+		// Should not throw, element deletion in DB must be enough
+		$this->getService()->deleteSignatureElement($user, 'session123', 123);
+	}
+
 	public function testDeleteSignatureElementWithoutUserDeletesFromSession(): void {
 		$sessionFolder = $this->createMock(Folder::class);
 		$element = $this->createMock(File::class);
