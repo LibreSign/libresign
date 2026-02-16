@@ -116,6 +116,16 @@ export default {
 		next()
 	},
 	methods: {
+		isIdDocApproval() {
+			return this.$route.query.idDocApproval === 'true'
+		},
+		addIdDocApprovalParam(url) {
+			if (!this.isIdDocApproval() || !url) {
+				return url
+			}
+			const separator = url.includes('?') ? '&' : '?'
+			return `${url}${separator}idDocApproval=true`
+		},
 		async initSignExternal() {
 			await this.signStore.initFromState()
 			if (!this.signStore.document.uuid) {
@@ -136,9 +146,8 @@ export default {
 			}
 		},
 		async initIdDocsApprove() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/libresign/api/v1/file/validate/uuid/{uuid}', { uuid: this.$route.params.uuid })
-			)
+			const url = generateOcsUrl('/apps/libresign/api/v1/file/validate/uuid/{uuid}', { uuid: this.$route.params.uuid })
+			const response = await axios.get(this.addIdDocApprovalParam(url))
 			this.signStore.setFileToSign(response.data.ocs.data)
 			this.filesStore.selectFile(response.data.ocs.data.id)
 		},
@@ -180,9 +189,10 @@ export default {
 			if (doc.nodeType === 'envelope') {
 				await this.loadEnvelopePdfs(doc.id)
 			} else {
-				const fileUrl = doc.url
+				const baseFileUrl = doc.url
 					|| doc.files?.[0]?.file
 					|| (doc.uuid ? generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: doc.uuid }) : null)
+				const fileUrl = this.addIdDocApprovalParam(baseFileUrl)
 				if (fileUrl) {
 					await this.handleInitialStatePdfs([fileUrl])
 				} else {
@@ -232,7 +242,8 @@ export default {
 				parentFileId: parentFileId.toString(),
 				signer_uuid: this.$route.params.uuid,
 			})
-			const response = await axios.get(`${url}?${params.toString()}`)
+			const finalUrl = this.addIdDocApprovalParam(`${url}?${params.toString()}`)
+			const response = await axios.get(finalUrl)
 			return response.data?.ocs?.data?.data ?? []
 		},
 		updateSigners(data) {
