@@ -7,6 +7,9 @@
 
 declare(strict_types=1);
 
+
+namespace OCA\Libresign\Tests\Unit\Service;
+
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\IdentifyMethodService;
