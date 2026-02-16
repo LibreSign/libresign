@@ -16,7 +16,6 @@ class RequireSignRequestUuid {
 		protected bool $skipIfAuthenticated = false,
 		protected bool $redirectIfSignedToValidation = false,
 		protected bool $allowIdDocs = false,
-		protected bool $allowFileUuid = false,
 	) {
 	}
 
@@ -30,9 +29,5 @@ class RequireSignRequestUuid {
 
 	public function allowIdDocs(): bool {
 		return $this->allowIdDocs;
-	}
-
-	public function allowFileUuid(): bool {
-		return $this->allowFileUuid;
 	}
 }
