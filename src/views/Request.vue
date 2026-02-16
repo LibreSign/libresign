@@ -7,7 +7,7 @@
 		<div id="container-request">
 			<header>
 				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
-				<p v-if="!sidebarStore.isVisible()">
+				<p v-if="!sidebarStore.isVisible">
 					{{ t('libresign', 'Choose the file to request signatures.') }}
 				</p>
 			</header>
@@ -15,7 +15,7 @@
 				<File v-show="filesStore.selectedFileId > 0"
 					status="0"
 					status-text="none" />
-				<ReqestPicker v-if="!sidebarStore.isVisible()"
+				<ReqestPicker v-if="!sidebarStore.isVisible"
 					:inline="true" />
 			</div>
 		</div>

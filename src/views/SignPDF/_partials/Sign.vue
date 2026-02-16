@@ -176,7 +176,6 @@ import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator.js'
 import { SignFlowHandler } from '../../../services/SignFlowHandler.js'
-import { ACTION_CODES } from '../../../helpers/ActionMapping.js'
 import { FILE_STATUS } from '../../../constants.js'
 
 export default {
@@ -243,12 +242,7 @@ export default {
 				&& this.canCreateSignature
 		},
 		needIdentificationDocuments() {
-			const needsFromStore = this.identificationDocumentStore.needIdentificationDocument()
-			const hasError = this.signStore.errors.some(error => error.code === ACTION_CODES.SIGN_ID_DOC)
-
-			const isWaitingApproval = this.identificationDocumentStore.enabled && this.identificationDocumentStore.waitingApproval
-
-			return needsFromStore || hasError || isWaitingApproval
+			return this.identificationDocumentStore.showDocumentsComponent()
 		},
 		canCreateSignature() {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
@@ -261,7 +255,9 @@ export default {
 			const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
 			const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
 			const fromSigner = signer.sign_uuid
-			return fromDoc || fromSigner || loadState('libresign', 'sign_request_uuid', null)
+			const isApprover = doc.settings?.isApprover
+			const fromFile = isApprover ? doc.uuid : null
+			return fromDoc || fromSigner || fromFile || loadState('libresign', 'sign_request_uuid', null)
 		},
 	},
 	beforeUnmount() {
