@@ -162,6 +162,58 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testValidateSignerAllowsDraftWhenFileHasIdDocs(): void {
+		$uuid = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setStatusEnum(SignRequestStatus::DRAFT);
+		$signRequest->setId(10);
+		$signRequest->setFileId(20);
+
+		$file = new \OCA\Libresign\Db\File();
+
+		$this->signRequestMapper->method('getByUuid')
+			->with($uuid)
+			->willReturn($signRequest);
+		$this->fileMapper->method('getById')
+			->willReturn($file);
+
+		$idDocs = new IdDocs();
+		$this->idDocsMapper->method('getByFileId')
+			->with(20)
+			->willReturn($idDocs);
+
+		$this->identifyMethodService
+			->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn([]);
+
+		$this->getValidateHelper()->validateSigner($uuid);
+		$this->assertTrue(true);
+	}
+
+	public function testValidateSignerBlocksDraftWhenFileHasNoIdDocs(): void {
+		$uuid = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setStatusEnum(SignRequestStatus::DRAFT);
+		$signRequest->setId(11);
+		$signRequest->setFileId(21);
+
+		$file = new \OCA\Libresign\Db\File();
+
+		$this->signRequestMapper->method('getByUuid')
+			->with($uuid)
+			->willReturn($signRequest);
+		$this->fileMapper->method('getById')
+			->willReturn($file);
+
+		$this->idDocsMapper->method('getByFileId')
+			->with(21)
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('not found'));
+
+		$this->expectException(LibresignException::class);
+
+		$this->getValidateHelper()->validateSigner($uuid);
+	}
+
 	public function testValidateFileWithoutAllNecessaryData():void {
 		$this->expectExceptionMessageMatches('/File type: %s. Specify a/');
 		$this->getValidateHelper()->validateFile([
