@@ -47,6 +47,7 @@ use OCA\Libresign\Service\PfxProvider;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SigningCoordinatorService;
+use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCA\Libresign\Service\TsaValidationService;
@@ -115,6 +116,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CertificateValidityPolicy $certificateValidityPolicy;
 	private PfxProvider $pfxProvider;
 	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
+	private SignRequestService&MockObject $signRequestService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -165,6 +167,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->eventDispatcher,
 			$this->secureRandom,
 		);
+		$this->signRequestService = $this->createMock(SignRequestService::class);
 	}
 
 	public function testClickToSignUsesShortLivedCertificate(): void {
@@ -433,6 +436,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->tsaValidationService,
 					$this->pfxProvider,
 					$this->subjectAlternativeNameService,
+					$this->signRequestService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -476,6 +480,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->tsaValidationService,
 			$this->pfxProvider,
 			$this->subjectAlternativeNameService,
+			$this->signRequestService,
 		);
 	}
 
