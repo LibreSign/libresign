@@ -37,7 +37,7 @@ class FolderService {
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
-	public function setUserId(string $userId): void {
+	public function setUserId(?string $userId): void {
 		$this->userId = $userId;
 	}
 
@@ -82,7 +82,7 @@ class FolderService {
 	/**
 	 * @throws NotFoundException
 	 */
-	public function getFileByNodeId(?int $nodeId = null): File {
+	public function getFileByNodeId(int $nodeId): File {
 		// For guests, files are stored in appdata, not in user folder
 		// Skip getUserFolder search for guests to avoid false positives
 		if ($this->getUserId() && !$this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
@@ -197,7 +197,7 @@ class FolderService {
 				case 'userId':
 					if ($identifier instanceof \OCP\IUser) {
 						$folderName[] = $identifier->getUID();
-					} else {
+					} elseif (!empty($identifier) && is_string($identifier)) {
 						$folderName[] = $identifier;
 					}
 					break;

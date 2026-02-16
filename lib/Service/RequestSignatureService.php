@@ -341,10 +341,14 @@ class RequestSignatureService {
 
 		$file = new FileEntity();
 		$file->setNodeId($node->getId());
-		if ($data['userManager'] instanceof IUser) {
+		if (isset($data['userManager']) && $data['userManager'] instanceof IUser) {
 			$file->setUserId($data['userManager']->getUID());
-		} elseif ($data['signRequest'] instanceof SignRequestEntity) {
-			$file->setSignRequestId($data['signRequest']->getId());
+		} elseif (isset($data['signRequest']) && $data['signRequest'] instanceof SignRequestEntity) {
+			$signRequestFileId = $data['signRequest']->getFileId();
+			if ($signRequestFileId) {
+				$signRequestFile = $this->fileMapper->getById($signRequestFileId);
+				$file->setUserId($signRequestFile->getUserId());
+			}
 		}
 		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
