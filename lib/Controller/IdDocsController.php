@@ -97,18 +97,28 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 * Delete file from account
 	 *
 	 * @param int $nodeId the nodeId of file to be delete
+	 * @param string|null $uuid Sign request UUID for unauthenticated access
 	 *
 	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: string[]}, array{}>
 	 *
 	 * 200: File deleted with success
 	 * 401: Failure to delete file from account
 	 */
+	#[PublicPage]
+	#[AnonRateLimit(limit: 30, period: 60)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/id-docs/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
-	public function delete(int $nodeId): DataResponse {
+	public function delete(int $nodeId, ?string $uuid = null): DataResponse {
 		try {
-			$this->idDocsService->deleteIdDoc($nodeId, $this->userSession->getUser());
+			if ($user = $this->userSession->getUser()) {
+				$this->idDocsService->deleteIdDoc($nodeId, $user);
+			} elseif ($signRequest = $this->getSignRequestEntity()) {
+				$this->idDocsService->deleteIdDocBySignRequest($nodeId, $signRequest);
+			} else {
+				throw new Exception('Invalid data');
+			}
 			return new DataResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			return new DataResponse(
