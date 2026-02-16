@@ -1,12 +1,16 @@
 <?php
 
 declare(strict_types=1);
+
+namespace OCA\Libresign\Tests\Unit\Service;
+
 /**
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 use bovigo\vfs\vfsStream;
+use DateTime;
 use OC\User\NoUserException;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\Db\File;
