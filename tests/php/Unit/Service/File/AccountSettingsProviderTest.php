@@ -66,11 +66,10 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$user->method('getUID')->willReturn('user123');
 
 		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'groups_request_sign', ['admin'])
+			->with(Application::APP_ID, 'approval_group', ['admin'])
 			->willReturn(['admin', 'users']);
 
 		$this->groupManager->method('getUserGroupIds')
-			->with($user)
 			->willReturn(['users', 'editors']);
 
 		$this->pkcs12Handler->method('getPfxOfCurrentSigner')
@@ -89,11 +88,10 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$user->method('getUID')->willReturn('user123');
 
 		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'groups_request_sign', ['admin'])
+			->with(Application::APP_ID, 'approval_group', ['admin'])
 			->willReturn(['admin']);
 
 		$this->groupManager->method('getUserGroupIds')
-			->with($user)
 			->willReturn(['users', 'editors']);
 
 		$this->pkcs12Handler->method('getPfxOfCurrentSigner')
@@ -112,11 +110,10 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$user->method('getUID')->willReturn('user123');
 
 		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'groups_request_sign', ['admin'])
+			->with(Application::APP_ID, 'approval_group', ['admin'])
 			->willReturn(['users']);
 
 		$this->groupManager->method('getUserGroupIds')
-			->with($user)
 			->willReturn(['users']);
 
 		$this->pkcs12Handler->method('getPfxOfCurrentSigner')
@@ -142,7 +139,7 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$user = $this->createMock(IUser::class);
 
 		$this->appConfig->method('getValueArray')
-			->with(Application::APP_ID, 'groups_request_sign', ['admin'])
+			->with(Application::APP_ID, 'approval_group', ['admin'])
 			->willReturn([]);
 
 		$service = $this->getService();
