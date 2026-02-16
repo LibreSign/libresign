@@ -96,6 +96,23 @@ trait LibresignTrait {
 		$this->fileEntity = $resolution['file'];
 	}
 
+	/**
+	 * Load file entity from file UUID (no sign request context)
+	 *
+	 * @throws LibresignException
+	 */
+	public function loadFileFromUuid(string $uuid): void {
+		try {
+			$this->signRequestEntity = null;
+			$this->fileEntity = $this->signFileService->getFileByUuid($uuid);
+		} catch (DoesNotExistException|LibresignException) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
+			]), AppFrameworkHttp::STATUS_NOT_FOUND);
+		}
+	}
+
 	public function getSignRequestEntity(): ?SignRequestEntity {
 		return $this->signRequestEntity;
 	}

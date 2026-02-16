@@ -161,14 +161,23 @@ class InjectionMiddleware extends Middleware {
 						throw $e;
 					}
 				} else {
-					/** @var AEnvironmentPageAwareController $controller */
-					$controller->validateSignRequestUuid(
-						uuid: $uuid,
-					);
-					/** @var AEnvironmentPageAwareController $controller */
-					$controller->loadNextcloudFileFromSignRequestUuid(
-						uuid: $uuid,
-					);
+					try {
+						/** @var AEnvironmentPageAwareController $controller */
+						$controller->validateSignRequestUuid(
+							uuid: $uuid,
+						);
+						/** @var AEnvironmentPageAwareController $controller */
+						$controller->loadNextcloudFileFromSignRequestUuid(
+							uuid: $uuid,
+						);
+					} catch (LibresignException $e) {
+						if ($intance->allowFileUuid()) {
+							/** @var AEnvironmentPageAwareController $controller */
+							$controller->loadFileFromUuid($uuid);
+						} else {
+							throw $e;
+						}
+					}
 				}
 			}
 		}
