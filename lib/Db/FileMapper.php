@@ -144,6 +144,33 @@ class FileMapper extends CachedQBMapper {
 	}
 
 	/**
+	 * @return ?string userId for storage lookup (null for appdata)
+	 * @throws DoesNotExistException
+	 */
+	public function getStorageUserIdByUuid(string $uuid): ?string {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('f.user_id', 'id.user_id AS id_docs_user_id', 'id.id AS id_docs_id')
+			->from($this->getTableName(), 'f')
+			->leftJoin('f', 'libresign_id_docs', 'id', $qb->expr()->eq('f.id', 'id.file_id'))
+			->where($qb->expr()->eq('f.uuid', $qb->createNamedParameter($uuid)));
+
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+
+		if (!$row) {
+			throw new DoesNotExistException('File not found');
+		}
+
+		if ($row['id_docs_id'] !== null && $row['id_docs_user_id'] !== null) {
+			return $row['id_docs_user_id'];
+		}
+
+		return $row['user_id'];
+	}
+
+	/**
 	 * Return LibreSign file by signer UUID
 	 */
 	public function getBySignerUuid(?string $uuid = null): File {
@@ -207,30 +234,6 @@ class FileMapper extends CachedQBMapper {
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * @return File[]
-	 */
-	public function getFilesOfAccount(string $userId): array {
-		$qb = $this->db->getQueryBuilder();
-
-		$qb->select('lf.*')
-			->from($this->getTableName(), 'lf')
-			->join('lf', 'libresign_id_docs', 'lid', 'lid.file_id = lf.id')
-			->where(
-				$qb->expr()->eq('lid.user_id', $qb->createNamedParameter($userId))
-			);
-
-		$cursor = $qb->executeQuery();
-		$return = [];
-		while ($row = $cursor->fetch()) {
-			/** @var File */
-			$file = $this->mapRowToEntity($row);
-			$this->cacheEntity($file);
-			$return[] = $file;
-		}
-		return $return;
 	}
 
 	public function getTextOfStatus(int|FileStatus $status): string {
