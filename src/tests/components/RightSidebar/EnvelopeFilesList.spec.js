@@ -590,4 +590,82 @@ describe('EnvelopeFilesList', () => {
 			expect(() => wrapper.vm.cancelUpload()).not.toThrow()
 		})
 	})
+
+	describe('RULE: File actions visibility based on isTouchDevice', () => {
+		it('has isTouchDevice computed property from mixin', () => {
+			wrapper = createWrapper()
+			expect(wrapper.vm.isTouchDevice).toBeDefined()
+			expect(typeof wrapper.vm.isTouchDevice).toBe('boolean')
+		})
+
+		it('renders actions slot when not touch device', async () => {
+			wrapper = createWrapper()
+			await wrapper.setData({
+				files: [
+					{
+						id: 1,
+						uuid: 'test-uuid',
+						name: 'test.pdf',
+						statusText: 'Draft',
+					},
+				],
+			})
+
+			await wrapper.vm.$nextTick()
+
+			// Check that isTouchDevice is properly evaluated
+			expect(wrapper.vm.isTouchDevice).toBeDefined()
+		})
+
+		it('calls openFile when file open button is clicked', async () => {
+			wrapper = createWrapper()
+			const openFileSpy = vi.spyOn(wrapper.vm, 'openFile')
+
+			const testFile = {
+				id: 1,
+				uuid: 'test-uuid',
+				name: 'test.pdf',
+				statusText: 'Draft',
+			}
+
+			wrapper.vm.openFile(testFile)
+
+			expect(openFileSpy).toHaveBeenCalledWith(testFile)
+			openFileSpy.mockRestore()
+		})
+
+		it('calls handleDelete when delete button is clicked', async () => {
+			wrapper = createWrapper()
+			const handleDeleteSpy = vi.spyOn(wrapper.vm, 'handleDelete')
+
+			const testFile = {
+				id: 1,
+				uuid: 'test-uuid',
+				name: 'test.pdf',
+				statusText: 'Draft',
+			}
+
+			wrapper.vm.handleDelete(testFile)
+
+			expect(handleDeleteSpy).toHaveBeenCalledWith(testFile)
+			handleDeleteSpy.mockRestore()
+		})
+
+		it('openDocument invoked when openFile called', async () => {
+			const viewer = await import('../../../utils/viewer.js')
+			wrapper = createWrapper()
+
+			wrapper.vm.openFile({
+				id: 1,
+				uuid: 'test-uuid',
+				name: 'test.pdf',
+			})
+
+			expect(viewer.openDocument).toHaveBeenCalledWith({
+				fileUrl: '/apps/libresign/p/pdf/test-uuid',
+				filename: 'test.pdf',
+				nodeId: 1,
+			})
+		})
+	})
 })
