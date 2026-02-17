@@ -36,7 +36,6 @@
     "User not found" : "Fant ikke brukeren",
     "Identification Document" : "Identifikasjonsdokument",
     "draft" : "utkast",
-    "partially signed" : "delvis signert",
     "signed" : "signert",
     "deleted" : "slettet",
     "Draft" : "Kladd",
@@ -146,8 +145,6 @@
     "Use this code to sign the document:" : "Bruk denne koden for å signere dokumentet",
     "No signature was requested to %s" : "Det ble ikke bedt om underskrift på %s",
     "%s already signed this file" : "%s allerede signerte denne filen",
-    "Empty users list" : "Tøm brukerliste",
-    "User list needs to be an array" : "Brukerliste må være en tabell",
     "Sending authorization code not enabled." : "Sending av autorisasjonskode er ikke aktivert.",
     "File already signed by you" : "Fil allerede signert av deg",
     "LibreSign" : "LibreSign",
@@ -413,7 +410,10 @@
     "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
     "Deleted" : "Slettet",
     "available for signature" : "tilgjengelig for signatur",
+    "partially signed" : "delvis signert",
     "no signers" : "Ingen underskrivere",
+    "Empty users list" : "Tøm brukerliste",
+    "User list needs to be an array" : "Brukerliste må være en tabell",
     "Select other file" : "Velg en annen fil",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Bruk musehjulet til å zoome inn eller ut på bildet og finne den beste visningen av signaturen din."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

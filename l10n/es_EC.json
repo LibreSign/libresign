@@ -29,7 +29,6 @@
     "User not found" : "No se encontró el usuario",
     "Identification Document" : "Documento de identificación",
     "draft" : "borrador",
-    "partially signed" : "parcialmente firmado",
     "signed" : "firmado",
     "deleted" : "Borrado",
     "Draft" : "Borrador",
@@ -120,8 +119,6 @@
     "Use this code to sign the document:" : "Usa este código para firmar el documento:",
     "No signature was requested to %s" : "No se solicitó firma a %s",
     "%s already signed this file" : "%s ya firmó este archivo",
-    "Empty users list" : "Lista de usuarios vacía",
-    "User list needs to be an array" : "La lista de usuarios debe ser una matriz",
     "Sending authorization code not enabled." : "Envío de código de autorización no habilitado.",
     "File already signed by you" : "Archivo ya firmado por ti",
     "LibreSign" : "LibreSign",
@@ -328,6 +325,9 @@
     "Open in LibreSign" : "Abrir en LibreSign",
     "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}",
     "Deleted" : "Eliminado",
+    "partially signed" : "parcialmente firmado",
+    "Empty users list" : "Lista de usuarios vacía",
+    "User list needs to be an array" : "La lista de usuarios debe ser una matriz",
     "Select other file" : "Seleccionar otro archivo",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Usa la rueda del ratón para hacer zoom y encontrar la mejor vista de tu firma."
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

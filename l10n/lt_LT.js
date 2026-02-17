@@ -25,7 +25,6 @@ OC.L10N.register(
     "Element updated with success" : "Elementas sėkmingai atnaujintas",
     "User not found" : "Naudotojas nerastas",
     "draft" : "juodraštis",
-    "partially signed" : "dalinai pasirašytas",
     "signed" : "pasirašytas",
     "deleted" : "ištrintas",
     "Draft" : "Juodraštis",
@@ -230,6 +229,7 @@ OC.L10N.register(
     "Forgot password?" : "Pamiršote slaptažodį?",
     "Complete" : "Baigti",
     "Deleted" : "Ištrinta",
-    "available for signature" : "prieinamas pasirašymui"
+    "available for signature" : "prieinamas pasirašymui",
+    "partially signed" : "dalinai pasirašytas"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

@@ -39,7 +39,6 @@
     "Identification Document" : "Identification du document",
     "not LibreSign file" : "pas de fichier LibreSign",
     "draft" : "brouillon",
-    "partially signed" : "signé partiellement",
     "signed" : "signé",
     "deleted" : "supprimé",
     "Draft" : "Brouillon",
@@ -181,8 +180,6 @@
     "Use this code to sign the document:" : "Utilisez ce code pour signer le document",
     "No signature was requested to %s" : "Aucune signature n'a été requise pour %s",
     "%s already signed this file" : "%s a déjà signé ce fichier",
-    "Empty users list" : "Liste d'utilisateurs vide ",
-    "User list needs to be an array" : "La liste des utilisateurs doit être de  type tableau (array)",
     "Sending authorization code not enabled." : "L'envoi des codes de vérification est désactivé.",
     "File already signed by you" : "Vous avez déjà signé ce fichier",
     "Invalid template font size. The value must be between %.1f and %.0f." : "La taille de la police du modèle n'est pas valide. La valeur doit être comprise entre %.1f et %.0f.",
@@ -522,7 +519,10 @@
     "Requested by {name}, at {date}" : "Demandé par {name}, le {date}",
     "Deleted" : "Effacé",
     "available for signature" : "disponible pour signature",
+    "partially signed" : "signé partiellement",
     "no signers" : "aucun signataire",
+    "Empty users list" : "Liste d'utilisateurs vide ",
+    "User list needs to be an array" : "La liste des utilisateurs doit être de  type tableau (array)",
     "Select other file" : "Sélectionnez un autre fichier",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Utilisez la molette de la souris pour zommer ou dézoomer sur l'image et trouvez le meilleur point de vue pour votre signature."
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

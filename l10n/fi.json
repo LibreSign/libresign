@@ -45,7 +45,6 @@
     "Form filling and commenting allowed" : "Lomakkeen täyttäminen ja kommentointi sallittu",
     "not LibreSign file" : "ei LibreSign-tiedosto",
     "draft" : "luonnos",
-    "partially signed" : "osittain allekirjoitettu",
     "signed" : "allekirjoitettu",
     "deleted" : "poistettu",
     "Draft" : "Luonnos",
@@ -82,6 +81,7 @@
     "Field %s not found" : "Kenttää %s ei löydy",
     "Field %s does not belong to user" : "Kenttä %s ei kuulu käyttäjälle",
     "This file is not yours" : "Tämä tiedosto ei ole sinun",
+    "Not allowed" : "Ei sallittu",
     "This file cannot be signed. Invalid status: %s" : "Tätä tiedostoa ei voi allekirjoittaa. Virheellinen tila: %s",
     "Invalid fileID" : "Virheellinen fileID",
     "You are not allowed to request signing" : "Sinulla ei ole oikeutta pyytää allekirjoitusta",
@@ -149,7 +149,6 @@
     "LibreSign: Code to sign file" : "LibreSign: Koodi tiedoston allekirjoittamiseksi",
     "Use this code to sign the document:" : "Käytä tätä koodia allekirjoittaaksesi asiakirjan:",
     "%s already signed this file" : "%s allekirjoitti jo tämän tiedoston",
-    "Empty users list" : "Tyhjä käyttäjälista",
     "Sending authorization code not enabled." : "Valtuutuskoodin lähettäminen ei ole käytössä.",
     "File already signed by you" : "Olet jo allekirjoittanut tiedoston",
     "The signer's email is optional and can be left blank." : "Allekirjoittajan sähköpostiosoite on valinnainen, ja sen voi jättää tyhjäksi.",
@@ -366,7 +365,6 @@
     "Technical details" : "Tekniset yksityiskohdat",
     "Certificate purposes" : "Varmenteen tarkoitukset",
     "Allowed" : "Sallittu",
-    "Not allowed" : "Ei sallittu",
     "Certificate data" : "Varmenteen data",
     "Certificate password" : "Varmenteen salasana",
     "Request Signatures" : "Pyydä allekirjoituksia",
@@ -474,7 +472,9 @@
     "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
     "Deleted" : "Poistettu",
     "available for signature" : "saatavilla allekirjoitusta varten",
+    "partially signed" : "osittain allekirjoitettu",
     "no signers" : "ei allekirjoittajia",
+    "Empty users list" : "Tyhjä käyttäjälista",
     "Select other file" : "Valitse muu tiedosto"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
