@@ -37,7 +37,7 @@ final class SigningCoordinatorServiceTest extends TestCase {
 	public function testShouldUseParallelProcessingReadsConfig(string $mode, bool $expected): void {
 		$this->appConfig->expects($this->once())
 			->method('getValueString')
-			->with(Application::APP_ID, 'signing_mode', 'async')
+			->with(Application::APP_ID, 'signing_mode', 'sync')
 			->willReturn($mode);
 
 		$this->assertSame($expected, $this->service->shouldUseParallelProcessing(2));
