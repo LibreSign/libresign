@@ -7,7 +7,7 @@ Feature: file-list
     And set the email of user "signer2" to ""
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer2"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer2"}}] |
       | name | document |
     And the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
@@ -48,25 +48,25 @@ Feature: file-list
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
     And the response should have a status code 200
     # first page

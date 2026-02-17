@@ -6,7 +6,7 @@ Feature: sign-request-cancel
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list"
@@ -27,7 +27,7 @@ Feature: sign-request-cancel
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"},"notify":false}] |
+      | signers | [{"identify":{"account":"signer1"},"notify":false}] |
       | name | document |
       | status | 0 |
     And the response should have a status code 200
@@ -48,7 +48,7 @@ Feature: sign-request-cancel
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
@@ -64,7 +64,7 @@ Feature: sign-request-cancel
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     And the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
