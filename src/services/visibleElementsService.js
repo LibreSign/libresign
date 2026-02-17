@@ -60,7 +60,8 @@ export const getVisibleElementsFromDocument = (document) => {
 	const topLevel = Array.isArray(document?.visibleElements) ? document.visibleElements : []
 	const signers = Array.isArray(document?.signers) ? document.signers : []
 	const nested = collectSignerVisibleElements(signers)
-	return deduplicateVisibleElements([...topLevel, ...nested])
+	const files = Array.isArray(document?.files) ? aggregateVisibleElementsByFiles(document.files) : []
+	return deduplicateVisibleElements([...topLevel, ...nested, ...files])
 }
 
 export const getVisibleElementsFromFile = (file) => {
