@@ -230,9 +230,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetJobArgumentsWithoutCredentialsIncludesContext(): void {
 		$service = $this->getService();
 
-		$fileElement = new FileElement();
-		$fileElement->setId(5);
-		$elementAssoc = new \OCA\Libresign\DataObjects\VisibleElementAssoc($fileElement);
+		$visibleElements = [
+			[
+				'documentElementId' => 5,
+				'profileNodeId' => 11,
+			],
+		];
 
 		$signRequest = new SignRequest();
 		$signRequest->setId(9);
@@ -246,7 +249,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->setSignRequest($signRequest);
 		$service->setCurrentUser($user);
 
-		self::invokePrivate($service, 'elements', [[5 => $elementAssoc]]);
+		self::invokePrivate($service, 'elements', [$visibleElements]);
 
 		$args = $service->getJobArgumentsWithoutCredentials();
 
@@ -254,7 +257,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame('User One', $args['friendlyName']);
 		$this->assertSame('user1', $args['userId']);
 		$this->assertSame(['remote-address' => '127.0.0.1'], $args['metadata']);
-		$this->assertArrayHasKey('visibleElements', $args);
+		$this->assertSame($visibleElements, $args['visibleElements']);
 	}
 
 	public function testValidateSigningRequirementsDelegatesToTsaValidation(): void {

@@ -212,6 +212,9 @@ export default {
 			try {
 				const envelopeFiles = await this.fetchEnvelopeFiles(parentFileId)
 				this.envelopeFiles = envelopeFiles
+				if (this.signStore.document) {
+					this.signStore.document.files = envelopeFiles
+				}
 
 				if (!envelopeFiles.length) {
 					this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]

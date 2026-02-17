@@ -177,7 +177,7 @@ import { useIdentificationDocumentStore } from '../../../store/identificationDoc
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator.js'
 import { SignFlowHandler } from '../../../services/SignFlowHandler.js'
 import { FILE_STATUS } from '../../../constants.js'
-import { getVisibleElementsFromDocument, idsMatch } from '../../../services/visibleElementsService.js'
+import { getFileSigners, getVisibleElementsFromDocument, idsMatch } from '../../../services/visibleElementsService.js'
 
 export default {
 	name: 'Sign',
@@ -218,16 +218,29 @@ export default {
 	},
 	computed: {
 		elements() {
-			const signer = this.signStore.document?.signers.find(row => row.me) || {}
+				const document = this.signStore.document || {}
+				const signer = document?.signers?.find(row => row.me) || {}
 
-			if (!signer.signRequestId) {
-				return []
-			}
+				const signRequestIds = new Set()
+				if (signer.signRequestId) {
+					signRequestIds.add(String(signer.signRequestId))
+				}
 
-			const visibleElements = getVisibleElementsFromDocument(this.signStore.document)
+				if (Array.isArray(document?.files)) {
+					document.files
+						.flatMap(file => getFileSigners(file))
+						.filter(row => row.me && row.signRequestId)
+						.forEach(row => signRequestIds.add(String(row.signRequestId)))
+				}
+
+				if (signRequestIds.size === 0) {
+					return []
+				}
+
+				const visibleElements = getVisibleElementsFromDocument(document)
 				.filter(row => {
 					return this.signatureElementsStore.hasSignatureOfType(row.type)
-						&& idsMatch(row.signRequestId, signer.signRequestId)
+						&& signRequestIds.has(String(row.signRequestId))
 				})
 			return visibleElements
 		},
@@ -235,10 +248,23 @@ export default {
 			return this.elements.length > 0
 		},
 		needCreateSignature() {
-			const signer = this.signStore.document?.signers.find(row => row.me) || {}
-			const visibleElements = getVisibleElementsFromDocument(this.signStore.document)
-			return !!signer.signRequestId
-				&& visibleElements.some(row => idsMatch(row.signRequestId, signer.signRequestId))
+			const document = this.signStore.document || {}
+			const signer = document?.signers?.find(row => row.me) || {}
+
+			const signRequestIds = new Set()
+			if (signer.signRequestId) {
+				signRequestIds.add(String(signer.signRequestId))
+			}
+			if (Array.isArray(document?.files)) {
+				document.files
+					.flatMap(file => getFileSigners(file))
+					.filter(row => row.me && row.signRequestId)
+					.forEach(row => signRequestIds.add(String(row.signRequestId)))
+			}
+
+			const visibleElements = getVisibleElementsFromDocument(document)
+			return signRequestIds.size > 0
+				&& visibleElements.some(row => signRequestIds.has(String(row.signRequestId)))
 				&& !this.hasSignatures
 				&& this.canCreateSignature
 		},

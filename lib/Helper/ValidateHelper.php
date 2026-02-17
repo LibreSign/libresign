@@ -309,6 +309,8 @@ class ValidateHelper {
 
 	public function validateVisibleElementsRelation(array $list, SignRequest $signRequest, ?IUser $user): void {
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
+		$childSignRequests = $this->getEnvelopeChildSignRequests($signRequest);
+		$childSignRequestIds = array_map(fn (SignRequest $sr) => $sr->getId(), $childSignRequests);
 		foreach ($list as $elements) {
 			if (!array_key_exists('documentElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['documentElementId']));
@@ -316,7 +318,7 @@ class ValidateHelper {
 			if ($canCreateSignature && !array_key_exists('profileNodeId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['profileNodeId']));
 			}
-			$this->validateSignerIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest);
+			$this->validateSignerIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest, $childSignRequestIds);
 			if ($canCreateSignature && $user instanceof IUser) {
 				try {
 					$this->userElementMapper->findOne(['node_id' => $elements['profileNodeId'], 'user_id' => $user->getUID()]);
@@ -325,11 +327,41 @@ class ValidateHelper {
 				}
 			}
 		}
-		$this->validateUserHasNecessaryElements($signRequest, $user, $list);
+		$this->validateUserHasNecessaryElements($signRequest, $user, $list, $childSignRequests);
 	}
 
-	private function validateUserHasNecessaryElements(SignRequest $signRequest, ?IUser $user, array $list = []): void {
+	/**
+	 * @return SignRequest[]
+	 */
+	private function getEnvelopeChildSignRequests(SignRequest $signRequest): array {
+		$file = $this->fileMapper->getById($signRequest->getFileId());
+		if (!$file->isEnvelope()) {
+			return [];
+		}
+		return $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod(
+			$file->getId(),
+			$signRequest->getId()
+		);
+	}
+
+	/**
+	 * @param SignRequest[] $childSignRequests
+	 */
+	private function validateUserHasNecessaryElements(
+		SignRequest $signRequest,
+		?IUser $user,
+		array $list = [],
+		array $childSignRequests = [],
+	): void {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($signRequest->getFileId(), $signRequest->getId());
+		if (empty($fileElements) && !empty($childSignRequests)) {
+			foreach ($childSignRequests as $childSr) {
+				$fileElements = array_merge(
+					$fileElements,
+					$this->fileElementMapper->getByFileIdAndSignRequestId($childSr->getFileId(), $childSr->getId())
+				);
+			}
+		}
 		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $user): bool {
 			$found = array_filter($list, fn ($item): bool => $item['documentElementId'] === $fileElement->getId());
 			if (!$found) {
@@ -356,11 +388,18 @@ class ValidateHelper {
 		}
 	}
 
-	private function validateSignerIsOwnerOfPdfVisibleElement(int $documentElementId, SignRequest $signRequest): void {
+	/**
+	 * @param int[] $childSignRequestIds
+	 */
+	private function validateSignerIsOwnerOfPdfVisibleElement(int $documentElementId, SignRequest $signRequest, array $childSignRequestIds = []): void {
 		$documentElement = $this->fileElementMapper->getById($documentElementId);
-		if ($documentElement->getSignRequestId() !== $signRequest->getId()) {
-			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+		if ($documentElement->getSignRequestId() === $signRequest->getId()) {
+			return;
 		}
+		if (!empty($childSignRequestIds) && in_array($documentElement->getSignRequestId(), $childSignRequestIds, true)) {
+			return;
+		}
+		throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 	}
 
 	public function validateAuthenticatedUserIsOwnerOfPdfVisibleElement(int $documentElementId, string $uid): void {
