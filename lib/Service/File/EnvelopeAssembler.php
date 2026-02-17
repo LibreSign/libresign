@@ -70,6 +70,19 @@ class EnvelopeAssembler {
 
 		foreach ($signRequests as $signRequest) {
 			$identifyMethods = $identifyMethodsBatch[$signRequest->getId()] ?? [];
+			$identifyMethodsArray = [];
+			$signerUid = null;
+			foreach ($identifyMethods as $methods) {
+				foreach ($methods as $identifyMethod) {
+					$entity = $identifyMethod->getEntity();
+					$identifyMethodsArray[] = [
+						'method' => $entity->getIdentifierKey(),
+						'value' => $entity->getIdentifierValue(),
+						'mandatory' => $entity->getMandatory(),
+					];
+					$signerUid ??= $entity->getUniqueIdentifier();
+				}
+			}
 
 			$email = '';
 			foreach ($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL] ?? [] as $identifyMethod) {
@@ -94,9 +107,12 @@ class EnvelopeAssembler {
 			$signer->signRequestId = $signRequest->getId();
 			$signer->displayName = $displayName;
 			$signer->email = $email;
+			$signer->uid = $signerUid;
 			$signer->signed = $signed;
 			$signer->status = $signRequest->getStatus();
 			$signer->statusText = $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus());
+			$signer->identifyMethods = $identifyMethodsArray;
+			$signer->metadata = $signRequest->getMetadata();
 			$fileData->signers[] = $signer;
 		}
 
