@@ -87,6 +87,14 @@ import Signer from '../Signers/Signer.vue'
 
 import { FILE_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
+import {
+	aggregateVisibleElementsByFiles,
+	findFileById,
+	getFileSigners,
+	getFileUrl,
+	getVisibleElementsFromDocument,
+	idsMatch,
+} from '../../services/visibleElementsService.js'
 
 export default {
 	name: 'VisibleElements',
@@ -133,7 +141,7 @@ export default {
 		},
 		pdfFiles() {
 			return (this.document.files || [])
-				.map(file => file?.file)
+				.map(file => getFileUrl(file))
 				.filter(Boolean)
 		},
 		pdfFileNames() {
@@ -217,21 +225,16 @@ export default {
 			const allVisibleElements = this.aggregateVisibleElementsByFiles(this.document.files)
 			if (allVisibleElements.length > 0) {
 				this.document.visibleElements = allVisibleElements
+				return
+			}
+
+			const nestedDocumentElements = getVisibleElementsFromDocument(this.document)
+			if (nestedDocumentElements.length > 0) {
+				this.document.visibleElements = nestedDocumentElements
 			}
 		},
 		aggregateVisibleElementsByFiles(files) {
-			if (!Array.isArray(files) || files.length === 0) {
-				return []
-			}
-
-			const allVisibleElements = []
-			files.forEach(file => {
-				if (Array.isArray(file?.visibleElements)) {
-					allVisibleElements.push(...file.visibleElements)
-				}
-			})
-
-			return allVisibleElements
+			return aggregateVisibleElementsByFiles(files)
 		},
 		buildFilePagesMap() {
 			this.filePagesMap = {}
@@ -276,20 +279,20 @@ export default {
 			const pdfElements = this.getPdfElements()
 
 			const fileIndexById = new Map(
-				filesToProcess.map((file, index) => [file.id, index]),
+				filesToProcess.map((file, index) => [String(file.id), index]),
 			)
-			const elements = Array.isArray(this.document.visibleElements) ? this.document.visibleElements : []
+			const elements = getVisibleElementsFromDocument(this.document)
 			const elementsByDoc = new Map()
 			elements.forEach(element => {
-				const fileInfo = filesToProcess.find(f => f.id === element.fileId)
+				const fileInfo = findFileById(filesToProcess, element.fileId)
 				if (!fileInfo) {
 					return
 				}
-				const docIndex = fileIndexById.get(element.fileId)
+				const docIndex = fileIndexById.get(String(element.fileId))
 				if (docIndex === undefined) {
 					return
 				}
-				const signer = (fileInfo.signers || []).find(s => s.signRequestId === element.signRequestId)
+				const signer = getFileSigners(fileInfo).find((s) => idsMatch(s.signRequestId, element.signRequestId))
 				if (!signer) {
 					return
 				}
