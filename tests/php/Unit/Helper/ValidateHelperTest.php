@@ -753,6 +753,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest->setId($signRequestId);
 		$signRequest->setFileId(20);
 
+		$nonEnvelopeFile = new \OCA\Libresign\Db\File();
+		$nonEnvelopeFile->setNodeType('file');
+		$this->fileMapper->method('getById')->willReturn($nonEnvelopeFile);
+
 		if ($fileElement !== null) {
 			$fileElementEntity = new \OCA\Libresign\Db\FileElement();
 			$fileElementEntity->setId($fileElement['id']);
@@ -790,6 +794,60 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 
 		$this->getValidateHelper()->validateVisibleElementsRelation($visibleElements, $signRequest, $user);
+	}
+
+	public function testValidateVisibleElementsRelationAcceptsEnvelopeChildElements(): void {
+		// Envelope signRequest (id=898) references envelope file (id=831)
+		$envelopeSignRequest = new \OCA\Libresign\Db\SignRequest();
+		$envelopeSignRequest->setId(898);
+		$envelopeSignRequest->setFileId(831);
+
+		// Child signRequest (id=899) references child file (id=832)
+		$childSignRequest = new \OCA\Libresign\Db\SignRequest();
+		$childSignRequest->setId(899);
+		$childSignRequest->setFileId(832);
+
+		// File 831 is an envelope
+		$envelopeFile = new \OCA\Libresign\Db\File();
+		$envelopeFile->setId(831);
+		$envelopeFile->setNodeType('envelope');
+		$this->fileMapper->method('getById')->willReturn($envelopeFile);
+
+		// getByEnvelopeChildrenAndIdentifyMethod returns child signRequests
+		$this->signRequestMapper
+			->method('getByEnvelopeChildrenAndIdentifyMethod')
+			->with(831, 898)
+			->willReturn([$childSignRequest]);
+
+		// documentElementId=224 belongs to child signRequest 899
+		$fileElement = new \OCA\Libresign\Db\FileElement();
+		$fileElement->setId(224);
+		$fileElement->setSignRequestId(899);
+		$fileElement->setFileId(832);
+		$fileElement->setType('signature');
+		$this->fileElementMapper->method('getById')->willReturn($fileElement);
+
+		// getByFileIdAndSignRequestId for envelope returns empty, for child returns the element
+		$this->fileElementMapper
+			->method('getByFileIdAndSignRequestId')
+			->willReturnCallback(function (int $fileId, ?int $signRequestId) use ($fileElement): array {
+				if ($fileId === 832 && $signRequestId === 899) {
+					return [$fileElement];
+				}
+				return [];
+			});
+
+		$this->signerElementsService
+			->method('canCreateSignature')
+			->willReturn(false);
+
+		$visibleElements = [
+			['documentElementId' => 224, 'profileNodeId' => 11623],
+		];
+
+		// Should NOT throw — envelope child signRequest 899 is a valid owner of documentElement 224
+		$this->getValidateHelper()->validateVisibleElementsRelation($visibleElements, $envelopeSignRequest, null);
+		$this->assertTrue(true, 'Envelope child elements should be accepted');
 	}
 
 	public static function dataValidateAuthenticatedUserIsOwnerOfPdfVisibleElement(): array {
