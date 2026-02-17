@@ -494,15 +494,28 @@ class FileService {
 		if (!$this->options->isShowVisibleElements()) {
 			return;
 		}
-		$signers = $this->signRequestMapper->getByMultipleFileId([$this->file->getId()]);
 		$this->fileData->visibleElements = [];
+
+		$fileIds = [$this->file->getId()];
+		$childMetadataMap = [];
+		if ($this->file->getNodeType() === 'envelope') {
+			$childrenFiles = $this->fileMapper->getChildrenFiles($this->file->getId());
+			foreach ($childrenFiles as $childFile) {
+				$fileIds[] = $childFile->getId();
+				$childMetadataMap[$childFile->getId()] = $childFile->getMetadata();
+			}
+		}
+
+		$signers = $this->signRequestMapper->getByMultipleFileId($fileIds);
 		$fileMetadata = $this->file->getMetadata();
 		foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $visibleElements) {
 			if (empty($visibleElements)) {
 				continue;
 			}
+			$elementFileId = $visibleElements[0]->getFileId();
+			$metadata = $childMetadataMap[$elementFileId] ?? $fileMetadata;
 			$this->fileData->visibleElements = array_merge(
-				$this->fileElementService->formatVisibleElements($visibleElements, $fileMetadata),
+				$this->fileElementService->formatVisibleElements($visibleElements, $metadata),
 				$this->fileData->visibleElements
 			);
 		}
