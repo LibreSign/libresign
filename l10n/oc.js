@@ -60,7 +60,6 @@ OC.L10N.register(
     "File to sign" : "Fichièr a signar",
     "Sign »%s«" : "Signar « %s »",
     "No signature was requested to %s" : "Cap de signatura èra pas requerida per %s",
-    "Empty users list" : "Lista d'utilizaire voida",
     "File already signed by you" : "Avètz ja signat lo fichièr",
     "LibreSign" : "LibreSign",
     "Cancel" : "Anullar",
@@ -152,6 +151,7 @@ OC.L10N.register(
     "Forgot password?" : "Senhal oblidat ?",
     "This document is valid" : "Aqueste document es valid",
     "Return" : "Tornar",
-    "Deleted" : "Suprimit"
+    "Deleted" : "Suprimit",
+    "Empty users list" : "Lista d'utilizaire voida"
 },
 "nplurals=2; plural=(n > 1);");

@@ -39,7 +39,6 @@
     "Identification Document" : "Документ, що посвідчує особу",
     "not LibreSign file" : "не файл LibreSign",
     "draft" : "проект",
-    "partially signed" : "частково підписано",
     "signed" : "підписано",
     "deleted" : "вилучено",
     "Draft" : "Чернетка",
@@ -182,8 +181,6 @@
     "Use this code to sign the document:" : "Використовуйте цей код, щоб підписати документ:",
     "No signature was requested to %s" : "Не було запитано підпис у %s",
     "%s already signed this file" : "%s вже підписали цей файл",
-    "Empty users list" : "Порожній список користувачів",
-    "User list needs to be an array" : "Список користувачів повинен бути масивом",
     "Sending authorization code not enabled." : "Надсилання коду авторизації не ввімкнено.",
     "File already signed by you" : "Вже підписаний вами файл",
     "Invalid template font size. The value must be between %.1f and %.0f." : "Неправильний розмір шрифту шаблону. Значення має бути між %.1f та %.0f.",
@@ -526,7 +523,10 @@
     "Requested by {name}, at {date}" : "Надіслано запит від {name} {date}",
     "Deleted" : "Вилучено",
     "available for signature" : "доступний для підписання",
+    "partially signed" : "частково підписано",
     "no signers" : "немає підписантів",
+    "Empty users list" : "Порожній список користувачів",
+    "User list needs to be an array" : "Список користувачів повинен бути масивом",
     "Select other file" : "Виберіть інший файл",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Використовуйте коліщатко миші, щоб збільшити або зменшити зображення і знайти найкращий вигляд вашого підпису."
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);"

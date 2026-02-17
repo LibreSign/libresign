@@ -30,7 +30,6 @@
     "Visible element deleted" : "Видимый элемент удален",
     "User not found" : "Пользователь не найден",
     "draft" : "черновик",
-    "partially signed" : "частично подписан",
     "signed" : "подписан",
     "deleted" : "удалено",
     "Draft" : "Черновик",
@@ -114,8 +113,6 @@
     "LibreSign: There is a file for you to sign" : "LibreSign: Есть файл, который вы должны подписать",
     "No signature was requested to %s" : "Нет обязательных подписей для %s",
     "%s already signed this file" : "%s уже подписал этот файл",
-    "Empty users list" : "Пустой список пользователей",
-    "User list needs to be an array" : "Список пользователей должен быть массивом",
     "File already signed by you" : "Вы уже подписали файл",
     "LibreSign" : "LibreSign",
     "LibreSign, digital signature app for Nextcloud." : "Приложение для работы с цифровыми подписями для Nextcloud.",
@@ -320,6 +317,9 @@
     "Return" : "Возврат",
     "Open in LibreSign" : "Открыть в LibreSign",
     "Requested by {name}, at {date}" : "Запрошено у {name} {date}",
-    "Deleted" : "Удалено"
+    "Deleted" : "Удалено",
+    "partially signed" : "частично подписан",
+    "Empty users list" : "Пустой список пользователей",
+    "User list needs to be an array" : "Список пользователей должен быть массивом"
 },"pluralForm" :"nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);"
 }
