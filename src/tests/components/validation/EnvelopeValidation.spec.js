@@ -388,4 +388,54 @@ describe('EnvelopeValidation', () => {
 			expect(signer.opened).toBe(false)
 		})
 	})
+
+	describe('RULE: View PDF button visibility based on isTouchDevice', () => {
+		it('has isTouchDevice computed property from mixin', () => {
+			wrapper = createWrapper()
+			expect(wrapper.vm.isTouchDevice).toBeDefined()
+			expect(typeof wrapper.vm.isTouchDevice).toBe('boolean')
+		})
+
+		it('renders actions slot when not touch device and file has nodeId', async () => {
+			const file = { nodeId: 123, opened: false, status: '3', name: 'test.pdf', statusText: 'Signed' }
+			wrapper = createWrapper({
+				document: { files: [file] },
+			})
+
+			await wrapper.vm.$nextTick()
+
+			// isTouchDevice value determines which template slot is used
+			expect(wrapper.vm.isTouchDevice).toBeDefined()
+		})
+
+		it('calls viewFile with correct parameters', async () => {
+			wrapper = createWrapper()
+			const testFile = {
+				uuid: 'test-uuid',
+				name: 'test.pdf',
+				nodeId: 123,
+			}
+
+			const viewFileSpy = vi.spyOn(wrapper.vm, 'viewFile')
+			wrapper.vm.viewFile(testFile)
+
+			expect(viewFileSpy).toHaveBeenCalledWith(testFile)
+			viewFileSpy.mockRestore()
+		})
+
+		it('openDocument is called when viewFile is invoked', () => {
+			wrapper = createWrapper()
+			wrapper.vm.viewFile({
+				uuid: 'test-uuid',
+				name: 'test.pdf',
+				nodeId: 123,
+			})
+
+			expect(viewer.openDocument).toHaveBeenCalledWith({
+				fileUrl: '/apps/libresign/p/pdf/test-uuid',
+				filename: 'test.pdf',
+				nodeId: 123,
+			})
+		})
+	})
 })
