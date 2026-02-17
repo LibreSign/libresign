@@ -863,7 +863,7 @@ export type paths = {
         put?: never;
         /**
          * Request signature
-         * @description Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.
+         * @description Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.
          */
         post: operations["request_signature-request"];
         delete?: never;
@@ -871,7 +871,7 @@ export type paths = {
         head?: never;
         /**
          * Updates signatures data
-         * @description Is necessary to inform the UUID of the file and a list of people
+         * @description It is necessary to inform the UUID of the file and a list of signers.
          */
         patch: operations["request_signature-update-sign"];
         trace?: never;
@@ -4474,13 +4474,19 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
                 "application/json": {
-                    /** @description Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order */
-                    users: components["schemas"]["NewSigner"][];
-                    /** @description The name of file to sign */
-                    name: string;
+                    /**
+                     * @description Collection of signers who must sign the document. Each signer can have: identify, displayName, description, notify, signingOrder
+                     * @default []
+                     */
+                    signers?: components["schemas"]["NewSigner"][];
+                    /**
+                     * @description The name of file to sign
+                     * @default
+                     */
+                    name?: string;
                     /**
                      * @description Settings to define how and where the file should be stored
                      * @default []
@@ -4564,10 +4570,10 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of users who must sign the document
+                     * @description Collection of signers who must sign the document
                      * @default []
                      */
-                    users?: components["schemas"]["NewSigner"][] | null;
+                    signers?: components["schemas"]["NewSigner"][] | null;
                     /** @description UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID. */
                     uuid?: string | null;
                     /** @description Visible elements on document */

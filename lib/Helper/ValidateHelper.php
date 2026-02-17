@@ -535,19 +535,19 @@ class ValidateHelper {
 	}
 
 	public function validateIdentifySigners(array $data): void {
-		if (empty($data['users'])) {
+		if (empty($data['signers'])) {
 			return;
 		}
 
 		$this->validateSignersDataStructure($data);
 
-		foreach ($data['users'] as $signer) {
+		foreach ($data['signers'] as $signer) {
 			$this->validateSignerData($signer);
 		}
 	}
 
 	private function validateSignersDataStructure(array $data): void {
-		if (empty($data) || !array_key_exists('users', $data) || !is_array($data['users']) || empty($data['users'])) {
+		if (empty($data) || !array_key_exists('signers', $data) || !is_array($data['signers']) || empty($data['signers'])) {
 			throw new LibresignException($this->l10n->t('No signers'));
 		}
 	}

@@ -15,7 +15,7 @@ Feature: signed
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"displayName": "Signer Name","description": "Please, sign this document","identify": {"account": "signer1"}}] |
+      | signers | [{"displayName": "Signer Name","description": "Please, sign this document","identify": {"account": "signer1"}}] |
       | name | Document Name |
     And the response should have a status code 200
     And as user "signer1"
@@ -68,7 +68,7 @@ Feature: signed
     And reset activity of user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"displayName": "Signer Name","identify": {"account": "signer1"}},{"displayName": "Admin","identify": {"account": "admin"}}] |
+      | signers | [{"displayName": "Signer Name","identify": {"account": "signer1"}},{"displayName": "Admin","identify": {"account": "admin"}}] |
       | name | Document Name |
     And the response should have a status code 200
     And as user "signer1"
@@ -133,7 +133,7 @@ Feature: signed
     And reset activity of user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"displayName": "Signer Name","identify": {"account": "signer1"}},{"displayName": "Admin","identify": {"account": "admin"}}] |
+      | signers | [{"displayName": "Signer Name","identify": {"account": "signer1"}},{"displayName": "Admin","identify": {"account": "admin"}}] |
       | name | Document Name |
     And the response should have a status code 200
     And as user "signer1"
@@ -188,7 +188,7 @@ Feature: signed
     And reset activity of user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"displayName": "Signer Name","identify": {"email": "unauthenticated@email.tld"}}] |
+      | signers | [{"displayName": "Signer Name","identify": {"email": "unauthenticated@email.tld"}}] |
       | name | Document Name |
     And the response should have a status code 200
     And I open the latest email to "unauthenticated@email.tld" with subject "LibreSign: There is a file for you to sign"

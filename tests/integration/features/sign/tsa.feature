@@ -17,7 +17,7 @@ Feature: TSA Integration - End-to-End Workflow
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file  | {"url":"<BASE_URL>/apps/libresign/develop/pdf"}                    |
-      | users | [{"displayName": "TSA Signer","identify": {"account": "signer1"}}] |
+      | signers | [{"displayName": "TSA Signer","identify": {"account": "signer1"}}] |
       | name  | TSA Document Test                                                  |
     Then the response should have a status code 200
     And as user "signer1"
@@ -63,7 +63,7 @@ Feature: TSA Integration - End-to-End Workflow
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file  | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify": {"account": "signer1"}}]          |
+      | signers | [{"identify": {"account": "signer1"}}]          |
       | name  | TSA Error Test                                  |
     And as user "signer1"
     And sending "get" to ocs "/apps/libresign/api/v1/file/list"

@@ -10,9 +10,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
@@ -239,7 +241,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	}
 
 	public function testValidateEmptyUserCollection():void {
-		$this->expectExceptionMessage('Empty users list');
+		$this->expectExceptionMessage('Empty signers list');
 
 		$response = $this->createMock(IResponse::class);
 		$response
@@ -261,7 +263,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	}
 
 	public function testValidateEmptyUsersCollection():void {
-		$this->expectExceptionMessage('Empty users list');
+		$this->expectExceptionMessage('Empty signers list');
 
 		$this->getService()->validateNewRequestToFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
@@ -271,23 +273,23 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	}
 
 	public function testValidateUserCollectionNotArray():void {
-		$this->expectExceptionMessage('User list needs to be an array');
+		$this->expectExceptionMessage('Signers list needs to be an array');
 
 		$this->getService()->validateNewRequestToFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
-			'users' => 'asdfg',
+			'signers' => 'asdfg',
 			'userManager' => $this->user
 		]);
 	}
 
 	public function testValidateUserEmptyCollection():void {
-		$this->expectExceptionMessage('Empty users list');
+		$this->expectExceptionMessage('Empty signers list');
 
 		$this->getService()->validateNewRequestToFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
-			'users' => null,
+			'signers' => null,
 			'userManager' => $this->user
 		]);
 	}
@@ -296,7 +298,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$actual = $this->getService()->validateNewRequestToFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
-			'users' => [
+			'signers' => [
 				['identify' => ['email' => 'jhondoe@test.coop']]
 			],
 			'userManager' => $this->user
@@ -352,6 +354,87 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			[[]],
 			[[['uid' => 1]]],
 			[[['uid' => 1], ['uid' => 1]]],
+		];
+	}
+
+	#[\PHPUnit\Framework\Attributes\DataProvider('providerSaveVisibleElementsOfEnvelope')]
+	public function testSaveVisibleElementsOfEnvelopeResolvesSignRequestId(
+		int $inputSignRequestId,
+		int $resolvedSignRequestFileId,
+		int $expectedPersistedSignRequestId,
+		array $childrenSignRequests,
+		bool $shouldTranslate,
+	): void {
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setId(544);
+		$libreSignFile->setNodeType('envelope');
+
+		$resolvedSignRequest = new SignRequest();
+		$resolvedSignRequest->setId($inputSignRequestId);
+		$resolvedSignRequest->setFileId($resolvedSignRequestFileId);
+
+		$this->signRequestMapper
+			->expects($this->once())
+			->method('getById')
+			->with($inputSignRequestId)
+			->willReturn($resolvedSignRequest);
+
+		if ($shouldTranslate) {
+			$this->signRequestMapper
+				->expects($this->once())
+				->method('getByEnvelopeChildrenAndIdentifyMethod')
+				->with(544, $inputSignRequestId)
+				->willReturn($childrenSignRequests);
+		} else {
+			$this->signRequestMapper
+				->expects($this->never())
+				->method('getByEnvelopeChildrenAndIdentifyMethod');
+		}
+
+		$this->fileElementService
+			->expects($this->once())
+			->method('saveVisibleElement')
+			->with($this->callback(function (array $element) use ($expectedPersistedSignRequestId): bool {
+				return $element['fileId'] === 545
+					&& $element['signRequestId'] === $expectedPersistedSignRequestId;
+			}))
+			->willReturn(new FileElement());
+
+		$actual = self::invokePrivate($this->getService(), 'saveVisibleElements', [[
+			'visibleElements' => [[
+				'fileId' => 545,
+				'signRequestId' => $inputSignRequestId,
+				'coordinates' => ['page' => 1, 'left' => 100, 'top' => 20, 'width' => 300, 'height' => 100],
+			]],
+		], $libreSignFile]);
+
+		$this->assertCount(1, $actual);
+	}
+
+	public static function providerSaveVisibleElementsOfEnvelope(): array {
+		$childSignRequest603 = new SignRequest();
+		$childSignRequest603->setId(603);
+		$childSignRequest603->setFileId(545);
+
+		$otherChildSignRequest = new SignRequest();
+		$otherChildSignRequest->setId(999);
+		$otherChildSignRequest->setFileId(999);
+
+		return [
+			'keeps child signRequestId when already points to file child' => [
+				'inputSignRequestId' => 603,
+				'resolvedSignRequestFileId' => 545,
+				'expectedPersistedSignRequestId' => 603,
+				'childrenSignRequests' => [],
+				'shouldTranslate' => false,
+			],
+			'translates envelope signRequestId to matching child signRequestId' => [
+				'inputSignRequestId' => 602,
+				'resolvedSignRequestFileId' => 544,
+				'expectedPersistedSignRequestId' => 603,
+				'childrenSignRequests' => [$otherChildSignRequest, $childSignRequest603],
+				'shouldTranslate' => true,
+			],
 		];
 	}
 

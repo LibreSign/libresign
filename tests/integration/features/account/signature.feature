@@ -262,7 +262,7 @@ Feature: account/signature
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer@test.coop"}}] |
+      | signers | [{"identify":{"email":"signer@test.coop"}}] |
       | name | document |
     When as user ""
     And I open the latest email to "signer@test.coop" with subject "LibreSign: There is a file for you to sign"
