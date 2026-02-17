@@ -602,4 +602,101 @@ describe('VisibleElements Component - Business Rules', () => {
 			expect(showError).toHaveBeenCalledWith('save failed')
 		})
 	})
+
+	describe('RULE: aggregateVisibleElementsByFiles', () => {
+		it.each([
+			{
+				label: 'undefined input',
+				input: undefined,
+				expected: [],
+			},
+			{
+				label: 'null input',
+				input: null,
+				expected: [],
+			},
+			{
+				label: 'empty array',
+				input: [],
+				expected: [],
+			},
+			{
+				label: 'mixed files with invalid entries',
+				input: [
+					{ id: 545, visibleElements: [{ elementId: 185, fileId: 545 }] },
+					{ id: 999, visibleElements: null },
+					{ id: 546, visibleElements: [{ elementId: 186, fileId: 546 }] },
+				],
+				expected: [
+					{ elementId: 185, fileId: 545 },
+					{ elementId: 186, fileId: 546 },
+				],
+			},
+			{
+				label: 'preserves order when a file has multiple elements',
+				input: [
+					{
+						id: 100,
+						visibleElements: [
+							{ elementId: 1, fileId: 100 },
+							{ elementId: 2, fileId: 100 },
+						],
+					},
+					{ id: 200, visibleElements: [{ elementId: 3, fileId: 200 }] },
+				],
+				expected: [
+					{ elementId: 1, fileId: 100 },
+					{ elementId: 2, fileId: 100 },
+					{ elementId: 3, fileId: 200 },
+				],
+			},
+		])('handles $label', ({ input, expected }) => {
+			expect(wrapper.vm.aggregateVisibleElementsByFiles(input)).toEqual(expected)
+		})
+	})
+
+	describe('RULE: fetchFiles updates document files and visible elements', () => {
+		it.each([
+			{
+				label: 'applies aggregated visible elements when available',
+				childFiles: [
+					{ id: 545, name: 'file1.pdf', visibleElements: [{ elementId: 185, fileId: 545 }] },
+					{ id: 546, name: 'file2.pdf', visibleElements: [{ elementId: 186, fileId: 546 }] },
+				],
+				initialVisibleElements: [{ elementId: 999, fileId: 1 }],
+				expectedVisibleElements: [
+					{ elementId: 185, fileId: 545 },
+					{ elementId: 186, fileId: 546 },
+				],
+			},
+			{
+				label: 'keeps existing visibleElements when aggregated result is empty',
+				childFiles: [
+					{ id: 545, name: 'file1.pdf', visibleElements: [] },
+					{ id: 546, name: 'file2.pdf' },
+				],
+				initialVisibleElements: [{ elementId: 999, fileId: 1 }],
+				expectedVisibleElements: [{ elementId: 999, fileId: 1 }],
+			},
+		])('$label', async ({ childFiles, initialVisibleElements, expectedVisibleElements }) => {
+			filesStore.files[1].id = 544
+			filesStore.files[1].files = []
+			filesStore.files[1].visibleElements = initialVisibleElements
+
+			axios.get.mockResolvedValue({
+				data: {
+					ocs: {
+						data: {
+							data: childFiles,
+						},
+					},
+				},
+			})
+
+			await wrapper.vm.fetchFiles()
+
+			expect(wrapper.vm.document.files).toEqual(childFiles)
+			expect(wrapper.vm.document.visibleElements).toEqual(expectedVisibleElements)
+		})
+	})
 })
