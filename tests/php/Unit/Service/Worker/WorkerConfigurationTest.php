@@ -31,7 +31,7 @@ class WorkerConfigurationTest extends TestCase {
 		$this->appConfig->expects($this->exactly(2))
 			->method('getValueString')
 			->willReturnMap([
-				[Application::APP_ID, 'signing_mode', 'async', 'async'],
+				[Application::APP_ID, 'signing_mode', 'sync', 'async'],
 				[Application::APP_ID, 'worker_type', 'local', 'local'],
 			]);
 
@@ -42,7 +42,7 @@ class WorkerConfigurationTest extends TestCase {
 	public function testIsAsyncLocalEnabledFalseWhenSigningModeNotAsync(): void {
 		$this->appConfig->expects($this->once())
 			->method('getValueString')
-			->with(Application::APP_ID, 'signing_mode', 'async')
+			->with(Application::APP_ID, 'signing_mode', 'sync')
 			->willReturn('sync');
 
 		$service = $this->makeService();
@@ -53,7 +53,7 @@ class WorkerConfigurationTest extends TestCase {
 		$this->appConfig->expects($this->exactly(2))
 			->method('getValueString')
 			->willReturnMap([
-				[Application::APP_ID, 'signing_mode', 'async', 'async'],
+				[Application::APP_ID, 'signing_mode', 'sync', 'async'],
 				[Application::APP_ID, 'worker_type', 'local', 'remote'],
 			]);
 
