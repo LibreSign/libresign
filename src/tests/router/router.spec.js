@@ -266,4 +266,43 @@ describe('router business rules', () => {
 			expect(router.options.linkActiveClass).toBe('active')
 		})
 	})
+
+	describe('root routes redirection based on can_request_sign', () => {
+		const rootPaths = [
+			{ path: '/', description: 'root path /' },
+			{ path: '/f/', description: 'root path /f/' },
+		]
+
+		describe.each(rootPaths)('$description', ({ path }) => {
+			let route
+			let beforeEnterGuard
+
+			beforeEach(() => {
+				route = router.options.routes.find(r => r.path === path)
+				beforeEnterGuard = route.beforeEnter
+			})
+
+			it.each([
+				{ canRequestSign: true, expectedRoute: 'requestFiles', description: 'when user can request sign' },
+				{ canRequestSign: false, expectedRoute: 'fileslist', description: 'when user cannot request sign' },
+				{ canRequestSign: undefined, expectedRoute: 'fileslist', description: 'by default when can_request_sign is undefined' },
+			])('redirects to $expectedRoute $description', ({ canRequestSign, expectedRoute }) => {
+				loadState.mockImplementation((key, state, defaultValue) => {
+					if (state === 'can_request_sign') {
+						return canRequestSign !== undefined ? canRequestSign : defaultValue
+					}
+					return defaultValue
+				})
+
+				const to = {}
+				const from = {}
+				const next = vi.fn()
+
+				beforeEnterGuard(to, from, next)
+
+				expect(next).toHaveBeenCalledWith({ name: expectedRoute })
+				expect(next).toHaveBeenCalledTimes(1)
+			})
+		})
+	})
 })
