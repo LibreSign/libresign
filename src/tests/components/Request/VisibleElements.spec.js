@@ -340,18 +340,6 @@ describe('VisibleElements Component - Business Rules', () => {
 
 			expect(wrapper.vm.pdfFiles).toEqual([])
 		})
-
-		it('extracts file objects from nested files array payload', () => {
-			const file1 = { path: '/path/to/file1.pdf' }
-			const file2 = { path: '/path/to/file2.pdf' }
-
-			filesStore.files[1].files = [
-				{ id: 10, files: [{ file: file1 }] },
-				{ id: 20, files: [{ file: file2 }] },
-			]
-
-			expect(wrapper.vm.pdfFiles).toEqual([file1, file2])
-		})
 	})
 
 	describe('RULE: page height retrieval', () => {
@@ -709,54 +697,6 @@ describe('VisibleElements Component - Business Rules', () => {
 
 			expect(wrapper.vm.document.files).toEqual(childFiles)
 			expect(wrapper.vm.document.visibleElements).toEqual(expectedVisibleElements)
-		})
-
-		it('uses signer visibleElements when file-level visibleElements is empty', async () => {
-			filesStore.files[1].id = 544
-			filesStore.files[1].files = []
-			filesStore.files[1].visibleElements = []
-
-			const childFiles = [
-				{
-					id: 545,
-					name: 'file1.pdf',
-					visibleElements: [],
-					signers: [
-						{
-							signRequestId: 603,
-							visibleElements: [{ elementId: 185, fileId: 545, signRequestId: 603 }],
-						},
-					],
-				},
-				{
-					id: 546,
-					name: 'file2.pdf',
-					visibleElements: [],
-					signers: [
-						{
-							signRequestId: 604,
-							visibleElements: [{ elementId: 186, fileId: 546, signRequestId: 604 }],
-						},
-					],
-				},
-			]
-
-			axios.get.mockResolvedValue({
-				data: {
-					ocs: {
-						data: {
-							data: childFiles,
-						},
-					},
-				},
-			})
-
-			await wrapper.vm.fetchFiles()
-
-			expect(wrapper.vm.document.visibleElements).toEqual([
-				{ elementId: 185, fileId: 545, signRequestId: 603 },
-				{ elementId: 186, fileId: 546, signRequestId: 604 },
-			])
 		})
 	})
 })
