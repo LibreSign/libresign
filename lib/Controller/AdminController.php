@@ -926,7 +926,7 @@ class AdminController extends AEnvironmentAwareController {
 				], Http::STATUS_BAD_REQUEST);
 			}
 
-			$this->saveOrDeleteConfig('signing_mode', $mode, 'async');
+			$this->saveOrDeleteConfig('signing_mode', $mode, 'sync');
 			$this->saveOrDeleteConfig('worker_type', $workerType, 'local');
 
 			return new DataResponse([
