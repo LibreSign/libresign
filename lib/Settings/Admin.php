@@ -79,7 +79,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('tsa_password', $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', self::PASSWORD_PLACEHOLDER));
 		$this->initialState->provideInitialState('docmdp_config', $this->docMdpConfigService->getConfig());
 		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value));
-		$this->initialState->provideInitialState('signing_mode', $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'async'));
+		$this->initialState->provideInitialState('signing_mode', $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'sync'));
 		$this->initialState->provideInitialState('worker_type', $this->appConfig->getValueString(Application::APP_ID, 'worker_type', 'local'));
 		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueString(Application::APP_ID, 'envelope_enabled', '1') === '1');
 		$this->initialState->provideInitialState('parallel_workers', $this->appConfig->getValueString(Application::APP_ID, 'parallel_workers', '4'));

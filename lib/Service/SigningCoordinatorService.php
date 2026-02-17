@@ -22,7 +22,7 @@ class SigningCoordinatorService {
 			return false;
 		}
 
-		$signingMode = $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'async');
+		$signingMode = $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'sync');
 		return $signingMode === 'async';
 	}
 }
