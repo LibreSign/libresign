@@ -18,6 +18,72 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 13.0.0 - 2026-02-17
+
+⚠️ **MAJOR RELEASE - Breaking Changes** — The API has been completely redesigned. If you have existing API integrations, review the new API documentation before upgrading.
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- Envelopes to organize multiple signature workflows
+- DocMDP (Document Modification Detection and Prevention)
+- CRL (Certificate Revocation Lists) support
+- TSA (Time Stamp Authority) integration
+- Parallel and synchronous signatures
+- Rich text editor for signature stamps
+- Customizable footer
+- Multi-channel notifications: WhatsApp, Telegram, Signal, XMPP, SMS
+- Redesigned document identification flow
+- CPS (Certification Practice Statement) support
+
+### Changed
+- Complete API redesign (breaking change)
+- UI/UX improvements
+- Performance optimizations
+- Security enhancements
+
+### Fixed
+- Signature validation improvements
+- Better error handling
+- PDF compatibility fixes
+
+---
+
+## 12.2.0 - 2026-02-17
+
+⚠️ **MAJOR RELEASE - Breaking Changes** — The API has been completely redesigned. If you have existing API integrations, review the new API documentation before upgrading.
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- Envelopes to organize multiple signature workflows
+- DocMDP (Document Modification Detection and Prevention)
+- CRL (Certificate Revocation Lists) support
+- TSA (Time Stamp Authority) integration
+- Parallel and synchronous signatures
+- Rich text editor for signature stamps
+- Customizable footer
+- Multi-channel notifications: WhatsApp, Telegram, Signal, XMPP, SMS
+- Redesigned document identification flow
+- CPS (Certification Practice Statement) support
+
+### Changed
+- Complete API redesign (breaking change)
+- UI/UX improvements
+- Performance optimizations
+- Security enhancements
+
+### Fixed
+- Signature validation improvements
+- Better error handling
+- PDF compatibility fixes
+
+---
+
 ## 12.1.0 - 2025-11-28
 ### Features
 - feat: implement TSA [#5582](https://github.com/LibreSign/libresign/pull/5582)
