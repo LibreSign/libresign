@@ -639,7 +639,7 @@ export const useFilesStore = function(...args) {
 					method: uuid || file.id ? 'patch' : 'post',
 					data: {
 						name: file?.name,
-						users: signers || file?.signers || [],
+						signers: signers || file?.signers || [],
 						visibleElements,
 						status,
 						signatureFlow: flowValue,
