@@ -27,7 +27,6 @@
     "User not found" : "未找到用户",
     "Identification Document" : "身份文档",
     "draft" : "草稿",
-    "partially signed" : "部分签署",
     "signed" : "已签名",
     "deleted" : "已删除",
     "Draft" : "草稿",
@@ -114,8 +113,6 @@
     "Use this code to sign the document:" : "使用此代码签署文档：",
     "No signature was requested to %s" : "没有发给 %s 的签名请求",
     "%s already signed this file" : "%s已经签署了这个文件",
-    "Empty users list" : "空用户列表",
-    "User list needs to be an array" : "用户列表需要是一个数组 ",
     "Sending authorization code not enabled." : "未启用发送身份验证码",
     "File already signed by you" : "文件已由你签署",
     "LibreSign" : "LibreSign ",
@@ -309,6 +306,9 @@
     "Return" : "返回",
     "Open in LibreSign" : "在 LibreSign 中打开",
     "Requested by {name}, at {date}" : "{name} 请求于 {date}",
-    "Deleted" : "已删除"
+    "Deleted" : "已删除",
+    "partially signed" : "部分签署",
+    "Empty users list" : "空用户列表",
+    "User list needs to be an array" : "用户列表需要是一个数组 "
 },"pluralForm" :"nplurals=1; plural=0;"
 }

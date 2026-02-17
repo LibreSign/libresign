@@ -37,7 +37,6 @@
     "Identification Document" : "Identifikačný doklad",
     "not LibreSign file" : "žiadny súbor LibreSign",
     "draft" : "koncept",
-    "partially signed" : "čiastočne podpísané",
     "signed" : "prihlásený",
     "deleted" : "vymazané",
     "Draft" : "Koncept",
@@ -162,8 +161,6 @@
     "Use this code to sign the document:" : "Použiť tento kód pre podpis dokumentu:",
     "No signature was requested to %s" : "Nebol vyžiadaný žiadny podpis pre %s",
     "%s already signed this file" : "%s už tento súbor podpísal",
-    "Empty users list" : "Prázdny zoznam používateľov",
-    "User list needs to be an array" : "Zoznam používateľov musí byť pole",
     "Sending authorization code not enabled." : "Odosielanie autorizačného kódu nie je povolené.",
     "File already signed by you" : "Súbor je už od vás podpísaný",
     "LibreSign" : "LibreSign",
@@ -455,7 +452,10 @@
     "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}",
     "Deleted" : "Odstránené",
     "available for signature" : "dostupné pre podpis",
+    "partially signed" : "čiastočne podpísané",
     "no signers" : "žiadni podpísaný",
+    "Empty users list" : "Prázdny zoznam používateľov",
+    "User list needs to be an array" : "Zoznam používateľov musí byť pole",
     "Select other file" : "Vyberte iný súbor",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Použite koliesko myši na priblíženie alebo oddialenie obrázka a nájdite najlepší pohľad na svoj podpis."
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);"
