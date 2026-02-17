@@ -177,6 +177,7 @@ import { useIdentificationDocumentStore } from '../../../store/identificationDoc
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator.js'
 import { SignFlowHandler } from '../../../services/SignFlowHandler.js'
 import { FILE_STATUS } from '../../../constants.js'
+import { getVisibleElementsFromDocument, idsMatch } from '../../../services/visibleElementsService.js'
 
 export default {
 	name: 'Sign',
@@ -223,10 +224,10 @@ export default {
 				return []
 			}
 
-			const visibleElements = (this.signStore.document?.visibleElements || [])
+			const visibleElements = getVisibleElementsFromDocument(this.signStore.document)
 				.filter(row => {
 					return this.signatureElementsStore.hasSignatureOfType(row.type)
-						&& row.signRequestId === signer.signRequestId
+						&& idsMatch(row.signRequestId, signer.signRequestId)
 				})
 			return visibleElements
 		},
@@ -235,9 +236,9 @@ export default {
 		},
 		needCreateSignature() {
 			const signer = this.signStore.document?.signers.find(row => row.me) || {}
-			const visibleElements = this.signStore.document?.visibleElements || []
+			const visibleElements = getVisibleElementsFromDocument(this.signStore.document)
 			return !!signer.signRequestId
-				&& visibleElements.some(row => row.signRequestId === signer.signRequestId)
+				&& visibleElements.some(row => idsMatch(row.signRequestId, signer.signRequestId))
 				&& !this.hasSignatures
 				&& this.canCreateSignature
 		},

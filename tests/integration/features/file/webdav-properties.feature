@@ -8,7 +8,7 @@ Feature: webdav-properties
     Given user "admin" uploads file "test.pdf" to "test-document.pdf"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file  | {"path":"/test-document.pdf"}                  |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
       | name  | test-document                                  |
     Then the response should have a status code 200
     When user "admin" gets WebDAV properties for "test-document.pdf"

@@ -51,7 +51,7 @@ final class NotifyControllerTest extends ApiTestCase {
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
-			'users' => [
+			'signers' => [
 				[
 					'identify' => [
 						'email' => 'person@test.coop',

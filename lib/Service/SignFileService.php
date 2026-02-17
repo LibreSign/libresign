@@ -139,16 +139,16 @@ class SignFileService {
 		if ($signed) {
 			throw new \Exception($this->l10n->t('Document already signed'));
 		}
-		array_walk($data['users'], function ($user) use ($signatures): void {
-			$exists = array_filter($signatures, function (SignRequestEntity $signRequest) use ($user) {
+		array_walk($data['signers'], function ($signer) use ($signatures): void {
+			$exists = array_filter($signatures, function (SignRequestEntity $signRequest) use ($signer) {
 				$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($signRequest->getId());
 				if ($identifyMethod->getName() === 'email') {
-					return $identifyMethod->getEntity()->getIdentifierValue() === $user['email'];
+					return $identifyMethod->getEntity()->getIdentifierValue() === $signer['email'];
 				}
 				return false;
 			});
 			if (!$exists) {
-				throw new \Exception($this->l10n->t('No signature was requested to %s', $user['email']));
+				throw new \Exception($this->l10n->t('No signature was requested to %s', $signer['email']));
 			}
 		});
 	}

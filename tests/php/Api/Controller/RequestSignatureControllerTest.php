@@ -30,7 +30,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 			->withRequestBody([
 				'name' => 'filename',
 				'file' => [],
-				'users' => []
+				'signers' => []
 			])
 			->assertResponseCode(422);
 
@@ -63,7 +63,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 				'file' => [
 					'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))
 				],
-				'users' => [
+				'signers' => [
 					[
 						'identify' => [
 							'email' => 'user@test.coop',
@@ -74,7 +74,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$body['ocs']['data']['data']['users'][] = ['email' => 'user@test.coop'];
+		$body['ocs']['data']['data']['signers'][] = ['email' => 'user@test.coop'];
 	}
 
 	/**
@@ -91,7 +91,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 			])
 			->withRequestBody([
 				'uuid' => '12345678-1234-1234-1234-123456789012',
-				'users' => []
+				'signers' => []
 			])
 			->assertResponseCode(422);
 
@@ -116,7 +116,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
-			'users' => [
+			'signers' => [
 				[
 					'identify' => [
 						'email' => 'person@test.coop',
@@ -135,7 +135,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 			])
 			->withRequestBody([
 				'uuid' => $file->getUuid(),
-				'users' => [
+				'signers' => [
 					[
 						'identify' => [
 							'email' => 'user@test.coop',
@@ -146,6 +146,6 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$body['ocs']['data']['data']['users'][] = ['email' => 'user@test.coop'];
+		$body['ocs']['data']['data']['signers'][] = ['email' => 'user@test.coop'];
 	}
 }

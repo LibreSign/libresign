@@ -980,7 +980,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($identifyMethod);
 
 		$data = [
-			'users' => [
+			'signers' => [
 				['identify' => ['account' => 'user@example.com']]
 			]
 		];
@@ -1023,7 +1023,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			'valid data with identify structure single method' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'identify' => [
 								'account' => 'user@example.com'
@@ -1035,7 +1035,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'valid data with identify structure multiple methods' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'identify' => [
 								'account' => 'user@example.com',
@@ -1048,7 +1048,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'valid data with identifyMethods structure single method' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'identifyMethods' => [
 								['method' => 'account', 'value' => 'user@example.com']
@@ -1060,7 +1060,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'valid data with identifyMethods structure multiple methods' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'identifyMethods' => [
 								['method' => 'account', 'value' => 'user@example.com'],
@@ -1073,7 +1073,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'mixed structures in same data' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'identify' => [
 								'account' => 'user1@example.com'
@@ -1093,49 +1093,49 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				false, // should not throw
 				''
 			],
-			'missing users key' => [
+			'missing signers key' => [
 				['someOtherKey' => 'value'],
 				false, // should not throw
 				''
 			],
-			'empty users array' => [
-				['users' => []],
+			'empty signers array' => [
+				['signers' => []],
 				false, // should not throw
 				''
 			],
-			'users not array' => [
-				['users' => 'not-an-array'],
+			'signers not array' => [
+				['signers' => 'not-an-array'],
 				true, // should throw
 				'No signers'
 			],
 			'empty signer' => [
-				['users' => [[]]],
+				['signers' => [[]]],
 				true, // should throw
 				'No signers'
 			],
 			'signer not array' => [
-				['users' => ['not-an-array']],
+				['signers' => ['not-an-array']],
 				true, // should throw
 				'No signers'
 			],
 			'signer without identify methods' => [
-				['users' => [['someKey' => 'value']]],
+				['signers' => [['someKey' => 'value']]],
 				true, // should throw
 				'No identify methods for signer'
 			],
 			'signer with empty identify' => [
-				['users' => [['identify' => []]]],
+				['signers' => [['identify' => []]]],
 				true, // should throw
 				'No identify methods for signer'
 			],
 			'signer with empty identifyMethods' => [
-				['users' => [['identifyMethods' => []]]],
+				['signers' => [['identifyMethods' => []]]],
 				true, // should throw
 				'No identify methods for signer'
 			],
 			'invalid identifyMethods structure - missing method' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'identifyMethods' => [
 								['value' => 'user@example.com'] // missing 'method'
@@ -1148,7 +1148,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'invalid identifyMethods structure - missing value' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'identifyMethods' => [
 								['method' => 'email'] // missing 'value'
@@ -1161,7 +1161,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'valid displayName within 64 characters' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'displayName' => 'Valid Display Name',
 							'identify' => [
@@ -1174,7 +1174,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'displayName exactly 64 characters' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'displayName' => str_repeat('A', 64),
 							'identify' => [
@@ -1187,7 +1187,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'displayName too long - 65 characters' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'displayName' => str_repeat('A', 65),
 							'identify' => [
@@ -1201,7 +1201,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'displayName too long - 100 characters' => [
 				[
-					'users' => [
+					'signers' => [
 						[
 							'displayName' => str_repeat('B', 100),
 							'identify' => [

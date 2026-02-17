@@ -254,15 +254,21 @@ export default {
 		cancelAdding() {
 			this.$refs.pdfElements?.cancelAdding()
 		},
-		addSigner(signer) {
+		async addSigner(signer) {
+			const pdfElements = this.$refs.pdfElements
+			if (!pdfElements) {
+				return
+			}
+
 			const docIndex = signer.element.documentIndex !== undefined
 				? signer.element.documentIndex
-				: this.$refs.pdfElements.selectedDocIndex
+				: pdfElements.selectedDocIndex
 
 			const pageIndex = signer.element.coordinates.page - 1
 
+			await this.waitForPageRender(docIndex, pageIndex)
+
 			const coordinates = signer.element.coordinates || {}
-			const pdfElements = this.$refs.pdfElements
 			const pageHeight = pdfElements?.getPageHeight?.(docIndex, pageIndex) || 0
 			const width = Number.isFinite(coordinates.width)
 				? coordinates.width
@@ -298,11 +304,17 @@ export default {
 				y,
 			}
 
-			pdfElements.addObjectToPage(
-				object,
-				pageIndex,
-				docIndex,
-			)
+			pdfElements.addObjectToPage(object, pageIndex, docIndex)
+		},
+		async waitForPageRender(docIndex, pageIndex) {
+			const pdfElements = this.$refs.pdfElements
+			const doc = pdfElements?.pdfDocuments?.[docIndex]
+			if (!doc?.pages?.[pageIndex]) {
+				return
+			}
+			await doc.pages[pageIndex]
+			await this.$nextTick()
+			await this.$nextTick()
 		},
 	},
 }
