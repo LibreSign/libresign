@@ -98,7 +98,7 @@ export default {
 	data() {
 		return {
 			name: t('libresign', 'Signing mode'),
-			asyncEnabled: true,
+			asyncEnabled: false,
 			externalWorkerEnabled: false,
 			parallelWorkersCount: '4',
 			lastSavedParallelWorkers: '4',
@@ -118,7 +118,7 @@ export default {
 	methods: {
 		loadConfig() {
 			try {
-				const mode = loadState('libresign', 'signing_mode', 'async')
+				const mode = loadState('libresign', 'signing_mode', 'sync')
 				this.asyncEnabled = mode === 'async'
 
 				const workerType = loadState('libresign', 'worker_type', 'local')
@@ -130,7 +130,7 @@ export default {
 			} catch (error) {
 				console.error('Error loading signing mode configuration:', error)
 				this.errorMessage = t('libresign', 'Could not load configuration.')
-				this.asyncEnabled = true
+				this.asyncEnabled = false
 				this.externalWorkerEnabled = false
 				this.parallelWorkersCount = '4'
 			}
