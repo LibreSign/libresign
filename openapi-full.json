@@ -7628,7 +7628,7 @@
             "post": {
                 "operationId": "request_signature-request",
                 "summary": "Request signature",
-                "description": "Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.",
+                "description": "Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "request_signature"
                 ],
@@ -7641,25 +7641,23 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
+                    "required": false,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
-                                "required": [
-                                    "users",
-                                    "name"
-                                ],
                                 "properties": {
-                                    "users": {
+                                    "signers": {
                                         "type": "array",
-                                        "description": "Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order",
+                                        "default": [],
+                                        "description": "Collection of signers who must sign the document. Each signer can have: identify, displayName, description, notify, signingOrder",
                                         "items": {
                                             "$ref": "#/components/schemas/NewSigner"
                                         }
                                     },
                                     "name": {
                                         "type": "string",
+                                        "default": "",
                                         "description": "The name of file to sign"
                                     },
                                     "settings": {
@@ -7818,7 +7816,7 @@
             "patch": {
                 "operationId": "request_signature-update-sign",
                 "summary": "Updates signatures data",
-                "description": "Is necessary to inform the UUID of the file and a list of people",
+                "description": "It is necessary to inform the UUID of the file and a list of signers.",
                 "tags": [
                     "request_signature"
                 ],
@@ -7837,11 +7835,11 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "users": {
+                                    "signers": {
                                         "type": "array",
                                         "nullable": true,
                                         "default": [],
-                                        "description": "Collection of users who must sign the document",
+                                        "description": "Collection of signers who must sign the document",
                                         "items": {
                                             "$ref": "#/components/schemas/NewSigner"
                                         }
