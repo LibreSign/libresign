@@ -65,8 +65,8 @@
 						<template #subname>
 							<strong>{{ t('libresign', 'Status:') }}</strong> {{ file.statusText }}
 						</template>
-						<template #actions>
-							<NcActionButton v-if="file.nodeId" @click.stop="viewFile(file)">
+						<template v-if="!isTouchDevice && file.nodeId" #actions>
+							<NcActionButton @click.stop="viewFile(file)">
 								<template #icon>
 									<NcIconSvgWrapper :path="mdiEye" :size="20" />
 								</template>
@@ -74,6 +74,11 @@
 							</NcActionButton>
 						</template>
 						<template #extra-actions>
+							<NcButton v-if="isTouchDevice && file.nodeId" variant="tertiary" :aria-label="t('libresign', 'View PDF')" @click.stop="viewFile(file)">
+								<template #icon>
+									<NcIconSvgWrapper :path="mdiEye" :size="20" />
+								</template>
+							</NcButton>
 							<NcButton variant="tertiary" :aria-label="file.opened ? t('libresign', 'Hide details') : t('libresign', 'Show details')" @click.stop="toggleFileDetail(file)">
 								<template #icon>
 									<NcIconSvgWrapper v-if="file.opened" :path="mdiChevronUp" :size="20" />
@@ -177,11 +182,13 @@ import {
 import Moment from '@nextcloud/moment'
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
+import isTouchDevice from '../../mixins/isTouchDevice.js'
 import SignerDetails from './SignerDetails.vue'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
 
 export default {
 	name: 'EnvelopeValidation',
+	mixins: [isTouchDevice],
 	components: {
 		NcIconSvgWrapper,
 		NcListItem,
