@@ -523,7 +523,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('No signature was requested to %');
 		$this->getService()->canDeleteRequestSignature([
 			'uuid' => 'valid',
-			'users' => [
+			'signers' => [
 				[
 					'email' => 'test@test.coop'
 				]

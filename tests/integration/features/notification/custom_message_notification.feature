@@ -17,7 +17,7 @@ Feature: Custom message for signers
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | name | Document without custom message |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
     When I open the latest email to "signer1@test.com" with subject "LibreSign: There is a file for you to sign"
@@ -27,7 +27,7 @@ Feature: Custom message for signers
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | name | Document with custom message |
-      | users | [{"identify":{"account":"signer1"},"description":"Please review section 3 and the appendix before signing."}] |
+      | signers | [{"identify":{"account":"signer1"},"description":"Please review section 3 and the appendix before signing."}] |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
     When I open the latest email to "signer1@test.com" with subject "LibreSign: There is a file for you to sign"
@@ -38,14 +38,14 @@ Feature: Custom message for signers
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | name | Document for email method |
-      | users | [{"identify":{"email":"external@domain.test"},"displayName":"External Signer"}] |
+      | signers | [{"identify":{"email":"external@domain.test"},"displayName":"External Signer"}] |
     Then the response should have a status code 200
 
   Scenario: Email method - custom description via reminder
     Given sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | name | Document for email with description |
-      | users | [{"identify":{"email":"external@domain.test"},"displayName":"External Signer","description":"Urgent: Please sign by end of day."}] |
+      | signers | [{"identify":{"email":"external@domain.test"},"displayName":"External Signer","description":"Urgent: Please sign by end of day."}] |
     And the response should have a status code 200
     And fetch field "(FILE_ID)ocs.data.id" from previous JSON response
     And fetch field "(SIGN_REQUEST_ID)ocs.data.signers.0.signRequestId" from previous JSON response

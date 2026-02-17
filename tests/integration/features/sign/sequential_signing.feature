@@ -15,7 +15,7 @@ Feature: sequential-signing
     And user "signer2" exists
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"}},{"identify":{"account":"signer2"}}] |
+      | signers | [{"identify":{"account":"signer1"}},{"identify":{"account":"signer2"}}] |
       | name | Parallel Document |
     Then the response should have a status code 200
     And as user "signer1"
@@ -42,7 +42,7 @@ Feature: sequential-signing
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"},"signingOrder":1},{"identify":{"account":"signer2"},"signingOrder":2}] |
+      | signers | [{"identify":{"account":"signer1"},"signingOrder":1},{"identify":{"account":"signer2"},"signingOrder":2}] |
       | name | Sequential Document |
     Then the response should have a status code 200
     # Signer2 should NOT see the file yet (their sign_request is in DRAFT status)

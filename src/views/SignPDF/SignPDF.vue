@@ -49,6 +49,14 @@ import { useSignStore } from '../../store/sign.js'
 import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { FILE_STATUS } from '../../constants.js'
+import {
+	aggregateVisibleElementsByFiles,
+	findFileById,
+	getFileSigners,
+	getFileUrl,
+	getVisibleElementsFromDocument,
+	idsMatch,
+} from '../../services/visibleElementsService.js'
 
 export default {
 	name: 'SignPDF',
@@ -216,7 +224,7 @@ export default {
 				}
 
 				const urls = envelopeFiles
-					.map(file => file.files?.[0]?.file)
+					.map(file => getFileUrl(file))
 					.filter(Boolean)
 				if (!urls.length) {
 					this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
@@ -249,13 +257,14 @@ export default {
 		updateSigners(data) {
 			if (this.signStore.document.nodeType === 'envelope' && this.envelopeFiles.length > 0) {
 				const fileIndexById = new Map(
-					this.envelopeFiles.map((file, index) => [file.id, index]),
+					this.envelopeFiles.map((file, index) => [String(file.id), index]),
 				)
-				const elements = this.envelopeFiles.flatMap(file => file.visibleElements || [])
+				const elements = aggregateVisibleElementsByFiles(this.envelopeFiles)
 				elements.forEach(element => {
-					const fileInfo = this.envelopeFiles.find(file => file.id === element.fileId)
-					const signer = fileInfo?.signers?.find(row => row.signRequestId === element.signRequestId)
-						|| fileInfo?.signers?.find(row => row.me)
+					const fileInfo = findFileById(this.envelopeFiles, element.fileId)
+					const signers = getFileSigners(fileInfo)
+					const signer = signers.find(row => idsMatch(row.signRequestId, element.signRequestId))
+						|| signers.find(row => row.me)
 					if (!signer) {
 						return
 					}
@@ -263,7 +272,7 @@ export default {
 					object.readOnly = true
 					object.element = {
 						...element,
-						documentIndex: fileIndexById.get(element.fileId) ?? 0,
+						documentIndex: fileIndexById.get(String(element.fileId)) ?? 0,
 					}
 					this.$refs.pdfEditor.addSigner(object)
 				})
@@ -272,9 +281,9 @@ export default {
 			}
 
 			const currentSigner = this.signStore.document.signers.find(signer => signer.me)
-			const visibleElements = this.signStore.document.visibleElements || []
+			const visibleElements = getVisibleElementsFromDocument(this.signStore.document)
 			const elementsForSigner = currentSigner
-				? visibleElements.filter(element => element.signRequestId === currentSigner.signRequestId)
+				? visibleElements.filter(element => idsMatch(element.signRequestId, currentSigner.signRequestId))
 				: []
 			if (currentSigner && elementsForSigner.length > 0) {
 				elementsForSigner.forEach(element => {

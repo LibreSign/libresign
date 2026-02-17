@@ -223,10 +223,13 @@ describe('PdfEditor Component - Business Rules', () => {
 				selectedDocIndex: 0,
 				getPageHeight: vi.fn(() => 841.89),
 				addObjectToPage: vi.fn(),
+				pdfDocuments: [
+					{ pages: [Promise.resolve({})] },
+				],
 			}
 		})
 
-		it('converts coordinates from left/top format', () => {
+		it('converts coordinates from left/top format', async () => {
 			const signer = {
 				element: {
 					documentIndex: 0,
@@ -240,7 +243,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer)
 
 			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -254,7 +257,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			)
 		})
 
-		it('converts coordinates from llx/lly/urx/ury format to x/y', () => {
+		it('converts coordinates from llx/lly/urx/ury format to x/y', async () => {
 			const signer = {
 				element: {
 					documentIndex: 0,
@@ -268,7 +271,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer)
 
 			const call = wrapper.vm.$refs.pdfElements.addObjectToPage.mock.calls[0][0]
 
@@ -277,7 +280,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			expect(call.x).toBe(50) // llx
 		})
 
-		it('calculates y from ury when using PDF coordinates', () => {
+		it('calculates y from ury when using PDF coordinates', async () => {
 			const pageHeight = 841.89
 			wrapper.vm.$refs.pdfElements.getPageHeight.mockReturnValue(pageHeight)
 
@@ -294,7 +297,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer)
 
 			const call = wrapper.vm.$refs.pdfElements.addObjectToPage.mock.calls[0][0]
 
@@ -302,7 +305,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			expect(call.y).toBeCloseTo(141.89, 2)
 		})
 
-		it('uses default coordinates when missing', () => {
+		it('uses default coordinates when missing', async () => {
 			const signer = {
 				element: {
 					documentIndex: 0,
@@ -312,7 +315,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer)
 
 			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -326,7 +329,11 @@ describe('PdfEditor Component - Business Rules', () => {
 			)
 		})
 
-		it('uses correct page index (page - 1)', () => {
+		it('uses correct page index (page - 1)', async () => {
+			wrapper.vm.$refs.pdfElements.pdfDocuments = [
+				{ pages: [Promise.resolve({}), Promise.resolve({}), Promise.resolve({}), Promise.resolve({}), Promise.resolve({})] },
+			]
+
 			const signer = {
 				element: {
 					documentIndex: 0,
@@ -340,7 +347,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer)
 
 			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
 				expect.anything(),
@@ -349,8 +356,13 @@ describe('PdfEditor Component - Business Rules', () => {
 			)
 		})
 
-		it('uses selectedDocIndex when documentIndex not specified', () => {
+		it('uses selectedDocIndex when documentIndex not specified', async () => {
 			wrapper.vm.$refs.pdfElements.selectedDocIndex = 2
+			wrapper.vm.$refs.pdfElements.pdfDocuments = [
+				{ pages: [Promise.resolve({})] },
+				{ pages: [Promise.resolve({})] },
+				{ pages: [Promise.resolve({})] },
+			]
 
 			const signer = {
 				element: {
@@ -364,7 +376,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer)
 
 			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
 				expect.anything(),
@@ -373,7 +385,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			)
 		})
 
-		it('generates unique object ID', () => {
+		it('generates unique object ID', async () => {
 			const signer = {
 				element: {
 					documentIndex: 0,
@@ -381,14 +393,14 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer)
 
 			const call = wrapper.vm.$refs.pdfElements.addObjectToPage.mock.calls[0][0]
 
 			expect(call.id).toMatch(/^obj-\d+-[a-z0-9]{6}$/)
 		})
 
-		it('includes signer data in object', () => {
+		it('includes signer data in object', async () => {
 			const signer = {
 				email: 'test@example.com',
 				displayName: 'Test User',
@@ -398,7 +410,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer)
 
 			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -649,6 +661,142 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 	})
 
+	describe('RULE: waitForPageRender awaits page Promise', () => {
+		it('resolves immediately when page promise is already resolved', async () => {
+			wrapper.vm.$refs.pdfElements = {
+				pdfDocuments: [
+					{ pages: [Promise.resolve({})] },
+				],
+			}
+
+			await wrapper.vm.waitForPageRender(0, 0)
+		})
+
+		it('waits for a pending page promise before resolving', async () => {
+			let resolveSecondPage
+			const secondPagePromise = new Promise(resolve => { resolveSecondPage = resolve })
+
+			wrapper.vm.$refs.pdfElements = {
+				pdfDocuments: [
+					{ pages: [Promise.resolve({})] },
+					{ pages: [secondPagePromise] },
+				],
+			}
+
+			let resolved = false
+			const promise = wrapper.vm.waitForPageRender(1, 0).then(() => { resolved = true })
+
+			await wrapper.vm.$nextTick()
+			expect(resolved).toBe(false)
+
+			resolveSecondPage({})
+			await promise
+			expect(resolved).toBe(true)
+		})
+
+		it('resolves immediately when document does not exist', async () => {
+			wrapper.vm.$refs.pdfElements = {
+				pdfDocuments: [],
+			}
+
+			await wrapper.vm.waitForPageRender(5, 0)
+		})
+
+		it('resolves immediately when pdfElements is null', async () => {
+			wrapper.vm.$refs.pdfElements = null
+
+			await wrapper.vm.waitForPageRender(0, 0)
+		})
+	})
+
+	describe('RULE: addSigner awaits page render for multi-document envelopes', () => {
+		it('awaits second document page before adding element', async () => {
+			let resolveSecondPage
+			const secondPagePromise = new Promise(resolve => { resolveSecondPage = resolve })
+
+			wrapper.vm.$refs.pdfElements = {
+				...pdfElementsMethods,
+				selectedDocIndex: 0,
+				getPageHeight: vi.fn(() => 841.89),
+				addObjectToPage: vi.fn(),
+				pdfDocuments: [
+					{ pages: [Promise.resolve({})] },
+					{ pages: [secondPagePromise] },
+				],
+			}
+
+			const signer = {
+				displayName: 'admin',
+				element: {
+					documentIndex: 1,
+					coordinates: {
+						page: 1,
+						left: 148,
+						top: 16,
+						width: 350,
+						height: 100,
+					},
+				},
+			}
+
+			const addPromise = wrapper.vm.addSigner(signer)
+
+			await wrapper.vm.$nextTick()
+			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).not.toHaveBeenCalled()
+
+			resolveSecondPage({})
+			await addPromise
+
+			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
+				expect.objectContaining({
+					x: 148,
+					y: 16,
+					width: 350,
+					height: 100,
+				}),
+				0,
+				1,
+			)
+		})
+
+		it('adds immediately when page is already rendered', async () => {
+			wrapper.vm.$refs.pdfElements = {
+				...pdfElementsMethods,
+				selectedDocIndex: 0,
+				getPageHeight: vi.fn(() => 841.89),
+				addObjectToPage: vi.fn(),
+				pdfDocuments: [
+					{ pages: [Promise.resolve({})] },
+					{ pages: [Promise.resolve({})] },
+				],
+			}
+
+			const signer = {
+				element: {
+					documentIndex: 1,
+					coordinates: { page: 1, left: 100, top: 50, width: 200, height: 80 },
+				},
+			}
+
+			await wrapper.vm.addSigner(signer)
+
+			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledTimes(1)
+		})
+
+		it('does nothing when pdfElements is null', async () => {
+			wrapper.vm.$refs.pdfElements = null
+
+			const signer = {
+				element: {
+					documentIndex: 0,
+					coordinates: { page: 1 },
+				},
+			}
+
+			await wrapper.vm.addSigner(signer)
+		})
+	})
+
 	describe('RULE: readOnly prop behavior', () => {
 		it('passes readOnly to PDFElements', async () => {
 			await wrapper.setProps({ readOnly: true })
@@ -665,10 +813,13 @@ describe('PdfEditor Component - Business Rules', () => {
 				selectedDocIndex: 0,
 				getPageHeight: vi.fn(() => 841.89), // A4 height in points
 				addObjectToPage: vi.fn(),
+				pdfDocuments: [
+					{ pages: [Promise.resolve({})] },
+				],
 			}
 		})
 
-		it('handles bottom-left origin PDF coordinates correctly', () => {
+		it('handles bottom-left origin PDF coordinates correctly', async () => {
 			// PDF uses bottom-left origin, web uses top-left
 			const pageHeight = 841.89
 			const signer = {
@@ -684,7 +835,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer)
 
 			const call = wrapper.vm.$refs.pdfElements.addObjectToPage.mock.calls[0][0]
 
@@ -693,7 +844,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			expect(call.height).toBe(100) // ury - lly
 		})
 
-		it('ensures y coordinate never negative', () => {
+		it('ensures y coordinate never negative', async () => {
 			const signer = {
 				element: {
 					documentIndex: 0,
@@ -707,7 +858,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer)
 
 			const call = wrapper.vm.$refs.pdfElements.addObjectToPage.mock.calls[0][0]
 

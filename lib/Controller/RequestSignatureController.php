@@ -54,14 +54,14 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	/**
 	 * Request signature
 	 *
-	 * Request that a file be signed by a group of people.
-	 * Each user in the users array can optionally include a 'signing_order' field
+	 * Request that a file be signed by a list of signers.
+	 * Each signer in the signers array can optionally include a 'signingOrder' field
 	 * to control the order of signatures when ordered signing flow is enabled.
 	 * When the created entity is an envelope (`nodeType` = `envelope`),
 	 * the returned `data` includes `filesCount` and `files` as a list of
 	 * envelope child files.
 	 *
-	 * @param LibresignNewSigner[] $users Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order
+	 * @param LibresignNewSigner[] $signers Collection of signers who must sign the document. Each signer can have: identify, displayName, description, notify, signingOrder
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param LibresignNewFile $file File object.
@@ -79,8 +79,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[RequireManager]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
 	public function request(
-		array $users,
-		string $name,
+		array $signers = [],
+		string $name = '',
 		array $settings = [],
 		array $file = [],
 		array $files = [],
@@ -96,7 +96,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				$files,
 				$name,
 				$settings,
-				$users,
+				$signers,
 				$status,
 				$callback,
 				$signatureFlow
@@ -127,9 +127,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	/**
 	 * Updates signatures data
 	 *
-	 * Is necessary to inform the UUID of the file and a list of people
+	 * It is necessary to inform the UUID of the file and a list of signers.
 	 *
-	 * @param LibresignNewSigner[]|null $users Collection of users who must sign the document
+	 * @param LibresignNewSigner[]|null $signers Collection of signers who must sign the document
 	 * @param string|null $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
 	 * @param LibresignNewFile|array<empty>|null $file File object.
@@ -148,7 +148,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[RequireManager]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
 	public function updateSign(
-		?array $users = [],
+		?array $signers = [],
 		?string $uuid = null,
 		?array $visibleElements = null,
 		?array $file = [],
@@ -160,6 +160,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
+			$signers = is_array($signers) ? $signers : [];
 
 			if (empty($uuid)) {
 				return $this->createSignatureRequest(
@@ -168,7 +169,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 					$files,
 					$name,
 					$settings,
-					$users,
+					$signers,
 					$status,
 					null,
 					$signatureFlow,
@@ -179,7 +180,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$data = [
 				'uuid' => $uuid,
 				'file' => $file,
-				'users' => $users,
+				'signers' => $signers,
 				'userManager' => $user,
 				'status' => $status,
 				'visibleElements' => $visibleElements,
@@ -221,7 +222,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		array $files,
 		string $name,
 		array $settings,
-		array $users,
+		array $signers,
 		?int $status,
 		?string $callback,
 		?string $signatureFlow,
@@ -238,7 +239,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		$data = [
 			'file' => $file,
 			'name' => $name,
-			'users' => $users,
+			'signers' => $signers,
 			'status' => $status,
 			'callback' => $callback,
 			'userManager' => $user,

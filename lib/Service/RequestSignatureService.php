@@ -110,7 +110,7 @@ class RequestSignatureService {
 			'name' => $data['name'],
 			'userManager' => $data['userManager'],
 			'settings' => $data['settings'],
-			'users' => $data['users'] ?? [],
+			'signers' => $data['signers'] ?? [],
 			'status' => $data['status'] ?? FileStatus::DRAFT->value,
 			'visibleElements' => $data['visibleElements'] ?? [],
 			'signatureFlow' => $data['signatureFlow'] ?? null,
@@ -136,15 +136,15 @@ class RequestSignatureService {
 	}
 
 	private function propagateSignersToChildren(FileEntity $envelope, array $data): void {
-		if ($envelope->getNodeType() !== 'envelope' || empty($data['users'])) {
+		if ($envelope->getNodeType() !== 'envelope' || empty($data['signers'])) {
 			return;
 		}
 
 		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
 
 		$dataWithoutNotification = $data;
-		foreach ($dataWithoutNotification['users'] as &$user) {
-			$user['notify'] = 0;
+		foreach ($dataWithoutNotification['signers'] as &$signer) {
+			$signer['notify'] = 0;
 		}
 
 		foreach ($children as $child) {
@@ -189,7 +189,7 @@ class RequestSignatureService {
 				$files[] = $fileEntity;
 			}
 
-			if (!empty($data['users'])) {
+			if (!empty($data['signers'])) {
 				$this->sequentialSigningService->setFile($envelope);
 				$this->associateToSigners($data, $envelope);
 				$this->propagateSignersToChildren($envelope, $data);
@@ -447,7 +447,7 @@ class RequestSignatureService {
 		return $result ?? $name;
 	}
 
-	private function deleteIdentifyMethodIfNotExits(array $users, FileEntity $file): void {
+	private function deleteIdentifyMethodIfNotExits(array $signers, FileEntity $file): void {
 		$signRequests = $this->signRequestMapper->getByFileId($file->getId());
 		foreach ($signRequests as $key => $signRequest) {
 			$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequest->getId());
@@ -458,7 +458,7 @@ class RequestSignatureService {
 			foreach ($identifyMethods as $methodName => $list) {
 				foreach ($list as $method) {
 					$exists[$key]['identify'][$methodName] = $method->getEntity()->getIdentifierValue();
-					if (!$this->identifyMethodExists($users, $method)) {
+					if (!$this->identifyMethodExists($signers, $method)) {
 						$this->unassociateToUser($file->getId(), $signRequest->getId());
 						continue 3;
 					}
@@ -467,10 +467,10 @@ class RequestSignatureService {
 		}
 	}
 
-	private function identifyMethodExists(array $users, IIdentifyMethod $identifyMethod): bool {
-		foreach ($users as $user) {
-			if (!empty($user['identifyMethods'])) {
-				foreach ($user['identifyMethods'] as $data) {
+	private function identifyMethodExists(array $signers, IIdentifyMethod $identifyMethod): bool {
+		foreach ($signers as $signer) {
+			if (!empty($signer['identifyMethods'])) {
+				foreach ($signer['identifyMethods'] as $data) {
 					if ($identifyMethod->getEntity()->getIdentifierKey() !== $data['method']) {
 						continue;
 					}
@@ -479,7 +479,7 @@ class RequestSignatureService {
 					}
 				}
 			} else {
-				foreach ($user['identify'] as $method => $value) {
+				foreach ($signer['identify'] as $method => $value) {
 					if ($identifyMethod->getEntity()->getIdentifierKey() !== $method) {
 						continue;
 					}
@@ -499,27 +499,27 @@ class RequestSignatureService {
 	 */
 	private function associateToSigners(array $data, FileEntity $file): array {
 		$return = [];
-		if (!empty($data['users'])) {
-			$this->deleteIdentifyMethodIfNotExits($data['users'], $file);
+		if (!empty($data['signers'])) {
+			$this->deleteIdentifyMethodIfNotExits($data['signers'], $file);
 			$this->identifyMethod->clearCache();
 
 			$this->sequentialSigningService->resetOrderCounter();
 			$fileStatus = $data['status'] ?? null;
 
-			foreach ($data['users'] as $user) {
-				$userProvidedOrder = isset($user['signingOrder']) ? (int)$user['signingOrder'] : null;
+			foreach ($data['signers'] as $signer) {
+				$userProvidedOrder = isset($signer['signingOrder']) ? (int)$signer['signingOrder'] : null;
 				$signingOrder = $this->sequentialSigningService->determineSigningOrder($userProvidedOrder);
-				$signerStatus = $user['status'] ?? null;
-				$shouldNotify = !isset($user['notify']) || $user['notify'] !== 0;
+				$signerStatus = $signer['status'] ?? null;
+				$shouldNotify = !isset($signer['notify']) || $signer['notify'] !== 0;
 
-				if (isset($user['identifyMethods'])) {
-					foreach ($user['identifyMethods'] as $identifyMethod) {
+				if (isset($signer['identifyMethods'])) {
+					foreach ($signer['identifyMethods'] as $identifyMethod) {
 						$return[] = $this->signRequestService->createOrUpdateSignRequest(
 							identifyMethods: [
 								$identifyMethod['method'] => $identifyMethod['value'],
 							],
-							displayName: $user['displayName'] ?? '',
-							description: $user['description'] ?? '',
+							displayName: $signer['displayName'] ?? '',
+							description: $signer['description'] ?? '',
 							notify: $shouldNotify,
 							fileId: $file->getId(),
 							signingOrder: $signingOrder,
@@ -529,9 +529,9 @@ class RequestSignatureService {
 					}
 				} else {
 					$return[] = $this->signRequestService->createOrUpdateSignRequest(
-						identifyMethods: $user['identify'],
-						displayName: $user['displayName'] ?? '',
-						description: $user['description'] ?? '',
+						identifyMethods: $signer['identify'],
+						displayName: $signer['displayName'] ?? '',
+						description: $signer['description'] ?? '',
 						notify: $shouldNotify,
 						fileId: $file->getId(),
 						signingOrder: $signingOrder,
@@ -574,7 +574,7 @@ class RequestSignatureService {
 
 	public function validateNewRequestToFile(array $data): void {
 		$this->validateNewFile($data);
-		$this->validateUsers($data);
+		$this->validateSigners($data);
 		$this->validateHelper->validateFileStatus($data);
 	}
 
@@ -585,22 +585,22 @@ class RequestSignatureService {
 		$this->validateHelper->validateNewFile($data);
 	}
 
-	public function validateUsers(array $data): void {
-		if (empty($data['users'])) {
+	public function validateSigners(array $data): void {
+		if (empty($data['signers'])) {
 			if (($data['status'] ?? FileStatus::ABLE_TO_SIGN->value) === FileStatus::DRAFT->value) {
 				return;
 			}
-			throw new \Exception($this->l10n->t('Empty users list'));
+			throw new \Exception($this->l10n->t('Empty signers list'));
 		}
-		if (!is_array($data['users'])) {
-			// TRANSLATION This message will be displayed when the request to API with the key users has a value that is not an array
-			throw new \Exception($this->l10n->t('User list needs to be an array'));
+		if (!is_array($data['signers'])) {
+			// TRANSLATION This message will be displayed when the request to API with the key signers has a value that is not an array
+			throw new \Exception($this->l10n->t('Signers list needs to be an array'));
 		}
-		foreach ($data['users'] as $user) {
-			if (!array_key_exists('identify', $user)) {
+		foreach ($data['signers'] as $signer) {
+			if (!array_key_exists('identify', $signer)) {
 				throw new \Exception('Identify key not found');
 			}
-			$this->identifyMethod->setAllEntityData($user);
+			$this->identifyMethod->setAllEntityData($signer);
 		}
 	}
 

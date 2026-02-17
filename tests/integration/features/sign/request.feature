@@ -7,7 +7,7 @@ Feature: request-signature
     And as user "signer1"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":""} |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -21,7 +21,7 @@ Feature: request-signature
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"invalid":""} |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
       | name | |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -43,7 +43,7 @@ Feature: request-signature
       | rootCert | {"commonName":"test"} |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     And the response should have a status code 200
     And there should be 1 emails in my inbox
@@ -80,7 +80,7 @@ Feature: request-signature
       | rootCert | {"commonName":"test"} |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     And the response should have a status code 200
     And there should be 1 emails in my inbox
@@ -110,7 +110,7 @@ Feature: request-signature
     And my inbox is empty
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
     And as user "signer1"
@@ -133,7 +133,7 @@ Feature: request-signature
     And my inbox is empty
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
@@ -157,7 +157,7 @@ Feature: request-signature
     And run the command "config:app:set libresign maximum_validity --value=1 --type=integer" with result code 0
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer2@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer2@domain.test"}}] |
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
@@ -181,7 +181,7 @@ Feature: request-signature
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer2@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer2@domain.test"}}] |
       | name | document |
     And the response should have a status code 200
     And there should be 1 emails in my inbox
@@ -233,7 +233,7 @@ Feature: request-signature
       | value | (string)[{"name":"account","enabled":true}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer2"}}] |
+      | signers | [{"identify":{"account":"signer2"}}] |
       | name | document |
     Then the response should be a JSON array with the following mandatory values
       | key                   | value        |
@@ -249,7 +249,7 @@ Feature: request-signature
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
     And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
@@ -266,7 +266,7 @@ Feature: request-signature
     When as user "admin"
     And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
     And the response should have a status code 200
     When as user "signer1"
     Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
@@ -285,7 +285,7 @@ Feature: request-signature
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"}  |
-      | users | [{"identify":{"account":"invaliddomain.test"}}] |
+      | signers | [{"identify":{"account":"invaliddomain.test"}}] |
       | name | document |
     Then the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
@@ -298,7 +298,7 @@ Feature: request-signature
       | rootCert | {"commonName":"test"} |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer3@domain.test"}}] |
+      | signers | [{"identify":{"account":"signer3@domain.test"}}] |
       | name | document |
     Then the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
@@ -313,7 +313,7 @@ Feature: request-signature
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer2@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer2@domain.test"}}] |
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
@@ -329,7 +329,7 @@ Feature: request-signature
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
     When as user "signer1"
@@ -347,7 +347,7 @@ Feature: request-signature
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
@@ -361,7 +361,7 @@ Feature: request-signature
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
     And I send a file to be signed
       | file   | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users  | [{"identify":{"email":"signer1@domain.test"}}]  |
+      | signers  | [{"identify":{"email":"signer1@domain.test"}}]  |
       | status | 0                                               |
       | name   | document                                        |
     And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
@@ -391,7 +391,7 @@ Feature: request-signature
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
     When as user "signer1"
@@ -410,7 +410,7 @@ Feature: request-signature
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"11111@domain.test"}},{"identify":{"email":"22222@domain.test"}}] |
+      | signers | [{"identify":{"email":"11111@domain.test"}},{"identify":{"email":"22222@domain.test"}}] |
       | name | document |
     Then the response should have a status code 200
     When I open the latest email to "11111@domain.test" with subject "LibreSign: There is a file for you to sign"
@@ -452,7 +452,7 @@ Feature: request-signature
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"11111@domain.test"}}] |
+      | signers | [{"identify":{"email":"11111@domain.test"}}] |
       | name | document |
     Then the response should have a status code 200
     When I open the latest email to "11111@domain.test" with subject "LibreSign: There is a file for you to sign"
@@ -497,7 +497,7 @@ Feature: request-signature
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"11111@domain.test"}}] |
+      | signers | [{"identify":{"email":"11111@domain.test"}}] |
       | name | document |
     Then the response should have a status code 200
     When I open the latest email to "11111@domain.test" with subject "LibreSign: There is a file for you to sign"
@@ -536,7 +536,7 @@ Feature: request-signature
     And as user "admin"
     When I send a file to be signed
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
       | name | document |
     And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
     And the response should have a status code 200
@@ -554,7 +554,7 @@ Feature: request-signature
       | (jq).ocs.data.data[0].signers[1].me            | false               |
     And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
     And the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should be a JSON array with the following mandatory values
@@ -577,13 +577,13 @@ Feature: request-signature
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"emailToken":{"enabled":true}}}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
       | status | 0 |
     And there should be 0 emails in my inbox
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | signers | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
       | status | 1 |
     And there should be 1 email in my inbox
