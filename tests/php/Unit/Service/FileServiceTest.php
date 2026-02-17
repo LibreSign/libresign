@@ -388,4 +388,91 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'visible elements not included when showVisibleElements() not called' => [false, false],
 		];
 	}
+
+	public function testEnvelopeVisibleElementsIncludesChildFileElements(): void {
+		$envelopeFile = new \OCA\Libresign\Db\File();
+		$envelopeFile->setId(10);
+		$envelopeFile->setUuid('envelope-uuid');
+		$envelopeFile->setName('envelope.pdf');
+		$envelopeFile->setStatus(1);
+		$envelopeFile->setCreatedAt(new \DateTime());
+		$envelopeFile->setNodeId(100);
+		$envelopeFile->setNodeType('envelope');
+		$envelopeFile->setSignatureFlow('');
+		$envelopeFile->setDocmdpLevel('');
+		$envelopeFile->setUserId('testuser');
+		$envelopeFile->setMetadata(['filesCount' => 1]);
+
+		$childFile = new \OCA\Libresign\Db\File();
+		$childFile->setId(20);
+		$childFile->setNodeType('file');
+		$childFile->setMetadata(['d' => [['w' => 595, 'h' => 842]]]);
+
+		$childSignRequest = new \OCA\Libresign\Db\SignRequest();
+		$childSignRequest->setId(200);
+		$childSignRequest->setFileId(20);
+
+		$fileElement = new \OCA\Libresign\Db\FileElement();
+		$fileElement->setId(300);
+		$fileElement->setSignRequestId(200);
+		$fileElement->setFileId(20);
+		$fileElement->setType('signature');
+		$fileElement->setPage(1);
+		$fileElement->setUrx(200);
+		$fileElement->setUry(400);
+		$fileElement->setLlx(100);
+		$fileElement->setLly(350);
+		$fileElement->setMetadata([]);
+
+		$this->fileMapper->method('getChildrenFiles')
+			->with(10)
+			->willReturn([$childFile]);
+
+		$this->signRequestMapper->method('getByMultipleFileId')
+			->with([10, 20])
+			->willReturn([$childSignRequest]);
+
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')
+			->with([$childSignRequest])
+			->willReturn([200 => [$fileElement]]);
+
+		$expectedFormatted = [[
+			'elementId' => 300,
+			'signRequestId' => 200,
+			'fileId' => 20,
+			'type' => 'signature',
+			'coordinates' => [
+				'page' => 1,
+				'urx' => 200,
+				'ury' => 400,
+				'llx' => 100,
+				'lly' => 350,
+				'left' => 100,
+				'top' => 442,
+				'width' => 100,
+				'height' => 50,
+			],
+		]];
+
+		$this->fileElementService->method('formatVisibleElements')
+			->willReturn($expectedFormatted);
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getDisplayName')->willReturn('Test User');
+		$this->userManager->method('get')->willReturn($user);
+		$this->fileMapper->method('getTextOfStatus')->willReturn('Status text');
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+
+		$service = $this->createFileService();
+		$result = $service
+			->setFile($envelopeFile)
+			->showVisibleElements()
+			->toArray();
+
+		$this->assertArrayHasKey('visibleElements', $result);
+		$this->assertCount(1, $result['visibleElements']);
+		$this->assertSame(300, $result['visibleElements'][0]['elementId']);
+		$this->assertSame(200, $result['visibleElements'][0]['signRequestId']);
+		$this->assertSame(20, $result['visibleElements'][0]['fileId']);
+	}
 }
