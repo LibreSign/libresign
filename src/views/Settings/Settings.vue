@@ -16,7 +16,7 @@
 		<Validation />
 		<DocMDP />
 		<SignatureFlow />
-		<SigningMode />
+		<SigningMode v-if="false" />
 		<AllowedGroups />
 		<LegalInformation />
 		<IdentificationDocuments />
