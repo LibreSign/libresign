@@ -782,4 +782,73 @@ describe('Sign.vue - signWithTokenCode', () => {
 			}
 		})
 	})
+
+	describe('Sign.vue - envelope visible elements', () => {
+		it('includes elements from child files when document has no signers', async () => {
+			setActivePinia(createPinia())
+
+			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const realSign = SignComponent.default
+			const { useSignStore } = await import('../../../store/sign.js')
+			const { useSignatureElementsStore } = await import('../../../store/signatureElements.js')
+
+			const signStore = useSignStore()
+			const signatureElementsStore = useSignatureElementsStore()
+
+			signStore.document = {
+				id: 1,
+				nodeType: 'envelope',
+				signers: [],
+				files: [
+					{
+						id: 10,
+						signers: [
+							{ signRequestId: 501, me: true },
+						],
+						visibleElements: [
+							{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature' },
+						],
+					},
+				],
+			}
+
+			signatureElementsStore.signs.signature = {
+				id: 1,
+				type: 'signature',
+				file: { url: '/sig.png', nodeId: 11623 },
+				starred: 0,
+				createdAt: '2024-01-01',
+			}
+
+			const wrapper = mount(realSign, {
+				global: {
+					stubs: {
+						NcButton: true,
+						NcDialog: true,
+						NcLoadingIcon: true,
+						TokenManager: true,
+						EmailManager: true,
+						UploadCertificate: true,
+						Documents: true,
+						Signatures: true,
+						Draw: true,
+						ManagePassword: true,
+						CreatePassword: true,
+						NcNoteCard: true,
+						NcPasswordField: true,
+						NcRichText: true,
+					},
+					mocks: {
+						$emit: vi.fn(),
+						$watch: vi.fn(),
+						$nextTick: vi.fn(),
+					},
+				},
+			})
+
+			expect(wrapper.vm.elements).toEqual([
+				{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature' },
+			])
+		})
+	})
 })
