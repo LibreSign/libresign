@@ -107,11 +107,25 @@ const router = new Router({
 		// internal pages
 		{
 			path: '/f/',
-			redirect: { name: 'requestFiles' },
+			beforeEnter: (to, from, next) => {
+				const canRequestSign = loadState('libresign', 'can_request_sign', false)
+				if (canRequestSign) {
+					next({ name: 'requestFiles' })
+				} else {
+					next({ name: 'fileslist' })
+				}
+			},
 		},
 		{
 			path: '/',
-			redirect: { name: 'requestFiles' },
+			beforeEnter: (to, from, next) => {
+				const canRequestSign = loadState('libresign', 'can_request_sign', false)
+				if (canRequestSign) {
+					next({ name: 'requestFiles' })
+				} else {
+					next({ name: 'fileslist' })
+				}
+			},
 		},
 		{
 			path: '/f/incomplete',
