@@ -29,7 +29,6 @@
     "User not found" : "A felhasználó nem található",
     "Identification Document" : "Azonosító dokumentum",
     "draft" : "vázlat",
-    "partially signed" : "részlegesen aláírva",
     "signed" : "aláírva",
     "deleted" : "törölve",
     "Draft" : "Piszkozat",
@@ -129,8 +128,6 @@
     "Use this code to sign the document:" : "Használja ezt a kódot a dokumentum aláírásához:",
     "No signature was requested to %s" : "Nem kértek aláírást a következőhöz: %s",
     "%s already signed this file" : "%s már aláírta ezt a fájlt",
-    "Empty users list" : "Üres felhasználói lista",
-    "User list needs to be an array" : "A felhasználói listának tömbnek kell lennie",
     "Sending authorization code not enabled." : "Az engedélyezési kód nem engedélyezett.",
     "File already signed by you" : "A fájlt Ön már aláírta",
     "LibreSign" : "LibreSign",
@@ -360,7 +357,10 @@
     "Open in LibreSign" : "Megnyitás a LibreSignban",
     "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}",
     "Deleted" : "Törölve",
+    "partially signed" : "részlegesen aláírva",
     "no signers" : "nincsenek aláírók",
+    "Empty users list" : "Üres felhasználói lista",
+    "User list needs to be an array" : "A felhasználói listának tömbnek kell lennie",
     "Select other file" : "Válasszon másik fájlt",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Használja az egérgörgőt hogy nagyítsa vagy kicsinyítse a képet, és találja meg hogy néz ki a legjobban az aláírása."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

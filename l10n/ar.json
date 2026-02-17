@@ -37,7 +37,6 @@
     "Identification Document" : "وثيقة تعريف",
     "not LibreSign file" : "ليس ملف LibreSign",
     "draft" : "مسودة",
-    "partially signed" : "موقعة جزئيا",
     "signed" : "مُوقع",
     "deleted" : "خذفت",
     "Draft" : "مبدئي",
@@ -161,8 +160,6 @@
     "Use this code to sign the document:" : "استخدم هذا الرمز لتوقيع الوثيقة:",
     "No signature was requested to %s" : "لم يتم طلب توقيع لـ %s",
     "%s already signed this file" : "قام %sبالتوقيع بالفعل على هذا الملف",
-    "Empty users list" : "قائمة المستخدمين فارغة",
-    "User list needs to be an array" : "يجب أن تكون قائمة المستخدمين مصفوفة",
     "Sending authorization code not enabled." : "لم يتم تمكين إرسال رمز التفويض.",
     "File already signed by you" : "الملف موقع بالفعل من جانبك",
     "LibreSign" : "تطبيق التوقيع الإلكتروني LibreSign",
@@ -449,7 +446,10 @@
     "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}",
     "Deleted" : "محذوف",
     "available for signature" : "جاهز للتوقيع",
+    "partially signed" : "موقعة جزئيا",
     "no signers" : "لا يوجد مُوقِّعون",
+    "Empty users list" : "قائمة المستخدمين فارغة",
+    "User list needs to be an array" : "يجب أن تكون قائمة المستخدمين مصفوفة",
     "Select other file" : "حدد ملفًا آخر",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "استخدم بكرة الفأرة لتكبير الصورة أو تصغيرها والعثور على أفضل عرض لتوقيعك."
 },"pluralForm" :"nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;"

@@ -29,7 +29,6 @@
     "User not found" : "Nie znaleziono użytkownika",
     "Identification Document" : "Dokument tożsamości",
     "draft" : "kopia robocza",
-    "partially signed" : "częściowo podpisany",
     "signed" : "podpisany",
     "deleted" : "usunięty",
     "Draft" : "Wersja robocza",
@@ -117,8 +116,6 @@
     "Use this code to sign the document:" : "Użyj tego kodu do podpisania dokumentu:",
     "No signature was requested to %s" : "Nie zażądano podpisu do %s",
     "%s already signed this file" : "%s już podpisał ten plik",
-    "Empty users list" : "Pusta lista użytkowników",
-    "User list needs to be an array" : "Lista użytkownika wymaga ustawienia",
     "Sending authorization code not enabled." : "Wysyłanie kodu autoryzacyjnego nie jest włączone.",
     "File already signed by you" : "Plik już podpisany przez Ciebie",
     "LibreSign" : "LibreSign",
@@ -324,6 +321,9 @@
     "Open in LibreSign" : "Otwórz w LibreSign",
     "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}",
     "Deleted" : "Usunięto",
+    "partially signed" : "częściowo podpisany",
+    "Empty users list" : "Pusta lista użytkowników",
+    "User list needs to be an array" : "Lista użytkownika wymaga ustawienia",
     "Select other file" : "Wybierz inny plik",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Użyj kółka myszy, aby powiększyć lub pomniejszyć obraz i znaleźć najlepszy widok podpisu."
 },"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"

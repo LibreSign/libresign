@@ -26,7 +26,6 @@
     "Visible element deleted" : "표시된 요소가 삭제됨",
     "User not found" : "사용자를 찾을 수 없음",
     "draft" : "초안",
-    "partially signed" : "부분 서명됨",
     "signed" : "서명됨",
     "deleted" : "삭제됨",
     "Draft" : "초안",
@@ -111,8 +110,6 @@
     "Use this code to sign the document:" : "이 코드를 사용하여 문서에 서명:",
     "No signature was requested to %s" : "%s에 서명이 요청되지 않았습니다.",
     "%s already signed this file" : "%s은 파일에 이미 서명했습니다.",
-    "Empty users list" : "빈 사용자 목록",
-    "User list needs to be an array" : "사용자 목록은 배열이어야 합니다.",
     "Sending authorization code not enabled." : "전송 승인 코드가 활성화되지 않았습니다.",
     "File already signed by you" : "사용자가 이미 서명한 파일",
     "LibreSign" : "LibreSign",
@@ -292,6 +289,9 @@
     "Return" : "반환",
     "Open in LibreSign" : "LibreSign으로 열기",
     "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨",
-    "Deleted" : "삭제됨"
+    "Deleted" : "삭제됨",
+    "partially signed" : "부분 서명됨",
+    "Empty users list" : "빈 사용자 목록",
+    "User list needs to be an array" : "사용자 목록은 배열이어야 합니다."
 },"pluralForm" :"nplurals=1; plural=0;"
 }

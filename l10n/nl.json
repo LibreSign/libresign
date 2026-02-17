@@ -28,7 +28,6 @@
     "User not found" : "Gebruiker niet gevonden",
     "Identification Document" : "Identiteitsdocument",
     "draft" : "concept",
-    "partially signed" : "gedeeltelijk gesigneerd",
     "signed" : "getekend",
     "deleted" : "verwijderd",
     "Draft" : "Concept",
@@ -115,8 +114,6 @@
     "Use this code to sign the document:" : "Gebruik deze code om het document te ondertekenen:",
     "No signature was requested to %s" : "Geen handtekening gevraagd %s",
     "%s already signed this file" : "%s heeft dit bestand al getekend",
-    "Empty users list" : "Leeg gebruikersoverzicht",
-    "User list needs to be an array" : "Gebruikersoverzicht moet een reeks zijn",
     "Sending authorization code not enabled." : "Verzenden van autorisatiecode niet ingeschakeld.",
     "File already signed by you" : "Je hebt dit bestand al ondertekend",
     "LibreSign" : "LibreSign",
@@ -309,6 +306,9 @@
     "Open in LibreSign" : "Openen in LibreSign",
     "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}",
     "Deleted" : "Verwijderd",
+    "partially signed" : "gedeeltelijk gesigneerd",
+    "Empty users list" : "Leeg gebruikersoverzicht",
+    "User list needs to be an array" : "Gebruikersoverzicht moet een reeks zijn",
     "Select other file" : "Selecteer ander bestand",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Gebruik uw muiswiel om in of uit te zoomen op de afbeelding en vind de beste weergave van uw handtekening."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

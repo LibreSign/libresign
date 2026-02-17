@@ -70,8 +70,6 @@ OC.L10N.register(
     "LibreSign: There is a file for you to sign" : "LibreSign: b'at un'archìviu che deves firmare",
     "No signature was requested to %s" : "Non s'est fata dimanda pro peruna firma %s",
     "%s already signed this file" : "%s archìviu giai firmadu",
-    "Empty users list" : "Elencu de utentes bòidu",
-    "User list needs to be an array" : "S'elencu de utentes devet èssere unu vetore",
     "File already signed by you" : "Archìviu giai firmadu dae te",
     "LibreSign" : "LibreSign",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplicatzione pro sa firma digitale pro Nextcloud.",
@@ -209,6 +207,8 @@ OC.L10N.register(
     "Return" : "Torra",
     "Open in LibreSign" : "Aberi in LibreSign",
     "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
-    "Deleted" : "Cantzelladu"
+    "Deleted" : "Cantzelladu",
+    "Empty users list" : "Elencu de utentes bòidu",
+    "User list needs to be an array" : "S'elencu de utentes devet èssere unu vetore"
 },
 "nplurals=2; plural=(n != 1);");
