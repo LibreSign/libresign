@@ -913,6 +913,25 @@ describe('files store - critical business rules', () => {
 	})
 
 	describe('RULE: saveOrUpdateSignatureRequest payload rules', () => {
+			it('sends signers field as canonical payload', async () => {
+				const store = useFilesStore()
+				store.selectedFileId = 1
+				store.files[1] = {
+					id: 1,
+					name: 'contract.pdf',
+					signatureFlow: 'parallel',
+					signers: [{ email: 'signer@example.com' }],
+				}
+				axios.mockResolvedValue({
+					data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({ status: 1 })
+
+				const config = axios.mock.calls[0][0]
+				expect(config.data.signers).toEqual([{ email: 'signer@example.com' }])
+			})
+
 		it('maps numeric signatureFlow to ordered_numeric', async () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
