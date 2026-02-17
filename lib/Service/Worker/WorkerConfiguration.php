@@ -21,7 +21,7 @@ class WorkerConfiguration {
 	}
 
 	public function isAsyncLocalEnabled(): bool {
-		$signingMode = $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'async');
+		$signingMode = $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'sync');
 		if ($signingMode !== 'async') {
 			return false;
 		}
