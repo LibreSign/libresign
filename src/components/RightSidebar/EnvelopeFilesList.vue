@@ -75,7 +75,7 @@
 							class="file-preview-icon">
 						<FilePdfBox v-else :size="20" />
 					</template>
-					<template #actions>
+					<template v-if="!isTouchDevice" #actions>
 						<NcActionButton
 							:close-after-click="true"
 							@click="openFile(file)">
@@ -92,6 +92,18 @@
 							</template>
 							{{ t('libresign', 'Delete') }}
 						</NcActionButton>
+					</template>
+					<template v-if="isTouchDevice" #extra-actions>
+						<NcButton variant="tertiary" :aria-label="t('libresign', 'Open file')" @click="openFile(file)">
+							<template #icon>
+								<FileEye :size="20" />
+							</template>
+						</NcButton>
+						<NcButton v-if="canDelete" variant="tertiary" :aria-label="t('libresign', 'Delete')" @click="handleDelete(file)">
+							<template #icon>
+								<Delete :size="20" />
+							</template>
+						</NcButton>
 					</template>
 				</NcListItem>
 				<div v-if="isLoadingMore" class="loading-more">
@@ -138,6 +150,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import UploadProgress from '../UploadProgress.vue'
+import isTouchDevice from '../../mixins/isTouchDevice.js'
 
 import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
@@ -145,6 +158,7 @@ import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'EnvelopeFilesList',
+	mixins: [isTouchDevice],
 	components: {
 		Delete,
 		FileEye,
