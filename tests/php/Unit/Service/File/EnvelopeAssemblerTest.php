@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 
 use OCA\Libresign\Db\File as DbFile;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest as DbSignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -17,6 +18,7 @@ use OCA\Libresign\Service\File\EnvelopeAssembler;
 use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\SignersLoader;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -77,7 +79,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signRequestMapper->method('getByFileId')->willReturn([$signRequest]);
 
 		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
-		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn([]);
 
 		$this->fileMapper->method('getTextOfStatus')->willReturn('status-text');
 
@@ -131,7 +133,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 
 		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
-		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn([]);
 
 		$this->fileMapper->method('getTextOfStatus')->willReturn('pending');
 
@@ -172,7 +174,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signRequestMapper->expects($this->never())->method('getVisibleElementsFromSigners');
 
 		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
-		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn([]);
 
 		$this->fileMapper->method('getTextOfStatus')->willReturn('pending');
 
@@ -214,7 +216,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signRequestMapper->method('getByFileId')->willReturn([$signer1, $signer2]);
 
 		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
-		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn([]);
 
 		$this->fileMapper->method('getTextOfStatus')->willReturn('partial');
 
@@ -235,6 +237,63 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertCount(2, $result->signers);
 		$this->assertEquals(1, $result->signers[0]->signRequestId);
 		$this->assertEquals(2, $result->signers[1]->signRequestId);
+	}
+
+	public function testBuildsChildDataIncludesIdentifyMethodsAndMetadata(): void {
+		$this->mockFileNode();
+
+		$signRequest = new DbSignRequest();
+		$signRequest->setId(99);
+		$signRequest->setDisplayName('Signer');
+		$signRequest->setStatus(1);
+		$signRequest->setMetadata(['certificate_info' => ['serialNumber' => '1234']]);
+
+		$this->signRequestMapper->method('getByFileId')->willReturn([$signRequest]);
+
+		$identifyEntity = new IdentifyMethod();
+		$identifyEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+		$identifyEntity->setIdentifierValue('signer@example.com');
+		$identifyEntity->setMandatory(1);
+
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getEntity')->willReturn($identifyEntity);
+
+		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn([
+			99 => [
+				IdentifyMethodService::IDENTIFY_EMAIL => [$identifyMethod],
+			],
+		]);
+
+		$this->fileMapper->method('getTextOfStatus')->willReturn('pending');
+
+		$assembler = $this->getService();
+
+		$childFile = new DbFile();
+		$childFile->setId(44);
+		$childFile->setUuid('uuid-44');
+		$childFile->setName('agreement.pdf');
+		$childFile->setStatus(1);
+		$childFile->setNodeId(500);
+		$childFile->setMetadata(['p' => 1]);
+		$childFile->setUserId('user1');
+
+		$options = new FileResponseOptions();
+		$result = $assembler->buildEnvelopeChildData($childFile, $options);
+
+		$this->assertCount(1, $result->signers);
+		$this->assertSame('email:signer@example.com', $result->signers[0]->uid);
+		$this->assertSame(
+			[
+				[
+					'method' => IdentifyMethodService::IDENTIFY_EMAIL,
+					'value' => 'signer@example.com',
+					'mandatory' => 1,
+				],
+			],
+			$result->signers[0]->identifyMethods
+		);
+		$this->assertSame(['certificate_info' => ['serialNumber' => '1234']], $result->signers[0]->metadata);
 	}
 
 	private function createMockFileElement(
