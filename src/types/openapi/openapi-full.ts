@@ -1678,6 +1678,8 @@ export type components = {
                 userId: string;
                 displayName: string | null;
             };
+            /** Format: int64 */
+            docmdpLevel: number;
             signatureFlow: number | string;
             signers: components["schemas"]["Signer"][];
             /** Format: int64 */
@@ -1700,6 +1702,8 @@ export type components = {
             /** Format: int64 */
             status: number;
             statusText: string;
+            /** Format: int64 */
+            docmdpLevel: number;
             /** Format: int64 */
             signersCount: number;
             file: string;
@@ -1776,6 +1780,8 @@ export type components = {
             created_at: string;
             signUuid?: string | null;
             metadata: components["schemas"]["ValidateMetadata"];
+            /** Format: int64 */
+            docmdpLevel: number;
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
             visibleElements: components["schemas"]["VisibleElement"][];
