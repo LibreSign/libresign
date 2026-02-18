@@ -8,6 +8,10 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import IdentifySigner from '../../../components/Request/IdentifySigner.vue'
 
+vi.mock('@nextcloud/dialogs', () => ({
+	showError: vi.fn(),
+}))
+
 let filesStore
 vi.mock('../../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStore),
@@ -33,7 +37,7 @@ describe('IdentifySigner rules', () => {
 		const { useFilesStore: useFilesStoreModule } = await import('../../../store/files.js')
 		filesStore = {
 			disableIdentifySigner: vi.fn(),
-			signerUpdate: vi.fn(),
+			getFile: vi.fn(() => ({ signers: [] })),
 			saveOrUpdateSignatureRequest: vi.fn().mockResolvedValue({}),
 		}
 		useFilesStoreModule.mockReturnValue(filesStore)
@@ -285,7 +289,7 @@ describe('IdentifySigner rules', () => {
 
 			await wrapper.vm.saveSigner()
 
-			expect(filesStore.signerUpdate).not.toHaveBeenCalled()
+			expect(filesStore.saveOrUpdateSignatureRequest).not.toHaveBeenCalled()
 		})
 
 		it('does not save when no id provided', async () => {
@@ -293,10 +297,13 @@ describe('IdentifySigner rules', () => {
 
 			await wrapper.vm.saveSigner()
 
-			expect(filesStore.signerUpdate).not.toHaveBeenCalled()
+			expect(filesStore.saveOrUpdateSignatureRequest).not.toHaveBeenCalled()
 		})
 
-		it('calls signerUpdate with correct payload', async () => {
+		it('sends signer list to save request', async () => {
+			filesStore.getFile.mockReturnValueOnce({
+				signers: [{ identify: { email: 'existing@example.com' } }],
+			})
 			wrapper.vm.signer = { id: 'john@example.com', method: 'email' }
 			wrapper.vm.displayName = 'John Doe'
 			wrapper.vm.description = ''
@@ -304,14 +311,19 @@ describe('IdentifySigner rules', () => {
 
 			await wrapper.vm.saveSigner()
 
-			expect(filesStore.signerUpdate).toHaveBeenCalledWith({
-				displayName: 'John Doe',
-				description: undefined,
-				identify: 'john@example.com',
-				identifyMethods: [{
-					method: 'email',
-					value: 'john@example.com',
-				}],
+			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalledWith({
+				signers: [
+					{ identify: { email: 'existing@example.com' } },
+					{
+						displayName: 'John Doe',
+						description: undefined,
+						identify: 'john@example.com',
+						identifyMethods: [{
+							method: 'email',
+							value: 'john@example.com',
+						}],
+					},
+				],
 			})
 		})
 
@@ -322,11 +334,8 @@ describe('IdentifySigner rules', () => {
 
 			await wrapper.vm.saveSigner()
 
-			expect(filesStore.signerUpdate).toHaveBeenCalledWith(
-				expect.objectContaining({
-					description: 'test message',
-				})
-			)
+			const payload = filesStore.saveOrUpdateSignatureRequest.mock.calls[0][0]
+			expect(payload.signers[0].description).toBe('test message')
 		})
 
 		it('omits description when empty after trim', async () => {
@@ -336,11 +345,8 @@ describe('IdentifySigner rules', () => {
 
 			await wrapper.vm.saveSigner()
 
-			expect(filesStore.signerUpdate).toHaveBeenCalledWith(
-				expect.objectContaining({
-					description: undefined,
-				})
-			)
+			const payload = filesStore.saveOrUpdateSignatureRequest.mock.calls[0][0]
+			expect(payload.signers[0].description).toBeUndefined()
 		})
 
 		it('saves signature request after updating signer', async () => {
@@ -349,7 +355,7 @@ describe('IdentifySigner rules', () => {
 
 			await wrapper.vm.saveSigner()
 
-			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalledWith({})
+			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalled()
 		})
 
 		it('clears form after successful save', async () => {
@@ -376,6 +382,7 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('handles save error gracefully', async () => {
+			const { showError } = await import('@nextcloud/dialogs')
 			filesStore.saveOrUpdateSignatureRequest.mockRejectedValue(
 				new Error('Network error')
 			)
@@ -384,6 +391,7 @@ describe('IdentifySigner rules', () => {
 			wrapper.vm.displayName = 'John'
 
 			await expect(wrapper.vm.saveSigner()).resolves.not.toThrow()
+			expect(showError).toHaveBeenCalled()
 		})
 	})
 
