@@ -61,6 +61,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 	</background-jobs>
 	<repair-steps>
 		<post-migration>
+			<step>OCA\Libresign\Migration\CleanupOrphanNodeIds</step>
 			<step>OCA\Libresign\Migration\DeleteOldBinaries</step>
 			<step>OCA\Libresign\Migration\ResynchronizeDatabaseSequences</step>
 			<step>OCA\Libresign\Migration\StopRunningWorkers</step>

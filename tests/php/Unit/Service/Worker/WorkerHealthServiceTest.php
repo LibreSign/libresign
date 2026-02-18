@@ -10,7 +10,6 @@ namespace OCA\Libresign\Tests\Unit\Service\Worker;
 
 use OCA\Libresign\Service\Worker\StartThrottlePolicy;
 use OCA\Libresign\Service\Worker\WorkerConfiguration;
-use OCA\Libresign\Service\Worker\WorkerCounter;
 use OCA\Libresign\Service\Worker\WorkerHealthService;
 use OCA\Libresign\Service\Worker\WorkerJobCounter;
 use OCA\Libresign\Service\Worker\WorkerStarter;
@@ -20,7 +19,6 @@ use Psr\Log\LoggerInterface;
 
 class WorkerHealthServiceTest extends TestCase {
 	private WorkerConfiguration&MockObject $workerConfiguration;
-	private WorkerCounter&MockObject $workerCounter;
 	private WorkerJobCounter&MockObject $workerJobCounter;
 	private StartThrottlePolicy&MockObject $startThrottlePolicy;
 	private WorkerStarter&MockObject $workerStarter;
@@ -29,7 +27,6 @@ class WorkerHealthServiceTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 		$this->workerConfiguration = $this->createMock(WorkerConfiguration::class);
-		$this->workerCounter = $this->createMock(WorkerCounter::class);
 		$this->workerJobCounter = $this->createMock(WorkerJobCounter::class);
 		$this->startThrottlePolicy = $this->createMock(StartThrottlePolicy::class);
 		$this->workerStarter = $this->createMock(WorkerStarter::class);
@@ -39,7 +36,6 @@ class WorkerHealthServiceTest extends TestCase {
 	private function makeService(): WorkerHealthService {
 		return new WorkerHealthService(
 			$this->workerConfiguration,
-			$this->workerCounter,
 			$this->workerJobCounter,
 			$this->startThrottlePolicy,
 			$this->workerStarter,
@@ -61,14 +57,6 @@ class WorkerHealthServiceTest extends TestCase {
 			->method('isAsyncLocalEnabled')
 			->willReturn(true);
 
-		$this->workerConfiguration->expects($this->once())
-			->method('getDesiredWorkerCount')
-			->willReturn(4);
-
-		$this->workerCounter->expects($this->once())
-			->method('countRunning')
-			->willReturn(0);
-
 		$this->workerJobCounter->expects($this->once())
 			->method('countPendingJobs')
 			->willReturn(0);
@@ -78,30 +66,6 @@ class WorkerHealthServiceTest extends TestCase {
 
 		$this->workerStarter->expects($this->never())
 			->method('startWorkers');
-
-		$service = $this->makeService();
-		$this->assertTrue($service->ensureWorkerRunning());
-	}
-
-	public function testEnsureWorkerRunningNoStartWhenEnoughWorkers(): void {
-		$this->workerConfiguration->expects($this->once())
-			->method('isAsyncLocalEnabled')
-			->willReturn(true);
-
-		$this->workerConfiguration->expects($this->once())
-			->method('getDesiredWorkerCount')
-			->willReturn(4);
-
-		$this->workerCounter->expects($this->once())
-			->method('countRunning')
-			->willReturn(4);
-
-		$this->workerJobCounter->expects($this->once())
-			->method('countPendingJobs')
-			->willReturn(10);
-
-		$this->startThrottlePolicy->expects($this->never())
-			->method('isThrottled');
 
 		$service = $this->makeService();
 		$this->assertTrue($service->ensureWorkerRunning());
@@ -112,14 +76,6 @@ class WorkerHealthServiceTest extends TestCase {
 			->method('isAsyncLocalEnabled')
 			->willReturn(true);
 
-		$this->workerConfiguration->expects($this->once())
-			->method('getDesiredWorkerCount')
-			->willReturn(4);
-
-		$this->workerCounter->expects($this->once())
-			->method('countRunning')
-			->willReturn(0);
-
 		$this->workerJobCounter->expects($this->once())
 			->method('countPendingJobs')
 			->willReturn(5);
@@ -138,7 +94,7 @@ class WorkerHealthServiceTest extends TestCase {
 		$this->assertTrue($service->ensureWorkerRunning());
 	}
 
-	public function testEnsureWorkerRunningStartsWhenNotThrottled(): void {
+	public function testEnsureWorkerRunningStartsWorkersWhenNotThrottledAndPendingJobs(): void {
 		$this->workerConfiguration->expects($this->once())
 			->method('isAsyncLocalEnabled')
 			->willReturn(true);
@@ -147,13 +103,9 @@ class WorkerHealthServiceTest extends TestCase {
 			->method('getDesiredWorkerCount')
 			->willReturn(4);
 
-		$this->workerCounter->expects($this->once())
-			->method('countRunning')
-			->willReturn(2);
-
 		$this->workerJobCounter->expects($this->once())
 			->method('countPendingJobs')
-			->willReturn(10);
+			->willReturn(2);
 
 		$this->startThrottlePolicy->expects($this->once())
 			->method('isThrottled')
@@ -162,6 +114,7 @@ class WorkerHealthServiceTest extends TestCase {
 		$this->startThrottlePolicy->expects($this->once())
 			->method('recordAttempt');
 
+		// Should start min(2 pending, 4 desired) = 2 workers
 		$this->workerStarter->expects($this->once())
 			->method('startWorkers')
 			->with(2);
@@ -170,22 +123,18 @@ class WorkerHealthServiceTest extends TestCase {
 		$this->assertTrue($service->ensureWorkerRunning());
 	}
 
-	public function testEnsureWorkerRunningStartsOnlyNeededWorkersBasedOnPendingJobs(): void {
+	public function testEnsureWorkerRunningLimitsWorkersByDesiredCount(): void {
 		$this->workerConfiguration->expects($this->once())
 			->method('isAsyncLocalEnabled')
 			->willReturn(true);
 
 		$this->workerConfiguration->expects($this->once())
 			->method('getDesiredWorkerCount')
-			->willReturn(10);
-
-		$this->workerCounter->expects($this->once())
-			->method('countRunning')
-			->willReturn(0);
+			->willReturn(3);
 
 		$this->workerJobCounter->expects($this->once())
 			->method('countPendingJobs')
-			->willReturn(3);
+			->willReturn(10);
 
 		$this->startThrottlePolicy->expects($this->once())
 			->method('isThrottled')
@@ -194,7 +143,7 @@ class WorkerHealthServiceTest extends TestCase {
 		$this->startThrottlePolicy->expects($this->once())
 			->method('recordAttempt');
 
-		// Should only start 3 workers because there are only 3 pending jobs
+		// Should start min(10 pending, 3 desired) = 3 workers
 		$this->workerStarter->expects($this->once())
 			->method('startWorkers')
 			->with(3);
@@ -203,76 +152,7 @@ class WorkerHealthServiceTest extends TestCase {
 		$this->assertTrue($service->ensureWorkerRunning());
 	}
 
-	public function testEnsureWorkerRunningLimitsWorkersByPendingJobsAndRunningWorkers(): void {
-		$this->workerConfiguration->expects($this->once())
-			->method('isAsyncLocalEnabled')
-			->willReturn(true);
-
-		$this->workerConfiguration->expects($this->once())
-			->method('getDesiredWorkerCount')
-			->willReturn(10);
-
-		$this->workerCounter->expects($this->once())
-			->method('countRunning')
-			->willReturn(3);
-
-		$this->workerJobCounter->expects($this->once())
-			->method('countPendingJobs')
-			->willReturn(5);
-
-		$this->startThrottlePolicy->expects($this->once())
-			->method('isThrottled')
-			->willReturn(false);
-
-		$this->startThrottlePolicy->expects($this->once())
-			->method('recordAttempt');
-
-		// Pending jobs = 5, Running = 3, Desired = 10
-		// Should start min(5, 10-3) = min(5, 7) = 5 workers
-		$this->workerStarter->expects($this->once())
-			->method('startWorkers')
-			->with(5);
-
-		$service = $this->makeService();
-		$this->assertTrue($service->ensureWorkerRunning());
-	}
-
-	public function testEnsureWorkerRunningStartsFewerWorkersWhenLessPendingJobsThanGap(): void {
-		$this->workerConfiguration->expects($this->once())
-			->method('isAsyncLocalEnabled')
-			->willReturn(true);
-
-		$this->workerConfiguration->expects($this->once())
-			->method('getDesiredWorkerCount')
-			->willReturn(10);
-
-		$this->workerCounter->expects($this->once())
-			->method('countRunning')
-			->willReturn(1);
-
-		$this->workerJobCounter->expects($this->once())
-			->method('countPendingJobs')
-			->willReturn(2);
-
-		$this->startThrottlePolicy->expects($this->once())
-			->method('isThrottled')
-			->willReturn(false);
-
-		$this->startThrottlePolicy->expects($this->once())
-			->method('recordAttempt');
-
-		// Pending jobs = 2, Running = 1, Desired = 10
-		// Gap would be 9, but only 2 jobs pending
-		// Should start min(2, 9) = 2 workers
-		$this->workerStarter->expects($this->once())
-			->method('startWorkers')
-			->with(2);
-
-		$service = $this->makeService();
-		$this->assertTrue($service->ensureWorkerRunning());
-	}
-
-	public function testEnsureWorkerRunningStartsOneWorkerWhenOnlyOneJobPending(): void {
+	public function testEnsureWorkerRunningStartsOneWorkerForOnePendingJob(): void {
 		$this->workerConfiguration->expects($this->once())
 			->method('isAsyncLocalEnabled')
 			->willReturn(true);
@@ -281,10 +161,6 @@ class WorkerHealthServiceTest extends TestCase {
 			->method('getDesiredWorkerCount')
 			->willReturn(4);
 
-		$this->workerCounter->expects($this->once())
-			->method('countRunning')
-			->willReturn(0);
-
 		$this->workerJobCounter->expects($this->once())
 			->method('countPendingJobs')
 			->willReturn(1);
@@ -296,7 +172,7 @@ class WorkerHealthServiceTest extends TestCase {
 		$this->startThrottlePolicy->expects($this->once())
 			->method('recordAttempt');
 
-		// Should only start 1 worker for 1 job
+		// Should start min(1 pending, 4 desired) = 1 worker
 		$this->workerStarter->expects($this->once())
 			->method('startWorkers')
 			->with(1);

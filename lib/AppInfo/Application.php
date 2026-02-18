@@ -48,10 +48,6 @@ class Application extends App implements IBootstrap {
 	}
 
 	#[\Override]
-	public function boot(IBootContext $context): void {
-	}
-
-	#[\Override]
 	public function register(IRegistrationContext $context): void {
 		$context->registerMiddleWare(GlobalInjectionMiddleware::class, true);
 		$context->registerMiddleWare(InjectionMiddleware::class);

@@ -1,22 +1,21 @@
 <?php
 
 declare(strict_types=1);
-/**
- * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
- * SPDX-License-Identifier: AGPL-3.0-or-later
- */
 
 namespace OCA\Libresign\Service\Worker;
 
 use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCP\IBinaryFinder;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Process\Process;
 
 class WorkerStarter {
 	private const MAX_WORKERS = 32;
 
 	public function __construct(
 		private IBinaryFinder $binaryFinder,
+		private LoggerInterface $logger,
 	) {
 	}
 
@@ -27,7 +26,7 @@ class WorkerStarter {
 		$jobClasses = [SignFileJob::class, SignSingleFileJob::class];
 
 		for ($i = 0; $i < $numWorkers; $i++) {
-			$this->executeCommand($phpPath, $occPath, $jobClasses);
+			$this->startWorker($phpPath, $occPath, $jobClasses);
 		}
 	}
 
@@ -40,14 +39,26 @@ class WorkerStarter {
 		return max(1, min($count, self::MAX_WORKERS));
 	}
 
-	private function executeCommand(string $phpPath, string $occPath, array $jobClasses): void {
+	private function startWorker(string $phpPath, string $occPath, array $jobClasses): void {
 		$jobClassesArg = implode(' ', array_map('escapeshellarg', $jobClasses));
-		$cmd = sprintf(
-			'%s %s background-job:worker %s --stop_after=30m >> /dev/null 2>&1 &',
+		$cmdLine = sprintf(
+			'%s %s background-job:worker %s --stop_after=30s',
 			escapeshellarg($phpPath),
 			escapeshellarg($occPath),
 			$jobClassesArg
 		);
-		shell_exec($cmd);
+
+		try {
+			$process = new Process(explode(' ', $cmdLine));
+			$process->start();
+
+			if ($process->getPid() !== null) {
+				$this->logger->info('Worker started');
+			} else {
+				$this->logger->warning('Failed to start worker');
+			}
+		} catch (\Throwable $e) {
+			$this->logger->warning('Failed to start worker', ['error' => $e->getMessage()]);
+		}
 	}
 }

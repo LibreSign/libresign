@@ -13,7 +13,7 @@ use Psr\Log\LoggerInterface;
 class WorkerHealthService {
 	public function __construct(
 		private WorkerConfiguration $workerConfiguration,
-		private WorkerCounter $workerCounter,
+
 		private WorkerJobCounter $workerJobCounter,
 		private StartThrottlePolicy $startThrottlePolicy,
 		private WorkerStarter $workerStarter,
@@ -53,24 +53,13 @@ class WorkerHealthService {
 	}
 
 	private function calculateWorkersNeeded(): int {
-		$desired = $this->workerConfiguration->getDesiredWorkerCount();
-		$running = $this->workerCounter->countRunning();
 		$pendingJobs = $this->workerJobCounter->countPendingJobs();
 
-		if ($this->hasNoPendingWork($pendingJobs)) {
+		if ($pendingJobs === 0) {
 			return 0;
 		}
 
-		return $this->limitWorkersByAvailableWork($pendingJobs, $desired, $running);
-	}
-
-	private function hasNoPendingWork(int $pendingJobs): bool {
-		return $pendingJobs === 0;
-	}
-
-	private function limitWorkersByAvailableWork(int $pendingJobs, int $desired, int $running): int {
-		$workersNeeded = $desired - $running;
-		$workersLimitedByJobs = min($pendingJobs, $workersNeeded);
-		return max(0, $workersLimitedByJobs);
+		$desired = $this->workerConfiguration->getDesiredWorkerCount();
+		return min($pendingJobs, $desired);
 	}
 }
