@@ -313,6 +313,23 @@ describe('files store - critical business rules', () => {
 			expect(store.canAddSigner()).toBe(false)
 		})
 
+		it.each([
+			{ level: 1, expected: true },
+			{ level: '1', expected: true },
+			{ level: 2, expected: false },
+			{ level: 3, expected: false },
+		])('docmdp level %s controls no-changes rule', ({ level, expected }) => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				docmdpLevel: level,
+				signers: [{ me: true }],
+			}
+
+			expect(store.isDocMdpNoChangesAllowed()).toBe(expected)
+		})
+
 		it('blocks adding signers when document is partially signed', () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
