@@ -318,42 +318,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(1, $enqueued);
 	}
 
-	public function testValidateDocMdpAllowsSignaturesThrowsWhenCertifiedNoChanges(): void {
-		$service = $this->getService();
-
-		$file = new File();
-		$file->setDocmdpLevelEnum(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
-		$service->setLibreSignFile($file);
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('This document has been certified with no changes allowed. You cannot add more signers to this document.');
-
-		self::invokePrivate($service, 'validateDocMdpAllowsSignatures');
-	}
-
-	public function testValidateDocMdpAllowsSignaturesChecksDocMdpHandler(): void {
-		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
-		$this->docMdpHandler->expects($this->once())
-			->method('allowsAdditionalSignatures')
-			->willReturn(false);
-
-		$service = $this->getService(['getLibreSignFileAsResource']);
-		$resource = fopen('php://memory', 'r+');
-		fwrite($resource, 'pdf');
-		rewind($resource);
-
-		$service->method('getLibreSignFileAsResource')
-			->willReturn($resource);
-
-		$file = new File();
-		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
-		$service->setLibreSignFile($file);
-
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('This document has been certified with no changes allowed. You cannot add more signers to this document.');
-
-		self::invokePrivate($service, 'validateDocMdpAllowsSignatures');
-	}
 
 	public function testEnqueueParallelSigningJobsStoresCredentialsWhenPasswordless(): void {
 		$service = $this->getService();
@@ -1819,6 +1783,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[DataProvider('provideValidateDocMdpAllowsSignaturesScenarios')]
 	public function testValidateDocMdpAllowsSignaturesWithVariousPdfFixtures(
 		callable $pdfContentGenerator,
+		DocMdpLevel $fileDocMdpLevel,
 		bool $shouldThrowException,
 	): void {
 		if (!$shouldThrowException) {
@@ -1837,7 +1802,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->method('getLibreSignFileAsResource')->willReturn($resource);
 
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$libreSignFile->method('getDocmdpLevelEnum')->willReturn(\OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED);
+		$libreSignFile->method('getDocmdpLevelEnum')->willReturn($fileDocMdpLevel);
 		$service->setLibreSignFile($libreSignFile);
 
 		self::invokePrivate($service, 'validateDocMdpAllowsSignatures');
@@ -1847,26 +1812,37 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			'Unsigned PDF - should NOT throw exception' => [
 				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createMinimalPdf(),
+				'fileDocMdpLevel' => DocMdpLevel::NOT_CERTIFIED,
+				'shouldThrowException' => false,
+			],
+			'Stored level 1, unsigned PDF - should NOT throw exception' => [
+				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createMinimalPdf(),
+				'fileDocMdpLevel' => DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED,
 				'shouldThrowException' => false,
 			],
 			'DocMDP level 0 (not certified) - should NOT throw exception' => [
 				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createPdfWithDocMdp(0, false),
+				'fileDocMdpLevel' => DocMdpLevel::NOT_CERTIFIED,
 				'shouldThrowException' => false,
 			],
 			'DocMDP level 1 (no changes allowed) - SHOULD throw exception' => [
 				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createPdfWithDocMdp(1, false),
+				'fileDocMdpLevel' => DocMdpLevel::NOT_CERTIFIED,
 				'shouldThrowException' => true,
 			],
 			'DocMDP level 2 (form filling allowed) - should NOT throw exception' => [
 				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createPdfWithDocMdp(2, false),
+				'fileDocMdpLevel' => DocMdpLevel::NOT_CERTIFIED,
 				'shouldThrowException' => false,
 			],
 			'DocMDP level 3 (annotations allowed) - should NOT throw exception' => [
 				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createPdfWithDocMdp(3, false),
+				'fileDocMdpLevel' => DocMdpLevel::NOT_CERTIFIED,
 				'shouldThrowException' => false,
 			],
 			'DocMDP level 1 with modifications - SHOULD throw exception' => [
 				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createPdfWithDocMdp(1, true),
+				'fileDocMdpLevel' => DocMdpLevel::NOT_CERTIFIED,
 				'shouldThrowException' => true,
 			],
 		];
