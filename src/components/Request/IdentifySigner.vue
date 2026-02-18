@@ -74,6 +74,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import { showError } from '@nextcloud/dialogs'
 
 import SignerSelect from './SignerSelect.vue'
 
@@ -213,7 +214,9 @@ export default {
 			if (!this.signer?.method || !this.signer?.id) {
 				return
 			}
-			this.filesStore.signerUpdate({
+			const file = this.filesStore.getFile()
+			const signers = Array.isArray(file?.signers) ? [...file.signers] : []
+			signers.push({
 				displayName: this.displayName,
 				description: this.description.trim() || undefined,
 				identify: this.identify,
@@ -226,9 +229,15 @@ export default {
 			})
 
 			try {
-				await this.filesStore.saveOrUpdateSignatureRequest({})
+				const response = await this.filesStore.saveOrUpdateSignatureRequest({ signers })
+				if (response?.success === false) {
+					showError(response.message)
+					return
+				}
 			} catch (error) {
 				console.error('Error saving signer:', error)
+				showError(t('libresign', 'Failed to save or update signature request'))
+				return
 			}
 
 			this.displayName = ''
