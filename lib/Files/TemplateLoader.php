@@ -14,6 +14,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
@@ -38,6 +39,7 @@ class TemplateLoader implements IEventListener {
 		private CertificateEngineFactory $certificateEngineFactory,
 		private IAppConfig $appConfig,
 		private IAppManager $appManager,
+		private ConfigService $docMdpConfigService,
 	) {
 	}
 
@@ -51,29 +53,38 @@ class TemplateLoader implements IEventListener {
 			return;
 		}
 
-		$this->initialState->provideInitialState(
-			'certificate_ok',
-			$this->certificateEngineFactory->getEngine()->isSetupOk()
-		);
-
-		$this->initialState->provideInitialState(
-			'identify_methods',
-			$this->identifyMethodService->getIdentifyMethodsSettings()
-		);
-
-		$this->initialState->provideInitialState(
-			'signature_flow',
-			$this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value)
-		);
-
-		try {
-			$this->validateHelper->canRequestSign($this->userSession->getUser());
-			$this->initialState->provideInitialState('can_request_sign', true);
-		} catch (LibresignException) {
-			$this->initialState->provideInitialState('can_request_sign', false);
+		foreach ($this->getInitialStatePayload() as $key => $value) {
+			$this->initialState->provideInitialState($key, $value);
 		}
 
 		Util::addScript(Application::APP_ID, 'libresign-tab');
 		Util::addStyle(Application::APP_ID, 'icons');
+	}
+
+	protected function getInitialStatePayload(): array {
+		return [
+			'certificate_ok' => $this->certificateEngineFactory->getEngine()->isSetupOk(),
+			'identify_methods' => $this->identifyMethodService->getIdentifyMethodsSettings(),
+			'signature_flow' => $this->getSignatureFlow(),
+			'docmdp_config' => $this->docMdpConfigService->getConfig(),
+			'can_request_sign' => $this->canRequestSign(),
+		];
+	}
+
+	private function getSignatureFlow(): string {
+		return $this->appConfig->getValueString(
+			Application::APP_ID,
+			'signature_flow',
+			\OCA\Libresign\Enum\SignatureFlow::NONE->value
+		);
+	}
+
+	private function canRequestSign(): bool {
+		try {
+			$this->validateHelper->canRequestSign($this->userSession->getUser());
+			return true;
+		} catch (LibresignException) {
+			return false;
+		}
 	}
 }
