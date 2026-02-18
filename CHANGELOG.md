@@ -18,6 +18,18 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 13.0.1 - 2026-02-18
+### Fixes
+- fix: docmdp first signature allow [#6944](https://github.com/LibreSign/libresign/pull/6944)
+- fix: signature status propfind [#6945](https://github.com/LibreSign/libresign/pull/6945)
+- fix: avoid empty crl engine default [#6940](https://github.com/LibreSign/libresign/pull/6940)
+
+## 12.2.1 - 2026-02-18
+### Fixes
+- fix: docmdp first signature allow [#6943](https://github.com/LibreSign/libresign/pull/6943)
+- fix: signature status propfind [#6946](https://github.com/LibreSign/libresign/pull/6946)
+- fix: avoid empty crl engine default [#6939](https://github.com/LibreSign/libresign/pull/6939)
+
 ## 13.0.0 - 2026-02-17
 
 ⚠️ **MAJOR RELEASE - Breaking Changes** — The API has been completely redesigned. If you have existing API integrations, review the new API documentation before upgrading.
