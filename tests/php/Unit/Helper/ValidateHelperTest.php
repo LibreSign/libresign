@@ -21,6 +21,7 @@ use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
@@ -58,6 +59,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IGroupManager&MockObject $groupManager;
 	private IUserManager&MockObject $userManager;
 	private IRootFolder&MockObject $root;
+	private DocMdpValidator&MockObject $docMdpValidator;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -80,6 +82,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
+		$this->docMdpValidator = $this->createMock(DocMdpValidator::class);
 	}
 
 	private function getValidateHelper(): ValidateHelper {
@@ -101,8 +104,71 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->groupManager,
 			$this->userManager,
 			$this->root,
+			$this->docMdpValidator,
 		);
 		return $validateHelper;
+	}
+
+	public function testValidateIdentifySignersCallsDocMdpValidator(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$this->fileMapper
+			->method('getByUuid')
+			->with('uuid-123')
+			->willReturn($file);
+
+		$data = [
+			'uuid' => 'uuid-123',
+			'signers' => [
+				['identify' => ['account' => 'user@example.com']],
+			],
+		];
+
+		$this->docMdpValidator
+			->expects($this->once())
+			->method('validateSignersCount')
+			->with($data);
+		$this->docMdpValidator
+			->expects($this->once())
+			->method('validatePdfRestrictions')
+			->with($file);
+
+		$validateHelper = $this->getValidateHelper();
+		$validateHelper->validateIdentifySigners($data);
+	}
+
+	public function testValidateIdentifySignersSkipsPdfValidationWithoutUuid(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$data = [
+			'signers' => [
+				['identify' => ['account' => 'user@example.com']],
+			],
+		];
+
+		$this->docMdpValidator
+			->expects($this->once())
+			->method('validateSignersCount')
+			->with($data);
+		$this->docMdpValidator
+			->expects($this->never())
+			->method('validatePdfRestrictions');
+
+		$validateHelper = $this->getValidateHelper();
+		$validateHelper->validateIdentifySigners($data);
 	}
 
 	#[DataProvider('validateSignerLowerOrderScenarios')]
