@@ -33,7 +33,12 @@ class SignatureStatusPlugin extends ServerPlugin {
 			return;
 		}
 
-		$fileService->setFileByNodeId($nodeId);
+		try {
+			$fileService->setFileByNodeId($nodeId);
+		} catch (\Throwable) {
+			// Avoid breaking WebDAV property lookup when the node mapping is invalid.
+			return;
+		}
 
 		$propFind->handle('{http://nextcloud.org/ns}libresign-signature-status', $fileService->getStatus());
 		$propFind->handle('{http://nextcloud.org/ns}libresign-signed-node-id', $fileService->getSignedNodeId());
