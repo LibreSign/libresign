@@ -19,7 +19,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\Service\DocMdpConfigService;
+use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
@@ -304,6 +304,16 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'userManager' => $this->user
 		]);
 		$this->assertNull($actual);
+	}
+
+	public function testValidateSignersAllowsValidSignerPayload(): void {
+		$service = $this->getService();
+		$service->validateSigners([
+			'signers' => [
+				['identify' => ['email' => 'test@example.com']],
+			],
+		]);
+		$this->addToAssertionCount(1);
 	}
 
 	/**
