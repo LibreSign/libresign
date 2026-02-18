@@ -352,7 +352,7 @@ export const useFilesStore = function(...args) {
 			},
 			isDocMdpNoChangesAllowed(file) {
 				file = this.getFile(file)
-				return file.docmdpLevel === 1 && file.signers && file.signers.length > 0
+				return Number(file?.docmdpLevel || 0) === 1 && file.signers && file.signers.length > 0
 			},
 			isOriginalFileDeleted(file) {
 				file = this.getFile(file)
