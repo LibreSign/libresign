@@ -55,7 +55,7 @@ class DocMdpHandler {
 		if ($docmdpLevel->isCertifying() && $this->isOnlySingleDocMdpViolation($isoStatus)) {
 			$result['docmdp_validation'] = [
 				'valid' => false,
-				'message' => $this->l10n->t('Multiple DocMDP signatures detected. The first certifying signature is used to determine the certification level.'),
+				'message' => $this->l10n->t('Multiple DocMDP signatures detected. The first certifying signature determines the document\'s permission level.'),
 			];
 		}
 
