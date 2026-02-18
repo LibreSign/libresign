@@ -503,6 +503,7 @@
                     "nodeId",
                     "nodeType",
                     "requested_by",
+                    "docmdpLevel",
                     "signatureFlow",
                     "signers",
                     "status",
@@ -561,6 +562,10 @@
                             }
                         }
                     },
+                    "docmdpLevel": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     "signatureFlow": {
                         "oneOf": [
                             {
@@ -610,6 +615,7 @@
                     "name",
                     "status",
                     "statusText",
+                    "docmdpLevel",
                     "signersCount",
                     "file",
                     "metadata",
@@ -641,6 +647,10 @@
                     },
                     "statusText": {
                         "type": "string"
+                    },
+                    "docmdpLevel": {
+                        "type": "integer",
+                        "format": "int64"
                     },
                     "signersCount": {
                         "type": "integer",
@@ -835,6 +845,7 @@
                     "nodeType",
                     "created_at",
                     "metadata",
+                    "docmdpLevel",
                     "signatureFlow",
                     "visibleElements",
                     "signers",
@@ -884,6 +895,10 @@
                     },
                     "metadata": {
                         "$ref": "#/components/schemas/ValidateMetadata"
+                    },
+                    "docmdpLevel": {
+                        "type": "integer",
+                        "format": "int64"
                     },
                     "signatureFlow": {
                         "type": "string",
