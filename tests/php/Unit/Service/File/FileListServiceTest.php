@@ -159,6 +159,20 @@ final class FileListServiceTest extends TestCase {
 		$this->assertEmpty($result['visibleElements']);
 	}
 
+	public function testDocMdpLevelIncludedInSingleFileResponse(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$file->setDocmdpLevel(1);
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertEquals(1, $result['docmdpLevel']);
+	}
+
 	public function testDraftFileWithSignersHasConsistentStatusText(): void {
 		$file = self::createFileEntity(1, 'file', 'doc.pdf');
 		$file->setStatus(0); // DRAFT status
@@ -453,6 +467,29 @@ final class FileListServiceTest extends TestCase {
 		$result = $service->formatSingleFile($this->user, $file);
 
 		$this->assertSame('Admin Name', $result['signers'][0]['displayName']);
+	}
+
+	public function testDocMdpLevelIncludedInChildFilesResponse(): void {
+		$main = self::createFileEntity(1, 'envelope', 'envelope.pdf');
+		$main->setDocmdpLevel(1);
+		$child = self::createFileEntity(2, 'file', 'child.pdf');
+		$child->setDocmdpLevel(2);
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->fileElementService->method('getByFileIds')->willReturn([]);
+		$this->fileMapper->method('getTextOfStatus')->willReturn('Draft');
+
+		$mockUser = $this->createMock(IUser::class);
+		$mockUser->method('getDisplayName')->willReturn('Requester');
+		$this->userManager->method('get')->willReturn($mockUser);
+
+		$service = $this->getService();
+		$result = $service->formatFileWithChildren($main, [$child], $this->user);
+
+		$this->assertEquals(1, $result['docmdpLevel']);
+		$this->assertEquals(2, $result['files'][0]['docmdpLevel']);
 	}
 
 	private static function createFileEntity(
