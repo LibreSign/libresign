@@ -24,6 +24,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -72,6 +73,7 @@ class ValidateHelper {
 		private IGroupManager $groupManager,
 		private IUserManager $userManager,
 		private IRootFolder $root,
+		private DocMdpValidator $docMdpValidator,
 	) {
 	}
 
@@ -579,6 +581,8 @@ class ValidateHelper {
 		}
 
 		$this->validateSignersDataStructure($data);
+		$this->docMdpValidator->validateSignersCount($data);
+		$this->validateDocMdpPdfRestrictions($data);
 
 		foreach ($data['signers'] as $signer) {
 			$this->validateSignerData($signer);
@@ -976,5 +980,17 @@ class ValidateHelper {
 			return false;
 		}
 		return true;
+	}
+
+	private function validateDocMdpPdfRestrictions(array $data): void {
+		if (empty($data['uuid']) || empty($data['signers'])) {
+			return;
+		}
+
+		try {
+			$file = $this->fileMapper->getByUuid($data['uuid']);
+			$this->docMdpValidator->validatePdfRestrictions($file);
+		} catch (DoesNotExistException) {
+		}
 	}
 }
