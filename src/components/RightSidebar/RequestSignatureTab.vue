@@ -25,7 +25,7 @@
 			v-model="preserveOrder"
 			type="switch"
 			@update:checked="onPreserveOrderChange">
-			{{ t('libresign', 'Preserve signing order') }}
+			{{ t('libresign', 'Sign in order') }}
 		</NcCheckboxRadioSwitch>
 		<NcButton v-if="showViewOrderButton && !isOriginalFileDeleted"
 			type="tertiary"
