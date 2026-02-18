@@ -70,7 +70,10 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
-		$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', '');
+		$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
+		if ($engineName === '') {
+			$engineName = 'openssl';
+		}
 		if ($schema->hasTable('libresign_crl')) {
 			$crlTable = $schema->getTable('libresign_crl');
 
@@ -82,7 +85,10 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			]);
 
 			if (!$crlTable->hasColumn('engine')) {
-				$crlTable->addColumn('engine', Types::STRING, ['default' => $engineName]);
+				$crlTable->addColumn('engine', Types::STRING, [
+					'length' => 20,
+					'default' => $engineName,
+				]);
 			}
 			if (!$crlTable->hasColumn('instance_id')) {
 				$crlTable->addColumn('instance_id', Types::STRING, ['notnull' => false]);
