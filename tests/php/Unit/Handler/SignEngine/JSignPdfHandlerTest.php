@@ -15,7 +15,7 @@ use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
-use OCA\Libresign\Service\DocMdpConfigService;
+use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -94,7 +94,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->signatureBackgroundService,
 				$certificateEngineFactory,
 				$this->javaHelper,
-				$this->createMock(\OCA\Libresign\Service\DocMdpConfigService::class),
+				$this->createMock(DocMdpConfigService::class),
 			);
 		}
 		return $this->getMockBuilder(JSignPdfHandler::class)
@@ -106,7 +106,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->signatureBackgroundService,
 				$certificateEngineFactory,
 				$this->javaHelper,
-				$this->createMock(\OCA\Libresign\Service\DocMdpConfigService::class),
+				$this->createMock(DocMdpConfigService::class),
 			])
 			->onlyMethods($methods)
 			->getMock();
@@ -277,6 +277,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$jSignPdfHandler->setVisibleElements($visibleElements);
 		$jSignPdfHandler->setJSignPdf($mock);
 		$jSignPdfHandler->setInputFile($inputFile);
+		$jSignPdfHandler->setSignatureParams(['SignerCommonName' => 'Test User']);
 		$jSignPdfHandler->setCertificate(self::$certificateContent);
 		$jSignPdfHandler->setPassword('password');
 		$actual = $jSignPdfHandler->getSignedContent();
@@ -544,6 +545,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 		$jSignPdfHandler->setJSignPdf($mock);
 		$jSignPdfHandler->setInputFile($inputFile);
+		$jSignPdfHandler->setSignatureParams(['SignerCommonName' => 'Test User']);
 		$jSignPdfHandler->setCertificate(self::$certificateContent);
 		$jSignPdfHandler->setPassword('password');
 
@@ -603,6 +605,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 		$jSignPdfHandler->setJSignPdf($mock);
 		$jSignPdfHandler->setInputFile($inputFile);
+		$jSignPdfHandler->setSignatureParams(['SignerCommonName' => 'Test User']);
 		$jSignPdfHandler->setCertificate(self::$certificateContent);
 		$jSignPdfHandler->setPassword('password');
 
