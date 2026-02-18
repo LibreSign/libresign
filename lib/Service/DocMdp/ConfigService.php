@@ -7,14 +7,14 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\DocMdp;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCP\IAppConfig;
 use OCP\IL10N;
 
-class DocMdpConfigService {
+class ConfigService {
 	private const CONFIG_KEY_LEVEL = 'docmdp_level';
 
 	public function __construct(

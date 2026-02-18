@@ -22,6 +22,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
@@ -310,7 +311,7 @@ class RequestSignatureService {
 	/**
 	 * Save file data
 	 *
-	 * @param array{?userManager: IUser, ?signRequest: SignRequest, name: string, callback: string, uuid?: ?string, status: int, file?: array{fileId?: int, fileNode?: Node}} $data
+	 * @param array{?userManager: IUser, ?signRequest: SignRequestEntity, name: string, callback: string, uuid?: ?string, status: int, file?: array{fileId?: int, fileNode?: Node}} $data
 	 */
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
@@ -571,7 +572,6 @@ class RequestSignatureService {
 		return $persisted;
 	}
 
-
 	public function validateNewRequestToFile(array $data): void {
 		$this->validateNewFile($data);
 		$this->validateSigners($data);
@@ -596,6 +596,9 @@ class RequestSignatureService {
 			// TRANSLATION This message will be displayed when the request to API with the key signers has a value that is not an array
 			throw new \Exception($this->l10n->t('Signers list needs to be an array'));
 		}
+
+		$this->validateHelper->validateIdentifySigners($data);
+
 		foreach ($data['signers'] as $signer) {
 			if (!array_key_exists('identify', $signer)) {
 				throw new \Exception('Identify key not found');
