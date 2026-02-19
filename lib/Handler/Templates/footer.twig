@@ -6,12 +6,12 @@
 			</td>
 		{% endif %}
 		<td style="vertical-align: bottom; padding: 0px 0px 15px 0px; line-height:1.5em;">
-			<a href="{{ linkToSite }}" style="text-decoration: none; color: unset;">{{ signedBy }}</a>
+			<a href="{{ linkToSite }}" style="text-decoration: none; color: unset;">{{ signedBy|raw }}</a>
 			{% if validateIn %}
 				<br>
 				<a href="{{ validationSite }}"
 					style="text-decoration: none; color: unset;">
-					{{ validateIn|replace({'%s': validationSite}) }}
+					{{ validateIn|replace({'%s': validationSite})|raw }}
 				</a>
 			{% endif %}
 		</td>
