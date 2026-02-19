@@ -18,7 +18,7 @@ import { FILE_STATUS } from '../constants.js'
 
 const STATUS_CONFIG = {
 	[FILE_STATUS.NOT_LIBRESIGN_FILE]: {
-		label: () => t('libresign', 'not LibreSign file'),
+		label: () => t('libresign', 'Not LibreSign file'),
 		icon: mdiFileDocument,
 	},
 	[FILE_STATUS.DRAFT]: {
