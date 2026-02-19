@@ -325,4 +325,128 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame('string', $metadata['uuid']['type']);
 		$this->assertArrayHasKey('default', $metadata['signedBy']);
 	}
+
+	#[DataProvider('dataAccentedCharactersInFooter')]
+	public function testAccentedCharactersInFooterVariablesAreRenderedCorrectly(
+		string $testName,
+		string $signedByText,
+		array $expectedSubstrings,
+		array $forbiddenSubstrings
+	): void {
+		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
+		$this->appConfig->setValueBool(Application::APP_ID, 'write_qrcode_on_footer', false);
+		$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
+
+		$dimensions = [['w' => 595, 'h' => 100]];
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
+
+		$pdf = $this->getClass()
+			->setTemplateVar('uuid', 'test-uuid')
+			->setTemplateVar('signedBy', $signedByText)
+			->setTemplateVar('linkToSite', 'https://libresign.coop')
+			->getFooter($dimensions);
+
+		$this->assertNotEmpty($pdf);
+
+		$parser = new \Smalot\PdfParser\Parser();
+		$pdfParsed = $parser->parseContent($pdf);
+		$text = $pdfParsed->getText();
+
+		foreach ($expectedSubstrings as $expected) {
+			$this->assertStringContainsString($expected, $text, "Expected to find '{$expected}' for test: {$testName}");
+		}
+
+		foreach ($forbiddenSubstrings as $forbidden) {
+			$this->assertStringNotContainsString($forbidden, $text, "Should not find '{$forbidden}' for test: {$testName}");
+		}
+	}
+
+	public static function dataAccentedCharactersInFooter(): array {
+		return [
+			'French accents' => [
+				'testName' => 'French accents',
+				'signedByText' => 'Signé numériquement par LibreSign',
+				'expectedSubstrings' => ['Signé', 'numériquement'],
+				'forbiddenSubstrings' => ['&eacute;', '&amp;', '&#233;'],
+			],
+			'Portuguese accents and cedilla' => [
+				'testName' => 'Portuguese accents',
+				'signedByText' => 'Assinado digitalmente por João da Silva',
+				'expectedSubstrings' => ['João', 'Silva'],
+				'forbiddenSubstrings' => ['&atilde;', '&amp;', '&#227;'],
+			],
+			'Spanish ñ and accents' => [
+				'testName' => 'Spanish characters',
+				'signedByText' => 'Firmado digitalmente por José Muñoz',
+				'expectedSubstrings' => ['José', 'Muñoz'],
+				'forbiddenSubstrings' => ['&ntilde;', '&eacute;', '&amp;'],
+			],
+			'German umlauts' => [
+				'testName' => 'German umlauts',
+				'signedByText' => 'Digital signiert von Müller & Söhne',
+				'expectedSubstrings' => ['Müller', 'Söhne'],
+				'forbiddenSubstrings' => ['&uuml;', '&ouml;', '&amp;'],
+			],
+			'Multiple special characters' => [
+				'testName' => 'Multiple accents',
+				'signedByText' => 'Signé par Renée & José',
+				'expectedSubstrings' => ['Signé', 'Renée', 'José'],
+				'forbiddenSubstrings' => ['&eacute;', '&amp;', '&#'],
+			],
+			'Greek characters' => [
+				'testName' => 'Greek characters',
+				'signedByText' => 'Υπογραφή από Αθήνα',
+				'expectedSubstrings' => ['Υπογραφή', 'Αθήνα'],
+				'forbiddenSubstrings' => ['&amp;', '&#'],
+			],
+			'Cyrillic characters' => [
+				'testName' => 'Cyrillic characters',
+				'signedByText' => 'Подписано Москва',
+				'expectedSubstrings' => ['Подписано', 'Москва'],
+				'forbiddenSubstrings' => ['&amp;', '&#'],
+			],
+			'Arabic characters (RTL)' => [
+				'testName' => 'Arabic (RTL)',
+				'signedByText' => 'توقيع رقمي من القاهرة',
+				'expectedSubstrings' => ['عيقوت', 'ةرهاقلا'], // RTL text appears reversed in extracted PDF
+				'forbiddenSubstrings' => ['&amp;', '&#'],
+			],
+			'Hebrew characters (RTL)' => [
+				'testName' => 'Hebrew (RTL)',
+				'signedByText' => 'חתום דיגיטלית מירושלים',
+				'expectedSubstrings' => ['םותח', 'םילשורימ'], // RTL text appears reversed in extracted PDF
+				'forbiddenSubstrings' => ['&amp;', '&#'],
+			],
+			'Chinese characters' => [
+				'testName' => 'Chinese (CJK)',
+				'signedByText' => '数字签名 北京',
+				'expectedSubstrings' => ['数字签名', '北京'],
+				'forbiddenSubstrings' => ['&amp;', '&#'],
+			],
+			'Japanese characters' => [
+				'testName' => 'Japanese (CJK)',
+				'signedByText' => 'デジタル署名 東京',
+				'expectedSubstrings' => ['デジタル署名', '東京'],
+				'forbiddenSubstrings' => ['&amp;', '&#'],
+			],
+			'Korean characters' => [
+				'testName' => 'Korean (CJK)',
+				'signedByText' => '디지털 서명 서울',
+				'expectedSubstrings' => ['디지털', '서울'],
+				'forbiddenSubstrings' => ['&amp;', '&#'],
+			],
+			'Emoji characters' => [
+				'testName' => 'Emoji',
+				'signedByText' => 'Signed ✍️ by LibreSign 🔒',
+				'expectedSubstrings' => ['Signed', 'LibreSign'],
+				'forbiddenSubstrings' => ['&amp;', '&#'],
+			],
+			'Mixed emoji and accents' => [
+				'testName' => 'Emoji with accents',
+				'signedByText' => 'Signé 📝 par José 👤',
+				'expectedSubstrings' => ['Signé', 'José'],
+				'forbiddenSubstrings' => ['&eacute;', '&amp;', '&#'],
+			],
+		];
+	}
 }
