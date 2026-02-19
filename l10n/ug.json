@@ -168,6 +168,7 @@
     "Parameter '%s' is required!" : "'%s' پارامېتىرى تەلەپ قىلىنىدۇ!",
     "Parameter '%s' should be betweeen %s and %s." : "'%s' پارامېتىرى %s بىلەن %s ئارىسىدا بولۇشى كېرەك.",
     "Invalid OID format. Expected pattern: %s" : "OID فورماتى خاتا. كۈتۈلگەن ئەندىزە: %s",
+    "This document has been certified with no changes allowed. You cannot add more signers to this document." : "بۇ ھۆججەت ھېچقانداق ئۆزگەرتىشكە يول قويۇلمىغان ھالدا تەستىقلاندى، شۇڭا قوشۇمچە ئىمزا قوشۇشقا بولمايدۇ.",
     "Pending" : "ساقلىنىۋاتىدۇ",
     "You need to sign this document" : "بۇ ھۆججەتكە ئىمزا قويۇشىڭىز كېرەك",
     "You cannot request signature for this document, please contact your administrator" : "بۇ ھۆججەتكە ئىمزا قويسىڭىز بولمايدۇ ، باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ",
@@ -211,7 +212,6 @@
     "Use this code to sign the document:" : "بۇ كودنى ئىشلىتىپ ھۆججەتكە ئىمزا قويۇڭ:",
     "No signature was requested to %s" : "%s غا ئىمزا قويۇلمىدى",
     "%s already signed this file" : "%s بۇ ھۆججەتكە ئىمزا قويغان",
-    "This document has been certified with no changes allowed. You cannot add more signers to this document." : "بۇ ھۆججەت ھېچقانداق ئۆزگەرتىشكە يول قويۇلمىغان ھالدا تەستىقلاندى، شۇڭا قوشۇمچە ئىمزا قوشۇشقا بولمايدۇ.",
     "Sending authorization code not enabled." : "ھوقۇق بېرىش كودى ئەۋەتىلمىگەن.",
     "File already signed by you" : "ھۆججەت سىز ئىمزا قويغان",
     "Invalid template font size. The value must be between %.1f and %.0f." : "شابلوننىڭ خەت چوڭلۇقى خاتا. قىممىتى %.1f بىلەن %.0f ئارىسىدا بولۇشى كېرەك.",
@@ -312,7 +312,6 @@
     "Signature requested" : "ئىمزا تەلەپ قىلىندى",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "بەزى ئىمزا قويغۇچىلار چەكلەنگەن ئېنىقلاش ئۇسۇللىرىنى ئىشلىتىدۇ. ئىمزا تەلەپ قىلىشتىن بۇرۇن ئۇلارنى ئۆچۈرۈڭ ياكى يېڭىلاڭ.",
     "Add signer" : "ئىمزا قويغۇچى قوشۇڭ",
-    "Preserve signing order" : "ئىمزا رەت-تەرتىپىنى ساقلا",
     "View signing order" : "ئىمزا رەت-تەرتىپىنى كۆرسەت",
     "Signing order" : "بۇيرۇققا ئىمزا قويۇش",
     "Customize message" : "ئۇچۇرنى خاسلاشتۇر",
@@ -740,6 +739,7 @@
     "Empty users list" : "ئىشلەتكۈچىلەر تىزىملىكى",
     "User list needs to be an array" : "ئىشلەتكۈچى تىزىملىكى سانلار گۇرپىسى بولۇشى كېرەك",
     "Select other file" : "باشقا ھۆججەتنى تاللاڭ",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "مائۇس چاقىنى ئىشلىتىپ رەسىمنى چوڭايتىپ ياكى چوڭايتىپ ، ئىمزاسىڭىزنىڭ ئەڭ ياخشى كۆرۈنۈشىنى تېپىڭ."
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "مائۇس چاقىنى ئىشلىتىپ رەسىمنى چوڭايتىپ ياكى چوڭايتىپ ، ئىمزاسىڭىزنىڭ ئەڭ ياخشى كۆرۈنۈشىنى تېپىڭ.",
+    "Preserve signing order" : "ئىمزا رەت-تەرتىپىنى ساقلا"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
