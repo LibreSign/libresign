@@ -63,7 +63,7 @@ Feature: envelope
       | (jq).ocs.data.message           | Success                          |
       | (jq).ocs.data.name              | Single Document                  |
       | (jq).ocs.data.status            | 0                                |
-      | (jq).ocs.data.statusText        | draft                            |
+      | (jq).ocs.data.statusText        | Draft                            |
       | (jq).ocs.data.nodeType          | file                             |
       | (jq).ocs.data.files[0].name     | Single Document                  |
       | (jq).ocs.data.files \| length   | 1                                |
@@ -81,7 +81,7 @@ Feature: envelope
       | (jq).ocs.data.message              | Success                          |
       | (jq).ocs.data.name                 | Contract Package                 |
       | (jq).ocs.data.status               | 0                                |
-      | (jq).ocs.data.statusText           | draft                            |
+      | (jq).ocs.data.statusText           | Draft                            |
       | (jq).ocs.data.nodeType             | envelope                         |
       | (jq).ocs.data.files[0].name        | Contract                         |
       | (jq).ocs.data.files[1].name        | Annex                            |
