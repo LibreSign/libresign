@@ -388,6 +388,21 @@ class SignatureTextService {
 	public function getDefaultTemplate(): string {
 		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
 		if ($collectMetadata) {
+			// TRANSLATORS Variables enclosed in double curly braces {{variableName}} are template placeholders.
+			//
+			// DO NOT translate or remove these variables:
+			// - {{SignerCommonName}}
+			// - {{IssuerCommonName}}
+			// - {{ServerSignatureDate}}
+			// - {{SignerIP}}
+			// - {{SignerUserAgent}}
+			//
+			// Only translate the text outside the curly braces, such as:
+			// - "Signed with LibreSign"
+			// - "Issuer:"
+			// - "Date:"
+			// - "IP:"
+			// - "User agent:"
 			return $this->l10n->t(
 				"Signed with LibreSign\n"
 				. "{{SignerCommonName}}\n"
@@ -397,6 +412,17 @@ class SignatureTextService {
 				. 'User agent: {{SignerUserAgent}}'
 			);
 		}
+		// TRANSLATORS Variables enclosed in double curly braces {{variableName}} are template placeholders.
+		//
+		// DO NOT translate or remove these variables:
+		// - {{SignerCommonName}}
+		// - {{IssuerCommonName}}
+		// - {{ServerSignatureDate}}
+		//
+		// Only translate the text outside the curly braces, such as:
+		// - "Signed with LibreSign"
+		// - "Issuer:"
+		// - "Date:"
 		return $this->l10n->t(
 			"Signed with LibreSign\n"
 			. "{{SignerCommonName}}\n"
