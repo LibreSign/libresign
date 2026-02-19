@@ -331,7 +331,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		string $testName,
 		string $signedByText,
 		array $expectedSubstrings,
-		array $forbiddenSubstrings
+		array $forbiddenSubstrings,
 	): void {
 		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
 		$this->appConfig->setValueBool(Application::APP_ID, 'write_qrcode_on_footer', false);
