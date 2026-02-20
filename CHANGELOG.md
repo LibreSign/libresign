@@ -18,6 +18,24 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 13.0.3 - 2026-02-20
+### Fixes
+- fix: prevent CA configuration loss during migrations [#6982](https://github.com/LibreSign/libresign/pull/6982)
+- fix(migration): prevent CA file loss in Version13000Date20251031165700 [#6982](https://github.com/LibreSign/libresign/pull/6982)
+- fix: add pki directory to DeleteOldBinaries whitelist [#6982](https://github.com/LibreSign/libresign/pull/6982)
+
+### Changed
+- feat(migration): add repair migration for CA structure [#6982](https://github.com/LibreSign/libresign/pull/6982)
+
+## 12.2.3 - 2026-02-20
+### Fixes
+- fix: prevent CA configuration loss during migrations [#6981](https://github.com/LibreSign/libresign/pull/6981)
+- fix(migration): prevent CA file loss in Version13000Date20251031165700 [#6981](https://github.com/LibreSign/libresign/pull/6981)
+- fix: add pki directory to DeleteOldBinaries whitelist [#6981](https://github.com/LibreSign/libresign/pull/6981)
+
+### Changed
+- feat(migration): add repair migration for CA structure [#6981](https://github.com/LibreSign/libresign/pull/6981)
+
 ## 13.0.2 - 2026-02-20
 ### Fixes
 - fix: store signature at right user [#6972](https://github.com/LibreSign/libresign/pull/6972)
