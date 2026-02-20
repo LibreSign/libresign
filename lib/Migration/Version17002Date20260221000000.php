@@ -99,11 +99,6 @@ class Version17002Date20260221000000 extends SimpleMigrationStep {
 		// Phase 2: Determine correct destination based on ca_id or create new one
 		$targetInfo = $this->determineTargetLocation($sourceInfo, $engineName, $rootPath);
 
-		if (!$targetInfo) {
-			$output->warning('Could not determine target location for CA files');
-			return;
-		}
-
 		$output->info('Will move CA files to: ' . $targetInfo['path']);
 
 		// Phase 3: Move files to correct location
