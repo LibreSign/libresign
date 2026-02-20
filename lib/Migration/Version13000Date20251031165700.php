@@ -10,10 +10,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use Closure;
+use OC\DB\Exceptions\DbalException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\CaIdentifierService;
-use OCA\Libresign\Service\Install\InstallService;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
@@ -35,7 +35,6 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 		private IAppConfig $appConfig,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private CaIdentifierService $caIdentifierService,
-		private InstallService $installService,
 		private IDBConnection $connection,
 		private IAppDataFactory $appDataFactory,
 		private LoggerInterface $logger,
@@ -53,7 +52,6 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 	#[Override]
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$this->convertRootCertOuStringToArray();
-		$this->addConfigPathToOpenSsl();
 		$this->backupCrlDataToDisk();
 	}
 
@@ -130,18 +128,6 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 		$this->populateCrlInstanceAndGeneration();
 	}
 
-	private function addConfigPathToOpenSsl(): void {
-		$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', '');
-		if ($engineName !== 'openssl') {
-			return;
-		}
-		$engine = $this->certificateEngineFactory->getEngine();
-		$configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path', '');
-		if (empty($configPath)) {
-			$engine->setConfigPath($engine->getCurrentConfigPath());
-		}
-	}
-
 	private function migrateToNewestConfigFormat(): void {
 		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 		$rootPath = $dataDir . '/appdata_' . $this->config->getSystemValue('instanceid') . '/libresign/';
@@ -156,7 +142,6 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 				$originalCaId = $this->caIdentifierService->generateCaId($engineName);
 			}
 		}
-		$generatedNewCaId = false;
 
 		$engines = ['o' => 'openssl', 'c' => 'cfssl'];
 		foreach ($engines as $engineType => $engineName) {
@@ -166,8 +151,8 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 
 			$engine = $this->certificateEngineFactory->getEngine($engineName);
 
-			if (empty($originalCaId) || !str_ends_with($originalCaId, '-e:' . $engineType)) {
-				$generatedNewCaId = true;
+			// Generate ca_id if needed, but don't increment counter unnecessarily
+			if (empty($originalCaId) || !str_ends_with($originalCaId, '_e:' . $engineType)) {
 				$this->caIdentifierService->generateCaId($engineName);
 			}
 
@@ -175,28 +160,49 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			$configPath = $engine->getCurrentConfigPath();
 			$configFiles = glob($rootPath . $engineName . '_config/*');
 
-			if (!empty($configFiles) && empty(glob($configPath . '/*'))) {
-				foreach ($configFiles as $file) {
-					if (is_file($file)) {
-						copy($file, $configPath . '/' . basename($file));
-					}
-				}
-			}
-
+			// Copy files only if destination doesn't have essential CA files
 			if (!empty($configFiles)) {
-				foreach ($configFiles as $file) {
-					if (is_file($file)) {
-						unlink($file);
+				$destHasCaPem = file_exists($configPath . '/ca.pem');
+				$destHasCaKey = file_exists($configPath . '/ca-key.pem');
+
+				if (!$destHasCaPem || !$destHasCaKey) {
+					foreach ($configFiles as $file) {
+						if (is_file($file)) {
+							$destFile = $configPath . '/' . basename($file);
+							if (!file_exists($destFile)) {
+								copy($file, $destFile);
+							}
+						}
 					}
 				}
 			}
-			if (is_dir($rootPath . $engineName . '_config')) {
-				rmdir($rootPath . $engineName . '_config');
-			}
-		}
 
-		if ($generatedNewCaId && $originalCaId) {
-			$this->appConfig->setValueString(Application::APP_ID, 'ca_id', $originalCaId);
+			// Only delete source directory if destination has both essential CA files
+			$destHasCaPem = file_exists($configPath . '/ca.pem');
+			$destHasCaKey = file_exists($configPath . '/ca-key.pem');
+
+			if ($destHasCaPem && $destHasCaKey) {
+				if (!empty($configFiles)) {
+					foreach ($configFiles as $file) {
+						if (is_file($file)) {
+							@unlink($file);
+						}
+					}
+				}
+				if (is_dir($rootPath . $engineName . '_config')) {
+					@rmdir($rootPath . $engineName . '_config');
+				}
+			} else {
+				// Log warning if we couldn't migrate successfully
+				$this->logger->warning(
+					'Migration could not verify CA files in destination directory. Old directory preserved.',
+					[
+						'engine' => $engineName,
+						'source' => $rootPath . $engineName . '_config',
+						'destination' => $configPath,
+					]
+				);
+			}
 		}
 	}
 
@@ -374,7 +380,10 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 
 			fclose($handle);
 
-			$file->delete();
+			try {
+				$file->delete();
+			} catch (DbalException $e) {
+			}
 
 		} catch (\Exception $e) {
 			$this->logger->error('Error restoring CRL data from disk during migration: ' . $e->getMessage(), ['exception' => $e]);
