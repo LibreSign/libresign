@@ -192,9 +192,11 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			$storageUserId = $this->identifyService->getFileMapper()
 				->getStorageUserIdByUuid($fileInfo['uuid']);
 			$folderService = $this->identifyService->getFolderService();
+			$previousUserId = $folderService->getUserId();
 			$folderService->setUserId($storageUserId);
 			try {
 				$folderService->getFileByNodeId($fileInfo['nodeId']);
+				$folderService->setUserId($previousUserId);
 			} catch (NotFoundException) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
