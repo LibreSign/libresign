@@ -45,6 +45,7 @@ class DeleteOldBinaries implements IRepairStep {
 			'jsignpdf',
 			'pdftk',
 		],
+		'pki',
 		'openssl_config',
 		'cfssl_config',
 		'unauthenticated',
