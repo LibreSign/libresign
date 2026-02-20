@@ -2,7 +2,7 @@
     "Settings saved" : "Тохиргоо хадгалагдлаа",
     "No file uploaded" : "Файл илгээгдсэнгүй",
     "File not found" : "Файл олдсонгүй",
-    "deleted" : "Устгагдсан",
+    "Deleted" : "Устгагдсан",
     "Invalid file provided" : "Буруу файл байна",
     "File is too big" : "Файлын хэмжээ хэт их байна",
     "in %s" : "%s-д",
@@ -68,7 +68,6 @@
     "Reset to default" : "Анхны байдлаар сэргээх",
     "Learn more" : "Илүү их судалгаа",
     "Username" : "Хэрэглэгчийн нэр",
-    "Optional" : "Сайн дурын",
-    "Deleted" : "Устгагдсан"
+    "Optional" : "Сайн дурын"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -14,7 +14,7 @@ OC.L10N.register(
     "No file uploaded" : "לא הועלה קובץ",
     "File not found" : "קובץ לא נמצא",
     "User not found" : "המשתמש לא נמצא",
-    "deleted" : "נמחק",
+    "Deleted" : "נמחק",
     "Invalid password" : "ססמה שגויה",
     "Internal Server Error" : "שגיאה פנימית בשרת",
     "Invalid file provided" : "הקובץ שסופק שגוי",
@@ -123,7 +123,6 @@ OC.L10N.register(
     "Invalid URL" : "כתובת שגויה",
     "Username" : "שם משתמש",
     "Optional" : "אופציונלי",
-    "Forgot password?" : "שכחת ססמה?",
-    "Deleted" : "נמחק"
+    "Forgot password?" : "שכחת ססמה?"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

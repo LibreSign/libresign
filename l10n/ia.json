@@ -3,6 +3,7 @@
     "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "Le file incargate excede le directiva MAX_FILE_SIZE que esseva specificate in le formulario HTML",
     "No file was uploaded" : "Nulle file esseva incargate",
     "Missing a temporary folder" : "Il manca un dossier temporari",
+    "Deleted" : "Delite",
     "File is too big" : "File es troppo grande",
     "View" : "Vider",
     "in %s" : "in %s",
@@ -54,7 +55,6 @@
     "Yes" : "Si",
     "No" : "No",
     "Username" : "Nomine de usator",
-    "Optional" : "Optional",
-    "Deleted" : "Delite"
+    "Optional" : "Optional"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

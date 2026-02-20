@@ -9,7 +9,7 @@ OC.L10N.register(
     "Missing a temporary folder" : "დროებითი დირექტორია არ არსებობს",
     "No file uploaded" : "არც ერთი ფაილი არ ატვირთულა",
     "File not found" : "ფაილი ვერ იქნა ნაპოვნი",
-    "deleted" : "გაუქმებულია",
+    "Deleted" : "გაუქმდა",
     "Invalid file provided" : "არასწორი ფაილი",
     "File is too big" : "ფაილი ზედმეტად დიდია",
     "File sharing" : "ფაილების გაზიარება",
@@ -92,7 +92,6 @@ OC.L10N.register(
     "Learn more" : "შეიტყვეთ მეტი",
     "Username" : "მომხმარებლის სახელი",
     "Optional" : "არასავალდებულო",
-    "Complete" : "დასრულებულია",
-    "Deleted" : "გაუქმდა"
+    "Complete" : "დასრულებულია"
 },
 "nplurals=2; plural=(n!=1);");

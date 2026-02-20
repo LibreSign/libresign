@@ -24,11 +24,9 @@ OC.L10N.register(
     "File signed" : "Failas pasirašytas",
     "Element updated with success" : "Elementas sėkmingai atnaujintas",
     "User not found" : "Naudotojas nerastas",
-    "draft" : "juodraštis",
-    "signed" : "pasirašytas",
-    "deleted" : "ištrintas",
     "Draft" : "Juodraštis",
     "Signed" : "Pasirašytas",
+    "Deleted" : "Ištrinta",
     "User not found." : "Naudotojas nerastas.",
     "Unsigned file." : "Nepasirašytas failas.",
     "Certificate is trusted." : "Liudijimas yra patikimas.",
@@ -79,6 +77,7 @@ OC.L10N.register(
     "WhatsApp" : "WhatsApp",
     "XMPP" : "XMPP",
     "%s already signed this file" : "%s jau pasirašė šį failą",
+    "signed" : "pasirašytas",
     "LibreSign" : "LibreSign",
     "Cancel" : "Atsisakyti",
     "Save" : "Įrašyti",
@@ -227,9 +226,6 @@ OC.L10N.register(
     "Unable to sign." : "Nepavyko pasirašyti.",
     "Subscription password." : "Prenumeratos slaptažodis.",
     "Forgot password?" : "Pamiršote slaptažodį?",
-    "Complete" : "Baigti",
-    "Deleted" : "Ištrinta",
-    "available for signature" : "prieinamas pasirašymui",
-    "partially signed" : "dalinai pasirašytas"
+    "Complete" : "Baigti"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

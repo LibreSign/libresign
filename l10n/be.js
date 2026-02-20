@@ -13,8 +13,8 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "Пашырэнне PHP спыніла запампоўванне файла",
     "File not found" : "Файл не знойдзены",
     "User not found" : "Карыстальнік не знойдзены",
-    "draft" : "чарнавік",
     "Draft" : "Чарнавік",
+    "Deleted" : "Выдаленае",
     "Invalid password" : "Няправільны пароль",
     "Internal Server Error" : "Унутраная памылка сервера",
     "Invalid file provided" : "Прапанаваны файл некарэктны",
@@ -163,7 +163,6 @@ OC.L10N.register(
     "Description only" : "Толькі апісанне",
     "Learn more" : "Больш падрабязна",
     "Username" : "Імя карыстальніка",
-    "Forgot password?" : "Забылі пароль?",
-    "Deleted" : "Выдаленае"
+    "Forgot password?" : "Забылі пароль?"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

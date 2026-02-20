@@ -31,11 +31,9 @@ OC.L10N.register(
     "Element updated with success" : "Элемент обновлен успешно",
     "Visible element deleted" : "Видимый элемент удален",
     "User not found" : "Пользователь не найден",
-    "draft" : "черновик",
-    "signed" : "подписан",
-    "deleted" : "удалено",
     "Draft" : "Черновик",
     "Signed" : "Подписан",
+    "Deleted" : "Удалено",
     "User not found." : "Пользователь не найден.",
     "Validate in %s." : "Проверить в %s.",
     "Invalid Sign engine." : "Неверный движок подписи.",
@@ -116,6 +114,7 @@ OC.L10N.register(
     "No signature was requested to %s" : "Нет обязательных подписей для %s",
     "%s already signed this file" : "%s уже подписал этот файл",
     "File already signed by you" : "Вы уже подписали файл",
+    "signed" : "подписан",
     "LibreSign" : "LibreSign",
     "LibreSign, digital signature app for Nextcloud." : "Приложение для работы с цифровыми подписями для Nextcloud.",
     "Cancel" : "Отменить",
@@ -318,10 +317,6 @@ OC.L10N.register(
     "Validation" : "Проверка",
     "Return" : "Возврат",
     "Open in LibreSign" : "Открыть в LibreSign",
-    "Requested by {name}, at {date}" : "Запрошено у {name} {date}",
-    "Deleted" : "Удалено",
-    "partially signed" : "частично подписан",
-    "Empty users list" : "Пустой список пользователей",
-    "User list needs to be an array" : "Список пользователей должен быть массивом"
+    "Requested by {name}, at {date}" : "Запрошено у {name} {date}"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

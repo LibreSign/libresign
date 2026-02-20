@@ -14,9 +14,8 @@ OC.L10N.register(
     "No file uploaded" : "ファイルがアップロードされていません",
     "File not found" : "ファイルが見つかりません",
     "User not found" : "ユーザーが見つかりません",
-    "draft" : "下書き",
-    "deleted" : "削除しました",
     "Draft" : "下書き",
+    "Deleted" : "削除済み",
     "User not found." : "ユーザーが見つかりません。",
     "Invalid password" : "無効なパスワード",
     "Internal Server Error" : "内部サーバーエラー",
@@ -171,7 +170,6 @@ OC.L10N.register(
     "Forgot password?" : "パスワードをお忘れですか?",
     "Partial" : "一部",
     "Complete" : "完了",
-    "Open in LibreSign" : "LibreSignで開く",
-    "Deleted" : "削除済み"
+    "Open in LibreSign" : "LibreSignで開く"
 },
 "nplurals=1; plural=0;");

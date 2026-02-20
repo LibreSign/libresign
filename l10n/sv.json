@@ -37,12 +37,9 @@
     "Visible element deleted" : "Synligt element raderat",
     "User not found" : "Användaren hittades inte",
     "Identification Document" : "Identifieringsdokument",
-    "not LibreSign file" : "inte LibreSign-fil",
-    "draft" : "utkast",
-    "signed" : "signerad",
-    "deleted" : "raderas",
     "Draft" : "Utkast",
     "Signed" : "Signerad",
+    "Deleted" : "Borttagen",
     "User not found." : "Användaren hittades inte.",
     "Digitally signed by LibreSign." : "Digitalt signerad av LibreSign.",
     "Validate in %s." : "Validera om %s.",
@@ -177,6 +174,7 @@
     "%s already signed this file" : "%s har redan signerat denna fil",
     "Sending authorization code not enabled." : "Sändning av auktoriseringskod är inte aktiverat.",
     "File already signed by you" : "Filen är redan signerad av dig",
+    "signed" : "signerad",
     "Invalid template font size. The value must be between %.1f and %.0f." : "Ogiltig teckenstorlek i mall. Värdet måste vara mellan %.1f och %.0f.",
     "Invalid signature font size. The value must be between %.1f and %.0f." : "Ogiltig teckenstorlek för signatur. Värdet måste vara mellan %.1f och %.0f.",
     "Unique identifier of the signed document" : "Unik identifierare för det signerade dokumentet",
@@ -500,14 +498,6 @@
     "Return" : "Tillbaka",
     "Open in LibreSign" : "Öppna i LibreSign",
     "New signature request" : "Ny signaturförfrågan",
-    "Requested by {name}, at {date}" : "Begärd av {name}, den {date}",
-    "Deleted" : "Borttagen",
-    "available for signature" : "tillgänglig för signatur",
-    "partially signed" : "delvis signerad",
-    "no signers" : "inga undertecknare",
-    "Empty users list" : "Töm användarlistan",
-    "User list needs to be an array" : "Användarlistan måste vara en array",
-    "Select other file" : "Välj annan fil",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Använd din musrulle för att zooma in eller ut på bilden och hitta den bästa vyn av din signatur."
+    "Requested by {name}, at {date}" : "Begärd av {name}, den {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

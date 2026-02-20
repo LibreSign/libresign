@@ -25,11 +25,9 @@
     "Element updated with success" : "성공으로 요소가 업데이트되었습니다.",
     "Visible element deleted" : "표시된 요소가 삭제됨",
     "User not found" : "사용자를 찾을 수 없음",
-    "draft" : "초안",
-    "signed" : "서명됨",
-    "deleted" : "삭제됨",
     "Draft" : "초안",
     "Signed" : "서명됨",
+    "Deleted" : "삭제됨",
     "User not found." : "사용자를 찾을 수 없습니다.",
     "Validate in %s." : "%s에서 검증",
     "Invalid Sign engine." : "잘못된 서명 엔진입니다.",
@@ -112,6 +110,7 @@
     "%s already signed this file" : "%s은 파일에 이미 서명했습니다.",
     "Sending authorization code not enabled." : "전송 승인 코드가 활성화되지 않았습니다.",
     "File already signed by you" : "사용자가 이미 서명한 파일",
+    "signed" : "서명됨",
     "LibreSign" : "LibreSign",
     "LibreSign, digital signature app for Nextcloud." : "Nextcloud를 위한 디지털 시그니처 앱, LibreSign.",
     "Cancel" : "취소",
@@ -288,10 +287,6 @@
     "Validation" : "인증",
     "Return" : "반환",
     "Open in LibreSign" : "LibreSign으로 열기",
-    "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨",
-    "Deleted" : "삭제됨",
-    "partially signed" : "부분 서명됨",
-    "Empty users list" : "빈 사용자 목록",
-    "User list needs to be an array" : "사용자 목록은 배열이어야 합니다."
+    "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

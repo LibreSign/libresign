@@ -12,6 +12,7 @@ OC.L10N.register(
     "Could not write file to disk" : "ไม่สามารถเขียนไฟล์ลงดิสก์",
     "A PHP extension stopped the file upload" : "ส่วนขยาย PHP ได้หยุดการอัปโหลดไฟล์",
     "File not found" : "ไม่พบไฟล์",
+    "Deleted" : "ลบแล้ว",
     "Invalid password" : "รหัสผ่านไม่ถูกต้อง",
     "Internal Server Error" : "ข้อผิดพลาดภายในเซิร์ฟเวอร์",
     "Invalid file provided" : "ไฟล์ที่ระบุไม่ถูกต้อง",
@@ -99,7 +100,6 @@ OC.L10N.register(
     "No" : "ไม่",
     "Invalid URL" : "URL ไม่ถูกต้อง",
     "Username" : "ชื่อผู้ใช้",
-    "Optional" : "ไม่จำเป็น",
-    "Deleted" : "ลบแล้ว"
+    "Optional" : "ไม่จำเป็น"
 },
 "nplurals=1; plural=0;");

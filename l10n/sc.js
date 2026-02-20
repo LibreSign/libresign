@@ -21,9 +21,8 @@ OC.L10N.register(
     "File signed" : "Archìviu firmadu",
     "Invalid data to sign file" : "Datos pro firmare is archìvios non bàlidos",
     "User not found" : "Utèntzia no agatada",
-    "signed" : "firmadu",
-    "deleted" : "cantzelladu",
     "Signed" : "Firmadu",
+    "Deleted" : "Cantzelladu",
     "You do not have permission for this action." : "Non tenes su permissu pro fàghere de aici.",
     "Invalid password" : "Crae non bàlida",
     "Internal Server Error" : "Errore internu de su serbidore",
@@ -71,6 +70,7 @@ OC.L10N.register(
     "No signature was requested to %s" : "Non s'est fata dimanda pro peruna firma %s",
     "%s already signed this file" : "%s archìviu giai firmadu",
     "File already signed by you" : "Archìviu giai firmadu dae te",
+    "signed" : "firmadu",
     "LibreSign" : "LibreSign",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplicatzione pro sa firma digitale pro Nextcloud.",
     "Cancel" : "Annulla",
@@ -206,9 +206,6 @@ OC.L10N.register(
     "Validation" : "Cunvàlida",
     "Return" : "Torra",
     "Open in LibreSign" : "Aberi in LibreSign",
-    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
-    "Deleted" : "Cantzelladu",
-    "Empty users list" : "Elencu de utentes bòidu",
-    "User list needs to be an array" : "S'elencu de utentes devet èssere unu vetore"
+    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}"
 },
 "nplurals=2; plural=(n != 1);");

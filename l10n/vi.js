@@ -14,7 +14,7 @@ OC.L10N.register(
     "No file uploaded" : "Không có tệp nào được tải lên",
     "File not found" : "Không tìm thấy tập tin",
     "User not found" : "Không tìm thấy người dùng",
-    "deleted" : "đã xóa",
+    "Deleted" : "Đã xoá",
     "Internal Server Error" : "Lỗi máy chủ.",
     "Invalid file provided" : "Tệp đã cung cấp không hợp lệ",
     "File is too big" : "Tệp quá lớn",
@@ -129,7 +129,6 @@ OC.L10N.register(
     "Invalid URL" : "URL không hợp lệ",
     "Username" : "Tên đăng nhập",
     "Optional" : "Tùy chọn",
-    "Forgot password?" : "Quên mật khẩu sao?",
-    "Deleted" : "Đã xoá"
+    "Forgot password?" : "Quên mật khẩu sao?"
 },
 "nplurals=1; plural=0;");

@@ -31,7 +31,7 @@ OC.L10N.register(
     "Element not found" : "Elemento no encontrados",
     "Element updated with success" : "Elemento actualizado con éxito",
     "Visible element deleted" : "Elemento visible borrado",
-    "deleted" : "Borrado",
+    "Deleted" : "Borrado",
     "Invalid password" : "Contraseña inválida",
     "Internal Server Error" : "Error interno del servidor",
     "Invalid file provided" : "Archivo proporcionado inválido",
@@ -114,7 +114,6 @@ OC.L10N.register(
     "Username" : "Usuario",
     "Optional" : "Opcional",
     "Forgot password?" : "¿Olvidaste tu contraseña?",
-    "Complete" : "Terminar",
-    "Deleted" : "Borrado"
+    "Complete" : "Terminar"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

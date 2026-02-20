@@ -13,8 +13,8 @@ OC.L10N.register(
     "No file uploaded" : "Nun se xubió nengún ficheru",
     "File not found" : "Nun s'atopó'l ficheru",
     "User not found" : "Nun s'atopó l'usuariu",
-    "deleted" : "desanicióse",
     "Draft" : "Borrador",
+    "Deleted" : "Desanicióse",
     "Invalid password" : "La contraseña ye inválida",
     "Internal Server Error" : "Error internu del sirvidor",
     "Invalid file provided" : "Fornióse un ficheru inválidu",
@@ -139,7 +139,6 @@ OC.L10N.register(
     "Invalid URL" : "La URL ye inválisa",
     "Username" : "Nome d'usuariu",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
-    "Partial" : "Parcial",
-    "Deleted" : "Desanicióse"
+    "Partial" : "Parcial"
 },
 "nplurals=2; plural=(n != 1);");

@@ -35,11 +35,9 @@
     "Visible element deleted" : "Vidni predmet je izbrisan.",
     "User not found" : "Uporabnika ni mogoče najti",
     "Identification Document" : "Identifikacijski dokument",
-    "draft" : "osnutek",
-    "signed" : "podpisano",
-    "deleted" : "izbrisano",
     "Draft" : "Osnutek",
     "Signed" : "Podpisano",
+    "Deleted" : "Izbrisano",
     "User not found." : "Uporabnika ni mogoče najti.",
     "Validate in %s." : "Overi v %s",
     "The admin hasn't set up LibreSign yet, please wait." : "Skrbnik še ni omogočil okolja LibreSign za splošno uporabo.",
@@ -145,6 +143,7 @@
     "%s already signed this file" : "Oseba %s je že podpisala datoteko",
     "Sending authorization code not enabled." : "Pošiljanje overitvene kode ni omogočeno.",
     "File already signed by you" : "Datoteka je že podpisana.",
+    "signed" : "podpisano",
     "LibreSign" : "LibreSign",
     "✍️ Self-hosted document signer using digital certificate" : "✍️ Samostojno gostovanje okolja za digitalno podpisovanje dokumentov z uporabo overjenega digitalnega potrdila",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign – digitalno podpisovanje datotek v okolju Nextcloud",
@@ -401,14 +400,6 @@
     "Validation" : "Potrjevanje",
     "Return" : "Nazaj",
     "Open in LibreSign" : "Odpri v LibreSign",
-    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}",
-    "Deleted" : "Izbrisano",
-    "available for signature" : "na voljo za podpis",
-    "partially signed" : "v podpisovanju",
-    "no signers" : "ni podpisnikov",
-    "Empty users list" : "Prazen seznam uporabnikov",
-    "User list needs to be an array" : "Seznam uporabnikov mora biti podatkovno polje",
-    "Select other file" : "Izbor druge datoteke",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Uporabite miško za približanje slike in iskanje najboljšega pogleda podpisa."
+    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}"
 },"pluralForm" :"nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);"
 }

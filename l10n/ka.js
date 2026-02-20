@@ -13,8 +13,8 @@ OC.L10N.register(
     "No file uploaded" : "No file uploaded",
     "File not found" : "File not found",
     "User not found" : "User not found",
-    "deleted" : "deleted",
     "Draft" : "Draft",
+    "Deleted" : "Deleted",
     "Invalid password" : "Invalid password",
     "Internal Server Error" : "Internal Server Error",
     "Invalid file provided" : "მითითებულია არასწორი ფაილი",
@@ -131,7 +131,6 @@ OC.L10N.register(
     "Invalid URL" : "Invalid URL",
     "Username" : "Username",
     "Forgot password?" : "Forgot password?",
-    "Complete" : "Complete",
-    "Deleted" : "Deleted"
+    "Complete" : "Complete"
 },
 "nplurals=2; plural=(n!=1);");

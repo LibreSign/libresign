@@ -12,6 +12,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "’n PHP-uitbreiding het die oplaai gestaak",
     "No file uploaded" : "Geen lêer opgelaai",
     "File not found" : "Lêer nie gevind nie",
+    "Deleted" : "Geskrap",
     "Internal Server Error" : "Interne bedienerfout",
     "Invalid file provided" : "Ongeldige lêer verskaf",
     "File is too big" : "Lêer is te groot",
@@ -75,7 +76,6 @@ OC.L10N.register(
     "Reset to default" : "Herstel na verstek",
     "Username" : "Gebruikernaam",
     "Optional" : "Opsioneel",
-    "Forgot password?" : "Wagwoord vergeet?",
-    "Deleted" : "Geskrap"
+    "Forgot password?" : "Wagwoord vergeet?"
 },
 "nplurals=2; plural=(n != 1);");
