@@ -14,8 +14,8 @@ OC.L10N.register(
     "No file uploaded" : "Ingen fil uploadet",
     "File not found" : "Fil ikke fundet",
     "User not found" : "Bruger ikke fundet",
-    "deleted" : "Slettet",
     "Draft" : "Kladde",
+    "Deleted" : "Slettet",
     "Invalid password" : "Ugyldigt kodeord",
     "Internal Server Error" : "Intern serverfejl",
     "Invalid file provided" : "Der er angivet en ugyldig fil",
@@ -160,7 +160,6 @@ OC.L10N.register(
     "Optional" : "Valgfri",
     "Forgot password?" : "Glemt adgangskode?",
     "Complete" : "Færdig",
-    "Return" : "Aflever",
-    "Deleted" : "Slettet"
+    "Return" : "Aflever"
 },
 "nplurals=2; plural=(n != 1);");

@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "PHP kengaytmasi faylni yuklashni to'xtatdi",
     "File not found" : "File not found",
     "User not found" : "Foydalanuvchi topilmadi",
+    "Deleted" : "O`chirilgan",
     "Internal Server Error" : "Serverdagi ichki xatolik",
     "Invalid file provided" : "Invalid file provided",
     "File is too big" : "File is too big",
@@ -90,7 +91,6 @@ OC.L10N.register(
     "No" : "No",
     "Remove background" : "Fonni olib tashlash",
     "Username" : "Foydalanuvchi nomi",
-    "Forgot password?" : "Parolni unutdingizmi?",
-    "Deleted" : "O`chirilgan"
+    "Forgot password?" : "Parolni unutdingizmi?"
 },
 "nplurals=1; plural=0;");

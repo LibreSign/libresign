@@ -28,11 +28,9 @@
     "Visible element deleted" : "Visible element deleted",
     "User not found" : "کاربر یافت نشد",
     "Identification Document" : "Identification Document",
-    "draft" : "draft",
-    "signed" : "signed",
-    "deleted" : "حذف شده",
     "Draft" : "Draft",
     "Signed" : "Signed",
+    "Deleted" : "حذف شده",
     "User not found." : "User not found.",
     "Validate in %s." : "Validate in %s.",
     "Invalid Sign engine." : "Invalid Sign engine.",
@@ -119,6 +117,7 @@
     "%s already signed this file" : "%s already signed this file",
     "Sending authorization code not enabled." : "Sending authorization code not enabled.",
     "File already signed by you" : "File already signed by you",
+    "signed" : "signed",
     "LibreSign" : "LibreSign",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, digital signature app for Nextcloud.",
     "Cancel" : "لغو",
@@ -336,12 +335,6 @@
     "Validation" : "Validation",
     "Return" : "Return",
     "Open in LibreSign" : "Open in LibreSign",
-    "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
-    "Deleted" : "حذف شده",
-    "partially signed" : "partially signed",
-    "Empty users list" : "Empty users list",
-    "User list needs to be an array" : "User list needs to be an array",
-    "Select other file" : "Select other file",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Use your mouse wheel to zoom in or out on the image and find the best view of your signature."
+    "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

@@ -11,8 +11,8 @@
     "No file uploaded" : "Nun se xubió nengún ficheru",
     "File not found" : "Nun s'atopó'l ficheru",
     "User not found" : "Nun s'atopó l'usuariu",
-    "deleted" : "desanicióse",
     "Draft" : "Borrador",
+    "Deleted" : "Desanicióse",
     "Invalid password" : "La contraseña ye inválida",
     "Internal Server Error" : "Error internu del sirvidor",
     "Invalid file provided" : "Fornióse un ficheru inválidu",
@@ -137,7 +137,6 @@
     "Invalid URL" : "La URL ye inválisa",
     "Username" : "Nome d'usuariu",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
-    "Partial" : "Parcial",
-    "Deleted" : "Desanicióse"
+    "Partial" : "Parcial"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

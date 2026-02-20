@@ -35,11 +35,9 @@
     "Visible element deleted" : "S'ha suprimit l'element visible",
     "User not found" : "No s'ha trobat l'usuari",
     "Identification Document" : "Document identificatiu",
-    "draft" : "esborrany",
-    "signed" : "signat",
-    "deleted" : "suprimit",
     "Draft" : "Esborrany",
     "Signed" : "Signat",
+    "Deleted" : "Suprimit",
     "User not found." : "No s'ha trobat l'usuari.",
     "Validate in %s." : "Valida a %s.",
     "Invalid Sign engine." : "Motor de signatura no vàlid.",
@@ -130,6 +128,7 @@
     "%s already signed this file" : "%s ja ha signat aquest fitxer",
     "Sending authorization code not enabled." : "Enviament del codi d'autorització no habilitat.",
     "File already signed by you" : "Fitxer ja signat per tu",
+    "signed" : "signat",
     "LibreSign" : "LibreSign",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplicació de signatura digital per a Nextcloud.",
     "Cancel" : "Cancel·la",
@@ -343,13 +342,6 @@
     "Validation" : "Validació",
     "Return" : "Retorn",
     "Open in LibreSign" : "Obre a LibreSign",
-    "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}",
-    "Deleted" : "Suprimit",
-    "available for signature" : "disponible per a signar",
-    "partially signed" : "signat parcialment",
-    "Empty users list" : "Llista d'usuaris buida",
-    "User list needs to be an array" : "La llista d'usuaris ha de ser un vector",
-    "Select other file" : "Seleccioneu un altre fitxer",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Utilitzeu la roda del ratolí per ampliar o reduir la imatge i trobar la millor visió de la vostra signatura."
+    "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

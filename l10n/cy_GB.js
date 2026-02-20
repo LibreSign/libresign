@@ -5,6 +5,7 @@ OC.L10N.register(
     "No file was uploaded" : "Ni lwythwyd ffeil i fyny",
     "Missing a temporary folder" : "Plygell dros dro yn eisiau",
     "User not found" : "Defnyddiwr heb ei ganfod",
+    "Deleted" : "Wedi dileu",
     "View" : "Golwg",
     "in %s" : "yn %s",
     "Pending" : "I ddod",
@@ -67,7 +68,6 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Enw defnyddiwr",
     "Optional" : "Dewisol",
-    "Forgot password?" : "Anghofio cyfrinair?",
-    "Deleted" : "Wedi dileu"
+    "Forgot password?" : "Anghofio cyfrinair?"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

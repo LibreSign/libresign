@@ -14,8 +14,8 @@ OC.L10N.register(
     "No file uploaded" : "Engin skrá var send inn",
     "File not found" : "Skrá finnst ekki",
     "User not found" : "Notandi fannst ekki",
-    "deleted" : "eytt",
     "Draft" : "Drög",
+    "Deleted" : "Eytt",
     "Internal Server Error" : "Innri villa",
     "Invalid file provided" : "Ógild skrá gefin",
     "File is too big" : "Skrá er of stór",
@@ -151,7 +151,6 @@ OC.L10N.register(
     "Username" : "Notandanafn",
     "Optional" : "Valkvætt",
     "Partial" : "Að hluta",
-    "Complete" : "Fullklárað",
-    "Deleted" : "Eytt"
+    "Complete" : "Fullklárað"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

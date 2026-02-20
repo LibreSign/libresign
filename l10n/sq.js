@@ -9,7 +9,7 @@ OC.L10N.register(
     "Missing a temporary folder" : "Mungon një dosje e përkohshme",
     "No file uploaded" : "Asnjë skedar i ngarkuar",
     "File not found" : "Skedari nuk u gjet",
-    "deleted" : "të fshira",
+    "Deleted" : "E fshirë",
     "Internal Server Error" : "Gabim i Brendshëm Shërbyesi",
     "Invalid file provided" : "U dha kartelë e pavlefshme",
     "File is too big" : "Skedari është shumë i madh",
@@ -99,7 +99,6 @@ OC.L10N.register(
     "Invalid URL" : "URL e pavlefshme",
     "Username" : "Emri i përdoruesit",
     "Optional" : "Jo i detyrueshëm",
-    "Complete" : "I Perfunduar",
-    "Deleted" : "E fshirë"
+    "Complete" : "I Perfunduar"
 },
 "nplurals=2; plural=(n != 1);");

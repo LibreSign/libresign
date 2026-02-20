@@ -4,7 +4,7 @@ OC.L10N.register(
     "Settings saved" : "Тохиргоо хадгалагдлаа",
     "No file uploaded" : "Файл илгээгдсэнгүй",
     "File not found" : "Файл олдсонгүй",
-    "deleted" : "Устгагдсан",
+    "Deleted" : "Устгагдсан",
     "Invalid file provided" : "Буруу файл байна",
     "File is too big" : "Файлын хэмжээ хэт их байна",
     "in %s" : "%s-д",
@@ -70,7 +70,6 @@ OC.L10N.register(
     "Reset to default" : "Анхны байдлаар сэргээх",
     "Learn more" : "Илүү их судалгаа",
     "Username" : "Хэрэглэгчийн нэр",
-    "Optional" : "Сайн дурын",
-    "Deleted" : "Устгагдсан"
+    "Optional" : "Сайн дурын"
 },
 "nplurals=2; plural=(n != 1);");

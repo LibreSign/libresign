@@ -12,7 +12,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "Una extensión de PHP detuvo la carga del archivo",
     "No file uploaded" : "No hay archivos cargados",
     "File not found" : "Archivo no encontrado",
-    "deleted" : "Borrado",
+    "Deleted" : "Eliminado",
     "Invalid password" : "Contraseña invalida",
     "Internal Server Error" : "Error interno del servidor",
     "Invalid file provided" : "Archivo proporcionado inválido",
@@ -108,7 +108,6 @@ OC.L10N.register(
     "Username" : "Nombre de usuario",
     "Optional" : "Opcional",
     "Forgot password?" : "¿Contraseña olvidada?",
-    "Complete" : "Terminar",
-    "Deleted" : "Eliminado"
+    "Complete" : "Terminar"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

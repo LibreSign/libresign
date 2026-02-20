@@ -6,8 +6,8 @@ OC.L10N.register(
     "No file was uploaded" : "Ulac afaylu i d-yettwasulin",
     "Missing a temporary folder" : "Ixuṣ ukaram akudan",
     "File not found" : "Ulac afaylu",
-    "deleted" : "yettwakkes",
     "Draft" : "Arewway",
+    "Deleted" : "Yettwakkes",
     "Invalid password" : "Yir awal uffir",
     "Internal Server Error" : "Tuccḍa tagensant n uqeddac",
     "File is too big" : "Afaylu-agi bezzaf meqqer",
@@ -71,7 +71,6 @@ OC.L10N.register(
     "Yes" : "Ih",
     "No" : "Uhu",
     "Username" : "Isem n useqdac",
-    "Forgot password?" : "Tettud awal uffir?",
-    "Deleted" : "Yettwakkes"
+    "Forgot password?" : "Tettud awal uffir?"
 },
 "nplurals=2; plural=(n != 1);");

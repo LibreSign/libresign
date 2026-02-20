@@ -5,6 +5,7 @@ OC.L10N.register(
     "No file was uploaded" : "কোন ফাইল আপলোড করা হয় নি",
     "Missing a temporary folder" : "অস্থায়ী ফোল্ডারটি হারানো গিয়েছে",
     "File not found" : "ফাইল খুঁজে পাওয়া গেল না",
+    "Deleted" : "মুছে ফেলা",
     "File is too big" : "ফাইল খুব বড়",
     "in %s" : "ভেতর %s",
     "Pending" : "মুলতুবি",
@@ -50,7 +51,6 @@ OC.L10N.register(
     "Refresh" : "নবোদ্যম",
     "Yes" : "Yes",
     "No" : "No",
-    "Username" : "ব্যবহারকারী",
-    "Deleted" : "মুছে ফেলা"
+    "Username" : "ব্যবহারকারী"
 },
 "nplurals=2; plural=(n != 1);");

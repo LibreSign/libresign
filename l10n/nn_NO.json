@@ -3,6 +3,7 @@
     "No file was uploaded" : "Ingen filer vart lasta opp",
     "Missing a temporary folder" : "Manglar ei mellombels mappe",
     "File not found" : "Fann ikkje fila",
+    "Deleted" : "Sletta",
     "Invalid password" : "Feil passord",
     "Internal Server Error" : "Intern serverfeil",
     "Invalid file provided" : "Ugyldig fil",
@@ -67,7 +68,6 @@
     "Yes" : "Ja",
     "No" : "Nei",
     "Username" : "Brukarnamn",
-    "Optional" : "Valfritt",
-    "Deleted" : "Sletta"
+    "Optional" : "Valfritt"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

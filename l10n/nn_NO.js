@@ -5,6 +5,7 @@ OC.L10N.register(
     "No file was uploaded" : "Ingen filer vart lasta opp",
     "Missing a temporary folder" : "Manglar ei mellombels mappe",
     "File not found" : "Fann ikkje fila",
+    "Deleted" : "Sletta",
     "Invalid password" : "Feil passord",
     "Internal Server Error" : "Intern serverfeil",
     "Invalid file provided" : "Ugyldig fil",
@@ -69,7 +70,6 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nei",
     "Username" : "Brukarnamn",
-    "Optional" : "Valfritt",
-    "Deleted" : "Sletta"
+    "Optional" : "Valfritt"
 },
 "nplurals=2; plural=(n != 1);");

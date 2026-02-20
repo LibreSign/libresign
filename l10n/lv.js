@@ -13,8 +13,8 @@ OC.L10N.register(
     "No file uploaded" : "Nav augšupielādēta datne",
     "File not found" : "Datne nav atrasta",
     "User not found" : "Lietotājs nav atrasts",
-    "deleted" : "izdzēsta",
     "Draft" : "Melnraksts",
+    "Deleted" : "Izdzēsts",
     "Invalid password" : "Nederīga parole",
     "Internal Server Error" : "Iekšēja servera kļūda",
     "Invalid file provided" : "Norādīta nederīga datne",
@@ -125,7 +125,6 @@ OC.L10N.register(
     "Forgot password?" : "Aizmirsta parole?",
     "Complete" : "Pabeigta",
     "Open in LibreSign" : "Atvērt LibreSign",
-    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}",
-    "Deleted" : "Izdzēsts"
+    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");
