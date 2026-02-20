@@ -5,13 +5,41 @@
 <template>
 	<NcDialog size="normal"
 		:no-close="loading"
-		:name="t('libresign', 'Sign with your email.')"
+		:name="dialogTitle"
 		@closing="close">
-		<div v-if="signMethodsStore.blurredEmail().length > 0" class="email">
-			{{ signMethodsStore.blurredEmail() }}
+		<!-- Progress indicator -->
+		<div class="progress-indicator">
+			{{ progressText }}
 		</div>
-		<div v-if="signMethodsStore.settings.emailToken.hasConfirmCode">
-			{{ t('libresign', 'Enter the code you received') }}
+
+		<!-- Email verification step (Step 1) -->
+		<div v-if="!signMethodsStore.settings.emailToken.hasConfirmCode" class="step-content">
+			<p class="step-explanation">
+				{{ t('libresign', 'To sign this document, we must verify your identity. Enter your email address to receive a verification code.') }}
+			</p>
+			<div v-if="signMethodsStore.blurredEmail().length > 0" class="email">
+				{{ signMethodsStore.blurredEmail() }}
+			</div>
+			<NcTextField v-model="sendTo"
+				:disabled="loading"
+				:label="t('libresign', 'Email')"
+				:placeholder="t('libresign', 'Email')"
+				:helper-text="errorMessage"
+				:error="errorMessage.length > 0"
+				@keyup.enter="requestCode"
+				@input="onChangeEmail">
+				<NcIconSvgWrapper :path="mdiEmail" :size="20" />
+			</NcTextField>
+		</div>
+
+		<!-- Code validation step (Step 2) -->
+		<div v-if="signMethodsStore.settings.emailToken.hasConfirmCode && !identityVerified" class="step-content">
+			<p class="step-explanation">
+				{{ codeExplanationText }}
+			</p>
+			<div class="email-display">
+				{{ displayEmail }}
+			</div>
 			<NcTextField v-model="token"
 				maxlength="6"
 				:disabled="loading"
@@ -25,27 +53,20 @@
 				<NcIconSvgWrapper :path="mdiFormTextboxPassword" :size="20" />
 			</NcTextField>
 		</div>
-		<NcTextField v-else
-			v-model="sendTo"
-			:disabled="loading"
-			:label="t('libresign', 'Email')"
-			:placeholder="t('libresign', 'Email')"
-			:helper-text="errorMessage"
-			:error="errorMessage.length > 0"
-			@keyup.enter="requestCode"
-			@input="onChangeEmail">
-			<NcIconSvgWrapper :path="mdiEmail" :size="20" />
-		</NcTextField>
+
+		<!-- Signature confirmation step (Step 3) -->
+		<div v-else-if="identityVerified" class="step-content">
+			<div class="verification-success">
+				<p class="verification-message">
+					{{ t('libresign', 'Your identity has been verified.') }}
+				</p>
+				<p class="signature-ready">
+					{{ t('libresign', 'You can now sign the document.') }}
+				</p>
+			</div>
+		</div>
 		<template #actions>
-			<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode"
-				:disabled="loading && !canRequestCode"
-				type="submit"
-				@click="requestNewCode">
-				<template #icon>
-					<NcLoadingIcon v-if="loading" :size="20" />
-				</template>
-				{{ t('libresign', 'Request new code') }}
-			</NcButton>
+			<!-- Step 1: Email verification -->
 			<NcButton v-if="!signMethodsStore.settings.emailToken.hasConfirmCode"
 				:disabled="loading || !canRequestCode"
 				type="submit"
@@ -54,17 +75,40 @@
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
-				{{ t('libresign', 'Request code.') }}
+				{{ t('libresign', 'Send verification code') }}
 			</NcButton>
-			<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode"
-				:disabled="!canSendCode"
+
+			<!-- Step 2: Code validation -->
+			<template v-else-if="!identityVerified">
+				<NcButton :disabled="loading && !canRequestCode"
+					type="submit"
+					@click="requestNewCode">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+					</template>
+					{{ t('libresign', 'Request new code') }}
+				</NcButton>
+				<NcButton :disabled="!canSendCode"
+					type="submit"
+					variant="primary"
+					@click="sendCode">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+					</template>
+					{{ t('libresign', 'Validate code') }}
+				</NcButton>
+			</template>
+
+			<!-- Step 3: Signature confirmation -->
+			<NcButton v-else
+				:disabled="loading"
 				type="submit"
 				variant="primary"
-				@click="sendCode">
+				@click="signDocument">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
-				{{ t('libresign', 'Send code.') }}
+				{{ t('libresign', 'Sign document') }}
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -125,8 +169,34 @@ export default {
 		errorMessage: '',
 		token: '',
 		sendTo: '',
+		identityVerified: false,
 	}),
 	computed: {
+		dialogTitle() {
+			if (!this.signMethodsStore.settings.emailToken.hasConfirmCode) {
+				return t('libresign', 'Email verification')
+			}
+			if (!this.identityVerified) {
+				return t('libresign', 'Code validation')
+			}
+			return t('libresign', 'Signature confirmation')
+		},
+		progressText() {
+			if (!this.signMethodsStore.settings.emailToken.hasConfirmCode) {
+				return t('libresign', 'Step 1 of 3 - Email verification')
+			}
+			if (!this.identityVerified) {
+				return t('libresign', 'Step 2 of 3 - Code validation')
+			}
+			return t('libresign', 'Step 3 of 3 - Signature confirmation')
+		},
+		codeExplanationText() {
+			const email = this.displayEmail
+			return t('libresign', 'A verification code has been sent to: {email}. Please enter the 6-digit code below.', { email })
+		},
+		displayEmail() {
+			return this.signMethodsStore.blurredEmail() || this.sendTo
+		},
 		canRequestCode() {
 			if (validateEmail(this.sendTo)) {
 				if (md5(this.sendTo.toLowerCase()) !== this.signMethodsStore.settings.emailToken.hashOfEmail) {
@@ -160,6 +230,7 @@ export default {
 		requestNewCode() {
 			this.signMethodsStore.setHasEmailConfirmCode(false)
 			this.signMethodsStore.setEmailToken('')
+			this.identityVerified = false
 		},
 		async requestCode() {
 			this.loading = true
@@ -210,6 +281,9 @@ export default {
 			if (!this.canSendCode) {
 				return
 			}
+			this.identityVerified = true
+		},
+		signDocument() {
 			this.$emit('change')
 			this.close()
 		},
@@ -224,8 +298,55 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.progress-indicator {
+	font-weight: bold;
+	color: var(--color-primary-element);
+	text-align: center;
+	margin-bottom: 16px;
+	padding: 8px;
+	background-color: var(--color-primary-element-light);
+	border-radius: var(--border-radius-large);
+}
+
+.step-content {
+	.step-explanation {
+		margin-bottom: 16px;
+		color: var(--color-text-maxcontrast);
+		line-height: 1.5;
+	}
+}
+
 .email {
 	font-family: monospace;
 	text-align: center;
+	margin-bottom: 12px;
+}
+
+.email-display {
+	font-family: monospace;
+	text-align: center;
+	font-weight: bold;
+	margin: 12px 0;
+	padding: 8px;
+	background-color: var(--color-background-dark);
+	border-radius: var(--border-radius);
+}
+
+.verification-success {
+	text-align: center;
+	padding: 20px 0;
+
+	.verification-message {
+		font-size: 1.1em;
+		font-weight: 600;
+		color: var(--color-text);
+		margin-bottom: 12px;
+	}
+
+	.signature-ready {
+		font-size: 1em;
+		color: var(--color-text-maxcontrast);
+		line-height: 1.5;
+	}
 }
 </style>
