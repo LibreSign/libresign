@@ -18,6 +18,26 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 13.0.2 - 2026-02-20
+### Fixes
+- fix: store signature at right user [#6972](https://github.com/LibreSign/libresign/pull/6972)
+- fix: prevent double HTML escaping in footer template [#6967](https://github.com/LibreSign/libresign/pull/6967)
+- fix: upper case first at status [#6963](https://github.com/LibreSign/libresign/pull/6963)
+
+### Changed
+- refactor: improve English text [#6954](https://github.com/LibreSign/libresign/pull/6954)
+- refactor: improve text [#6952](https://github.com/LibreSign/libresign/pull/6952)
+
+## 12.2.2 - 2026-02-20
+### Fixes
+- fix: store signature at right user [#6971](https://github.com/LibreSign/libresign/pull/6971)
+- fix: prevent double HTML escaping in footer template [#6968](https://github.com/LibreSign/libresign/pull/6968)
+- fix: upper case first at status [#6964](https://github.com/LibreSign/libresign/pull/6964)
+
+### Changed
+- refactor: improve English text [#6955](https://github.com/LibreSign/libresign/pull/6955)
+- refactor: improve text [#6953](https://github.com/LibreSign/libresign/pull/6953)
+
 ## 13.0.1 - 2026-02-18
 ### Fixes
 - fix: docmdp first signature allow [#6944](https://github.com/LibreSign/libresign/pull/6944)
