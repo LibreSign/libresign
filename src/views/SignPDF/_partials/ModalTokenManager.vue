@@ -4,38 +4,98 @@
 -->
 <template>
 	<NcDialog v-if="signMethodsStore.modal.token"
-		:name="t('libresign', 'Sign with your phone number.')"
+		:name="dialogTitle"
 		@closing="signMethodsStore.closeModal('token')">
-		<div v-if="tokenRequested" class="code-request">
-			<h3 class="phone">
-				{{ newPhoneNumber }}
-			</h3>
+		<!-- Progress indicator -->
+		<div class="progress-indicator">
+			{{ progressText }}
+		</div>
 
+		<!-- Contact input step (Step 1) -->
+		<div v-if="!tokenRequested" class="step-content">
+			<p class="step-explanation">
+				{{ t('libresign', 'To sign this document, we must verify your identity. Enter your contact information to receive a verification code.') }}
+			</p>
+			<div class="store-number">
+				<NcTextField v-model="newPhoneNumber"
+					:disabled="loading"
+					name="cellphone"
+					:label="t('libresign', 'Contact information')"
+					:placeholder="t('libresign', 'Enter your contact information')"
+					type="tel"
+					@change="sanitizeNumber" />
+			</div>
+		</div>
+
+		<!-- Code validation step (Step 2) -->
+		<div v-if="tokenRequested && !identityVerified" class="step-content">
+			<p class="step-explanation">
+				{{ codeExplanationText }}
+			</p>
+			<div class="contact-display">
+				{{ newPhoneNumber }}
+			</div>
 			<NcTextField v-model="token"
 				:disabled="loading"
+				:label="t('libresign', 'Enter your code')"
+				:placeholder="t('libresign', 'Enter your code')"
 				name="code"
-				type="text" />
+				type="text"
+				@keyup.enter="sendCode" />
 		</div>
-		<div v-else class="store-number">
-			<NcTextField v-model="newPhoneNumber"
-				:disabled="loading"
-				name="cellphone"
-				placeholder="+55 00 0 0000 0000"
-				type="tel"
-				@change="sanitizeNumber" />
+
+		<!-- Signature confirmation step (Step 3) -->
+		<div v-else-if="identityVerified" class="step-content">
+			<div class="verification-success">
+				<p class="verification-message">
+					{{ t('libresign', 'Your identity has been verified.') }}
+				</p>
+				<p class="signature-ready">
+					{{ t('libresign', 'You can now sign the document.') }}
+				</p>
+			</div>
 		</div>
 		<template #actions>
-			<NcButton v-if="!tokenRequested" :disabled="loading || newPhoneNumber.length < 10" @click="requestCode">
+			<!-- Step 1: Phone number verification -->
+			<NcButton v-if="!tokenRequested"
+				:disabled="loading || newPhoneNumber.length < 10"
+				variant="primary"
+				@click="requestCode">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
-				{{ t('libresign', 'Request code.') }}
+				{{ t('libresign', 'Send verification code') }}
 			</NcButton>
-			<NcButton v-else :disabled="loading || token.length < 3" @click="sendCode">
+
+			<!-- Step 2: Code validation -->
+			<template v-else-if="!identityVerified">
+				<NcButton :disabled="loading"
+					@click="requestNewCode">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+					</template>
+					{{ t('libresign', 'Request new code') }}
+				</NcButton>
+				<NcButton :disabled="loading || token.length < 3"
+					variant="primary"
+					@click="sendCode">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+					</template>
+					{{ t('libresign', 'Validate code') }}
+				</NcButton>
+			</template>
+
+			<!-- Step 3: Signature confirmation -->
+			<NcButton v-else
+				:disabled="loading"
+				type="submit"
+				variant="primary"
+				@click="signDocument">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
-				{{ t('libresign', 'Send code.') }}
+				{{ t('libresign', 'Sign document') }}
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -89,9 +149,32 @@ export default {
 			newPhoneNumber: this.phoneNumber || '',
 			tokenRequested: false,
 			loading: false,
+			identityVerified: false,
 		}
 	},
 	computed: {
+		dialogTitle() {
+			if (!this.tokenRequested) {
+				return t('libresign', 'Identity verification')
+			}
+			if (!this.identityVerified) {
+				return t('libresign', 'Code validation')
+			}
+			return t('libresign', 'Signature confirmation')
+		},
+		progressText() {
+			if (!this.tokenRequested) {
+				return t('libresign', 'Step 1 of 3 - Identity verification')
+			}
+			if (!this.identityVerified) {
+				return t('libresign', 'Step 2 of 3 - Code validation')
+			}
+			return t('libresign', 'Step 3 of 3 - Signature confirmation')
+		},
+		codeExplanationText() {
+			const contact = this.newPhoneNumber
+			return t('libresign', 'A verification code has been sent to: {contact}. Please enter the code below.', { contact })
+		},
 		activeTokenMethod() {
 			const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 			return tokenMethods.find(method =>
@@ -105,6 +188,11 @@ export default {
 	},
 	methods: {
 		t,
+		requestNewCode() {
+			this.tokenRequested = false
+			this.token = ''
+			this.identityVerified = false
+		},
 		async saveNumber() {
 			this.loading = true
 			this.sanitizeNumber()
@@ -174,6 +262,9 @@ export default {
 			}
 		},
 		sendCode() {
+			this.identityVerified = true
+		},
+		signDocument() {
 			this.$emit('change', this.token)
 
 			this.$nextTick(() => {
@@ -191,9 +282,32 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-h3.phone {
+.progress-indicator {
+	font-weight: bold;
+	color: var(--color-primary-element);
+	text-align: center;
+	margin-bottom: 16px;
+	padding: 8px;
+	background-color: var(--color-primary-element-light);
+	border-radius: var(--border-radius-large);
+}
+
+.step-content {
+	.step-explanation {
+		margin-bottom: 16px;
+		color: var(--color-text-maxcontrast);
+		line-height: 1.5;
+	}
+}
+
+.contact-display {
 	font-family: monospace;
 	text-align: center;
+	font-weight: bold;
+	margin: 12px 0;
+	padding: 8px;
+	background-color: var(--color-background-dark);
+	border-radius: var(--border-radius);
 }
 
 .code-request, .store-number {
@@ -204,5 +318,23 @@ h3.phone {
 
 .code-request input {
 	font-size: 1.3em;
+}
+
+.verification-success {
+	text-align: center;
+	padding: 20px 0;
+
+	.verification-message {
+		font-size: 1.1em;
+		font-weight: 600;
+		color: var(--color-text);
+		margin-bottom: 12px;
+	}
+
+	.signature-ready {
+		font-size: 1em;
+		color: var(--color-text-maxcontrast);
+		line-height: 1.5;
+	}
 }
 </style>
