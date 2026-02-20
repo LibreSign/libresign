@@ -83,7 +83,7 @@ class Version17002Date20260221000000 extends SimpleMigrationStep {
 		$output->info('Config path is empty or invalid. Attempting repair...');
 
 		// Phase 1: Find CA files in old locations ONLY
-		$sourceInfo = $this->findCaFilesInOldLocations($rootPath, $engineName);
+		$sourceInfo = $this->findCaFilesInOldLocations($rootPath);
 
 		if (!$sourceInfo) {
 			$output->warning('No CA files found in old structure. Manual intervention may be required.');
@@ -118,7 +118,7 @@ class Version17002Date20260221000000 extends SimpleMigrationStep {
 		$this->updateMetadata($targetInfo, $engineName, $output);
 
 		// Phase 5: Clean up ONLY old structure directories
-		$this->cleanupOldStructureOnly($rootPath, $engineName);
+		$this->cleanupOldStructureOnly($rootPath);
 
 		$output->info('CA PKI structure repair completed successfully');
 		$this->logger->info('Repair migration completed', [
@@ -134,7 +134,7 @@ class Version17002Date20260221000000 extends SimpleMigrationStep {
 	 *
 	 * @return array{path: string, generation: int}|null
 	 */
-	private function findCaFilesInOldLocations(string $rootPath, string $engineName): ?array {
+	private function findCaFilesInOldLocations(string $rootPath): ?array {
 		$oldFolders = ['openssl_config', 'cfssl_config'];
 
 		foreach ($oldFolders as $folder) {
@@ -305,7 +305,7 @@ class Version17002Date20260221000000 extends SimpleMigrationStep {
 		$output->info('Updated metadata: ca_id, config_path, ca_generation_counter');
 	}
 
-	private function cleanupOldStructureOnly(string $rootPath, string $engineName): void {
+	private function cleanupOldStructureOnly(string $rootPath): void {
 		// Only clean up old structure directories (openssl_config, cfssl_config)
 		// DO NOT touch pki/ directory or its contents
 		$oldFolders = ['openssl_config', 'cfssl_config'];
