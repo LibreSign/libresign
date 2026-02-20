@@ -158,9 +158,9 @@ class Version17002Date20260221000000 extends SimpleMigrationStep {
 	/**
 	 * Determine where CA files should be located
 	 *
-	 * @return array{path: string, generation: int, instanceId: string}|null
+	 * @return array{path: string, generation: int, instanceId: string}
 	 */
-	private function determineTargetLocation(array $sourceInfo, string $engineName, string $rootPath): ?array {
+	private function determineTargetLocation(array $sourceInfo, string $engineName, string $rootPath): array {
 		$currentCaId = $this->appConfig->getValueString(Application::APP_ID, 'ca_id');
 
 		// If we have a valid ca_id, use it to determine generation
