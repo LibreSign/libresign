@@ -152,7 +152,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			$engine = $this->certificateEngineFactory->getEngine($engineName);
 
 			// Generate ca_id if needed, but don't increment counter unnecessarily
-			if (empty($originalCaId) || !str_ends_with($originalCaId, '-e:' . $engineType)) {
+			if (empty($originalCaId) || !str_ends_with($originalCaId, '_e:' . $engineType)) {
 				$this->caIdentifierService->generateCaId($engineName);
 			}
 
