@@ -13,7 +13,7 @@ OC.L10N.register(
     "No file uploaded" : "Neniu dosiero alŝutiĝis",
     "File not found" : "Netrovita dosiero",
     "User not found" : "Netrovita uzanto",
-    "deleted" : "forigita",
+    "Deleted" : "Forigita",
     "Invalid password" : "Nevalida pasvorto",
     "Internal Server Error" : "Interna servileraro",
     "Invalid file provided" : "Nevalida dosiero provizita",
@@ -111,7 +111,6 @@ OC.L10N.register(
     "Username" : "Uzantnomo",
     "Optional" : "Malnepra",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
-    "Complete" : "Plenumita",
-    "Deleted" : "Forigita"
+    "Complete" : "Plenumita"
 },
 "nplurals=2; plural=(n != 1);");

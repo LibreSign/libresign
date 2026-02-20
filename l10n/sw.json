@@ -52,12 +52,9 @@
     "After the first signature, no further edits or signatures are allowed; any change invalidates the certification." : "After the first signature, no further edits or signatures are allowed; any change invalidates the certification.",
     "After the first signature, only form filling and additional signatures are allowed; other changes invalidate the certification." : "After the first signature, only form filling and additional signatures are allowed; other changes invalidate the certification.",
     "After the first signature, form filling, comments, and additional signatures are allowed; other changes invalidate the certification." : "After the first signature, form filling, comments, and additional signatures are allowed; other changes invalidate the certification.",
-    "not LibreSign file" : "not LibreSign file",
-    "draft" : "draft",
-    "signed" : "signed",
-    "deleted" : "deleted",
     "Draft" : "Rasimu",
     "Signed" : "Signed",
+    "Deleted" : "Vilivyofutwa",
     "User not found." : "User not found.",
     "Digitally signed by LibreSign." : "Digitally signed by LibreSign.",
     "Validate in %s." : "Validate in %s.",
@@ -214,6 +211,7 @@
     "%s already signed this file" : "%s already signed this file",
     "Sending authorization code not enabled." : "Sending authorization code not enabled.",
     "File already signed by you" : "File already signed by you",
+    "signed" : "signed",
     "Invalid template font size. The value must be between %.1f and %.0f." : "Invalid template font size. The value must be between %.1f and %.0f.",
     "Invalid signature font size. The value must be between %.1f and %.0f." : "Invalid signature font size. The value must be between %.1f and %.0f.",
     "Unique identifier of the signed document" : "Unique identifier of the signed document",
@@ -692,14 +690,6 @@
     "From UUID" : "From UUID",
     "Enter the ID or UUID of the document to validate." : "Enter the ID or UUID of the document to validate.",
     "Validation" : "Validation",
-    "Return" : "Rudi",
-    "Deleted" : "Vilivyofutwa",
-    "available for signature" : "available for signature",
-    "partially signed" : "partially signed",
-    "no signers" : "no signers",
-    "Empty users list" : "Empty users list",
-    "User list needs to be an array" : "User list needs to be an array",
-    "Select other file" : "Select other file",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Use your mouse wheel to zoom in or out on the image and find the best view of your signature."
+    "Return" : "Rudi"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

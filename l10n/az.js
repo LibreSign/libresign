@@ -10,6 +10,7 @@ OC.L10N.register(
     "Missing a temporary folder" : "Müvəqqəti qovluq çatışmır",
     "Could not write file to disk" : "Faylı diskə yazmaq mümkün olmadı",
     "A PHP extension stopped the file upload" : "PHP uzantısı faylın yüklənməsini dayandırdı",
+    "Deleted" : "Silinib",
     "Invalid file provided" : "Yanlış fayl təqdim edilib",
     "File is too big" : "Fayl çox böyükdür",
     "in %s" : "içinə %s",
@@ -64,7 +65,6 @@ OC.L10N.register(
     "Refresh" : "Yenilə",
     "Yes" : "Yes",
     "No" : "No",
-    "Username" : "İstifadəçi adı",
-    "Deleted" : "Silinib"
+    "Username" : "İstifadəçi adı"
 },
 "nplurals=2; plural=(n != 1);");

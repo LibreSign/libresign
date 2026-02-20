@@ -35,11 +35,9 @@
     "Visible element deleted" : "Synlig element slettet",
     "User not found" : "Fant ikke brukeren",
     "Identification Document" : "Identifikasjonsdokument",
-    "draft" : "utkast",
-    "signed" : "signert",
-    "deleted" : "slettet",
     "Draft" : "Kladd",
     "Signed" : "Signert",
+    "Deleted" : "Slettet",
     "User not found." : "Bruker ikke funnet.",
     "Validate in %s." : "Valider i %s.",
     "The admin hasn't set up LibreSign yet, please wait." : "Administratoren har ikke konfigurert LibreSign enda, vennligst vent.",
@@ -147,6 +145,7 @@
     "%s already signed this file" : "%s allerede signerte denne filen",
     "Sending authorization code not enabled." : "Sending av autorisasjonskode er ikke aktivert.",
     "File already signed by you" : "Fil allerede signert av deg",
+    "signed" : "signert",
     "LibreSign" : "LibreSign",
     "✍️ Self-hosted document signer using digital certificate" : "✍️ Selvvertet dokumentunderskriver som bruker digitalt sertifikat",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, digital signatur-app for Nextcloud.",
@@ -407,14 +406,6 @@
     "Validation" : "Validering",
     "Return" : "Returner",
     "Open in LibreSign" : "Åpne i LibreSign",
-    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
-    "Deleted" : "Slettet",
-    "available for signature" : "tilgjengelig for signatur",
-    "partially signed" : "delvis signert",
-    "no signers" : "Ingen underskrivere",
-    "Empty users list" : "Tøm brukerliste",
-    "User list needs to be an array" : "Brukerliste må være en tabell",
-    "Select other file" : "Velg en annen fil",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Bruk musehjulet til å zoome inn eller ut på bildet og finne den beste visningen av signaturen din."
+    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

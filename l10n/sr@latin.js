@@ -10,7 +10,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Ne mogu da upišem fajl na disk",
     "A PHP extension stopped the file upload" : "PHP ekstenzija je zaustavila otpremanje fajla",
     "File not found" : "Fajl nije nađen",
-    "deleted" : "obrisano",
+    "Deleted" : "Obrisano",
     "Invalid file provided" : "Dati fajl je neispravan",
     "File is too big" : "Fajl je preveliki",
     "Dismiss notification" : "Skloni obaveštenje",
@@ -54,7 +54,6 @@ OC.L10N.register(
     "Yes" : "Da",
     "No" : "Ne",
     "Learn more" : "Saznajte više",
-    "Username" : "Korisničko ime",
-    "Deleted" : "Obrisano"
+    "Username" : "Korisničko ime"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

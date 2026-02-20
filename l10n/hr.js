@@ -27,11 +27,9 @@ OC.L10N.register(
     "Element updated with success" : "Element uspješno ažuriran",
     "Visible element deleted" : "Vidljivi element je izbrisan",
     "User not found" : "Korisnik nije pronađen",
-    "draft" : "skica",
-    "signed" : "potpisao",
-    "deleted" : "izbrisano",
     "Draft" : "Skica",
     "Signed" : "Potpisao",
+    "Deleted" : "Izbrisano",
     "User not found." : "Korisnik nije pronađen.",
     "Validate in %s." : "Potvrdite u %s.",
     "Invalid Sign engine." : "Nevažeći sustav za potpisivanje.",
@@ -108,6 +106,7 @@ OC.L10N.register(
     "No signature was requested to %s" : "Nije zatražen potpis od %s",
     "%s already signed this file" : "%s je već potpisao ovu datoteku",
     "File already signed by you" : "Već ste potpisali datoteku",
+    "signed" : "potpisao",
     "LibreSign" : "LibreSign",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplikacija za digitalno potpisivanje u Nextcloudu.",
     "Cancel" : "Odustani",
@@ -275,10 +274,6 @@ OC.L10N.register(
     "Validation" : "Potvrda valjanosti",
     "Return" : "Natrag",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
-    "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}",
-    "Deleted" : "Izbrisano",
-    "partially signed" : "djelomično potpisano",
-    "Empty users list" : "Prazan popis korisnika",
-    "User list needs to be an array" : "Popis korisnika mora biti niz"
+    "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

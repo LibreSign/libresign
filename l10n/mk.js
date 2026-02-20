@@ -16,8 +16,8 @@ OC.L10N.register(
     "Notification sent with success." : "Успешно исптарено известување.",
     "File not found" : "Датотеката не е пронајдена",
     "User not found" : "Корисникот не е пронајден",
-    "deleted" : "избришана",
     "Draft" : "Шаблон",
+    "Deleted" : "Избришани",
     "Invalid password" : "Погрешна лозинка",
     "Internal Server Error" : "Внатрешна серверска грешка",
     "Invalid file provided" : "Доставена е невалидна датотека",
@@ -149,7 +149,6 @@ OC.L10N.register(
     "Username" : "Корисничко име",
     "Optional" : "Опционално",
     "Forgot password?" : "Заборавена лозинка?",
-    "Partial" : "Делумно",
-    "Deleted" : "Избришани"
+    "Partial" : "Делумно"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

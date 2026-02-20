@@ -4,6 +4,7 @@ OC.L10N.register(
     "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "Déi ropgelueden Datei ass méi grouss wei d'MAX_FILE_SIZE Eegenschaft déi an der HTML form uginn ass",
     "No file was uploaded" : "Et ass kee Fichier ropgeluede ginn",
     "Missing a temporary folder" : "Et feelt en temporären Dossier",
+    "Deleted" : "Geläscht",
     "in %s" : "an %s",
     "Pending" : "Ausstoend",
     "Email" : "Email",
@@ -53,7 +54,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "Benotzernumm",
-    "Optional" : "Fräiwëlleg",
-    "Deleted" : "Geläscht"
+    "Optional" : "Fräiwëlleg"
 },
 "nplurals=2; plural=(n != 1);");

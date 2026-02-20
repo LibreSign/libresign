@@ -8,7 +8,7 @@
     "Could not write file to disk" : "Cha b’ urrainn dhuinn am faidhle a sgrìobhadh dhan diosg",
     "A PHP extension stopped the file upload" : "Chur leudachan PHP stad air luchdadh suas an fhaidhle",
     "File not found" : "Cha deach am faidhle a lorg",
-    "deleted" : "air sguabadh às",
+    "Deleted" : "Chaidh a sguabadh às",
     "Invalid file provided" : "Chaidh faidhle mì-dhligheach a thoirt seachad",
     "File is too big" : "Tha am faidhle ro mhòr",
     "Dismiss notification" : "Leig seachad am brath",
@@ -47,7 +47,6 @@
     "Yes" : "Tha",
     "No" : "Chan eil",
     "Invalid URL" : "URL mì-dhligheach",
-    "Username" : "Ainm-cleachdaiche",
-    "Deleted" : "Chaidh a sguabadh às"
+    "Username" : "Ainm-cleachdaiche"
 },"pluralForm" :"nplurals=4; plural=(n==1 || n==11) ? 0 : (n==2 || n==12) ? 1 : (n > 2 && n < 20) ? 2 : 3;"
 }

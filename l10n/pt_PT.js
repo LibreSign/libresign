@@ -14,7 +14,7 @@ OC.L10N.register(
     "No file uploaded" : "Nenhum ficheiro carregado",
     "File not found" : "Ficheiro não encontrado",
     "User not found" : "Utilizador não encontrado",
-    "deleted" : "eliminado",
+    "Deleted" : "Eliminado",
     "Invalid password" : "Palavra-passe inválida",
     "Internal Server Error" : "Erro Interno do Servidor",
     "Invalid file provided" : "Fornecido ficheiro inválido",
@@ -137,7 +137,6 @@ OC.L10N.register(
     "Invalid URL" : "URL inválido",
     "Username" : "Nome de utilizador",
     "Optional" : "Opcional ",
-    "Forgot password?" : "Senha esquecida?",
-    "Deleted" : "Eliminado"
+    "Forgot password?" : "Senha esquecida?"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

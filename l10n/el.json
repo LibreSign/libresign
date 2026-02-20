@@ -37,11 +37,8 @@
     "Visible element deleted" : "Το ορατό στοιχείο διαγράφηκε",
     "User not found" : "Ο/Η χρήστης δεν βρέθηκε",
     "Identification Document" : "Έγγραφο Ταυτοποίησης",
-    "not LibreSign file" : "όχι αρχείο LibreSign",
-    "draft" : "πρόχειρο",
-    "signed" : "υπογεγραμμένο",
-    "deleted" : "διαγραμμένο",
     "Draft" : "Πρόχειρο",
+    "Deleted" : "Διαγραμμένα",
     "User not found." : "Ο χρήστης δεν βρέθηκε.",
     "Digitally signed by LibreSign." : "Ψηφιακά υπογεγραμμένο από LibreSign.",
     "Validate in %s." : "Επικυρώστε στο %s.",
@@ -181,6 +178,7 @@
     "%s already signed this file" : "Ο %s έχει ήδη υπογράψει αυτό το αρχείο",
     "Sending authorization code not enabled." : "Η αποστολή κωδικού εξουσιοδότησης δεν είναι ενεργοποιημένη.",
     "File already signed by you" : "Το αρχείο έχει ήδη υπογραφεί από εσάς",
+    "signed" : "υπογεγραμμένο",
     "Invalid template font size. The value must be between %.1f and %.0f." : "Μη έγκυρο μέγεθος γραμματοσειράς προτύπου. Η τιμή πρέπει να είναι μεταξύ %.1f και %.0f.",
     "Invalid signature font size. The value must be between %.1f and %.0f." : "Μη έγκυρο μέγεθος γραμματοσειράς υπογραφής. Η τιμή πρέπει να είναι μεταξύ %.1f και %.0f.",
     "Unique identifier of the signed document" : "Μοναδικός αναγνωριστικό του υπογεγραμμένου εγγράφου",
@@ -517,14 +515,6 @@
     "Return" : "Επιστροφή",
     "Open in LibreSign" : "Άνοιγμα στο LibreSign",
     "New signature request" : "Νέο αίτημα υπογραφής",
-    "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}",
-    "Deleted" : "Διαγραμμένα",
-    "available for signature" : "διαθέσιμο για υπογραφή",
-    "partially signed" : "μερικώς υπογεγραμμένο",
-    "no signers" : "καθόλου υπογράφοντες",
-    "Empty users list" : "Κενή λίστα χρηστών",
-    "User list needs to be an array" : "Η λίστα χρηστών πρέπει να είναι πίνακας",
-    "Select other file" : "Επιλογή άλλου αρχείου",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Χρησιμοποιήστε τον τροχό του ποντικιού για εστίαση ή απομάκρυνση στην εικόνα και βρείτε την καλύτερη προβολή της υπογραφής σας."
+    "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

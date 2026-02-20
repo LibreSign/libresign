@@ -14,7 +14,7 @@ OC.L10N.register(
     "No file uploaded" : "No hay archivos cargados",
     "File not found" : "Archivo no encontrado",
     "User not found" : "No se encontró el usuario",
-    "deleted" : "Borrado",
+    "Deleted" : "Borrado",
     "Internal Server Error" : "Error interno del servidor",
     "Invalid file provided" : "Archivo proporcionado inválido",
     "File is too big" : "El archivo es demasiado grande.",
@@ -100,7 +100,6 @@ OC.L10N.register(
     "Learn more" : "Conoce más",
     "Username" : "Usuario",
     "Optional" : "Opcional",
-    "Complete" : "Terminar",
-    "Deleted" : "Borrado"
+    "Complete" : "Terminar"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

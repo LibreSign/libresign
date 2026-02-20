@@ -20,9 +20,7 @@ OC.L10N.register(
     "Elements not found" : "Elements pas trobats",
     "Element not found" : "Element pas trobat",
     "User not found" : "Utilizaire pas trobat",
-    "draft" : "borrolhon",
-    "signed" : "signat",
-    "deleted" : "suprimit",
+    "Deleted" : "Suprimit",
     "User not found." : "Utilizaire pas trobat.",
     "Internal Server Error" : "Error intèrna del servidor",
     "Invalid file provided" : "Fichièr provesit invalid",
@@ -61,6 +59,7 @@ OC.L10N.register(
     "Sign »%s«" : "Signar « %s »",
     "No signature was requested to %s" : "Cap de signatura èra pas requerida per %s",
     "File already signed by you" : "Avètz ja signat lo fichièr",
+    "signed" : "signat",
     "LibreSign" : "LibreSign",
     "Cancel" : "Anullar",
     "Save" : "Enregistrar",
@@ -150,8 +149,6 @@ OC.L10N.register(
     "Sign the document." : "Signar aqueste document.",
     "Forgot password?" : "Senhal oblidat ?",
     "This document is valid" : "Aqueste document es valid",
-    "Return" : "Tornar",
-    "Deleted" : "Suprimit",
-    "Empty users list" : "Lista d'utilizaire voida"
+    "Return" : "Tornar"
 },
 "nplurals=2; plural=(n > 1);");

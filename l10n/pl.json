@@ -28,11 +28,9 @@
     "Visible element deleted" : "Widoczny element usunięty",
     "User not found" : "Nie znaleziono użytkownika",
     "Identification Document" : "Dokument tożsamości",
-    "draft" : "kopia robocza",
-    "signed" : "podpisany",
-    "deleted" : "usunięty",
     "Draft" : "Wersja robocza",
     "Signed" : "Podpisano",
+    "Deleted" : "Usunięto",
     "User not found." : "Użytkownik nie znaleziony.",
     "Validate in %s." : "Sprawdź w %s.",
     "Invalid Sign engine." : "Nieprawidłowy mechanizm podpisu.",
@@ -118,6 +116,7 @@
     "%s already signed this file" : "%s już podpisał ten plik",
     "Sending authorization code not enabled." : "Wysyłanie kodu autoryzacyjnego nie jest włączone.",
     "File already signed by you" : "Plik już podpisany przez Ciebie",
+    "signed" : "podpisany",
     "LibreSign" : "LibreSign",
     "✍️ Self-hosted document signer using digital certificate" : "✍️ Samodzielnie utrzymywany podpisywacz dokumentów przy użyciu certyfikatu cyfrowego",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplikacja do podpisu cyfrowego dla Nextcloud.",
@@ -319,12 +318,6 @@
     "Validation" : "Walidacja",
     "Return" : "Powróć",
     "Open in LibreSign" : "Otwórz w LibreSign",
-    "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}",
-    "Deleted" : "Usunięto",
-    "partially signed" : "częściowo podpisany",
-    "Empty users list" : "Pusta lista użytkowników",
-    "User list needs to be an array" : "Lista użytkownika wymaga ustawienia",
-    "Select other file" : "Wybierz inny plik",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Użyj kółka myszy, aby powiększyć lub pomniejszyć obraz i znaleźć najlepszy widok podpisu."
+    "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}"
 },"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"
 }

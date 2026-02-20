@@ -11,7 +11,7 @@
     "No file uploaded" : "Neniu dosiero alŝutiĝis",
     "File not found" : "Netrovita dosiero",
     "User not found" : "Netrovita uzanto",
-    "deleted" : "forigita",
+    "Deleted" : "Forigita",
     "Invalid password" : "Nevalida pasvorto",
     "Internal Server Error" : "Interna servileraro",
     "Invalid file provided" : "Nevalida dosiero provizita",
@@ -109,7 +109,6 @@
     "Username" : "Uzantnomo",
     "Optional" : "Malnepra",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
-    "Complete" : "Plenumita",
-    "Deleted" : "Forigita"
+    "Complete" : "Plenumita"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

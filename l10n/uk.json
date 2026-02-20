@@ -37,11 +37,8 @@
     "Visible element deleted" : "Видалено видимий елемент",
     "User not found" : "Користувача не знайдено",
     "Identification Document" : "Документ, що посвідчує особу",
-    "not LibreSign file" : "не файл LibreSign",
-    "draft" : "проект",
-    "signed" : "підписано",
-    "deleted" : "вилучено",
     "Draft" : "Чернетка",
+    "Deleted" : "Вилучено",
     "User not found." : "Користувача не знайдено.",
     "Digitally signed by LibreSign." : "Цифровий підпис LibreSign.",
     "Validate in %s." : "Перевірити у %s.",
@@ -183,6 +180,7 @@
     "%s already signed this file" : "%s вже підписали цей файл",
     "Sending authorization code not enabled." : "Надсилання коду авторизації не ввімкнено.",
     "File already signed by you" : "Вже підписаний вами файл",
+    "signed" : "підписано",
     "Invalid template font size. The value must be between %.1f and %.0f." : "Неправильний розмір шрифту шаблону. Значення має бути між %.1f та %.0f.",
     "Invalid signature font size. The value must be between %.1f and %.0f." : "Неправильний розмір шрифту підпису. Значення має бути між %.1f та %.0f.",
     "Unique identifier of the signed document" : "Унікальний ідентифікатор підписаного документа",
@@ -520,14 +518,6 @@
     "Return" : "Повернення",
     "Open in LibreSign" : "Відкрити в LibreSign",
     "New signature request" : "Новий запит на підпис",
-    "Requested by {name}, at {date}" : "Надіслано запит від {name} {date}",
-    "Deleted" : "Вилучено",
-    "available for signature" : "доступний для підписання",
-    "partially signed" : "частково підписано",
-    "no signers" : "немає підписантів",
-    "Empty users list" : "Порожній список користувачів",
-    "User list needs to be an array" : "Список користувачів повинен бути масивом",
-    "Select other file" : "Виберіть інший файл",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Використовуйте коліщатко миші, щоб збільшити або зменшити зображення і знайти найкращий вигляд вашого підпису."
+    "Requested by {name}, at {date}" : "Надіслано запит від {name} {date}"
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);"
 }

@@ -43,12 +43,9 @@
     "No changes allowed" : "Muutoksia ei sallita",
     "Form filling allowed" : "Lomakkeen täyttäminen sallittu",
     "Form filling and commenting allowed" : "Lomakkeen täyttäminen ja kommentointi sallittu",
-    "not LibreSign file" : "ei LibreSign-tiedosto",
-    "draft" : "luonnos",
-    "signed" : "allekirjoitettu",
-    "deleted" : "poistettu",
     "Draft" : "Luonnos",
     "Signed" : "Allekirjoitettu",
+    "Deleted" : "Poistettu",
     "User not found." : "Käyttäjää ei löytynyt.",
     "Digitally signed by LibreSign." : "Digitaalisesti allekirjoitettu LibreSignilla.",
     "Unsigned file." : "Allekirjoittamaton tiedosto.",
@@ -151,6 +148,7 @@
     "%s already signed this file" : "%s allekirjoitti jo tämän tiedoston",
     "Sending authorization code not enabled." : "Valtuutuskoodin lähettäminen ei ole käytössä.",
     "File already signed by you" : "Olet jo allekirjoittanut tiedoston",
+    "signed" : "allekirjoitettu",
     "The signer's email is optional and can be left blank." : "Allekirjoittajan sähköpostiosoite on valinnainen, ja sen voi jättää tyhjäksi.",
     "IP address of the person who signed the document." : "Asiakirjan allekirjoittaneen henkilön IP-osoite.",
     "Browser and device information of the person who signed the document." : "Asiakirjan allekirjoittaneen henkilön selain- ja laitetiedot.",
@@ -469,12 +467,6 @@
     "Open in LibreSign" : "Avaa LibreSignissa",
     "original file" : "alkuperäinen tiedosto",
     "New signature request" : "Uusi allekirjoituspyyntö",
-    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
-    "Deleted" : "Poistettu",
-    "available for signature" : "saatavilla allekirjoitusta varten",
-    "partially signed" : "osittain allekirjoitettu",
-    "no signers" : "ei allekirjoittajia",
-    "Empty users list" : "Tyhjä käyttäjälista",
-    "Select other file" : "Valitse muu tiedosto"
+    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

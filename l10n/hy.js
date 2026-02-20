@@ -10,6 +10,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Չհաջողվեց գրառել նիշքը սկավառակի վրա",
     "A PHP extension stopped the file upload" : "PHP֊ի ընդլայնումն կանգնեցրեց նիշքի վերբեռնումը",
     "File not found" : "Ֆայլը չգտնվեց",
+    "Deleted" : "Ջնջված",
     "Invalid file provided" : "Անվավեր նիշք",
     "File is too big" : "Նիշքը չափազանց մեծ է",
     "in %s" : "դեպի {ուղի}",
@@ -55,7 +56,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "Օգտանուն",
-    "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
-    "Deleted" : "Ջնջված"
+    "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։"
 },
 "nplurals=2; plural=(n != 1);");
