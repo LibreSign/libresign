@@ -30,9 +30,8 @@ use Psr\Log\LoggerInterface;
  *
  * It attempts to:
  * 1. Find CA files in old locations (openssl_config/, cfssl_config/)
- * 2. Find CA files in any pki/ subdirectories
- * 3. Move files to the correct location based on ca_id
- * 4. Synchronize metadata (ca_id, config_path, ca_generation_counter)
+ * 2. Move files to the correct location based on ca_id
+ * 3. Synchronize metadata (ca_id, config_path, ca_generation_counter)
  */
 class Version17002Date20260221000000 extends SimpleMigrationStep {
 	public function __construct(
