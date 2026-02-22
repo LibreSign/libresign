@@ -118,11 +118,6 @@ All cryptographic operations are self-contained within Nextcloud.
 5. Signature validation and certificate verification are performed automatically.
 ---
 
-## Requirements
-
-- PHP: Must meet the minimum version required by the supported Nextcloud version.
-- NodeJS: Required for development builds only.
-
 ### Additional dependencies:
 - poppler-utils
 - System locale configured with UTF-8 charset
