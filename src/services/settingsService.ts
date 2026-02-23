@@ -3,11 +3,15 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import axios from '@nextcloud/axios'
+import axios, { type AxiosResponse } from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
-const saveUserNumber = async (phoneNumber) => {
-	const { data } = await axios.patch(
+interface SettingsData {
+	[key: string]: unknown
+}
+
+const saveUserNumber = async (phoneNumber: string): Promise<SettingsData> => {
+	const { data } = await axios.patch<SettingsData>(
 		generateUrl('/apps/libresign/api/v1/account/settings'),
 		{ phone: phoneNumber },
 	)
