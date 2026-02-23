@@ -11,7 +11,7 @@
 		variant="tertiary"
 		@click="openSidebar">
 		<template #icon>
-			<MenuIcon :size="20" />
+			<NcIconSvgWrapper :path="mdiMenu" :size="20" />
 		</template>
 	</NcButton>
 </template>
@@ -19,9 +19,10 @@
 <script>
 import { t } from '@nextcloud/l10n'
 
-import MenuIcon from 'vue-material-design-icons/Menu.vue'
+import { mdiMenu } from '@mdi/js'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { useSidebarStore } from '../../store/sidebar.js'
 
@@ -29,11 +30,11 @@ export default {
 	name: 'SidebarToggle',
 	components: {
 		NcButton,
-		MenuIcon,
+		NcIconSvgWrapper,
 	},
 	setup() {
 		const sidebarStore = useSidebarStore()
-		return { sidebarStore }
+		return { sidebarStore, mdiMenu }
 	},
 	methods: {
 		t,
