@@ -251,6 +251,8 @@
 </template>
 <script>
 
+import { t } from '@nextcloud/l10n'
+
 import debounce from 'debounce'
 
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
@@ -311,7 +313,7 @@ import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
-import { startLongPolling } from '../../services/longPolling.js'
+import { startLongPolling } from '../../services/longPolling'
 
 const iconMap = {
 	svgAccount,
@@ -688,8 +690,8 @@ export default {
 		}
 	},
 	created() {
-		this.$set(this, 'methods', loadState('libresign', 'identify_methods', []))
-		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
+		this.methods = loadState('libresign', 'identify_methods', [])
+		this.document = loadState('libresign', 'file_info', {})
 
 		this.debouncedSave = debounce(async () => {
 			try {
@@ -713,6 +715,7 @@ export default {
 		}, 500)
 	},
 	methods: {
+		t,
 		isSignerSigned(signer) {
 			if (Array.isArray(signer?.signed)) {
 				return signer.signed.length > 0
@@ -727,24 +730,24 @@ export default {
 				if (file?.signers) {
 					file.signers.forEach((signer, index) => {
 						if (!signer.signingOrder) {
-							this.$set(signer, 'signingOrder', index + 1)
+							signer.signingOrder = index + 1
 						}
 					})
 				}
 				if (file) {
-					this.$set(file, 'signatureFlow', 'ordered_numeric')
+					file.signatureFlow = 'ordered_numeric'
 				}
 			} else {
 				if (!this.isAdminFlowForced) {
 					if (file?.signers) {
 						file.signers.forEach(signer => {
 							if (!this.isSignerSigned(signer)) {
-								this.$set(signer, 'signingOrder', 1)
+								signer.signingOrder = 1
 							}
 						})
 					}
 					if (file) {
-						this.$set(file, 'signatureFlow', 'parallel')
+						file.signatureFlow = 'parallel'
 					}
 				}
 			}
@@ -900,7 +903,7 @@ export default {
 				return
 			}
 
-			this.$set(file.signers[currentIndex], 'signingOrder', order)
+			file.signers[currentIndex].signingOrder = order
 
 			const sortedSigners = [...file.signers].sort((a, b) => {
 				const orderA = a.signingOrder || 999
@@ -911,7 +914,7 @@ export default {
 				return orderA - orderB
 			})
 
-			this.$set(file, 'signers', sortedSigners)
+			file.signers = sortedSigners
 		},
 		confirmSigningOrder(signer) {
 			const file = this.filesStore.getFile()
@@ -931,11 +934,11 @@ export default {
 
 				if (order < oldOrder) {
 					if (currentItemOrder >= order && currentItemOrder < oldOrder) {
-						this.$set(file.signers[i], 'signingOrder', currentItemOrder + 1)
+						file.signers[i].signingOrder = currentItemOrder + 1
 					}
 				} else if (order > oldOrder) {
 					if (currentItemOrder > oldOrder && currentItemOrder <= order) {
-						this.$set(file.signers[i], 'signingOrder', currentItemOrder - 1)
+						file.signers[i].signingOrder = currentItemOrder - 1
 					}
 				}
 			}
@@ -948,7 +951,7 @@ export default {
 
 			this.normalizeSigningOrders(sortedSigners)
 
-			this.$set(file, 'signers', sortedSigners)
+			file.signers = sortedSigners
 
 			this.debouncedSave()
 		},
@@ -1136,20 +1139,20 @@ export default {
 }
 
 #request-signature-identify-signer {
-	::v-deep .app-sidebar-header{
+	:deep(.app-sidebar-header) {
 		display: none;
 	}
-	::v-deep aside {
+	:deep(aside) {
 		border-left: unset;
 	}
-	::v-deep .app-sidebar__close {
+	:deep(.app-sidebar__close) {
 		display: none;
 	}
-	::v-deep .app-sidebar__tab {
+	:deep(.app-sidebar__tab) {
 		box-sizing: border-box;
 	}
 	@media (min-width: 513px) {
-		::v-deep #app-sidebar-vue {
+		:deep(#app-sidebar-vue) {
 			width: unset;
 		}
 	}
