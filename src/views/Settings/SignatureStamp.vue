@@ -3,8 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name">
-		<p v-linkify="{ linkify: true, text: description }" class="settings-section__description" />
+	<NcSettingsSection
+		:name="t('libresign', 'Signature stamp')"
+		:description="t('libresign', 'Configure the content displayed with the signature. The text template uses Twig syntax: https://twig.symfony.com/')">
 		<fieldset class="settings-section__row">
 			<legend>{{ t('libresign', 'Display signature mode') }}</legend>
 			<NcCheckboxRadioSwitch v-model="renderMode"
@@ -63,8 +64,7 @@
 				<CodeEditor
 					v-model="inputValue"
 					:label="t('libresign', 'Signature text template')"
-					:placeholder="t('libresign', 'Signature text template')"
-					@input="debouncedSaveTemplate" />
+					:placeholder="t('libresign', 'Signature text template')" />
 				<NcButton v-if="displayResetTemplate"
 					type="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
@@ -76,7 +76,7 @@
 			</div>
 			<div class="settings-section__row">
 				<div v-if="renderMode === 'SIGNAME_AND_DESCRIPTION'" class="settings-section__row_signature">
-					<NcTextField :value.sync="signatureFontSize"
+					<NcTextField v-model:value="signatureFontSize"
 						:label="t('libresign', 'Signature font size')"
 						:placeholder="t('libresign', 'Signature font size')"
 						type="number"
@@ -100,7 +100,7 @@
 					'settings-section__row_template': renderMode === 'SIGNAME_AND_DESCRIPTION',
 					'settings-section__row_template-only': renderMode !== 'SIGNAME_AND_DESCRIPTION',
 				}">
-					<NcTextField :value.sync="templateFontSize"
+					<NcTextField v-model:value="templateFontSize"
 						:label="t('libresign', 'Template font size')"
 						:placeholder="t('libresign', 'Template font size')"
 						type="number"
@@ -132,7 +132,7 @@
 		</div>
 		<div v-if="displayPreview" class="settings-section__row">
 			<div class="settings-section__row_dimension">
-				<NcTextField :value.sync="signatureWidth"
+				<NcTextField v-model:value="signatureWidth"
 					:label="t('libresign', 'Default signature width')"
 					:placeholder="t('libresign', 'Default signature width')"
 					type="number"
@@ -153,7 +153,7 @@
 				</NcButton>
 			</div>
 			<div class="settings-section__row_dimension">
-				<NcTextField :value.sync="signatureHeight"
+				<NcTextField v-model:value="signatureHeight"
 					:label="t('libresign', 'Default signature height')"
 					:placeholder="t('libresign', 'Default signature height')"
 					type="number"
@@ -223,7 +223,7 @@
 				</NcButton>
 			</div>
 			<NcTextField v-if="displayPreview"
-				:value.sync="zoomLevel"
+				v-model:value="zoomLevel"
 				class="settings-section__zoom_level"
 				:label="t('libresign', 'Zoom level')"
 				type="number"
@@ -292,7 +292,7 @@
 		</div>
 
 		<NcDialog :name="t('libresign', 'Available template variables')"
-			:open.sync="showVariablesDialog"
+			v-model:open="showVariablesDialog"
 			size="normal">
 			<div class="variables-dialog">
 				<p class="variables-dialog__description">
@@ -338,7 +338,7 @@ import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t, isRTL } from '@nextcloud/l10n'
+import { isRTL, t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -381,6 +381,8 @@ export default {
 	setup() {
 		const isDarkTheme = useIsDarkTheme()
 		return {
+			t,
+			isRTL,
 			isDarkTheme,
 		}
 	},
@@ -388,8 +390,6 @@ export default {
 		const templateError = loadState('libresign', 'signature_text_template_error', '')
 		const backgroundType = loadState('libresign', 'signature_background_type')
 		return {
-			name: t('libresign', 'Signature stamp'),
-			description: t('libresign', 'Configure the content displayed with the signature. The text template uses Twig syntax: https://twig.symfony.com/'),
 			showLoadingBackground: false,
 			backgroundType,
 			acceptMime: ['image/png'],
@@ -514,6 +514,7 @@ export default {
 		unsubscribe('collect-metadata:changed')
 	},
 	methods: {
+
 		getVariableText(name) {
 			return name
 		},
