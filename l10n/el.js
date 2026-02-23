@@ -231,6 +231,7 @@ OC.L10N.register(
     "Please enter signer name." : "Παρακαλώ εισάγετε όνομα υπογράφοντος.",
     "Signer name" : "Όνομα υπογράφοντος",
     "Choose" : "Επιλογή",
+    "Upload failed" : "Η μεταφόρτωση απέτυχε",
     "Upload from URL" : "Μεταφόρτωση από URL",
     "Choose from Files" : "Επιλέξτε από τα Αρχεία",
     "Select your file" : "Επιλογή αρχείου σας",
