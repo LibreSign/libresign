@@ -37,6 +37,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import '@fontsource/dancing-script'
 
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -68,12 +70,19 @@ export default {
 	},
 	watch: {
 		value(val) {
-			const ctx = this.$refs.canvas.getContext('2d')
-			ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height)
+			const canvas = this.$refs.canvas
+			if (!canvas) {
+				return
+			}
+			const ctx = canvas.getContext('2d')
+			if (!ctx) {
+				return
+			}
+			ctx.clearRect(0, 0, canvas.width, canvas.height)
 			ctx.fillStyle = 'black'
 			ctx.font = "30px 'Dancing Script'"
 			const paddingX = 15
-			const maxWidth = Math.max(0, this.$refs.canvas.width - (paddingX * 2))
+			const maxWidth = Math.max(0, canvas.width - (paddingX * 2))
 			const lineHeight = 36
 			const words = String(val).trim().split(/\s+/).filter(Boolean)
 
@@ -96,8 +105,8 @@ export default {
 			ctx.textBaseline = 'middle'
 
 			const totalHeight = lines.length * lineHeight
-			const startY = (this.$refs.canvas.height / 2) - ((totalHeight - lineHeight) / 2)
-			const centerX = this.$refs.canvas.width / 2
+			const startY = (canvas.height / 2) - ((totalHeight - lineHeight) / 2)
+			const centerX = canvas.width / 2
 
 			lines.forEach((text, index) => {
 				ctx.fillText(text, centerX, startY + (index * lineHeight))
@@ -112,6 +121,7 @@ export default {
 	},
 
 	methods: {
+		t,
 		applyCanvasSize() {
 			if (!this.$refs.canvasWrapper || !this.$refs.canvas) {
 				return
