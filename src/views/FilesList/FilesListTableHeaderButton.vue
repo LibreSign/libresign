@@ -11,8 +11,8 @@
 		variant="tertiary"
 		@click="filesSortingStore.toggleSortBy(mode)">
 		<template #icon>
-			<MenuUp v-if="filesSortingStore.sortingMode !== mode || filesSortingStore.sortingDirection === 'asc'" class="files-list__column-sort-button-icon" />
-			<MenuDown v-else class="files-list__column-sort-button-icon" />
+			<NcIconSvgWrapper :path="mdiMenuUp" v-if="filesSortingStore.sortingMode !== mode || filesSortingStore.sortingDirection === 'asc'" class="files-list__column-sort-button-icon" />
+			<NcIconSvgWrapper :path="mdiMenuDown" v-else class="files-list__column-sort-button-icon" />
 		</template>
 		<span class="files-list__column-sort-button-text">{{ name }}</span>
 	</NcButton>
@@ -20,10 +20,13 @@
 
 <script>
 
-import MenuDown from 'vue-material-design-icons/MenuDown.vue'
-import MenuUp from 'vue-material-design-icons/MenuUp.vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import {
+	mdiMenuDown,
+	mdiMenuUp,
+} from '@mdi/js'
 
 import { useFilesSortingStore } from '../../store/filesSorting.js'
 
@@ -31,27 +34,26 @@ export default {
 	name: 'FilesListTableHeaderButton',
 
 	components: {
-		MenuDown,
-		MenuUp,
 		NcButton,
+		NcIconSvgWrapper,
 	},
-
 	props: {
 		name: {
 			type: String,
 			required: true,
-		},
+	},
 		mode: {
 			type: String,
 			required: true,
-		},
+	},
 	},
 
 	setup() {
 		const filesSortingStore = useFilesSortingStore()
 		return {
 			filesSortingStore,
-		}
+			mdiMenuDown,
+			mdiMenuUp,}
 	},
 }
 </script>
