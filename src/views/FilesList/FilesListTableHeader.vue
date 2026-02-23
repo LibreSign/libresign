@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 
 import FilesListTableHeaderButton from './FilesListTableHeaderButton.vue'
@@ -65,6 +67,7 @@ export default {
 		const filesStore = useFilesStore()
 		const selectionStore = useSelectionStore()
 		return {
+			t,
 			filesStore,
 			selectionStore,
 		}
