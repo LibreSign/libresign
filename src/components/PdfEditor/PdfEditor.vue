@@ -61,6 +61,9 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
+import { toRaw } from 'vue'
 import PDFElements from '@libresign/pdf-elements/src/components/PDFElements.vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -70,7 +73,7 @@ import { mdiContentCopy, mdiDelete } from '@mdi/js'
 
 import SignerMenu from './SignerMenu.vue'
 import SignatureBox from './SignatureBox.vue'
-import { ensurePdfWorker } from '../../helpers/pdfWorker.js'
+import { ensurePdfWorker } from '../../helpers/pdfWorker'
 
 export default {
 	name: 'PdfEditor',
@@ -123,6 +126,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		endInit(event) {
 			this.$nextTick(async () => {
 				const shouldAutoFit = this.$refs.pdfElements?.autoFitZoom
@@ -192,7 +196,7 @@ export default {
 			}
 
 			const currentElement = object.signer?.element ? { ...object.signer.element } : null
-			const nextSigner = structuredClone(targetSigner)
+			const nextSigner = structuredClone(toRaw(targetSigner))
 			if (currentElement) {
 				nextSigner.element = { ...currentElement, signRequestId: targetSigner.signRequestId }
 			}
@@ -212,11 +216,7 @@ export default {
 				return
 			}
 
-			if (this.$set) {
-				this.$set(object, 'signer', nextSigner)
-			} else {
-				object.signer = nextSigner
-			}
+			object.signer = nextSigner
 
 			pdfElements.updateObject(docIndex, object.id, { signer: nextSigner })
 		},
