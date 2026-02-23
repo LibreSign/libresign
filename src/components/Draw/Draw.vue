@@ -31,6 +31,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import DrawIcon from 'vue-material-design-icons/Draw.vue'
 import SignatureTextIcon from 'vue-material-design-icons/SignatureText.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
@@ -118,6 +120,7 @@ export default {
 		document.documentElement.classList.remove('libresign-modal-open')
 	},
 	methods: {
+		t,
 		close() {
 			this.$emit('close')
 		},
