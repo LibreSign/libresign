@@ -46,6 +46,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import CloseCircleIcon from 'vue-material-design-icons/CloseCircle.vue'
 
 export default {
@@ -146,6 +148,7 @@ export default {
 		await this.render()
 	},
 	methods: {
+		t,
 		translateCoordinates() {
 			return `translate(${this.dx}px, ${this.dy}px)`
 		},
