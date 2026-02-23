@@ -72,6 +72,8 @@
 
 <script>
 
+import { t } from '@nextcloud/l10n'
+
 import HomeSvg from '@mdi/svg/svg/home.svg?raw'
 
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
@@ -161,6 +163,7 @@ export default {
 		this.filesStore.selectFile()
 	},
 	methods: {
+		t,
 		refresh() {
 			this.filesStore.updateAllFiles()
 		},
