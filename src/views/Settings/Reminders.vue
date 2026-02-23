@@ -3,10 +3,12 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Reminders')"
+		:description="t('libresign', 'Follow up with automatic reminders. Signers will receive reminders until they sign or decline.')">
 		<div class="reminders-content">
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="reminderState"
+				v-model="reminderState"
 				:disabled="loading">
 				{{ switchText }}
 			</NcCheckboxRadioSwitch>
@@ -14,21 +16,21 @@
 				class="settings-section__loading-icon"
 				:size="20" />
 			<div v-if="reminderState">
-				{{ t('libresign', 'Next job execution: {date}', {date: nextRunFormatted}) }}
-				<NcTextField :value.sync="reminderDaysBefore"
-					:label="t('libresign', 'First reminder after (days)')"
-					:placeholder="t('libresign', 'First reminder after (days)')"
+			{{ t('libresign', 'Next job execution: {date}', {date: nextRunFormatted}) }}
+			<NcTextField v-model:value="reminderDaysBefore"
+				:label="t('libresign', 'First reminder after (days)')"
+				:placeholder="t('libresign', 'First reminder after (days)')"
 					type="number"
 					:min="0"
 					:step="1"
-					:helper-text="helperTextDaysBefore"
+					:helper-text="t('libresign', 'The first message is not considered a notification')"
 					:spellcheck="false"
 					:success="displaySuccessReminderDaysBefore"
 					@keydown.enter="save"
 					@blur="save" />
-				<NcTextField :value.sync="reminderDaysBetween"
-					:label="t('libresign', 'Days between reminders')"
-					:placeholder="t('libresign', 'Days between reminders')"
+				<NcTextField v-model:value="reminderDaysBetween"
+				:label="t('libresign', 'Days between reminders')"
+				:placeholder="t('libresign', 'Days between reminders')"
 					type="number"
 					:min="0"
 					:step="1"
@@ -36,13 +38,13 @@
 					:success="displaySuccessReminderDaysBetween"
 					@keydown.enter="save"
 					@blur="save" />
-				<NcTextField :value.sync="reminderMax"
-					:label="t('libresign', 'Max reminders per signer')"
-					:placeholder="t('libresign', 'Max reminders per signer')"
+				<NcTextField v-model:value="reminderMax"
+				:label="t('libresign', 'Max reminders per signer')"
+				:placeholder="t('libresign', 'Max reminders per signer')"
 					type="number"
 					:min="0"
 					:step="1"
-					:helper-text="helperTextMax"
+					:helper-text="t('libresign', 'Zero or empty is no reminder.')"
 					:spellcheck="false"
 					:success="displaySuccessReminderMax"
 					@keydown.enter="save"
@@ -61,9 +63,9 @@
 import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import { NcDateTimePickerNative } from '@nextcloud/vue'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
@@ -82,12 +84,6 @@ export default {
 	},
 	data() {
 		return {
-			name: t('libresign', 'Reminders'),
-			description: t('libresign', 'Follow up with automatic reminders. Signers will receive reminders until they sign or decline.'),
-			// TRANSLATORS The time that a sign reminder will be sent to a signer
-			labelReminderSendTimer: t('libresign', 'Send time (HH:mm)'),
-			helperTextDaysBefore: t('libresign', 'The first message is not considered a notification'),
-			helperTextMax: t('libresign', 'Zero or empty is no reminder.'),
 			value: '',
 			reminderDaysBefore: 0,
 			previousReminderDaysBefore: 0,
@@ -107,6 +103,10 @@ export default {
 		}
 	},
 	computed: {
+		labelReminderSendTimer() {
+			// TRANSLATORS The time that a sign reminder will be sent to a signer
+			return t('libresign', 'Send time (HH:mm)')
+		},
 		switchText() {
 			// TRANSLATORS Toggle reminders for signers who have not signed yet
 			return t('libresign', 'Turn {reminderState} auto reminders', {
@@ -138,6 +138,8 @@ export default {
 		this.getData()
 	},
 	methods: {
+		t,
+
 		dateFromSqlAnsi(date) {
 			return Moment(Date.parse(date)).format('LL LTS')
 		},
