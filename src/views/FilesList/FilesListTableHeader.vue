@@ -52,10 +52,7 @@ import { useSelectionStore } from '../../store/selection.js'
 export default {
 	name: 'FilesListTableHeader',
 
-	components: {
-		NcCheckboxRadioSwitch,
-		FilesListTableHeaderButton,
-	},
+	components: {},
 
 	props: {
 		nodes: {
