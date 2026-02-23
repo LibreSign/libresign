@@ -69,7 +69,10 @@ import PDFElements from '@libresign/pdf-elements/src/components/PDFElements.vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-import { mdiContentCopy, mdiDelete } from '@mdi/js'
+import {
+	mdiContentCopy,
+	mdiDelete,
+} from '@mdi/js'
 
 import SignerMenu from './SignerMenu.vue'
 import SignatureBox from './SignatureBox.vue'
@@ -88,19 +91,19 @@ export default {
 		files: {
 			type: Array,
 			default: () => [],
-		},
+	},
 		fileNames: {
 			type: Array,
 			default: () => [],
-		},
+	},
 		readOnly: {
 			type: Boolean,
 			default: false,
-		},
+	},
 		signers: {
 			type: Array,
 			default: () => [],
-		},
+	},
 	},
 	data() {
 		return {
