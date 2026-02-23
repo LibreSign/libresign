@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name">
+	<NcSettingsSection :name="t('libresign', 'Signing mode')">
 		<NcNoteCard v-if="errorMessage" type="error">
 			{{ errorMessage }}
 		</NcNoteCard>
@@ -31,12 +31,12 @@
 				:checked="externalWorkerEnabled"
 				:disabled="loading"
 				@update:checked="onWorkerTypeChange">
-				<span>{{ t('libresign', 'Use external worker service') }}</span>
+			<span>{{ t('libresign', 'Use external worker service') }}</span>
 			</NcCheckboxRadioSwitch>
-			<p class="worker-type-description">
-				{{ externalWorkerEnabled
-					? t('libresign', 'You must manage and keep the external worker running manually.')
-					: t('libresign', 'Nextcloud manages the background worker automatically.')
+		<p class="worker-type-description">
+			{{ externalWorkerEnabled
+				? t('libresign', 'You must manage and keep the external worker running manually.')
+				: t('libresign', 'Nextcloud manages the background worker automatically.')
 				}}
 			</p>
 		</div>
@@ -48,13 +48,13 @@
 			<div class="parallel-workers-input-wrapper">
 				<NcTextField
 					id="parallel-workers-input"
-					:label="t('libresign', 'Number of parallel workers')"
-					type="number"
-					min="1"
-					max="32"
-					v-model="parallelWorkersCount"
-					:disabled="loading"
-					:placeholder="t('libresign', 'Default: {workers} workers', { workers: 4 })"
+			:label="t('libresign', 'Number of parallel workers')"
+			type="number"
+			min="1"
+			max="32"
+			v-model="parallelWorkersCount"
+			:disabled="loading"
+			:placeholder="t('libresign', 'Default: {workers} workers', { workers: 4 })"
 					@input="debouncedSaveParallelWorkers"
 					@keydown.enter="debouncedSaveParallelWorkers"
 					@blur="debouncedSaveParallelWorkers">
@@ -75,8 +75,8 @@ import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
@@ -97,7 +97,6 @@ export default {
 	},
 	data() {
 		return {
-			name: t('libresign', 'Signing mode'),
 			asyncEnabled: false,
 			externalWorkerEnabled: false,
 			parallelWorkersCount: '4',
@@ -116,6 +115,7 @@ export default {
 		this.loadConfig()
 	},
 	methods: {
+		t,
 		loadConfig() {
 			try {
 				const mode = loadState('libresign', 'signing_mode', 'sync')
