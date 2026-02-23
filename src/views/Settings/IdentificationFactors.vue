@@ -3,25 +3,27 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection v-if="!isNoneEngine" :name="name" :description="description">
+	<NcSettingsSection v-if="!isNoneEngine"
+		:name="t('libresign', 'Identification factors')"
+		:description="description">
 		<div v-for="(identifyMethod, index) in identifyMethods"
 			:key="identifyMethod.name">
 			<hr v-if="index != 0">
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="identifyMethod.enabled"
-				@update:checked="save()">
+				v-model="identifyMethod.enabled"
+				@update:model-value="save">
 				{{ identifyMethod.friendly_name }}
 			</NcCheckboxRadioSwitch>
 			<div v-if="identifyMethod.enabled">
 				<fieldset v-if="identifyMethod.name === 'email'" class="settings-section__sub-section">
-					<NcCheckboxRadioSwitch :checked.sync="identifyMethod.can_create_account"
-						@update:checked="save()">
+					<NcCheckboxRadioSwitch v-model="identifyMethod.can_create_account"
+						@update:model-value="save">
 						{{ t('libresign', 'Request to create account when the user does not have an account') }}
 					</NcCheckboxRadioSwitch>
 				</fieldset>
 				<fieldset v-if="false" class="settings-section__sub-section">
-					<NcCheckboxRadioSwitch :checked.sync="identifyMethod.mandatory"
-						@update:checked="save()">
+					<NcCheckboxRadioSwitch v-model="identifyMethod.mandatory"
+						@update:model-value="save">
 						{{ t('libresign', 'Make this method required') }}
 					</NcCheckboxRadioSwitch>
 				</fieldset>
@@ -32,8 +34,8 @@
 						type="radio"
 						:name="identifyMethod.name"
 						:value="signatureMethodName"
-						:checked.sync="identifyMethods[index].signatureMethodEnabled"
-						@update:checked="save()">
+						v-model="identifyMethods[index].signatureMethodEnabled"
+						@update:model-value="save">
 						{{ signatureMethod.label }}
 					</NcCheckboxRadioSwitch>
 				</fieldset>
@@ -42,12 +44,9 @@
 	</NcSettingsSection>
 </template>
 <script>
-import { set } from 'vue'
-
-import { translate as t } from '@nextcloud/l10n'
-
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import { t } from '@nextcloud/l10n'
 
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
@@ -59,16 +58,13 @@ export default {
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
-		return { configureCheckStore }
-	},
-	data() {
-		return {
-			// TRANSLATORS Name of a section at "Administration Settings" of LibreSign that an admin can configure the ways that a persol will be identified when access the link to sign a document.
-			name: t('libresign', 'Identification factors'),
-			description: t('libresign', 'Ways to identify a person who will sign a document.'),
-		}
+		return { t, configureCheckStore }
 	},
 	computed: {
+		description() {
+			// TRANSLATORS Name of a section at "Administration Settings" of LibreSign that an admin can configure the ways that a person will be identified when accessing the link to sign a document.
+			return t('libresign', 'Ways to identify a person who will sign a document.')
+		},
 		isNoneEngine() {
 			return this.configureCheckStore.isNoneEngine
 		},
@@ -91,7 +87,7 @@ export default {
 		updateSignatureMethodsEnabled() {
 			this.identifyMethods.forEach((identifyMethod) => {
 				if (!Object.hasOwn(identifyMethod, 'signatureMethodEnabled')) {
-					set(identifyMethod, 'signatureMethodEnabled', '')
+					identifyMethod.signatureMethodEnabled = ''
 				}
 				if (identifyMethod.signatureMethodEnabled.length === 0) {
 					const signatureMethodEnabled = Object.keys(identifyMethod.signatureMethods)
@@ -102,9 +98,9 @@ export default {
 							return signatureMethodEnabled
 						}, identifyMethod.signatureMethodEnabled)
 					if (signatureMethodEnabled.length > 0) {
-						set(identifyMethod, 'signatureMethodEnabled', signatureMethodEnabled)
+						identifyMethod.signatureMethodEnabled = signatureMethodEnabled
 					} else {
-						set(identifyMethod, 'signatureMethodEnabled', Object.keys(identifyMethod.signatureMethods)[0])
+						identifyMethod.signatureMethodEnabled = Object.keys(identifyMethod.signatureMethods)[0]
 					}
 				}
 				Object.keys(identifyMethod.signatureMethods).forEach(signatureMethodName => {
