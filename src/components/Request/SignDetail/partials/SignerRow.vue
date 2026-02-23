@@ -23,6 +23,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { emit } from '@nextcloud/event-bus'
 import Moment from '@nextcloud/moment'
 
@@ -84,6 +86,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		signerClickAction(signer) {
 			emit(this.event, this.signer)
 		},
