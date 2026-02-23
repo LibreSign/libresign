@@ -91,13 +91,14 @@ import Delete from 'vue-material-design-icons/Delete.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 
 import { emit } from '@nextcloud/event-bus'
+import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-import { options, selectCustonOption } from '../../helpers/certification.js'
+import { options, selectCustonOption } from '../../helpers/certification'
 
 const MAX_ARRAY_ITEMS = 10
 
@@ -139,6 +140,8 @@ export default {
 		},
 	},
 	methods: {
+		t,
+
 		getOptionProperty(id, property) {
 			return this.options.find(option => option.id === id)[property]
 		},
