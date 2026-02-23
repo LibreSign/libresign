@@ -98,12 +98,14 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { mdiCheckCircle, mdiClockOutline, mdiCircleOutline } from '@mdi/js'
 import Check from 'vue-material-design-icons/Check.vue'
 
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import NcChip from '@nextcloud/vue/dist/Components/NcChip.js'
-import NcPopover from '@nextcloud/vue/dist/Components/NcPopover.js'
+import NcAvatar from '@nextcloud/vue/components/NcAvatar'
+import NcChip from '@nextcloud/vue/components/NcChip'
+import NcPopover from '@nextcloud/vue/components/NcPopover'
 
 export default {
 	name: 'SigningOrderDiagram',
@@ -137,6 +139,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		getSignersByOrder(order) {
 			return this.signers.filter(s => (s.signingOrder || 1) === order)
 		},
