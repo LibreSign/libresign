@@ -25,6 +25,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import CancelIcon from 'vue-material-design-icons/Cancel.vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -120,7 +122,6 @@ export default {
 
 .upload-picker-container .upload-picker__progress {
 	max-width: 200px;
-	margin-right: 20px;
-	margin-left: 8px;
+	margin-inline: 8px 20px;
 }
 </style>
