@@ -12,7 +12,7 @@ import {
 	mdiSync,
 	mdiHelpCircle,
 } from '@mdi/js'
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 
 import { FILE_STATUS } from '../constants.js'
 
