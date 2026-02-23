@@ -64,10 +64,14 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 // eslint-disable-next-line n/no-missing-import
 import md5 from 'crypto-js/md5'
 // eslint-disable-next-line n/no-missing-import
-import { required, email, minLength } from 'vuelidate/lib/validators'
+import useVuelidate from '@vuelidate/core'
+// eslint-disable-next-line n/no-missing-import
+import { required, email, minLength } from '@vuelidate/validators'
 
 import RightIcon from 'vue-material-design-icons/ArrowRight.vue'
 import EmailIcon from 'vue-material-design-icons/Email.vue'
@@ -94,6 +98,9 @@ export default {
 		NcLoadingIcon,
 		RightIcon,
 	},
+	setup() {
+		return { v$: useVuelidate() }
+	},
 
 	data() {
 		return {
@@ -116,8 +123,8 @@ export default {
 
 	computed: {
 		emailError() {
-			if (this.$v.email.$model) {
-				if (this.$v.email.$error) {
+			if (this.v$.email.$model) {
+				if (this.v$.email.$error) {
 					return this.t('libresign', 'This is not a valid email')
 				} else if (this.isEqualEmail === false) {
 					return this.t('libresign', 'The email entered is not the same as the email in the invitation')
@@ -165,6 +172,7 @@ export default {
 	},
 
 	methods: {
+		t,
 		async createAccount() {
 			this.loading = true
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}'), {
