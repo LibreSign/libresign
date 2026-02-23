@@ -28,7 +28,7 @@
 					:helper-text="emailError"
 					:error="showErrorEmail"
 					required>
-					<EmailIcon :size="20" />
+					<NcIconSvgWrapper :path="mdiEmail" :size="20" />
 				</NcTextField>
 				<NcPasswordField v-model="password"
 					:label="t('libresign', 'Password')"
@@ -54,7 +54,7 @@
 					@click="createAccount">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
-						<RightIcon v-else :size="20" />
+						<NcIconSvgWrapper v-else :path="mdiChevronRight" :size="20" />
 					</template>
 					{{ t('libresign', 'Next') }}
 				</NcButton>
@@ -73,8 +73,6 @@ import useVuelidate from '@vuelidate/core'
 // eslint-disable-next-line n/no-missing-import
 import { required, email, minLength } from '@vuelidate/validators'
 
-import RightIcon from 'vue-material-design-icons/ArrowRight.vue'
-import EmailIcon from 'vue-material-design-icons/Email.vue'
 
 import axios from '@nextcloud/axios'
 import { showWarning } from '@nextcloud/dialogs'
@@ -86,20 +84,26 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import {
+	mdiChevronRight,
+} from '@mdi/js'
 
 export default {
 	name: 'CreateAccount',
 	components: {
 		NcNoteCard,
 		NcTextField,
-		EmailIcon,
 		NcPasswordField,
 		NcButton,
 		NcLoadingIcon,
-		RightIcon,
+		NcIconSvgWrapper,
 	},
 	setup() {
-		return { v$: useVuelidate() }
+		return {
+			v$: useVuelidate(),
+			mdiChevronRight,
+		}
 	},
 
 	data() {
@@ -120,7 +124,6 @@ export default {
 		password: { required, minLength: minLength(4) },
 		passwordConfirm: { required, minLength: minLength(4) },
 	},
-
 	computed: {
 		emailError() {
 			if (this.v$.email.$model) {
@@ -164,7 +167,6 @@ export default {
 			return this.settings.accountHash === md5(this.email).toString()
 		},
 	},
-
 	created() {
 		if (this.message) {
 			showWarning(this.message)
