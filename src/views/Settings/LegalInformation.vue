@@ -3,18 +3,20 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Legal information')"
+		:description="t('libresign', 'This information will appear on the validation page')">
 		<div class="legal-information-content">
 			<textarea v-model="legalInformation"
-				:placeholder="t('libresign', 'Legal Information')"
+		:placeholder="t('libresign', 'Legal Information')"
 				@input="saveLegalInformation" />
 		</div>
 	</NcSettingsSection>
 </template>
 <script>
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
@@ -25,8 +27,6 @@ export default {
 	},
 	data() {
 		return {
-			name: t('libresign', 'Legal information'),
-			description: t('libresign', 'This information will appear on the validation page'),
 			legalInformation: '',
 		}
 	},
@@ -34,6 +34,7 @@ export default {
 		this.getData()
 	},
 	methods: {
+		t,
 		async getData() {
 			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/legal_information'))
 			this.legalInformation = response.data.ocs.data.data
