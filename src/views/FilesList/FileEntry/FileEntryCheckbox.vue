@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
@@ -46,6 +48,7 @@ export default {
 		const keyboardStore = useKeyboardStore()
 		const selectionStore = useSelectionStore()
 		return {
+			t,
 			filesStore,
 			keyboardStore,
 			selectionStore,
