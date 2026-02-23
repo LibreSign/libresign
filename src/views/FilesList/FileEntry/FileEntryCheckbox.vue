@@ -28,19 +28,17 @@ export default {
 	name: 'FileEntryCheckbox',
 
 	components: {
-		NcCheckboxRadioSwitch,
 		NcLoadingIcon,
 	},
-
 	props: {
 		isLoading: {
 			type: Boolean,
 			default: false,
-		},
+	},
 		source: {
 			type: Object,
 			required: true,
-		},
+	},
 	},
 
 	setup() {
@@ -72,7 +70,6 @@ export default {
 			return t('libresign', 'File is loading')
 		},
 	},
-
 	methods: {
 		onSelectionChange(selected) {
 			const newSelectedIndex = this.index
