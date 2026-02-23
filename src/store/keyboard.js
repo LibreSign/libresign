@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 import { defineStore } from 'pinia'
-import { set } from 'vue'
 
 /**
  * Observe various events and save the current
@@ -25,10 +24,10 @@ export const useKeyboardStore = function(...args) {
 				if (!event) {
 					event = window.event
 				}
-				set(this, 'altKey', !!event.altKey)
-				set(this, 'ctrlKey', !!event.ctrlKey)
-				set(this, 'metaKey', !!event.metaKey)
-				set(this, 'shiftKey', !!event.shiftKey)
+				this.altKey = !!event.altKey
+				this.ctrlKey = !!event.ctrlKey
+				this.metaKey = !!event.metaKey
+				this.shiftKey = !!event.shiftKey
 			},
 		},
 	})
