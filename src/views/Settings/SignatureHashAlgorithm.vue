@@ -39,7 +39,6 @@ export default {
 		NcSettingsSection,
 		NcSelect,
 	},
-
 	data: () => ({
 		selected: [],
 		hashes: ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'],
@@ -72,6 +71,5 @@ export default {
 			this.idKey += 1
 		},
 	},
-
 }
 </script>
