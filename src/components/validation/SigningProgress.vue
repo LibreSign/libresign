@@ -61,7 +61,10 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-import { mdiAlertCircleOutline, mdiHelpCircle } from '@mdi/js'
+import {
+	mdiAlertCircleOutline,
+	mdiHelpCircle,
+} from '@mdi/js'
 import { buildStatusMap } from '../../utils/fileStatus.js'
 
 export default {
@@ -76,11 +79,13 @@ export default {
 			type: String,
 			required: true,
 			description: 'Sign request UUID (not file UUID)',
-		},
+	},
 	},
 	emits: ['completed', 'error', 'status-changed', 'file-errors'],
 	setup() {
-		return { t }
+		return { t,
+			mdiAlertCircleOutline,
+			mdiHelpCircle,}
 	},
 	data() {
 		return {
