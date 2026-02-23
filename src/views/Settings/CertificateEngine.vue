@@ -3,10 +3,12 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Certificate engine')"
+		:description="t('libresign', 'Select the certificate engine to generate the root certificate')">
 		<div class="certificate-engine-content">
 			<NcSelect input-id="certificateEngine"
-				:aria-label-combobox="description"
+				:aria-label-combobox="t('libresign', 'Select the certificate engine to generate the root certificate')"
 				:clearable="false"
 				:value="value"
 				:options="options"
@@ -17,7 +19,7 @@
 <script>
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
@@ -32,19 +34,21 @@ export default {
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
-		return { configureCheckStore }
+		return { t, configureCheckStore }
 	},
 	data() {
 		return {
-			name: t('libresign', 'Certificate engine'),
-			description: t('libresign', 'Select the certificate engine to generate the root certificate'),
 			value: [],
-			options: [
+		}
+	},
+	computed: {
+		options() {
+			return [
 				{ id: 'cfssl', label: 'CFSSL' },
 				{ id: 'openssl', label: 'OpenSSL' },
 				{ id: 'none', label: t('libresign', 'I will not use root certificate') },
-			],
-		}
+			]
+		},
 	},
 	beforeMount() {
 		const currentOption = {}
