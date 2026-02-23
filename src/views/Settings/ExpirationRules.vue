@@ -59,7 +59,6 @@ export default {
 	name: 'ExpirationRules',
 	components: {
 		NcSettingsSection,
-		NcCheckboxRadioSwitch,
 		NcTextField,
 	},
 	data() {
