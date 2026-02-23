@@ -38,15 +38,15 @@ export default {
 		modelValue: {
 			type: String,
 			default: '',
-		},
+	},
 		label: {
 			type: String,
 			default: '',
-		},
+	},
 		placeholder: {
 			type: String,
 			default: '',
-		},
+	},
 	},
 	data() {
 		return {
