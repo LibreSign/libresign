@@ -38,13 +38,13 @@
 							:disabled="isMaxItemsReached(certificate)"
 							@click="addArrayEntry(certificate.id)">
 							<template #icon>
-								<Plus :size="20" />
+								<NcIconSvgWrapper :path="mdiPlus" :size="20" />
 							</template>
 						</NcButton>
 						<NcButton :aria-label="t('libresign', 'Remove custom name entry from root certificate')"
 							@click="removeOptionalAttribute(certificate.id)">
 							<template #icon>
-								<Delete :size="20" />
+							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
 						</NcButton>
 					</div>
@@ -59,7 +59,7 @@
 							:aria-label="t('libresign', 'Remove')"
 							@click="removeArrayEntry(certificate.id, index)">
 							<template #icon>
-								<Delete :size="20" />
+							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
 						</NcButton>
 					</div>
@@ -77,7 +77,7 @@
 					<NcButton :aria-label="t('libresign', 'Remove custom name entry from root certificate')"
 						@click="removeOptionalAttribute(certificate.id)">
 						<template #icon>
-							<Delete :size="20" />
+							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 						</template>
 					</NcButton>
 				</div>
@@ -87,13 +87,17 @@
 </template>
 
 <script>
-import Delete from 'vue-material-design-icons/Delete.vue'
-import Plus from 'vue-material-design-icons/Plus.vue'
-
-import { emit } from '@nextcloud/event-bus'
 import { t } from '@nextcloud/l10n'
 
+import { emit } from '@nextcloud/event-bus'
+
+import {
+	mdiDelete,
+	mdiPlus,
+} from '@mdi/js'
+
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
@@ -107,17 +111,22 @@ export default {
 	MAX_ARRAY_ITEMS,
 	components: {
 		NcButton,
-		NcTextField,
-		NcPopover,
+		NcIconSvgWrapper,
 		NcListItem,
-		Delete,
-		Plus,
+		NcPopover,
+		NcTextField,
 	},
 	props: {
 		names: {
 			type: Array,
 			required: true,
-		},
+	},
+	},
+	setup() {
+		return {
+			mdiDelete,
+			mdiPlus,
+		}
 	},
 	data() {
 		return {
@@ -218,7 +227,6 @@ export default {
 				this.certificateList = [option, ...this.certificateList]
 			}
 		},
-
 	},
 }
 </script>
