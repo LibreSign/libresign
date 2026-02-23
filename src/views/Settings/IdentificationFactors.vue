@@ -54,7 +54,6 @@ export default {
 	name: 'IdentificationFactors',
 	components: {
 		NcSettingsSection,
-		NcCheckboxRadioSwitch,
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
@@ -81,7 +80,7 @@ export default {
 				this.updateSignatureMethodsEnabled()
 			},
 			deep: true,
-		},
+	},
 	},
 	methods: {
 		updateSignatureMethodsEnabled() {
