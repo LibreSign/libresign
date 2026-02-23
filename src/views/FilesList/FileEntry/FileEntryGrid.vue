@@ -42,7 +42,7 @@
 		<!-- Actions -->
 		<FileEntryActions ref="actions"
 			:class="`files-list__row-actions-${source.id}`"
-			:opened.sync="openedMenu"
+			v-model:opened="openedMenu"
 			:source="source"
 			:loading="loading" />
 	</tr>
