@@ -49,17 +49,6 @@ vi.mock('../../../components/Draw/FileUpload.vue', () => ({
 	},
 }))
 
-vi.mock('vue-material-design-icons/Draw.vue', () => ({
-	default: { name: 'DrawIcon', template: '<div></div>' },
-}))
-
-vi.mock('vue-material-design-icons/SignatureText.vue', () => ({
-	default: { name: 'SignatureTextIcon', template: '<div></div>' },
-}))
-
-vi.mock('vue-material-design-icons/Upload.vue', () => ({
-	default: { name: 'UploadIcon', template: '<div></div>' },
-}))
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
