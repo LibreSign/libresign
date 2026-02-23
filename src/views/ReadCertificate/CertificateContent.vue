@@ -135,13 +135,14 @@ import { selectCustonOption } from '../../helpers/certification'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcChip from '@nextcloud/vue/components/NcChip'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import {
-	mdiCheckCircle,
-	mdiCancel,
 	mdiAlertCircleOutline,
+	mdiCancel,
+	mdiCheckCircle,
 	mdiHelpCircle,
-	mdiShieldCheck,
 	mdiShieldAlert,
+	mdiShieldCheck,
 	mdiShieldOff,
 } from '@mdi/js'
 
@@ -151,17 +152,18 @@ export default {
 		NcSettingsSection,
 		NcNoteCard,
 		NcChip,
+		NcIconSvgWrapper,
 	},
 	props: {
 		certificate: {
 			type: Object,
 			default: () => {},
 			required: false,
-		},
+	},
 		index: {
 			type: String,
 			default: '0',
-		},
+	},
 	},
 	data() {
 		return {
