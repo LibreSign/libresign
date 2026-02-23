@@ -33,7 +33,7 @@
 
 <script>
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -68,7 +68,6 @@ export default {
 			return []
 		},
 	},
-
 }
 </script>
 
