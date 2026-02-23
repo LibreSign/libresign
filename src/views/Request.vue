@@ -39,7 +39,11 @@ export default {
 	setup() {
 		const filesStore = useFilesStore()
 		const sidebarStore = useSidebarStore()
-		return { filesStore, sidebarStore }
+		return {
+			filesStore,
+			sidebarStore,
+			t,
+		}
 	},
 	async mounted() {
 		this.filesStore.disableIdentifySigner()
