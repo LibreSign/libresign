@@ -7,24 +7,20 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { loadState } from '@nextcloud/initial-state'
 import { getCapabilities } from '@nextcloud/capabilities'
-import { showError } from '@nextcloud/dialogs'
+import { getFilePickerBuilder, showError } from '@nextcloud/dialogs'
 import RequestPicker from '../../../components/Request/RequestPicker.vue'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 
+let filePickerBuilder
+const filePickerPick = vi.fn()
+
 vi.mock('@nextcloud/initial-state')
 vi.mock('@nextcloud/capabilities')
 vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn(),
-}))
-vi.mock('@nextcloud/dialogs/filepicker.js', () => ({
-	FilePickerVue: {
-		name: 'FilePicker',
-		render() {
-			return null
-		},
-	},
+	getFilePickerBuilder: vi.fn(() => filePickerBuilder),
 }))
 
 vi.mock('../../../store/actionsmenu.js')
@@ -39,6 +35,13 @@ describe('RequestPicker component rules', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
+		filePickerPick.mockResolvedValue([])
+		filePickerBuilder = {
+			setMultiSelect: vi.fn().mockReturnThis(),
+			setMimeTypeFilter: vi.fn().mockReturnThis(),
+			addButton: vi.fn().mockReturnThis(),
+			build: vi.fn(() => ({ pick: filePickerPick })),
+		}
 
 		loadState.mockReturnValue(true)
 		getCapabilities.mockReturnValue({
@@ -194,13 +197,43 @@ describe('RequestPicker component rules', () => {
 		})
 	})
 
-	describe('file picker button', () => {
-		it('creates callback that calls handleFileChoose', () => {
-			const buttons = wrapper.vm.filePickerButtons
-			expect(buttons).toHaveLength(1)
-			expect(buttons[0].label).toBe('Choose')
-			expect(buttons[0].type).toBe('primary')
-			expect(typeof buttons[0].callback).toBe('function')
+	describe('file picker', () => {
+		it('builds picker with choose button and closes menu', async () => {
+			wrapper.vm.openedMenu = true
+			await wrapper.vm.openFilePicker()
+			expect(getFilePickerBuilder).toHaveBeenCalledWith('Select your file')
+			expect(filePickerBuilder.setMultiSelect).toHaveBeenCalledWith(false)
+			expect(filePickerBuilder.setMimeTypeFilter).toHaveBeenCalledWith(['application/pdf'])
+			expect(filePickerBuilder.addButton).toHaveBeenCalledWith(expect.objectContaining({
+				label: 'Choose',
+				type: 'primary',
+				callback: expect.any(Function),
+			}))
+			expect(filePickerBuilder.build).toHaveBeenCalled()
+			expect(filePickerPick).toHaveBeenCalled()
+			expect(wrapper.vm.openedMenu).toBe(false)
+		})
+
+		it('uses multiselect and title when envelope enabled', async () => {
+			getCapabilities.mockReturnValue({
+				libresign: {
+					config: {
+						envelope: { 'is-available': true },
+						upload: { 'max-file-uploads': 20 },
+					},
+				},
+			})
+			await wrapper.vm.openFilePicker()
+			expect(getFilePickerBuilder).toHaveBeenCalledWith('Select your files')
+			expect(filePickerBuilder.setMultiSelect).toHaveBeenCalledWith(true)
+		})
+
+		it('passes picker results to handleFileChoose', async () => {
+			const nodes = [{ path: '/Documents/file.pdf' }]
+			filePickerPick.mockResolvedValue(nodes)
+			const handleSpy = vi.spyOn(wrapper.vm, 'handleFileChoose').mockResolvedValue()
+			await wrapper.vm.openFilePicker()
+			expect(handleSpy).toHaveBeenCalledWith(nodes)
 		})
 	})
 
@@ -224,25 +257,6 @@ describe('RequestPicker component rules', () => {
 		})
 	})
 
-	describe('showFilePicker state management', () => {
-		it('opens file picker without closing menu', () => {
-			wrapper.vm.openedMenu = true
-			wrapper.vm.showFilePicker = true
-			expect(wrapper.vm.showingFilePicker).toBe(true)
-		})
-
-		it('closes menu when opening file picker', () => {
-			wrapper.vm.openedMenu = true
-			wrapper.vm.showFilePicker = true
-			expect(wrapper.vm.openedMenu).toBe(false)
-		})
-
-		it('closes file picker without affecting menu', () => {
-			wrapper.vm.showFilePicker = true
-			wrapper.vm.showFilePicker = false
-			expect(wrapper.vm.showingFilePicker).toBe(false)
-		})
-	})
 
 	describe('max file uploads configuration', () => {
 		it('returns configured max-file-uploads when finite and positive', () => {

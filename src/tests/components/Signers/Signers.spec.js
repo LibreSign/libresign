@@ -21,23 +21,27 @@ beforeAll(async () => {
 describe('Signers', () => {
 	let wrapper
 	let filesStore
+	let pinia
 
 	const createWrapper = (props = {}) => {
 		return mount(Signers, {
-			propsData: {
+			props: {
 				event: '',
 				...props,
 			},
-			plugins: [createPinia()],
-			stubs: {
-				Signer: true,
-				draggable: true,
+			global: {
+				plugins: [pinia],
+				stubs: {
+					Signer: true,
+					draggable: true,
+				},
 			},
 		})
 	}
 
 	beforeEach(() => {
-		setActivePinia(createPinia())
+		pinia = createPinia()
+		setActivePinia(pinia)
 		filesStore = useFilesStore()
 		filesStore.selectedFile = { signers: [] }
 		filesStore.getFile = () => filesStore.selectedFile

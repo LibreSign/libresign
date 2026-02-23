@@ -12,6 +12,13 @@ vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn(),
 }))
 
+vi.mock('vue-select', () => ({
+	default: {
+		name: 'VSelect',
+		render: () => null,
+	},
+}))
+
 let filesStore
 vi.mock('../../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStore),
@@ -19,6 +26,12 @@ vi.mock('../../../store/files.js', () => ({
 
 vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((app, text) => text),
+	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	t: vi.fn((app, text) => text),
+	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
 }))
 
 vi.mock('@mdi/svg/svg/account.svg?raw', () => ({ default: '<svg></svg>' }))
@@ -43,19 +56,7 @@ describe('IdentifySigner rules', () => {
 		useFilesStoreModule.mockReturnValue(filesStore)
 
 		wrapper = mount(IdentifySigner, {
-			stubs: {
-				NcButton: true,
-				NcCheckboxRadioSwitch: true,
-				NcIconSvgWrapper: true,
-				NcNoteCard: true,
-				NcTextArea: true,
-				NcTextField: true,
-				SignerSelect: true,
-			},
-			mocks: {
-				t: (app, text) => text,
-			},
-			propsData: {
+			props: {
 				signerToEdit: {},
 				method: 'all',
 				placeholder: 'Name',
@@ -65,6 +66,20 @@ describe('IdentifySigner rules', () => {
 					{ name: 'sms', friendly_name: 'SMS' },
 				],
 				disabled: false,
+			},
+			global: {
+				stubs: {
+					NcButton: true,
+					NcCheckboxRadioSwitch: true,
+					NcIconSvgWrapper: true,
+					NcNoteCard: true,
+					NcTextArea: true,
+					NcTextField: true,
+					SignerSelect: true,
+				},
+				mocks: {
+					t: (app, text) => text,
+				},
 			},
 		})
 	})

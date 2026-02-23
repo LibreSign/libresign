@@ -13,6 +13,11 @@ vi.mock('@nextcloud/router', () => ({
 vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((app, text) => text),
 	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	t: vi.fn((app, text) => text),
+	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
 }))
 vi.mock('../../../utils/fileStatus.js', () => ({
 	getStatusLabel: vi.fn((status) => {
@@ -40,7 +45,7 @@ describe('DocumentValidationDetails', () => {
 
 	const createWrapper = (props = {}) => {
 		return mount(DocumentValidationDetails, {
-			propsData: {
+			props: {
 				document: {
 					name: 'Test Document',
 					...props.document,
@@ -50,16 +55,18 @@ describe('DocumentValidationDetails', () => {
 				isAfterSigned: false,
 				...props,
 			},
-			stubs: {
-				NcButton: true,
-				NcIconSvgWrapper: true,
-				NcListItem: { template: '<li><slot name="name" /></li>' },
-				NcRichText: true,
-				SignerDetails: true,
-			},
-			mocks: {
-				t: (app, text) => text,
-				n: (app, sing, plur, count) => count === 1 ? sing : plur,
+			global: {
+				stubs: {
+					NcButton: true,
+					NcIconSvgWrapper: true,
+					NcListItem: { template: '<li><slot name="name" /></li>' },
+					NcRichText: true,
+					SignerDetails: true,
+				},
+				mocks: {
+					t: (app, text) => text,
+					n: (app, sing, plur, count) => count === 1 ? sing : plur,
+				},
 			},
 		})
 	}

@@ -14,6 +14,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((url) => url.replace(/{id}/, 'fileId')),
 }))
 vi.mock('@nextcloud/l10n', () => ({
+	t: vi.fn((app, text) => text),
 	translate: vi.fn((app, text) => text),
 	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
 }))
@@ -71,23 +72,25 @@ describe('FileStatusList', () => {
 
 	const createWrapper = (props = {}) => {
 		return mount(FileStatusList, {
-			propsData: {
+			props: {
 				fileIds: [],
 				updateInterval: 2000,
 				...props,
 			},
-			stubs: {
-				NcIconSvgWrapper: true,
-			},
-			mocks: {
-				t: (app, text) => text,
+			global: {
+				stubs: {
+					NcIconSvgWrapper: true,
+				},
+				mocks: {
+					t: (app, text) => text,
+				},
 			},
 		})
 	}
 
 	beforeEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
 		}
 		vi.clearAllMocks()
 
@@ -130,24 +133,30 @@ describe('FileStatusList', () => {
 			})
 
 			wrapper = createWrapper({ fileIds: [1] })
-
-			await wrapper.vm.$nextTick()
+			await wrapper.vm.loadFiles()
 
 			expect(mockAxios.get).toHaveBeenCalled()
 		})
 
 		it('stores loaded files in data', async () => {
-			mockAxios.get.mockResolvedValueOnce({
-				data: {
-					ocs: {
-						data: { id: 1, name: 'test.pdf', size: 1024, status: '3' },
+			mockAxios.get
+				.mockResolvedValueOnce({
+					data: {
+						ocs: {
+							data: { id: 1, name: 'test.pdf', size: 1024, status: '3' },
+						},
 					},
-				},
-			})
+				})
+				.mockResolvedValueOnce({
+					data: {
+						ocs: {
+							data: { id: 1, name: 'test.pdf', size: 1024, status: '3' },
+						},
+					},
+				})
 
 			wrapper = createWrapper({ fileIds: [1] })
-
-			await wrapper.vm.$nextTick()
+			await wrapper.vm.loadFiles()
 
 			expect(wrapper.vm.files.length).toBe(1)
 			expect(wrapper.vm.files[0].name).toBe('test.pdf')
@@ -169,10 +178,23 @@ describe('FileStatusList', () => {
 						},
 					},
 				})
+				.mockResolvedValueOnce({
+					data: {
+						ocs: {
+							data: { id: 1, name: 'file1.pdf' },
+						},
+					},
+				})
+				.mockResolvedValueOnce({
+					data: {
+						ocs: {
+							data: { id: 2, name: 'file2.pdf' },
+						},
+					},
+				})
 
 			wrapper = createWrapper({ fileIds: [1, 2] })
-
-			await wrapper.vm.$nextTick()
+			await wrapper.vm.loadFiles()
 
 			expect(wrapper.vm.files.length).toBe(2)
 		})
@@ -187,8 +209,7 @@ describe('FileStatusList', () => {
 			})
 
 			wrapper = createWrapper({ fileIds: [1] })
-
-			await wrapper.vm.$nextTick()
+			await wrapper.vm.loadFiles()
 
 			expect(wrapper.emitted('files-updated')).toBeTruthy()
 		})
@@ -198,8 +219,7 @@ describe('FileStatusList', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation()
 
 			wrapper = createWrapper({ fileIds: [1] })
-
-			await wrapper.vm.$nextTick()
+			await wrapper.vm.loadFiles()
 
 			expect(consoleSpy).toHaveBeenCalled()
 		})
@@ -407,8 +427,7 @@ describe('FileStatusList', () => {
 			})
 
 			wrapper = createWrapper({ fileIds: [1] })
-
-			await wrapper.vm.$nextTick()
+			await wrapper.vm.loadFiles()
 
 			expect(wrapper.vm.files.length).toBeGreaterThan(0)
 		})
@@ -457,8 +476,7 @@ describe('FileStatusList', () => {
 			})
 
 			wrapper = createWrapper({ fileIds: [1] })
-
-			await wrapper.vm.$nextTick()
+			await wrapper.vm.loadFiles()
 
 			expect(wrapper.vm.files[0].name).toBe('document.pdf')
 			expect(wrapper.vm.files[0].size).toBe(2048)
@@ -481,8 +499,7 @@ describe('FileStatusList', () => {
 			})
 
 			wrapper = createWrapper({ fileIds: [1] })
-
-			await wrapper.vm.$nextTick()
+			await wrapper.vm.loadFiles()
 
 			expect(wrapper.vm.files[0].signed).toBe('2024-06-01T12:00:00')
 		})
@@ -501,8 +518,7 @@ describe('FileStatusList', () => {
 			})
 
 			wrapper = createWrapper({ fileIds: [1] })
-
-			await wrapper.vm.$nextTick()
+			await wrapper.vm.loadFiles()
 
 			expect(wrapper.vm.files[0].signed).toBeUndefined()
 		})
@@ -517,10 +533,15 @@ describe('FileStatusList', () => {
 				.mockResolvedValueOnce({
 					data: { ocs: { data: { id: 2, name: 'file2.pdf', status: '3' } } },
 				})
+				.mockResolvedValueOnce({
+					data: { ocs: { data: { id: 1, name: 'file1.pdf', status: '0' } } },
+				})
+				.mockResolvedValueOnce({
+					data: { ocs: { data: { id: 2, name: 'file2.pdf', status: '3' } } },
+				})
 
 			wrapper = createWrapper({ fileIds: [1, 2] })
-
-			await wrapper.vm.$nextTick()
+			await wrapper.vm.loadFiles()
 
 			expect(wrapper.vm.files).toHaveLength(2)
 			expect(wrapper.vm.files[0].name).toBe('file1.pdf')

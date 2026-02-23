@@ -12,6 +12,15 @@ vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((app, text) => text),
 }))
 
+vi.mock('vue-select', () => ({
+	default: {
+		name: 'VSelect',
+		props: ['modelValue'],
+		emits: ['update:modelValue'],
+		render: () => null,
+	},
+}))
+
 beforeAll(async () => {
 	;({ default: FileEntryStatus } = await import('../../../views/FilesList/FileEntry/FileEntryStatus.vue'))
 })

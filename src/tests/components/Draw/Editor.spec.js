@@ -307,7 +307,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 
 		await wrapper.vm.$nextTick()
 		wrapper.vm.imageData = 'data:image/png;base64,test'
-		wrapper.vm.$destroy ? wrapper.vm.$destroy() : null
+		wrapper.unmount()
 
 		expect(wrapper.vm.mounted).toBe(false)
 	})
