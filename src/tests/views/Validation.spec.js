@@ -48,6 +48,38 @@ vi.mock('@nextcloud/logger', () => ({
 	})),
 }))
 
+vi.mock('@nextcloud/l10n', () => ({
+	translate: vi.fn((app, text, vars) => {
+		if (vars) {
+			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
+		}
+		return text
+	}),
+	translatePlural: vi.fn((app, singular, plural, count, vars) => {
+		const template = count === 1 ? singular : plural
+		if (vars) {
+			return template.replace(/{(\w+)}/g, (m, key) => vars[key])
+		}
+		return template
+	}),
+	t: vi.fn((app, text, vars) => {
+		if (vars) {
+			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
+		}
+		return text
+	}),
+	n: vi.fn((app, singular, plural, count, vars) => {
+		const template = count === 1 ? singular : plural
+		if (vars) {
+			return template.replace(/{(\w+)}/g, (m, key) => vars[key])
+		}
+		return template
+	}),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
+}))
+
 // Mock router
 const mockRoute = {
 	params: {},
