@@ -3,25 +3,26 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name">
+	<NcSettingsSection
+		:name="t('libresign', 'Validation URL')">
 		<p>
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="makeValidationUrlPrivate"
-				@update:checked="toggleSetting('make_validation_url_private', makeValidationUrlPrivate)">
+				v-model="makeValidationUrlPrivate"
+				@update:model-value="onMakeValidationUrlPrivateChange">
 				{{ t('libresign', 'Make validation URL acessible only by authenticated users') }}
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p>
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="addFooter"
-				@update:checked="toggleSetting('add_footer', addFooter)">
+				v-model="addFooter"
+				@update:model-value="onAddFooterChange">
 				{{ t('libresign', 'Add visible footer with signature details') }}
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p v-if="addFooter">
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="writeQrcodeOnFooter"
-				@update:checked="toggleSetting('write_qrcode_on_footer', writeQrcodeOnFooter)">
+				v-model="writeQrcodeOnFooter"
+				@update:model-value="onWriteQrcodeOnFooterChange">
 				{{ t('libresign', 'Write QR code on footer with validation URL') }}
 			</NcCheckboxRadioSwitch>
 		</p>
@@ -37,8 +38,8 @@
 		</p>
 		<p v-if="addFooter">
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="customizeFooter"
-				@update:checked="toggleCustomizeFooter">
+				v-model="customizeFooter"
+				@update:model-value="onCustomizeFooterChange">
 				{{ t('libresign', 'Customize footer template') }}
 			</NcCheckboxRadioSwitch>
 		</p>
@@ -51,8 +52,8 @@
 <script>
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
@@ -67,21 +68,22 @@ export default {
 		FooterTemplateEditor,
 	},
 	data() {
+		const isDefaultFooterTemplate = loadState('libresign', 'footer_template_is_default', true)
 		return {
-			name: t('libresign', 'Validation URL'),
 			paternValidadeUrl: 'https://validador.librecode.coop/',
 			makeValidationUrlPrivate: false,
 			url: null,
 			addFooter: true,
 			writeQrcodeOnFooter: true,
-			customizeFooter: !loadState('libresign', 'footer_template_is_default', true),
-			isDefaultFooterTemplate: true,
+			isDefaultFooterTemplate,
+			customizeFooter: !isDefaultFooterTemplate,
 		}
 	},
 	created() {
 		this.getData()
 	},
 	methods: {
+		t,
 		validationUrlEnter() {
 			this.$refs.urlInput.blur()
 		},
@@ -90,6 +92,7 @@ export default {
 			this.getAddFooterData()
 			this.getWriteQrcodeOnFooter()
 			this.getValidationUrlData()
+			this.getCustomizeFooterData()
 		},
 		async getMakeValidationUrlPrivate() {
 			const response = await axios.get(
@@ -118,6 +121,14 @@ export default {
 			)
 			this.placeHolderValidationUrl(response.data.ocs.data.data)
 		},
+		async getCustomizeFooterData() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/footer_template_is_default'),
+			)
+			const value = response?.data?.ocs?.data.data
+			this.isDefaultFooterTemplate = ['true', true, '1', 1].includes(value)
+			this.customizeFooter = !this.isDefaultFooterTemplate
+		},
 		async onTemplateReset() {
 			this.customizeFooter = false
 		},
@@ -125,11 +136,25 @@ export default {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
 		},
 		async toggleSetting(setting, value) {
-			OCP.AppConfig.setValue('libresign', setting, value ? '1' : '0')
+			try {
+				await OCP.AppConfig.setValue('libresign', setting, value ? '1' : '0')
+			} catch (error) {
+				console.error('Error toggling setting:', setting, error)
+			}
 		},
-		toggleCustomizeFooter(value) {
-			this.customizeFooter = !!value
-			if (!this.customizeFooter) {
+		async onMakeValidationUrlPrivateChange(value) {
+			await this.toggleSetting('make_validation_url_private', value)
+		},
+		async onAddFooterChange(value) {
+			await this.toggleSetting('add_footer', value)
+		},
+		async onWriteQrcodeOnFooterChange(value) {
+			await this.toggleSetting('write_qrcode_on_footer', value)
+		},
+		async onCustomizeFooterChange(value) {
+			await this.toggleSetting('footer_template_is_default', !value)
+			this.isDefaultFooterTemplate = !value
+			if (!value && this.$refs.footerTemplateEditor) {
 				this.$refs.footerTemplateEditor.resetFooterTemplate()
 			}
 		},
