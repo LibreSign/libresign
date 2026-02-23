@@ -171,13 +171,13 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 
 import {
-	mdiPackageVariantClosed,
-	mdiFileMultiple,
-	mdiFilePdfBox,
 	mdiAccountMultiple,
 	mdiChevronDown,
 	mdiChevronUp,
 	mdiEye,
+	mdiFileMultiple,
+	mdiFilePdfBox,
+	mdiPackageVariantClosed,
 } from '@mdi/js'
 import Moment from '@nextcloud/moment'
 import { getStatusLabel } from '../../utils/fileStatus.js'
