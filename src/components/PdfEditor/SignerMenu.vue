@@ -38,6 +38,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
@@ -77,6 +79,7 @@ export default {
 		}
 	},
 	methods: {
+		t,
 		label(signer) {
 			if (this.getSignerLabel) {
 				return this.getSignerLabel(signer)
