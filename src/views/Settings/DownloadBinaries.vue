@@ -47,7 +47,6 @@ export default {
 	name: 'DownloadBinaries',
 	components: {
 		NcSettingsSection,
-		NcLoadingIcon,
 		NcButton,
 		NcNoteCard,
 		NcProgressBar,
@@ -63,7 +62,7 @@ export default {
 				java: 0,
 				jsignpdf: 0,
 				cfssl: 0,
-			},
+	},
 		}
 	},
 	computed: {
