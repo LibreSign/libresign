@@ -22,7 +22,7 @@
 		<!-- Actions -->
 		<FileEntryActions ref="actions"
 			:class="`files-list__row-actions-${source.id}`"
-			:opened.sync="openedMenu"
+			v-model:opened="openedMenu"
 			:source="source"
 			:loading="loading"
 			@rename="onRename"
@@ -53,6 +53,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { showSuccess } from '@nextcloud/dialogs'
 import NcDateTime from '@nextcloud/vue/components/NcDateTime'
 
@@ -85,6 +87,7 @@ export default {
 		const actionsMenuStore = useActionsMenuStore()
 		const filesStore = useFilesStore()
 		return {
+			t,
 			actionsMenuStore,
 			filesStore,
 		}
