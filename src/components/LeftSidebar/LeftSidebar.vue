@@ -12,7 +12,7 @@
 				:name="t('libresign', 'Request')"
 				@click="unselectFile">
 				<template #icon>
-					<FileSignIcon :size="20" />
+					<NcIconSvgWrapper :path="mdiFileSign" :size="20" />
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationItem id="fileslist"
@@ -20,7 +20,7 @@
 				:name="t('libresign', 'Files')"
 				@click="unselectFile">
 				<template #icon>
-					<FolderIcon :size="20" />
+					<NcIconSvgWrapper :path="mdiFolder" :size="20" />
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationItem id="validation"
@@ -28,7 +28,7 @@
 				:name="t('libresign', 'Validate')"
 				@click="unselectFile">
 				<template #icon>
-					<FileCheckIcon :size="20" />
+					<NcIconSvgWrapper :path="mdiFileCheck" :size="20" />
 				</template>
 			</NcAppNavigationItem>
 
@@ -36,7 +36,7 @@
 				:to="{name: 'DocsIdDocsValidation'}"
 				:name="t('libresign', 'Documents Validation')">
 				<template #icon>
-					<AccountCheckIcon :size="20" />
+					<NcIconSvgWrapper :path="mdiAccountCheck" :size="20" />
 				</template>
 			</NcAppNavigationItem>
 
@@ -45,7 +45,7 @@
 				:name="t('libresign', 'CRL Management')"
 				@click="unselectFile">
 				<template #icon>
-					<ShieldLockIcon :size="20" />
+					<NcIconSvgWrapper :path="mdiShieldLock" :size="20" />
 				</template>
 			</NcAppNavigationItem>
 		</template>
@@ -60,11 +60,6 @@
 <script>
 import { t } from '@nextcloud/l10n'
 
-import AccountCheckIcon from 'vue-material-design-icons/AccountCheck.vue'
-import FileCheckIcon from 'vue-material-design-icons/FileCheck.vue'
-import FileSignIcon from 'vue-material-design-icons/FileSign.vue'
-import FolderIcon from 'vue-material-design-icons/Folder.vue'
-import ShieldLockIcon from 'vue-material-design-icons/ShieldLock.vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
@@ -72,6 +67,7 @@ import { loadState } from '@nextcloud/initial-state'
 import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcAppNavigationSettings from '@nextcloud/vue/components/NcAppNavigationSettings'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import Settings from '../Settings/Settings.vue'
 
@@ -83,11 +79,6 @@ export default {
 		NcAppNavigation,
 		NcAppNavigationItem,
 		NcAppNavigationSettings,
-		AccountCheckIcon,
-		FileCheckIcon,
-		FolderIcon,
-		FileSignIcon,
-		ShieldLockIcon,
 		Settings,
 	},
 	setup() {
