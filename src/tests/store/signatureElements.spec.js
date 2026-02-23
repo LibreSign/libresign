@@ -57,14 +57,14 @@ vi.mock('@nextcloud/router', () => ({
 
 vi.mock('vue', async () => {
 	const actual = await vi.importActual('vue')
-	const Vue = actual.default ?? actual
 	return {
 		...actual,
-		default: Object.assign(Vue, {
+		default: {
+			...actual,
 			set: vi.fn((obj, key, value) => {
 				obj[key] = value
 			}),
-		}),
+		},
 	}
 })
 
