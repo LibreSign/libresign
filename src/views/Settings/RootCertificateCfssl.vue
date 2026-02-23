@@ -141,12 +141,9 @@ export default {
 	name: 'RootCertificateCfssl',
 	components: {
 		NcSettingsSection,
-		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcButton,
 		NcTextField,
-		CertificateCustonOptions,
-		CertificatePolicy,
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
@@ -162,11 +159,11 @@ export default {
 				rootCert: {
 					commonName: '',
 					names: [],
-				},
+	},
 				cfsslUri: '',
 				configPath: '',
 				generated: false,
-			},
+	},
 			error: false,
 			customData: false,
 			formDisabled: false,
@@ -240,7 +237,7 @@ export default {
 				rootCert: {
 					commonName: '',
 					names: [],
-				},
+	},
 				cfsslUri: '',
 				configPath: '',
 			}
