@@ -3,7 +3,29 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-export const ACTION_CODES = Object.freeze({
+interface ActionCodes {
+	REDIRECT: number
+	CREATE_ACCOUNT: number
+	DO_NOTHING: number
+	SIGN: number
+	SIGN_INTERNAL: number
+	SIGN_ID_DOC: number
+	SHOW_ERROR: number
+	SIGNED: number
+	CREATE_SIGNATURE_PASSWORD: number
+	RENEW_EMAIL: number
+	INCOMPLETE_SETUP: number
+}
+
+interface ActionCodeToRoute {
+	[key: number]: string
+}
+
+interface RequirementToModal {
+	[key: string]: string
+}
+
+export const ACTION_CODES: Readonly<ActionCodes> = Object.freeze({
 	REDIRECT: 1000,
 	CREATE_ACCOUNT: 1500,
 	DO_NOTHING: 2000,
@@ -17,7 +39,7 @@ export const ACTION_CODES = Object.freeze({
 	INCOMPLETE_SETUP: 5000,
 })
 
-export const ACTION_CODE_TO_ROUTE = Object.freeze({
+export const ACTION_CODE_TO_ROUTE: Readonly<ActionCodeToRoute> = Object.freeze({
 	[ACTION_CODES.REDIRECT]: 'redirect',
 	[ACTION_CODES.CREATE_ACCOUNT]: 'CreateAccount',
 	[ACTION_CODES.DO_NOTHING]: 'current',
@@ -31,11 +53,11 @@ export const ACTION_CODE_TO_ROUTE = Object.freeze({
 	[ACTION_CODES.INCOMPLETE_SETUP]: 'Incomplete',
 })
 
-export const REQUIREMENT_TO_MODAL = Object.freeze({
+export const REQUIREMENT_TO_MODAL: Readonly<RequirementToModal> = Object.freeze({
 	identificationDocuments: 'uploadDocuments',
 	emailCode: 'emailToken',
 	createSignature: 'createSignature',
-	tokenCode: 'token', // Maps to token modal (which handles all token methods: SMS, WhatsApp, Telegram, Signal, XMPP)
+	tokenCode: 'token',
 	uploadCertificate: 'uploadCertificate',
 	createPassword: 'createPassword',
 	passwordSignature: 'password',
