@@ -46,7 +46,6 @@ export default {
 		Documents,
 		ManagePassword,
 	},
-
 	data() {
 		return {
 			user: getCurrentUser(),
