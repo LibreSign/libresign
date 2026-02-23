@@ -28,6 +28,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import FileIcon from 'vue-material-design-icons/File.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 
