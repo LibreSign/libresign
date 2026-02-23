@@ -34,6 +34,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -74,6 +76,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		async send() {
 			this.hasLoading = true
 			await axios.patch(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), {
