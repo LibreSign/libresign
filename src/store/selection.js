@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 import { defineStore } from 'pinia'
-import { set } from 'vue'
 
 import { subscribe } from '@nextcloud/event-bus'
 
@@ -21,7 +20,7 @@ export const useSelectionStore = function(...args) {
 			 * @param {Array} selection Selected files
 			 */
 			set(selection = []) {
-				set(this, 'selected', [...new Set(selection)])
+				this.selected = [...new Set(selection)]
 			},
 
 			/**
@@ -30,17 +29,17 @@ export const useSelectionStore = function(...args) {
 			 */
 			setLastIndex(lastSelectedIndex = null) {
 				// Update the last selection if we provided a new selection starting point
-				set(this, 'lastSelection', lastSelectedIndex ? this.selected : [])
-				set(this, 'lastSelectedIndex', lastSelectedIndex)
+				this.lastSelection = lastSelectedIndex ? this.selected : []
+				this.lastSelectedIndex = lastSelectedIndex
 			},
 
 			/**
 			 * Reset the selection
 			 */
 			reset() {
-				set(this, 'selected', [])
-				set(this, 'lastSelection', [])
-				set(this, 'lastSelectedIndex', null)
+				this.selected = []
+				this.lastSelection = []
+				this.lastSelectedIndex = null
 			},
 		},
 	})
