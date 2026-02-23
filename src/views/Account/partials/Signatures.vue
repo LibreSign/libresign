@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { getCapabilities } from '@nextcloud/capabilities'
 
 import Signature from './Signature.vue'
@@ -39,6 +41,7 @@ export default {
 		Signature,
 	},
 	methods: {
+		t,
 		isSignaturesAvailable() {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
 				&& getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
