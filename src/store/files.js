@@ -4,7 +4,6 @@
  */
 
 import { defineStore } from 'pinia'
-import { del, set } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
@@ -45,7 +44,7 @@ export const useFilesStore = function(...args) {
 					this.selectFile()
 				}
 
-				del(this.files, fileId)
+				delete this.files[fileId]
 				const index = this.ordered.indexOf(fileId)
 				if (index > -1) {
 					this.ordered.splice(index, 1)
@@ -76,7 +75,7 @@ export const useFilesStore = function(...args) {
 					fileData.settings = { ...existingFile.settings, ...fileData.settings }
 				}
 
-				set(this.files, key, fileData)
+				this.files[key] = fileData
 
 				if (!this.ordered.includes(key)) {
 					if (position === 'start') {
@@ -189,7 +188,7 @@ export const useFilesStore = function(...args) {
 						const newFilesCount = data.ocs.data.filesCount || 0
 
 						if (this.selectedFileId && this.files[this.selectedFileId]) {
-							set(this.files[this.selectedFileId], 'filesCount', newFilesCount)
+							this.files[this.selectedFileId].filesCount = newFilesCount
 						}
 
 						return {
@@ -226,7 +225,7 @@ export const useFilesStore = function(...args) {
 					.then(() => {
 						if (this.files[this.selectedFileId] && this.files[this.selectedFileId].filesCount) {
 							const newCount = Math.max(0, this.files[this.selectedFileId].filesCount - fileIds.length)
-							set(this.files[this.selectedFileId], 'filesCount', newCount)
+							this.files[this.selectedFileId].filesCount = newCount
 						}
 
 						const isSingle = fileIds.length === 1
@@ -442,11 +441,8 @@ export const useFilesStore = function(...args) {
 					}))
 				}
 
-				set(
-					this.files[this.selectedFileId],
-					'signers',
-					this.files[this.selectedFileId].signers.filter((i) => i.identify !== signer.identify),
-				)
+				this.files[this.selectedFileId].signers = this.files[this.selectedFileId].signers
+					.filter((i) => i.identify !== signer.identify)
 
 				if (file.signatureFlow === 'ordered_numeric' && signer.signingOrder) {
 					this.files[this.selectedFileId].signers.forEach((s) => {
@@ -717,7 +713,7 @@ export const useFilesStore = function(...args) {
 					if (existingFile?.settings) {
 						responseFile.settings = { ...existingFile.settings, ...responseFile.settings }
 					}
-					set(this.files, newFileKey, responseFile)
+					this.files[newFileKey] = responseFile
 					this.addUniqueIdentifierToAllSigners(this.files[newFileKey].signers)
 					if (!this.ordered.includes(newFileKey)) {
 						this.ordered.push(newFileKey)
