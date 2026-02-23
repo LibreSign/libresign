@@ -4,21 +4,30 @@
  */
 import { Option } from '@marionebl/option'
 
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
+
+interface CertificationOption {
+	id: string
+	label: string
+	max: number
+	min?: number
+	value: string
+	helperText: string
+}
 
 /**
  * Return custom options details from ID
  *
  * @param {string} id identification of custom option
  */
-export function selectCustonOption(id) {
+export function selectCustonOption(id: string): Option<CertificationOption> {
 	return Option.from(options.find(item => item.id === id))
 }
 
 /**
  * More informations: https://www.ietf.org/rfc/rfc5280.txt
  */
-export const options = [
+export const options: CertificationOption[] = [
 	{
 		id: 'CN',
 		label: t('libresign', 'Common Name (CN)'),
