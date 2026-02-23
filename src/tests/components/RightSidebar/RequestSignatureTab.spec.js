@@ -49,7 +49,7 @@ vi.mock('@nextcloud/router', () => ({
 	getRootUrl: vi.fn(() => ''),
 }))
 
-vi.mock('@libresign/pdf-elements/src/utils/asyncReader.js', () => ({
+vi.mock('@libresign/pdf-elements', () => ({
 	setWorkerPath: vi.fn(),
 }))
 

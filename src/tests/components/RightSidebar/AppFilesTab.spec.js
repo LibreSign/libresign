@@ -41,6 +41,15 @@ vi.mock('../../../components/RightSidebar/RequestSignatureTab.vue', () => ({
 	},
 }))
 
+vi.mock('vue-select', () => ({
+	default: {
+		name: 'VSelect',
+		props: ['modelValue'],
+		emits: ['update:modelValue'],
+		render: () => null,
+	},
+}))
+
 
 import { emit } from '@nextcloud/event-bus'
 import { getClient } from '@nextcloud/files/dav'
@@ -136,7 +145,7 @@ describe('AppFilesTab', () => {
 			wrapper.vm.updateSidebarTitle('Protected Title')
 
 			titleElement.textContent = 'Changed Title'
-			await new Promise(resolve => setTimeout(resolve, 10))
+			wrapper.vm.sidebarTitleObserver?._callback?.()
 
 			expect(titleElement.textContent).toBe('Protected Title')
 

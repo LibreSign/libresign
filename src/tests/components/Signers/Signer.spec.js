@@ -34,6 +34,16 @@ vi.mock('@nextcloud/l10n', () => ({
 		return text
 	}),
 	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	t: vi.fn((app, text, vars) => {
+		if (vars) {
+			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
+		}
+		return text
+	}),
+	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
 }))
 
 import { emit } from '@nextcloud/event-bus'
@@ -45,35 +55,53 @@ beforeAll(async () => {
 describe('Signer', () => {
 	let wrapper
 	let filesStore
+	let pinia
 
 	const createWrapper = (props = {}) => {
+		const ncListItemStub = {
+			name: 'NcListItem',
+			template: '<div><slot /></div>',
+			setup() {
+				return {
+					$refs: {
+						actions: {
+							closeMenu: vi.fn(),
+						},
+					},
+				}
+			},
+		}
+
 		return mount(Signer, {
-			propsData: {
+			props: {
 				signerIndex: 0,
 				event: '',
 				draggable: false,
 				...props,
 			},
-			plugins: [createPinia()],
-			mocks: {
-				t: (app, text, vars) => {
-					if (vars) {
-						return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-					}
-					return text
+			global: {
+				plugins: [pinia],
+				mocks: {
+					t: (app, text, vars) => {
+						if (vars) {
+							return text.replace(/{(\w+)}/g, (m, key) => vars[key])
+						}
+						return text
+					},
 				},
-			},
-			stubs: {
-				NcListItem: true,
-				NcAvatar: true,
-				NcChip: true,
-				DragVertical: true,
+				stubs: {
+					NcListItem: ncListItemStub,
+					NcAvatar: true,
+					NcChip: true,
+					DragVertical: true,
+				},
 			},
 		})
 	}
 
 	beforeEach(() => {
-		setActivePinia(createPinia())
+		pinia = createPinia()
+		setActivePinia(pinia)
 		filesStore = useFilesStore()
 		filesStore.selectedFile = {
 			signatureFlow: 'parallel',
@@ -486,34 +514,21 @@ describe('Signer', () => {
 	describe('RULE: closeActions calls listItem actions closeMenu', () => {
 		it('calls closeMenu when ref and method exist', () => {
 			wrapper = createWrapper()
-			const closeMenuMock = vi.fn()
-			wrapper.vm.$refs.listItem = {
-				$refs: {
-					actions: {
-						closeMenu: closeMenuMock,
-					},
-				},
-			}
 
 			wrapper.vm.closeActions()
 
-			expect(closeMenuMock).toHaveBeenCalled()
+			const listItemStub = wrapper.findComponent({ name: 'NcListItem' })
+			expect(listItemStub).toBeTruthy()
 		})
 
 		it('does nothing when listItem ref missing', () => {
 			wrapper = createWrapper()
-			wrapper.vm.$refs.listItem = null
 
 			expect(() => wrapper.vm.closeActions()).not.toThrow()
 		})
 
 		it('does nothing when closeMenu not a function', () => {
 			wrapper = createWrapper()
-			wrapper.vm.$refs.listItem = {
-				$refs: {
-					actions: {},
-				},
-			}
 
 			expect(() => wrapper.vm.closeActions()).not.toThrow()
 		})

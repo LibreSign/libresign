@@ -53,7 +53,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path) => `/ocs${path}`),
 }))
 
-vi.mock('@libresign/pdf-elements/src/utils/asyncReader.js', () => ({
+vi.mock('@libresign/pdf-elements', () => ({
 	setWorkerPath: vi.fn(),
 }))
 
@@ -499,10 +499,15 @@ describe('VisibleElements Component - Business Rules', () => {
 
 	describe('RULE: signer selection requires pdf editor', () => {
 		it('clears selection when pdf editor cannot start adding', () => {
-			wrapper.vm.$refs.pdfEditor = {
-				startAddingSigner: vi.fn(() => false),
-				cancelAdding: vi.fn(),
-			}
+				Object.defineProperty(wrapper.vm.$, 'refs', {
+					value: {
+						pdfEditor: {
+							startAddingSigner: vi.fn(() => false),
+							cancelAdding: vi.fn(),
+						},
+					},
+					configurable: true,
+				})
 
 			wrapper.vm.onSelectSigner({ email: 'test@example.com' })
 
@@ -532,10 +537,12 @@ describe('VisibleElements Component - Business Rules', () => {
 			]
 
 			wrapper.vm.buildFilePagesMap()
-			wrapper.vm.$refs.pdfEditor = {
-				$refs: {
-					pdfElements: {
-						getAllObjects: (docIndex) => {
+				Object.defineProperty(wrapper.vm.$, 'refs', {
+					value: {
+						pdfEditor: {
+							$refs: {
+								pdfElements: {
+									getAllObjects: (docIndex) => {
 							if (docIndex === 0) {
 								return [
 									{
@@ -564,11 +571,13 @@ describe('VisibleElements Component - Business Rules', () => {
 									height: 45,
 								},
 							]
+									},
+								},
+							},
 						},
 					},
-				},
-			}
-
+					configurable: true,
+				})
 			const result = wrapper.vm.buildVisibleElements()
 
 			expect(result).toHaveLength(2)
@@ -585,10 +594,15 @@ describe('VisibleElements Component - Business Rules', () => {
 		it('closes modal and shows success after save', async () => {
 			wrapper.vm.modal = true
 			filesStore.saveOrUpdateSignatureRequest = vi.fn().mockResolvedValue({ message: 'ok' })
-			wrapper.vm.$refs.pdfEditor = {
-				cancelAdding: vi.fn(),
-				$refs: { pdfElements: { getAllObjects: () => [] } },
-			}
+				Object.defineProperty(wrapper.vm.$, 'refs', {
+					value: {
+						pdfEditor: {
+							cancelAdding: vi.fn(),
+							$refs: { pdfElements: { getAllObjects: () => [] } },
+						},
+					},
+					configurable: true,
+				})
 			filesStore.files[1].files = []
 
 			const result = await wrapper.vm.save()
@@ -602,10 +616,15 @@ describe('VisibleElements Component - Business Rules', () => {
 			filesStore.saveOrUpdateSignatureRequest = vi.fn().mockRejectedValue({
 				response: { data: { ocs: { data: { message: 'save failed' } } } },
 			})
-			wrapper.vm.$refs.pdfEditor = {
-				cancelAdding: vi.fn(),
-				$refs: { pdfElements: { getAllObjects: () => [] } },
-			}
+				Object.defineProperty(wrapper.vm.$, 'refs', {
+					value: {
+						pdfEditor: {
+							cancelAdding: vi.fn(),
+							$refs: { pdfElements: { getAllObjects: () => [] } },
+						},
+					},
+					configurable: true,
+				})
 			filesStore.files[1].files = []
 
 			const result = await wrapper.vm.save()
