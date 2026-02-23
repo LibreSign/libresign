@@ -71,6 +71,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import md5 from 'blueimp-md5'
 
 import EmailIcon from 'vue-material-design-icons/Email.vue'
@@ -139,6 +141,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		onChangeEmail() {
 			if (!validateEmail(this.sendTo) || md5(this.sendTo) !== this.signMethodsStore.settings.emailToken.hashOfEmail) {
 				this.errorMessage = t('libresign', 'Invalid email')
