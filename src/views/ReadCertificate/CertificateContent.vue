@@ -129,10 +129,12 @@
 
 <script>
 
-import { selectCustonOption } from '../../helpers/certification.js'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
-import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
-import NcChip from '@nextcloud/vue/dist/Components/NcChip.js'
+import { t } from '@nextcloud/l10n'
+
+import { selectCustonOption } from '../../helpers/certification'
+import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcChip from '@nextcloud/vue/components/NcChip'
 import {
 	mdiCheckCircle,
 	mdiCancel,
@@ -210,6 +212,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		orderList(data) {
 			const sorted = {};
 			['CN', 'OU', 'O'].forEach(element => {
