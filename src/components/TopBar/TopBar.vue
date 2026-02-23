@@ -22,7 +22,7 @@ export default {
 		sidebarToggle: {
 			type: Boolean,
 			default: false,
-		},
+	},
 	},
 	computed: {
 		topBarStyle() {
