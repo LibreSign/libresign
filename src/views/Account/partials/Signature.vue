@@ -42,6 +42,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import DrawIcon from 'vue-material-design-icons/Draw.vue'
 
@@ -92,6 +94,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		signatureLoaded(success) {
 			this.isSignatureLoaded = success
 			this.signatureExists = success
