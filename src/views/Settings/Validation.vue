@@ -64,7 +64,6 @@ export default {
 	name: 'Validation',
 	components: {
 		NcSettingsSection,
-		NcCheckboxRadioSwitch,
 		FooterTemplateEditor,
 	},
 	data() {
