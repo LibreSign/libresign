@@ -132,7 +132,12 @@
 <script>
 import { t } from '@nextcloud/l10n'
 
-import { mdiDelete, mdiFileEye, mdiFilePdfBox, mdiFilePlus } from '@mdi/js'
+import {
+	mdiDelete,
+	mdiFileEye,
+	mdiFilePdfBox,
+	mdiFilePlus,
+} from '@mdi/js'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -162,21 +167,18 @@ export default {
 	components: {
 		NcActionButton,
 		NcButton,
-		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcEmptyContent,
 		NcListItem,
-		NcLoadingIcon,
 		NcNoteCard,
 		NcTextField,
 		NcIconSvgWrapper,
-		UploadProgress,
 	},
 	props: {
 		open: {
 			type: Boolean,
 			required: true,
-		},
+	},
 	},
 	setup() {
 		const filesStore = useFilesStore()
@@ -208,7 +210,7 @@ export default {
 				title: '',
 				message: '',
 				action: null,
-			},
+	},
 			uploadProgress: 0,
 			isUploading: false,
 			uploadAbortController: null,
@@ -244,7 +246,7 @@ export default {
 					callback: () => {
 						this.showDeleteDialog = false
 					},
-				},
+	},
 				{
 					label: this.t('libresign', 'Delete'),
 					type: 'error',
@@ -254,7 +256,7 @@ export default {
 							this.deleteDialogConfig.action()
 						}
 					},
-				},
+	},
 			]
 		},
 		selectedCount() {
