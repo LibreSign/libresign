@@ -3,13 +3,13 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name">
+	<NcSettingsSection :name="t('libresign', 'Expiration rules')">
 		<p>
 			{{ t('libresign', 'Rules for controlling the expiration of a request to sign a file.') }}
 		</p>
 		<NcCheckboxRadioSwitch type="switch"
-			:checked.sync="enableMaximumValidity"
-			@update:checked="saveMaximumValidity">
+			v-model="enableMaximumValidity"
+			@update:model-value="saveMaximumValidity">
 			{{ t('libresign', 'Maximum validity') }}
 		</NcCheckboxRadioSwitch>
 		<fieldset v-show="enableMaximumValidity" id="settings-maximum_validity" class="sharing__sub-section">
@@ -22,8 +22,8 @@
 				@update:value="saveMaximumValidity" />
 		</fieldset>
 		<NcCheckboxRadioSwitch type="switch"
-			:checked.sync="enableRenewalInterval"
-			@update:checked="saveRenewalInterval">
+			v-model="enableRenewalInterval"
+			@update:model-value="saveRenewalInterval">
 			{{ t('libresign', 'Renewal interval') }}
 		</NcCheckboxRadioSwitch>
 		<fieldset v-show="enableRenewalInterval" id="settings-renewal-interval" class="sharing__sub-section">
@@ -48,8 +48,8 @@
 </template>
 <script>
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
@@ -64,7 +64,6 @@ export default {
 	},
 	data() {
 		return {
-			name: t('libresign', 'Expiration rules'),
 			paternValidadeUrl: 'https://validador.librecode.coop/',
 			enableMaximumValidity: false,
 			maximumValidity: '0',
@@ -78,6 +77,7 @@ export default {
 		this.getData()
 	},
 	methods: {
+		t,
 		async getData() {
 			this.getMaximumValidity()
 			this.getRenewalInterval()
