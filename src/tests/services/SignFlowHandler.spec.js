@@ -4,7 +4,7 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { SignFlowHandler } from '../../services/SignFlowHandler.js'
+import { SignFlowHandler } from '../../services/SignFlowHandler'
 
 const createStore = () => ({
 	showModal: vi.fn(),

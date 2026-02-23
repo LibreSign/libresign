@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	getVisibleElementsFromDocument,
-} from '../../services/visibleElementsService.js'
+} from '../../services/visibleElementsService'
 
 describe('visibleElementsService', () => {
 	describe('getVisibleElementsFromDocument', () => {

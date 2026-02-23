@@ -4,8 +4,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { SigningRequirementValidator } from '../../services/SigningRequirementValidator.js'
-import { ACTION_CODES } from '../../helpers/ActionMapping.js'
+import { SigningRequirementValidator } from '../../services/SigningRequirementValidator'
+import { ACTION_CODES } from '../../helpers/ActionMapping'
 
 describe('SigningRequirementValidator', () => {
 	const createStores = (overrides = {}) => {
