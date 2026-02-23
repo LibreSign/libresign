@@ -46,7 +46,6 @@ export default {
 	name: 'IdentificationDocuments',
 	components: {
 		NcSettingsSection,
-		NcCheckboxRadioSwitch,
 		NcSelect,
 	},
 	data() {
