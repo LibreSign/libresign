@@ -34,9 +34,8 @@
 			class="absolute cursor-pointer transform delete"
 			:style="{ top: '0%', left: '50%' }"
 			@click="onDelete">
-			<CloseCircleIcon class="w-full h-full"
-				text="Remove"
-				fill-color="red"
+			<NcIconSvgWrapper class="w-full h-full icon-delete"
+				:path="mdiCloseCircle"
 				:size="25" />
 		</div>
 		<div class="w-full h-full border border-gray-400 border-dashed content">
@@ -48,50 +47,55 @@
 <script>
 import { t } from '@nextcloud/l10n'
 
-import CloseCircleIcon from 'vue-material-design-icons/CloseCircle.vue'
+import { mdiCloseCircle } from '@mdi/js'
+
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 export default {
 	name: 'Signature',
 	components: {
-		CloseCircleIcon,
+		NcIconSvgWrapper,
+	},
+	setup() {
+		return { mdiCloseCircle }
 	},
 	props: {
 		displayName: {
 			type: String,
 			default: '',
-		},
+	},
 		width: {
 			type: Number,
 			default: 0,
-		},
+	},
 		height: {
 			type: Number,
 			default: 0,
-		},
+	},
 		originWidth: {
 			type: Number,
 			default: 0,
-		},
+	},
 		originHeight: {
 			type: Number,
 			default: 0,
-		},
+	},
 		x: {
 			type: Number,
 			default: 0,
-		},
+	},
 		y: {
 			type: Number,
 			default: 0,
-		},
+	},
 		pageScale: {
 			type: Number,
 			default: 1,
-		},
+	},
 		fixSize: {
 			type: Boolean,
 			default: false,
-		},
+	},
 	readOnly: {
 		type: Boolean,
 		default: false,
