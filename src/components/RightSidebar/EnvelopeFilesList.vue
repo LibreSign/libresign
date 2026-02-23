@@ -42,7 +42,7 @@
 				:name="t('libresign', 'No files in envelope')"
 				:description="t('libresign', 'Add files to get started')">
 				<template #icon>
-				<FilePdfBox :size="64" />
+				<NcIconSvgWrapper :path="mdiFilePdfBox" :size="64" />
 				</template>
 			</NcEmptyContent>
 			<div v-else ref="scrollContainer" class="files-list" @scroll="onScroll">
@@ -56,7 +56,7 @@
 						:disabled="hasLoading"
 						@click="handleDeleteSelected">
 						<template #icon>
-							<Delete :size="20" />
+							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 						</template>
 						{{ t('libresign', 'Delete') }}
 					</NcButton>
@@ -73,14 +73,14 @@
 							:src="getPreviewUrl(file)"
 							alt=""
 							class="file-preview-icon">
-						<FilePdfBox v-else :size="20" />
+						<NcIconSvgWrapper v-else :path="mdiFilePdfBox" :size="20" />
 					</template>
 					<template v-if="!isTouchDevice" #actions>
 						<NcActionButton
 							:close-after-click="true"
 							@click="openFile(file)">
 							<template #icon>
-								<FileEye :size="20" />
+								<NcIconSvgWrapper :path="mdiFileEye" :size="20" />
 							</template>
 							{{ t('libresign', 'Open file') }}
 						</NcActionButton>
@@ -88,7 +88,7 @@
 							:close-after-click="true"
 							@click="handleDelete(file)">
 							<template #icon>
-								<Delete :size="20" />
+								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
 							{{ t('libresign', 'Delete') }}
 						</NcActionButton>
@@ -96,12 +96,12 @@
 					<template v-if="isTouchDevice" #extra-actions>
 						<NcButton variant="tertiary" :aria-label="t('libresign', 'Open file')" @click="openFile(file)">
 							<template #icon>
-								<FileEye :size="20" />
+								<NcIconSvgWrapper :path="mdiFileEye" :size="20" />
 							</template>
 						</NcButton>
 						<NcButton v-if="canDelete" variant="tertiary" :aria-label="t('libresign', 'Delete')" @click="handleDelete(file)">
 							<template #icon>
-								<Delete :size="20" />
+								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
 						</NcButton>
 					</template>
@@ -118,7 +118,7 @@
 				:disabled="hasLoading"
 				@click="addFileToEnvelope">
 				<template #icon>
-					<FilePlus :size="20" />
+					<NcIconSvgWrapper :path="mdiFilePlus" :size="20" />
 				</template>
 				{{ t('libresign', 'Add file') }}
 			</NcButton>
@@ -132,10 +132,7 @@
 <script>
 import { t } from '@nextcloud/l10n'
 
-import Delete from 'vue-material-design-icons/Delete.vue'
-import FileEye from 'vue-material-design-icons/FileEye.vue'
-import FilePdfBox from 'vue-material-design-icons/FilePdfBox.vue'
-import FilePlus from 'vue-material-design-icons/FilePlus.vue'
+import { mdiDelete, mdiFileEye, mdiFilePdfBox, mdiFilePlus } from '@mdi/js'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -150,6 +147,7 @@ import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import UploadProgress from '../UploadProgress.vue'
 import isTouchDevice from '../../mixins/isTouchDevice.js'
@@ -162,10 +160,6 @@ export default {
 	name: 'EnvelopeFilesList',
 	mixins: [isTouchDevice],
 	components: {
-		Delete,
-		FileEye,
-		FilePdfBox,
-		FilePlus,
 		NcActionButton,
 		NcButton,
 		NcCheckboxRadioSwitch,
@@ -175,6 +169,7 @@ export default {
 		NcLoadingIcon,
 		NcNoteCard,
 		NcTextField,
+		NcIconSvgWrapper,
 		UploadProgress,
 	},
 	props: {
@@ -185,7 +180,16 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore, FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH }
+		return {
+			filesStore,
+			FILE_STATUS,
+			ENVELOPE_NAME_MIN_LENGTH,
+			ENVELOPE_NAME_MAX_LENGTH,
+			mdiDelete,
+			mdiFileEye,
+			mdiFilePdfBox,
+			mdiFilePlus,
+		}
 	},
 	data() {
 		return {
