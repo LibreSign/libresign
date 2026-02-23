@@ -1,15 +1,51 @@
 {
 	"extends": "@vue/tsconfig/tsconfig.json",
-	"include": ["src/**/*.ts", "src/env.d.ts"],
-	"exclude": ["node_modules", "vendor"],
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.d.ts",
+		"src/**/*.tsx",
+		"src/**/*.vue"
+	],
+	"exclude": [
+		"node_modules",
+		"vendor",
+		"dist",
+		"build"
+	],
 	"compilerOptions": {
 		"outDir": "./js",
+		"rootDir": "./src",
+		"target": "ES2020",
+		"useDefineForClassFields": true,
+		"lib": [
+			"ES2020",
+			"DOM",
+			"DOM.Iterable"
+		],
+		"skipLibCheck": true,
+		"noEmit": true,
 		"allowJs": true,
 		"checkJs": false,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true,
 		"allowImportingTsExtensions": true,
-		"lib": ["ESNext"],
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": [
+				"src/*"
+			]
+		},
+		"types": [
+			"vue/macros",
+			"vitest/globals",
+			"node"
+		]
 	},
 	"vueCompilerOptions": {
-		"target": 2.7,
+		"target": 3
 	}
 }
