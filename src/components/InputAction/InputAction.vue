@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 export default {
 	name: 'InputAction',
 	props: {
@@ -46,6 +48,7 @@ export default {
 	},
 
 	methods: {
+		t,
 		clearInput() {
 			this.value = ''
 		},
