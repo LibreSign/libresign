@@ -48,11 +48,11 @@ export default {
 		useModal: {
 			type: Boolean,
 			default: true,
-		},
+	},
 		errors: {
 			type: Array,
 			default: () => [],
-		},
+	},
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
