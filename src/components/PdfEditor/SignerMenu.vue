@@ -59,19 +59,19 @@ export default {
 		signers: {
 			type: Array,
 			default: () => [],
-		},
+	},
 		currentSigner: {
 			type: Object,
 			default: null,
-		},
+	},
 		getSignerLabel: {
 			type: Function,
 			default: null,
-		},
+	},
 		show: {
 			type: Boolean,
 			default: true,
-		},
+	},
 	},
 	data() {
 		return {
