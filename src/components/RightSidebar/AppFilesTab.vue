@@ -12,6 +12,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { getCurrentUser } from '@nextcloud/auth'
 import { emit, subscribe } from '@nextcloud/event-bus'
 import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
@@ -67,6 +69,7 @@ export default {
 		}
 	},
 	methods: {
+		t,
 		handleEnvelopeRenamed({ uuid, name }) {
 			const current = this.filesStore.getFile()
 			if (current?.uuid && current.uuid === uuid) {
