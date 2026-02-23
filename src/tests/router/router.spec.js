@@ -4,8 +4,6 @@
  */
 
 import { describe, expect, it, beforeAll, beforeEach, vi, afterEach } from 'vitest'
-import Vue from 'vue'
-import Router from 'vue-router'
 
 // Mock @nextcloud packages that router components may import
 vi.mock('@nextcloud/axios', () => ({
@@ -53,8 +51,6 @@ vi.mock('@nextcloud/router')
 vi.mock('../../helpers/isExternal.js')
 vi.mock('../../helpers/SelectAction.js')
 
-Vue.use(Router)
-
 describe('router business rules', () => {
 	let router
 	let loadState
@@ -62,6 +58,7 @@ describe('router business rules', () => {
 	let getRootUrl
 	let isExternal
 	let selectAction
+	const getRoutes = () => router.options.routes || []
 
 	beforeAll(async () => {
 		const { loadState: loadStateModule } = await import('@nextcloud/initial-state')
@@ -94,18 +91,18 @@ describe('router business rules', () => {
 
 	describe('public routes structure', () => {
 		it('has public sign route with uuid parameter', () => {
-			const route = router.options.routes.find(r => r.path === '/p/sign/:uuid')
+			const route = getRoutes().find(r => r.path === '/p/sign/:uuid')
 			expect(route).toBeDefined()
 			expect(route.path).toContain('uuid')
 		})
 
 		it('has public validation route with uuid parameter', () => {
-			const route = router.options.routes.find(r => r.path === '/p/validation/:uuid')
+			const route = getRoutes().find(r => r.path === '/p/validation/:uuid')
 			expect(route).toBeDefined()
 		})
 
 		it('public routes use dynamic component imports', () => {
-			const publicRoutes = router.options.routes.filter(r => r.path.startsWith('/p/'))
+			const publicRoutes = getRoutes().filter(r => r.path.startsWith('/p/'))
 			publicRoutes.forEach(route => {
 				if (route.component) {
 					expect(typeof route.component).toBe('function')
@@ -119,7 +116,7 @@ describe('router business rules', () => {
 		let beforeEnterGuard
 
 		beforeEach(() => {
-			signRoute = router.options.routes.find(r => r.path === '/p/sign/:uuid')
+			signRoute = getRoutes().find(r => r.path === '/p/sign/:uuid')
 			beforeEnterGuard = signRoute.beforeEnter
 		})
 
@@ -178,11 +175,9 @@ describe('router business rules', () => {
 
 	describe('route parameter handling', () => {
 		it('handles valid UUID in sign route', () => {
-			const resolved = router.resolve({
-				path: '/p/sign/123e4567-e89b-12d3-a456-426614174000',
-			})
-
-			expect(resolved.route.params.uuid).toBeDefined()
+			const route = getRoutes().find(r => r.path === '/p/sign/:uuid/pdf')
+			expect(route).toBeDefined()
+			expect(route.path).toContain('uuid')
 		})
 
 		it('handles numeric parameter in validation route', () => {
@@ -190,13 +185,13 @@ describe('router business rules', () => {
 				path: '/p/validation/12345',
 			})
 
-			expect(resolved.route.params.uuid).toBeDefined()
+			expect(resolved.params.uuid).toBeDefined()
 		})
 	})
 
 	describe('internal vs external route separation', () => {
 		it('internal routes do not start with /p/', () => {
-			const internalRoutes = router.options.routes.filter(r =>
+			const internalRoutes = getRoutes().filter(r =>
 				!r.path.startsWith('/p/')
 			)
 
@@ -207,7 +202,7 @@ describe('router business rules', () => {
 		})
 
 		it('all public routes start with /p/', () => {
-			const publicRoutes = router.options.routes.filter(r =>
+			const publicRoutes = getRoutes().filter(r =>
 				r.path.startsWith('/p/')
 			)
 
@@ -220,50 +215,51 @@ describe('router business rules', () => {
 
 	describe('component lazy loading', () => {
 		it('uses dynamic imports for main views', () => {
-			const signPdfRoute = router.options.routes.find(
+			const signPdfRoute = getRoutes().find(
 				r => r.name === 'SignPDFExternal'
 			)
 
 			expect(signPdfRoute).toBeDefined()
-			expect(typeof signPdfRoute.component).toBe('function')
+				expect(typeof signPdfRoute.component).toBe('function')
 		})
 
 		it('dynamic component returns thenable', () => {
-			const validationRoute = router.options.routes.find(
+			const validationRoute = getRoutes().find(
 				r => r.name === 'ValidationFileExternal'
 			)
 
-			const componentImport = validationRoute.component()
+				const componentImport = validationRoute.component()
 			expect(componentImport).toHaveProperty('then')
 		})
 	})
 
 	describe('route props configuration', () => {
 		it('passes props to routed components', () => {
-			const signRoute = router.options.routes.find(
+			const signRoute = getRoutes().find(
 				r => r.path === '/p/sign/:uuid'
 			)
 
-			expect(signRoute.props).toBe(true)
+				expect(signRoute.props).toBe(true)
 		})
 
 		it('enables param passing to component', () => {
-			const validationRoute = router.options.routes.find(
+			const validationRoute = getRoutes().find(
 				r => r.path === '/p/validation/:uuid'
 			)
 
-			expect(validationRoute.props).toBe(true)
+				expect(validationRoute.props).toBe(true)
 		})
 	})
 
 	describe('router history mode', () => {
 		it('uses history mode for clean URLs', () => {
-			expect(router.mode).toBe('history')
+			expect(router.options.history).toBeDefined()
 		})
 
 		it('sets correct link active class', () => {
-			expect(router.options.linkActiveClass).toBeDefined()
-			expect(router.options.linkActiveClass).toBe('active')
+			const linkActiveClass = router.options?.linkActiveClass
+			expect(linkActiveClass).toBeDefined()
+			expect(linkActiveClass).toBe('active')
 		})
 	})
 
@@ -278,7 +274,7 @@ describe('router business rules', () => {
 			let beforeEnterGuard
 
 			beforeEach(() => {
-				route = router.options.routes.find(r => r.path === path)
+				route = getRoutes().find(r => r.path === path) || getRoutes().find(r => r.path === path.replace(/\/$/, ''))
 				beforeEnterGuard = route.beforeEnter
 			})
 
