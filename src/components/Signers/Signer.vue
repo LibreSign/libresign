@@ -42,6 +42,8 @@
 	</NcListItem>
 </template>
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { mdiCheckCircle, mdiClockOutline, mdiCircleOutline } from '@mdi/js'
 import DragVertical from 'vue-material-design-icons/DragVertical.vue'
 
@@ -170,6 +172,9 @@ export default {
 				this.filesStore.canSave()
 		},
 		identifyMethodsNames() {
+			if (!this.signer?.identifyMethods) {
+				return []
+			}
 			return this.signer.identifyMethods.map(method => method.method)
 		},
 		chipType() {
@@ -196,6 +201,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		signerClickAction(signer) {
 			if (!this.canRequestSign) {
 				return
