@@ -10,12 +10,12 @@
 			:class="{column: inline}"
 			v-model:open="openedMenu">
 			<template #icon>
-				<PlusIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiPlus" :size="20" />
 			</template>
 			<NcActionButton :wide="true"
 				@click="showModalUploadFromUrl()">
 				<template #icon>
-					<LinkIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiLink" :size="20" />
 				</template>
 				{{ t('libresign', 'Upload from URL') }}
 			</NcActionButton>
@@ -23,14 +23,14 @@
 				:title="envelopeEnabled ? t('libresign', 'Multiple files allowed') : null"
 				@click="openFilePicker">
 				<template #icon>
-					<FolderIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiFolder" :size="20" />
 				</template>
 				{{ t('libresign', 'Choose from Files') }}
 			</NcActionButton>
 			<NcActionButton :wide="true"
 				@click="uploadFile">
 				<template #icon>
-					<UploadIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 				</template>
 				{{ t('libresign', 'Upload') }}
 			</NcActionButton>
@@ -54,7 +54,7 @@
 			</NcNoteCard>
 			<NcTextField v-model="pdfUrl"
 				:label="t('libresign', 'URL of a PDF file')">
-				<LinkIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiLink" :size="20" />
 			</NcTextField>
 			<template #actions>
 				<NcButton :disabled="!canUploadFronUrl"
@@ -64,7 +64,7 @@
 					{{ t('libresign', 'Send') }}
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
-						<CloudUploadIcon v-else :size="20" />
+						<NcIconSvgWrapper v-else :path="mdiCloudUpload" :size="20" />
 					</template>
 				</NcButton>
 			</template>
@@ -98,11 +98,13 @@
 <script>
 import { t } from '@nextcloud/l10n'
 
-import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
-import FolderIcon from 'vue-material-design-icons/Folder.vue'
-import LinkIcon from 'vue-material-design-icons/Link.vue'
-import PlusIcon from 'vue-material-design-icons/Plus.vue'
-import UploadIcon from 'vue-material-design-icons/Upload.vue'
+import {
+	mdiCloudUpload,
+	mdiFolder,
+	mdiLink,
+	mdiPlus,
+	mdiUpload,
+} from '@mdi/js'
 
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
@@ -111,6 +113,7 @@ import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
@@ -129,25 +132,20 @@ import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../consta
 export default {
 	name: 'RequestPicker',
 	components: {
-		CloudUploadIcon,
-		FolderIcon,
-		LinkIcon,
 		NcActionButton,
 		NcActions,
 		NcButton,
 		NcDialog,
+		NcIconSvgWrapper,
 		NcLoadingIcon,
 		NcNoteCard,
 		NcTextField,
-		PlusIcon,
-		UploadIcon,
-		UploadProgress,
 	},
 	props: {
 		inline: {
 			type: Boolean,
 			default: false,
-		},
+	},
 	},
 	setup() {
 		const actionsMenuStore = useActionsMenuStore()
@@ -157,7 +155,11 @@ export default {
 			actionsMenuStore,
 			filesStore,
 			sidebarStore,
-		}
+			mdiCloudUpload,
+			mdiFolder,
+			mdiLink,
+			mdiPlus,
+			mdiUpload,}
 	},
 		data() {
 		return {
@@ -199,7 +201,6 @@ export default {
 				return false
 			}
 		},
-
 	},
 	methods: {
 		t,
@@ -369,7 +370,7 @@ export default {
 			await this.filesStore.upload({
 				file: {
 					url: this.pdfUrl,
-				},
+	},
 			})
 				.then((id) => {
 					this.filesStore.selectFile(id)
@@ -395,7 +396,7 @@ export default {
 						title: this.t('libresign', 'Envelope name'),
 						label: this.t('libresign', 'Enter a name for the envelope'),
 						placeholder: this.t('libresign', 'Envelope name'),
-					},
+	},
 				)
 
 				if (envelopeName) {
@@ -427,7 +428,7 @@ export default {
 			await this.filesStore.upload({
 				file: {
 					path,
-				},
+	},
 				name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 			})
 				.then((id) => {
