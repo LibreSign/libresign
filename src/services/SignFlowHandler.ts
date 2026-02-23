@@ -3,15 +3,28 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { REQUIREMENT_TO_MODAL } from '../helpers/ActionMapping.js'
+import { REQUIREMENT_TO_MODAL } from '../helpers/ActionMapping.ts'
+
+interface SignMethodsStore {
+	showModal(modalCode: string): void
+	closeModal(modalCode: string): void
+	[key: string]: unknown
+}
+
+interface SignFlowConfig {
+	unmetRequirement?: string
+	[key: string]: unknown
+}
 
 export class SignFlowHandler {
-	constructor(signMethodsStore) {
+	private signMethodsStore: SignMethodsStore
+
+	constructor(signMethodsStore: SignMethodsStore) {
 		this.signMethodsStore = signMethodsStore
 	}
 
-	handleAction(action, config = {}) {
-		const actionMap = {
+	handleAction(action: string, config: SignFlowConfig = {}): string | null {
+		const actionMap: Record<string, () => string | null> = {
 			sign: () => this.handleSign(config),
 			createSignature: () => this.showModal('createSignature'),
 			createPassword: () => this.showModal('createPassword'),
@@ -28,25 +41,24 @@ export class SignFlowHandler {
 		return handler()
 	}
 
-	handleSign(config) {
+	handleSign(config: SignFlowConfig): string | null {
 		if (config.unmetRequirement) {
-			const modalCode = this.requirementToModalCode(config.unmetRequirement)
+			const modalCode = this.requirementToModalCode(config.unmetRequirement as string)
 			return this.showModal(modalCode)
 		}
 		return 'ready'
 	}
 
-	showModal(modalCode) {
+	showModal(modalCode: string): string {
 		this.signMethodsStore.showModal(modalCode)
 		return 'modalShown'
 	}
 
-	closeModal(modalCode) {
+	closeModal(modalCode: string): void {
 		this.signMethodsStore.closeModal(modalCode)
 	}
 
-	requirementToModalCode(requirement) {
+	requirementToModalCode(requirement: string): string {
 		return REQUIREMENT_TO_MODAL[requirement] || requirement
 	}
 }
-
