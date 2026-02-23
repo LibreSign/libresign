@@ -33,7 +33,11 @@
 <script>
 import { t } from '@nextcloud/l10n'
 
-import { mdiPencil, mdiFileSignature, mdiCloudUpload } from '@mdi/js'
+import {
+	mdiCloudUpload,
+	mdiPencil,
+	mdiText,
+} from '@mdi/js'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
@@ -53,35 +57,34 @@ export default {
 		NcIconSvgWrapper,
 		TextInput,
 		Editor,
-		FileUpload,
 	},
 	props: {
 		drawEditor: {
 			type: Boolean,
 			required: false,
 			default: true,
-		},
+	},
 		textEditor: {
 			type: Boolean,
 			required: false,
 			default: false,
-		},
+	},
 		fileEditor: {
 			type: Boolean,
 			required: false,
 			default: false,
-		},
+	},
 		type: {
 			type: String,
 			required: true,
-		},
+	},
 	},
 	setup() {
 		const signatureElementsStore = useSignatureElementsStore()
 		return {
 			signatureElementsStore,
 			mdiPencil,
-			mdiFileSignature,
+			mdiText,
 			mdiCloudUpload,
 		}
 	},
@@ -108,7 +111,7 @@ export default {
 				tabs.push({
 					id: 'text',
 					label: this.t('libresign', 'Text'),
-					icon: this.mdiFileSignature,
+					icon: this.mdiText,
 				})
 			}
 			if (this.fileEditor) {
