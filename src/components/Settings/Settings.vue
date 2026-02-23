@@ -7,7 +7,7 @@
 	<ul>
 		<NcAppNavigationItem icon="icon-user"
 			:name="t('libresign', 'Account')"
-			:to=" {name: 'Account'} ">
+			:to="{name: 'Account'}">
 			<template #icon>
 				<AccountIcon :size="20" />
 			</template>
@@ -29,12 +29,13 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
+
 import AccountIcon from 'vue-material-design-icons/Account.vue'
 import StarIcon from 'vue-material-design-icons/Star.vue'
 import TuneIcon from 'vue-material-design-icons/Tune.vue'
-
-import { getCurrentUser } from '@nextcloud/auth'
-import { generateUrl } from '@nextcloud/router'
 
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 
@@ -52,6 +53,7 @@ export default {
 		}
 	},
 	methods: {
+		t,
 		getAdminRoute() {
 			return generateUrl('settings/admin/libresign')
 		},
