@@ -3,13 +3,23 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import axios from '@nextcloud/axios'
+import axios, { type AxiosResponse } from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
-export const waitForFileStatusChange = async (fileId, currentStatus, timeout = 30) => {
+interface FileStatusData {
+	status: number
+	[key: string]: unknown
+}
+
+interface LongPollingOptions {
+	waitForFileStatusChange?: (fileId: number, currentStatus: number, timeout?: number) => Promise<FileStatusData>
+	sleep?: (ms: number) => Promise<void>
+}
+
+export const waitForFileStatusChange = async (fileId: number, currentStatus: number, timeout: number = 30): Promise<FileStatusData> => {
 	const url = generateOcsUrl('/apps/libresign/api/v1/file/{fileId}/wait-status', { fileId })
 
-	const response = await axios.get(url, {
+	const response: AxiosResponse<{ ocs: { data: FileStatusData } }> = await axios.get(url, {
 		params: {
 			currentStatus,
 			timeout,
@@ -20,8 +30,14 @@ export const waitForFileStatusChange = async (fileId, currentStatus, timeout = 3
 	return response.data.ocs.data
 }
 
-export const createLongPolling = (options = {}) => {
-	return (fileId, initialStatus, onUpdate, shouldStop, onError = null) => {
+export const createLongPolling = (options: LongPollingOptions = {}) => {
+	return (
+		fileId: number,
+		initialStatus: number,
+		onUpdate: (data: FileStatusData) => void,
+		shouldStop: (() => boolean) | null,
+		onError: ((error: unknown) => void) | null = null,
+	): (() => void) => {
 		let isRunning = true
 		let currentStatus = initialStatus
 		let errorCount = 0
@@ -29,11 +45,11 @@ export const createLongPolling = (options = {}) => {
 		const waitForStatusChange = options.waitForFileStatusChange || waitForFileStatusChange
 		const sleepFn = options.sleep || sleep
 
-		const stopPolling = () => {
+		const stopPolling = (): void => {
 			isRunning = false
 		}
 
-		const poll = async () => {
+		const poll = async (): Promise<void> => {
 			while (isRunning) {
 				if (shouldStop && shouldStop()) {
 					break
@@ -75,15 +91,22 @@ export const createLongPolling = (options = {}) => {
 	}
 }
 
-export const startLongPolling = (fileId, initialStatus, onUpdate, shouldStop, onError = null, options = {}) => {
+export const startLongPolling = (
+	fileId: number,
+	initialStatus: number,
+	onUpdate: (data: FileStatusData) => void,
+	shouldStop: (() => boolean) | null,
+	onError: ((error: unknown) => void) | null = null,
+	options: LongPollingOptions = {},
+): (() => void) => {
 	return createLongPolling(options)(fileId, initialStatus, onUpdate, shouldStop, onError)
 }
 
-const isTerminalStatus = (status) => {
+const isTerminalStatus = (status: number): boolean => {
 	const TERMINAL_STATUSES = [3, 4, 1]
 	return TERMINAL_STATUSES.includes(status)
 }
 
-const sleep = (ms) => {
+const sleep = (ms: number): Promise<void> => {
 	return new Promise(resolve => setTimeout(resolve, ms))
 }
