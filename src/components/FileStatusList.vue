@@ -45,7 +45,7 @@
 <script>
 import { mdiFilePdfBox } from '@mdi/js'
 import { formatFileSize } from '@nextcloud/files'
-import { translate as t, translatePlural as n } from '@nextcloud/l10n'
+import { n, t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
