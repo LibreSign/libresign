@@ -3,23 +3,25 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name">
-		<p class="docmdp-info">
-			{{ t('libresign', 'DocMDP defines what types of changes are allowed in a PDF after it is signed, ensuring viewers can detect unauthorized modifications.') }}
-		</p>
-		<p>
+	<NcSettingsSection
+		:name="name"
+		:description="t('libresign', 'DocMDP defines what types of changes are allowed in a PDF after it is signed, ensuring viewers can detect unauthorized modifications.')"
+	>
+		<div>
 			<NcCheckboxRadioSwitch type="switch"
 				:checked="enabled"
 				:disabled="loading"
 				@update:checked="onEnabledChange">
+				<!-- TRANSLATORS: Label for enabling DocMDP certification -->
 				{{ t('libresign', 'Enable DocMDP') }}
 			</NcCheckboxRadioSwitch>
-		</p>
+		</div>
 		<NcNoteCard v-if="errorMessage" type="error">
 			{{ errorMessage }}
 		</NcNoteCard>
 		<div v-if="enabled">
 			<label>
+				<!-- TRANSLATORS: Label asking to select default certification level -->
 				{{ t('libresign', 'Default certification level for new signatures:') }}
 			</label>
 			<div class="docmdp-select-wrapper">
@@ -53,8 +55,8 @@
 <script>
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
@@ -73,8 +75,6 @@ export default {
 	},
 	data() {
 		return {
-			// TRANSLATORS: DocMDP (Document Modification Detection and Prevention) is a PDF specification extension that allows setting certification levels for digitally signed documents. It controls what types of changes are allowed after signing and ensures viewers can detect unauthorized modifications.
-			name: t('libresign', 'PDF certification (DocMDP)'),
 			enabled: false,
 			selectedLevel: null,
 			availableLevels: [],
@@ -84,10 +84,17 @@ export default {
 			showErrorIcon: false,
 		}
 	},
+	computed: {
+		name() {
+			// TRANSLATORS DocMDP (Document Modification Detection and Prevention) is a PDF specification extension that allows setting certification levels for digitally signed documents. It controls what types of changes are allowed after signing and ensures viewers can detect unauthorized modifications.
+			return t('libresign', 'PDF certification (DocMDP)')
+		},
+	},
 	async mounted() {
 		this.loadConfig()
 	},
 	methods: {
+		t,
 		loadConfig() {
 			try {
 				const config = loadState('libresign', 'docmdp_config')
