@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { fetchDocuments } from '../../services/FilesService.js'
+import { fetchDocuments } from '../../services/FilesService'
 
 describe('FilesService', () => {
 	it('fetchDocuments is exported as async function', () => {
