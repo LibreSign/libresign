@@ -54,7 +54,6 @@ export default {
 		NcDialog,
 		NcButton,
 	},
-
 	data: () => ({
 		canvasWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
 		canvasHeight: getCapabilities().libresign.config['sign-elements']['signature-height'],
