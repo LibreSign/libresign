@@ -7,7 +7,7 @@
 		ref="rightAppSidebar"
 		:name="fileName"
 		:subtitle="subTitle"
-		:active.sync="sidebarStore.activeTab"
+		v-model:active="sidebarStore.activeTab"
 		@update:active="handleUpdateActive"
 		@close="closeSidebar">
 		<NcAppSidebarTab v-if="showSign"
@@ -24,6 +24,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcAppSidebar from '@nextcloud/vue/components/NcAppSidebar'
 import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
 
@@ -76,6 +78,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		handleUpdateActive(active) {
 			this.sidebarStore.setActiveTab(active)
 		},
@@ -97,7 +100,7 @@ export default {
 		right: unset;
 		left: unset;
 		bottom: 0;
-		::v-deep .app-sidebar-tabs__content{
+		:deep(.app-sidebar-tabs__content) {
 			min-height: unset;
 		}
 		transform: translateY(-1%) !important;
