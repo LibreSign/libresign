@@ -40,7 +40,6 @@ import { useFiltersStore } from '../../../store/filters.js'
 export default {
 	name: 'FileListFilterStatus',
 	components: {
-		FileListFilter,
 		NcActionButton,
 		NcIconSvgWrapper,
 	},
