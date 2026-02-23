@@ -130,6 +130,15 @@ export default {
 
 <style scoped lang="scss">
 .files-list {
+	.hidden-visually {
+		position: absolute;
+		left: -10000px;
+		top: auto;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+
 	&__empty {
 		display: flex;
 		flex-direction: column;

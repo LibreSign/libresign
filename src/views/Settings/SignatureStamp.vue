@@ -796,6 +796,15 @@ export default {
 	}
 }
 
+.hidden-visually {
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
 .variables-dialog {
 	padding: 16px;
 
