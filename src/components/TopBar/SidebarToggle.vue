@@ -17,6 +17,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import MenuIcon from 'vue-material-design-icons/Menu.vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -34,6 +36,7 @@ export default {
 		return { sidebarStore }
 	},
 	methods: {
+		t,
 		openSidebar() {
 			this.sidebarStore.showSidebar()
 		},
