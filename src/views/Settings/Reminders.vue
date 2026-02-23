@@ -78,9 +78,7 @@ export default {
 	components: {
 		NcDateTimePickerNative,
 		NcSettingsSection,
-		NcLoadingIcon,
 		NcTextField,
-		NcCheckboxRadioSwitch,
 	},
 	data() {
 		return {
