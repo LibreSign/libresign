@@ -28,18 +28,16 @@ vi.mock('@nextcloud/logger', () => ({
 		info: vi.fn(),
 		debug: vi.fn(),
 	})),
-	getLoggerBuilder: () => ({
-		setApp: () => ({
-			detectUser: () => ({
-				build: () => ({
-					error: vi.fn(),
-					warn: vi.fn(),
-					info: vi.fn(),
-					debug: vi.fn(),
-				}),
-			}),
-		}),
-	}),
+	getLoggerBuilder: vi.fn(() => ({
+		setApp: vi.fn().mockReturnThis(),
+		detectUser: vi.fn().mockReturnThis(),
+		build: vi.fn(() => ({
+			error: vi.fn(),
+			warn: vi.fn(),
+			info: vi.fn(),
+			debug: vi.fn(),
+		})),
+	})),
 }))
 
 describe('Document Validation Flow Business Logic', () => {
