@@ -67,7 +67,6 @@ export default {
 	name: 'ModalTokenManager',
 	components: {
 		NcDialog,
-		NcLoadingIcon,
 		NcTextField,
 		NcButton,
 	},
@@ -76,7 +75,7 @@ export default {
 			type: String,
 			required: false,
 			default: '',
-		},
+	},
 	},
 	setup() {
 		const signStore = useSignStore()
