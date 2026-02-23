@@ -23,6 +23,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import FileIcon from 'vue-material-design-icons/File.vue'
 
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
@@ -94,6 +96,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		openSidebar() {
 			this.filesStore.selectFile(this.currentFileId)
 			this.sidebarStore.activeRequestSignatureTab()
