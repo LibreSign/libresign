@@ -25,6 +25,8 @@
 
 <script>
 
+import { t } from '@nextcloud/l10n'
+
 import CogsIcon from 'vue-material-design-icons/Cogs.vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
@@ -47,6 +49,7 @@ export default {
 		}
 	},
 	methods: {
+		t,
 		finishSetup() {
 			window.location.href = generateUrl('settings/admin/libresign')
 		},
