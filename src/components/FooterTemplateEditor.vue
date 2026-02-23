@@ -378,6 +378,15 @@ export default {
 	font-style: italic;
 }
 
+.hidden-visually {
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
 .footer-preview {
 	padding: 8px;
 	border: 1px solid var(--color-border);

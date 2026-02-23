@@ -10,8 +10,6 @@ import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import App from './App.vue'
 import router from './router/router'
 
-import './assets/styles/main.scss'
-
 if (window.OCA && !window.OCA.LibreSign) {
 	Object.assign(window.OCA, { LibreSign: {} })
 }
