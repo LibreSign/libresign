@@ -4,7 +4,7 @@
 -->
 
 <template>
-	<NcSettingsSection :name="name">
+	<div>
 		<SupportProject />
 		<CertificateEngine />
 		<DownloadBinaries />
@@ -27,11 +27,11 @@
 		<Envelope />
 		<Reminders />
 		<TSA />
-	</NcSettingsSection>
+	</div>
 </template>
 
 <script>
-import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import { t } from '@nextcloud/l10n'
 
 import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'
@@ -70,7 +70,6 @@ export default {
 		IdentificationDocuments,
 		IdentificationFactors,
 		LegalInformation,
-		NcSettingsSection,
 		Reminders,
 		RootCertificateCfssl,
 		RootCertificateOpenSsl,
@@ -83,10 +82,8 @@ export default {
 		TSA,
 		Validation,
 	},
-	data() {
-		return {
-			name: t('libresign', 'LibreSign'),
-		}
+	methods: {
+		t,
 	},
 }
 
