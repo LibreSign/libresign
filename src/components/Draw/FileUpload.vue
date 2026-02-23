@@ -104,6 +104,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { Cropper } from 'vue-advanced-cropper'
 
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -197,6 +199,7 @@ export default {
 		window.removeEventListener('resize', this.updateContainerWidth)
 	},
 	methods: {
+		t,
 		initResizeObserver() {
 			if (!window.ResizeObserver || !this.$refs.cropperContainer) {
 				return
