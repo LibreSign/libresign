@@ -51,7 +51,6 @@ export default {
 	components: {
 		NcTextField,
 	},
-
 	props: {
 		/**
 		 * The filename without extension
@@ -59,14 +58,14 @@ export default {
 		basename: {
 			type: String,
 			required: true,
-		},
+	},
 		/**
 		 * The extension of the filename
 		 */
 		extension: {
 			type: String,
 			required: true,
-		},
+	},
 	},
 
 	emits: ['rename', 'update:basename', 'renaming'],
@@ -92,11 +91,10 @@ export default {
 					'aria-label': this.basename,
 					title: this.basename,
 					tabindex: '0',
-				},
+	},
 			}
 		},
 	},
-
 	watch: {
 		basename(newVal) {
 			if (!this.isRenaming) {
@@ -104,7 +102,6 @@ export default {
 			}
 		},
 	},
-
 	methods: {
 		startRenaming() {
 			this.isRenaming = true
