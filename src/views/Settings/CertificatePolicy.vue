@@ -22,7 +22,7 @@
 				:disabled="loading || disabled"
 				@click="activateLocalFilePicker">
 				<template #icon>
-					<Upload :size="20" />
+					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 				</template>
 				{{ t('libresign', 'Upload Certification Practice Statement (CPS) PDF') }}
 			</NcButton>
@@ -32,7 +32,7 @@
 				:disabled="loading || disabled"
 				@click="removeCps">
 				<template #icon>
-					<Delete :size="20" />
+					<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 				</template>
 			</NcButton>
 			<NcButton v-if="CPS"
@@ -61,9 +61,11 @@
 
 <script>
 import debounce from 'debounce'
+import {
+	mdiDelete,
+	mdiUpload,
+} from '@mdi/js'
 
-import Delete from 'vue-material-design-icons/Delete.vue'
-import Upload from 'vue-material-design-icons/Upload.vue'
 
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
@@ -72,6 +74,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 
 import { openDocument } from '../../utils/viewer.js'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
@@ -81,18 +84,16 @@ import '@nextcloud/password-confirmation/style.css'
 export default {
 	name: 'CertificatePolicy',
 	components: {
-		Delete,
 		NcButton,
-		NcLoadingIcon,
 		NcNoteCard,
 		NcTextField,
-		Upload,
+		NcIconSvgWrapper,
 	},
 	props: {
 		disabled: {
 			type: Boolean,
 			default: false,
-		},
+	},
 	},
 	data() {
 		return {
@@ -181,7 +182,6 @@ export default {
 			this._saveOID()
 		}, 500),
 	},
-
 }
 </script>
 
