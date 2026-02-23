@@ -13,7 +13,7 @@
 			:src="previewUrl"
 			@error="backgroundFailed = true"
 			@load="backgroundFailed = false">
-		<FileIcon v-else v-once :size="128" />
+		<NcIconSvgWrapper v-else v-once :path="mdiFile" :size="128" />
 		<div class="enDot">
 			<div :class="currentFile.statusText !== 'none' ? 'dot ' + statusToClass(currentFile.status) : '' " />
 			<span>{{ currentFile.statusText }}</span>
@@ -25,9 +25,10 @@
 <script>
 import { t } from '@nextcloud/l10n'
 
-import FileIcon from 'vue-material-design-icons/File.vue'
+import { mdiFile } from '@mdi/js'
 
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
@@ -35,7 +36,7 @@ import { useSidebarStore } from '../../store/sidebar.js'
 export default {
 	name: 'File',
 	components: {
-		FileIcon,
+		NcIconSvgWrapper,
 	},
 	setup() {
 		const filesStore = useFilesStore()
@@ -43,6 +44,7 @@ export default {
 		return {
 			filesStore,
 			sidebarStore,
+			mdiFile,
 		}
 	},
 	data() {
