@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import ArrowRight from 'vue-material-design-icons/ArrowRight.vue'
 
 import axios from '@nextcloud/axios'
@@ -70,6 +72,7 @@ export default {
 		}
 	},
 	methods: {
+		t,
 		async renew() {
 			this.hasLoading = true
 			this.error = ''
