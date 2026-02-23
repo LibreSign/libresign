@@ -14,6 +14,7 @@ import {
 } from '../../utils/fileStatus.js'
 
 vi.mock('@nextcloud/l10n', () => ({
+	t: (app, text) => text,
 	translate: (app, text) => text,
 }))
 
