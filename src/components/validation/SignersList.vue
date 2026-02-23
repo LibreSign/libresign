@@ -37,7 +37,10 @@ import { t } from '@nextcloud/l10n'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
-import { mdiCheckCircle, mdiClockOutline } from '@mdi/js'
+import {
+	mdiCheckCircle,
+	mdiClockOutline,
+} from '@mdi/js'
 import Moment from '@nextcloud/moment'
 
 export default {
@@ -51,11 +54,11 @@ export default {
 		signers: {
 			type: Array,
 			required: true,
-		},
+	},
 		compact: {
 			type: Boolean,
 			default: false,
-		},
+	},
 	},
 	setup() {
 		return {
