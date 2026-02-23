@@ -24,6 +24,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { useFilesStore } from '../../store/files.js'
 import { useFiltersStore } from '../../store/filters.js'
 
@@ -33,6 +35,7 @@ export default {
 		const filesStore = useFilesStore()
 		const filtersStore = useFiltersStore()
 		return {
+			t,
 			filesStore,
 			filtersStore,
 		}
