@@ -61,7 +61,7 @@
 
 		<div v-else
 			ref="scrollContainer"
-			class="is-fullwidth container-account-docs-to-validate with-sidebar--full"
+			class="container-account-docs-to-validate"
 			@scroll="onScroll">
 		<table class="id-docs-table">
 			<thead>
@@ -516,6 +516,7 @@ export default {
 	overflow-y: auto;
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius-large);
+	width: 100%;
 }
 
 .id-docs-table {

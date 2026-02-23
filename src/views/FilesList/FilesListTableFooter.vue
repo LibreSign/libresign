@@ -63,6 +63,15 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.hidden-visually {
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
 tr {
 	margin-bottom: max(25vh, var(--body-container-margin));
 	border-top: 1px solid var(--color-border);
