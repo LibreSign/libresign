@@ -41,19 +41,19 @@ export default {
 		document: {
 			type: Object,
 			required: true,
-		},
+	},
 		legalInformation: {
 			type: String,
 			default: '',
-		},
+	},
 		documentValidMessage: {
 			type: String,
 			default: '',
-		},
+	},
 		isAfterSigned: {
 			type: Boolean,
 			default: false,
-		},
+	},
 	},
 	setup() {
 		return { t, mdiInformationSlabCircle }
