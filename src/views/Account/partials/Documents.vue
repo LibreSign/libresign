@@ -29,7 +29,7 @@
 							:aria-label="t('libresign', 'Choose from Files')"
 							@click="toggleFilePicker(doc.file_type.key)">
 							<template #icon>
-								<FolderIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiFolder" :size="20" />
 							</template>
 							{{ t('libresign', 'Choose from Files') }}
 						</NcButton>
@@ -38,7 +38,7 @@
 							:aria-label="t('libresign', 'Upload file')"
 							@click="inputFile(doc.file_type.key)">
 							<template #icon>
-								<UploadIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 							</template>
 							{{ t('libresign', 'Upload file') }}
 						</NcButton>
@@ -47,7 +47,7 @@
 							:aria-label="t('libresign', 'Delete file')"
 							@click="deleteFile(doc)">
 							<template #icon>
-								<DeleteIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
 							{{ t('libresign', 'Delete file') }}
 						</NcButton>
@@ -69,12 +69,10 @@ import { generateOcsUrl } from '@nextcloud/router'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { IDENTIFICATION_DOCUMENTS_STATUS } from '../../../constants.js'
 
-import DeleteIcon from 'vue-material-design-icons/Delete.vue'
-import FolderIcon from 'vue-material-design-icons/Folder.vue'
-import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
 const loadFileToBase64 = file => {
 	return new Promise((resolve, reject) => {
@@ -88,19 +86,15 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Documents',
 	components: {
-		DeleteIcon,
-		FolderIcon,
 		NcButton,
-		NcLoadingIcon,
 		NcNoteCard,
-		UploadIcon,
 	},
 	props: {
 		signRequestUuid: {
 			type: String,
 			required: false,
 			default: '',
-		},
+	},
 	},
 	data() {
 		return {
@@ -116,7 +110,7 @@ export default {
 					key: 'IDENTIFICATION',
 					name: t('libresign', 'Identification Document'),
 					description: t('libresign', 'Identification Document'),
-				},
+	},
 			}
 		},
 		documents() {
@@ -203,7 +197,7 @@ export default {
 					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 					file: {
 						path,
-					},
+	},
 				}],
 			}
 			if (this.signRequestUuid) {
@@ -229,7 +223,7 @@ export default {
 					name: inputFile.name,
 					file: {
 						base64: raw,
-					},
+	},
 				}],
 			}
 			if (this.signRequestUuid) {
