@@ -19,7 +19,7 @@
 			v-model="footerTemplate"
 			:label="t('libresign', 'Footer template')"
 			:placeholder="t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')"
-			@input="debouncedSaveFooterTemplate" />
+			@update:modelValue="debouncedSaveFooterTemplate" />
 		<div v-if="pdfPreviewFile" class="footer-preview">
 			<h4>{{ t('libresign', 'Preview') }}</h4>
 			<div class="footer-preview__controls">
@@ -88,7 +88,7 @@
 		</div>
 
 		<NcDialog :name="t('libresign', 'Available template variables')"
-			:open.sync="showVariablesDialog"
+			v-model:open="showVariablesDialog"
 			size="normal">
 			<div class="variables-dialog">
 				<p class="variables-dialog__description">
@@ -125,6 +125,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
@@ -141,7 +143,7 @@ import Linkify from '@nextcloud/vue/directives/Linkify'
 import PDFElements from '@libresign/pdf-elements/src/components/PDFElements.vue'
 
 import CodeEditor from './CodeEditor.vue'
-import { ensurePdfWorker } from '../helpers/pdfWorker.js'
+import { ensurePdfWorker } from '../helpers/pdfWorker'
 
 import Check from 'vue-material-design-icons/Check.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
@@ -207,9 +209,11 @@ export default {
 				this.footerTemplate = response.data.ocs.data.template
 				this.previewHeight = response.data.ocs.data.preview_height
 				this.previewWidth = response.data.ocs.data.preview_width
+				this.saveFooterTemplate()
 			})
 	},
 	methods: {
+		t,
 		getVariableText(name) {
 			return `{{ ${name} }}`
 		},
