@@ -3,12 +3,14 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="t('libresign', 'Active Signings')" :description="t('libresign', 'Monitor documents currently being signed')">
+	<NcSettingsSection
+		:name="t('libresign', 'Active Signings')"
+		:description="t('libresign', 'Monitor documents currently being signed')">
 		<div class="active-signings-content">
 			<!-- Auto-refresh toggle -->
 			<div class="active-signings__controls">
 				<NcCheckboxRadioSwitch type="switch"
-					:checked.sync="autoRefresh"
+					v-model="autoRefresh"
 					:disabled="loading">
 					{{ t('libresign', 'Auto-refresh') }}
 				</NcCheckboxRadioSwitch>
@@ -67,9 +69,9 @@
 
 <script>
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
