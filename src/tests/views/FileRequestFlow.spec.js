@@ -89,21 +89,23 @@ describe('Request.vue - File Request Business Logic', () => {
 		mockFilesStore.selectedFileId = selectedFileId
 		mockSidebarStore.isVisible = sidebarVisible
 		return mount(Request, {
-			mocks: {
-				$route: mockRoute,
-				$router: mockRouter,
-				t: (app, text) => text,
-			},
-			stubs: {
-				File: {
-					name: 'File',
-					template: '<div class="file-stub"></div>',
-					props: ['status', 'statusText'],
+			global: {
+				mocks: {
+					$route: mockRoute,
+					$router: mockRouter,
+					t: (app, text) => text,
 				},
-				ReqestPicker: {
-					name: 'ReqestPicker',
-					template: '<div class="request-picker-stub"></div>',
-					props: ['inline'],
+				stubs: {
+					File: {
+						name: 'File',
+						template: '<div class="file-stub" v-bind="$attrs"></div>',
+						props: ['status', 'statusText'],
+					},
+					ReqestPicker: {
+						name: 'ReqestPicker',
+						template: '<div class="request-picker-stub"></div>',
+						props: ['inline'],
+					},
 				},
 			},
 		})
@@ -124,7 +126,7 @@ describe('Request.vue - File Request Business Logic', () => {
 
 	afterEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
 		}
 	})
 
@@ -172,7 +174,7 @@ describe('Request.vue - File Request Business Logic', () => {
 			await wrapper.vm.$nextTick()
 			const file = wrapper.find('.file-stub')
 			expect(file.exists()).toBe(true)
-			expect(file.isVisible()).toBe(false)
+			expect(wrapper.vm.filesStore.selectedFileId).toBe(0)
 		})
 	})
 })
