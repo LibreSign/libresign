@@ -30,6 +30,8 @@
 </template>
 <script>
 
+import { t } from '@nextcloud/l10n'
+
 import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
 import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
@@ -109,6 +111,7 @@ export default {
 		}
 	},
 	methods: {
+		t,
 		async _asyncFind(search, lookup = false) {
 			search = search.trim()
 			this.loading = true
