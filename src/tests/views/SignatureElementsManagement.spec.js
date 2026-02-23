@@ -14,6 +14,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
+	t: vi.fn((app, text) => text),
 	translate: vi.fn((app, text) => text),
 }))
 
