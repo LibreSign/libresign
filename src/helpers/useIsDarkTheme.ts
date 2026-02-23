@@ -5,22 +5,23 @@
 
 import { createSharedComposable, useMutationObserver, usePreferredDark } from '@vueuse/core'
 import { ref, watch } from 'vue'
+import type { Ref } from 'vue'
 
-import { checkIfDarkTheme } from '../utils/isDarkTheme.js'
+import { checkIfDarkTheme } from '../utils/isDarkTheme'
 
 /**
  * Check whether the dark theme is enabled on a specific element.
  * If you need to check an entire page, use `useIsDarkTheme` instead.
  * Reacts on element attributes changes and system theme changes.
  * @param {HTMLElement} el - The element to check for the dark theme enabled on
- * @return {boolean} - computed boolean whether the dark theme is enabled
+ * @return {Ref<boolean>} - computed boolean whether the dark theme is enabled
  */
-export function useIsDarkThemeElement(el = document.body) {
-	const isDarkTheme = ref(checkIfDarkTheme(el))
+export function useIsDarkThemeElement(el: HTMLElement = document.body): Ref<boolean> {
+	const isDarkTheme = ref<boolean>(checkIfDarkTheme(el))
 	const isDarkSystemTheme = usePreferredDark()
 
 	/** Update the isDarkTheme */
-	function updateIsDarkTheme() {
+	function updateIsDarkTheme(): void {
 		isDarkTheme.value = checkIfDarkTheme(el)
 	}
 
@@ -35,6 +36,6 @@ export function useIsDarkThemeElement(el = document.body) {
 /**
  * Shared composable to check whether the dark theme is enabled on the page.
  * Reacts on body data-theme-* attributes changes and system theme changes.
- * @return {boolean} - computed boolean whether the dark theme is enabled
+ * @return {Ref<boolean>} - computed boolean whether the dark theme is enabled
  */
 export const useIsDarkTheme = createSharedComposable(() => useIsDarkThemeElement())
