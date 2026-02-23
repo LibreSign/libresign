@@ -26,7 +26,6 @@ export default {
 	name: 'EnvelopeSettings',
 	components: {
 		NcSettingsSection,
-		NcCheckboxRadioSwitch,
 	},
 	data() {
 		return {
