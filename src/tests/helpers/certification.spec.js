@@ -26,6 +26,7 @@ vi.mock('@nextcloud/logger', () => ({
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
+	t: vi.fn((app, text) => text),
 	translate: vi.fn((app, text) => text),
 	translatePlural: vi.fn((app, singular, plural, count) => count === 1 ? singular : plural),
 }))

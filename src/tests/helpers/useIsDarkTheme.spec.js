@@ -5,7 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
-import { useIsDarkTheme, useIsDarkThemeElement } from '../../helpers/useIsDarkTheme.js'
+import { useIsDarkTheme, useIsDarkThemeElement } from '../../helpers/useIsDarkTheme'
 
 vi.mock('@vueuse/core', () => ({
 	createSharedComposable: (fn) => fn,
