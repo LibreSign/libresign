@@ -44,19 +44,19 @@ export default {
 		name: {
 			type: String,
 			default: '',
-		},
+	},
 		title: {
 			type: String,
 			default: 'Edit name',
-		},
+	},
 		label: {
 			type: String,
 			default: 'Name',
-		},
+	},
 		placeholder: {
 			type: String,
 			default: 'Enter name',
-		},
+	},
 	},
 	emits: ['close'],
 	data() {
@@ -80,7 +80,7 @@ export default {
 					callback: () => {
 						this.handleClose()
 					},
-				},
+	},
 				{
 					label: this.t('libresign', 'Save'),
 					type: 'primary',
@@ -88,7 +88,7 @@ export default {
 					callback: () => {
 						this.handleSave()
 					},
-				},
+	},
 			]
 		},
 	},
