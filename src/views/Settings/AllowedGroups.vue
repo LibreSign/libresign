@@ -4,12 +4,15 @@
 -->
 
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Allow request to sign')"
+		:description="t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and don\'t need to be defined.')"
+	>
 		<NcSelect :key="idKey"
 			v-model="groupsSelected"
 			label="displayname"
 			:no-wrap="false"
-			:aria-label-combobox="description"
+			:aria-label-combobox="t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and don\'t need to be defined.')"
 			:close-on-select="false"
 			:disabled="loadingGroups"
 			:loading="loadingGroups"
@@ -24,16 +27,16 @@
 
 <script>
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import logger from '../../logger.js'
 
-import '@nextcloud/password-confirmation/dist/style.css'
+import '@nextcloud/password-confirmation/style.css'
 
 export default {
 	name: 'AllowedGroups',
@@ -43,8 +46,6 @@ export default {
 	},
 
 	data: () => ({
-		name: t('libresign', 'Allow request to sign'),
-		description: t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and don\'t need to be defined.'),
 		groupsSelected: [],
 		groups: [],
 		loadingGroups: false,
@@ -57,6 +58,7 @@ export default {
 	},
 
 	methods: {
+		t,
 		async getData() {
 			this.loadingGroups = true
 			await axios.get(
