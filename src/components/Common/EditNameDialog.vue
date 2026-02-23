@@ -23,6 +23,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -96,6 +98,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		clearMessages() {
 			this.localSuccessMessage = ''
 			this.localErrorMessage = ''
