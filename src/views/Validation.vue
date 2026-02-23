@@ -79,8 +79,8 @@ import {
 	mdiAlertCircleOutline,
 	mdiArrowLeft,
 	mdiCancel,
-	mdiCheckboxMarkedCircle,
 	mdiCheckCircle,
+	mdiCheckboxMarkedCircle,
 	mdiFileMultiple,
 	mdiFilePdfBox,
 	mdiHelpCircle,
@@ -137,12 +137,10 @@ export default {
 		NcDialog,
 		NcIconSvgWrapper,
 		NcListItem,
-		NcLoadingIcon,
 		NcNoteCard,
 		NcRichText,
 		NcTextField,
 		EnvelopeValidation,
-		FileValidation,
 		SigningProgress,
 	},
 	setup() {
@@ -153,7 +151,24 @@ export default {
 			n,
 			signStore,
 			sidebarStore,
-		}
+			mdiAlertCircle,
+			mdiAlertCircleOutline,
+			mdiArrowLeft,
+			mdiCancel,
+			mdiCheckCircle,
+			mdiCheckboxMarkedCircle,
+			mdiFileMultiple,
+			mdiFilePdfBox,
+			mdiHelpCircle,
+			mdiInformationOutline,
+			mdiInformationSlabCircle,
+			mdiKey,
+			mdiShieldCheck,
+			mdiShieldOff,
+			mdiSignatureFreehand,
+			mdiUnfoldLessHorizontal,
+			mdiUnfoldMoreHorizontal,
+			mdiUpload,}
 	},
 	data() {
 		return {
@@ -306,7 +321,7 @@ export default {
 			await axios.postForm(generateOcsUrl('/apps/libresign/api/v1/file/validate'), formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data',
-				},
+	},
 			})
 				.then(({ data }) => {
 					this.clickedValidate = true
@@ -615,7 +630,7 @@ export default {
 					params: {
 						...this.$route.params,
 						uuid: data.uuid,
-					},
+	},
 					query: this.$route.query,
 				})
 			}
