@@ -44,7 +44,6 @@ export default {
 		NcSettingsSection,
 		NcSelect,
 	},
-
 	data: () => ({
 		groupsSelected: [],
 		groups: [],
@@ -106,6 +105,5 @@ export default {
 			this.loadingGroups = false
 		},
 	},
-
 }
 </script>
