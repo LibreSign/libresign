@@ -36,7 +36,7 @@
 					:disabled="!hasImage"
 					@click="zoomOut">
 					<template #icon>
-						<MagnifyMinusOutline :size="20" />
+						<NcIconSvgWrapper :path="mdiMagnifyMinusOutline" :size="20" />
 					</template>
 				</NcButton>
 				<NcButton type="tertiary"
@@ -45,7 +45,7 @@
 					:disabled="!hasImage"
 					@click="zoomIn">
 					<template #icon>
-						<MagnifyPlusOutline :size="20" />
+						<NcIconSvgWrapper :path="mdiMagnifyPlusOutline" :size="20" />
 					</template>
 				</NcButton>
 				<NcButton type="tertiary"
@@ -54,7 +54,7 @@
 					:disabled="!hasImage"
 					@click="fitToArea">
 					<template #icon>
-						<FitToPageOutline :size="20" />
+						<NcIconSvgWrapper :path="mdiFitToPageOutline" :size="20" />
 					</template>
 				</NcButton>
 				<label class="zoom-level">
@@ -106,19 +106,20 @@
 <script>
 import { t } from '@nextcloud/l10n'
 
+import {
+	mdiMagnifyMinusOutline,
+	mdiMagnifyPlusOutline,
+	mdiFitToPageOutline,
+} from '@mdi/js'
 import { Cropper } from 'vue-advanced-cropper'
-
 import { getCapabilities } from '@nextcloud/capabilities'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import 'vue-advanced-cropper/dist/style.css'
-
-import MagnifyMinusOutline from 'vue-material-design-icons/MagnifyMinusOutline.vue'
-import MagnifyPlusOutline from 'vue-material-design-icons/MagnifyPlusOutline.vue'
-import FitToPageOutline from 'vue-material-design-icons/FitToPageOutline.vue'
 
 export default {
 	name: 'FileUpload',
@@ -127,9 +128,14 @@ export default {
 		Cropper,
 		NcDialog,
 		NcTextField,
-		MagnifyMinusOutline,
-		MagnifyPlusOutline,
-		FitToPageOutline,
+		NcIconSvgWrapper,
+	},
+	setup() {
+		return {
+			mdiMagnifyMinusOutline,
+			mdiMagnifyPlusOutline,
+			mdiFitToPageOutline,
+		}
 	},
 	data() {
 		return {
