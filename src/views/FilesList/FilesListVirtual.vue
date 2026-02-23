@@ -49,14 +49,14 @@ export default {
 	name: 'FilesListVirtual',
 	components: {
 		VirtualList,
-		FileListFilters,
-		FilesListTableHeader,
-		FilesListTableHeaderActions,
-		FilesListTableFooter,
 		// eslint-disable-next-line vue/no-unused-components
 		FileEntry,
 		// eslint-disable-next-line vue/no-unused-components
 		FileEntryGrid,
+		FileListFilters,
+		FilesListTableFooter,
+		FilesListTableHeader,
+		FilesListTableHeaderActions,
 	},
 	props: {
 		nodes: {
