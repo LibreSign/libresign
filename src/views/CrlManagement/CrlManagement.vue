@@ -284,6 +284,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import Magnify from 'vue-material-design-icons/Magnify.vue'
 import FilterIcon from 'vue-material-design-icons/Filter.vue'
 import AccountIcon from 'vue-material-design-icons/Account.vue'
@@ -418,6 +420,7 @@ export default {
 		this.loadEntries()
 	},
 	methods: {
+		t,
 		async loadEntries(append = false) {
 			if (!append) {
 				this.loading = true
