@@ -20,7 +20,8 @@ vi.mock('@nextcloud/vue/components/NcDialog', () => ({
 vi.mock('@nextcloud/vue/components/NcButton', () => ({
 	default: {
 		name: 'NcButton',
-		template: '<button @click="$listeners.click"><slot /></button>',
+		template: '<button @click="$emit(\'click\')"><slot /></button>',
+		emits: ['click'],
 	},
 }))
 
@@ -79,6 +80,31 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path) => `/ocs/v2.php${path}`),
 }))
 
+const mountDraw = (options = {}) => {
+	const { propsData, props, mocks, stubs, global, ...rest } = options
+	const normalizedProps = {
+		type: 'signature',
+		...(propsData || props || {}),
+	}
+	const normalizedGlobal = {
+		mocks: {
+			t: (key, message) => message,
+			...(mocks || {}),
+			...(global?.mocks || {}),
+		},
+		stubs: {
+			...(stubs || {}),
+			...(global?.stubs || {}),
+		},
+	}
+
+	return mount(Draw, {
+		props: normalizedProps,
+		global: normalizedGlobal,
+		...rest,
+	})
+}
+
 describe('Draw.vue', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
@@ -96,7 +122,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('renders dialog when mounted', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 				drawEditor: true,
@@ -109,7 +135,7 @@ describe('Draw.vue', () => {
 			},
 			stubs: {
 				NcDialog: { template: '<div class="nc-dialog"><slot /></div>' },
-				NcButton: { template: '<button @click="$listeners.click"><slot /></button>' },
+				NcButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
 				Editor: { template: '<div></div>' },
 				TextInput: { template: '<div></div>' },
 				FileUpload: { template: '<div></div>' },
@@ -124,7 +150,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('renders only draw tab when all editors disabled', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 				drawEditor: true,
@@ -136,7 +162,7 @@ describe('Draw.vue', () => {
 			},
 			stubs: {
 				NcDialog: { template: '<div class="nc-dialog"><slot /></div>' },
-				NcButton: { template: '<button @click="$listeners.click"><slot /></button>' },
+				NcButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
 				Editor: { template: '<div></div>' },
 				TextInput: { template: '<div></div>' },
 				FileUpload: { template: '<div></div>' },
@@ -152,7 +178,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('renders multiple tabs when multiple editors enabled', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 				drawEditor: true,
@@ -164,7 +190,7 @@ describe('Draw.vue', () => {
 			},
 			stubs: {
 				NcDialog: { template: '<div class="nc-dialog"><slot /></div>' },
-				NcButton: { template: '<button @click="$listeners.click"><slot /></button>' },
+				NcButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
 				Editor: { template: '<div></div>' },
 				TextInput: { template: '<div></div>' },
 				FileUpload: { template: '<div></div>' },
@@ -180,7 +206,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('switches active tab when tab clicked', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 				drawEditor: true,
@@ -196,7 +222,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('sets active tab to first available when current is not available', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 				drawEditor: true,
@@ -210,7 +236,6 @@ describe('Draw.vue', () => {
 
 		wrapper.vm.activeTab = 'text'
 		await wrapper.vm.$nextTick()
-		wrapper.vm.$emit = vi.fn()
 
 		wrapper.setProps({ textEditor: false })
 		await wrapper.vm.$nextTick()
@@ -219,7 +244,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('emits close when close method called', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 			},
@@ -234,7 +259,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('calls store loadSignatures when save is triggered', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 			},
@@ -258,7 +283,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('emits save event after complete flow', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 			},
@@ -278,7 +303,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('closes dialog after successful save', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 			},
@@ -302,7 +327,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('adds class to body and document on mount', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 			},
@@ -318,7 +343,7 @@ describe('Draw.vue', () => {
 
 
 	it('accepts type property', () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'initial',
 				drawEditor: true,
@@ -332,7 +357,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('replaces active tab when props change', async () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 				drawEditor: true,
@@ -353,7 +378,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('initializes mounted flag to true after mount', () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 			},
@@ -366,7 +391,7 @@ describe('Draw.vue', () => {
 	})
 
 	it('initializes active tab to draw', () => {
-		const wrapper = mount(Draw, {
+		const wrapper = mountDraw({
 			propsData: {
 				type: 'signature',
 			},

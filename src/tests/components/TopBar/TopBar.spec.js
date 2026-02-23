@@ -12,12 +12,14 @@ describe('TopBar', () => {
 
 	const createWrapper = (props = {}) => {
 		return mount(TopBar, {
-			propsData: {
+			props: {
 				sidebarToggle: false,
 				...props,
 			},
-			stubs: {
-				SidebarToggle: { template: '<div class="sidebar-toggle-stub">Toggle</div>' },
+			global: {
+				stubs: {
+					SidebarToggle: { name: 'SidebarToggle', template: '<div class="sidebar-toggle-stub">Toggle</div>' },
+				},
 			},
 			slots: {
 				filter: '<div class="filter-slot">Filter Content</div>',
@@ -43,11 +45,13 @@ describe('TopBar', () => {
 
 		it('allows custom filter content', () => {
 			wrapper = mount(TopBar, {
-				propsData: {
+				props: {
 					sidebarToggle: false,
 				},
-				stubs: {
-					SidebarToggle: true,
+				global: {
+					stubs: {
+						SidebarToggle: { name: 'SidebarToggle', template: '<div class="sidebar-toggle-stub">Toggle</div>' },
+					},
 				},
 				slots: {
 					filter: '<div class="custom-filter">Custom Filter</div>',
@@ -60,11 +64,13 @@ describe('TopBar', () => {
 
 		it('renders empty when filter slot not provided', () => {
 			wrapper = mount(TopBar, {
-				propsData: {
+				props: {
 					sidebarToggle: false,
 				},
-				stubs: {
-					SidebarToggle: true,
+				global: {
+					stubs: {
+						SidebarToggle: { name: 'SidebarToggle', template: '<div class="sidebar-toggle-stub">Toggle</div>' },
+					},
 				},
 			})
 
@@ -194,8 +200,10 @@ describe('TopBar', () => {
 	describe('RULE: sidebarToggle prop controls conditional rendering', () => {
 		it('prop defaults to false', () => {
 			wrapper = mount(TopBar, {
-				stubs: {
-					SidebarToggle: true,
+				global: {
+					stubs: {
+						SidebarToggle: { name: 'SidebarToggle', template: '<div class="sidebar-toggle-stub">Toggle</div>' },
+					},
 				},
 			})
 
@@ -222,11 +230,13 @@ describe('TopBar', () => {
 	describe('RULE: multiple state combinations', () => {
 		it('shows filter and toggle when both enabled', () => {
 			wrapper = mount(TopBar, {
-				propsData: {
+				props: {
 					sidebarToggle: true,
 				},
-				stubs: {
-					SidebarToggle: { template: '<div class="toggle">Toggle</div>' },
+				global: {
+					stubs: {
+						SidebarToggle: { name: 'SidebarToggle', template: '<div class="toggle">Toggle</div>' },
+					},
 				},
 				slots: {
 					filter: '<div class="filter">Filter</div>',
@@ -239,11 +249,13 @@ describe('TopBar', () => {
 
 		it('shows only filter when toggle disabled', () => {
 			wrapper = mount(TopBar, {
-				propsData: {
+				props: {
 					sidebarToggle: false,
 				},
-				stubs: {
-					SidebarToggle: { template: '<div class="toggle">Toggle</div>' },
+				global: {
+					stubs: {
+						SidebarToggle: { name: 'SidebarToggle', template: '<div class="toggle">Toggle</div>' },
+					},
 				},
 				slots: {
 					filter: '<div class="filter">Filter</div>',
@@ -256,11 +268,13 @@ describe('TopBar', () => {
 
 		it('shows only toggle when no filter slot', () => {
 			wrapper = mount(TopBar, {
-				propsData: {
+				props: {
 					sidebarToggle: true,
 				},
-				stubs: {
-					SidebarToggle: { template: '<div class="toggle">Toggle</div>' },
+				global: {
+					stubs: {
+						SidebarToggle: { name: 'SidebarToggle', template: '<div class="toggle">Toggle</div>' },
+					},
 				},
 			})
 
@@ -335,8 +349,8 @@ describe('TopBar', () => {
 	describe('RULE: comprehensive workflow scenarios', () => {
 		it('workflow: default state with filter only', () => {
 			wrapper = mount(TopBar, {
-				propsData: { sidebarToggle: false },
-				stubs: { SidebarToggle: true },
+				props: { sidebarToggle: false },
+				global: { stubs: { SidebarToggle: { name: 'SidebarToggle', template: '<div class="sidebar-toggle-stub">Toggle</div>' } } },
 				slots: { filter: '<div class="filter">Search</div>' },
 			})
 
@@ -346,9 +360,11 @@ describe('TopBar', () => {
 
 		it('workflow: full state with filter and toggle', () => {
 			wrapper = mount(TopBar, {
-				propsData: { sidebarToggle: true },
-				stubs: {
-					SidebarToggle: { template: '<button>☰</button>' },
+				props: { sidebarToggle: true },
+				global: {
+					stubs: {
+						SidebarToggle: { name: 'SidebarToggle', template: '<button>☰</button>' },
+					},
 				},
 				slots: { filter: '<input type="search" class="filter-input" />' },
 			})
@@ -359,8 +375,8 @@ describe('TopBar', () => {
 
 		it('workflow: empty state', () => {
 			wrapper = mount(TopBar, {
-				propsData: { sidebarToggle: false },
-				stubs: { SidebarToggle: true },
+				props: { sidebarToggle: false },
+				global: { stubs: { SidebarToggle: { name: 'SidebarToggle', template: '<div class="sidebar-toggle-stub">Toggle</div>' } } },
 			})
 
 			const topBar = wrapper.find('.top-bar')

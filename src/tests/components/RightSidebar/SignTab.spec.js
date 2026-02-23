@@ -4,9 +4,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import VueRouter from 'vue-router'
 import SignTab from '../../../components/RightSidebar/SignTab.vue'
 import { useSignStore } from '../../../store/sign.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
@@ -21,41 +20,44 @@ import { loadState } from '@nextcloud/initial-state'
 describe('SignTab', () => {
 	let wrapper
 	let signStore
-	let router
-	let localVue
+	let mockRouter
+	let pinia
 
-	const createWrapper = async (routePath = '/') => {
-		localVue = createLocalVue()
-		localVue.use(VueRouter)
-		router = new VueRouter({
-			mode: 'abstract',
-			routes: [
-				{ path: '/', name: 'Home' },
-				{ path: '/p/sign/:uuid', name: 'ValidationFileExternal' },
-				{ path: '/validation/:uuid', name: 'ValidationFile' },
-			],
-		})
-		await router.push(routePath)
-		router.push = vi.fn().mockResolvedValue()
+	const createWrapper = async (routePath = '/', mockPush = true) => {
+		// Create a mock router that the component will use via $router
+		mockRouter = {
+			push: vi.fn().mockResolvedValue(true),
+			currentRoute: {
+				value: {
+					path: routePath,
+				},
+			},
+		}
 
 		return mount(SignTab, {
-			localVue,
-			router,
-			mocks: {
-				t: (app, text) => text,
-			},
-			stubs: {
-				NcChip: true,
-				Sign: true,
+			global: {
+				plugins: [pinia],
+				mocks: {
+					$router: mockRouter,
+					$route: {
+						path: routePath,
+					},
+					t: (app, text) => text,
+				},
+				stubs: {
+					NcChip: true,
+					Sign: true,
+				},
 			},
 		})
 	}
 
 	beforeEach(() => {
-		setActivePinia(createPinia())
+		pinia = createPinia()
+		setActivePinia(pinia)
 		signStore = useSignStore()
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
 		}
 		vi.clearAllMocks()
 	})
@@ -182,12 +184,12 @@ describe('SignTab', () => {
 
 	describe('RULE: onSigned routes to validation page with isAfterSigned true', () => {
 		it('routes to ValidationFile for internal path', async () => {
-			wrapper = await createWrapper('/internal/sign')
-			const pushSpy = vi.spyOn(wrapper.vm.$router, 'push')
+			wrapper = await createWrapper('/')
+			mockRouter.push.mockClear()
 
 			await wrapper.vm.onSigned({ signRequestUuid: 'test-uuid' })
 
-			expect(pushSpy).toHaveBeenCalledWith({
+			expect(mockRouter.push).toHaveBeenCalledWith({
 				name: 'ValidationFile',
 				params: {
 					uuid: 'test-uuid',
@@ -198,11 +200,11 @@ describe('SignTab', () => {
 
 		it('routes to ValidationFileExternal for public path', async () => {
 			wrapper = await createWrapper('/p/sign/abc')
-			const pushSpy = vi.spyOn(wrapper.vm.$router, 'push')
+			mockRouter.push.mockClear()
 
 			await wrapper.vm.onSigned({ signRequestUuid: 'test-uuid' })
 
-			expect(pushSpy).toHaveBeenCalledWith({
+			expect(mockRouter.push).toHaveBeenCalledWith({
 				name: 'ValidationFileExternal',
 				params: {
 					uuid: 'test-uuid',
@@ -214,12 +216,12 @@ describe('SignTab', () => {
 
 	describe('RULE: onSigningStarted routes with isAfterSigned false and isAsync true', () => {
 		it('routes to ValidationFile with async flag for internal', async () => {
-			wrapper = await createWrapper('/internal/sign')
-			const pushSpy = vi.spyOn(wrapper.vm.$router, 'push')
+			wrapper = await createWrapper('/')
+			mockRouter.push.mockClear()
 
 			await wrapper.vm.onSigningStarted({ signRequestUuid: 'test-uuid' })
 
-			expect(pushSpy).toHaveBeenCalledWith({
+			expect(mockRouter.push).toHaveBeenCalledWith({
 				name: 'ValidationFile',
 				params: {
 					uuid: 'test-uuid',
@@ -231,11 +233,11 @@ describe('SignTab', () => {
 
 		it('routes to ValidationFileExternal with async flag for public', async () => {
 			wrapper = await createWrapper('/p/sign/xyz')
-			const pushSpy = vi.spyOn(wrapper.vm.$router, 'push')
+			mockRouter.push.mockClear()
 
 			await wrapper.vm.onSigningStarted({ signRequestUuid: 'test-uuid' })
 
-			expect(pushSpy).toHaveBeenCalledWith({
+			expect(mockRouter.push).toHaveBeenCalledWith({
 				name: 'ValidationFileExternal',
 				params: {
 					uuid: 'test-uuid',
@@ -252,13 +254,16 @@ describe('SignTab', () => {
 				status: FILE_STATUS.SIGNING_IN_PROGRESS,
 				signRequestUuid: 'progress-uuid',
 			}
-			wrapper = await createWrapper()
-			const onSigningStartedSpy = vi.spyOn(wrapper.vm, 'onSigningStarted')
+			wrapper = await createWrapper('/', true)
 
-			wrapper.vm.$options.mounted[0].call(wrapper.vm)
-
-			expect(onSigningStartedSpy).toHaveBeenCalledWith({
-				signRequestUuid: 'progress-uuid',
+			// onSigningStarted should be called in mounted hook and push to router
+			expect(mockRouter.push).toHaveBeenCalledWith({
+				name: 'ValidationFile',
+				params: {
+					uuid: 'progress-uuid',
+					isAfterSigned: false,
+					isAsync: true,
+				},
 			})
 		})
 
@@ -267,12 +272,10 @@ describe('SignTab', () => {
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signRequestUuid: 'able-uuid',
 			}
-			wrapper = await createWrapper()
-			const onSigningStartedSpy = vi.spyOn(wrapper.vm, 'onSigningStarted')
+			wrapper = await createWrapper('/', true)
 
-			wrapper.vm.$options.mounted[0].call(wrapper.vm)
-
-			expect(onSigningStartedSpy).not.toHaveBeenCalled()
+			// Should not push for non-SIGNING_IN_PROGRESS status
+			expect(mockRouter.push).not.toHaveBeenCalled()
 		})
 
 		it('does not call when UUID not available', async () => {
@@ -280,12 +283,10 @@ describe('SignTab', () => {
 				status: FILE_STATUS.SIGNING_IN_PROGRESS,
 			}
 			loadState.mockReturnValue(null)
-			wrapper = await createWrapper()
-			const onSigningStartedSpy = vi.spyOn(wrapper.vm, 'onSigningStarted')
+			wrapper = await createWrapper('/', true)
 
-			wrapper.vm.$options.mounted[0].call(wrapper.vm)
-
-			expect(onSigningStartedSpy).not.toHaveBeenCalled()
+			// Should not push when UUID is not available
+			expect(mockRouter.push).not.toHaveBeenCalled()
 		})
 	})
 })

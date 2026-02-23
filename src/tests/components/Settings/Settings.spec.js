@@ -17,6 +17,11 @@ vi.mock('@nextcloud/auth', () => ({
 vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((app, text) => text),
 	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	t: vi.fn((app, text) => text),
+	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
 }))
 vi.mock('@nextcloud/router', () => ({
 	generateUrl: vi.fn((url) => `/admin/${url}`),
@@ -36,29 +41,31 @@ describe('Settings', () => {
 		})
 
 		return mount(Settings, {
-			stubs: {
-				NcAppNavigationItem: {
-					name: 'NcAppNavigationItem',
-					props: ['name', 'to', 'href', 'icon'],
-					template: '<li><slot name="icon" /><span class="item-name">{{ name }}</span><slot /></li>',
+			global: {
+				stubs: {
+					NcAppNavigationItem: {
+						name: 'NcAppNavigationItem',
+						props: ['name', 'to', 'href', 'icon'],
+						template: '<li><slot name="icon" /><span class="item-name">{{ name }}</span><slot /></li>',
+					},
+					AccountIcon: { template: '<div class="account-icon"></div>' },
+					StarIcon: { template: '<div class="star-icon"></div>' },
+					TuneIcon: { template: '<div class="tune-icon"></div>' },
 				},
-				AccountIcon: { template: '<div class="account-icon"></div>' },
-				StarIcon: { template: '<div class="star-icon"></div>' },
-				TuneIcon: { template: '<div class="tune-icon"></div>' },
-			},
-			mocks: {
-				t: (app, text) => text,
+				mocks: {
+					t: (app, text) => text,
+				},
 			},
 		})
 	}
 
 	const findItemByName = (items, name) => {
-		return items.wrappers.find(item => (item.props('name') || '').includes(name))
+		return items.find(item => (item.props('name') || '').includes(name))
 	}
 
 	beforeEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
 		}
 		vi.clearAllMocks()
 	})
@@ -355,9 +362,9 @@ describe('Settings', () => {
 
 			expect(items).toHaveLength(2)
 
-			const hasAccount = items.wrappers.some(i => i.props('name')?.includes('Account'))
-			const hasRate = items.wrappers.some(i => i.props('name')?.includes('Rate'))
-			const hasAdmin = items.wrappers.some(i => i.props('name')?.includes('Administration'))
+			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
+			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
+			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
 			expect(hasRate).toBe(true)
@@ -371,9 +378,9 @@ describe('Settings', () => {
 
 			expect(items).toHaveLength(3)
 
-			const hasAccount = items.wrappers.some(i => i.props('name')?.includes('Account'))
-			const hasRate = items.wrappers.some(i => i.props('name')?.includes('Rate'))
-			const hasAdmin = items.wrappers.some(i => i.props('name')?.includes('Administration'))
+			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
+			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
+			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
 			expect(hasRate).toBe(true)

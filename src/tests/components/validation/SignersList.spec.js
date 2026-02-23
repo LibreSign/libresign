@@ -11,6 +11,11 @@ let SignersList
 vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((app, text) => text),
 	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	t: vi.fn((app, text) => text),
+	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
 }))
 
 vi.mock('@nextcloud/moment', () => ({
@@ -28,20 +33,22 @@ describe('SignersList', () => {
 
 	const createWrapper = (props = {}) => {
 		return mount(SignersList, {
-			propsData: {
+			props: {
 				signers: [],
 				compact: false,
 				...props,
 			},
-			stubs: {
-				NcListItem: {
-					template: '<div class="signer-item"><slot name="icon" /><slot name="name" /></div>',
+			global: {
+				stubs: {
+					NcListItem: {
+						template: '<div class="signer-item"><slot name="icon" /><slot name="name" /></div>',
+					},
+					NcAvatar: { template: '<div class="avatar-stub"></div>' },
+					NcIconSvgWrapper: { template: '<div class="icon-stub"></div>' },
 				},
-				NcAvatar: { template: '<div class="avatar-stub"></div>' },
-				NcIconSvgWrapper: { template: '<div class="icon-stub"></div>' },
-			},
-			mocks: {
-				t: (app, text) => text,
+				mocks: {
+					t: (app, text) => text,
+				},
 			},
 		})
 	}

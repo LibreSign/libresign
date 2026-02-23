@@ -24,6 +24,22 @@ vi.mock('@nextcloud/l10n', () => ({
 		}
 		return template
 	}),
+	t: vi.fn((app, text, vars) => {
+		if (vars) {
+			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
+		}
+		return text
+	}),
+	n: vi.fn((app, singular, plural, count, vars) => {
+		const template = count === 1 ? singular : plural
+		if (vars) {
+			return template.replace(/{(\w+)}/g, (m, key) => vars[key])
+		}
+		return template
+	}),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
 }))
 vi.mock('@nextcloud/moment', () => ({
 	default: vi.fn((date) => ({
@@ -51,7 +67,7 @@ describe('EnvelopeValidation', () => {
 
 	const createWrapper = (props = {}) => {
 		return mount(EnvelopeValidation, {
-			propsData: {
+			props: {
 				document: {
 					name: 'Test Envelope',
 					status: '3',
@@ -65,32 +81,34 @@ describe('EnvelopeValidation', () => {
 				isAfterSigned: false,
 				...props,
 			},
-			stubs: {
-				NcIconSvgWrapper: true,
-				NcListItem: {
-					template: '<li><slot name="icon" /><slot name="name" /><slot name="subname" /><slot name="actions" /><slot name="extra-actions" /></li>',
+			global: {
+				stubs: {
+					NcIconSvgWrapper: true,
+					NcListItem: {
+						template: '<li><slot name="icon" /><slot name="name" /><slot name="subname" /><slot name="actions" /><slot name="extra-actions" /></li>',
+					},
+					NcButton: true,
+					NcActionButton: true,
+					NcAvatar: true,
+					NcNoteCard: true,
+					NcRichText: true,
+					SignerDetails: true,
+					DocumentValidationDetails: true,
 				},
-				NcButton: true,
-				NcActionButton: true,
-				NcAvatar: true,
-				NcNoteCard: true,
-				NcRichText: true,
-				SignerDetails: true,
-				DocumentValidationDetails: true,
-			},
-			mocks: {
-				t: (app, text, vars) => {
-					if (vars) {
-						return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-					}
-					return text
-				},
-				n: (app, singular, plural, count, vars) => {
-					const template = count === 1 ? singular : plural
-					if (vars) {
-						return template.replace(/{(\w+)}/g, (m, key) => vars[key])
-					}
-					return template
+				mocks: {
+					t: (app, text, vars) => {
+						if (vars) {
+							return text.replace(/{(\w+)}/g, (m, key) => vars[key])
+						}
+						return text
+					},
+					n: (app, singular, plural, count, vars) => {
+						const template = count === 1 ? singular : plural
+						if (vars) {
+							return template.replace(/{(\w+)}/g, (m, key) => vars[key])
+						}
+						return template
+					},
 				},
 			},
 		})
