@@ -88,10 +88,8 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 export default {
 	name: 'SigningMode',
 	components: {
-		NcCheckboxRadioSwitch,
 		NcLoadingIcon,
 		NcNoteCard,
-		NcSavingIndicatorIcon,
 		NcSettingsSection,
 		NcTextField,
 	},
