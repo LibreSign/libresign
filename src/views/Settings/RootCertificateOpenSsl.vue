@@ -130,12 +130,9 @@ export default {
 	name: 'RootCertificateOpenSsl',
 	components: {
 		NcSettingsSection,
-		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcButton,
 		NcTextField,
-		CertificateCustonOptions,
-		CertificatePolicy,
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
@@ -151,9 +148,9 @@ export default {
 				rootCert: {
 					commonName: '',
 					names: [],
-				},
+	},
 				configPath: '',
-			},
+	},
 			error: false,
 			customData: false,
 			formDisabled: false,
@@ -226,7 +223,7 @@ export default {
 				rootCert: {
 					commonName: '',
 					names: [],
-				},
+	},
 				configPath: '',
 			}
 			this.customData = false
