@@ -24,10 +24,10 @@
 		<NcDialog v-if="confirmDelete"
 			:name="t('libresign', 'Confirm')"
 			:no-close="deleting"
-			:open.sync="confirmDelete">
+			v-model:open="confirmDelete">
 			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="deleteFile"
+				v-model="deleteFile"
 				:disabled="deleting">
 				{{ t('libresign', 'Also delete the file.') }}
 			</NcCheckboxRadioSwitch>
@@ -50,6 +50,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -84,6 +86,7 @@ export default {
 		const selectionStore = useSelectionStore()
 
 		return {
+			t,
 			filesStore,
 			selectionStore,
 		}
