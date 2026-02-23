@@ -66,12 +66,6 @@ export default {
 	name: 'FileEntryGrid',
 	components: {
 		NcDateTime,
-		FileEntryActions,
-		FileEntryCheckbox,
-		FileEntryName,
-		FileEntryPreview,
-		FileEntrySigners,
-		FileEntryStatus,
 	},
 	mixins: [
 		FileEntryMixin,
