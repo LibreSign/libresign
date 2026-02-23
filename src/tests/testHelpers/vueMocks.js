@@ -4,7 +4,6 @@
  */
 
 import { config } from '@vue/test-utils'
-import Vue from 'vue'
 
 /**
  * Translation mock helper
@@ -23,10 +22,19 @@ const translatePluralMock = (app, singular, plural, count) => {
 	return count === 1 ? singular : plural
 }
 
-Vue.prototype.t = (app, str, vars) => translateMock(app, str, vars)
-Vue.prototype.n = (app, singular, plural, count) => translatePluralMock(app, singular, plural, count)
-
-config.mocks = {
+config.global.mocks = {
 	t: (app, str, vars) => translateMock(app, str, vars),
 	n: (app, singular, plural, count) => translatePluralMock(app, singular, plural, count),
+	$route: {
+		name: null,
+		path: '/',
+		params: {},
+		query: {},
+	},
+	$router: {
+		push: () => Promise.resolve(),
+		replace: () => Promise.resolve(),
+		back: () => Promise.resolve(),
+		resolve: () => ({ href: '/' }),
+	},
 }
