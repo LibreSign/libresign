@@ -58,6 +58,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import SignaturePad from 'signature_pad'
 
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
@@ -107,12 +109,15 @@ export default {
 			})
 		})
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		this.mounted = false
-		this.$refs.canvas.signaturePad.clear()
+		if (this.$refs.canvas?.signaturePad) {
+			this.$refs.canvas.signaturePad.clear()
+		}
 		this.imageData = null
 	},
 	methods: {
+		t,
 		applyCanvasSize() {
 			if (!this.$refs.canvasWrapper || !this.$refs.canvas) {
 				return
