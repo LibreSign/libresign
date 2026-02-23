@@ -10,13 +10,13 @@
 				<div class="filter-wrapper" :class="{ 'filter-wrapper--active': hasActiveFilters }">
 					<NcActions :aria-label="hasActiveFilters ? t('libresign', 'Filters ({count})', { count: activeFilterCount }) : t('libresign', 'Filters')">
 						<template #icon>
-							<FilterIcon :size="20" />
+							<NcIconSvgWrapper :path="mdiFilter" :size="20" />
 						</template>
 						<NcActionInput v-model="filters.serialNumber"
 							:label="t('libresign', 'Serial Number')"
 							@update:value="onFilterChange">
 							<template #icon>
-								<Magnify :size="20" />
+								<NcIconSvgWrapper :path="mdiMagnify" :size="20" />
 							</template>
 						</NcActionInput>
 
@@ -24,7 +24,7 @@
 							:label="t('libresign', 'Owner')"
 							@update:value="onFilterChange">
 							<template #icon>
-								<AccountIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiAccount" :size="20" />
 							</template>
 						</NcActionInput>
 
@@ -32,7 +32,7 @@
 							:model-value="filters.status?.value === 'issued'"
 							@update:modelValue="setStatusFilter('issued', $event)">
 							<template #icon>
-								<CheckCircleIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiCheckCircle" :size="20" />
 							</template>
 							{{ t('libresign', 'Issued') }}
 						</NcActionButton>
@@ -41,7 +41,7 @@
 							:model-value="filters.status?.value === 'revoked'"
 							@update:modelValue="setStatusFilter('revoked', $event)">
 							<template #icon>
-								<CancelIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiCancel" :size="20" />
 							</template>
 							{{ t('libresign', 'Revoked') }}
 						</NcActionButton>
@@ -50,7 +50,7 @@
 							:model-value="filters.status?.value === 'expired'"
 							@update:modelValue="setStatusFilter('expired', $event)">
 							<template #icon>
-								<ClockAlertIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiClockAlert" :size="20" />
 							</template>
 							{{ t('libresign', 'Expired') }}
 						</NcActionButton>
@@ -60,7 +60,7 @@
 						<NcActionButton v-if="hasActiveFilters"
 							@click="clearFilters">
 							<template #icon>
-								<CloseIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiClose" :size="20" />
 							</template>
 							{{ t('libresign', 'Clear filters') }}
 						</NcActionButton>
@@ -77,7 +77,7 @@
 				<NcEmptyContent :name="t('libresign', 'No CRL entries found')"
 					:description="t('libresign', 'There are no certificate revocation list entries to display.')">
 					<template #icon>
-						<ShieldLockIcon :size="64" />
+						<NcIconSvgWrapper :path="mdiShieldLock" :size="64" />
 					</template>
 				</NcEmptyContent>
 			</div>
@@ -156,11 +156,11 @@
 							<td class="crl-table__cell--monospace">{{ entry.serial_number }}</td>
 							<td>
 								<span v-if="entry.certificate_type === 'root'" class="certificate-type certificate-type--root">
-									<ShieldLockIcon :size="16" />
+									<NcIconSvgWrapper :path="mdiShieldLock" :size="16" />
 									{{ t('libresign', 'Root CA') }}
 								</span>
 								<span v-else-if="entry.certificate_type === 'intermediate'" class="certificate-type certificate-type--intermediate">
-									<ShieldLockIcon :size="16" />
+									<NcIconSvgWrapper :path="mdiShieldLock" :size="16" />
 									{{ t('libresign', 'Intermediate CA') }}
 								</span>
 								<span v-else class="certificate-type certificate-type--user">
@@ -285,15 +285,10 @@
 
 <script>
 import { t } from '@nextcloud/l10n'
+import {
+	mdiMagnify,
+} from '@mdi/js'
 
-import Magnify from 'vue-material-design-icons/Magnify.vue'
-import FilterIcon from 'vue-material-design-icons/Filter.vue'
-import AccountIcon from 'vue-material-design-icons/Account.vue'
-import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
-import CancelIcon from 'vue-material-design-icons/Cancel.vue'
-import ClockAlertIcon from 'vue-material-design-icons/ClockAlert.vue'
-import CloseIcon from 'vue-material-design-icons/Close.vue'
-import ShieldLockIcon from 'vue-material-design-icons/ShieldLock.vue'
 
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -302,6 +297,7 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
 import NcActions from '@nextcloud/vue/components/NcActions'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/components/NcActionInput'
 import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
@@ -319,14 +315,6 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 export default {
 	name: 'CrlManagement',
 	components: {
-		Magnify,
-		FilterIcon,
-		AccountIcon,
-		CheckCircleIcon,
-		CancelIcon,
-		ClockAlertIcon,
-		CloseIcon,
-		ShieldLockIcon,
 		NcActions,
 		NcActionButton,
 		NcActionInput,
@@ -336,11 +324,11 @@ export default {
 		NcButton,
 		NcDialog,
 		NcEmptyContent,
-		NcLoadingIcon,
 		NcNoteCard,
 		NcSelect,
 		NcTextArea,
 		NcTextField,
+		NcIconSvgWrapper,
 	},
 	data() {
 		const userConfigStore = useUserConfigStore()
@@ -358,21 +346,21 @@ export default {
 				serialNumber: userConfigStore.crl_filters?.serialNumber || '',
 				status: userConfigStore.crl_filters?.status || null,
 				owner: userConfigStore.crl_filters?.owner || '',
-			},
+	},
 			sortBy: userConfigStore.crl_sort.sortBy || 'revoked_at',
 			sortOrder: userConfigStore.crl_sort.sortOrder || 'DESC',
 			caWarningDialog: {
 				open: false,
 				entry: null,
 				typeLabel: '',
-			},
+	},
 			revokeDialog: {
 				open: false,
 				entry: null,
 				reasonCode: { value: 0, label: '' },
 				reasonText: '',
 				loading: false,
-			},
+	},
 			statusOptions: [
 				{ value: 'issued', label: this.t('libresign', 'Issued') },
 				{ value: 'revoked', label: this.t('libresign', 'Revoked') },
@@ -389,7 +377,7 @@ export default {
 				8: this.t('libresign', 'Remove from CRL'),
 				9: this.t('libresign', 'Privilege Withdrawn'),
 				10: this.t('libresign', 'AA Compromise'),
-			},
+	},
 			reasonCodeOptions: [
 				{ value: 0, label: this.t('libresign', 'Unspecified') },
 				{ value: 1, label: this.t('libresign', 'Key Compromise') },
