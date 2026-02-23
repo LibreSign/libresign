@@ -30,7 +30,7 @@
 		<template #extra>
 			<div v-if="showDragHandle" class="signer-extra">
 				<div class="drag-handle-wrapper">
-					<DragVertical :size="20"
+					<NcIconSvgWrapper :path="mdiDragVertical" :size="20"
 						class="drag-handle"
 						:title="t('libresign', 'Drag to reorder')" />
 				</div>
@@ -43,43 +43,43 @@
 </template>
 <script>
 import { t } from '@nextcloud/l10n'
-
-import { mdiCheckCircle, mdiClockOutline, mdiCircleOutline } from '@mdi/js'
-import DragVertical from 'vue-material-design-icons/DragVertical.vue'
-
+import {
+	mdiCheckCircle,
+	mdiCircleOutline,
+	mdiClockOutline,
+	mdiDragVertical,
+} from '@mdi/js'
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
-
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
-
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
-
 export default {
 	name: 'Signer',
 	components: {
 		NcListItem,
 		NcAvatar,
 		NcChip,
-		DragVertical,
+		NcIconSvgWrapper,
 	},
 	props: {
 		signerIndex: {
 			type: Number,
 			required: true,
-		},
+	},
 		event: {
 			type: String,
 			required: false,
 			default: '',
-		},
+	},
 		draggable: {
 			type: Boolean,
 			required: false,
 			default: false,
-		},
+	},
 	},
 	setup() {
 		const filesStore = useFilesStore()
@@ -88,6 +88,7 @@ export default {
 			mdiCheckCircle,
 			mdiClockOutline,
 			mdiCircleOutline,
+			mdiDragVertical,
 		}
 	},
 	data() {
@@ -100,12 +101,10 @@ export default {
 		signatureFlow() {
 			const file = this.filesStore.getFile()
 			let flow = file?.signatureFlow ?? 'parallel'
-
 			if (typeof flow === 'number') {
 				const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
 				flow = flowMap[flow] || 'parallel'
 			}
-
 			return flow
 		},
 		signer() {
@@ -238,54 +237,43 @@ export default {
 	min-width: 0;
 	overflow: hidden;
 }
-
 .signer-status-chip {
 	flex-shrink: 0;
 }
-
 :deep(.signer-subname .nc-chip) {
 	flex-shrink: 1;
 	min-width: 0;
 }
-
 .signer-extra {
 	display: flex;
 	align-items: center;
 	height: 100%;
 }
-
 .drag-handle-wrapper {
 	display: flex;
 	align-items: center;
 	height: 100%;
 	margin-top: 0;
 }
-
 .drag-handle {
 	cursor: grab;
 	color: var(--color-text-maxcontrast);
 	opacity: 0.7;
-
 	&:hover {
 		opacity: 1;
 	}
 }
-
 .signer-signed .drag-handle {
 	cursor: not-allowed;
 	opacity: 0.3;
 }
-
 .signer-method-disabled {
 	opacity: 0.6;
-
 	:deep(.list-item__wrapper) {
 		cursor: not-allowed !important;
 	}
-
 	:deep(.list-item-content__wrapper) {
 		position: relative;
-
 		&::after {
 			content: '';
 			position: absolute;
@@ -298,7 +286,6 @@ export default {
 			pointer-events: none;
 		}
 	}
-
 	:deep(.list-item-content__actions) {
 		opacity: 1;
 		pointer-events: auto;
