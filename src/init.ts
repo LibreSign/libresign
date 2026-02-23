@@ -3,24 +3,17 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import Vue from 'vue'
-
 import axios from '@nextcloud/axios'
 import { addNewFileMenuEntry, Permission, getSidebar } from '@nextcloud/files'
 import { registerDavProperty } from '@nextcloud/files/dav'
-import { translate, translatePlural } from '@nextcloud/l10n'
+import { n, t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 import { getUploader } from '@nextcloud/upload'
 
-import logger from './logger.js'
+import logger from './logger'
 import LibreSignLogoSvg from '../img/app-colored.svg?raw'
 import LibreSignLogoDarkSvg from '../img/app-dark.svg?raw'
-import { useIsDarkTheme } from './helpers/useIsDarkTheme.js'
-
-Vue.prototype.t = translate
-Vue.prototype.n = translatePlural
-Vue.prototype.OC = OC
-Vue.prototype.OCA = OCA
+import { useIsDarkTheme } from './helpers/useIsDarkTheme'
 
 registerDavProperty('nc:libresign-signature-status', { nc: 'http://nextcloud.org/ns' })
 registerDavProperty('nc:libresign-signed-node-id', { nc: 'http://nextcloud.org/ns' })
@@ -34,18 +27,18 @@ addNewFileMenuEntry({
 	enabled() {
 		return Permission.CREATE !== 0
 	},
-	async handler(context, content) {s
+	async handler(context, content) {
 		const input = document.createElement('input')
 		input.accept = 'application/pdf'
 		input.type = 'file'
 		input.onchange = async (ev) => {
-			const file = ev.target.files[0]
+			const file = (ev.target as HTMLInputElement).files?.[0]
 			input.remove()
 			if (!file) {
 				return
 			}
 
-			this.uploadManager.addNotifier(async (upload) => {
+			this.uploadManager.addNotifier(async (upload: any) => {
 				const path = context.path + '/' + upload.file.name
 				await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
 					file: {
