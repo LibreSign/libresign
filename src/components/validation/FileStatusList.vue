@@ -34,7 +34,7 @@
 
 <script>
 import { mdiFilePdfBox } from '@mdi/js'
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { formatFileSize } from '@nextcloud/files'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -90,7 +90,7 @@ export default {
 			this.startUpdatePolling()
 		}
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		this.stopUpdatePolling()
 	},
 	methods: {
