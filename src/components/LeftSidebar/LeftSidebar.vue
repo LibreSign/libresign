@@ -4,7 +4,7 @@
 -->
 
 <template>
-	<NcAppNavigation v-if="showLeftSidebar">
+	<NcAppNavigation>
 		<template #list>
 			<NcAppNavigationItem v-if="canRequestSign"
 				id="request-files"
@@ -58,6 +58,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import AccountCheckIcon from 'vue-material-design-icons/AccountCheck.vue'
 import FileCheckIcon from 'vue-material-design-icons/FileCheck.vue'
 import FileSignIcon from 'vue-material-design-icons/FileSign.vue'
@@ -106,19 +108,9 @@ export default {
 			const user = getCurrentUser()
 			return user?.isAdmin ?? false
 		},
-		showLeftSidebar() {
-			if (this.$route.name === 'Incomplete'
-				|| this.$route.name === 'IncompleteExternal'
-				|| !getCurrentUser()
-				|| this.$route.path.startsWith('/p/')
-				|| this.$route.path.startsWith('/validation/') // short validation url
-			) {
-				return false
-			}
-			return true
-		},
 	},
 	methods: {
+		t,
 		unselectFile() {
 			this.filesStore.selectFile()
 		},
