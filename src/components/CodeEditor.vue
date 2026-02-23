@@ -7,30 +7,35 @@
 		<label v-if="label" :for="editorId" class="code-editor__label">
 			{{ label }}
 		</label>
-		<codemirror
+		<CodeMirror
 			:id="editorId"
-			:value="value"
-			:options="editorOptions"
-			@input="onInput" />
+			v-model="internalValue"
+			:tab-size="4"
+			:tab="true"
+			:placeholder="placeholder"
+			:extensions="extensions"
+			:style="{ height: 'auto', minHeight: '80px' }" />
 	</div>
 </template>
 
 <script>
-import { codemirror } from 'vue-codemirror'
-import 'codemirror/lib/codemirror.css'
-import 'codemirror/theme/material.css'
-import 'codemirror/mode/twig/twig.js'
-import 'codemirror/addon/edit/matchbrackets.js'
-import 'codemirror/addon/edit/closebrackets.js'
-import 'codemirror/addon/edit/closetag.js'
+import { t } from '@nextcloud/l10n'
+import CodeMirror from 'vue-codemirror6'
+import { twig } from '@ssddanbrown/codemirror-lang-twig'
+import { EditorView, lineNumbers } from '@codemirror/view'
+import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
+import { keymap } from '@codemirror/view'
+import { indentUnit, bracketMatching } from '@codemirror/language'
+import { defaultKeymap, indentWithTab } from '@codemirror/commands'
+import { material } from '@uiw/codemirror-theme-material'
 
 export default {
 	name: 'CodeEditor',
 	components: {
-		codemirror,
+		CodeMirror,
 	},
 	props: {
-		value: {
+		modelValue: {
 			type: String,
 			default: '',
 		},
@@ -46,29 +51,41 @@ export default {
 	data() {
 		return {
 			editorId: `code-editor-${Math.random().toString(36).substr(2, 9)}`,
+			internalValue: this.modelValue,
 		}
 	},
 	computed: {
-		editorOptions() {
-			return {
-				mode: 'twig',
-				theme: 'material',
-				lineNumbers: true,
-				lineWrapping: true,
-				matchBrackets: true,
-				autoCloseBrackets: true,
-				indentUnit: 4,
-				tabSize: 4,
-				indentWithTabs: true,
-				placeholder: this.placeholder,
-				viewportMargin: Infinity,
+		extensions() {
+			return [
+				twig(),
+				lineNumbers(),
+				EditorView.lineWrapping,
+				bracketMatching(),
+				closeBrackets(),
+				material,
+				indentUnit.of('\t'),
+				keymap.of([
+					...closeBracketsKeymap,
+					...defaultKeymap,
+					indentWithTab,
+				]),
+			]
+		},
+	},
+	watch: {
+		modelValue(newValue) {
+			if (newValue !== this.internalValue) {
+				this.internalValue = newValue
+			}
+		},
+		internalValue(newValue) {
+			if (newValue !== this.modelValue) {
+				this.$emit('update:modelValue', newValue)
 			}
 		},
 	},
 	methods: {
-		onInput(value) {
-			this.$emit('input', value)
-		},
+		t,
 	},
 }
 </script>
@@ -89,37 +106,16 @@ export default {
 		color: var(--color-main-text);
 	}
 
-	.CodeMirror {
+	:deep(.cm-editor) {
 		height: auto;
 		min-height: 80px;
 		font-family: 'Courier New', Courier, monospace;
 		font-size: 14px;
 		line-height: 1.5;
-		background-color: var(--color-main-background);
-		color: var(--color-main-text);
-	}
 
-	.CodeMirror-cursor {
-		border-inline-start-color: var(--color-main-text);
-	}
-
-	.CodeMirror-selected {
-		background-color: rgba(var(--color-primary-element-rgb), 0.2);
-	}
-
-	.CodeMirror-gutters {
-		background-color: var(--color-background-dark);
-		border-inline-end: 1px solid var(--color-border);
-	}
-
-	.CodeMirror-linenumber {
-		color: var(--color-text-maxcontrast);
-	}
-
-	.CodeMirror-matchingbracket {
-		color: var(--color-primary-element) !important;
-		background-color: rgba(var(--color-primary-element-rgb), 0.1);
-		font-weight: bold;
+		.cm-content {
+			font-family: inherit;
+		}
 	}
 }
 </style>
