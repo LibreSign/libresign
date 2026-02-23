@@ -3,16 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import Vue from 'vue'
-import Router from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 
 import { loadState } from '@nextcloud/initial-state'
 import { getRootUrl, generateUrl } from '@nextcloud/router'
 
-import { isExternal } from '../helpers/isExternal.js'
-import { selectAction } from '../helpers/SelectAction.js'
-
-Vue.use(Router)
+import { isExternal } from '../helpers/isExternal'
+import { selectAction } from '../helpers/SelectAction'
 
 /**
  * @return {string} Vue Router base url
@@ -27,9 +24,8 @@ function generateWebBasePath() {
 	})
 }
 
-const router = new Router({
-	mode: 'history',
-	base: generateWebBasePath(),
+const router = createRouter({
+	history: createWebHistory(generateWebBasePath()),
 	linkActiveClass: 'active',
 	routes: [
 		// public
