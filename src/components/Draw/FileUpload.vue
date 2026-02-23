@@ -107,9 +107,9 @@
 import { t } from '@nextcloud/l10n'
 
 import {
+	mdiFitToPageOutline,
 	mdiMagnifyMinusOutline,
 	mdiMagnifyPlusOutline,
-	mdiFitToPageOutline,
 } from '@mdi/js'
 import { Cropper } from 'vue-advanced-cropper'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -163,7 +163,7 @@ export default {
 			set(value) {
 				this.onZoomPercentChange(value)
 			},
-		},
+	},
 		stencilAspectRatio() {
 			if (!this.stencilBaseWidth || !this.stencilBaseHeight) {
 				return undefined
