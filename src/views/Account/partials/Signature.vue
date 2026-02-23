@@ -11,12 +11,12 @@
 			<NcActions v-if="isSignatureLoaded" :inline="2">
 				<NcActionButton v-if="hasSignature" @click="removeSignature">
 					<template #icon>
-						<DeleteIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 					</template>
 				</NcActionButton>
 				<NcActionButton @click="edit">
 					<template #icon>
-						<DrawIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiDraw" :size="20" />
 					</template>
 				</NcActionButton>
 			</NcActions>
@@ -31,7 +31,7 @@
 			<slot name="no-signatures" />
 		</div>
 
-		<Draw v-if="isEditing"
+		<NcIconSvgWrapper :path="mdiDraw" v-if="isEditing"
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"
@@ -43,13 +43,15 @@
 
 <script>
 import { t } from '@nextcloud/l10n'
+import {
+	mdiDraw,
+} from '@mdi/js'
 
-import DeleteIcon from 'vue-material-design-icons/Delete.vue'
-import DrawIcon from 'vue-material-design-icons/Draw.vue'
 
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcActions from '@nextcloud/vue/components/NcActions'
 
 import Draw from '../../../components/Draw/Draw.vue'
@@ -62,20 +64,19 @@ export default {
 	components: {
 		NcActions,
 		NcActionButton,
-		DeleteIcon,
-		DrawIcon,
+		NcIconSvgWrapper,
 		PreviewSignature,
-		Draw,
 	},
 	props: {
 		type: {
 			type: String,
 			required: true,
-		},
+	},
 	},
 	setup() {
 		const signatureElementsStore = useSignatureElementsStore()
-		return { signatureElementsStore }
+		return { signatureElementsStore,
+			mdiDraw,}
 	},
 	data: () => ({
 		isEditing: false,
