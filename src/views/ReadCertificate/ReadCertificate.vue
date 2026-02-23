@@ -55,7 +55,6 @@ import { useSignMethodsStore } from '../../store/signMethods.js'
 export default {
 	name: 'ReadCertificate',
 	components: {
-		CertificateContent,
 		NcDialog,
 		NcPasswordField,
 		NcButton,
