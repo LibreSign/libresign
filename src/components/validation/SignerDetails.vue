@@ -263,17 +263,16 @@ export default {
 		NcButton,
 		NcIconSvgWrapper,
 		NcListItem,
-		CertificateChain,
 	},
 	props: {
 		signer: {
 			type: Object,
 			required: true,
-		},
+	},
 		initiallyOpen: {
 			type: Boolean,
 			default: false,
-		},
+	},
 	},
 	setup() {
 		return {
@@ -311,7 +310,7 @@ export default {
 				urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'icon-warning' },
 				validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'icon-warning' },
 				validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'icon-warning' },
-			},
+	},
 		}
 	},
 	methods: {
