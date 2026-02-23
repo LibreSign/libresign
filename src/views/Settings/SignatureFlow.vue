@@ -68,10 +68,8 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 export default {
 	name: 'SignatureFlow',
 	components: {
-		NcCheckboxRadioSwitch,
 		NcLoadingIcon,
 		NcNoteCard,
-		NcSavingIndicatorIcon,
 		NcSettingsSection,
 	},
 	data() {
@@ -92,12 +90,12 @@ export default {
 					value: 'parallel',
 					label: t('libresign', 'Simultaneous (Parallel)'),
 					description: t('libresign', 'All signers receive the document at the same time and can sign in any order.'),
-				},
+	},
 				{
 					value: 'ordered_numeric',
 					label: t('libresign', 'Sequential'),
 					description: t('libresign', 'Signers are organized by signing order number. Only those with the lowest pending order number can sign.'),
-				},
+	},
 			]
 		},
 	},
