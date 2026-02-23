@@ -69,6 +69,15 @@ vi.mock('@nextcloud/capabilities', () => ({
 	getCapabilities: vi.fn(() => ({})),
 }))
 
+vi.mock('vue-select', () => ({
+	default: {
+		name: 'VSelect',
+		props: ['modelValue'],
+		emits: ['update:modelValue'],
+		render: () => null,
+	},
+}))
+
 describe('Sign.vue - signWithTokenCode', () => {
 	let Sign
 	let signMethodsStore
@@ -755,7 +764,6 @@ describe('Sign.vue - signWithTokenCode', () => {
 							NcRichText: true,
 						},
 						mocks: {
-							$emit: vi.fn(),
 							$watch: vi.fn(),
 							$nextTick: vi.fn(),
 						},
@@ -839,7 +847,6 @@ describe('Sign.vue - signWithTokenCode', () => {
 						NcRichText: true,
 					},
 					mocks: {
-						$emit: vi.fn(),
 						$watch: vi.fn(),
 						$nextTick: vi.fn(),
 					},
