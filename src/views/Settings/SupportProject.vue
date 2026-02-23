@@ -47,12 +47,25 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { t } from '@nextcloud/l10n'
+import {
+	mdiHeart,
+	mdiCurrencyUsd,
+	mdiInformation,
+} from '@mdi/js'
 
 export default {
 	name: 'SupportProject',
 	components: {
 		NcButton,
 		NcSettingsSection,
+		NcIconSvgWrapper,
+	},
+	setup() {
+		return {
+			mdiHeart,
+			mdiCurrencyUsd,
+			mdiInformation,
+		}
 	},
 	methods: {
 		t,
