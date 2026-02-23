@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { getPrimarySigningAction } from '../../helpers/SigningActionHelper.js'
+import { getPrimarySigningAction } from '../../helpers/SigningActionHelper'
 
 describe('getPrimarySigningAction', () => {
 	it('prioritizes certificate upload when needed', () => {

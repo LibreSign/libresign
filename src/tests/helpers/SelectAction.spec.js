@@ -4,7 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ACTION_CODES } from '../../helpers/ActionMapping.js'
+import { ACTION_CODES } from '../../helpers/ActionMapping'
 
 let loadStateMock
 
@@ -51,7 +51,7 @@ describe('selectAction helper', () => {
 			{ path: '/', name: 'Home', params: {}, query: {} },
 		)
 
-		expect(result).toBeUndefined()
+		expect(result).toBeNull()
 	})
 
 	it('returns current route name when action is DO_NOTHING', async () => {
