@@ -2,10 +2,10 @@
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { registerFileAction, FileAction, getSidebar } from '@nextcloud/files'
+import { registerFileAction, getSidebar } from '@nextcloud/files'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 import EditNameDialog from '../components/Common/EditNameDialog.vue'
 
@@ -38,7 +38,7 @@ function promptEnvelopeName() {
 	})
 }
 
-export const action = new FileAction({
+export const action = {
 	id: 'open-in-libresign',
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
@@ -121,6 +121,6 @@ export const action = new FileAction({
 	},
 
 	order: -1000,
-})
+}
 
 registerFileAction(action)
