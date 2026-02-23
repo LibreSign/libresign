@@ -181,7 +181,7 @@
 				:aria-label="t('libresign', 'Upload new background image')"
 				@click="activateLocalFilePicker">
 				<template #icon>
-					<Upload :size="20" />
+					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 				</template>
 				{{ t('libresign', 'Upload') }}
 			</NcButton>
@@ -198,7 +198,7 @@
 				:aria-label="t('libresign', 'Remove background')"
 				@click="removeBackground">
 				<template #icon>
-					<Delete :size="20" />
+					<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 				</template>
 			</NcButton>
 			<NcLoadingIcon v-if="showLoadingBackground"
@@ -212,13 +212,13 @@
 				<NcButton :aria-label="t('libresign', 'Decrease zoom level')"
 					@click="changeZoomLevel(-10)">
 					<template #icon>
-						<MagnifyMinusOutline :size="20" />
+						<NcIconSvgWrapper :path="mdiMagnifyMinusOutline" :size="20" />
 					</template>
 				</NcButton>
 				<NcButton :aria-label="t('libresign', 'Increase zoom level')"
 					@click="changeZoomLevel(+10)">
 					<template #icon>
-						<MagnifyPlusOutline :size="20" />
+						<NcIconSvgWrapper :path="mdiMagnifyPlusOutline" :size="20" />
 					</template>
 				</NcButton>
 			</div>
@@ -310,8 +310,8 @@
 							{{ getVariableText(availableName) }}
 						</template>
 						<template #icon>
-							<Check v-if="isCopied(availableName)" :size="20" />
-							<ContentCopy v-else :size="20" />
+							<NcIconSvgWrapper v-if="isCopied(availableName)" :path="mdiCheck" :size="20" />
+							<NcIconSvgWrapper v-else :path="mdiContentCopy" :size="20" />
 						</template>
 						<template #description>
 							<p class="variable-description">{{ availableDescription }}</p>
@@ -325,14 +325,17 @@
 <script>
 import debounce from 'debounce'
 
-import Check from 'vue-material-design-icons/Check.vue'
-import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
-import Delete from 'vue-material-design-icons/Delete.vue'
-import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
-import MagnifyMinusOutline from 'vue-material-design-icons/MagnifyMinusOutline.vue'
-import MagnifyPlusOutline from 'vue-material-design-icons/MagnifyPlusOutline.vue'
-import Undo from 'vue-material-design-icons/UndoVariant.vue'
-import Upload from 'vue-material-design-icons/Upload.vue'
+import {
+	mdiCheck,
+	mdiContentCopy,
+	mdiDelete,
+	mdiHelpCircleOutline,
+	mdiMagnifyMinusOutline,
+	mdiMagnifyPlusOutline,
+	mdiUndoVariant,
+	mdiUpload,
+} from '@mdi/js'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
@@ -360,23 +363,14 @@ export default {
 		Linkify,
 	},
 	components: {
-		Check,
 		CodeEditor,
-		ContentCopy,
-		Delete,
-		HelpCircleOutline,
-		MagnifyMinusOutline,
-		MagnifyPlusOutline,
 		NcButton,
-		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcFormBoxButton,
-		NcLoadingIcon,
+		NcIconSvgWrapper,
 		NcNoteCard,
 		NcSettingsSection,
 		NcTextField,
-		Undo,
-		Upload,
 	},
 	setup() {
 		const isDarkTheme = useIsDarkTheme()
@@ -384,6 +378,14 @@ export default {
 			t,
 			isRTL,
 			isDarkTheme,
+			mdiCheck,
+			mdiContentCopy,
+			mdiDelete,
+			mdiHelpCircleOutline,
+			mdiMagnifyMinusOutline,
+			mdiMagnifyPlusOutline,
+			mdiUndoVariant,
+			mdiUpload,
 		}
 	},
 	data() {
@@ -445,7 +447,7 @@ export default {
 				this.signatureTextTemplate = value
 				this.debouncePropertyChange()
 			},
-		},
+	},
 		displayResetRenderMode() {
 			return this.renderMode !== 'GRAPHIC_AND_DESCRIPTION'
 		},
