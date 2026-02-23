@@ -8,7 +8,7 @@
 			:inline="inline ? 3 : 0"
 			:force-name="inline"
 			:class="{column: inline}"
-			:open.sync="openedMenu">
+			v-model:open="openedMenu">
 			<template #icon>
 				<PlusIcon :size="20" />
 			</template>
@@ -21,7 +21,7 @@
 			</NcActionButton>
 			<NcActionButton :wide="true"
 				:title="envelopeEnabled ? t('libresign', 'Multiple files allowed') : null"
-				@click="showFilePicker = true">
+				@click="openFilePicker">
 				<template #icon>
 					<FolderIcon :size="20" />
 				</template>
@@ -41,12 +41,6 @@
 			:total-bytes="totalBytes"
 			:upload-start-time="uploadStartTime"
 			@cancel="cancelUpload" />
-		<FilePicker v-if="showFilePicker"
-			:name="envelopeEnabled ? t('libresign', 'Select your files') : t('libresign', 'Select your file')"
-			:multiselect="envelopeEnabled"
-			:buttons="filePickerButtons"
-			:mimetype-filter="['application/pdf']"
-			@close="showFilePicker = false" />
 		<NcDialog v-if="modalUploadFromUrl"
 			:name="t('libresign', 'URL of a PDF file')"
 			:no-close="loading"
@@ -102,6 +96,8 @@
 	</div>
 </template>
 <script>
+import { t } from '@nextcloud/l10n'
+
 import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import LinkIcon from 'vue-material-design-icons/Link.vue'
@@ -111,7 +107,7 @@ import UploadIcon from 'vue-material-design-icons/Upload.vue'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import { showError } from '@nextcloud/dialogs'
-import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
+import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -134,7 +130,6 @@ export default {
 	name: 'RequestPicker',
 	components: {
 		CloudUploadIcon,
-		FilePicker,
 		FolderIcon,
 		LinkIcon,
 		NcActionButton,
@@ -164,12 +159,11 @@ export default {
 			sidebarStore,
 		}
 	},
-	data() {
+		data() {
 		return {
 			modalUploadFromUrl: false,
 			uploadUrlErrors: [],
 			pdfUrl: '',
-			showingFilePicker: false,
 			loading: false,
 			openedMenu: false,
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
@@ -193,13 +187,6 @@ export default {
 			const capabilities = getCapabilities()
 			return capabilities?.libresign?.config?.envelope?.['is-available'] === true
 		},
-		filePickerButtons() {
-			return [{
-				label: t('libresign', 'Choose'),
-				callback: (nodes) => this.handleFileChoose(nodes),
-				type: 'primary',
-			}]
-		},
 		canUploadFronUrl() {
 			if (this.loading) {
 				return false
@@ -212,19 +199,34 @@ export default {
 				return false
 			}
 		},
-		showFilePicker: {
-			get() {
-				return this.showingFilePicker
-			},
-			set(state) {
-				this.showingFilePicker = state
-				if (state) {
-					this.openedMenu = false
-				}
-			},
-		},
+
 	},
 	methods: {
+		t,
+		async openFilePicker() {
+			this.openedMenu = false
+
+			const filePicker = getFilePickerBuilder(
+				this.envelopeEnabled
+					? t('libresign', 'Select your files')
+					: t('libresign', 'Select your file')
+			)
+				.setMultiSelect(this.envelopeEnabled)
+				.setMimeTypeFilter(['application/pdf'])
+				.addButton({
+					label: t('libresign', 'Choose'),
+					callback: (nodes) => this.handleFileChoose(nodes),
+					type: 'primary',
+				})
+				.build()
+
+			try {
+				const nodes = await filePicker.pick()
+				await this.handleFileChoose(nodes)
+			} catch (error) {
+				// User cancelled
+			}
+		},
 		getMaxFileUploads() {
 			const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
 			return Number.isFinite(capabilitiesMax) && capabilitiesMax > 0 ? Math.floor(capabilitiesMax) : 20
