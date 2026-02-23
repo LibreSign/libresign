@@ -18,6 +18,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 
@@ -58,6 +60,7 @@ export default {
 		this.loadImage()
 	},
 	methods: {
+		t,
 		async loadImage() {
 			if (this.src.startsWith('data:')) {
 				this.imageData = this.src
