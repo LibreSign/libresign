@@ -66,7 +66,7 @@ export default {
 		fileIds: {
 			type: Array,
 			default: () => [],
-		},
+	},
 		updateInterval: {
 			type: Number,
 			default: 2000, // 2 seconds
@@ -79,8 +79,7 @@ export default {
 			n,
 			formatFileSize,
 			getStatusLabel,
-			getStatusIcon,
-		}
+			mdiFilePdfBox,}
 	},
 	data() {
 		return {
