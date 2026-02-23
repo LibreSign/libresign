@@ -3,10 +3,12 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Identification documents')"
+		:description="t('libresign', 'The flow of identification documents will make it mandatory for anyone who must sign a file, to send their identification documents, this, in order for them to be approved by some member of the approval group. The user can only create the certificate after these are approved.')">
 		<NcCheckboxRadioSwitch type="switch"
-			:checked.sync="identificationDocumentsFlowEnabled"
-			@update:checked="saveIdentificationDocumentsStatus()">
+			v-model="identificationDocumentsFlowEnabled"
+			@update:model-value="saveIdentificationDocumentsStatus">
 			{{ t('libresign', 'Enable identification documents flow') }}
 		</NcCheckboxRadioSwitch>
 		<p v-if="identificationDocumentsFlowEnabled">
@@ -31,8 +33,8 @@
 </template>
 <script>
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSelect from '@nextcloud/vue/components/NcSelect'
@@ -49,8 +51,6 @@ export default {
 	},
 	data() {
 		return {
-			name: t('libresign', 'Identification documents'),
-			description: t('libresign', 'The flow of identification documents will make it mandatory for anyone who must sign a file, to send their identification documents, this, in order for them to be approved by some member of the approval group. The user can only create the certificate after these are approved.'),
 			identificationDocumentsFlowEnabled: false,
 			approvalGroups: [],
 			groups: [],
@@ -63,6 +63,7 @@ export default {
 		await this.getData()
 	},
 	methods: {
+		t,
 		async getData() {
 			await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/identification_documents'))
 				.then(({ data }) => {
