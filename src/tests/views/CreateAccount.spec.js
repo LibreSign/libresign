@@ -5,12 +5,7 @@
 
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
-import Vue from 'vue'
-import Vuelidate from 'vuelidate'
 import CreateAccount from '../../views/CreateAccount.vue'
-
-// Register Vuelidate plugin for this test suite
-Vue.use(Vuelidate)
 import md5 from 'crypto-js/md5'
 
 // Mock @nextcloud modules
@@ -80,7 +75,7 @@ describe('CreateAccount.vue - Business Logic', () => {
 
 		it('returns error message for invalid email format', async () => {
 			wrapper.setData({ email: 'invalid-email' })
-			await wrapper.vm.$v.email.$touch()
+			await wrapper.vm.v$.email.$touch()
 			expect(wrapper.vm.emailError).toBe('This is not a valid email')
 		})
 
@@ -88,7 +83,7 @@ describe('CreateAccount.vue - Business Logic', () => {
 			wrapper.setData({ email: 'wrong@example.com' })
 			await wrapper.vm.$nextTick()
 			// Force vuelidate to not show format error
-			wrapper.vm.$v.email.$model = 'wrong@example.com'
+			wrapper.vm.v$.email.$model = 'wrong@example.com'
 			await wrapper.vm.$nextTick()
 			expect(wrapper.vm.emailError).toBe('The email entered is not the same as the email in the invitation')
 		})
@@ -103,7 +98,7 @@ describe('CreateAccount.vue - Business Logic', () => {
 	describe('showErrorEmail computed property', () => {
 		it('returns true when emailError has content', async () => {
 			wrapper.setData({ email: 'invalid' })
-			await wrapper.vm.$v.email.$touch()
+			await wrapper.vm.v$.email.$touch()
 			expect(wrapper.vm.showErrorEmail).toBe(true)
 		})
 
@@ -253,7 +248,7 @@ describe('CreateAccount.vue - Business Logic', () => {
 				password: 'password123',
 				passwordConfirm: 'password123',
 			})
-			await wrapper.vm.$v.email.$touch()
+			await wrapper.vm.v$.email.$touch()
 			expect(wrapper.vm.canSave).toBe(false)
 		})
 
@@ -291,50 +286,50 @@ describe('CreateAccount.vue - Business Logic', () => {
 	describe('Vuelidate validations', () => {
 		it('validates email as required', async () => {
 			wrapper.setData({ email: '' })
-			await wrapper.vm.$v.email.$touch()
-			expect(wrapper.vm.$v.email.required).toBe(false)
+			await wrapper.vm.v$.email.$touch()
+				expect(wrapper.vm.v$.email.required.$invalid).toBe(true)
 		})
 
 		it('validates email format', async () => {
 			wrapper.setData({ email: 'not-an-email' })
-			await wrapper.vm.$v.email.$touch()
-			expect(wrapper.vm.$v.email.email).toBe(false)
+			await wrapper.vm.v$.email.$touch()
+				expect(wrapper.vm.v$.email.email.$invalid).toBe(true)
 		})
 
 		it('accepts valid email format', async () => {
 			wrapper.setData({ email: 'test@example.com' })
-			await wrapper.vm.$v.email.$touch()
-			expect(wrapper.vm.$v.email.email).toBe(true)
+			await wrapper.vm.v$.email.$touch()
+				expect(wrapper.vm.v$.email.email.$invalid).toBe(false)
 		})
 
 		it('validates password as required', async () => {
 			wrapper.setData({ password: '' })
-			await wrapper.vm.$v.password.$touch()
-			expect(wrapper.vm.$v.password.required).toBe(false)
+			await wrapper.vm.v$.password.$touch()
+				expect(wrapper.vm.v$.password.required.$invalid).toBe(true)
 		})
 
 		it('validates password minimum length', async () => {
 			wrapper.setData({ password: '123' })
-			await wrapper.vm.$v.password.$touch()
-			expect(wrapper.vm.$v.password.minLength).toBe(false)
+			await wrapper.vm.v$.password.$touch()
+				expect(wrapper.vm.v$.password.minLength.$invalid).toBe(true)
 		})
 
 		it('accepts password with minimum length', async () => {
 			wrapper.setData({ password: '1234' })
-			await wrapper.vm.$v.password.$touch()
-			expect(wrapper.vm.$v.password.minLength).toBe(true)
+			await wrapper.vm.v$.password.$touch()
+				expect(wrapper.vm.v$.password.minLength.$invalid).toBe(false)
 		})
 
 		it('validates passwordConfirm as required', async () => {
 			wrapper.setData({ passwordConfirm: '' })
-			await wrapper.vm.$v.passwordConfirm.$touch()
-			expect(wrapper.vm.$v.passwordConfirm.required).toBe(false)
+			await wrapper.vm.v$.passwordConfirm.$touch()
+				expect(wrapper.vm.v$.passwordConfirm.required.$invalid).toBe(true)
 		})
 
 		it('validates passwordConfirm minimum length', async () => {
 			wrapper.setData({ passwordConfirm: '123' })
-			await wrapper.vm.$v.passwordConfirm.$touch()
-			expect(wrapper.vm.$v.passwordConfirm.minLength).toBe(false)
+			await wrapper.vm.v$.passwordConfirm.$touch()
+				expect(wrapper.vm.v$.passwordConfirm.minLength.$invalid).toBe(true)
 		})
 	})
 
