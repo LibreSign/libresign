@@ -3,7 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Support LibreSign')"
+		:description="t('libresign', 'Help us continue developing and maintaining LibreSign')">
 		<div class="support-project-content">
 			<p class="support-message">
 				{{ t('libresign', 'LibreSign is developed with ❤️ by LibreCode coop. Your support helps us maintain and improve this free and open-source project.') }}
@@ -44,10 +46,9 @@ import CurrencyUsdIcon from 'vue-material-design-icons/CurrencyUsd.vue'
 import HeartIcon from 'vue-material-design-icons/Heart.vue'
 import InformationIcon from 'vue-material-design-icons/Information.vue'
 
-import { translate as t } from '@nextcloud/l10n'
-
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import { t } from '@nextcloud/l10n'
 
 export default {
 	name: 'SupportProject',
@@ -58,11 +59,8 @@ export default {
 		NcButton,
 		NcSettingsSection,
 	},
-	data() {
-		return {
-			name: t('libresign', 'Support LibreSign'),
-			description: t('libresign', 'Help us continue developing and maintaining LibreSign'),
-		}
+	methods: {
+		t,
 	},
 }
 </script>
