@@ -38,11 +38,11 @@ export default {
 		signersCount: {
 			type: Number,
 			default: 0,
-		},
+	},
 		signers: {
 			type: Array,
 			default: () => [],
-		},
+	},
 	},
 	computed: {
 		tooltipContent() {
