@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name">
+	<NcSettingsSection :name="t('libresign', 'Signing order')">
 		<NcNoteCard v-if="errorMessage" type="error">
 			{{ errorMessage }}
 		</NcNoteCard>
@@ -56,7 +56,7 @@
 <script>
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
@@ -76,10 +76,18 @@ export default {
 	},
 	data() {
 		return {
-			name: t('libresign', 'Signing order'),
 			enabled: false,
 			selectedFlow: null,
-			availableFlows: [
+			loading: false,
+			errorMessage: '',
+			saved: false,
+			showErrorIcon: false,
+			flowChanging: false,
+		}
+	},
+	computed: {
+		availableFlows() {
+			return [
 				{
 					value: 'parallel',
 					label: t('libresign', 'Simultaneous (Parallel)'),
@@ -90,18 +98,15 @@ export default {
 					label: t('libresign', 'Sequential'),
 					description: t('libresign', 'Signers are organized by signing order number. Only those with the lowest pending order number can sign.'),
 				},
-			],
-			loading: false,
-			errorMessage: '',
-			saved: false,
-			showErrorIcon: false,
-			flowChanging: false,
-		}
+			]
+		},
 	},
 	async mounted() {
 		this.loadConfig()
 	},
 	methods: {
+		t,
+
 		loadConfig() {
 			try {
 				const mode = loadState('libresign', 'signature_flow', 'none')
