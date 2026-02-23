@@ -52,7 +52,6 @@ export default {
 	components: {
 		NcDialog,
 		NcPasswordField,
-		NcLoadingIcon,
 		NcButton,
 	},
 	setup() {
