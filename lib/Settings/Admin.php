@@ -41,6 +41,7 @@ class Admin implements ISettings {
 	#[\Override]
 	public function getForm(): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-settings');
+		Util::addStyle(Application::APP_ID, 'libresign-settings');
 		try {
 			$signatureParsed = $this->signatureTextService->parse();
 			$this->initialState->provideInitialState('signature_text_parsed', $signatureParsed['parsed']);
