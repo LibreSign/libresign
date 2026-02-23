@@ -54,11 +54,11 @@
 
 <script>
 import { generateUrl } from '@nextcloud/router'
-import { translate as t, translatePlural as n } from '@nextcloud/l10n'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
-import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
-import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
+import { n, t } from '@nextcloud/l10n'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import NcListItem from '@nextcloud/vue/components/NcListItem'
+import NcRichText from '@nextcloud/vue/components/NcRichText'
 
 import {
 	mdiEye,
