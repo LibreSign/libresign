@@ -67,10 +67,8 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 export default {
 	name: 'DocMDP',
 	components: {
-		NcCheckboxRadioSwitch,
 		NcLoadingIcon,
 		NcNoteCard,
-		NcSavingIndicatorIcon,
 		NcSettingsSection,
 	},
 	data() {
