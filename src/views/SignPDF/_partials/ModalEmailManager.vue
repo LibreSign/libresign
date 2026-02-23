@@ -22,7 +22,7 @@
 				name="code"
 				type="text"
 				@keyup.enter="sendCode">
-				<FormTextboxPasswordIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiFormTextboxPassword" :size="20" />
 			</NcTextField>
 		</div>
 		<NcTextField v-else
@@ -34,7 +34,7 @@
 			:error="errorMessage.length > 0"
 			@keyup.enter="requestCode"
 			@input="onChangeEmail">
-			<EmailIcon :size="20" />
+			<NcIconSvgWrapper :path="mdiEmail" :size="20" />
 		</NcTextField>
 		<template #actions>
 			<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode"
@@ -75,8 +75,6 @@ import { t } from '@nextcloud/l10n'
 
 import md5 from 'blueimp-md5'
 
-import EmailIcon from 'vue-material-design-icons/Email.vue'
-import FormTextboxPasswordIcon from 'vue-material-design-icons/FormTextboxPassword.vue'
 
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -87,6 +85,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { useSignStore } from '../../../store/sign.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
@@ -102,9 +101,6 @@ export default {
 	components: {
 		NcDialog,
 		NcTextField,
-		NcLoadingIcon,
-		FormTextboxPasswordIcon,
-		EmailIcon,
 		NcButton,
 	},
 	setup() {
@@ -175,7 +171,7 @@ export default {
 							identify: this.sendTo,
 							identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
 							signMethod: 'emailToken',
-						},
+	},
 					)
 					showSuccess(data.ocs.data.message)
 				} else {
@@ -188,7 +184,7 @@ export default {
 							identify: this.sendTo,
 							identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
 							signMethod: 'emailToken',
-						},
+	},
 					)
 					showSuccess(data.ocs.data.message)
 				}
