@@ -130,6 +130,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import Delete from 'vue-material-design-icons/Delete.vue'
 import FileEye from 'vue-material-design-icons/FileEye.vue'
 import FilePdfBox from 'vue-material-design-icons/FilePdfBox.vue'
@@ -284,6 +286,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		async loadFiles(page = 1) {
 			if (!this.envelope?.id) {
 				return
