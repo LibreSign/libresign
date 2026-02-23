@@ -41,6 +41,8 @@
 
 <script>
 
+import { t } from '@nextcloud/l10n'
+
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 export default {
@@ -68,6 +70,12 @@ export default {
 	},
 
 	emits: ['rename', 'update:basename', 'renaming'],
+
+	setup() {
+		return {
+			t,
+		}
+	},
 
 	data() {
 		return {
