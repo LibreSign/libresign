@@ -91,7 +91,6 @@ export default {
 		NcActionButton,
 		NcActions,
 		NcButton,
-		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcIconSvgWrapper,
 		NcLoadingIcon,
@@ -100,15 +99,15 @@ export default {
 		opened: {
 			type: Boolean,
 			default: false,
-		},
+	},
 		source: {
 			type: Object,
 			required: true,
-		},
+	},
 		loading: {
 			type: Boolean,
 			required: true,
-		},
+	},
 	},
 	setup() {
 		const actionsMenuStore = useActionsMenuStore()
@@ -142,7 +141,7 @@ export default {
 			set(opened) {
 				this.actionsMenuStore.opened = opened ? this.source.id : null
 			},
-		},
+	},
 		visibleMenu() {
 			return this.enabledMenuActions.filter(action => this.visibleIf(action))
 		},
@@ -239,7 +238,7 @@ export default {
 					name: 'SignPDF',
 					params: {
 						uuid: signUuid,
-					},
+	},
 				})
 				this.filesStore.selectFile(this.source.id)
 				this.sidebarStore.activeRequestSignatureTab()
@@ -248,7 +247,7 @@ export default {
 					name: 'ValidationFile',
 					params: {
 						uuid: this.source.uuid,
-					},
+	},
 				})
 			} else if (action.id === 'delete') {
 				this.confirmDelete = true
