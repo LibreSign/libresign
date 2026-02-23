@@ -39,7 +39,6 @@ const endOfToday = () => (new Date()).setHours(23, 59, 59, 999)
 export default {
 	name: 'FileListFilterModified',
 	components: {
-		FileListFilter,
 		NcActionButton,
 		NcIconSvgWrapper,
 	},
@@ -60,31 +59,31 @@ export default {
 					label: t('libresign', 'Today'),
 					start: startOfToday(),
 					end: endOfToday(),
-				},
+	},
 				{
 					id: 'last-7',
 					label: t('libresign', 'Last 7 days'),
 					start: startOfToday() - (7 * 24 * 60 * 60 * 1000),
 					end: endOfToday(),
-				},
+	},
 				{
 					id: 'last-30',
 					label: t('libresign', 'Last 30 days'),
 					start: startOfToday() - (30 * 24 * 60 * 60 * 1000),
 					end: endOfToday(),
-				},
+	},
 				{
 					id: 'this-year',
 					label: t('libresign', 'This year ({year})', { year: (new Date()).getFullYear() }),
 					start: (new Date(startOfToday())).setMonth(0, 1),
 					end: endOfToday(),
-				},
+	},
 				{
 					id: 'last-year',
 					label: t('libresign', 'Last year ({year})', { year: (new Date()).getFullYear() - 1 }),
 					start: (new Date(startOfToday())).setFullYear((new Date()).getFullYear() - 1, 0, 1),
 					end: (new Date(startOfToday())).setMonth(0, 1),
-				},
+	},
 			],
 		}
 	},
