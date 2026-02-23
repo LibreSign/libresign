@@ -55,9 +55,6 @@ vi.mock('../../../components/PreviewSignature/PreviewSignature.vue', () => ({
 	},
 }))
 
-vi.mock('vue-material-design-icons/Delete.vue', () => ({
-	default: { name: 'DeleteIcon', template: '<div></div>' },
-}))
 
 vi.mock('signature_pad', () => {
 	return {
