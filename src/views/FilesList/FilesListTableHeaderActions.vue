@@ -75,12 +75,10 @@ export default {
 		NcActions,
 		NcActionButton,
 		NcButton,
-		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcIconSvgWrapper,
 		NcLoadingIcon,
 	},
-
 	setup() {
 		const filesStore = useFilesStore()
 		const selectionStore = useSelectionStore()
