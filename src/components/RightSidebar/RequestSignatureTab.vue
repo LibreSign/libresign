@@ -260,13 +260,13 @@ import {
 	mdiBell,
 	mdiChartGantt,
 	mdiDelete,
-	mdiPencil,
 	mdiFileDocument,
 	mdiFileMultiple,
 	mdiFilePlus,
 	mdiInformation,
 	mdiMessageText,
 	mdiOrderNumericAscending,
+	mdiPencil,
 	mdiSend,
 } from '@mdi/js'
 
@@ -332,7 +332,6 @@ export default {
 	name: 'RequestSignatureTab',
 	mixins: [signingOrderMixin],
 	components: {
-		EnvelopeFilesList,
 		IdentifySigner,
 		NcActionButton,
 		NcActionInput,
@@ -340,11 +339,9 @@ export default {
 		NcAppSidebar,
 		NcAppSidebarTab,
 		NcButton,
-		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcIconSvgWrapper,
 		NcFormBox,
-		NcLoadingIcon,
 		NcModal,
 		NcNoteCard,
 		Signers,
@@ -356,7 +353,7 @@ export default {
 		useModal: {
 			type: Boolean,
 			default: false,
-		},
+	},
 	},
 	setup() {
 		const filesStore = useFilesStore()
@@ -681,7 +678,7 @@ export default {
 				}
 			},
 			immediate: true,
-		},
+	},
 		'filesStore.currentFile.status'(newStatus) {
 			if (newStatus === FILE_STATUS.SIGNING_IN_PROGRESS) {
 				this.startSigningProgressPolling()
