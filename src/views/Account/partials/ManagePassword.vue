@@ -52,6 +52,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import CertificateIcon from 'vue-material-design-icons/Certificate.vue'
 import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
@@ -102,6 +104,7 @@ export default {
 		this.mounted = true
 	},
 	methods: {
+		t,
 		onCertificateUploaded() {
 			this.$emit('certificate:uploaded')
 		},
