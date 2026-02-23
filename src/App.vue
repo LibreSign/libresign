@@ -8,7 +8,10 @@
 		<LeftSidebar />
 		<NcAppContent :class="{'icon-loading' : loading }">
 			<DefaultPageError v-if="isDoNothingError" />
-			<router-view v-else-if="!loading" :key="$route.name " :loading.sync="loading" />
+			<router-view
+				v-else-if="!loading"
+				:key="$route.name"
+				v-model:loading="loading" />
 			<NcEmptyContent v-if="isRoot" :description="t('libresign', 'LibreSign, digital signature app for Nextcloud.')">
 				<template #icon>
 					<img :src="LogoLibreSign">
@@ -19,7 +22,10 @@
 	</NcContent>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { t } from '@nextcloud/l10n'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcContent from '@nextcloud/vue/components/NcContent'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
@@ -28,36 +34,14 @@ import LeftSidebar from './components/LeftSidebar/LeftSidebar.vue'
 import RightSidebar from './components/RightSidebar/RightSidebar.vue'
 import DefaultPageError from './views/DefaultPageError.vue'
 
-import LogoLibreSign from './../img/logo-gray.svg'
+import LogoLibreSign from '../img/logo-gray.svg'
 
-export default {
-	name: 'App',
-	components: {
-		NcContent,
-		NcAppContent,
-		NcEmptyContent,
-		LeftSidebar,
-		RightSidebar,
-		DefaultPageError,
-	},
-	data() {
-		return {
-			loading: false,
-			LogoLibreSign,
-		}
-	},
-	computed: {
-		isRoot() {
-			return this.$route.path === '/'
-		},
-		isSignExternalPage() {
-			return this.$route.path.startsWith('/p/')
-		},
-		isDoNothingError() {
-			return this.$route.params?.action === 2000
-		},
-	},
-}
+const route = useRoute()
+const loading = ref(false)
+
+const isRoot = computed(() => route.path === '/')
+const isSignExternalPage = computed(() => route.path.startsWith('/p/'))
+const isDoNothingError = computed(() => (route.params?.action as number | undefined) === 2000)
 </script>
 
 <style lang="scss" scoped>
