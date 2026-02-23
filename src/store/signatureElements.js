@@ -4,7 +4,6 @@
  */
 
 import { defineStore } from 'pinia'
-import { set } from 'vue'
 
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
@@ -43,7 +42,7 @@ export const useSignatureElementsStore = function(...args) {
 				if (userSignatures) {
 					this.signRequestUuid = loadState('libresign', 'sign_request_uuid', '')
 					userSignatures.forEach(element => {
-						set(this.signs, element.type, element)
+						this.signs[element.type] = element
 					})
 					this._initialized = true
 					return
@@ -60,7 +59,7 @@ export const useSignatureElementsStore = function(...args) {
 				await axios(config)
 					.then(({ data }) => {
 						data.ocs.data.elements.forEach(current => {
-							set(this.signs, current.type, current)
+							this.signs[current.type] = current
 						})
 					})
 					.catch(({ data }) => {
@@ -105,10 +104,10 @@ export const useSignatureElementsStore = function(...args) {
 					.then(({ data }) => {
 						if (Object.hasOwn(data.ocs.data, 'elements')) {
 							data.ocs.data.elements.forEach(element => {
-								set(this.signs, element.type, element)
+								this.signs[element.type] = element
 							})
 						}
-						set(this.signs[type], 'value', base64)
+						this.signs[type].value = base64
 						this.success = data.ocs.data.message
 					})
 					.catch(({ response }) => {
