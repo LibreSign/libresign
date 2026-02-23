@@ -6,7 +6,7 @@
 <template>
 	<div>
 		<fieldset class="settings-section__row">
-			<NcTextField :value.sync="OID"
+			<NcTextField v-model:value="OID"
 				:label="t('libresign', 'Certificate Policy OID')"
 				:placeholder="t('libresign', 'Certificate Policy OID')"
 				:spellcheck="false"
@@ -67,6 +67,7 @@ import Upload from 'vue-material-design-icons/Upload.vue'
 
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
+import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import { openDocument } from '../../utils/viewer.js'
@@ -75,7 +76,7 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-import '@nextcloud/password-confirmation/dist/style.css'
+import '@nextcloud/password-confirmation/style.css'
 
 export default {
 	name: 'CertificatePolicy',
@@ -112,6 +113,8 @@ export default {
 		this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 	},
 	methods: {
+		t,
+
 		view() {
 			openDocument({
 				fileUrl: this.CPS,
