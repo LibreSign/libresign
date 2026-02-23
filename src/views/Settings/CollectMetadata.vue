@@ -26,7 +26,6 @@ export default {
 	name: 'CollectMetadata',
 	components: {
 		NcSettingsSection,
-		NcCheckboxRadioSwitch,
 	},
 	data() {
 		return {
