@@ -55,27 +55,20 @@
 				</div>
 			</div>
 		</template>
-
-		<FilePicker v-if="showFilePicker"
-			:name="t('libresign', 'Select your file')"
-			:multiselect="false"
-			:buttons="filePickerButtons"
-			:mimetype-filter="['application/pdf']"
-			@close="toggleFilePicker" />
 	</div>
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
-import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
+import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
 import { IDENTIFICATION_DOCUMENTS_STATUS } from '../../../constants.js'
 
@@ -96,7 +89,6 @@ export default {
 	name: 'Documents',
 	components: {
 		DeleteIcon,
-		FilePicker,
 		FolderIcon,
 		NcButton,
 		NcLoadingIcon,
@@ -115,17 +107,9 @@ export default {
 			documentList: [],
 			loading: true,
 			selectedType: null,
-			showFilePicker: false,
 		}
 	},
 	computed: {
-		filePickerButtons() {
-			return [{
-				label: t('libresign', 'Choose'),
-				callback: (nodes) => this.handleFileChoose(nodes),
-				type: 'primary',
-			}]
-		},
 		fileTypeInfo() {
 			return {
 				IDENTIFICATION: {
@@ -158,6 +142,7 @@ export default {
 		this.loadDocuments()
 	},
 	methods: {
+		t,
 		findDocumentByType(list, type) {
 			return list.find(row => row?.file_type?.type === type) || {
 				nodeId: 0,
@@ -168,9 +153,25 @@ export default {
 				file_type: this.fileTypeInfo[type] || { type },
 			}
 		},
-		toggleFilePicker(type) {
+		async toggleFilePicker(type) {
 			this.selectedType = type
-			this.showFilePicker = !this.showFilePicker
+
+			const filePicker = getFilePickerBuilder(t('libresign', 'Select your file'))
+				.setMultiSelect(false)
+				.setMimeTypeFilter(['application/pdf'])
+				.addButton({
+					label: t('libresign', 'Choose'),
+					callback: (nodes) => this.handleFileChoose(nodes),
+					type: 'primary',
+				})
+				.build()
+
+			try {
+				const nodes = await filePicker.pick()
+				await this.handleFileChoose(nodes)
+			} catch (error) {
+				// User cancelled
+			}
 		},
 		async loadDocuments() {
 			this.loading = true
