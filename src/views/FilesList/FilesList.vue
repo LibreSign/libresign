@@ -33,7 +33,7 @@
 				@click="toggleGridView">
 				<template #icon>
 					<ListViewIcon v-if="userConfigStore.files_list_grid_view" />
-					<ViewGridIcon v-else />
+					<NcIconSvgWrapper :path="mdiViewGrid" v-else />
 				</template>
 			</NcButton>
 		</div>
@@ -54,7 +54,7 @@
 						<RequestPicker />
 					</template>
 					<template #icon>
-						<FolderIcon />
+						<NcIconSvgWrapper :path="mdiFolder" />
 					</template>
 				</NcEmptyContent>
 
@@ -62,7 +62,7 @@
 					v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length > 0"
 					:name="t('libresign', 'No documents found')">
 					<template #icon>
-						<FolderIcon />
+						<NcIconSvgWrapper :path="mdiFolder" />
 					</template>
 				</NcEmptyContent>
 			</template>
@@ -76,9 +76,6 @@ import { t } from '@nextcloud/l10n'
 
 import HomeSvg from '@mdi/svg/svg/home.svg?raw'
 
-import FolderIcon from 'vue-material-design-icons/Folder.vue'
-import ListViewIcon from 'vue-material-design-icons/FormatListBulletedSquare.vue'
-import ViewGridIcon from 'vue-material-design-icons/ViewGrid.vue'
 
 import { loadState } from '@nextcloud/initial-state'
 
@@ -103,14 +100,9 @@ export default {
 	components: {
 		NcAppContent,
 		NcButton,
-		ListViewIcon,
-		ViewGridIcon,
-		NcLoadingIcon,
-		FolderIcon,
 		NcBreadcrumb,
 		NcBreadcrumbs,
 		NcIconSvgWrapper,
-		FilesListVirtual,
 		RequestPicker,
 		NcEmptyContent,
 	},
