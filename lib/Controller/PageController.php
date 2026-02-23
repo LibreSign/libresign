@@ -173,7 +173,9 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/p/incomplete')]
 	public function incompleteP(): TemplateResponse {
-		Util::addScript(Application::APP_ID, 'libresign-main');		Util::addStyle(Application::APP_ID, 'libresign-main');		$response = new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
+		Util::addScript(Application::APP_ID, 'libresign-main');
+		Util::addStyle(Application::APP_ID, 'libresign-main');
+		$response = new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
 		return $response;
 	}
 
