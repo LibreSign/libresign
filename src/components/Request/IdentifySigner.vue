@@ -32,9 +32,9 @@
 			@update:value="onNameChange" />
 
 		<div v-if="signerSelected && showCustomMessage && !disabled" class="description-wrapper">
-			<NcCheckboxRadioSwitch v-model:checked="enableCustomMessage"
+			<NcCheckboxRadioSwitch v-model="enableCustomMessage"
 				type="switch"
-				@update:checked="onToggleCustomMessage">
+				@update:model-value="onToggleCustomMessage">
 				{{ t('libresign', 'Add custom message') }}
 			</NcCheckboxRadioSwitch>
 			<NcTextArea v-if="enableCustomMessage"
@@ -62,6 +62,8 @@
 	</div>
 </template>
 <script>
+import { t } from '@nextcloud/l10n'
+
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
 import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
@@ -121,6 +123,7 @@ export default {
 			default: t('libresign', 'Name'),
 		},
 		methods: {
+		t,
 			type: Array,
 			default: () => [],
 		},
@@ -193,6 +196,7 @@ export default {
 		}
 	},
 	methods: {
+		t,
 		getMethodIcon() {
 			const method = this.signer?.method
 			if (!method) {
