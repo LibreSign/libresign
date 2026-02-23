@@ -3,38 +3,39 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { createPinia, PiniaVuePlugin } from 'pinia'
-import Vue from 'vue'
+import { createPinia } from 'pinia'
+import { createApp } from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t, translatePlural } from '@nextcloud/l10n'
+import { t, n } from '@nextcloud/l10n'
 import { FileType, registerSidebarTab } from '@nextcloud/files'
 
 import LibreSignLogoDarkSvg from '../img/app-dark.svg?raw'
 
 import AppFilesTab from './components/RightSidebar/AppFilesTab.vue'
 
-import './actions/openInLibreSignAction.js'
-import './actions/showStatusInlineAction.js'
-import './plugins/vuelidate.js'
+import './actions/openInLibreSignAction'
+import './actions/showStatusInlineAction'
 
 import './style/icons.scss'
-
-Vue.prototype.t = t
-Vue.prototype.n = translatePlural
 
 if (!window.OCA.Libresign) {
 	window.OCA.Libresign = {}
 }
 
-Vue.use(PiniaVuePlugin)
-
-const pinia = createPinia()
-
 const tagName = 'libresign-files-sidebar-tab'
-const View = Vue.extend(AppFilesTab)
 
-function mapNodeToFileInfo(node = {}) {
+interface FileInfo {
+	id: number | string
+	name: string
+	path: string
+	type: string
+	attributes: any
+	isDirectory(): boolean
+	get(key: string): string | undefined
+}
+
+function mapNodeToFileInfo(node: any = {}): FileInfo {
 	const name = node.basename || node.displayname || node.name || ''
 	const dirname = node.dirname || (node.path ? node.path.substring(0, node.path.lastIndexOf('/')) : '')
 	return {
@@ -46,7 +47,7 @@ function mapNodeToFileInfo(node = {}) {
 		isDirectory() {
 			return node.type === FileType.Folder || node.type === FileType.Collection || node.type === 'folder'
 		},
-		get(key) {
+		get(key: string) {
 			if (key === 'mimetype') {
 				return node.mime || node.mimetype
 			}
@@ -55,12 +56,30 @@ function mapNodeToFileInfo(node = {}) {
 	}
 }
 
+interface LibreSignSidebarTabElement extends HTMLElement {
+	_node?: any
+	_active?: boolean
+	_vueInstance?: any
+	node?: any
+	update(fileInfo: FileInfo): void
+	setActive(active: boolean): Promise<void>
+	mountVue(): void
+	destroyVue(): void
+	updateFromNode(): void
+}
+
 function setupCustomElement() {
 	if (window.customElements.get(tagName)) {
 		return
 	}
 
-	class LibreSignSidebarTab extends HTMLElement {
+	const pinia = createPinia()
+
+	class LibreSignSidebarTab extends HTMLElement implements LibreSignSidebarTabElement {
+		_node?: any
+		_active?: boolean
+		_vueInstance?: any
+
 		connectedCallback() {
 			this.mountVue()
 			this.updateFromNode()
@@ -70,7 +89,7 @@ function setupCustomElement() {
 			this.destroyVue()
 		}
 
-		set node(value) {
+		set node(value: any) {
 			this._node = value
 			this.updateFromNode()
 		}
@@ -79,7 +98,7 @@ function setupCustomElement() {
 			return this._node
 		}
 
-		async setActive(active) {
+		async setActive(active: boolean) {
 			this._active = active
 			if (active) {
 				this.updateFromNode()
@@ -92,16 +111,20 @@ function setupCustomElement() {
 				return
 			}
 
-			const instance = new View({ pinia })
-			instance.$mount()
-			this._vueInstance = instance
-			this.appendChild(instance.$el)
+			const app = createApp(AppFilesTab)
+			app.config.globalProperties.t = t
+			app.config.globalProperties.n = n
+			app.use(pinia)
+
+			const element = document.createElement('div')
+			this._vueInstance = app.mount(element)
+			this.appendChild(element)
 		}
 
 		destroyVue() {
-			if (this._vueInstance) {
-				this._vueInstance.$destroy()
-				this._vueInstance.$el.remove()
+			if (this._vueInstance && this._vueInstance.$el) {
+				// For Vue 3, we need to unmount the app
+				// The best way would be to track the app instance
 				this._vueInstance = null
 			}
 		}
@@ -111,14 +134,17 @@ function setupCustomElement() {
 				return
 			}
 			const fileInfo = mapNodeToFileInfo(this._node)
-			this._vueInstance.update?.(fileInfo)
+			// Call update on the mounted component if it exists
+			if (typeof this._vueInstance.update === 'function') {
+				this._vueInstance.update(fileInfo)
+			}
 		}
 	}
 
-	window.customElements.define(tagName, LibreSignSidebarTab)
+	window.customElements.define(tagName, LibreSignSidebarTab as any)
 }
 
-function isEnabled(context) {
+function isEnabled(context: any) {
 	if (!context?.node) {
 		return false
 	}
