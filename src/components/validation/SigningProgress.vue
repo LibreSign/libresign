@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
