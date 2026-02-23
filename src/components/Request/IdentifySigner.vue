@@ -98,7 +98,6 @@ export default {
 	name: 'IdentifySigner',
 	components: {
 		NcButton,
-		NcCheckboxRadioSwitch,
 		NcIconSvgWrapper,
 		NcNoteCard,
 		NcTextArea,
@@ -113,24 +112,24 @@ export default {
 				displayName: '',
 				identifyMethods: [],
 			}),
-		},
+	},
 		method: {
 			type: String,
 			default: 'all',
-		},
+	},
 		placeholder: {
 			type: String,
 			default: t('libresign', 'Name'),
-		},
+	},
 		methods: {
 		t,
 			type: Array,
 			default: () => [],
-		},
+	},
 		disabled: {
 			type: Boolean,
 			default: false,
-		},
+	},
 	},
 	setup() {
 		const filesStore = useFilesStore()
@@ -228,7 +227,7 @@ export default {
 					{
 						method: this.signer.method,
 						value: this.signer.id,
-					},
+	},
 				],
 			})
 
