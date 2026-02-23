@@ -87,7 +87,7 @@ export default {
 		chain: {
 			type: Array,
 			required: true,
-		},
+	},
 	},
 	setup() {
 		return {
