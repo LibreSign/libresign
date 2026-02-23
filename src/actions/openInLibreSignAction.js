@@ -2,10 +2,10 @@
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { registerFileAction, FileAction } from '@nextcloud/files'
+import { registerFileAction, getSidebar } from '@nextcloud/files'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 import EditNameDialog from '../components/Common/EditNameDialog.vue'
 
@@ -38,12 +38,12 @@ function promptEnvelopeName() {
 	})
 }
 
-export const action = new FileAction({
+export const action = {
 	id: 'open-in-libresign',
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
 
-	enabled(nodes) {
+	enabled({ nodes }) {
 		if (!loadState('libresign', 'certificate_ok', false)) {
 			return false
 		}
@@ -71,10 +71,10 @@ export const action = new FileAction({
 	/**
 	 * Single file or folder: open in sidebar
 	 */
-	async exec(node) {
-		const sidebar = window.OCA.Files.Sidebar
-		sidebar.close()
-		await sidebar.open(node.path)
+	async exec({ nodes }) {
+		const sidebar = getSidebar()
+		const node = nodes[0]
+		await sidebar.open(node, 'libresign')
 		sidebar.setActiveTab('libresign')
 		return null
 	},
@@ -83,9 +83,9 @@ export const action = new FileAction({
 	 * Multiple files: prepare envelope data and delegate to sidebar
 	 * Similar to exec, but passes multiple files to the sidebar for processing
 	 */
-	async execBatch(nodes) {
+	async execBatch({ nodes }) {
 		if (nodes.length === 1) {
-			await this.exec(nodes[0])
+			await this.exec({ nodes })
 			return [null]
 		}
 
@@ -112,16 +112,15 @@ export const action = new FileAction({
 			uuid: null,
 		}
 
-		const sidebar = window.OCA.Files.Sidebar
+		const sidebar = getSidebar()
 		const firstNode = nodes[0]
-		sidebar.close()
-		await sidebar.open(firstNode.path)
+		await sidebar.open(firstNode, 'libresign')
 		sidebar.setActiveTab('libresign')
 
 		return new Array(nodes.length).fill(null)
 	},
 
 	order: -1000,
-})
+}
 
 registerFileAction(action)
