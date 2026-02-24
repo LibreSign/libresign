@@ -5,38 +5,69 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-let EnvelopeValidation
+import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
+
+type EnvelopeFile = {
+	id: number
+	status: string
+	name?: string
+	nodeId?: number
+	uuid?: string
+	opened?: boolean
+	statusText?: string
+	signed?: string | null
+}
+
+type EnvelopeSigner = {
+	signed?: boolean | string | null
+	opened?: boolean
+	displayName?: string
+	email?: string
+}
+
+type EnvelopeDocument = {
+	name: string
+	status: string
+	filesCount: number
+	files: EnvelopeFile[]
+	signers: EnvelopeSigner[]
+}
+
+type WrapperProps = Partial<{
+	document: Partial<EnvelopeDocument>
+	legalInformation: string
+	documentValidMessage: string | null
+	isAfterSigned: boolean
+}>
+
+type EnvelopeValidationComponent = typeof import('../../../components/validation/EnvelopeValidation.vue').default
+type ViewerModule = typeof import('../../../utils/viewer.js')
+
+const t: TranslationFunction = (_app, text, vars) => {
+	if (vars) {
+		return text.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))
+	}
+	return text
+}
+
+const n: PluralTranslationFunction = (_app, singular, plural, count, vars) => {
+	const template = count === 1 ? singular : plural
+	if (vars) {
+		return template.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))
+	}
+	return template
+}
+
+let EnvelopeValidation: EnvelopeValidationComponent
 
 vi.mock('@nextcloud/router', () => ({
-	generateUrl: vi.fn((url, params) => url.replace('{uuid}', params.uuid)),
+	generateUrl: vi.fn((url: string, params: { uuid: string }) => url.replace('{uuid}', params.uuid)),
 }))
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app, text, vars) => {
-		if (vars) {
-			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-		}
-		return text
-	}),
-	translatePlural: vi.fn((app, singular, plural, count, vars) => {
-		const template = count === 1 ? singular : plural
-		if (vars) {
-			return template.replace(/{(\w+)}/g, (m, key) => vars[key])
-		}
-		return template
-	}),
-	t: vi.fn((app, text, vars) => {
-		if (vars) {
-			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-		}
-		return text
-	}),
-	n: vi.fn((app, singular, plural, count, vars) => {
-		const template = count === 1 ? singular : plural
-		if (vars) {
-			return template.replace(/{(\w+)}/g, (m, key) => vars[key])
-		}
-		return template
-	}),
+	translate: vi.fn(t),
+	translatePlural: vi.fn(n),
+	t: vi.fn(t),
+	n: vi.fn(n),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -47,25 +78,25 @@ vi.mock('@nextcloud/moment', () => ({
 	})),
 }))
 vi.mock('../../../utils/fileStatus.js', () => ({
-	getStatusLabel: vi.fn((status) => {
-		const labels = { '0': 'Draft', '1': 'Pending', '3': 'Signed' }
-		return labels[status] || 'Unknown'
+	getStatusLabel: vi.fn((status: string | number) => {
+		const labels: Record<string, string> = { '0': 'Draft', '1': 'Pending', '3': 'Signed' }
+		return labels[String(status)] ?? 'Unknown'
 	}),
 }))
 vi.mock('../../../utils/viewer.js', () => ({
 	openDocument: vi.fn(),
 }))
 
-let viewer
+let viewer: ViewerModule
 beforeAll(async () => {
 	;({ default: EnvelopeValidation } = await import('../../../components/validation/EnvelopeValidation.vue'))
 	viewer = await import('../../../utils/viewer.js')
 })
 
 describe('EnvelopeValidation', () => {
-	let wrapper
+	let wrapper: ReturnType<typeof mount> | null
 
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props: WrapperProps = {}) => {
 		return mount(EnvelopeValidation, {
 			props: {
 				document: {
@@ -96,19 +127,8 @@ describe('EnvelopeValidation', () => {
 					DocumentValidationDetails: true,
 				},
 				mocks: {
-					t: (app, text, vars) => {
-						if (vars) {
-							return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-						}
-						return text
-					},
-					n: (app, singular, plural, count, vars) => {
-						const template = count === 1 ? singular : plural
-						if (vars) {
-							return template.replace(/{(\w+)}/g, (m, key) => vars[key])
-						}
-						return template
-					},
+					t,
+					n,
 				},
 			},
 		})
@@ -116,14 +136,15 @@ describe('EnvelopeValidation', () => {
 
 	beforeEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
+			wrapper = null
 		}
 		vi.clearAllMocks()
 	})
 
 	describe('RULE: initializeDocument sets opened property for files', () => {
 		it('initializes all files with opened false', async () => {
-			const files = [
+			const files: EnvelopeFile[] = [
 				{ id: 1, status: '3' },
 				{ id: 2, status: '0' },
 			]
@@ -136,7 +157,7 @@ describe('EnvelopeValidation', () => {
 		})
 
 		it('sets statusText for each file', async () => {
-			const files = [
+			const files: EnvelopeFile[] = [
 				{ id: 1, status: '3' },
 				{ id: 2, status: '1' },
 			]
@@ -340,7 +361,7 @@ describe('EnvelopeValidation', () => {
 
 	describe('RULE: created lifecycle initializes document', () => {
 		it('calls initializeDocument on created', () => {
-			const files = [{ id: 1, status: '3' }]
+			const files: EnvelopeFile[] = [{ id: 1, status: '3' }]
 			wrapper = createWrapper({
 				document: { files },
 			})
@@ -351,7 +372,7 @@ describe('EnvelopeValidation', () => {
 
 	describe('RULE: documentStatus and initializeDocument together manage file state', () => {
 		it('maintains file state across multiple toggles', () => {
-			const file = { id: 1, opened: false }
+			const file: EnvelopeFile = { id: 1, status: '3', opened: false }
 			wrapper = createWrapper({
 				document: { files: [file] },
 			})
@@ -364,12 +385,12 @@ describe('EnvelopeValidation', () => {
 		})
 
 		it('reinitializes files when document prop changes', async () => {
-			const oldFile = { id: 1, status: '3', opened: true }
+			const oldFile: EnvelopeFile = { id: 1, status: '3', opened: true }
 			wrapper = createWrapper({
 				document: { files: [oldFile] },
 			})
 
-			const newFile = { id: 2, status: '1' }
+			const newFile: EnvelopeFile = { id: 2, status: '1' }
 			await wrapper.setProps({
 				document: {
 					files: [newFile],
@@ -385,7 +406,7 @@ describe('EnvelopeValidation', () => {
 
 	describe('RULE: signer details show only when opened', () => {
 		it('shows signer details when opened true', async () => {
-			const signer = { opened: true, signed: '2024-06-01' }
+			const signer: EnvelopeSigner = { opened: true, signed: '2024-06-01' }
 			wrapper = createWrapper({
 				document: { signers: [signer] },
 			})
@@ -396,7 +417,7 @@ describe('EnvelopeValidation', () => {
 		})
 
 		it('hides signer details when opened false', async () => {
-			const signer = { opened: false, signed: null }
+			const signer: EnvelopeSigner = { opened: false, signed: null }
 			wrapper = createWrapper({
 				document: { signers: [signer] },
 			})
@@ -415,7 +436,7 @@ describe('EnvelopeValidation', () => {
 		})
 
 		it('renders actions slot when not touch device and file has nodeId', async () => {
-			const file = { nodeId: 123, opened: false, status: '3', name: 'test.pdf', statusText: 'Signed' }
+			const file: EnvelopeFile = { id: 1, nodeId: 123, opened: false, status: '3', name: 'test.pdf', statusText: 'Signed' }
 			wrapper = createWrapper({
 				document: { files: [file] },
 			})
