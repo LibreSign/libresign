@@ -59,6 +59,13 @@
 
 <script>
 import { t } from '@nextcloud/l10n'
+import {
+	mdiAccountCheck,
+	mdiFileCheck,
+	mdiFileSign,
+	mdiFolder,
+	mdiShieldLock,
+} from '@mdi/js'
 
 
 import { getCurrentUser } from '@nextcloud/auth'
@@ -79,6 +86,7 @@ export default {
 		NcAppNavigation,
 		NcAppNavigationItem,
 		NcAppNavigationSettings,
+		NcIconSvgWrapper,
 		Settings,
 	},
 	setup() {
@@ -92,6 +100,11 @@ export default {
 				identificationDocumentsFlow: false,
 				isApprover: false,
 			}),
+			mdiFileSign,
+			mdiFolder,
+			mdiFileCheck,
+			mdiAccountCheck,
+			mdiShieldLock,
 		}
 	},
 	computed: {
