@@ -11,6 +11,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import VisibleElements from '../../../components/Request/VisibleElements.vue'
 import { FILE_STATUS } from '../../../constants.js'
+import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
 
 vi.mock('@nextcloud/capabilities', () => ({
 	getCapabilities: vi.fn(() => ({
@@ -58,8 +59,8 @@ vi.mock('@libresign/pdf-elements', () => ({
 }))
 
 describe('VisibleElements Component - Business Rules', () => {
-	let wrapper: any
-	let filesStore: any
+	let wrapper: ReturnType<typeof mount>
+	let filesStore: ReturnType<typeof useFilesStoreType>
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
