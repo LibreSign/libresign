@@ -53,6 +53,7 @@ import { useConfigureCheckStore } from '../../store/configureCheck.js'
 export default {
 	name: 'IdentificationFactors',
 	components: {
+		NcCheckboxRadioSwitch,
 		NcSettingsSection,
 	},
 	setup() {
