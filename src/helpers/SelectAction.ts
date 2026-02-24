@@ -4,7 +4,7 @@
  */
 
 import { loadState } from '@nextcloud/initial-state'
-import type { RouteLocationNormalized } from 'vue-router'
+import type { RouteLocationLike } from './isExternal'
 
 import { isExternal } from './isExternal'
 import { ACTION_CODES, ACTION_CODE_TO_ROUTE } from './ActionMapping'
@@ -13,8 +13,8 @@ const redirectURL = loadState('libresign', 'redirect', 'Home')
 
 export const selectAction = (
 	action: number,
-	to: RouteLocationNormalized,
-	from: RouteLocationNormalized,
+	to: RouteLocationLike,
+	from: RouteLocationLike,
 ): string | null => {
 	const isExternalRoute = isExternal(to, from)
 	const external = isExternalRoute ? 'External' : ''
@@ -25,7 +25,10 @@ export const selectAction = (
 	}
 
 	if (action === ACTION_CODES.DO_NOTHING) {
-		return to.name as string
+		if (typeof to.name === 'string') {
+			return to.name
+		}
+		return null
 	}
 
 	const route = ACTION_CODE_TO_ROUTE[action]
