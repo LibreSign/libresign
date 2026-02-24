@@ -9,7 +9,7 @@ import EditNameDialog from '../../../components/Common/EditNameDialog.vue'
 import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../../constants.js'
 
 describe('EditNameDialog.vue - Business Logic', () => {
-	let wrapper
+	let wrapper: any
 
 	beforeEach(() => {
 		wrapper = shallowMount(EditNameDialog, {
@@ -71,14 +71,14 @@ describe('EditNameDialog.vue - Business Logic', () => {
 		it('disables Save button when name is invalid', () => {
 			wrapper.setData({ localName: '' })
 			const buttons = wrapper.vm.dialogButtons
-			const saveButton = buttons.find(btn => btn.type === 'primary')
+			const saveButton = buttons.find((btn: any) => btn.type === 'primary')
 			expect(saveButton.disabled).toBe(true)
 		})
 
 		it('enables Save button when name is valid', () => {
 			wrapper.setData({ localName: 'Valid Name' })
 			const buttons = wrapper.vm.dialogButtons
-			const saveButton = buttons.find(btn => btn.type === 'primary')
+			const saveButton = buttons.find((btn: any) => btn.type === 'primary')
 			expect(saveButton.disabled).toBe(false)
 		})
 
@@ -86,7 +86,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			const handleCloseSpy = vi.spyOn(wrapper.vm, 'handleClose')
 			const buttons = wrapper.vm.dialogButtons
 			// First button is Cancel (not primary)
-			const cancelButton = buttons.find(btn => btn.type !== 'primary')
+			const cancelButton = buttons.find((btn: any) => btn.type !== 'primary')
 			expect(cancelButton).toBeDefined()
 			cancelButton.callback()
 			expect(handleCloseSpy).toHaveBeenCalled()
@@ -95,7 +95,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 		it('has Save button that calls handleSave', () => {
 			const handleSaveSpy = vi.spyOn(wrapper.vm, 'handleSave')
 			const buttons = wrapper.vm.dialogButtons
-			const saveButton = buttons.find(btn => btn.type === 'primary')
+			const saveButton = buttons.find((btn: any) => btn.type === 'primary')
 			expect(saveButton).toBeDefined()
 			saveButton.callback()
 			expect(handleSaveSpy).toHaveBeenCalled()
@@ -179,10 +179,10 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			vi.useFakeTimers()
 			wrapper.vm.showSuccess('Success!')
 			expect(wrapper.vm.localSuccessMessage).toBe('Success!')
-			
+
 			vi.advanceTimersByTime(5000)
 			expect(wrapper.vm.localSuccessMessage).toBe('')
-			
+
 			vi.useRealTimers()
 		})
 
@@ -190,10 +190,10 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			vi.useFakeTimers()
 			wrapper.vm.showSuccess('Success!')
 			expect(wrapper.vm.localSuccessMessage).toBe('Success!')
-			
+
 			vi.advanceTimersByTime(4999)
 			expect(wrapper.vm.localSuccessMessage).toBe('Success!')
-			
+
 			vi.useRealTimers()
 		})
 	})
@@ -216,10 +216,10 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			vi.useFakeTimers()
 			wrapper.vm.showError('Error!')
 			expect(wrapper.vm.localErrorMessage).toBe('Error!')
-			
+
 			vi.advanceTimersByTime(10000)
 			expect(wrapper.vm.localErrorMessage).toBe('Error!')
-			
+
 			vi.useRealTimers()
 		})
 	})
@@ -281,10 +281,10 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			})
 
 			expect(wrapper.vm.localName).toBe('Original Name')
-			
+
 			wrapper.setData({ localName: 'Edited Name' })
 			wrapper.vm.handleSave()
-			
+
 			expect(wrapper.emitted('close')).toBeTruthy()
 			expect(wrapper.emitted('close')[0]).toEqual(['Edited Name'])
 		})
@@ -301,7 +301,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			})
 
 			wrapper.vm.handleClose()
-			
+
 			expect(wrapper.emitted('close')).toBeTruthy()
 			expect(wrapper.emitted('close')[0]).toEqual([null])
 		})
@@ -310,11 +310,11 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			const minName = 'A'.repeat(ENVELOPE_NAME_MIN_LENGTH)
 			wrapper.setData({ localName: minName })
 			expect(wrapper.vm.isNameValid).toBe(true)
-			
+
 			const maxName = 'B'.repeat(ENVELOPE_NAME_MAX_LENGTH)
 			wrapper.setData({ localName: maxName })
 			expect(wrapper.vm.isNameValid).toBe(true)
-			
+
 			const tooLong = 'C'.repeat(ENVELOPE_NAME_MAX_LENGTH + 1)
 			wrapper.setData({ localName: tooLong })
 			expect(wrapper.vm.isNameValid).toBe(false)
