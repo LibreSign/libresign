@@ -62,8 +62,6 @@ import NcRichText from '@nextcloud/vue/components/NcRichText'
 
 import {
 	mdiEye,
-	mdiInformationSlabCircle,
-	mdiSignatureFreehand,
 } from '@mdi/js'
 
 import { getStatusLabel } from '../../utils/fileStatus.js'
@@ -86,7 +84,11 @@ export default {
 		isAfterSigned: { type: Boolean, default: false },
 	},
 	setup() {
-		return { t, n, mdiEye, mdiInformationSlabCircle, mdiSignatureFreehand }
+		return {
+			t,
+			n,
+			mdiEye,
+		}
 	},
 	computed: {
 		size() {
