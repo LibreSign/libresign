@@ -8,8 +8,6 @@ import { mount } from '@vue/test-utils'
 import TopBar from '../../../components/TopBar/TopBar.vue'
 
 describe('TopBar', () => {
-	let wrapper: any
-
 	const createWrapper = (props = {}) => {
 		return mount(TopBar, {
 			props: {
@@ -26,6 +24,8 @@ describe('TopBar', () => {
 			},
 		})
 	}
+
+	let wrapper: ReturnType<typeof createWrapper> | undefined
 
 	beforeEach(() => {
 		if (wrapper) {
