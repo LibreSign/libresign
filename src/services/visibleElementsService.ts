@@ -77,7 +77,7 @@ const collectSignerVisibleElements = (signers: unknown): VisibleElement[] => {
 	if (!Array.isArray(signers)) {
 		return []
 	}
-	return signers.flatMap((signer: any) =>
+	return (signers as Signer[]).flatMap((signer) =>
 		Array.isArray(signer?.visibleElements) ? signer.visibleElements : [],
 	)
 }
