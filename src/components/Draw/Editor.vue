@@ -59,6 +59,7 @@
 
 <script>
 import { t } from '@nextcloud/l10n'
+import { mdiDelete } from '@mdi/js'
 
 import SignaturePad from 'signature_pad'
 
@@ -79,7 +80,13 @@ export default {
 		NcDialog,
 		NcColorPicker,
 		NcButton,
+		NcIconSvgWrapper,
 		PreviewSignature,
+	},
+	setup() {
+		return {
+			mdiDelete,
+		}
 	},
 	data: () => ({
 		canvasWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
