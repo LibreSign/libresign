@@ -37,6 +37,7 @@ vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn((app: string, text: string) => text),
 	translate: vi.fn((app: string, text: string) => text),
 	translatePlural: vi.fn((app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
+	isRTL: vi.fn(() => false),
 }))
 vi.mock('@nextcloud/files', () => ({
 	formatFileSize: vi.fn((size) => `${size}B`),
