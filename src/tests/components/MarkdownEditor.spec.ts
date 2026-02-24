@@ -6,13 +6,13 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
-let MarkdownEditor
+let MarkdownEditor: any
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app, text) => text),
-	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
-	t: vi.fn((app, text) => text),
-	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	translate: vi.fn((app: any, text: any) => text),
+	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
+	t: vi.fn((app: any, text: any) => text),
+	n: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -23,7 +23,7 @@ beforeAll(async () => {
 })
 
 describe('MarkdownEditor', () => {
-	let wrapper
+	let wrapper: any
 
 	const createWrapper = (props = {}) => {
 		const wrapper = mount(MarkdownEditor, {
