@@ -60,7 +60,7 @@ describe('getPrimarySigningAction', () => {
 			needCertificate: () => false,
 			needCreatePassword: () => false,
 		}
-		const signStore = { errors: ['error'] }
+		const signStore = { errors: ['error'] } as any
 
 		const result = getPrimarySigningAction(signStore, signMethodsStore, false, false)
 
