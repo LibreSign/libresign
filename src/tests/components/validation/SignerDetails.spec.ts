@@ -8,9 +8,12 @@ import { shallowMount } from '@vue/test-utils'
 import SignerDetails from '../../../components/validation/SignerDetails.vue'
 
 describe('SignerDetails.vue - Business Logic', () => {
-	let wrapper: any
+	type SignerDetailsProps = {
+		signer?: Record<string, unknown>
+		[key: string]: unknown
+	}
 
-	const createWrapper = (propsData: any = {}) => {
+	const createWrapper = (propsData: SignerDetailsProps = {}) => {
 		return shallowMount(SignerDetails, {
 			propsData: {
 				signer: {
@@ -29,6 +32,8 @@ describe('SignerDetails.vue - Business Logic', () => {
 			},
 		})
 	}
+
+	let wrapper: ReturnType<typeof createWrapper>
 
 	beforeEach(() => {
 		wrapper = createWrapper()
