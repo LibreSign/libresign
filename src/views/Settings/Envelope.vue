@@ -6,8 +6,8 @@
 	<NcSettingsSection
 		:name="t('libresign', 'Envelopes')"
 		:description="t('libresign', 'Enable or disable the envelopes feature. When enabled, users can group several files into an envelope and manage them as a single signing process.')">
-		<NcCheckboxRadioSwitch type="switch" :checked="envelopeEnabled"
-			@update:checked="(val) => { envelopeEnabled = val; saveEnvelopeEnabled() }">
+		<NcCheckboxRadioSwitch type="switch" v-model="envelopeEnabled"
+			@update:modelValue="onEnvelopeToggle">
 			{{ t('libresign', 'Enable envelopes (group multiple files into one signing flow)') }}
 		</NcCheckboxRadioSwitch>
 	</NcSettingsSection>
@@ -30,11 +30,17 @@ export default {
 	},
 	data() {
 		return {
-			envelopeEnabled: loadState('libresign', 'envelope_enabled', true),
+			envelopeEnabled: false,
 		}
+	},
+	created() {
+		this.envelopeEnabled = loadState('libresign', 'envelope_enabled', true) === true
 	},
 	methods: {
 		t,
+		onEnvelopeToggle() {
+			this.saveEnvelopeEnabled()
+		},
 		saveEnvelopeEnabled() {
 			OCP.AppConfig.setValue('libresign', 'envelope_enabled', this.envelopeEnabled ? '1' : '0', {
 				success: () => {
