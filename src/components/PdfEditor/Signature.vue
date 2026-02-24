@@ -45,8 +45,6 @@
 </template>
 
 <script>
-import { t } from '@nextcloud/l10n'
-
 import { mdiCloseCircle } from '@mdi/js'
 
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
