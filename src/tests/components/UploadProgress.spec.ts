@@ -27,8 +27,6 @@ const globalWithT = globalThis as typeof globalThis & { t?: TranslationFunction 
 globalWithT.t = vi.fn((_app, text, vars?: L10nVars) => interpolate(text, vars))
 
 describe('UploadProgress', () => {
-	let wrapper: any
-
 	const createWrapper = (props = {}) => {
 		return mount(UploadProgress, {
 			props: {
@@ -49,6 +47,8 @@ describe('UploadProgress', () => {
 			},
 		})
 	}
+
+	let wrapper: ReturnType<typeof createWrapper> | undefined
 
 	beforeEach(() => {
 		if (wrapper) {
