@@ -84,6 +84,7 @@ export default {
 		NcSelect,
 		NcSettingsSection,
 		NcTextField,
+		NcCheckboxRadioSwitch,
 	},
 	data() {
 		const AUTH_TYPES = {
