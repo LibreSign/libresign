@@ -4,10 +4,14 @@
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { generateOCSResponse } from '../test-helpers.js'
+import type { MockedFunction } from 'vitest'
+import { generateOCSResponse } from '../test-helpers'
 
-let patchMock
-let generateUrlMock
+type PatchFn = (url: string, data?: Record<string, unknown>) => Promise<{ data: { ocs: { data: { success: boolean } } } }>
+type GenerateUrl = typeof import('@nextcloud/router').generateUrl
+
+let patchMock: MockedFunction<PatchFn>
+let generateUrlMock: MockedFunction<GenerateUrl>
 
 // Mock @nextcloud/logger to avoid import-time errors
 vi.mock('@nextcloud/logger', () => ({
@@ -31,12 +35,12 @@ vi.mock('@nextcloud/logger', () => ({
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
-		patch: (...args) => patchMock(...args),
+		patch: (...args: Parameters<PatchFn>) => patchMock(...args),
 	},
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateUrl: (...args) => generateUrlMock(...args),
+	generateUrl: (...args: Parameters<GenerateUrl>) => generateUrlMock(...args),
 }))
 
 describe('settingsService', () => {
@@ -46,7 +50,7 @@ describe('settingsService', () => {
 	})
 
 	it('saves user phone number via API', async () => {
-		const response = generateOCSResponse({ payload: { success: true } })
+		const response = generateOCSResponse({ payload: { success: true } }) as { data: { ocs: { data: { success: boolean } } } }
 		patchMock.mockResolvedValue(response)
 		const { settingsService } = await import('../../services/settingsService.js')
 
