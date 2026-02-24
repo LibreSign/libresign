@@ -24,4 +24,6 @@ app.config.globalProperties.OCA = OCA
 app.use(createPinia())
 app.use(router)
 
-app.mount('#content')
+router.isReady().then(() => {
+	app.mount('#content')
+})
