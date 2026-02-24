@@ -34,7 +34,7 @@ describe('checkIfDarkTheme', () => {
 	it('returns true when background invert indicates dark theme', () => {
 		vi.spyOn(window, 'getComputedStyle').mockReturnValue({
 			getPropertyValue: () => 'invert(100%)',
-		})
+		} as Partial<CSSStyleDeclaration> as CSSStyleDeclaration)
 
 		expect(checkIfDarkTheme(document.body)).toBe(true)
 	})
@@ -42,15 +42,15 @@ describe('checkIfDarkTheme', () => {
 	it('returns false when background invert indicates light theme', () => {
 		vi.spyOn(window, 'getComputedStyle').mockReturnValue({
 			getPropertyValue: () => 'no',
-		})
+		} as Partial<CSSStyleDeclaration> as CSSStyleDeclaration)
 
 		expect(checkIfDarkTheme(document.body)).toBe(false)
 	})
 
 	it('returns false when theme variable is missing', () => {
 		vi.spyOn(window, 'getComputedStyle').mockReturnValue({
-			getPropertyValue: () => undefined,
-		})
+			getPropertyValue: () => '',
+		} as Partial<CSSStyleDeclaration> as CSSStyleDeclaration)
 
 		expect(checkIfDarkTheme(document.body)).toBe(false)
 	})
