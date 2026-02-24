@@ -6,32 +6,49 @@
 import { describe, expect, it } from 'vitest'
 import signingOrderMixin from '../../mixins/signingOrderMixin.js'
 
+type Signer = { signingOrder: number }
+type RecalculateFn = (
+	signers: Signer[],
+	targetIndex: number,
+	originalOrders?: number[] | null,
+	oldIndex?: number | null
+) => void
+type NormalizeFn = (signers: Signer[]) => void
+
+// Create an object with the mixin methods to preserve 'this' context
+const mixinInstance = {
+	...signingOrderMixin.methods,
+}
+
+const recalculateSigningOrders = mixinInstance.recalculateSigningOrders.bind(mixinInstance) as RecalculateFn
+const normalizeSigningOrders = mixinInstance.normalizeSigningOrders.bind(mixinInstance) as NormalizeFn
+
 describe('signingOrderMixin', () => {
 	describe('recalculateSigningOrders', () => {
 		it('handles empty signers array', () => {
-			const signers = []
+			const signers: Signer[] = []
 
-			signingOrderMixin.methods.recalculateSigningOrders(signers, 0)
+			recalculateSigningOrders(signers, 0)
 
 			expect(signers).toEqual([])
 		})
 
 		it('assigns order 1 to first signer', () => {
-			const signers = [{ signingOrder: 0 }]
+			const signers: Signer[] = [{ signingOrder: 0 }]
 
-			signingOrderMixin.methods.recalculateSigningOrders(signers, 0)
+			recalculateSigningOrders(signers, 0)
 
 			expect(signers[0].signingOrder).toBe(1)
 		})
 
 		it('increments following signers when inserting at start', () => {
-			const signers = [
+			const signers: Signer[] = [
 				{ signingOrder: 0 },
 				{ signingOrder: 1 },
 				{ signingOrder: 2 },
 			]
 
-			signingOrderMixin.methods.recalculateSigningOrders(signers, 0)
+			recalculateSigningOrders(signers, 0)
 
 			expect(signers[0].signingOrder).toBe(1)
 			expect(signers[1].signingOrder).toBe(2)
@@ -39,62 +56,62 @@ describe('signingOrderMixin', () => {
 		})
 
 		it('assigns next order when adding at end', () => {
-			const signers = [
+			const signers: Signer[] = [
 				{ signingOrder: 1 },
 				{ signingOrder: 2 },
 			]
 
-			signingOrderMixin.methods.recalculateSigningOrders(signers, 1)
+			recalculateSigningOrders(signers, 1)
 
 			expect(signers[1].signingOrder).toBe(2)
 		})
 
 		it('handles reordering with originalOrders - moving forward', () => {
-			const signers = [
+			const signers: Signer[] = [
 				{ signingOrder: 1 },
 				{ signingOrder: 2 },
 				{ signingOrder: 3 },
 			]
 			const originalOrders = [1, 2, 3]
 
-			signingOrderMixin.methods.recalculateSigningOrders(signers, 2, originalOrders, 0)
+			recalculateSigningOrders(signers, 2, originalOrders, 0)
 
 			expect(signers[2].signingOrder).toBeGreaterThanOrEqual(1)
 		})
 
 		it('handles reordering with originalOrders - moving backward', () => {
-			const signers = [
+			const signers: Signer[] = [
 				{ signingOrder: 1 },
 				{ signingOrder: 2 },
 				{ signingOrder: 3 },
 			]
 			const originalOrders = [1, 2, 3]
 
-			signingOrderMixin.methods.recalculateSigningOrders(signers, 1, originalOrders, 2)
+			recalculateSigningOrders(signers, 1, originalOrders, 2)
 
 			expect(signers[1].signingOrder).toBeGreaterThanOrEqual(1)
 		})
 
 		it('handles equal prev and next orders', () => {
-			const signers = [
+			const signers: Signer[] = [
 				{ signingOrder: 1 },
 				{ signingOrder: 1 },
 				{ signingOrder: 1 },
 			]
 
-			signingOrderMixin.methods.recalculateSigningOrders(signers, 1)
+			recalculateSigningOrders(signers, 1)
 
 			expect(signers[1].signingOrder).toBeGreaterThanOrEqual(1)
 		})
 
 		it('handles descending orders', () => {
-			const signers = [
+			const signers: Signer[] = [
 				{ signingOrder: 3 },
 				{ signingOrder: 2 },
 				{ signingOrder: 1 },
 			]
 
-			signingOrderMixin.methods.recalculateSigningOrders(signers, 1)
+			recalculateSigningOrders(signers, 1)
 
 			expect(signers[1].signingOrder).toBeGreaterThanOrEqual(1)
 		})
@@ -102,45 +119,45 @@ describe('signingOrderMixin', () => {
 
 	describe('normalizeSigningOrders', () => {
 		it('handles empty signers array', () => {
-			const signers = []
+			const signers: Signer[] = []
 
-			signingOrderMixin.methods.normalizeSigningOrders(signers)
+			normalizeSigningOrders(signers)
 
 			expect(signers).toEqual([])
 		})
 
 		it('normalizes to start at 1', () => {
-			const signers = [
+			const signers: Signer[] = [
 				{ signingOrder: 5 },
 				{ signingOrder: 6 },
 			]
 
-			signingOrderMixin.methods.normalizeSigningOrders(signers)
+			normalizeSigningOrders(signers)
 
 			expect(signers[0].signingOrder).toBe(1)
 			expect(signers[1].signingOrder).toBe(2)
 		})
 
 		it('handles negative orders', () => {
-			const signers = [
+			const signers: Signer[] = [
 				{ signingOrder: -1 },
 				{ signingOrder: 0 },
 			]
 
-			signingOrderMixin.methods.normalizeSigningOrders(signers)
+			normalizeSigningOrders(signers)
 
 			expect(signers[0].signingOrder).toBe(1)
 			expect(signers[1].signingOrder).toBe(2)
 		})
 
 		it('closes gaps in sequence', () => {
-			const signers = [
+			const signers: Signer[] = [
 				{ signingOrder: 1 },
 				{ signingOrder: 5 },
 				{ signingOrder: 10 },
 			]
 
-			signingOrderMixin.methods.normalizeSigningOrders(signers)
+			normalizeSigningOrders(signers)
 
 			expect(signers[0].signingOrder).toBe(1)
 			expect(signers[1].signingOrder).toBe(2)
