@@ -8,7 +8,7 @@ import { mount } from '@vue/test-utils'
 import TopBar from '../../../components/TopBar/TopBar.vue'
 
 describe('TopBar', () => {
-	let wrapper
+	let wrapper: any
 
 	const createWrapper = (props = {}) => {
 		return mount(TopBar, {
@@ -29,7 +29,6 @@ describe('TopBar', () => {
 
 	beforeEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
 		}
 		vi.clearAllMocks()
 	})
