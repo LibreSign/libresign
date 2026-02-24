@@ -26,6 +26,7 @@
 <script>
 
 import { t } from '@nextcloud/l10n'
+import { mdiCogs } from '@mdi/js'
 
 
 import { getCurrentUser } from '@nextcloud/auth'
@@ -40,11 +41,13 @@ export default {
 	name: 'IncompleteCertification',
 	components: {
 		NcButton,
+		NcIconSvgWrapper,
 	},
 	data() {
 		return {
 			image: BackgroundImage,
 			isAdmin: getCurrentUser()?.isAdmin ?? false,
+			mdiCogs,
 		}
 	},
 	methods: {
