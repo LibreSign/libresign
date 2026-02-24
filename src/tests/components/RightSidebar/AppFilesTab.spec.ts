@@ -5,6 +5,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import AppFilesTab from '../../../components/RightSidebar/AppFilesTab.vue'
 import { useFilesStore } from '../../../store/files.js'
@@ -56,9 +57,11 @@ import { getClient } from '@nextcloud/files/dav'
 import { getNavigation } from '@nextcloud/files'
 
 describe('AppFilesTab', () => {
-	let wrapper
-	let filesStore
-	let sidebarStore
+	let wrapper: VueWrapper<unknown> | null
+	let filesStore: ReturnType<typeof useFilesStore>
+	let sidebarStore: ReturnType<typeof useSidebarStore>
+	const getClientMock = vi.mocked(getClient)
+	const getNavigationMock = vi.mocked(getNavigation)
 
 	const createWrapper = () => {
 		return mount(AppFilesTab, {
@@ -73,10 +76,14 @@ describe('AppFilesTab', () => {
 		filesStore = useFilesStore()
 		sidebarStore = useSidebarStore()
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
+			wrapper = null
 		}
 		vi.clearAllMocks()
-		delete window.OCA
+		const windowWithOca = window as Window & { OCA: unknown }
+		if ('OCA' in windowWithOca) {
+			delete (windowWithOca as { OCA?: unknown }).OCA
+		}
 		Object.defineProperty(window, 'location', {
 			value: { pathname: '/apps/files' },
 			writable: true,
@@ -115,9 +122,10 @@ describe('AppFilesTab', () => {
 		it('returns false when no pending envelope', async () => {
 			wrapper = createWrapper()
 
-			const result = await wrapper.vm.checkAndLoadPendingEnvelope()
-
-			expect(result).toBe(false)
+			if (wrapper) {
+				const result = await wrapper.vm.checkAndLoadPendingEnvelope()
+				expect(result).toBe(false)
+			}
 		})
 	})
 
@@ -154,8 +162,9 @@ describe('AppFilesTab', () => {
 
 		it('does nothing when no envelope name', () => {
 			wrapper = createWrapper()
+			const currentWrapper = wrapper
 
-			expect(() => wrapper.vm.updateSidebarTitle('')).not.toThrow()
+			expect(() => currentWrapper.vm.updateSidebarTitle('')).not.toThrow()
 		})
 	})
 
@@ -173,8 +182,9 @@ describe('AppFilesTab', () => {
 
 		it('does nothing when no observer', () => {
 			wrapper = createWrapper()
+			const currentWrapper = wrapper
 
-			expect(() => wrapper.vm.disconnectTitleObserver()).not.toThrow()
+			expect(() => currentWrapper.vm.disconnectTitleObserver()).not.toThrow()
 		})
 	})
 
@@ -256,7 +266,7 @@ describe('AppFilesTab', () => {
 			const mockStat = vi.fn().mockResolvedValue({
 				data: { id: 123, name: 'Test.pdf' },
 			})
-			getClient.mockReturnValue({ stat: mockStat })
+			getClientMock.mockReturnValue({ stat: mockStat } as Partial<import('webdav').WebDAVClient> as import('webdav').WebDAVClient)
 			wrapper = createWrapper()
 
 			await wrapper.vm.handleLibreSignFileChangeWithPath('/Documents/Test.pdf', 'created')
@@ -272,7 +282,7 @@ describe('AppFilesTab', () => {
 			const mockStat = vi.fn().mockResolvedValue({
 				data: { id: 456 },
 			})
-			getClient.mockReturnValue({ stat: mockStat })
+			getClientMock.mockReturnValue({ stat: mockStat } as Partial<import('webdav').WebDAVClient> as import('webdav').WebDAVClient)
 			wrapper = createWrapper()
 
 			await wrapper.vm.handleLibreSignFileChangeWithPath('/path/file.pdf', 'updated')
@@ -286,10 +296,13 @@ describe('AppFilesTab', () => {
 			const mockStat = vi.fn().mockResolvedValue({
 				data: { id: 789, type: 'folder' },
 			})
-			getClient.mockReturnValue({ stat: mockStat })
-			getNavigation.mockReturnValue({
+			getClientMock.mockReturnValue({ stat: mockStat } as Partial<import('webdav').WebDAVClient> as import('webdav').WebDAVClient)
+			type NavView = import('@nextcloud/files').View
+			type NavActive = { id: string; name: string; getContents: () => void; icon: string; params: { dir?: string } }
+			type PartialNav = Partial<import('@nextcloud/files').Navigation> & { active?: Partial<NavActive> }
+			getNavigationMock.mockReturnValue({
 				active: { params: { dir: '/Documents' } },
-			})
+			} as unknown as import('@nextcloud/files').Navigation)
 			wrapper = createWrapper()
 
 			await wrapper.vm.handleLibreSignFileChangeAtCurretntFolder()
@@ -303,8 +316,8 @@ describe('AppFilesTab', () => {
 
 		it('defaults to root when no active params', async () => {
 			const mockStat = vi.fn().mockResolvedValue({ data: {} })
-			getClient.mockReturnValue({ stat: mockStat })
-			getNavigation.mockReturnValue({ active: { params: {} } })
+			getClientMock.mockReturnValue({ stat: mockStat } as Partial<import('webdav').WebDAVClient> as import('webdav').WebDAVClient)
+			getNavigationMock.mockReturnValue({ active: { params: {} } } as Partial<import('@nextcloud/files').Navigation> as import('@nextcloud/files').Navigation)
 			wrapper = createWrapper()
 
 			await wrapper.vm.handleLibreSignFileChangeAtCurretntFolder()
