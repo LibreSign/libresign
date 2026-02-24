@@ -70,6 +70,8 @@ export default {
 		NcLoadingIcon,
 		NcNoteCard,
 		NcSettingsSection,
+		NcCheckboxRadioSwitch,
+		NcSavingIndicatorIcon,
 	},
 	data() {
 		return {
