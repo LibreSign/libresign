@@ -4,9 +4,17 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Mock, MockedFunction } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
+
+type AxiosMock = Mock & {
+	get: Mock
+	post: Mock
+	patch: Mock
+	delete: Mock
+}
 
 // Mock @nextcloud/logger to avoid import-time errors
 vi.mock('@nextcloud/logger', () => ({
@@ -29,22 +37,23 @@ vi.mock('@nextcloud/logger', () => ({
 }))
 
 vi.mock('@nextcloud/axios', () => {
-	const axiosMock = vi.fn()
-	axiosMock.get = vi.fn()
-	axiosMock.post = vi.fn()
-	axiosMock.patch = vi.fn()
-	axiosMock.delete = vi.fn()
+	const axiosInstanceMock = Object.assign(vi.fn(), {
+		get: vi.fn(),
+		post: vi.fn(),
+		patch: vi.fn(),
+		delete: vi.fn(),
+	})
 	return {
-		default: axiosMock,
+		default: axiosInstanceMock,
 	}
 })
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: vi.fn((app, key, defaultValue) => defaultValue),
+	loadState: vi.fn((app: string, key: string, defaultValue: unknown) => defaultValue),
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path, params) => {
+	generateOcsUrl: vi.fn((path: string, params?: Record<string, string>) => {
 		let url = `/ocs/v2.php${path}`
 		if (params) {
 			Object.entries(params).forEach(([key, value]) => {
@@ -61,7 +70,7 @@ vi.mock('vue', async () => {
 		...actual,
 		default: {
 			...actual,
-			set: vi.fn((obj, key, value) => {
+			set: vi.fn((obj: Record<string, unknown>, key: string, value: unknown) => {
 				obj[key] = value
 			}),
 		},
@@ -69,7 +78,9 @@ vi.mock('vue', async () => {
 })
 
 describe('signatureElements store - signature business rules', () => {
-	let useSignatureElementsStore
+	const axiosMock = axios as unknown as AxiosMock
+	const loadStateMock = loadState as MockedFunction<typeof loadState>
+	let useSignatureElementsStore: typeof import('../../store/signatureElements.js').useSignatureElementsStore
 
 	beforeAll(async () => {
 		const module = await import('../../store/signatureElements.js')
@@ -83,7 +94,7 @@ describe('signatureElements store - signature business rules', () => {
 
 	describe('RULE: hasSignatureOfType validates if user has signature of type', () => {
 		it('returns true when signature has createdAt filled', () => {
-			loadState.mockReturnValue([{
+			loadStateMock.mockReturnValue([{
 				type: 'signature',
 				createdAt: '2024-01-01',
 				file: { url: '/test.png', nodeId: 123 },
@@ -95,7 +106,7 @@ describe('signatureElements store - signature business rules', () => {
 		})
 
 		it('returns false when signature has no createdAt', () => {
-			loadState.mockReturnValue([])
+			loadStateMock.mockReturnValue([])
 
 			const store = useSignatureElementsStore()
 
@@ -105,7 +116,7 @@ describe('signatureElements store - signature business rules', () => {
 
 	describe('RULE: save should use PATCH if signature exists, POST if not', () => {
 		it('uses PATCH when signature already exists (nodeId > 0)', async () => {
-			loadState.mockImplementation((app, key, defaultValue) => {
+			loadStateMock.mockImplementation((app, key, defaultValue) => {
 				if (key === 'user_signatures') {
 					return [{
 						type: 'signature',
@@ -116,7 +127,7 @@ describe('signatureElements store - signature business rules', () => {
 				return defaultValue
 			})
 
-			axios.mockResolvedValue({
+			axiosMock.mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
@@ -130,7 +141,7 @@ describe('signatureElements store - signature business rules', () => {
 			const store = useSignatureElementsStore()
 			await store.save('signature', 'base64data')
 
-			expect(axios).toHaveBeenCalledWith(
+			expect(axiosMock).toHaveBeenCalledWith(
 				expect.objectContaining({
 					method: 'patch',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements/123',
@@ -139,9 +150,9 @@ describe('signatureElements store - signature business rules', () => {
 		})
 
 		it('uses POST when signature does not exist (nodeId = 0)', async () => {
-			loadState.mockReturnValue([])
+			loadStateMock.mockReturnValue([])
 
-			axios.mockResolvedValue({
+			axiosMock.mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
@@ -157,7 +168,7 @@ describe('signatureElements store - signature business rules', () => {
 
 			await store.save('signature', 'base64data')
 
-			expect(axios).toHaveBeenCalledWith(
+			expect(axiosMock).toHaveBeenCalledWith(
 				expect.objectContaining({
 					method: 'post',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements',
@@ -168,13 +179,13 @@ describe('signatureElements store - signature business rules', () => {
 
 	describe('RULE: saving with signRequestUuid should send specific header', () => {
 		it('includes header when has signRequestUuid', async () => {
-			loadState.mockImplementation((app, key, defaultValue) => {
+			loadStateMock.mockImplementation((app, key, defaultValue) => {
 				if (key === 'sign_request_uuid') return 'uuid-123'
 				if (key === 'user_signatures') return []
 				return defaultValue
 			})
 
-			axios.mockResolvedValue({
+			axiosMock.mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
@@ -190,7 +201,7 @@ describe('signatureElements store - signature business rules', () => {
 
 			await store.save('signature', 'base64data')
 
-			expect(axios).toHaveBeenCalledWith(
+			expect(axiosMock).toHaveBeenCalledWith(
 				expect.objectContaining({
 					headers: {
 						'libresign-sign-request-uuid': 'uuid-123',
@@ -200,13 +211,13 @@ describe('signatureElements store - signature business rules', () => {
 		})
 
 		it('does not include header when has no signRequestUuid', async () => {
-			loadState.mockImplementation((app, key, defaultValue) => {
+			loadStateMock.mockImplementation((app, key, defaultValue) => {
 				if (key === 'sign_request_uuid') return ''
 				if (key === 'user_signatures') return []
 				return defaultValue
 			})
 
-			axios.mockResolvedValue({
+			axiosMock.mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
@@ -222,14 +233,14 @@ describe('signatureElements store - signature business rules', () => {
 
 			await store.save('signature', 'base64data')
 
-			const call = axios.mock.calls[0][0]
+			const call = axiosMock.mock.calls[0][0]
 			expect(call.headers).toBeUndefined()
 		})
 	})
 
 	describe('RULE: delete should clear signature and use emptyElement', () => {
 		it('delete should reset signature to empty state', async () => {
-			loadState.mockImplementation((app, key, defaultValue) => {
+			loadStateMock.mockImplementation((app, key, defaultValue) => {
 				if (key === 'user_signatures') {
 					return [{
 						type: 'signature',
@@ -240,7 +251,7 @@ describe('signatureElements store - signature business rules', () => {
 				return defaultValue
 			})
 
-			axios.mockResolvedValue({
+			axiosMock.mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
@@ -260,7 +271,7 @@ describe('signatureElements store - signature business rules', () => {
 		})
 
 		it('delete with 404 error should reset signature anyway', async () => {
-			loadState.mockImplementation((app, key, defaultValue) => {
+			loadStateMock.mockImplementation((app, key, defaultValue) => {
 				if (key === 'user_signatures') {
 					return [{
 						type: 'signature',
@@ -271,7 +282,7 @@ describe('signatureElements store - signature business rules', () => {
 				return defaultValue
 			})
 
-			axios.mockRejectedValue({
+			axiosMock.mockRejectedValue({
 				response: {
 					status: 404,
 				},
@@ -287,7 +298,7 @@ describe('signatureElements store - signature business rules', () => {
 		})
 
 		it('delete should include signRequestUuid in header when available', async () => {
-			loadState.mockImplementation((app, key, defaultValue) => {
+			loadStateMock.mockImplementation((app, key, defaultValue) => {
 				if (key === 'sign_request_uuid') return 'uuid-123'
 				if (key === 'user_signatures') {
 					return [{
@@ -299,7 +310,7 @@ describe('signatureElements store - signature business rules', () => {
 				return defaultValue
 			})
 
-			axios.mockResolvedValue({
+			axiosMock.mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
@@ -314,7 +325,7 @@ describe('signatureElements store - signature business rules', () => {
 
 			await store.delete('signature')
 
-			expect(axios).toHaveBeenCalledWith(
+			expect(axiosMock).toHaveBeenCalledWith(
 				expect.objectContaining({
 					headers: {
 						'libresign-sign-request-uuid': 'uuid-123',
@@ -326,7 +337,7 @@ describe('signatureElements store - signature business rules', () => {
 
 	describe('RULE: loadSignatures should only execute once', () => {
 		it('loads signatures from loadState if available', () => {
-			loadState.mockImplementation((app, key, defaultValue) => {
+			loadStateMock.mockImplementation((app, key, defaultValue) => {
 				if (key === 'user_signatures') {
 					return [
 						{
@@ -348,15 +359,15 @@ describe('signatureElements store - signature business rules', () => {
 
 			expect(store.signs.signature.createdAt).toBe('2024-01-01')
 			expect(store.signs.initial.createdAt).toBe('2024-01-02')
-			expect(axios).not.toHaveBeenCalled()
+			expect(axiosMock).not.toHaveBeenCalled()
 		})
 
 		it('fetches from server if loadState has no signatures', async () => {
-			loadState.mockImplementation((app, key, defaultValue) => {
+			loadStateMock.mockImplementation((app, key, defaultValue) => {
 				return defaultValue
 			})
 
-			axios.mockResolvedValue({
+			axiosMock.mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
@@ -372,7 +383,7 @@ describe('signatureElements store - signature business rules', () => {
 
 			const store = useSignatureElementsStore()
 
-			expect(axios).toHaveBeenCalledWith(
+			expect(axiosMock).toHaveBeenCalledWith(
 				expect.objectContaining({
 					method: 'get',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements',
@@ -383,9 +394,9 @@ describe('signatureElements store - signature business rules', () => {
 
 	describe('RULE: error handling', () => {
 		it('save should capture error with errors field', async () => {
-			loadState.mockReturnValue([])
+			loadStateMock.mockReturnValue([])
 
-			axios.mockRejectedValue({
+			axiosMock.mockRejectedValue({
 				response: {
 					data: {
 						ocs: {
@@ -404,9 +415,9 @@ describe('signatureElements store - signature business rules', () => {
 		})
 
 		it('save should capture error without errors field', async () => {
-			loadState.mockReturnValue([])
+			loadStateMock.mockReturnValue([])
 
-			axios.mockRejectedValue({
+			axiosMock.mockRejectedValue({
 				response: {
 					data: {
 						ocs: {
