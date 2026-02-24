@@ -64,7 +64,9 @@ export default {
 	},
 	emits: ['cancel'],
 	setup() {
-		return { mdiCancel }
+		return {
+			mdiCancel,
+		}
 	},
 	computed: {
 		uploadEta() {
