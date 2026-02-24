@@ -3,18 +3,38 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeAll, beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
+import type { MockedFunction } from 'vitest'
 
 describe('showStatusInlineAction', () => {
-	let action
-	let capturedActionRef
-	let mockRegisterFileAction
-	let mockGetSidebar
-	let mockLoadState
+	type FileNode = {
+		fileid: number
+		name?: string
+		attributes?: Record<string, number>
+		mime?: string
+		type?: string
+	}
+
+	type FileAction = {
+		id: string
+		displayName: () => string
+		inline: () => boolean
+		order: number
+		title: (context: { nodes: FileNode[] }) => string
+		iconSvgInline: (context: { nodes: FileNode[] }) => string
+		exec: (context: { nodes: FileNode[] }) => Promise<null> | null
+		enabled: (context: { nodes: FileNode[] }) => boolean
+	}
+
+	let action: FileAction
+	let capturedActionRef: { value: FileAction | null }
+	let mockRegisterFileAction: MockedFunction<(actionInstance: FileAction) => void>
+	let mockGetSidebar: MockedFunction<() => { open: (node: FileNode, tab: string) => void; setActiveTab: (tab: string) => void }>
+	let mockLoadState: MockedFunction<(app: string, key: string, defaultValue?: boolean) => boolean>
 
 	beforeEach(async () => {
 		// Clean up global state
-		delete globalThis._nc_files_scope
+		delete (globalThis as typeof globalThis & { _nc_files_scope?: unknown })._nc_files_scope
 
 		// Create fresh mocks for this test
 		capturedActionRef = { value: null }
@@ -25,11 +45,11 @@ describe('showStatusInlineAction', () => {
 		// Setup mocks with fresh state
 		vi.doMock('@nextcloud/files', () => ({
 			FileAction: class {
-				constructor(config) {
+				constructor(config: FileAction) {
 					Object.assign(this, config)
 				}
 			},
-			registerFileAction: (actionInstance) => {
+			registerFileAction: (actionInstance: FileAction) => {
 				capturedActionRef.value = actionInstance
 				mockRegisterFileAction(actionInstance)
 			},
@@ -37,11 +57,7 @@ describe('showStatusInlineAction', () => {
 		}))
 
 		vi.doMock('@nextcloud/initial-state', () => ({
-			loadState: (...args) => mockLoadState(...args),
-		}))
-
-		vi.doMock('@nextcloud/l10n', () => ({
-			t: (app, text) => text,
+			loadState: (...args: Parameters<typeof mockLoadState>) => mockLoadState(...args),
 		}))
 
 		vi.doMock('../../constants.js', () => ({
@@ -52,8 +68,8 @@ describe('showStatusInlineAction', () => {
 		}))
 
 		vi.doMock('../../utils/fileStatus.js', () => ({
-			getStatusLabel: (status) => `Status ${status}`,
-			getStatusSvgInline: (status) => `<svg>${status}</svg>`,
+			getStatusLabel: (status: number) => `Status ${status}`,
+			getStatusSvgInline: (status: number) => `<svg>${status}</svg>`,
 		}))
 
 		// Reset modules and import the action
@@ -61,6 +77,9 @@ describe('showStatusInlineAction', () => {
 		await import('../../actions/showStatusInlineAction.js')
 
 		// Capture the registered action
+		if (!capturedActionRef.value) {
+			throw new Error('Action was not registered')
+		}
 		action = capturedActionRef.value
 	})
 
@@ -202,6 +221,7 @@ describe('showStatusInlineAction', () => {
 
 			const result = action.enabled({
 				nodes: [{
+					fileid: 1,
 					mime: 'application/pdf',
 					attributes: {
 						'libresign-signature-status': 3,
@@ -217,6 +237,7 @@ describe('showStatusInlineAction', () => {
 
 			const result = action.enabled({
 				nodes: [{
+					fileid: 1,
 					mime: 'application/pdf',
 					attributes: {},
 				}],
@@ -230,6 +251,7 @@ describe('showStatusInlineAction', () => {
 
 			const result = action.enabled({
 				nodes: [{
+					fileid: 1,
 					mime: 'application/pdf',
 					attributes: {
 						'libresign-signature-status': 3,
@@ -245,6 +267,7 @@ describe('showStatusInlineAction', () => {
 
 			const result = action.enabled({
 				nodes: [{
+					fileid: 1,
 					type: 'folder',
 					attributes: {
 						'libresign-signature-status': 2,
@@ -260,6 +283,7 @@ describe('showStatusInlineAction', () => {
 
 			const result = action.enabled({
 				nodes: [{
+					fileid: 1,
 					mime: 'text/plain',
 					type: 'file',
 					attributes: {
@@ -277,12 +301,14 @@ describe('showStatusInlineAction', () => {
 			const result = action.enabled({
 				nodes: [
 					{
+						fileid: 1,
 						mime: 'application/pdf',
 						attributes: {
 							'libresign-signature-status': 3,
 						},
 					},
 					{
+						fileid: 2,
 						mime: 'application/pdf',
 						attributes: {
 							'libresign-signature-status': 2,
