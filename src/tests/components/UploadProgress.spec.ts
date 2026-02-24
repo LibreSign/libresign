@@ -6,20 +6,32 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import UploadProgress from '../../components/UploadProgress.vue'
+import type { TranslationFunction } from '../test-types'
 
-global.t = vi.fn((app, text, vars) => {
-	if (vars) {
-		return text.replace(/{(\w+)}/g, (m, key) => vars[key])
+type L10nVars = Record<string, string | number>
+
+const interpolate = (template: string, vars?: L10nVars) => {
+	if (!vars) {
+		return template
 	}
-	return text
-})
+	return template.replace(/{(\w+)}/g, (match: string, key: string) => {
+		if (Object.prototype.hasOwnProperty.call(vars, key)) {
+			return String(vars[key])
+		}
+		return match
+	})
+}
+
+const globalWithT = globalThis as typeof globalThis & { t?: TranslationFunction }
+
+globalWithT.t = vi.fn((_app, text, vars?: L10nVars) => interpolate(text, vars))
 
 describe('UploadProgress', () => {
-	let wrapper
+	let wrapper: any
 
 	const createWrapper = (props = {}) => {
 		return mount(UploadProgress, {
-			propsData: {
+			props: {
 				isUploading: true,
 				uploadProgress: 0,
 				uploadedBytes: 0,
@@ -28,10 +40,7 @@ describe('UploadProgress', () => {
 				...props,
 			},
 			mocks: {
-				t: (app, str, vars) => {
-					if (!vars) return str
-					return str.replace(/{(\w+)}/g, (m, key) => vars[key])
-				},
+				t: (_app: string, text: string, vars?: L10nVars) => interpolate(text, vars),
 			},
 			stubs: {
 				NcButton: true,
@@ -43,7 +52,6 @@ describe('UploadProgress', () => {
 
 	beforeEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
 		}
 		vi.clearAllMocks()
 	})
