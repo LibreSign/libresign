@@ -10,12 +10,12 @@ import DefaultPageError from '../../views/DefaultPageError.vue'
 const loadStateMock = vi.fn()
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: (...args) => loadStateMock(...args),
+	loadState: (...args: any[]) => loadStateMock(...args),
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((app, text) => text),
-	translate: vi.fn((app, text) => text),
+	t: vi.fn((app: any, text: any) => text),
+	translate: vi.fn((app: any, text: any) => text),
 }))
 
 describe('DefaultPageError.vue - Error Aggregation Rules', () => {
@@ -43,7 +43,6 @@ describe('DefaultPageError.vue - Error Aggregation Rules', () => {
 			{ message: 'Error A' },
 			{ message: 'Error B' },
 		])
-		wrapper.destroy()
 	})
 
 	it('falls back to single error message when errors array is empty', () => {
@@ -66,7 +65,6 @@ describe('DefaultPageError.vue - Error Aggregation Rules', () => {
 		})
 
 		expect(wrapper.vm.errors).toEqual([{ message: 'Single error' }])
-		wrapper.destroy()
 	})
 
 	it('returns empty array when no error state is provided', () => {
@@ -81,6 +79,5 @@ describe('DefaultPageError.vue - Error Aggregation Rules', () => {
 		})
 
 		expect(wrapper.vm.errors).toEqual([])
-		wrapper.destroy()
 	})
 })
