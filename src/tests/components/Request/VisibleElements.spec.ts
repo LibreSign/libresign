@@ -58,8 +58,8 @@ vi.mock('@libresign/pdf-elements', () => ({
 }))
 
 describe('VisibleElements Component - Business Rules', () => {
-	let wrapper
-	let filesStore
+	let wrapper: any
+	let filesStore: any
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
@@ -477,7 +477,7 @@ describe('VisibleElements Component - Business Rules', () => {
 
 		it('loads files when opening modal with empty file list', async () => {
 			filesStore.files[1].files = []
-			axios.get.mockResolvedValue({
+			;(vi.mocked(axios).get as ReturnType<typeof vi.fn>).mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
@@ -542,7 +542,7 @@ describe('VisibleElements Component - Business Rules', () => {
 						pdfEditor: {
 							$refs: {
 								pdfElements: {
-									getAllObjects: (docIndex) => {
+									getAllObjects: (docIndex: number) => {
 							if (docIndex === 0) {
 								return [
 									{
@@ -714,7 +714,7 @@ describe('VisibleElements Component - Business Rules', () => {
 			filesStore.files[1].files = []
 			filesStore.files[1].visibleElements = initialVisibleElements
 
-			axios.get.mockResolvedValue({
+			;(vi.mocked(axios).get as ReturnType<typeof vi.fn>).mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
@@ -760,7 +760,7 @@ describe('VisibleElements Component - Business Rules', () => {
 				},
 			]
 
-			axios.get.mockResolvedValue({
+			;(vi.mocked(axios).get as ReturnType<typeof vi.fn>).mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
