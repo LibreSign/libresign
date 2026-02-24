@@ -8,8 +8,6 @@ import { mount } from '@vue/test-utils'
 import InputAction from '../../../components/InputAction/InputAction.vue'
 
 describe('InputAction', () => {
-	let wrapper: any
-
 	const createWrapper = (props = {}) => {
 		return mount(InputAction, {
 			propsData: {
@@ -21,6 +19,8 @@ describe('InputAction', () => {
 			},
 		})
 	}
+
+	let wrapper: ReturnType<typeof createWrapper> | undefined
 
 	beforeEach(() => {
 		if (wrapper) {
@@ -264,7 +264,7 @@ describe('InputAction', () => {
 			const button = wrapper.find('button')
 			await button.trigger('click')
 
-			expect(wrapper.emitted('submit')[0]).toEqual(['test value'])
+			expect(wrapper.emitted('submit')?.[0]).toEqual(['test value'])
 		})
 
 		it('emits empty string when input empty', async () => {
@@ -273,7 +273,7 @@ describe('InputAction', () => {
 			const button = wrapper.find('button')
 			await button.trigger('click')
 
-			expect(wrapper.emitted('submit')[0]).toEqual([''])
+			expect(wrapper.emitted('submit')?.[0]).toEqual([''])
 		})
 
 		it('emits different values for multiple submissions', async () => {
@@ -290,8 +290,8 @@ describe('InputAction', () => {
 
 			const emitted = wrapper.emitted('submit')
 			expect(emitted).toHaveLength(2)
-			expect(emitted[0]).toEqual(['first'])
-			expect(emitted[1]).toEqual(['second'])
+			expect(emitted?.[0]).toEqual(['first'])
+			expect(emitted?.[1]).toEqual(['second'])
 		})
 
 		it('preserves input value after submit', async () => {
