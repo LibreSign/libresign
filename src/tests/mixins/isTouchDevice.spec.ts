@@ -13,7 +13,7 @@ describe('isTouchDevice Mixin', () => {
 		template: '<div>{{ isTouchDevice }}</div>',
 	}
 
-	let wrapper
+	let wrapper: any
 
 	beforeEach(() => {
 		wrapper = null
@@ -21,7 +21,6 @@ describe('isTouchDevice Mixin', () => {
 
 	afterEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
 		}
 	})
 
