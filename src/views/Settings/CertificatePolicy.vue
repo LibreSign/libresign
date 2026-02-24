@@ -88,12 +88,20 @@ export default {
 		NcNoteCard,
 		NcTextField,
 		NcIconSvgWrapper,
+		NcLoadingIcon,
 	},
 	props: {
 		disabled: {
 			type: Boolean,
 			default: false,
 	},
+	},
+	setup() {
+		return {
+			t,
+			mdiDelete,
+			mdiUpload,
+		}
 	},
 	data() {
 		return {
