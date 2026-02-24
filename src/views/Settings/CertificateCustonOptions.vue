@@ -124,6 +124,7 @@ export default {
 	},
 	setup() {
 		return {
+			t,
 			mdiDelete,
 			mdiPlus,
 		}
@@ -149,8 +150,6 @@ export default {
 		},
 	},
 	methods: {
-		t,
-
 		getOptionProperty(id, property) {
 			return this.options.find(option => option.id === id)[property]
 		},
