@@ -102,7 +102,9 @@ export default {
 	},
 	},
 	setup() {
-		return { t }
+		return {
+			t,
+		}
 	},
 	computed: {
 		isInProgress() {
