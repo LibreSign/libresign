@@ -16,6 +16,7 @@ import {
 vi.mock('@nextcloud/l10n', () => ({
 	t: (app: any, text: any) => text,
 	translate: (app: any, text: any) => text,
+	isRTL: vi.fn(() => false),
 }))
 
 describe('fileStatus utils', () => {
