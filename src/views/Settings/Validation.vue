@@ -65,6 +65,7 @@ export default {
 	components: {
 		NcSettingsSection,
 		FooterTemplateEditor,
+		NcCheckboxRadioSwitch,
 	},
 	data() {
 		const isDefaultFooterTemplate = loadState('libresign', 'footer_template_is_default', true)
