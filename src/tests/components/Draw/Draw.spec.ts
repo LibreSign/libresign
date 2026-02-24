@@ -69,7 +69,14 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path) => `/ocs/v2.php${path}`),
 }))
 
-const mountDraw = (options = {}) => {
+const mountDraw = (options: {
+	propsData?: { type?: string; drawEditor?: boolean; textEditor?: boolean; fileEditor?: boolean }
+	props?: { type?: string; drawEditor?: boolean; textEditor?: boolean; fileEditor?: boolean }
+	mocks?: Record<string, unknown>
+	stubs?: Record<string, unknown>
+	global?: { mocks?: Record<string, unknown>; stubs?: Record<string, unknown> }
+	[key: string]: unknown
+} = {}) => {
 	const { propsData, props, mocks, stubs, global, ...rest } = options
 	const normalizedProps = {
 		type: 'signature',
@@ -77,7 +84,7 @@ const mountDraw = (options = {}) => {
 	}
 	const normalizedGlobal = {
 		mocks: {
-			t: (key, message) => message,
+			t: (key: string, message: string) => message,
 			...(mocks || {}),
 			...(global?.mocks || {}),
 		},
@@ -116,12 +123,6 @@ describe('Draw.vue', () => {
 				type: 'signature',
 				drawEditor: true,
 			},
-			mocks: {
-				t: (key, message) => message,
-			},
-			mocks: {
-				t: (key, message) => message,
-			},
 			stubs: {
 				NcDialog: { template: '<div class="nc-dialog"><slot /></div>' },
 				NcButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
@@ -145,9 +146,6 @@ describe('Draw.vue', () => {
 				drawEditor: true,
 				textEditor: false,
 				fileEditor: false,
-			},
-			mocks: {
-				t: (key, message) => message,
 			},
 			stubs: {
 				NcDialog: { template: '<div class="nc-dialog"><slot /></div>' },
@@ -175,7 +173,7 @@ describe('Draw.vue', () => {
 				fileEditor: true,
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 			stubs: {
 				NcDialog: { template: '<div class="nc-dialog"><slot /></div>' },
@@ -191,7 +189,7 @@ describe('Draw.vue', () => {
 
 		await wrapper.vm.$nextTick()
 		expect(wrapper.vm.availableTabs.length).toBe(3)
-		expect(wrapper.vm.availableTabs.map(t => t.id)).toEqual(['draw', 'text', 'file'])
+		expect(wrapper.vm.availableTabs.map((t: { id: string }) => t.id)).toEqual(['draw', 'text', 'file'])
 	})
 
 	it('switches active tab when tab clicked', async () => {
@@ -219,7 +217,7 @@ describe('Draw.vue', () => {
 				fileEditor: true,
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 		})
 
@@ -238,7 +236,7 @@ describe('Draw.vue', () => {
 				type: 'signature',
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 		})
 
@@ -253,7 +251,7 @@ describe('Draw.vue', () => {
 				type: 'signature',
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 		})
 
@@ -277,7 +275,7 @@ describe('Draw.vue', () => {
 				type: 'signature',
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 		})
 
@@ -297,7 +295,7 @@ describe('Draw.vue', () => {
 				type: 'signature',
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 		})
 
@@ -321,7 +319,7 @@ describe('Draw.vue', () => {
 				type: 'signature',
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 		})
 
@@ -338,7 +336,7 @@ describe('Draw.vue', () => {
 				drawEditor: true,
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 		})
 
@@ -354,7 +352,7 @@ describe('Draw.vue', () => {
 				fileEditor: false,
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 		})
 
@@ -363,7 +361,7 @@ describe('Draw.vue', () => {
 		wrapper.setProps({ textEditor: false, fileEditor: true })
 		await wrapper.vm.$nextTick()
 
-		expect(wrapper.vm.availableTabs.map(t => t.id)).toEqual(['draw', 'file'])
+		expect(wrapper.vm.availableTabs.map((t: { id: string }) => t.id)).toEqual(['draw', 'file'])
 	})
 
 	it('initializes mounted flag to true after mount', () => {
@@ -372,7 +370,7 @@ describe('Draw.vue', () => {
 				type: 'signature',
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 		})
 
@@ -385,7 +383,7 @@ describe('Draw.vue', () => {
 				type: 'signature',
 			},
 			mocks: {
-				t: (key, message) => message,
+				t: (key: string, message: string) => message,
 			},
 		})
 
