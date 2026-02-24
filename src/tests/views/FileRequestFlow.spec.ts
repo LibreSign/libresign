@@ -84,7 +84,7 @@ vi.mock('../../store/files.js', () => ({
 }))
 
 describe('Request.vue - File Request Business Logic', () => {
-	let wrapper
+	let wrapper: any
 	const createWrapper = ({ selectedFileId = 0, sidebarVisible = false } = {}) => {
 		mockFilesStore.selectedFileId = selectedFileId
 		mockSidebarStore.isVisible = sidebarVisible
@@ -93,7 +93,7 @@ describe('Request.vue - File Request Business Logic', () => {
 				mocks: {
 					$route: mockRoute,
 					$router: mockRouter,
-					t: (app, text) => text,
+					t: (app: any, text: any) => text,
 				},
 				stubs: {
 					File: {
