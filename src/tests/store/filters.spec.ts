@@ -4,10 +4,15 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { MockedFunction } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+
+type AxiosMock = {
+	put: MockedFunction<(url: string, data?: unknown) => Promise<{ data: { success: boolean } }>>
+}
 
 // Mock @nextcloud/logger to avoid import-time errors
 vi.mock('@nextcloud/logger', () => ({
@@ -44,7 +49,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path, params) => {
+	generateOcsUrl: vi.fn((path: string, params?: Record<string, string>) => {
 		let url = `/ocs/v2.php${path}`
 		if (params) {
 			Object.entries(params).forEach(([key, value]) => {
@@ -62,7 +67,8 @@ vi.mock('../../helpers/logger.js', () => ({
 }))
 
 describe('filters store - filter business rules', () => {
-	let useFiltersStore
+	const axiosMock = axios as unknown as AxiosMock
+	let useFiltersStore: typeof import('../../store/filters.js').useFiltersStore
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
@@ -196,7 +202,7 @@ describe('filters store - filter business rules', () => {
 
 	describe('business rule: modification filter should save to server', () => {
 		it('modified filter should save first chip ID to server', async () => {
-			axios.put.mockResolvedValue({ data: { success: true } })
+			axiosMock.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
 			const event = {
@@ -206,14 +212,14 @@ describe('filters store - filter business rules', () => {
 
 			await store.onFilterUpdateChipsAndSave(event)
 
-			expect(axios.put).toHaveBeenCalledWith(
+			expect(axiosMock.put).toHaveBeenCalledWith(
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_modified',
 				{ value: 'today' }
 			)
 		})
 
 		it('modified filter with multiple chips should save only the first', async () => {
-			axios.put.mockResolvedValue({ data: { success: true } })
+			axiosMock.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
 			const event = {
@@ -226,14 +232,14 @@ describe('filters store - filter business rules', () => {
 
 			await store.onFilterUpdateChipsAndSave(event)
 
-			expect(axios.put).toHaveBeenCalledWith(
+			expect(axiosMock.put).toHaveBeenCalledWith(
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_modified',
 				{ value: 'today' }
 			)
 		})
 
 		it('empty modified filter should save empty string', async () => {
-			axios.put.mockResolvedValue({ data: { success: true } })
+			axiosMock.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
 			const event = {
@@ -243,7 +249,7 @@ describe('filters store - filter business rules', () => {
 
 			await store.onFilterUpdateChipsAndSave(event)
 
-			expect(axios.put).toHaveBeenCalledWith(
+			expect(axiosMock.put).toHaveBeenCalledWith(
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_modified',
 				{ value: '' }
 			)
@@ -252,7 +258,7 @@ describe('filters store - filter business rules', () => {
 
 	describe('business rule: status filter should save JSON array to server', () => {
 		it('status filter should save ID array as JSON', async () => {
-			axios.put.mockResolvedValue({ data: { success: true } })
+			axiosMock.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
 			const event = {
@@ -265,14 +271,14 @@ describe('filters store - filter business rules', () => {
 
 			await store.onFilterUpdateChipsAndSave(event)
 
-			expect(axios.put).toHaveBeenCalledWith(
+			expect(axiosMock.put).toHaveBeenCalledWith(
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_status',
 				{ value: '["signed","pending"]' }
 			)
 		})
 
 		it('empty status filter should save empty string', async () => {
-			axios.put.mockResolvedValue({ data: { success: true } })
+			axiosMock.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
 			const event = {
@@ -282,14 +288,14 @@ describe('filters store - filter business rules', () => {
 
 			await store.onFilterUpdateChipsAndSave(event)
 
-			expect(axios.put).toHaveBeenCalledWith(
+			expect(axiosMock.put).toHaveBeenCalledWith(
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_status',
 				{ value: '' }
 			)
 		})
 
 		it('status filter should update local state after saving', async () => {
-			axios.put.mockResolvedValue({ data: { success: true } })
+			axiosMock.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
 			const event = {
@@ -313,7 +319,7 @@ describe('filters store - filter business rules', () => {
 
 			await store.onFilterUpdateChipsAndSave(event)
 
-			expect(axios.put).not.toHaveBeenCalled()
+			expect(axiosMock.put).not.toHaveBeenCalled()
 		})
 
 		it('filter with different ID should still emit event', async () => {
