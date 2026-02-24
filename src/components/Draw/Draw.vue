@@ -57,6 +57,7 @@ export default {
 		NcIconSvgWrapper,
 		TextInput,
 		Editor,
+		FileUpload,
 	},
 	props: {
 		drawEditor: {
