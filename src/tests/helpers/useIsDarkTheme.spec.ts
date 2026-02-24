@@ -4,11 +4,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref } from 'vue'
+import { ref } from '@vue/reactivity'
 import { useIsDarkTheme, useIsDarkThemeElement } from '../../helpers/useIsDarkTheme'
 
 vi.mock('@vueuse/core', () => ({
-	createSharedComposable: (fn) => fn,
+	createSharedComposable: (fn: any) => fn,
 	useMutationObserver: vi.fn(),
 	usePreferredDark: () => ref(false),
 }))
