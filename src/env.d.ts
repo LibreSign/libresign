@@ -7,7 +7,7 @@
 
 declare module '*.vue' {
 	import type { DefineComponent } from 'vue'
-	const component: DefineComponent<{}, {}, any>
+	const component: DefineComponent<{}, {}, unknown>
 	export default component
 }
 
@@ -21,7 +21,7 @@ declare module '@vue/runtime-core' {
 	interface ComponentCustomProperties {
 		$t: typeof import('@nextcloud/l10n').translate
 		$n: typeof import('@nextcloud/l10n').translatePlural
-		OC: any
-		OCA: any
+		OC: Nextcloud.v29.OC
+		OCA: OCAGlobalNamespace
 	}
 }
