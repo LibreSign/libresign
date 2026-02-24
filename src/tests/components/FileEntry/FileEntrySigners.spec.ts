@@ -6,10 +6,10 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
-let FileEntrySigners: any
+let FileEntrySigners: unknown
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app: any, text: any) => text),
+	translate: vi.fn((_app: string, text: string) => text),
 	isRTL: vi.fn(() => false),
 }))
 
