@@ -53,6 +53,13 @@
 
 <script>
 import { t } from '@nextcloud/l10n'
+import {
+	mdiCertificate,
+	mdiCloudUpload,
+	mdiDelete,
+	mdiFileReplace,
+	mdiLockOpenCheck,
+} from '@mdi/js'
 
 
 import axios from '@nextcloud/axios'
@@ -74,13 +81,21 @@ export default {
 	name: 'ManagePassword',
 	components: {
 		NcButton,
+		NcIconSvgWrapper,
 		CreatePassword,
 		ResetPassword,
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
 		signMethodsStore.setHasSignatureFile(loadState('libresign', 'config', {})?.hasSignatureFile ?? false)
-		return { signMethodsStore }
+		return {
+			signMethodsStore,
+			mdiCloudUpload,
+			mdiLockOpenCheck,
+			mdiDelete,
+			mdiCertificate,
+			mdiFileReplace,
+		}
 	},
 	data() {
 		return {
