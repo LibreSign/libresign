@@ -56,13 +56,20 @@ export default defineConfig({
 			},
 		},
 		coverage: {
-			include: ['src/**/*.{js,vue}'],
+			include: ['src/**/*.{js,ts,vue}'],
 			exclude: [
 				'src/**/index.js',
+				'src/**/index.ts',
 				'src/tests/**',
+				'src/**/*.d.ts',
 			],
 			provider: 'v8',
-			reporter: ['text', 'lcov', 'html'],
+			reporter: ['text', 'lcov', 'html', 'text-summary'],
+			// Enforce minimum coverage thresholds
+			lines: 75,
+			functions: 75,
+			branches: 70,
+			statements: 75,
 		},
 		setupFiles: ['src/tests/setup.js'],
 	},
