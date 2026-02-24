@@ -5,8 +5,11 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-let Signers
+import type { Pinia } from 'pinia'
+type SignersComponent = typeof import('../../../components/Signers/Signers.vue').default
+let Signers: SignersComponent
 import { useFilesStore } from '../../../store/files.js'
 
 vi.mock('@nextcloud/initial-state', () => ({
@@ -19,11 +22,11 @@ beforeAll(async () => {
 
 
 describe('Signers', () => {
-	let wrapper
-	let filesStore
-	let pinia
+	let wrapper: VueWrapper<unknown> | null
+	let filesStore: ReturnType<typeof useFilesStore>
+	let pinia: Pinia
 
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props: Partial<{ event: string }> = {}) => {
 		return mount(Signers, {
 			props: {
 				event: '',
@@ -47,7 +50,8 @@ describe('Signers', () => {
 		filesStore.getFile = () => filesStore.selectedFile
 		filesStore.canSave = vi.fn(() => true)
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
+			wrapper = null
 		}
 		vi.clearAllMocks()
 	})
