@@ -7,6 +7,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useKeyboardStore } from '../../store/keyboard.js'
 
+type KeyboardLikeEvent = Pick<KeyboardEvent, 'altKey' | 'ctrlKey' | 'metaKey' | 'shiftKey'>
+
 describe('keyboard store', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
@@ -26,7 +28,8 @@ describe('keyboard store', () => {
 	it('falls back to window.event when no event provided', () => {
 		const store = useKeyboardStore()
 
-		;(window as any).event = { altKey: false, ctrlKey: true, metaKey: false, shiftKey: true }
+		const fallbackEvent: KeyboardLikeEvent = { altKey: false, ctrlKey: true, metaKey: false, shiftKey: true }
+		;(window as unknown as { event?: KeyboardLikeEvent }).event = fallbackEvent
 		store.onEvent()
 
 		expect(store.altKey).toBe(false)
