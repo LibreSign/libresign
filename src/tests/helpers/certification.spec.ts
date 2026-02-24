@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { selectCustonOption, options } from '../../helpers/certification'
 
 // Mock @nextcloud packages to avoid import-time errors
 vi.mock('@nextcloud/logger', () => ({
@@ -29,25 +30,23 @@ vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn((app: any, text: any) => text),
 	translate: vi.fn((app: any, text: any) => text),
 	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => count === 1 ? singular : plural),
+	isRTL: vi.fn(() => false),
 }))
 
-let optionFromMock = vi.fn()
+const optionFromMock = vi.fn((value) => ({ value }))
 
 vi.mock('@marionebl/option', () => ({
 	Option: {
-		from: (...args: any[]) => optionFromMock(...args),
+		from: (value: unknown) => optionFromMock(value),
 	},
 }))
 
 describe('selectCustonOption', () => {
 	beforeEach(() => {
 		optionFromMock.mockClear()
-		optionFromMock.mockImplementation((value) => ({ value }))
 	})
 
-	it('returns option wrapped when id exists', async () => {
-		vi.resetModules()
-		const { selectCustonOption, options } = await import('../../helpers/certification.js')
+	it('returns option wrapped when id exists', () => {
 		const expectedOption = options.find((item) => item.id === 'CN')
 
 		const result = selectCustonOption('CN')
@@ -56,10 +55,7 @@ describe('selectCustonOption', () => {
 		expect(result).toEqual({ value: expectedOption })
 	})
 
-	it('returns empty option when id does not exist', async () => {
-		vi.resetModules()
-		const { selectCustonOption } = await import('../../helpers/certification.js')
-
+	it('returns empty option when id does not exist', () => {
 		const result = selectCustonOption('UNKNOWN')
 
 		expect(optionFromMock).toHaveBeenCalledWith(undefined)
