@@ -30,20 +30,43 @@ interface FileInfo {
 	name: string
 	path: string
 	type: string
-	attributes: any
+	attributes: Record<string, unknown>
 	isDirectory(): boolean
 	get(key: string): string | undefined
 }
 
-function mapNodeToFileInfo(node: any = {}): FileInfo {
+interface SidebarNode {
+	fileid?: number | string
+	id?: number | string
+	basename?: string
+	displayname?: string
+	name?: string
+	dirname?: string
+	path?: string
+	type?: string
+	mime?: string
+	mimetype?: string
+	attributes?: Record<string, unknown>
+}
+
+interface SidebarContext {
+	node?: SidebarNode
+}
+
+interface TabComponentInstance {
+	$el?: Element
+	update?: (fileInfo: FileInfo) => void
+}
+
+function mapNodeToFileInfo(node: SidebarNode = {}): FileInfo {
 	const name = node.basename || node.displayname || node.name || ''
 	const dirname = node.dirname || (node.path ? node.path.substring(0, node.path.lastIndexOf('/')) : '')
 	return {
-		id: node.fileid || node.id,
+		id: node.fileid ?? node.id ?? '',
 		name,
 		path: dirname,
-		type: node.type,
-		attributes: node.attributes,
+		type: node.type || '',
+		attributes: node.attributes || {},
 		isDirectory() {
 			return node.type === FileType.Folder || node.type === 'folder'
 		},
@@ -57,10 +80,10 @@ function mapNodeToFileInfo(node: any = {}): FileInfo {
 }
 
 interface LibreSignSidebarTabElement extends HTMLElement {
-	_node?: any
+	_node?: SidebarNode
 	_active?: boolean
-	_vueInstance?: any
-	node?: any
+	_vueInstance?: TabComponentInstance | null
+	node?: SidebarNode
 	update(fileInfo: FileInfo): void
 	setActive(active: boolean): Promise<void>
 	mountVue(): void
@@ -76,9 +99,9 @@ function setupCustomElement() {
 	const pinia = createPinia()
 
 	class LibreSignSidebarTab extends HTMLElement implements LibreSignSidebarTabElement {
-		_node?: any
+		_node?: SidebarNode
 		_active?: boolean
-		_vueInstance?: any
+		_vueInstance?: TabComponentInstance | null
 
 		connectedCallback() {
 			this.mountVue()
@@ -89,12 +112,12 @@ function setupCustomElement() {
 			this.destroyVue()
 		}
 
-		set node(value: any) {
+		set node(value: SidebarNode) {
 			this._node = value
 			this.updateFromNode()
 		}
 
-		get node() {
+		get node(): SidebarNode | undefined {
 			return this._node
 		}
 
@@ -147,10 +170,10 @@ function setupCustomElement() {
 		}
 	}
 
-	window.customElements.define(tagName, LibreSignSidebarTab as any)
+	window.customElements.define(tagName, LibreSignSidebarTab as CustomElementConstructor)
 }
 
-function isEnabled(context: any) {
+function isEnabled(context: SidebarContext | null | undefined) {
 	if (!context?.node) {
 		return false
 	}
