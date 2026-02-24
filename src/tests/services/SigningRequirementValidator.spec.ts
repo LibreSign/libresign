@@ -8,8 +8,31 @@ import { SigningRequirementValidator } from '../../services/SigningRequirementVa
 import { ACTION_CODES } from '../../helpers/ActionMapping'
 
 describe('SigningRequirementValidator', () => {
-	const createStores = (overrides: any = {}) => {
+	type SigningMethodsStoreOverrides = Partial<{
+		needEmailCode: () => boolean
+		needTokenCode: () => boolean
+		needCertificate: () => boolean
+		needCreatePassword: () => boolean
+		needSignWithPassword: () => boolean
+		needClickToSign: () => boolean
+	}>
+
+	type IdentificationDocumentStoreOverrides = Partial<{
+		enabled: boolean
+		waitingApproval: boolean
+		modal: boolean
+		needIdentificationDocument: () => boolean
+	}>
+
+	type StoresOverrides = {
+		signStore?: Record<string, unknown>
+		signMethodsStore?: SigningMethodsStoreOverrides
+		identificationDocumentStore?: IdentificationDocumentStoreOverrides
+	}
+
+	const createStores = (overrides: StoresOverrides = {}) => {
 		const signStore = {
+			errors: [],
 			document: {
 				signers: [{
 					me: true,
