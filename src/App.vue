@@ -5,7 +5,7 @@
 
 <template>
 	<NcContent app-name="libresign" :class="{'sign-external-page': isSignExternalPage}">
-		<LeftSidebar />
+		<LeftSidebar v-if="showLeftSidebar" />
 		<NcAppContent :class="{'icon-loading' : loading }">
 			<DefaultPageError v-if="isDoNothingError" />
 			<router-view
@@ -42,6 +42,7 @@ const loading = ref(false)
 const isRoot = computed(() => route.path === '/')
 const isSignExternalPage = computed(() => route.path.startsWith('/p/'))
 const isDoNothingError = computed(() => (route.params?.action as number | undefined) === 2000)
+const showLeftSidebar = computed(() => !route.matched.some(record => record.meta?.hideLeftSidebar === true))
 </script>
 
 <style lang="scss" scoped>
