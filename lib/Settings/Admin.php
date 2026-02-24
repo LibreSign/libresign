@@ -59,6 +59,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('default_signature_width', SignatureTextService::DEFAULT_SIGNATURE_WIDTH);
 		$this->initialState->provideInitialState('default_template_font_size', $this->signatureTextService->getDefaultTemplateFontSize());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
+		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information', ''));
 		$this->initialState->provideInitialState('signature_available_variables', $this->signatureTextService->getAvailableVariables());
 		$this->initialState->provideInitialState('signature_background_type', $this->signatureBackgroundService->getSignatureBackgroundType());
 		$this->initialState->provideInitialState('signature_font_size', $this->signatureTextService->getSignatureFontSize());
