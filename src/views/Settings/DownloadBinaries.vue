@@ -50,6 +50,7 @@ export default {
 		NcButton,
 		NcNoteCard,
 		NcProgressBar,
+		NcLoadingIcon,
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
