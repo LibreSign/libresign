@@ -60,6 +60,13 @@ export default {
 		NcButton,
 		NcNoteCard,
 		NcIconSvgWrapper,
+		NcLoadingIcon,
+	},
+	setup() {
+		return {
+			t,
+			mdiArrowRight,
+		}
 	},
 	data() {
 		return {
@@ -73,7 +80,6 @@ export default {
 		}
 	},
 	methods: {
-		t,
 		async renew() {
 			this.hasLoading = true
 			this.error = ''
