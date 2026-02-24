@@ -10,6 +10,7 @@ let FileEntrySigners: any
 
 vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((app: any, text: any) => text),
+	isRTL: vi.fn(() => false),
 }))
 
 beforeAll(async () => {
