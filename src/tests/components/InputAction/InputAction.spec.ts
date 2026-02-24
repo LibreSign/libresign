@@ -8,7 +8,7 @@ import { mount } from '@vue/test-utils'
 import InputAction from '../../../components/InputAction/InputAction.vue'
 
 describe('InputAction', () => {
-	let wrapper
+	let wrapper: any
 
 	const createWrapper = (props = {}) => {
 		return mount(InputAction, {
@@ -24,7 +24,6 @@ describe('InputAction', () => {
 
 	beforeEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
 		}
 		vi.clearAllMocks()
 	})
