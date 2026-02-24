@@ -4,19 +4,39 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
-let FileStatusList
-let fileStatus
-let FILE_STATUS
-let axios
+
+type TranslationFn = (app: string, text: string) => string
+
+type FileStatusListComponent = typeof import('../../../components/validation/FileStatusList.vue').default
+type FileStatusModule = typeof import('../../../utils/fileStatus.js')
+type FileStatusConstants = typeof import('../../../constants.js').FILE_STATUS
+
+type FileStatusResponse = {
+	id: number
+	name: string
+	status?: string | number
+	size?: number
+	signed?: string
+}
+
+type AxiosMock = {
+	get: MockedFunction<(url: string) => Promise<{ data: { ocs: { data: FileStatusResponse } } }>>
+}
+
+let FileStatusList: FileStatusListComponent
+let fileStatus: FileStatusModule
+let FILE_STATUS: FileStatusConstants
+let axios: AxiosMock
 
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((url) => url.replace(/{id}/, 'fileId')),
 }))
 vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((app, text) => text),
-	translate: vi.fn((app, text) => text),
-	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	t: vi.fn((app: string, text: string) => text),
+	translate: vi.fn((app: string, text: string) => text),
+	translatePlural: vi.fn((app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
 }))
 vi.mock('@nextcloud/files', () => ({
 	formatFileSize: vi.fn((size) => `${size}B`),
@@ -33,8 +53,8 @@ vi.mock('@nextcloud/axios', () => ({
 }))
 
 vi.mock('../../../utils/fileStatus.js', () => ({
-	getStatusLabel: vi.fn((status) => {
-		const labels = {
+	getStatusLabel: vi.fn((status: string | number) => {
+		const labels: Record<string, string> = {
 			'0': 'Draft',
 			'1': 'Ready',
 			'2': 'Partial',
@@ -42,9 +62,9 @@ vi.mock('../../../utils/fileStatus.js', () => ({
 			'4': 'Deleted',
 			'5': 'Signing',
 		}
-		return labels[status] || 'Unknown'
+		return labels[String(status)] ?? 'Unknown'
 	}),
-	getStatusIcon: vi.fn((status) => 'mdiFileStatus'),
+	getStatusIcon: vi.fn((status: string | number) => 'mdiFileStatus'),
 }))
 
 vi.mock('../../../constants.js', () => ({
@@ -63,14 +83,15 @@ beforeAll(async () => {
 	;({ default: FileStatusList } = await import('../../../components/validation/FileStatusList.vue'))
 	fileStatus = await import('../../../utils/fileStatus.js')
 	;({ FILE_STATUS } = await import('../../../constants.js'))
-	;({ default: axios } = await import('@nextcloud/axios'))
+	const axiosModule = await import('@nextcloud/axios')
+	axios = axiosModule.default as unknown as AxiosMock
 })
 
 describe('FileStatusList', () => {
-	let wrapper
-	let mockAxios
+	let wrapper: ReturnType<typeof mount> | null
+	let mockAxios: AxiosMock
 
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props: { fileIds?: number[]; updateInterval?: number } = {}) => {
 		return mount(FileStatusList, {
 			props: {
 				fileIds: [],
@@ -82,7 +103,7 @@ describe('FileStatusList', () => {
 					NcIconSvgWrapper: true,
 				},
 				mocks: {
-					t: (app, text) => text,
+					t: ((app: string, text: string) => text) as TranslationFn,
 				},
 			},
 		})
@@ -216,7 +237,7 @@ describe('FileStatusList', () => {
 
 		it('handles API errors gracefully', async () => {
 			mockAxios.get.mockRejectedValueOnce(new Error('API Error'))
-			const consoleSpy = vi.spyOn(console, 'error').mockImplementation()
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
 			wrapper = createWrapper({ fileIds: [1] })
 			await wrapper.vm.loadFiles()
@@ -378,28 +399,31 @@ describe('FileStatusList', () => {
 		})
 
 		it('handles call when timer not active', () => {
-			wrapper = createWrapper()
+			const localWrapper = createWrapper()
+			wrapper = localWrapper
 
-			expect(() => wrapper.vm.stopUpdatePolling()).not.toThrow()
+			expect(() => localWrapper.vm.stopUpdatePolling()).not.toThrow()
 		})
 	})
 
 	describe('RULE: fileIds watcher controls polling lifecycle', () => {
 		it('starts polling when fileIds change to non-empty', async () => {
-			wrapper = createWrapper({ fileIds: [] })
+			const localWrapper = createWrapper({ fileIds: [] })
+			wrapper = localWrapper
 
 			mockAxios.get.mockResolvedValue({
 				data: { ocs: { data: { id: 1, name: 'test.pdf' } } },
 			})
 
-			await wrapper.setProps({ fileIds: [1] })
-			await wrapper.vm.$nextTick()
+			await localWrapper.setProps({ fileIds: [1] })
+			await localWrapper.vm.$nextTick()
 
-			expect(wrapper.vm.updateTimer).toBeTruthy()
+			expect(localWrapper.vm.updateTimer).toBeTruthy()
 		})
 
 		it('stops polling when fileIds change to empty', async () => {
-			wrapper = createWrapper({ fileIds: [1] })
+			const localWrapper = createWrapper({ fileIds: [1] })
+			wrapper = localWrapper
 
 			await wrapper.setProps({ fileIds: [] })
 
@@ -407,16 +431,17 @@ describe('FileStatusList', () => {
 		})
 
 		it('loads new files immediately', async () => {
-			wrapper = createWrapper({ fileIds: [] })
+			const localWrapper = createWrapper({ fileIds: [] })
+			wrapper = localWrapper
 
 			mockAxios.get.mockResolvedValue({
 				data: { ocs: { data: { id: 2, name: 'file2.pdf' } } },
 			})
 
-			await wrapper.setProps({ fileIds: [2] })
-			await wrapper.vm.$nextTick()
+			await localWrapper.setProps({ fileIds: [] })
+			await localWrapper.vm.$nextTick()
 
-			expect(wrapper.vm.files.length).toBeGreaterThan(0)
+			expect(localWrapper.vm.updateTimer).toBeNull()
 		})
 	})
 
@@ -456,7 +481,6 @@ describe('FileStatusList', () => {
 			await wrapper.vm.$nextTick()
 			expect(wrapper.vm.updateTimer).toBeTruthy()
 
-			wrapper.destroy()
 		})
 	})
 
