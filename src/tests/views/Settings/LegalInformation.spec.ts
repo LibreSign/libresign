@@ -6,13 +6,13 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
-let LegalInformation: any
+let LegalInformation: unknown
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app: any, text: any) => text),
-	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
-	t: vi.fn((app: any, text: any) => text),
-	n: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
+	translate: vi.fn((_app: string, text: string) => text),
+	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
+	t: vi.fn((_app: string, text: string) => text),
+	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -33,17 +33,17 @@ const OCP = {
 	},
 }
 
-;(global as any).OCP = OCP
+;(globalThis as typeof globalThis & { OCP: typeof OCP }).OCP = OCP
 
 beforeAll(async () => {
 	;({ default: LegalInformation } = await import('../../../views/Settings/LegalInformation.vue'))
 })
 
 describe('LegalInformation', () => {
-	let wrapper: any
+	let wrapper!: ReturnType<typeof createWrapper>
 
 	const createWrapper = () => {
-		return mount(LegalInformation, {
+		return mount(LegalInformation as never, {
 			global: {
 				stubs: {
 					NcSettingsSection: {
@@ -193,7 +193,7 @@ describe('LegalInformation', () => {
 			await flushPromises()
 
 			const editor = wrapper.findComponent({ name: 'MarkdownEditor' })
-			await editor.trigger('update:modelValue', 'Direct update')
+			await editor.vm.$emit('update:modelValue', 'Direct update')
 			await flushPromises()
 		})
 	})
