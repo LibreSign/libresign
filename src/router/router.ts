@@ -80,6 +80,9 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/p/incomplete',
 		name: 'IncompleteExternal',
+		meta: {
+			hideLeftSidebar: true,
+		},
 		beforeEnter: (to, from, next) => {
 			const action = selectAction(loadState('libresign', 'action', 0), to, from)
 			if (action) {
@@ -114,6 +117,9 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/f/incomplete',
 		name: 'Incomplete',
+		meta: {
+			hideLeftSidebar: true,
+		},
 		beforeEnter: (to, from, next) => {
 			const action = selectAction(loadState('libresign', 'action', 0), to, from)
 			if (action) {
