@@ -81,17 +81,7 @@ import {
 	mdiCancel,
 	mdiCheckCircle,
 	mdiCheckboxMarkedCircle,
-	mdiFileMultiple,
-	mdiFilePdfBox,
-	mdiHelpCircle,
-	mdiInformationOutline,
-	mdiInformationSlabCircle,
 	mdiKey,
-	mdiShieldCheck,
-	mdiShieldOff,
-	mdiSignatureFreehand,
-	mdiUnfoldLessHorizontal,
-	mdiUnfoldMoreHorizontal,
 	mdiUpload,
 } from '@mdi/js'
 import JSConfetti from 'js-confetti'
@@ -137,10 +127,12 @@ export default {
 		NcDialog,
 		NcIconSvgWrapper,
 		NcListItem,
+		NcLoadingIcon,
 		NcNoteCard,
 		NcRichText,
 		NcTextField,
 		EnvelopeValidation,
+		FileValidation,
 		SigningProgress,
 	},
 	setup() {
@@ -157,39 +149,12 @@ export default {
 			mdiCancel,
 			mdiCheckCircle,
 			mdiCheckboxMarkedCircle,
-			mdiFileMultiple,
-			mdiFilePdfBox,
-			mdiHelpCircle,
-			mdiInformationOutline,
-			mdiInformationSlabCircle,
 			mdiKey,
-			mdiShieldCheck,
-			mdiShieldOff,
-			mdiSignatureFreehand,
-			mdiUnfoldLessHorizontal,
-			mdiUnfoldMoreHorizontal,
-			mdiUpload,}
+			mdiUpload,
+		}
 	},
 	data() {
 		return {
-			mdiAlertCircle,
-			mdiAlertCircleOutline,
-			mdiArrowLeft,
-			mdiCancel,
-			mdiCheckboxMarkedCircle,
-			mdiCheckCircle,
-			mdiFileMultiple,
-			mdiFilePdfBox,
-			mdiHelpCircle,
-			mdiInformationOutline,
-			mdiInformationSlabCircle,
-			mdiKey,
-			mdiShieldCheck,
-			mdiShieldOff,
-			mdiSignatureFreehand,
-			mdiUnfoldLessHorizontal,
-			mdiUnfoldMoreHorizontal,
-			mdiUpload,
 			logo: logoGray,
 			uuidToValidate: this.$route.params?.uuid ?? '',
 			hasInfo: false,
@@ -284,15 +249,15 @@ export default {
 	},
 	created() {
 		this.document = loadState('libresign', 'file_info', {})
-		
+
 		if (!this.uuidToValidate) {
 			this.document = {}
 			this.hasInfo = false
 			return
 		}
-		
+
 		this.hasInfo = !!this.document?.name
-		
+
 		if (this.uuidToValidate !== this.document?.uuid) {
 			this.document = {}
 			this.hasInfo = false
