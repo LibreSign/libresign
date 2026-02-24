@@ -9,6 +9,18 @@ import { setActivePinia, createPinia } from 'pinia'
 import FileEntry from '../../../views/FilesList/FileEntry/FileEntry.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
+import type { TranslationFunction } from '../../test-types'
+
+type FileEntrySource = {
+	id: number
+	name: string
+	status: number
+	statusText: string
+	signers: unknown[]
+	created_at: number
+}
+
+const t: TranslationFunction = (_app, text) => text
 
 vi.mock('@nextcloud/dialogs', () => ({
 	showSuccess: vi.fn(),
@@ -82,29 +94,31 @@ vi.mock('../../../views/FilesList/FileEntry/FileEntrySigners.vue', () => ({
 vi.mock('../../../views/FilesList/FileEntry/FileEntryMixin.js', () => ({
 	default: {
 		computed: {
-			source() {
-				return this.source || {}
+			source(this: { source?: FileEntrySource }): FileEntrySource {
+				return this.source ?? ({} as FileEntrySource)
 			},
 			fileExtension() {
 				return 'pdf'
 			},
-			mtime() {
-				return this.source?.created_at || Date.now()
+			mtime(this: { source?: FileEntrySource }): number {
+				return this.source?.created_at ?? Date.now()
 			},
 			mtimeOpacity() {
 				return {}
 			},
 		},
 		data() {
+			const source: FileEntrySource = {
+				id: 1,
+				name: 'test.pdf',
+				status: 1,
+				statusText: 'Ready',
+				signers: [],
+				created_at: Date.now(),
+			}
+
 			return {
-				source: {
-					id: 1,
-					name: 'test.pdf',
-					status: 1,
-					statusText: 'Ready',
-					signers: [],
-					created_at: Date.now(),
-				},
+				source,
 				loading: false,
 				openedMenu: false,
 			}
@@ -126,7 +140,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -139,7 +153,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -152,7 +166,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -165,7 +179,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -180,7 +194,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -196,7 +210,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -211,7 +225,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -230,7 +244,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -245,7 +259,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -259,7 +273,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -272,7 +286,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -285,7 +299,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -298,7 +312,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -311,7 +325,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -324,7 +338,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -340,7 +354,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -356,7 +370,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -370,7 +384,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -383,7 +397,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -398,7 +412,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -413,7 +427,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -434,7 +448,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 					onRightClick: vi.fn(),
 				},
 			},
@@ -450,7 +464,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -464,7 +478,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -478,7 +492,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			props: {},
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
