@@ -29,7 +29,7 @@ describe('SignFlowHandler', () => {
 		const store = createStore()
 		const handler = new SignFlowHandler(store)
 
-		const result = handler.handleAction('sign', { unmetRequirement: null })
+		const result = handler.handleAction('sign', { unmetRequirement: undefined })
 
 		expect(result).toBe('ready')
 	})
