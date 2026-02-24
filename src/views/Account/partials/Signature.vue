@@ -44,6 +44,7 @@
 <script>
 import { t } from '@nextcloud/l10n'
 import {
+	mdiDelete,
 	mdiDraw,
 } from '@mdi/js'
 
@@ -76,8 +77,11 @@ export default {
 	},
 	setup() {
 		const signatureElementsStore = useSignatureElementsStore()
-		return { signatureElementsStore,
-			mdiDraw,}
+		return {
+			signatureElementsStore,
+			mdiDelete,
+			mdiDraw,
+		}
 	},
 	data: () => ({
 		isEditing: false,
