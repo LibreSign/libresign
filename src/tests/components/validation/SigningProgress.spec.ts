@@ -3,10 +3,25 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
-let SigningProgress
-let axios
+import type { TranslationFunction } from '../../test-types'
+
+type SigningProgressComponent = typeof import('../../../components/validation/SigningProgress.vue').default
+type AxiosMock = {
+	get: MockedFunction<(url: string) => Promise<{ data: { ocs: { data: unknown } } }>>
+}
+
+const t: TranslationFunction = (_app, text, vars) => {
+	if (vars) {
+		return text.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))
+	}
+	return text
+}
+
+let SigningProgress: SigningProgressComponent
+let axios: AxiosMock
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
@@ -14,22 +29,12 @@ vi.mock('@nextcloud/axios', () => ({
 	},
 }))
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((url, params) => url),
+	generateOcsUrl: vi.fn((url: string) => url),
 }))
 vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((app, text, vars) => {
-		if (vars) {
-			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-		}
-		return text
-	}),
-	translate: vi.fn((app, text, vars) => {
-		if (vars) {
-			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-		}
-		return text
-	}),
-	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	t: vi.fn(t),
+	translate: vi.fn(t),
+	translatePlural: vi.fn((app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
 }))
 vi.mock('../../../utils/fileStatus.js', () => ({
 	buildStatusMap: vi.fn(() => ({
@@ -41,15 +46,16 @@ vi.mock('../../../utils/fileStatus.js', () => ({
 
 beforeAll(async () => {
 	;({ default: SigningProgress } = await import('../../../components/validation/SigningProgress.vue'))
-	;({ default: axios } = await import('@nextcloud/axios'))
+	const axiosModule = await import('@nextcloud/axios')
+	axios = axiosModule.default as unknown as AxiosMock
 })
 
 describe('SigningProgress', () => {
-	let wrapper
+	let wrapper: ReturnType<typeof mount> | null
 
 	const createWrapper = (props = {}) => {
 		return mount(SigningProgress, {
-			propsData: {
+			props: {
 				signRequestUuid: 'test-uuid-123',
 				...props,
 			},
@@ -59,19 +65,15 @@ describe('SigningProgress', () => {
 				NcIconSvgWrapper: true,
 			},
 			mocks: {
-				t: (app, text, vars) => {
-					if (vars) {
-						return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-					}
-					return text
-				},
+				t,
 			},
 		})
 	}
 
 	beforeEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
+			wrapper = null
 		}
 		vi.clearAllMocks()
 		vi.useFakeTimers()
@@ -138,7 +140,7 @@ describe('SigningProgress', () => {
 		it('starts polling when conditions met', () => {
 			wrapper = createWrapper()
 			wrapper.vm.stopPolling()
-			const pollSpy = vi.spyOn(wrapper.vm, 'pollFileProgress').mockImplementation(() => {})
+			const pollSpy = vi.spyOn(wrapper.vm, 'pollFileProgress').mockImplementation(() => undefined)
 
 			wrapper.vm.startPolling()
 
