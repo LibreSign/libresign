@@ -35,6 +35,7 @@ vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn(t),
 	translate: vi.fn(t),
 	translatePlural: vi.fn((app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
+	isRTL: vi.fn(() => false),
 }))
 vi.mock('../../../utils/fileStatus.js', () => ({
 	buildStatusMap: vi.fn(() => ({
