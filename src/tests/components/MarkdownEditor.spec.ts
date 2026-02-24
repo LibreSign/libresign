@@ -6,13 +6,13 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
-let MarkdownEditor: any
+let MarkdownEditor: unknown
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app: any, text: any) => text),
-	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
-	t: vi.fn((app: any, text: any) => text),
-	n: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
+	translate: vi.fn((_app: string, text: string) => text),
+	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
+	t: vi.fn((_app: string, text: string) => text),
+	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -23,10 +23,10 @@ beforeAll(async () => {
 })
 
 describe('MarkdownEditor', () => {
-	let wrapper: any
+	let wrapper!: ReturnType<typeof createWrapper>
 
 	const createWrapper = (props = {}) => {
-		const wrapper = mount(MarkdownEditor, {
+		const wrapper = mount(MarkdownEditor as never, {
 			props: {
 				modelValue: '',
 				...props,
@@ -130,7 +130,7 @@ describe('MarkdownEditor', () => {
 			await textarea.setValue('Updated text')
 
 			expect(wrapper.emitted('update:modelValue')).toBeTruthy()
-			expect(wrapper.emitted('update:modelValue')[0]).toEqual(['Updated text'])
+			expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['Updated text'])
 		})
 
 		it('syncs when modelValue prop changes', async () => {
@@ -271,13 +271,13 @@ describe('MarkdownEditor', () => {
 			const textarea = wrapper.find('textarea')
 
 			await textarea.setValue('First change')
-			expect(wrapper.emitted('update:modelValue').length).toBe(1)
+			expect(wrapper.emitted('update:modelValue')?.length).toBe(1)
 
 			await textarea.setValue('Second change')
-			expect(wrapper.emitted('update:modelValue').length).toBe(2)
+			expect(wrapper.emitted('update:modelValue')?.length).toBe(2)
 
 			await textarea.setValue('Third change')
-			expect(wrapper.emitted('update:modelValue').length).toBe(3)
+			expect(wrapper.emitted('update:modelValue')?.length).toBe(3)
 		})
 	})
 })
