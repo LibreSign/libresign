@@ -60,6 +60,7 @@ export default {
 	components: {
 		NcSettingsSection,
 		NcTextField,
+		NcCheckboxRadioSwitch,
 	},
 	data() {
 		return {
