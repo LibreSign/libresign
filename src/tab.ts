@@ -45,7 +45,7 @@ function mapNodeToFileInfo(node: any = {}): FileInfo {
 		type: node.type,
 		attributes: node.attributes,
 		isDirectory() {
-			return node.type === FileType.Folder || node.type === FileType.Collection || node.type === 'folder'
+			return node.type === FileType.Folder || node.type === 'folder'
 		},
 		get(key: string) {
 			if (key === 'mimetype') {
@@ -106,6 +106,12 @@ function setupCustomElement() {
 			return Promise.resolve()
 		}
 
+		update(fileInfo: FileInfo): void {
+			if (this._vueInstance && typeof this._vueInstance.update === 'function') {
+				this._vueInstance.update(fileInfo)
+			}
+		}
+
 		mountVue() {
 			if (this._vueInstance) {
 				return
@@ -155,7 +161,7 @@ function isEnabled(context: any) {
 
 	const node = context.node
 	const mimetype = node.mime || node.mimetype || ''
-	const isFolder = node.type === FileType.Folder || node.type === FileType.Collection || node.type === 'folder'
+	const isFolder = node.type === FileType.Folder || node.type === 'folder'
 
 	if (isFolder) {
 		const hasLibreSignStatus = node.attributes?.['libresign-signature-status'] !== undefined
