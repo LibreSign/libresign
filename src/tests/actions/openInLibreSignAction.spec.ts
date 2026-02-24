@@ -84,10 +84,10 @@ vi.mock('@nextcloud/initial-state', () => ({
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app: any, text: any) => text),
-	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
-	t: vi.fn((app: any, text: any) => text),
-	n: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
+	translate: vi.fn((_app: string, text: string) => text),
+	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
+	t: vi.fn((_app: string, text: string) => text),
+	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -115,9 +115,33 @@ vi.mock('@nextcloud/vue/functions/dialog', () => ({
 }))
 
 describe('openInLibreSignAction rules', () => {
-	let action: any
-	let loadState: any
-	let getCapabilities: any
+	let action: {
+		id: string
+		order: number
+		displayName: unknown
+		iconSvgInline: unknown
+		enabled: (context: { nodes: unknown }) => boolean
+		exec: (context: { nodes: unknown }) => Promise<unknown>
+		execBatch: (context: { nodes: unknown }) => Promise<unknown>
+	}
+	let loadState: { mockReturnValue: (value: unknown) => unknown }
+	let getCapabilities: { mockReturnValue: (value: unknown) => unknown }
+	type PendingEnvelopeForTest = NonNullable<LibreSignGlobalNamespace['pendingEnvelope']> & {
+		nodeType: string
+		files: Array<{ fileId?: number | string }>
+		filesCount: number
+		signers: unknown[]
+		settings: { path: string }
+	}
+
+	const getPendingEnvelope = (): PendingEnvelopeForTest => {
+		const pending = window.OCA.Libresign.pendingEnvelope
+		expect(pending).toBeDefined()
+		if (!pending || !pending.settings || !Array.isArray(pending.files)) {
+			throw new Error('pendingEnvelope is not defined')
+		}
+		return pending as PendingEnvelopeForTest
+	}
 
 	beforeEach(async () => {
 		vi.clearAllMocks()
@@ -127,8 +151,8 @@ describe('openInLibreSignAction rules', () => {
 		const { loadState: loadStateModule } = await import('@nextcloud/initial-state')
 		const { getCapabilities: getCapabilitiesModule } = await import('@nextcloud/capabilities')
 
-		loadState = loadStateModule
-		getCapabilities = getCapabilitiesModule
+		loadState = loadStateModule as unknown as { mockReturnValue: (value: unknown) => unknown }
+		getCapabilities = getCapabilitiesModule as unknown as { mockReturnValue: (value: unknown) => unknown }
 
 		loadState.mockReturnValue(true)
 		getCapabilities.mockReturnValue(mockCapabilities)
@@ -397,8 +421,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 			await action.execBatch({ nodes })
 
-			const pending = window.OCA.Libresign.pendingEnvelope
-			expect(pending).toBeDefined()
+			const pending = getPendingEnvelope()
 			expect(pending.nodeType).toBe('envelope')
 			expect(pending.files).toHaveLength(2)
 			expect(pending.filesCount).toBe(2)
@@ -415,7 +438,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 			await action.execBatch({ nodes })
 
-			const pending = window.OCA.Libresign.pendingEnvelope
+			const pending = getPendingEnvelope()
 			expect(pending.settings.path).toBe('/Documents/Contracts/Test Envelope')
 		})
 
@@ -429,7 +452,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 			await action.execBatch({ nodes })
 
-			const pending = window.OCA.Libresign.pendingEnvelope
+			const pending = getPendingEnvelope()
 			expect(pending.settings.path).toBe('/Test Envelope')
 		})
 
@@ -443,7 +466,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 			await action.execBatch({ nodes })
 
-			const pending = window.OCA.Libresign.pendingEnvelope
+			const pending = getPendingEnvelope()
 			expect(pending.settings.path).toBe('/Docs/Test Envelope')
 		})
 
@@ -469,7 +492,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 			await action.execBatch({ nodes })
 
-			const pending = window.OCA.Libresign.pendingEnvelope
+			const pending = getPendingEnvelope()
 			expect(pending.files[0].fileId).toBe(123)
 			expect(pending.files[1].fileId).toBe(456)
 		})
