@@ -26,16 +26,16 @@ vi.mock('@nextcloud/logger', () => ({
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((app, text) => text),
-	translate: vi.fn((app, text) => text),
-	translatePlural: vi.fn((app, singular, plural, count) => count === 1 ? singular : plural),
+	t: vi.fn((app: any, text: any) => text),
+	translate: vi.fn((app: any, text: any) => text),
+	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => count === 1 ? singular : plural),
 }))
 
 let optionFromMock = vi.fn()
 
 vi.mock('@marionebl/option', () => ({
 	Option: {
-		from: (...args) => optionFromMock(...args),
+		from: (...args: any[]) => optionFromMock(...args),
 	},
 }))
 
