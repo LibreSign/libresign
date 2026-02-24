@@ -6,6 +6,17 @@
 import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import Editor from '../../../components/Draw/Editor.vue'
+import type { TranslationFunction } from '../../test-types'
+
+type SignaturePadInstance = {
+	penColor: string
+	isEmpty: () => boolean
+	clear: () => void
+	toDataURL: () => string
+	addEventListener: () => void
+}
+
+const t: TranslationFunction = (_app, text) => text
 
 vi.mock('@nextcloud/capabilities', () => ({
 	getCapabilities: vi.fn(() => ({
@@ -59,14 +70,14 @@ vi.mock('../../../components/PreviewSignature/PreviewSignature.vue', () => ({
 vi.mock('signature_pad', () => {
 	return {
 		__esModule: true,
-		default: vi.fn(function(canvas) {
+		default: vi.fn(function(this: SignaturePadInstance, _canvas: HTMLCanvasElement) {
 			this.penColor = '#000000'
 			this.isEmpty = vi.fn(() => false)
 			this.clear = vi.fn()
 			this.toDataURL = vi.fn(() => 'data:image/png;base64,test')
 			this.addEventListener = vi.fn()
 		}),
-		SignaturePad: vi.fn(function(canvas) {
+		SignaturePad: vi.fn(function(this: SignaturePadInstance, _canvas: HTMLCanvasElement) {
 			this.penColor = '#000000'
 			this.isEmpty = vi.fn(() => false)
 			this.clear = vi.fn()
@@ -89,7 +100,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -101,7 +112,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -118,7 +129,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -131,7 +142,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -146,7 +157,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -159,7 +170,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -174,7 +185,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -190,7 +201,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -205,7 +216,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -220,7 +231,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -237,7 +248,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -251,7 +262,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -261,15 +272,16 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		wrapper.vm.imageData = testData
 		wrapper.vm.saveSignature()
 
-		expect(wrapper.emitted('save')).toBeTruthy()
-		expect(wrapper.emitted('save')[0][0]).toBe(testData)
+		const emitted = wrapper.emitted('save') ?? []
+		expect(emitted.length).toBeGreaterThan(0)
+		expect(emitted[0]?.[0]).toBe(testData)
 	})
 
 	it('closes modal after saving signature', async () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -284,7 +296,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -297,7 +309,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -313,7 +325,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -326,7 +338,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -341,7 +353,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -360,7 +372,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -372,7 +384,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
