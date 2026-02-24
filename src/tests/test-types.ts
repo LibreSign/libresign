@@ -9,29 +9,29 @@ import type { Mock } from 'vitest'
 /**
  * Generic wrapper type for Vue components in tests
  */
-export type ComponentWrapper<T = any> = VueWrapper<T>
+export type ComponentWrapper<T = unknown> = VueWrapper<T>
 
 /**
  * Mock function with common test methods
  */
-export type MockFunction<T extends (...args: any[]) => any = any> = Mock<Parameters<T>, ReturnType<T>>
+export type MockFunction<T extends (...args: unknown[]) => unknown = (...args: unknown[]) => unknown> = Mock<ReturnType<T>, Parameters<T>>
 
 /**
  * Partial store type for Pinia stores in tests
  */
-export type PartialStore<T> = Partial<T> & Record<string, any>
+export type PartialStore<T> = Partial<T> & Record<string, unknown>
 
 /**
  * Translation function type (Nextcloud i18n)
  */
-export type TranslationFunction = (app: string, text: string, vars?: Record<string, any>) => string
+export type TranslationFunction = (app: string, text: string, vars?: Record<string, string | number>) => string
 
 /**
  * Plural translation function type
  */
-export type PluralTranslationFunction = (app: string, singular: string, plural: string, count: number, vars?: Record<string, any>) => string
+export type PluralTranslationFunction = (app: string, singular: string, plural: string, count: number, vars?: Record<string, string | number>) => string
 
 /**
  * Mock return value type helper
  */
-export type MockReturnValue<T> = T extends (...args: any[]) => infer R ? R : never
+export type MockReturnValue<T> = T extends (...args: unknown[]) => infer R ? R : never
