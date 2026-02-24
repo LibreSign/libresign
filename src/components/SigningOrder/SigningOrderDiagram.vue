@@ -116,6 +116,7 @@ export default {
 	},
 	setup() {
 		return {
+			mdiCheck,
 			mdiCheckCircle,
 			mdiClockOutline,
 			mdiCircleOutline,
