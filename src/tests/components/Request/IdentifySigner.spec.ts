@@ -19,16 +19,16 @@ vi.mock('vue-select', () => ({
 	},
 }))
 
-let filesStore
+let filesStore: any
 vi.mock('../../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStore),
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app, text) => text),
-	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
-	t: vi.fn((app, text) => text),
-	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	translate: vi.fn((app: any, text: any) => text),
+	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
+	t: vi.fn((app: any, text: any) => text),
+	n: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -43,7 +43,7 @@ vi.mock('../../../../img/logo-signal-app.svg?raw', () => ({ default: '<svg></svg
 vi.mock('../../../../img/logo-telegram-app.svg?raw', () => ({ default: '<svg></svg>' }))
 
 describe('IdentifySigner rules', () => {
-	let wrapper
+	let wrapper: any
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
@@ -53,7 +53,7 @@ describe('IdentifySigner rules', () => {
 			getFile: vi.fn(() => ({ signers: [] })),
 			saveOrUpdateSignatureRequest: vi.fn().mockResolvedValue({}),
 		}
-		useFilesStoreModule.mockReturnValue(filesStore)
+		;(useFilesStoreModule as any).mockReturnValue(filesStore)
 
 		wrapper = mount(IdentifySigner, {
 			props: {
@@ -78,7 +78,7 @@ describe('IdentifySigner rules', () => {
 					SignerSelect: true,
 				},
 				mocks: {
-					t: (app, text) => text,
+					t: (app: any, text: any) => text,
 				},
 			},
 		})
@@ -430,7 +430,7 @@ describe('IdentifySigner rules', () => {
 					SignerSelect: true,
 				},
 				mocks: {
-					t: (app, text) => text,
+					t: (app: any, text: any) => text,
 				},
 				propsData: {
 					signerToEdit: signer,
@@ -463,7 +463,7 @@ describe('IdentifySigner rules', () => {
 					SignerSelect: true,
 				},
 				mocks: {
-					t: (app, text) => text,
+					t: (app: any, text: any) => text,
 				},
 				propsData: {
 					signerToEdit: signer,
