@@ -140,10 +140,13 @@ import { useConfigureCheckStore } from '../../store/configureCheck.js'
 export default {
 	name: 'RootCertificateCfssl',
 	components: {
+		CertificateCustonOptions,
+		CertificatePolicy,
 		NcSettingsSection,
 		NcDialog,
 		NcButton,
 		NcTextField,
+		NcCheckboxRadioSwitch,
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
