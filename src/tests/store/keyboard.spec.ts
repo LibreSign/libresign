@@ -26,7 +26,7 @@ describe('keyboard store', () => {
 	it('falls back to window.event when no event provided', () => {
 		const store = useKeyboardStore()
 
-		window.event = { altKey: false, ctrlKey: true, metaKey: false, shiftKey: true }
+		;(window as any).event = { altKey: false, ctrlKey: true, metaKey: false, shiftKey: true }
 		store.onEvent()
 
 		expect(store.altKey).toBe(false)
