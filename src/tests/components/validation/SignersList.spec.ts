@@ -5,7 +5,7 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-let SignersList: any
+let SignersList: unknown
 
 
 vi.mock('@nextcloud/l10n', () => ({
@@ -29,9 +29,9 @@ beforeAll(async () => {
 })
 
 describe('SignersList', () => {
-	let wrapper: VueWrapper<any>
+	let wrapper: VueWrapper
 
-	const createWrapper = (props: Record<string, any> = {}) => {
+	const createWrapper = (props: Record<string, unknown> = {}) => {
 		return mount(SignersList, {
 			props: {
 				signers: [],
