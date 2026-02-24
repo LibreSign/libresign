@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { loadState } from '@nextcloud/initial-state'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -13,7 +14,32 @@ import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 
-let filePickerBuilder
+type FilePickerBuilder = {
+	setMultiSelect: (value: boolean) => FilePickerBuilder
+	setMimeTypeFilter: (value: string[]) => FilePickerBuilder
+	addButton: (label: string, handler: () => void) => FilePickerBuilder
+	build: () => { pick: () => Promise<unknown[]> }
+}
+
+type TranslationFn = (domain: string, key: string, params?: Record<string, string>) => string
+
+const tSimple: TranslationFn = (_domain, key) => key
+const tWithParams: TranslationFn = (_domain, key, params) => {
+	const replacements = { ...(params ?? {}) }
+	let result = key
+	Object.entries(replacements).forEach(([k, v]) => {
+		result = result.replace(`{${k}}`, v)
+	})
+	return result
+}
+const tWithMaxUploads: TranslationFn = (_domain, key, params) => {
+	if (key.includes('You can upload')) {
+		return `You can upload at most ${params?.max} files at once.`
+	}
+	return key
+}
+
+let filePickerBuilder: FilePickerBuilder
 const filePickerPick = vi.fn()
 
 vi.mock('@nextcloud/initial-state')
@@ -28,10 +54,32 @@ vi.mock('../../../store/files.js')
 vi.mock('../../../store/sidebar.js')
 
 describe('RequestPicker component rules', () => {
-	let wrapper
-	let filesStore
-	let sidebarStore
-	let actionsMenuStore
+	const loadStateMock = loadState as MockedFunction<typeof loadState>
+	const getCapabilitiesMock = getCapabilities as MockedFunction<typeof getCapabilities>
+	const useActionsMenuStoreMock = vi.mocked(useActionsMenuStore)
+	const useFilesStoreMock = vi.mocked(useFilesStore)
+	const useSidebarStoreMock = vi.mocked(useSidebarStore)
+
+	type FilesStoreMock = {
+		upload: MockedFunction<(
+			formData: FormData | { file: { url: string } },
+			config?: { onUploadProgress?: (event: { loaded: number; total: number }) => void },
+		) => Promise<number>>
+		selectFile: MockedFunction<(id?: number) => void>
+	}
+
+	type SidebarStoreMock = {
+		activeRequestSignatureTab: MockedFunction<() => void>
+	}
+
+	type ActionsMenuStoreMock = {
+		opened: boolean
+	}
+
+	let wrapper: ReturnType<typeof mount>
+	let filesStore: FilesStoreMock
+	let sidebarStore: SidebarStoreMock
+	let actionsMenuStore: ActionsMenuStoreMock
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -43,8 +91,8 @@ describe('RequestPicker component rules', () => {
 			build: vi.fn(() => ({ pick: filePickerPick })),
 		}
 
-		loadState.mockReturnValue(true)
-		getCapabilities.mockReturnValue({
+		loadStateMock.mockReturnValue(true)
+		getCapabilitiesMock.mockReturnValue({
 			libresign: {
 				config: {
 					envelope: { 'is-available': false },
@@ -66,9 +114,9 @@ describe('RequestPicker component rules', () => {
 			opened: false,
 		}
 
-		vi.mocked(useActionsMenuStore).mockReturnValue(actionsMenuStore)
-		vi.mocked(useFilesStore).mockReturnValue(filesStore)
-		vi.mocked(useSidebarStore).mockReturnValue(sidebarStore)
+		useActionsMenuStoreMock.mockReturnValue(actionsMenuStore)
+		useFilesStoreMock.mockReturnValue(filesStore)
+		useSidebarStoreMock.mockReturnValue(sidebarStore)
 
 		wrapper = mount(RequestPicker, {
 			global: {
@@ -89,14 +137,7 @@ describe('RequestPicker component rules', () => {
 					CloudUploadIcon: true,
 				},
 				mocks: {
-					t: (domain, key, params) => {
-						const replacements = { ...params }
-						let result = key
-						Object.entries(replacements).forEach(([k, v]) => {
-							result = result.replace(`{${k}}`, v)
-						})
-						return result
-					},
+					t: tWithParams,
 				},
 			},
 		})
@@ -104,7 +145,7 @@ describe('RequestPicker component rules', () => {
 
 	describe('canRequestSign visibility', () => {
 		it('hides component when canRequestSign is false', () => {
-			loadState.mockReturnValue(false)
+			loadStateMock.mockReturnValue(false)
 			const newWrapper = mount(RequestPicker, {
 				global: {
 					stubs: {
@@ -124,7 +165,7 @@ describe('RequestPicker component rules', () => {
 						CloudUploadIcon: true,
 					},
 					mocks: {
-						t: (domain, key) => key,
+						t: tSimple,
 					},
 				},
 			})
@@ -134,7 +175,7 @@ describe('RequestPicker component rules', () => {
 
 	describe('envelope support', () => {
 		it('enables envelope mode when capabilities indicate is-available true', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: {
 					config: {
 						envelope: { 'is-available': true },
@@ -161,7 +202,7 @@ describe('RequestPicker component rules', () => {
 						CloudUploadIcon: true,
 					},
 					mocks: {
-						t: (domain, key) => key,
+						t: tSimple,
 					},
 				},
 			})
@@ -169,7 +210,7 @@ describe('RequestPicker component rules', () => {
 		})
 
 		it('disables envelope mode when capabilities are missing', () => {
-			getCapabilities.mockReturnValue({})
+			getCapabilitiesMock.mockReturnValue({})
 			const newWrapper = mount(RequestPicker, {
 				global: {
 					stubs: {
@@ -189,7 +230,7 @@ describe('RequestPicker component rules', () => {
 						CloudUploadIcon: true,
 					},
 					mocks: {
-						t: (domain, key) => key,
+						t: tSimple,
 					},
 				},
 			})
@@ -215,7 +256,7 @@ describe('RequestPicker component rules', () => {
 		})
 
 		it('uses multiselect and title when envelope enabled', async () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: {
 					config: {
 						envelope: { 'is-available': true },
@@ -260,7 +301,7 @@ describe('RequestPicker component rules', () => {
 
 	describe('max file uploads configuration', () => {
 		it('returns configured max-file-uploads when finite and positive', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: {
 					config: {
 						envelope: { 'is-available': false },
@@ -273,7 +314,7 @@ describe('RequestPicker component rules', () => {
 		})
 
 		it('returns 20 as default when max-file-uploads not configured', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: {
 					config: {
 						envelope: { 'is-available': false },
@@ -286,7 +327,7 @@ describe('RequestPicker component rules', () => {
 		})
 
 		it('returns 20 as default when max-file-uploads is non-finite', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: {
 					config: {
 						envelope: { 'is-available': false },
@@ -299,7 +340,7 @@ describe('RequestPicker component rules', () => {
 		})
 
 		it('returns 20 as default when max-file-uploads is zero or negative', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: {
 					config: {
 						envelope: { 'is-available': false },
@@ -312,7 +353,7 @@ describe('RequestPicker component rules', () => {
 		})
 
 		it('floors decimal max-file-uploads values', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: {
 					config: {
 						envelope: { 'is-available': false },
@@ -327,7 +368,7 @@ describe('RequestPicker component rules', () => {
 
 	describe('file upload validation', () => {
 		it('shows error when exceeding max file uploads limit', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: {
 					config: {
 						envelope: { 'is-available': false },
@@ -354,12 +395,7 @@ describe('RequestPicker component rules', () => {
 						CloudUploadIcon: true,
 					},
 					mocks: {
-						t: (domain, key, params) => {
-							if (key.includes('You can upload')) {
-								return `You can upload at most ${params.max} files at once.`
-							}
-							return key
-						},
+						t: tWithMaxUploads,
 					},
 				},
 			})
@@ -369,7 +405,7 @@ describe('RequestPicker component rules', () => {
 		})
 
 		it('allows upload when within max file uploads limit', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: {
 					config: {
 						envelope: { 'is-available': false },
@@ -449,13 +485,13 @@ describe('RequestPicker component rules', () => {
 			const files = [{ name: 'document.pdf', size: 1000 }]
 			await wrapper.vm.upload(files)
 			expect(filesStore.upload).toHaveBeenCalled()
-			const [formData] = filesStore.upload.mock.calls[0]
+			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('document')
 		})
 
 		it('sets upload progress when receiving upload events', async () => {
 			filesStore.upload.mockImplementation((formData, config) => {
-				config.onUploadProgress({ loaded: 500, total: 1000 })
+				config?.onUploadProgress?.({ loaded: 500, total: 1000 })
 				return Promise.resolve(1)
 			})
 			const files = [{ name: 'document.pdf', size: 1000 }]
@@ -515,7 +551,7 @@ describe('RequestPicker component rules', () => {
 			]
 			await wrapper.vm.upload(files, 'My Envelope')
 			expect(filesStore.upload).toHaveBeenCalled()
-			const [formData] = filesStore.upload.mock.calls[0]
+			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('My Envelope')
 		})
 
@@ -527,7 +563,7 @@ describe('RequestPicker component rules', () => {
 			]
 			await wrapper.vm.upload(files, '  Envelope Name  ')
 			expect(filesStore.upload).toHaveBeenCalled()
-			const [formData] = filesStore.upload.mock.calls[0]
+			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('Envelope Name')
 		})
 
@@ -561,14 +597,20 @@ describe('RequestPicker component rules', () => {
 		it('opens file input with PDF filter', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.uploadFile()
-			const fileInput = createElementSpy.mock.results.find(
+			const fileInputResult = createElementSpy.mock.results.find(
 				result => result.value?.type === 'file',
-			).value
+			)
+			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
+			expect(fileInput).toBeDefined()
+			if (!fileInput) {
+				createElementSpy.mockRestore()
+				return
+			}
 			expect(fileInput.accept).toBe('application/pdf')
 		})
 
 		it('enables multiple file selection when envelope enabled', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: {
 					config: {
 						envelope: { 'is-available': true },
@@ -595,15 +637,21 @@ describe('RequestPicker component rules', () => {
 						CloudUploadIcon: true,
 					},
 					mocks: {
-						t: (domain, key) => key,
+						t: tSimple,
 					},
 				},
 			})
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			newWrapper.vm.uploadFile()
-			const fileInput = createElementSpy.mock.results.find(
+			const fileInputResult = createElementSpy.mock.results.find(
 				result => result.value?.type === 'file',
-			).value
+			)
+			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
+			expect(fileInput).toBeDefined()
+			if (!fileInput) {
+				createElementSpy.mockRestore()
+				return
+			}
 			expect(fileInput.multiple).toBe(true)
 			createElementSpy.mockRestore()
 		})
@@ -611,9 +659,15 @@ describe('RequestPicker component rules', () => {
 		it('disables multiple selection when envelope not enabled', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.uploadFile()
-			const fileInput = createElementSpy.mock.results.find(
+			const fileInputResult = createElementSpy.mock.results.find(
 				result => result.value?.type === 'file',
-			).value
+			)
+			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
+			expect(fileInput).toBeDefined()
+			if (!fileInput) {
+				createElementSpy.mockRestore()
+				return
+			}
 			expect(fileInput.multiple).toBe(false)
 			createElementSpy.mockRestore()
 		})
