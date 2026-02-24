@@ -84,7 +84,9 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value));
 		$this->initialState->provideInitialState('signing_mode', $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'sync'));
 		$this->initialState->provideInitialState('worker_type', $this->appConfig->getValueString(Application::APP_ID, 'worker_type', 'local'));
-		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueString(Application::APP_ID, 'envelope_enabled', '1') === '1');
+		$this->initialState->provideInitialState('identification_documents', $this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false));
+		$this->initialState->provideInitialState('approval_group', $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']));
+		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true));
 		$this->initialState->provideInitialState('parallel_workers', $this->appConfig->getValueString(Application::APP_ID, 'parallel_workers', '4'));
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
