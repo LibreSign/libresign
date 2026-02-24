@@ -15,7 +15,7 @@ vi.mock('@nextcloud/auth', () => ({
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateUrl: (...args) => generateUrlMock(...args),
+	generateUrl: (...args: unknown[]) => generateUrlMock(...(args as Parameters<typeof generateUrlMock>)),
 }))
 
 describe('IncompleteCertification.vue - Setup Guidance', () => {
@@ -33,13 +33,12 @@ describe('IncompleteCertification.vue - Setup Guidance', () => {
 				CogsIcon: true,
 			},
 			mocks: {
-				t: (app, text) => text,
+				t: (app: any, text: any) => text,
 			},
 		})
 
 		const button = wrapper.findComponent({ name: 'NcButton' })
 		expect(button.exists()).toBe(true)
-		wrapper.destroy()
 	})
 
 	it('hides setup button for non-admins', () => {
@@ -51,13 +50,12 @@ describe('IncompleteCertification.vue - Setup Guidance', () => {
 				CogsIcon: true,
 			},
 			mocks: {
-				t: (app, text) => text,
+				t: (app: any, text: any) => text,
 			},
 		})
 
 		const button = wrapper.findComponent({ name: 'NcButton' })
 		expect(button.exists()).toBe(false)
-		wrapper.destroy()
 	})
 
 	it('routes admin to setup page when finishSetup is called', () => {
@@ -70,7 +68,7 @@ describe('IncompleteCertification.vue - Setup Guidance', () => {
 				CogsIcon: true,
 			},
 			mocks: {
-				t: (app, text) => text,
+				t: (app: any, text: any) => text,
 			},
 		})
 
@@ -78,6 +76,5 @@ describe('IncompleteCertification.vue - Setup Guidance', () => {
 		expect(generateUrlMock).toHaveBeenCalledWith('settings/admin/libresign')
 		expect(hrefSpy).toHaveBeenCalledWith('settings/admin/libresign')
 		hrefSpy.mockRestore()
-		wrapper.destroy()
 	})
 })
