@@ -79,6 +79,8 @@ export default {
 		NcDateTimePickerNative,
 		NcSettingsSection,
 		NcTextField,
+		NcCheckboxRadioSwitch,
+		NcLoadingIcon,
 	},
 	data() {
 		return {
