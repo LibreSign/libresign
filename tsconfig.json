@@ -1,49 +1,36 @@
 {
 	"extends": "@vue/tsconfig/tsconfig.json",
 	"include": [
+		"src/vue-shim.d.ts",
+		"src/global.d.ts",
+		"src/tests/vitest.d.ts",
 		"src/**/*.ts",
-		"src/**/*.d.ts",
-		"src/**/*.tsx",
 		"src/**/*.vue"
 	],
 	"exclude": [
 		"node_modules",
-		"vendor",
-		"dist",
-		"build"
+		"vendor"
 	],
 	"compilerOptions": {
 		"outDir": "./js",
-		"rootDir": "./src",
-		"target": "ES2020",
-		"useDefineForClassFields": true,
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"allowJs": true,
+		"checkJs": false,
+		"allowImportingTsExtensions": true,
+		"noUncheckedIndexedAccess": false,
+		"strictNullChecks": true,
 		"lib": [
-			"ES2020",
+			"ESNext",
 			"DOM",
 			"DOM.Iterable"
 		],
-		"skipLibCheck": true,
-		"noEmit": true,
-		"allowJs": true,
-		"checkJs": false,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"resolveJsonModule": true,
-		"allowImportingTsExtensions": true,
-		"declaration": true,
-		"declarationMap": true,
-		"sourceMap": true,
 		"baseUrl": ".",
 		"paths": {
 			"@/*": [
 				"src/*"
 			]
-		},
-		"types": [
-			"vue/macros",
-			"vitest/globals",
-			"node"
-		]
+		}
 	},
 	"vueCompilerOptions": {
 		"target": 3
