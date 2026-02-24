@@ -19,16 +19,23 @@ vi.mock('vue-select', () => ({
 	},
 }))
 
-let filesStore: any
+interface FilesStoreMock {
+	disableIdentifySigner: ReturnType<typeof vi.fn>
+	getFile: ReturnType<typeof vi.fn>
+	saveOrUpdateSignatureRequest: ReturnType<typeof vi.fn>
+	[key: string]: unknown
+}
+
+let filesStore: FilesStoreMock
 vi.mock('../../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStore),
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app: any, text: any) => text),
-	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
-	t: vi.fn((app: any, text: any) => text),
-	n: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
+	translate: vi.fn((_app: string, text: string) => text),
+	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
+	t: vi.fn((_app: string, text: string) => text),
+	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -43,7 +50,7 @@ vi.mock('../../../../img/logo-signal-app.svg?raw', () => ({ default: '<svg></svg
 vi.mock('../../../../img/logo-telegram-app.svg?raw', () => ({ default: '<svg></svg>' }))
 
 describe('IdentifySigner rules', () => {
-	let wrapper: any
+	let wrapper: ReturnType<typeof mount>
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
@@ -53,7 +60,7 @@ describe('IdentifySigner rules', () => {
 			getFile: vi.fn(() => ({ signers: [] })),
 			saveOrUpdateSignatureRequest: vi.fn().mockResolvedValue({}),
 		}
-		;(useFilesStoreModule as any).mockReturnValue(filesStore)
+		;(useFilesStoreModule as unknown as { mockReturnValue: (store: FilesStoreMock) => void }).mockReturnValue(filesStore)
 
 		wrapper = mount(IdentifySigner, {
 			props: {
@@ -78,7 +85,7 @@ describe('IdentifySigner rules', () => {
 					SignerSelect: true,
 				},
 				mocks: {
-					t: (app: any, text: any) => text,
+					t: (_app: string, text: string) => text,
 				},
 			},
 		})
@@ -430,7 +437,7 @@ describe('IdentifySigner rules', () => {
 					SignerSelect: true,
 				},
 				mocks: {
-					t: (app: any, text: any) => text,
+					t: (_app: string, text: string) => text,
 				},
 				propsData: {
 					signerToEdit: signer,
@@ -463,7 +470,7 @@ describe('IdentifySigner rules', () => {
 					SignerSelect: true,
 				},
 				mocks: {
-					t: (app: any, text: any) => text,
+					t: (_app: string, text: string) => text,
 				},
 				propsData: {
 					signerToEdit: signer,
