@@ -23,7 +23,7 @@ vi.mock('@libresign/pdf-elements/src/components/PDFElements.vue', () => ({
 	default: {
 		name: 'PDFElements',
 		template: '<div class="pdf-elements-mock"></div>',
-		setup(_: any, { expose }: any) {
+		setup(_props: unknown, { expose }: { expose: (methods: typeof pdfElementsMethods) => void }) {
 			expose(pdfElementsMethods)
 		},
 	},
@@ -34,7 +34,7 @@ vi.mock('../../../helpers/pdfWorker.js', () => ({
 }))
 
 describe('PdfEditor Component - Business Rules', () => {
-	let wrapper: any
+	let wrapper: ReturnType<typeof mount>
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -633,7 +633,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			wrapper.vm.handleDeleteObject({ object })
 
 			expect(wrapper.emitted('pdf-editor:on-delete-signer')).toBeTruthy()
-			expect(wrapper.emitted('pdf-editor:on-delete-signer')[0][0]).toEqual(object)
+			expect(wrapper.emitted('pdf-editor:on-delete-signer')?.[0]?.[0]).toEqual(object)
 		})
 
 		it('does not emit delete event when object has no signer', () => {
@@ -650,7 +650,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			wrapper.vm.handleObjectClick(event)
 
 			expect(wrapper.emitted('pdf-editor:object-click')).toBeTruthy()
-			expect(wrapper.emitted('pdf-editor:object-click')[0][0]).toEqual(event)
+			expect(wrapper.emitted('pdf-editor:object-click')?.[0]?.[0]).toEqual(event)
 		})
 	})
 
