@@ -5,14 +5,14 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-let CertificateChain: any
+let CertificateChain: unknown
 
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app: any, text: any) => text),
-	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
-	t: vi.fn((app: any, text: any) => text),
-	n: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
+	translate: vi.fn((_app: string, text: string) => text),
+	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
+	t: vi.fn((_app: string, text: string) => text),
+	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -31,10 +31,10 @@ beforeAll(async () => {
 })
 
 describe('CertificateChain', () => {
-	let wrapper: any
+	let wrapper!: ReturnType<typeof createWrapper>
 
 	const createWrapper = (props = {}) => {
-		return mount(CertificateChain, {
+		return mount(CertificateChain as never, {
 			props: {
 				chain: [],
 				...props,
@@ -46,7 +46,7 @@ describe('CertificateChain', () => {
 					NcIconSvgWrapper: { template: '<div class="icon-stub"></div>' },
 				},
 				mocks: {
-					t: (app: any, text: any) => text,
+					t: (_app: string, text: string) => text,
 				},
 			},
 		})
@@ -185,7 +185,7 @@ describe('CertificateChain', () => {
 			wrapper.vm.chainOpen = true
 			await wrapper.vm.$nextTick()
 
-			const text = wrapper.findAll('.cert-details').at(0).text()
+			const text = wrapper.findAll('.cert-details').at(0)!.text()
 			expect(text).toContain('Subject CN')
 		})
 
@@ -199,7 +199,7 @@ describe('CertificateChain', () => {
 			wrapper.vm.chainOpen = true
 			await wrapper.vm.$nextTick()
 
-			const text = wrapper.findAll('.cert-details').at(0).text()
+			const text = wrapper.findAll('.cert-details').at(0)!.text()
 			expect(text).toContain('Certificate Name')
 		})
 
@@ -213,7 +213,7 @@ describe('CertificateChain', () => {
 			wrapper.vm.chainOpen = true
 			await wrapper.vm.$nextTick()
 
-			const text = wrapper.findAll('.cert-details').at(0).text()
+			const text = wrapper.findAll('.cert-details').at(0)!.text()
 			expect(text).toContain('Display Name')
 		})
 
@@ -232,7 +232,7 @@ describe('CertificateChain', () => {
 			wrapper.vm.chainOpen = true
 			await wrapper.vm.$nextTick()
 
-			const text = wrapper.findAll('.cert-details').at(0).text()
+			const text = wrapper.findAll('.cert-details').at(0)!.text()
 			expect(text).toContain('Subject CN')
 		})
 	})
@@ -248,7 +248,7 @@ describe('CertificateChain', () => {
 			wrapper.vm.chainOpen = true
 			await wrapper.vm.$nextTick()
 
-			const text = wrapper.findAll('.cert-details').at(0).text()
+			const text = wrapper.findAll('.cert-details').at(0)!.text()
 			expect(text).toContain('Issued by:')
 			expect(text).toContain('Issuer CA')
 		})
@@ -282,7 +282,7 @@ describe('CertificateChain', () => {
 			wrapper.vm.chainOpen = true
 			await wrapper.vm.$nextTick()
 
-			const text = wrapper.findAll('.cert-details').at(0).text()
+			const text = wrapper.findAll('.cert-details').at(0)!.text()
 			expect(text).toContain('Serial Number:')
 			expect(text).toContain('123456789')
 		})
@@ -301,7 +301,7 @@ describe('CertificateChain', () => {
 			wrapper.vm.chainOpen = true
 			await wrapper.vm.$nextTick()
 
-			const text = wrapper.findAll('.cert-details').at(0).text()
+			const text = wrapper.findAll('.cert-details').at(0)!.text()
 			expect(text).toContain('hex:')
 			expect(text).toContain('ABC123DEF')
 		})
@@ -318,7 +318,7 @@ describe('CertificateChain', () => {
 			wrapper.vm.chainOpen = true
 			await wrapper.vm.$nextTick()
 
-			const text = wrapper.findAll('.cert-details').at(0).text()
+			const text = wrapper.findAll('.cert-details').at(0)!.text()
 			expect(text).not.toContain('Serial Number:')
 		})
 	})
@@ -372,7 +372,7 @@ describe('CertificateChain', () => {
 			wrapper.vm.chainOpen = true
 			await wrapper.vm.$nextTick()
 
-			const text = wrapper.findAll('.cert-details').at(0).text()
+			const text = wrapper.findAll('.cert-details').at(0)!.text()
 			expect(text).toContain('Valid from:')
 			expect(text).toContain('Valid to:')
 		})
@@ -397,7 +397,7 @@ describe('CertificateChain', () => {
 			wrapper.vm.chainOpen = true
 			await wrapper.vm.$nextTick()
 
-			const text = wrapper.findAll('.cert-details').at(0).text()
+			const text = wrapper.findAll('.cert-details').at(0)!.text()
 			expect(text).not.toContain('Valid from:')
 		})
 	})
