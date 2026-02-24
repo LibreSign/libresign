@@ -49,29 +49,29 @@ vi.mock('@nextcloud/logger', () => ({
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app, text, vars) => {
+	translate: vi.fn((app: string, text: string, vars?: Record<string, string>) => {
 		if (vars) {
-			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
+			return text.replace(/{(\w+)}/g, (_m: string, key: string) => vars[key as keyof typeof vars] || key)
 		}
 		return text
 	}),
-	translatePlural: vi.fn((app, singular, plural, count, vars) => {
+	translatePlural: vi.fn((app: string, singular: string, plural: string, count: number, vars?: Record<string, string>) => {
 		const template = count === 1 ? singular : plural
 		if (vars) {
-			return template.replace(/{(\w+)}/g, (m, key) => vars[key])
+			return template.replace(/{(\w+)}/g, (_m: string, key: string) => vars[key as keyof typeof vars] || key)
 		}
 		return template
 	}),
-	t: vi.fn((app, text, vars) => {
+	t: vi.fn((app: string, text: string, vars?: Record<string, string>) => {
 		if (vars) {
-			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
+			return text.replace(/{(\w+)}/g, (_m: string, key: string) => vars[key as keyof typeof vars] || key)
 		}
 		return text
 	}),
-	n: vi.fn((app, singular, plural, count, vars) => {
+	n: vi.fn((app: string, singular: string, plural: string, count: number, vars?: Record<string, string>) => {
 		const template = count === 1 ? singular : plural
 		if (vars) {
-			return template.replace(/{(\w+)}/g, (m, key) => vars[key])
+			return template.replace(/{(\w+)}/g, (_m: string, key: string) => vars[key as keyof typeof vars] || key)
 		}
 		return template
 	}),
@@ -124,7 +124,7 @@ vi.mock('../../utils/fileStatus.js', () => ({
 }))
 
 describe('Validation.vue - Business Logic', () => {
-	let wrapper
+	let wrapper: any
 
 	beforeEach(() => {
 		wrapper = shallowMount(Validation, {
