@@ -21,7 +21,7 @@
 			:searchable="true"
 			:show-no-options="false"
 			@search-change="searchGroup"
-			@input="saveGroups" />
+			@update:modelValue="saveGroups" />
 	</NcSettingsSection>
 </template>
 
@@ -65,7 +65,8 @@ export default {
 			)
 				.then(({ data }) => {
 					const groupsSelected = JSON.parse(data.ocs.data.data)
-					if (!groupsSelected) {
+					if (!Array.isArray(groupsSelected)) {
+						this.groupsSelected = []
 						return
 					}
 					this.groupsSelected = this.groups.filter(group => {
@@ -76,7 +77,11 @@ export default {
 			this.loadingGroups = false
 		},
 
-		async saveGroups() {
+		async saveGroups(value) {
+			if (Array.isArray(value)) {
+				this.groupsSelected = value
+			}
+
 			await confirmPassword()
 
 			const listOfInputGroupsSelected = JSON.stringify(this.groupsSelected.map((g) => {
