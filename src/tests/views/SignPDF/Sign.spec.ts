@@ -4,51 +4,108 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { MockedFunction } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount } from '@vue/test-utils'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
+import type { useSignStore } from '../../../store/sign.js'
+
+type TokenMethodKey = 'smsToken' | 'whatsappToken' | 'signalToken' | 'telegramToken' | 'xmppToken'
+
+type SignMethodSettings = {
+	needCode?: boolean
+	identifyMethod?: string
+	label?: string
+	hashOfIdentifier?: string
+	blurredEmail?: string
+	hasConfirmCode?: boolean
+	token?: string
+	hasSignatureFile?: boolean
+}
+
+type SignMethodsSettings = Partial<Record<TokenMethodKey, SignMethodSettings>> & {
+	emailToken?: SignMethodSettings
+	password?: SignMethodSettings
+}
+
+type SignMethodsStore = ReturnType<typeof useSignMethodsStore> & {
+	settings: SignMethodsSettings
+}
+
+type SignStore = ReturnType<typeof useSignStore>
+
+type SubmitSignaturePayload = {
+	method: string
+	token: string
+}
+
+type SignComponent = {
+	data: () => {
+		signMethodsStore: SignMethodsStore
+		signStore: SignStore
+		loading: boolean
+	}
+	methods: {
+		signWithTokenCode: (token: string) => Promise<void>
+		submitSignature: (payload: SubmitSignaturePayload) => Promise<unknown>
+	}
+}
+
+type SignComponentWithConfirm = SignComponent & {
+	methods: SignComponent['methods'] & {
+		confirmSignDocument: () => boolean
+	}
+}
+
+type ActionHandler = {
+	showModal: (modalCode: string) => void
+	closeModal: (modalCode: string) => void
+}
+
+type ProceedWithSigningLogic = (store: SignMethodsStore, actionHandler: ActionHandler) => void
 
 // Global mock for axios - prevents unhandled rejections during component mounting
 vi.mock('@nextcloud/axios', () => {
-	const axiosMock = vi.fn().mockResolvedValue({
+	const axiosInstanceMock = Object.assign(vi.fn().mockResolvedValue({
 		data: {
 			ocs: {
 				data: {
-					elements: []
-				}
-			}
-		}
-	})
-	axiosMock.get = vi.fn().mockResolvedValue({
-		data: {
-			ocs: {
-				data: {}
-			}
-		}
-	})
-	axiosMock.post = vi.fn().mockResolvedValue({
-		data: {
-			ocs: {
-				data: {}
-			}
-		}
-	})
-	axiosMock.patch = vi.fn().mockResolvedValue({
-		data: {
-			ocs: {
-				data: {}
-			}
-		}
-	})
-	axiosMock.delete = vi.fn().mockResolvedValue({
-		data: {
-			ocs: {
-				data: {}
-			}
-		}
+					elements: [],
+				},
+			},
+		},
+	}), {
+		get: vi.fn().mockResolvedValue({
+			data: {
+				ocs: {
+					data: {},
+				},
+			},
+		}),
+		post: vi.fn().mockResolvedValue({
+			data: {
+				ocs: {
+					data: {},
+				},
+			},
+		}),
+		patch: vi.fn().mockResolvedValue({
+			data: {
+				ocs: {
+					data: {},
+				},
+			},
+		}),
+		delete: vi.fn().mockResolvedValue({
+			data: {
+				ocs: {
+					data: {},
+				},
+			},
+		}),
 	})
 	return {
-		default: axiosMock,
+		default: axiosInstanceMock,
 	}
 })
 
@@ -79,10 +136,10 @@ vi.mock('vue-select', () => ({
 }))
 
 describe('Sign.vue - signWithTokenCode', () => {
-	let Sign
-	let signMethodsStore
-	let signStore
-	let submitSignatureSpy
+	let Sign: SignComponent
+	let signMethodsStore: SignMethodsStore
+	let signStore: SignStore
+	let submitSignatureSpy: MockedFunction<(payload: SubmitSignaturePayload) => Promise<unknown>>
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
@@ -91,7 +148,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 		const { useSignMethodsStore } = await import('../../../store/signMethods.js')
 		const { useSignStore } = await import('../../../store/sign.js')
 
-		signMethodsStore = useSignMethodsStore()
+		signMethodsStore = useSignMethodsStore() as SignMethodsStore
 		signStore = useSignStore()
 
 		// Create a mock Sign component with the method we want to test
@@ -104,8 +161,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 				}
 			},
 			methods: {
-				async signWithTokenCode(token) {
-					const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
+				async signWithTokenCode(
+					this: {
+						signMethodsStore: SignMethodsStore
+						submitSignature: (payload: SubmitSignaturePayload) => Promise<unknown>
+					},
+					token: string,
+				) {
+					const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 					const activeMethod = tokenMethods.find(method =>
 						Object.hasOwn(this.signMethodsStore.settings, method)
 					)
@@ -119,14 +182,15 @@ describe('Sign.vue - signWithTokenCode', () => {
 						token,
 					})
 				},
-				async submitSignature(payload) {
+				async submitSignature(payload: SubmitSignaturePayload) {
 					// Spy on this method
 					return submitSignatureSpy(payload)
 				},
 			},
 		}
 
-		submitSignatureSpy = vi.fn().mockResolvedValue({ status: 'signed' })
+		submitSignatureSpy = vi.fn<(payload: SubmitSignaturePayload) => Promise<unknown>>()
+			.mockResolvedValue({ status: 'signed' })
 	})
 
 	describe('signWithTokenCode', () => {
@@ -329,12 +393,12 @@ describe('Sign.vue - signWithTokenCode', () => {
 	})
 
 	describe('proceedWithSigning - Full flow with WhatsApp token', () => {
-		let proceedWithSigningLogic
+		let proceedWithSigningLogic: ProceedWithSigningLogic
 
 		beforeEach(() => {
 			setActivePinia(createPinia())
 			// Function that simulates the proceedWithSigning logic
-			proceedWithSigningLogic = (store, actionHandler) => {
+			proceedWithSigningLogic = (store: SignMethodsStore, actionHandler: ActionHandler) => {
 				if (store.needClickToSign()) {
 					actionHandler.showModal('clickToSign')
 				} else if (store.needSignWithPassword()) {
@@ -351,7 +415,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				whatsappToken: { needCode: true },
 			}
 
-			const actionHandler = {
+			const actionHandler: ActionHandler = {
 				showModal: vi.fn(),
 				closeModal: vi.fn(),
 			}
@@ -368,7 +432,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				whatsappToken: { needCode: true },
 			}
 
-			const actionHandler = {
+			const actionHandler: ActionHandler = {
 				showModal: vi.fn(),
 				closeModal: vi.fn(),
 			}
@@ -386,7 +450,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				whatsappToken: { needCode: true },
 			}
 
-			const actionHandler = {
+			const actionHandler: ActionHandler = {
 				showModal: vi.fn(),
 				closeModal: vi.fn(),
 			}
@@ -400,7 +464,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			const store = useSignMethodsStore()
 			store.settings = {}
 
-			const actionHandler = {
+			const actionHandler: ActionHandler = {
 				showModal: vi.fn(),
 				closeModal: vi.fn(),
 			}
@@ -412,10 +476,10 @@ describe('Sign.vue - signWithTokenCode', () => {
 	})
 
 	describe('Full signing flow with WhatsApp token', () => {
-		let Sign
-		let signMethodsStore
-		let signStore
-		let submitSignatureSpy
+		let Sign: SignComponentWithConfirm
+		let signMethodsStore: SignMethodsStore
+		let signStore: SignStore
+		let submitSignatureSpy: MockedFunction<(payload: SubmitSignaturePayload) => Promise<unknown>>
 
 		beforeEach(async () => {
 			setActivePinia(createPinia())
@@ -423,7 +487,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			// Import stores
 			const { useSignStore } = await import('../../../store/sign.js')
 
-			signMethodsStore = useSignMethodsStore()
+			signMethodsStore = useSignMethodsStore() as SignMethodsStore
 			signStore = useSignStore()
 
 			Sign = {
@@ -435,8 +499,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 					}
 				},
 				methods: {
-					async signWithTokenCode(token) {
-						const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
+					async signWithTokenCode(
+						this: {
+							signMethodsStore: SignMethodsStore
+							submitSignature: (payload: SubmitSignaturePayload) => Promise<unknown>
+						},
+						token: string,
+					) {
+						const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 						const activeMethod = tokenMethods.find(method =>
 							Object.hasOwn(this.signMethodsStore.settings, method)
 						)
@@ -450,11 +520,11 @@ describe('Sign.vue - signWithTokenCode', () => {
 							token,
 						})
 					},
-					async submitSignature(payload) {
+					async submitSignature(payload: SubmitSignaturePayload) {
 						// Spy on this method
 						return submitSignatureSpy(payload)
 					},
-					confirmSignDocument() {
+					confirmSignDocument(this: { signMethodsStore: SignMethodsStore }) {
 						// Simulate the logic
 						if (this.signMethodsStore.needTokenCode()) {
 							this.signMethodsStore.showModal('token')
@@ -465,7 +535,8 @@ describe('Sign.vue - signWithTokenCode', () => {
 				},
 			}
 
-			submitSignatureSpy = vi.fn().mockResolvedValue({ status: 'signed', data: { id: 1 } })
+			submitSignatureSpy = vi.fn<(payload: SubmitSignaturePayload) => Promise<unknown>>()
+				.mockResolvedValue({ status: 'signed', data: { id: 1 } })
 		})
 
 		it('complete flow: click sign button -> token modal opens -> submit token', async () => {
@@ -521,17 +592,17 @@ describe('Sign.vue - signWithTokenCode', () => {
 	})
 
 	describe('signWithTokenCode - Correct identify method from signature methods', () => {
-		let Sign
-		let signMethodsStore
-		let signStore
-		let submitSignatureSpy
+		let Sign: SignComponent
+		let signMethodsStore: SignMethodsStore
+		let signStore: SignStore
+		let submitSignatureSpy: MockedFunction<(payload: SubmitSignaturePayload) => Promise<unknown>>
 
 		beforeEach(async () => {
 			setActivePinia(createPinia())
 
 			const { useSignStore } = await import('../../../store/sign.js')
 
-			signMethodsStore = useSignMethodsStore()
+			signMethodsStore = useSignMethodsStore() as SignMethodsStore
 			signStore = useSignStore()
 
 			Sign = {
@@ -544,8 +615,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 				},
 				methods: {
 					// CORRECTED implementation - extracts identify method from signature method
-					async signWithTokenCode(token) {
-						const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
+					async signWithTokenCode(
+						this: {
+							signMethodsStore: SignMethodsStore
+							submitSignature: (payload: SubmitSignaturePayload) => Promise<unknown>
+						},
+						token: string,
+					) {
+						const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 						const activeMethod = tokenMethods.find(method =>
 							Object.hasOwn(this.signMethodsStore.settings, method)
 						)
@@ -556,20 +633,21 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 						// Extract the identify method from the signature method
 						const signatureMethodData = this.signMethodsStore.settings[activeMethod]
-						const identifyMethod = signatureMethodData.identifyMethod
+						const identifyMethod = signatureMethodData?.identifyMethod
 
 						await this.submitSignature({
 							method: identifyMethod,
 							token,
 						})
 					},
-					async submitSignature(payload) {
+					async submitSignature(payload: SubmitSignaturePayload) {
 						return submitSignatureSpy(payload)
 					},
 				},
 			}
 
-			submitSignatureSpy = vi.fn().mockResolvedValue({ status: 'signed' })
+			submitSignatureSpy = vi.fn<(payload: SubmitSignaturePayload) => Promise<unknown>>()
+				.mockResolvedValue({ status: 'signed' })
 		})
 
 		it('FAILS: sends signature method name instead of identify method (whatsappToken vs whatsapp)', async () => {
