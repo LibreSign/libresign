@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { createRouter, createWebHistory, type RouteRecordRaw, type Router } from 'vue-router'
+import { createRouter, createWebHistory, type Router, type RouteRecordRaw } from 'vue-router'
+
 import { loadState } from '@nextcloud/initial-state'
 import { getRootUrl, generateUrl } from '@nextcloud/router'
 
@@ -11,7 +12,7 @@ import { isExternal } from '../helpers/isExternal'
 import { selectAction } from '../helpers/SelectAction'
 
 /**
- * @return {string} Vue Router base url
+ * Generate Vue Router base url
  */
 function generateWebBasePath(): string {
 	// if index.php is in the url AND we got this far, then it's working:
@@ -27,207 +28,197 @@ const routes: RouteRecordRaw[] = [
 	// public
 	{
 		path: '/p/sign/:uuid',
-		beforeEnter: (to, from, next) => {
-			const action = selectAction(loadState('libresign', 'action', ''), to, from)
-			if (action !== undefined) {
-				if (to.name !== 'incomplete') {
-					next({
-						name: action,
-						params: to.params,
-					})
-					return
+		redirect: (to) => {
+			const action = selectAction(loadState('libresign', 'action', 0), to, { path: '/' })
+			if (action) {
+				return {
+					name: action,
+					params: to.params as Record<string, string>,
 				}
 			}
-			next()
+			return {
+				name: 'SignPDFExternal',
+				params: to.params as Record<string, string>,
+			}
 		},
-		props: true,
 	},
 	{
 		path: '/p/sign/:uuid/pdf',
 		name: 'SignPDFExternal',
-		component: () => import('../../views/SignPDF/SignPDF.vue'),
+		component: () => import('../views/SignPDF/SignPDF.vue'),
 		props: true,
 	},
 	{
 		path: '/p/sign/:uuid/sign-in',
 		name: 'CreateAccountExternal',
-		component: () => import('../../views/CreateAccount.vue'),
+		component: () => import('../views/CreateAccount.vue'),
 		props: true,
 	},
 	{
 		path: '/p/error',
 		name: 'DefaultPageErrorExternal',
-		component: () => import('../../views/DefaultPageError.vue'),
+		component: () => import('../views/DefaultPageError.vue'),
 		props: true,
 	},
 	{
 		path: '/p/sign/:uuid/renew/email',
 		name: 'RenewEmailExternal',
-		component: () => import('../../views/RenewEmail.vue'),
+		component: () => import('../views/RenewEmail.vue'),
 	},
 	{
 		path: '/p/validation/:uuid',
 		name: 'ValidationFileExternal',
-		component: () => import('../../views/Validation.vue'),
+		component: () => import('../views/Validation.vue'),
 		props: true,
 	},
 	{
 		path: '/validation/:uuid',
 		name: 'ValidationFileShortUrl',
-		component: () => import('../../views/Validation.vue'),
+		component: () => import('../views/Validation.vue'),
 		props: true,
 	},
 	{
 		path: '/p/incomplete',
 		name: 'IncompleteExternal',
 		beforeEnter: (to, from, next) => {
-			const action = selectAction(loadState('libresign', 'action', ''), to, from)
-			if (action !== undefined) {
+			const action = selectAction(loadState('libresign', 'action', 0), to, from)
+			if (action) {
 				if (to.name !== 'IncompleteExternal') {
 					next({
 						name: action,
-						params: to.params,
+						params: to.params as Record<string, string>,
 					})
 					return
 				}
 			}
 			next()
 		},
-		component: () => import('../../views/IncompleteCertification.vue'),
+		component: () => import('../views/IncompleteCertification.vue'),
 	},
 
 	// internal pages
 	{
 		path: '/f/',
-		beforeEnter: (to, from, next) => {
+		redirect: () => {
 			const canRequestSign = loadState('libresign', 'can_request_sign', false)
-			if (canRequestSign) {
-				next({ name: 'requestFiles' })
-			} else {
-				next({ name: 'fileslist' })
-			}
+			return { name: canRequestSign ? 'requestFiles' : 'fileslist' }
 		},
 	},
 	{
 		path: '/',
-		beforeEnter: (to, from, next) => {
+		redirect: () => {
 			const canRequestSign = loadState('libresign', 'can_request_sign', false)
-			if (canRequestSign) {
-				next({ name: 'requestFiles' })
-			} else {
-				next({ name: 'fileslist' })
-			}
+			return { name: canRequestSign ? 'requestFiles' : 'fileslist' }
 		},
 	},
 	{
 		path: '/f/incomplete',
 		name: 'Incomplete',
 		beforeEnter: (to, from, next) => {
-			const action = selectAction(loadState('libresign', 'action', ''), to, from)
-			if (action !== undefined) {
+			const action = selectAction(loadState('libresign', 'action', 0), to, from)
+			if (action) {
 				if (to.name !== 'Incomplete') {
 					next({
 						name: action,
-						params: to.params,
+						params: to.params as Record<string, string>,
 					})
 					return
 				}
 			}
 			next()
 		},
-		component: () => import('../../views/IncompleteCertification.vue'),
+		component: () => import('../views/IncompleteCertification.vue'),
 	},
 	{
 		path: '/f/validation',
 		name: 'validation',
-		component: () => import('../../views/Validation.vue'),
+		component: () => import('../views/Validation.vue'),
 	},
 	{
 		path: '/f/validation/:uuid',
 		name: 'ValidationFile',
-		component: () => import('../../views/Validation.vue'),
+		component: () => import('../views/Validation.vue'),
 		props: true,
 	},
 	{
 		path: '/f/filelist/sign',
 		name: 'fileslist',
-		component: () => import('../../views/FilesList/FilesList.vue'),
+		component: () => import('../views/FilesList/FilesList.vue'),
 	},
 	{
 		path: '/f/request',
 		name: 'requestFiles',
 		beforeEnter: (to, from, next) => {
 			if (!loadState('libresign', 'can_request_sign', false)) {
-				next({ path: '/' })
-				return
+				return { path: '/' }
 			}
 			next()
 		},
-		component: () => import('../../views/Request.vue'),
+		component: () => import('../views/Request.vue'),
 	},
 	{
 		path: '/f/sign/:uuid/pdf',
 		name: 'SignPDF',
-		component: () => import('../../views/SignPDF/SignPDF.vue'),
+		component: () => import('../views/SignPDF/SignPDF.vue'),
 		props: true,
 	},
 	{
 		path: '/f/id-docs/approve/:uuid',
 		name: 'IdDocsApprove',
-		component: () => import('../../views/SignPDF/SignPDF.vue'),
+		component: () => import('../views/SignPDF/SignPDF.vue'),
 		props: true,
 	},
 	{
 		path: '/f/account',
 		name: 'Account',
-		component: () => import('../../views/Account/Account.vue'),
+		component: () => import('../views/Account/Account.vue'),
 	},
 	{
 		path: '/f/docs/id-docs/validation',
 		name: 'DocsIdDocsValidation',
-		component: () => import('../../views/Documents/IdDocsValidation.vue'),
+		component: () => import('../views/Documents/IdDocsValidation.vue'),
 	},
 	{
 		path: '/f/crl/management',
 		name: 'CrlManagement',
-		component: () => import('../../views/CrlManagement/CrlManagement.vue'),
+		component: () => import('../views/CrlManagement/CrlManagement.vue'),
 	},
 	{
 		path: '/f/create-password',
 		name: 'CreatePassword',
-		component: () => import('../../views/CreatePassword.vue'),
+		component: () => import('../views/CreatePassword.vue'),
 	},
 	{
 		path: '/f/reset-password',
 		name: 'ResetPassword',
-		component: () => import('../../views/ResetPassword.vue'),
+		component: () => import('../views/ResetPassword.vue'),
 	},
 ]
 
 const router: Router = createRouter({
 	history: createWebHistory(generateWebBasePath()),
+	linkActiveClass: 'active',
 	routes,
 })
 
 router.beforeEach((to, from, next) => {
 	const actionElement = document.querySelector('#initial-state-libresign-action')
-	let action: any
+	let action
 	if (actionElement) {
-		const params = to.params as Record<string, any>
-		params.action = loadState('libresign', 'action', '')
-		action = selectAction(params.action, to, from)
+		const actionValue = loadState('libresign', 'action', 0)
+		to.params.action = String(actionValue)
+		action = selectAction(actionValue, to, from)
 		document.querySelector('#initial-state-libresign-action')?.remove()
 	}
-	const toName = to.name as string
-	if (toName && typeof toName === 'string' && !toName.endsWith('External') && isExternal(to, from)) {
+	if (Object.hasOwn(to, 'name') && typeof to.name === 'string' && !to.name.endsWith('External') && isExternal(to, from)) {
 		next({
-			name: toName + 'External',
-			params: to.params,
+			name: to.name + 'External',
+			params: to.params as Record<string, string>,
 		})
-	} else if (action !== undefined) {
+	} else if (action) {
 		next({
 			name: action,
-			params: to.params,
+			params: to.params as Record<string, string>,
 		})
 	} else {
 		next()
