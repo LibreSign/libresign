@@ -6,7 +6,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useUserConfigStore } from '../../store/userconfig.js'
-import { generateOCSResponse } from '../test-helpers.js'
+import { generateOCSResponse } from '../test-helpers'
 
 const { putMock, generateOcsUrlMock } = vi.hoisted(() => ({
 	putMock: vi.fn(() => Promise.resolve()),
@@ -37,7 +37,7 @@ describe('userconfig store', () => {
 	it('updates local state and persists config', async () => {
 		const store = useUserConfigStore()
 
-		putMock.mockResolvedValue(generateOCSResponse({ payload: { value: 'en_US' } }))
+		putMock.mockResolvedValue(generateOCSResponse({ payload: { value: 'en_US' } }) as any)
 
 		await store.update('locale', 'en_US')
 
