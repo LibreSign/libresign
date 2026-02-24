@@ -27,7 +27,7 @@ vi.mock('@nextcloud/axios', () => ({
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: (path, params) => path.replace('{key}', params.key),
+	generateOcsUrl: (path: any, params: any) => path.replace('{key}', params.key),
 }))
 
 describe('filesSorting store', () => {
