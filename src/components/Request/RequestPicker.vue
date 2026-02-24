@@ -140,6 +140,7 @@ export default {
 		NcLoadingIcon,
 		NcNoteCard,
 		NcTextField,
+		UploadProgress,
 	},
 	props: {
 		inline: {
