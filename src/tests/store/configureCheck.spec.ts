@@ -4,9 +4,15 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { MockedFunction } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
-import { generateOCSResponse } from '../test-helpers.js'
+import { generateOCSResponse } from '../test-helpers'
+
+type AxiosMock = {
+	get: MockedFunction<(url: string) => Promise<unknown>>
+	post: MockedFunction<(url: string, data?: unknown) => Promise<unknown>>
+}
 
 // Mock @nextcloud/logger to avoid import-time errors
 vi.mock('@nextcloud/logger', () => ({
@@ -36,7 +42,9 @@ vi.mock('@nextcloud/axios', () => ({
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path, params) => `/ocs/v2.php${path.replace(/{(\w+)}/g, (_, key) => params[key])}`),
+	generateOcsUrl: vi.fn((path: string, params?: Record<string, string>) => (
+		`/ocs/v2.php${path.replace(/{(\w+)}/g, (_match: string, key: string) => params?.[key] ?? '')}`
+	)),
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({
@@ -56,7 +64,8 @@ vi.mock('vue', async () => {
 })
 
 describe('configureCheck store - essential business rules', () => {
-	let useConfigureCheckStore
+	const axiosMock = axios as unknown as AxiosMock
+	let useConfigureCheckStore: typeof import('../../store/configureCheck.js').useConfigureCheckStore
 
 	beforeAll(async () => {
 		const module = await import('../../store/configureCheck.js')
@@ -70,7 +79,7 @@ describe('configureCheck store - essential business rules', () => {
 
 	describe('RULE: checkSetup validates if resources are properly configured', () => {
 		it('java with error changes state to "need download"', async () => {
-			axios.get.mockResolvedValue(generateOCSResponse({
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
 				payload: [
 				{ resource: 'java', status: 'error' },
 				{ resource: 'jsignpdf', status: 'success' },
@@ -85,7 +94,7 @@ describe('configureCheck store - essential business rules', () => {
 		})
 
 		it('all resources ok changes state to "done"', async () => {
-			axios.get.mockResolvedValue(generateOCSResponse({
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
 				payload: [
 					{ resource: 'java', status: 'success' },
 					{ resource: 'jsignpdf', status: 'success' },
@@ -102,7 +111,7 @@ describe('configureCheck store - essential business rules', () => {
 
 	describe('RULE: certificateEngine determines operation mode', () => {
 		it('isNoneEngine returns true when engine is "none"', async () => {
-			axios.get.mockResolvedValue(generateOCSResponse({ payload: [] }))
+			axiosMock.get.mockResolvedValue(generateOCSResponse({ payload: [] }))
 
 			const store = useConfigureCheckStore()
 			store.setCertificateEngine('none')
@@ -111,13 +120,13 @@ describe('configureCheck store - essential business rules', () => {
 		})
 
 		it('saveCertificateEngine persists engine and updates identifyMethods', async () => {
-			axios.post.mockResolvedValue(generateOCSResponse({
+			axiosMock.post.mockResolvedValue(generateOCSResponse({
 				payload: {
 					identify_methods: ['email', 'sms'],
 				},
 			}))
 
-			axios.get.mockResolvedValue(generateOCSResponse({
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
 				payload: [
 				{ resource: 'java', status: 'success' },
 				{ resource: 'jsignpdf', status: 'success' },
@@ -136,7 +145,7 @@ describe('configureCheck store - essential business rules', () => {
 
 	describe('RULE: isConfigureOk validates engine-specific configuration', () => {
 		it('returns true when engine is configured without errors', async () => {
-			axios.get.mockResolvedValue(generateOCSResponse({
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
 				payload: [
 				{ resource: 'openssl-configure', status: 'success' },
 			],
@@ -149,7 +158,7 @@ describe('configureCheck store - essential business rules', () => {
 		})
 
 		it('returns false when engine has configuration error', async () => {
-			axios.get.mockResolvedValue(generateOCSResponse({
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
 				payload: [
 				{ resource: 'openssl-configure', status: 'error' },
 			],
