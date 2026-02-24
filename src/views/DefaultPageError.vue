@@ -51,6 +51,12 @@ export default {
 		NcNoteCard,
 		NcIconSvgWrapper,
 	},
+
+	setup() {
+		return {
+			mdiAlertCircleOutline,
+		}
+	},
 	data() {
 		return {
 			logoLibreSign,
