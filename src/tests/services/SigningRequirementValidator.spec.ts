@@ -8,7 +8,7 @@ import { SigningRequirementValidator } from '../../services/SigningRequirementVa
 import { ACTION_CODES } from '../../helpers/ActionMapping'
 
 describe('SigningRequirementValidator', () => {
-	const createStores = (overrides = {}) => {
+	const createStores = (overrides: any = {}) => {
 		const signStore = {
 			document: {
 				signers: [{
