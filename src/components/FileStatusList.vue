@@ -78,12 +78,13 @@ export default {
 			t,
 			n,
 			formatFileSize,
+			getStatusIcon,
 			getStatusLabel,
-			mdiFilePdfBox,}
+			mdiFilePdfBox,
+		}
 	},
 	data() {
 		return {
-			mdiFilePdfBox,
 			files: [],
 			isLoading: false,
 			updatePollingInterval: null,
