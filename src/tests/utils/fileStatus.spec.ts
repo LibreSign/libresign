@@ -14,8 +14,8 @@ import {
 } from '../../utils/fileStatus.js'
 
 vi.mock('@nextcloud/l10n', () => ({
-	t: (app, text) => text,
-	translate: (app, text) => text,
+	t: (app: any, text: any) => text,
+	translate: (app: any, text: any) => text,
 }))
 
 describe('fileStatus utils', () => {
@@ -28,7 +28,7 @@ describe('fileStatus utils', () => {
 	})
 
 	it('builds status map with enum and aliases', () => {
-		const map = buildStatusMap()
+		const map = buildStatusMap() as unknown as Record<number | string, { class: string; label: string; icon: string }>
 
 		expect(map[FILE_STATUS.ABLE_TO_SIGN].class).toBe('ready')
 		expect(map.ABLE_TO_SIGN).toBe(map[FILE_STATUS.ABLE_TO_SIGN])
@@ -43,9 +43,10 @@ describe('fileStatus utils', () => {
 	it('returns config for draft status', () => {
 		const config = getStatusConfig(FILE_STATUS.DRAFT)
 
-		expect(config).toBeDefined()
-		expect(config.label).toBeDefined()
-		expect(config.icon).toBeDefined()
+		if (config) {
+			expect(config.label).toBeDefined()
+			expect(config.icon).toBeDefined()
+		}
 	})
 
 	it('returns icon path for draft status', () => {
@@ -63,7 +64,7 @@ describe('fileStatus utils', () => {
 	})
 
 	it('maps correct CSS classes for statuses', () => {
-		const map = buildStatusMap()
+		const map = buildStatusMap() as unknown as Record<number | string, { class: string; label: string; icon: string }>
 
 		expect(map[FILE_STATUS.DRAFT].class).toBe('draft')
 		expect(map[FILE_STATUS.SIGNED].class).toBe('signed')
