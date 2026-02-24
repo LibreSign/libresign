@@ -48,7 +48,7 @@ const mockRouter = {
 }
 
 describe('CreateAccount.vue - Business Logic', () => {
-	let wrapper: any
+	let wrapper!: ReturnType<typeof shallowMount>
 
 	beforeEach(() => {
 		wrapper = shallowMount(CreateAccount, {
