@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { vi } from 'vitest'
+import { vi, afterEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
+import { cleanup } from '@testing-library/vue'
 
 vi.mock('@vue/test-utils', async (importOriginal) => {
 	const actual = await importOriginal()
@@ -59,9 +60,14 @@ vi.mock('@nextcloud/vue/components/NcRichText', () => ({
 	},
 }))
 
+// Automatically cleanup after each test
+afterEach(() => {
+	cleanup()
+})
 
 setActivePinia(createPinia())
 
 import './testHelpers/jsdomMocks.js'
 import './testHelpers/nextcloudMocks.js'
 import './testHelpers/vueMocks.js'
+
