@@ -133,10 +133,16 @@ export default {
 		NcDialog,
 		NcButton,
 		NcTextField,
+		NcCheckboxRadioSwitch,
+		CertificateCustonOptions,
+		CertificatePolicy,
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
-		return { configureCheckStore }
+		return {
+			configureCheckStore,
+			t,
+		}
 	},
 	data() {
 		const OID = loadState('libresign', 'certificate_policies_oid')
