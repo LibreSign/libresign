@@ -16,6 +16,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn((app: any, text: any) => text),
 	translate: vi.fn((app: any, text: any) => text),
+	isRTL: vi.fn(() => false),
 }))
 
 describe('DefaultPageError.vue - Error Aggregation Rules', () => {
