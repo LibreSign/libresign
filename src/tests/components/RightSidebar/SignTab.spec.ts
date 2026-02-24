@@ -5,11 +5,15 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import type { Pinia } from 'pinia'
 import SignTab from '../../../components/RightSidebar/SignTab.vue'
 import { useSignStore } from '../../../store/sign.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { FILE_STATUS } from '../../../constants.js'
+import type { TranslationFunction } from '../../test-types'
+import type { MockedFunction } from 'vitest'
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn(),
@@ -18,12 +22,16 @@ vi.mock('@nextcloud/initial-state', () => ({
 import { loadState } from '@nextcloud/initial-state'
 
 describe('SignTab', () => {
-	let wrapper
-	let signStore
-	let mockRouter
-	let pinia
+	let wrapper: VueWrapper<unknown> | null
+	let signStore: ReturnType<typeof useSignStore>
+	let mockRouter: {
+		push: MockedFunction<(location: unknown) => Promise<unknown>>
+		currentRoute: { value: { path: string } }
+	}
+	let pinia: Pinia
 
 	const createWrapper = async (routePath = '/', mockPush = true) => {
+		const t: TranslationFunction = (_app, text) => text
 		// Create a mock router that the component will use via $router
 		mockRouter = {
 			push: vi.fn().mockResolvedValue(true),
@@ -42,7 +50,7 @@ describe('SignTab', () => {
 					$route: {
 						path: routePath,
 					},
-					t: (app, text) => text,
+					t,
 				},
 				stubs: {
 					NcChip: true,
@@ -58,6 +66,7 @@ describe('SignTab', () => {
 		signStore = useSignStore()
 		if (wrapper) {
 			wrapper.unmount()
+			wrapper = null
 		}
 		vi.clearAllMocks()
 	})
@@ -165,7 +174,7 @@ describe('SignTab', () => {
 		})
 
 		it('falls back to loadState when nothing else available', async () => {
-			loadState.mockReturnValue('state-uuid')
+			vi.mocked(loadState).mockReturnValue('state-uuid')
 			signStore.document = {}
 			wrapper = await createWrapper()
 
@@ -174,7 +183,7 @@ describe('SignTab', () => {
 		})
 
 		it('returns null when all sources empty', async () => {
-			loadState.mockReturnValue(null)
+			vi.mocked(loadState).mockReturnValue(null)
 			signStore.document = {}
 			wrapper = await createWrapper()
 
@@ -282,7 +291,7 @@ describe('SignTab', () => {
 			signStore.document = {
 				status: FILE_STATUS.SIGNING_IN_PROGRESS,
 			}
-			loadState.mockReturnValue(null)
+			vi.mocked(loadState).mockReturnValue(null)
 			wrapper = await createWrapper('/', true)
 
 			// Should not push when UUID is not available
