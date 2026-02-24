@@ -6,6 +6,9 @@
 import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import TextInput from '../../../components/Draw/TextInput.vue'
+import type { TranslationFunction } from '../../test-types'
+
+const t: TranslationFunction = (_app, text) => text
 
 vi.mock('@nextcloud/capabilities', () => ({
 	getCapabilities: vi.fn(() => ({
@@ -65,7 +68,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -77,7 +80,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -94,7 +97,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -107,7 +110,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -121,7 +124,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -134,7 +137,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -153,7 +156,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -169,7 +172,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -184,7 +187,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -201,7 +204,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -211,15 +214,16 @@ describe('TextInput.vue - Text Signature Component', () => {
 		wrapper.vm.imageData = testData
 		wrapper.vm.saveSignature()
 
-		expect(wrapper.emitted('save')).toBeTruthy()
-		expect(wrapper.emitted('save')[0][0]).toBe(testData)
+		const emitted = wrapper.emitted('save') ?? []
+		expect(emitted.length).toBeGreaterThan(0)
+		expect(emitted[0]?.[0]).toBe(testData)
 	})
 
 	it('closes modal after save', async () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -234,7 +238,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -250,7 +254,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -264,7 +268,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -277,7 +281,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -294,7 +298,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -310,7 +314,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -322,7 +326,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -334,7 +338,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -350,7 +354,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -368,7 +372,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
@@ -384,7 +388,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
-					t: (key, message) => message,
+					t,
 				},
 			},
 		})
