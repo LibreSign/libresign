@@ -6,11 +6,11 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-let RequestSignatureTab
+let RequestSignatureTab: any
 import { FILE_STATUS } from '../../../constants.js'
 
 // Mock translation function
-global.t = vi.fn((app, msg) => msg)
+;(global as any).t = vi.fn((app: any, msg: any) => msg)
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
@@ -54,14 +54,14 @@ vi.mock('@libresign/pdf-elements', () => ({
 }))
 
 describe('RequestSignatureTab - Critical Business Rules', () => {
-	let wrapper
-	let filesStore
-	const updateFile = async (patch) => {
+	let wrapper: any
+	let filesStore: any
+	const updateFile = async (patch: any) => {
 		const current = filesStore.files[1] || { id: 1 }
 		await filesStore.addFile({ ...current, ...patch, id: 1 })
 		await wrapper.vm.$nextTick()
 	}
-	const updateMethods = async (methods) => {
+	const updateMethods = async (methods: any) => {
 		await wrapper.setData({ methods })
 	}
 
@@ -83,7 +83,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 		wrapper = shallowMount(RequestSignatureTab, {
 			mocks: {
-				t: (app, text) => text,
+				t: (app: any, text: any) => text,
 			},
 			stubs: {
 				NcButton: true,
@@ -891,8 +891,8 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			])
 			await wrapper.setData({ signerToEdit: {} })
 			expect(wrapper.vm.enabledMethods).toHaveLength(2)
-			expect(wrapper.vm.enabledMethods.map(m => m.name)).toContain('email')
-			expect(wrapper.vm.enabledMethods.map(m => m.name)).toContain('sms')
+			expect(wrapper.vm.enabledMethods.map((m: { name: string }) => m.name)).toContain('email')
+			expect(wrapper.vm.enabledMethods.map((m: { name: string }) => m.name)).toContain('sms')
 		})
 
 		it('shows only signer method when editing even if disabled', async () => {
