@@ -60,6 +60,11 @@
 
 <script>
 import { t } from '@nextcloud/l10n'
+import {
+	mdiDelete,
+	mdiFolder,
+	mdiUpload,
+} from '@mdi/js'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
@@ -88,6 +93,7 @@ export default {
 	components: {
 		NcButton,
 		NcNoteCard,
+		NcIconSvgWrapper,
 	},
 	props: {
 		signRequestUuid: {
@@ -101,6 +107,9 @@ export default {
 			documentList: [],
 			loading: true,
 			selectedType: null,
+			mdiFolder,
+			mdiUpload,
+			mdiDelete,
 		}
 	},
 	computed: {
