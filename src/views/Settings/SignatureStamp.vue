@@ -45,7 +45,7 @@
 				:aria-label="t('libresign', 'Reset to default')"
 				@click="resetRenderMode">
 				<template #icon>
-					<Undo :size="20" />
+					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 				</template>
 			</NcButton>
 		</fieldset>
@@ -55,7 +55,7 @@
 					:aria-label="t('libresign', 'Show available variables')"
 					@click="showVariablesDialog = true">
 					<template #icon>
-						<HelpCircleOutline :size="20" />
+						<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="20" />
 					</template>
 					{{ t('libresign', 'Available variables') }}
 				</NcButton>
@@ -70,7 +70,7 @@
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetTemplate">
 					<template #icon>
-						<Undo :size="20" />
+						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 					</template>
 				</NcButton>
 			</div>
@@ -92,7 +92,7 @@
 						:aria-label="t('libresign', 'Reset to default')"
 						@click="resetSignatureFontSize">
 						<template #icon>
-							<Undo :size="20" />
+							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 						</template>
 					</NcButton>
 				</div>
@@ -116,7 +116,7 @@
 						:aria-label="t('libresign', 'Reset to default')"
 						@click="resetTemplateFontSize">
 						<template #icon>
-							<Undo :size="20" />
+							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 						</template>
 					</NcButton>
 				</div>
@@ -148,7 +148,7 @@
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetSignatureWidth">
 					<template #icon>
-						<Undo :size="20" />
+						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 					</template>
 				</NcButton>
 			</div>
@@ -169,7 +169,7 @@
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetSignatureHeight">
 					<template #icon>
-						<Undo :size="20" />
+						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 					</template>
 				</NcButton>
 			</div>
@@ -190,7 +190,7 @@
 				:aria-label="t('libresign', 'Reset to default')"
 				@click="undoBackground">
 				<template #icon>
-					<Undo :size="20" />
+					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 				</template>
 			</NcButton>
 			<NcButton v-if="displayRemoveBackground"
@@ -371,6 +371,8 @@ export default {
 		NcNoteCard,
 		NcSettingsSection,
 		NcTextField,
+		NcCheckboxRadioSwitch,
+		NcLoadingIcon,
 	},
 	setup() {
 		const isDarkTheme = useIsDarkTheme()
