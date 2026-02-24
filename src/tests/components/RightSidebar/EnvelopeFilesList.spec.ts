@@ -4,11 +4,13 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import EnvelopeFilesList from '../../../components/RightSidebar/EnvelopeFilesList.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../../constants.js'
+import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
 
 vi.mock('@nextcloud/axios')
 
@@ -24,24 +26,36 @@ vi.mock('../../../utils/viewer.js', () => ({
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 
+type FilesStoreMock = ReturnType<typeof useFilesStore> & {
+	getFile: MockedFunction<(id: number) => unknown>
+	selectedFile: { id?: number; name?: string; status?: number } | null
+	removeFilesFromEnvelope?: MockedFunction<(...args: unknown[]) => Promise<unknown>>
+	rename?: MockedFunction<(...args: unknown[]) => Promise<boolean>>
+}
+
+const t: TranslationFunction = (_app, text, vars) => {
+	if (vars) {
+		return text.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))
+	}
+	return text
+}
+
+const n: PluralTranslationFunction = (_app, singular, plural, count) => (count === 1 ? singular : plural)
+
 describe('EnvelopeFilesList', () => {
-	let wrapper
-	let filesStore
+	const getCapabilitiesMock = getCapabilities as MockedFunction<typeof getCapabilities>
+	let wrapper: ReturnType<typeof mount> | null
+	let filesStore: FilesStoreMock
 
 	const createWrapper = (props = {}) => {
 		return mount(EnvelopeFilesList, {
-			propsData: {
+			props: {
 				open: true,
 				...props,
 			},
 			mocks: {
-				t: (app, text, vars) => {
-					if (vars) {
-						return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-					}
-					return text
-				},
-				n: (app, singular, plural, count) => count === 1 ? singular : plural,
+				t,
+				n,
 			},
 			stubs: {
 				NcDialog: true,
@@ -63,10 +77,11 @@ describe('EnvelopeFilesList', () => {
 
 	beforeEach(() => {
 		setActivePinia(createPinia())
-		filesStore = useFilesStore()
+		filesStore = useFilesStore() as FilesStoreMock
 		filesStore.getFile = vi.fn(() => filesStore.selectedFile)
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
+			wrapper = null
 		}
 		vi.clearAllMocks()
 	})
@@ -116,7 +131,7 @@ describe('EnvelopeFilesList', () => {
 
 	describe('RULE: canAddFile requires draft status and envelope capability', () => {
 		it('returns true when draft and capability available', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { envelope: { 'is-available': true } } },
 			})
 			filesStore.selectedFile = { status: FILE_STATUS.DRAFT }
@@ -126,7 +141,7 @@ describe('EnvelopeFilesList', () => {
 		})
 
 		it('returns false when not draft', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { envelope: { 'is-available': true } } },
 			})
 			filesStore.selectedFile = { status: FILE_STATUS.SIGNED }
@@ -136,7 +151,7 @@ describe('EnvelopeFilesList', () => {
 		})
 
 		it('returns false when capability not available', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { envelope: { 'is-available': false } } },
 			})
 			filesStore.selectedFile = { status: FILE_STATUS.DRAFT }
@@ -146,7 +161,7 @@ describe('EnvelopeFilesList', () => {
 		})
 
 		it('returns false when no envelope', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { envelope: { 'is-available': true } } },
 			})
 			filesStore.selectedFile = null
@@ -205,7 +220,7 @@ describe('EnvelopeFilesList', () => {
 
 	describe('RULE: getMaxFileUploads uses capability with default 20', () => {
 		it('returns capability value when valid', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { upload: { 'max-file-uploads': 50 } } },
 			})
 			wrapper = createWrapper()
@@ -214,7 +229,7 @@ describe('EnvelopeFilesList', () => {
 		})
 
 		it('returns floor of decimal capability', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { upload: { 'max-file-uploads': 15.7 } } },
 			})
 			wrapper = createWrapper()
@@ -223,7 +238,7 @@ describe('EnvelopeFilesList', () => {
 		})
 
 		it('returns 20 when capability not finite', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { upload: { 'max-file-uploads': NaN } } },
 			})
 			wrapper = createWrapper()
@@ -232,7 +247,7 @@ describe('EnvelopeFilesList', () => {
 		})
 
 		it('returns 20 when capability is zero', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { upload: { 'max-file-uploads': 0 } } },
 			})
 			wrapper = createWrapper()
@@ -241,7 +256,7 @@ describe('EnvelopeFilesList', () => {
 		})
 
 		it('returns 20 when capability is negative', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { upload: { 'max-file-uploads': -5 } } },
 			})
 			wrapper = createWrapper()
@@ -252,7 +267,7 @@ describe('EnvelopeFilesList', () => {
 
 	describe('RULE: validateMaxFileUploads checks file count limit', () => {
 		it('returns true when under limit', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { upload: { 'max-file-uploads': 10 } } },
 			})
 			wrapper = createWrapper()
@@ -261,7 +276,7 @@ describe('EnvelopeFilesList', () => {
 		})
 
 		it('returns false and shows error when over limit', () => {
-			getCapabilities.mockReturnValue({
+			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { upload: { 'max-file-uploads': 10 } } },
 			})
 			wrapper = createWrapper()
@@ -576,31 +591,35 @@ describe('EnvelopeFilesList', () => {
 	describe('RULE: cancelUpload aborts upload controller', () => {
 		it('calls abort on upload controller', async () => {
 			const abortController = { abort: vi.fn() }
-			wrapper = createWrapper()
-			await wrapper.setData({ uploadAbortController: abortController })
+			const localWrapper = createWrapper()
+			wrapper = localWrapper
+			await localWrapper.setData({ uploadAbortController: abortController })
 
-			wrapper.vm.cancelUpload()
+			localWrapper.vm.cancelUpload()
 
 			expect(abortController.abort).toHaveBeenCalled()
 		})
 
 		it('does nothing when no controller', () => {
-			wrapper = createWrapper()
+			const localWrapper = createWrapper()
+			wrapper = localWrapper
 
-			expect(() => wrapper.vm.cancelUpload()).not.toThrow()
+			expect(() => localWrapper.vm.cancelUpload()).not.toThrow()
 		})
 	})
 
 	describe('RULE: File actions visibility based on isTouchDevice', () => {
 		it('has isTouchDevice computed property from mixin', () => {
-			wrapper = createWrapper()
-			expect(wrapper.vm.isTouchDevice).toBeDefined()
-			expect(typeof wrapper.vm.isTouchDevice).toBe('boolean')
+			const localWrapper = createWrapper()
+			wrapper = localWrapper
+			expect(localWrapper.vm.isTouchDevice).toBeDefined()
+			expect(typeof localWrapper.vm.isTouchDevice).toBe('boolean')
 		})
 
 		it('renders actions slot when not touch device', async () => {
-			wrapper = createWrapper()
-			await wrapper.setData({
+			const localWrapper = createWrapper()
+			wrapper = localWrapper
+			await localWrapper.setData({
 				files: [
 					{
 						id: 1,
@@ -611,7 +630,7 @@ describe('EnvelopeFilesList', () => {
 				],
 			})
 
-			await wrapper.vm.$nextTick()
+			await localWrapper.vm.$nextTick()
 
 			// Check that isTouchDevice is properly evaluated
 			expect(wrapper.vm.isTouchDevice).toBeDefined()
