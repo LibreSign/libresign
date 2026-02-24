@@ -5,12 +5,12 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-let FileValidation: any
+let FileValidation: unknown
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app: any, text: any) => text),
-	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
-	t: vi.fn((app: any, text: any) => text),
-	n: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
+	translate: vi.fn((_app: string, text: string) => text),
+	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
+	t: vi.fn((_app: string, text: string) => text),
+	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -23,19 +23,23 @@ beforeAll(async () => {
 
 
 describe('FileValidation', () => {
-	let wrapper: any
+	let wrapper!: ReturnType<typeof createWrapper>
 
-	const createWrapper = (props: any = {}) => {
-		return mount(FileValidation, {
+	const createWrapper = (props: Record<string, unknown> = {}) => {
+		const safeProps = props as {
+			document?: Record<string, unknown>
+			[key: string]: unknown
+		}
+		return mount(FileValidation as never, {
 			props: {
 				document: {
 					name: 'Test Document',
-					...props.document,
+					...safeProps.document,
 				},
 				legalInformation: '',
 				documentValidMessage: '',
 				isAfterSigned: false,
-				...props,
+				...safeProps,
 			},
 			global: {
 				stubs: {
@@ -48,7 +52,7 @@ describe('FileValidation', () => {
 					DocumentValidationDetails: true,
 				},
 				mocks: {
-					t: (app: any, text: any) => text,
+					t: (_app: string, text: string) => text,
 				},
 			},
 		})
@@ -146,7 +150,7 @@ describe('FileValidation', () => {
 				isAfterSigned: true,
 			})
 
-			const noteCard = wrapper.findAllComponents({ name: 'NcNoteCard' }).at(0)
+			const noteCard = wrapper.findAllComponents({ name: 'NcNoteCard' }).at(0)!
 			expect(noteCard.props('type')).toBe('success')
 		})
 
@@ -248,7 +252,7 @@ describe('FileValidation', () => {
 
 			const noteCards = wrapper.findAllComponents({ name: 'NcNoteCard' })
 			expect(noteCards.length).toBe(1)
-			expect(noteCards.at(0).text()).toContain('Valid')
+			expect(noteCards.at(0)!.text()).toContain('Valid')
 		})
 
 		it('shows only congratulations message', () => {
@@ -259,7 +263,7 @@ describe('FileValidation', () => {
 
 			const noteCards = wrapper.findAllComponents({ name: 'NcNoteCard' })
 			expect(noteCards.length).toBe(1)
-			expect(noteCards.at(0).text()).toContain('Congratulations')
+			expect(noteCards.at(0)!.text()).toContain('Congratulations')
 		})
 
 		it('shows neither message when both false', () => {
