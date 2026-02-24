@@ -13,7 +13,7 @@ describe('isTouchDevice Mixin', () => {
 		template: '<div>{{ isTouchDevice }}</div>',
 	}
 
-	let wrapper: any
+	let wrapper: ReturnType<typeof mount> | null
 
 	beforeEach(() => {
 		wrapper = null
