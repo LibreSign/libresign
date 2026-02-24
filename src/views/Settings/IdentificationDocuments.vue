@@ -47,6 +47,7 @@ export default {
 	components: {
 		NcSettingsSection,
 		NcSelect,
+		NcCheckboxRadioSwitch,
 	},
 	data() {
 		return {
