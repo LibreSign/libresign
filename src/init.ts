@@ -22,6 +22,12 @@ interface ExtendedNewMenuEntry extends NewMenuEntry {
 	uploadManager?: Uploader
 }
 
+interface UploadPayload {
+	file: {
+		name: string
+	}
+}
+
 registerDavProperty('nc:libresign-signature-status', { nc: 'http://nextcloud.org/ns' })
 registerDavProperty('nc:libresign-signed-node-id', { nc: 'http://nextcloud.org/ns' })
 
@@ -45,7 +51,7 @@ addNewFileMenuEntry({
 				return
 			}
 
-			this.uploadManager?.addNotifier(async (upload: any) => {
+			this.uploadManager?.addNotifier(async (upload: UploadPayload) => {
 				const path = context.path + '/' + upload.file.name
 				await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
 					file: {
