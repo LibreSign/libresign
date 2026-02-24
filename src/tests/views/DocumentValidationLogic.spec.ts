@@ -41,7 +41,7 @@ vi.mock('@nextcloud/logger', () => ({
 }))
 
 describe('Document Validation Flow Business Logic', () => {
-	let wrapper: any
+	let wrapper: ReturnType<typeof mount> | undefined
 
 	beforeEach(() => {
 		setActivePinia(createPinia())
