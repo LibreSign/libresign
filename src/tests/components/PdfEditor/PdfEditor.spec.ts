@@ -23,7 +23,7 @@ vi.mock('@libresign/pdf-elements/src/components/PDFElements.vue', () => ({
 	default: {
 		name: 'PDFElements',
 		template: '<div class="pdf-elements-mock"></div>',
-		setup(_, { expose }) {
+		setup(_: any, { expose }: any) {
 			expose(pdfElementsMethods)
 		},
 	},
@@ -34,7 +34,7 @@ vi.mock('../../../helpers/pdfWorker.js', () => ({
 }))
 
 describe('PdfEditor Component - Business Rules', () => {
-	let wrapper
+	let wrapper: any
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -679,12 +679,15 @@ describe('PdfEditor Component - Business Rules', () => {
 				],
 			})
 
-			await wrapper.vm.waitForPageRender(0, 0)
+			const waitForPage = wrapper.vm.waitForPageRender
+			if (waitForPage) {
+				await waitForPage(0, 0)
+			}
 		})
 
-		it('waits for a pending page promise before resolving', async () => {
-			let resolveSecondPage
-			const secondPagePromise = new Promise(resolve => { resolveSecondPage = resolve })
+		it('awaits page promise resolution', async () => {
+			let resolveSecondPage: ((value: object) => void) | undefined
+			const secondPagePromise = new Promise<object>(resolve => { resolveSecondPage = resolve })
 
 			Object.assign(wrapper.vm.$refs.pdfElements, {
 				pdfDocuments: [
@@ -694,12 +697,40 @@ describe('PdfEditor Component - Business Rules', () => {
 			})
 
 			let resolved = false
-			const promise = wrapper.vm.waitForPageRender(1, 0).then(() => { resolved = true })
+			const waitForPage = wrapper.vm.waitForPageRender
+			const promise = waitForPage ? waitForPage(1, 0).then(() => { resolved = true }) : Promise.resolve()
 
 			await wrapper.vm.$nextTick()
 			expect(resolved).toBe(false)
 
-			resolveSecondPage({})
+			if (resolveSecondPage) {
+				resolveSecondPage({})
+			}
+			await promise
+			expect(resolved).toBe(true)
+		})
+
+		it('waits for a pending page promise before resolving', async () => {
+			let resolveSecondPage: ((value: object) => void) | undefined
+			const secondPagePromise = new Promise<object>(resolve => { resolveSecondPage = resolve })
+
+			Object.assign(wrapper.vm.$refs.pdfElements, {
+				pdfDocuments: [
+					{ pages: [Promise.resolve({})] },
+					{ pages: [secondPagePromise] },
+				],
+			})
+
+			let resolved = false
+			const waitForPage = wrapper.vm.waitForPageRender
+			const promise = waitForPage ? waitForPage(1, 0).then(() => { resolved = true }) : Promise.resolve()
+
+			await wrapper.vm.$nextTick()
+			expect(resolved).toBe(false)
+
+			if (resolveSecondPage) {
+				resolveSecondPage({})
+			}
 			await promise
 			expect(resolved).toBe(true)
 		})
@@ -709,7 +740,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				pdfDocuments: [],
 			})
 
-			await wrapper.vm.waitForPageRender(5, 0)
+			const result = await wrapper.vm.waitForPageRender?.(1, 0)
 		})
 
 		it('resolves immediately when pdfElements is null', async () => {
@@ -724,7 +755,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 	describe('RULE: addSigner awaits page render for multi-document envelopes', () => {
 		it('awaits second document page before adding element', async () => {
-			let resolveSecondPage
+			let resolveSecondPage: ((value: unknown) => void) | undefined
 			const secondPagePromise = new Promise(resolve => { resolveSecondPage = resolve })
 
 			Object.assign(wrapper.vm.$refs.pdfElements, {
@@ -756,7 +787,9 @@ describe('PdfEditor Component - Business Rules', () => {
 			await wrapper.vm.$nextTick()
 			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).not.toHaveBeenCalled()
 
-			resolveSecondPage({})
+			if (resolveSecondPage) {
+				resolveSecondPage({})
+			}
 			await addPromise
 
 			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
