@@ -286,7 +286,14 @@
 <script>
 import { t } from '@nextcloud/l10n'
 import {
+	mdiAccount,
+	mdiCheckCircle,
+	mdiCancel,
+	mdiClockAlert,
+	mdiClose,
+	mdiFilter,
 	mdiMagnify,
+	mdiShieldLock,
 } from '@mdi/js'
 
 
@@ -329,6 +336,20 @@ export default {
 		NcTextArea,
 		NcTextField,
 		NcIconSvgWrapper,
+		NcLoadingIcon,
+	},
+	setup() {
+		return {
+			t,
+			mdiFilter,
+			mdiMagnify,
+			mdiAccount,
+			mdiCheckCircle,
+			mdiCancel,
+			mdiClockAlert,
+			mdiClose,
+			mdiShieldLock,
+		}
 	},
 	data() {
 		const userConfigStore = useUserConfigStore()
