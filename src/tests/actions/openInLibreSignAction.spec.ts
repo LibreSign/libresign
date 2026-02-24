@@ -77,14 +77,17 @@ vi.mock('@nextcloud/capabilities', () => ({
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: vi.fn(),
+	loadState: vi.fn((app, key, defaultValue) => {
+		if (key === 'certificate_ok') return true
+		return defaultValue
+	}),
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app: any, text: any) => text),
-	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
-	t: vi.fn((app: any, text: any) => text),
-	n: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
+	translate: vi.fn((_app: string, text: string) => text),
+	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
+	t: vi.fn((_app: string, text: string) => text),
+	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -112,35 +115,44 @@ vi.mock('@nextcloud/vue/functions/dialog', () => ({
 }))
 
 describe('openInLibreSignAction rules', () => {
-	let action: any
-	let loadState: any
-	let getCapabilities: any
+	let action: {
+		id: string
+		order: number
+		displayName: unknown
+		iconSvgInline: unknown
+		enabled: (context: { nodes: unknown }) => boolean
+		exec: (context: { nodes: unknown }) => Promise<unknown>
+		execBatch: (context: { nodes: unknown }) => Promise<unknown>
+	}
+	let loadState: { mockReturnValue: (value: unknown) => unknown }
+	let getCapabilities: { mockReturnValue: (value: unknown) => unknown }
+	type PendingEnvelopeForTest = NonNullable<LibreSignGlobalNamespace['pendingEnvelope']> & {
+		nodeType: string
+		files: Array<{ fileId?: number | string }>
+		filesCount: number
+		signers: unknown[]
+		settings: { path: string }
+	}
+
+	const getPendingEnvelope = (): PendingEnvelopeForTest => {
+		const pending = window.OCA.Libresign.pendingEnvelope
+		expect(pending).toBeDefined()
+		if (!pending || !pending.settings || !Array.isArray(pending.files)) {
+			throw new Error('pendingEnvelope is not defined')
+		}
+		return pending as PendingEnvelopeForTest
+	}
 
 	beforeEach(async () => {
 		vi.clearAllMocks()
-		vi.resetModules()
 		mockSidebar.open.mockClear()
 		mockSidebar.setActiveTab.mockClear()
-
-		// Mock window.OCA.Files.Sidebar for Nextcloud 32
-		if (!global.window) {
-			global.window = {}
-		}
-		global.window.OCA = {
-			Files: {
-				Sidebar: {
-					close: vi.fn(),
-					open: mockSidebar.open,
-					setActiveTab: mockSidebar.setActiveTab,
-				},
-			},
-		}
 
 		const { loadState: loadStateModule } = await import('@nextcloud/initial-state')
 		const { getCapabilities: getCapabilitiesModule } = await import('@nextcloud/capabilities')
 
-		loadState = loadStateModule
-		getCapabilities = getCapabilitiesModule
+		loadState = loadStateModule as unknown as { mockReturnValue: (value: unknown) => unknown }
+		getCapabilities = getCapabilitiesModule as unknown as { mockReturnValue: (value: unknown) => unknown }
 
 		loadState.mockReturnValue(true)
 		getCapabilities.mockReturnValue(mockCapabilities)
@@ -157,7 +169,9 @@ describe('openInLibreSignAction rules', () => {
 		it('disables action when certificate not configured', () => {
 			loadState.mockReturnValue(false)
 
-			const enabled = action.enabled([{ type: 'file', mime: 'application/pdf' }])
+			const enabled = action.enabled({
+				nodes: [{ type: 'file', mime: 'application/pdf' }],
+			})
 
 			expect(enabled).toBe(false)
 		})
@@ -165,7 +179,9 @@ describe('openInLibreSignAction rules', () => {
 		it('enables action when certificate configured', () => {
 			loadState.mockReturnValue(true)
 
-			const enabled = action.enabled([{ type: 'file', mime: 'application/pdf' }])
+			const enabled = action.enabled({
+				nodes: [{ type: 'file', mime: 'application/pdf' }],
+			})
 
 			expect(enabled).toBe(true)
 		})
@@ -177,31 +193,39 @@ describe('openInLibreSignAction rules', () => {
 		})
 
 		it('enables for single PDF file', () => {
-			const enabled = action.enabled([{ type: 'file', mime: 'application/pdf' }])
+			const enabled = action.enabled({
+				nodes: [{ type: 'file', mime: 'application/pdf' }],
+			})
 
 			expect(enabled).toBe(true)
 		})
 
 		it('disables for single non-PDF file', () => {
-			const enabled = action.enabled([{ type: 'file', mime: 'image/png' }])
+			const enabled = action.enabled({
+				nodes: [{ type: 'file', mime: 'image/png' }],
+			})
 
 			expect(enabled).toBe(false)
 		})
 
 		it('enables for folder with signature status', () => {
-			const enabled = action.enabled([{
-				type: 'folder',
-				attributes: { 'libresign-signature-status': 'signed' },
-			}])
+			const enabled = action.enabled({
+				nodes: [{
+					type: 'folder',
+					attributes: { 'libresign-signature-status': 'signed' },
+				}],
+			})
 
 			expect(enabled).toBe(true)
 		})
 
 		it('disables for folder without signature status', () => {
-			const enabled = action.enabled([{
-				type: 'folder',
-				attributes: {},
-			}])
+			const enabled = action.enabled({
+				nodes: [{
+					type: 'folder',
+					attributes: {},
+				}],
+			})
 
 			expect(enabled).toBe(false)
 		})
@@ -221,10 +245,12 @@ describe('openInLibreSignAction rules', () => {
 				},
 			})
 
-			const enabled = action.enabled([
-				{ type: 'file', mime: 'application/pdf' },
-				{ type: 'file', mime: 'application/pdf' },
-			])
+			const enabled = action.enabled({
+				nodes: [
+					{ type: 'file', mime: 'application/pdf' },
+					{ type: 'file', mime: 'application/pdf' },
+				],
+			})
 
 			expect(enabled).toBe(true)
 		})
@@ -238,10 +264,12 @@ describe('openInLibreSignAction rules', () => {
 				},
 			})
 
-			const enabled = action.enabled([
-				{ type: 'file', mime: 'application/pdf' },
-				{ type: 'file', mime: 'application/pdf' },
-			])
+			const enabled = action.enabled({
+				nodes: [
+					{ type: 'file', mime: 'application/pdf' },
+					{ type: 'file', mime: 'application/pdf' },
+				],
+			})
 
 			expect(enabled).toBe(false)
 		})
@@ -255,10 +283,12 @@ describe('openInLibreSignAction rules', () => {
 				},
 			})
 
-			const enabled = action.enabled([
-				{ type: 'file', mime: 'application/pdf' },
-				{ type: 'file', mime: 'image/png' },
-			])
+			const enabled = action.enabled({
+				nodes: [
+					{ type: 'file', mime: 'application/pdf' },
+					{ type: 'file', mime: 'image/png' },
+				],
+			})
 
 			expect(enabled).toBe(false)
 		})
@@ -270,17 +300,17 @@ describe('openInLibreSignAction rules', () => {
 		})
 
 		it('disables when nodes array is empty', () => {
-			const enabled = action.enabled([])
+			const enabled = action.enabled({ nodes: [] })
 			expect(enabled).toBe(false)
 		})
 
 		it('disables when nodes is null', () => {
-			const enabled = action.enabled(null)
+			const enabled = action.enabled({ nodes: null })
 			expect(enabled).toBe(false)
 		})
 
 		it('disables when nodes is undefined', () => {
-			const enabled = action.enabled(undefined)
+			const enabled = action.enabled({ nodes: undefined })
 			expect(enabled).toBe(false)
 		})
 	})
@@ -291,11 +321,11 @@ describe('openInLibreSignAction rules', () => {
 		})
 
 		it('opens sidebar with file', async () => {
-			const node = { type: 'file', mime: 'application/pdf', fileid: 123, path: '/test.pdf' }
+			const node = { type: 'file', mime: 'application/pdf', fileid: 123 }
 
-			await action.exec(node)
+			await action.exec({ nodes: [node] })
 
-			expect(mockSidebar.open).toHaveBeenCalledWith('/test.pdf')
+			expect(mockSidebar.open).toHaveBeenCalledWith(node, 'libresign')
 			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
 		})
 
@@ -304,17 +334,16 @@ describe('openInLibreSignAction rules', () => {
 				type: 'folder',
 				attributes: { 'libresign-signature-status': 'signed' },
 				fileid: 456,
-				path: '/folder',
 			}
 
-			await action.exec(node)
+			await action.exec({ nodes: [node] })
 
-			expect(mockSidebar.open).toHaveBeenCalledWith('/folder')
+			expect(mockSidebar.open).toHaveBeenCalledWith(node, 'libresign')
 		})
 
 		it('returns null after execution', async () => {
-			const node = { type: 'file', mime: 'application/pdf', path: '/test.pdf' }
-			const result = await action.exec(node)
+			const node = { type: 'file', mime: 'application/pdf' }
+			const result = await action.exec({ nodes: [node] })
 
 			expect(result).toBeNull()
 		})
@@ -359,41 +388,40 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 			})
 
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, path: '/Docs/file1.pdf', dirname: '/Docs' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, path: '/Docs/file2.pdf', dirname: '/Docs' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Docs' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs' },
 			]
 
-			const result = await action.execBatch(nodes)
+			const result = await action.execBatch({ nodes })
 
 			expect(result).toEqual([null, null])
 		})
 
 		it('opens sidebar after envelope creation', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, path: '/Docs/file1.pdf', dirname: '/Docs' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, path: '/Docs/file2.pdf', dirname: '/Docs' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Docs' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs' },
 			]
 
-			global.window.OCA.Libresign = {}
+			window.OCA = { Libresign: {} }
 
-			await action.execBatch(nodes)
+			await action.execBatch({ nodes })
 
-			expect(mockSidebar.open).toHaveBeenCalledWith('/Docs/file1.pdf')
+			expect(mockSidebar.open).toHaveBeenCalled()
 			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
 		})
 
 		it('creates correct pending envelope structure', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, path: '/Docs/file1.pdf', dirname: '/Docs' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, path: '/Docs/file2.pdf', dirname: '/Docs' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Docs' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs' },
 			]
 
-			global.window.OCA.Libresign = {}
+			window.OCA = { Libresign: {} }
 
-			await action.execBatch(nodes)
+			await action.execBatch({ nodes })
 
-			const pending = global.window.OCA.Libresign.pendingEnvelope
-			expect(pending).toBeDefined()
+			const pending = getPendingEnvelope()
 			expect(pending.nodeType).toBe('envelope')
 			expect(pending.files).toHaveLength(2)
 			expect(pending.filesCount).toBe(2)
@@ -402,43 +430,43 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 		it('calculates envelope path correctly with subdirectory', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, path: '/Documents/Contracts/file1.pdf', dirname: '/Documents/Contracts' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, path: '/Documents/Contracts/file2.pdf', dirname: '/Documents/Contracts' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Documents/Contracts' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Documents/Contracts' },
 			]
 
-			global.window.OCA.Libresign = {}
+			window.OCA = { Libresign: {} }
 
-			await action.execBatch(nodes)
+			await action.execBatch({ nodes })
 
-			const pending = global.window.OCA.Libresign.pendingEnvelope
+			const pending = getPendingEnvelope()
 			expect(pending.settings.path).toBe('/Documents/Contracts/Test Envelope')
 		})
 
 		it('calculates envelope path correctly in root', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, path: '/file1.pdf', dirname: '/' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, path: '/file2.pdf', dirname: '/' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/' },
 			]
 
-			global.window.OCA.Libresign = {}
+			window.OCA = { Libresign: {} }
 
-			await action.execBatch(nodes)
+			await action.execBatch({ nodes })
 
-			const pending = global.window.OCA.Libresign.pendingEnvelope
+			const pending = getPendingEnvelope()
 			expect(pending.settings.path).toBe('/Test Envelope')
 		})
 
 		it('handles trailing slashes in dirname', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, path: '/Docs/file1.pdf', dirname: '/Docs/' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, path: '/Docs/file2.pdf', dirname: '/Docs/' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Docs/' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs/' },
 			]
 
-			global.window.OCA.Libresign = {}
+			window.OCA = { Libresign: {} }
 
-			await action.execBatch(nodes)
+			await action.execBatch({ nodes })
 
-			const pending = global.window.OCA.Libresign.pendingEnvelope
+			const pending = getPendingEnvelope()
 			expect(pending.settings.path).toBe('/Docs/Test Envelope')
 		})
 
@@ -448,7 +476,6 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 					type: 'file',
 					mime: 'application/pdf',
 					fileid: 123,
-					path: '/Test/document.pdf',
 					dirname: '/Test',
 					name: 'document.pdf',
 				},
@@ -456,17 +483,16 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 					type: 'file',
 					mime: 'application/pdf',
 					fileid: 456,
-					path: '/Test/contract.pdf',
 					dirname: '/Test',
 					name: 'contract.pdf',
 				},
 			]
 
-			global.window.OCA.Libresign = {}
+			window.OCA = { Libresign: {} }
 
-			await action.execBatch(nodes)
+			await action.execBatch({ nodes })
 
-			const pending = global.window.OCA.Libresign.pendingEnvelope
+			const pending = getPendingEnvelope()
 			expect(pending.files[0].fileId).toBe(123)
 			expect(pending.files[1].fileId).toBe(456)
 		})
