@@ -6,11 +6,12 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-let RequestSignatureTab: any
+import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
+let RequestSignatureTab: unknown
 import { FILE_STATUS } from '../../../constants.js'
 
 // Mock translation function
-;(global as any).t = vi.fn((app: any, msg: any) => msg)
+;(globalThis as typeof globalThis & { t: (app: string, msg: string) => string }).t = vi.fn((app: string, msg: string) => msg)
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
@@ -54,14 +55,14 @@ vi.mock('@libresign/pdf-elements', () => ({
 }))
 
 describe('RequestSignatureTab - Critical Business Rules', () => {
-	let wrapper: any
-	let filesStore: any
-	const updateFile = async (patch: any) => {
+	let wrapper: ReturnType<typeof shallowMount>
+	let filesStore: ReturnType<typeof useFilesStoreType>
+	const updateFile = async (patch: Record<string, unknown>) => {
 		const current = filesStore.files[1] || { id: 1 }
 		await filesStore.addFile({ ...current, ...patch, id: 1 })
 		await wrapper.vm.$nextTick()
 	}
-	const updateMethods = async (methods: any) => {
+	const updateMethods = async (methods: unknown[]) => {
 		await wrapper.setData({ methods })
 	}
 
@@ -83,7 +84,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 		wrapper = shallowMount(RequestSignatureTab, {
 			mocks: {
-				t: (app: any, text: any) => text,
+				t: (_app: string, text: string) => text,
 			},
 			stubs: {
 				NcButton: true,
