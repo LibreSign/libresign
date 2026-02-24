@@ -9,7 +9,13 @@ import EditNameDialog from '../../../components/Common/EditNameDialog.vue'
 import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../../constants.js'
 
 describe('EditNameDialog.vue - Business Logic', () => {
-	let wrapper: any
+	type DialogButton = {
+		type?: string
+		disabled?: boolean
+		callback: () => void
+	}
+
+	let wrapper: ReturnType<typeof shallowMount>
 
 	beforeEach(() => {
 		wrapper = shallowMount(EditNameDialog, {
@@ -70,34 +76,36 @@ describe('EditNameDialog.vue - Business Logic', () => {
 	describe('dialogButtons computed property', () => {
 		it('disables Save button when name is invalid', () => {
 			wrapper.setData({ localName: '' })
-			const buttons = wrapper.vm.dialogButtons
-			const saveButton = buttons.find((btn: any) => btn.type === 'primary')
-			expect(saveButton.disabled).toBe(true)
+			const buttons = wrapper.vm.dialogButtons as DialogButton[]
+			const saveButton = buttons.find((btn) => btn.type === 'primary')
+			expect(saveButton).toBeDefined()
+			expect(saveButton!.disabled).toBe(true)
 		})
 
 		it('enables Save button when name is valid', () => {
 			wrapper.setData({ localName: 'Valid Name' })
-			const buttons = wrapper.vm.dialogButtons
-			const saveButton = buttons.find((btn: any) => btn.type === 'primary')
-			expect(saveButton.disabled).toBe(false)
+			const buttons = wrapper.vm.dialogButtons as DialogButton[]
+			const saveButton = buttons.find((btn) => btn.type === 'primary')
+			expect(saveButton).toBeDefined()
+			expect(saveButton!.disabled).toBe(false)
 		})
 
 		it('has Cancel button that calls handleClose', () => {
 			const handleCloseSpy = vi.spyOn(wrapper.vm, 'handleClose')
-			const buttons = wrapper.vm.dialogButtons
+			const buttons = wrapper.vm.dialogButtons as DialogButton[]
 			// First button is Cancel (not primary)
-			const cancelButton = buttons.find((btn: any) => btn.type !== 'primary')
+			const cancelButton = buttons.find((btn) => btn.type !== 'primary')
 			expect(cancelButton).toBeDefined()
-			cancelButton.callback()
+			cancelButton!.callback()
 			expect(handleCloseSpy).toHaveBeenCalled()
 		})
 
 		it('has Save button that calls handleSave', () => {
 			const handleSaveSpy = vi.spyOn(wrapper.vm, 'handleSave')
-			const buttons = wrapper.vm.dialogButtons
-			const saveButton = buttons.find((btn: any) => btn.type === 'primary')
+			const buttons = wrapper.vm.dialogButtons as DialogButton[]
+			const saveButton = buttons.find((btn) => btn.type === 'primary')
 			expect(saveButton).toBeDefined()
-			saveButton.callback()
+			saveButton!.callback()
 			expect(handleSaveSpy).toHaveBeenCalled()
 		})
 	})
@@ -113,7 +121,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			wrapper.setData({ localName: '  Valid Name  ' })
 			wrapper.vm.handleSave()
 			expect(wrapper.emitted('close')).toBeTruthy()
-			expect(wrapper.emitted('close')[0]).toEqual(['Valid Name'])
+			expect(wrapper.emitted('close')?.[0]).toEqual(['Valid Name'])
 		})
 
 		it('does not emit when trimmed name is empty (handled by isNameValid)', () => {
@@ -134,7 +142,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			wrapper.setData({ localName: 'A' })
 			wrapper.vm.handleSave()
 			expect(wrapper.emitted('close')).toBeTruthy()
-			expect(wrapper.emitted('close')[0]).toEqual(['A'])
+			expect(wrapper.emitted('close')?.[0]).toEqual(['A'])
 		})
 
 		it('emits with max length name', () => {
@@ -142,14 +150,14 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			wrapper.setData({ localName: maxName })
 			wrapper.vm.handleSave()
 			expect(wrapper.emitted('close')).toBeTruthy()
-			expect(wrapper.emitted('close')[0]).toEqual([maxName])
+			expect(wrapper.emitted('close')?.[0]).toEqual([maxName])
 		})
 
 		it('preserves internal spaces in name', () => {
 			wrapper.setData({ localName: '  Name With   Spaces  ' })
 			wrapper.vm.handleSave()
 			expect(wrapper.emitted('close')).toBeTruthy()
-			expect(wrapper.emitted('close')[0]).toEqual(['Name With   Spaces'])
+			expect(wrapper.emitted('close')?.[0]).toEqual(['Name With   Spaces'])
 		})
 	})
 
@@ -157,7 +165,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 		it('emits close with null', () => {
 			wrapper.vm.handleClose()
 			expect(wrapper.emitted('close')).toBeTruthy()
-			expect(wrapper.emitted('close')[0]).toEqual([null])
+			expect(wrapper.emitted('close')?.[0]).toEqual([null])
 		})
 	})
 
@@ -286,7 +294,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			wrapper.vm.handleSave()
 
 			expect(wrapper.emitted('close')).toBeTruthy()
-			expect(wrapper.emitted('close')[0]).toEqual(['Edited Name'])
+			expect(wrapper.emitted('close')?.[0]).toEqual(['Edited Name'])
 		})
 
 		it('handles cancel flow without changes', () => {
@@ -303,7 +311,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			wrapper.vm.handleClose()
 
 			expect(wrapper.emitted('close')).toBeTruthy()
-			expect(wrapper.emitted('close')[0]).toEqual([null])
+			expect(wrapper.emitted('close')?.[0]).toEqual([null])
 		})
 
 		it('handles edge case: exactly at boundary lengths', () => {
