@@ -33,7 +33,7 @@ describe('IncompleteCertification.vue - Setup Guidance', () => {
 				CogsIcon: true,
 			},
 			mocks: {
-				t: (app: any, text: any) => text,
+				t: (_app: string, text: string) => text,
 			},
 		})
 
@@ -50,7 +50,7 @@ describe('IncompleteCertification.vue - Setup Guidance', () => {
 				CogsIcon: true,
 			},
 			mocks: {
-				t: (app: any, text: any) => text,
+				t: (_app: string, text: string) => text,
 			},
 		})
 
@@ -68,7 +68,7 @@ describe('IncompleteCertification.vue - Setup Guidance', () => {
 				CogsIcon: true,
 			},
 			mocks: {
-				t: (app: any, text: any) => text,
+				t: (_app: string, text: string) => text,
 			},
 		})
 
