@@ -6,23 +6,32 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { openDocument } from '../../utils/viewer.js'
 
+type GlobalWithOCA = typeof globalThis & {
+	OCA?: {
+		Viewer?: {
+			open?: (params: unknown) => void
+		}
+		[key: string]: unknown
+	}
+}
+
 describe('openDocument', () => {
-	let originalOCA
-	let openSpy
+	let originalOCA: GlobalWithOCA['OCA']
+	let openSpy: ReturnType<typeof vi.spyOn>
 
 	beforeEach(() => {
-		originalOCA = global.OCA
+		originalOCA = (global as GlobalWithOCA).OCA
 		openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
 	})
 
 	afterEach(() => {
 		openSpy.mockRestore()
-		global.OCA = originalOCA
+		;(global as GlobalWithOCA).OCA = originalOCA
 	})
 
 	it('uses Nextcloud Viewer when available', () => {
 		const viewerOpen = vi.fn()
-		global.OCA = {
+		;(global as GlobalWithOCA).OCA = {
 			Viewer: {
 				open: viewerOpen,
 			},
@@ -41,15 +50,17 @@ describe('openDocument', () => {
 		})
 
 		expect(viewerOpen).toHaveBeenCalledTimes(1)
-		const payload = viewerOpen.mock.calls[0][0]
-		expect(payload.fileInfo.basename).toBe('doc.pdf')
-		expect(payload.fileInfo.fileid).toBe(123)
-		expect(payload.fileInfo.mime).toBe('application/pdf')
-		expect(payload.fileInfo.source).toContain('/index.php/apps/files/')
+		const payload = viewerOpen.mock.calls[0]?.[0]
+		if (payload) {
+			expect(payload.fileInfo.basename).toBe('doc.pdf')
+			expect(payload.fileInfo.fileid).toBe(123)
+			expect(payload.fileInfo.mime).toBe('application/pdf')
+			expect(payload.fileInfo.source).toContain('/index.php/apps/files/')
+		}
 	})
 
 	it('opens new window when Viewer is not available', () => {
-		global.OCA = undefined
+		;(global as GlobalWithOCA).OCA = undefined
 
 		const file = {
 			filename: 'doc.pdf',
@@ -64,8 +75,10 @@ describe('openDocument', () => {
 		})
 
 		expect(openSpy).toHaveBeenCalledTimes(1)
-		const openedUrl = openSpy.mock.calls[0][0]
-		expect(openedUrl).toContain('/apps/files/?file=/doc.pdf')
-		expect(openedUrl).toMatch(/_t=\d+$/)
+		const openedUrl = openSpy.mock.calls[0]?.[0]
+		if (openedUrl) {
+			expect(openedUrl).toContain('/apps/files/?file=/doc.pdf')
+			expect(openedUrl).toMatch(/_t=\d+$/)
+		}
 	})
 })
