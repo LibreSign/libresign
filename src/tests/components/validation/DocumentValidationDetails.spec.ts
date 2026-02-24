@@ -5,35 +5,64 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-let DocumentValidationDetails
+import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
+
+type DocumentValidationComponent = typeof import('../../../components/validation/DocumentValidationDetails.vue').default
+type FileStatusModule = typeof import('../../../utils/fileStatus.js')
+type ViewerModule = typeof import('../../../utils/viewer.js')
+
+type ValidationDocument = {
+	name: string
+	status?: string
+	totalPages?: number
+	size?: string
+	pdfVersion?: string
+	uuid?: string
+	nodeId?: number
+	signers?: Array<{ displayName?: string; email?: string }>
+}
+
+type WrapperProps = Partial<{
+	document: Partial<ValidationDocument>
+	legalInformation: string
+	documentValidMessage: string | null
+	isAfterSigned: boolean
+}>
+
+const t: TranslationFunction = (_app, text) => text
+const n: PluralTranslationFunction = (_app, singular, plural, count) => (count === 1 ? singular : plural)
+
+let DocumentValidationDetails: DocumentValidationComponent
 
 vi.mock('@nextcloud/router', () => ({
-	generateUrl: vi.fn((url, params) => url.replace('{uuid}', params.uuid)),
+	generateUrl: vi.fn((url: string, params: { uuid: string }) => url.replace('{uuid}', params.uuid)),
 }))
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app, text) => text),
-	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
-	t: vi.fn((app, text) => text),
-	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	translate: vi.fn(t),
+	translatePlural: vi.fn(n),
+	t: vi.fn(t),
+	n: vi.fn(n),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
 }))
 vi.mock('../../../utils/fileStatus.js', () => ({
-	getStatusLabel: vi.fn((status) => {
-		const labels = {
+	getStatusLabel: vi.fn((status: string | number) => {
+		const labels: Record<string, string> = {
 			'0': 'Draft',
 			'1': 'Pending',
 			'3': 'Signed',
 		}
-		return labels[status] || 'Unknown'
+		const label = labels[String(status)]
+		return label ? label : 'Unknown'
 	}),
 }))
 vi.mock('../../../utils/viewer.js', () => ({
 	openDocument: vi.fn(),
 }))
 
-let fileStatus, viewer
+let fileStatus: FileStatusModule
+let viewer: ViewerModule
 beforeAll(async () => {
 	;({ default: DocumentValidationDetails } = await import('../../../components/validation/DocumentValidationDetails.vue'))
 	fileStatus = await import('../../../utils/fileStatus.js')
@@ -41,9 +70,9 @@ beforeAll(async () => {
 })
 
 describe('DocumentValidationDetails', () => {
-	let wrapper
+	let wrapper: ReturnType<typeof mount> | null
 
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props: WrapperProps = {}) => {
 		return mount(DocumentValidationDetails, {
 			props: {
 				document: {
@@ -64,8 +93,8 @@ describe('DocumentValidationDetails', () => {
 					SignerDetails: true,
 				},
 				mocks: {
-					t: (app, text) => text,
-					n: (app, sing, plur, count) => count === 1 ? sing : plur,
+					t,
+					n,
 				},
 			},
 		})
@@ -73,7 +102,8 @@ describe('DocumentValidationDetails', () => {
 
 	beforeEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
+			wrapper = null
 		}
 		vi.clearAllMocks()
 	})
@@ -86,7 +116,12 @@ describe('DocumentValidationDetails', () => {
 				},
 			})
 
-			const listing = wrapper.findAll('ul').at(0).text()
+			const list = wrapper.findAll('ul').at(0)
+			expect(list).toBeDefined()
+			if (!list) {
+				return
+			}
+			const listing = list.text()
 			expect(listing).toContain('My Important Document.pdf')
 		})
 
@@ -97,7 +132,12 @@ describe('DocumentValidationDetails', () => {
 				},
 			})
 
-			const listing = wrapper.findAll('ul').at(0).text()
+			const list = wrapper.findAll('ul').at(0)
+			expect(list).toBeDefined()
+			if (!list) {
+				return
+			}
+			const listing = list.text()
 			expect(listing).toContain('Name:')
 		})
 	})
@@ -152,7 +192,12 @@ describe('DocumentValidationDetails', () => {
 				},
 			})
 
-			const listing = wrapper.findAll('ul').at(0).text()
+			const list = wrapper.findAll('ul').at(0)
+			expect(list).toBeDefined()
+			if (!list) {
+				return
+			}
+			const listing = list.text()
 			expect(listing).toContain('Total pages:')
 			expect(listing).toContain('42')
 		})
@@ -172,7 +217,12 @@ describe('DocumentValidationDetails', () => {
 				},
 			})
 
-			const listing = wrapper.findAll('ul').at(0).text()
+			const list = wrapper.findAll('ul').at(0)
+			expect(list).toBeDefined()
+			if (!list) {
+				return
+			}
+			const listing = list.text()
 			expect(listing).toContain('999')
 		})
 	})
@@ -245,7 +295,12 @@ describe('DocumentValidationDetails', () => {
 				},
 			})
 
-			const listing = wrapper.findAll('ul').at(0).text()
+			const list = wrapper.findAll('ul').at(0)
+			expect(list).toBeDefined()
+			if (!list) {
+				return
+			}
+			const listing = list.text()
 			expect(listing).toContain('File size:')
 		})
 
@@ -266,7 +321,12 @@ describe('DocumentValidationDetails', () => {
 				},
 			})
 
-			const listing = wrapper.findAll('ul').at(0).text()
+			const list = wrapper.findAll('ul').at(0)
+			expect(list).toBeDefined()
+			if (!list) {
+				return
+			}
+			const listing = list.text()
 			expect(listing).toContain('PDF version:')
 			expect(listing).toContain('1.7')
 		})
@@ -286,7 +346,12 @@ describe('DocumentValidationDetails', () => {
 				},
 			})
 
-			const listing = wrapper.findAll('ul').at(0).text()
+			const list = wrapper.findAll('ul').at(0)
+			expect(list).toBeDefined()
+			if (!list) {
+				return
+			}
+			const listing = list.text()
 			expect(listing).toContain('2.0')
 		})
 	})
@@ -491,7 +556,12 @@ describe('DocumentValidationDetails', () => {
 				},
 			})
 
-			expect(wrapper.findAll('ul').at(0).text()).toContain('Minimal.pdf')
+			const list = wrapper.findAll('ul').at(0)
+			expect(list).toBeDefined()
+			if (!list) {
+				return
+			}
+			expect(list.text()).toContain('Minimal.pdf')
 		})
 	})
 
