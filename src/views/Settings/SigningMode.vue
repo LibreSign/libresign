@@ -92,6 +92,8 @@ export default {
 		NcNoteCard,
 		NcSettingsSection,
 		NcTextField,
+		NcCheckboxRadioSwitch,
+		NcSavingIndicatorIcon,
 	},
 	data() {
 		return {
