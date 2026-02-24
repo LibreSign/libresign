@@ -124,7 +124,7 @@ vi.mock('../../utils/fileStatus.js', () => ({
 }))
 
 describe('Validation.vue - Business Logic', () => {
-	let wrapper: any
+	let wrapper!: ReturnType<typeof shallowMount>
 
 	beforeEach(() => {
 		wrapper = shallowMount(Validation, {
