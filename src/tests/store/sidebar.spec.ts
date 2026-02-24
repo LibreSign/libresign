@@ -4,7 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createPinia, setActivePinia } from 'pinia'
+import { setActivePinia, createPinia } from 'pinia'
 
 vi.mock('vue', async () => {
 	const actual = await vi.importActual('vue')
@@ -20,7 +20,7 @@ vi.mock('vue', async () => {
 })
 
 describe('sidebar store - visibility rules', () => {
-	let useSidebarStore
+	let useSidebarStore: typeof import('../../store/sidebar.js').useSidebarStore
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
