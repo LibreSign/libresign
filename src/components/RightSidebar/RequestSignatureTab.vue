@@ -272,7 +272,6 @@ import {
 
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
-import svgInfo from '@mdi/svg/svg/information-outline.svg?raw'
 import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
 import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
