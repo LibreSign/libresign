@@ -4,10 +4,30 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Mock } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
-import { generateOCSResponse } from '../test-helpers.js'
+import { generateOCSResponse } from '../test-helpers'
+
+type AxiosMock = Mock & {
+	post: Mock
+	delete: Mock
+	patch: Mock
+}
+
+type TranslationParams = {
+	name?: string
+	date?: string
+}
+
+type GlobalT = (app: string, msg: string, params?: TranslationParams) => string
+
+type Signer = {
+	email: string
+	identify?: string | number
+	signRequestId?: number
+}
 
 // Mock @nextcloud/logger to avoid import-time errors
 vi.mock('@nextcloud/logger', () => ({
@@ -30,17 +50,20 @@ vi.mock('@nextcloud/logger', () => ({
 }))
 
 vi.mock('@nextcloud/axios', () => {
-	const axiosMock = vi.fn()
-	axiosMock.post = vi.fn()
-	axiosMock.delete = vi.fn()
-	axiosMock.patch = vi.fn()
+	const axiosInstanceMock = Object.assign(vi.fn(), {
+		post: vi.fn(),
+		delete: vi.fn(),
+		patch: vi.fn(),
+	})
 	return {
-		default: axiosMock,
+		default: axiosInstanceMock,
 	}
 })
 
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path, params) => `/ocs/v2.php${path.replace(/{(\w+)}/g, (_, key) => params[key])}`),
+	generateOcsUrl: vi.fn((path: string, params?: Record<string, string>) => (
+		`/ocs/v2.php${path.replace(/{(\w+)}/g, (_match: string, key: string) => params?.[key] ?? '')}`
+	)),
 }))
 
 vi.mock('vue', async () => {
@@ -49,8 +72,8 @@ vi.mock('vue', async () => {
 	return {
 		...actual,
 		default: Object.assign(Vue, {
-			del: vi.fn((obj, key) => { delete obj[key] }),
-			set: vi.fn((obj, key, value) => { obj[key] = value }),
+			del: vi.fn((obj: Record<string, unknown>, key: string) => { delete obj[key] }),
+			set: vi.fn((obj: Record<string, unknown>, key: string, value: unknown) => { obj[key] = value }),
 		}),
 	}
 })
@@ -100,7 +123,8 @@ vi.mock('./sign.js', () => ({
 }))
 
 describe('files store - critical business rules', () => {
-	let useFilesStore
+	const axiosMock = axios as unknown as AxiosMock
+	let useFilesStore: typeof import('../../store/files.js').useFilesStore
 
 	beforeAll(async () => {
 		const module = await import('../../store/files.js')
@@ -110,12 +134,15 @@ describe('files store - critical business rules', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
 		vi.clearAllMocks()
-		globalThis.t = vi.fn((app, msg, params) => {
+		const tMock: GlobalT = (app, msg, params) => {
 			if (!params) {
 				return msg
 			}
-			return msg.replace('{name}', params.name).replace('{date}', params.date)
-		})
+			const name = params.name ?? ''
+			const date = params.date ?? ''
+			return msg.replace('{name}', name).replace('{date}', date)
+		}
+		;(globalThis as typeof globalThis & { t: GlobalT }).t = vi.fn(tMock)
 	})
 
 	describe('RULE: removing selected file clears selection', () => {
@@ -185,7 +212,7 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 100
 			store.files[100] = { id: 100, filesCount: 2 }
 
-			axios.post.mockResolvedValue(generateOCSResponse({
+			axiosMock.post.mockResolvedValue(generateOCSResponse({
 				payload: { filesCount: 5 },
 			}))
 
@@ -199,7 +226,7 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 100
 			store.files[100] = { id: 100, filesCount: 5 }
 
-			axios.delete.mockResolvedValue({})
+			axiosMock.delete.mockResolvedValue({})
 
 			await store.removeFilesFromEnvelope([1, 2, 3])
 
@@ -211,7 +238,7 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 100
 			store.files[100] = { id: 100, filesCount: 1 }
 
-			axios.delete.mockResolvedValue({})
+			axiosMock.delete.mockResolvedValue({})
 
 			await store.removeFilesFromEnvelope([1, 2, 3, 4, 5])
 
@@ -223,9 +250,9 @@ describe('files store - critical business rules', () => {
 		it('ERR_CANCELED returns a specific message', async () => {
 			const store = useFilesStore()
 
-			const error = new Error('Cancelled')
+			const error = new Error('Cancelled') as Error & { code?: string }
 			error.code = 'ERR_CANCELED'
-			axios.post.mockRejectedValue(error)
+			axiosMock.post.mockRejectedValue(error)
 
 			const result = await store.addFilesToEnvelope('uuid', new FormData())
 
@@ -534,13 +561,14 @@ describe('files store - critical business rules', () => {
 				],
 			}
 
-			axios.delete.mockResolvedValue({})
+			axiosMock.delete.mockResolvedValue({})
 
 			await store.deleteSigner({ identify: 'id2', signingOrder: 2 })
 
-			const remainingSigners = store.files[1].signers
+			const remainingSigners: Array<{ identify: string; signingOrder: number }> = store.files[1].signers
 			expect(remainingSigners).toHaveLength(2)
-			expect(remainingSigners.find(s => s.identify === 'id3').signingOrder).toBe(2)
+			const signer = remainingSigners.find((s: { identify: string }) => s.identify === 'id3')
+			expect(signer?.signingOrder).toBe(2)
 		})
 
 		it('adding signer assigns next signing order in ordered flow', () => {
@@ -558,8 +586,8 @@ describe('files store - critical business rules', () => {
 			const newSigner = { email: 'new@example.com' }
 			store.signerUpdate(newSigner)
 
-			const addedSigner = store.files[1].signers.find(s => s.email === 'new@example.com')
-			expect(addedSigner.signingOrder).toBe(3)
+			const addedSigner = store.files[1].signers.find((s: { email: string }) => s.email === 'new@example.com')
+			expect(addedSigner?.signingOrder).toBe(3)
 		})
 
 		it('updating existing signer replaces old signer data', () => {
@@ -687,7 +715,7 @@ describe('files store - critical business rules', () => {
 				name: 'old-name.pdf',
 			}
 
-			axios.patch.mockResolvedValue({
+			axiosMock.patch.mockResolvedValue({
 				data: { ocs: { meta: { status: 'ok' } } },
 			})
 
@@ -701,7 +729,7 @@ describe('files store - critical business rules', () => {
 			const store = useFilesStore()
 			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-			axios.patch.mockRejectedValue(new Error('Network error'))
+			axiosMock.patch.mockRejectedValue(new Error('Network error'))
 
 			const result = await store.rename('test-uuid', 'new-name.pdf')
 
@@ -717,7 +745,7 @@ describe('files store - critical business rules', () => {
 			store.files[2] = { id: 2, name: 'file2.pdf' }
 			store.files[3] = { id: 3, name: 'file3.pdf' }
 
-			axios.delete.mockResolvedValue({})
+			axiosMock.delete.mockResolvedValue({})
 
 			await store.deleteMultiple([1, 2, 3], false)
 
@@ -731,7 +759,7 @@ describe('files store - critical business rules', () => {
 			store.files[1] = { id: 1, name: 'file1.pdf' }
 			store.files[2] = { id: 2, name: 'file2.pdf' }
 
-			axios.delete.mockImplementation(() => {
+			axiosMock.delete.mockImplementation(() => {
 				expect(store.loading).toBe(true)
 				return Promise.resolve({})
 			})
@@ -745,7 +773,7 @@ describe('files store - critical business rules', () => {
 	describe('RULE: adding unique identifiers to signers', () => {
 		it('generates unique identifier for new signer', () => {
 			const store = useFilesStore()
-			const signer = { email: 'test@example.com' }
+			const signer: Signer = { email: 'test@example.com' }
 
 			store.addIdentifierToSigner(signer)
 
@@ -755,7 +783,7 @@ describe('files store - critical business rules', () => {
 
 		it('uses signRequestId as identifier when available', () => {
 			const store = useFilesStore()
-			const signer = { email: 'test@example.com', signRequestId: 456 }
+			const signer: Signer = { email: 'test@example.com', signRequestId: 456 }
 
 			store.addIdentifierToSigner(signer)
 
@@ -764,7 +792,7 @@ describe('files store - critical business rules', () => {
 
 		it('preserves existing identifier', () => {
 			const store = useFilesStore()
-			const signer = { email: 'test@example.com', identify: 'existing-id' }
+			const signer: Signer = { email: 'test@example.com', identify: 'existing-id' }
 
 			store.addIdentifierToSigner(signer)
 
@@ -898,13 +926,13 @@ describe('files store - critical business rules', () => {
 			const store = useFilesStore()
 			const formData = new FormData()
 			const addFileSpy = vi.spyOn(store, 'addFile')
-			axios.post.mockResolvedValue({
+			axiosMock.post.mockResolvedValue({
 				data: { ocs: { data: { id: 5, nodeId: 9, settings: { path: '/path' }, signers: [] } } },
 			})
 
 			const result = await store.upload(formData)
 
-			expect(axios.post).toHaveBeenCalled()
+			expect(axiosMock.post).toHaveBeenCalled()
 			expect(addFileSpy).toHaveBeenCalledWith(
 				expect.objectContaining({ id: 5, nodeId: 9 }),
 				{ position: 'start' },
@@ -918,13 +946,13 @@ describe('files store - critical business rules', () => {
 
 		it('uploads plain payload without multipart headers', async () => {
 			const store = useFilesStore()
-			axios.post.mockResolvedValue({
+			axiosMock.post.mockResolvedValue({
 				data: { ocs: { data: { id: 6, nodeId: 10, settings: {}, signers: [] } } },
 			})
 
 			const result = await store.upload({ file: { path: '/file.pdf' } })
 
-			expect(axios.post).toHaveBeenCalled()
+			expect(axiosMock.post).toHaveBeenCalled()
 			expect(result).toBe(6)
 		})
 	})
@@ -939,13 +967,13 @@ describe('files store - critical business rules', () => {
 					signatureFlow: 'parallel',
 					signers: [{ email: 'signer@example.com' }],
 				}
-				axios.mockResolvedValue({
+				axiosMock.mockResolvedValue({
 					data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
 				})
 
 				await store.saveOrUpdateSignatureRequest({ status: 1 })
 
-				const config = axios.mock.calls[0][0]
+				const config = axiosMock.mock.calls[0][0]
 				expect(config.data.signers).toEqual([{ email: 'signer@example.com' }])
 			})
 
@@ -959,13 +987,13 @@ describe('files store - critical business rules', () => {
 				signers: [],
 				settings: { path: '/files/contract.pdf' },
 			}
-			axios.mockResolvedValue({
+			axiosMock.mockResolvedValue({
 				data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'ordered_numeric', signers: [] } } },
 			})
 
 			await store.saveOrUpdateSignatureRequest({ status: 1 })
 
-			const config = axios.mock.calls[0][0]
+			const config = axiosMock.mock.calls[0][0]
 			expect(config.data.signatureFlow).toBe('ordered_numeric')
 			expect(config.data.file.fileId).toBe(1)
 			expect(config.data.file.settings).toEqual({ path: '/files/contract.pdf' })
@@ -975,7 +1003,7 @@ describe('files store - critical business rules', () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
 			store.files[1] = { id: 1, signatureFlow: 'ordered_numeric', signers: [] }
-			axios.mockResolvedValue({
+			axiosMock.mockResolvedValue({
 				data: {
 					ocs: {
 						data: {
@@ -1006,7 +1034,7 @@ describe('files store - critical business rules', () => {
 				signers: [],
 			}
 			store.ordered = [10]
-			axios.mockResolvedValue({
+			axiosMock.mockResolvedValue({
 				data: { ocs: { data: { id: 12, nodeId: 'real-node', signers: [] } } },
 			})
 
