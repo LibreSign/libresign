@@ -88,6 +88,13 @@ export default {
 		NcButton,
 		NcSettingsSection,
 		NcIconSvgWrapper,
+		NcCheckboxRadioSwitch,
+		NcLoadingIcon,
+	},
+	setup() {
+		return {
+			mdiRefresh,
+		}
 	},
 	data() {
 		return {
