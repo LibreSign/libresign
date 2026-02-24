@@ -10,9 +10,9 @@
 			<NcSelect input-id="certificateEngine"
 				:aria-label-combobox="t('libresign', 'Select the certificate engine to generate the root certificate')"
 				:clearable="false"
-				:value="value"
+				v-model="selectedOption"
 				:options="options"
-				@input="saveEngine" />
+				@update:modelValue="saveEngine" />
 		</div>
 	</NcSettingsSection>
 </template>
@@ -38,7 +38,7 @@ export default {
 	},
 	data() {
 		return {
-			value: [],
+			selectedEngineId: loadState('libresign', 'certificate_engine'),
 		}
 	},
 	computed: {
@@ -49,39 +49,23 @@ export default {
 				{ id: 'none', label: t('libresign', 'I will not use root certificate') },
 			]
 		},
-	},
-	beforeMount() {
-		const currentOption = {}
-		currentOption.id = loadState('libresign', 'certificate_engine')
-		if (currentOption.id === 'openssl') {
-			currentOption.label = 'OpenSSL'
-		} else if (currentOption.id === 'cfssl') {
-			currentOption.label = 'CFSSL'
-		} else {
-			currentOption.label = t('libresign', 'I will not use root certificate')
-		}
-		this.value = [currentOption]
+		selectedOption: {
+			get() {
+				return this.options.find(opt => opt.id === this.selectedEngineId) || null
+			},
+			set(value) {
+				this.selectedEngineId = value?.id || 'none'
+			},
+		},
 	},
 	methods: {
 		async saveEngine(selected) {
-			this.value = selected
-			const result = await this.configureCheckStore.saveCertificateEngine(selected.id)
+			const selectedId = selected?.id || 'none'
+			const result = await this.configureCheckStore.saveCertificateEngine(selectedId)
 			if (result.success) {
 				emit('libresign:certificate-engine:changed', result.engine)
-			} else {
-				const currentEngine = loadState('libresign', 'certificate_engine')
-				const currentOption = this.options.find(opt => opt.id === currentEngine)
-				if (currentOption) {
-					this.value = [currentOption]
-				}
 			}
 		},
 	},
 }
 </script>
-<style scoped>
-.certificate-engine-content{
-	display: flex;
-	flex-direction: column;
-}
-</style>
