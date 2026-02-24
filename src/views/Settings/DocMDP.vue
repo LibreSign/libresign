@@ -9,9 +9,9 @@
 	>
 		<div>
 			<NcCheckboxRadioSwitch type="switch"
-				:checked="enabled"
+				v-model="enabled"
 				:disabled="loading"
-				@update:checked="onEnabledChange">
+				@update:modelValue="onEnabledChange">
 				<!-- TRANSLATORS: Label for enabling DocMDP certification -->
 				{{ t('libresign', 'Enable DocMDP') }}
 			</NcCheckboxRadioSwitch>
@@ -28,11 +28,11 @@
 				<NcCheckboxRadioSwitch v-for="level in availableLevels"
 					:key="level.value"
 					type="radio"
-					:checked="String(selectedLevel?.value)"
+					v-model="selectedLevelValue"
 					:value="String(level.value)"
 					:disabled="loading"
 					name="docmdp_level"
-					@update:checked="onLevelChange">
+					@update:modelValue="onLevelChange">
 					<div class="docmdp-option">
 						<div class="docmdp-option-content">
 							<strong>{{ level.label }}</strong>
@@ -66,6 +66,9 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 export default {
 	name: 'DocMDP',
+	constants: {
+		PREFERRED_DEFAULT_LEVEL: 2,
+	},
 	components: {
 		NcLoadingIcon,
 		NcNoteCard,
@@ -89,48 +92,65 @@ export default {
 			// TRANSLATORS DocMDP (Document Modification Detection and Prevention) is a PDF specification extension that allows setting certification levels for digitally signed documents. It controls what types of changes are allowed after signing and ensures viewers can detect unauthorized modifications.
 			return t('libresign', 'PDF certification (DocMDP)')
 		},
+		selectedLevelValue: {
+			get() {
+				return String(this.selectedLevel?.value ?? 0)
+			},
+			set(value) {
+				const numericValue = Number(value)
+				this.selectedLevel = this.availableLevels.find(level => level.value === numericValue) ?? this.availableLevels[0] ?? null
+			},
+		},
 	},
 	async mounted() {
 		this.loadConfig()
 	},
 	methods: {
 		t,
+		getPreferredDefaultLevel() {
+			return this.availableLevels.find(level => level.value === this.$options.constants.PREFERRED_DEFAULT_LEVEL)
+				?? this.availableLevels[0]
+				?? null
+		},
 		loadConfig() {
 			try {
-				const config = loadState('libresign', 'docmdp_config')
+				const config = loadState('libresign', 'docmdp_config', {
+					enabled: false,
+					defaultLevel: this.$options.constants.PREFERRED_DEFAULT_LEVEL,
+					availableLevels: [],
+				})
 				this.enabled = config.enabled
 				this.availableLevels = config.availableLevels
+				const defaultLevel = config.defaultLevel
 
 				this.selectedLevel = this.availableLevels.find(
-					level => level.value === config.defaultLevel
+					level => level.value === defaultLevel
 				)
 
-				if (this.enabled && !this.selectedLevel && this.availableLevels.length > 0) {
-					this.selectedLevel = this.availableLevels[0]
+				if (!this.selectedLevel) {
+					this.selectedLevel = this.getPreferredDefaultLevel()
 				}
 			} catch (error) {
 				console.error('Error loading DocMDP configuration:', error)
 				this.errorMessage = t('libresign', 'Could not load configuration.')
 			}
 		},
-		onEnabledChange(value) {
-			this.enabled = value
+		onEnabledChange() {
 			this.saved = false
 			this.errorMessage = ''
 			this.showErrorIcon = false
 
-			if (value) {
-				if (!this.selectedLevel && this.availableLevels.length > 0) {
-					this.selectedLevel = this.availableLevels[0]
+			if (this.enabled) {
+				if (!this.selectedLevel) {
+					this.selectedLevel = this.getPreferredDefaultLevel()
 				}
 			} else {
-				this.selectedLevel = this.availableLevels[0] || null
+				this.selectedLevel = this.getPreferredDefaultLevel()
 			}
 
 			this.saveConfig()
 		},
-		onLevelChange(value) {
-			this.selectedLevel = this.availableLevels.find(level => level.value === parseInt(value))
+		onLevelChange() {
 			this.errorMessage = ''
 			this.showErrorIcon = false
 			this.saveConfig()
