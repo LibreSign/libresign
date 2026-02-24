@@ -62,6 +62,7 @@ import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 export default {
 	name: 'Signature',
 	components: {
+		Draw,
 		NcActions,
 		NcActionButton,
 		NcIconSvgWrapper,
