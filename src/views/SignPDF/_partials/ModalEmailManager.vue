@@ -72,6 +72,10 @@
 
 <script>
 import { t } from '@nextcloud/l10n'
+import {
+	mdiEmail,
+	mdiFormTextboxPassword,
+} from '@mdi/js'
 
 import md5 from 'blueimp-md5'
 
@@ -102,6 +106,7 @@ export default {
 		NcDialog,
 		NcTextField,
 		NcButton,
+		NcIconSvgWrapper,
 	},
 	setup() {
 		const signStore = useSignStore()
@@ -114,6 +119,8 @@ export default {
 		errorMessage: '',
 		token: '',
 		sendTo: '',
+		mdiFormTextboxPassword,
+		mdiEmail,
 	}),
 	computed: {
 		canRequestCode() {
