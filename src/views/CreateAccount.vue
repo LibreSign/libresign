@@ -86,6 +86,7 @@ import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import {
+	mdiEmail,
 	mdiChevronRight,
 } from '@mdi/js'
 
@@ -102,6 +103,7 @@ export default {
 	setup() {
 		return {
 			v$: useVuelidate(),
+			mdiEmail,
 			mdiChevronRight,
 		}
 	},
