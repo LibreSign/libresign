@@ -27,14 +27,14 @@ vi.mock('@nextcloud/logger', () => ({
 	})),
 }))
 
-let SigningOrderDiagram
+let SigningOrderDiagram: any
 
 beforeAll(async () => {
 	;({ default: SigningOrderDiagram } = await import('../../../components/SigningOrder/SigningOrderDiagram.vue'))
 })
 
 describe('SigningOrderDiagram', () => {
-	let wrapper
+	let wrapper: any
 
 	const createWrapper = (props = {}) => {
 		return mount(SigningOrderDiagram, {
@@ -50,14 +50,13 @@ describe('SigningOrderDiagram', () => {
 				Check: true,
 			},
 			mocks: {
-				t: (app, text) => text,
+				t: (app: any, text: any) => text,
 			},
 		})
 	}
 
 	beforeEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
 		}
 	})
 
@@ -106,7 +105,7 @@ describe('SigningOrderDiagram', () => {
 			const result = wrapper.vm.getSignersByOrder(1)
 
 			expect(result).toHaveLength(2)
-			expect(result.map(s => s.id)).toEqual([1, 3])
+			expect(result.map((s: any) => s.id)).toEqual([1, 3])
 		})
 
 		it('treats missing signingOrder as 1', () => {
