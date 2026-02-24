@@ -41,7 +41,7 @@ vi.mock('@nextcloud/logger', () => ({
 }))
 
 describe('Document Validation Flow Business Logic', () => {
-	let wrapper
+	let wrapper: any
 
 	beforeEach(() => {
 		setActivePinia(createPinia())
@@ -49,7 +49,6 @@ describe('Document Validation Flow Business Logic', () => {
 
 	afterEach(() => {
 		if (wrapper) {
-			wrapper.destroy()
 		}
 		vi.clearAllMocks()
 	})
