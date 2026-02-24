@@ -8,7 +8,7 @@ import { ref } from '@vue/reactivity'
 import { useIsDarkTheme, useIsDarkThemeElement } from '../../helpers/useIsDarkTheme'
 
 vi.mock('@vueuse/core', () => ({
-	createSharedComposable: (fn: any) => fn,
+	createSharedComposable: <T>(fn: () => T) => fn,
 	useMutationObserver: vi.fn(),
 	usePreferredDark: () => ref(false),
 }))
