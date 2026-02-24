@@ -528,14 +528,15 @@ describe('useSignStore', () => {
 			const { default: axios } = await import('@nextcloud/axios')
 			const store = useSignStore()
 
-			axios.post.mockResolvedValue({
+			const axiosPost = vi.mocked(axios.post)
+			axiosPost.mockResolvedValue({
 				data: { ocs: { data: { action: 3500 } } },
 			})
 
 			const payload = { signature: 'base64data' }
 			await store.submitSignature(payload, 'uuid-123')
 
-			expect(axios.post).toHaveBeenCalledWith(
+			expect(axiosPost).toHaveBeenCalledWith(
 				expect.stringContaining('/sign/uuid/uuid-123'),
 				payload
 			)
@@ -545,14 +546,15 @@ describe('useSignStore', () => {
 			const { default: axios } = await import('@nextcloud/axios')
 			const store = useSignStore()
 
-			axios.post.mockResolvedValue({
+			const axiosPost = vi.mocked(axios.post)
+			axiosPost.mockResolvedValue({
 				data: { ocs: { data: { action: 3500 } } },
 			})
 
 			const payload = { signature: 'base64data' }
 			await store.submitSignature(payload, null, { documentId: 999 })
 
-			expect(axios.post).toHaveBeenCalledWith(
+			expect(axiosPost).toHaveBeenCalledWith(
 				expect.stringContaining('/sign/file_id/999'),
 				payload
 			)
@@ -562,7 +564,8 @@ describe('useSignStore', () => {
 			const { default: axios } = await import('@nextcloud/axios')
 			const store = useSignStore()
 
-			axios.post.mockResolvedValue({
+			const axiosPost = vi.mocked(axios.post)
+			axiosPost.mockResolvedValue({
 				data: { ocs: { data: { action: 3500 } } },
 			})
 
@@ -575,7 +578,8 @@ describe('useSignStore', () => {
 			const { default: axios } = await import('@nextcloud/axios')
 			const store = useSignStore()
 
-			axios.post.mockRejectedValue({
+			const axiosPost = vi.mocked(axios.post)
+			axiosPost.mockRejectedValue({
 				response: {
 					data: {
 						ocs: { data: { action: 4000, errors: ['No certificate'] } },
@@ -595,7 +599,8 @@ describe('useSignStore', () => {
 			const store = useSignStore()
 
 			const responseData = { action: 3500, jobId: '123' }
-			axios.post.mockResolvedValue({
+			const axiosPost = vi.mocked(axios.post)
+			axiosPost.mockResolvedValue({
 				data: { ocs: { data: responseData } },
 			})
 
@@ -609,15 +614,18 @@ describe('useSignStore', () => {
 		beforeEach(async () => {
 			const { loadState } = await import('@nextcloud/initial-state')
 			vi.mocked(loadState).mockReset()
-			vi.mocked(loadState).mockImplementation((app, key, defaultValue) => {
-				const values = {
+			vi.mocked(loadState).mockImplementation(<T>(_app: string, key: string, defaultValue: T): T => {
+				const values: Record<string, unknown> = {
 					errors: [{ code: 'TEST' }],
 					id: 100,
 					filename: 'test.pdf',
 					status: FILE_STATUS.ABLE_TO_SIGN,
 					signers: [{ me: true }],
 				}
-				return values[key] ?? defaultValue
+				if (Object.prototype.hasOwnProperty.call(values, key)) {
+					return values[key] as T
+				}
+				return defaultValue
 			})
 		})
 
