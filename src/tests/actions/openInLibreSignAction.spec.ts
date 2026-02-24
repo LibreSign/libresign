@@ -38,9 +38,27 @@ const mockCapabilities = {
 	},
 }
 
+interface FileActionConfig {
+	id: string
+	displayName: (files: unknown[], view: unknown) => string
+	iconSvgInline: (files: unknown[], view: unknown) => string
+	enabled?: (files: unknown[], view: unknown) => boolean
+	exec: (file: unknown, view: unknown, dir: unknown) => Promise<unknown>
+	execBatch?: (files: unknown[], view: unknown, dir: unknown) => Promise<unknown[]>
+	order?: number
+}
+
 vi.mock('@nextcloud/files', () => ({
 	FileAction: class FileAction {
-		constructor(config) {
+		id: string
+		displayName: FileActionConfig['displayName']
+		iconSvgInline: FileActionConfig['iconSvgInline']
+		enabled?: FileActionConfig['enabled']
+		exec: FileActionConfig['exec']
+		execBatch?: FileActionConfig['execBatch']
+		order?: number
+
+		constructor(config: FileActionConfig) {
 			this.id = config.id
 			this.displayName = config.displayName
 			this.iconSvgInline = config.iconSvgInline
@@ -66,26 +84,29 @@ vi.mock('@nextcloud/initial-state', () => ({
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app, text) => text),
-	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
-	t: vi.fn((app, text) => text),
-	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	translate: vi.fn((app: any, text: any) => text),
+	translatePlural: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
+	t: vi.fn((app: any, text: any) => text),
+	n: vi.fn((app: any, singular: any, plural: any, count: any) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
 }))
 
 vi.mock('@nextcloud/vue/functions/dialog', () => ({
-	spawnDialog: vi.fn((component, props) => {
-		return new Promise((resolve) => {
+	spawnDialog: vi.fn((component: { mounted?: () => void }, props: unknown) => {
+		return new Promise<void>((resolve) => {
 			setTimeout(() => {
 				if (component.mounted) {
 					const instance = { $on: vi.fn() }
 					component.mounted.call(instance)
-					const closeHandler = instance.$on.mock.calls.find(
-						call => call[0] === 'close'
-					)?.[1]
-					if (closeHandler) closeHandler('Test Envelope')
+					const call = instance.$on.mock.calls.find(
+						(c) => c && c[0] === 'close'
+					)
+					const closeHandler = call ? call[1] : null
+					if (closeHandler) {
+						closeHandler('Test Envelope')
+					}
 				}
 				resolve()
 			}, 0)
@@ -94,9 +115,9 @@ vi.mock('@nextcloud/vue/functions/dialog', () => ({
 }))
 
 describe('openInLibreSignAction rules', () => {
-	let action
-	let loadState
-	let getCapabilities
+	let action: any
+	let loadState: any
+	let getCapabilities: any
 
 	beforeEach(async () => {
 		vi.clearAllMocks()
@@ -305,7 +326,7 @@ describe('openInLibreSignAction rules', () => {
 	})
 
 	describe('execBatch execution for multiple files', () => {
-let spawnDialog
+let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 	beforeEach(async () => {
 		loadState.mockReturnValue(true)
@@ -322,16 +343,24 @@ let spawnDialog
 	})
 
 	it('returns null array when envelope name cancelled', async () => {
-			vi.mocked(spawnDialog).mockImplementationOnce((component) => {
-				if (component.mounted) {
-					const instance = { $on: vi.fn() }
-					component.mounted.call(instance)
-					const closeHandler = instance.$on.mock.calls.find(
-						call => call[0] === 'close'
-					)?.[1]
-					if (closeHandler) closeHandler(undefined)
-				}
-				return Promise.resolve()
+			// @ts-expect-error - Mock implementation is compatible but type inference is too strict
+			vi.mocked(spawnDialog).mockImplementationOnce((component: { mounted?: () => void }) => {
+				return new Promise<void>((resolve) => {
+					setTimeout(() => {
+						if (component.mounted) {
+							const instance = { $on: vi.fn() }
+							component.mounted.call(instance)
+							const call = instance.$on.mock.calls.find(
+								(c) => c && c[0] === 'close'
+							)
+							const closeHandler = call ? call[1] : null
+							if (closeHandler) {
+								closeHandler(undefined)
+							}
+						}
+						resolve()
+					}, 0)
+				})
 			})
 
 			const nodes = [
