@@ -4,12 +4,28 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { RouteLocationNormalized } from 'vue-router'
 import { ACTION_CODES } from '../../helpers/ActionMapping'
 
-let loadStateMock
+type LoadStateValue = string | boolean
+type LoadStateFn = (app: string, key: string, defaultValue: LoadStateValue) => LoadStateValue
+
+const makeRoute = (overrides: Partial<RouteLocationNormalized>): RouteLocationNormalized => ({
+	fullPath: overrides.fullPath ?? '',
+	hash: overrides.hash ?? '',
+	matched: overrides.matched ?? [],
+	meta: overrides.meta ?? {},
+	name: overrides.name,
+	params: overrides.params ?? {},
+	path: overrides.path ?? '/',
+	query: overrides.query ?? {},
+	redirectedFrom: overrides.redirectedFrom,
+})
+
+const loadStateMock = vi.fn<LoadStateFn>()
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: (...args) => loadStateMock(...args),
+	loadState: (...args: Parameters<LoadStateFn>) => loadStateMock(...args),
 }))
 
 vi.mock('@nextcloud/logger', () => ({
@@ -33,7 +49,7 @@ vi.mock('@nextcloud/logger', () => ({
 
 describe('selectAction helper', () => {
 	beforeEach(() => {
-		loadStateMock = vi.fn()
+		loadStateMock.mockReset()
 	})
 
 	it('redirects when action is REDIRECT', async () => {
@@ -47,8 +63,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.REDIRECT,
-			{ path: '/p/sign/abc123/pdf', name: 'SignPDFExternal', params: {}, query: {} },
-			{ path: '/', name: 'Home', params: {}, query: {} },
+			makeRoute({ path: '/p/sign/abc123/pdf', name: 'SignPDFExternal' }),
+			makeRoute({ path: '/', name: 'Home' }),
 		)
 
 		expect(result).toBeNull()
@@ -60,8 +76,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.DO_NOTHING,
-			{ path: '/sign/request', name: 'RequestSign', params: {}, query: {} },
-			{ path: '/', name: 'Home', params: {}, query: {} },
+			makeRoute({ path: '/sign/request', name: 'RequestSign' }),
+			makeRoute({ path: '/', name: 'Home' }),
 		)
 
 		expect(result).toBe('RequestSign')
@@ -74,8 +90,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.SIGN,
-			{ path: '/p/sign/abc123/pdf', name: 'SignPDFExternal', params: {}, query: {} },
-			{ path: '/', name: 'Home', params: {}, query: {} },
+			makeRoute({ path: '/p/sign/abc123/pdf', name: 'SignPDFExternal' }),
+			makeRoute({ path: '/', name: 'Home' }),
 		)
 
 		expect(result).toBe('SignPDFExternal')
@@ -87,8 +103,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.SIGN,
-			{ path: '/sign/request', name: 'SignPDF', params: {}, query: {} },
-			{ path: '/dashboard', name: 'Dashboard', params: {}, query: {} },
+			makeRoute({ path: '/sign/request', name: 'SignPDF' }),
+			makeRoute({ path: '/dashboard', name: 'Dashboard' }),
 		)
 
 		expect(result).toBe('SignPDF')
@@ -100,8 +116,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.CREATE_ACCOUNT,
-			{ path: '/p/sign/abc123/sign-in', name: 'CreateAccountExternal', params: {}, query: {} },
-			{ path: '/', name: 'Home', params: {}, query: {} },
+			makeRoute({ path: '/p/sign/abc123/sign-in', name: 'CreateAccountExternal' }),
+			makeRoute({ path: '/', name: 'Home' }),
 		)
 
 		expect(result).toBe('CreateAccountExternal')
@@ -113,8 +129,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.SIGN_ID_DOC,
-			{ path: '/sign/request', name: 'IdDocsApprove', params: {}, query: {} },
-			{ path: '/dashboard', name: 'Dashboard', params: {}, query: {} },
+			makeRoute({ path: '/sign/request', name: 'IdDocsApprove' }),
+			makeRoute({ path: '/dashboard', name: 'Dashboard' }),
 		)
 
 		expect(result).toBe('IdDocsApprove')
@@ -126,8 +142,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.SIGNED,
-			{ path: '/p/validation/abc123', name: 'ValidationFileExternal', params: {}, query: {} },
-			{ path: '/', name: 'Home', params: {}, query: {} },
+			makeRoute({ path: '/p/validation/abc123', name: 'ValidationFileExternal' }),
+			makeRoute({ path: '/', name: 'Home' }),
 		)
 
 		expect(result).toBe('ValidationFileExternal')
@@ -139,8 +155,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.CREATE_SIGNATURE_PASSWORD,
-			{ path: '/settings/signature', name: 'CreatePassword', params: {}, query: {} },
-			{ path: '/dashboard', name: 'Dashboard', params: {}, query: {} },
+			makeRoute({ path: '/settings/signature', name: 'CreatePassword' }),
+			makeRoute({ path: '/dashboard', name: 'Dashboard' }),
 		)
 
 		expect(result).toBe('CreatePassword')
@@ -152,8 +168,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.RENEW_EMAIL,
-			{ path: '/p/sign/abc123/renew/email', name: 'RenewEmailExternal', params: {}, query: {} },
-			{ path: '/', name: 'Home', params: {}, query: {} },
+			makeRoute({ path: '/p/sign/abc123/renew/email', name: 'RenewEmailExternal' }),
+			makeRoute({ path: '/', name: 'Home' }),
 		)
 
 		expect(result).toBe('RenewEmailExternal')
@@ -165,8 +181,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.INCOMPLETE_SETUP,
-			{ path: '/settings/incomplete', name: 'Incomplete', params: {}, query: {} },
-			{ path: '/dashboard', name: 'Dashboard', params: {}, query: {} },
+			makeRoute({ path: '/settings/incomplete', name: 'Incomplete' }),
+			makeRoute({ path: '/dashboard', name: 'Dashboard' }),
 		)
 
 		expect(result).toBe('Incomplete')
@@ -181,8 +197,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			999,
-			{ path: '/p/error', name: 'ErrorExternal', params: {}, query: {} },
-			{ path: '/', name: 'Home', params: {}, query: {} },
+			makeRoute({ path: '/p/error', name: 'ErrorExternal' }),
+			makeRoute({ path: '/', name: 'Home' }),
 		)
 
 		expect(result).toBe('DefaultPageErrorExternal')
@@ -197,8 +213,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			999,
-			{ path: '/error', name: 'Error', params: {}, query: {} },
-			{ path: '/dashboard', name: 'Dashboard', params: {}, query: {} },
+			makeRoute({ path: '/error', name: 'Error' }),
+			makeRoute({ path: '/dashboard', name: 'Dashboard' }),
 		)
 
 		expect(result).toBe('DefaultPageError')
@@ -213,8 +229,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			999,
-			{ path: '/sign/error', name: 'Error' },
-			{ path: '/dashboard' },
+			makeRoute({ path: '/sign/error', name: 'Error' }),
+			makeRoute({ path: '/dashboard' }),
 		)
 
 		expect(result).toBeNull()
@@ -231,7 +247,7 @@ describe('selectAction helper', () => {
 
 		const { selectAction } = await import('../../helpers/SelectAction.js?t=' + Date.now())
 
-		const result = selectAction('sign', { path: '/sign' }, { path: '/' })
+		const result = selectAction('sign', makeRoute({ path: '/sign' }), makeRoute({ path: '/' }))
 
 		expect(result).toBeNull()
 	})
