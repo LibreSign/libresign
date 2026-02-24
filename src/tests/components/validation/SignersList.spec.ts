@@ -4,15 +4,15 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-let SignersList
+import { mount, VueWrapper } from '@vue/test-utils'
+let SignersList: any
 
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app, text) => text),
-	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
-	t: vi.fn((app, text) => text),
-	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	translate: vi.fn((_app, text) => text),
+	translatePlural: vi.fn((_app, singular, plural, count) => (count === 1 ? singular : plural)),
+	t: vi.fn((_app, text) => text),
+	n: vi.fn((_app, singular, plural, count) => (count === 1 ? singular : plural)),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -29,9 +29,9 @@ beforeAll(async () => {
 })
 
 describe('SignersList', () => {
-	let wrapper
+	let wrapper: VueWrapper<any>
 
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props: Record<string, any> = {}) => {
 		return mount(SignersList, {
 			props: {
 				signers: [],
@@ -47,32 +47,30 @@ describe('SignersList', () => {
 					NcIconSvgWrapper: { template: '<div class="icon-stub"></div>' },
 				},
 				mocks: {
-					t: (app, text) => text,
+					t: (_app: string, text: string) => text,
 				},
 			},
 		})
 	}
 
 	beforeEach(() => {
-		if (wrapper) {
-			wrapper.destroy()
-		}
 		vi.clearAllMocks()
 	})
 
 	describe('RULE: signers list displays each signer', () => {
-		it('renders single signer', () => {
+		it('renders single signer', async () => {
 			wrapper = createWrapper({
 				signers: [
 					{ displayName: 'John Doe', email: 'john@example.com' },
 				],
 			})
+			await wrapper.vm.$nextTick()
 
-			const items = wrapper.findAll('.signer-item')
+			const items = wrapper.findAll('[data-testid^="signer-item"]')
 			expect(items).toHaveLength(1)
 		})
 
-		it('renders multiple signers', () => {
+		it('renders multiple signers', async () => {
 			wrapper = createWrapper({
 				signers: [
 					{ displayName: 'John Doe', email: 'john@example.com' },
@@ -80,56 +78,61 @@ describe('SignersList', () => {
 					{ displayName: 'Bob Johnson', email: 'bob@example.com' },
 				],
 			})
+			await wrapper.vm.$nextTick()
 
-			const items = wrapper.findAll('.signer-item')
+			const items = wrapper.findAll('[data-testid^="signer-item"]')
 			expect(items).toHaveLength(3)
 		})
 
-		it('handles empty signers list', () => {
+		it('handles empty signers list', async () => {
 			wrapper = createWrapper({ signers: [] })
+			await wrapper.vm.$nextTick()
 
-			const items = wrapper.findAll('.signer-item')
+			const items = wrapper.findAll('[data-testid^="signer-item"]')
 			expect(items).toHaveLength(0)
 		})
 	})
 
 	describe('RULE: signer displays displayName or email as fallback', () => {
-		it('shows displayName when available', () => {
+		it('shows displayName when available', async () => {
 			wrapper = createWrapper({
 				signers: [
 					{ displayName: 'John Doe', email: 'john@example.com' },
 				],
 			})
+			await wrapper.vm.$nextTick()
 
-			const signer = wrapper.find('.signer-info strong')
+			const signer = wrapper.find('[data-testid="signer-name"]')
 			expect(signer.text()).toBe('John Doe')
 		})
 
-		it('shows email when displayName missing', () => {
+		it('shows email when displayName missing', async () => {
 			wrapper = createWrapper({
 				signers: [
 					{ email: 'john@example.com' },
 				],
 			})
+			await wrapper.vm.$nextTick()
 
-			const signer = wrapper.find('.signer-info strong')
+			const signer = wrapper.find('[data-testid="signer-name"]')
 			expect(signer.text()).toBe('john@example.com')
 		})
 
-		it('prefers displayName over email', () => {
+		it('prefers displayName over email', async () => {
 			wrapper = createWrapper({
 				signers: [
 					{ displayName: 'Display Name', email: 'fallback@example.com' },
 				],
 			})
+			await wrapper.vm.$nextTick()
 
-			const signer = wrapper.find('.signer-info strong')
+			const signer = wrapper.find('[data-testid="signer-name"]')
 			expect(signer.text()).toBe('Display Name')
 		})
 	})
 
 	describe('RULE: signed status shows date when signed', () => {
-		it('displays signed status with date', () => {
+		it('displays signed status with date', async () => {
 			wrapper = createWrapper({
 				signers: [
 					{
@@ -138,8 +141,9 @@ describe('SignersList', () => {
 					},
 				],
 			})
+			await wrapper.vm.$nextTick()
 
-			const status = wrapper.find('.signer-status.signed')
+			const status = wrapper.find('[data-testid="signer-status-signed"]')
 			expect(status.exists()).toBe(true)
 			expect(status.text()).toContain('Signed on')
 		})
@@ -174,7 +178,7 @@ describe('SignersList', () => {
 	})
 
 	describe('RULE: pending status shows when not signed', () => {
-		it('displays pending status when signed false', () => {
+		it('displays pending status when signed false', async () => {
 			wrapper = createWrapper({
 				signers: [
 					{
@@ -183,13 +187,14 @@ describe('SignersList', () => {
 					},
 				],
 			})
+			await wrapper.vm.$nextTick()
 
-			const status = wrapper.find('.signer-status.pending')
+			const status = wrapper.find('[data-testid="signer-status-pending"]')
 			expect(status.exists()).toBe(true)
 			expect(status.text()).toContain('Awaiting signature')
 		})
 
-		it('displays pending when signed property missing', () => {
+		it('displays pending when signed property missing', async () => {
 			wrapper = createWrapper({
 				signers: [
 					{
@@ -360,8 +365,8 @@ describe('SignersList', () => {
 			const items = wrapper.findAll('.signer-item')
 			expect(items).toHaveLength(2)
 
-			expect(items.at(0).find('.signer-status').classes()).toContain('signed')
-			expect(items.at(1).find('.signer-status').classes()).toContain('pending')
+			expect(items[0]!.find('.signer-status').classes()).toContain('signed')
+			expect(items[1]!.find('.signer-status').classes()).toContain('pending')
 		})
 	})
 
@@ -380,9 +385,9 @@ describe('SignersList', () => {
 			const items = wrapper.findAll('.signer-item')
 			expect(items).toHaveLength(3)
 
-			expect(items.at(0).text()).toContain('First Signer')
-			expect(items.at(1).text()).toContain('Second Signer')
-			expect(items.at(2).text()).toContain('Third Signer')
+			expect(items[0]!.text()).toContain('First Signer')
+			expect(items[1]!.text()).toContain('Second Signer')
+			expect(items[2]!.text()).toContain('Third Signer')
 		})
 	})
 
