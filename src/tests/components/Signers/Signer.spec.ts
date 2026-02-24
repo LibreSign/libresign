@@ -4,11 +4,45 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { mdiCheckCircle, mdiClockOutline, mdiCircleOutline } from '@mdi/js'
-let Signer
+import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
 import { useFilesStore } from '../../../store/files.js'
+
+type SignerComponent = typeof import('../../../components/Signers/Signer.vue').default
+
+type FileSigner = {
+	signed?: boolean
+	identifyMethods?: unknown[]
+	status?: number
+	displayName?: string
+	signingOrder?: number
+}
+
+type SelectedFile = {
+	signatureFlow?: string | number
+	signers: FileSigner[]
+}
+
+type FilesStoreMock = ReturnType<typeof useFilesStore> & {
+	selectedFile: SelectedFile
+	getFile: MockedFunction<() => SelectedFile>
+	canSave: MockedFunction<() => boolean>
+	isOriginalFileDeleted: MockedFunction<() => boolean>
+}
+
+const t: TranslationFunction = (_app, text, vars) => {
+	if (vars) {
+		return text.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))
+	}
+	return text
+}
+
+const n: PluralTranslationFunction = (_app, singular, plural, count) => (count === 1 ? singular : plural)
+
+let Signer: SignerComponent
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
@@ -27,20 +61,10 @@ vi.mock('@nextcloud/event-bus', () => ({
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app, text, vars) => {
-		if (vars) {
-			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-		}
-		return text
-	}),
-	translatePlural: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
-	t: vi.fn((app, text, vars) => {
-		if (vars) {
-			return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-		}
-		return text
-	}),
-	n: vi.fn((app, singular, plural, count) => (count === 1 ? singular : plural)),
+	translate: vi.fn(t),
+	translatePlural: vi.fn(n),
+	t: vi.fn(t),
+	n: vi.fn(n),
 	getLanguage: vi.fn(() => 'en'),
 	getLocale: vi.fn(() => 'en'),
 	isRTL: vi.fn(() => false),
@@ -53,9 +77,9 @@ beforeAll(async () => {
 })
 
 describe('Signer', () => {
-	let wrapper
-	let filesStore
-	let pinia
+	let wrapper: ReturnType<typeof mount> | null
+	let filesStore: FilesStoreMock
+	let pinia: ReturnType<typeof createPinia>
 
 	const createWrapper = (props = {}) => {
 		const ncListItemStub = {
@@ -82,12 +106,7 @@ describe('Signer', () => {
 			global: {
 				plugins: [pinia],
 				mocks: {
-					t: (app, text, vars) => {
-						if (vars) {
-							return text.replace(/{(\w+)}/g, (m, key) => vars[key])
-						}
-						return text
-					},
+					t,
 				},
 				stubs: {
 					NcListItem: ncListItemStub,
@@ -102,7 +121,7 @@ describe('Signer', () => {
 	beforeEach(() => {
 		pinia = createPinia()
 		setActivePinia(pinia)
-		filesStore = useFilesStore()
+		filesStore = useFilesStore() as FilesStoreMock
 		filesStore.selectedFile = {
 			signatureFlow: 'parallel',
 			signers: [
@@ -113,7 +132,8 @@ describe('Signer', () => {
 		filesStore.canSave = vi.fn(() => true)
 		filesStore.isOriginalFileDeleted = vi.fn(() => false)
 		if (wrapper) {
-			wrapper.destroy()
+			wrapper.unmount()
+			wrapper = null
 		}
 		vi.clearAllMocks()
 	})
@@ -513,24 +533,27 @@ describe('Signer', () => {
 
 	describe('RULE: closeActions calls listItem actions closeMenu', () => {
 		it('calls closeMenu when ref and method exist', () => {
-			wrapper = createWrapper()
+			const localWrapper = createWrapper()
+			wrapper = localWrapper
 
-			wrapper.vm.closeActions()
+			localWrapper.vm.closeActions()
 
-			const listItemStub = wrapper.findComponent({ name: 'NcListItem' })
+			const listItemStub = localWrapper.findComponent({ name: 'NcListItem' })
 			expect(listItemStub).toBeTruthy()
 		})
 
 		it('does nothing when listItem ref missing', () => {
-			wrapper = createWrapper()
+			const localWrapper = createWrapper()
+			wrapper = localWrapper
 
-			expect(() => wrapper.vm.closeActions()).not.toThrow()
+			expect(() => localWrapper.vm.closeActions()).not.toThrow()
 		})
 
 		it('does nothing when closeMenu not a function', () => {
-			wrapper = createWrapper()
+			const localWrapper = createWrapper()
+			wrapper = localWrapper
 
-			expect(() => wrapper.vm.closeActions()).not.toThrow()
+			expect(() => localWrapper.vm.closeActions()).not.toThrow()
 		})
 	})
 })
