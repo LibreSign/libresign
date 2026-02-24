@@ -56,7 +56,10 @@ export default {
 	},
 	},
 	setup() {
-		return { t, mdiInformationSlabCircle }
+		return {
+			t,
+			mdiInformationSlabCircle,
+		}
 	},
 }
 </script>
