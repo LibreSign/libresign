@@ -100,7 +100,7 @@ describe('FilesList - URI file opening business rules', () => {
 		vi.spyOn(filesStore, 'selectFileByUuid').mockResolvedValue(42)
 
 		const uuid = 'test-uuid'
-		await filesStore.selectFileByUuid(uuid).then((fileId) => {
+		await filesStore.selectFileByUuid(uuid).then((fileId: unknown) => {
 			if (fileId) {
 				sidebarStore.activeRequestSignatureTab()
 			}
@@ -117,7 +117,7 @@ describe('FilesList - URI file opening business rules', () => {
 		vi.spyOn(filesStore, 'selectFileByUuid').mockResolvedValue(null)
 
 		const uuid = 'nonexistent-uuid'
-		await filesStore.selectFileByUuid(uuid).then((fileId) => {
+		await filesStore.selectFileByUuid(uuid).then((fileId: unknown) => {
 			if (fileId) {
 				sidebarStore.activeRequestSignatureTab()
 			}
