@@ -9,6 +9,14 @@ import { setActivePinia, createPinia } from 'pinia'
 import FilesListTableHeader from '../../../views/FilesList/FilesListTableHeader.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { useSelectionStore } from '../../../store/selection.js'
+import type { TranslationFunction } from '../../test-types'
+
+type Column = {
+	id: string
+	sort?: boolean
+}
+
+const t: TranslationFunction = (_app, text) => text
 
 vi.mock('@nextcloud/vue/components/NcCheckboxRadioSwitch', () => ({
 	default: {
@@ -44,7 +52,7 @@ describe('FilesListTableHeader.vue - Table Header with Columns', () => {
 			},
 			global: {
 				mocks: {
-					t: (app, message) => message,
+					t,
 				},
 			},
 		})
@@ -59,12 +67,13 @@ describe('FilesListTableHeader.vue - Table Header with Columns', () => {
 			},
 			global: {
 				mocks: {
-					t: (app, message) => message,
+					t,
 				},
 			},
 		})
 
-		expect(wrapper.vm.columns.some(col => col.id === 'status')).toBe(true)
+		const columns: Column[] = wrapper.vm.columns
+		expect(columns.some((col: Column) => col.id === 'status')).toBe(true)
 	})
 
 	it('includes Signers column', () => {
@@ -74,12 +83,13 @@ describe('FilesListTableHeader.vue - Table Header with Columns', () => {
 			},
 			global: {
 				mocks: {
-					t: (app, message) => message,
+					t,
 				},
 			},
 		})
 
-		expect(wrapper.vm.columns.some(col => col.id === 'signers')).toBe(true)
+		const columns: Column[] = wrapper.vm.columns
+		expect(columns.some((col: Column) => col.id === 'signers')).toBe(true)
 	})
 
 	it('includes Created at column', () => {
@@ -89,12 +99,13 @@ describe('FilesListTableHeader.vue - Table Header with Columns', () => {
 			},
 			global: {
 				mocks: {
-					t: (app, message) => message,
+					t,
 				},
 			},
 		})
 
-		expect(wrapper.vm.columns.some(col => col.id === 'created_at')).toBe(true)
+		const columns: Column[] = wrapper.vm.columns
+		expect(columns.some((col: Column) => col.id === 'created_at')).toBe(true)
 	})
 
 	it('marks Status column as sortable', () => {
@@ -104,13 +115,14 @@ describe('FilesListTableHeader.vue - Table Header with Columns', () => {
 			},
 			global: {
 				mocks: {
-					t: (app, message) => message,
+					t,
 				},
 			},
 		})
 
-		const statusColumn = wrapper.vm.columns.find(col => col.id === 'status')
-		expect(statusColumn.sort).toBe(true)
+		const columns: Column[] = wrapper.vm.columns
+		const statusColumn = columns.find((col: Column) => col.id === 'status')
+		expect(statusColumn?.sort).toBe(true)
 	})
 
 	it('marks Signers column as sortable', () => {
@@ -120,13 +132,14 @@ describe('FilesListTableHeader.vue - Table Header with Columns', () => {
 			},
 			global: {
 				mocks: {
-					t: (app, message) => message,
+					t,
 				},
 			},
 		})
 
-		const signersColumn = wrapper.vm.columns.find(col => col.id === 'signers')
-		expect(signersColumn.sort).toBe(true)
+		const columns: Column[] = wrapper.vm.columns
+		const signersColumn = columns.find((col: Column) => col.id === 'signers')
+		expect(signersColumn?.sort).toBe(true)
 	})
 
 	it('marks Created at column as sortable', () => {
@@ -136,13 +149,14 @@ describe('FilesListTableHeader.vue - Table Header with Columns', () => {
 			},
 			global: {
 				mocks: {
-					t: (app, message) => message,
+					t,
 				},
 			},
 		})
 
-		const createdAtColumn = wrapper.vm.columns.find(col => col.id === 'created_at')
-		expect(createdAtColumn.sort).toBe(true)
+		const columns: Column[] = wrapper.vm.columns
+		const createdAtColumn = columns.find((col: Column) => col.id === 'created_at')
+		expect(createdAtColumn?.sort).toBe(true)
 	})
 
 	it('renders correct number of columns', () => {
@@ -152,7 +166,7 @@ describe('FilesListTableHeader.vue - Table Header with Columns', () => {
 			},
 			global: {
 				mocks: {
-					t: (app, message) => message,
+					t,
 				},
 			},
 		})
@@ -167,7 +181,7 @@ describe('FilesListTableHeader.vue - Table Header with Columns', () => {
 			},
 			global: {
 				mocks: {
-					t: (app, message) => message,
+					t,
 				},
 			},
 		})
@@ -184,13 +198,15 @@ describe('FilesListTableHeader.vue - Table Header with Columns', () => {
 			},
 			global: {
 				mocks: {
-					t: (app, message) => message,
+					t,
 				},
 			},
 		})
 
-		const signersColumn = wrapper.vm.columns.find(col => col.id === 'signers')
-		const classes = wrapper.vm.classForColumn(signersColumn)
+		const columns: Column[] = wrapper.vm.columns
+		const signersColumn = columns.find((col: Column) => col.id === 'signers')
+		expect(signersColumn).toBeDefined()
+		const classes = wrapper.vm.classForColumn(signersColumn as Column)
 
 		expect(classes['files-list__column']).toBe(true)
 		expect(classes['files-list__row-signers']).toBe(true)
