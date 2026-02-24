@@ -9,7 +9,7 @@ import { useUserConfigStore } from '../../store/userconfig.js'
 import { generateOCSResponse } from '../test-helpers'
 
 const { putMock, generateOcsUrlMock } = vi.hoisted(() => ({
-	putMock: vi.fn(() => Promise.resolve()),
+	putMock: vi.fn<(...args: unknown[]) => Promise<unknown>>(() => Promise.resolve()),
 	generateOcsUrlMock: vi.fn(() => '/ocs/config/locale'),
 }))
 
@@ -37,7 +37,7 @@ describe('userconfig store', () => {
 	it('updates local state and persists config', async () => {
 		const store = useUserConfigStore()
 
-		putMock.mockResolvedValue(generateOCSResponse({ payload: { value: 'en_US' } }) as any)
+		putMock.mockResolvedValue(generateOCSResponse<{ value: string }>({ payload: { value: 'en_US' } }))
 
 		await store.update('locale', 'en_US')
 
