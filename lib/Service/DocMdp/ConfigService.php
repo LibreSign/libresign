@@ -24,18 +24,23 @@ class ConfigService {
 	}
 
 	public function isEnabled(): bool {
-		return $this->appConfig->hasKey(Application::APP_ID, self::CONFIG_KEY_LEVEL);
+		return $this->getLevel()->isCertifying();
 	}
 
 	public function setEnabled(bool $enabled): void {
-		if (!$enabled) {
-			$this->appConfig->deleteKey(Application::APP_ID, self::CONFIG_KEY_LEVEL);
+		if ($enabled) {
+			if (!$this->getLevel()->isCertifying()) {
+				$this->setLevel(DocMdpLevel::CERTIFIED_FORM_FILLING);
+			}
+			return;
 		}
+
+		$this->setLevel(DocMdpLevel::NOT_CERTIFIED);
 	}
 
 	public function getLevel(): DocMdpLevel {
-		$level = $this->appConfig->getValueInt(Application::APP_ID, self::CONFIG_KEY_LEVEL, DocMdpLevel::NOT_CERTIFIED->value);
-		return DocMdpLevel::from($level);
+		$level = $this->appConfig->getValueInt(Application::APP_ID, self::CONFIG_KEY_LEVEL, DocMdpLevel::CERTIFIED_FORM_FILLING->value);
+		return DocMdpLevel::tryFrom($level) ?? DocMdpLevel::CERTIFIED_FORM_FILLING;
 	}
 
 	public function setLevel(DocMdpLevel $level): void {
