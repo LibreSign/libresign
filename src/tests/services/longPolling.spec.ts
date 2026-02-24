@@ -4,19 +4,23 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { generateOCSResponse } from '../test-helpers.js'
+import type { MockedFunction } from 'vitest'
+import { generateOCSResponse } from '../test-helpers'
 
-let getMock
-let generateOcsUrlMock
+type AxiosGet = (url: string, config?: { params?: { currentStatus?: number; timeout?: number }; timeout?: number }) => Promise<{ data: unknown }>
+type GenerateOcsUrl = typeof import('@nextcloud/router').generateOcsUrl
+
+let getMock: MockedFunction<AxiosGet>
+let generateOcsUrlMock: MockedFunction<GenerateOcsUrl>
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
-		get: (...args) => getMock(...args),
+		get: (...args: Parameters<AxiosGet>) => getMock(...args),
 	},
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: (...args) => generateOcsUrlMock(...args),
+	generateOcsUrl: (...args: Parameters<GenerateOcsUrl>) => generateOcsUrlMock(...args),
 }))
 
 describe('longPolling services', () => {
@@ -33,7 +37,7 @@ describe('longPolling services', () => {
 
 	describe('waitForFileStatusChange', () => {
 		it('requests status updates and returns response data', async () => {
-			getMock.mockResolvedValue(generateOCSResponse({
+			getMock.mockResolvedValue(generateOCSResponse<{ status: number }>({
 				payload: { status: 3 },
 			}))
 			const { waitForFileStatusChange } = await import('../../services/longPolling.js')
@@ -50,16 +54,18 @@ describe('longPolling services', () => {
 
 		it('uses default timeout of 30 seconds', async () => {
 			getMock.mockClear()
-			getMock.mockResolvedValue(generateOCSResponse({
+			getMock.mockResolvedValue(generateOCSResponse<{ status: number }>({
 				payload: { status: 1 },
 			}))
 			const { waitForFileStatusChange } = await import('../../services/longPolling.js')
 
-			await waitForFileStatusChange(1, '0')
+			await waitForFileStatusChange(1, 0)
 
 			const call = getMock.mock.calls[0]
-			expect(call[1].params.timeout).toBe(30)
-			expect(call[1].timeout).toBe(35000)
+			if (call && call[1] && call[1].params) {
+				expect(call[1].params.timeout).toBe(30)
+				expect(call[1].timeout).toBe(35000)
+			}
 		})
 	})
 
@@ -74,7 +80,7 @@ describe('longPolling services', () => {
 
 			startLongPolling(123, 0, (data) => {
 				onUpdate(data)
-			})
+			}, null)
 
 			// Wait for polling to complete
 			await vi.waitFor(() => {
@@ -91,8 +97,8 @@ describe('longPolling services', () => {
 			const shouldStop = () => shouldStopFlag
 
 			getMock
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 2 } }))
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 3 } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number }>({ payload: { status: 2 } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number }>({ payload: { status: 3 } }))
 
 			const { startLongPolling } = await import('../../services/longPolling.js')
 
@@ -113,17 +119,17 @@ describe('longPolling services', () => {
 		it('RULE: calls stopPolling function to stop polling', async () => {
 			const onUpdate = vi.fn()
 			getMock
-				.mockResolvedValue(generateOCSResponse({ payload: { status: 1 } }))
+				.mockResolvedValue(generateOCSResponse<{ status: number }>({ payload: { status: 1 } }))
 
 			const { startLongPolling } = await import('../../services/longPolling.js')
 
-			let stopFn
+			let stopFn: (() => void) | null = null
 			stopFn = startLongPolling(123, 0, (data) => {
 				onUpdate(data)
-				if (data.status === 1) {
+				if (data.status === 1 && stopFn) {
 					stopFn()
 				}
-			})
+			}, null)
 
 			// Wait for first call
 			await vi.waitFor(() => {
@@ -134,14 +140,14 @@ describe('longPolling services', () => {
 		it('RULE: terminal status 3 (signed) stops polling', async () => {
 			const onUpdate = vi.fn()
 			getMock
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 2 } }))
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 3 } })) // terminal
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number }>({ payload: { status: 2 } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number }>({ payload: { status: 3 } })) // terminal
 
 			const { startLongPolling } = await import('../../services/longPolling.js')
 
 			startLongPolling(123, 1, (data) => {
 				onUpdate(data)
-			})
+			}, null)
 
 			await vi.waitFor(() => {
 				expect(onUpdate).toHaveBeenCalled()
@@ -153,13 +159,13 @@ describe('longPolling services', () => {
 
 		it('RULE: terminal status 4 (deleted) stops polling', async () => {
 			const onUpdate = vi.fn()
-			getMock.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 4 } }))
+			getMock.mockResolvedValueOnce(generateOCSResponse<{ status: number }>({ payload: { status: 4 } }))
 
 			const { startLongPolling } = await import('../../services/longPolling.js')
 
 			startLongPolling(123, 1, (data) => {
 				onUpdate(data)
-			})
+			}, null)
 
 			await vi.waitFor(() => {
 				expect(onUpdate).toHaveBeenCalledWith({ status: 4 })
@@ -174,8 +180,8 @@ describe('longPolling services', () => {
 
 			getMock
 				.mockRejectedValueOnce(new Error('Network error'))
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 2 } }))
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 3 } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number }>({ payload: { status: 2 } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number }>({ payload: { status: 3 } }))
 
 			const { startLongPolling } = await import('../../services/longPolling.js')
 
@@ -221,10 +227,10 @@ describe('longPolling services', () => {
 			getMock
 				.mockRejectedValueOnce(new Error('Error 1'))
 				.mockRejectedValueOnce(new Error('Error 2'))
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 2 } })) // success
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number }>({ payload: { status: 2 } })) // success
 				.mockRejectedValueOnce(new Error('Error 3'))
 				.mockRejectedValueOnce(new Error('Error 4'))
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 3 } })) // success & terminal
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number }>({ payload: { status: 3 } })) // success & terminal
 
 			const { startLongPolling } = await import('../../services/longPolling.js')
 
@@ -248,16 +254,16 @@ describe('longPolling services', () => {
 			getMock.mockImplementation(() => {
 				callCount++
 				if (callCount <= 2) {
-					return Promise.resolve(generateOCSResponse({ payload: { status: 2 } })) // same status
+					return Promise.resolve(generateOCSResponse<{ status: number }>({ payload: { status: 2 } })) // same status
 				}
-				return Promise.resolve(generateOCSResponse({ payload: { status: 3 } })) // terminal
+				return Promise.resolve(generateOCSResponse<{ status: number }>({ payload: { status: 3 } })) // terminal
 			})
 
 			const { startLongPolling } = await import('../../services/longPolling.js')
 
 			startLongPolling(123, 2, (data) => {
 				onUpdate(data)
-			})
+			}, null)
 
 			await vi.waitFor(() => {
 				expect(onUpdate).toHaveBeenCalledTimes(1)
@@ -272,15 +278,15 @@ describe('longPolling services', () => {
 			const onUpdate = vi.fn()
 
 			getMock
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 2, message: 'Processing' } }))
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 5, message: 'Ready' } }))
-				.mockResolvedValueOnce(generateOCSResponse({ payload: { status: 3, message: 'Done' } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number; message: string }>({ payload: { status: 2, message: 'Processing' } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number; message: string }>({ payload: { status: 5, message: 'Ready' } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number; message: string }>({ payload: { status: 3, message: 'Done' } }))
 
 			const { startLongPolling } = await import('../../services/longPolling.js')
 
 			startLongPolling(123, 0, (data) => {
 				onUpdate(data)
-			})
+			}, null)
 
 			await vi.waitFor(() => {
 				expect(onUpdate).toHaveBeenCalledTimes(3)
