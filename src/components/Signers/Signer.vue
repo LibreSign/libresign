@@ -69,17 +69,17 @@ export default {
 		signerIndex: {
 			type: Number,
 			required: true,
-	},
+		},
 		event: {
 			type: String,
 			required: false,
 			default: '',
-	},
+		},
 		draggable: {
 			type: Boolean,
 			required: false,
 			default: false,
-	},
+		},
 	},
 	setup() {
 		const filesStore = useFilesStore()
