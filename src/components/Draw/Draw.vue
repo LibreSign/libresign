@@ -64,21 +64,21 @@ export default {
 			type: Boolean,
 			required: false,
 			default: true,
-	},
+		},
 		textEditor: {
 			type: Boolean,
 			required: false,
 			default: false,
-	},
+		},
 		fileEditor: {
 			type: Boolean,
 			required: false,
 			default: false,
-	},
+		},
 		type: {
 			type: String,
 			required: true,
-	},
+		},
 	},
 	setup() {
 		const signatureElementsStore = useSignatureElementsStore()
