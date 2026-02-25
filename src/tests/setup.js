@@ -7,23 +7,36 @@ import { vi, afterEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { cleanup } from '@testing-library/vue'
 
+setActivePinia(createPinia())
+
+// Global error handlers: throw on console warnings and errors for early detection
+const originalError = console.error
+const originalWarn = console.warn
+
+console.error = function (...args) {
+	const message = args[0]
+	// Allow legitimate error logging, but throw for assertion failures
+	if (message instanceof Error || typeof message === 'string') {
+		throw new Error(String(message))
+	}
+	return originalError.apply(console, args)
+}
+
+console.warn = function (...args) {
+	const message = args[0]
+	if (message instanceof Error || typeof message === 'string') {
+		throw new Error(String(message))
+	}
+	return originalWarn.apply(console, args)
+}
+
 vi.mock('@vue/test-utils', async (importOriginal) => {
 	const actual = await importOriginal()
-	const wrap = (fn) => (...args) => {
-		if (typeof fn !== 'function') {
-			return fn
-		}
-		const wrapper = fn(...args)
-		if (wrapper && !wrapper.destroy && typeof wrapper.unmount === 'function') {
-			wrapper.destroy = wrapper.unmount
-		}
-		return wrapper
-	}
 
 	return {
 		...actual,
-		mount: wrap(actual.mount),
-		shallowMount: wrap(actual.shallowMount),
+		mount: actual.mount,
+		shallowMount: actual.shallowMount,
 	}
 })
 
