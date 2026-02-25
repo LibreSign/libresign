@@ -84,6 +84,7 @@ describe('SignerSelect.vue', () => {
 			loading: false,
 			haveError: false,
 			options: [],
+			activeRequestId: 0,
 			injectIcons: SignerSelect.methods.injectIcons,
 		}
 
@@ -94,6 +95,66 @@ describe('SignerSelect.vue', () => {
 		expect(context.haveError).toBe(false)
 		expect(context.options).toHaveLength(1)
 		expect(context.options[0].label).toBe('Carol')
+	})
+
+	it('ignores stale async response when a newer search was triggered', async () => {
+		let resolveFirst: ((value: any) => void) | undefined
+		let resolveSecond: ((value: any) => void) | undefined
+
+		axiosGetMock
+			.mockImplementationOnce(() => new Promise((resolve) => {
+				resolveFirst = resolve
+			}))
+			.mockImplementationOnce(() => new Promise((resolve) => {
+				resolveSecond = resolve
+			}))
+
+		const context: any = {
+			method: 'account',
+			loading: false,
+			haveError: false,
+			options: [],
+			activeRequestId: 0,
+			injectIcons: SignerSelect.methods.injectIcons,
+		}
+
+		const firstCall = SignerSelect.methods._asyncFind.call(context, 'a')
+		const secondCall = SignerSelect.methods._asyncFind.call(context, 'ab')
+
+		resolveSecond?.({
+			data: {
+				ocs: {
+					data: [{ id: 'user02', displayName: 'User 02' }],
+				},
+			},
+		})
+		await secondCall
+
+		resolveFirst?.({
+			data: {
+				ocs: {
+					data: [{ id: 'old@example.com', displayName: 'Old Result' }],
+				},
+			},
+		})
+		await firstCall
+
+		expect(context.options).toHaveLength(1)
+		expect(context.options[0].label).toBe('User 02')
+	})
+
+	it('clears stale options when method changes', () => {
+		const context: any = {
+			options: [{ id: 'legacy' }],
+			haveError: true,
+			loading: true,
+		}
+
+		SignerSelect.watch.method.call(context)
+
+		expect(context.options).toEqual([])
+		expect(context.haveError).toBe(false)
+		expect(context.loading).toBe(false)
 	})
 
 	it('option helpers safely handle undefined slot payload', () => {
