@@ -85,15 +85,6 @@ describe('Signer', () => {
 		const ncListItemStub = {
 			name: 'NcListItem',
 			template: '<div><slot /></div>',
-			setup() {
-				return {
-					$refs: {
-						actions: {
-							closeMenu: vi.fn(),
-						},
-					},
-				}
-			},
 		}
 
 		return mount(Signer, {
