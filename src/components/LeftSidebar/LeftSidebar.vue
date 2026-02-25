@@ -91,7 +91,14 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore }
+		return {
+			filesStore,
+			mdiFileSign,
+			mdiFolder,
+			mdiFileCheck,
+			mdiAccountCheck,
+			mdiShieldLock,
+		}
 	},
 	data() {
 		return {
@@ -100,11 +107,6 @@ export default {
 				identificationDocumentsFlow: false,
 				isApprover: false,
 			}),
-			mdiFileSign,
-			mdiFolder,
-			mdiFileCheck,
-			mdiAccountCheck,
-			mdiShieldLock,
 		}
 	},
 	computed: {
