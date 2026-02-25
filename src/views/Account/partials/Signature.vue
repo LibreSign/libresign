@@ -31,7 +31,7 @@
 			<slot name="no-signatures" />
 		</div>
 
-		<NcIconSvgWrapper :path="mdiDraw" v-if="isEditing"
+		<Draw v-if="isEditing"
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"
