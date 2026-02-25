@@ -70,6 +70,7 @@ OC.L10N.register(
     "Message" : "Izen",
     "Yes" : "Ih",
     "No" : "Uhu",
+    "Invalid URL" : "URL d arameɣtu",
     "Username" : "Isem n useqdac",
     "Forgot password?" : "Tettud awal uffir?"
 },
