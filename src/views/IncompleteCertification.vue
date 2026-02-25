@@ -43,11 +43,15 @@ export default {
 		NcButton,
 		NcIconSvgWrapper,
 	},
+	setup() {
+		return {
+			mdiCogs,
+		}
+	},
 	data() {
 		return {
 			image: BackgroundImage,
 			isAdmin: getCurrentUser()?.isAdmin ?? false,
-			mdiCogs,
 		}
 	},
 	methods: {
