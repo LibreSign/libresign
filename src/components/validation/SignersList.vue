@@ -55,11 +55,11 @@ export default {
 		signers: {
 			type: Array,
 			required: true,
-	},
+		},
 		compact: {
 			type: Boolean,
 			default: false,
-	},
+		},
 	},
 	setup() {
 		return {
