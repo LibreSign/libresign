@@ -53,6 +53,14 @@ vi.mock('@nextcloud/vue/components/NcDialog', () => ({
 	},
 }))
 
+vi.mock('../../../components/PreviewSignature/PreviewSignature.vue', () => ({
+	default: {
+		name: 'PreviewSignature',
+		template: '<div class="preview-signature-stub" />',
+		props: ['src'],
+	},
+}))
+
 vi.mock('@fontsource/dancing-script', () => ({}))
 
 describe('TextInput.vue - Text Signature Component', () => {
@@ -180,7 +188,9 @@ describe('TextInput.vue - Text Signature Component', () => {
 		await wrapper.vm.$nextTick()
 		wrapper.vm.value = 'John Doe'
 		wrapper.vm.confirmSignature()
+		await wrapper.vm.$nextTick()
 		expect(wrapper.vm.modal).toBe(true)
+		expect(wrapper.find('.preview-signature-stub').exists()).toBe(true)
 	})
 
 	it('handles modal state correctly', async () => {
