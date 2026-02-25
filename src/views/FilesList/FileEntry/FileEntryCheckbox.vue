@@ -59,10 +59,12 @@ export default {
 			return this.selectionStore.selected
 		},
 		isSelected() {
-			return this.selectedFiles.includes(this.source.id)
+			const normalizedId = Number(this.source.id)
+			return this.selectedFiles.some(id => Number(id) === normalizedId)
 		},
 		index() {
-			return this.filesStore.ordered.findIndex(key => Number(key) === this.source.id)
+			const normalizedId = Number(this.source.id)
+			return this.filesStore.ordered.findIndex(key => Number(key) === normalizedId)
 		},
 		ariaLabel() {
 			return t('libresign', 'Toggle selection for file "{displayName}"', { displayName: this.source.basename })
@@ -76,9 +78,10 @@ export default {
 			const newSelectedIndex = this.index
 			const lastSelectedIndex = this.selectionStore.lastSelectedIndex
 
-			// Get the last selected and select all files in between
+			const normalizedCurrentId = Number(this.source.id)
+
 			if (this.keyboardStore?.shiftKey && lastSelectedIndex !== null) {
-				const isAlreadySelected = this.selectedFiles.includes(this.source.id)
+				const isAlreadySelected = this.selectedFiles.some(id => Number(id) === normalizedCurrentId)
 
 				const start = Math.min(newSelectedIndex, lastSelectedIndex)
 				const end = Math.max(lastSelectedIndex, newSelectedIndex)
@@ -86,18 +89,17 @@ export default {
 				const lastSelection = this.selectionStore.lastSelection
 				const filesToSelect = this.filesStore.ordered
 					.slice(start, end + 1)
+					.map(id => Number(id))
 
-				// If already selected, update the new selection _without_ the current file
-				const selection = [...new Set([...lastSelection, ...filesToSelect])]
-					.filter(key => !isAlreadySelected || key !== this.source.id)
-				// Keep previous lastSelectedIndex to be use for further shift selections
+				const selection = [...new Set([...lastSelection.map(id => Number(id)), ...filesToSelect])]
+					.filter(id => !isAlreadySelected || id !== normalizedCurrentId)
 				this.selectionStore.set(selection)
 				return
 			}
 
 			const selection = selected
-				? [...this.selectedFiles, this.source.id]
-				: this.selectedFiles.filter(key => key !== this.source.id)
+				? [...this.selectedFiles.map(id => Number(id)), normalizedCurrentId]
+				: this.selectedFiles.map(id => Number(id)).filter(id => id !== normalizedCurrentId)
 
 			logger.debug('Updating selection', { selection })
 			this.selectionStore.set(selection)
