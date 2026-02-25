@@ -38,6 +38,16 @@ vi.mock('@nextcloud/l10n', () => ({
 	getLocale: vi.fn(() => 'en'),
 }))
 
+vi.mock('@nextcloud/vue/components/NcContent', () => ({
+	default: { name: 'NcContent', template: '<div class="nc-content"><slot /></div>', props: ['appName'] },
+}))
+vi.mock('@nextcloud/vue/components/NcAppContent', () => ({
+	default: { name: 'NcAppContent', template: '<div class="nc-app-content"><slot /></div>' },
+}))
+vi.mock('@nextcloud/vue/components/NcEmptyContent', () => ({
+	default: { name: 'NcEmptyContent', template: '<div class="nc-empty-content"><slot /></div>', props: ['description'] },
+}))
+
 import App from '../App.vue'
 
 describe('App', () => {
@@ -130,5 +140,125 @@ describe('App', () => {
 		})
 
 		expect(wrapper.find('.left-sidebar').exists()).toBe(false)
+	})
+
+	it('adds sign-external-page class on /p/ routes', () => {
+		routeState.path = '/p/sign/some-uuid'
+
+		const wrapper = mount(App, {
+			global: {
+				stubs: {
+					NcContent: { name: 'NcContent', template: '<div class="nc-content"><slot /></div>', props: ['appName'] },
+					NcAppContent: { template: '<main><slot /></main>' },
+					NcEmptyContent: { template: '<div><slot /></div>' },
+					LeftSidebar: true,
+					RightSidebar: true,
+					DefaultPageError: true,
+					RouterView: { template: '<div class="router-view" />' },
+				},
+			},
+		})
+
+		expect(wrapper.find('.nc-content').classes()).toContain('sign-external-page')
+	})
+
+	it('does not add sign-external-page class on internal routes', () => {
+		routeState.path = '/f/filelist/sign'
+
+		const wrapper = mount(App, {
+			global: {
+				stubs: {
+					NcContent: { name: 'NcContent', template: '<div class="nc-content"><slot /></div>', props: ['appName'] },
+					NcAppContent: { template: '<main><slot /></main>' },
+					NcEmptyContent: { template: '<div><slot /></div>' },
+					LeftSidebar: true,
+					RightSidebar: true,
+					DefaultPageError: true,
+					RouterView: { template: '<div class="router-view" />' },
+				},
+			},
+		})
+
+		expect(wrapper.find('.nc-content').classes()).not.toContain('sign-external-page')
+	})
+
+	it('shows DefaultPageError when action param is 2000', () => {
+		routeState.params = { action: 2000 }
+
+		const wrapper = mount(App, {
+			global: {
+				stubs: {
+					NcContent: { template: '<div><slot /></div>' },
+					NcAppContent: { template: '<main><slot /></main>' },
+					NcEmptyContent: { template: '<div><slot /></div>' },
+					LeftSidebar: true,
+					RightSidebar: true,
+					DefaultPageError: { name: 'DefaultPageError', template: '<div class="default-page-error" />' },
+					RouterView: { template: '<div class="router-view" />' },
+				},
+			},
+		})
+
+		expect(wrapper.find('.default-page-error').exists()).toBe(true)
+	})
+
+	it('does not show DefaultPageError on normal routes', () => {
+		routeState.params = {}
+
+		const wrapper = mount(App, {
+			global: {
+				stubs: {
+					NcContent: { template: '<div><slot /></div>' },
+					NcAppContent: { template: '<main><slot /></main>' },
+					NcEmptyContent: { template: '<div><slot /></div>' },
+					LeftSidebar: true,
+					RightSidebar: true,
+					DefaultPageError: { name: 'DefaultPageError', template: '<div class="default-page-error" />' },
+					RouterView: { template: '<div class="router-view" />' },
+				},
+			},
+		})
+
+		expect(wrapper.find('.default-page-error').exists()).toBe(false)
+	})
+
+	it('shows NcEmptyContent on root path', () => {
+		routeState.path = '/'
+
+		const wrapper = mount(App, {
+			global: {
+				stubs: {
+					NcContent: { template: '<div><slot /></div>' },
+					NcAppContent: { template: '<main><slot /></main>' },
+					NcEmptyContent: { name: 'NcEmptyContent', template: '<div class="nc-empty-content"><slot /></div>', props: ['description'] },
+					LeftSidebar: true,
+					RightSidebar: true,
+					DefaultPageError: true,
+					RouterView: { template: '<div class="router-view" />' },
+				},
+			},
+		})
+
+		expect(wrapper.find('.nc-empty-content').exists()).toBe(true)
+	})
+
+	it('does not show NcEmptyContent on non-root paths', () => {
+		routeState.path = '/f/filelist/sign'
+
+		const wrapper = mount(App, {
+			global: {
+				stubs: {
+					NcContent: { template: '<div><slot /></div>' },
+					NcAppContent: { template: '<main><slot /></main>' },
+					NcEmptyContent: { name: 'NcEmptyContent', template: '<div class="nc-empty-content"><slot /></div>', props: ['description'] },
+					LeftSidebar: true,
+					RightSidebar: true,
+					DefaultPageError: true,
+					RouterView: { template: '<div class="router-view" />' },
+				},
+			},
+		})
+
+		expect(wrapper.find('.nc-empty-content').exists()).toBe(false)
 	})
 })
