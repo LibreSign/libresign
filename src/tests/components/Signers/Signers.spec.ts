@@ -4,7 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import type { Pinia } from 'pinia'
@@ -27,7 +27,7 @@ describe('Signers', () => {
 	let pinia: Pinia
 
 	const createWrapper = (props: Partial<{ event: string }> = {}) => {
-		return mount(Signers, {
+		return shallowMount(Signers, {
 			props: {
 				event: '',
 				...props,
@@ -36,7 +36,15 @@ describe('Signers', () => {
 				plugins: [pinia],
 				stubs: {
 					Signer: true,
-					draggable: true,
+					draggable: {
+						name: 'draggable',
+						template: '<div><slot /></div>',
+						props: ['modelValue', 'tag', 'handle', 'class', 'chosenClass', 'dragClass'],
+					},
+					'transition-group': {
+						name: 'transition-group',
+						template: '<div><slot /></div>',
+					},
 				},
 			},
 		})
@@ -321,6 +329,37 @@ describe('Signers', () => {
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.canReorder).toBe(false)
+		})
+	})
+
+	describe('RULE: signer.identify is the sole :key — no id/email fallback needed', () => {
+		it('renders one Signer stub per signer when all have identify set', () => {
+			filesStore.selectedFile = {
+				signers: [
+					{ identify: 'abc-1', displayName: 'Alice' },
+					{ identify: 'abc-2', displayName: 'Bob' },
+					{ identify: 'abc-3', displayName: 'Carol' },
+				],
+			}
+			wrapper = createWrapper()
+
+			const signerStubs = wrapper.findAllComponents({ name: 'Signer' })
+			expect(signerStubs).toHaveLength(3)
+		})
+
+		it('renders one Signer stub per signer in ordered_numeric mode with identify', () => {
+			filesStore.selectedFile = {
+				signatureFlow: 'ordered_numeric',
+				signers: [
+					{ identify: 'x-10', signingOrder: 1 },
+					{ identify: 'x-20', signingOrder: 2 },
+				],
+			}
+			filesStore.canSave = vi.fn().mockReturnValue(true)
+			wrapper = createWrapper()
+
+			const signerStubs = wrapper.findAllComponents({ name: 'Signer' })
+			expect(signerStubs).toHaveLength(2)
 		})
 	})
 })
