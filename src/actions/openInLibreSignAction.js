@@ -15,27 +15,16 @@ import SvgIcon from '../../img/app-dark.svg?raw'
 /**
  * Prompts user for envelope name via dialog
  */
-function promptEnvelopeName() {
-	return new Promise((resolve) => {
-		const propsData = {
+async function promptEnvelopeName() {
+	const [envelopeName] = await spawnDialog(
+		EditNameDialog,
+		{
 			title: t('libresign', 'Envelope name'),
 			label: t('libresign', 'Enter a name for the envelope'),
 			placeholder: t('libresign', 'Envelope name'),
-		}
-
-		spawnDialog(
-			{
-				...EditNameDialog,
-				mounted() {
-					EditNameDialog.mounted?.call(this)
-					this.$on('close', (value) => {
-						resolve(value)
-					})
-				},
-			},
-			propsData,
-		)
-	})
+		},
+	)
+	return envelopeName
 }
 
 export const action = {
