@@ -13,8 +13,6 @@
 </template>
 
 <script>
-import { t } from '@nextcloud/l10n'
-
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { getStatusIcon } from '../../../utils/fileStatus.js'
 
