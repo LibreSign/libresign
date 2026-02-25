@@ -571,6 +571,27 @@ describe('files store - critical business rules', () => {
 			expect(signer?.signingOrder).toBe(2)
 		})
 
+			it('deleting signer updates signersCount for file list badges', async () => {
+				const store = useFilesStore()
+				store.selectedFileId = 1
+				store.files[1] = {
+					id: 1,
+					signatureFlow: 'none',
+					signersCount: 2,
+					signers: [
+						{ identify: 'id1' },
+						{ identify: 'id2' },
+					],
+				}
+
+				axiosMock.delete.mockResolvedValue({})
+
+				await store.deleteSigner({ identify: 'id2' })
+
+				expect(store.files[1].signers).toHaveLength(1)
+				expect(store.files[1].signersCount).toBe(1)
+			})
+
 		it('adding signer assigns next signing order in ordered flow', () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
