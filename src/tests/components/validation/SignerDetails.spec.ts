@@ -13,25 +13,36 @@ describe('SignerDetails.vue - Business Logic', () => {
 		[key: string]: unknown
 	}
 
-	const createWrapper = (propsData: SignerDetailsProps = {}) => {
-		return shallowMount(SignerDetails, {
-			props: {
-				signer: {
-					signed: '2024-06-01T12:00:00Z',
-					displayName: 'Test Signer',
-					...propsData.signer,
+		const createWrapper = (propsData: SignerDetailsProps = {}) => {
+			return shallowMount(SignerDetails, {
+				props: {
+					signer: {
+						signed: '2024-06-01T12:00:00Z',
+						displayName: 'Test Signer',
+						...propsData.signer,
+					},
+					...propsData,
 				},
-				...propsData,
-			},
-			stubs: {
-				NcAvatar: true,
-				NcButton: true,
-				NcIconSvgWrapper: true,
-				NcListItem: true,
-				NcNoteCard: true,
-			},
-		})
-	}
+				global: {
+					stubs: {
+						NcAvatar: true,
+						NcButton: true,
+						NcIconSvgWrapper: true,
+						NcListItem: true,
+						NcNoteCard: true,
+						CertificateChain: true,
+					},
+				},
+				stubs: {
+					NcAvatar: true,
+					NcButton: true,
+					NcIconSvgWrapper: true,
+					NcListItem: true,
+					NcNoteCard: true,
+					CertificateChain: true,
+				},
+			})
+		}
 
 	let wrapper: ReturnType<typeof createWrapper>
 
