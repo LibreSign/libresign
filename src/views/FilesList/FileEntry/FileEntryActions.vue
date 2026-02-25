@@ -99,15 +99,15 @@ export default {
 		opened: {
 			type: Boolean,
 			default: false,
-	},
+		},
 		source: {
 			type: Object,
 			required: true,
-	},
+		},
 		loading: {
 			type: Boolean,
 			required: true,
-	},
+		},
 	},
 	setup() {
 		const actionsMenuStore = useActionsMenuStore()
@@ -141,7 +141,7 @@ export default {
 			set(opened) {
 				this.actionsMenuStore.opened = opened ? this.source.id : null
 			},
-	},
+		},
 		visibleMenu() {
 			return this.enabledMenuActions.filter(action => this.visibleIf(action))
 		},
