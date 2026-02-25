@@ -91,6 +91,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { n, t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+import { defineAsyncComponent } from 'vue'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -105,9 +106,9 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-const EnvelopeValidation = () => import('../components/validation/EnvelopeValidation.vue')
-const FileValidation = () => import('../components/validation/FileValidation.vue')
-const SigningProgress = () => import('../components/validation/SigningProgress.vue')
+const EnvelopeValidation = defineAsyncComponent(() => import('../components/validation/EnvelopeValidation.vue'))
+const FileValidation = defineAsyncComponent(() => import('../components/validation/FileValidation.vue'))
+const SigningProgress = defineAsyncComponent(() => import('../components/validation/SigningProgress.vue'))
 
 import logoGray from '../../img/logo-gray.svg'
 import { openDocument } from '../utils/viewer.js'
