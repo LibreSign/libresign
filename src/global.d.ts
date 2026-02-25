@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 LibreSign contributors
+ * SPDX-FileCopyrightText: 2026 LibreSign contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
