@@ -120,10 +120,10 @@ export default {
 			if (this.signatureFlow === 'ordered_numeric' && totalSigners > 1 && this.signer.signingOrder) {
 				return this.signer.signingOrder
 			}
-			return null
+			return 0
 		},
 		counterType() {
-			return this.counterNumber !== null ? 'highlighted' : undefined
+			return this.counterNumber > 0 ? 'highlighted' : undefined
 		},
 		isMethodDisabled() {
 			if (!this.signer.identifyMethods?.length) {
