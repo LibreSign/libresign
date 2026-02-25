@@ -84,22 +84,22 @@ export default {
 		status: {
 			type: Number,
 			required: true,
-	},
+		},
 		statusText: {
 			type: String,
 			required: false,
 			default: '',
-	},
+		},
 		progress: {
 			type: Object,
 			required: false,
 			default: null,
-	},
+		},
 		isLoading: {
 			type: Boolean,
 			required: false,
 			default: false,
-	},
+		},
 	},
 	setup() {
 		return {
