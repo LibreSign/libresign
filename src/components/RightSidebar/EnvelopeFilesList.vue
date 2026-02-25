@@ -333,7 +333,6 @@ export default {
 					}
 				})
 				.catch((error) => {
-					console.error('Failed to load envelope files:', error)
 					this.showError(this.t('libresign', 'Failed to load files'))
 				})
 				.finally(() => {
@@ -557,7 +556,6 @@ export default {
 					this.nameHelperText = this.t('libresign', 'Failed to update')
 				}
 			} catch (error) {
-				console.error('Failed to update envelope name:', error)
 				this.nameUpdateError = true
 				this.nameHelperText = error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to update')
 			} finally {
