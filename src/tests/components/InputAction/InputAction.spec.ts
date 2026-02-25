@@ -10,7 +10,7 @@ import InputAction from '../../../components/InputAction/InputAction.vue'
 describe('InputAction', () => {
 	const createWrapper = (props = {}) => {
 		return mount(InputAction, {
-			propsData: {
+			props: {
 				type: 'text',
 				placeholder: '',
 				disabled: false,
