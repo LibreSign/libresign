@@ -426,6 +426,7 @@ export const useFilesStore = function(...args) {
 					signer.signingOrder = maxOrder + 1
 				}
 				this.getFile().signers.push(signer)
+				this.getFile().signersCount = this.getFile().signers.length
 				const selected = this.selectedFileId
 				this.selectFile(-1) // to force reactivity
 				this.selectFile(selected) // to force reactivity
@@ -443,6 +444,7 @@ export const useFilesStore = function(...args) {
 
 				this.files[this.selectedFileId].signers = this.files[this.selectedFileId].signers
 					.filter((i) => i.identify !== signer.identify)
+				this.files[this.selectedFileId].signersCount = this.files[this.selectedFileId].signers.length
 
 				if (file.signatureFlow === 'ordered_numeric' && signer.signingOrder) {
 					this.files[this.selectedFileId].signers.forEach((s) => {
