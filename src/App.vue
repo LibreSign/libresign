@@ -23,7 +23,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, defineOptions } from 'vue'
+
+defineOptions({ name: 'LibreSign' })
+
 import { useRoute } from 'vue-router'
 import { t } from '@nextcloud/l10n'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
