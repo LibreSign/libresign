@@ -13,7 +13,7 @@
 					:to="{ name: 'fileslist' }"
 					:aria-description="t('libresign', 'Files')"
 					:disable-drop="true"
-					@click.native="refresh()">
+					@click="refresh()">
 					<template #icon>
 						<NcIconSvgWrapper :size="20"
 							:svg="viewIcon" />
@@ -75,9 +75,10 @@
 import { t } from '@nextcloud/l10n'
 
 import HomeSvg from '@mdi/svg/svg/home.svg?raw'
-
-
-import { loadState } from '@nextcloud/initial-state'
+import {
+	mdiFolder,
+	mdiViewGrid,
+} from '@mdi/js'
 
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcBreadcrumb from '@nextcloud/vue/components/NcBreadcrumb'
@@ -103,6 +104,8 @@ export default {
 		NcBreadcrumb,
 		NcBreadcrumbs,
 		NcIconSvgWrapper,
+		NcLoadingIcon,
+		FilesListVirtual,
 		RequestPicker,
 		NcEmptyContent,
 	},
@@ -116,16 +119,20 @@ export default {
 			filtersStore,
 			userConfigStore,
 			sidebarStore,
+			mdiFolder,
+			mdiViewGrid,
 		}
 	},
 	data() {
 		return {
 			loading: true,
 			dirContentsFiltered: [],
-			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
 	},
 	computed: {
+		canRequestSign() {
+			return this.filesStore.canRequestSign
+		},
 		viewIcon() {
 			return HomeSvg
 		},
