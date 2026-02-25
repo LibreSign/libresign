@@ -70,5 +70,38 @@ describe('ManagePassword', () => {
 		expect(wrapper.vm.mdiDelete).toBeTruthy()
 		expect(wrapper.vm.mdiCertificate).toBeTruthy()
 		expect(wrapper.vm.mdiFileReplace).toBeTruthy()
+		expect(wrapper.vm.$options.components.UploadCertificate).toBeTruthy()
+		expect(wrapper.vm.$options.components.ReadCertificate).toBeTruthy()
+	})
+
+	it('calls UploadCertificate triggerUpload through ref safely', () => {
+		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
+			if (key === 'certificate_engine') return 'openssl'
+			if (key === 'config') return { hasSignatureFile: true }
+			return fallback
+		})
+		hasSignatureFileMock.mockReturnValue(true)
+
+		const wrapper = mount(ManagePassword as never, {
+			global: {
+				stubs: {
+					NcButton: { template: '<button><slot /><slot name="icon" /></button>' },
+					NcIconSvgWrapper: { name: 'NcIconSvgWrapper', props: ['path'], template: '<i class="icon" :data-path="path" />' },
+					CreatePassword: true,
+					ReadCertificate: true,
+					ResetPassword: true,
+					UploadCertificate: true,
+				},
+			},
+		})
+
+		const triggerUpload = vi.fn()
+		wrapper.vm.$options.methods.triggerUploadCertificate.call({
+			$refs: {
+				uploadCertificate: { triggerUpload },
+			},
+		})
+
+		expect(triggerUpload).toHaveBeenCalledTimes(1)
 	})
 })
