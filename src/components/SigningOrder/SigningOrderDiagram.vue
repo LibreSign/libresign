@@ -126,11 +126,11 @@ export default {
 		signers: {
 			type: Array,
 			required: true,
-	},
+		},
 		senderName: {
 			type: String,
 			default: '',
-	},
+		},
 	},
 	computed: {
 		uniqueOrders() {
