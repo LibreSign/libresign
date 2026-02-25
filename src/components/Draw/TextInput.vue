@@ -23,7 +23,7 @@
 		<NcDialog v-if="modal"
 			:name="t('libresign', 'Confirm your signature')"
 			@closing="handleModal(false)">
-			<img :src="imageData">
+			<PreviewSignature :src="imageData" />
 			<template #actions>
 				<NcButton variant="primary" @click="saveSignature">
 					{{ t('libresign', 'Save') }}
@@ -46,6 +46,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
 
 export default {
 	name: 'TextInput',
@@ -53,6 +54,7 @@ export default {
 		NcTextField,
 		NcDialog,
 		NcButton,
+		PreviewSignature,
 	},
 	data: () => ({
 		canvasWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
