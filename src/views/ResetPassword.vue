@@ -53,6 +53,7 @@ export default {
 		NcDialog,
 		NcPasswordField,
 		NcButton,
+		NcLoadingIcon,
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
