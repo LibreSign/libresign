@@ -119,7 +119,7 @@ describe('Draw.vue', () => {
 
 	it('renders dialog when mounted', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 				drawEditor: true,
 			},
@@ -141,7 +141,7 @@ describe('Draw.vue', () => {
 
 	it('renders only draw tab when all editors disabled', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 				drawEditor: true,
 				textEditor: false,
@@ -166,7 +166,7 @@ describe('Draw.vue', () => {
 
 	it('renders multiple tabs when multiple editors enabled', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 				drawEditor: true,
 				textEditor: true,
@@ -194,7 +194,7 @@ describe('Draw.vue', () => {
 
 	it('switches active tab when tab clicked', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 				drawEditor: true,
 				textEditor: true,
@@ -210,7 +210,7 @@ describe('Draw.vue', () => {
 
 	it('sets active tab to first available when current is not available', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 				drawEditor: true,
 				textEditor: true,
@@ -232,7 +232,7 @@ describe('Draw.vue', () => {
 
 	it('emits close when close method called', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 			},
 			mocks: {
@@ -247,7 +247,7 @@ describe('Draw.vue', () => {
 
 	it('calls store loadSignatures when save is triggered', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 			},
 			mocks: {
@@ -271,7 +271,7 @@ describe('Draw.vue', () => {
 
 	it('emits save event after complete flow', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 			},
 			mocks: {
@@ -291,7 +291,7 @@ describe('Draw.vue', () => {
 
 	it('closes dialog after successful save', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 			},
 			mocks: {
@@ -315,7 +315,7 @@ describe('Draw.vue', () => {
 
 	it('adds class to body and document on mount', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 			},
 			mocks: {
@@ -331,7 +331,7 @@ describe('Draw.vue', () => {
 
 	it('accepts type property', () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'initial',
 				drawEditor: true,
 			},
@@ -345,7 +345,7 @@ describe('Draw.vue', () => {
 
 	it('replaces active tab when props change', async () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 				drawEditor: true,
 				textEditor: true,
@@ -366,7 +366,7 @@ describe('Draw.vue', () => {
 
 	it('initializes mounted flag to true after mount', () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 			},
 			mocks: {
@@ -379,7 +379,7 @@ describe('Draw.vue', () => {
 
 	it('initializes active tab to draw', () => {
 		const wrapper = mountDraw({
-			propsData: {
+			props: {
 				type: 'signature',
 			},
 			mocks: {
