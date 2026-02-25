@@ -40,11 +40,11 @@ export default {
 		isActive: {
 			type: Boolean,
 			required: true,
-	},
+		},
 		filterName: {
 			type: String,
 			required: true,
-	},
+		},
 	},
 }
 </script>
