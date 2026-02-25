@@ -63,4 +63,35 @@ describe('Signature', () => {
 		expect(wrapper.vm.mdiDelete).toBeTruthy()
 		expect(wrapper.vm.mdiDraw).toBeTruthy()
 	})
+
+	it('renders Draw editor when entering edit mode', async () => {
+		const wrapper = mount(Signature as never, {
+			props: {
+				type: 'signature',
+			},
+			global: {
+				stubs: {
+					NcActions: { template: '<div><slot /></div>' },
+					NcActionButton: { template: '<button><slot /><slot name="icon" /></button>' },
+					NcIconSvgWrapper: { name: 'NcIconSvgWrapper', props: ['path'], template: '<i class="icon" :data-path="path" />' },
+					PreviewSignature: true,
+					Draw: {
+						name: 'Draw',
+						props: ['drawEditor', 'textEditor', 'fileEditor', 'type'],
+						template: '<div class="draw-editor-stub" />',
+					},
+				},
+			},
+		})
+
+		wrapper.vm.edit()
+		await wrapper.vm.$nextTick()
+
+		const draw = wrapper.findComponent({ name: 'Draw' })
+		expect(draw.exists()).toBe(true)
+		expect(draw.props('drawEditor')).toBe(true)
+		expect(draw.props('textEditor')).toBe(true)
+		expect(draw.props('fileEditor')).toBe(true)
+		expect(draw.props('type')).toBe('signature')
+	})
 })
