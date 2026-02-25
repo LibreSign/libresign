@@ -19,16 +19,16 @@ export default {
 			type: String,
 			required: true,
 			default: 'none',
-	},
+		},
 		status: {
 			type: Number,
 			required: true,
 			default: 0,
-	},
+		},
 		signers: {
 			type: Array,
 			default: () => [],
-	},
+		},
 	},
 	methods: {
 		statusToVariant(status) {
