@@ -109,7 +109,7 @@ export default {
 			this.startPolling()
 		}
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		this.stopPolling()
 	},
 	methods: {
