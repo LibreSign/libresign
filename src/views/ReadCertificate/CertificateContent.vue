@@ -159,11 +159,11 @@ export default {
 			type: Object,
 			default: () => {},
 			required: false,
-	},
+		},
 		index: {
 			type: String,
 			default: '0',
-	},
+		},
 	},
 	data() {
 		return {
