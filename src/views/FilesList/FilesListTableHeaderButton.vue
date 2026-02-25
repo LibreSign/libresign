@@ -41,11 +41,11 @@ export default {
 		name: {
 			type: String,
 			required: true,
-	},
+		},
 		mode: {
 			type: String,
 			required: true,
-	},
+		},
 	},
 
 	setup() {
