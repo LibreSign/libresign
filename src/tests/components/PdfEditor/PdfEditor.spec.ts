@@ -156,12 +156,11 @@ describe('PdfEditor Component - Business Rules', () => {
 
 	describe('RULE: startAddingSigner validation', () => {
 		it('returns false when pdfElements not available', () => {
-			Object.defineProperty(wrapper.vm.$refs, 'pdfElements', {
-				value: null,
-				configurable: true,
-			})
-
-			const result = wrapper.vm.startAddingSigner(
+			const result = wrapper.vm.$options.methods.startAddingSigner.call({
+				$refs: {
+					pdfElements: null,
+				},
+			},
 				{ email: 'test@example.com' },
 				{ width: 200, height: 100 },
 			)
