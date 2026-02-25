@@ -161,6 +161,7 @@ export default {
 			mdiLink,
 			mdiPlus,
 			mdiUpload,
+		}
 	},
 	data() {
 		return {
