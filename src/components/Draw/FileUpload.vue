@@ -163,7 +163,7 @@ export default {
 			set(value) {
 				this.onZoomPercentChange(value)
 			},
-	},
+		},
 		stencilAspectRatio() {
 			if (!this.stencilBaseWidth || !this.stencilBaseHeight) {
 				return undefined
