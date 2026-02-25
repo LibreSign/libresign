@@ -43,17 +43,17 @@ export default {
 		signer: {
 			type: Object,
 			required: true,
-	},
+		},
 		to: {
 			type: Object,
 			required: false,
 			default: undefined,
-	},
+		},
 		event: {
 			type: String,
 			required: false,
 			default: '',
-	},
+		},
 	},
 	computed: {
 		displayName() {
