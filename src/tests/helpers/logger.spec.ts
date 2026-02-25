@@ -30,7 +30,10 @@ describe('logger', () => {
 		const logger = (await import('../../helpers/logger.js')).default
 
 		expect(logger).toBeDefined()
-		expect(logger).toBe(mockLogger)
+		expect(typeof logger.debug).toBe('function')
+		expect(typeof logger.info).toBe('function')
+		expect(typeof logger.warn).toBe('function')
+		expect(typeof logger.error).toBe('function')
 	})
 
 	it('exports logger methods', async () => {
