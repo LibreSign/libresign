@@ -72,9 +72,10 @@ export default {
 	name: 'FilesListTableHeaderActions',
 
 	components: {
-		NcActions,
 		NcActionButton,
+		NcActions,
 		NcButton,
+		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcIconSvgWrapper,
 		NcLoadingIcon,
@@ -178,8 +179,9 @@ export default {
 		},
 		changeLoadingStatusOfSelectedFiles(status) {
 			this.selectionStore.selected.forEach(key => {
-				if (this.filesStore.files[key]) {
-					this.filesStore.files[key].loading = status
+				const file = this.filesStore.files[key]
+				if (file) {
+					file.loading = status
 				}
 			})
 		},
