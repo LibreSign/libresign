@@ -61,52 +61,52 @@ export default {
 		displayName: {
 			type: String,
 			default: '',
-	},
+		},
 		width: {
 			type: Number,
 			default: 0,
-	},
+		},
 		height: {
 			type: Number,
 			default: 0,
-	},
+		},
 		originWidth: {
 			type: Number,
 			default: 0,
-	},
+		},
 		originHeight: {
 			type: Number,
 			default: 0,
-	},
+		},
 		x: {
 			type: Number,
 			default: 0,
-	},
+		},
 		y: {
 			type: Number,
 			default: 0,
-	},
+		},
 		pageScale: {
 			type: Number,
 			default: 1,
-	},
+		},
 		fixSize: {
 			type: Boolean,
 			default: false,
+		},
+		readOnly: {
+			type: Boolean,
+			default: false,
+		},
+		useContainerSize: {
+			type: Boolean,
+			default: false,
+		},
+		disableInteractions: {
+			type: Boolean,
+			default: false,
+		},
 	},
-	readOnly: {
-		type: Boolean,
-		default: false,
-	},
-	useContainerSize: {
-		type: Boolean,
-		default: false,
-	},
-	disableInteractions: {
-		type: Boolean,
-		default: false,
-	},
-},
 	data() {
 		return {
 			startX: null,
