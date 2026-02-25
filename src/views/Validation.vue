@@ -277,7 +277,7 @@ export default {
 			this.loading = true
 		}
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		this.isActiveView = false
 	},
 	methods: {
