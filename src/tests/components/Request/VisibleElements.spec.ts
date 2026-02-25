@@ -397,6 +397,34 @@ describe('VisibleElements Component - Business Rules', () => {
 			expect(wrapper.vm.signerSelected).toBe(null)
 		})
 
+		it('forwards actions slot to Signer component', async () => {
+			filesStore.files[1].signers = [{ email: 'john@example.com' }]
+
+			const wrapperWithSlots = mount(VisibleElements, {
+				slots: {
+					actions: '<span class="slot-action">Action</span>',
+				},
+				global: {
+					stubs: {
+						NcModal: { template: '<div><slot /></div>' },
+						NcNoteCard: true,
+						NcChip: true,
+						NcButton: true,
+						NcLoadingIcon: true,
+						PdfEditor: true,
+						Signer: {
+							props: ['signerIndex', 'event'],
+							template: '<div class="signer-stub"><slot name="actions" /></div>',
+						},
+					},
+				},
+			})
+			wrapperWithSlots.vm.modal = true
+			await wrapperWithSlots.vm.$nextTick()
+
+			expect(wrapperWithSlots.find('.slot-action').exists()).toBe(true)
+		})
+
 		it('stops adding signer clears selection', () => {
 			wrapper.vm.signerSelected = { email: 'test@example.com' }
 
