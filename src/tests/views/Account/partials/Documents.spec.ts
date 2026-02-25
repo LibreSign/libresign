@@ -8,7 +8,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 
 const loadStateMock = vi.fn()
 const getCurrentUserMock = vi.fn()
-const axiosGetMock = vi.fn(() => Promise.resolve({ data: { ocs: { data: { data: [] } } } }))
+const axiosGetMock = vi.fn().mockResolvedValue({ data: { ocs: { data: { data: [] } } } })
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: (...args: unknown[]) => loadStateMock(...args),
@@ -20,7 +20,7 @@ vi.mock('@nextcloud/auth', () => ({
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
-		get: (...args: unknown[]) => axiosGetMock(...args),
+		get: axiosGetMock,
 	},
 }))
 
