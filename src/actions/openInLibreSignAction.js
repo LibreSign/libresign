@@ -16,7 +16,7 @@ import SvgIcon from '../../img/app-dark.svg?raw'
  * Prompts user for envelope name via dialog
  */
 async function promptEnvelopeName() {
-	const [envelopeName] = await spawnDialog(
+	const envelopeName = await spawnDialog(
 		EditNameDialog,
 		{
 			title: t('libresign', 'Envelope name'),
