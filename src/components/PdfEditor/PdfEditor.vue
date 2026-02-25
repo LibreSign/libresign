@@ -97,19 +97,19 @@ export default {
 		files: {
 			type: Array,
 			default: () => [],
-	},
+		},
 		fileNames: {
 			type: Array,
 			default: () => [],
-	},
+		},
 		readOnly: {
 			type: Boolean,
 			default: false,
-	},
+		},
 		signers: {
 			type: Array,
 			default: () => [],
-	},
+		},
 	},
 	created() {
 		ensurePdfWorker()
