@@ -42,6 +42,7 @@ export default {
 	components: {
 		NcActionButton,
 		NcIconSvgWrapper,
+		FileListFilter,
 	},
 	setup() {
 		const filtersStore = useFiltersStore()
