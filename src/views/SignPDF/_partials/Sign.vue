@@ -121,7 +121,7 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-		<NcIconSvgWrapper :path="mdiDraw" v-if="signMethodsStore.modal.createSignature"
+		<Draw v-if="signMethodsStore.modal.createSignature"
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"
@@ -147,9 +147,6 @@
 
 <script>
 import { t } from '@nextcloud/l10n'
-import {
-	mdiDraw,
-} from '@mdi/js'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -159,7 +156,6 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -190,15 +186,18 @@ export default {
 	components: {
 		NcDialog,
 		NcButton,
+		NcLoadingIcon,
 		NcNoteCard,
 		NcPasswordField,
 		NcRichText,
-		NcIconSvgWrapper,
 		CreatePassword,
 		TokenManager,
+		EmailManager,
+		UploadCertificate,
 		Documents,
 		Signatures,
 		ManagePassword,
+		Draw,
 	},
 	setup() {
 		const signStore = useSignStore()
@@ -206,8 +205,13 @@ export default {
 		const signatureElementsStore = useSignatureElementsStore()
 		const sidebarStore = useSidebarStore()
 		const identificationDocumentStore = useIdentificationDocumentStore()
-		return { signStore, signMethodsStore, signatureElementsStore, sidebarStore, identificationDocumentStore,
-			mdiDraw,}
+		return {
+			signStore,
+			signMethodsStore,
+			signatureElementsStore,
+			sidebarStore,
+			identificationDocumentStore,
+		}
 	},
 	data() {
 		return {
