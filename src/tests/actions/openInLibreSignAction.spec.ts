@@ -94,24 +94,7 @@ vi.mock('@nextcloud/l10n', () => ({
 }))
 
 vi.mock('@nextcloud/vue/functions/dialog', () => ({
-	spawnDialog: vi.fn((component: { mounted?: () => void }, props: unknown) => {
-		return new Promise<void>((resolve) => {
-			setTimeout(() => {
-				if (component.mounted) {
-					const instance = { $on: vi.fn() }
-					component.mounted.call(instance)
-					const call = instance.$on.mock.calls.find(
-						(c) => c && c[0] === 'close'
-					)
-					const closeHandler = call ? call[1] : null
-					if (closeHandler) {
-						closeHandler('Test Envelope')
-					}
-				}
-				resolve()
-			}, 0)
-		})
-	}),
+	spawnDialog: vi.fn(() => Promise.resolve('Test Envelope')),
 }))
 
 describe('openInLibreSignAction rules', () => {
