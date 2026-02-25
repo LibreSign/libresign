@@ -87,6 +87,12 @@ export default {
 		SignerMenu,
 		SignatureBox,
 	},
+	setup() {
+		return {
+			mdiContentCopy,
+			mdiDelete,
+		}
+	},
 	props: {
 		files: {
 			type: Array,
@@ -104,12 +110,6 @@ export default {
 			type: Array,
 			default: () => [],
 	},
-	},
-	data() {
-		return {
-			mdiContentCopy,
-			mdiDelete,
-		}
 	},
 	created() {
 		ensurePdfWorker()
