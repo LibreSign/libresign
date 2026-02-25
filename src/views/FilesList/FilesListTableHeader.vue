@@ -136,7 +136,7 @@ export default {
 		},
 		onToggleAll(selected) {
 			if (selected) {
-				const selection = this.filesStore.ordered
+				const selection = this.filesStore.ordered.map(id => Number(id))
 				logger.debug('Added all nodes to selection', { selection })
 				this.selectionStore.setLastIndex(null)
 				this.selectionStore.set(selection)
