@@ -98,6 +98,7 @@ export default {
 	name: 'IdentifySigner',
 	components: {
 		NcButton,
+		NcCheckboxRadioSwitch,
 		NcIconSvgWrapper,
 		NcNoteCard,
 		NcTextArea,
@@ -237,7 +238,6 @@ export default {
 					return
 				}
 			} catch (error) {
-				console.error('Error saving signer:', error)
 				showError(t('libresign', 'Failed to save or update signature request'))
 				return
 			}
