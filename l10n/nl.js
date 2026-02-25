@@ -191,6 +191,7 @@ OC.L10N.register(
     "File was sent." : "Bestand is verstuurd.",
     "File was deleted." : "Bestand was verwijderd",
     "Delete file" : "Bestand verwijderen",
+    "Delete certificate" : "Verwijder certificaat",
     "Change password" : "Wachtwoord wijzigen",
     "Your signatures" : "Jouw handtekeningen",
     "Signature" : "Handtekening",
