@@ -167,12 +167,15 @@ export default {
 	components: {
 		NcActionButton,
 		NcButton,
+		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcEmptyContent,
 		NcListItem,
+		NcLoadingIcon,
 		NcNoteCard,
 		NcTextField,
 		NcIconSvgWrapper,
+		UploadProgress,
 	},
 	props: {
 		open: {
