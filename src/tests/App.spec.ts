@@ -5,14 +5,13 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { reactive } from 'vue'
 
-const routeState = reactive({
+const routeState = {
 	path: '/f/filelist/sign',
 	name: 'fileslist',
 	params: {},
 	matched: [] as Array<{ meta?: Record<string, unknown> }>,
-})
+}
 
 vi.mock('vue-router', async () => {
 	const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
