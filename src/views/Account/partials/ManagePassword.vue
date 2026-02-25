@@ -4,8 +4,9 @@
 -->
 <template>
 	<div class="user-display-password">
-		<NcButton :wide="true"
-			@click="$refs.uploadCertificate.triggerUpload()">
+		<NcButton v-if="mounted"
+			:wide="true"
+			@click="triggerUploadCertificate">
 			{{ t('libresign', 'Upload certificate') }}
 			<template #icon>
 				<NcIconSvgWrapper :path="mdiCloudUpload" :size="20" />
@@ -83,7 +84,9 @@ export default {
 		NcButton,
 		NcIconSvgWrapper,
 		CreatePassword,
+		ReadCertificate,
 		ResetPassword,
+		UploadCertificate,
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
@@ -109,6 +112,9 @@ export default {
 	},
 	methods: {
 		t,
+		triggerUploadCertificate() {
+			this.$refs.uploadCertificate.triggerUpload()
+		},
 		onCertificateUploaded() {
 			this.$emit('certificate:uploaded')
 		},
