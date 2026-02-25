@@ -92,6 +92,7 @@ export default {
 	name: 'Documents',
 	components: {
 		NcButton,
+		NcLoadingIcon,
 		NcNoteCard,
 		NcIconSvgWrapper,
 	},
