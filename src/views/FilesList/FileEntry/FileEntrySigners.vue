@@ -14,8 +14,6 @@
 </template>
 
 <script>
-import { t } from '@nextcloud/l10n'
-
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { mdiAccountMultiple } from '@mdi/js'
 import { vTooltip } from 'floating-vue'
@@ -29,7 +27,7 @@ export default {
 	directives: {
 		tooltip: vTooltip,
 	},
-	data() {
+	setup() {
 		return {
 			mdiAccountMultiple,
 		}
