@@ -29,6 +29,7 @@ export default {
 
 	components: {
 		NcLoadingIcon,
+		NcCheckboxRadioSwitch,
 	},
 	props: {
 		isLoading: {
