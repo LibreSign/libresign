@@ -449,7 +449,7 @@ export default {
 				this.signatureTextTemplate = value
 				this.debouncePropertyChange()
 			},
-	},
+		},
 		displayResetRenderMode() {
 			return this.renderMode !== 'GRAPHIC_AND_DESCRIPTION'
 		},
