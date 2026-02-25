@@ -146,7 +146,7 @@ export default {
 		inline: {
 			type: Boolean,
 			default: false,
-	},
+		},
 	},
 	setup() {
 		const actionsMenuStore = useActionsMenuStore()
@@ -160,9 +160,9 @@ export default {
 			mdiFolder,
 			mdiLink,
 			mdiPlus,
-			mdiUpload,}
+			mdiUpload,
 	},
-		data() {
+	data() {
 		return {
 			modalUploadFromUrl: false,
 			uploadUrlErrors: [],
