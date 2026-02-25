@@ -24,5 +24,17 @@ export default createAppConfig({
 				'@': resolve(import.meta.dirname, 'src'),
 			},
 		},
+		plugins: [
+			{
+				name: 'vue-devtools',
+				config(_, { mode }) {
+					return {
+						define: {
+							__VUE_PROD_DEVTOOLS__: mode !== 'production',
+						},
+					}
+				},
+			},
+		],
 	},
 })
