@@ -60,6 +60,7 @@ export default {
 		NcButton,
 		NcNoteCard,
 		NcLoadingIcon,
+		CertificateContent,
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
