@@ -56,6 +56,11 @@ export default {
 		NcSelect,
 		NcIconSvgWrapper,
 	},
+	setup() {
+		return {
+			mdiAlertCircle,
+		}
+	},
 	props: {
 		signer: {
 			type: Object,
@@ -82,9 +87,9 @@ export default {
 	computed: {
 		noResultText() {
 			if (this.loading) {
-				return t('libesign', 'Searching …')
+				return t('libresign', 'Searching …')
 			}
-			return t('libesign', 'No signers.')
+			return t('libresign', 'No signers.')
 		},
 	},
 	watch: {
@@ -110,20 +115,19 @@ export default {
 		async _asyncFind(search, lookup = false) {
 			search = search.trim()
 			this.loading = true
-			let response = null
 			try {
-				response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/identify-account/search'), {
+				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/identify-account/search'), {
 					params: {
 						search,
 						method: this.method,
 	},
 				})
+				this.options = this.injectIcons(response.data.ocs.data)
 			} catch (error) {
 				this.haveError = true
-				return
+			} finally {
+				this.loading = false
 			}
-			this.options = this.injectIcons(response.data.ocs.data)
-			this.loading = false
 		},
 		asyncFind: debounce(function(search, lookup = false) {
 			this._asyncFind(search, lookup)
@@ -134,7 +138,7 @@ export default {
 				return {
 					...item,
 					...(icon ? { iconSvg: icon } : {}),
-					label: item.label ?? '',
+					label: item.label ?? item.displayName ?? item.id ?? item.subname ?? '',
 					displayName: item.displayName ?? '',
 					subname: item.subname ?? '',
 				}
