@@ -112,7 +112,12 @@ export default {
 	setup() {
 		const signStore = useSignStore()
 		const signMethodsStore = useSignMethodsStore()
-		return { signStore, signMethodsStore }
+		return {
+			signStore,
+			signMethodsStore,
+			mdiFormTextboxPassword,
+			mdiEmail,
+		}
 	},
 	data: () => ({
 		loading: false,
@@ -120,8 +125,6 @@ export default {
 		errorMessage: '',
 		token: '',
 		sendTo: '',
-		mdiFormTextboxPassword,
-		mdiEmail,
 	}),
 	computed: {
 		canRequestCode() {
