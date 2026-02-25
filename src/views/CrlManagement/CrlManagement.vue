@@ -156,11 +156,19 @@
 							<td class="crl-table__cell--monospace">{{ entry.serial_number }}</td>
 							<td>
 								<span v-if="entry.certificate_type === 'root'" class="certificate-type certificate-type--root">
-									<NcIconSvgWrapper :path="mdiShieldLock" :size="16" />
+									<span class="certificate-type__icon">
+										<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+											<path :d="mdiShieldLock" />
+										</svg>
+									</span>
 									{{ t('libresign', 'Root CA') }}
 								</span>
 								<span v-else-if="entry.certificate_type === 'intermediate'" class="certificate-type certificate-type--intermediate">
-									<NcIconSvgWrapper :path="mdiShieldLock" :size="16" />
+									<span class="certificate-type__icon">
+										<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+											<path :d="mdiShieldLock" />
+										</svg>
+									</span>
 									{{ t('libresign', 'Intermediate CA') }}
 								</span>
 								<span v-else class="certificate-type certificate-type--user">
@@ -854,11 +862,16 @@ export default {
 }
 
 .status-badge {
-	display: inline-block;
-	padding: 4px 8px;
-	border-radius: 12px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 26px;
+	padding: 0 10px;
+	border-radius: 13px;
+	box-sizing: border-box;
 	font-size: 12px;
 	font-weight: 600;
+	line-height: 1;
 	text-transform: uppercase;
 
 	&--issued {
@@ -880,11 +893,32 @@ export default {
 .certificate-type {
 	display: inline-flex;
 	align-items: center;
+	justify-content: center;
 	gap: 4px;
-	padding: 4px 8px;
-	border-radius: 12px;
+	height: 26px;
+	padding: 0 10px;
+	border-radius: 13px;
+	box-sizing: border-box;
 	font-size: 12px;
 	font-weight: 600;
+	line-height: 1;
+
+	&__icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 14px;
+		height: 14px;
+		flex: 0 0 14px;
+		line-height: 0;
+
+		svg {
+			display: block;
+			width: 14px;
+			height: 14px;
+			fill: currentColor;
+		}
+	}
 
 	&--root {
 		background-color: #e3f2fd;
