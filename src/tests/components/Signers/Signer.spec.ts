@@ -189,7 +189,7 @@ describe('Signer', () => {
 			expect(wrapper.vm.counterNumber).toBe(1)
 		})
 
-		it('returns null in parallel flow', () => {
+		it('returns 0 in parallel flow', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'parallel',
 				signers: [
@@ -199,32 +199,32 @@ describe('Signer', () => {
 			}
 			wrapper = createWrapper({ signerIndex: 0 })
 
-			expect(wrapper.vm.counterNumber).toBeNull()
+			expect(wrapper.vm.counterNumber).toBe(0)
 		})
 
-		it('returns null with single signer', () => {
+		it('returns 0 with single signer', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'ordered_numeric',
 				signers: [{ signingOrder: 1 }],
 			}
 			wrapper = createWrapper({ signerIndex: 0 })
 
-			expect(wrapper.vm.counterNumber).toBeNull()
+			expect(wrapper.vm.counterNumber).toBe(0)
 		})
 
-		it('returns null when no signingOrder', () => {
+		it('returns 0 when no signingOrder', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'ordered_numeric',
 				signers: [{}, {}],
 			}
 			wrapper = createWrapper({ signerIndex: 0 })
 
-			expect(wrapper.vm.counterNumber).toBeNull()
+			expect(wrapper.vm.counterNumber).toBe(0)
 		})
 	})
 
 	describe('RULE: counterType returns highlighted when counterNumber exists', () => {
-		it('returns highlighted when counterNumber is not null', () => {
+		it('returns highlighted when counterNumber is positive', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'ordered_numeric',
 				signers: [
@@ -237,7 +237,7 @@ describe('Signer', () => {
 			expect(wrapper.vm.counterType).toBe('highlighted')
 		})
 
-		it('returns undefined when counterNumber is null', () => {
+		it('returns undefined when counterNumber is 0', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'parallel',
 				signers: [{}],
