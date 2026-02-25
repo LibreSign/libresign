@@ -131,4 +131,102 @@ describe('ResetPassword.vue', () => {
 		expect(wrapper.vm.hasLoading).toBe(false)
 		expect(wrapper.emitted('close')).toEqual([[true]])
 	})
+
+	it('does not submit when invalid and requests focus on first invalid field', async () => {
+		const wrapper = shallowMount(ResetPassword, {
+			global: {
+				stubs: {
+					NcDialog: true,
+					NcPasswordField: true,
+					NcButton: true,
+					NcLoadingIcon: true,
+				},
+			},
+		})
+
+		const focusFirstInvalidField = vi.fn()
+
+		await wrapper.vm.$options.methods.send.call({
+			canSave: false,
+			focusFirstInvalidField,
+		})
+
+		expect(patchMock).not.toHaveBeenCalled()
+		expect(focusFirstInvalidField).toHaveBeenCalledTimes(1)
+	})
+
+	it('prioritizes focus order for invalid fields', () => {
+		const wrapper = shallowMount(ResetPassword, {
+			global: {
+				stubs: {
+					NcDialog: true,
+					NcPasswordField: true,
+					NcButton: true,
+					NcLoadingIcon: true,
+				},
+			},
+		})
+
+		const focusField = vi.fn()
+
+		wrapper.vm.$options.methods.focusFirstInvalidField.call({
+			currentPassword: '',
+			newPassword: '',
+			rPassword: '',
+			validNewPassord: false,
+			focusField,
+		})
+		expect(focusField).toHaveBeenLastCalledWith('currentPasswordField')
+
+		wrapper.vm.$options.methods.focusFirstInvalidField.call({
+			currentPassword: 'current-secret',
+			newPassword: '',
+			rPassword: '',
+			validNewPassord: false,
+			focusField,
+		})
+		expect(focusField).toHaveBeenLastCalledWith('newPasswordField')
+
+		wrapper.vm.$options.methods.focusFirstInvalidField.call({
+			currentPassword: 'current-secret',
+			newPassword: 'new-secret',
+			rPassword: '',
+			validNewPassord: false,
+			focusField,
+		})
+		expect(focusField).toHaveBeenLastCalledWith('repeatPasswordField')
+	})
+
+	it('routes Enter key to focus invalid field or submit', async () => {
+		const wrapper = shallowMount(ResetPassword, {
+			global: {
+				stubs: {
+					NcDialog: true,
+					NcPasswordField: true,
+					NcButton: true,
+					NcLoadingIcon: true,
+				},
+			},
+		})
+
+		const focusFirstInvalidField = vi.fn()
+		const send = vi.fn()
+
+		wrapper.vm.$options.methods.handleEnter.call({
+			canSave: false,
+			focusFirstInvalidField,
+			send,
+		})
+
+		expect(focusFirstInvalidField).toHaveBeenCalledTimes(1)
+		expect(send).not.toHaveBeenCalled()
+
+		wrapper.vm.$options.methods.handleEnter.call({
+			canSave: true,
+			focusFirstInvalidField,
+			send,
+		})
+
+		expect(send).toHaveBeenCalledTimes(1)
+	})
 })
