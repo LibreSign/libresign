@@ -73,7 +73,7 @@ export default {
 				const file = this.filesStore.getFile()
 				file.signers = value
 			},
-	},
+		},
 		isOrderedNumeric() {
 			const file = this.filesStore.getFile()
 			let flow = file?.signatureFlow
