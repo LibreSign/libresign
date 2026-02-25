@@ -821,6 +821,42 @@ describe('files store - critical business rules', () => {
 		})
 	})
 
+	describe('RULE: addFile sets identify on all signers (contract used by Signers.vue :key)', () => {
+		it('sets identify from signRequestId when present', async () => {
+			const store = useFilesStore()
+			await store.addFile({ id: 1, signers: [{ email: 'a@example.com', signRequestId: 42 }] })
+
+			expect(store.files[1].signers[0].identify).toBe(42)
+		})
+
+		it('generates identify for new signers without signRequestId', async () => {
+			const store = useFilesStore()
+			await store.addFile({ id: 1, signers: [{ email: 'b@example.com' }] })
+
+			expect(store.files[1].signers[0].identify).toBeDefined()
+			expect(typeof store.files[1].signers[0].identify).toBe('string')
+		})
+
+		it('sets identify on every signer in a multi-signer file', async () => {
+			const store = useFilesStore()
+			await store.addFile({
+				id: 2,
+				signers: [
+					{ email: 'c@example.com', signRequestId: 10 },
+					{ email: 'd@example.com' },
+					{ email: 'e@example.com', signRequestId: 20 },
+				],
+			})
+
+			const signers = store.files[2].signers
+			for (const signer of signers) {
+				expect(signer.identify).toBeDefined()
+			}
+			expect(signers[0].identify).toBe(10)
+			expect(signers[2].identify).toBe(20)
+		})
+	})
+
 	describe('RULE: file lookup by nodeId', () => {
 		it('returns file id when nodeId matches', () => {
 			const store = useFilesStore()
