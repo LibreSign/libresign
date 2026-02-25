@@ -6,7 +6,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
-const routeState = {
+type RouteState = {
+	path: string
+	name: string | undefined
+	params: Record<string, unknown>
+	matched: Array<{ meta?: Record<string, unknown> }>
+}
+
+const routeState: RouteState = {
 	path: '/f/filelist/sign',
 	name: 'fileslist',
 	params: {},
