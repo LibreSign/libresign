@@ -94,9 +94,6 @@ vi.mock('../../../views/FilesList/FileEntry/FileEntrySigners.vue', () => ({
 vi.mock('../../../views/FilesList/FileEntry/FileEntryMixin.js', () => ({
 	default: {
 		computed: {
-			source(this: { source?: FileEntrySource }): FileEntrySource {
-				return this.source ?? ({} as FileEntrySource)
-			},
 			fileExtension() {
 				return 'pdf'
 			},
@@ -432,11 +429,8 @@ describe('FileEntry.vue - Individual File Entry', () => {
 			},
 		})
 
-		wrapper.vm.$refs.actions = {
-			doRename: vi.fn().mockRejectedValue(new Error('Rename failed')),
-		}
-
 		await wrapper.vm.$nextTick()
+		vi.spyOn(wrapper.vm.$refs.actions, 'doRename').mockRejectedValueOnce(new Error('Rename failed'))
 		try {
 			await wrapper.vm.onRename('newname.pdf')
 		} catch (e) {}
