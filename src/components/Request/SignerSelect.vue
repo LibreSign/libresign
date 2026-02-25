@@ -99,15 +99,15 @@ export default {
 		signer: {
 			type: Object,
 			default: () => {},
-	},
+		},
 		method: {
 			type: String,
 			default: 'all',
-	},
+		},
 		placeholder: {
 			type: String,
 			default: t('libresign', 'Name'),
-	},
+		},
 	},
 	data() {
 		return {
@@ -145,7 +145,7 @@ export default {
 		this.setupVisibilityObserver()
 		this.focusInput()
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		if (this.intersectionObserver) {
 			this.intersectionObserver.disconnect()
 		}
