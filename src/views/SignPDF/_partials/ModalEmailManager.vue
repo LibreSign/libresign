@@ -106,6 +106,7 @@ export default {
 		NcDialog,
 		NcTextField,
 		NcButton,
+		NcLoadingIcon,
 		NcIconSvgWrapper,
 	},
 	setup() {
