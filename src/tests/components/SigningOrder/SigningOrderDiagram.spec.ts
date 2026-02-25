@@ -36,7 +36,7 @@ beforeAll(async () => {
 describe('SigningOrderDiagram', () => {
 	const createWrapper = (props = {}) => {
 		return mount(SigningOrderDiagram, {
-			propsData: {
+			props: {
 				signers: [],
 				senderName: 'Test Sender',
 				...props,
