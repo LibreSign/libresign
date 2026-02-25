@@ -116,6 +116,7 @@ export default {
 			selectedSigner: null,
 			haveError: false,
 			intersectionObserver: null,
+			activeRequestId: 0,
 		}
 	},
 	computed: {
@@ -127,6 +128,11 @@ export default {
 		},
 	},
 	watch: {
+		method() {
+			this.options = []
+			this.haveError = false
+			this.loading = false
+		},
 		selectedSigner(selected) {
 			this.haveError = selected === null
 			this.$emit('update:signer', selected)
@@ -148,6 +154,13 @@ export default {
 		t,
 		async _asyncFind(search, lookup = false) {
 			search = search.trim()
+			if (!search) {
+				this.options = []
+				this.loading = false
+				return
+			}
+
+			const requestId = ++this.activeRequestId
 			this.loading = true
 			try {
 				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/identify-account/search'), {
@@ -156,11 +169,18 @@ export default {
 						method: this.method,
 	},
 				})
+				if (requestId !== this.activeRequestId) {
+					return
+				}
 				this.options = this.injectIcons(response.data.ocs.data)
 			} catch (error) {
-				this.haveError = true
+				if (requestId === this.activeRequestId) {
+					this.haveError = true
+				}
 			} finally {
-				this.loading = false
+				if (requestId === this.activeRequestId) {
+					this.loading = false
+				}
 			}
 		},
 		asyncFind: debounce(function(search, lookup = false) {
