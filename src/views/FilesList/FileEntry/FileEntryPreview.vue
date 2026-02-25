@@ -23,9 +23,6 @@
 </template>
 
 <script>
-import { t } from '@nextcloud/l10n'
-
-
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
