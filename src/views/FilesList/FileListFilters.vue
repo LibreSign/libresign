@@ -44,6 +44,8 @@ export default {
 	components: {
 		NcChip,
 		NcAvatar,
+		FileListFilterModified,
+		FileListFilterStatus,
 	},
 	setup() {
 		const filtersStore = useFiltersStore()
