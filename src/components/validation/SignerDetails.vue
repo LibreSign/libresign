@@ -268,11 +268,11 @@ export default {
 		signer: {
 			type: Object,
 			required: true,
-	},
+		},
 		initiallyOpen: {
 			type: Boolean,
 			default: false,
-	},
+		},
 	},
 	setup() {
 		return {
