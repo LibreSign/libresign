@@ -129,6 +129,7 @@
 			class="extra"
 			compact
 			:name="t('libresign', 'Document certification')"
+			:aria-expanded="docMdpOpen ? 'true' : 'false'"
 			role="button"
 			@click="docMdpOpen = !docMdpOpen">
 			<template #name>
