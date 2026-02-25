@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2021 LibreCode coop and LibreCode contributors
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and LibreCode contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -13,9 +13,6 @@ import { FileType, registerSidebarTab } from '@nextcloud/files'
 import LibreSignLogoDarkSvg from '../img/app-dark.svg?raw'
 
 import AppFilesTab from './components/RightSidebar/AppFilesTab.vue'
-
-import './actions/openInLibreSignAction'
-import './actions/showStatusInlineAction'
 
 import './style/icons.scss'
 
