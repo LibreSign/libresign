@@ -7,24 +7,24 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import PdfEditor from '../../../components/PdfEditor/PdfEditor.vue'
 
-const pdfElementsMethods = vi.hoisted(() => ({
-	startAddingElement: vi.fn(),
-	cancelAdding: vi.fn(),
-	addObjectToPage: vi.fn(),
-	updateObject: vi.fn(),
-	adjustZoomToFit: vi.fn(),
-	getPageHeight: vi.fn(() => 841.89),
-	pdfDocuments: [],
-	selectedDocIndex: 0,
-	autoFitZoom: true,
-}))
-
 vi.mock('@libresign/pdf-elements/src/components/PDFElements.vue', () => ({
 	default: {
 		name: 'PDFElements',
 		template: '<div class="pdf-elements-mock"></div>',
-		setup(_props: unknown, { expose }: { expose: (methods: typeof pdfElementsMethods) => void }) {
-			expose(pdfElementsMethods)
+		setup(_props: unknown, { expose }: { expose: (methods: any) => void }) {
+			const methods = {
+				startAddingElement: vi.fn(),
+				cancelAdding: vi.fn(),
+				addObjectToPage: vi.fn(),
+				updateObject: vi.fn(),
+				adjustZoomToFit: vi.fn(),
+				getPageHeight: vi.fn(() => 841.89),
+				pdfDocuments: [],
+				selectedDocIndex: 0,
+				autoFitZoom: true,
+			}
+			expose(methods)
+			return methods
 		},
 	},
 }))
@@ -38,12 +38,6 @@ describe('PdfEditor Component - Business Rules', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-		pdfElementsMethods.pdfDocuments = []
-		pdfElementsMethods.selectedDocIndex = 0
-		pdfElementsMethods.startAddingElement = vi.fn()
-		pdfElementsMethods.cancelAdding = vi.fn()
-		pdfElementsMethods.addObjectToPage = vi.fn()
-		pdfElementsMethods.updateObject = vi.fn()
 		wrapper = mount(PdfEditor, {
 			props: {
 				files: [],
@@ -55,17 +49,10 @@ describe('PdfEditor Component - Business Rules', () => {
 				stubs: {
 					NcButton: true,
 					NcIconSvgWrapper: true,
-					PDFElements: false,
 					SignerMenu: true,
 					SignatureBox: true,
 				},
 			},
-		})
-		Object.defineProperty(wrapper.vm, '$refs', {
-			value: {
-				pdfElements: pdfElementsMethods,
-			},
-			configurable: true,
 		})
 	})
 
@@ -193,7 +180,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			const result = wrapper.vm.startAddingSigner(signer, size)
 
 			expect(result).toBe(true)
-			expect(pdfElementsMethods.startAddingElement).toHaveBeenCalledWith({
+		expect(wrapper.vm.$refs.pdfElements.startAddingElement).toHaveBeenCalledWith({
 				type: 'signature',
 				width: 200,
 				height: 100,
@@ -213,7 +200,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			wrapper.vm.startAddingSigner(signer, size)
 
-			expect(pdfElementsMethods.startAddingElement).toHaveBeenCalledWith(
+		expect(wrapper.vm.$refs.pdfElements.startAddingElement).toHaveBeenCalledWith(
 				expect.objectContaining({
 					signer: expect.objectContaining({
 						element: expect.objectContaining({
@@ -657,16 +644,16 @@ describe('PdfEditor Component - Business Rules', () => {
 		it('calls pdfElements cancelAdding when available', () => {
 			wrapper.vm.cancelAdding()
 
-			expect(pdfElementsMethods.cancelAdding).toHaveBeenCalled()
+			expect(wrapper.vm.$refs.pdfElements.cancelAdding).toHaveBeenCalled()
 		})
 
 		it('does not error when pdfElements not available', () => {
-			Object.defineProperty(wrapper.vm, '$refs', {
-				value: { pdfElements: null },
-				configurable: true,
-			})
-
-			expect(() => wrapper.vm.cancelAdding()).not.toThrow()
+			expect(() => {
+				const { cancelAdding } = wrapper.vm.$options.methods
+				cancelAdding.call({
+					$refs: { pdfElements: null },
+				})
+			}).not.toThrow()
 		})
 	})
 
@@ -743,12 +730,10 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('resolves immediately when pdfElements is null', async () => {
-			Object.defineProperty(wrapper.vm, '$refs', {
-				value: { pdfElements: null },
-				configurable: true,
-			})
-
-			await wrapper.vm.waitForPageRender(0, 0)
+			const { waitForPageRender } = wrapper.vm.$options.methods
+			await waitForPageRender.call({
+				$refs: { pdfElements: null },
+			}, 0, 0)
 		})
 	})
 
@@ -827,10 +812,7 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('does nothing when pdfElements is null', async () => {
-			Object.defineProperty(wrapper.vm, '$refs', {
-				value: { pdfElements: null },
-				configurable: true,
-			})
+			const { addSigner } = wrapper.vm.$options.methods
 
 			const signer = {
 				element: {
@@ -839,7 +821,9 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await addSigner.call({
+				$refs: { pdfElements: null },
+			}, signer)
 		})
 	})
 
