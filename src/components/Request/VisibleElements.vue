@@ -36,7 +36,9 @@
 						:signer-index="key"
 						:class="{ disabled: signerSelected }"
 						event="libresign:visible-elements-select-signer">
-						<slot v-bind="{signer}" slot="actions" name="actions" />
+						<template #actions>
+							<slot name="actions" v-bind="{ signer }" />
+						</template>
 					</Signer>
 				</ul>
 				<NcButton v-if="canSave"
@@ -106,6 +108,7 @@ export default {
 		NcChip,
 		Signer,
 		NcButton,
+		NcLoadingIcon,
 		PdfEditor,
 	},
 	setup() {
