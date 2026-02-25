@@ -7,10 +7,12 @@ import axios from '@nextcloud/axios'
 import { addNewFileMenuEntry, Permission, getSidebar } from '@nextcloud/files'
 import type { NewMenuEntry, IFolder, INode } from '@nextcloud/files'
 import { registerDavProperty } from '@nextcloud/files/dav'
+import { getClient, resultToNode } from '@nextcloud/files/dav'
 import { n, t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 import { getUploader } from '@nextcloud/upload'
 import type { Uploader } from '@nextcloud/upload'
+import type { FileStat, ResponseDataDetailed } from 'webdav'
 
 import logger from './logger'
 import LibreSignLogoSvg from '../img/app-colored.svg?raw'
@@ -51,24 +53,26 @@ addNewFileMenuEntry({
 				return
 			}
 
-			this.uploadManager?.addNotifier(async (upload: UploadPayload) => {
-				const path = context.path + '/' + upload.file.name
-				await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
-					file: {
-						path,
-					},
-					name: upload.file.name,
-				})
-					.then(async ({ data }) => {
-						const sidebar = getSidebar()
-					sidebar.open({ path } as INode, 'libresign')
-						sidebar.setActiveTab('libresign')
-					})
-					.catch((error) => logger.error('Error uploading file:', error))
+			const path = context.path + '/' + file.name
+
+			await this.uploadManager?.upload(file.name, file)
+
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+				file: {
+					path,
+				},
+				name: file.name,
 			})
-			this.uploadManager
-			?.upload(file.name, file)
-				.catch((error) => logger.debug('Error while uploading', { error }))
+
+			// Fetch the complete node object from the Files API
+			const client = getClient()
+			const result = await client.stat(path, { details: true }) as ResponseDataDetailed<FileStat>
+			const node = resultToNode(result.data)
+
+			// Open sidebar with LibreSign tab
+			const sidebar = getSidebar()
+			sidebar.open(node, 'libresign')
+			sidebar.setActiveTab('libresign')
 		}
 
 		input.click()
