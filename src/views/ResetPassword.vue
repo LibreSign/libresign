@@ -9,7 +9,7 @@
 		class="container"
 		is-form
 		@submit.prevent="send()"
-		@closing="signMethodsStore.closeModal('resetPassword')">
+		@closing="onClose">
 		<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
 		<NcPasswordField v-model="currentPassword"
 			:label="t('libresign', 'Current password')" />
@@ -77,6 +77,16 @@ export default {
 	},
 	methods: {
 		t,
+		resetForm() {
+			this.newPassword = ''
+			this.currentPassword = ''
+			this.rPassword = ''
+			this.hasLoading = false
+		},
+		onClose() {
+			this.signMethodsStore.closeModal('resetPassword')
+			this.resetForm()
+		},
 		async send() {
 			this.hasLoading = true
 			await axios.patch(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), {
@@ -85,8 +95,7 @@ export default {
 			})
 				.then(({ data }) => {
 					showSuccess(data.ocs.data.message)
-					this.hasLoading = false
-					this.signMethodsStore.closeModal('resetPassword')
+					this.onClose()
 					this.$emit('close', true)
 				})
 				.catch(({ response }) => {
