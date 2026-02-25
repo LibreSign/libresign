@@ -227,6 +227,16 @@ describe('Validation.vue - Business Logic', () => {
 		})
 	})
 
+	describe('async signing rendering', () => {
+		it('does not render Promise text in async signing mode', async () => {
+			await wrapper.setData({
+				isAsyncSigning: true,
+			})
+
+			expect(wrapper.html()).not.toContain('[object Promise]')
+		})
+	})
+
 	describe('getValidityStatus method', () => {
 		it('returns unknown when valid_to is missing', () => {
 			const signer = {}
