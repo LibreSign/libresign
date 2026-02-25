@@ -36,13 +36,36 @@ describe('SignerSelect.vue', () => {
 	})
 
 	it('injectIcons sets a visible label fallback from displayName or id', () => {
-		const result = SignerSelect.methods.injectIcons.call({}, [
-			{ id: 'alice@example.com', displayName: 'Alice Example', subname: 'alice@example.com' },
+		const result = SignerSelect.methods.injectIcons.call({ method: 'all' }, [
+			{ id: 'alice@example.com', displayName: 'Alice Example', subname: 'alice@example.com', iconSvg: 'svgAccount' },
 			{ id: 'bob@example.com', subname: 'bob@example.com' },
+			{ id: 'email@example.com', displayName: 'Email User', iconSvg: 'svgEmail' },
+			{ id: 'custom@example.com', displayName: 'Custom Icon', iconSvg: '<svg>custom</svg>' },
 		])
 
 		expect(result[0].label).toBe('Alice Example')
 		expect(result[1].label).toBe('bob@example.com')
+		expect(result[0].iconSvg).not.toBe('svgAccount')
+		expect(result[2].iconSvg).not.toBe('svgEmail')
+		expect(result[3].iconSvg).toBeUndefined()
+	})
+
+	it('injectIcons does not infer icon when backend does not provide icon fields', () => {
+		const result = SignerSelect.methods.injectIcons.call({ method: 'email' }, [
+			{ id: 'user@example.com', displayName: 'User Email' },
+		])
+
+		expect(result[0].iconSvg).toBeUndefined()
+	})
+
+	it('injectIcons maps API icon classes to corresponding svg icons', () => {
+		const result = SignerSelect.methods.injectIcons.call({ method: 'all' }, [
+			{ id: 'leon@example.com', displayName: 'Leon Green', method: 'email', icon: 'icon-mail' },
+			{ id: 'user01', displayName: 'user01', method: 'account', icon: 'icon-user' },
+		])
+
+		expect(result[0].iconSvg).toBeTruthy()
+		expect(result[1].iconSvg).toBeTruthy()
 	})
 
 	it('async search populates options with readable labels', async () => {
@@ -71,5 +94,20 @@ describe('SignerSelect.vue', () => {
 		expect(context.haveError).toBe(false)
 		expect(context.options).toHaveLength(1)
 		expect(context.options[0].label).toBe('Carol')
+	})
+
+	it('option helpers safely handle undefined slot payload', () => {
+		const context: any = {
+			getOption: SignerSelect.methods.getOption,
+		}
+
+		expect(SignerSelect.methods.getOptionLabel.call(context, undefined)).toBe('')
+		expect(SignerSelect.methods.getOptionSubname.call(context, undefined)).toBe('')
+		expect(SignerSelect.methods.getOptionIcon.call(context, undefined)).toBe('')
+
+		const slotProps = { option: { displayName: 'Admin', subname: 'admin', iconSvg: '<svg>x</svg>' } }
+		expect(SignerSelect.methods.getOptionLabel.call(context, slotProps)).toBe('Admin')
+		expect(SignerSelect.methods.getOptionSubname.call(context, slotProps)).toBe('admin')
+		expect(SignerSelect.methods.getOptionIcon.call(context, slotProps)).toBe('<svg>x</svg>')
 	})
 })
