@@ -13,7 +13,7 @@
 		@end="onDragEnd">
 		<transition-group name="signer-list" tag="div">
 			<Signer v-for="(signer, index) in sortableSigners"
-				:key="signer.identify || index"
+				:key="signer.identify"
 				:signer-index="index"
 				:event="event"
 				:draggable="!signer.signed">
@@ -25,7 +25,7 @@
 	</draggable>
 	<ul v-else>
 		<Signer v-for="(signer, index) in signers"
-			:key="signer.identify || index"
+			:key="signer.identify"
 			:signer-index="index"
 			:event="event">
 			<template #actions="{closeActions}">
