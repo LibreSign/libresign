@@ -19,7 +19,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 
 	beforeEach(() => {
 		wrapper = shallowMount(EditNameDialog, {
-			propsData: {
+			props: {
 				name: 'Initial Name',
 				title: 'Edit Name',
 				label: 'Name',
@@ -279,7 +279,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 	describe('integration scenarios', () => {
 		it('handles complete edit flow: open with name, edit, and save', () => {
 			wrapper = shallowMount(EditNameDialog, {
-				propsData: { name: 'Original Name' },
+				props: { name: 'Original Name' },
 				stubs: {
 					NcButton: true,
 					NcDialog: true,
@@ -299,7 +299,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 
 		it('handles cancel flow without changes', () => {
 			wrapper = shallowMount(EditNameDialog, {
-				propsData: { name: 'Original Name' },
+				props: { name: 'Original Name' },
 				stubs: {
 					NcButton: true,
 					NcDialog: true,
