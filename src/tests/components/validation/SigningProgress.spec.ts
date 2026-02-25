@@ -319,39 +319,37 @@ describe('SigningProgress', () => {
 	})
 
 	describe('RULE: mounted starts polling if UUID provided', async () => {
-		it.skip('starts polling on mount with UUID', async () => {
+		it('starts polling on mount with UUID', async () => {
+			// Spy on the method before mounting
+			const startPollingSpy = vi.spyOn(SigningProgress.methods, 'startPolling')
+
 			wrapper = createWrapper()
-			wrapper.vm.startPolling = vi.fn()
+			await wrapper.vm.$nextTick()
 
-			if (wrapper.vm.$options.mounted) {
-				wrapper.vm.$options.mounted[0]?.call(wrapper.vm)
-			}
-
-			expect(wrapper.vm.startPolling).toHaveBeenCalled()
+			expect(startPollingSpy).toHaveBeenCalled()
+			startPollingSpy.mockRestore()
 		})
 
-		it.skip('does nothing on mount without UUID', async () => {
+		it('does nothing on mount without UUID', async () => {
+			// Spy on the method before mounting
+			const startPollingSpy = vi.spyOn(SigningProgress.methods, 'startPolling')
+
 			wrapper = createWrapper({ signRequestUuid: '' })
-			wrapper.vm.startPolling = vi.fn()
+			await wrapper.vm.$nextTick()
 
-			if (wrapper.vm.$options.mounted) {
-				wrapper.vm.$options.mounted[0]?.call(wrapper.vm)
-			}
-
-			expect(wrapper.vm.startPolling).not.toHaveBeenCalled()
+			expect(startPollingSpy).not.toHaveBeenCalled()
+			startPollingSpy.mockRestore()
 		})
 	})
 
-	describe('RULE: beforeDestroy stops polling', () => {
-		it.skip('stops polling on destroy', () => {
+	describe('RULE: beforeUnmount stops polling', () => {
+		it('stops polling on unmount', () => {
 			wrapper = createWrapper()
-			wrapper.vm.stopPolling = vi.fn()
+			const stopPollingSpy = vi.spyOn(wrapper.vm, 'stopPolling')
 
-			if (wrapper.vm.$options.beforeDestroy) {
-				wrapper.vm.$options.beforeDestroy[0]?.call(wrapper.vm)
-			}
+			wrapper.unmount()
 
-			expect(wrapper.vm.stopPolling).toHaveBeenCalled()
+			expect(stopPollingSpy).toHaveBeenCalled()
 		})
 	})
 
