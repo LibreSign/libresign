@@ -35,11 +35,11 @@ export default {
 		isLoading: {
 			type: Boolean,
 			default: false,
-	},
+		},
 		source: {
 			type: Object,
 			required: true,
-	},
+		},
 	},
 
 	setup() {
