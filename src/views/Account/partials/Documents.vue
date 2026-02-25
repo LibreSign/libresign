@@ -96,6 +96,13 @@ export default {
 		NcNoteCard,
 		NcIconSvgWrapper,
 	},
+	setup() {
+		return {
+			mdiFolder,
+			mdiUpload,
+			mdiDelete,
+		}
+	},
 	props: {
 		signRequestUuid: {
 			type: String,
@@ -108,9 +115,6 @@ export default {
 			documentList: [],
 			loading: true,
 			selectedType: null,
-			mdiFolder,
-			mdiUpload,
-			mdiDelete,
 		}
 	},
 	computed: {
