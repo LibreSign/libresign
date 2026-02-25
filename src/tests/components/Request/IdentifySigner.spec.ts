@@ -439,7 +439,7 @@ describe('IdentifySigner rules', () => {
 				mocks: {
 					t: (_app: string, text: string) => text,
 				},
-				propsData: {
+				props: {
 					signerToEdit: signer,
 					method: 'all',
 					placeholder: 'Name',
@@ -472,7 +472,7 @@ describe('IdentifySigner rules', () => {
 				mocks: {
 					t: (_app: string, text: string) => text,
 				},
-				propsData: {
+				props: {
 					signerToEdit: signer,
 					method: 'all',
 					placeholder: 'Name',
