@@ -936,4 +936,51 @@ describe('Sign.vue - signWithTokenCode', () => {
 			])
 		})
 	})
+
+	describe('Sign.vue - create signature modal', () => {
+		it('renders Draw editor when createSignature modal is active', async () => {
+			setActivePinia(createPinia())
+
+			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const realSign = SignComponent.default
+			const signMethodsStore = useSignMethodsStore()
+			signMethodsStore.showModal('createSignature')
+
+			const wrapper = mount(realSign, {
+				global: {
+					stubs: {
+						NcButton: true,
+						NcDialog: true,
+						NcLoadingIcon: true,
+						TokenManager: true,
+						EmailManager: true,
+						UploadCertificate: true,
+						Documents: true,
+						Signatures: true,
+						Draw: {
+							name: 'Draw',
+							props: ['drawEditor', 'textEditor', 'fileEditor', 'type'],
+							template: '<div class="draw-editor-stub" />',
+						},
+						ManagePassword: true,
+						CreatePassword: true,
+						NcNoteCard: true,
+						NcPasswordField: true,
+						NcRichText: true,
+					},
+					mocks: {
+						$watch: vi.fn(),
+						$nextTick: vi.fn(),
+					},
+				},
+			})
+
+			expect(wrapper.find('.draw-editor-stub').exists()).toBe(true)
+			const draw = wrapper.findComponent({ name: 'Draw' })
+			expect(draw.props('drawEditor')).toBe(true)
+			expect(draw.props('textEditor')).toBe(true)
+			expect(draw.props('fileEditor')).toBe(true)
+			expect(draw.props('type')).toBe('signature')
+		})
+	})
 })
