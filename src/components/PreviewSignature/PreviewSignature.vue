@@ -35,12 +35,12 @@ export default {
 			type: String,
 			default: () => '',
 			required: true,
-	},
+		},
 		signRequestUuid: {
 			type: String,
 			required: false,
 			default: '',
-	},
+		},
 	},
 	data() {
 		return {
