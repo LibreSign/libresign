@@ -91,6 +91,7 @@ export default {
 		NcActionButton,
 		NcActions,
 		NcButton,
+		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcIconSvgWrapper,
 		NcLoadingIcon,
