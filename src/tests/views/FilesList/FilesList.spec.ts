@@ -156,8 +156,8 @@ describe('FilesList.vue rendering rules', () => {
 		await flushPromises()
 
 		expect(wrapper.vm.mdiFolder).toBeTruthy()
-		expect(wrapper.vm.mdiViewGrid).toBeTruthy()
-		expect(wrapper.vm.mdiViewList).toBeTruthy()
+		expect(wrapper.vm.mdiViewGridOutline).toBeTruthy()
+		expect(wrapper.vm.mdiFormatListBulletedSquare).toBeTruthy()
 		expect(wrapper.vm.mdiChevronDown).toBeTruthy()
 		expect(wrapper.vm.mdiChevronUp).toBeTruthy()
 		expect(wrapper.vm.mdiReload).toBeTruthy()
@@ -265,7 +265,7 @@ describe('FilesList.vue rendering rules', () => {
 
 		const gridButton = wrapper.find('.files-list__header-grid-button')
 		const iconWithPath = gridButton.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
-		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewGrid)
+		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewGridOutline)
 	})
 
 	it('renders list toggle icon path when in grid mode', async () => {
@@ -279,6 +279,6 @@ describe('FilesList.vue rendering rules', () => {
 
 		const gridButton = wrapper.find('.files-list__header-grid-button')
 		const iconWithPath = gridButton.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
-		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewList)
+		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiFormatListBulletedSquare)
 	})
 })
