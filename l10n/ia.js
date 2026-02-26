@@ -19,6 +19,7 @@ OC.L10N.register(
     "Preview" : "Previsualisar",
     "Files" : "Files",
     "Settings" : "Configurationes",
+    "Undo" : "Disfacer",
     "Update" : "Actualisation",
     "Send" : "Inviar",
     "Previous" : "Previe",

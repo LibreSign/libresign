@@ -23,6 +23,7 @@ OC.L10N.register(
     "Preview" : "Ro-sheall",
     "Files" : "Faidhlichean",
     "Settings" : "Roghainnean",
+    "Undo" : "Neo-dhèan",
     "Name" : "Ainm",
     "Choose" : "Tagh",
     "Upload failed" : "Dh'fhàillig leis an luchdadh suas",
