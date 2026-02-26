@@ -6,7 +6,7 @@
 <template>
 	<div>
 		<fieldset class="settings-section__row">
-			<NcTextField v-model:value="OID"
+			<NcTextField v-model="OID"
 				:label="t('libresign', 'Certificate Policy OID')"
 				:placeholder="t('libresign', 'Certificate Policy OID')"
 				:spellcheck="false"
