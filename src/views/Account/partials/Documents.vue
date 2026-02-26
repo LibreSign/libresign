@@ -108,7 +108,7 @@ export default {
 			type: String,
 			required: false,
 			default: '',
-	},
+		},
 	},
 	data() {
 		return {
@@ -124,7 +124,7 @@ export default {
 					key: 'IDENTIFICATION',
 					name: t('libresign', 'Identification Document'),
 					description: t('libresign', 'Identification Document'),
-	},
+		},
 			}
 		},
 		documents() {
@@ -211,7 +211,7 @@ export default {
 					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 					file: {
 						path,
-	},
+		},
 				}],
 			}
 			if (this.signRequestUuid) {
@@ -237,7 +237,7 @@ export default {
 					name: inputFile.name,
 					file: {
 						base64: raw,
-	},
+		},
 				}],
 			}
 			if (this.signRequestUuid) {
