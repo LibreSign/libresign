@@ -74,7 +74,17 @@ vi.mock('@nextcloud/vue/components/NcAppContent', () => ({
 	default: { name: 'NcAppContent', template: '<div><slot /></div>' },
 }))
 vi.mock('@nextcloud/vue/components/NcBreadcrumb', () => ({
-	default: { name: 'NcBreadcrumb', template: '<div><slot name="icon" /></div>' },
+	default: {
+		name: 'NcBreadcrumb',
+		template: '<div><slot name="icon" /><slot name="menu-icon" /><slot /></div>',
+	},
+}))
+vi.mock('@nextcloud/vue/components/NcActionButton', () => ({
+	default: {
+		name: 'NcActionButton',
+		emits: ['click'],
+		template: '<button class="nc-action-button-stub" @click="$emit(\'click\')"><slot /></button>',
+	},
 }))
 vi.mock('@nextcloud/vue/components/NcBreadcrumbs', () => ({
 	default: { name: 'NcBreadcrumbs', template: '<div><slot /><slot name="actions" /></div>' },
@@ -193,7 +203,8 @@ describe('FilesList.vue rendering rules', () => {
 		const wrapper = mountComponent()
 		await flushPromises()
 
-		const iconWithPath = wrapper.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
+		const gridButton = wrapper.find('.files-list__header-grid-button')
+		const iconWithPath = gridButton.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
 		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewGrid)
 	})
 
