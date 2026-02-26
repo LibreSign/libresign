@@ -31,8 +31,8 @@
 				variant="tertiary"
 				@click="toggleGridView">
 				<template #icon>
-					<ListViewIcon v-if="userConfigStore.files_list_grid_view" />
-					<NcIconSvgWrapper :path="mdiViewGrid" v-else />
+					<NcIconSvgWrapper v-if="userConfigStore.files_list_grid_view" :path="mdiViewList" />
+					<NcIconSvgWrapper v-else :path="mdiViewGrid" />
 				</template>
 			</NcButton>
 		</div>
@@ -77,6 +77,7 @@ import HomeSvg from '@mdi/svg/svg/home.svg?raw'
 import {
 	mdiFolder,
 	mdiViewGrid,
+	mdiViewList,
 } from '@mdi/js'
 
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
@@ -120,6 +121,7 @@ export default {
 			sidebarStore,
 			mdiFolder,
 			mdiViewGrid,
+			mdiViewList,
 		}
 	},
 	data() {
