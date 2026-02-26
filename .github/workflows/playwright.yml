@@ -188,27 +188,12 @@ jobs:
 
       - name: Start PHP built-in server
         run: |
-          php -S localhost:8080 -t . apps/${{ env.APP_NAME }}/playwright/router.php &
+          # front_controller_active tells Nextcloud to generate clean URLs (without index.php prefix)
+          # This mirrors what Apache mod_rewrite does via .htaccess RewriteRule
+          front_controller_active=true php -S localhost:8080 -t . apps/${{ env.APP_NAME }}/playwright/router.php &
           # Wait for server to become available
           timeout 30 bash -c 'until curl -s http://localhost:8080/status.php > /dev/null; do sleep 1; done'
           echo "Nextcloud is ready at http://localhost:8080"
-
-      - name: Debug - Check if build artifacts exist
-        run: |
-          echo "Checking for LibreSign JS build artifacts..."
-          ls -lah apps/${{ env.APP_NAME }}/js/ || echo "js/ directory not found"
-          echo "---"
-          echo "Testing status endpoint:"
-          curl -v http://localhost:8080/status.php
-          echo "---"
-          echo "Testing index endpoint:"
-          curl -I http://localhost:8080/index.php
-          echo "---"
-          echo "Testing app endpoint (should load HTML with JS):"
-          curl -s http://localhost:8080/apps/libresign | head -100
-          echo "---"
-          echo "Checking if app is enabled:"
-          php occ app:list | grep libresign
 
       - name: Install Playwright browsers
         working-directory: apps/${{ env.APP_NAME }}
