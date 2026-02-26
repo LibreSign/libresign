@@ -33,14 +33,18 @@ type FilesStoreMock = ReturnType<typeof useFilesStore> & {
 	isOriginalFileDeleted: MockedFunction<() => boolean>
 }
 
-const t: TranslationFunction = (_app, text, vars) => {
-	if (vars) {
-		return text.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))
+const { t, n } = vi.hoisted(() => {
+	const t: TranslationFunction = (_app, text, vars) => {
+		if (vars) {
+			return text.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))
+		}
+		return text
 	}
-	return text
-}
 
-const n: PluralTranslationFunction = (_app, singular, plural, count) => (count === 1 ? singular : plural)
+	const n: PluralTranslationFunction = (_app, singular, plural, count) => (count === 1 ? singular : plural)
+
+	return { t, n }
+})
 
 let Signer: SignerComponent
 
