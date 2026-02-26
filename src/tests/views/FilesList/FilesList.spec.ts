@@ -74,7 +74,17 @@ vi.mock('@nextcloud/vue/components/NcAppContent', () => ({
 	default: { name: 'NcAppContent', template: '<div><slot /></div>' },
 }))
 vi.mock('@nextcloud/vue/components/NcBreadcrumb', () => ({
-	default: { name: 'NcBreadcrumb', template: '<div><slot name="icon" /></div>' },
+	default: {
+		name: 'NcBreadcrumb',
+		template: '<div><slot name="icon" /><slot name="menu-icon" /><slot /></div>',
+	},
+}))
+vi.mock('@nextcloud/vue/components/NcActionButton', () => ({
+	default: {
+		name: 'NcActionButton',
+		emits: ['click'],
+		template: '<button class="nc-action-button-stub" @click="$emit(\'click\')"><slot /></button>',
+	},
 }))
 vi.mock('@nextcloud/vue/components/NcBreadcrumbs', () => ({
 	default: { name: 'NcBreadcrumbs', template: '<div><slot /><slot name="actions" /></div>' },
@@ -141,6 +151,45 @@ describe('FilesList.vue rendering rules', () => {
 		expect(wrapper.vm.mdiFolder).toBeTruthy()
 		expect(wrapper.vm.mdiViewGrid).toBeTruthy()
 		expect(wrapper.vm.mdiViewList).toBeTruthy()
+		expect(wrapper.vm.mdiChevronDown).toBeTruthy()
+		expect(wrapper.vm.mdiChevronUp).toBeTruthy()
+		expect(wrapper.vm.mdiReload).toBeTruthy()
+	})
+
+	it('initialises isMenuOpen as false', async () => {
+		const filesStore = useFilesStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+		const wrapper = mountComponent()
+		await flushPromises()
+
+		expect(wrapper.vm.isMenuOpen).toBe(false)
+	})
+
+	it('renders RequestPicker before the breadcrumbs in the header', async () => {
+		const filesStore = useFilesStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+		const wrapper = mountComponent()
+		await flushPromises()
+
+		const header = wrapper.find('.files-list__header')
+		const firstChild = header.element.children[0]
+		expect(firstChild.classList.contains('request-picker-stub')).toBe(true)
+	})
+
+	it('calls filesStore.updateAllFiles once more when reload button is clicked', async () => {
+		const filesStore = useFilesStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+		const updateSpy = vi.spyOn(filesStore, 'updateAllFiles').mockResolvedValue({})
+
+		const wrapper = mountComponent()
+		await flushPromises()
+
+		const callsBefore = updateSpy.mock.calls.length
+		await wrapper.find('.nc-action-button-stub').trigger('click')
+
+		expect(updateSpy.mock.calls.length).toBe(callsBefore + 1)
 	})
 
 	it('shows empty-state request action when user can request sign', async () => {
@@ -186,7 +235,8 @@ describe('FilesList.vue rendering rules', () => {
 		const wrapper = mountComponent()
 		await flushPromises()
 
-		const iconWithPath = wrapper.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
+		const gridButton = wrapper.find('.files-list__header-grid-button')
+		const iconWithPath = gridButton.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
 		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewGrid)
 	})
 
@@ -199,7 +249,8 @@ describe('FilesList.vue rendering rules', () => {
 		const wrapper = mountComponent()
 		await flushPromises()
 
-		const iconWithPath = wrapper.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
+		const gridButton = wrapper.find('.files-list__header-grid-button')
+		const iconWithPath = gridButton.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
 		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewList)
 	})
 })
