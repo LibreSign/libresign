@@ -133,7 +133,11 @@ Developer manual: https://docs.libresign.coop/developer_manual/index.html
 
 ## Security
 
-LibreSign uses certificate-based digital signatures and follows best practices for secure document validation. 
+LibreSign uses certificate-based digital signatures built on a private PKI managed within your Nextcloud environment.
+
+It supports certificate revocation (CRL), trusted time-stamping (TSA), and document certification levels (DocMDP), ensuring integrity, authenticity and long-term validation of signed documents.
+
+All cryptographic operations are performed server-side and remain under your infrastructure control.
 
 For responsible disclosure and security policy, please see [SECURITY.md](SECURITY.md).
 
