@@ -44,7 +44,6 @@ export const useFiltersStore = defineStore('filter', {
 		async onFilterUpdateChips(event) {
 			this.chips = { ...this.chips, [event.id]: [...event.detail] }
 
-			emit('libresign:filters:update')
 			logger.debug('File list filter chips updated', { chips: event.detail })
 
 		},

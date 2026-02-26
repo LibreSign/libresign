@@ -198,8 +198,8 @@ describe('filters store - filter business rules', () => {
 		})
 	})
 
-	describe('business rule: chips update should emit filter event', () => {
-		it('onFilterUpdateChips should emit libresign:filters:update event', async () => {
+	describe('business rule: chips update should only update UI chips state', () => {
+		it('onFilterUpdateChips should NOT emit libresign:filters:update event', async () => {
 			const store = useFiltersStore()
 			const event = {
 				id: 'status',
@@ -208,7 +208,7 @@ describe('filters store - filter business rules', () => {
 
 			await store.onFilterUpdateChips(event)
 
-			expect(emit).toHaveBeenCalledWith('libresign:filters:update')
+			expect(emit).not.toHaveBeenCalled()
 		})
 
 		it('onFilterUpdateChips should update chips for specific filter', async () => {
