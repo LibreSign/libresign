@@ -8,8 +8,8 @@
 		<NcLoadingIcon v-if="isLoading" :name="loadingLabel" />
 		<NcCheckboxRadioSwitch v-else
 			:aria-label="ariaLabel"
-			:checked="isSelected"
-			@update:checked="onSelectionChange" />
+			:model-value="isSelected"
+			@update:modelValue="onSelectionChange" />
 	</td>
 </template>
 
