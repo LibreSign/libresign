@@ -174,6 +174,7 @@ jobs:
           ./occ config:system:set mail_smtpport --value 1025 --type integer
           ./occ config:system:set overwrite.cli.url --value 'http://localhost:8080'
           ./occ config:system:set overwritehost --value 'localhost:8080'
+          ./occ config:system:set debug --value true --type boolean
           ./occ libresign:install --use-local-cert --java
           ./occ libresign:install --use-local-cert --jsignpdf
           ./occ libresign:install --use-local-cert --pdftk
@@ -187,7 +188,7 @@ jobs:
 
       - name: Start PHP built-in server
         run: |
-          php -S localhost:8080 &
+          php -S localhost:8080 index.php &
           # Wait for server to become available
           timeout 30 bash -c 'until curl -s http://localhost:8080/status.php > /dev/null; do sleep 1; done'
           echo "Nextcloud is ready at http://localhost:8080"
