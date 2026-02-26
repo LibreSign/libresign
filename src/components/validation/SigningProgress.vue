@@ -79,13 +79,15 @@ export default {
 			type: String,
 			required: true,
 			description: 'Sign request UUID (not file UUID)',
-	},
+		},
 	},
 	emits: ['completed', 'error', 'status-changed', 'file-errors'],
 	setup() {
-		return { t,
+		return {
+			t,
 			mdiAlertCircleOutline,
-			mdiHelpCircle,}
+			mdiHelpCircle,
+		}
 	},
 	data() {
 		return {
