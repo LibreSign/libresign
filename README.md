@@ -155,14 +155,6 @@ See our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ---
 
-## License
-
-LibreSign (this repository) is licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
-- 📂 All licenses: [LICENSES/](LICENSES/)
-- 📘 Also in Documentation repository: https://github.com/LibreSign/documentation/blob/main/LICENSE
-
----
-
 ## Screenshots
 
 <p align="center">
