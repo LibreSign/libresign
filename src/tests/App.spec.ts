@@ -6,6 +6,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
+import { initialActionCode, ACTION_CODES } from '../helpers/ActionMapping'
+
 type RouteState = {
 	path: string
 	name: string | undefined
@@ -56,6 +58,7 @@ describe('App', () => {
 		routeState.name = 'fileslist'
 		routeState.params = {}
 		routeState.matched = []
+		initialActionCode.value = 0
 	})
 
 	it('shows left sidebar on regular internal routes', () => {
@@ -182,8 +185,8 @@ describe('App', () => {
 		expect(wrapper.find('.nc-content').classes()).not.toContain('sign-external-page')
 	})
 
-	it('shows DefaultPageError when action param is 2000', () => {
-		routeState.params = { action: 2000 }
+	it('shows DefaultPageError when initial action code is DO_NOTHING (2000)', () => {
+		initialActionCode.value = ACTION_CODES.DO_NOTHING
 
 		const wrapper = mount(App, {
 			global: {
@@ -203,7 +206,7 @@ describe('App', () => {
 	})
 
 	it('does not show DefaultPageError on normal routes', () => {
-		routeState.params = {}
+		// initialActionCode is already 0 (reset in beforeEach)
 
 		const wrapper = mount(App, {
 			global: {
