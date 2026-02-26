@@ -4,7 +4,7 @@
 -->
 <template>
 	<NcSettingsSection
-		:name="t('libresign', 'Collect signers\'metadata')"
+		:name="t('libresign', 'Collect signers\' metadata')"
 		:description="t('libresign', 'Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer.')">
 		<NcCheckboxRadioSwitch type="switch"
 			v-model="collectMetadataEnabled"
