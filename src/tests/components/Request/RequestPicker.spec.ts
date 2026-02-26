@@ -173,6 +173,39 @@ describe('RequestPicker component rules', () => {
 		})
 	})
 
+	describe('variant prop', () => {
+		const mountWithVariantStub = (props = {}) => mount(RequestPicker, {
+			props,
+			global: {
+				stubs: {
+					NcActions: {
+						name: 'NcActions',
+						props: ['variant'],
+						template: '<div class="nc-actions-stub" :data-variant="variant"><slot /></div>',
+					},
+					NcActionButton: true,
+					NcButton: true,
+					NcDialog: true,
+					NcTextField: true,
+					NcLoadingIcon: true,
+					NcNoteCard: true,
+					UploadProgress: true,
+				},
+				mocks: { t: tSimple },
+			},
+		})
+
+		it('defaults variant to tertiary', () => {
+			const w = mountWithVariantStub()
+			expect(w.find('.nc-actions-stub').attributes('data-variant')).toBe('tertiary')
+		})
+
+		it('passes custom variant to NcActions', () => {
+			const w = mountWithVariantStub({ variant: 'primary' })
+			expect(w.find('.nc-actions-stub').attributes('data-variant')).toBe('primary')
+		})
+	})
+
 	describe('envelope support', () => {
 		it('enables envelope mode when capabilities indicate is-available true', () => {
 			getCapabilitiesMock.mockReturnValue({
