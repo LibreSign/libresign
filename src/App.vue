@@ -37,6 +37,7 @@ import LeftSidebar from './components/LeftSidebar/LeftSidebar.vue'
 import RightSidebar from './components/RightSidebar/RightSidebar.vue'
 import DefaultPageError from './views/DefaultPageError.vue'
 
+import { initialActionCode, ACTION_CODES } from './helpers/ActionMapping'
 import LogoLibreSign from '../img/logo-gray.svg'
 
 const route = useRoute()
@@ -44,7 +45,7 @@ const loading = ref(false)
 
 const isRoot = computed(() => route.path === '/')
 const isSignExternalPage = computed(() => route.path.startsWith('/p/'))
-const isDoNothingError = computed(() => (route.params?.action as number | undefined) === 2000)
+const isDoNothingError = computed(() => initialActionCode.value === ACTION_CODES.DO_NOTHING)
 const showLeftSidebar = computed(() => !route.matched.some(record => record.meta?.hideLeftSidebar === true))
 </script>
 
