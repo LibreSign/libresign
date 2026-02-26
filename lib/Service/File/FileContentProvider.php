@@ -32,25 +32,32 @@ class FileContentProvider {
 	 */
 	public function getContentFromUrl(string $url): string {
 		if (!filter_var($url, FILTER_VALIDATE_URL)) {
-			throw new \Exception($this->l10n->t('Invalid URL file'));
+			throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
 		}
 
 		try {
 			$response = $this->client->newClient()->get($url);
 		} catch (\Throwable) {
-			throw new \Exception($this->l10n->t('Invalid URL file'));
+			throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
 		}
 
-		$mimetypeFromHeader = $response->getHeader('Content-Type');
 		$content = (string)$response->getBody();
 
 		if (!$content) {
-			throw new \Exception($this->l10n->t('Empty file'));
+			throw new LibresignException($this->l10n->t('Empty file'), 422);
+		}
+
+		$mimetypeFromHeader = $response->getHeader('Content-Type');
+		// Strip parameters like "; charset=utf-8"
+		if (str_contains($mimetypeFromHeader, ';')) {
+			$mimetypeFromHeader = trim(explode(';', $mimetypeFromHeader)[0]);
 		}
 
 		$mimeTypeFromContent = $this->mimeService->getMimeType($content);
-		if ($mimetypeFromHeader !== $mimeTypeFromContent) {
-			throw new \Exception($this->l10n->t('Invalid URL file'));
+
+		// application/octet-stream is a generic fallback — trust content detection
+		if ($mimetypeFromHeader !== 'application/octet-stream' && $mimetypeFromHeader !== $mimeTypeFromContent) {
+			throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
 		}
 
 		return $content;
@@ -75,7 +82,7 @@ class FileContentProvider {
 			$mimeTypeFromContent = $this->mimeService->getMimeType($content);
 
 			if ($mimeTypeFromType !== $mimeTypeFromContent) {
-				throw new \Exception($this->l10n->t('Invalid URL file'));
+				throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
 			}
 
 			$this->mimeService->setMimeType($mimeTypeFromContent);
@@ -103,7 +110,7 @@ class FileContentProvider {
 			return $this->getContentFromBase64($data['file']['base64']);
 		}
 
-		throw new \Exception($this->l10n->t('No file source provided'));
+		throw new LibresignException($this->l10n->t('No file source provided'), 422);
 	}
 
 	/**
