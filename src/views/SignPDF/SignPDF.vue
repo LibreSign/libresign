@@ -349,11 +349,8 @@ export default {
 			if (targetUuid) {
 				this.$router.push({
 					name: targetRoute,
-					params: {
-						uuid: targetUuid,
-						isAfterSigned: false,
-						isAsync: true,
-					},
+					params: { uuid: targetUuid },
+					state: { isAfterSigned: false, isAsync: true },
 				})
 				return true
 			}
