@@ -12,13 +12,13 @@ namespace OCA\Libresign\Migration;
 use Closure;
 use OCA\Libresign\AppInfo\Application;
 use OCP\DB\ISchemaWrapper;
-use OCP\IConfig;
+use OCP\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version12000Date20250517134200 extends SimpleMigrationStep {
 	public function __construct(
-		protected IConfig $config,
+		protected IAppConfig $appConfig,
 	) {
 	}
 
@@ -29,11 +29,11 @@ class Version12000Date20250517134200 extends SimpleMigrationStep {
 	 */
 	#[\Override]
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
-		$keys = $this->config->getAppKeys(Application::APP_ID);
+		$keys = $this->appConfig->getKeys(Application::APP_ID);
 		if (in_array('notify_unsigned_user', $keys)) {
-			$current = $this->config->getAppValue(Application::APP_ID, 'notify_unsigned_user');
-			$this->config->setAppValue('activity', 'notify_email_libresign_file_to_sign', $current ? '1' : '0');
-			$this->config->deleteAppValue(Application::APP_ID, 'notify_unsigned_user');
+			$current = $this->appConfig->getValueString(Application::APP_ID, 'notify_unsigned_user');
+			$this->appConfig->setValueString('activity', 'notify_email_libresign_file_to_sign', $current ? '1' : '0');
+			$this->appConfig->deleteKey(Application::APP_ID, 'notify_unsigned_user');
 		}
 	}
 }
