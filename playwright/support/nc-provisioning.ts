@@ -49,7 +49,43 @@ async function ocsRequest(
 		throw new Error(`OCS request failed: ${method} ${path} → ${response.status()} ${await response.text()}`)
 	}
 
-	return response.json() as Promise<OcsResponse>
+	const text = await response.text()
+	if (!text) {
+		return { ocs: { meta: { status: 'ok', statuscode: response.status(), message: '' }, data: {} } } as OcsResponse
+	}
+	return JSON.parse(text) as OcsResponse
+}
+
+async function libresignRequest(
+	request: APIRequestContext,
+	method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+	path: string,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+	jsonBody?: unknown,
+): Promise<unknown> {
+	const url = `.${path}`
+	const auth = 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64')
+	const headers: Record<string, string> = {
+		Accept: 'application/json',
+		Authorization: auth,
+	}
+	if (jsonBody !== undefined) {
+		headers['Content-Type'] = 'application/json'
+	}
+	const response = await request[method.toLowerCase() as 'get' | 'post' | 'put' | 'delete'](url, {
+		headers,
+		...(jsonBody !== undefined ? { data: JSON.stringify(jsonBody) } : {}),
+		failOnStatusCode: false,
+	})
+
+	if (!response.ok()) {
+		throw new Error(`LibreSign API request failed: ${method} ${path} → ${response.status()} ${await response.text()}`)
+	}
+
+	const text = await response.text()
+	if (!text) return {}
+	return JSON.parse(text)
 }
 
 // ---------------------------------------------------------------------------
@@ -157,16 +193,12 @@ export async function configureOpenSsl(
 		.filter(([, val]) => val !== undefined)
 		.map(([id, value]) => ({ id, value }))
 
-	const result = await ocsRequest(
+	await libresignRequest(
 		request,
 		'POST',
 		'/apps/libresign/api/v1/admin/certificate/openssl',
 		undefined,
 		undefined,
-		undefined,
 		{ rootCert: { commonName, names: namesArray } },
 	)
-	if (result.ocs.meta.statuscode !== 200) {
-		throw new Error(`Failed to configure OpenSSL: ${result.ocs.meta.message}`)
-	}
 }
