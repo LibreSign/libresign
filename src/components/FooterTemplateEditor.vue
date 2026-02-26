@@ -6,7 +6,7 @@
 	<div class="footer-template-section">
 		<p v-linkify="{ linkify: true, text: footerDescription }" class="footer-template-description" />
 		<div class="footer-template-header">
-			<NcButton type="tertiary"
+			<NcButton variant="tertiary"
 				:aria-label="t('libresign', 'Show available variables')"
 				@click="showVariablesDialog = true">
 				<template #icon>
@@ -65,7 +65,7 @@
 						@input="debouncedSaveDimensions" />
 					<NcButton v-if="showResetDimensions"
 						:aria-label="t('libresign', 'Reset dimensions')"
-						type="tertiary"
+						variant="tertiary"
 						@click="resetDimensions">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
