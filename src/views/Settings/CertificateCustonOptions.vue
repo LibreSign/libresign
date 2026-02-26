@@ -120,7 +120,7 @@ export default {
 		names: {
 			type: Array,
 			required: true,
-	},
+		},
 	},
 	setup() {
 		return {
