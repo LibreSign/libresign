@@ -24,11 +24,11 @@
 		<NcCheckboxRadioSwitch v-if="showPreserveOrder && !isOriginalFileDeleted"
 			v-model="preserveOrder"
 			type="switch"
-			@update:checked="onPreserveOrderChange">
+			@update:modelValue="onPreserveOrderChange">
 			{{ t('libresign', 'Sign in order') }}
 		</NcCheckboxRadioSwitch>
 		<NcButton v-if="showViewOrderButton && !isOriginalFileDeleted"
-			type="tertiary"
+			variant="tertiary"
 			@click="showOrderDiagram = true">
 			<template #icon>
 				<NcIconSvgWrapper :path="mdiChartGantt" :size="20" />
@@ -43,7 +43,7 @@
 						:label="t('libresign', 'Signing order')"
 						type="number"
 						:value="signer.signingOrder || 1"
-						@update:value="updateSigningOrder(signer, $event)"
+						@update:modelValue="updateSigningOrder(signer, $event)"
 						@submit="confirmSigningOrder(signer); closeActions()"
 						@blur="confirmSigningOrder(signer)">
 						<template #icon>
@@ -89,7 +89,7 @@
 		<NcFormBox v-if="isEnvelope" class="action-form-box">
 			<NcButton
 				wide
-				type="secondary"
+				variant="secondary"
 				:disabled="hasLoading"
 				@click="openManageFiles">
 				<template #icon>
