@@ -171,6 +171,6 @@ Thanks go to these wonderful people:
   <img src="https://contrib.rocks/image?repo=LibreSign/libresign" />
 </a>
 
-## Star History
+## Star history
 
 [![Star History Chart](https://api.star-history.com/svg?repos=libresign/libresign&type=Date)](https://www.star-history.com/#libresign/libresign&Date)
