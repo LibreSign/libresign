@@ -181,7 +181,7 @@ export default {
 		open: {
 			type: Boolean,
 			required: true,
-	},
+		},
 	},
 	setup() {
 		const filesStore = useFilesStore()
@@ -213,7 +213,7 @@ export default {
 				title: '',
 				message: '',
 				action: null,
-	},
+		},
 			uploadProgress: 0,
 			isUploading: false,
 			uploadAbortController: null,
@@ -249,7 +249,7 @@ export default {
 					callback: () => {
 						this.showDeleteDialog = false
 					},
-	},
+		},
 				{
 					label: this.t('libresign', 'Delete'),
 					type: 'error',
@@ -259,7 +259,7 @@ export default {
 							this.deleteDialogConfig.action()
 						}
 					},
-	},
+		},
 			]
 		},
 		selectedCount() {
