@@ -78,6 +78,43 @@ describe('filters store - filter business rules', () => {
 		useFiltersStore = module.useFiltersStore
 	})
 
+	describe('business rule: state should be initialised from PHP initial state using files_list_filter_* keys', () => {
+		beforeEach(() => {
+			vi.resetModules()
+		})
+
+		it('reads filter_status from files_list_filter_status key', async () => {
+			const loadStateMock = loadState as MockedFunction<typeof loadState>
+			loadStateMock.mockReturnValue({ files_list_filter_status: '["signed"]', files_list_filter_modified: '' })
+
+			const { useFiltersStore: freshStore } = await import('../../store/filters.js')
+			const store = freshStore()
+
+			expect(store.filter_status).toBe('["signed"]')
+		})
+
+		it('reads filter_modified from files_list_filter_modified key', async () => {
+			const loadStateMock = loadState as MockedFunction<typeof loadState>
+			loadStateMock.mockReturnValue({ files_list_filter_status: '', files_list_filter_modified: 'last-7' })
+
+			const { useFiltersStore: freshStore } = await import('../../store/filters.js')
+			const store = freshStore()
+
+			expect(store.filter_modified).toBe('last-7')
+		})
+
+		it('defaults to empty string when keys are absent', async () => {
+			const loadStateMock = loadState as MockedFunction<typeof loadState>
+			loadStateMock.mockReturnValue({})
+
+			const { useFiltersStore: freshStore } = await import('../../store/filters.js')
+			const store = freshStore()
+
+			expect(store.filter_status).toBe('')
+			expect(store.filter_modified).toBe('')
+		})
+	})
+
 	describe('business rule: activeChips should return all active chips from all filters', () => {
 		it('returns empty array when there are no chips', () => {
 			const store = useFiltersStore()
