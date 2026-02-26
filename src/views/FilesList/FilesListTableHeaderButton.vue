@@ -54,7 +54,7 @@ export default {
 			filesSortingStore,
 			mdiMenuDown,
 			mdiMenuUp,}
-	},
+		},
 }
 </script>
 
