@@ -206,8 +206,6 @@ describe('App', () => {
 	})
 
 	it('does not show DefaultPageError on normal routes', () => {
-		// initialActionCode is already 0 (reset in beforeEach)
-
 		const wrapper = mount(App, {
 			global: {
 				stubs: {
