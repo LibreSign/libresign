@@ -62,7 +62,7 @@
 					:legal-information="legalInformation"
 					:document-valid-message="documentValidMessage"
 					:is-after-signed="isAfterSigned" />
-				<NcButton v-if="clickedValidate" class="change" type="primary" @click="goBack()">
+				<NcButton v-if="clickedValidate" class="change" variant="primary" @click="goBack()">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiArrowLeft" />
 					</template>
