@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { ref } from 'vue'
+import { ref } from '@vue/reactivity'
 
 interface ActionCodes {
 	REDIRECT: number
