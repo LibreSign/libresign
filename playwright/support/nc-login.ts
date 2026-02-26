@@ -43,9 +43,6 @@ export async function login(
 		headers: {
 			Origin: origin,
 		},
-		// The 303 redirect points to the configured public URL (e.g. https://localhost)
-		// which may not be reachable inside the container. We don't need to follow it —
-		// the session cookies are already set at this point.
 		maxRedirects: 0,
 		failOnStatusCode: false,
 	})
