@@ -107,7 +107,12 @@ vi.mock('./filesSorting.js', () => ({
 }))
 
 vi.mock('./filters.js', () => ({
-	useFiltersStore: vi.fn(() => ({ filters: {} })),
+	useFiltersStore: vi.fn(() => ({
+		filterStatusArray: [],
+		filterModifiedRange: null,
+		filter_modified: '',
+		filter_status: '',
+	})),
 }))
 
 vi.mock('./identificationDocument.js', () => ({
