@@ -200,10 +200,8 @@ describe('SignTab', () => {
 
 			expect(mockRouter.push).toHaveBeenCalledWith({
 				name: 'ValidationFile',
-				params: {
-					uuid: 'test-uuid',
-					isAfterSigned: true,
-				},
+				params: { uuid: 'test-uuid' },
+				state: { isAfterSigned: true },
 			})
 		})
 
@@ -215,10 +213,8 @@ describe('SignTab', () => {
 
 			expect(mockRouter.push).toHaveBeenCalledWith({
 				name: 'ValidationFileExternal',
-				params: {
-					uuid: 'test-uuid',
-					isAfterSigned: true,
-				},
+				params: { uuid: 'test-uuid' },
+				state: { isAfterSigned: true },
 			})
 		})
 	})
@@ -232,11 +228,8 @@ describe('SignTab', () => {
 
 			expect(mockRouter.push).toHaveBeenCalledWith({
 				name: 'ValidationFile',
-				params: {
-					uuid: 'test-uuid',
-					isAfterSigned: false,
-					isAsync: true,
-				},
+				params: { uuid: 'test-uuid' },
+				state: { isAfterSigned: false, isAsync: true },
 			})
 		})
 
@@ -248,11 +241,8 @@ describe('SignTab', () => {
 
 			expect(mockRouter.push).toHaveBeenCalledWith({
 				name: 'ValidationFileExternal',
-				params: {
-					uuid: 'test-uuid',
-					isAfterSigned: false,
-					isAsync: true,
-				},
+				params: { uuid: 'test-uuid' },
+				state: { isAfterSigned: false, isAsync: true },
 			})
 		})
 	})
@@ -268,11 +258,8 @@ describe('SignTab', () => {
 			// onSigningStarted should be called in mounted hook and push to router
 			expect(mockRouter.push).toHaveBeenCalledWith({
 				name: 'ValidationFile',
-				params: {
-					uuid: 'progress-uuid',
-					isAfterSigned: false,
-					isAsync: true,
-				},
+				params: { uuid: 'progress-uuid' },
+				state: { isAfterSigned: false, isAsync: true },
 			})
 		})
 
