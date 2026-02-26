@@ -54,7 +54,7 @@
 						<NcTextField :id="`${certificate.id}-${index}`"
 							v-model="certificate.value[index]"
 							:placeholder="t('libresign', 'Item {index}', {index: index + 1})"
-							@update:value="validateArray(certificate.id)" />
+							@update:modelValue="validateArray(certificate.id)" />
 						<NcButton v-if="certificate.value.length > 1"
 							:aria-label="t('libresign', 'Remove')"
 							@click="removeArrayEntry(certificate.id, index)">
@@ -73,7 +73,7 @@
 						:maxlength="getOptionProperty(certificate.id, 'max')"
 						:label="getOptionProperty(certificate.id, 'label')"
 						:helper-text="getOptionProperty(certificate.id, 'helperText')"
-						@update:value="validate(certificate.id)" />
+						@update:modelValue="validate(certificate.id)" />
 					<NcButton :aria-label="t('libresign', 'Remove custom name entry from root certificate')"
 						@click="removeOptionalAttribute(certificate.id)">
 						<template #icon>
