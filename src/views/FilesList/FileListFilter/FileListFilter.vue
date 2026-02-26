@@ -3,38 +3,44 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcActions force-menu
-		:type="isActive ? 'secondary' : 'tertiary'"
-		:menu-name="filterName">
-		<template #icon>
-			<slot name="icon" />
+	<NcPopover :boundary="boundary">
+		<template #trigger>
+			<NcButton :variant="isActive ? 'secondary' : 'tertiary'">
+				<template #icon>
+					<slot name="icon" />
+				</template>
+				{{ filterName }}
+			</NcButton>
 		</template>
-		<slot />
-
-		<template v-if="isActive">
-			<NcActionSeparator />
-			<NcActionButton class="files-list-filter__clear-button"
-				close-after-click
-				@click="$emit('reset-filter')">
-				{{ t('files', 'Clear filter') }}
-			</NcActionButton>
+		<template #default>
+			<div class="file-list-filter__popover">
+				<slot />
+				<template v-if="isActive">
+					<hr class="file-list-filter__separator">
+					<NcButton class="file-list-filter__clear-button"
+						alignment="start"
+						variant="tertiary"
+						wide
+						@click="$emit('reset-filter')">
+						{{ t('libresign', 'Clear filter') }}
+					</NcButton>
+				</template>
+			</div>
 		</template>
-	</NcActions>
+	</NcPopover>
 </template>
 
 <script>
 import { t } from '@nextcloud/l10n'
 
-import NcActionButton from '@nextcloud/vue/components/NcActionButton'
-import NcActions from '@nextcloud/vue/components/NcActions'
-import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcPopover from '@nextcloud/vue/components/NcPopover'
 
 export default {
 	name: 'FileListFilter',
 	components: {
-		NcActions,
-		NcActionButton,
-		NcActionSeparator,
+		NcButton,
+		NcPopover,
 	},
 	props: {
 		isActive: {
@@ -46,14 +52,30 @@ export default {
 			required: true,
 		},
 	},
+	setup() {
+		const boundary = document.getElementById('app-content-vue') ?? document.body
+		return { t, boundary }
+	},
 }
 </script>
 
 <style scoped lang="scss">
-.files-list-filter__clear-button {
-	:deep(.action-button__text) {
-		color: var(--color-error-text);
-	}
+.file-list-filter__popover {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--default-grid-baseline) / 2);
+	padding: calc(var(--default-grid-baseline) / 2);
+	min-width: calc(7 * var(--default-clickable-area));
+}
+
+.file-list-filter__separator {
+	margin: calc(var(--default-grid-baseline) / 2) 0;
+	border: none;
+	border-top: 1px solid var(--color-border);
+}
+
+.file-list-filter__clear-button {
+	color: var(--color-error-text) !important;
 }
 
 :deep(.button-vue) {
