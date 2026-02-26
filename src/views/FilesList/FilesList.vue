@@ -5,6 +5,10 @@
 <template>
 	<NcAppContent :page-heading="t('libresign', 'Files')">
 		<div class="files-list__header">
+			<!-- Request picker -->
+			<RequestPicker variant="primary" />
+
+			<!-- Current folder breadcrumbs -->
 			<NcBreadcrumbs class="files-list__breadcrumbs">
 				<NcBreadcrumb :name="t('libresign', 'Files')"
 					:title="t('libresign', 'Files')"
@@ -12,18 +16,29 @@
 					:to="{ name: 'fileslist' }"
 					:aria-description="t('libresign', 'Files')"
 					:disable-drop="true"
-					@click="refresh()">
+					force-menu
+					v-model:open="isMenuOpen">
 					<template #icon>
 						<NcIconSvgWrapper :size="20"
 							:svg="viewIcon" />
 					</template>
+					<template #menu-icon>
+						<NcIconSvgWrapper :path="isMenuOpen ? mdiChevronUp : mdiChevronDown" />
+					</template>
+					<!-- Reload button -->
+					<NcActionButton close-after-click @click="refresh()">
+						<template #icon>
+							<NcIconSvgWrapper :path="mdiReload" />
+						</template>
+						<!-- TRANSLATORS Button inside the breadcrumb dropdown menu that reloads the file list -->
+						{{ t('libresign', 'Reload content') }}
+					</NcActionButton>
 				</NcBreadcrumb>
-				<template #actions>
-					<RequestPicker />
-				</template>
 			</NcBreadcrumbs>
 
-			<NcLoadingIcon v-if="isRefreshing" class="files-list__refresh-icon" />
+			<NcLoadingIcon v-if="isRefreshing"
+				class="files-list__refresh-icon"
+				:name="t('libresign', 'File list is reloading')" />
 
 			<NcButton :aria-label="gridViewButtonLabel"
 				:title="gridViewButtonLabel"
@@ -75,11 +90,15 @@ import { t } from '@nextcloud/l10n'
 
 import HomeSvg from '@mdi/svg/svg/home.svg?raw'
 import {
+	mdiChevronDown,
+	mdiChevronUp,
 	mdiFolder,
+	mdiReload,
 	mdiViewGrid,
 	mdiViewList,
 } from '@mdi/js'
 
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcBreadcrumb from '@nextcloud/vue/components/NcBreadcrumb'
 import NcBreadcrumbs from '@nextcloud/vue/components/NcBreadcrumbs'
@@ -99,6 +118,7 @@ import { useSidebarStore } from '../../store/sidebar.js'
 export default {
 	name: 'FilesList',
 	components: {
+		NcActionButton,
 		NcAppContent,
 		NcButton,
 		NcBreadcrumb,
@@ -119,13 +139,17 @@ export default {
 			filtersStore,
 			userConfigStore,
 			sidebarStore,
+			mdiChevronDown,
+			mdiChevronUp,
 			mdiFolder,
+			mdiReload,
 			mdiViewGrid,
 			mdiViewList,
 		}
 	},
 	data() {
 		return {
+			isMenuOpen: false,
 			loading: true,
 			dirContentsFiltered: [],
 		}
