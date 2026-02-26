@@ -30,7 +30,7 @@
 				image-restriction="none"
 				@change="change" />
 			<div class="zoom-controls">
-				<NcButton type="tertiary"
+				<NcButton variant="tertiary"
 					:aria-label="t('libresign', 'Decrease zoom level')"
 					:title="t('libresign', 'Decrease zoom level')"
 					:disabled="!hasImage"
@@ -39,7 +39,7 @@
 						<NcIconSvgWrapper :path="mdiMagnifyMinusOutline" :size="20" />
 					</template>
 				</NcButton>
-				<NcButton type="tertiary"
+				<NcButton variant="tertiary"
 					:aria-label="t('libresign', 'Increase zoom level')"
 					:title="t('libresign', 'Increase zoom level')"
 					:disabled="!hasImage"
@@ -48,7 +48,7 @@
 						<NcIconSvgWrapper :path="mdiMagnifyPlusOutline" :size="20" />
 					</template>
 				</NcButton>
-				<NcButton type="tertiary"
+				<NcButton variant="tertiary"
 					:aria-label="t('libresign', 'Fit image to frame')"
 					:title="t('libresign', 'Fit image to frame')"
 					:disabled="!hasImage"
