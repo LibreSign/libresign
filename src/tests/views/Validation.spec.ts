@@ -6,6 +6,7 @@
 import { afterEach, describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
 import JSConfetti from 'js-confetti'
 import Validation from '../../views/Validation.vue'
 
@@ -96,6 +97,17 @@ const mockRoute = {
 const mockRouter = {
 	push: vi.fn(),
 }
+
+// Mock capabilities - show-confetti enabled by default so existing tests pass
+vi.mock('@nextcloud/capabilities', () => ({
+	getCapabilities: vi.fn(() => ({
+		libresign: {
+			config: {
+				'show-confetti': true,
+			},
+		},
+	})),
+}))
 
 // Mock initial state
 vi.mock('@nextcloud/initial-state', () => ({
@@ -644,6 +656,19 @@ describe('Validation.vue - Business Logic', () => {
 
 		it('does not fire confetti when isActiveView is false', async () => {
 			await wrapper.setData({ shouldFireAsyncConfetti: true, isActiveView: false })
+			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
+			expect(mockAddConfetti).not.toHaveBeenCalled()
+		})
+
+		it('does not fire confetti when show-confetti capability is disabled', async () => {
+			vi.mocked(getCapabilities).mockReturnValueOnce({
+				libresign: {
+					config: {
+						'show-confetti': false,
+					},
+				},
+			} as ReturnType<typeof getCapabilities>)
+			vi.spyOn(wrapper.vm, 'isAfterSigned', 'get').mockReturnValue(true)
 			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
 			expect(mockAddConfetti).not.toHaveBeenCalled()
 		})
