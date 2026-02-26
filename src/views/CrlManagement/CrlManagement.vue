@@ -375,21 +375,21 @@ export default {
 				serialNumber: userConfigStore.crl_filters?.serialNumber || '',
 				status: userConfigStore.crl_filters?.status || null,
 				owner: userConfigStore.crl_filters?.owner || '',
-	},
+		},
 			sortBy: userConfigStore.crl_sort.sortBy || 'revoked_at',
 			sortOrder: userConfigStore.crl_sort.sortOrder || 'DESC',
 			caWarningDialog: {
 				open: false,
 				entry: null,
 				typeLabel: '',
-	},
+		},
 			revokeDialog: {
 				open: false,
 				entry: null,
 				reasonCode: { value: 0, label: '' },
 				reasonText: '',
 				loading: false,
-	},
+		},
 			statusOptions: [
 				{ value: 'issued', label: this.t('libresign', 'Issued') },
 				{ value: 'revoked', label: this.t('libresign', 'Revoked') },
@@ -406,7 +406,7 @@ export default {
 				8: this.t('libresign', 'Remove from CRL'),
 				9: this.t('libresign', 'Privilege Withdrawn'),
 				10: this.t('libresign', 'AA Compromise'),
-	},
+		},
 			reasonCodeOptions: [
 				{ value: 0, label: this.t('libresign', 'Unspecified') },
 				{ value: 1, label: this.t('libresign', 'Key Compromise') },
