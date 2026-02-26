@@ -32,6 +32,7 @@ OC.L10N.register(
     "Preview" : "Ko‘rib chiqish",
     "Files" : "Fayllar",
     "Settings" : "Sozlamalar",
+    "Undo" : "Bekor qilish",
     "Duplicate" : "Nusxa",
     "Loading …" : "Yuklanmoqda…",
     "Name" : "Name",

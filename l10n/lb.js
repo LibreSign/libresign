@@ -50,6 +50,7 @@ OC.L10N.register(
     "New password" : "Neit Passwuert",
     "Refresh" : "Opfrëschen",
     "Resource" : "Ressource",
+    "Search groups" : "Sich Gruppen",
     "Reminders" : "Erennërungen",
     "Yes" : "Yes",
     "No" : "No",
