@@ -88,7 +88,7 @@ import JSConfetti from 'js-confetti'
 import axios from '@nextcloud/axios'
 import { formatFileSize } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
-import { n, t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { defineAsyncComponent } from 'vue'
@@ -141,7 +141,6 @@ export default {
 		const sidebarStore = useSidebarStore()
 		return {
 			t,
-			n,
 			signStore,
 			sidebarStore,
 			mdiAlertCircle,
