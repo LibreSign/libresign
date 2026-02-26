@@ -58,14 +58,14 @@ export default {
 		basename: {
 			type: String,
 			required: true,
-	},
+		},
 		/**
 		 * The extension of the filename
 		 */
 		extension: {
 			type: String,
 			required: true,
-	},
+		},
 	},
 
 	emits: ['rename', 'update:basename', 'renaming'],
@@ -91,7 +91,7 @@ export default {
 					'aria-label': this.basename,
 					title: this.basename,
 					tabindex: '0',
-	},
+		},
 			}
 		},
 	},
