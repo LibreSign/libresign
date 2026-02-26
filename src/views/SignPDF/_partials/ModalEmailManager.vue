@@ -182,7 +182,7 @@ export default {
 							identify: this.sendTo,
 							identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
 							signMethod: 'emailToken',
-	},
+		},
 					)
 					showSuccess(data.ocs.data.message)
 				} else {
@@ -195,7 +195,7 @@ export default {
 							identify: this.sendTo,
 							identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
 							signMethod: 'emailToken',
-	},
+		},
 					)
 					showSuccess(data.ocs.data.message)
 				}
