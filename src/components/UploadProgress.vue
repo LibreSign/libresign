@@ -14,7 +14,7 @@
 			</p>
 		</div>
 		<NcButton class="upload-picker__cancel"
-			type="tertiary"
+			variant="tertiary"
 			:aria-label="t('libresign', 'Cancel upload')"
 			@click="$emit('cancel')">
 			<template #icon>
