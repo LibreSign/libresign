@@ -51,6 +51,7 @@ OC.L10N.register(
     "Copy to clipboard" : "Copiar al portapapeles",
     "Files" : "Archivos",
     "Settings" : "Ajustes",
+    "Undo" : "Deshacer",
     "Name" : "Nombre",
     "Update" : "Actualizar",
     "Choose" : "Seleccionar",
