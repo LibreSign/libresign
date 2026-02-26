@@ -157,6 +157,47 @@ describe('filters store - filter business rules', () => {
 		})
 	})
 
+	describe('business rule: filterModifiedRange should compute date range from preset id', () => {
+		it('returns null when filter_modified is empty', () => {
+			const store = useFiltersStore()
+			store.filter_modified = ''
+
+			expect(store.filterModifiedRange).toBeNull()
+		})
+
+		it('returns null for unknown preset id', () => {
+			const store = useFiltersStore()
+			store.filter_modified = 'unknown-preset'
+
+			expect(store.filterModifiedRange).toBeNull()
+		})
+
+		it.each(['today', 'last-7', 'last-30', 'this-year', 'last-year'])('returns { start, end } for preset "%s"', (presetId) => {
+			const store = useFiltersStore()
+			store.filter_modified = presetId
+
+			const range = store.filterModifiedRange
+			expect(range).not.toBeNull()
+			expect(range?.start).toBeTypeOf('number')
+			expect(range?.end).toBeTypeOf('number')
+			expect(range!.start).toBeLessThan(range!.end)
+		})
+
+		it('today preset: start is midnight and end is end of day', () => {
+			const store = useFiltersStore()
+			store.filter_modified = 'today'
+
+			const range = store.filterModifiedRange!
+			const startDate = new Date(range.start)
+			const endDate = new Date(range.end)
+
+			expect(startDate.getHours()).toBe(0)
+			expect(startDate.getMinutes()).toBe(0)
+			expect(endDate.getHours()).toBe(23)
+			expect(endDate.getMinutes()).toBe(59)
+		})
+	})
+
 	describe('business rule: chips update should emit filter event', () => {
 		it('onFilterUpdateChips should emit libresign:filters:update event', async () => {
 			const store = useFiltersStore()
@@ -253,6 +294,35 @@ describe('filters store - filter business rules', () => {
 				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_modified',
 				{ value: '' }
 			)
+		})
+
+		it('modified filter should update local state after saving', async () => {
+			axiosMock.put.mockResolvedValue({ data: { success: true } })
+
+			const store = useFiltersStore()
+			const event = {
+				id: 'modified',
+				detail: [{ id: 'today', label: 'Today' }],
+			}
+
+			await store.onFilterUpdateChipsAndSave(event)
+
+			expect(store.filter_modified).toBe('today')
+		})
+
+		it('empty modified filter should clear local state', async () => {
+			axiosMock.put.mockResolvedValue({ data: { success: true } })
+
+			const store = useFiltersStore()
+			store.filter_modified = 'last-7'
+			const event = {
+				id: 'modified',
+				detail: [],
+			}
+
+			await store.onFilterUpdateChipsAndSave(event)
+
+			expect(store.filter_modified).toBe('')
 		})
 	})
 
