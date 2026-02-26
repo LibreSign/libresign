@@ -41,6 +41,7 @@ class Admin implements ISettings {
 	#[\Override]
 	public function getForm(): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-settings');
+		Util::addStyle(Application::APP_ID, 'libresign-settings');
 		try {
 			$signatureParsed = $this->signatureTextService->parse();
 			$this->initialState->provideInitialState('signature_text_parsed', $signatureParsed['parsed']);
@@ -58,6 +59,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('default_signature_width', SignatureTextService::DEFAULT_SIGNATURE_WIDTH);
 		$this->initialState->provideInitialState('default_template_font_size', $this->signatureTextService->getDefaultTemplateFontSize());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
+		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information', ''));
 		$this->initialState->provideInitialState('signature_available_variables', $this->signatureTextService->getAvailableVariables());
 		$this->initialState->provideInitialState('signature_background_type', $this->signatureBackgroundService->getSignatureBackgroundType());
 		$this->initialState->provideInitialState('signature_font_size', $this->signatureTextService->getSignatureFontSize());
@@ -82,7 +84,9 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value));
 		$this->initialState->provideInitialState('signing_mode', $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'sync'));
 		$this->initialState->provideInitialState('worker_type', $this->appConfig->getValueString(Application::APP_ID, 'worker_type', 'local'));
-		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueString(Application::APP_ID, 'envelope_enabled', '1') === '1');
+		$this->initialState->provideInitialState('identification_documents', $this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false));
+		$this->initialState->provideInitialState('approval_group', $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']));
+		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true));
 		$this->initialState->provideInitialState('parallel_workers', $this->appConfig->getValueString(Application::APP_ID, 'parallel_workers', '4'));
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}

@@ -13,7 +13,7 @@
 			:key="preset.id"
 			type="radio"
 			close-after-click
-			:model-value.sync="selectedOption"
+			v-model="selectedOption"
 			:value="preset.id">
 			{{ preset.label }}
 		</NcActionButton>
@@ -21,6 +21,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { mdiCalendarRange } from '@mdi/js'
 import calendarSvg from '@mdi/svg/svg/calendar.svg?raw'
 
@@ -37,9 +39,9 @@ const endOfToday = () => (new Date()).setHours(23, 59, 59, 999)
 export default {
 	name: 'FileListFilterModified',
 	components: {
-		FileListFilter,
 		NcActionButton,
 		NcIconSvgWrapper,
+		FileListFilter,
 	},
 	setup() {
 		const filtersStore = useFiltersStore()

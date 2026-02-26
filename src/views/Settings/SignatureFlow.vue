@@ -3,16 +3,16 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name">
+	<NcSettingsSection :name="t('libresign', 'Signing order')">
 		<NcNoteCard v-if="errorMessage" type="error">
 			{{ errorMessage }}
 		</NcNoteCard>
 
 		<div class="signature-flow-toggle">
 			<NcCheckboxRadioSwitch type="switch"
-				:checked="enabled"
+				v-model="enabled"
 				:disabled="loading"
-				@update:checked="onToggleChange">
+				@update:modelValue="onToggleChange">
 				<span>{{ t('libresign', 'Set default signing order') }}</span>
 			</NcCheckboxRadioSwitch>
 			<span v-if="loading && !flowChanging" class="toggle-status">
@@ -28,35 +28,35 @@
 
 		<div v-if="enabled" class="signature-flow-options">
 			<NcCheckboxRadioSwitch v-for="flow in availableFlows"
-					:key="flow.value"
-					type="radio"
-					:checked="selectedFlow?.value"
-					:value="flow.value"
-					:disabled="loading"
-					name="signature_flow"
-					@update:checked="onFlowChange">
-					<div class="signature-flow-option">
-						<div class="signature-flow-option-content">
-							<strong>{{ flow.label }}</strong>
-							<p class="signature-flow-option-description">
-								{{ flow.description }}
-							</p>
-						</div>
-						<div v-if="selectedFlow?.value === flow.value" class="signature-flow-option-status">
-							<NcLoadingIcon v-if="loading && flowChanging" :size="20" />
-							<NcSavingIndicatorIcon v-else-if="saved && flowChanging" :size="20" />
-							<NcSavingIndicatorIcon v-else-if="showErrorIcon && flowChanging" :size="20" error />
-						</div>
+				:key="flow.value"
+				type="radio"
+				v-model="selectedFlowValue"
+				:value="flow.value"
+				:disabled="loading"
+				name="signature_flow"
+				@update:modelValue="onFlowChange">
+				<div class="signature-flow-option">
+					<div class="signature-flow-option-content">
+						<strong>{{ flow.label }}</strong>
+						<p class="signature-flow-option-description">
+							{{ flow.description }}
+						</p>
 					</div>
-				</NcCheckboxRadioSwitch>
-			</div>
+					<div v-if="selectedFlow?.value === flow.value" class="signature-flow-option-status">
+						<NcLoadingIcon v-if="loading && flowChanging" :size="20" />
+						<NcSavingIndicatorIcon v-else-if="saved && flowChanging" :size="20" />
+						<NcSavingIndicatorIcon v-else-if="showErrorIcon && flowChanging" :size="20" error />
+					</div>
+				</div>
+			</NcCheckboxRadioSwitch>
+		</div>
 	</NcSettingsSection>
 </template>
 
 <script>
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
@@ -68,18 +68,26 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 export default {
 	name: 'SignatureFlow',
 	components: {
-		NcCheckboxRadioSwitch,
 		NcLoadingIcon,
 		NcNoteCard,
-		NcSavingIndicatorIcon,
 		NcSettingsSection,
+		NcCheckboxRadioSwitch,
+		NcSavingIndicatorIcon,
 	},
 	data() {
 		return {
-			name: t('libresign', 'Signing order'),
 			enabled: false,
 			selectedFlow: null,
-			availableFlows: [
+			loading: false,
+			errorMessage: '',
+			saved: false,
+			showErrorIcon: false,
+			flowChanging: false,
+		}
+	},
+	computed: {
+		availableFlows() {
+			return [
 				{
 					value: 'parallel',
 					label: t('libresign', 'Simultaneous (Parallel)'),
@@ -89,19 +97,23 @@ export default {
 					value: 'ordered_numeric',
 					label: t('libresign', 'Sequential'),
 					description: t('libresign', 'Signers are organized by signing order number. Only those with the lowest pending order number can sign.'),
-				},
-			],
-			loading: false,
-			errorMessage: '',
-			saved: false,
-			showErrorIcon: false,
-			flowChanging: false,
-		}
+		},
+			]
+		},
+		selectedFlowValue: {
+			get() {
+				return this.selectedFlow?.value ?? this.availableFlows[0].value
+			},
+			set(value) {
+				this.selectedFlow = this.availableFlows.find(flow => flow.value === value) ?? this.availableFlows[0]
+			},
+		},
 	},
 	async mounted() {
 		this.loadConfig()
 	},
 	methods: {
+		t,
 		loadConfig() {
 			try {
 				const mode = loadState('libresign', 'signature_flow', 'none')
@@ -126,15 +138,13 @@ export default {
 				this.selectedFlow = this.availableFlows[0]
 			}
 		},
-		onToggleChange(value) {
-			this.enabled = value
+		onToggleChange() {
 			this.errorMessage = ''
 			this.showErrorIcon = false
 			this.flowChanging = false
 			this.saveConfig()
 		},
-		onFlowChange(value) {
-			this.selectedFlow = this.availableFlows.find(flow => flow.value === value)
+		onFlowChange() {
 			this.errorMessage = ''
 			this.showErrorIcon = false
 			this.flowChanging = true
@@ -191,15 +201,16 @@ export default {
 
 .signature-flow-options {
 	margin-top: 0.5rem;
-	margin-left: 2rem;
-	padding-top: 0.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
 
 	.signature-flow-option {
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
+		align-items: flex-start;
+		gap: 1rem;
 		width: 100%;
-		padding: 0.5rem 0;
 
 		&-content {
 			flex: 1;
@@ -208,11 +219,11 @@ export default {
 		&-description {
 			margin: 0.25rem 0 0 0;
 			color: var(--color-text-maxcontrast);
-			font-size: 0.9em;
+			font-size: 90%;
 		}
 
 		&-status {
-			margin-left: 1rem;
+			flex-shrink: 0;
 			display: flex;
 			align-items: center;
 		}

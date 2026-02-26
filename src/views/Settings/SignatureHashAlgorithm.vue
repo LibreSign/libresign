@@ -4,12 +4,14 @@
 -->
 
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Signature hash algorithm')"
+		:description="t('libresign', 'Hash algorithm used for signature.')">
 		<NcSelect :key="idKey"
 			v-model="selected"
 			label="displayname"
 			:no-wrap="false"
-			:aria-label-combobox="description"
+			:aria-label-combobox="t('libresign', 'Hash algorithm used for signature.')"
 			:close-on-select="false"
 			:disabled="loading"
 			:loading="loading"
@@ -22,14 +24,14 @@
 
 <script>
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
-import '@nextcloud/password-confirmation/dist/style.css'
+import '@nextcloud/password-confirmation/style.css'
 
 export default {
 	name: 'SignatureHashAlgorithm',
@@ -37,10 +39,7 @@ export default {
 		NcSettingsSection,
 		NcSelect,
 	},
-
 	data: () => ({
-		name: t('libresign', 'Signature hash algorithm'),
-		description: t('libresign', 'Hash algorithm used for signature.'),
 		selected: [],
 		hashes: ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'],
 		loading: false,
@@ -52,6 +51,7 @@ export default {
 	},
 
 	methods: {
+		t,
 		async getData() {
 			this.loading = true
 			const response = await axios.get(
@@ -71,6 +71,5 @@ export default {
 			this.idKey += 1
 		},
 	},
-
 }
 </script>

@@ -41,6 +41,8 @@
 
 <script>
 
+import { t } from '@nextcloud/l10n'
+
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 export default {
@@ -49,7 +51,6 @@ export default {
 	components: {
 		NcTextField,
 	},
-
 	props: {
 		/**
 		 * The filename without extension
@@ -68,6 +69,12 @@ export default {
 	},
 
 	emits: ['rename', 'update:basename', 'renaming'],
+
+	setup() {
+		return {
+			t,
+		}
+	},
 
 	data() {
 		return {
@@ -88,7 +95,6 @@ export default {
 			}
 		},
 	},
-
 	watch: {
 		basename(newVal) {
 			if (!this.isRenaming) {
@@ -96,7 +102,6 @@ export default {
 			}
 		},
 	},
-
 	methods: {
 		startRenaming() {
 			this.isRenaming = true

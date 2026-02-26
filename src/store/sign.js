@@ -4,7 +4,6 @@
  */
 
 import { defineStore } from 'pinia'
-import { set } from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -96,7 +95,7 @@ export const useSignStore = defineStore('sign', {
 		setFileToSign(file) {
 			if (file) {
 				this.errors = []
-				set(this, 'document', file)
+				this.document = file
 
 				const sidebarStore = useSidebarStore()
 				sidebarStore.activeSignTab()
@@ -110,7 +109,7 @@ export const useSignStore = defineStore('sign', {
 		},
 		reset() {
 			this.errors = []
-			set(this, 'document', defaultState.document)
+			this.document = defaultState.document
 			const sidebarStore = useSidebarStore()
 			sidebarStore.setActiveTab()
 		},

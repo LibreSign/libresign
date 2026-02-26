@@ -3,10 +3,12 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Customize default user folder')"
+		:description="t('libresign', 'Name of the folder that will contain the user\'s digital certificate, visible signature images, and other files related to LibreSign.')">
 		<div class="default-user-folder-content">
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="customUserFolder">
+				v-model="customUserFolder">
 				{{ t('libresign', 'Customize default user folder') }}
 			</NcCheckboxRadioSwitch>
 			<div v-if="customUserFolder">
@@ -19,8 +21,8 @@
 </template>
 <script>
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
@@ -35,8 +37,6 @@ export default {
 	},
 	data() {
 		return {
-			name: t('libresign', 'Customize default user folder'),
-			description: t('libresign', 'Name of the folder that will contain the user\'s digital certificate, visible signature images, and other files related to LibreSign.'),
 			value: '',
 			customUserFolder: false,
 		}
@@ -45,6 +45,7 @@ export default {
 		this.getData()
 	},
 	methods: {
+		t,
 		async getData() {
 			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/default_user_folder'))
 			this.customUserFolder = !!response.data.ocs.data.data

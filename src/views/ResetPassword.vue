@@ -9,13 +9,17 @@
 		class="container"
 		is-form
 		@submit.prevent="send()"
-		@closing="signMethodsStore.closeModal('resetPassword')">
+		@keydown.enter.prevent="handleEnter"
+		@closing="onClose">
 		<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
 		<NcPasswordField v-model="currentPassword"
+			ref="currentPasswordField"
 			:label="t('libresign', 'Current password')" />
 		<NcPasswordField v-model="newPassword"
+			ref="newPasswordField"
 			:label="t('libresign', 'New password')" />
 		<NcPasswordField v-model="rPassword"
+			ref="repeatPasswordField"
 			:has-error="!validNewPassord"
 			:label="t('libresign', 'Repeat password')" />
 		<template #actions>
@@ -34,6 +38,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -50,8 +56,8 @@ export default {
 	components: {
 		NcDialog,
 		NcPasswordField,
-		NcLoadingIcon,
 		NcButton,
+		NcLoadingIcon,
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
@@ -74,7 +80,53 @@ export default {
 		},
 	},
 	methods: {
+		t,
+		resetForm() {
+			this.newPassword = ''
+			this.currentPassword = ''
+			this.rPassword = ''
+			this.hasLoading = false
+		},
+		focusField(fieldRefName) {
+			const field = this.$refs[fieldRefName]
+			if (typeof field?.focus === 'function') {
+				field.focus()
+				return
+			}
+			const input = field?.$el?.querySelector?.('input')
+			if (typeof input?.focus === 'function') {
+				input.focus()
+			}
+		},
+		focusFirstInvalidField() {
+			if (!this.currentPassword) {
+				this.focusField('currentPasswordField')
+				return
+			}
+			if (!this.newPassword) {
+				this.focusField('newPasswordField')
+				return
+			}
+			if (!this.rPassword || !this.validNewPassord) {
+				this.focusField('repeatPasswordField')
+			}
+		},
+		handleEnter() {
+			if (this.canSave) {
+				this.send()
+				return
+			}
+			this.focusFirstInvalidField()
+		},
+		onClose() {
+			this.signMethodsStore.closeModal('resetPassword')
+			this.resetForm()
+		},
 		async send() {
+			if (!this.canSave) {
+				this.focusFirstInvalidField()
+				return
+			}
 			this.hasLoading = true
 			await axios.patch(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), {
 				current: this.currentPassword,
@@ -82,8 +134,7 @@ export default {
 			})
 				.then(({ data }) => {
 					showSuccess(data.ocs.data.message)
-					this.hasLoading = false
-					this.signMethodsStore.closeModal('resetPassword')
+					this.onClose()
 					this.$emit('close', true)
 				})
 				.catch(({ response }) => {

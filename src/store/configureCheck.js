@@ -4,7 +4,6 @@
  */
 
 import { defineStore } from 'pinia'
-import { set } from 'vue'
 
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
@@ -27,10 +26,10 @@ export const useConfigureCheckStore = function(...args) {
 
 		actions: {
 			setCertificateEngine(engine) {
-				set(this, 'certificateEngine', engine)
+				this.certificateEngine = engine
 			},
 			setIdentifyMethods(identifyMethods) {
-				set(this, 'identifyMethods', identifyMethods)
+				this.identifyMethods = identifyMethods
 			},
 			saveCertificateEngine(engine) {
 				return axios.post(
@@ -60,7 +59,7 @@ export const useConfigureCheckStore = function(...args) {
 					&& this.items.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
 			},
 			updateItems(items) {
-				set(this, 'items', items)
+				this.items = items
 				const java = this.items.filter((o) => o.resource === 'java' && o.status === 'error').length === 0
 				const jsignpdf = this.items.filter((o) => o.resource === 'jsignpdf' && o.status === 'error').length === 0
 				const cfssl = this.items.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
@@ -68,15 +67,15 @@ export const useConfigureCheckStore = function(...args) {
 					|| !jsignpdf
 					|| !cfssl
 				) {
-					set(this, 'state', 'need download')
+					this.state = 'need download'
 				} else {
-					set(this, 'state', 'done')
+					this.state = 'done'
 				}
-				set(this, 'downloadInProgress', false)
+				this.downloadInProgress = false
 			},
 			async checkSetup() {
-				set(this, 'state', 'in progress')
-				set(this, 'downloadInProgress', true)
+				this.state = 'in progress'
+				this.downloadInProgress = true
 				await axios.get(
 					generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'),
 				)
@@ -85,8 +84,8 @@ export const useConfigureCheckStore = function(...args) {
 					})
 					.catch((error) => {
 						console.error('Failed to check setup:', error)
-						set(this, 'state', 'error')
-						set(this, 'downloadInProgress', false)
+						this.state = 'error'
+						this.downloadInProgress = false
 					})
 			},
 		},

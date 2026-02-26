@@ -317,6 +317,7 @@ class InjectionMiddleware extends Middleware {
 			}
 
 			Util::addScript(Application::APP_ID, 'libresign-' . $template);
+			Util::addStyle(Application::APP_ID, 'libresign-' . $template);
 			$response = new TemplateResponse(
 				appName: Application::APP_ID,
 				templateName: $template,

@@ -71,7 +71,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetContentFromUrlInvalidUrl(): void {
-		$this->expectException(\Exception::class);
+		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Invalid URL file');
 
 		$service = $this->getService();
@@ -92,11 +92,53 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->client->method('newClient')->willReturn($httpClient);
 		$this->mimeService->method('getMimeType')->willReturn('application/pdf');
 
-		$this->expectException(\Exception::class);
+		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Invalid URL file');
 
 		$service = $this->getService();
 		$service->getContentFromUrl($url);
+	}
+
+	public function testGetContentFromUrlOctetStreamIsTrusted(): void {
+		$url = 'https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf';
+		$content = '%PDF-1.4 binary content';
+
+		$response = $this->createMock(IResponse::class);
+		// GitHub returns application/octet-stream for raw files
+		$response->method('getHeader')->willReturn('application/octet-stream');
+		$response->method('getBody')->willReturn($content);
+
+		$httpClient = $this->createMock(IClient::class);
+		$httpClient->method('get')->with($url)->willReturn($response);
+
+		$this->client->method('newClient')->willReturn($httpClient);
+		$this->mimeService->method('getMimeType')->with($content)->willReturn('application/pdf');
+
+		$service = $this->getService();
+		$result = $service->getContentFromUrl($url);
+
+		$this->assertEquals($content, $result);
+	}
+
+	public function testGetContentFromUrlMimeTypeWithParameters(): void {
+		$url = 'https://example.com/file.pdf';
+		$content = 'PDF content';
+
+		$response = $this->createMock(IResponse::class);
+		// Content-Type with charset parameter
+		$response->method('getHeader')->willReturn('application/pdf; charset=utf-8');
+		$response->method('getBody')->willReturn($content);
+
+		$httpClient = $this->createMock(IClient::class);
+		$httpClient->method('get')->with($url)->willReturn($response);
+
+		$this->client->method('newClient')->willReturn($httpClient);
+		$this->mimeService->method('getMimeType')->with($content)->willReturn('application/pdf');
+
+		$service = $this->getService();
+		$result = $service->getContentFromUrl($url);
+
+		$this->assertEquals($content, $result);
 	}
 
 	public function testGetContentFromUrlEmptyContent(): void {
@@ -111,7 +153,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->client->method('newClient')->willReturn($httpClient);
 
-		$this->expectException(\Exception::class);
+		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Empty file');
 
 		$service = $this->getService();
@@ -126,7 +168,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->client->method('newClient')->willReturn($httpClient);
 
-		$this->expectException(\Exception::class);
+		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Invalid URL file');
 
 		$service = $this->getService();
@@ -175,7 +217,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getMimeType')
 			->willReturn('text/plain');
 
-		$this->expectException(\Exception::class);
+		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Invalid URL file');
 
 		$service = $this->getService();
@@ -219,7 +261,7 @@ final class FileContentProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetContentFromDataNoSource(): void {
 		$data = ['file' => []];
 
-		$this->expectException(\Exception::class);
+		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('No file source provided');
 
 		$service = $this->getService();

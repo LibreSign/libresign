@@ -13,7 +13,7 @@
 					:to="{ name: 'fileslist' }"
 					:aria-description="t('libresign', 'Files')"
 					:disable-drop="true"
-					@click.native="refresh()">
+					@click="refresh()">
 					<template #icon>
 						<NcIconSvgWrapper :size="20"
 							:svg="viewIcon" />
@@ -33,7 +33,7 @@
 				@click="toggleGridView">
 				<template #icon>
 					<ListViewIcon v-if="userConfigStore.files_list_grid_view" />
-					<ViewGridIcon v-else />
+					<NcIconSvgWrapper :path="mdiViewGrid" v-else />
 				</template>
 			</NcButton>
 		</div>
@@ -54,7 +54,7 @@
 						<RequestPicker />
 					</template>
 					<template #icon>
-						<FolderIcon />
+						<NcIconSvgWrapper :path="mdiFolder" />
 					</template>
 				</NcEmptyContent>
 
@@ -62,7 +62,7 @@
 					v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length > 0"
 					:name="t('libresign', 'No documents found')">
 					<template #icon>
-						<FolderIcon />
+						<NcIconSvgWrapper :path="mdiFolder" />
 					</template>
 				</NcEmptyContent>
 			</template>
@@ -72,13 +72,13 @@
 
 <script>
 
+import { t } from '@nextcloud/l10n'
+
 import HomeSvg from '@mdi/svg/svg/home.svg?raw'
-
-import FolderIcon from 'vue-material-design-icons/Folder.vue'
-import ListViewIcon from 'vue-material-design-icons/FormatListBulletedSquare.vue'
-import ViewGridIcon from 'vue-material-design-icons/ViewGrid.vue'
-
-import { loadState } from '@nextcloud/initial-state'
+import {
+	mdiFolder,
+	mdiViewGrid,
+} from '@mdi/js'
 
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcBreadcrumb from '@nextcloud/vue/components/NcBreadcrumb'
@@ -101,13 +101,10 @@ export default {
 	components: {
 		NcAppContent,
 		NcButton,
-		ListViewIcon,
-		ViewGridIcon,
-		NcLoadingIcon,
-		FolderIcon,
 		NcBreadcrumb,
 		NcBreadcrumbs,
 		NcIconSvgWrapper,
+		NcLoadingIcon,
 		FilesListVirtual,
 		RequestPicker,
 		NcEmptyContent,
@@ -122,16 +119,20 @@ export default {
 			filtersStore,
 			userConfigStore,
 			sidebarStore,
+			mdiFolder,
+			mdiViewGrid,
 		}
 	},
 	data() {
 		return {
 			loading: true,
 			dirContentsFiltered: [],
-			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
 	},
 	computed: {
+		canRequestSign() {
+			return this.filesStore.canRequestSign
+		},
 		viewIcon() {
 			return HomeSvg
 		},
@@ -161,6 +162,7 @@ export default {
 		this.filesStore.selectFile()
 	},
 	methods: {
+		t,
 		refresh() {
 			this.filesStore.updateAllFiles()
 		},

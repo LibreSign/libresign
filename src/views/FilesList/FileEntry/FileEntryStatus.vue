@@ -8,19 +8,12 @@
 		:class="'status-chip--' + statusToVariant(status)"
 		:title="statusText">
 		<div class="status-chip__text">{{ statusText }}</div>
-		<NcIconSvgWrapper class="status-chip__icon" :path="statusIconPath" :size="20" />
 	</div>
 </template>
 
 <script>
-import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
-import { getStatusIcon } from '../../../utils/fileStatus.js'
-
 export default {
 	name: 'FileEntryStatus',
-	components: {
-		NcIconSvgWrapper,
-	},
 	props: {
 		statusText: {
 			type: String,
@@ -35,11 +28,6 @@ export default {
 		signers: {
 			type: Array,
 			default: () => [],
-		},
-	},
-	computed: {
-		statusIconPath() {
-			return getStatusIcon(this.status) || ''
 		},
 	},
 	methods: {
@@ -85,10 +73,6 @@ export default {
 		overflow-wrap: break-word;
 	}
 
-	&__icon {
-		display: none;
-	}
-
 	&--error {
 		background-color: var(--color-error);
 		color: var(--color-error-text);
@@ -129,24 +113,5 @@ export default {
 		color: #666666;
 	}
 
-	@media (max-width: 768px) {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-width: var(--chip-size);
-		max-width: var(--chip-size);
-		width: var(--chip-size);
-		height: var(--chip-size);
-		padding: 0;
-		background-color: transparent !important;
-
-		&__text {
-			display: none;
-		}
-
-		&__icon {
-			display: block;
-		}
-	}
 }
 </style>

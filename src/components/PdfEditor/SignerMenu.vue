@@ -53,6 +53,11 @@ export default {
 		NcAvatar,
 		NcIconSvgWrapper,
 	},
+	setup() {
+		return {
+			mdiChevronDown,
+		}
+	},
 	props: {
 		signers: {
 			type: Array,
@@ -70,11 +75,6 @@ export default {
 			type: Boolean,
 			default: true,
 		},
-	},
-	data() {
-		return {
-			mdiChevronDown,
-		}
 	},
 	methods: {
 		label(signer) {

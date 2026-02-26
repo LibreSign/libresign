@@ -70,7 +70,7 @@
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { FILE_STATUS } from '../constants.js'
 import { getStatusIcon } from '../utils/fileStatus.js'
@@ -102,7 +102,9 @@ export default {
 		},
 	},
 	setup() {
-		return { t }
+		return {
+			t,
+		}
 	},
 	computed: {
 		isInProgress() {
@@ -190,7 +192,7 @@ export default {
 	}
 
 	&__bar-percentage {
-		text-align: right;
+		text-align: end;
 		font-size: calc(var(--default-font-size) * 0.9);
 		color: var(--color-text-lighter);
 	}

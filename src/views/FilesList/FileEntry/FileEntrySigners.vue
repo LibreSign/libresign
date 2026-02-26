@@ -16,7 +16,8 @@
 <script>
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { mdiAccountMultiple } from '@mdi/js'
-import Tooltip from '@nextcloud/vue/dist/Directives/Tooltip.js'
+import { vTooltip } from 'floating-vue'
+import 'floating-vue/dist/style.css'
 
 export default {
 	name: 'FileEntrySigners',
@@ -24,9 +25,9 @@ export default {
 		NcIconSvgWrapper,
 	},
 	directives: {
-		Tooltip,
+		tooltip: vTooltip,
 	},
-	data() {
+	setup() {
 		return {
 			mdiAccountMultiple,
 		}

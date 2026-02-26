@@ -13,7 +13,7 @@
 		@end="onDragEnd">
 		<transition-group name="signer-list" tag="div">
 			<Signer v-for="(signer, index) in sortableSigners"
-				:key="signer.identify || index"
+				:key="signer.identify"
 				:signer-index="index"
 				:event="event"
 				:draggable="!signer.signed">
@@ -25,7 +25,7 @@
 	</draggable>
 	<ul v-else>
 		<Signer v-for="(signer, index) in signers"
-			:key="signer.identify || index"
+			:key="signer.identify"
 			:signer-index="index"
 			:event="event">
 			<template #actions="{closeActions}">
@@ -35,6 +35,8 @@
 	</ul>
 </template>
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { loadState } from '@nextcloud/initial-state'
 
 import draggable from 'vuedraggable'
@@ -69,7 +71,7 @@ export default {
 			},
 			set(value) {
 				const file = this.filesStore.getFile()
-				this.$set(file, 'signers', value)
+				file.signers = value
 			},
 		},
 		isOrderedNumeric() {
@@ -88,6 +90,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		onDragEnd(evt) {
 			const { oldIndex, newIndex } = evt
 			if (oldIndex === newIndex) {
@@ -96,7 +99,7 @@ export default {
 
 			const file = this.filesStore.getFile()
 			file.signers.forEach((signer, index) => {
-				this.$set(signer, 'signingOrder', index + 1)
+				signer.signingOrder = index + 1
 			})
 
 			this.$emit('signing-order-changed')

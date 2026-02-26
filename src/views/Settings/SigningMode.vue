@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name">
+	<NcSettingsSection :name="t('libresign', 'Signing mode')">
 		<NcNoteCard v-if="errorMessage" type="error">
 			{{ errorMessage }}
 		</NcNoteCard>
@@ -75,8 +75,8 @@ import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
@@ -88,16 +88,15 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 export default {
 	name: 'SigningMode',
 	components: {
-		NcCheckboxRadioSwitch,
 		NcLoadingIcon,
 		NcNoteCard,
-		NcSavingIndicatorIcon,
 		NcSettingsSection,
 		NcTextField,
+		NcCheckboxRadioSwitch,
+		NcSavingIndicatorIcon,
 	},
 	data() {
 		return {
-			name: t('libresign', 'Signing mode'),
 			asyncEnabled: false,
 			externalWorkerEnabled: false,
 			parallelWorkersCount: '4',
@@ -116,6 +115,7 @@ export default {
 		this.loadConfig()
 	},
 	methods: {
+		t,
 		loadConfig() {
 			try {
 				const mode = loadState('libresign', 'signing_mode', 'sync')

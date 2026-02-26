@@ -21,7 +21,7 @@
 			<NcButton :aria-label="t('libresign', 'Delete')"
 				@click="clear">
 				<template #icon>
-					<DeleteIcon :size="20" />
+					<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 				</template>
 			</NcButton>
 		</div>
@@ -58,15 +58,18 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+import { mdiDelete } from '@mdi/js'
+
 import SignaturePad from 'signature_pad'
 
-import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 
 import { getCapabilities } from '@nextcloud/capabilities'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcColorPicker from '@nextcloud/vue/components/NcColorPicker'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
 
@@ -76,11 +79,15 @@ export default {
 	components: {
 		NcDialog,
 		NcColorPicker,
-		DeleteIcon,
 		NcButton,
+		NcIconSvgWrapper,
 		PreviewSignature,
 	},
-
+	setup() {
+		return {
+			mdiDelete,
+		}
+	},
 	data: () => ({
 		canvasWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
 		canvasHeight: getCapabilities().libresign.config['sign-elements']['signature-height'],
@@ -107,12 +114,15 @@ export default {
 			})
 		})
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		this.mounted = false
-		this.$refs.canvas.signaturePad.clear()
+		if (this.$refs.canvas?.signaturePad) {
+			this.$refs.canvas.signaturePad.clear()
+		}
 		this.imageData = null
 	},
 	methods: {
+		t,
 		applyCanvasSize() {
 			if (!this.$refs.canvasWrapper || !this.$refs.canvas) {
 				return

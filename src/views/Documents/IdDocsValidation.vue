@@ -8,13 +8,13 @@
 			<div class="filter-wrapper" :class="{ 'filter-wrapper--active': hasActiveFilters }">
 				<NcActions :aria-label="hasActiveFilters ? t('libresign', 'Filters ({count})', { count: activeFilterCount }) : t('libresign', 'Filters')">
 					<template #icon>
-						<FilterIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiFilter" :size="20" />
 					</template>
 					<NcActionInput v-model="filters.owner"
 						:label="t('libresign', 'Owner')"
 						@update:value="onFilterChange">
 						<template #icon>
-							<AccountIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiAccount" :size="20" />
 						</template>
 					</NcActionInput>
 
@@ -22,7 +22,7 @@
 						:model-value="filters.status?.value === 'signed'"
 						@update:modelValue="setStatusFilter('signed', $event)">
 						<template #icon>
-							<CheckCircleIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiCheckCircle" :size="20" />
 						</template>
 						{{ t('libresign', 'Signed') }}
 					</NcActionButton>
@@ -31,7 +31,7 @@
 						:model-value="filters.status?.value === 'pending'"
 						@update:modelValue="setStatusFilter('pending', $event)">
 						<template #icon>
-							<ClockAlertIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiClockAlert" :size="20" />
 						</template>
 						{{ t('libresign', 'Pending') }}
 					</NcActionButton>
@@ -41,7 +41,7 @@
 					<NcActionButton v-if="hasActiveFilters"
 						@click="clearFilters">
 						<template #icon>
-							<CloseIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiClose" :size="20" />
 						</template>
 						{{ t('libresign', 'Clear filters') }}
 					</NcActionButton>
@@ -55,13 +55,13 @@
 		<NcEmptyContent v-else-if="filteredDocuments.length === 0"
 			:name="t('libresign', 'No documents to validate')">
 			<template #icon>
-				<FileDocumentIcon :size="64" />
+				<NcIconSvgWrapper :path="mdiFileDocument" :size="64" />
 			</template>
 		</NcEmptyContent>
 
 		<div v-else
 			ref="scrollContainer"
-			class="is-fullwidth container-account-docs-to-validate with-sidebar--full"
+			class="container-account-docs-to-validate"
 			@scroll="onScroll">
 		<table class="id-docs-table">
 			<thead>
@@ -124,7 +124,7 @@
 							<template v-if="doc.file?.status === FILE_STATUS.SIGNED">
 								<NcActionButton @click="openValidationURL(doc)">
 									<template #icon>
-										<EyeIcon :size="20" />
+										<NcIconSvgWrapper :path="mdiEye" :size="20" />
 									</template>
 									{{ t('libresign', 'Validate') }}
 								</NcActionButton>
@@ -132,7 +132,7 @@
 							<template v-else>
 								<NcActionButton @click="openFile(doc)">
 									<template #icon>
-										<FileDocumentOutlineIcon :size="20" />
+										<NcIconSvgWrapper :path="mdiFileDocumentOutline" :size="20" />
 									</template>
 									{{ t('libresign', 'Open file') }}
 								</NcActionButton>
@@ -141,13 +141,13 @@
 								:aria-label="t('libresign', 'Sign')"
 								@click="openApprove(doc)">
 								<template #icon>
-									<PencilIcon :size="20" />
+									<NcIconSvgWrapper :path="mdiPencil" :size="20" />
 								</template>
 								{{ t('libresign', 'Sign') }}
 							</NcActionButton>
 							<NcActionButton @click="deleteDocument(doc)">
 								<template #icon>
-									<DeleteIcon :size="20" />
+									<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 								</template>
 								{{ t('libresign', 'Delete') }}
 							</NcActionButton>
@@ -169,6 +169,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -177,45 +179,53 @@ import { FILE_STATUS } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
-import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
-import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput.js'
-import NcActionSeparator from '@nextcloud/vue/dist/Components/NcActionSeparator.js'
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcActions from '@nextcloud/vue/components/NcActions'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcActionInput from '@nextcloud/vue/components/NcActionInput'
+import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
+import NcAvatar from '@nextcloud/vue/components/NcAvatar'
+import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-import AccountIcon from 'vue-material-design-icons/Account.vue'
-import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
-import ClockAlertIcon from 'vue-material-design-icons/ClockAlert.vue'
-import CloseIcon from 'vue-material-design-icons/Close.vue'
-import DeleteIcon from 'vue-material-design-icons/Delete.vue'
-import EyeIcon from 'vue-material-design-icons/Eye.vue'
-import FileDocumentIcon from 'vue-material-design-icons/FileDocument.vue'
-import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline.vue'
-import FilterIcon from 'vue-material-design-icons/Filter.vue'
-import PencilIcon from 'vue-material-design-icons/Pencil.vue'
+import {
+	mdiAccount,
+	mdiCheckCircle,
+	mdiClockAlert,
+	mdiClose,
+	mdiDelete,
+	mdiEye,
+	mdiFileDocument,
+	mdiFileDocumentOutline,
+	mdiFilter,
+	mdiPencil,
+} from '@mdi/js'
 
 export default {
 	name: 'IdDocsValidation',
 	components: {
-		AccountIcon,
-		CheckCircleIcon,
-		ClockAlertIcon,
-		CloseIcon,
-		DeleteIcon,
-		FileDocumentOutlineIcon,
-		EyeIcon,
-		FileDocumentIcon,
-		FilterIcon,
 		NcActions,
 		NcActionButton,
 		NcActionInput,
 		NcActionSeparator,
 		NcAvatar,
 		NcEmptyContent,
+		NcIconSvgWrapper,
 		NcLoadingIcon,
-		PencilIcon,
+	},
+	setup() {
+		return {
+			mdiAccount,
+			mdiCheckCircle,
+			mdiClockAlert,
+			mdiClose,
+			mdiDelete,
+			mdiEye,
+			mdiFileDocument,
+			mdiFileDocumentOutline,
+			mdiFilter,
+			mdiPencil,
+		}
 	},
 	data() {
 		const userConfigStore = useUserConfigStore()
@@ -276,6 +286,7 @@ export default {
 		this.loadDocuments()
 	},
 	methods: {
+		t,
 		async loadDocuments(append = false) {
 			if (!append) {
 				this.loading = true
@@ -513,6 +524,7 @@ export default {
 	overflow-y: auto;
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius-large);
+	width: 100%;
 }
 
 .id-docs-table {
