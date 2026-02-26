@@ -25,6 +25,9 @@
 
 			<NcLoadingIcon v-if="isRefreshing" class="files-list__refresh-icon" />
 
+			<!-- Filters that can be applied to the file list -->
+			<FileListFilters />
+
 			<NcButton :aria-label="gridViewButtonLabel"
 				:title="gridViewButtonLabel"
 				class="files-list__header-grid-button"
@@ -88,6 +91,7 @@ import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
+import FileListFilters from './FileListFilters.vue'
 import FilesListVirtual from './FilesListVirtual.vue'
 import RequestPicker from '../../components/Request/RequestPicker.vue'
 
@@ -105,6 +109,7 @@ export default {
 		NcBreadcrumbs,
 		NcIconSvgWrapper,
 		NcLoadingIcon,
+		FileListFilters,
 		FilesListVirtual,
 		RequestPicker,
 		NcEmptyContent,
