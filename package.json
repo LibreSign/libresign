@@ -17,7 +17,10 @@
     "stylelint:fix": "stylelint src/**/*.scss src/**/*.vue --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui --ui-host=0.0.0.0 --ui-port=9323",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.3",
@@ -75,6 +78,7 @@
     "npm": "^11.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
     "@nextcloud/browserslist-config": "^3.1.2",
     "@nextcloud/eslint-config": "^8.4.2",
     "@nextcloud/stylelint-config": "^3.2.1",
