@@ -15,8 +15,8 @@ import { getTimePresetRange } from '../utils/timePresets.js'
 export const useFiltersStore = defineStore('filter', {
 	state: () => ({
 		chips: {},
-		filter_modified: loadState('libresign', 'filters', { filter_modified: '' }).filter_modified,
-		filter_status: loadState('libresign', 'filters', { filter_status: '' }).filter_status,
+		filter_modified: loadState('libresign', 'filters', {}).files_list_filter_modified ?? '',
+		filter_status: loadState('libresign', 'filters', {}).files_list_filter_status ?? ''
 	}),
 
 	getters: {
@@ -55,7 +55,7 @@ export const useFiltersStore = defineStore('filter', {
 			if(event.id == 'modified'){
 				let value = this.chips['modified'][0]?.id || '';
 
-				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'filter_modified' }), {
+				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_filter_modified' }), {
 					value,
 				})
 
@@ -68,7 +68,7 @@ export const useFiltersStore = defineStore('filter', {
 
 				const value = event.detail.length > 0 ? JSON.stringify(event.detail.map(item => item.id)) : '';
 
-				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'filter_status' }), {
+				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_filter_status' }), {
 					value,
 				})
 
