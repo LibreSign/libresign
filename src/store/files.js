@@ -567,16 +567,14 @@ export const useFilesStore = function(...args) {
 						params.set(key, value)
 					}
 				}
-				const { chips } = useFiltersStore()
-				if (chips?.status) {
-					chips.status.forEach(status => {
-						params.append('status[]', status.id)
-					})
-				}
-				if (chips?.modified?.length) {
-					const { start, end } = chips.modified[0]
-					params.set('start', Math.floor(start / 1000))
-					params.set('end', Math.floor(end / 1000))
+				const filtersStore = useFiltersStore()
+				filtersStore.filterStatusArray.forEach(id => {
+					params.append('status[]', id)
+				})
+				const modifiedRange = filtersStore.filterModifiedRange
+				if (modifiedRange) {
+					params.set('start', Math.floor(modifiedRange.start / 1000))
+					params.set('end', Math.floor(modifiedRange.end / 1000))
 				}
 				const { sortingMode, sortingDirection } = useFilesSortingStore()
 				if (sortingMode) {
