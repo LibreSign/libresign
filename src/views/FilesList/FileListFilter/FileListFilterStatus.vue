@@ -10,16 +10,18 @@
 		<template #icon>
 			<NcIconSvgWrapper :path="mdiListStatus" />
 		</template>
-		<NcActionButton v-for="status of fileStatus"
+		<NcButton v-for="status of fileStatus"
 			:key="status.id"
-			type="checkbox"
-			:model-value="selectedOptions.includes(status.id)"
+			alignment="start"
+			:pressed="selectedOptions.includes(status.id)"
+			variant="tertiary"
+			wide
 			@click="toggleOption(status.id)">
 			<template #icon>
 				<NcIconSvgWrapper :path="status.icon" />
 			</template>
 			{{ status.label }}
-		</NcActionButton>
+		</NcButton>
 	</FileListFilter>
 </template>
 
@@ -28,7 +30,7 @@ import { t } from '@nextcloud/l10n'
 
 import { mdiListStatus } from '@mdi/js'
 
-import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import FileListFilter from './FileListFilter.vue'
@@ -40,7 +42,7 @@ import { useFiltersStore } from '../../../store/filters.js'
 export default {
 	name: 'FileListFilterStatus',
 	components: {
-		NcActionButton,
+		NcButton,
 		NcIconSvgWrapper,
 		FileListFilter,
 	},
@@ -111,9 +113,9 @@ export default {
 		toggleOption(option) {
 			const idx = this.selectedOptions.indexOf(option)
 			if (idx !== -1) {
-				this.selectedOptions.splice(idx, 1)
+				this.selectedOptions = this.selectedOptions.filter(v => v !== option)
 			} else {
-				this.selectedOptions.push(option)
+				this.selectedOptions = [...this.selectedOptions, option]
 			}
 		},
 		setMarkedFilter() {
