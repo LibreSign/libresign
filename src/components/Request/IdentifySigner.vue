@@ -29,7 +29,7 @@
 			:required="true"
 			:error="nameHaveError"
 			:helper-text="nameHelperText"
-			@update:value="onNameChange" />
+			@update:modelValue="onNameChange" />
 
 		<div v-if="signerSelected && showCustomMessage && !disabled" class="description-wrapper">
 			<NcCheckboxRadioSwitch v-model="enableCustomMessage"
