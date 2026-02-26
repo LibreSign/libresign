@@ -94,18 +94,12 @@ https://github.com/LibreSign/documentation
 
 ---
 
-## Architecture
 
-LibreSign installs all required binaries in standalone mode inside the Nextcloud data directory.
-This design improves portability and avoids dependency conflicts with the host system.
+LibreSign runs entirely inside your Nextcloud environment.
 
-It does not require:
+All cryptographic operations are self-contained and executed server-side. No external services are required and no document data leaves your infrastructure.
 
-- System-wide Java installation
-- System-wide PDFtk installation
-- External certificate authority configuration
-
-All cryptographic operations are self-contained within Nextcloud.
+LibreSign manages its own internal Certificate Authority (CA), ensuring full control over keys, signatures and alignment with data protection regulations.
 
 ---
 
