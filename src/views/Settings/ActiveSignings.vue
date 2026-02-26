@@ -14,7 +14,7 @@
 					:disabled="loading">
 					{{ t('libresign', 'Auto-refresh') }}
 				</NcCheckboxRadioSwitch>
-				<NcButton type="tertiary"
+				<NcButton variant="tertiary"
 					:disabled="loading"
 					@click="refresh">
 					<template #icon>
