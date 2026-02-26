@@ -227,7 +227,7 @@ export default {
 					{
 						method: this.signer.method,
 						value: this.signer.id,
-	},
+		},
 				],
 			})
 
