@@ -9,7 +9,7 @@
 			:boundaries-element="boundariesElement"
 			:container="boundariesElement"
 			:force-name="true"
-			type="tertiary"
+			variant="tertiary"
 			v-model:open="openedMenu"
 			@close="openedMenu = null"
 			@closed="onMenuClosed">
