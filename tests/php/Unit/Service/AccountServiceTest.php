@@ -30,6 +30,7 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
+use OCP\Config\IUserConfig;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\Config\IMountProviderCollection;
@@ -39,7 +40,6 @@ use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\IAppConfig;
-use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -63,8 +63,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileTypeMapper&MockObject $fileTypeMapper;
 	private SignFileService&MockObject $signFile;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
-	private IConfig&MockObject $config;
 	private IAppConfig&MockObject $appConfig;
+	private IUserConfig&MockObject $userConfig;
 	private IMountProviderCollection&MockObject $mountProviderCollection;
 	private NewUserMailHelper&MockObject $newUserMail;
 	private IdentifyMethodService&MockObject $identifyMethodService;
@@ -98,8 +98,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signFile = $this->createMock(SignFileService::class);
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->userConfig = $this->createMock(IUserConfig::class);
 		$this->mountProviderCollection = $this->createMock(IMountProviderCollection::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
@@ -130,8 +130,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signFile,
 			$this->requestSignatureService,
 			$this->certificateEngineFactory,
-			$this->config,
 			$this->appConfig,
+			$this->userConfig,
 			$this->mountProviderCollection,
 			$this->newUserMail,
 			$this->identifyMethodService,
@@ -218,7 +218,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$userToSign->method('getUID')->willReturn('username');
 		$this->userManager->method('createUser')->willReturn($userToSign);
 		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
-		$this->config->method('getAppValue')->willReturn('yes');
+		$this->appConfig->method('getValueString')->willReturn('yes');
 		$template = $this->createMock(\OCP\Mail\IEMailTemplate::class);
 		$this->newUserMail->method('generateTemplate')->willReturn($template);
 		$this->newUserMail->method('sendMail')->willReturnCallback(function ():void {
