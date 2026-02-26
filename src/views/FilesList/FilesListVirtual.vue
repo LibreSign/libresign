@@ -581,8 +581,11 @@ tbody.files-list__tbody.files-list__tbody--grid {
 		position: absolute;
 		top: var(--item-padding);
 		inset-inline-end: var(--item-padding);
-		width: var(--clickable-area);
-		height: var(--clickable-area);
+		width: auto;
+		max-width: calc(var(--row-width) - 2 * var(--item-padding));
+		height: auto;
+		min-height: var(--clickable-area);
+		justify-content: flex-end;
 	}
 
 	.files-list__row-signers {
