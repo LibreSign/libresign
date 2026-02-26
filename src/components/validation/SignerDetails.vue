@@ -137,6 +137,7 @@
 			</template>
 			<template #extra-actions>
 				<NcButton variant="tertiary"
+					:aria-label="docMdpOpen ? t('libresign', 'Collapse document certification') : t('libresign', 'Expand document certification')"
 					@click.stop="docMdpOpen = !docMdpOpen">
 					<template #icon>
 						<NcIconSvgWrapper v-if="docMdpOpen"
@@ -311,7 +312,7 @@ export default {
 				urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'icon-warning' },
 				validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'icon-warning' },
 				validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'icon-warning' },
-	},
+		},
 		}
 	},
 	methods: {
