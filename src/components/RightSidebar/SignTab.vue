@@ -72,20 +72,15 @@ export default {
 		onSigned(data) {
 			this.$router.push({
 				name: this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile',
-				params: {
-					uuid: data.signRequestUuid,
-					isAfterSigned: true,
-		},
+				params: { uuid: data.signRequestUuid },
+				state: { isAfterSigned: true },
 			})
 		},
 		onSigningStarted(payload) {
 			this.$router.push({
 				name: this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile',
-				params: {
-					uuid: payload.signRequestUuid,
-					isAfterSigned: false,
-					isAsync: true,
-		},
+				params: { uuid: payload.signRequestUuid },
+				state: { isAfterSigned: false, isAsync: true },
 			})
 		},
 	},
