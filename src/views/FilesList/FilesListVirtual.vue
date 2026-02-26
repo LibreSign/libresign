@@ -31,6 +31,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import FileEntry from './FileEntry/FileEntry.vue'
 import FileEntryGrid from './FileEntry/FileEntryGrid.vue'
 import FileListFilters from './FileListFilters.vue'
@@ -47,14 +49,14 @@ export default {
 	name: 'FilesListVirtual',
 	components: {
 		VirtualList,
-		FileListFilters,
-		FilesListTableHeader,
-		FilesListTableHeaderActions,
-		FilesListTableFooter,
 		// eslint-disable-next-line vue/no-unused-components
 		FileEntry,
 		// eslint-disable-next-line vue/no-unused-components
 		FileEntryGrid,
+		FileListFilters,
+		FilesListTableFooter,
+		FilesListTableHeader,
+		FilesListTableHeaderActions,
 	},
 	props: {
 		nodes: {
@@ -71,6 +73,7 @@ export default {
 		const selectionStore = useSelectionStore()
 		const userConfigStore = useUserConfigStore()
 		return {
+			t,
 			filesStore,
 			selectionStore,
 			userConfigStore,

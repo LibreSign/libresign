@@ -3,6 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 
 export default {

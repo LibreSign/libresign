@@ -36,6 +36,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcButton from '@nextcloud/vue/components/NcButton'
 
@@ -56,7 +58,7 @@ import {
 	getFileUrl,
 	getVisibleElementsFromDocument,
 	idsMatch,
-} from '../../services/visibleElementsService.js'
+} from '../../services/visibleElementsService'
 
 export default {
 	name: 'SignPDF',
@@ -93,11 +95,11 @@ export default {
 			return
 		}
 
-		if (this.$route.name === 'SignPDFExternal') {
+		if (this.$route?.name === 'SignPDFExternal') {
 			await this.initSignExternal()
-		} else if (this.$route.name === 'SignPDF') {
+		} else if (this.$route?.name === 'SignPDF') {
 			await this.initSignInternal()
-		} else if (this.$route.name === 'IdDocsApprove') {
+		} else if (this.$route?.name === 'IdDocsApprove') {
 			await this.initIdDocsApprove()
 		}
 
@@ -124,6 +126,7 @@ export default {
 		next()
 	},
 	methods: {
+		t,
 		isIdDocApproval() {
 			return this.$route.query.idDocApproval === 'true'
 		},
@@ -328,7 +331,7 @@ export default {
 			this.signStore.queueAction('sign')
 		},
 		async redirectIfSigningInProgress() {
-			const targetRoute = this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile'
+			const targetRoute = this.$route?.path?.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile'
 			let targetUuid = null
 
 			const file = this.filesStore.getFile()

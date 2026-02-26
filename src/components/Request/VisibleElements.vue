@@ -36,7 +36,9 @@
 						:signer-index="key"
 						:class="{ disabled: signerSelected }"
 						event="libresign:visible-elements-select-signer">
-						<slot v-bind="{signer}" slot="actions" name="actions" />
+						<template #actions>
+							<slot name="actions" v-bind="{ signer }" />
+						</template>
 					</Signer>
 				</ul>
 				<NcButton v-if="canSave"
@@ -69,6 +71,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showSuccess, showError } from '@nextcloud/dialogs'
@@ -94,7 +98,7 @@ import {
 	getFileUrl,
 	getVisibleElementsFromDocument,
 	idsMatch,
-} from '../../services/visibleElementsService.js'
+} from '../../services/visibleElementsService'
 
 export default {
 	name: 'VisibleElements',
@@ -192,6 +196,7 @@ export default {
 		unsubscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
 	},
 	methods: {
+		t,
 		getPdfElements() {
 			return this.$refs.pdfEditor?.$refs?.pdfElements
 		},

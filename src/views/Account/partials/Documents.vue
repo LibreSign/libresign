@@ -29,7 +29,7 @@
 							:aria-label="t('libresign', 'Choose from Files')"
 							@click="toggleFilePicker(doc.file_type.key)">
 							<template #icon>
-								<FolderIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiFolder" :size="20" />
 							</template>
 							{{ t('libresign', 'Choose from Files') }}
 						</NcButton>
@@ -38,7 +38,7 @@
 							:aria-label="t('libresign', 'Upload file')"
 							@click="inputFile(doc.file_type.key)">
 							<template #icon>
-								<UploadIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 							</template>
 							{{ t('libresign', 'Upload file') }}
 						</NcButton>
@@ -47,7 +47,7 @@
 							:aria-label="t('libresign', 'Delete file')"
 							@click="deleteFile(doc)">
 							<template #icon>
-								<DeleteIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
 							{{ t('libresign', 'Delete file') }}
 						</NcButton>
@@ -55,33 +55,29 @@
 				</div>
 			</div>
 		</template>
-
-		<FilePicker v-if="showFilePicker"
-			:name="t('libresign', 'Select your file')"
-			:multiselect="false"
-			:buttons="filePickerButtons"
-			:mimetype-filter="['application/pdf']"
-			@close="toggleFilePicker" />
 	</div>
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
+import {
+	mdiDelete,
+	mdiFolder,
+	mdiUpload,
+} from '@mdi/js'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
-import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
+import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { IDENTIFICATION_DOCUMENTS_STATUS } from '../../../constants.js'
 
-import DeleteIcon from 'vue-material-design-icons/Delete.vue'
-import FolderIcon from 'vue-material-design-icons/Folder.vue'
-import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
 const loadFileToBase64 = file => {
 	return new Promise((resolve, reject) => {
@@ -95,13 +91,17 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Documents',
 	components: {
-		DeleteIcon,
-		FilePicker,
-		FolderIcon,
 		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,
-		UploadIcon,
+		NcIconSvgWrapper,
+	},
+	setup() {
+		return {
+			mdiFolder,
+			mdiUpload,
+			mdiDelete,
+		}
 	},
 	props: {
 		signRequestUuid: {
@@ -115,24 +115,16 @@ export default {
 			documentList: [],
 			loading: true,
 			selectedType: null,
-			showFilePicker: false,
 		}
 	},
 	computed: {
-		filePickerButtons() {
-			return [{
-				label: t('libresign', 'Choose'),
-				callback: (nodes) => this.handleFileChoose(nodes),
-				type: 'primary',
-			}]
-		},
 		fileTypeInfo() {
 			return {
 				IDENTIFICATION: {
 					key: 'IDENTIFICATION',
 					name: t('libresign', 'Identification Document'),
 					description: t('libresign', 'Identification Document'),
-				},
+		},
 			}
 		},
 		documents() {
@@ -158,6 +150,7 @@ export default {
 		this.loadDocuments()
 	},
 	methods: {
+		t,
 		findDocumentByType(list, type) {
 			return list.find(row => row?.file_type?.type === type) || {
 				nodeId: 0,
@@ -168,9 +161,25 @@ export default {
 				file_type: this.fileTypeInfo[type] || { type },
 			}
 		},
-		toggleFilePicker(type) {
+		async toggleFilePicker(type) {
 			this.selectedType = type
-			this.showFilePicker = !this.showFilePicker
+
+			const filePicker = getFilePickerBuilder(t('libresign', 'Select your file'))
+				.setMultiSelect(false)
+				.setMimeTypeFilter(['application/pdf'])
+				.addButton({
+					label: t('libresign', 'Choose'),
+					callback: (nodes) => this.handleFileChoose(nodes),
+					type: 'primary',
+				})
+				.build()
+
+			try {
+				const nodes = await filePicker.pick()
+				await this.handleFileChoose(nodes)
+			} catch (error) {
+				// User cancelled
+			}
 		},
 		async loadDocuments() {
 			this.loading = true
@@ -202,7 +211,7 @@ export default {
 					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 					file: {
 						path,
-					},
+		},
 				}],
 			}
 			if (this.signRequestUuid) {
@@ -228,7 +237,7 @@ export default {
 					name: inputFile.name,
 					file: {
 						base64: raw,
-					},
+		},
 				}],
 			}
 			if (this.signRequestUuid) {

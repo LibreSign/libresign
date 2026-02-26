@@ -5,7 +5,7 @@
 
 <template>
 	<NcSettingsSection v-if="isThisEngine && loaded"
-		:name="name"
+		:name="t('libresign', 'Root certificate data')"
 		:description="description">
 		<div v-if="configureOk && isCertificateGenerated" id="tableRootCertificateOpenSsl" class="form-libresign">
 			<table class="grid">
@@ -40,7 +40,7 @@
 				</tbody>
 			</table>
 			<NcButton variant="primary" @click="showModal">
-				{{ t('libresign', 'Regenerate root certificate') }}
+					{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
 			<NcDialog v-if="modal"
 				:name="t('libresign', 'Confirm')"
@@ -70,11 +70,11 @@
 					:error="certificate.rootCert.commonName === ''"
 					:disabled="formDisabled" />
 			</div>
-			<CertificateCustonOptions :names.sync="certificate.rootCert.names" />
+			<CertificateCustonOptions v-model:names="certificate.rootCert.names" />
 			<div>
 				<NcCheckboxRadioSwitch :disabled="formDisabled"
 					type="switch"
-					:checked.sync="toggleCertificatePolicy">
+					v-model="toggleCertificatePolicy">
 					{{ t('libresign', 'Include certificate policy') }}
 				</NcCheckboxRadioSwitch>
 			</div>
@@ -84,7 +84,7 @@
 			<div>
 				<NcCheckboxRadioSwitch :disabled="formDisabled"
 					type="switch"
-					:checked.sync="customData">
+					v-model="customData">
 					{{ t('libresign', 'Define custom values to use {engine}', {engine: 'OpenSSL'}) }}
 				</NcCheckboxRadioSwitch>
 			</div>
@@ -110,8 +110,8 @@ import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
@@ -122,7 +122,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
 import CertificatePolicy from './CertificatePolicy.vue'
 
-import { selectCustonOption } from '../../helpers/certification.js'
+import { selectCustonOption } from '../../helpers/certification'
 import logger from '../../logger.js'
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
@@ -130,16 +130,19 @@ export default {
 	name: 'RootCertificateOpenSsl',
 	components: {
 		NcSettingsSection,
-		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcButton,
 		NcTextField,
+		NcCheckboxRadioSwitch,
 		CertificateCustonOptions,
 		CertificatePolicy,
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
-		return { configureCheckStore }
+		return {
+			configureCheckStore,
+			t,
+		}
 	},
 	data() {
 		const OID = loadState('libresign', 'certificate_policies_oid')
@@ -156,14 +159,13 @@ export default {
 			},
 			error: false,
 			customData: false,
-			name: t('libresign', 'Root certificate data'),
-			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
-			submitLabel: t('libresign', 'Generate root certificate'),
 			formDisabled: false,
 			OID,
 			CPS,
 			toggleCertificatePolicy: !!(OID || CPS),
 			certificatePolicyValid: !!CPS || (!!CPS && !!OID),
+			description: '',
+			submitLabel: '',
 		}
 	},
 	computed: {
@@ -190,6 +192,8 @@ export default {
 		},
 	},
 	async mounted() {
+		this.description = t('libresign', 'To generate new signatures, you must first generate the root certificate.')
+		this.submitLabel = t('libresign', 'Generate root certificate')
 		this.loadRootCertificate()
 		subscribe('libresign:certificate-engine:changed', this.changeEngine)
 		subscribe('libresign:update:certificateToSave', this.updateNames)
@@ -199,6 +203,7 @@ export default {
 		unsubscribe('libresign:update:certificateToSave')
 	},
 	methods: {
+		t,
 		handleCertificatePolicyValid(isValid) {
 			this.certificatePolicyValid = isValid
 		},
@@ -220,13 +225,13 @@ export default {
 			this.modal = false
 		},
 		clearAndShowForm() {
-			this.$set(this, 'certificate', {
+			this.certificate = {
 				rootCert: {
 					commonName: '',
 					names: [],
 				},
 				configPath: '',
-			})
+			}
 			this.customData = false
 			this.formDisabled = false
 			this.modal = false
@@ -243,7 +248,7 @@ export default {
 					if (!data.ocs.data || data.ocs.data.message) {
 						throw new Error(data.ocs.data)
 					}
-					this.$set(this, 'certificate', data.ocs.data.data)
+					this.certificate = data.ocs.data.data
 					this.afterCertificateGenerated()
 					this.configureCheckStore.checkSetup()
 				})
@@ -275,7 +280,7 @@ export default {
 					if (!data.ocs.data || data.ocs.data.message) {
 						throw new Error(data.ocs.data)
 					}
-					this.$set(this, 'certificate', data.ocs.data)
+					this.certificate = data.ocs.data
 					this.customData = loadState('libresign', 'config_path').length > 0
 						&& this.certificate.configPath.length > 0
 					if (this.certificate.generated) {

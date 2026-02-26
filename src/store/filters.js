@@ -9,7 +9,7 @@ import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import logger from '../helpers/logger.js'
+import logger from '../helpers/logger'
 
 export const useFiltersStore = defineStore('filter', {
 	state: () => ({

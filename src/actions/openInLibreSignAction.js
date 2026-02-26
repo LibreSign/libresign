@@ -2,10 +2,10 @@
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { registerFileAction, FileAction, getSidebar } from '@nextcloud/files'
+import { registerFileAction, getSidebar } from '@nextcloud/files'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 import EditNameDialog from '../components/Common/EditNameDialog.vue'
 
@@ -15,30 +15,19 @@ import SvgIcon from '../../img/app-dark.svg?raw'
 /**
  * Prompts user for envelope name via dialog
  */
-function promptEnvelopeName() {
-	return new Promise((resolve) => {
-		const propsData = {
+async function promptEnvelopeName() {
+	const envelopeName = await spawnDialog(
+		EditNameDialog,
+		{
 			title: t('libresign', 'Envelope name'),
 			label: t('libresign', 'Enter a name for the envelope'),
 			placeholder: t('libresign', 'Envelope name'),
-		}
-
-		spawnDialog(
-			{
-				...EditNameDialog,
-				mounted() {
-					EditNameDialog.mounted?.call(this)
-					this.$on('close', (value) => {
-						resolve(value)
-					})
-				},
-			},
-			propsData,
-		)
-	})
+		},
+	)
+	return envelopeName
 }
 
-export const action = new FileAction({
+export const action = {
 	id: 'open-in-libresign',
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
@@ -121,6 +110,6 @@ export const action = new FileAction({
 	},
 
 	order: -1000,
-})
+}
 
 registerFileAction(action)

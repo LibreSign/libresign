@@ -10,7 +10,7 @@
 				:aria-label="t('libresign', 'Show available variables')"
 				@click="showVariablesDialog = true">
 				<template #icon>
-					<HelpCircleOutline :size="20" />
+					<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="20" />
 				</template>
 				{{ t('libresign', 'Available variables') }}
 			</NcButton>
@@ -19,7 +19,7 @@
 			v-model="footerTemplate"
 			:label="t('libresign', 'Footer template')"
 			:placeholder="t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')"
-			@input="debouncedSaveFooterTemplate" />
+			@update:modelValue="debouncedSaveFooterTemplate" />
 		<div v-if="pdfPreviewFile" class="footer-preview">
 			<h4>{{ t('libresign', 'Preview') }}</h4>
 			<div class="footer-preview__controls">
@@ -27,13 +27,13 @@
 					<NcButton :aria-label="t('libresign', 'Decrease zoom level')"
 						@click="changeZoomLevel(-10)">
 						<template #icon>
-							<MagnifyMinusOutline :size="20" />
+							<NcIconSvgWrapper :path="mdiMagnifyMinusOutline" :size="20" />
 						</template>
 					</NcButton>
 					<NcButton :aria-label="t('libresign', 'Increase zoom level')"
 						@click="changeZoomLevel(+10)">
 						<template #icon>
-							<MagnifyPlusOutline :size="20" />
+							<NcIconSvgWrapper :path="mdiMagnifyPlusOutline" :size="20" />
 						</template>
 					</NcButton>
 					<NcTextField
@@ -68,7 +68,7 @@
 						type="tertiary"
 						@click="resetDimensions">
 						<template #icon>
-							<Undo :size="20" />
+							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 						</template>
 					</NcButton>
 				</div>
@@ -88,7 +88,7 @@
 		</div>
 
 		<NcDialog :name="t('libresign', 'Available template variables')"
-			:open.sync="showVariablesDialog"
+			v-model:open="showVariablesDialog"
 			size="normal">
 			<div class="variables-dialog">
 				<p class="variables-dialog__description">
@@ -106,8 +106,8 @@
 							{{ getVariableText(name) }}
 						</template>
 					<template #icon>
-						<Check v-if="isCopied(name)" :size="20" />
-						<ContentCopy v-else :size="20" />
+						<NcIconSvgWrapper v-if="isCopied(name)" :path="mdiCheck" :size="20" />
+						<NcIconSvgWrapper v-else :path="mdiContentCopy" :size="20" />
 					</template>
 						<template #description>
 							<p class="variable-description">{{ meta.description }}</p>
@@ -125,6 +125,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
@@ -141,14 +143,17 @@ import Linkify from '@nextcloud/vue/directives/Linkify'
 import PDFElements from '@libresign/pdf-elements/src/components/PDFElements.vue'
 
 import CodeEditor from './CodeEditor.vue'
-import { ensurePdfWorker } from '../helpers/pdfWorker.js'
+import { ensurePdfWorker } from '../helpers/pdfWorker'
 
-import Check from 'vue-material-design-icons/Check.vue'
-import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
-import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
-import MagnifyMinusOutline from 'vue-material-design-icons/MagnifyMinusOutline.vue'
-import MagnifyPlusOutline from 'vue-material-design-icons/MagnifyPlusOutline.vue'
-import Undo from 'vue-material-design-icons/UndoVariant.vue'
+import {
+	mdiCheck,
+	mdiContentCopy,
+	mdiHelpCircleOutline,
+	mdiMagnifyMinusOutline,
+	mdiMagnifyPlusOutline,
+	mdiUndoVariant,
+} from '@mdi/js'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 export default {
 	name: 'FooterTemplateEditor',
@@ -156,19 +161,24 @@ export default {
 		Linkify,
 	},
 	components: {
-		Check,
 		CodeEditor,
-		ContentCopy,
-		HelpCircleOutline,
 		NcButton,
 		NcDialog,
 		NcFormBoxButton,
+		NcIconSvgWrapper,
 		NcLoadingIcon,
 		NcTextField,
 		PDFElements,
-		MagnifyMinusOutline,
-		MagnifyPlusOutline,
-		Undo,
+	},
+	setup() {
+		return {
+			mdiCheck,
+			mdiContentCopy,
+			mdiHelpCircleOutline,
+			mdiMagnifyMinusOutline,
+			mdiMagnifyPlusOutline,
+			mdiUndoVariant,
+		}
 	},
 	data() {
 		const DEFAULT_PREVIEW_WIDTH = 595
@@ -207,9 +217,11 @@ export default {
 				this.footerTemplate = response.data.ocs.data.template
 				this.previewHeight = response.data.ocs.data.preview_height
 				this.previewWidth = response.data.ocs.data.preview_width
+				this.saveFooterTemplate()
 			})
 	},
 	methods: {
+		t,
 		getVariableText(name) {
 			return `{{ ${name} }}`
 		},
@@ -372,6 +384,15 @@ export default {
 .meta-default {
 	color: var(--color-text-maxcontrast);
 	font-style: italic;
+}
+
+.hidden-visually {
+	position: absolute;
+	inset-inline-start: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
 }
 
 .footer-preview {

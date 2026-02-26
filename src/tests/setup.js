@@ -3,6 +3,84 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { vi, afterEach } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { cleanup } from '@testing-library/vue'
+
+setActivePinia(createPinia())
+
+// Global error handlers: throw on console warnings and errors for early detection
+const originalError = console.error
+const originalWarn = console.warn
+
+console.error = function (...args) {
+	const message = args[0]
+	// Allow legitimate error logging, but throw for assertion failures
+	if (message instanceof Error || typeof message === 'string') {
+		throw new Error(String(message))
+	}
+	return originalError.apply(console, args)
+}
+
+console.warn = function (...args) {
+	const message = args[0]
+	if (message instanceof Error || typeof message === 'string') {
+		throw new Error(String(message))
+	}
+	return originalWarn.apply(console, args)
+}
+
+vi.mock('@vue/test-utils', async (importOriginal) => {
+	const actual = await importOriginal()
+
+	return {
+		...actual,
+		mount: actual.mount,
+		shallowMount: actual.shallowMount,
+	}
+})
+
+vi.mock('vue-select', () => ({
+	default: {
+		name: 'VueSelect',
+		render() {
+			return null
+		},
+	},
+}))
+
+vi.mock('vue-select/dist/vue-select.es.js', () => ({
+	default: {
+		name: 'VueSelect',
+		render() {
+			return null
+		},
+	},
+}))
+
+vi.mock('@nextcloud/vue/components/NcSelect', () => ({
+	default: {
+		name: 'NcSelect',
+		template: '<div></div>',
+	},
+}))
+
+
+vi.mock('@nextcloud/vue/components/NcRichText', () => ({
+	default: {
+		name: 'NcRichText',
+		template: '<div></div>',
+	},
+}))
+
+// Automatically cleanup after each test
+afterEach(() => {
+	cleanup()
+})
+
+setActivePinia(createPinia())
+
 import './testHelpers/jsdomMocks.js'
 import './testHelpers/nextcloudMocks.js'
 import './testHelpers/vueMocks.js'
+

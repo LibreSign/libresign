@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcChip from '@nextcloud/vue/components/NcChip'
 
@@ -47,7 +49,10 @@ export default {
 	},
 	setup() {
 		const filtersStore = useFiltersStore()
-		return { filtersStore }
+		return {
+			t,
+			filtersStore,
+		}
 	},
 }
 </script>

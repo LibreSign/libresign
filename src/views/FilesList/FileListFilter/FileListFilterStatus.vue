@@ -24,6 +24,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { mdiListStatus } from '@mdi/js'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -38,9 +40,9 @@ import { useFiltersStore } from '../../../store/filters.js'
 export default {
 	name: 'FileListFilterStatus',
 	components: {
-		FileListFilter,
 		NcActionButton,
 		NcIconSvgWrapper,
+		FileListFilter,
 	},
 	setup() {
 		const filtersStore = useFiltersStore()
@@ -79,6 +81,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		setPreset(presets) {
 			const chips = []
 			if (presets && presets.length > 0) {

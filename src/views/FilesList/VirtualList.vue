@@ -10,7 +10,7 @@
 			<slot name="filters" />
 		</div>
 
-		<div v-if="!!$scopedSlots['header-overlay']" class="files-list__thead-overlay">
+		<div v-if="$slots['header-overlay']" class="files-list__thead-overlay">
 			<slot name="header-overlay" />
 		</div>
 
@@ -24,7 +24,7 @@
 			:aria-hidden="filesStore.filesSorted().length === 0"
 			class="files-list__table"
 			:class="{
-				'files-list__table--with-thead-overlay': !!$scopedSlots['header-overlay'],
+				'files-list__table--with-thead-overlay': !!$slots['header-overlay'],
 				'files-list__table--hidden': filesStore.filesSorted().length === 0,
 			}">
 			<!-- Accessibility table caption for screen readers -->
@@ -38,7 +38,7 @@
 			</thead>
 			<!-- Body -->
 			<tbody class="files-list__tbody"
-			:class="userConfigStore.files_list_grid_view ? 'files-list__tbody--grid' : 'files-list__tbody--list'"
+				:class="userConfigStore.files_list_grid_view ? 'files-list__tbody--grid' : 'files-list__tbody--list'"
 				data-cy-files-list-tbody>
 				<component :is="dataComponent"
 					v-for="(item) in filesStore.filesSorted()"
@@ -56,6 +56,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import debounce from 'debounce'
 
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
@@ -86,6 +88,7 @@ export default {
 		const filesStore = useFilesStore()
 		const userConfigStore = useUserConfigStore()
 		return {
+			t,
 			filesStore,
 			userConfigStore,
 		}
@@ -100,10 +103,10 @@ export default {
 			if (entry && entry.isIntersecting) {
 				this.getFilesIfNotLoading()
 			}
-		}, 100, false))
+		}, 100))
 		subscribe('libresign:files:updated', this.updateObserver)
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		this.observer.disconnect()
 		unsubscribe('libresign:files:updated')
 	},
@@ -127,6 +130,15 @@ export default {
 
 <style scoped lang="scss">
 .files-list {
+	.hidden-visually {
+		position: absolute;
+		left: -10000px;
+		top: auto;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+
 	&__empty {
 		display: flex;
 		flex-direction: column;

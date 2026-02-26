@@ -15,7 +15,7 @@
 			<NcEmptyContent :name="t('libresign', 'Page not found')"
 				:description="paragrath">
 				<template #icon>
-					<AlertCircleOutline :size="80" class="alert-icon" />
+					<NcIconSvgWrapper :path="mdiAlertCircleOutline" :size="80" class="alert-icon" />
 				</template>
 				<template #action>
 					<div v-if="errors.length" class="error-messages">
@@ -33,11 +33,14 @@
 
 <script>
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
+import {
+	mdiAlertCircleOutline,
+} from '@mdi/js'
+import { t } from '@nextcloud/l10n'
 
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
-import AlertCircleOutline from 'vue-material-design-icons/AlertCircleOutline.vue'
 
 import logoLibreSign from '../../img/logo-gray.svg'
 
@@ -46,9 +49,14 @@ export default {
 	components: {
 		NcEmptyContent,
 		NcNoteCard,
-		AlertCircleOutline,
+		NcIconSvgWrapper,
 	},
 
+	setup() {
+		return {
+			mdiAlertCircleOutline,
+		}
+	},
 	data() {
 		return {
 			logoLibreSign,
@@ -68,7 +76,6 @@ export default {
 			return []
 		},
 	},
-
 }
 </script>
 
