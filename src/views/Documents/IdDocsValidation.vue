@@ -12,7 +12,7 @@
 					</template>
 					<NcActionInput v-model="filters.owner"
 						:label="t('libresign', 'Owner')"
-						@update:value="onFilterChange">
+						@update:modelValue="onFilterChange">
 						<template #icon>
 						<NcIconSvgWrapper :path="mdiAccount" :size="20" />
 						</template>
