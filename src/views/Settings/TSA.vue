@@ -14,23 +14,23 @@
 		</NcCheckboxRadioSwitch>
 
 		<div v-if="enabled" class="tsa-config-container">
-			<NcTextField :value="tsa_url"
+			<NcTextField :modelValue="tsa_url"
 				:label="t('libresign', 'TSA Server URL')"
 				:placeholder="t('libresign', 'Enter the timestamp server URL')"
 				:disabled="loading"
 				:loading="loading"
 				:error="!!errors.tsa_url"
 				:helper-text="getHelperText('tsa_url')"
-				@update:value="(value) => updateField('tsa_url', value)" />
+				@update:modelValue="(value) => updateField('tsa_url', value)" />
 
-			<NcTextField :value="tsa_policy_oid"
+			<NcTextField :modelValue="tsa_policy_oid"
 				:label="t('libresign', 'TSA Policy OID')"
 				:placeholder="t('libresign', 'Optional')"
 				:disabled="loading"
 				:loading="loading"
 				:error="!!errors.tsa_policy_oid"
 				:helper-text="getHelperText('tsa_policy_oid')"
-				@update:value="(value) => updateField('tsa_policy_oid', value)" />
+				@update:modelValue="(value) => updateField('tsa_policy_oid', value)" />
 
 			<NcSelect v-model="selectedAuthType"
 				:options="authOptions"
@@ -40,23 +40,23 @@
 				clearable />
 
 			<template v-if="tsa_auth_type === AUTH_TYPES.BASIC">
-				<NcTextField :value="tsa_username"
+				<NcTextField :modelValue="tsa_username"
 					:label="t('libresign', 'Username')"
 					:placeholder="t('libresign', 'Username')"
 					:disabled="loading"
 					:loading="loading"
 					:error="!!errors.tsa_username"
 					:helper-text="getHelperText('tsa_username')"
-					@update:value="(value) => updateField('tsa_username', value)" />
+					@update:modelValue="(value) => updateField('tsa_username', value)" />
 
-				<NcPasswordField :value="tsa_password"
+				<NcPasswordField :modelValue="tsa_password"
 					:label="t('libresign', 'Password')"
 					:placeholder="t('libresign', 'Password')"
 					:disabled="loading"
 					:loading="loading"
 					:error="!!errors.tsa_password"
 					:helper-text="getHelperText('tsa_password')"
-					@update:value="(value) => updateField('tsa_password', value)" />
+					@update:modelValue="(value) => updateField('tsa_password', value)" />
 			</template>
 		</div>
 	</NcSettingsSection>
