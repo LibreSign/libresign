@@ -261,6 +261,7 @@ import {
 export default {
 	name: 'SignerDetails',
 	components: {
+		CertificateChain,
 		NcAvatar,
 		NcButton,
 		NcIconSvgWrapper,
@@ -312,7 +313,7 @@ export default {
 				urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'icon-warning' },
 				validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'icon-warning' },
 				validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'icon-warning' },
-		},
+			},
 		}
 	},
 	methods: {

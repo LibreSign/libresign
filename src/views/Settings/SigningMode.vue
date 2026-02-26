@@ -31,12 +31,12 @@
 				:checked="externalWorkerEnabled"
 				:disabled="loading"
 				@update:checked="onWorkerTypeChange">
-			<span>{{ t('libresign', 'Use external worker service') }}</span>
+				<span>{{ t('libresign', 'Use external worker service') }}</span>
 			</NcCheckboxRadioSwitch>
-		<p class="worker-type-description">
-			{{ externalWorkerEnabled
-				? t('libresign', 'You must manage and keep the external worker running manually.')
-				: t('libresign', 'Nextcloud manages the background worker automatically.')
+			<p class="worker-type-description">
+				{{ externalWorkerEnabled
+					? t('libresign', 'You must manage and keep the external worker running manually.')
+					: t('libresign', 'Nextcloud manages the background worker automatically.')
 				}}
 			</p>
 		</div>
@@ -48,13 +48,13 @@
 			<div class="parallel-workers-input-wrapper">
 				<NcTextField
 					id="parallel-workers-input"
-			:label="t('libresign', 'Number of parallel workers')"
-			type="number"
-			min="1"
-			max="32"
-			v-model="parallelWorkersCount"
-			:disabled="loading"
-			:placeholder="t('libresign', 'Default: {workers} workers', { workers: 4 })"
+					:label="t('libresign', 'Number of parallel workers')"
+					type="number"
+					min="1"
+					max="32"
+					v-model="parallelWorkersCount"
+					:disabled="loading"
+					:placeholder="t('libresign', 'Default: {workers} workers', { workers: 4 })"
 					@input="debouncedSaveParallelWorkers"
 					@keydown.enter="debouncedSaveParallelWorkers"
 					@blur="debouncedSaveParallelWorkers">

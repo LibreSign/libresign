@@ -11,7 +11,7 @@
 			<table class="grid">
 				<tbody>
 					<tr>
-								<td>{{ t('libresign', 'Common Name (CN)') }}</td>
+						<td>{{ t('libresign', 'Common Name (CN)') }}</td>
 						<td>{{ certificate.rootCert.commonName }}</td>
 					</tr>
 					<tr v-for="(customName) in certificate.rootCert.names" :key="customName.id" class="customNames">
@@ -26,7 +26,7 @@
 						</td>
 					</tr>
 					<tr>
-								<td>{{ t('libresign', 'CFSSL API URI') }}</td>
+						<td>{{ t('libresign', 'CFSSL API URI') }}</td>
 						<td>{{ certificate.cfsslUri }}</td>
 					</tr>
 					<tr v-if="OID" class="customNames">
@@ -38,7 +38,7 @@
 						<td>{{ CPS }}</td>
 					</tr>
 					<tr>
-							<td>{{ t('libresign', 'Config path') }}</td>
+						<td>{{ t('libresign', 'Config path') }}</td>
 						<td>{{ certificate.configPath }}</td>
 					</tr>
 				</tbody>
@@ -162,11 +162,11 @@ export default {
 				rootCert: {
 					commonName: '',
 					names: [],
-		},
+				},
 				cfsslUri: '',
 				configPath: '',
 				generated: false,
-		},
+			},
 			error: false,
 			customData: false,
 			formDisabled: false,
@@ -240,7 +240,7 @@ export default {
 				rootCert: {
 					commonName: '',
 					names: [],
-		},
+				},
 				cfsslUri: '',
 				configPath: '',
 			}

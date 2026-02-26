@@ -239,7 +239,7 @@ export default {
 					name: 'SignPDF',
 					params: {
 						uuid: signUuid,
-		},
+					},
 				})
 				this.filesStore.selectFile(this.source.id)
 				this.sidebarStore.activeRequestSignatureTab()
@@ -248,7 +248,7 @@ export default {
 					name: 'ValidationFile',
 					params: {
 						uuid: this.source.uuid,
-		},
+					},
 				})
 			} else if (action.id === 'delete') {
 				this.confirmDelete = true
