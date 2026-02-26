@@ -218,7 +218,7 @@ export default {
 			loading: true,
 			user: {
 				account: { uid: '', displayName: '' },
-	},
+		},
 			signPassword: '',
 			showManagePassword: false,
 			isModal: window.self !== window.top,
@@ -337,7 +337,7 @@ export default {
 					})
 				}
 			})
-	},
+		},
 	watch: {
 		signRequestUuid(newUuid, oldUuid) {
 			if (newUuid && oldUuid && newUuid !== oldUuid) {
