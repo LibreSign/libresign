@@ -94,7 +94,7 @@ export default {
 		disabled: {
 			type: Boolean,
 			default: false,
-	},
+		},
 	},
 	setup() {
 		return {
