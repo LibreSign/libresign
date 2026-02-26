@@ -73,7 +73,7 @@ export default {
 		type: {
 			type: String,
 			required: true,
-	},
+		},
 	},
 	setup() {
 		const signatureElementsStore = useSignatureElementsStore()
