@@ -55,7 +55,7 @@ export default {
 			type: String,
 			required: false,
 			default: '',
-	},
+		},
 	},
 	setup() {
 		const filesStore = useFilesStore()
