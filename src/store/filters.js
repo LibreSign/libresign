@@ -10,6 +10,7 @@ import { loadState } from '@nextcloud/initial-state'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import logger from '../helpers/logger'
+import { getTimePresetRange } from '../utils/timePresets.js'
 
 export const useFiltersStore = defineStore('filter', {
 	state: () => ({
@@ -29,7 +30,15 @@ export const useFiltersStore = defineStore('filter', {
 				return []
 			}
 		},
+		/**
+		 * Returns { start, end } in ms for the saved modified preset, or null.
+		 * Computed fresh on each access so date boundaries are always current.
+		 */
+		filterModifiedRange(state) {
+			return getTimePresetRange(state.filter_modified)
+		},
 	},
+
 
 	actions: {
 		async onFilterUpdateChips(event) {
@@ -50,6 +59,8 @@ export const useFiltersStore = defineStore('filter', {
 				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'filter_modified' }), {
 					value,
 				})
+
+				this.filter_modified = value
 
 				emit('libresign:filters:update')
 			}
