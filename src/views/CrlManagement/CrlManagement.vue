@@ -14,7 +14,7 @@
 						</template>
 						<NcActionInput v-model="filters.serialNumber"
 							:label="t('libresign', 'Serial Number')"
-							@update:value="onFilterChange">
+							@update:modelValue="onFilterChange">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiMagnify" :size="20" />
 							</template>
@@ -22,7 +22,7 @@
 
 						<NcActionInput v-model="filters.owner"
 							:label="t('libresign', 'Owner')"
-							@update:value="onFilterChange">
+							@update:modelValue="onFilterChange">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiAccount" :size="20" />
 							</template>
@@ -191,7 +191,7 @@
 							</td>
 							<td class="crl-table__cell--frozen-right">
 								<NcButton v-if="entry.status === 'issued'"
-									type="error"
+									variant="error"
 									@click="openRevokeDialog(entry)">
 									{{ t('libresign', 'Revoke') }}
 								</NcButton>
@@ -232,7 +232,7 @@
 					<NcButton @click="closeCaWarningDialog">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
-					<NcButton type="error" @click="proceedToRevokeDialog">
+					<NcButton variant="error" @click="proceedToRevokeDialog">
 						{{ t('libresign', 'Yes, revoke CA') }}
 					</NcButton>
 				</div>
@@ -241,7 +241,7 @@
 
 		<NcDialog v-if="revokeDialog.open"
 			:name="t('libresign', 'Revoke Certificate')"
-			:can-close="!revokeDialog.loading"
+			:no-close="revokeDialog.loading"
 			@update:open="closeRevokeDialog">
 			<div class="revoke-dialog">
 				<NcNoteCard type="warning">
@@ -277,7 +277,7 @@
 						@click="closeRevokeDialog">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
-					<NcButton type="error"
+					<NcButton variant="error"
 						:disabled="revokeDialog.loading"
 						@click="confirmRevoke">
 						<template #icon>
