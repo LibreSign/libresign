@@ -127,7 +127,7 @@ LibreSign manages its own internal Certificate Authority (CA), ensuring full con
 
 ## API Documentation
 
-Developer manual: https://docs.libresign.coop/developer_manual/index.html
+Developer manual: https://docs.libresign.coop/developer_manual/
 
 ---
 
