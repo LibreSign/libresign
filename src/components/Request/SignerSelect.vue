@@ -167,7 +167,7 @@ export default {
 					params: {
 						search,
 						method: this.method,
-	},
+		},
 				})
 				if (requestId !== this.activeRequestId) {
 					return
