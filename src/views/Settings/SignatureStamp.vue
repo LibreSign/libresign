@@ -41,7 +41,7 @@
 				{{ t('libresign', 'Signature only') }}
 			</NcCheckboxRadioSwitch>
 			<NcButton v-if="displayResetRenderMode"
-				type="tertiary"
+				variant="tertiary"
 				:aria-label="t('libresign', 'Reset to default')"
 				@click="resetRenderMode">
 				<template #icon>
@@ -51,7 +51,7 @@
 		</fieldset>
 		<div v-if="renderMode !== 'GRAPHIC_ONLY'">
 			<div class="settings-section__row">
-				<NcButton type="tertiary"
+				<NcButton variant="tertiary"
 					:aria-label="t('libresign', 'Show available variables')"
 					@click="showVariablesDialog = true">
 					<template #icon>
@@ -66,7 +66,7 @@
 					:label="t('libresign', 'Signature text template')"
 					:placeholder="t('libresign', 'Signature text template')" />
 				<NcButton v-if="displayResetTemplate"
-					type="tertiary"
+					variant="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetTemplate">
 					<template #icon>
@@ -76,7 +76,7 @@
 			</div>
 			<div class="settings-section__row">
 				<div v-if="renderMode === 'SIGNAME_AND_DESCRIPTION'" class="settings-section__row_signature">
-					<NcTextField v-model:value="signatureFontSize"
+					<NcTextField v-model="signatureFontSize"
 						:label="t('libresign', 'Signature font size')"
 						:placeholder="t('libresign', 'Signature font size')"
 						type="number"
@@ -88,7 +88,7 @@
 						@keydown.enter="saveTemplate"
 						@blur="saveTemplate" />
 					<NcButton v-if="dislayResetSignatureFontSize"
-						type="tertiary"
+						variant="tertiary"
 						:aria-label="t('libresign', 'Reset to default')"
 						@click="resetSignatureFontSize">
 						<template #icon>
@@ -100,7 +100,7 @@
 					'settings-section__row_template': renderMode === 'SIGNAME_AND_DESCRIPTION',
 					'settings-section__row_template-only': renderMode !== 'SIGNAME_AND_DESCRIPTION',
 				}">
-					<NcTextField v-model:value="templateFontSize"
+					<NcTextField v-model="templateFontSize"
 						:label="t('libresign', 'Template font size')"
 						:placeholder="t('libresign', 'Template font size')"
 						type="number"
@@ -112,7 +112,7 @@
 						@keydown.enter="saveTemplate"
 						@blur="saveTemplate" />
 					<NcButton v-if="displayResetTemplateFontSize"
-						type="tertiary"
+						variant="tertiary"
 						:aria-label="t('libresign', 'Reset to default')"
 						@click="resetTemplateFontSize">
 						<template #icon>
@@ -132,7 +132,7 @@
 		</div>
 		<div v-if="displayPreview" class="settings-section__row">
 			<div class="settings-section__row_dimension">
-				<NcTextField v-model:value="signatureWidth"
+				<NcTextField v-model="signatureWidth"
 					:label="t('libresign', 'Default signature width')"
 					:placeholder="t('libresign', 'Default signature width')"
 					type="number"
@@ -144,7 +144,7 @@
 					@keydown.enter="saveTemplate"
 					@blur="saveTemplate" />
 				<NcButton v-if="displayResetSignatureWidth"
-					type="tertiary"
+					variant="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetSignatureWidth">
 					<template #icon>
@@ -153,7 +153,7 @@
 				</NcButton>
 			</div>
 			<div class="settings-section__row_dimension">
-				<NcTextField v-model:value="signatureHeight"
+				<NcTextField v-model="signatureHeight"
 					:label="t('libresign', 'Default signature height')"
 					:placeholder="t('libresign', 'Default signature height')"
 					type="number"
@@ -165,7 +165,7 @@
 					@keydown.enter="saveTemplate"
 					@blur="saveTemplate" />
 				<NcButton v-if="displayResetSignatureHeight"
-					type="tertiary"
+					variant="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetSignatureHeight">
 					<template #icon>
@@ -177,7 +177,7 @@
 		<fieldset class="settings-section__row settings-section__row_bar">
 			<legend>{{ t('libresign', 'Background image') }}</legend>
 			<NcButton id="signature-background"
-				type="secondary"
+				variant="secondary"
 				:aria-label="t('libresign', 'Upload new background image')"
 				@click="activateLocalFilePicker">
 				<template #icon>
@@ -186,7 +186,7 @@
 				{{ t('libresign', 'Upload') }}
 			</NcButton>
 			<NcButton v-if="displayResetBackground"
-				type="tertiary"
+				variant="tertiary"
 				:aria-label="t('libresign', 'Reset to default')"
 				@click="undoBackground">
 				<template #icon>
@@ -194,7 +194,7 @@
 				</template>
 			</NcButton>
 			<NcButton v-if="displayRemoveBackground"
-				type="tertiary"
+				variant="tertiary"
 				:aria-label="t('libresign', 'Remove background')"
 				@click="removeBackground">
 				<template #icon>
@@ -223,7 +223,7 @@
 				</NcButton>
 			</div>
 			<NcTextField v-if="displayPreview"
-				v-model:value="zoomLevel"
+				v-model="zoomLevel"
 				class="settings-section__zoom_level"
 				:label="t('libresign', 'Zoom level')"
 				type="number"
