@@ -75,7 +75,7 @@ export default {
 				params: {
 					uuid: data.signRequestUuid,
 					isAfterSigned: true,
-	},
+		},
 			})
 		},
 		onSigningStarted(payload) {
@@ -85,7 +85,7 @@ export default {
 					uuid: payload.signRequestUuid,
 					isAfterSigned: false,
 					isAsync: true,
-	},
+		},
 			})
 		},
 	},
