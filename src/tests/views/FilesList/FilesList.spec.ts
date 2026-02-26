@@ -114,6 +114,13 @@ vi.mock('../../../views/FilesList/FilesListVirtual.vue', () => ({
 	},
 }))
 
+vi.mock('../../../views/FilesList/FileListFilters.vue', () => ({
+	default: {
+		name: 'FileListFilters',
+		template: '<div class="file-list-filters-stub" />',
+	},
+}))
+
 vi.mock('../../../components/Request/RequestPicker.vue', () => ({
 	default: {
 		name: 'RequestPicker',
@@ -176,6 +183,27 @@ describe('FilesList.vue rendering rules', () => {
 		const header = wrapper.find('.files-list__header')
 		const firstChild = header.element.children[0]
 		expect(firstChild.classList.contains('request-picker-stub')).toBe(true)
+	})
+
+	it('renders FileListFilters in the header before the grid toggle button', async () => {
+		const filesStore = useFilesStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+		const wrapper = mountComponent()
+		await flushPromises()
+
+		const header = wrapper.find('.files-list__header')
+		const filterStub = header.find('.file-list-filters-stub')
+		const gridButton = header.find('.files-list__header-grid-button')
+
+		expect(filterStub.exists()).toBe(true)
+		expect(gridButton.exists()).toBe(true)
+
+		// FileListFilters must appear before the grid button in the DOM
+		const children = Array.from(header.element.children)
+		const filterIndex = children.findIndex(el => el.classList.contains('file-list-filters-stub'))
+		const gridIndex = children.findIndex(el => el.classList.contains('files-list__header-grid-button'))
+		expect(filterIndex).toBeLessThan(gridIndex)
 	})
 
 	it('calls filesStore.updateAllFiles once more when reload button is clicked', async () => {
