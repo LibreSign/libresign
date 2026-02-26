@@ -22,3 +22,4 @@ node_modules/
 /lib/Vendor/
 /coverage
 /dist/
+/test-results/
