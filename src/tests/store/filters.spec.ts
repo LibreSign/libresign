@@ -254,7 +254,7 @@ describe('filters store - filter business rules', () => {
 			await store.onFilterUpdateChipsAndSave(event)
 
 			expect(axiosMock.put).toHaveBeenCalledWith(
-				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_modified',
+				'/ocs/v2.php/apps/libresign/api/v1/account/config/files_list_filter_modified',
 				{ value: 'today' }
 			)
 		})
@@ -274,7 +274,7 @@ describe('filters store - filter business rules', () => {
 			await store.onFilterUpdateChipsAndSave(event)
 
 			expect(axiosMock.put).toHaveBeenCalledWith(
-				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_modified',
+				'/ocs/v2.php/apps/libresign/api/v1/account/config/files_list_filter_modified',
 				{ value: 'today' }
 			)
 		})
@@ -291,7 +291,7 @@ describe('filters store - filter business rules', () => {
 			await store.onFilterUpdateChipsAndSave(event)
 
 			expect(axiosMock.put).toHaveBeenCalledWith(
-				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_modified',
+				'/ocs/v2.php/apps/libresign/api/v1/account/config/files_list_filter_modified',
 				{ value: '' }
 			)
 		})
@@ -342,7 +342,7 @@ describe('filters store - filter business rules', () => {
 			await store.onFilterUpdateChipsAndSave(event)
 
 			expect(axiosMock.put).toHaveBeenCalledWith(
-				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_status',
+				'/ocs/v2.php/apps/libresign/api/v1/account/config/files_list_filter_status',
 				{ value: '["signed","pending"]' }
 			)
 		})
@@ -359,7 +359,7 @@ describe('filters store - filter business rules', () => {
 			await store.onFilterUpdateChipsAndSave(event)
 
 			expect(axiosMock.put).toHaveBeenCalledWith(
-				'/ocs/v2.php/apps/libresign/api/v1/account/config/filter_status',
+				'/ocs/v2.php/apps/libresign/api/v1/account/config/files_list_filter_status',
 				{ value: '' }
 			)
 		})
