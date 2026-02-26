@@ -286,7 +286,7 @@ export default {
 			await axios.postForm(generateOcsUrl('/apps/libresign/api/v1/file/validate'), formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data',
-		},
+				},
 			})
 				.then(({ data }) => {
 					this.clickedValidate = true
@@ -595,7 +595,7 @@ export default {
 					params: {
 						...this.$route.params,
 						uuid: data.uuid,
-		},
+					},
 					query: this.$route.query,
 				})
 			}

@@ -91,7 +91,7 @@ export default {
 					'aria-label': this.basename,
 					title: this.basename,
 					tabindex: '0',
-		},
+				},
 			}
 		},
 	},

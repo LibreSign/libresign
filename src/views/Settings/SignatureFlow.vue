@@ -92,7 +92,7 @@ export default {
 					value: 'parallel',
 					label: t('libresign', 'Simultaneous (Parallel)'),
 					description: t('libresign', 'All signers receive the document at the same time and can sign in any order.'),
-		},
+				},
 				{
 					value: 'ordered_numeric',
 					label: t('libresign', 'Sequential'),

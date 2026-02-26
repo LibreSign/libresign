@@ -372,7 +372,7 @@ export default {
 			await this.filesStore.upload({
 				file: {
 					url: this.pdfUrl,
-		},
+				},
 			})
 				.then((id) => {
 					this.filesStore.selectFile(id)
@@ -398,7 +398,7 @@ export default {
 						title: this.t('libresign', 'Envelope name'),
 						label: this.t('libresign', 'Enter a name for the envelope'),
 						placeholder: this.t('libresign', 'Envelope name'),
-		},
+					},
 				)
 
 				if (envelopeName) {
@@ -430,7 +430,7 @@ export default {
 			await this.filesStore.upload({
 				file: {
 					path,
-		},
+				},
 				name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 			})
 				.then((id) => {

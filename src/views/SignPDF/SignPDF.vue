@@ -353,7 +353,7 @@ export default {
 						uuid: targetUuid,
 						isAfterSigned: false,
 						isAsync: true,
-		},
+					},
 				})
 				return true
 			}

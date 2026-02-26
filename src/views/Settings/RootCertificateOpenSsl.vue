@@ -11,7 +11,7 @@
 			<table class="grid">
 				<tbody>
 					<tr>
-								<td>{{ t('libresign', 'Common Name (CN)') }}</td>
+						<td>{{ t('libresign', 'Common Name (CN)') }}</td>
 						<td>{{ certificate.rootCert.commonName }}</td>
 					</tr>
 					<tr v-for="(customName) in certificate.rootCert.names" :key="customName.id" class="customNames">
@@ -34,7 +34,7 @@
 						<td>{{ CPS }}</td>
 					</tr>
 					<tr>
-							<td>{{ t('libresign', 'Config path') }}</td>
+						<td>{{ t('libresign', 'Config path') }}</td>
 						<td>{{ certificate.configPath }}</td>
 					</tr>
 				</tbody>
@@ -154,9 +154,9 @@ export default {
 				rootCert: {
 					commonName: '',
 					names: [],
-		},
+				},
 				configPath: '',
-		},
+			},
 			error: false,
 			customData: false,
 			formDisabled: false,
@@ -229,7 +229,7 @@ export default {
 				rootCert: {
 					commonName: '',
 					names: [],
-		},
+				},
 				configPath: '',
 			}
 			this.customData = false
@@ -254,13 +254,13 @@ export default {
 				})
 				.catch(({ response }) => {
 					if (response?.data?.ocs?.data?.message?.length > 0) {
-					showError(t('libresign', 'Could not generate certificate.') + '\n' + response.data.ocs.data.message)
-				} else if (response.length) {
-					showError(t('libresign', 'Could not generate certificate.') + '\n' + response)
-				} else {
-					showError(t('libresign', 'Could not generate certificate.'))
-				}
-				this.submitLabel = t('libresign', 'Generate root certificate')
+						showError(t('libresign', 'Could not generate certificate.') + '\n' + response.data.ocs.data.message)
+					} else if (response.length) {
+						showError(t('libresign', 'Could not generate certificate.') + '\n' + response)
+					} else {
+						showError(t('libresign', 'Could not generate certificate.'))
+					}
+					this.submitLabel = t('libresign', 'Generate root certificate')
 				})
 			this.formDisabled = false
 		},
