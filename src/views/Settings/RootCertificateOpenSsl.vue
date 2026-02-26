@@ -97,7 +97,7 @@
 					:disabled="formDisabled" />
 			</div>
 			<NcButton :disabled="!canSave"
-				type="primary"
+				variant="primary"
 				@click="generateCertificate">
 				{{ submitLabel }}
 			</NcButton>
