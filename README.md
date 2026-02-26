@@ -141,16 +141,17 @@ For responsible disclosure and security policy, please see [SECURITY.md](SECURIT
 
 ## Contributing
 
-We welcome contributions!
+LibreSign is an open source project and welcomes contributions.
 
-- Bug reports and feature requests: Issues tab
-- Code contributions: Pull Requests
-- Translations: Transifex https://app.transifex.com/nextcloud/nextcloud/libresign
-- Documentation improvements: https://github.com/LibreSign/documentation
-- To get more details go to our [contributing guide](CONTRIBUTING.md).
+You can contribute by:
 
-[![Request a feature](https://img.shields.io/badge/Request%20a%20feature-7057ff?style=for-the-badge)](https://github.com/LibreSign/libresign/issues/new?template=feature_request.yml)
-[![Report a BUG](https://img.shields.io/badge/Report%20a%20bug-8e0000?style=for-the-badge)](https://github.com/LibreSign/libresign/issues/new?template=bug_report.yml)
+- Opening issues for bugs and feature requests
+- Contributing code improvements
+- Improving translations on [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign)
+- Contributing to the [documentation repository](https://github.com/LibreSign/documentation)
+- Supporting the project via [GitHub Sponsors](https://github.com/sponsors/LibreSign)
+
+See our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ---
 
