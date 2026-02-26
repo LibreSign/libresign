@@ -32,7 +32,19 @@ test('sign herself with click to sign', async ({ page }) => {
 		]),
 	)
 
-	await page.goto('./apps/libresign');
+	// Capture console logs to debug
+	page.on('console', msg => console.log('BROWSER CONSOLE:', msg.type(), msg.text()))
+	
+	await page.goto('./apps/libresign')
+	
+	// Debug: capture page state before looking for button
+	console.log('Page URL:', page.url())
+	console.log('Page title:', await page.title())
+	await page.screenshot({ path: 'debug-before-click.png', fullPage: true })
+	const bodyHTML = await page.evaluate(() => document.body.innerHTML)
+	console.log('Body HTML length:', bodyHTML.length)
+	console.log('Body HTML preview:', bodyHTML.substring(0, 500))
+	
 	await page.getByRole('button', { name: 'Upload from URL' }).click();
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf');
 	await page.getByRole('button', { name: 'Send' }).click();
