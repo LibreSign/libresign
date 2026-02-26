@@ -14,7 +14,7 @@
 			<div v-if="customUserFolder">
 				<NcTextField v-model="value"
 					:placeholder="t('libresign', 'Customize default user folder')"
-					@update:value="saveDefaultUserFolder" />
+					@update:modelValue="saveDefaultUserFolder" />
 			</div>
 		</div>
 	</NcSettingsSection>
