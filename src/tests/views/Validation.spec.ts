@@ -5,7 +5,14 @@
 
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
+import axios from '@nextcloud/axios'
+import JSConfetti from 'js-confetti'
 import Validation from '../../views/Validation.vue'
+
+// Mock js-confetti
+vi.mock('js-confetti', () => ({
+	default: vi.fn(),
+}))
 
 // Mock @nextcloud packages
 vi.mock('@nextcloud/axios', () => ({
@@ -125,8 +132,15 @@ vi.mock('../../utils/fileStatus.js', () => ({
 
 describe('Validation.vue - Business Logic', () => {
 	let wrapper!: ReturnType<typeof shallowMount>
+	let mockAddConfetti: ReturnType<typeof vi.fn>
 
 	beforeEach(() => {
+		mockAddConfetti = vi.fn()
+		// Must use `function` syntax so vitest accepts it as a valid constructor mock
+		vi.mocked(JSConfetti).mockImplementation(function() {
+			return { addConfetti: mockAddConfetti }
+		} as unknown as typeof JSConfetti)
+
 		wrapper = shallowMount(Validation, {
 			mocks: {
 				$route: mockRoute,
@@ -467,6 +481,249 @@ describe('Validation.vue - Business Logic', () => {
 	describe('EXPIRATION_WARNING_DAYS constant', () => {
 		it('is set to 30 days by default', () => {
 			expect(wrapper.vm.EXPIRATION_WARNING_DAYS).toBe(30)
+		})
+	})
+
+	// Vue Router 5 only preserves params that are part of the route path.
+	// Routes like /f/validation/:uuid only have :uuid in the path.
+	// State flags (isAfterSigned, isAsync) must travel via history.state,
+	// not via route params — otherwise Vue Router 5 silently drops them.
+	describe('isAfterSigned computed property - reads from history.state', () => {
+		afterEach(() => {
+			history.replaceState({}, '')
+		})
+
+		it('returns true when history.state.isAfterSigned is true', () => {
+			history.pushState({ isAfterSigned: true }, '')
+			expect(wrapper.vm.isAfterSigned).toBe(true)
+		})
+
+		it('returns false when history.state.isAfterSigned is false', () => {
+			history.pushState({ isAfterSigned: false }, '')
+			expect(wrapper.vm.isAfterSigned).toBe(false)
+		})
+
+		it('falls back to shouldFireAsyncConfetti when history.state has no isAfterSigned', async () => {
+			history.pushState({}, '')
+			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			expect(wrapper.vm.isAfterSigned).toBe(true)
+		})
+
+		it('returns false when history state has no isAfterSigned and shouldFireAsyncConfetti is false', () => {
+			history.pushState({}, '')
+			expect(wrapper.vm.isAfterSigned).toBe(false)
+		})
+	})
+
+	// Vue Router 5 drops non-path params on navigation. isAsync must travel
+	// via history.state so it survives the push from the signing page.
+	describe('created() - async signing activation from history.state', () => {
+		const UUID = '550e8400-e29b-41d4-a716-446655440000'
+		let stateGetter: ReturnType<typeof vi.spyOn>
+
+		beforeEach(() => {
+			// Prevent the validate() floating Promise from crashing on
+			// the undefined-return of the axios.get mock
+			vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: {} } } })
+		})
+
+		afterEach(() => {
+			stateGetter?.mockRestore()
+			vi.mocked(axios.get).mockReset()
+		})
+
+		// REGRESSION TEST: before the fix, Validation.vue checked $route.params.isAsync.
+		// Vue Router 5 silently drops params not in the route path, so that check
+		// was always false — confetti never fired.
+		// After the fix, isAsync is read from history.state (passed via router's `state:`).
+		// This test verifies the OLD trigger (route params) no longer activates async signing.
+		it('does NOT set isAsyncSigning via $route.params (Vue Router 5 drops non-path params)', () => {
+			stateGetter = vi.spyOn(window.history, 'state', 'get').mockReturnValue({} as any)
+			const localWrapper = shallowMount(Validation, {
+				mocks: {
+					$route: { params: { uuid: UUID, isAsync: true }, query: {} },
+					$router: { ...mockRouter, replace: vi.fn() },
+				},
+			})
+			// $route.params.isAsync is true in the mock, BUT the fixed code no longer reads
+			// from params — it reads from history.state (which is empty here).
+			expect(localWrapper.vm.isAsyncSigning).toBe(false)
+			expect(localWrapper.vm.shouldFireAsyncConfetti).toBe(false)
+		})
+
+		it('does not set isAsyncSigning when history.state has no isAsync flag', () => {
+			stateGetter = vi.spyOn(window.history, 'state', 'get').mockReturnValue({} as any)
+			const localWrapper = shallowMount(Validation, {
+				mocks: {
+					$route: { params: { uuid: UUID }, query: {} },
+					$router: { ...mockRouter, replace: vi.fn() },
+				},
+			})
+			expect(localWrapper.vm.isAsyncSigning).toBe(false)
+			expect(localWrapper.vm.shouldFireAsyncConfetti).toBe(false)
+		})
+	})
+
+	describe('handleValidationSuccess - confetti behavior', () => {
+		// FILE_STATUS.SIGNED = 3
+		const SIGNED_STATUS = 3
+
+		it('fires confetti when document is signed and isAfterSigned returns true', () => {
+			// Spy on the computed getter to simulate the route-param path
+			// (Vue 3 mocked $route.params lacks reactivity in test env — covered separately)
+			vi.spyOn(wrapper.vm, 'isAfterSigned', 'get').mockReturnValue(true)
+			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
+			expect(mockAddConfetti).toHaveBeenCalledOnce()
+		})
+
+		it('fires confetti when document is signed and shouldFireAsyncConfetti is true', async () => {
+			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
+			expect(mockAddConfetti).toHaveBeenCalledOnce()
+		})
+
+		it('fires confetti when all files in envelope are signed and shouldFireAsyncConfetti is true', async () => {
+			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			wrapper.vm.handleValidationSuccess({
+				status: 0,
+				files: [
+					{ status: SIGNED_STATUS },
+					{ status: SIGNED_STATUS },
+				],
+				signers: [],
+			})
+			expect(mockAddConfetti).toHaveBeenCalledOnce()
+		})
+
+		it('fires confetti when current signer is signed and shouldFireAsyncConfetti is true', async () => {
+			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			// SIGN_REQUEST_STATUS.SIGNED = 2
+			wrapper.vm.handleValidationSuccess({
+				status: 0,
+				signers: [{ me: true, status: 2 }],
+			})
+			expect(mockAddConfetti).toHaveBeenCalledOnce()
+		})
+
+		it('does not fire confetti when document is not signed even if isAfterSigned is true', () => {
+			const localWrapper = shallowMount(Validation, {
+				mocks: {
+					$route: { params: { isAfterSigned: true }, query: {} },
+					$router: mockRouter,
+				},
+			})
+			localWrapper.vm.handleValidationSuccess({ status: 1, signers: [] })
+			expect(mockAddConfetti).not.toHaveBeenCalled()
+		})
+
+		it('does not fire confetti when document is signed but neither isAfterSigned nor shouldFireAsyncConfetti is true', () => {
+			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
+			expect(mockAddConfetti).not.toHaveBeenCalled()
+		})
+
+		it('resets shouldFireAsyncConfetti to false after firing confetti', async () => {
+			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
+			expect(wrapper.vm.shouldFireAsyncConfetti).toBe(false)
+		})
+
+		it('does not reset shouldFireAsyncConfetti when confetti is not fired', async () => {
+			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			// document not signed → confetti won't fire
+			wrapper.vm.handleValidationSuccess({ status: 1, signers: [] })
+			expect(wrapper.vm.shouldFireAsyncConfetti).toBe(true)
+		})
+
+		it('does not fire confetti when isActiveView is false', async () => {
+			await wrapper.setData({ shouldFireAsyncConfetti: true, isActiveView: false })
+			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
+			expect(mockAddConfetti).not.toHaveBeenCalled()
+		})
+	})
+
+	describe('handleSigningComplete method', () => {
+		// FILE_STATUS.SIGNED = 3
+		const SIGNED_STATUS = 3
+		// SIGN_REQUEST_STATUS.SIGNED = 2
+		const SIGNER_SIGNED_STATUS = 2
+
+		it('sets isAsyncSigning to false when called', async () => {
+			await wrapper.setData({ isAsyncSigning: true })
+			vi.spyOn(wrapper.vm, 'refreshAfterAsyncSigning').mockResolvedValue(undefined)
+			wrapper.vm.handleSigningComplete(null)
+			expect(wrapper.vm.isAsyncSigning).toBe(false)
+		})
+
+		it('sets shouldFireAsyncConfetti to true when called', async () => {
+			vi.spyOn(wrapper.vm, 'refreshAfterAsyncSigning').mockResolvedValue(undefined)
+			wrapper.vm.handleSigningComplete(null)
+			expect(wrapper.vm.shouldFireAsyncConfetti).toBe(true)
+		})
+
+		it('does nothing when isActiveView is false', async () => {
+			await wrapper.setData({ isAsyncSigning: true, isActiveView: false })
+			wrapper.vm.handleSigningComplete(null)
+			expect(wrapper.vm.isAsyncSigning).toBe(true)
+			expect(wrapper.vm.shouldFireAsyncConfetti).toBe(false)
+		})
+
+		describe('RULE: when a file is returned directly by SigningProgress', () => {
+			it('fires confetti when the file has signed status', () => {
+				const signedFile = { status: SIGNED_STATUS, signers: [] }
+				wrapper.vm.handleSigningComplete(signedFile)
+				expect(mockAddConfetti).toHaveBeenCalledOnce()
+			})
+
+			it('fires confetti when the current signer is marked as signed', () => {
+				const fileWithSignedSigner = {
+					status: 1,
+					signers: [{ me: true, status: SIGNER_SIGNED_STATUS, signed: '2025-01-01T00:00:00Z' }],
+				}
+				wrapper.vm.handleSigningComplete(fileWithSignedSigner)
+				expect(mockAddConfetti).toHaveBeenCalledOnce()
+			})
+
+			it('does not fire confetti when the file is not yet signed and no signer is marked as signed', () => {
+				// This is a realistic scenario: SigningProgress emits 'completed'
+				// with a file object whose status is still pending/partial
+				const unsignedFile = { status: 1, signers: [{ me: true, status: 0 }] }
+				wrapper.vm.handleSigningComplete(unsignedFile)
+				expect(mockAddConfetti).not.toHaveBeenCalled()
+			})
+		})
+
+		describe('RULE: when SigningProgress emits completed without a file (async polling path)', () => {
+			it('fires confetti after polling returns a signed document', async () => {
+				await wrapper.setData({ uuidToValidate: '550e8400-e29b-41d4-a716-446655440000' })
+
+				// Simulate the validate call returning a signed document via handleValidationSuccess
+				vi.spyOn(wrapper.vm, 'validate').mockImplementation(async () => {
+					wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
+				})
+
+				wrapper.vm.handleSigningComplete(null)
+
+				// Wait for the async polling loop to run
+				await new Promise(resolve => setTimeout(resolve, 0))
+
+				expect(mockAddConfetti).toHaveBeenCalledOnce()
+			})
+
+			it('fires confetti after polling finds that the current signer is signed', async () => {
+				await wrapper.setData({ uuidToValidate: '550e8400-e29b-41d4-a716-446655440000' })
+
+				vi.spyOn(wrapper.vm, 'validate').mockImplementation(async () => {
+					wrapper.vm.handleValidationSuccess({
+						status: 1,
+						signers: [{ me: true, status: SIGNER_SIGNED_STATUS, signed: '2025-01-01T00:00:00Z' }],
+					})
+				})
+
+				wrapper.vm.handleSigningComplete(null)
+				await new Promise(resolve => setTimeout(resolve, 0))
+
+				expect(mockAddConfetti).toHaveBeenCalledOnce()
+			})
 		})
 	})
 })
