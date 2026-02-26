@@ -111,16 +111,16 @@ export default {
 				tsa_policy_oid: '',
 				tsa_username: '',
 				tsa_password: '',
-	},
+		},
 			authOptions: [
 				{
 					id: AUTH_TYPES.NONE,
 					label: t('libresign', 'Without authentication'),
-	},
+		},
 				{
 					id: AUTH_TYPES.BASIC,
 					label: t('libresign', 'Username / Password'),
-	},
+		},
 			],
 		}
 	},
@@ -191,15 +191,15 @@ export default {
 				tsa_url: {
 					error: t('libresign', 'Invalid URL'),
 					normal: t('libresign', 'Format: https://example.com/tsa'),
-	},
+		},
 				tsa_policy_oid: {
 					error: t('libresign', 'Invalid OID format. Expected pattern: %s', '1.2.3.4.1'),
 					normal: t('libresign', 'Example: 1.2.3.4.1 or leave empty for default'),
-	},
+		},
 				tsa_username: {
 					error: t('libresign', 'Name is mandatory'),
 					normal: t('libresign', 'Username'),
-	},
+		},
 				tsa_password: {
 					error: t('libresign', 'Password is mandatory'),
 					normal: t('libresign', 'Password'),
