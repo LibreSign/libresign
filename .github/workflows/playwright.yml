@@ -185,6 +185,7 @@ jobs:
             --st="Rio de Janeiro" \
             --o=LibreSign \
             --l="Rio de Janeiro"
+          ./occ user:setting admin settings email admin@email.tld
 
       - name: Start PHP built-in server
         run: |
