@@ -81,7 +81,7 @@ export default {
 				this.updateSignatureMethodsEnabled()
 			},
 			deep: true,
-	},
+		},
 	},
 	methods: {
 		updateSignatureMethodsEnabled() {
