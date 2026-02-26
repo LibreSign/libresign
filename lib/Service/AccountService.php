@@ -28,6 +28,7 @@ use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\Config\IUserConfig;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
 use OCP\Files\IMimeTypeDetector;
@@ -35,7 +36,6 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
-use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -61,8 +61,8 @@ class AccountService {
 		private SignFileService $signFileService,
 		private RequestSignatureService $requestSignatureService,
 		private CertificateEngineFactory $certificateEngineFactory,
-		private IConfig $config,
 		private IAppConfig $appConfig,
+		private IUserConfig $userConfig,
 		private IMountProviderCollection $mountProviderCollection,
 		private NewUserMailHelper $newUserMail,
 		private IdentifyMethodService $identifyMethodService,
@@ -160,7 +160,7 @@ class AccountService {
 
 		$this->updateIdentifyMethodToAccount($signRequest->getId(), $email, $newUser->getUID());
 
-		if ($this->config->getAppValue('core', 'newUser.sendEmail', 'yes') === 'yes') {
+		if ($this->appConfig->getValueString('core', 'newUser.sendEmail', 'yes') === 'yes') {
 			try {
 				$emailTemplate = $this->newUserMail->generateTemplate($newUser, false);
 				$this->newUserMail->sendMail($newUser, $emailTemplate);
@@ -262,8 +262,7 @@ class AccountService {
 		if (!$user) {
 			return '';
 		}
-
-		return $this->config->getUserValue($user->getUID(), Application::APP_ID, $key);
+		return $this->userConfig->getValueString($user->getUID(), Application::APP_ID, $key);
 	}
 
 	private function getUserConfigIdDocsFilters(?IUser $user = null): array {
@@ -271,7 +270,7 @@ class AccountService {
 			return [];
 		}
 
-		$value = $this->config->getUserValue($user->getUID(), Application::APP_ID, 'id_docs_filters', '');
+		$value = $this->userConfig->getValueString($user->getUID(), Application::APP_ID, 'id_docs_filters', '');
 		if (empty($value)) {
 			return [];
 		}
@@ -285,7 +284,7 @@ class AccountService {
 			return [];
 		}
 
-		$value = $this->config->getUserValue($user->getUID(), Application::APP_ID, 'crl_filters', '');
+		$value = $this->userConfig->getValueString($user->getUID(), Application::APP_ID, 'crl_filters', '');
 		if (empty($value)) {
 			return [];
 		}
@@ -299,7 +298,7 @@ class AccountService {
 			return ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
 		}
 
-		$value = $this->config->getUserValue($user->getUID(), Application::APP_ID, 'crl_sort', '');
+		$value = $this->userConfig->getValueString($user->getUID(), Application::APP_ID, 'crl_sort', '');
 		if (empty($value)) {
 			return ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
 		}
@@ -313,7 +312,7 @@ class AccountService {
 			return ['sortBy' => null, 'sortOrder' => null];
 		}
 
-		$value = $this->config->getUserValue($user->getUID(), Application::APP_ID, 'id_docs_sort', '');
+		$value = $this->userConfig->getValueString($user->getUID(), Application::APP_ID, 'id_docs_sort', '');
 		if (empty($value)) {
 			return ['sortBy' => null, 'sortOrder' => null];
 		}
