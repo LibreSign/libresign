@@ -8,7 +8,6 @@
 			<NcBreadcrumbs class="files-list__breadcrumbs">
 				<NcBreadcrumb :name="t('libresign', 'Files')"
 					:title="t('libresign', 'Files')"
-					:exact="true"
 					:force-icon-text="true"
 					:to="{ name: 'fileslist' }"
 					:aria-description="t('libresign', 'Files')"
@@ -29,7 +28,7 @@
 			<NcButton :aria-label="gridViewButtonLabel"
 				:title="gridViewButtonLabel"
 				class="files-list__header-grid-button"
-				type="tertiary"
+				variant="tertiary"
 				@click="toggleGridView">
 				<template #icon>
 					<ListViewIcon v-if="userConfigStore.files_list_grid_view" />
