@@ -37,11 +37,15 @@
                     "config": {
                         "type": "object",
                         "required": [
+                            "show-confetti",
                             "sign-elements",
                             "envelope",
                             "upload"
                         ],
                         "properties": {
+                            "show-confetti": {
+                                "type": "boolean"
+                            },
                             "sign-elements": {
                                 "type": "object",
                                 "required": [
