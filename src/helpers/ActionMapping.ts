@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { ref } from '@vue/reactivity'
+
 interface ActionCodes {
 	REDIRECT: number
 	CREATE_ACCOUNT: number
@@ -52,6 +54,14 @@ export const ACTION_CODE_TO_ROUTE: Readonly<ActionCodeToRoute> = Object.freeze({
 	[ACTION_CODES.RENEW_EMAIL]: 'RenewEmail',
 	[ACTION_CODES.INCOMPLETE_SETUP]: 'Incomplete',
 })
+
+/**
+ * Shared reactive ref for the initial action code injected by the server
+ * (#initial-state-libresign-action). Written once by router.ts beforeEach,
+ * read by App.vue. Lives here (not in router.ts) to avoid App.vue triggering
+ * the router module's side effects (createRouter, generateUrl) on import.
+ */
+export const initialActionCode = ref(0)
 
 export const REQUIREMENT_TO_MODAL: Readonly<RequirementToModal> = Object.freeze({
 	identificationDocuments: 'uploadDocuments',
