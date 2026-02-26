@@ -162,11 +162,11 @@ export default {
 				rootCert: {
 					commonName: '',
 					names: [],
-	},
+		},
 				cfsslUri: '',
 				configPath: '',
 				generated: false,
-	},
+		},
 			error: false,
 			customData: false,
 			formDisabled: false,
@@ -240,7 +240,7 @@ export default {
 				rootCert: {
 					commonName: '',
 					names: [],
-	},
+		},
 				cfsslUri: '',
 				configPath: '',
 			}
