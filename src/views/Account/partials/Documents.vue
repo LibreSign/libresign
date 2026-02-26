@@ -25,7 +25,7 @@
 					</div>
 					<div class="document-actions">
 						<NcButton v-if="doc.status === -1 && isAuthenticatedUser"
-							type="tertiary"
+							variant="tertiary"
 							:aria-label="t('libresign', 'Choose from Files')"
 							@click="toggleFilePicker(doc.file_type.key)">
 							<template #icon>
@@ -34,7 +34,7 @@
 							{{ t('libresign', 'Choose from Files') }}
 						</NcButton>
 						<NcButton v-if="doc.status === -1"
-							type="tertiary"
+							variant="tertiary"
 							:aria-label="t('libresign', 'Upload file')"
 							@click="inputFile(doc.file_type.key)">
 							<template #icon>
@@ -43,7 +43,7 @@
 							{{ t('libresign', 'Upload file') }}
 						</NcButton>
 						<NcButton v-if="doc.status !== -1"
-							type="tertiary"
+							variant="tertiary"
 							:aria-label="t('libresign', 'Delete file')"
 							@click="deleteFile(doc)">
 							<template #icon>
