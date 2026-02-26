@@ -354,7 +354,7 @@ export default {
 		useModal: {
 			type: Boolean,
 			default: false,
-	},
+		},
 	},
 	setup() {
 		const filesStore = useFilesStore()
@@ -679,7 +679,7 @@ export default {
 				}
 			},
 			immediate: true,
-	},
+		},
 		'filesStore.currentFile.status'(newStatus) {
 			if (newStatus === FILE_STATUS.SIGNING_IN_PROGRESS) {
 				this.startSigningProgressPolling()
