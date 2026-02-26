@@ -160,13 +160,19 @@ jobs:
             --admin-user admin \
             --admin-pass admin
           ./occ --version
-          ./occ app:enable --force ${{ env.APP_NAME }}
+
+      - name: Install app dependencies
+        run: |
           git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/notifications apps/notifications
           composer --working-dir=apps/notifications install --no-dev
           ./occ app:enable --force notifications
           git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/activity apps/activity
           composer --working-dir=apps/activity install --no-dev
           ./occ app:enable --force activity
+
+      - name: Set up LibreSign
+        run: |
+          ./occ app:enable --force ${{ env.APP_NAME }}
           ./occ config:system:set allow_local_remote_servers --value true --type boolean
           ./occ config:system:set auth.bruteforce.protection.enabled --value false --type boolean
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
