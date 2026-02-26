@@ -191,7 +191,7 @@ export default {
 				|| this.uuidToValidate
 		},
 		isAfterSigned() {
-			return this.$route.params.isAfterSigned ?? this.shouldFireAsyncConfetti ?? false
+			return history.state?.isAfterSigned ?? this.shouldFireAsyncConfetti ?? false
 		},
 		isEnvelope() {
 			return this.document?.nodeType === 'envelope'
@@ -270,7 +270,7 @@ export default {
 			this.validate(this.uuidToValidate)
 		}
 
-		if (this.$route.params.isAsync === true) {
+		if (history.state?.isAsync === true) {
 			this.isAsyncSigning = true
 			this.shouldFireAsyncConfetti = true
 			this.loading = true
