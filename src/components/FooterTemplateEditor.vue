@@ -219,7 +219,7 @@ export default {
 				this.previewWidth = response.data.ocs.data.preview_width
 				this.saveFooterTemplate()
 			})
-	},
+		},
 	methods: {
 		t,
 		getVariableText(name) {
@@ -275,7 +275,7 @@ export default {
 					template: this.footerTemplate,
 					width: Number(this.previewWidth),
 					height: Number(this.previewHeight),
-	},
+		},
 				{ responseType: 'blob' }
 			).then(response => {
 				this.setPdfPreview(response.data)
