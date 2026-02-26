@@ -28,7 +28,7 @@
 					:success="displaySuccessReminderDaysBefore"
 					@keydown.enter="save"
 					@blur="save" />
-				<NcTextField v-model:value="reminderDaysBetween"
+				<NcTextField v-model="reminderDaysBetween"
 				:label="t('libresign', 'Days between reminders')"
 				:placeholder="t('libresign', 'Days between reminders')"
 					type="number"
@@ -38,7 +38,7 @@
 					:success="displaySuccessReminderDaysBetween"
 					@keydown.enter="save"
 					@blur="save" />
-				<NcTextField v-model:value="reminderMax"
+				<NcTextField v-model="reminderMax"
 				:label="t('libresign', 'Max reminders per signer')"
 				:placeholder="t('libresign', 'Max reminders per signer')"
 					type="number"
@@ -67,7 +67,7 @@ import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
 
-import { NcDateTimePickerNative } from '@nextcloud/vue'
+import NcDateTimePickerNative from '@nextcloud/vue/components/NcDateTimePickerNative'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
