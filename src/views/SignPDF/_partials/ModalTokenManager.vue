@@ -76,7 +76,7 @@ export default {
 			type: String,
 			required: false,
 			default: '',
-	},
+		},
 	},
 	setup() {
 		const signStore = useSignStore()
