@@ -222,7 +222,7 @@ export default {
 				params: {
 					parentFileId: this.document.id,
 					force_fetch: true,
-	},
+		},
 			})
 			const childFiles = response?.data?.ocs?.data?.data || []
 			this.document.files = Array.isArray(childFiles) ? childFiles : []
