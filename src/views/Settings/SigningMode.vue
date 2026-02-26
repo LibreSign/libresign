@@ -10,9 +10,9 @@
 
 		<div class="signing-mode-toggle">
 			<NcCheckboxRadioSwitch type="switch"
-				:checked="asyncEnabled"
+				:model-value="asyncEnabled"
 				:disabled="loading"
-				@update:checked="onToggleChange">
+				@update:modelValue="onToggleChange">
 				<span>{{ t('libresign', 'Sign documents asynchronously in the background') }}</span>
 			</NcCheckboxRadioSwitch>
 			<span v-if="loading" class="toggle-status">
@@ -28,9 +28,9 @@
 
 		<div v-if="asyncEnabled" class="worker-type-toggle">
 			<NcCheckboxRadioSwitch type="switch"
-				:checked="externalWorkerEnabled"
+				:model-value="externalWorkerEnabled"
 				:disabled="loading"
-				@update:checked="onWorkerTypeChange">
+				@update:modelValue="onWorkerTypeChange">
 				<span>{{ t('libresign', 'Use external worker service') }}</span>
 			</NcCheckboxRadioSwitch>
 			<p class="worker-type-description">
