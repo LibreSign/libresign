@@ -43,7 +43,6 @@ OC.L10N.register(
     "Type:" : "Typ:",
     "Rename" : "Ëmbenennen",
     "Ok" : "OK",
-    "Today" : "Haut",
     "Modified" : "Geännert",
     "1 file" : "1 Fichier",
     "Current password" : "Momentan 't Passwuert",
@@ -55,6 +54,7 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "Benotzernumm",
-    "Optional" : "Fräiwëlleg"
+    "Optional" : "Fräiwëlleg",
+    "Today" : "Haut"
 },
 "nplurals=2; plural=(n != 1);");

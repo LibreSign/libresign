@@ -18,6 +18,9 @@ OC.L10N.register(
     "Preview" : "Rhagolwg",
     "Files" : "Ffeiliau",
     "Settings" : "Gosodiadau",
+    "Bold" : "Trwm",
+    "Italic" : "Italig",
+    "Undo" : "Dadwneud",
     "Loading …" : "Yn llwytho …",
     "Name" : "Enw",
     "Update" : "Diweddaru",
@@ -29,8 +32,8 @@ OC.L10N.register(
     "Saved" : "Wedi'u cadw",
     "Close" : "Cau",
     "Confirm" : "Cadarnhau",
-    "Contact" : "Cysylltu",
     "Status" : "Statws",
+    "Contact" : "Cysylltu",
     "Open sidebar" : "Agor y bar ochr",
     "Cancel upload" : "Diddymu llwytho i fyny",
     "Issued by:" : "Rhoddwyd gan:",
@@ -53,7 +56,6 @@ OC.L10N.register(
     "Page not found" : "Heb ganfod y dudalen",
     "Rename" : "Ailenwi",
     "Ok" : "Iawn",
-    "Today" : "Heddiw",
     "Modified" : "Addaswyd",
     "Created at" : "Crëwyd ar",
     "Version" : "Fersiwn",
@@ -68,6 +70,7 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Enw defnyddiwr",
     "Optional" : "Dewisol",
-    "Forgot password?" : "Anghofio cyfrinair?"
+    "Forgot password?" : "Anghofio cyfrinair?",
+    "Today" : "Heddiw"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

@@ -42,7 +42,6 @@ OC.L10N.register(
     "Type" : "Seòrsa",
     "User" : "Cleachdaiche",
     "Rename" : "Thoir ainm ùr air",
-    "Today" : "An-diugh",
     "Version" : "Tionndadh",
     "Password reset" : "Ath-shuidheachadh an fhacail-fhaire",
     "Refresh" : "Ath-nuadhaich",
@@ -50,6 +49,7 @@ OC.L10N.register(
     "Yes" : "Tha",
     "No" : "Chan eil",
     "Invalid URL" : "URL mì-dhligheach",
-    "Username" : "Ainm-cleachdaiche"
+    "Username" : "Ainm-cleachdaiche",
+    "Today" : "An-diugh"
 },
 "nplurals=4; plural=(n==1 || n==11) ? 0 : (n==2 || n==12) ? 1 : (n > 2 && n < 20) ? 2 : 3;");

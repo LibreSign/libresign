@@ -35,8 +35,8 @@ OC.L10N.register(
     "Select all" : "Hamısıı seç",
     "Close" : "Bağla",
     "Confirm" : "Təsdiq edin",
-    "Administration" : "İdarəetmə",
     "Status" : "Status",
+    "Administration" : "İdarəetmə",
     "Cancel upload" : "Yüklənməni dayandır",
     "Issued by:" : "Tərəfindən verilib:",
     "Name:" : "Ad:",
@@ -56,7 +56,6 @@ OC.L10N.register(
     "Type:" : "Tip:",
     "Rename" : "Adı dəyiş",
     "Ok" : "Oldu",
-    "Today" : "Bu gün",
     "Modified" : "Dəyişdirildi",
     "Version" : "Versiya",
     "Password reset" : "Parolun sıfırlanması",
@@ -65,6 +64,7 @@ OC.L10N.register(
     "Refresh" : "Yenilə",
     "Yes" : "Yes",
     "No" : "No",
-    "Username" : "İstifadəçi adı"
+    "Username" : "İstifadəçi adı",
+    "Today" : "Bu gün"
 },
 "nplurals=2; plural=(n != 1);");

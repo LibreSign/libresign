@@ -49,9 +49,9 @@ OC.L10N.register(
     "Open file" : "Abrir archivo",
     "Close" : "Cerrar",
     "Confirm" : "Confirmar",
+    "Status" : "Estatus",
     "Administration" : "Administración",
     "Contact" : "Contacto",
-    "Status" : "Estatus",
     "Open sidebar" : "Abrir barra lateral",
     "{seconds} seconds left" : "faltan {seconds} segundos",
     "Cancel upload" : "Cancelar carga",
@@ -79,7 +79,6 @@ OC.L10N.register(
     "Type:" : "Tipo:",
     "Page not found" : "Página no encontrada",
     "Ok" : "Ok",
-    "Today" : "Hoy",
     "Modified" : "Modificado",
     "1 file" : "1 archivo",
     "Created at" : "Creado en",
@@ -101,6 +100,7 @@ OC.L10N.register(
     "Learn more" : "Conoce más",
     "Username" : "Usuario",
     "Optional" : "Opcional",
-    "Complete" : "Terminar"
+    "Complete" : "Terminar",
+    "Today" : "Hoy"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

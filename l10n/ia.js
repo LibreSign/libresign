@@ -46,7 +46,6 @@ OC.L10N.register(
     "Revoke" : "Revocar",
     "Type:" : "Typo:",
     "Rename" : "Renominar",
-    "Today" : "Hodie",
     "Modified" : "Modificate",
     "Version" : "Version",
     "Technical details" : "Detalios technic",
@@ -58,6 +57,7 @@ OC.L10N.register(
     "Yes" : "Si",
     "No" : "No",
     "Username" : "Nomine de usator",
-    "Optional" : "Optional"
+    "Optional" : "Optional",
+    "Today" : "Hodie"
 },
 "nplurals=2; plural=(n != 1);");

@@ -32,9 +32,9 @@ OC.L10N.register(
     "Select all" : "Merk alt",
     "Open file" : "Opne fil",
     "Close" : "Lat att",
+    "Status" : "Status",
     "Administration" : "Administrasjon",
     "Contact" : "Kontakt",
-    "Status" : "Status",
     "Open sidebar" : "Opne sidestolpe",
     "Cancel upload" : "Avbryt opplasting",
     "Unknown" : "Ukjend",
@@ -57,7 +57,6 @@ OC.L10N.register(
     "Page not found" : "Fann ikkje sida",
     "Rename" : "Endra namn",
     "Ok" : "Greitt",
-    "Today" : "I dag",
     "Modified" : "Endra",
     "Created at" : "Skapt den",
     "Version" : "Utgåve",
@@ -70,6 +69,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nei",
     "Username" : "Brukarnamn",
-    "Optional" : "Valfritt"
+    "Optional" : "Valfritt",
+    "Today" : "I dag"
 },
 "nplurals=2; plural=(n != 1);");

@@ -82,9 +82,6 @@ OC.L10N.register(
     "Page not found" : "ไม่พบหน้า",
     "Rename" : "เปลี่ยนชื่อ",
     "Ok" : "ตกลง",
-    "Today" : "วันนี้",
-    "Last 7 days" : "ภายใน 7 วัน",
-    "Last 30 days" : "ภายใน 30 วัน",
     "Modified" : "แก้ไขเมื่อ",
     "1 file" : "1 ไฟล์",
     "Created at" : "สร้างเมื่อ",
@@ -102,6 +99,9 @@ OC.L10N.register(
     "No" : "ไม่",
     "Invalid URL" : "URL ไม่ถูกต้อง",
     "Username" : "ชื่อผู้ใช้",
-    "Optional" : "ไม่จำเป็น"
+    "Optional" : "ไม่จำเป็น",
+    "Today" : "วันนี้",
+    "Last 7 days" : "ภายใน 7 วัน",
+    "Last 30 days" : "ภายใน 30 วัน"
 },
 "nplurals=1; plural=0;");

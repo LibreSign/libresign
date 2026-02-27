@@ -61,9 +61,9 @@ OC.L10N.register(
     "Open file" : "פתיחת קובץ",
     "Close" : "סגירה",
     "Confirm" : "אימות",
+    "Status" : "מצב",
     "Administration" : "ניהול",
     "Contact" : "איש/אשת קשר",
-    "Status" : "מצב",
     "Open sidebar" : "פתיחת סרגל הצד",
     "Cancel upload" : "ביטול העלאה",
     "Issued by:" : "הונפק על ידי:",
@@ -101,7 +101,6 @@ OC.L10N.register(
     "Ok" : "אישור",
     "File name" : "שם קובץ",
     "Clear filter" : "מחיקת מסנן",
-    "Today" : "היום",
     "Modified" : "מועד שינוי",
     "1 file" : "1 קובץ",
     "Created at" : "נוצר ב־",
@@ -128,6 +127,7 @@ OC.L10N.register(
     "Invalid URL" : "כתובת שגויה",
     "Username" : "שם משתמש",
     "Optional" : "אופציונלי",
-    "Forgot password?" : "שכחת ססמה?"
+    "Forgot password?" : "שכחת ססמה?",
+    "Today" : "היום"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

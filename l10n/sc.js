@@ -109,9 +109,9 @@ OC.L10N.register(
     "Request signature" : "Rechede firma",
     "Send reminder" : "Imbia promemòria",
     "Confirm" : "Cunfirma",
+    "Status" : "Status",
     "Administration" : "Amministratzione",
     "Contact" : "Cuntata",
-    "Status" : "Status",
     "Order" : "Ordinamentu",
     "Open sidebar" : "Aberi s'istanca laterale",
     "Issued by:" : "Distribuidu dae:",
@@ -154,9 +154,6 @@ OC.L10N.register(
     "Ok" : "AB",
     "File name" : "Nùmene de archìviu",
     "Clear filter" : "Lìmpia filtru",
-    "Today" : "Oe ",
-    "Last 7 days" : "Ùrtimas 7 dies",
-    "Last 30 days" : "Ùrtimas 30 dies",
     "Modified" : "Modificadu",
     "Switch to list view" : "Càmbia a sa vista de s'elencu",
     "Switch to grid view" : "Càmbia a vista de mosàicu",
@@ -209,6 +206,9 @@ OC.L10N.register(
     "Validation" : "Cunvàlida",
     "Return" : "Torra",
     "Open in LibreSign" : "Aberi in LibreSign",
-    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}"
+    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
+    "Today" : "Oe ",
+    "Last 7 days" : "Ùrtimas 7 dies",
+    "Last 30 days" : "Ùrtimas 30 dies"
 },
 "nplurals=2; plural=(n != 1);");

@@ -42,7 +42,6 @@
     "Type:" : "Տիպ.",
     "Rename" : "Վերանվանել",
     "Ok" : "Լավ",
-    "Today" : "Այսօր",
     "Modified" : "Փոփոխված",
     "1 file" : "1 ֆայլ",
     "Version" : "Տարբերակ",
@@ -54,6 +53,7 @@
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "Օգտանուն",
-    "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։"
+    "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
+    "Today" : "Այսօր"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
