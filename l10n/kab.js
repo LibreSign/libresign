@@ -34,8 +34,8 @@ OC.L10N.register(
     "Open file" : "Ldi afaylu",
     "Close" : "Mdel",
     "Confirm" : "Serggeg",
-    "Administration" : "Tadbelt",
     "Status" : "État",
+    "Administration" : "Tadbelt",
     "Open sidebar" : "Ldi-d afeggag adisan",
     "Unknown" : "Arussin",
     "Hide details" : "Ffer tilɣa",
@@ -55,10 +55,6 @@ OC.L10N.register(
     "Page not found" : "Ulac asebter",
     "Rename" : "Beddel isem",
     "Ok" : "Ih",
-    "Today" : "Ass-a",
-    "Last 7 days" : "7 n wussan yezrin",
-    "Last 30 days" : "30 n wussan aya yezrin",
-    "Last year ({year})" : "Ilindi ({year})",
     "Modified" : "Yettwabeddel",
     "{fileCount} files" : "{fileCount} n ifuyla",
     "Technical details" : "Talqayt tatiknikant",
@@ -72,6 +68,10 @@ OC.L10N.register(
     "No" : "Uhu",
     "Invalid URL" : "URL d arameɣtu",
     "Username" : "Isem n useqdac",
-    "Forgot password?" : "Tettud awal uffir?"
+    "Forgot password?" : "Tettud awal uffir?",
+    "Today" : "Ass-a",
+    "Last 7 days" : "7 n wussan yezrin",
+    "Last 30 days" : "30 n wussan aya yezrin",
+    "Last year ({year})" : "Ilindi ({year})"
 },
 "nplurals=2; plural=(n != 1);");

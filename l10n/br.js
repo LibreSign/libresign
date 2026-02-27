@@ -38,8 +38,8 @@ OC.L10N.register(
     "Open file" : "Digeriñ ur restr",
     "Close" : "Serriñ",
     "Confirm" : "Kadarnañ",
-    "Administration" : "Merouriez",
     "Status" : "Statud",
+    "Administration" : "Merouriez",
     "Open sidebar" : "Digori ar varenn gostez",
     "Issued by:" : "Roet gant :",
     "Unknown" : "Dianv",
@@ -62,7 +62,6 @@ OC.L10N.register(
     "Revoke" : "Digargañ",
     "Type:" : "Seurt:",
     "Rename" : "Adenvel",
-    "Today" : "Hiziv",
     "Modified" : "Cheñchet",
     "Created at" : "Krouet da",
     "Version" : "Stumm",
@@ -76,6 +75,7 @@ OC.L10N.register(
     "Learn more" : "Deskiñ muioc'h",
     "Invalid URL" : "URL fall",
     "Username" : "anv implijer",
-    "Forgot password?" : "Ger-tremen ankouaet?"
+    "Forgot password?" : "Ger-tremen ankouaet?",
+    "Today" : "Hiziv"
 },
 "nplurals=5; plural=((n%10 == 1) && (n%100 != 11) && (n%100 !=71) && (n%100 !=91) ? 0 :(n%10 == 2) && (n%100 != 12) && (n%100 !=72) && (n%100 !=92) ? 1 :(n%10 ==3 || n%10==4 || n%10==9) && (n%100 < 10 || n% 100 > 19) && (n%100 < 70 || n%100 > 79) && (n%100 < 90 || n%100 > 99) ? 2 :(n != 0 && n % 1000000 == 0) ? 3 : 4);");

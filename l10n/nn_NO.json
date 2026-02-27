@@ -30,9 +30,9 @@
     "Select all" : "Merk alt",
     "Open file" : "Opne fil",
     "Close" : "Lat att",
+    "Status" : "Status",
     "Administration" : "Administrasjon",
     "Contact" : "Kontakt",
-    "Status" : "Status",
     "Open sidebar" : "Opne sidestolpe",
     "Cancel upload" : "Avbryt opplasting",
     "Unknown" : "Ukjend",
@@ -55,7 +55,6 @@
     "Page not found" : "Fann ikkje sida",
     "Rename" : "Endra namn",
     "Ok" : "Greitt",
-    "Today" : "I dag",
     "Modified" : "Endra",
     "Created at" : "Skapt den",
     "Version" : "Utgåve",
@@ -68,6 +67,7 @@
     "Yes" : "Ja",
     "No" : "Nei",
     "Username" : "Brukarnamn",
-    "Optional" : "Valfritt"
+    "Optional" : "Valfritt",
+    "Today" : "I dag"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

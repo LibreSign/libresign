@@ -48,8 +48,8 @@ OC.L10N.register(
     "Open file" : "Hap skedarin",
     "Close" : "Mbylleni",
     "Confirm" : "Konfirmo",
-    "Contact" : "Kontakt",
     "Status" : "Statusi",
+    "Contact" : "Kontakt",
     "Open sidebar" : "Hapni sidebar-in",
     "{seconds} seconds left" : "{seconds} sekonda të mbetura",
     "Cancel upload" : "Anullo ngarkimin",
@@ -80,7 +80,6 @@ OC.L10N.register(
     "Page not found" : "Faqja nuk u gjet ",
     "Rename" : "Riemërtoje",
     "Ok" : "Në rregull",
-    "Today" : "Sot",
     "Modified" : "Modifikuar ",
     "1 file" : "1 skedar",
     "Created at" : "U krijua në",
@@ -104,6 +103,7 @@ OC.L10N.register(
     "Invalid URL" : "URL e pavlefshme",
     "Username" : "Emri i përdoruesit",
     "Optional" : "Jo i detyrueshëm",
-    "Complete" : "I Perfunduar"
+    "Complete" : "I Perfunduar",
+    "Today" : "Sot"
 },
 "nplurals=2; plural=(n != 1);");

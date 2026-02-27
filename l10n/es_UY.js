@@ -40,9 +40,9 @@ OC.L10N.register(
     "Select all" : "Seleccionar todo",
     "Open file" : "Abrir archivo",
     "Confirm" : "Confirmar",
+    "Status" : "Estatus",
     "Administration" : "Administración",
     "Contact" : "Contacto",
-    "Status" : "Estatus",
     "{seconds} seconds left" : "faltan {seconds} segundos",
     "Cancel upload" : "Cancelar carga",
     "Issued by:" : "Emitido por:",
@@ -72,7 +72,6 @@ OC.L10N.register(
     "Page not found" : "Página no encontrada",
     "Rename" : "Renombrar",
     "Ok" : "Ok",
-    "Today" : "Hoy",
     "Modified" : "Modificado",
     "Created at" : "Creado en",
     "Version" : "Versión",
@@ -93,6 +92,7 @@ OC.L10N.register(
     "Learn more" : "Conoce más",
     "Username" : "Usuario",
     "Optional" : "Opcional",
-    "Complete" : "Terminar"
+    "Complete" : "Terminar",
+    "Today" : "Hoy"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

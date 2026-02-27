@@ -37,7 +37,6 @@ OC.L10N.register(
     "Rename" : "பெயர்மாற்றம்",
     "Ok" : "Ok",
     "File name" : "கோப்பு பெயரைக்",
-    "Today" : "இன்று",
     "Modified" : "மாற்றப்பட்டது",
     "Current password" : "தற்போதைய கடவுச்சொல்",
     "New password" : "புதிய கடவுச்சொல்",
@@ -45,6 +44,7 @@ OC.L10N.register(
     "Remove" : "அகற்றுக",
     "Yes" : "Yes",
     "No" : "No",
-    "Username" : "பயனாளர் பெயர்"
+    "Username" : "பயனாளர் பெயர்",
+    "Today" : "இன்று"
 },
 "nplurals=2; plural=(n != 1);");

@@ -59,9 +59,9 @@
     "Open file" : "Deschide fișier",
     "Close" : "Închide",
     "Confirm" : "Confirmă",
+    "Status" : "Stare",
     "Administration" : "Administrare",
     "Contact" : "Contact",
-    "Status" : "Stare",
     "Order" : "Ordine",
     "Open sidebar" : "Deschide bara laterală",
     "Cancel upload" : "Anulează încărcarea",
@@ -98,11 +98,8 @@
     "Ok" : "Ok",
     "File name" : "Nume fișier",
     "Clear filter" : "Șterge filtrul",
-    "Today" : "Azi",
-    "Last 7 days" : "Ultimele 7 zile",
-    "Last 30 days" : "Ultimele 30 de zile",
-    "Modified" : "Modificat",
     "Active filters" : "Filtre active",
+    "Modified" : "Modificat",
     "Switch to list view" : "Comuta la organizarea tip listă",
     "Switch to grid view" : "Comută la organizare tip grilă",
     "1 file" : "1 fișier",
@@ -131,6 +128,9 @@
     "Learn more" : "Află mai mult",
     "Invalid URL" : "URL invalid",
     "Username" : "Nume utilizator",
-    "Optional" : "Opțional"
+    "Optional" : "Opțional",
+    "Today" : "Azi",
+    "Last 7 days" : "Ultimele 7 zile",
+    "Last 30 days" : "Ultimele 30 de zile"
 },"pluralForm" :"nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));"
 }

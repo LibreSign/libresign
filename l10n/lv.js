@@ -62,9 +62,9 @@ OC.L10N.register(
     "Open file" : "Atvērt datni",
     "Close" : "Aizvērt",
     "Confirm" : "Apstiprināt",
+    "Status" : "Status",
     "Administration" : "Pārvaldīšana",
     "Contact" : "Kontaktpersona",
-    "Status" : "Status",
     "Open sidebar" : "Atvērt sānjoslu",
     "{seconds} seconds left" : "{seconds} sekundes atlikušas",
     "Cancel upload" : "Atcelt augšupielādi",
@@ -100,7 +100,6 @@ OC.L10N.register(
     "Ok" : "Labi",
     "File name" : "Datnes nosaukums",
     "Clear filter" : "Notīrīt atlasi",
-    "Today" : "Šodien",
     "Modified" : "Mainīts",
     "1 file" : "1 datne",
     "{fileCount} files" : "{fileCount} datņu",
@@ -130,6 +129,7 @@ OC.L10N.register(
     "Forgot password?" : "Aizmirsta parole?",
     "Complete" : "Pabeigta",
     "Open in LibreSign" : "Atvērt LibreSign",
-    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
+    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}",
+    "Today" : "Šodien"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");

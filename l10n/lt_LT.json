@@ -120,10 +120,10 @@
     "Close" : "Užverti",
     "Send reminder" : "Siųsti priminimą",
     "Confirm" : "Patvirtinti",
+    "Status" : "Būsena",
     "Document not available for signature." : "Dokumentas neprieinamas pasirašymui.",
     "Administration" : "Administravimas",
     "Contact" : "Adresatas",
-    "Status" : "Būsena",
     "Open sidebar" : "Atverti šoninę juostą",
     "{seconds} seconds left" : "Liko {seconds} sekundžių",
     "Cancel upload" : "Atšaukti įkėlimą",
@@ -182,12 +182,9 @@
     "File is loading" : "Failas yra įkeliamas",
     "File name" : "Failo pavadinimas",
     "Clear filter" : "Išvalyti filtrą",
-    "Today" : "Šiandien",
-    "Last 7 days" : "Paskutinės 7 dienos",
-    "Last 30 days" : "Paskutinės 30 dienų",
-    "Modified" : "Pakeistas",
     "Active filters" : "Aktyvūs filtrai",
     "Remove filter" : "Šalinti filtrą",
+    "Modified" : "Pakeistas",
     "Switch to list view" : "Perjungti į sąrašo rodinį",
     "Switch to grid view" : "Perjungti į tinklelio rodinį",
     "There are no documents" : "Nėra dokumentų",
@@ -230,6 +227,9 @@
     "Unable to sign." : "Nepavyko pasirašyti.",
     "Subscription password." : "Prenumeratos slaptažodis.",
     "Forgot password?" : "Pamiršote slaptažodį?",
-    "Complete" : "Baigti"
+    "Complete" : "Baigti",
+    "Today" : "Šiandien",
+    "Last 7 days" : "Paskutinės 7 dienos",
+    "Last 30 days" : "Paskutinės 30 dienų"
 },"pluralForm" :"nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);"
 }

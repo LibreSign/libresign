@@ -94,9 +94,9 @@ OC.L10N.register(
     "Open file" : "Dobrir fichièr",
     "Close" : "Plegar",
     "Confirm" : "Confirmar",
+    "Status" : "Estat",
     "Administration" : "Administracion",
     "Contact" : "Contacte",
-    "Status" : "Estat",
     "Open sidebar" : "Dobrir lo panèl lateral",
     "Cancel upload" : "Anullar lo mandadís",
     "Issued by:" : "Desliurat per :",
@@ -128,7 +128,6 @@ OC.L10N.register(
     "Approved by" : "Validat per",
     "Rename" : "Tornar nommar",
     "File name" : "Nom de fichièr",
-    "Today" : "Uèi",
     "Modified" : "Modificat",
     "1 file" : "1 fichièr",
     "Created at" : "Creat lo",
@@ -153,6 +152,7 @@ OC.L10N.register(
     "Sign the document." : "Signar aqueste document.",
     "Forgot password?" : "Senhal oblidat ?",
     "This document is valid" : "Aqueste document es valid",
-    "Return" : "Tornar"
+    "Return" : "Tornar",
+    "Today" : "Uèi"
 },
 "nplurals=2; plural=(n > 1);");
