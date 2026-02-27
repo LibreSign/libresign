@@ -43,7 +43,6 @@ OC.L10N.register(
     "Type:" : "ধরণঃ",
     "Rename" : "পূনঃনামকরণ",
     "Ok" : "তথাস্তু",
-    "Today" : "আজ",
     "Modified" : "পরিবর্তিত",
     "Version" : "ভার্সন",
     "Current password" : "বর্তমান কূটশব্দ",
@@ -51,6 +50,7 @@ OC.L10N.register(
     "Refresh" : "নবোদ্যম",
     "Yes" : "Yes",
     "No" : "No",
-    "Username" : "ব্যবহারকারী"
+    "Username" : "ব্যবহারকারী",
+    "Today" : "আজ"
 },
 "nplurals=2; plural=(n != 1);");

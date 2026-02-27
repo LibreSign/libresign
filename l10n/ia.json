@@ -44,7 +44,6 @@
     "Revoke" : "Revocar",
     "Type:" : "Typo:",
     "Rename" : "Renominar",
-    "Today" : "Hodie",
     "Modified" : "Modificate",
     "Version" : "Version",
     "Technical details" : "Detalios technic",
@@ -56,6 +55,7 @@
     "Yes" : "Si",
     "No" : "No",
     "Username" : "Nomine de usator",
-    "Optional" : "Optional"
+    "Optional" : "Optional",
+    "Today" : "Hodie"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

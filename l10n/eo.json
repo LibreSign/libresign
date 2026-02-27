@@ -36,6 +36,10 @@
     "Copy to clipboard" : "Kopii tondejen",
     "Files" : "Dosieroj",
     "Settings" : "Agordoj",
+    "Bold" : "Grasa",
+    "Italic" : "Kursiva",
+    "Undo" : "Malfari",
+    "Redo" : "Refari",
     "Loading …" : "Ŝargas …",
     "Name" : "Nomo",
     "Update" : "Ĝisdatigi",
@@ -51,9 +55,9 @@
     "Open file" : "Malfermi dosieron",
     "Close" : "Malfermi",
     "Confirm" : "Konfirmi",
+    "Status" : "Stato",
     "Administration" : "Administrado",
     "Contact" : "Kontakto",
-    "Status" : "Stato",
     "Open sidebar" : "Malfermi flankopanelon",
     "Cancel upload" : "Nuligi alŝuton",
     "Issued by:" : "Eldonita de:",
@@ -84,9 +88,6 @@
     "Rename" : "Alinomi",
     "Ok" : "Bone",
     "File name" : "Dosiernomo",
-    "Today" : "Hodiaŭ",
-    "Last 7 days" : "Lastaj 7 tagoj",
-    "Last 30 days" : "Lastaj 30 tagoj",
     "Modified" : "Modifita",
     "1 file" : "1 dosiero",
     "Created at" : "Kreita je",
@@ -109,6 +110,9 @@
     "Username" : "Uzantnomo",
     "Optional" : "Malnepra",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
-    "Complete" : "Plenumita"
+    "Complete" : "Plenumita",
+    "Today" : "Hodiaŭ",
+    "Last 7 days" : "Lastaj 7 tagoj",
+    "Last 30 days" : "Lastaj 30 tagoj"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -44,7 +44,6 @@ OC.L10N.register(
     "Type:" : "Տիպ.",
     "Rename" : "Վերանվանել",
     "Ok" : "Լավ",
-    "Today" : "Այսօր",
     "Modified" : "Փոփոխված",
     "1 file" : "1 ֆայլ",
     "Version" : "Տարբերակ",
@@ -56,6 +55,7 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "Օգտանուն",
-    "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։"
+    "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
+    "Today" : "Այսօր"
 },
 "nplurals=2; plural=(n != 1);");

@@ -42,9 +42,9 @@ OC.L10N.register(
     "Open file" : "ფაილის გახსნა",
     "Close" : "დახურვა",
     "Confirm" : "დადასტურება",
+    "Status" : "სტატუსი",
     "Administration" : "ადმინისტრაცია",
     "Contact" : "კონტაქტი",
-    "Status" : "სტატუსი",
     "{seconds} seconds left" : "დარჩა {seconds} წამი",
     "Cancel upload" : "ატვირთვის შეჩერება",
     "Issued by:" : "გაცემულია მიერ:",
@@ -73,7 +73,6 @@ OC.L10N.register(
     "Page not found" : "გვერდი არაა ნაპოვნი",
     "Rename" : "სახელის შეცვლა",
     "Ok" : "კარგი",
-    "Today" : "დღეს",
     "Modified" : "შეიცვალა",
     "Created at" : "შეიქმნა",
     "Version" : "ვერსია",
@@ -94,6 +93,7 @@ OC.L10N.register(
     "Learn more" : "შეიტყვეთ მეტი",
     "Username" : "მომხმარებლის სახელი",
     "Optional" : "არასავალდებულო",
-    "Complete" : "დასრულებულია"
+    "Complete" : "დასრულებულია",
+    "Today" : "დღეს"
 },
 "nplurals=2; plural=(n!=1);");

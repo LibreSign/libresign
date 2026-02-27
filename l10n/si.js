@@ -43,13 +43,13 @@ OC.L10N.register(
     "Actions" : "ක්‍රියාමාර්ග",
     "User" : "පරිශීලක",
     "File name" : "ගොනුවේ නම",
-    "Today" : "අද",
     "Version" : "අනුවාදය",
     "Technical details" : "තාක්ෂණික විස්තර",
     "New password" : "නව මුරපදය",
     "Remove" : "ඉවත් කරන්න",
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
-    "No" : "නැහැ"
+    "No" : "නැහැ",
+    "Today" : "අද"
 },
 "nplurals=2; plural=(n != 1);");

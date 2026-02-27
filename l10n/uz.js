@@ -49,8 +49,8 @@ OC.L10N.register(
     "Select all" : "Barchasini tanash",
     "Close" : "Yopish",
     "Confirm" : "Confirm",
-    "Contact" : "Aloqa",
     "Status" : "Status",
+    "Contact" : "Aloqa",
     "Order" : "Buyurtma",
     "Status:" : "Holati:",
     "Unknown" : "Noma'lum",
@@ -72,11 +72,8 @@ OC.L10N.register(
     "Page not found" : "Sahifa topilmadi",
     "Rename" : "Nomini o'zgartirish",
     "Ok" : "Yaxshi",
-    "Today" : "Today",
-    "Last 7 days" : "Oxirgi 7 kun",
-    "Last 30 days" : "Oxirgi 30 kun",
-    "Modified" : "Modified",
     "Remove filter" : "Filtrni olib tashlang",
+    "Modified" : "Modified",
     "{fileCount} files" : "{fileCount} fayllari",
     "Version" : "Versiya",
     "Technical details" : "Texnik tafsilotlar",
@@ -92,6 +89,9 @@ OC.L10N.register(
     "No" : "No",
     "Remove background" : "Fonni olib tashlash",
     "Username" : "Foydalanuvchi nomi",
-    "Forgot password?" : "Parolni unutdingizmi?"
+    "Forgot password?" : "Parolni unutdingizmi?",
+    "Today" : "Today",
+    "Last 7 days" : "Oxirgi 7 kun",
+    "Last 30 days" : "Oxirgi 30 kun"
 },
 "nplurals=1; plural=0;");
