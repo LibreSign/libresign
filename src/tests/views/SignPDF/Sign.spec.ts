@@ -992,7 +992,6 @@ describe('Sign.vue - signWithTokenCode', () => {
 						NcRichText: true,
 					},
 					mocks: {
-						$emit: vi.fn(),
 						$watch: vi.fn(),
 					},
 				},
