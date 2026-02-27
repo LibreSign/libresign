@@ -144,12 +144,14 @@
 			:useModal="true"
 			:errors="signStore.errors"
 			@certificate:uploaded="onSignatureFileCreated" />
-		<TokenManager v-if="signMethodsStore.modal.token"
+		<ModalVerificationCode v-if="signMethodsStore.modal.token"
+			mode="token"
 			:phone-number="user?.account?.phoneNumber || ''"
 			@change="signWithTokenCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('token')" />
-		<EmailManager v-if="signMethodsStore.modal.emailToken"
+		<ModalVerificationCode v-if="signMethodsStore.modal.emailToken"
+			mode="email"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
 	</div>
@@ -172,8 +174,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 
-import EmailManager from './ModalEmailManager.vue'
-import TokenManager from './ModalTokenManager.vue'
+import ModalVerificationCode from './ModalVerificationCode.vue'
 import Draw from '../../../components/Draw/Draw.vue'
 import Documents from '../../../views/Account/partials/Documents.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
@@ -201,8 +202,7 @@ export default {
 		NcPasswordField,
 		NcRichText,
 		CreatePassword,
-		TokenManager,
-		EmailManager,
+		ModalVerificationCode,
 		UploadCertificate,
 		Documents,
 		Signatures,
@@ -439,12 +439,14 @@ export default {
 
 			await this.submitSignature({
 				method: identifyMethod,
+				modalCode: 'token',
 				token,
 			})
 		},
 		async signWithEmailToken() {
 			await this.submitSignature({
 				method: this.signMethodsStore.settings.emailToken.identifyMethod,
+				modalCode: 'emailToken',
 				token: this.signMethodsStore.settings.emailToken.token,
 			})
 		},
@@ -485,13 +487,13 @@ export default {
 				)
 
 				if (result.status === 'signingInProgress') {
-					this.actionHandler.closeModal(methodConfig.method)
+					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method)
 					this.$emit('signing-started', {
 						signRequestUuid: this.signRequestUuid,
 						async: true,
 					})
 				} else if (result.status === 'signed') {
-					this.actionHandler.closeModal(methodConfig.method)
+					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method)
 					this.sidebarStore.hideSidebar()
 					this.$emit('signed', {
 						...result.data,
