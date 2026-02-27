@@ -6,7 +6,11 @@
 <template>
 	<div class="sign-pdf-sidebar">
 		<header>
-			<NcChip :text="signStore.document.statusText" variant="primary" no-close />
+			<div class="document-status">
+				<span class="document-status__label">{{ t('libresign', 'Status') }}</span>
+				<span class="document-status__dot" aria-hidden="true" />
+				<span class="document-status__text">{{ signStore.document.statusText }}</span>
+			</div>
 		</header>
 
 		<main>
@@ -28,7 +32,6 @@
 <script>
 import { t } from '@nextcloud/l10n'
 
-import NcChip from '@nextcloud/vue/components/NcChip'
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
 
 import { loadState } from '@nextcloud/initial-state'
@@ -40,7 +43,6 @@ import { useSignStore } from '../../store/sign.js'
 export default {
 	name: 'SignTab',
 	components: {
-		NcChip,
 		Sign,
 	},
 	setup() {
@@ -93,6 +95,35 @@ header {
 	justify-content: center;
 	align-items: center;
 	width: 100%;
+
+	.document-status {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		color: var(--color-text-maxcontrast);
+		font-size: 0.85em;
+
+		&__label {
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			margin-inline-end: -0.05em; /* compensate trailing letter-spacing in both LTR and RTL */
+			font-weight: 600;
+		}
+
+		&__dot {
+			display: inline-block;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background-color: var(--color-primary-element);
+			flex-shrink: 0;
+		}
+
+		&__text {
+			color: var(--color-main-text);
+			font-weight: 500;
+		}
+	}
 }
 @media (min-width: 513px) {
 	header {
