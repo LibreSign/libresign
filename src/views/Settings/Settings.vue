@@ -27,6 +27,7 @@
 		<Envelope />
 		<Reminders />
 		<TSA />
+		<Confetti />
 	</div>
 </template>
 
@@ -51,6 +52,7 @@ import SignatureFlow from './SignatureFlow.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
 import SignatureStamp from './SignatureStamp.vue'
 import SigningMode from './SigningMode.vue'
+import Confetti from './Confetti.vue'
 import Envelope from './Envelope.vue'
 import SupportProject from './SupportProject.vue'
 import TSA from './TSA.vue'
@@ -76,6 +78,7 @@ export default {
 		SignatureFlow,
 		SignatureHashAlgorithm,
 		SignatureStamp,
+		Confetti,
 		SigningMode,
 		Envelope,
 		SupportProject,

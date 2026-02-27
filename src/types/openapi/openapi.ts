@@ -1046,6 +1046,7 @@ export type components = {
         Capabilities: {
             features: string[];
             config: {
+                "show-confetti": boolean;
                 "sign-elements": {
                     "is-available": boolean;
                     "can-create-signature": boolean;

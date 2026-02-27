@@ -392,6 +392,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignCapabilities = array{
  *     features: list<string>,
  *     config: array{
+ *         show-confetti: bool,
  *         sign-elements: array{
  *             is-available: bool,
  *             can-create-signature: bool,
