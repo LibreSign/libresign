@@ -213,6 +213,16 @@ describe('sidebar store - visibility rules', () => {
 			expect(store.show).toBe(true)
 		})
 
+		it('keeps sidebar visible for SignPDFExternal route', () => {
+			const store = useSidebarStore()
+			store.show = true
+			store.activeTab = 'sign-tab'
+
+			store.handleRouteChange('SignPDFExternal')
+
+			expect(store.show).toBe(true)
+		})
+
 		it('hides sidebar for non-allowed routes', () => {
 			const store = useSidebarStore()
 			store.show = true
