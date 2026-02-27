@@ -9,7 +9,7 @@ export const useSidebarStore = defineStore('sidebar', {
 	state: () => ({
 		show: false,
 		activeTab: '',
-		sidebarRoutes: ['fileslist', 'SignPDF', 'ValidationFile', 'IdDocsApprove'],
+		sidebarRoutes: ['fileslist', 'SignPDF', 'SignPDFExternal', 'ValidationFile', 'IdDocsApprove'],
 	}),
 
 	getters: {

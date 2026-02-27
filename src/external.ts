@@ -7,7 +7,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 
-import App from './App.vue'
+import App from './ExternalApp.vue'
 import router from './router/router'
 
 if (window.OCA && !window.OCA.LibreSign) {

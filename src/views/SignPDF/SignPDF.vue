@@ -103,7 +103,7 @@ export default {
 			await this.initIdDocsApprove()
 		}
 
-		if (this.isMobile){
+		if (this.isMobile && this.$route?.name !== 'SignPDFExternal') {
 			this.toggleSidebar();
 		}
 
