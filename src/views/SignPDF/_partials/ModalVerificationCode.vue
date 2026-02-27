@@ -15,7 +15,7 @@
 		<!-- Step 1: Email mode -->
 		<div v-if="mode === 'email' && step1Active" class="step-content">
 			<p class="step-explanation">
-				{{ t('libresign', 'To sign this document, we must verify your identity. Enter your email address to receive a verification code.') }}
+				{{ t('libresign', 'To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address.') }}
 			</p>
 			<div v-if="signMethodsStore.blurredEmail().length > 0" class="email">
 				{{ signMethodsStore.blurredEmail() }}
@@ -236,7 +236,7 @@ export default {
 		codeExplanationText() {
 			const contact = this.displayContact
 			if (this.mode === 'email') {
-				return t('libresign', 'A verification code has been sent to: {contact}. Please enter the 6-digit code to continue.', { contact })
+				return t('libresign', 'A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code.', { contact })
 			}
 			return t('libresign', 'A verification code has been sent to: {contact}. Please enter the code to continue.', { contact })
 		},
