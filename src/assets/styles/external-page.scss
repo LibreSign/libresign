@@ -1,0 +1,15 @@
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and LibreCode contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+// Override server.css layout rules that assume authenticated header layout.
+// `html body #content` beats the specificity of server.css selectors.
+html body #content {
+	position: fixed;
+	inset: 0;
+	margin: 0;
+	width: 100vw;
+	height: 100vh;
+	border-radius: 0;
+}
