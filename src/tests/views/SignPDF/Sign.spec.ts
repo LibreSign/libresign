@@ -865,12 +865,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 				// VERIFY: Must send identify method, NOT signature method name
 				expect(submitSignatureMock).toHaveBeenCalledWith({
 					method: testCase.expectedIdentifyMethod, // 'whatsapp', 'sms', 'signal'
+					modalCode: 'token',
 					token: testCase.token,
 				})
 
 				// Double-check: Should NOT send the signature method key name
 				expect(submitSignatureMock).not.toHaveBeenCalledWith({
 					method: testCase.signatureMethodKey, // NOT 'whatsappToken', 'smsToken', etc
+					modalCode: 'token',
 					token: testCase.token,
 				})
 			}
