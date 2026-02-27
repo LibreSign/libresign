@@ -3,8 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcAppSidebar v-if="sidebarStore.isVisible"
+	<NcAppSidebar v-if="sidebarStore.activeTab.length > 0"
 		ref="rightAppSidebar"
+		:open="sidebarStore.isVisible"
 		:name="fileName"
 		:subtitle="subTitle"
 		v-model:active="sidebarStore.activeTab"
