@@ -56,7 +56,7 @@ export default {
 	},
 	data() {
 		return {
-			isAdmin: getCurrentUser().isAdmin,
+			isAdmin: getCurrentUser()?.isAdmin ?? false,
 		}
 	},
 	methods: {
