@@ -8,6 +8,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { mount } from '@vue/test-utils'
 import ModalVerificationCode from '@/views/SignPDF/_partials/ModalVerificationCode.vue'
 import { useSignMethodsStore } from '@/store/signMethods.js'
+import { useSignStore } from '@/store/sign.js'
 
 // Mock axios
 vi.mock('@nextcloud/axios', () => ({
@@ -185,6 +186,49 @@ describe('ModalVerificationCode (email mode)', () => {
 		wrapper.vm.requestNewCode()
 
 		expect(wrapper.vm.identityVerified).toBe(false)
+	})
+
+	it('signDocument sets loading=true, emits change with token and does NOT self-close', async () => {
+		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		wrapper = mountEmail()
+
+		wrapper.vm.token = '123456'
+		wrapper.vm.identityVerified = true
+		await wrapper.vm.$nextTick()
+
+		wrapper.vm.signDocument()
+
+		expect(wrapper.vm.loading).toBe(true)
+		expect(wrapper.emitted('change')).toBeTruthy()
+		expect(wrapper.emitted('change')![0]).toEqual(['123456'])
+		expect(wrapper.emitted('close')).toBeFalsy()
+	})
+
+	it('signStore.errors watcher resets loading when signing fails', async () => {
+		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		wrapper = mountEmail()
+
+		const signStore = useSignStore()
+		wrapper.vm.loading = true
+
+		signStore.setSigningErrors([{ message: 'Signing failed' }])
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.vm.loading).toBe(false)
+	})
+
+	it('signStore.errors watcher does NOT reset loading when loading is already false', async () => {
+		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		wrapper = mountEmail()
+
+		const signStore = useSignStore()
+		wrapper.vm.loading = false
+
+		signStore.setSigningErrors([{ message: 'Signing failed' }])
+		await wrapper.vm.$nextTick()
+
+		// loading was already false, no change expected
+		expect(wrapper.vm.loading).toBe(false)
 	})
 })
 
@@ -369,5 +413,33 @@ describe('ModalVerificationCode (token mode)', () => {
 		expect(wrapper.vm.tokenRequested).toBe(false)
 		expect(wrapper.vm.token).toBe('')
 		expect(wrapper.vm.identityVerified).toBe(false)
+	})
+
+	it('signDocument sets loading=true, emits change with token and does NOT self-close', async () => {
+		wrapper = mountToken({ phoneNumber: '+5511999999999' })
+
+		wrapper.vm.tokenRequested = true
+		wrapper.vm.token = '654321'
+		wrapper.vm.identityVerified = true
+		await wrapper.vm.$nextTick()
+
+		wrapper.vm.signDocument()
+
+		expect(wrapper.vm.loading).toBe(true)
+		expect(wrapper.emitted('change')).toBeTruthy()
+		expect(wrapper.emitted('change')![0]).toEqual(['654321'])
+		expect(wrapper.emitted('close')).toBeFalsy()
+	})
+
+	it('signStore.errors watcher resets loading when signing fails', async () => {
+		wrapper = mountToken({ phoneNumber: '+5511999999999' })
+
+		const signStore = useSignStore()
+		wrapper.vm.loading = true
+
+		signStore.setSigningErrors([{ message: 'Signing failed' }])
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.vm.loading).toBe(false)
 	})
 })
