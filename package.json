@@ -78,12 +78,12 @@
     "npm": "^11.3.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.1",
     "@nextcloud/browserslist-config": "^3.1.2",
     "@nextcloud/eslint-config": "^8.4.2",
     "@nextcloud/stylelint-config": "^3.2.1",
     "@nextcloud/vite-config": "^2.5.2",
     "@pinia/testing": "^1.0.3",
+    "@playwright/test": "^1.58.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/vue": "^8.1.0",
     "@vitejs/plugin-vue": "^6.0.3",
@@ -91,6 +91,7 @@
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
     "happy-dom": "^20.7.0",
+    "mailpit-api": "^1.7.2",
     "openapi-typescript": "^7.13.0",
     "typescript": "^5.9.3",
     "vite": "^7.1.10",
