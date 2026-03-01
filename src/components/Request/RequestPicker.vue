@@ -4,10 +4,32 @@
 -->
 <template>
 	<div v-if="canRequestSign">
-		<NcActions :menu-name="t('libresign', 'Request')"
-			:inline="inline ? 3 : 0"
-			:force-name="inline"
-			:class="{column: inline}"
+		<div v-if="inline" class="request-picker-buttons">
+			<NcButton variant="secondary"
+				@click="showModalUploadFromUrl()">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiLink" :size="20" />
+				</template>
+				{{ t('libresign', 'Upload from URL') }}
+			</NcButton>
+			<NcButton variant="secondary"
+				:title="envelopeEnabled ? t('libresign', 'Multiple files allowed') : null"
+				@click="openFilePicker">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiFolder" :size="20" />
+				</template>
+				{{ t('libresign', 'Choose from Files') }}
+			</NcButton>
+			<NcButton variant="secondary"
+				@click="uploadFile">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
+				</template>
+				{{ t('libresign', 'Upload') }}
+			</NcButton>
+		</div>
+		<NcActions v-else
+			:menu-name="t('libresign', 'Request')"
 			:variant="variant"
 			v-model:open="openedMenu">
 			<template #icon>
@@ -16,7 +38,7 @@
 			<NcActionButton :wide="true"
 				@click="showModalUploadFromUrl()">
 				<template #icon>
-				<NcIconSvgWrapper :path="mdiLink" :size="20" />
+					<NcIconSvgWrapper :path="mdiLink" :size="20" />
 				</template>
 				{{ t('libresign', 'Upload from URL') }}
 			</NcActionButton>
@@ -24,14 +46,14 @@
 				:title="envelopeEnabled ? t('libresign', 'Multiple files allowed') : null"
 				@click="openFilePicker">
 				<template #icon>
-				<NcIconSvgWrapper :path="mdiFolder" :size="20" />
+					<NcIconSvgWrapper :path="mdiFolder" :size="20" />
 				</template>
 				{{ t('libresign', 'Choose from Files') }}
 			</NcActionButton>
 			<NcActionButton :wide="true"
 				@click="uploadFile">
 				<template #icon>
-				<NcIconSvgWrapper :path="mdiUpload" :size="20" />
+					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 				</template>
 				{{ t('libresign', 'Upload') }}
 			</NcActionButton>
@@ -451,9 +473,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.column {
+.request-picker-buttons {
 	display: flex;
-	gap: 12px; flex: 1;
+	gap: 12px;
 	flex-direction: column;
+	align-items: stretch;
 }
 </style>
