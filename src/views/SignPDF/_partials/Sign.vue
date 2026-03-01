@@ -62,7 +62,7 @@
 		</div>
 		<NcDialog v-if="signMethodsStore.modal.clickToSign"
 			:no-close="loading"
-			:name="t('libresign', 'Confirm')"
+			:name="t('libresign', 'Sign document')"
 			size="small"
 			dialog-classes="libresign-dialog"
 			@closing="signMethodsStore.closeModal('clickToSign')">
@@ -73,7 +73,11 @@
 				<NcRichText :text="error.message"
 					:use-markdown="true" />
 			</NcNoteCard>
-			{{ t('libresign', 'Confirm your signature') }}
+
+			<p class="confirmation-text">
+				{{ t('libresign', 'Confirm that you want to sign this document.') }}
+			</p>
+
 			<template #actions>
 				<NcButton :disabled="loading"
 					@click="signMethodsStore.closeModal('clickToSign')">
@@ -85,13 +89,13 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
-					{{ t('libresign', 'Confirm') }}
+					{{ t('libresign', 'Sign document') }}
 				</NcButton>
 			</template>
 		</NcDialog>
 		<NcDialog v-if="signMethodsStore.modal.password"
 			:no-close="loading"
-			:name="t('libresign', 'Confirm your signature')"
+			:name="t('libresign', 'Sign document')"
 			size="small"
 			dialog-classes="libresign-dialog"
 			@closing="onCloseConfirmPassword">
@@ -102,9 +106,15 @@
 				<NcRichText :text="error.message"
 					:use-markdown="true" />
 			</NcNoteCard>
-			{{ t('libresign', 'Subscription password.') }}
+
+			<p class="confirmation-text">
+				{{ t('libresign', 'Enter your signature password to sign the document.') }}
+			</p>
+
 			<form @submit.prevent="signWithPassword()">
-				<NcPasswordField v-model="signPassword" type="password" />
+				<NcPasswordField v-model="signPassword"
+					:label="t('libresign', 'Signature password')"
+					type="password" />
 			</form>
 			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
 			<ManagePassword v-if="showManagePassword"
@@ -117,7 +127,7 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
-					{{ t('libresign', 'Sign the document.') }}
+					{{ t('libresign', 'Sign document') }}
 				</NcButton>
 			</template>
 		</NcDialog>
@@ -134,12 +144,14 @@
 			:useModal="true"
 			:errors="signStore.errors"
 			@certificate:uploaded="onSignatureFileCreated" />
-		<TokenManager v-if="signMethodsStore.modal.token"
+		<ModalVerificationCode v-if="signMethodsStore.modal.token"
+			mode="token"
 			:phone-number="user?.account?.phoneNumber || ''"
 			@change="signWithTokenCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('token')" />
-		<EmailManager v-if="signMethodsStore.modal.emailToken"
+		<ModalVerificationCode v-if="signMethodsStore.modal.emailToken"
+			mode="email"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
 	</div>
@@ -162,8 +174,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 
-import EmailManager from './ModalEmailManager.vue'
-import TokenManager from './ModalTokenManager.vue'
+import ModalVerificationCode from './ModalVerificationCode.vue'
 import Draw from '../../../components/Draw/Draw.vue'
 import Documents from '../../../views/Account/partials/Documents.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
@@ -191,8 +202,7 @@ export default {
 		NcPasswordField,
 		NcRichText,
 		CreatePassword,
-		TokenManager,
-		EmailManager,
+		ModalVerificationCode,
 		UploadCertificate,
 		Documents,
 		Signatures,
@@ -247,8 +257,10 @@ export default {
 
 				const visibleElements = getVisibleElementsFromDocument(document)
 				.filter(row => {
-					return this.signatureElementsStore.hasSignatureOfType(row.type)
-						&& signRequestIds.has(String(row.signRequestId))
+					// Access signatureElementsStore.signs[row.type] directly to ensure reactivity
+					const signatureData = this.signatureElementsStore.signs[row.type]
+					const hasSignature = signatureData && signatureData.createdAt && signatureData.createdAt.length > 0
+					return hasSignature && signRequestIds.has(String(row.signRequestId))
 				})
 			return visibleElements
 		},
@@ -427,12 +439,14 @@ export default {
 
 			await this.submitSignature({
 				method: identifyMethod,
+				modalCode: 'token',
 				token,
 			})
 		},
 		async signWithEmailToken() {
 			await this.submitSignature({
 				method: this.signMethodsStore.settings.emailToken.identifyMethod,
+				modalCode: 'emailToken',
 				token: this.signMethodsStore.settings.emailToken.token,
 			})
 		},
@@ -473,13 +487,13 @@ export default {
 				)
 
 				if (result.status === 'signingInProgress') {
-					this.actionHandler.closeModal(methodConfig.method)
+					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method)
 					this.$emit('signing-started', {
 						signRequestUuid: this.signRequestUuid,
 						async: true,
 					})
 				} else if (result.status === 'signed') {
-					this.actionHandler.closeModal(methodConfig.method)
+					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method)
 					this.sidebarStore.hideSidebar()
 					this.$emit('signed', {
 						...result.data,
@@ -544,6 +558,29 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.progress-indicator {
+	font-weight: bold;
+	color: var(--color-primary-element);
+	text-align: center;
+	margin-bottom: 16px;
+	padding: 8px;
+	background-color: var(--color-primary-element-light);
+	border-radius: var(--border-radius-large);
+}
+
+.step-explanation {
+	margin-bottom: 16px;
+	color: var(--color-text-maxcontrast);
+	line-height: 1.5;
+}
+
+.confirmation-text {
+	margin-bottom: 16px;
+	color: var(--color-text-maxcontrast);
+	line-height: 1.5;
+	text-align: center;
+}
+
 .no-signature-warning {
 	margin-top: 1em;
 }

@@ -123,7 +123,15 @@ vi.mock('@nextcloud/initial-state', () => ({
 }))
 
 vi.mock('@nextcloud/capabilities', () => ({
-	getCapabilities: vi.fn(() => ({})),
+	getCapabilities: vi.fn(() => ({
+		libresign: {
+			config: {
+				'sign-elements': {
+					'can-create-signature': true,
+				},
+			},
+		},
+	})),
 }))
 
 vi.mock('vue-select', () => ({
@@ -857,12 +865,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 				// VERIFY: Must send identify method, NOT signature method name
 				expect(submitSignatureMock).toHaveBeenCalledWith({
 					method: testCase.expectedIdentifyMethod, // 'whatsapp', 'sms', 'signal'
+					modalCode: 'token',
 					token: testCase.token,
 				})
 
 				// Double-check: Should NOT send the signature method key name
 				expect(submitSignatureMock).not.toHaveBeenCalledWith({
 					method: testCase.signatureMethodKey, // NOT 'whatsappToken', 'smsToken', etc
+					modalCode: 'token',
 					token: testCase.token,
 				})
 			}
@@ -934,6 +944,84 @@ describe('Sign.vue - signWithTokenCode', () => {
 			expect(wrapper.vm.elements).toEqual([
 				{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature' },
 			])
+		})
+
+		it('updates elements when signature is created dynamically', async () => {
+			const { default: realSign } = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const { useSignStore } = await import('../../../store/sign.js')
+			const { useSignatureElementsStore } = await import('../../../store/signatureElements.js')
+
+			const signStore = useSignStore()
+			const signatureElementsStore = useSignatureElementsStore()
+
+			signStore.document = {
+				id: 1,
+				nodeType: 'envelope',
+				signers: [
+					{ signRequestId: 501, me: true },
+				],
+				files: [],
+				visibleElements: [
+					{ elementId: 201, signRequestId: 501, type: 'signature' },
+				],
+			}
+
+			// Initially, no signature exists
+			signatureElementsStore.signs.signature = {
+				id: 0,
+				type: '',
+				file: { url: '', nodeId: 0 },
+				starred: 0,
+				createdAt: '', // Empty createdAt means no signature
+			}
+
+			const wrapper = mount(realSign, {
+				global: {
+					stubs: {
+						NcButton: true,
+						NcDialog: true,
+						NcLoadingIcon: true,
+						TokenManager: true,
+						EmailManager: true,
+						UploadCertificate: true,
+						Documents: true,
+						Signatures: true,
+						Draw: true,
+						ManagePassword: true,
+						CreatePassword: true,
+						NcNoteCard: true,
+						NcPasswordField: true,
+						NcRichText: true,
+					},
+					mocks: {
+						$watch: vi.fn(),
+					},
+				},
+			})
+
+			// Initially, elements should be empty (no signature created)
+			expect(wrapper.vm.elements).toEqual([])
+			expect(wrapper.vm.hasSignatures).toBe(false)
+			expect(wrapper.vm.needCreateSignature).toBe(true)
+
+			// Now simulate creating a signature (like when user draws one)
+			signatureElementsStore.signs.signature = {
+				id: 1,
+				type: 'signature',
+				file: { url: '/sig.png', nodeId: 11623 },
+				starred: 0,
+				createdAt: '2024-01-01', // Now has a createdAt, signature exists
+			}
+
+			// Force Vue to update
+			await wrapper.vm.$nextTick()
+
+			// After signature is created, elements should include it
+			expect(wrapper.vm.elements).toEqual([
+				{ elementId: 201, signRequestId: 501, type: 'signature' },
+			])
+			expect(wrapper.vm.hasSignatures).toBe(true)
+			expect(wrapper.vm.needCreateSignature).toBe(false)
 		})
 	})
 

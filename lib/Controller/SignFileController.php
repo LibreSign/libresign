@@ -326,7 +326,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				signMethodName: $this->request->getParam('signMethod', ''),
 				identify: $this->request->getParam('identify', ''),
 			);
-			$message = $this->l10n->t('The code to sign file was successfully requested.');
+			$message = $this->l10n->t('Verification code sent.');
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
 			$message = $th->getMessage();
