@@ -124,7 +124,7 @@
 				{{ t('libresign', 'Sign document') }}
 			</NcButton>
 		</template>
-	</NcDialog>
+	</NcDialog>Step 1
 </template>
 
 <script>
@@ -279,6 +279,11 @@ export default {
 				this.signMethodsStore.setEmailToken(token)
 			}
 		},
+		'signStore.errors'(errors) {
+			if (errors && errors.length > 0 && this.loading) {
+				this.loading = false
+			}
+		},
 	},
 	methods: {
 		t,
@@ -377,10 +382,8 @@ export default {
 			this.identityVerified = true
 		},
 		signDocument() {
+			this.loading = true
 			this.$emit('change', this.token)
-			this.$nextTick(() => {
-				this.close()
-			})
 		},
 		close() {
 			if (this.mode === 'token') {
