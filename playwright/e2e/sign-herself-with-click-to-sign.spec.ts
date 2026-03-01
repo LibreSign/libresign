@@ -44,7 +44,7 @@ test('sign herself with click to sign', async ({ page }) => {
 	await page.getByRole('button', { name: 'Send' }).click();
 	await page.getByRole('button', { name: 'Sign document' }).click();
 	await page.getByRole('button', { name: 'Sign the document.' }).click();
-	await page.getByRole('button', { name: 'Confirm' }).click();
+	await page.getByRole('button', { name: 'Sign document' }).click();
 	await page.waitForURL('**/validation/**');
 	await expect(page.getByText('This document is valid')).toBeVisible();
 	await page.getByRole('button', { name: 'Expand details' }).click();
