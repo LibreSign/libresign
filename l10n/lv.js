@@ -126,6 +126,7 @@ OC.L10N.register(
     "Learn more" : "Uzzināt vairāk",
     "Username" : "Lietotājvārds",
     "Optional" : "Neobligāts",
+    "Email verification" : "E-pasta pārbaude",
     "Forgot password?" : "Aizmirsta parole?",
     "Complete" : "Pabeigta",
     "Open in LibreSign" : "Atvērt LibreSign",
