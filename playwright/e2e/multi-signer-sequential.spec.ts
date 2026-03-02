@@ -89,6 +89,12 @@ test('request signatures from two signers in sequential order', async ({ page })
 	await expect(page.getByText('This document is valid')).toBeVisible()
 	// Signer01 signed; signer02 is still waiting (sequential mode proof at this point)
 	await expect(page.getByText('Signer 01')).toBeVisible()
+	await page.getByRole('button', { name: 'Expand details of Signer 01' }).click()
+	await page.getByRole('button', { name: 'Expand validation status', exact: true }).click();
+	await page.getByRole('link', { name: 'Document integrity verified' }).click();
+	await page.getByRole('button', { name: 'Expand document certification', exact: true }).click();
+	await page.getByRole('link', { name: 'Document has not been' }).click();
+
 	await expect(page.getByText('Signer 02')).toBeVisible()
 	await expect(page.getByText('Not signed yet')).toBeVisible()
 
