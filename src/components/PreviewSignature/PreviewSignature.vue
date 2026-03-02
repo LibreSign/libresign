@@ -8,6 +8,7 @@
 		<div v-show="isLoaded" class="wrapper">
 			<img v-show="isLoaded"
 				:src="imageData"
+				:alt="alt"
 				:style="{
 					width,
 					height,
@@ -40,6 +41,12 @@ export default {
 			type: String,
 			required: false,
 			default: '',
+		},
+		alt: {
+			type: String,
+			required: false,
+			// TRANSLATORS Alt text for an image showing the user's handwritten, typed, or uploaded signature. Used as fallback when the parent component does not pass a more specific description, for example "Current signature" or "Confirm your initials".
+			default: () => t('libresign', 'Signature preview'),
 		},
 	},
 	data() {
