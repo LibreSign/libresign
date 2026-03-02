@@ -18,6 +18,7 @@
 						:aria-label="t('libresign', 'Choose color')" />
 				</NcColorPicker>
 			</div>
+			<!-- TRANSLATORS Accessible label for the button that clears the current drawing from the canvas. Does not delete any saved file. -->
 			<NcButton :aria-label="t('libresign', 'Delete')"
 				@click="clear">
 				<template #icon>
@@ -26,8 +27,14 @@
 			</NcButton>
 		</div>
 		<div ref="canvasWrapper" class="canvas-wrapper">
+			<p class="sr-only">
+				<!-- TRANSLATORS Screen-reader-only instruction for the signature drawing canvas. "Text" and "Upload" must match the translated labels of the other two tabs in this dialog. -->
+				{{ t('libresign', 'Drawing area. Use a mouse or touch screen to draw your signature. If you cannot draw, use the Text or Upload tabs instead.') }}
+			</p>
 			<canvas ref="canvas"
 				class="canvas"
+				:aria-label="t('libresign', 'Draw your signature here')"
+				role="img"
 				_width="10px"
 				_height="10px" />
 		</div>
@@ -252,5 +259,16 @@ img{
 	@media screen and (max-width: 650px){
 		width: 100%;
 	}
+}
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 </style>

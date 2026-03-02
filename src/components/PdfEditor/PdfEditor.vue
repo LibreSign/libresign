@@ -8,6 +8,7 @@
 			:init-files="files"
 			:init-file-names="fileNames"
 			:page-count-format="t('libresign', '{currentPage} of {totalPages}')"
+			:page-aria-label="getPageAriaLabel"
 			:auto-fit-zoom="true"
 			:read-only="readOnly"
 			:emit-object-click="true"
@@ -130,6 +131,23 @@ export default {
 	},
 	methods: {
 		t,
+		getPageAriaLabel({ docIndex, docName, totalDocs, pageNumber, totalPages, isAddingMode }) {
+			const docNumber = docIndex + 1
+			if (totalDocs > 1 && isAddingMode) {
+				// TRANSLATORS Accessible label for a PDF page overlay when placing a signature in a multi-document envelope. {docNumber} is the current document number, {totalDocs} is the total number of documents, {docName} is the document file name, {pageNumber} is the current page, {totalPages} is the total pages.
+				return t('libresign', 'Document {docNumber} of {totalDocs} ({docName}), page {pageNumber} of {totalPages}. Press Enter or Space to place the signature here.', { docNumber, totalDocs, docName, pageNumber, totalPages })
+			}
+			if (totalDocs > 1) {
+				// TRANSLATORS Accessible label for a PDF page in a multi-document envelope (read-only mode). {docNumber} is the current document number, {totalDocs} is the total number of documents, {docName} is the document file name, {pageNumber} is the current page, {totalPages} is the total pages.
+				return t('libresign', 'Document {docNumber} of {totalDocs} ({docName}), page {pageNumber} of {totalPages}.', { docNumber, totalDocs, docName, pageNumber, totalPages })
+			}
+			if (isAddingMode) {
+				// TRANSLATORS Accessible label for a PDF page overlay when placing a signature in a single document. {pageNumber} is the current page, {totalPages} is the total number of pages.
+				return t('libresign', 'Page {pageNumber} of {totalPages}. Press Enter or Space to place the signature here.', { pageNumber, totalPages })
+			}
+			// TRANSLATORS Accessible label for a PDF page in a single document (read-only mode). {pageNumber} is the current page, {totalPages} is the total number of pages.
+			return t('libresign', 'Page {pageNumber} of {totalPages}.', { pageNumber, totalPages })
+		},
 		endInit(event) {
 			this.$nextTick(async () => {
 				const shouldAutoFit = this.$refs.pdfElements?.autoFitZoom

@@ -5,26 +5,31 @@
 <template>
 	<NcListItem ref="listItem"
 		:name="signerName"
+		:link-aria-label="signerLinkAriaLabel"
 		:counter-number="counterNumber"
 		:counter-type="counterType"
 		:force-display-actions="true"
 		:class="signerClass"
 		:title="disabledTooltip"
+		:aria-disabled="isMethodDisabled || signer.signed ? true : undefined"
 		@click="signerClickAction">
 		<template #icon>
-			<NcAvatar :size="44" :display-name="signer.displayName" />
+			<NcAvatar :size="44" :display-name="signer.displayName" aria-hidden="true" />
 		</template>
 		<template #subname>
 			<div class="signer-subname">
 				<NcChip v-for="method in identifyMethodsNames"
 					:key="method"
 					:text="method"
+					:aria-label="t('libresign', 'Identification method: {method}', { method })"
 					:no-close="true" />
 				<NcChip :text="signer.statusText"
 					:variant="chipType"
 					:icon-path="statusIconPath"
+					:aria-label="t('libresign', 'Signer status: {status}', { status: signer.statusText })"
 					:no-close="true"
 					class="signer-status-chip" />
+				<span v-if="disabledTooltip" class="sr-only">{{ disabledTooltip }}</span>
 			</div>
 		</template>
 		<template #extra>
@@ -187,6 +192,14 @@ export default {
 				return 'secondary'
 			}
 		},
+		signerLinkAriaLabel() {
+			if (this.signer.signed) {
+				// TRANSLATORS Accessible label for a signed signer list item. {name} is the signer's display name.
+				return t('libresign', 'Signer {name} (already signed)', { name: this.signerName })
+			}
+			// TRANSLATORS Accessible label for a signer list item. {name} is the signer's display name.
+			return t('libresign', 'Edit signer {name}', { name: this.signerName })
+		},
 		statusIconPath() {
 			switch (this.signer.status) {
 			case SIGN_REQUEST_STATUS.SIGNED:
@@ -262,6 +275,17 @@ export default {
 	&:hover {
 		opacity: 1;
 	}
+}
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 .signer-signed .drag-handle {
 	cursor: not-allowed;

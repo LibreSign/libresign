@@ -30,7 +30,7 @@
     "@codemirror/state": "^6.4.1",
     "@codemirror/view": "^6.36.2",
     "@fontsource/dancing-script": "^5.2.8",
-    "@libresign/pdf-elements": "^1.0.2",
+    "@libresign/pdf-elements": "^1.1.0",
     "@marionebl/option": "^1.0.8",
     "@mdi/js": "^7.4.47",
     "@mdi/svg": "^7.4.47",

@@ -13,11 +13,15 @@
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 					</template>
+					<!-- TRANSLATORS {type} is the kind of signature element being deleted, e.g. "signature" or "initial" -->
+					{{ t('libresign', 'Delete {type}', { type }) }}
 				</NcActionButton>
 				<NcActionButton @click="edit">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiDraw" :size="20" />
 					</template>
+					<!-- TRANSLATORS {type} is the kind of signature element being edited, e.g. "signature" or "initial" -->
+					{{ t('libresign', 'Edit {type}', { type }) }}
 				</NcActionButton>
 			</NcActions>
 		</header>
@@ -25,9 +29,16 @@
 		<div v-if="hasSignature">
 			<PreviewSignature :src="imgSrc"
 				:sign-request-uuid="signatureElementsStore.signRequestUuid"
+				:alt="t('libresign', 'Current {type}', { type })"
 				@loaded="signatureLoaded" />
 		</div>
-		<div v-else class="no-signatures" @click="edit">
+		<div v-else
+			class="no-signatures"
+			role="button"
+			tabindex="0"
+			@click="edit"
+			@keydown.enter.prevent="edit"
+			@keydown.space.prevent="edit">
 			<slot name="no-signatures" />
 		</div>
 
