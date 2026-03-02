@@ -215,6 +215,7 @@ export default {
 			if (this.step1Active) {
 				return this.mode === 'email'
 					? t('libresign', 'Email verification')
+					// TRANSLATORS Title for step 1 where the signer proves they are the owner of a registered contact channel by receiving a code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Identity" here means confirming who the signer is, not a reference to any specific document. Translate as a generic compound noun without a definite article.
 					: t('libresign', 'Identity verification')
 			}
 			if (!this.identityVerified) {
@@ -226,6 +227,7 @@ export default {
 			if (this.step1Active) {
 				return this.mode === 'email'
 					? t('libresign', 'Step 1 of 3 - Email verification')
+					// TRANSLATORS Progress text for step 1 where the signer proves they are the owner of a registered contact channel by receiving a code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Identity" here means confirming who the signer is, not a reference to any specific document. Translate as a generic compound noun without a definite article.
 					: t('libresign', 'Step 1 of 3 - Identity verification')
 			}
 			if (!this.identityVerified) {
@@ -236,8 +238,10 @@ export default {
 		codeExplanationText() {
 			const contact = this.displayContact
 			if (this.mode === 'email') {
+				// TRANSLATORS {contact} is the email address where the verification code was sent.
 				return t('libresign', 'A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code.', { contact })
 			}
+			// TRANSLATORS {contact} is the phone number or messaging channel (SMS, WhatsApp, Telegram, Signal, XMPP) where the verification code was sent.
 			return t('libresign', 'A verification code has been sent to: {contact}. Please enter the code to continue.', { contact })
 		},
 		displayContact() {
@@ -367,6 +371,7 @@ export default {
 				const msg = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
 				if (this.mode === 'token' && msg?.includes('Invalid configuration')) {
 					const method = this.activeTokenMethod.charAt(0).toUpperCase() + this.activeTokenMethod.slice(1)
+					// TRANSLATORS {method} is the name of a messaging service (e.g. SmsToken, WhatsappToken, TelegramToken, SignalToken, XmppToken).
 					showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
 				} else {
 					showError(msg)
