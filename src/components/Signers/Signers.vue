@@ -5,15 +5,15 @@
 <template>
 	<draggable v-if="isOrderedNumeric && canReorder"
 		v-model="sortableSigners"
+		item-key="identify"
 		tag="ul"
 		handle=".list-item"
 		class="signers-list"
 		chosenClass="signer-dragging"
 		dragClass="signer-drag-ghost"
 		@end="onDragEnd">
-		<transition-group name="signer-list" tag="div">
-			<Signer v-for="(signer, index) in sortableSigners"
-				:key="signer.identify"
+		<template #item="{ element: signer, index }">
+			<Signer
 				:signer-index="index"
 				:event="event"
 				:draggable="!signer.signed">
@@ -21,7 +21,7 @@
 					<slot name="actions" :signer="signer" :closeActions="closeActions" />
 				</template>
 			</Signer>
-		</transition-group>
+		</template>
 	</draggable>
 	<ul v-else>
 		<Signer v-for="(signer, index) in signers"
@@ -128,20 +128,4 @@ export default {
 	border-radius: var(--border-radius-large);
 }
 
-.signer-list {
-	&-move {
-		transition: transform 0.3s ease;
-	}
-
-	&-enter-active,
-	&-leave-active {
-		transition: all 0.3s ease;
-	}
-
-	&-enter-from,
-	&-leave-to {
-		opacity: 0;
-		transform: translateX(30px);
-	}
-}
 </style>
