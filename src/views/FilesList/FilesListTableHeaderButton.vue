@@ -8,19 +8,20 @@
 			'files-list__column-sort-button--size': filesSortingStore.sortingMode === 'size',
 		}]"
 		:alignment="mode === 'size' ? 'end' : 'start-reverse'"
+		:title="name"
 		variant="tertiary"
 		@click="filesSortingStore.toggleSortBy(mode)">
 		<template #icon>
-			<NcIconSvgWrapper :path="mdiMenuUp" v-if="filesSortingStore.sortingMode !== mode || filesSortingStore.sortingDirection === 'asc'" class="files-list__column-sort-button-icon" />
-			<NcIconSvgWrapper :path="mdiMenuDown" v-else class="files-list__column-sort-button-icon" />
+			<NcIconSvgWrapper
+				:path="isAscending ? mdiMenuUp : mdiMenuDown"
+				:size="24"
+				class="files-list__column-sort-button-icon" />
 		</template>
 		<span class="files-list__column-sort-button-text">{{ name }}</span>
 	</NcButton>
 </template>
 
 <script>
-
-
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import {
@@ -56,6 +57,13 @@ export default {
 			mdiMenuUp,
 		}
 	},
+
+	computed: {
+		isAscending() {
+			return this.filesSortingStore.sortingMode !== this.mode
+				|| this.filesSortingStore.sortingDirection === 'asc'
+		},
+	},
 }
 </script>
 
@@ -70,22 +78,24 @@ export default {
 		font-weight: normal;
 	}
 
-	&-icon {
+	:deep(.files-list__column-sort-button-icon) {
 		color: var(--color-text-maxcontrast);
 		opacity: 0;
 		transition: opacity var(--animation-quick);
 		inset-inline-start: -10px;
 	}
 
-	&--size &-icon {
+	&--size :deep(.files-list__column-sort-button-icon) {
 		inset-inline-start: 10px;
 	}
 
-	&--active &-icon,
-	&:hover &-icon,
-	&:focus &-icon,
-	&:active &-icon {
-		opacity: 1;
+	&--active,
+	&:hover,
+	&:focus,
+	&:active {
+		:deep(.files-list__column-sort-button-icon) {
+			opacity: 1;
+		}
 	}
 }
 </style>
