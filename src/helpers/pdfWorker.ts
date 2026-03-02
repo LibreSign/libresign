@@ -11,7 +11,7 @@ export const ensurePdfWorker = (): void => {
 		return
 	}
 	configured = true
-	import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+	import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url')
 		.then((mod) => {
 			setWorkerPath(mod.default as string)
 		})
