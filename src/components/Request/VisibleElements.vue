@@ -15,9 +15,18 @@
 		<div v-else class="visible-elements-container">
 			<div class="sign-details">
 				<div class="modal_name">
-					<NcChip :text="statusLabel" :variant="isDraft ? 'warning' : 'primary'" no-close />
+					<NcChip :text="statusLabel"
+						:variant="isDraft ? 'warning' : 'primary'"
+						:aria-label="t('libresign', 'Document status: {status}', { status: statusLabel })"
+						no-close />
 					<h2 class="name">{{ document.name }}</h2>
 				</div>
+				<span role="status"
+					aria-live="polite"
+					aria-atomic="true"
+					class="sr-only">
+					<template v-if="!signerSelected">{{ t('libresign', 'Select a signer to set their signature position') }}</template>
+				</span>
 				<p v-if="!signerSelected">
 					<NcNoteCard type="info"
 						:text="t('libresign', 'Select a signer to set their signature position')" />
@@ -25,7 +34,7 @@
 				<ul class="view-sign-detail__sidebar">
 					<li v-if="signerSelected"
 						:class="{ tip: signerSelected }">
-						{{ t('libresign', 'Click on the place you want to add.') }}
+						<span>{{ t('libresign', 'Click on the place you want to add.') }}</span>
 						<NcButton variant="primary"
 							@click="stopAddSigner">
 							{{ t('libresign', 'Cancel') }}
@@ -532,6 +541,17 @@ export default {
 			background-color: var(--color-primary-element-light);
 			border-radius: 4px;
 			text-align: center;
+		}
+		.sr-only {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			white-space: nowrap;
+			border: 0;
 		}
 	}
 }
