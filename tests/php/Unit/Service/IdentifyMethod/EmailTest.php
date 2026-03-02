@@ -136,4 +136,86 @@ final class EmailTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'method_enabled_user_exists_not_logged_in' => [false, true, true, false, true, false, 'User already exists. Please login.'],
 		];
 	}
+
+	#[DataProvider('providerThrowIfIsAuthenticatedWithDifferentAccount')]
+	public function testThrowIfIsAuthenticatedWithDifferentAccount(
+		?string $userEmail,
+		string $signerEmail,
+		?string $code,
+		bool $identified,
+		string $errorMessage = '',
+	): void {
+		if ($errorMessage) {
+			$this->expectException(LibresignException::class);
+			$this->expectExceptionMessageMatches("/.*$errorMessage.*/");
+		} else {
+			$this->expectNotToPerformAssertions();
+		}
+
+		if ($userEmail !== null) {
+			$user = $this->createMock(IUser::class);
+			$user->method('getEMailAddress')->willReturn($userEmail);
+			$this->userSession->method('getUser')->willReturn($user);
+		} else {
+			$this->userSession->method('getUser')->willReturn(null);
+		}
+
+		$identifyMethod = $this->getClass();
+		$identifyMethod->getEntity()->setIdentifierValue($signerEmail);
+		if ($code !== null) {
+			$identifyMethod->getEntity()->setCode($code);
+		}
+		if ($identified) {
+			$identifyMethod->getEntity()->setIdentifiedAtDate(new \DateTime());
+		}
+
+		self::invokePrivate($identifyMethod, 'throwIfIsAuthenticatedWithDifferentAccount');
+	}
+
+	public static function providerThrowIfIsAuthenticatedWithDifferentAccount(): array {
+		return [
+			'not_authenticated' => [
+				'userEmail' => null,
+				'signerEmail' => 'signer@example.com',
+				'code' => null,
+				'identified' => false,
+				'errorMessage' => '',
+			],
+			'authenticated_email_matches' => [
+				'userEmail' => 'signer@example.com',
+				'signerEmail' => 'signer@example.com',
+				'code' => null,
+				'identified' => false,
+				'errorMessage' => '',
+			],
+			'authenticated_no_email_on_user' => [
+				'userEmail' => '',
+				'signerEmail' => 'signer@example.com',
+				'code' => null,
+				'identified' => false,
+				'errorMessage' => 'This document is not yours',
+			],
+			'authenticated_wrong_email' => [
+				'userEmail' => 'admin@example.com',
+				'signerEmail' => 'signer@example.com',
+				'code' => null,
+				'identified' => false,
+				'errorMessage' => 'This document is not yours',
+			],
+			'authenticated_wrong_email_token_in_progress' => [
+				'userEmail' => 'admin@example.com',
+				'signerEmail' => 'signer@example.com',
+				'code' => 'abc123',
+				'identified' => false,
+				'errorMessage' => '',
+			],
+			'authenticated_wrong_email_token_already_identified' => [
+				'userEmail' => 'admin@example.com',
+				'signerEmail' => 'signer@example.com',
+				'code' => 'abc123',
+				'identified' => true,
+				'errorMessage' => 'This document is not yours',
+			],
+		];
+	}
 }
