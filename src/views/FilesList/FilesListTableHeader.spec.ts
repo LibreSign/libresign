@@ -15,6 +15,7 @@ import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import FilesListTableHeader from './FilesListTableHeader.vue'
 import { useFilesStore } from '../../store/files.js'
+import { useFilesSortingStore } from '../../store/filesSorting.js'
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -217,6 +218,82 @@ describe('FilesListTableHeader', () => {
 			const stub = wrapper.findComponent(NcCheckboxRadioSwitchStub)
 			expect(stub.props('indeterminate')).toBe(true)
 			expect(stub.props('modelValue')).toBe(false)
+		})
+	})
+
+	describe('RULE: ariaSortForMode reflects filesSortingStore state', () => {
+		// loadState mock returns the default value, so the store initialises with
+		// sortingMode = 'created_at' and sortingDirection = 'desc'.
+
+		it('returns "none" when the column is sortable but not the active sort mode', () => {
+			const wrapper = createWrapper()
+			const vm = wrapper.vm as InstanceType<typeof FilesListTableHeader> & { ariaSortForMode: (mode: string, isSortable?: boolean) => string | null }
+
+			expect(vm.ariaSortForMode('status')).toBe('none')
+			expect(vm.ariaSortForMode('name')).toBe('none')
+		})
+
+		it('returns null when the column is not sortable', () => {
+			const wrapper = createWrapper()
+			const vm = wrapper.vm as InstanceType<typeof FilesListTableHeader> & { ariaSortForMode: (mode: string, isSortable?: boolean) => string | null }
+
+			expect(vm.ariaSortForMode('actions', false)).toBeNull()
+		})
+
+		it('returns "descending" when the column is active and direction is desc', async () => {
+			const wrapper = createWrapper()
+			const sortingStore = useFilesSortingStore()
+			sortingStore.sortingMode = 'created_at'
+			sortingStore.sortingDirection = 'desc'
+			await wrapper.vm.$nextTick()
+
+			const vm = wrapper.vm as InstanceType<typeof FilesListTableHeader> & { ariaSortForMode: (mode: string) => string | null }
+			expect(vm.ariaSortForMode('created_at')).toBe('descending')
+		})
+
+		it('returns "ascending" when the column is active and direction is asc', async () => {
+			const wrapper = createWrapper()
+			const sortingStore = useFilesSortingStore()
+			sortingStore.sortingMode = 'status'
+			sortingStore.sortingDirection = 'asc'
+			await wrapper.vm.$nextTick()
+
+			const vm = wrapper.vm as InstanceType<typeof FilesListTableHeader> & { ariaSortForMode: (mode: string) => string | null }
+			expect(vm.ariaSortForMode('status')).toBe('ascending')
+		})
+
+		it('sets aria-sort attribute on the active <th> element', async () => {
+			const wrapper = createWrapper()
+			const sortingStore = useFilesSortingStore()
+			sortingStore.sortingMode = 'created_at'
+			sortingStore.sortingDirection = 'desc'
+			await wrapper.vm.$nextTick()
+
+			const th = wrapper.find('th.files-list__row-created_at')
+			expect(th.attributes('aria-sort')).toBe('descending')
+		})
+
+		it('does not set aria-sort on non-sortable columns', async () => {
+			const wrapper = createWrapper()
+			const sortingStore = useFilesSortingStore()
+			sortingStore.sortingMode = 'created_at'
+			sortingStore.sortingDirection = 'desc'
+			await wrapper.vm.$nextTick()
+
+			// The actions column has no aria-sort (not sortable)
+			const actionsTh = wrapper.find('th.files-list__row-actions')
+			expect(actionsTh.attributes('aria-sort')).toBeUndefined()
+		})
+
+		it('sets aria-sort="none" on sortable inactive columns', async () => {
+			const wrapper = createWrapper()
+			const sortingStore = useFilesSortingStore()
+			sortingStore.sortingMode = 'created_at'
+			sortingStore.sortingDirection = 'desc'
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.find('th.files-list__row-status').attributes('aria-sort')).toBe('none')
+			expect(wrapper.find('th.files-list__row-signers').attributes('aria-sort')).toBe('none')
 		})
 	})
 })
