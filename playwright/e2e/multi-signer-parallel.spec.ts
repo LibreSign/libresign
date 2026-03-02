@@ -41,17 +41,17 @@ test('request signatures from two signers in parallel', async ({ page }) => {
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
 
-	// Add first signer via email tab
+	// Add first signer — only email method is active, so the field appears directly (no tabs)
 	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByRole('tab', { name: 'Email' }).click()
+	await page.getByPlaceholder('Email').click()
 	await page.getByPlaceholder('Email').fill('signer01@libresign.coop')
 	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click()
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01')
 	await page.getByRole('button', { name: 'Save' }).click()
 
-	// Add second signer via email tab
+	// Add second signer
 	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByRole('tab', { name: 'Email' }).click()
+	await page.getByPlaceholder('Email').click()
 	await page.getByPlaceholder('Email').fill('signer02@libresign.coop')
 	await page.getByRole('option', { name: 'signer02@libresign.coop' }).click()
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 02')
@@ -59,7 +59,7 @@ test('request signatures from two signers in parallel', async ({ page }) => {
 
 	// With 2+ signers the "Sign in order" switch must be visible and unchecked by default,
 	// meaning parallel flow — both signers will be notified at the same time.
-	const signInOrderSwitch = page.getByRole('switch', { name: 'Sign in order' })
+	const signInOrderSwitch = page.getByLabel('Sign in order')
 	await expect(signInOrderSwitch).toBeVisible()
 	await expect(signInOrderSwitch).not.toBeChecked()
 
