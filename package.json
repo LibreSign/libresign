@@ -23,7 +23,7 @@
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
-    "@codemirror/autocomplete": "^6.18.3",
+    "@codemirror/autocomplete": "^6.20.1",
     "@codemirror/commands": "^6.7.1",
     "@codemirror/lang-html": "^6.4.9",
     "@codemirror/language": "^6.10.3",
