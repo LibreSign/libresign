@@ -11,6 +11,7 @@
 			ref="pdfEditor"
 			width="100%"
 			height="100%"
+			:aria-label="t('libresign', 'PDF document to sign')"
 			:files="pdfBlobs"
 			:file-names="fileNames.length > 0 ? fileNames : [pdfFileName]"
 			:read-only="true"
