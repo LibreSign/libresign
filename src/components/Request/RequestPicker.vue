@@ -478,5 +478,9 @@ export default {
 	gap: 12px;
 	flex-direction: column;
 	align-items: stretch;
+
+	:deep(.button-vue) {
+		width: 100%;
+	}
 }
 </style>
