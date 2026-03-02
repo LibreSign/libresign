@@ -41,27 +41,27 @@ test('request signatures from two signers in sequential order', async ({ page })
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
 
-	// Add first signer via email tab
+	// Add first signer — only email method is active, so the field appears directly (no tabs)
 	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByRole('tab', { name: 'Email' }).click()
+	await page.getByPlaceholder('Email').click()
 	await page.getByPlaceholder('Email').fill('signer01@libresign.coop')
 	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click()
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01')
 	await page.getByRole('button', { name: 'Save' }).click()
 
-	// Add second signer via email tab
+	// Add second signer
 	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByRole('tab', { name: 'Email' }).click()
+	await page.getByPlaceholder('Email').click()
 	await page.getByPlaceholder('Email').fill('signer02@libresign.coop')
 	await page.getByRole('option', { name: 'signer02@libresign.coop' }).click()
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 02')
 	await page.getByRole('button', { name: 'Save' }).click()
 
-	// Enable sequential signing — the switch must be accessible by role="switch"
-	const signInOrderSwitch = page.getByRole('switch', { name: 'Sign in order' })
-	await expect(signInOrderSwitch).toBeVisible()
-	await signInOrderSwitch.click()
-	await expect(signInOrderSwitch).toBeChecked()
+	// Enable sequential signing.
+	// The checkbox input is hidden by CSS; click the visible label text to toggle it.
+	await expect(page.getByLabel('Sign in order')).toBeVisible()
+	await page.getByText('Sign in order').click()
+	await expect(page.getByLabel('Sign in order')).toBeChecked()
 
 	// Send the signature request
 	await page.getByRole('button', { name: 'Request signatures' }).click()
@@ -74,6 +74,11 @@ test('request signatures from two signers in sequential order', async ({ page })
 	const afterFirst = await mailpit.searchMessages({ query: 'subject:"LibreSign: There is a file for you to sign"' })
 	expect(afterFirst.messages).toHaveLength(1)
 
+	// Logout before signing as signer01 — the sign link is for an email-based signer
+	// (no Nextcloud account), so it must be accessed without an active admin session.
+	await page.getByRole('button', { name: 'Settings menu' }).click()
+	await page.getByRole('link', { name: 'Log out' }).click()
+
 	// Signer01 signs via the link received in the email
 	const signLink = extractSignLink(email01.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
@@ -82,6 +87,10 @@ test('request signatures from two signers in sequential order', async ({ page })
 	await page.getByRole('button', { name: 'Sign document' }).click()
 	await page.waitForURL('**/validation/**')
 	await expect(page.getByText('This document is valid')).toBeVisible()
+	// Signer01 signed; signer02 is still waiting (sequential mode proof at this point)
+	await expect(page.getByText('Signer 01')).toBeVisible()
+	await expect(page.getByText('Signer 02')).toBeVisible()
+	await expect(page.getByText('Not signed yet')).toBeVisible()
 
 	// Now that signer01 has signed, signer02 must receive their notification.
 	await waitForEmailTo(mailpit, 'signer02@libresign.coop', 'LibreSign: There is a file for you to sign')
