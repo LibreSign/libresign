@@ -36,14 +36,17 @@ describe('Signers', () => {
 				plugins: [pinia],
 				stubs: {
 					Signer: true,
+					// Stub for vuedraggable 4 (Vue 3) which uses #item slot per element
 					draggable: {
 						name: 'draggable',
-						template: '<div><slot /></div>',
-						props: ['modelValue', 'tag', 'handle', 'class', 'chosenClass', 'dragClass'],
-					},
-					'transition-group': {
-						name: 'transition-group',
-						template: '<div><slot /></div>',
+						template: `
+							<div>
+								<template v-for="(element, index) in modelValue" :key="index">
+									<slot name="item" :element="element" :index="index" />
+								</template>
+							</div>
+						`,
+						props: ['modelValue', 'itemKey', 'tag', 'handle', 'class', 'chosenClass', 'dragClass'],
 					},
 				},
 			},
