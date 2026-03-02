@@ -3,12 +3,16 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="signature-box" :style="boxStyle">
-		<span class="label">{{ label }}</span>
+	<div class="signature-box"
+		:style="boxStyle"
+		role="img"
+		:aria-label="signatureBoxAriaLabel">
+		<span class="label" aria-hidden="true">{{ label }}</span>
 	</div>
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
 import { usernameToColor } from '@nextcloud/vue/functions/usernameToColor'
 
 export default {
@@ -24,6 +28,10 @@ export default {
 		},
 	},
 	computed: {
+		signatureBoxAriaLabel() {
+			// TRANSLATORS Accessible label for a placed signature box on the PDF. {name} is the signer's display name.
+			return t('libresign', 'Signature position for {name}', { name: this.label })
+		},
 		boxStyle() {
 			const signer = this.signer || {}
 			const seed = signer.displayName || signer.name || signer.email || signer.id || this.label
