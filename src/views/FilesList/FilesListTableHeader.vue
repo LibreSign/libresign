@@ -6,6 +6,7 @@
 	<tr v-if="filesStore.ordered.length > 0"
 		class="files-list__row-head">
 		<th class="files-list__column files-list__row-checkbox"
+			scope="col"
 			@keyup.esc.exact="resetSelection">
 			<NcCheckboxRadioSwitch v-bind="selectAllBind" @update:modelValue="onToggleAll" />
 		</th>
@@ -14,7 +15,8 @@
 
 		<!-- Link to file -->
 		<th class="files-list__column files-list__row-name files-list__column--sortable"
-			:aria-sort="ariaSortForMode('basename')">
+			scope="col"
+			:aria-sort="ariaSortForMode('name')">
 			<!-- Icon or preview -->
 			<span class="files-list__row-icon" />
 
@@ -23,13 +25,14 @@
 		</th>
 
 		<!-- Actions -->
-		<th class="files-list__row-actions" />
+		<th class="files-list__row-actions" scope="col" />
 
 		<!-- Custom views columns -->
 		<th v-for="column in columns"
 			:key="column.id"
+			scope="col"
 			:class="classForColumn(column)"
-			:aria-sort="ariaSortForMode(column.id)">
+			:aria-sort="ariaSortForMode(column.id, !!column.sort)">
 			<FilesListTableHeaderButton v-if="!!column.sort" :name="column.title" :mode="column.id" />
 			<span v-else>
 				{{ column.title }}
@@ -47,6 +50,7 @@ import FilesListTableHeaderButton from './FilesListTableHeaderButton.vue'
 
 import logger from '../../logger.js'
 import { useFilesStore } from '../../store/files.js'
+import { useFilesSortingStore } from '../../store/filesSorting.js'
 import { useSelectionStore } from '../../store/selection.js'
 
 export default {
@@ -65,17 +69,17 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
+		const filesSortingStore = useFilesSortingStore()
 		const selectionStore = useSelectionStore()
 		return {
 			t,
 			filesStore,
+			filesSortingStore,
 			selectionStore,
 		}
 	},
 	data() {
 		return {
-			isAscSorting: false,
-			sortingMode: 'name',
 			columns: [
 				{
 					title: t('libresign', 'Status'),
@@ -120,11 +124,18 @@ export default {
 		},
 	},
 	methods: {
-		ariaSortForMode(mode) {
-			if (this.sortingMode === mode) {
-				return this.isAscSorting ? 'ascending' : 'descending'
+		// Returns the aria-sort value for a given column mode.
+		// Sortable columns that are not currently active must declare aria-sort="none"
+		// so screen readers announce that the column can be sorted.
+		// Non-sortable columns should have no aria-sort attribute at all (return null).
+		ariaSortForMode(mode, isSortable = true) {
+			if (!isSortable) {
+				return null
 			}
-			return null
+			if (this.filesSortingStore.sortingMode === mode) {
+				return this.filesSortingStore.sortingDirection === 'asc' ? 'ascending' : 'descending'
+			}
+			return 'none'
 		},
 		classForColumn(column) {
 			return {
