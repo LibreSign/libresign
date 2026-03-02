@@ -744,8 +744,10 @@ export default {
 
 			if (value) {
 				if (file?.signers) {
+					const orders = file.signers.map(s => s.signingOrder || 0)
+					const hasDuplicateOrders = orders.length !== new Set(orders).size
 					file.signers.forEach((signer, index) => {
-						if (!signer.signingOrder) {
+						if (!signer.signingOrder || hasDuplicateOrders) {
 							signer.signingOrder = index + 1
 						}
 					})
