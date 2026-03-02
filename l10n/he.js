@@ -127,6 +127,7 @@ OC.L10N.register(
     "Invalid URL" : "כתובת שגויה",
     "Username" : "שם משתמש",
     "Optional" : "אופציונלי",
+    "Contact information" : "פרטי קשר",
     "Forgot password?" : "שכחת ססמה?",
     "Today" : "היום"
 },

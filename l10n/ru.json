@@ -21,7 +21,6 @@
     "File signed" : "Файл подписан",
     "Renewed with success. Access the link again." : "Успешно обновлено. Перейдите по ссылке еще раз.",
     "Invalid data to sign file" : "Некорректные данные подписания файла",
-    "The code to sign file was successfully requested." : "Код для подписи файла был успешно запрошен.",
     "Element created with success" : "Элемент создан успешно",
     "Elements created with success" : "Элементы созданы успешно",
     "Elements not found" : "Элементы не найдены",
@@ -306,11 +305,10 @@
     "Username" : "Имя пользователя",
     "Optional" : "Необязательно",
     "Validation URL" : "URL для проверки",
-    "Sign with your email." : "Войти, используя свой адрес эл. почты.",
+    "Email verification" : "Подтверждение адреса электронной почты",
+    "Contact information" : "Контактная информация",
     "Request new code" : "Запросить новый код",
-    "Request code." : "Запросите код.",
     "Sign the document." : "Подписать документ",
-    "Subscription password." : "Пароль подписания.",
     "Partial" : "Частичный",
     "Complete" : "Завершить",
     "This document is valid" : "Этот документ действителен",
@@ -323,6 +321,10 @@
     "Last 7 days" : "Последние 7 дней",
     "Last 30 days" : "Последние 30 дней",
     "This year ({year})" : "Этот год ({year})",
-    "Last year ({year})" : "Последний год ({year})"
+    "Last year ({year})" : "Последний год ({year})",
+    "The code to sign file was successfully requested." : "Код для подписи файла был успешно запрошен.",
+    "Sign with your email." : "Войти, используя свой адрес эл. почты.",
+    "Request code." : "Запросите код.",
+    "Subscription password." : "Пароль подписания."
 },"pluralForm" :"nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);"
 }

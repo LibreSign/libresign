@@ -159,6 +159,7 @@ OC.L10N.register(
     "Invalid URL" : "Ugyldig URL",
     "Username" : "Brugernavn",
     "Optional" : "Valgfri",
+    "Email verification" : "Email verifikation",
     "Forgot password?" : "Glemt adgangskode?",
     "Complete" : "Færdig",
     "Return" : "Aflever",

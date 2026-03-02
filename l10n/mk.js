@@ -150,6 +150,7 @@ OC.L10N.register(
     "Invalid URL" : "Неправилна URL",
     "Username" : "Корисничко име",
     "Optional" : "Опционално",
+    "Email verification" : "Е-пошта верификација",
     "Forgot password?" : "Заборавена лозинка?",
     "Partial" : "Делумно",
     "Today" : "Денес",

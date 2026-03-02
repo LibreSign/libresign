@@ -129,6 +129,7 @@ OC.L10N.register(
     "Reset to default" : "Reset to default",
     "Invalid URL" : "Invalid URL",
     "Username" : "Username",
+    "Email verification" : "Email verification",
     "Forgot password?" : "Forgot password?",
     "Complete" : "Complete",
     "Today" : "დღეს",

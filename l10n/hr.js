@@ -265,8 +265,8 @@ OC.L10N.register(
     "Username" : "Korisničko ime",
     "Optional" : "Neobavezno",
     "Validation URL" : "URL za potvrdu",
+    "Email verification" : "Provjera e-pošte",
     "Sign the document." : "Potpišite dokument.",
-    "Subscription password." : "Zaporka za pretplatu.",
     "Forgot password?" : "Zaboravili ste zaporku?",
     "Partial" : "Djelomično",
     "Complete" : "Završi",
@@ -280,6 +280,7 @@ OC.L10N.register(
     "Last 7 days" : "Zadnjih 7 dana",
     "Last 30 days" : "Zadnjih 30 dana",
     "This year ({year})" : "Ove godine ({year})",
-    "Last year ({year})" : "Prošle godine ({year})"
+    "Last year ({year})" : "Prošle godine ({year})",
+    "Subscription password." : "Zaporka za pretplatu."
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

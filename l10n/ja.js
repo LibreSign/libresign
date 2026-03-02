@@ -170,6 +170,8 @@ OC.L10N.register(
     "Invalid URL" : "無効なURL",
     "Username" : "ユーザー名",
     "Optional" : "オプション",
+    "Email verification" : "メールによる確認",
+    "Contact information" : "連絡先情報",
     "Forgot password?" : "パスワードをお忘れですか?",
     "Partial" : "一部",
     "Complete" : "完了",
