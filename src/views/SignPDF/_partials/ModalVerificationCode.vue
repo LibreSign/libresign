@@ -219,6 +219,7 @@ export default {
 					: t('libresign', 'Identity verification')
 			}
 			if (!this.identityVerified) {
+				// TRANSLATORS Dialog title for step 2 where the signer enters the numeric verification code (OTP) received by email or messaging channel. "Code" here means a short numeric one-time password, not source code or any other kind of code.
 				return t('libresign', 'Code validation')
 			}
 			return t('libresign', 'Signature confirmation')
@@ -231,6 +232,7 @@ export default {
 					: t('libresign', 'Step 1 of 3 - Identity verification')
 			}
 			if (!this.identityVerified) {
+				// TRANSLATORS Progress text for step 2 where the signer enters the numeric verification code (OTP) received by email or messaging channel. "Code" here means a short numeric one-time password, not source code or any other kind of code.
 				return t('libresign', 'Step 2 of 3 - Code validation')
 			}
 			return t('libresign', 'Step 3 of 3 - Signature confirmation')
