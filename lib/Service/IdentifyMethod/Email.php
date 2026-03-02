@@ -130,15 +130,16 @@ class Email extends AbstractIdentifyMethod {
 			return;
 		}
 		$email = $this->entity->getIdentifierValue();
-		if (!empty($user->getEMailAddress()) && $user->getEMailAddress() !== $email) {
-			if ($this->getEntity()->getCode() && !$this->getEntity()->getIdentifiedAtDate()) {
-				return;
-			}
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
-			]));
+		if (!empty($user->getEMailAddress()) && $user->getEMailAddress() === $email) {
+			return;
 		}
+		if ($this->getEntity()->getCode() && !$this->getEntity()->getIdentifiedAtDate()) {
+			return;
+		}
+		throw new LibresignException(json_encode([
+			'action' => JSActions::ACTION_DO_NOTHING,
+			'errors' => [['message' => $this->identifyService->getL10n()->t('This document is not yours. Log out and use the sign link again.')]],
+		]));
 	}
 
 	private function throwIfAccountAlreadyExists(): void {
