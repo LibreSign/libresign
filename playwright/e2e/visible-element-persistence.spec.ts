@@ -1,0 +1,128 @@
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+import { expect, test } from '@playwright/test'
+import { login } from '../support/nc-login'
+import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+
+test('visible signature element persists and can be deleted', async ({ page }) => {
+	await login(
+		page.request,
+		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+	)
+
+	await configureOpenSsl(page.request, 'LibreSign Test', {
+		C: 'BR',
+		OU: ['Organization Unit'],
+		ST: 'Rio de Janeiro',
+		O: 'LibreSign',
+		L: 'Rio de Janeiro',
+	})
+
+	await setAppConfig(
+		page.request,
+		'libresign',
+		'identify_methods',
+		JSON.stringify([
+			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } } },
+			{ name: 'email', enabled: false, mandatory: false },
+		]),
+	)
+
+	await page.goto('./apps/libresign')
+	await page.getByRole('button', { name: 'Upload from URL' }).click()
+	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
+	await page.getByRole('button', { name: 'Send' }).click()
+	await page.getByRole('button', { name: 'Add signer' }).click()
+	await page.getByPlaceholder('Account').fill('a')
+	await page.getByRole('option', { name: 'admin@email.tld' }).click()
+	await page.getByRole('textbox', { name: 'Signer name' }).click()
+	await page.getByRole('textbox', { name: 'Signer name' }).press('ControlOrMeta+a')
+	await page.getByRole('textbox', { name: 'Signer name' }).fill('Admin Name')
+
+	// Save the signer first, then open the signature positions modal
+	await page.getByRole('button', { name: 'Save' }).click()
+	await page.getByRole('button', { name: 'Setup signature positions' }).click()
+	await expect(page.getByLabel('Page 1 of 1.')).toBeVisible()
+
+	// Select the signer to enter element-placement mode
+	await page.getByLabel('Signature positions').getByRole('link', { name: 'Edit signer Admin Name' }).click()
+	await expect(page.getByText('Click on the place you want to add.')).toBeVisible()
+
+	// Placing a signature element requires three steps:
+	// 1. hover() triggers handleMouseMove, setting previewVisible=true inside a rAF callback.
+	// 2. Waiting for .preview-element confirms the rAF ran.
+	// 3. click() fires mouseup, which calls finishAdding() and places the element.
+	const overlay = page.getByLabel('Page 1 of 1. Press Enter or Space to place the signature here.')
+	await overlay.hover()
+	await page.getByLabel('Signature positions').locator('.preview-element').first().waitFor({ state: 'visible' })
+	await overlay.click()
+
+	await expect(
+		page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' }),
+	).toBeVisible()
+
+	// Save closes the modal and persists the element via API
+	await page.getByLabel('Signature positions').getByRole('button', { name: 'Save' }).click()
+
+	// Navigate to the Files list and ensure it is sorted by Created at, newest first (descending)
+	await page.locator('#fileslist').getByRole('link', { name: 'Files' }).click()
+	const createdAtTh = page.locator('th.files-list__row-created_at')
+	const sortDirection = await createdAtTh.getAttribute('aria-sort')
+	if (sortDirection !== 'descending') {
+		await page.getByRole('button', { name: 'Created at' }).click()
+		if (sortDirection === 'none') {
+			// Column was sortable but not active: first click set it to ascending, one more for descending
+			await page.getByRole('button', { name: 'Created at' }).click()
+		}
+	}
+	const firstRow = page.locator('[data-cy-files-list-tbody] tr.files-list__row').first()
+	await expect(firstRow.getByRole('button', { name: 'small_valid' })).toBeVisible()
+
+	// Re-open the document by clicking the file name — the sidebar opens automatically
+	await firstRow.getByRole('button', { name: 'small_valid' }).click()
+	await page.getByRole('button', { name: 'Setup signature positions' }).click()
+
+	// Verify the element survived the round-trip to the server
+	await expect(
+		page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' }),
+	).toBeVisible()
+
+	// Select the element so the toolbar (Duplicate / Delete) appears, then delete it
+	await page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' }).click()
+	await page.getByLabel('Signature positions').getByRole('button', { name: 'Delete' }).click()
+
+	await expect(
+		page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' }),
+	).toBeHidden()
+
+	// Save the now-empty element list
+	await page.getByLabel('Signature positions').getByRole('button', { name: 'Save' }).click()
+
+	// Navigate away and back to force a fresh load from the server
+	await page.getByRole('link', { name: 'Request' }).click()
+	await page.locator('#fileslist').getByRole('link', { name: 'Files' }).click()
+	const createdAtTh2 = page.getByRole('columnheader', { name: 'Created at' })
+	const sortDirection2 = await createdAtTh2.evaluate((el: HTMLElement) => el.ariaSort)
+	if (sortDirection2 !== 'descending') {
+		await page.getByRole('button', { name: 'Created at' }).click()
+		if (sortDirection2 === 'none') {
+			// Column was sortable but not active: first click set it to ascending, one more for descending
+			await page.getByRole('button', { name: 'Created at' }).click()
+		}
+	}
+	const lastRow = page.locator('[data-cy-files-list-tbody] tr.files-list__row').first()
+	await expect(lastRow.getByRole('button', { name: 'small_valid' })).toBeVisible()
+
+	// Re-open the document one last time and confirm the element is gone
+	await lastRow.getByRole('button', { name: 'small_valid' }).click()
+	await page.getByRole('button', { name: 'Setup signature positions' }).click()
+	await expect(page.getByLabel('Page 1 of 1.')).toBeVisible()
+
+	await expect(
+		page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' }),
+	).toBeHidden()
+})
