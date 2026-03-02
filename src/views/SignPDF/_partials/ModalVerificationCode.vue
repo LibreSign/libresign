@@ -36,8 +36,10 @@
 		<!-- Step 1: Token mode -->
 		<div v-else-if="mode === 'token' && step1Active" class="step-content">
 			<p class="step-explanation">
+				<!-- TRANSLATORS: Instruction shown when the signer must verify via a messaging channel. "contact information" here means a phone number used for SMS, WhatsApp, Telegram, Signal, or XMPP. -->
 				{{ t('libresign', 'To sign this document, we must verify your identity. Enter your contact information to receive a verification code.') }}
 			</p>
+			<!-- TRANSLATORS: Label and placeholder for the phone number input field used to receive a verification code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Contact information" here means a phone number, not a generic address book entry. -->
 			<NcTextField v-model="newPhoneNumber"
 				:disabled="loading"
 				name="cellphone"
@@ -55,6 +57,7 @@
 			<div class="contact-display">
 				{{ displayContact }}
 			</div>
+			<!-- TRANSLATORS: Label and placeholder for the input field where the signer types the numeric one-time password (OTP) delivered via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 			<NcTextField v-model="token"
 				:disabled="loading"
 				:label="t('libresign', 'Enter your code')"
@@ -93,6 +96,7 @@
 
 			<!-- Step 2 actions (common) -->
 			<template v-else-if="!identityVerified">
+				<!-- TRANSLATORS: Button label. Sends a new numeric one-time password (OTP) to the signer via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 				<NcButton :disabled="loading"
 					type="submit"
 					@click="requestNewCode">
@@ -101,6 +105,7 @@
 					</template>
 					{{ t('libresign', 'Request new code') }}
 				</NcButton>
+				<!-- TRANSLATORS: Button label. Submits the numeric one-time password (OTP) typed by the signer to complete verification. The code was delivered via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 				<NcButton :disabled="!canSendCode"
 					type="submit"
 					variant="primary"
