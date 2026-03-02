@@ -48,6 +48,8 @@ test('request signatures from two signers in sequential order', async ({ page })
 	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click()
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01')
 	await page.getByRole('button', { name: 'Save' }).click()
+	// Wait for the form to close before opening a new one to avoid ambiguous Email locator
+	await expect(page.getByPlaceholder('Email')).not.toBeVisible()
 
 	// Add second signer
 	await page.getByRole('button', { name: 'Add signer' }).click()
