@@ -144,6 +144,19 @@ type OpenSslCertNames = {
 }
 
 /**
+ * Deletes the PFX certificate of a user so the next signing attempt
+ * starts without an existing certificate.
+ * Equivalent to: DELETE /ocs/v2.php/apps/libresign/api/v1/account/pfx
+ */
+export async function deleteUserPfx(
+	request: APIRequestContext,
+	userId: string,
+	password: string,
+): Promise<void> {
+	await ocsRequest(request, 'DELETE', '/apps/libresign/api/v1/account/pfx', userId, password)
+}
+
+/**
  * Configures the OpenSSL certificate engine.
  * Equivalent to: `occ libresign:configure:openssl --cn=... --c=... ...`
  */
