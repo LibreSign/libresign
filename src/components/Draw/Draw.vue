@@ -12,10 +12,11 @@
 			<NcButton
 				v-for="tab in availableTabs"
 				:key="tab.id"
+				role="tab"
 				class="draw-signature__tab"
 				:class="{ 'draw-signature__tab--active': activeTab === tab.id }"
 				variant="tertiary"
-				:aria-pressed="activeTab === tab.id"
+				:aria-selected="activeTab === tab.id"
 				@click="activeTab = tab.id">
 				<NcIconSvgWrapper :path="tab.icon" :size="18" />
 				<span class="draw-signature__tab-label">{{ tab.label }}</span>
