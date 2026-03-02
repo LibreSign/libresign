@@ -151,6 +151,7 @@ OC.L10N.register(
     "Name is mandatory" : "Nafn er nauðsynlegt",
     "Username" : "Notandanafn",
     "Optional" : "Valkvætt",
+    "Email verification" : "Sannvottun tölvupósts",
     "Partial" : "Að hluta",
     "Complete" : "Fullklárað",
     "Today" : "Í dag",

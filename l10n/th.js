@@ -100,6 +100,7 @@ OC.L10N.register(
     "Invalid URL" : "URL ไม่ถูกต้อง",
     "Username" : "ชื่อผู้ใช้",
     "Optional" : "ไม่จำเป็น",
+    "Email verification" : "การยืนยันอีเมล",
     "Today" : "วันนี้",
     "Last 7 days" : "ภายใน 7 วัน",
     "Last 30 days" : "ภายใน 30 วัน"

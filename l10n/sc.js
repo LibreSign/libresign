@@ -197,7 +197,6 @@ OC.L10N.register(
     "Validation URL" : "URL de cunvàlida",
     "Request new code" : "Rechede unu còdighe nou",
     "Sign the document." : "Firma su documentu.",
-    "Subscription password." : "Crae de sutaiscritzione",
     "Forgot password?" : "As ismentigadu sa crae?",
     "Partial" : "Partziale",
     "Complete" : "Cumpletadu",
@@ -209,6 +208,7 @@ OC.L10N.register(
     "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
     "Today" : "Oe ",
     "Last 7 days" : "Ùrtimas 7 dies",
-    "Last 30 days" : "Ùrtimas 30 dies"
+    "Last 30 days" : "Ùrtimas 30 dies",
+    "Subscription password." : "Crae de sutaiscritzione"
 },
 "nplurals=2; plural=(n != 1);");

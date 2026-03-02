@@ -130,6 +130,8 @@ OC.L10N.register(
     "Invalid URL" : "URL không hợp lệ",
     "Username" : "Tên đăng nhập",
     "Optional" : "Tùy chọn",
+    "Email verification" : "Xác thực email",
+    "Contact information" : "Thông tin liên hệ",
     "Forgot password?" : "Quên mật khẩu sao?",
     "Today" : "Hôm nay",
     "Last 7 days" : "7 ngày trước",

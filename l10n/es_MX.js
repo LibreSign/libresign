@@ -146,6 +146,7 @@ OC.L10N.register(
     "Invalid URL" : "URL inválida",
     "Username" : "Usuario",
     "Optional" : "Opcional",
+    "Email verification" : "Verificación de correo electrónico",
     "Complete" : "Terminar",
     "Today" : "Hoy",
     "Last 7 days" : "Últimos 7 días",

@@ -125,6 +125,7 @@
     "Invalid URL" : "כתובת שגויה",
     "Username" : "שם משתמש",
     "Optional" : "אופציונלי",
+    "Contact information" : "פרטי קשר",
     "Forgot password?" : "שכחת ססמה?",
     "Today" : "היום"
 },"pluralForm" :"nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;"
