@@ -222,6 +222,7 @@ export default {
 				// TRANSLATORS Dialog title for step 2 where the signer enters the numeric verification code (OTP) received by email or messaging channel. "Code" here means a short numeric one-time password, not source code or any other kind of code.
 				return t('libresign', 'Code validation')
 			}
+			// TRANSLATORS Dialog title for step 3 where the signer reviews and confirms their intent to sign the document by clicking a button. This is not a receipt or acknowledgment — it is the final user action that triggers the signing process.
 			return t('libresign', 'Signature confirmation')
 		},
 		progressText() {
@@ -235,6 +236,7 @@ export default {
 				// TRANSLATORS Progress text for step 2 where the signer enters the numeric verification code (OTP) received by email or messaging channel. "Code" here means a short numeric one-time password, not source code or any other kind of code.
 				return t('libresign', 'Step 2 of 3 - Code validation')
 			}
+			// TRANSLATORS Progress text for step 3 where the signer reviews and confirms their intent to sign the document by clicking a button. This is not a receipt or acknowledgment — it is the final user action that triggers the signing process.
 			return t('libresign', 'Step 3 of 3 - Signature confirmation')
 		},
 		codeExplanationText() {
