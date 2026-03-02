@@ -87,7 +87,23 @@ test('sign herself with drawn signature', async ({ page }) => {
 
 	await page.getByRole('button', { name: 'Define your signature.' }).click();
 
-	await page.getByRole('dialog', { name: 'Customize your signatures' }).locator('canvas').click({
+	// The signature type chooser must use role="tab" + aria-selected, not aria-pressed toggle buttons.
+	// Screen readers announce role="tab" as "tab, 1 of 3" which lets blind users understand the widget.
+	// With aria-pressed buttons they only hear "toggle button, pressed" with no tab count context.
+	const signatureDialog = page.getByRole('dialog', { name: 'Customize your signatures' })
+	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toBeVisible()
+	await expect(signatureDialog.getByRole('tab', { name: 'Text' })).toBeVisible()
+	await expect(signatureDialog.getByRole('tab', { name: 'Upload' })).toBeVisible()
+	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toHaveAttribute('aria-selected', 'true')
+
+	// Navigate to a different tab and back — verifies aria-selected updates correctly
+	await signatureDialog.getByRole('tab', { name: 'Text' }).click()
+	await expect(signatureDialog.getByRole('tab', { name: 'Text' })).toHaveAttribute('aria-selected', 'true')
+	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toHaveAttribute('aria-selected', 'false')
+	await signatureDialog.getByRole('tab', { name: 'Draw' }).click()
+	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toHaveAttribute('aria-selected', 'true')
+
+	await signatureDialog.locator('canvas').click({
 		position: {
 			x: 156,
 			y: 132
