@@ -392,6 +392,55 @@ describe('SignerDetails.vue - Business Logic', () => {
 		})
 	})
 
+	describe('toggleDetailsAriaLabel computed', () => {
+		it.each([
+			{
+				description: 'displayName, closed → expand label',
+				signer: { signed: '2024-06-01T00:00:00Z', displayName: 'Alice' },
+				initiallyOpen: false,
+				expected: 'Expand details of Alice',
+			},
+			{
+				description: 'displayName, open → collapse label',
+				signer: { signed: '2024-06-01T00:00:00Z', displayName: 'Alice' },
+				initiallyOpen: true,
+				expected: 'Collapse details of Alice',
+			},
+			{
+				description: 'no displayName → falls back to email',
+				signer: { signed: '2024-06-01T00:00:00Z', email: 'bob@example.com' },
+				initiallyOpen: false,
+				expected: 'Expand details of bob@example.com',
+			},
+			{
+				description: 'no displayName or email → falls back to name',
+				signer: { signed: '2024-06-01T00:00:00Z', name: 'Charlie' },
+				initiallyOpen: false,
+				expected: 'Expand details of Charlie',
+			},
+			{
+				description: 'no identification → falls back to Unknown',
+				signer: { signed: '2024-06-01T00:00:00Z' },
+				initiallyOpen: false,
+				expected: 'Expand details of Unknown',
+			},
+		])('$description', ({ signer, initiallyOpen, expected }) => {
+			wrapper = createWrapper({ signer, initiallyOpen })
+			expect(wrapper.vm.toggleDetailsAriaLabel).toBe(expected)
+		})
+
+		it('updates reactively when toggleOpen is called', () => {
+			wrapper = createWrapper({ signer: { signed: '2024-06-01T00:00:00Z', displayName: 'Alice' } })
+			expect(wrapper.vm.toggleDetailsAriaLabel).toBe('Expand details of Alice')
+
+			wrapper.vm.toggleOpen()
+			expect(wrapper.vm.toggleDetailsAriaLabel).toBe('Collapse details of Alice')
+
+			wrapper.vm.toggleOpen()
+			expect(wrapper.vm.toggleDetailsAriaLabel).toBe('Expand details of Alice')
+		})
+	})
+
 	describe('toggleOpen method', () => {
 		it('toggles isOpen when signer has signed', () => {
 			wrapper = createWrapper({ signer: { signed: '2024-06-01T00:00:00Z' } })
