@@ -83,20 +83,32 @@ class PhpNativeHandler extends Pkcs12Handler {
 		}
 
 		$applyOnce = $certificationLevel;
+		// signer-php expects screen/top-left coords (Y=0 at top, grows downward).
+		// LibreSign stores PDF bottom-left coords (Y=0 at bottom, lly < ury).
+		// Conversion: screen_y = pageHeight - pdf_y
+		// Page dimensions come from FileEntity::getMetadata()['d'] (0-based array of ['w','h']).
+		$pageDimensions = $this->getSignatureParams()['PageDimensions'] ?? [];
 		foreach ($visibleElements as $element) {
 			$fileElement = $element->getFileElement();
-			$width = (int)(($fileElement->getUrx() ?? 0) - ($fileElement->getLlx() ?? 0));
-			$height = (int)(($fileElement->getUry() ?? 0) - ($fileElement->getLly() ?? 0));
+			$llx = (float)($fileElement->getLlx() ?? 0);
+			$lly = (float)($fileElement->getLly() ?? 0);
+			$urx = (float)($fileElement->getUrx() ?? 0);
+			$ury = (float)($fileElement->getUry() ?? 0);
+			$width = (int)($urx - $llx);
+			$height = (int)($ury - $lly);
+			// signer-php uses 0-based page index; LibreSign stores 1-based
+			$pageIndex = max(0, $fileElement->getPage() - 1);
+			$pageHeight = (float)$pageDimensions[$pageIndex]['h'];
 			$imagePath = $this->prepareVisualImage($element->getTempFile(), $width, $height);
 			$appearance = new SignatureAppearanceDto(
 				imagePath: $imagePath !== '' ? $imagePath : null,
 				rect: [
-					$fileElement->getLlx() ?? 0,
-					$fileElement->getLly() ?? 0,
-					$fileElement->getUrx() ?? 0,
-					$fileElement->getUry() ?? 0,
+					$llx,
+					$pageHeight - $ury,  // screen top = pageH - PDF ury
+					$urx,
+					$pageHeight - $lly,  // screen bottom = pageH - PDF lly
 				],
-				page: $fileElement->getPage(),
+				page: $pageIndex,
 			);
 			$pdfContent = $service->sign(SignPdfRequestDto::fromRequired(
 				new PdfContentDto($pdfContent),
