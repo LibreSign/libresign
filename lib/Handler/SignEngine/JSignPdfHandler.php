@@ -586,7 +586,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	public function getSignatureText(): string {
 		$renderMode = $this->signatureTextService->getRenderMode();
-		if ($renderMode !== 'GRAPHIC_ONLY') {
+		if ($renderMode !== SignerElementsService::RENDER_MODE_GRAPHIC_ONLY) {
 			$data = $this->parseSignatureText();
 			$signatureText = '"' . str_replace(
 				['"', '$'],
