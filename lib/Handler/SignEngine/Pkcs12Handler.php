@@ -30,6 +30,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	protected string $certificate = '';
 	private array $signaturesFromPoppler = [];
 	private ?JSignPdfHandler $jSignPdfHandler = null;
+	private ?PhpNativeHandler $phpNativeHandler = null;
 	private string $rootCertificatePem = '';
 	private bool $isLibreSignFile = false;
 
