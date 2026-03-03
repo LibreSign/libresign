@@ -94,5 +94,14 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 
 		$context->registerDashboardWidget(PendingSignaturesWidget::class);
+
+		$context->registerSetupCheck(\OCA\Libresign\SetupCheck\JavaSetupCheck::class);
+		$context->registerSetupCheck(\OCA\Libresign\SetupCheck\JSignPdfSetupCheck::class);
+		$context->registerSetupCheck(\OCA\Libresign\SetupCheck\PDFtkSetupCheck::class);
+
+		$context->registerSetupCheck(\OCA\Libresign\SetupCheck\PopplerSetupCheck::class);
+		$context->registerSetupCheck(\OCA\Libresign\SetupCheck\ImagickSetupCheck::class);
+
+		$context->registerSetupCheck(\OCA\Libresign\SetupCheck\CertificateEngineSetupCheck::class);
 	}
 }
