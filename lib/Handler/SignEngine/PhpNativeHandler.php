@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\SignEngine;
 
 use Imagick;
+use ImagickDraw;
 use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -195,53 +196,60 @@ class PhpNativeHandler extends Pkcs12Handler {
 	 * Prepare the visual image for a signature appearance.
 	 *
 	 * Mirrors JSignPdfHandler render-mode logic:
-	 * - GRAPHIC_ONLY / default: merge background + user signature
-	 * - SIGNAME_AND_DESCRIPTION: merge background + text image of signer name
-	 * - No background: use the raw user signature (or text image)
+	 * - GRAPHIC_AND_DESCRIPTION (default): left=signature drawing, right=description text, bg=watermark
+	 * - SIGNAME_AND_DESCRIPTION: left=signer-name image, right=description text, bg=watermark
+	 * - GRAPHIC_ONLY: full area = signature drawing + watermark background, no text
 	 */
 	private function prepareVisualImage(string $signatureImagePath, int $width, int $height): string {
 		$backgroundType = $this->signatureBackgroundService->getSignatureBackgroundType();
 		$renderMode = $this->signatureTextService->getRenderMode();
+		$hasBackground = $backgroundType !== 'deleted';
+		$backgroundPath = $hasBackground ? $this->signatureBackgroundService->getImagePath() : '';
+		$isGraphicOnly = $renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY;
 
-		if ($backgroundType === 'deleted') {
-			// No background configured
-			if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
-				return $this->createTextImage($width, $height);
+		if ($isGraphicOnly) {
+			if (!$hasBackground || $backgroundPath === '') {
+				return $signatureImagePath;
 			}
-			return $signatureImagePath;
+			return $this->composeGraphicOnly($backgroundPath, $signatureImagePath, $width, $height);
 		}
 
-		$backgroundPath = $this->signatureBackgroundService->getImagePath();
-		if ($backgroundPath === '') {
-			return $signatureImagePath;
-		}
+		// GRAPHIC_AND_DESCRIPTION or SIGNAME_AND_DESCRIPTION:
+		// left half = image, right half = description text from template
+		$halfWidth = (int)($width / 2);
+		$leftImagePath = ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION)
+			? $this->createSignerNameImage($halfWidth, $height)
+			: $signatureImagePath;
 
-		if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
-			$textImagePath = $this->createTextImage((int)($width / 2), $height);
-			return $this->mergeImages($backgroundPath, $textImagePath, $width, $height);
-		}
+		$descriptionImagePath = $this->createDescriptionImage($halfWidth, $height);
 
-		// GRAPHIC_AND_DESCRIPTION or GRAPHIC_ONLY: background + signature image
-		return $this->mergeImages($backgroundPath, $signatureImagePath, $width, $height);
+		return $this->composeFullAppearance(
+			$backgroundPath !== '' ? $backgroundPath : null,
+			$leftImagePath,
+			$descriptionImagePath,
+			$width,
+			$height,
+		);
 	}
 
-	private function createTextImage(int $width, int $height): string {
+	/**
+	 * Generates a PNG image of the signer's common name (for SIGNAME_AND_DESCRIPTION left panel).
+	 */
+	private function createSignerNameImage(int $width, int $height): string {
 		$params = $this->getSignatureParams();
-		if (!empty($params['SignerCommonName'])) {
-			$commonName = (string)$params['SignerCommonName'];
-		} else {
-			$certificateData = $this->readCertificate();
-			$commonName = $certificateData['subject']['CN'] ?? throw new \RuntimeException('Certificate must have a Common Name (CN) in subject field');
-		}
+		$commonName = !empty($params['SignerCommonName'])
+			? (string)$params['SignerCommonName']
+			: ($this->readCertificate()['subject']['CN'] ?? throw new \RuntimeException('Certificate must have a CN'));
 
 		$content = $this->signatureTextService->signerNameImage(
 			text: $commonName,
 			width: $width,
 			height: $height,
+			align: 'center',
 			scale: self::SCALE_FACTOR_MIN,
 		);
 
-		$tmpPath = $this->tempManager->getTemporaryFile('_text_image.png');
+		$tmpPath = $this->tempManager->getTemporaryFile('_signame.png');
 		if (!$tmpPath) {
 			throw new \Exception('Temporary file not accessible');
 		}
@@ -249,50 +257,178 @@ class PhpNativeHandler extends Pkcs12Handler {
 		return $tmpPath;
 	}
 
-	private function mergeImages(string $backgroundPath, string $overlayPath, int $width, int $height): string {
+	/**
+	 * Generates a PNG image of the signature description text (for the right panel).
+	 * Renders top-left aligned, respecting existing newlines from the template,
+	 * without re-wrapping (unlike signerNameImage which vertically centers).
+	 */
+	private function createDescriptionImage(int $width, int $height): string {
 		if (!extension_loaded('imagick')) {
-			// Graceful fallback: use overlay directly
-			return $overlayPath;
+			throw new \Exception('Extension imagick is not loaded.');
 		}
 
-		$background = new Imagick($backgroundPath);
-		$overlay = new Imagick($overlayPath);
+		$textData = $this->signatureTextService->parse(context: $this->getSignatureParams());
+		$parsed = trim($textData['parsed'] ?? '');
+		$fontSize = (float)($textData['templateFontSize'] ?? $this->signatureTextService->getTemplateFontSize());
 
-		$background->setImageFormat('png');
-		$overlay->setImageFormat('png');
-		$background->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
-		$overlay->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+		$scale = self::SCALE_FACTOR_MIN;
+		$canvasW = (int)($width * $scale);
+		$canvasH = (int)($height * $scale);
+		$scaledFontSize = $fontSize * $scale;
 
-		$background->resizeImage($width, $height, Imagick::FILTER_LANCZOS, 1, true);
-		$overlay->resizeImage(
-			(int)round($overlay->getImageWidth() * ($width / max($overlay->getImageWidth(), 1))),
-			(int)round($overlay->getImageHeight() * ($height / max($overlay->getImageHeight(), 1))),
-			Imagick::FILTER_LANCZOS,
-			1,
-		);
+		$image = new Imagick();
+		$image->setResolution(600, 600);
+		$image->newImage($canvasW, $canvasH, new ImagickPixel('transparent'));
+		$image->setImageFormat('png');
+
+		$draw = new ImagickDraw();
+		$fonts = Imagick::queryFonts();
+		if ($fonts) {
+			$draw->setFont($fonts[0]);
+		} else {
+			$fallback = __DIR__ . '/../../3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf';
+			if (!file_exists($fallback)) {
+				throw new \Exception('No fonts available and fallback font not found: ' . $fallback);
+			}
+			$draw->setFont($fallback);
+		}
+		$draw->setFontSize($scaledFontSize);
+		$draw->setFillColor(new ImagickPixel('black'));
+		$draw->setTextAlignment(Imagick::ALIGN_LEFT);
+
+		// Measure one line to get the ascender (baseline offset from top).
+		// iText (used by JSignPdf) uses leading = font_size × 1.2, so we mirror
+		// that here rather than relying on Imagick's textHeight which varies by font.
+		$metrics = $image->queryFontMetrics($draw, 'Ag');
+		$lineHeight = $scaledFontSize;
+		$ascender = $metrics['ascender'];
+
+		// Top padding: ~35% of lineHeight — balances the space before first baseline
+		$topPadding = $lineHeight * 0.35;
+		$leftPadding = (int)($scaledFontSize * 0.1);
+		$x = $leftPadding;
+		$y = $ascender + $topPadding;
+
+		foreach (explode("\n", $parsed) as $line) {
+			if ($y > $canvasH) {
+				break;
+			}
+			$image->annotateImage($draw, $x, $y, 0, $line);
+			$y += $lineHeight;
+		}
+
+		$blob = $image->getImagesBlob();
+		$image->destroy();
+		$draw->destroy();
+
+		$tmpPath = $this->tempManager->getTemporaryFile('_description.png');
+		if (!$tmpPath) {
+			throw new \Exception('Temporary file not accessible');
+		}
+		file_put_contents($tmpPath, $blob);
+		return $tmpPath;
+	}
+
+	/**
+	 * Composes: watermark background over the full canvas,
+	 * left image on the left half, description image on the right half.
+	 * Output is at SCALE_FACTOR_MIN × the annotation dimensions for good resolution.
+	 */
+	private function composeFullAppearance(?string $backgroundPath, string $leftImagePath, string $rightImagePath, int $width, int $height): string {
+		if (!extension_loaded('imagick')) {
+			return $leftImagePath;
+		}
+
+		$scale = self::SCALE_FACTOR_MIN;
+		$canvasW = $width * $scale;
+		$canvasH = $height * $scale;
+		$halfW = (int)($canvasW / 2);
 
 		$canvas = new Imagick();
-		$canvas->newImage($width, $height, new ImagickPixel('transparent'));
+		$canvas->newImage($canvasW, $canvasH, new ImagickPixel('transparent'));
 		$canvas->setImageFormat('png32');
 		$canvas->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 
-		$bgX = (int)(($width - $background->getImageWidth()) / 2);
-		$bgY = (int)(($height - $background->getImageHeight()) / 2);
-		$canvas->compositeImage($background, Imagick::COMPOSITE_OVER, $bgX, $bgY);
+		// 1. Background watermark spanning the full canvas (preserve aspect ratio, centered)
+		if ($backgroundPath !== null && $backgroundPath !== '') {
+			$bg = new Imagick($backgroundPath);
+			$bg->setImageFormat('png');
+			$bg->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+			$bg->resizeImage($canvasW, $canvasH, Imagick::FILTER_LANCZOS, 1, true);
+			$bgX = (int)(($canvasW - $bg->getImageWidth()) / 2);
+			$bgY = (int)(($canvasH - $bg->getImageHeight()) / 2);
+			$canvas->compositeImage($bg, Imagick::COMPOSITE_OVER, $bgX, $bgY);
+			$bg->clear();
+		}
 
-		$sigX = (int)(($width - $overlay->getImageWidth()) / 2);
-		$sigY = (int)(($height - $overlay->getImageHeight()) / 2);
-		$canvas->compositeImage($overlay, Imagick::COMPOSITE_OVER, $sigX, $sigY);
+		// 2. Left half: signature drawing (fit within half, preserve aspect ratio)
+		$left = new Imagick($leftImagePath);
+		$left->setImageFormat('png');
+		$left->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+		$left->resizeImage($halfW, $canvasH, Imagick::FILTER_LANCZOS, 1, true);
+		$leftX = (int)(($halfW - $left->getImageWidth()) / 2);
+		$leftY = (int)(($canvasH - $left->getImageHeight()) / 2);
+		$canvas->compositeImage($left, Imagick::COMPOSITE_OVER, $leftX, $leftY);
+		$left->clear();
 
-		$tmpPath = $this->tempManager->getTemporaryFile('_merged.png');
+		// 3. Right half: description image (already rendered at scale*halfWidth px)
+		$right = new Imagick($rightImagePath);
+		$right->setImageFormat('png');
+		$right->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+		$canvas->compositeImage($right, Imagick::COMPOSITE_OVER, $halfW, 0);
+		$right->clear();
+
+		$tmpPath = $this->tempManager->getTemporaryFile('_appearance.png');
 		if (!$tmpPath) {
 			throw new \Exception('Temporary file not accessible');
 		}
 		$canvas->writeImage($tmpPath);
-
 		$canvas->clear();
-		$background->clear();
-		$overlay->clear();
+
+		return $tmpPath;
+	}
+
+	/**
+	 * Composes: watermark background + signature drawing at full width (GRAPHIC_ONLY mode).
+	 */
+	private function composeGraphicOnly(string $backgroundPath, string $signatureImagePath, int $width, int $height): string {
+		if (!extension_loaded('imagick')) {
+			return $signatureImagePath;
+		}
+
+		$scale = self::SCALE_FACTOR_MIN;
+		$canvasW = $width * $scale;
+		$canvasH = $height * $scale;
+
+		$canvas = new Imagick();
+		$canvas->newImage($canvasW, $canvasH, new ImagickPixel('transparent'));
+		$canvas->setImageFormat('png32');
+		$canvas->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+
+		$bg = new Imagick($backgroundPath);
+		$bg->setImageFormat('png');
+		$bg->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+		$bg->resizeImage($canvasW, $canvasH, Imagick::FILTER_LANCZOS, 1, true);
+		$bgX = (int)(($canvasW - $bg->getImageWidth()) / 2);
+		$bgY = (int)(($canvasH - $bg->getImageHeight()) / 2);
+		$canvas->compositeImage($bg, Imagick::COMPOSITE_OVER, $bgX, $bgY);
+		$bg->clear();
+
+		$sig = new Imagick($signatureImagePath);
+		$sig->setImageFormat('png');
+		$sig->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+		$sig->resizeImage($canvasW, $canvasH, Imagick::FILTER_LANCZOS, 1, true);
+		$sigX = (int)(($canvasW - $sig->getImageWidth()) / 2);
+		$sigY = (int)(($canvasH - $sig->getImageHeight()) / 2);
+		$canvas->compositeImage($sig, Imagick::COMPOSITE_OVER, $sigX, $sigY);
+		$sig->clear();
+
+		$tmpPath = $this->tempManager->getTemporaryFile('_graphic_only.png');
+		if (!$tmpPath) {
+			throw new \Exception('Temporary file not accessible');
+		}
+		$canvas->writeImage($tmpPath);
+		$canvas->clear();
 
 		return $tmpPath;
 	}
