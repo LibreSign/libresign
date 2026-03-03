@@ -267,7 +267,12 @@ class PhpNativeHandler extends Pkcs12Handler {
 			throw new \Exception('Extension imagick is not loaded.');
 		}
 
-		$textData = $this->signatureTextService->parse(context: $this->getSignatureParams());
+		$params = $this->getSignatureParams();
+		$serverTimezone = new \DateTimeZone(date_default_timezone_get());
+		$now = new \DateTime('now', $serverTimezone);
+		$params['ServerSignatureDate'] = $now->format('Y.m.d H:i:s \U\T\C');
+
+		$textData = $this->signatureTextService->parse(context: $params);
 		$parsed = trim($textData['parsed'] ?? '');
 		$fontSize = (float)($textData['templateFontSize'] ?? $this->signatureTextService->getTemplateFontSize());
 
