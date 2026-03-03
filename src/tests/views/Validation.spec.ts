@@ -10,6 +10,13 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import JSConfetti from 'js-confetti'
 import Validation from '../../views/Validation.vue'
 
+// Mock async components to prevent defineAsyncComponent from triggering
+// pending Vite dev-server fetches that outlive the worker and cause
+// "Closing rpc while fetch was pending" errors in Vitest.
+vi.mock('../../components/validation/EnvelopeValidation.vue', () => ({ default: { template: '<div />' } }))
+vi.mock('../../components/validation/FileValidation.vue', () => ({ default: { template: '<div />' } }))
+vi.mock('../../components/validation/SigningProgress.vue', () => ({ default: { template: '<div />' } }))
+
 // Mock js-confetti
 vi.mock('js-confetti', () => ({
 	default: vi.fn(),
