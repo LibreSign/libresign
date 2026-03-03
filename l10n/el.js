@@ -494,6 +494,7 @@ OC.L10N.register(
     "Write QR code on footer with validation URL" : "Εγγραφή κωδικού QR στο υποσέλιδο με URL επικύρωσης",
     "To validate the signature of the documents. Only change this value if you want to replace the default validation URL with a different one." : "Για επικύρωση της υπογραφής των εγγράφων. Αλλάξτε αυτήν την τιμή μόνο εάν θέλετε να αντικαταστήσετε το προεπιλεγμένο URL επικύρωσης με ένα διαφορετικό.",
     "Email verification" : "Επαλήθευση email",
+    "Contact information" : "Στοιχεία επαφής",
     "Enter your code" : "Εισάγετε τον κωδικό σας",
     "Request new code" : "Αίτημα νέου κωδικού",
     "You do not have any signature defined." : "Δεν έχετε ορίσει καμία υπογραφή.",

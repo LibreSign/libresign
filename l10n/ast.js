@@ -140,6 +140,8 @@ OC.L10N.register(
     "Learn more" : "Deprendi más",
     "Invalid URL" : "La URL ye inválisa",
     "Username" : "Nome d'usuariu",
+    "Email verification" : "Verificación per corréu electrónicu",
+    "Contact information" : "Información de contautu",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
     "Partial" : "Parcial",
     "Today" : "Güei",

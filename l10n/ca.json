@@ -321,6 +321,8 @@
     "Validation URL" : "URL de validació",
     "Add visible footer with signature details" : "Afegiu un peu de pàgina visible amb els detalls de la signatura",
     "Write QR code on footer with validation URL" : "Escriu el codi QR al peu de pàgina amb l'URL de validació",
+    "Email verification" : "Verificació de l'adreça electrònica",
+    "Contact information" : "Informació del contacte",
     "You do not have any signature defined." : "No tens cap signatura definida.",
     "Define your signature." : "Definiu la vostra signatura.",
     "Please define your sign password" : "Definiu la vostra contrasenya de signatura",

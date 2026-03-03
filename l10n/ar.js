@@ -416,6 +416,8 @@ OC.L10N.register(
     "Make validation URL acessible only by authenticated users" : "اجعَل عنوان URL للتحقق متاحًا فقط للمستخدِمين المعتمدين",
     "Add visible footer with signature details" : "أضِف تذييلاً مرئيّاً مع تفاصيل التوقيع",
     "Write QR code on footer with validation URL" : "أكتُب رمز الاستجابة السريعة QR في التذييل مع عنوان URL للتحقُّق",
+    "Email verification" : "التحقّق من الإيميل",
+    "Contact information" : "معلومات الاتصال",
     "Enter your code" : "أدخِل رمزك",
     "Request new code" : "أُطلُب رمزك",
     "You do not have any signature defined." : "ليس لديك أي توقيع تم تعيينه.",
