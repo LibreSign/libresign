@@ -160,6 +160,7 @@ OC.L10N.register(
     "Username" : "Brugernavn",
     "Optional" : "Valgfri",
     "Email verification" : "Email verifikation",
+    "Contact information" : "Kontakt information",
     "Forgot password?" : "Glemt adgangskode?",
     "Complete" : "Færdig",
     "Return" : "Aflever",

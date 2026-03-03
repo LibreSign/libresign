@@ -308,6 +308,7 @@ OC.L10N.register(
     "Add visible footer with signature details" : "Agregar pie de página visible con detalles de la firma",
     "Write QR code on footer with validation URL" : "Escribir código QR en el pie de página con la URL de validación",
     "Email verification" : "Verificación de correo electrónico",
+    "Contact information" : "Información de contacto",
     "You do not have any signature defined." : "No tienes ninguna firma definida",
     "Define your signature." : "Define tu firma",
     "Please define your sign password" : "Por favor, define tu contraseña de firma",

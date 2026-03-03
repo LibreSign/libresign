@@ -316,6 +316,8 @@
     "Validation URL" : "Проверка на URL",
     "Add visible footer with signature details" : "Добавяне на видим колонтитул с подробности за подписа",
     "Write QR code on footer with validation URL" : "Напишете QR код в долния колонтитул с URL адрес за проверка",
+    "Email verification" : "Имейл потвърждение",
+    "Contact information" : "Информация за контакт",
     "You do not have any signature defined." : "Нямате дефиниран подпис.",
     "Define your signature." : "Определете своя подпис.",
     "Please define your sign password" : "Моля, определете вашата парола за подпис",

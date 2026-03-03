@@ -491,6 +491,7 @@ OC.L10N.register(
     "Write QR code on footer with validation URL" : "Escribir código QR en el pié de página con el URL de validación",
     "To validate the signature of the documents. Only change this value if you want to replace the default validation URL with a different one." : "Para validar la firma de los documentos. Solo cambie este valor si quiere reemplazar la URL predeterminada de validación con una diferente.",
     "Email verification" : "Verificación del correo electrónico",
+    "Contact information" : "Información de contacto",
     "Enter your code" : "Ingrese su código",
     "Request new code" : "Solicitar código nuevo",
     "You do not have any signature defined." : "No tiene ninguna firma definida.",
