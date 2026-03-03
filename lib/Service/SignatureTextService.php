@@ -15,6 +15,7 @@ use ImagickDraw;
 use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
 use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
@@ -441,7 +442,7 @@ class SignatureTextService {
 
 	public function getSignatureWidth(): float {
 		$current = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
-		if ($this->getRenderMode() === 'GRAPHIC_ONLY' || !$this->getTemplate()) {
+		if ($this->getRenderMode() === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY || !$this->getTemplate()) {
 			return $current;
 		}
 		return $current / 2;
