@@ -20,6 +20,10 @@ use OCP\IAppConfig;
 use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 
+/**
+* @deprecated 13.0.4 Use the individual SetupCheck classes instead
+*             (JavaSetupCheck, JSignPdfSetupCheck, etc.).
+*/
 class ConfigureCheckService {
 	private string $architecture;
 	private bool $isCacheDisabled = false;
