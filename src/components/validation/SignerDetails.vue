@@ -31,7 +31,7 @@
 			</template>
 			<template #extra-actions>
 				<NcButton v-if="signer.signed" variant="tertiary"
-					:aria-label="isOpen ? t('libresign', 'Collapse details') : t('libresign', 'Expand details')"
+					:aria-label="toggleDetailsAriaLabel"
 					@click.stop="toggleOpen">
 					<template #icon>
 						<NcIconSvgWrapper v-if="isOpen"
@@ -295,6 +295,21 @@ export default {
 			t,
 			n,
 		}
+	},
+	computed: {
+		toggleDetailsAriaLabel() {
+			const signerName = this.getName(this.signer)
+			if (this.isOpen) {
+				// TRANSLATORS Accessible label for the button that collapses the signature details of
+				// a specific signer in the document validation page. {signerName} is the signer's
+				// display name, email, or "Unknown" when no identification is available.
+				return t('libresign', 'Collapse details of {signerName}', { signerName })
+			}
+			// TRANSLATORS Accessible label for the button that expands the signature details of
+			// a specific signer in the document validation page. {signerName} is the signer's
+			// display name, email, or "Unknown" when no identification is available.
+			return t('libresign', 'Expand details of {signerName}', { signerName })
+		},
 	},
 	data() {
 		return {
