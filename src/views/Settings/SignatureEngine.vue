@@ -1,21 +1,24 @@
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Signature engine')"
+		:description="t('libresign', 'Select the signature engine to sign the documents')">
 		<div class="signature-engine-content">
 			<NcSelect input-id="signatureEngine"
-				:aria-label-combobox="description"
+				:aria-label-combobox="t('libresign', 'Select the signature engine to sign the documents')"
 				:clearable="false"
-				:value="value"
+				v-model="selectedOption"
 				:options="options"
-				@input="saveEngine" />
+				@update:modelValue="saveEngine" />
 		</div>
 	</NcSettingsSection>
 </template>
 <script>
-import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+import { t } from '@nextcloud/l10n'
+
+import NcSelect from '@nextcloud/vue/components/NcSelect'
+import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 export default {
 	name: 'SignatureEngine',
@@ -23,30 +26,32 @@ export default {
 		NcSettingsSection,
 		NcSelect,
 	},
+	setup() {
+		return { t }
+	},
 	data() {
 		return {
-			name: t('libresign', 'Signature engine'),
-			description: t('libresign', 'Select the signature engine to sign the documents'),
-			value: [],
-			options: [
-				{ id: 'JSignPdf', label: 'JSignPdf' },
-				{ id: 'PhpNative', label: 'PHP native' },
-			],
+			selectedEngineId: loadState('libresign', 'signature_engine', 'JSignPdf'),
 		}
 	},
-	beforeMount() {
-		const currentOption = {}
-		currentOption.id = loadState('libresign', 'signature_engine', 'JSignPdf')
-		if (currentOption.id === 'JSignPdf') {
-			currentOption.label = 'JSignPdf'
-		} else {
-			currentOption.label = 'PHP native'
-		}
-		this.value = [currentOption]
+	computed: {
+		options() {
+			return [
+				{ id: 'JSignPdf', label: 'JSignPdf' },
+				{ id: 'PhpNative', label: t('libresign', 'PHP native') },
+			]
+		},
+		selectedOption: {
+			get() {
+				return this.options.find((o) => o.id === this.selectedEngineId) ?? this.options[0]
+			},
+			set(value) {
+				this.selectedEngineId = value?.id ?? 'JSignPdf'
+			},
+		},
 	},
 	methods: {
 		saveEngine(selected) {
-			this.value = selected
 			OCP.AppConfig.setValue('libresign', 'signature_engine', selected.id, {
 				success() {
 					emit('libresign:signature-engine:changed', selected.id)
@@ -57,7 +62,7 @@ export default {
 }
 </script>
 <style scoped>
-.signature-engine-content{
+.signature-engine-content {
 	display: flex;
 	flex-direction: column;
 }
