@@ -44,7 +44,7 @@ test('request signatures from two signers in parallel', async ({ page }) => {
 	// Add first signer — only email method is active, so the field appears directly (no tabs)
 	await page.getByRole('button', { name: 'Add signer' }).click()
 	await page.getByPlaceholder('Email').click()
-	await page.getByPlaceholder('Email').pressSequentially('signer01@libresign.coop')
+	await page.getByPlaceholder('Email').pressSequentially('signer01@libresign.coop', { delay: 50 })
 	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click()
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01')
 	await page.getByRole('button', { name: 'Save' }).click()
@@ -52,7 +52,7 @@ test('request signatures from two signers in parallel', async ({ page }) => {
 	// Add second signer
 	await page.getByRole('button', { name: 'Add signer' }).click()
 	await page.getByPlaceholder('Email').click()
-	await page.getByPlaceholder('Email').pressSequentially('signer02@libresign.coop')
+	await page.getByPlaceholder('Email').pressSequentially('signer02@libresign.coop', { delay: 50 })
 	await page.getByRole('option', { name: 'signer02@libresign.coop' }).click()
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 02')
 	await page.getByRole('button', { name: 'Save' }).click()
