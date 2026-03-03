@@ -163,6 +163,7 @@ OC.L10N.register(
     "Description only" : "Толькі апісанне",
     "Learn more" : "Больш падрабязна",
     "Username" : "Імя карыстальніка",
+    "Email verification" : "Спраўджанне электроннай пошты",
     "Forgot password?" : "Забылі пароль?",
     "Today" : "Сёння",
     "Last 7 days" : "Апошнія 7 дзён",
