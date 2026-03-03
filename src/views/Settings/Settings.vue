@@ -37,7 +37,6 @@ import { t } from '@nextcloud/l10n'
 import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'
 import SignatureEngine from './SignatureEngine.vue'
-import DownloadBinaries from './DownloadBinaries.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
 import DocMDP from './DocMDP.vue'
@@ -64,7 +63,6 @@ export default {
 		AllowedGroups,
 		CertificateEngine,
 		SignatureEngine,
-		DownloadBinaries,
 		ConfigureCheck,
 		DefaultUserFolder,
 		DocMDP,
