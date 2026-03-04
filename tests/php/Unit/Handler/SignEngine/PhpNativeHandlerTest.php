@@ -136,10 +136,10 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function providerEscapePdfText(): array {
 		return [
-			'plain text is unchanged'           => ['hello world', 'hello world'],
-			'backslash is doubled'              => ['back\\slash', 'back\\\\slash'],
-			'opening parenthesis is escaped'    => ['open(paren', 'open\\(paren'],
-			'closing parenthesis is escaped'    => ['close)paren', 'close\\)paren'],
+			'plain text is unchanged' => ['hello world', 'hello world'],
+			'backslash is doubled' => ['back\\slash', 'back\\\\slash'],
+			'opening parenthesis is escaped' => ['open(paren', 'open\\(paren'],
+			'closing parenthesis is escaped' => ['close)paren', 'close\\)paren'],
 			'multiple special chars in one string' => ['a\\b(c)d', 'a\\\\b\\(c\\)d'],
 		];
 	}
@@ -153,11 +153,11 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function providerHasExistingSignatures(): array {
 		return [
-			'ByteRange marker signals existing signature'  => ['/ByteRange [0 0 0 0]', true],
-			'/Type /Sig signals existing signature'        => ['/Type /Sig ', true],
-			'/DocMDP signals existing signature'           => ['/DocMDP ', true],
-			'/Perms signals existing signature'            => ['/Perms ', true],
-			'plain PDF content has no signature'           => ['%PDF-1.4 startxref 0 %%EOF', false],
+			'ByteRange marker signals existing signature' => ['/ByteRange [0 0 0 0]', true],
+			'/Type /Sig signals existing signature' => ['/Type /Sig ', true],
+			'/DocMDP signals existing signature' => ['/DocMDP ', true],
+			'/Perms signals existing signature' => ['/Perms ', true],
+			'plain PDF content has no signature' => ['%PDF-1.4 startxref 0 %%EOF', false],
 		];
 	}
 
