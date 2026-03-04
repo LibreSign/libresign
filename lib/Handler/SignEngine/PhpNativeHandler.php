@@ -275,7 +275,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		$parsed = trim((string)($textData['parsed'] ?? ''));
 
 		$descFontSize = (float)($textData['templateFontSize'] ?? $this->signatureTextService->getTemplateFontSize());
-		$descLineHeight = $descFontSize * 1.2;
+		$descLineHeight = $descFontSize * 1.0;
 		$leftPadding = max(2.0, $descFontSize * 0.15);
 
 		$isDescriptionOnly = $renderMode === SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY;
@@ -295,7 +295,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 				$leftHalfW = (float)$width / 2.0;
 				$nameLines = $this->wrapTextForPdf($commonName, $leftHalfW - $leftPadding * 2, $nameFontSize);
 				$nameLineCount = count($nameLines);
-				$totalNameHeight = $nameLineCount * $nameFontSize * 1.2;
+				$totalNameHeight = $nameLineCount * $nameFontSize * 1.0;
 				$nameStartY = ((float)$height + $totalNameHeight) / 2.0 - $nameFontSize;
 				$nameStartY = max(0.0, $nameStartY);
 				$nameY = $nameStartY;
@@ -310,7 +310,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 					$stream .= sprintf("%.2F %.2F Td\n", $nameX, $nameY);
 					$stream .= sprintf("(%s) Tj\n", $escaped);
 					$stream .= "ET\n";
-					$nameY -= $nameFontSize * 1.2;
+					$nameY -= $nameFontSize * 1.0;
 				}
 			}
 		}
