@@ -285,11 +285,6 @@ export default {
 		canCreateSignature() {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
 		},
-		signerHasSignRequest() {
-			const doc = this.signStore.document || {}
-			const signer = doc?.signers?.find(row => row.me) || {}
-			return !!signer.signRequestId
-		},
 		ableToSign() {
 			return this.signStore.ableToSign
 		},
@@ -516,7 +511,6 @@ export default {
 				errors: this.signStore.errors,
 				hasSignatures: this.hasSignatures,
 				canCreateSignature: this.canCreateSignature,
-				signerHasSignRequest: this.signerHasSignRequest,
 			})
 
 			const result = this.actionHandler.handleAction('sign', { unmetRequirement })
@@ -541,7 +535,6 @@ export default {
 				errors: this.signStore.errors,
 				hasSignatures: this.hasSignatures,
 				canCreateSignature: this.canCreateSignature,
-				signerHasSignRequest: this.signerHasSignRequest,
 			})
 
 			const config = unmetRequirement ? { unmetRequirement } : {}
