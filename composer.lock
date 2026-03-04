@@ -130,6 +130,112 @@
             "time": "2025-10-30T23:44:22+00:00"
         },
         {
+            "name": "jeidison/signer-php",
+            "version": "dev-feat/visible-signature-appearance",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vitormattos/pdf-signer-php.git",
+                "reference": "3564b19a13178fdda8b628733f71a496d2be15ba"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vitormattos/pdf-signer-php/zipball/3564b19a13178fdda8b628733f71a496d2be15ba",
+                "reference": "3564b19a13178fdda8b628733f71a496d2be15ba",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-fileinfo": "*",
+                "ext-openssl": "*",
+                "ext-zlib": "*",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "deptrac/deptrac": "^4.6",
+                "infection/infection": "^0.29",
+                "laravel/pint": "^1.20",
+                "pestphp/pest": "^3.0",
+                "roave/security-advisories": "dev-latest",
+                "symfony/var-dumper": "^6.4.2",
+                "vimeo/psalm": "^6.15"
+            },
+            "bin": [
+                "bin/signer-sign",
+                "bin/signer-inspect",
+                "bin/signer-doctor"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SignerPHP\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "SignerPHP\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "tests": [
+                    "vendor/bin/pest --configuration phpunit.xml tests"
+                ],
+                "tests:coverage": [
+                    "vendor/bin/pest --configuration phpunit.xml tests --coverage --min=98.1"
+                ],
+                "pint:fix": [
+                    "vendor/bin/pint"
+                ],
+                "pint:check": [
+                    "vendor/bin/pint --test"
+                ],
+                "security:audit": [
+                    "composer audit --no-interaction"
+                ],
+                "psalm": [
+                    "vendor/bin/psalm --no-progress"
+                ],
+                "deptrac": [
+                    "vendor/bin/deptrac analyse --no-progress"
+                ],
+                "infection": [
+                    "vendor/bin/infection --threads=max --min-msi=65 --min-covered-msi=70"
+                ],
+                "quality:all": [
+                    "@pint:check",
+                    "@security:audit",
+                    "@tests:coverage",
+                    "@psalm",
+                    "@deptrac",
+                    "@infection"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jeidison Farias"
+                }
+            ],
+            "description": "Open-source PHP library for PDF digital signing with multiple signatures, RFC3161 timestamping, PAdES profiles, and PDF protection",
+            "keywords": [
+                "digital-signature",
+                "docmdp",
+                "icp-brasil",
+                "multiple-signatures",
+                "pades",
+                "pdf",
+                "php",
+                "rfc3161",
+                "signer",
+                "timestamp"
+            ],
+            "support": {
+                "source": "https://github.com/vitormattos/pdf-signer-php/tree/feat/visible-signature-appearance"
+            },
+            "time": "2026-03-04T16:10:38+00:00"
+        },
+        {
             "name": "paragonie/constant_time_encoding",
             "version": "v3.1.3",
             "source": {
@@ -1695,6 +1801,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "jeidison/signer-php": 20,
         "nextcloud/ocp": 20,
         "roave/security-advisories": 20
     },
