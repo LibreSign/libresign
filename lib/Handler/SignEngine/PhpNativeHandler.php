@@ -73,6 +73,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 					metadata: $metadata,
 					timestamp: $timestamp,
 					certificationLevel: $certificationLevel,
+					useDefaultAppearance: false,
 				),
 			));
 		}
@@ -143,12 +144,18 @@ class PhpNativeHandler extends Pkcs12Handler {
 		// GRAPHIC_AND_DESCRIPTION: user's drawn image goes into the n2 xObject layer
 		// on the left half of the bbox so it does not distort or cover the description text.
 		// Background (if enabled) still occupies the full n0 layer behind everything.
+		// GRAPHIC_ONLY: user's drawn image occupies the full bbox in n2; no description text.
 		$userImgPath = null;
 		$userImgRect = null;
 		if ($renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION) {
 			if ($signatureImagePath !== '' && is_file($signatureImagePath)) {
 				$userImgPath = $signatureImagePath;
 				$userImgRect = [0.0, 0.0, (float)$width / 2.0, (float)$height];
+			}
+		} elseif ($renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY) {
+			if ($signatureImagePath !== '' && is_file($signatureImagePath)) {
+				$userImgPath = $signatureImagePath;
+				$userImgRect = null; // full bbox
 			}
 		}
 
@@ -254,6 +261,11 @@ class PhpNativeHandler extends Pkcs12Handler {
 	 *                           No image generation: pure PDF text operators.
 	 */
 	private function buildXObject(int $width, int $height, string $renderMode): SignatureAppearanceXObjectDto {
+		// GRAPHIC_ONLY: only the background/signature image is shown; no text in n2.
+		if ($renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY) {
+			return new SignatureAppearanceXObjectDto(stream: '', resources: []);
+		}
+
 		$params = $this->getSignatureParams();
 		$serverTimezone = new \DateTimeZone(date_default_timezone_get());
 		$now = new \DateTime('now', $serverTimezone);
@@ -280,19 +292,22 @@ class PhpNativeHandler extends Pkcs12Handler {
 				: ($this->readCertificate()['subject']['CN'] ?? '');
 			if ($commonName !== '') {
 				$nameFontSize = $this->signatureTextService->getSignatureFontSize();
-				$leftHalfW = (float)$width / 2.0 - $leftPadding * 2;
-				$nameLines = $this->wrapTextForPdf($commonName, $leftHalfW, $nameFontSize);
+				$leftHalfW = (float)$width / 2.0;
+				$nameLines = $this->wrapTextForPdf($commonName, $leftHalfW - $leftPadding * 2, $nameFontSize);
 				$nameLineCount = count($nameLines);
 				$totalNameHeight = $nameLineCount * $nameFontSize * 1.2;
 				$nameStartY = ((float)$height + $totalNameHeight) / 2.0 - $nameFontSize;
 				$nameStartY = max(0.0, $nameStartY);
 				$nameY = $nameStartY;
+				$estimatedCharWidth = $nameFontSize * 0.52;
 				foreach ($nameLines as $nameLine) {
+					$lineWidth = strlen($nameLine) * $estimatedCharWidth;
+					$nameX = max($leftPadding, ($leftHalfW - $lineWidth) / 2.0);
 					$escaped = $this->escapePdfText($nameLine);
 					$stream .= "BT\n";
 					$stream .= sprintf("/F1 %.2F Tf\n", $nameFontSize);
 					$stream .= "0 0 0 rg\n";
-					$stream .= sprintf("%.2F %.2F Td\n", $leftPadding, $nameY);
+					$stream .= sprintf("%.2F %.2F Td\n", $nameX, $nameY);
 					$stream .= sprintf("(%s) Tj\n", $escaped);
 					$stream .= "ET\n";
 					$nameY -= $nameFontSize * 1.2;
