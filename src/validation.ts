@@ -4,7 +4,8 @@
  */
 
 import { createApp } from 'vue'
-import { t, n } from '@nextcloud/l10n'
+import { createPinia } from 'pinia'
+import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 
 import Validation from './views/Validation.vue'
 import router from './router/router'
@@ -16,6 +17,7 @@ app.config.globalProperties.n = n
 app.config.globalProperties.OC = OC
 app.config.globalProperties.OCA = OCA
 
+app.use(createPinia())
 app.use(router)
 
 app.mount('#content')
