@@ -8,9 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\SignEngine;
 
-use Imagick;
-use ImagickDraw;
-use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
@@ -19,12 +16,12 @@ use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\File;
 use OCP\IAppConfig;
-use OCP\ITempManager;
 use SignerPHP\Application\DTO\CertificateCredentialsDto;
 use SignerPHP\Application\DTO\CertificationLevel;
 use SignerPHP\Application\DTO\PdfContentDto;
 use SignerPHP\Application\DTO\SignatureActorDto;
 use SignerPHP\Application\DTO\SignatureAppearanceDto;
+use SignerPHP\Application\DTO\SignatureAppearanceXObjectDto;
 use SignerPHP\Application\DTO\SignatureMetadataDto;
 use SignerPHP\Application\DTO\SigningOptionsDto;
 use SignerPHP\Application\DTO\SignPdfRequestDto;
@@ -34,14 +31,11 @@ use SignerPHP\Infrastructure\Legacy\OpenSslCertificateValidator;
 use SignerPHP\Infrastructure\Native\NativePdfSigningEngine;
 
 class PhpNativeHandler extends Pkcs12Handler {
-	private const SCALE_FACTOR_MIN = 5;
-
 	public function __construct(
 		private IAppConfig $appConfig,
 		private DocMdpConfigService $docMdpConfigService,
-		private SignatureBackgroundService $signatureBackgroundService,
 		private SignatureTextService $signatureTextService,
-		private ITempManager $tempManager,
+		private SignatureBackgroundService $signatureBackgroundService,
 		protected CertificateEngineFactory $certificateEngineFactory,
 	) {
 	}
@@ -99,17 +93,17 @@ class PhpNativeHandler extends Pkcs12Handler {
 			$height = (int)($ury - $lly);
 			// signer-php uses 0-based page index; LibreSign stores 1-based
 			$pageIndex = max(0, $fileElement->getPage() - 1);
-			$pageHeight = (float)$pageDimensions[$pageIndex]['h'];
-			$imagePath = $this->prepareVisualImage($element->getTempFile(), $width, $height);
-			$appearance = new SignatureAppearanceDto(
-				imagePath: $imagePath !== '' ? $imagePath : null,
-				rect: [
-					$llx,
-					$pageHeight - $ury,  // screen top = pageH - PDF ury
-					$urx,
-					$pageHeight - $lly,  // screen bottom = pageH - PDF lly
-				],
-				page: $pageIndex,
+			$pageHeight = $this->resolvePageHeight($pageDimensions, $pageIndex);
+			$appearance = $this->buildAppearanceForElement(
+				llx: $llx,
+				lly: $lly,
+				urx: $urx,
+				ury: $ury,
+				pageHeight: $pageHeight,
+				pageIndex: $pageIndex,
+				width: $width,
+				height: $height,
+				signatureImagePath: $element->getTempFile(),
 			);
 			$pdfContent = $service->sign(SignPdfRequestDto::fromRequired(
 				new PdfContentDto($pdfContent),
@@ -126,6 +120,51 @@ class PhpNativeHandler extends Pkcs12Handler {
 		}
 
 		return $pdfContent;
+	}
+
+	private function buildAppearanceForElement(
+		float $llx,
+		float $lly,
+		float $urx,
+		float $ury,
+		float $pageHeight,
+		int $pageIndex,
+		int $width,
+		int $height,
+		string $signatureImagePath = '',
+	): SignatureAppearanceDto {
+		$renderMode = $this->signatureTextService->getRenderMode();
+
+		// n0 layer: background stamp is always placed full-bbox when enabled.
+		$imagePath = $this->signatureBackgroundService->isEnabled()
+			? $this->signatureBackgroundService->getImagePath()
+			: null;
+
+		// GRAPHIC_AND_DESCRIPTION: user's drawn image goes into the n2 xObject layer
+		// on the left half of the bbox so it does not distort or cover the description text.
+		// Background (if enabled) still occupies the full n0 layer behind everything.
+		$userImgPath = null;
+		$userImgRect = null;
+		if ($renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION) {
+			if ($signatureImagePath !== '' && is_file($signatureImagePath)) {
+				$userImgPath = $signatureImagePath;
+				$userImgRect = [0.0, 0.0, (float)$width / 2.0, (float)$height];
+			}
+		}
+
+		return new SignatureAppearanceDto(
+			backgroundImagePath: $imagePath,
+			rect: [
+				$llx,
+				$pageHeight - $ury,  // screen top = pageH - PDF ury
+				$urx,
+				$pageHeight - $lly,  // screen bottom = pageH - PDF lly
+			],
+			page: $pageIndex,
+			xObject: $this->buildXObject($width, $height, $renderMode),
+			signatureImagePath: $userImgPath,
+			signatureImageFrame: $userImgRect,
+		);
 	}
 
 	#[\Override]
@@ -154,6 +193,14 @@ class PhpNativeHandler extends Pkcs12Handler {
 				? new SignatureActorDto(name: $name, contactInfo: $email)
 				: null,
 		);
+	}
+
+	private function resolvePageHeight(array $pageDimensions, int $pageIndex): float {
+		$pageHeight = $pageDimensions[$pageIndex]['h'] ?? null;
+		if (!is_numeric($pageHeight) || (float)$pageHeight <= 0.0) {
+			throw new \RuntimeException(sprintf('Missing or invalid PageDimensions for page index %d.', $pageIndex));
+		}
+		return (float)$pageHeight;
 	}
 
 	private function buildTimestampOptions(): ?TimestampOptionsDto {
@@ -192,253 +239,153 @@ class PhpNativeHandler extends Pkcs12Handler {
 		return null;
 	}
 
+	private function hasExistingSignatures(string $pdfContent): bool {
+		return (bool)preg_match('/\/ByteRange\s*\[|\/Type\s*\/Sig\b|\/DocMDP\b|\/Perms\b/', $pdfContent);
+	}
+
 	/**
-	 * Prepare the visual image for a signature appearance.
+	 * Builds the xObject (n2 layer) for all render modes using only PDF text operators.
 	 *
-	 * Mirrors JSignPdfHandler render-mode logic:
-	 * - GRAPHIC_AND_DESCRIPTION (default): left=signature drawing, right=description text, bg=watermark
-	 * - SIGNAME_AND_DESCRIPTION: left=signer-name image, right=description text, bg=watermark
-	 * - GRAPHIC_ONLY: full area = signature drawing + watermark background, no text
+	 * DESCRIPTION_ONLY      → description text, full width.
+	 * GRAPHIC_AND_DESCRIPTION → description text, right half only
+	 *                           (user image is in imagePath/n0, handled natively by signer-php).
+	 * SIGNAME_AND_DESCRIPTION → signer name as large text on the left half
+	 *                           + description text on the right half.
+	 *                           No image generation: pure PDF text operators.
 	 */
-	private function prepareVisualImage(string $signatureImagePath, int $width, int $height): string {
-		$backgroundType = $this->signatureBackgroundService->getSignatureBackgroundType();
-		$renderMode = $this->signatureTextService->getRenderMode();
-		$hasBackground = $backgroundType !== 'deleted';
-		$backgroundPath = $hasBackground ? $this->signatureBackgroundService->getImagePath() : '';
-		$isGraphicOnly = $renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY;
-
-		if ($isGraphicOnly) {
-			if (!$hasBackground || $backgroundPath === '') {
-				return $signatureImagePath;
-			}
-			return $this->composeGraphicOnly($backgroundPath, $signatureImagePath, $width, $height);
-		}
-
-		// GRAPHIC_AND_DESCRIPTION or SIGNAME_AND_DESCRIPTION:
-		// left half = image, right half = description text from template
-		$halfWidth = (int)($width / 2);
-		$leftImagePath = ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION)
-			? $this->createSignerNameImage($halfWidth, $height)
-			: $signatureImagePath;
-
-		$descriptionImagePath = $this->createDescriptionImage($halfWidth, $height);
-
-		return $this->composeFullAppearance(
-			$backgroundPath !== '' ? $backgroundPath : null,
-			$leftImagePath,
-			$descriptionImagePath,
-			$width,
-			$height,
-		);
-	}
-
-	/**
-	 * Generates a PNG image of the signer's common name (for SIGNAME_AND_DESCRIPTION left panel).
-	 */
-	private function createSignerNameImage(int $width, int $height): string {
-		$params = $this->getSignatureParams();
-		$commonName = !empty($params['SignerCommonName'])
-			? (string)$params['SignerCommonName']
-			: ($this->readCertificate()['subject']['CN'] ?? throw new \RuntimeException('Certificate must have a CN'));
-
-		$content = $this->signatureTextService->signerNameImage(
-			text: $commonName,
-			width: $width,
-			height: $height,
-			align: 'center',
-			scale: self::SCALE_FACTOR_MIN,
-		);
-
-		$tmpPath = $this->tempManager->getTemporaryFile('_signame.png');
-		if (!$tmpPath) {
-			throw new \Exception('Temporary file not accessible');
-		}
-		file_put_contents($tmpPath, $content);
-		return $tmpPath;
-	}
-
-	/**
-	 * Generates a PNG image of the signature description text (for the right panel).
-	 * Renders top-left aligned, respecting existing newlines from the template,
-	 * without re-wrapping (unlike signerNameImage which vertically centers).
-	 */
-	private function createDescriptionImage(int $width, int $height): string {
-		if (!extension_loaded('imagick')) {
-			throw new \Exception('Extension imagick is not loaded.');
-		}
-
+	private function buildXObject(int $width, int $height, string $renderMode): SignatureAppearanceXObjectDto {
 		$params = $this->getSignatureParams();
 		$serverTimezone = new \DateTimeZone(date_default_timezone_get());
 		$now = new \DateTime('now', $serverTimezone);
 		$params['ServerSignatureDate'] = $now->format('Y.m.d H:i:s \U\T\C');
 
 		$textData = $this->signatureTextService->parse(context: $params);
-		$parsed = trim($textData['parsed'] ?? '');
-		$fontSize = (float)($textData['templateFontSize'] ?? $this->signatureTextService->getTemplateFontSize());
+		$parsed = trim((string)($textData['parsed'] ?? ''));
 
-		$scale = self::SCALE_FACTOR_MIN;
-		$canvasW = (int)($width * $scale);
-		$canvasH = (int)($height * $scale);
-		$scaledFontSize = $fontSize * $scale;
+		$descFontSize = (float)($textData['templateFontSize'] ?? $this->signatureTextService->getTemplateFontSize());
+		$descLineHeight = $descFontSize * 1.2;
+		$leftPadding = max(2.0, $descFontSize * 0.15);
 
-		$image = new Imagick();
-		$image->setResolution(600, 600);
-		$image->newImage($canvasW, $canvasH, new ImagickPixel('transparent'));
-		$image->setImageFormat('png');
+		$isDescriptionOnly = $renderMode === SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY;
+		$textStartX = $isDescriptionOnly ? $leftPadding : ((float)$width / 2.0) + $leftPadding;
+		$availableWidth = $isDescriptionOnly ? (float)$width : (float)$width / 2.0;
 
-		$draw = new ImagickDraw();
-		$fonts = Imagick::queryFonts();
-		if ($fonts) {
-			$draw->setFont($fonts[0]);
-		} else {
-			$fallback = __DIR__ . '/../../3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf';
-			if (!file_exists($fallback)) {
-				throw new \Exception('No fonts available and fallback font not found: ' . $fallback);
+		$stream = '';
+
+		// Left half: signer name as large text operators (SIGNAME_AND_DESCRIPTION only).
+		// No image generation — the name is drawn directly with PDF text commands.
+		if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
+			$commonName = !empty($params['SignerCommonName'])
+				? (string)$params['SignerCommonName']
+				: ($this->readCertificate()['subject']['CN'] ?? '');
+			if ($commonName !== '') {
+				$nameFontSize = $this->signatureTextService->getSignatureFontSize();
+				$leftHalfW = (float)$width / 2.0 - $leftPadding * 2;
+				$nameLines = $this->wrapTextForPdf($commonName, $leftHalfW, $nameFontSize);
+				$nameLineCount = count($nameLines);
+				$totalNameHeight = $nameLineCount * $nameFontSize * 1.2;
+				$nameStartY = ((float)$height + $totalNameHeight) / 2.0 - $nameFontSize;
+				$nameStartY = max(0.0, $nameStartY);
+				$nameY = $nameStartY;
+				foreach ($nameLines as $nameLine) {
+					$escaped = $this->escapePdfText($nameLine);
+					$stream .= "BT\n";
+					$stream .= sprintf("/F1 %.2F Tf\n", $nameFontSize);
+					$stream .= "0 0 0 rg\n";
+					$stream .= sprintf("%.2F %.2F Td\n", $leftPadding, $nameY);
+					$stream .= sprintf("(%s) Tj\n", $escaped);
+					$stream .= "ET\n";
+					$nameY -= $nameFontSize * 1.2;
+				}
 			}
-			$draw->setFont($fallback);
 		}
-		$draw->setFontSize($scaledFontSize);
-		$draw->setFillColor(new ImagickPixel('black'));
-		$draw->setTextAlignment(Imagick::ALIGN_LEFT);
 
-		// Measure one line to get the ascender (baseline offset from top).
-		// iText (used by JSignPdf) uses leading = font_size × 1.2, so we mirror
-		// that here rather than relying on Imagick's textHeight which varies by font.
-		$metrics = $image->queryFontMetrics($draw, 'Ag');
-		$lineHeight = $scaledFontSize;
-		$ascender = $metrics['ascender'];
-
-		// Top padding: ~35% of lineHeight — balances the space before first baseline
-		$topPadding = $lineHeight * 0.35;
-		$leftPadding = (int)($scaledFontSize * 0.1);
-		$x = $leftPadding;
-		$y = $ascender + $topPadding;
-
-		foreach (explode("\n", $parsed) as $line) {
-			if ($y > $canvasH) {
-				break;
+		// Right half (or full width): description text.
+		$currentY = (float)$height - $descFontSize - 2.0;
+		foreach (explode(PHP_EOL, $parsed) as $line) {
+			$wrappedLines = $this->wrapTextForPdf($line, $availableWidth, $descFontSize);
+			foreach ($wrappedLines as $wrappedLine) {
+				if ($currentY < 0) {
+					break 2;
+				}
+				$escaped = $this->escapePdfText($wrappedLine);
+				$stream .= "BT\n";
+				$stream .= sprintf("/F1 %.2F Tf\n", $descFontSize);
+				$stream .= "0 0 0 rg\n";
+				$stream .= sprintf("%.2F %.2F Td\n", $textStartX, $currentY);
+				$stream .= sprintf("(%s) Tj\n", $escaped);
+				$stream .= "ET\n";
+				$currentY -= $descLineHeight;
 			}
-			$image->annotateImage($draw, $x, $y, 0, $line);
-			$y += $lineHeight;
 		}
 
-		$blob = $image->getImagesBlob();
-		$image->destroy();
-		$draw->destroy();
-
-		$tmpPath = $this->tempManager->getTemporaryFile('_description.png');
-		if (!$tmpPath) {
-			throw new \Exception('Temporary file not accessible');
-		}
-		file_put_contents($tmpPath, $blob);
-		return $tmpPath;
+		return new SignatureAppearanceXObjectDto(
+			stream: $stream,
+			resources: [
+				'Font' => [
+					'F1' => [
+						'Type' => '/Font',
+						'Subtype' => '/Type1',
+						'BaseFont' => '/Helvetica',
+					],
+				],
+			],
+		);
 	}
 
 	/**
-	 * Composes: watermark background over the full canvas,
-	 * left image on the left half, description image on the right half.
-	 * Output is at SCALE_FACTOR_MIN × the annotation dimensions for good resolution.
+	 * @return string[]
 	 */
-	private function composeFullAppearance(?string $backgroundPath, string $leftImagePath, string $rightImagePath, int $width, int $height): string {
-		if (!extension_loaded('imagick')) {
-			return $leftImagePath;
+	private function wrapTextForPdf(string $line, float $availableWidth, float $fontSize): array {
+		$trimmed = trim($line);
+		if ($trimmed === '') {
+			return [''];
 		}
 
-		$scale = self::SCALE_FACTOR_MIN;
-		$canvasW = $width * $scale;
-		$canvasH = $height * $scale;
-		$halfW = (int)($canvasW / 2);
-
-		$canvas = new Imagick();
-		$canvas->newImage($canvasW, $canvasH, new ImagickPixel('transparent'));
-		$canvas->setImageFormat('png32');
-		$canvas->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
-
-		// 1. Background watermark spanning the full canvas (preserve aspect ratio, centered)
-		if ($backgroundPath !== null && $backgroundPath !== '') {
-			$bg = new Imagick($backgroundPath);
-			$bg->setImageFormat('png');
-			$bg->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
-			$bg->resizeImage($canvasW, $canvasH, Imagick::FILTER_LANCZOS, 1, true);
-			$bgX = (int)(($canvasW - $bg->getImageWidth()) / 2);
-			$bgY = (int)(($canvasH - $bg->getImageHeight()) / 2);
-			$canvas->compositeImage($bg, Imagick::COMPOSITE_OVER, $bgX, $bgY);
-			$bg->clear();
+		$estimatedCharWidth = max(1.0, $fontSize * 0.52);
+		$maxChars = max(1, (int)floor($availableWidth / $estimatedCharWidth));
+		if (strlen($trimmed) <= $maxChars) {
+			return [$trimmed];
 		}
 
-		// 2. Left half: signature drawing (fit within half, preserve aspect ratio)
-		$left = new Imagick($leftImagePath);
-		$left->setImageFormat('png');
-		$left->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
-		$left->resizeImage($halfW, $canvasH, Imagick::FILTER_LANCZOS, 1, true);
-		$leftX = (int)(($halfW - $left->getImageWidth()) / 2);
-		$leftY = (int)(($canvasH - $left->getImageHeight()) / 2);
-		$canvas->compositeImage($left, Imagick::COMPOSITE_OVER, $leftX, $leftY);
-		$left->clear();
+		$result = [];
+		$current = '';
+		foreach (preg_split('/\s+/', $trimmed) ?: [] as $word) {
+			if ($word === '') {
+				continue;
+			}
 
-		// 3. Right half: description image (already rendered at scale*halfWidth px)
-		$right = new Imagick($rightImagePath);
-		$right->setImageFormat('png');
-		$right->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
-		$canvas->compositeImage($right, Imagick::COMPOSITE_OVER, $halfW, 0);
-		$right->clear();
+			$candidate = $current === '' ? $word : $current . ' ' . $word;
+			if (strlen($candidate) <= $maxChars) {
+				$current = $candidate;
+				continue;
+			}
 
-		$tmpPath = $this->tempManager->getTemporaryFile('_appearance.png');
-		if (!$tmpPath) {
-			throw new \Exception('Temporary file not accessible');
+			if ($current !== '') {
+				$result[] = $current;
+				$current = '';
+			}
+
+			while (strlen($word) > $maxChars) {
+				$result[] = substr($word, 0, $maxChars);
+				$word = substr($word, $maxChars);
+			}
+
+			$current = $word;
 		}
-		$canvas->writeImage($tmpPath);
-		$canvas->clear();
 
-		return $tmpPath;
+		if ($current !== '') {
+			$result[] = $current;
+		}
+
+		return $result;
 	}
 
-	/**
-	 * Composes: watermark background + signature drawing at full width (GRAPHIC_ONLY mode).
-	 */
-	private function composeGraphicOnly(string $backgroundPath, string $signatureImagePath, int $width, int $height): string {
-		if (!extension_loaded('imagick')) {
-			return $signatureImagePath;
-		}
+	private function escapePdfText(string $value): string {
+		$value = str_replace('\\', '\\\\', $value);
+		$value = str_replace('(', '\\(', $value);
+		$value = str_replace(')', '\\)', $value);
 
-		$scale = self::SCALE_FACTOR_MIN;
-		$canvasW = $width * $scale;
-		$canvasH = $height * $scale;
-
-		$canvas = new Imagick();
-		$canvas->newImage($canvasW, $canvasH, new ImagickPixel('transparent'));
-		$canvas->setImageFormat('png32');
-		$canvas->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
-
-		$bg = new Imagick($backgroundPath);
-		$bg->setImageFormat('png');
-		$bg->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
-		$bg->resizeImage($canvasW, $canvasH, Imagick::FILTER_LANCZOS, 1, true);
-		$bgX = (int)(($canvasW - $bg->getImageWidth()) / 2);
-		$bgY = (int)(($canvasH - $bg->getImageHeight()) / 2);
-		$canvas->compositeImage($bg, Imagick::COMPOSITE_OVER, $bgX, $bgY);
-		$bg->clear();
-
-		$sig = new Imagick($signatureImagePath);
-		$sig->setImageFormat('png');
-		$sig->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
-		$sig->resizeImage($canvasW, $canvasH, Imagick::FILTER_LANCZOS, 1, true);
-		$sigX = (int)(($canvasW - $sig->getImageWidth()) / 2);
-		$sigY = (int)(($canvasH - $sig->getImageHeight()) / 2);
-		$canvas->compositeImage($sig, Imagick::COMPOSITE_OVER, $sigX, $sigY);
-		$sig->clear();
-
-		$tmpPath = $this->tempManager->getTemporaryFile('_graphic_only.png');
-		if (!$tmpPath) {
-			throw new \Exception('Temporary file not accessible');
-		}
-		$canvas->writeImage($tmpPath);
-		$canvas->clear();
-
-		return $tmpPath;
-	}
-
-	private function hasExistingSignatures(string $pdfContent): bool {
-		return (bool)preg_match('/\/ByteRange\s*\[|\/Type\s*\/Sig\b|\/DocMDP\b|\/Perms\b/', $pdfContent);
+		return $value;
 	}
 }
