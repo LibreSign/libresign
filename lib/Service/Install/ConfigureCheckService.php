@@ -165,8 +165,8 @@ class ConfigureCheckService {
 			return $this->result['jsignpdf'];
 		}
 
-		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'jsignpdf');
-		if ($signatureEngine !== 'jsignpdf') {
+		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
+		if ($signatureEngine !== 'JSignPdf') {
 			return [];
 		}
 
@@ -384,11 +384,6 @@ class ConfigureCheckService {
 	private function checkJava(): array {
 		if (!empty($this->result['java'])) {
 			return $this->result['java'];
-		}
-
-		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'jsignpdf');
-		if ($signatureEngine !== 'jsignpdf') {
-			return [];
 		}
 
 		$javaPath = $this->javaHelper->getJavaPath();
