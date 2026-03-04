@@ -334,6 +334,70 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertStringContainsString('102.00 ', $xObject->stream);
 	}
 
+	/**
+	 * Regression: GRAPHIC_ONLY mode must not render any text in the n2 xObject layer.
+	 * Before the fix, the method fell through to the description block and wrote text
+	 * into the stamp.
+	 */
+	public function testBuildXObjectGraphicOnlyReturnsEmptyStream(): void {
+		$handler = $this->getHandlerWithMode(SignerElementsService::RENDER_MODE_GRAPHIC_ONLY);
+		$xObject = $this->callPrivateMethod(
+			$handler, 'buildXObject', 100, 50, SignerElementsService::RENDER_MODE_GRAPHIC_ONLY,
+		);
+
+		$this->assertSame('', $xObject->stream);
+		$this->assertSame([], $xObject->resources);
+	}
+
+	/**
+	 * Regression: GRAPHIC_ONLY mode must assign the user's drawn image to the full bbox
+	 * (signatureImageFrame = null).  Before the fix only GRAPHIC_AND_DESCRIPTION set
+	 * signatureImagePath, leaving GRAPHIC_ONLY with no image (blank stamp).
+	 */
+	public function testBuildAppearanceForElementSetsSignatureImageInGraphicOnlyMode(): void {
+		$imagePath = realpath(__DIR__ . '/../../../../../img/app-dark.png');
+		$this->assertNotFalse($imagePath, 'Test image must exist');
+
+		$handler = $this->getHandlerWithMode(SignerElementsService::RENDER_MODE_GRAPHIC_ONLY);
+		$this->signatureBackgroundService->method('isEnabled')->willReturn(false);
+
+		$appearance = $this->callPrivateMethod(
+			$handler,
+			'buildAppearanceForElement',
+			10.0, 20.0, 110.0, 70.0, 800.0, 0, 100, 50,
+			$imagePath,
+		);
+
+		$this->assertInstanceOf(SignatureAppearanceDto::class, $appearance);
+		// Image must fill the entire stamp bbox (no split)
+		$this->assertSame($imagePath, $appearance->signatureImagePath);
+		$this->assertNull($appearance->signatureImageFrame);
+	}
+
+	/**
+	 * Regression: in SIGNAME_AND_DESCRIPTION the signer name must be horizontally
+	 * centred within the left half of the stamp, not pinned to leftPadding (left edge).
+	 *
+	 * Layout math for width=200, height=80, fontSize=20, name="Al":
+	 *   leftHalfW  = 100.0
+	 *   lineWidth  = strlen("Al") * (20 * 0.52) = 2 * 10.4 = 20.8
+	 *   nameX      = max(2.0, (100 - 20.8) / 2) = 39.6  →  "39.60"
+	 *   nameStartY = (80 + 24) / 2 - 20 = 32.0           →  "32.00"
+	 * Old (broken) code always used leftPadding=2.0  →  "2.00 32.00 Td"
+	 */
+	public function testBuildXObjectSignameAndDescriptionCentersNameInLeftHalf(): void {
+		$handler = $this->getHandlerWithMode(SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION);
+		$handler->setSignatureParams(['SignerCommonName' => 'Al']);
+		$xObject = $this->callPrivateMethod(
+			$handler, 'buildXObject', 200, 80, SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
+		);
+
+		// Centred position must appear
+		$this->assertStringContainsString('39.60 32.00 Td', $xObject->stream);
+		// Old left-aligned position must NOT appear
+		$this->assertStringNotContainsString('2.00 32.00 Td', $xObject->stream);
+	}
+
 	public function testBuildXObjectSignameAndDescriptionWithEmptyNameOmitsNameBlock(): void {
 		// When SignerCommonName is absent and certificate has no CN, no name block should appear
 		$engine = $this->createMock(\OCA\Libresign\Handler\CertificateEngine\IEngineHandler::class);
