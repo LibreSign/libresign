@@ -441,7 +441,7 @@ class SignatureTextService {
 
 	public function getSignatureWidth(): float {
 		$current = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
-		if ($this->getRenderMode() === 'GRAPHIC_ONLY' || !$this->getTemplate()) {
+		if ($this->getRenderMode() === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY || !$this->getTemplate()) {
 			return $current;
 		}
 		return $current / 2;

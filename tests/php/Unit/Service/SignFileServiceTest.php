@@ -1402,6 +1402,50 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	#[DataProvider('providerGetSignatureParamsPageDimensions')]
+	public function testGetSignatureParamsPageDimensions(
+		?array $fileMetadata,
+		bool $expectPageDimensions,
+	): void {
+		$service = $this->getService(['readCertificate']);
+		$service->method('readCertificate')->willReturn([]);
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback(fn (string $method) => match ($method) {
+			'getId' => 1,
+			'getMetadata' => [],
+			default => null,
+		});
+		$service->setSignRequest($signRequest);
+
+		$libreSignFile = new File();
+		if ($fileMetadata !== null) {
+			$libreSignFile->setMetadata($fileMetadata);
+		}
+		$service->setLibreSignFile($libreSignFile);
+
+		$actual = $this->invokePrivate($service, 'getSignatureParams');
+
+		if ($expectPageDimensions) {
+			$this->assertArrayHasKey('PageDimensions', $actual);
+			$this->assertSame($fileMetadata['d'], $actual['PageDimensions']);
+		} else {
+			$this->assertArrayNotHasKey('PageDimensions', $actual);
+		}
+	}
+
+	public static function providerGetSignatureParamsPageDimensions(): array {
+		return [
+			'file entity is null' => [null, false],
+			'metadata has no d key' => [['other' => 'data'], false],
+			'metadata with empty d array' => [['d' => []], false],
+			'metadata with page dimensions populates PageDimensions' => [
+				['d' => [['w' => 800, 'h' => 600]]],
+				true,
+			],
+		];
+	}
+
 	#[DataProvider('providerSetVisibleElements')]
 	public function testSetVisibleElements(
 		array $signerList,
@@ -1593,6 +1637,18 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				canCreateSignature: true,
 				isAuthenticatedSigner: true,
 				expectedException: LibresignException::class,
+			),
+
+			// Regression: canCreateSignature=true but signer submits no element (clickToSign).
+			// Before the fix `if (!$element) { continue; }` silently skipped the DB file element,
+			// producing an empty visibleElements array and no stamp on the document.
+			'canCreateSignature true, signer submits no element (clickToSign): element still included' => self::createScenarioSetVisibleElements(
+				signerList: [],      // user did not submit any drawn signature
+				fileElements: [['id' => $validDocumentId]], // admin placed element on doc
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
 			),
 
 			'cannot create signature, visible element fallback' => self::createScenarioSetVisibleElements(
