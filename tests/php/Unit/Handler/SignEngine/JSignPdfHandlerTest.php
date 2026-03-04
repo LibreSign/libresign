@@ -468,6 +468,27 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'hashAlgorithm' => '',
 				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
 			],
+			// Regression: background with GRAPHIC_AND_DESCRIPTION but NO user signature image.
+			// Before the fix, mergeBackgroundWithSignature('...', '') crashed with new Imagick('').
+			// Now the background is used directly and no --img-path is emitted.
+			'GRAPHIC_AND_DESCRIPTION with background but no signature image: bg-path = background, no img-path' => [
+				'visibleElements' => [self::getElement([
+					'page' => 2,
+					'llx' => 10,
+					'lly' => 20,
+					'urx' => 30,
+					'ury' => 40,
+				], '')], // empty imagePath — clickToSign scenario
+				'signatureWidth' => 20,
+				'signatureHeight' => 20,
+				'template' => 'aaaaa',
+				'signatureBackgroundType' => 'default',
+				'renderMode' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --hash-algorithm SHA256'
+			],
 			'background without template: bg-path = merged with signature, without img-path' => [
 				'visibleElements' => [self::getElement([
 					'page' => 2,
