@@ -99,8 +99,23 @@ test('request signatures from two signers in sequential order', async ({ page })
 	await expect(page.getByText('Not signed yet')).toBeVisible()
 
 	// Now that signer01 has signed, signer02 must receive their notification.
-	await waitForEmailTo(mailpit, 'signer02@libresign.coop', 'LibreSign: There is a file for you to sign')
+	const email02 = await waitForEmailTo(mailpit, 'signer02@libresign.coop', 'LibreSign: There is a file for you to sign')
 
 	const afterSecond = await mailpit.searchMessages({ query: 'subject:"LibreSign: There is a file for you to sign"' })
 	expect(afterSecond.messages).toHaveLength(2)
+
+	// Signer02 signs via their email link.
+	// The admin is still logged out from the signer01 step, so this is unauthenticated.
+	const signLink02 = extractSignLink(email02.Text)
+	if (!signLink02) throw new Error('Sign link for signer02 not found in email')
+	await page.goto(signLink02)
+	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	await page.getByRole('button', { name: 'Sign document' }).click()
+	await page.waitForURL('**/validation/**')
+	await expect(page.getByText('This document is valid')).toBeVisible()
+
+	// Both signers must appear as signed in the final validation view.
+	await expect(page.getByText('Signer 01')).toBeVisible()
+	await expect(page.getByText('Signer 02')).toBeVisible()
+	await expect(page.getByText('Not signed yet')).not.toBeVisible()
 })
