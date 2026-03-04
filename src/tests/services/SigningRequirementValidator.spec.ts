@@ -162,6 +162,29 @@ describe('SigningRequirementValidator', () => {
 		expect(result).toBe(false)
 	})
 
+	it('requires createSignature even when document has no placed elements but canCreateSignature is true and user is signer', () => {
+		// When admin configures GRAPHIC_ONLY mode, canCreateSignature=true.
+		// The signer must draw their signature even if no element box was placed on the document.
+		const stores = createStores({
+			signStore: {
+				document: {
+					signers: [{ me: true, signRequestId: 10 }],
+					visibleElements: [],
+				},
+			},
+		})
+		const validator = new SigningRequirementValidator(
+			stores.signStore,
+			stores.signMethodsStore,
+			stores.identificationDocumentStore,
+		)
+
+		// With no placed element AND canCreateSignature=true, we still need to create the signature
+		const result = validator.needsCreateSignature({ hasSignatures: false, canCreateSignature: true, signerHasSignRequest: true })
+
+		expect(result).toBe(true)
+	})
+
 	it('returns createSignature before clickToSign when no signature exists', () => {
 		const stores = createStores({
 			signMethodsStore: {
