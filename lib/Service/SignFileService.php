@@ -286,6 +286,10 @@ class SignFileService {
 			}
 			$element = $this->array_find($list, fn (array $element): bool => ($element['documentElementId'] ?? '') === $fileElementId);
 			if (!$element) {
+				// No user-submitted image for this element (e.g. clickToSign).
+				// Still include the file element so the admin background image (n0 layer)
+				// is rendered in the signature stamp on the document.
+				$newElements[$fileElementId] = new VisibleElementAssoc($fileElement);
 				continue;
 			}
 			$nodeId = $this->getNodeId($element, $fileElement);
@@ -959,6 +963,12 @@ class SignFileService {
 		}
 		if (isset($signRequestMetadata['user-agent'])) {
 			$signatureParams['SignerUserAgent'] = $signRequestMetadata['user-agent'];
+		}
+		if ($this->libreSignFile?->getMetadata()) {
+			$metadata = $this->libreSignFile->getMetadata();
+			if (isset($metadata['d']) && !empty($metadata['d'])) {
+				$signatureParams['PageDimensions'] = $metadata['d'];
+			}
 		}
 		return $signatureParams;
 	}

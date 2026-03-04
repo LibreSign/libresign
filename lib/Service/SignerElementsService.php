@@ -22,6 +22,7 @@ class SignerElementsService {
 	public const RENDER_MODE_DESCRIPTION_ONLY = 'DESCRIPTION_ONLY';
 	public const RENDER_MODE_SIGNAME_AND_DESCRIPTION = 'SIGNAME_AND_DESCRIPTION';
 	public const RENDER_MODE_GRAPHIC_AND_DESCRIPTION = 'GRAPHIC_AND_DESCRIPTION';
+	public const RENDER_MODE_GRAPHIC_ONLY = 'GRAPHIC_ONLY';
 	public const RENDER_MODE_DEFAULT = 'GRAPHIC_AND_DESCRIPTION';
 	public function __construct(
 		private FolderService $folderService,

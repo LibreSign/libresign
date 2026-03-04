@@ -162,6 +162,29 @@ describe('SigningRequirementValidator', () => {
 		expect(result).toBe(false)
 	})
 
+	it('does not require createSignature when signer has no placed visibleElements (clickToSign scenario)', () => {
+		// Regression: signerHasSignRequest shortcut was bypassing the visibleElements check,
+		// causing the draw modal to appear for clickToSign documents with no placed element boxes.
+		const stores = createStores({
+			signStore: {
+				document: {
+					signers: [{ me: true, signRequestId: 10 }],
+					visibleElements: [],
+				},
+			},
+		})
+		const validator = new SigningRequirementValidator(
+			stores.signStore,
+			stores.signMethodsStore,
+			stores.identificationDocumentStore,
+		)
+
+		// No placed element → should NOT require createSignature, so the sign button is reachable
+		const result = validator.needsCreateSignature({ hasSignatures: false, canCreateSignature: true })
+
+		expect(result).toBe(false)
+	})
+
 	it('returns createSignature before clickToSign when no signature exists', () => {
 		const stores = createStores({
 			signMethodsStore: {

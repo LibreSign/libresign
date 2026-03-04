@@ -268,25 +268,16 @@ export default {
 			return this.elements.length > 0
 		},
 		needCreateSignature() {
+			if (!this.canCreateSignature || this.hasSignatures) {
+				return false
+			}
 			const document = this.signStore.document || {}
 			const signer = document?.signers?.find(row => row.me) || {}
-
-			const signRequestIds = new Set()
-			if (signer.signRequestId) {
-				signRequestIds.add(String(signer.signRequestId))
+			if (!signer.signRequestId) {
+				return false
 			}
-			if (Array.isArray(document?.files)) {
-				document.files
-					.flatMap(file => getFileSigners(file))
-					.filter(row => row.me && row.signRequestId)
-					.forEach(row => signRequestIds.add(String(row.signRequestId)))
-			}
-
-			const visibleElements = getVisibleElementsFromDocument(document)
-			return signRequestIds.size > 0
-				&& visibleElements.some(row => signRequestIds.has(String(row.signRequestId)))
-				&& !this.hasSignatures
-				&& this.canCreateSignature
+			const visibleElements = document?.visibleElements || []
+			return visibleElements.some(row => String(row.signRequestId) === String(signer.signRequestId))
 		},
 		needIdentificationDocuments() {
 			return this.identificationDocumentStore.showDocumentsComponent()

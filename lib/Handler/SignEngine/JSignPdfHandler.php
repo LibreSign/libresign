@@ -366,20 +366,24 @@ class JSignPdfHandler extends Pkcs12Handler {
 						$params['--bg-path'] = $signatureImagePath;
 					}
 				} elseif ($params['--l2-text'] === '""') {
-					if ($backgroundPathForElement) {
+					if ($backgroundPathForElement && $signatureImagePath) {
 						$params['--bg-path'] = $this->mergeBackgroundWithSignature(
 							$backgroundPathForElement,
 							$signatureImagePath,
 							$this->normalizeScaleFactor($scaleFactor),
 						);
-					} else {
+					} elseif ($backgroundPathForElement) {
+						$params['--bg-path'] = $backgroundPathForElement;
+					} elseif ($signatureImagePath) {
 						$params['--bg-path'] = $signatureImagePath;
 					}
 				} else {
 					if ($renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION) {
 						$params['--render-mode'] = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
 						$params['--bg-path'] = $backgroundPathForElement;
-						$params['--img-path'] = $signatureImagePath;
+						if ($signatureImagePath) {
+							$params['--img-path'] = $signatureImagePath;
+						}
 					} elseif ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
 						$params['--render-mode'] = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
 						$params['--bg-path'] = $backgroundPathForElement;
@@ -586,7 +590,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	public function getSignatureText(): string {
 		$renderMode = $this->signatureTextService->getRenderMode();
-		if ($renderMode !== 'GRAPHIC_ONLY') {
+		if ($renderMode !== SignerElementsService::RENDER_MODE_GRAPHIC_ONLY) {
 			$data = $this->parseSignatureText();
 			$signatureText = '"' . str_replace(
 				['"', '$'],

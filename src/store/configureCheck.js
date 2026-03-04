@@ -6,6 +6,7 @@
 import { defineStore } from 'pinia'
 
 import axios from '@nextcloud/axios'
+import { subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -94,6 +95,8 @@ export const useConfigureCheckStore = function(...args) {
 	// Make sure we only register the initialize once
 	if (!configureCheckStore._initialized) {
 		configureCheckStore.checkSetup()
+		subscribe('libresign:certificate-engine:changed', () => configureCheckStore.checkSetup())
+		subscribe('libresign:signature-engine:changed', () => configureCheckStore.checkSetup())
 		configureCheckStore._initialized = true
 	}
 	return configureCheckStore
