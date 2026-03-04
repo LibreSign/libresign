@@ -1402,6 +1402,50 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	#[DataProvider('providerGetSignatureParamsPageDimensions')]
+	public function testGetSignatureParamsPageDimensions(
+		?array $fileMetadata,
+		bool $expectPageDimensions,
+	): void {
+		$service = $this->getService(['readCertificate']);
+		$service->method('readCertificate')->willReturn([]);
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback(fn (string $method) => match ($method) {
+			'getId' => 1,
+			'getMetadata' => [],
+			default => null,
+		});
+		$service->setSignRequest($signRequest);
+
+		$libreSignFile = new File();
+		if ($fileMetadata !== null) {
+			$libreSignFile->setMetadata($fileMetadata);
+		}
+		$service->setLibreSignFile($libreSignFile);
+
+		$actual = $this->invokePrivate($service, 'getSignatureParams');
+
+		if ($expectPageDimensions) {
+			$this->assertArrayHasKey('PageDimensions', $actual);
+			$this->assertSame($fileMetadata['d'], $actual['PageDimensions']);
+		} else {
+			$this->assertArrayNotHasKey('PageDimensions', $actual);
+		}
+	}
+
+	public static function providerGetSignatureParamsPageDimensions(): array {
+		return [
+			'file entity is null' => [null, false],
+			'metadata has no d key' => [['other' => 'data'], false],
+			'metadata with empty d array' => [['d' => []], false],
+			'metadata with page dimensions populates PageDimensions' => [
+				['d' => [['w' => 800, 'h' => 600]]],
+				true,
+			],
+		];
+	}
+
 	#[DataProvider('providerSetVisibleElements')]
 	public function testSetVisibleElements(
 		array $signerList,
