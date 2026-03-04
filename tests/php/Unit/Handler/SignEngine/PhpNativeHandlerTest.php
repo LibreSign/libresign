@@ -379,11 +379,12 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * centred within the left half of the stamp, not pinned to leftPadding (left edge).
 	 *
 	 * Layout math for width=200, height=80, fontSize=20, name="Al":
-	 *   leftHalfW  = 100.0
-	 *   lineWidth  = strlen("Al") * (20 * 0.52) = 2 * 10.4 = 20.8
-	 *   nameX      = max(2.0, (100 - 20.8) / 2) = 39.6  →  "39.60"
-	 *   nameStartY = (80 + 24) / 2 - 20 = 32.0           →  "32.00"
-	 * Old (broken) code always used leftPadding=2.0  →  "2.00 32.00 Td"
+	 *   leftHalfW      = 100.0
+	 *   lineWidth      = strlen("Al") * (20 * 0.52) = 2 * 10.4 = 20.8
+	 *   nameX          = max(2.0, (100 - 20.8) / 2) = 39.6  →  "39.60"
+	 *   totalNameHeight = 1 * 20 * 1.0 = 20  (lineHeight factor = 1.0)
+	 *   nameStartY     = (80 + 20) / 2 - 20 = 30.0           →  "30.00"
+	 * Old (broken) code always used leftPadding=2.0  →  "2.00 30.00 Td"
 	 */
 	public function testBuildXObjectSignameAndDescriptionCentersNameInLeftHalf(): void {
 		$handler = $this->getHandlerWithMode(SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION);
@@ -393,9 +394,9 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		// Centred position must appear
-		$this->assertStringContainsString('39.60 32.00 Td', $xObject->stream);
+		$this->assertStringContainsString('39.60 30.00 Td', $xObject->stream);
 		// Old left-aligned position must NOT appear
-		$this->assertStringNotContainsString('2.00 32.00 Td', $xObject->stream);
+		$this->assertStringNotContainsString('2.00 30.00 Td', $xObject->stream);
 	}
 
 	public function testBuildXObjectSignameAndDescriptionWithEmptyNameOmitsNameBlock(): void {
