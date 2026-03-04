@@ -69,5 +69,6 @@ export default {
 .signature-engine-content {
 	display: flex;
 	flex-direction: column;
+	align-items: flex-start;
 }
 </style>
