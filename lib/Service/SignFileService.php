@@ -960,9 +960,11 @@ class SignFileService {
 		if (isset($signRequestMetadata['user-agent'])) {
 			$signatureParams['SignerUserAgent'] = $signRequestMetadata['user-agent'];
 		}
-		$pageDimensions = $this->libreSignFile?->getMetadata()['d'] ?? [];
-		if (!empty($pageDimensions)) {
-			$signatureParams['PageDimensions'] = $pageDimensions;
+		if ($this->libreSignFile?->getMetadata()) {
+			$metadata = $this->libreSignFile->getMetadata();
+			if (isset($metadata['d']) && !empty($metadata['d'])) {
+				$signatureParams['PageDimensions'] = $metadata['d'];
+			}
 		}
 		return $signatureParams;
 	}
