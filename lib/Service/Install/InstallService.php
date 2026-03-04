@@ -346,8 +346,8 @@ class InstallService {
 	}
 
 	public function installJava(?bool $async = false): void {
-		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'jsignpdf');
-		if ($signatureEngine !== 'jsignpdf') {
+		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
+		if ($signatureEngine !== 'JSignPdf') {
 			return;
 		}
 		$this->setResource('java');
@@ -448,8 +448,8 @@ class InstallService {
 	}
 
 	public function installJSignPdf(?bool $async = false): void {
-		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'jsignpdf');
-		if ($signatureEngine !== 'jsignpdf') {
+		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
+		if ($signatureEngine !== 'JSignPdf') {
 			return;
 		}
 
