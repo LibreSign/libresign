@@ -71,6 +71,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('footer_template_variables', $this->footerService->getTemplateVariablesMetadata());
 		$this->initialState->provideInitialState('footer_template', $this->footerService->getTemplate());
 		$this->initialState->provideInitialState('footer_template_is_default', $this->footerService->isDefaultTemplate());
+		$this->initialState->provideInitialState('signature_engine', $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf'));
 		$this->initialState->provideInitialState('signature_render_mode', $this->signatureTextService->getRenderMode());
 		$this->initialState->provideInitialState('signature_text_template', $this->signatureTextService->getTemplate());
 		$this->initialState->provideInitialState('signature_width', $this->signatureTextService->getFullSignatureWidth());
