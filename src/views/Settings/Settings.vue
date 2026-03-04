@@ -51,6 +51,7 @@ import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureFlow from './SignatureFlow.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
+import CollectMetadata from './CollectMetadata.vue'
 import SignatureStamp from './SignatureStamp.vue'
 import SigningMode from './SigningMode.vue'
 import Confetti from './Confetti.vue'
@@ -78,6 +79,7 @@ export default {
 		RootCertificateOpenSsl,
 		SignatureFlow,
 		SignatureHashAlgorithm,
+		CollectMetadata,
 		SignatureStamp,
 		Confetti,
 		SigningMode,
