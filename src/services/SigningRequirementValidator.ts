@@ -35,7 +35,6 @@ interface ValidatorConfig {
 	errors?: Array<{ code?: number; [key: string]: unknown }>
 	hasSignatures?: boolean
 	canCreateSignature?: boolean
-	signerHasSignRequest?: boolean
 	[key: string]: unknown
 }
 
@@ -122,11 +121,7 @@ export class SigningRequirementValidator {
 			return false
 		}
 
-		if (config.signerHasSignRequest) {
-			return true
-		}
-
 		const visibleElements = this.signStore.document?.visibleElements || []
-		return visibleElements.some(row => row.signRequestId === signRequestId)
+		return visibleElements.some(row => String(row.signRequestId) === String(signRequestId))
 	}
 }
