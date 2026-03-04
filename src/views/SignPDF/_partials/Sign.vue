@@ -273,7 +273,11 @@ export default {
 			}
 			const document = this.signStore.document || {}
 			const signer = document?.signers?.find(row => row.me) || {}
-			return !!signer.signRequestId
+			if (!signer.signRequestId) {
+				return false
+			}
+			const visibleElements = document?.visibleElements || []
+			return visibleElements.some(row => String(row.signRequestId) === String(signer.signRequestId))
 		},
 		needIdentificationDocuments() {
 			return this.identificationDocumentStore.showDocumentsComponent()
