@@ -15,7 +15,6 @@ use ImagickDraw;
 use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
 use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
