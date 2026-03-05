@@ -13,6 +13,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
@@ -34,6 +35,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CaIdentifierService $caIdentifierService;
 	private LoggerInterface $logger;
 	private SubjectAlternativeNameService $subjectAlternativeNameService;
+	private CrlRevocationChecker $crlRevocationChecker;
 
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
@@ -49,6 +51,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
 		$this->subjectAlternativeNameService = \OCP\Server::get(SubjectAlternativeNameService::class);
+		$this->crlRevocationChecker = $this->createMock(CrlRevocationChecker::class);
 	}
 
 	private function getInstance(): OpenSslHandler {
@@ -65,6 +68,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->logger,
 			\OCP\Server::get(\OCA\Libresign\Db\CrlMapper::class),
 			$this->subjectAlternativeNameService,
+			$this->crlRevocationChecker,
 		);
 	}
 
