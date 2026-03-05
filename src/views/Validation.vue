@@ -26,6 +26,7 @@
 					<!-- TRANSLATORS: Toolbar label for the signature validation feature. "Validate" here is a technical process: the app checks the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->
 					<NcActions :menu-name="t('libresign', 'Validate signature')" :inline="3" :force-name="true">
 						<NcActionButton :wide="true" :disabled="loading" @click="openUuidDialog()">
+							<!-- TRANSLATORS: Button that opens a dialog where the user can type a UUID (a unique identifier code) or numeric ID to look up and validate a specific signed document. "UUID" is a technical term and should not be translated. -->
 							{{ t('libresign', 'From UUID') }}
 							<template #icon>
 								<NcLoadingIcon v-if="loading" :size="20" />
