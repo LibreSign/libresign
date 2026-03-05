@@ -927,14 +927,31 @@ class SignFileService {
 	}
 
 	private function buildBaseSignatureParams(array $certificateData): array {
+		$issuerCommonName = $this->normalizeCertificateFieldToString($certificateData['issuer']['CN'] ?? '');
+		$signerCommonName = $this->normalizeCertificateFieldToString($certificateData['subject']['CN'] ?? '');
+
 		return [
 			'DocumentUUID' => $this->libreSignFile?->getUuid(),
-			'IssuerCommonName' => $certificateData['issuer']['CN'] ?? '',
-			'SignerCommonName' => $certificateData['subject']['CN'] ?? '',
+			'IssuerCommonName' => $issuerCommonName,
+			'SignerCommonName' => $signerCommonName,
 			'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
 			'LocalSignerSignatureDateTime' => (new DateTime('now', new \DateTimeZone('UTC')))
 				->format(DateTimeInterface::ATOM)
 		];
+	}
+
+	private function normalizeCertificateFieldToString(mixed $value): string {
+		if (is_array($value)) {
+			$flattened = [];
+			array_walk_recursive($value, static function (mixed $item) use (&$flattened): void {
+				if ($item !== null) {
+					$flattened[] = (string)$item;
+				}
+			});
+			return implode(', ', $flattened);
+		}
+
+		return $value === null ? '' : (string)$value;
 	}
 
 	private function addEmailToSignatureParams(array $signatureParams, array $certificateData): array {
