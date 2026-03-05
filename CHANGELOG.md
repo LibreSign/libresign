@@ -18,6 +18,84 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 13.1.0 - 2026-03-05
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- feat: vue3 typescript migration [#6995](https://github.com/LibreSign/libresign/pull/6995)
+- feat: playwright e2e tests [#7007](https://github.com/LibreSign/libresign/pull/7007)
+- feat: files list header restructure [#7011](https://github.com/LibreSign/libresign/pull/7011)
+- feat: file list filters [#7019](https://github.com/LibreSign/libresign/pull/7019)
+- feat: signature confirmation steps [#7041](https://github.com/LibreSign/libresign/pull/7041)
+- feat: sign usign only php [#7073](https://github.com/LibreSign/libresign/pull/7073)
+- feat: implement more e2e tests [#7080](https://github.com/LibreSign/libresign/pull/7080)
+- feat: show confetti setting [#7085](https://github.com/LibreSign/libresign/pull/7085)
+- feat: crl revocation checker [#7084](https://github.com/LibreSign/libresign/pull/7084)
+
+### Changed
+- Update translations
+- Bump dependencies
+
+### Fixes
+- fix: vue3 component api migration [#7003](https://github.com/LibreSign/libresign/pull/7003)
+- fix: nextcloud vue v9 compat [#7005](https://github.com/LibreSign/libresign/pull/7005)
+- fix: files list grid toggle and status chip [#7009](https://github.com/LibreSign/libresign/pull/7009)
+- fix: vue router 5 non path params [#7015](https://github.com/LibreSign/libresign/pull/7015)
+- fix: confetti vue router 5 params [#7014](https://github.com/LibreSign/libresign/pull/7014)
+- fix(fileupload): fix oversized preview image in confirm signature dialog [#7017](https://github.com/LibreSign/libresign/pull/7017)
+- fix: a11y improvements [#7052](https://github.com/LibreSign/libresign/pull/7052)
+- fix: files list sort accessibility [#7057](https://github.com/LibreSign/libresign/pull/7057)
+- fix: draw signature tab accessibility [#7059](https://github.com/LibreSign/libresign/pull/7059)
+- fix: use legacy pdfjs worker for browser compat [#7064](https://github.com/LibreSign/libresign/pull/7064)
+- fix: signature engine key [#7067](https://github.com/LibreSign/libresign/pull/7067)
+- fix: files integration actions and propfind [#7138](https://github.com/LibreSign/libresign/pull/7138)
+- fix: orphan file delete null nodeid [#7140](https://github.com/LibreSign/libresign/pull/7140)
+- fix(files): load libresign inline status icons with esm imports [#7147](https://github.com/LibreSign/libresign/pull/7147)
+
+## 12.3.0 - 2026-03-05
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- feat: vue3 typescript migration [#7089](https://github.com/LibreSign/libresign/pull/7089)
+- feat: playwright e2e tests [#7091](https://github.com/LibreSign/libresign/pull/7091)
+- feat: signature confirmation steps [#7092](https://github.com/LibreSign/libresign/pull/7092)
+- feat: files list header restructure [#7098](https://github.com/LibreSign/libresign/pull/7098)
+- feat: file list filters [#7102](https://github.com/LibreSign/libresign/pull/7102)
+- feat: crl revocation checker [#7122](https://github.com/LibreSign/libresign/pull/7122)
+- feat: show confetti setting [#7124](https://github.com/LibreSign/libresign/pull/7124)
+- feat: sign usign only php [#7125](https://github.com/LibreSign/libresign/pull/7125)
+- feat: implement more e2e tests [#7127](https://github.com/LibreSign/libresign/pull/7127)
+
+### Changed
+- Update translations
+- Bump dependencies
+
+### Fixes
+- fix: vue3 component api migration [#7095](https://github.com/LibreSign/libresign/pull/7095)
+- fix: nextcloud vue v9 compat [#7096](https://github.com/LibreSign/libresign/pull/7096)
+- fix: files list grid toggle and status chip [#7097](https://github.com/LibreSign/libresign/pull/7097)
+- fix: confetti vue router 5 params [#7099](https://github.com/LibreSign/libresign/pull/7099)
+- fix: vue router 5 non path params [#7100](https://github.com/LibreSign/libresign/pull/7100)
+- fix(fileupload): fix oversized preview image in confirm signature dialog [#7101](https://github.com/LibreSign/libresign/pull/7101)
+- fix: external page vue3 migration [#7106](https://github.com/LibreSign/libresign/pull/7106)
+- fix: a11y improvements [#7112](https://github.com/LibreSign/libresign/pull/7112)
+- fix: files list sort accessibility [#7114](https://github.com/LibreSign/libresign/pull/7114)
+- fix: draw signature tab accessibility [#7115](https://github.com/LibreSign/libresign/pull/7115)
+- fix: use legacy pdfjs worker for browser compat [#7118](https://github.com/LibreSign/libresign/pull/7118)
+- fix: signature engine key [#7119](https://github.com/LibreSign/libresign/pull/7119)
+- fix: add override [#7123](https://github.com/LibreSign/libresign/pull/7123)
+- fix: add pending code from main [#7128](https://github.com/LibreSign/libresign/pull/7128)
+- fix: composer-lock [#7129](https://github.com/LibreSign/libresign/pull/7129)
+- fix: update package-lock [#7130](https://github.com/LibreSign/libresign/pull/7130)
+- fix: orphan file delete null nodeid [#7141](https://github.com/LibreSign/libresign/pull/7141)
+- fix(files): load libresign inline status icons with esm imports [#7148](https://github.com/LibreSign/libresign/pull/7148)
+
 ## 13.0.3 - 2026-02-20
 ### Fixes
 - fix: prevent CA configuration loss during migrations [#6982](https://github.com/LibreSign/libresign/pull/6982)
