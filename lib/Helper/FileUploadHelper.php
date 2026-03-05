@@ -38,15 +38,15 @@ class FileUploadHelper {
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
 		}
 
+		if ($uploadedFile['size'] > \OCP\Util::uploadLimit()) {
+			@unlink($uploadedFile['tmp_name']);
+			throw new InvalidArgumentException($this->l10n->t('File is too big'));
+		}
+
 		$validator = \OCP\Server::get(FilenameValidator::class);
 		if ($validator->isForbidden($uploadedFile['tmp_name'])) {
 			@unlink($uploadedFile['tmp_name']);
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
-		}
-
-		if ($uploadedFile['size'] > \OCP\Util::uploadLimit()) {
-			@unlink($uploadedFile['tmp_name']);
-			throw new InvalidArgumentException($this->l10n->t('File is too big'));
 		}
 	}
 
