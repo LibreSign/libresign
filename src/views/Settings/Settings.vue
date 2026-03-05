@@ -15,6 +15,7 @@
 		<IdentificationFactors />
 		<ExpirationRules />
 		<Validation />
+		<CrlValidation />
 		<DocMDP />
 		<SignatureFlow />
 		<SigningMode v-if="false" />
@@ -52,6 +53,7 @@ import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureFlow from './SignatureFlow.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
 import CollectMetadata from './CollectMetadata.vue'
+import CrlValidation from './CrlValidation.vue'
 import SignatureStamp from './SignatureStamp.vue'
 import SigningMode from './SigningMode.vue'
 import Confetti from './Confetti.vue'
@@ -80,6 +82,7 @@ export default {
 		SignatureFlow,
 		SignatureHashAlgorithm,
 		CollectMetadata,
+		CrlValidation,
 		SignatureStamp,
 		Confetti,
 		SigningMode,
