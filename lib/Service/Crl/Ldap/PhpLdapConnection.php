@@ -13,19 +13,16 @@ namespace OCA\Libresign\Service\Crl\Ldap;
  * Production implementation of ILdapConnection that delegates every call
  * to the corresponding PHP ldap_* function.
  *
- * Requires the PHP ldap extension to be loaded. If the extension is missing
- * the constructor throws so the DI container can catch the problem early
- * rather than failing silently at connection time.
+ * If the PHP ldap extension is absent the class can still be instantiated;
+ * callers are expected to check function_exists('ldap_connect') before use.
  */
 class PhpLdapConnection implements ILdapConnection {
-	public function __construct() {
-		if (!function_exists('ldap_connect')) {
-			throw new \RuntimeException('PHP ldap extension is not loaded');
-		}
-	}
 
 	#[\Override]
 	public function connect(string $host, int $port): mixed {
+		if (!function_exists('ldap_connect')) {
+			throw new \RuntimeException('PHP ldap extension is not loaded');
+		}
 		$conn = @ldap_connect($host, $port);
 		if (!$conn) {
 			throw new \RuntimeException(sprintf('ldap_connect failed for %s:%d', $host, $port));
