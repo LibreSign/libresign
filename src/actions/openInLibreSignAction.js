@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { registerFileAction, getSidebar } from '@nextcloud/files'
+import { registerFileAction } from '@nextcloud/files'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
@@ -61,11 +61,9 @@ export const action = {
 	 * Single file or folder: open in sidebar
 	 */
 	async exec({ nodes }) {
-		const sidebar = getSidebar()
 		const node = nodes[0]
-		await sidebar.open(node, 'libresign')
-		sidebar.setActiveTab('libresign')
-		return null
+		await window.OCA.Files.Sidebar.open(node.path)
+		window.OCA.Files.Sidebar.setActiveTab('libresign')
 	},
 
 	/**
@@ -101,10 +99,9 @@ export const action = {
 			uuid: null,
 		}
 
-		const sidebar = getSidebar()
 		const firstNode = nodes[0]
-		await sidebar.open(firstNode, 'libresign')
-		sidebar.setActiveTab('libresign')
+		await window.OCA.Files.Sidebar.open(firstNode.path)
+		window.OCA.Files.Sidebar.setActiveTab('libresign')
 
 		return new Array(nodes.length).fill(null)
 	},
