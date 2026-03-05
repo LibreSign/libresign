@@ -1,33 +1,23 @@
-### Pull Request Description
+Resolves: # <!-- related github issue -->
 
+## 📝 Summary
 
-### Related Issue
+A concise description of what this PR does and why.
+
+## 🧪 How to test
 <!--
-If this PR is related to an issue, put here, if not, remove this block
+IMPORTANT: The "How to see this running using GitHub Codespaces" details block SHOULD NOT be included in the final template.
+Testing instructions should be written specifically for each PR,
+describing the steps needed to validate the proposed changes.
+
+Example:
+1. Access the signatures page
+2. Upload a test PDF
+3. Click "Sign" and verify the modal opens correctly
+4. Confirm the signature was applied
+
+Feel free to paste terminal commands or URLs that help reviewers follow along.
 -->
-Issue Number:
-
-### Pull Request Type
-
-<!--
-Please check the type of change your pull request introduces. Remove all that is unrelated and remove the comment block too, maintaining only the type of your PR:
-
-- Bugfix
-- Feature
-- Code style update (formatting, renaming)
-- Refactoring (no functional changes, no api changes)
-- Build related changes
-- Documentation content changes
-- Other (please describe):
--->
-
-### Pull request checklist
-
-- [ ] Did you explain or provide a way of how can we test your code ?
-- [ ] If your pull request is related to frontend modifications provide a print of before and after screen
-- [ ] Did you provide a general summary of your changes ?
-- [ ] Try to limit your pull request to one type, submit multiple pull requests if needed
-- [ ] I implemented tests that cover my contribution
 
 <details>
 <summary>How to see this running using GitHub Codespaces</summary>
@@ -39,9 +29,9 @@ Please check the type of change your pull request introduces. Remove all that is
 - Click **"Create codespace on feat/customize-signature-stamp"**
 
 ### 2. Wait for the environment to start
-- A progress bar will appear on the left.  
+- A progress bar will appear on the left.
 - After that, the terminal will show the build process.
-- Wait until you see the message:  
+- Wait until you see the message:
   ```bash
   ✍️ LibreSign is up!
   ```
@@ -58,9 +48,77 @@ Please check the type of change your pull request introduces. Remove all that is
   - Select `Change visibility` → `Public`.
 
 ### 5. Login credentials
-- **Username**: `admin`  
+- **Username**: `admin`
 - **Password**: `admin`
 
 Done! 🎉
 You're now ready to test this.
 </details>
+
+## 🎨 UI / Front‑end changes
+
+<!--
+ █████  █████ █████
+▒▒███  ▒▒███ ▒▒███
+ ▒███   ▒███  ▒███
+ ▒███   ▒███  ▒███
+ ▒███   ▒███  ▒███
+ ▒███   ▒███  ▒███
+ ▒▒████████   █████
+  ▒▒▒▒▒▒▒▒   ▒▒▒▒▒
+
+Feel free to remove this section when your PR only affects the backend/API code.
+-->
+
+- [ ] ... <!-- Describe the tasks performed here (e.g., layout adjustment, new feature X) -->
+- [ ] Screenshots before/after (add images or links)
+
+### 🚧 Tasks
+<!-- Add here the list of tasks that is necessary to do before merge this PR. As example: update the package X, merge the PR y. If isn't necessary, fell free to remove this block -->
+- [ ] ...
+
+🏚️ Before | 🏡 After
+--- | ---
+Screenshot before | Screenshot after
+
+<!-- ☀️ Light theme | 🌑 Dark theme → Please test and document both themes -->
+
+- [ ] Tested in multiple browsers (Chrome, Firefox, Safari) – *optional but appreciated*
+- [ ] Components, Unit (with vitest) and/or e2e (with Playwright) tests added - *Required*
+- [ ] Accessibility verified (contrast, keyboard navigation, screen reader friendly) – *if applicable*
+- [ ] Design review approved – *optional, link to feedback if available*
+- [ ] Documentation updated (if applicable) – [docs repository](https://github.com/LibreSign/documentation/)
+
+## ⚙️ API / Back‑end changes
+
+<!--
+   █████████   ███████████  █████
+  ███▒▒▒▒▒███ ▒▒███▒▒▒▒▒███▒▒███
+ ▒███    ▒███  ▒███    ▒███ ▒███
+ ▒███████████  ▒██████████  ▒███
+ ▒███▒▒▒▒▒███  ▒███▒▒▒▒▒▒   ▒███
+ ▒███    ▒███  ▒███         ▒███
+ █████   █████ █████        █████
+▒▒▒▒▒   ▒▒▒▒▒ ▒▒▒▒▒        ▒▒▒▒▒
+
+Feel free to remove this section when your PR only affects the frontend/UI code.
+-->
+
+- [ ] ... <!-- Describe the API/service/architecture changes here -->
+- [ ] Unit and/or integration tests added – *required for backend changes*
+- [ ] Capabilities updated (if applicable) – if adding/modifying Nextcloud capabilities
+- [ ] Documentation updated (if applicable) - [docs repository](https://github.com/LibreSign/documentation)
+- [ ] API documentation updated with the command `composer openapi` if necessary <!-- This generates the openapi.json file -->
+
+### 🚧 Tasks
+<!-- Add here the list of tasks that is necessary to do before merge this PR. As example: update the package X, merge the PR y. If isn't necessary, fell free to remove this block -->
+- [ ] ...
+
+## ✅ Checklist
+
+- [ ] I have read and followed the [contribution guide](CONTRIBUTING.md).
+- [ ] ... (list your own tasks here)
+
+## 🤖 AI (if applicable)
+
+- [ ] The content of this PR was partially or fully generated using AI
