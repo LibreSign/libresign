@@ -265,22 +265,22 @@
         },
         {
             "name": "donatj/mock-webserver",
-            "version": "v2.9.0",
+            "version": "v2.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/donatj/mock-webserver.git",
-                "reference": "959257b911f2ee44472e0eb87ebddef8de498f7c"
+                "reference": "5074522d25f4e83953b1c5417a884c995d0dfa91"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/959257b911f2ee44472e0eb87ebddef8de498f7c",
-                "reference": "959257b911f2ee44472e0eb87ebddef8de498f7c",
+                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/5074522d25f4e83953b1c5417a884c995d0dfa91",
+                "reference": "5074522d25f4e83953b1c5417a884c995d0dfa91",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "ext-sockets": "*",
-                "php": ">=7.1",
+                "php": ">=7.2",
                 "ralouphie/getallheaders": "~2.0 || ~3.0"
             },
             "require-dev": {
@@ -288,7 +288,7 @@
                 "donatj/drop": "^1.0",
                 "ext-curl": "*",
                 "friendsofphp/php-cs-fixer": "^3.1",
-                "phpunit/phpunit": "~7|~9",
+                "phpunit/phpunit": "~8|~9",
                 "squizlabs/php_codesniffer": "^3.6"
             },
             "type": "library",
@@ -321,7 +321,7 @@
             ],
             "support": {
                 "issues": "https://github.com/donatj/mock-webserver/issues",
-                "source": "https://github.com/donatj/mock-webserver/tree/v2.9.0"
+                "source": "https://github.com/donatj/mock-webserver/tree/v2.10.0"
             },
             "funding": [
                 {
@@ -337,7 +337,7 @@
                     "type": "ko_fi"
                 }
             ],
-            "time": "2025-11-04T18:31:41+00:00"
+            "time": "2026-02-20T18:53:16+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
@@ -345,12 +345,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "21dc724a0583619cd1652f673303492272778051"
+                "reference": "c36ec48316d4a4b3b4c9529f436cdedc7752d271"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/21dc724a0583619cd1652f673303492272778051",
-                "reference": "21dc724a0583619cd1652f673303492272778051",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/c36ec48316d4a4b3b4c9529f436cdedc7752d271",
+                "reference": "c36ec48316d4a4b3b4c9529f436cdedc7752d271",
                 "shasum": ""
             },
             "require": {
@@ -438,7 +438,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.8.0"
+                "source": "https://github.com/guzzle/psr7/tree/2.8"
             },
             "funding": [
                 {
@@ -454,7 +454,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-08-23T21:21:41+00:00"
+            "time": "2026-03-05T20:35:31+00:00"
         },
         {
             "name": "mikey179/vfsstream",
@@ -575,12 +575,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "8c360e27327c8bd29e1c57721574709d0d706118"
+                "reference": "50f0d9c9d0e3cff1163c959c50aaaaa4a7115f08"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/8c360e27327c8bd29e1c57721574709d0d706118",
-                "reference": "8c360e27327c8bd29e1c57721574709d0d706118",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/50f0d9c9d0e3cff1163c959c50aaaaa4a7115f08",
+                "reference": "50f0d9c9d0e3cff1163c959c50aaaaa4a7115f08",
                 "shasum": ""
             },
             "require": {
@@ -626,7 +626,7 @@
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
                 "source": "https://github.com/nikic/PHP-Parser/tree/master"
             },
-            "time": "2025-12-06T20:24:35+00:00"
+            "time": "2026-02-26T13:20:22+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -1136,12 +1136,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "6ddd961330ad6c86e2a782dec301b21d8c3f1299"
+                "reference": "657c4a4a904dc3d5bc730ade7f8e4840fba126a8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/6ddd961330ad6c86e2a782dec301b21d8c3f1299",
-                "reference": "6ddd961330ad6c86e2a782dec301b21d8c3f1299",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/657c4a4a904dc3d5bc730ade7f8e4840fba126a8",
+                "reference": "657c4a4a904dc3d5bc730ade7f8e4840fba126a8",
                 "shasum": ""
             },
             "require": {
@@ -1217,27 +1217,11 @@
             },
             "funding": [
                 {
-                    "url": "https://phpunit.de/sponsors.html",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/sebastianbergmann",
-                    "type": "github"
-                },
-                {
-                    "url": "https://liberapay.com/sebastianbergmann",
-                    "type": "liberapay"
-                },
-                {
-                    "url": "https://thanks.dev/u/gh/sebastianbergmann",
-                    "type": "thanks_dev"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/phpunit/phpunit",
-                    "type": "tidelift"
+                    "url": "https://phpunit.de/sponsoring.html",
+                    "type": "other"
                 }
             ],
-            "time": "2026-02-12T05:53:20+00:00"
+            "time": "2026-03-04T07:24:55+00:00"
         },
         {
             "name": "psr/http-client",
