@@ -69,7 +69,6 @@ vi.mock('@nextcloud/files', () => ({
 		}
 	},
 	registerFileAction: vi.fn(),
-	getSidebar: vi.fn(() => mockSidebar),
 }))
 
 vi.mock('@nextcloud/capabilities', () => ({
@@ -130,6 +129,12 @@ describe('openInLibreSignAction rules', () => {
 		vi.clearAllMocks()
 		mockSidebar.open.mockClear()
 		mockSidebar.setActiveTab.mockClear()
+
+		// Set up NC32-compatible window.OCA.Files.Sidebar mock
+		window.OCA = {
+			Libresign: {},
+			Files: { Sidebar: mockSidebar as OCAFilesSidebar },
+		}
 
 		const { loadState: loadStateModule } = await import('@nextcloud/initial-state')
 		const { getCapabilities: getCapabilitiesModule } = await import('@nextcloud/capabilities')
@@ -304,11 +309,11 @@ describe('openInLibreSignAction rules', () => {
 		})
 
 		it('opens sidebar with file', async () => {
-			const node = { type: 'file', mime: 'application/pdf', fileid: 123 }
+			const node = { type: 'file', mime: 'application/pdf', fileid: 123, path: '/test.pdf' }
 
 			await action.exec({ nodes: [node] })
 
-			expect(mockSidebar.open).toHaveBeenCalledWith(node, 'libresign')
+			expect(mockSidebar.open).toHaveBeenCalledWith('/test.pdf')
 			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
 		})
 
@@ -317,15 +322,16 @@ describe('openInLibreSignAction rules', () => {
 				type: 'folder',
 				attributes: { 'libresign-signature-status': 'signed' },
 				fileid: 456,
+				path: '/Documents',
 			}
 
 			await action.exec({ nodes: [node] })
 
-			expect(mockSidebar.open).toHaveBeenCalledWith(node, 'libresign')
+			expect(mockSidebar.open).toHaveBeenCalledWith('/Documents')
 		})
 
 		it('returns null after execution', async () => {
-			const node = { type: 'file', mime: 'application/pdf' }
+			const node = { type: 'file', mime: 'application/pdf', path: '/test.pdf' }
 			const result = await action.exec({ nodes: [node] })
 
 			expect(result).toBeNull()
@@ -382,11 +388,11 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 		it('opens sidebar after envelope creation', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Docs' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Docs', path: '/Docs/file1.pdf' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs', path: '/Docs/file2.pdf' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { Libresign: {}, Files: { Sidebar: mockSidebar as OCAFilesSidebar } }
 
 			await action.execBatch({ nodes })
 
@@ -396,11 +402,11 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 		it('creates correct pending envelope structure', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Docs' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Docs', path: '/Docs/file1.pdf' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs', path: '/Docs/file2.pdf' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { Libresign: {}, Files: { Sidebar: mockSidebar as OCAFilesSidebar } }
 
 			await action.execBatch({ nodes })
 
@@ -413,11 +419,11 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 		it('calculates envelope path correctly with subdirectory', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Documents/Contracts' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Documents/Contracts' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Documents/Contracts', path: '/Documents/Contracts/a.pdf' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Documents/Contracts', path: '/Documents/Contracts/b.pdf' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { Libresign: {}, Files: { Sidebar: mockSidebar as OCAFilesSidebar } }
 
 			await action.execBatch({ nodes })
 
@@ -427,11 +433,11 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 		it('calculates envelope path correctly in root', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/', path: '/file1.pdf' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/', path: '/file2.pdf' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { Libresign: {}, Files: { Sidebar: mockSidebar as OCAFilesSidebar } }
 
 			await action.execBatch({ nodes })
 
@@ -441,11 +447,11 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 
 		it('handles trailing slashes in dirname', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Docs/' },
-				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs/' },
+				{ type: 'file', mime: 'application/pdf', fileid: 1, dirname: '/Docs/', path: '/Docs/file1.pdf' },
+				{ type: 'file', mime: 'application/pdf', fileid: 2, dirname: '/Docs/', path: '/Docs/file2.pdf' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { Libresign: {}, Files: { Sidebar: mockSidebar as OCAFilesSidebar } }
 
 			await action.execBatch({ nodes })
 
@@ -460,6 +466,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 					mime: 'application/pdf',
 					fileid: 123,
 					dirname: '/Test',
+					path: '/Test/document.pdf',
 					name: 'document.pdf',
 				},
 				{
@@ -467,11 +474,12 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 					mime: 'application/pdf',
 					fileid: 456,
 					dirname: '/Test',
+					path: '/Test/contract.pdf',
 					name: 'contract.pdf',
 				},
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA = { Libresign: {}, Files: { Sidebar: mockSidebar as OCAFilesSidebar } }
 
 			await action.execBatch({ nodes })
 
