@@ -8,6 +8,7 @@ import { createRouter, createWebHistory, type Router, type RouteRecordRaw } from
 import { loadState } from '@nextcloud/initial-state'
 import { getRootUrl, generateUrl } from '@nextcloud/router'
 
+import { initialActionCode } from '../helpers/ActionMapping'
 import { isExternal } from '../helpers/isExternal'
 import { selectAction } from '../helpers/SelectAction'
 
@@ -212,7 +213,7 @@ router.beforeEach((to, from, next) => {
 	let action
 	if (actionElement) {
 		const actionValue = loadState('libresign', 'action', 0)
-		to.params.action = String(actionValue)
+		initialActionCode.value = actionValue
 		action = selectAction(actionValue, to, from)
 		document.querySelector('#initial-state-libresign-action')?.remove()
 	}
