@@ -357,6 +357,20 @@ describe('useSignStore', () => {
 			expect(result.type).toBe('signError')
 			expect(result.errors).toEqual(['err'])
 		})
+
+		it('returns signError for certificate validation errors and preserves API message', () => {
+			const store = useSignStore()
+			const apiErrors = [{ message: 'Certificate has been revoked', code: 422 }]
+			const error = {
+				response: { data: { ocs: { data: { errors: apiErrors } } } },
+			}
+
+			const result = store.parseSignError(error)
+
+			expect(result.type).toBe('signError')
+			expect(result.action).toBeUndefined()
+			expect(result.errors).toEqual(apiErrors)
+		})
 	})
 
 	describe('setFileToSign', () => {
