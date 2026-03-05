@@ -17,9 +17,21 @@ import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
  *   The action files were never imported by any bundle entry point, so
  *   registerFileAction() was never called for them.
  *   Fix: init.ts now imports both action modules as side-effects.
+ *
+ * Bug 3: POST /request-signature missing "file" parameter after upload.
+ *   client.stat() was called WITHOUT getDefaultPropfind() data, so the WebDAV
+ *   PROPFIND response omitted the Nextcloud-specific {owncloud}fileid property.
+ *   resultToNode() produced a Node with fileid = undefined, mapNodeToFileInfo
+ *   returned id = '', addFile() silently rejected the temp record, selectedFileId
+ *   stayed 0, and saveOrUpdateSignatureRequest sent POST without any file reference.
+ *   Fix: pass data: getDefaultPropfind() to client.stat() so fileid is always
+ *   included and the sidebar can correctly identify the uploaded file.
  */
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
+
+const mockDefaultPropfind = '<propfind xmlns="DAV:"><prop><fileid/></prop></propfind>'
+const mockGetDefaultPropfind = vi.fn(() => mockDefaultPropfind)
 
 const mockStat = vi.fn()
 const mockClient = { stat: mockStat }
@@ -40,6 +52,11 @@ const mockUploader = { upload: mockUpload }
 const mockGetUploader = vi.fn(() => mockUploader)
 
 const mockAxiosPost = vi.fn(() => Promise.resolve({ data: {} }))
+
+const mockLoadState = vi.fn((app: string, key: string, defaultValue?: unknown) => {
+	if (app === 'libresign' && key === 'certificate_ok') return true
+	return defaultValue
+})
 
 // ─── Module-level mocks (hoisted before imports) ─────────────────────────────
 
@@ -66,8 +83,13 @@ vi.mock('@nextcloud/files', () => ({
 	registerFileAction: mockRegisterFileAction,
 }))
 
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: mockLoadState,
+}))
+
 vi.mock('@nextcloud/files/dav', () => ({
 	getClient: mockGetClient,
+	getDefaultPropfind: mockGetDefaultPropfind,
 	getRootPath: mockGetRootPath,
 	resultToNode: mockResultToNode,
 	registerDavProperty: mockRegisterDavProperty,
@@ -98,7 +120,8 @@ vi.mock('../actions/showStatusInlineAction.js', () => ({}))
  */
 function captureNewMenuHandler(): (context: unknown, content: unknown) => Promise<void> {
 	expect(mockAddNewFileMenuEntry).toHaveBeenCalledOnce()
-	const [[entry]] = mockAddNewFileMenuEntry.mock.calls as [[{ handler: (context: unknown, content: unknown) => Promise<void>; uploadManager?: { upload: typeof mockUpload } }]]
+	type MenuEntry = { handler: (context: unknown, content: unknown) => Promise<void>; uploadManager?: { upload: typeof mockUpload } }
+	const entry = mockAddNewFileMenuEntry.mock.calls[0][0] as MenuEntry
 	// Inject the mock uploader so handler can call this.uploadManager.upload()
 	entry.uploadManager = mockUploader
 	return entry.handler.bind(entry)
@@ -172,8 +195,39 @@ describe('init.ts', () => {
 
 	it('adds a "New signature request" entry to the Files new-menu', () => {
 		expect(mockAddNewFileMenuEntry).toHaveBeenCalledOnce()
-		const [entry] = mockAddNewFileMenuEntry.mock.calls[0] as [{ id: string }][]
+		const entry = mockAddNewFileMenuEntry.mock.calls[0][0] as { id: string }
 		expect(entry.id).toBe('libresign-request')
+	})
+
+	/**
+	 * Regression: sidebar did not open on LibreSign tab.
+	 * The menu entry must be hidden when LibreSign's certificate is not
+	 * configured (certificate_ok = false), because isEnabled() in tab.ts also
+	 * checks certificate_ok and rejects unconfigured instances — causing the
+	 * sidebar to fall back to the default (Details) tab.
+	 */
+	describe('menu entry enabled() guard', () => {
+		type MenuEntry = {
+			enabled: (context: { permissions: number }) => boolean
+		}
+
+		it('is enabled when certificate_ok is true and folder has CREATE permission', () => {
+			mockLoadState.mockReturnValue(true)
+			const entry = mockAddNewFileMenuEntry.mock.calls[0][0] as MenuEntry
+			expect(entry.enabled({ permissions: 4 /* CREATE */ })).toBe(true)
+		})
+
+		it('is disabled when certificate_ok is false (LibreSign not configured)', () => {
+			mockLoadState.mockReturnValue(false)
+			const entry = mockAddNewFileMenuEntry.mock.calls[0][0] as MenuEntry
+			expect(entry.enabled({ permissions: 4 /* CREATE */ })).toBe(false)
+		})
+
+		it('is disabled when folder lacks CREATE permission even with certificate_ok', () => {
+			mockLoadState.mockReturnValue(true)
+			const entry = mockAddNewFileMenuEntry.mock.calls[0][0] as MenuEntry
+			expect(entry.enabled({ permissions: 0 })).toBe(false)
+		})
 	})
 
 	// ── Side-effect: file-action imports ─────────────────────────────────────
@@ -213,13 +267,28 @@ describe('init.ts', () => {
 		 */
 		it('calls client.stat with getRootPath() prefix to avoid PROPFIND 404', () => {
 			const expectedPath = `${mockGetRootPath()}${folderPath}/${fileName}`
-			expect(mockStat).toHaveBeenCalledWith(expectedPath, { details: true })
+			expect(mockStat).toHaveBeenCalledWith(expectedPath, expect.objectContaining({ details: true }))
 		})
 
 		it('does NOT call client.stat with a bare path missing the root prefix', () => {
 			const barePath = `${folderPath}/${fileName}`
 			// Ensure the old (broken) path was never used
-			expect(mockStat).not.toHaveBeenCalledWith(barePath, { details: true })
+			expect(mockStat).not.toHaveBeenCalledWith(barePath, expect.anything())
+		})
+
+		/**
+		 * Regression: POST /request-signature missing "file" parameter.
+		 * Without getDefaultPropfind(), the WebDAV PROPFIND response omits the
+		 * Nextcloud-specific fileid property. resultToNode() then returns a Node
+		 * with fileid = undefined, which propagates as an empty fileInfo.id through
+		 * the sidebar → addFile silently rejects the record → selectedFileId = 0 →
+		 * saveOrUpdateSignatureRequest sends POST with no file reference → 422.
+		 */
+		it('calls client.stat with getDefaultPropfind() data so fileid is returned', () => {
+			expect(mockStat).toHaveBeenCalledWith(
+				expect.any(String),
+				expect.objectContaining({ data: mockDefaultPropfind }),
+			)
 		})
 
 		it('uploads the file before posting the OCS request', () => {
