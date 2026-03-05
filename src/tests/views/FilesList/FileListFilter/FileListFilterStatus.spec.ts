@@ -14,6 +14,7 @@ import { FILE_STATUS } from '../../../../constants.js'
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn((_app: string, text: string) => text),
+	isRTL: vi.fn(() => false),
 }))
 
 vi.mock('@nextcloud/logger', () => ({

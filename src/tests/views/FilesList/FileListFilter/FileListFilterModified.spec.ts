@@ -21,6 +21,7 @@ vi.mock('@nextcloud/l10n', () => ({
 		}
 		return text
 	}),
+	isRTL: vi.fn(() => false),
 }))
 
 vi.mock('@nextcloud/logger', () => ({

@@ -7,7 +7,7 @@ import axios from '@nextcloud/axios'
 import { addNewFileMenuEntry, Permission } from '@nextcloud/files'
 import type { NewMenuEntry, IFolder, INode } from '@nextcloud/files'
 import { registerDavProperty } from '@nextcloud/files/dav'
-import { getClient, resultToNode } from '@nextcloud/files/dav'
+import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
 import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 import { getUploader } from '@nextcloud/upload'
@@ -15,6 +15,8 @@ import type { Uploader } from '@nextcloud/upload'
 import type { FileStat, ResponseDataDetailed } from 'webdav'
 
 import logger from './logger'
+import './actions/openInLibreSignAction.js'
+import './actions/showStatusInlineAction.js'
 import LibreSignLogoSvg from '../img/app-colored.svg?raw'
 import LibreSignLogoDarkSvg from '../img/app-dark.svg?raw'
 import { useIsDarkTheme } from './helpers/useIsDarkTheme'
@@ -64,9 +66,12 @@ addNewFileMenuEntry({
 				name: file.name,
 			})
 
-			// Fetch the complete node object from the Files API
+			// Fetch the complete node object including NC-specific DAV properties.
 			const client = getClient()
-			const result = await client.stat(path, { details: true }) as ResponseDataDetailed<FileStat>
+			const result = await client.stat(`${getRootPath()}${path}`, {
+				details: true,
+				data: getDefaultPropfind(),
+			}) as ResponseDataDetailed<FileStat>
 			const node = resultToNode(result.data)
 
 			// Open sidebar with LibreSign tab
