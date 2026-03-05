@@ -19,14 +19,17 @@ class PopplerSetupCheck implements ISetupCheck {
 		$this->l10n = $l10n;
 	}
 
+	#[\Override]
 	public function getName(): string {
 		return $this->l10n->t('Poppler utils');
 	}
 
+	#[\Override]
 	public function getCategory(): string {
 		return 'system';
 	}
 
+	#[\Override]
 	public function run(): SetupResult {
 		$pdfsigOk = $this->checkPdfSig();
 		$pdfinfoOk = $this->checkPdfinfo();
