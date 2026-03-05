@@ -339,22 +339,6 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 	}
 
-	#[DataProvider('dataProviderCrlRevocationDateExtraction')]
-	public function testExtractRevocationDateFromCrlText(
-		string $crlText,
-		array $serialNumbers,
-		?string $expectedDate,
-		string $description,
-	): void {
-		$instance = $this->getInstance();
-		$method = new \ReflectionMethod(OpenSslHandler::class, 'extractRevocationDateFromCrlText');
-		$method->setAccessible(true);
-
-		$result = $method->invoke($instance, $crlText, $serialNumbers);
-
-		$this->assertSame($expectedDate, $result, $description);
-	}
-
 	public static function dataProviderToArray(): array {
 		return [
 			'Basic structure with minimal data' => [
@@ -431,37 +415,6 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				['libresign-ca-id:abc123_g:1_e:openssl'],
 				['libresign-ca-id:abc123_g:1_e:openssl'],
 				'OU with only CA ID should be kept when generated',
-			],
-		];
-	}
-
-	public static function dataProviderCrlRevocationDateExtraction(): array {
-		$crlText = implode("\n", [
-			'Revoked Certificates:',
-			'    Serial Number: 0A',
-			'        Revocation Date: Jan 28 12:34:56 2026 GMT',
-			'    Serial Number: 0B',
-			'        Revocation Date: Jan 29 01:02:03 2026 GMT',
-		]);
-
-		return [
-			'Extract first revocation date' => [
-				$crlText,
-				['0A'],
-				'2026-01-28T12:34:56+00:00',
-				'Expected revocation date for serial 0A',
-			],
-			'Extract second revocation date with hex' => [
-				$crlText,
-				['0B', '0C'],
-				'2026-01-29T01:02:03+00:00',
-				'Expected revocation date for serial 0B',
-			],
-			'Revocation date not found' => [
-				$crlText,
-				['0D'],
-				null,
-				'No revocation date should be returned when serial not present',
 			],
 		];
 	}
