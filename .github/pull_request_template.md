@@ -1,10 +1,10 @@
 Resolves: # <!-- related github issue -->
 
-## Summary
+## 📝 Summary
 
 A concise description of what this PR does and why.
 
-## How to test
+## 🧪 How to test
 
 <details>
 <summary>How to see this running using GitHub Codespaces</summary>
@@ -42,7 +42,7 @@ Done! 🎉
 You're now ready to test this.
 </details>
 
-## UI / Front‑end changes
+## 🎨 UI / Front‑end changes
 
 <!--
  █████  █████ █████
@@ -66,7 +66,7 @@ Feel free to remove this section when your PR only affects the backend/API code.
 
 🏚️ Before | 🏡 After
 --- | ---
-<!-- Add screenshot --> | <!-- Add screenshot -->
+<!-- Add screenshot  |  Add screenshot -->
 
 <!-- ☀️ Light theme | 🌑 Dark theme → Please test and document both themes -->
 
@@ -76,7 +76,7 @@ Feel free to remove this section when your PR only affects the backend/API code.
 - [ ] Design review approved – *optional, link to feedback if available*
 - [ ] Documentation updated (if applicable) – [docs repository](https://github.com/LibreSign/documentation/)
 
-## API / Back‑end changes
+## ⚙️ API / Back‑end changes
 
 <!--
    █████████   ███████████  █████
@@ -106,6 +106,6 @@ Feel free to remove this section when your PR only affects the frontend/UI code.
 - [ ] I have read and followed the [contribution guide](CONTRIBUTING.md).
 - [ ] ... (list your own tasks here)
 
-## AI (if applicable)
+## 🤖 AI (if applicable)
 
 - [ ] The content of this PR was partially or fully generated using AI
