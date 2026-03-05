@@ -25,6 +25,7 @@ class LoadAdditionalListener implements IEventListener {
 		private CertificateEngineFactory $certificateEngineFactory,
 	) {
 	}
+	#[\Override]
 	public function handle(Event $event): void {
 		if (!($event instanceof LoadAdditionalScriptsEvent)) {
 			return;

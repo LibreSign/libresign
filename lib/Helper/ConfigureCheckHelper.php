@@ -52,6 +52,7 @@ class ConfigureCheckHelper implements JsonSerializable {
 		return $this;
 	}
 
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'status' => $this->getStatus(),

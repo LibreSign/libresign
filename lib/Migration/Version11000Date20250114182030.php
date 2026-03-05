@@ -32,6 +32,7 @@ class Version11000Date20250114182030 extends SimpleMigrationStep {
 	 * @param Closure(): ISchemaWrapper $schemaClosure
 	 * @param array $options
 	 */
+	#[\Override]
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		// BACKUP BEGIN
 		$qb1 = $this->connection->getQueryBuilder();

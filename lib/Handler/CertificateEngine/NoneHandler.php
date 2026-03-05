@@ -9,44 +9,54 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 class NoneHandler extends AEngineHandler implements IEngineHandler {
+	#[\Override]
 	protected function getConfigureCheckResourceName(): string {
 		return 'none-configure';
 	}
 
+	#[\Override]
 	protected function getCertificateRegenerationTip(): string {
 		return 'Switch to a proper certificate engine: occ libresign:configure:openssl or occ libresign:configure:cfssl';
 	}
 
+	#[\Override]
 	protected function getEngineSpecificChecks(): array {
 		return [];
 	}
 
+	#[\Override]
 	protected function getSetupSuccessMessage(): string {
 		return 'None handler is active (no certificates required).';
 	}
 
+	#[\Override]
 	protected function getSetupErrorMessage(): string {
 		return 'None handler configuration error.';
 	}
 
+	#[\Override]
 	protected function getSetupErrorTip(): string {
 		return 'Switch to a proper certificate engine: occ libresign:configure:openssl or occ libresign:configure:cfssl';
 	}
 
+	#[\Override]
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
 	): void {
 	}
 
+	#[\Override]
 	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
 		return '';
 	}
 
+	#[\Override]
 	public function isSetupOk(): bool {
 		return true;
 	}
 
+	#[\Override]
 	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string {
 		throw new \RuntimeException('CRL generation is not supported by None handler');
 	}

@@ -16,6 +16,7 @@ class Sms extends TwofactorGateway {
 		ISignatureMethod::SIGNATURE_METHOD_SMS,
 	];
 
+	#[\Override]
 	public function getFriendlyName(): string {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by SMS
 		return $this->identifyService->getL10n()->t('SMS');

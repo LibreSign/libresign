@@ -23,10 +23,12 @@ class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
 		);
 	}
 
+	#[\Override]
 	public function validateToSign(): void {
 		$this->throwIfInvalidToken();
 	}
 
+	#[\Override]
 	public function toArray(): array {
 		$entity = $this->getEntity();
 
@@ -74,6 +76,7 @@ class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
 		return $start . str_repeat('*', $maskedLength) . $end;
 	}
 
+	#[\Override]
 	public function requestCode(string $identifier, string $method): void {
 		$signRequestMapper = $this->identifyService->getSignRequestMapper();
 		$signRequest = $signRequestMapper->getById($this->getEntity()->getSignRequestId());

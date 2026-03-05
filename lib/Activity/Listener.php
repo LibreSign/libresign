@@ -42,6 +42,7 @@ class Listener implements IEventListener {
 	) {
 	}
 
+	#[\Override]
 	public function handle(Event $event): void {
 		/** @var SendSignNotificationEvent|SignedEvent|SignRequestCanceledEvent $event */
 		match ($event::class) {

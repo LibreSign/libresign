@@ -16,6 +16,7 @@ class Whatsapp extends TwofactorGateway {
 		ISignatureMethod::SIGNATURE_METHOD_WHATSAPP,
 	];
 
+	#[\Override]
 	public function getFriendlyName(): string {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by WhatsApp
 		return $this->identifyService->getL10n()->t('WhatsApp');

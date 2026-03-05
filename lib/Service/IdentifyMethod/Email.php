@@ -43,10 +43,12 @@ class Email extends AbstractIdentifyMethod {
 		);
 	}
 
+	#[\Override]
 	public function validateToRequest(): void {
 		$this->throwIfInvalidEmail();
 	}
 
+	#[\Override]
 	public function validateToIdentify(): void {
 		$this->throwIfAccountAlreadyExists();
 		$this->throwIfIsAuthenticatedWithDifferentAccount();
@@ -59,6 +61,7 @@ class Email extends AbstractIdentifyMethod {
 		$this->updateIdentifiedAt();
 	}
 
+	#[\Override]
 	public function validateToSign(): void {
 		$this->throwIfAccountAlreadyExists();
 		$this->throwIfIsAuthenticatedWithDifferentAccount();
@@ -172,6 +175,7 @@ class Email extends AbstractIdentifyMethod {
 		]));
 	}
 
+	#[\Override]
 	public function validateToCreateAccount(string $value): void {
 		$this->throwIfInvalidEmail();
 		$this->throwIfNotAllowedToCreateAccount();
@@ -199,6 +203,7 @@ class Email extends AbstractIdentifyMethod {
 		}
 	}
 
+	#[\Override]
 	public function getSettings(): array {
 		if (!empty($this->settings)) {
 			return $this->settings;

@@ -36,6 +36,7 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 		);
 	}
 
+	#[\Override]
 	public function validateToIdentify(): void {
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
@@ -45,6 +46,7 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 		$this->updateIdentifiedAt();
 	}
 
+	#[\Override]
 	public function validateToSign(): void {
 		$this->throwIfInvalidToken();
 		$this->throwIfMaximumValidityExpired();
@@ -76,6 +78,7 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 		};
 	}
 
+	#[\Override]
 	public function getSettings(): array {
 		if (!empty($this->settings)) {
 			return $this->settings;

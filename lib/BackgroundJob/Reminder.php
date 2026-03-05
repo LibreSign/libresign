@@ -28,6 +28,7 @@ class Reminder extends TimedJob {
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function run($argument): void {
 		$this->reminderService->sendReminders();
 	}
