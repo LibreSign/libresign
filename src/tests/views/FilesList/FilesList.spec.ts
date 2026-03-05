@@ -13,7 +13,6 @@ import { useUserConfigStore } from '../../../store/userconfig.js'
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn((_app: string, text: string) => text),
-	isRTL: vi.fn(() => false),
 }))
 
 vi.mock('@nextcloud/logger', () => ({
@@ -115,6 +114,13 @@ vi.mock('../../../views/FilesList/FilesListVirtual.vue', () => ({
 	},
 }))
 
+vi.mock('../../../views/FilesList/FileListFilters.vue', () => ({
+	default: {
+		name: 'FileListFilters',
+		template: '<div class="file-list-filters-stub" />',
+	},
+}))
+
 vi.mock('../../../components/Request/RequestPicker.vue', () => ({
 	default: {
 		name: 'RequestPicker',
@@ -150,8 +156,8 @@ describe('FilesList.vue rendering rules', () => {
 		await flushPromises()
 
 		expect(wrapper.vm.mdiFolder).toBeTruthy()
-		expect(wrapper.vm.mdiViewGrid).toBeTruthy()
-		expect(wrapper.vm.mdiViewList).toBeTruthy()
+		expect(wrapper.vm.mdiViewGridOutline).toBeTruthy()
+		expect(wrapper.vm.mdiFormatListBulletedSquare).toBeTruthy()
 		expect(wrapper.vm.mdiChevronDown).toBeTruthy()
 		expect(wrapper.vm.mdiChevronUp).toBeTruthy()
 		expect(wrapper.vm.mdiReload).toBeTruthy()
@@ -177,6 +183,27 @@ describe('FilesList.vue rendering rules', () => {
 		const header = wrapper.find('.files-list__header')
 		const firstChild = header.element.children[0]
 		expect(firstChild.classList.contains('request-picker-stub')).toBe(true)
+	})
+
+	it('renders FileListFilters in the header before the grid toggle button', async () => {
+		const filesStore = useFilesStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+		const wrapper = mountComponent()
+		await flushPromises()
+
+		const header = wrapper.find('.files-list__header')
+		const filterStub = header.find('.file-list-filters-stub')
+		const gridButton = header.find('.files-list__header-grid-button')
+
+		expect(filterStub.exists()).toBe(true)
+		expect(gridButton.exists()).toBe(true)
+
+		// FileListFilters must appear before the grid button in the DOM
+		const children = Array.from(header.element.children)
+		const filterIndex = children.findIndex(el => el.classList.contains('file-list-filters-stub'))
+		const gridIndex = children.findIndex(el => el.classList.contains('files-list__header-grid-button'))
+		expect(filterIndex).toBeLessThan(gridIndex)
 	})
 
 	it('calls filesStore.updateAllFiles once more when reload button is clicked', async () => {
@@ -238,7 +265,7 @@ describe('FilesList.vue rendering rules', () => {
 
 		const gridButton = wrapper.find('.files-list__header-grid-button')
 		const iconWithPath = gridButton.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
-		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewGrid)
+		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewGridOutline)
 	})
 
 	it('renders list toggle icon path when in grid mode', async () => {
@@ -252,6 +279,6 @@ describe('FilesList.vue rendering rules', () => {
 
 		const gridButton = wrapper.find('.files-list__header-grid-button')
 		const iconWithPath = gridButton.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
-		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewList)
+		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiFormatListBulletedSquare)
 	})
 })

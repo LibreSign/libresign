@@ -42,7 +42,8 @@ export default {
 		options() {
 			return [
 				{ id: 'JSignPdf', label: 'JSignPdf' },
-				{ id: 'PhpNative', label: t('libresign', 'PHP native') },
+				// TRANSLATORS "Native" refers to a signature engine that runs directly with PHP, without requiring external runtimes like Java
+				{ id: 'PhpNative', label: t('libresign', 'Native') },
 			]
 		},
 		selectedOption: {

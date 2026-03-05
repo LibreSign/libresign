@@ -49,8 +49,8 @@
 				variant="tertiary"
 				@click="toggleGridView">
 				<template #icon>
-					<NcIconSvgWrapper v-if="userConfigStore.files_list_grid_view" :path="mdiViewList" />
-					<NcIconSvgWrapper v-else :path="mdiViewGrid" />
+					<NcIconSvgWrapper v-if="userConfigStore.files_list_grid_view" :path="mdiFormatListBulletedSquare" />
+					<NcIconSvgWrapper v-else :path="mdiViewGridOutline" />
 				</template>
 			</NcButton>
 		</div>
@@ -96,9 +96,9 @@ import {
 	mdiChevronDown,
 	mdiChevronUp,
 	mdiFolder,
+	mdiFormatListBulletedSquare,
 	mdiReload,
-	mdiViewGrid,
-	mdiViewList,
+	mdiViewGridOutline,
 } from '@mdi/js'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -147,9 +147,9 @@ export default {
 			mdiChevronDown,
 			mdiChevronUp,
 			mdiFolder,
+			mdiFormatListBulletedSquare,
 			mdiReload,
-			mdiViewGrid,
-			mdiViewList,
+			mdiViewGridOutline,
 		}
 	},
 	data() {
