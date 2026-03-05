@@ -73,10 +73,6 @@ Feel free to remove this section when your PR only affects the backend/API code.
 - [ ] ... <!-- Describe the tasks performed here (e.g., layout adjustment, new feature X) -->
 - [ ] Screenshots before/after (add images or links)
 
-### 🚧 Tasks
-<!-- Add here the list of tasks that is necessary to do before merge this PR. As example: update the package X, merge the PR y. If isn't necessary, fell free to remove this block -->
-- [ ] ...
-
 🏚️ Before | 🏡 After
 --- | ---
 Screenshot before | Screenshot after
@@ -88,6 +84,10 @@ Screenshot before | Screenshot after
 - [ ] Accessibility verified (contrast, keyboard navigation, screen reader friendly) – *if applicable*
 - [ ] Design review approved – *optional, link to feedback if available*
 - [ ] Documentation updated (if applicable) – [docs repository](https://github.com/LibreSign/documentation/)
+
+### 🚧 Tasks
+<!-- Add here the list of tasks that is necessary to do before merge this PR. As example: update the package X, merge the PR y. If isn't necessary, fell free to remove this block -->
+- [ ] ...
 
 ## ⚙️ API / Back‑end changes
 
