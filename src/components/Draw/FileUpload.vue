@@ -414,18 +414,6 @@ export default {
 		color: var(--color-text-maxcontrast);
 	}
 
-	.confirm-preview {
-		display: flex;
-		justify-content: center;
-		width: 100%;
-	}
-
-	.confirm-preview__image {
-		display: block;
-		max-width: 100%;
-		margin: 0 auto;
-	}
-
 	.file-input-container {
 		margin-bottom: 5px;
 
@@ -450,5 +438,22 @@ export default {
 :deep(.confirm-dialog__content) {
 	display: flex;
 	justify-content: center;
+
+	.confirm-preview {
+		display: flex;
+		justify-content: center;
+		width: 100%;
+		overflow: hidden;
+	}
+
+	.confirm-preview__image {
+		display: block;
+		max-width: 100%;
+		max-height: 50vh;
+		object-fit: contain;
+		margin: 0 auto;
+		background-color: #cecece;
+		border-radius: 10px;
+	}
 }
 </style>
