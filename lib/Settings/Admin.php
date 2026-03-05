@@ -38,6 +38,7 @@ class Admin implements ISettings {
 		private DocMdpConfigService $docMdpConfigService,
 	) {
 	}
+	#[\Override]
 	public function getForm(): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-settings');
 		Util::addStyle(Application::APP_ID, 'libresign-settings');
@@ -70,6 +71,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('footer_template_variables', $this->footerService->getTemplateVariablesMetadata());
 		$this->initialState->provideInitialState('footer_template', $this->footerService->getTemplate());
 		$this->initialState->provideInitialState('footer_template_is_default', $this->footerService->isDefaultTemplate());
+		$this->initialState->provideInitialState('signature_engine', $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf'));
 		$this->initialState->provideInitialState('signature_render_mode', $this->signatureTextService->getRenderMode());
 		$this->initialState->provideInitialState('signature_text_template', $this->signatureTextService->getTemplate());
 		$this->initialState->provideInitialState('signature_width', $this->signatureTextService->getFullSignatureWidth());
@@ -87,12 +89,16 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('approval_group', $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']));
 		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true));
 		$this->initialState->provideInitialState('parallel_workers', $this->appConfig->getValueString(Application::APP_ID, 'parallel_workers', '4'));
+		$this->initialState->provideInitialState('show_confetti_after_signing', $this->appConfig->getValueBool(Application::APP_ID, 'show_confetti_after_signing', true));
+		$this->initialState->provideInitialState('crl_external_validation_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true));
+		$this->initialState->provideInitialState('ldap_extension_available', function_exists('ldap_connect'));
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
 
 	/**
 	 * @psalm-return 'libresign'
 	 */
+	#[\Override]
 	public function getSection(): string {
 		return Application::APP_ID;
 	}
@@ -100,6 +106,7 @@ class Admin implements ISettings {
 	/**
 	 * @psalm-return 100
 	 */
+	#[\Override]
 	public function getPriority(): int {
 		return 100;
 	}

@@ -20,6 +20,7 @@ use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Install\InstallService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
@@ -56,6 +57,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		protected CaIdentifierService $caIdentifierService,
 		protected CrlMapper $crlMapper,
 		protected LoggerInterface $logger,
+		CrlRevocationChecker $crlRevocationChecker,
 	) {
 		parent::__construct(
 			$config,
@@ -67,6 +69,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$urlGenerator,
 			$caIdentifierService,
 			$logger,
+			$crlRevocationChecker,
 		);
 
 		$this->cfsslServerHandler->configCallback(fn () => $this->getCurrentConfigPath());

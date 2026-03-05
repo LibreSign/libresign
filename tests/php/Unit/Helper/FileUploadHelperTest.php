@@ -16,6 +16,7 @@ namespace OCA\Libresign\Tests\Unit\Helper;
 
 use InvalidArgumentException;
 use OCA\Libresign\Helper\FileUploadHelper;
+use OCP\Files\IFilenameValidator;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -23,6 +24,7 @@ use PHPUnit\Framework\TestCase;
 class FileUploadHelperTest extends TestCase {
 	private FileUploadHelper $helper;
 	private IL10N&MockObject $l10n;
+	private IFilenameValidator&MockObject $filenameValidator;
 	private string $tempFile;
 
 	protected function setUp(): void {
@@ -32,7 +34,9 @@ class FileUploadHelperTest extends TestCase {
 		$this->l10n->method('t')
 			->willReturnCallback(fn ($text) => $text);
 
-		$this->helper = new FileUploadHelper($this->l10n);
+		$this->filenameValidator = $this->createMock(IFilenameValidator::class);
+
+		$this->helper = new FileUploadHelper($this->l10n, $this->filenameValidator);
 
 		$this->tempFile = tempnam(sys_get_temp_dir(), 'upload_test_');
 		file_put_contents($this->tempFile, 'test content');
@@ -46,6 +50,8 @@ class FileUploadHelperTest extends TestCase {
 	}
 
 	public function testValidateUploadedFileSuccess(): void {
+		$this->filenameValidator->method('isFilenameValid')->willReturn(true);
+
 		$uploadedFile = [
 			'tmp_name' => $this->tempFile,
 			'error' => UPLOAD_ERR_OK,
@@ -131,32 +137,21 @@ class FileUploadHelperTest extends TestCase {
 	}
 
 	public function testValidateUploadedFileWithForbiddenName(): void {
-		$forbiddenFile = sys_get_temp_dir() . '/test<file>.txt';
-
-		if (@file_put_contents($forbiddenFile, 'test') === false) {
-			$this->markTestSkipped('Cannot create file with forbidden characters on this OS');
-			return;
-		}
+		$this->filenameValidator->method('isFilenameValid')->willReturn(false);
 
 		$uploadedFile = [
-			'tmp_name' => $forbiddenFile,
+			'tmp_name' => $this->tempFile,
 			'error' => UPLOAD_ERR_OK,
-			'size' => filesize($forbiddenFile),
+			'size' => filesize($this->tempFile),
 		];
 
-		$exceptionThrown = false;
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('Invalid file provided');
+
 		try {
 			$this->helper->validateUploadedFile($uploadedFile);
-		} catch (InvalidArgumentException $e) {
-			$exceptionThrown = true;
-			$this->assertEquals('Invalid file provided', $e->getMessage());
-			$this->assertFalse(file_exists($forbiddenFile), 'File should be deleted after validation fails');
 		} finally {
-			@unlink($forbiddenFile);
-		}
-
-		if (!$exceptionThrown) {
-			$this->markTestSkipped('FilenameValidator does not consider this filename as forbidden on this OS');
+			$this->assertFalse(file_exists($this->tempFile), 'File should be deleted after validation fails');
 		}
 	}
 }
