@@ -455,5 +455,10 @@ export default {
 	display: flex;
 	gap: 12px; flex: 1;
 	flex-direction: column;
+	align-items: stretch;
+
+	:deep(.button-vue) {
+		width: 100%;
+	}
 }
 </style>
