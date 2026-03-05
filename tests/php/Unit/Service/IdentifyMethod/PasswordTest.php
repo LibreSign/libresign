@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -228,7 +229,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'revoked certificate' => [
 				'certificateData' => [
 					'validTo_time_t' => $futureTimestamp,
-					'crl_validation' => 'revoked',
+					'crl_validation' => CrlValidationStatus::REVOKED,
 				],
 				'shouldThrow' => true,
 				'expectedMessage' => 'Certificate has been revoked',
@@ -236,7 +237,14 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'valid certificate with crl validation' => [
 				'certificateData' => [
 					'validTo_time_t' => $futureTimestamp,
-					'crl_validation' => 'valid',
+					'crl_validation' => CrlValidationStatus::VALID,
+				],
+				'shouldThrow' => false,
+			],
+			'disabled crl validation - admin disabled external check' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::DISABLED,
 				],
 				'shouldThrow' => false,
 			],
@@ -246,7 +254,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => 'failed',
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has been revoked',
+				'expectedMessage' => 'Certificate revocation status could not be verified',
 			],
 			'invalid certificate - crl validation empty string' => [
 				'certificateData' => [
@@ -254,7 +262,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => '',
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has been revoked',
+				'expectedMessage' => 'Certificate revocation status could not be verified',
 			],
 			'invalid certificate - crl validation null' => [
 				'certificateData' => [
@@ -262,12 +270,36 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => null,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has been revoked',
+				'expectedMessage' => 'Certificate revocation status could not be verified',
+			],
+			'invalid certificate - crl urls_inaccessible' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::URLS_INACCESSIBLE,
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate revocation status could not be verified',
+			],
+			'invalid certificate - crl validation_failed' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::VALIDATION_FAILED,
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate revocation status could not be verified',
+			],
+			'invalid certificate - crl validation_error' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::VALIDATION_ERROR,
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate revocation status could not be verified',
 			],
 			'revoked and expired certificate' => [
 				'certificateData' => [
 					'validTo_time_t' => $pastTimestamp,
-					'crl_validation' => 'revoked',
+					'crl_validation' => CrlValidationStatus::REVOKED,
 				],
 				'shouldThrow' => true,
 				'expectedMessage' => 'Certificate has been revoked', // revocation is checked first
