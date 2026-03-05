@@ -14,6 +14,7 @@
 		<IdentificationFactors />
 		<ExpirationRules />
 		<Validation />
+		<CrlValidation />
 		<DocMDP />
 		<SignatureFlow />
 		<SigningMode v-if="false" />
