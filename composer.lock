@@ -135,12 +135,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vitormattos/pdf-signer-php.git",
-                "reference": "62d9299ae23bbd56f8ea3deba98a7caba231e811"
+                "reference": "337ce1afd515aac53cb727b0bcd83f746106bbee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vitormattos/pdf-signer-php/zipball/62d9299ae23bbd56f8ea3deba98a7caba231e811",
-                "reference": "62d9299ae23bbd56f8ea3deba98a7caba231e811",
+                "url": "https://api.github.com/repos/vitormattos/pdf-signer-php/zipball/337ce1afd515aac53cb727b0bcd83f746106bbee",
+                "reference": "337ce1afd515aac53cb727b0bcd83f746106bbee",
                 "shasum": ""
             },
             "require": {
@@ -233,7 +233,7 @@
             "support": {
                 "source": "https://github.com/vitormattos/pdf-signer-php/tree/feat/visible-signature-appearance-php81"
             },
-            "time": "2026-03-05T16:04:20+00:00"
+            "time": "2026-03-05T16:20:02+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
