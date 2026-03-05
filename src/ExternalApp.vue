@@ -5,17 +5,22 @@
 
 <template>
 	<div class="external-app">
-		<router-view />
-		<RightSidebar />
+		<DefaultPageError v-if="isDoNothingError" />
+		<router-view v-else />
+		<RightSidebar v-if="!isDoNothingError" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { defineOptions } from 'vue'
+import { computed, defineOptions } from 'vue'
 
 defineOptions({ name: 'LibreSignExternal' })
 
+import DefaultPageError from './views/DefaultPageError.vue'
 import RightSidebar from './components/RightSidebar/RightSidebar.vue'
+import { initialActionCode, ACTION_CODES } from './helpers/ActionMapping'
+
+const isDoNothingError = computed(() => initialActionCode.value === ACTION_CODES.DO_NOTHING)
 </script>
 
 <style lang="scss">
