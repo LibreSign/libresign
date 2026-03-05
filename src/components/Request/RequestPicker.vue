@@ -8,6 +8,7 @@
 			:inline="inline ? 3 : 0"
 			:force-name="inline"
 			:class="{column: inline}"
+			:variant="variant"
 			v-model:open="openedMenu">
 			<template #icon>
 				<NcIconSvgWrapper :path="mdiPlus" :size="20" />
@@ -146,6 +147,10 @@ export default {
 		inline: {
 			type: Boolean,
 			default: false,
+		},
+		variant: {
+			type: String,
+			default: 'tertiary',
 		},
 	},
 	setup() {
