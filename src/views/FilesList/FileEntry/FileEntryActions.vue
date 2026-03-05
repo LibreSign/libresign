@@ -173,6 +173,7 @@ export default {
 		})
 		this.registerAction({
 			id: 'validate',
+			// TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize".
 			title: t('libresign', 'Validate'),
 			iconSvgInline: svgTextBoxCheck,
 		})
