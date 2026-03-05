@@ -83,15 +83,13 @@ describe('showStatusInlineAction', () => {
 		action = capturedActionRef.value
 
 		// Mock window.OCA.Files.Sidebar for Nextcloud 32 compatibility
-		if (!global.window) {
-			global.window = {}
-		}
 		global.window.OCA = {
+			Libresign: {},
 			Files: {
 				Sidebar: {
 					open: vi.fn(),
 					setActiveTab: vi.fn(),
-				},
+				} as OCAFilesSidebar,
 			},
 		}
 	})
@@ -216,8 +214,8 @@ describe('showStatusInlineAction', () => {
 			const node = { fileid: 123, name: 'test.pdf', path: '/test.pdf' }
 			const result = await action.exec({ nodes: [node] })
 
-			expect(global.window.OCA.Files.Sidebar.open).toHaveBeenCalledWith('/test.pdf')
-			expect(global.window.OCA.Files.Sidebar.setActiveTab).toHaveBeenCalledWith('libresign')
+			expect(global.window.OCA.Files!.Sidebar.open).toHaveBeenCalledWith('/test.pdf')
+			expect(global.window.OCA.Files!.Sidebar.setActiveTab).toHaveBeenCalledWith('libresign')
 			expect(result).toBe(null)
 		})
 	})
