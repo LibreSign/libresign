@@ -9,11 +9,13 @@ namespace OCA\Libresign\Tests\Unit;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Capabilities;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\App\IAppManager;
+use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -23,12 +25,14 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureTextService&MockObject $signatureTextService;
 	private IAppManager&MockObject $appManager;
 	private EnvelopeService&MockObject $envelopeService;
+	private IAppConfig&MockObject $appConfig;
 
 	public function setUp(): void {
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
 		$this->appManager = $this->createMock(IAppManager::class);
 		$this->envelopeService = $this->createMock(EnvelopeService::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 	}
 
 
@@ -38,6 +42,7 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signatureTextService,
 			$this->appManager,
 			$this->envelopeService,
+			$this->appConfig,
 		);
 		return $this->capabilities;
 	}
@@ -50,6 +55,22 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public static function providerSignElementsIsAvailable(): array {
+		return [
+			[true, true],
+			[false, false],
+		];
+	}
+
+	#[DataProvider('providerShowConfetti')]
+	public function testShowConfetti(bool $configValue, bool $expected): void {
+		$this->appConfig->method('getValueBool')
+			->with(Application::APP_ID, 'show_confetti_after_signing', true)
+			->willReturn($configValue);
+		$capabilities = $this->getClass()->getCapabilities();
+		$this->assertEquals($expected, $capabilities['libresign']['config']['show-confetti']);
+	}
+
+	public static function providerShowConfetti(): array {
 		return [
 			[true, true],
 			[false, false],
