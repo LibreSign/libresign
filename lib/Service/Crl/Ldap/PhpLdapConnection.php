@@ -30,6 +30,7 @@ class PhpLdapConnection implements ILdapConnection {
 		return $conn;
 	}
 
+	/** @psalm-suppress UndefinedConstant */
 	#[\Override]
 	public function configure(mixed $ldap): void {
 		ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
