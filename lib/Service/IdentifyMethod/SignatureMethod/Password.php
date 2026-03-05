@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
+use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -43,9 +44,26 @@ class Password extends AbstractSignatureMethod {
 	}
 
 	private function validateCertificateRevocation(array $certificateData): void {
-		if (array_key_exists('crl_validation', $certificateData) && $certificateData['crl_validation'] !== 'valid') {
+		if (!array_key_exists('crl_validation', $certificateData)) {
+			return;
+		}
+		$status = $certificateData['crl_validation'];
+		if ($status === CrlValidationStatus::VALID) {
+			return;
+		}
+		if ($status === CrlValidationStatus::REVOKED) {
 			throw new LibresignException($this->identifyService->getL10n()->t('Certificate has been revoked'), 400);
 		}
+		// Admin explicitly disabled external CRL validation – allow signing.
+		if ($status === CrlValidationStatus::DISABLED) {
+			return;
+		}
+		// Any other status (urls_inaccessible, validation_failed, validation_error, etc.):
+		// fail-closed – we cannot confirm the certificate is not revoked.
+		throw new LibresignException(
+			$this->identifyService->getL10n()->t('Certificate revocation status could not be verified'),
+			400
+		);
 	}
 
 	private function validateCertificateExpiration(array $certificateData): void {
