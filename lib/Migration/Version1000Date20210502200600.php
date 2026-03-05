@@ -27,6 +27,7 @@ class Version1000Date20210502200600 extends SimpleMigrationStep {
 		$this->connection = $connection;
 	}
 
+	#[\Override]
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$query = $this->connection->getQueryBuilder();
 		$query->select('id', 'file_id')
@@ -41,6 +42,7 @@ class Version1000Date20210502200600 extends SimpleMigrationStep {
 	 *
 	 * @return ISchemaWrapper
 	 */
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
@@ -57,6 +59,7 @@ class Version1000Date20210502200600 extends SimpleMigrationStep {
 		return $schema;
 	}
 
+	#[\Override]
 	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		foreach ($this->rows as $row) {
 			$query = $this->connection->getQueryBuilder();

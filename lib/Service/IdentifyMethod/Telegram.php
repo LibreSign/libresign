@@ -16,6 +16,7 @@ class Telegram extends TwofactorGateway {
 		ISignatureMethod::SIGNATURE_METHOD_TELEGRAM,
 	];
 
+	#[\Override]
 	public function getFriendlyName(): string {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Telegram
 		return $this->identifyService->getL10n()->t('Telegram');

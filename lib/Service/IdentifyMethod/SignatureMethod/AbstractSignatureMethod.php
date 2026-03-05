@@ -13,14 +13,17 @@ use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
 abstract class AbstractSignatureMethod extends AbstractIdentifyMethod implements ISignatureMethod {
 	private bool $enabled = false;
 
+	#[\Override]
 	public function enable(): void {
 		$this->enabled = true;
 	}
 
+	#[\Override]
 	public function isEnabled(): bool {
 		return $this->enabled;
 	}
 
+	#[\Override]
 	public function toArray(): array {
 		return [
 			'label' => $this->getFriendlyName(),

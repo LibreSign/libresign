@@ -28,6 +28,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 	) {
 	}
 
+	#[\Override]
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$query = $this->connection->getQueryBuilder();
 		$query->select('id', 'node_id', 'user_id')
@@ -42,6 +43,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 	 *
 	 * @return ISchemaWrapper
 	 */
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
@@ -56,6 +58,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 		return $schema;
 	}
 
+	#[\Override]
 	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		foreach ($this->rows as $row) {
 			$userFolder = $this->root->getUserFolder($row['user_id']);

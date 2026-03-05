@@ -20,6 +20,7 @@ class Version8000Date20230608004729 extends SimpleMigrationStep {
 	) {
 	}
 
+	#[\Override]
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$cfsslBin = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
 		$cfsslUrl = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_url');

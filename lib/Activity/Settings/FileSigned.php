@@ -26,6 +26,7 @@ class FileSigned extends LibresignActivitySettings {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function getIdentifier(): string {
 		return SignedEvent::FILE_SIGNED;
 	}
@@ -33,6 +34,7 @@ class FileSigned extends LibresignActivitySettings {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function getName(): string {
 		return $this->l->t('A document has been <strong>signed</strong>');
 	}
@@ -40,6 +42,7 @@ class FileSigned extends LibresignActivitySettings {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function getPriority(): int {
 		return 52;
 	}
@@ -47,6 +50,7 @@ class FileSigned extends LibresignActivitySettings {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function canChangeNotification(): bool {
 		if (!$this->userSession->getUser() instanceof IUser) {
 			return true;
@@ -62,6 +66,7 @@ class FileSigned extends LibresignActivitySettings {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function canChangeMail() {
 		if (!$this->userSession->getUser() instanceof IUser) {
 			return true;

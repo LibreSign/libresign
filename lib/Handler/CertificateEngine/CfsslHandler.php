@@ -75,6 +75,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$this->cfsslServerHandler->configCallback(fn () => $this->getCurrentConfigPath());
 	}
 
+	#[\Override]
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
@@ -102,6 +103,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		}
 	}
 
+	#[\Override]
 	public function generateCertificate(): string {
 		$this->validateRootCertificate();
 
@@ -124,6 +126,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $pkcs12;
 	}
 
+	#[\Override]
 	public function isSetupOk(): bool {
 		$configPath = $this->getCurrentConfigPath();
 		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
@@ -141,30 +144,37 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return false;
 	}
 
+	#[\Override]
 	protected function getConfigureCheckResourceName(): string {
 		return 'cfssl-configure';
 	}
 
+	#[\Override]
 	protected function getCertificateRegenerationTip(): string {
 		return 'Consider regenerating the root certificate with: occ libresign:configure:cfssl --cn="Your CA Name"';
 	}
 
+	#[\Override]
 	protected function getEngineSpecificChecks(): array {
 		return $this->checkBinaries();
 	}
 
+	#[\Override]
 	protected function getSetupSuccessMessage(): string {
 		return 'Root certificate config files found.';
 	}
 
+	#[\Override]
 	protected function getSetupErrorMessage(): string {
 		return 'CFSSL (root certificate) not configured.';
 	}
 
+	#[\Override]
 	protected function getSetupErrorTip(): string {
 		return 'Run occ libresign:configure:cfssl --help';
 	}
 
+	#[\Override]
 	public function toArray(): array {
 		$return = parent::toArray();
 		if (!empty($return['configPath'])) {

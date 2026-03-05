@@ -62,6 +62,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		);
 	}
 
+	#[\Override]
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
@@ -128,6 +129,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		];
 	}
 
+	#[\Override]
 	public function generateCertificate(): string {
 		$this->validateRootCertificate();
 
@@ -381,6 +383,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		return $distinguishedNames;
 	}
 
+	#[\Override]
 	public function isSetupOk(): bool {
 		$configPath = $this->getCurrentConfigPath();
 		if (empty($configPath)) {
@@ -391,26 +394,32 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		return $certificate && $privateKey;
 	}
 
+	#[\Override]
 	protected function getConfigureCheckResourceName(): string {
 		return 'openssl-configure';
 	}
 
+	#[\Override]
 	protected function getCertificateRegenerationTip(): string {
 		return 'Consider regenerating the root certificate with: occ libresign:configure:openssl --cn="Your CA Name"';
 	}
 
+	#[\Override]
 	protected function getEngineSpecificChecks(): array {
 		return [];
 	}
 
+	#[\Override]
 	protected function getSetupSuccessMessage(): string {
 		return 'Root certificate setup is working fine.';
 	}
 
+	#[\Override]
 	protected function getSetupErrorMessage(): string {
 		return 'OpenSSL (root certificate) not configured.';
 	}
 
+	#[\Override]
 	protected function getSetupErrorTip(): string {
 		return 'Run occ libresign:configure:openssl --help';
 	}

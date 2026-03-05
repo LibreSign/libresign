@@ -23,6 +23,7 @@ class AdminSettings implements IIconSection {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function getID(): string {
 		return Application::APP_ID;
 	}
@@ -30,6 +31,7 @@ class AdminSettings implements IIconSection {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function getName(): string {
 		return $this->l->t('LibreSign');
 	}
@@ -37,6 +39,7 @@ class AdminSettings implements IIconSection {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function getPriority(): int {
 		return 60;
 	}
@@ -44,6 +47,7 @@ class AdminSettings implements IIconSection {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function getIcon(): string {
 		return $this->urlGenerator->imagePath(Application::APP_ID, 'app-dark.svg');
 	}

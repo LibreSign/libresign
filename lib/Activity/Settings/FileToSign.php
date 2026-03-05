@@ -21,6 +21,7 @@ class FileToSign extends LibresignActivitySettings {
 	 * @return string Lowercase a-z and underscore only identifier. The type of table activity
 	 * @since 20.0.0
 	 */
+	#[\Override]
 	public function getIdentifier(): string {
 		return SendSignNotificationEvent::FILE_TO_SIGN;
 	}
@@ -29,6 +30,7 @@ class FileToSign extends LibresignActivitySettings {
 	 * @return string A translated string
 	 * @since 11.0.0
 	 */
+	#[\Override]
 	public function getName(): string {
 		return $this->l->t('You have a <strong>file to sign</strong>');
 	}

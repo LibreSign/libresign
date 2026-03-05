@@ -19,6 +19,7 @@ class Version7000Date20221026003343 extends SimpleMigrationStep {
 	) {
 	}
 
+	#[\Override]
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$rootCert = [];
 		if ($commonName = $this->appConfig->getValueString(Application::APP_ID, 'commonName')) {

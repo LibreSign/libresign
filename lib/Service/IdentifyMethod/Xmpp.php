@@ -16,6 +16,7 @@ class Xmpp extends TwofactorGateway {
 		ISignatureMethod::SIGNATURE_METHOD_XMPP,
 	];
 
+	#[\Override]
 	public function getFriendlyName(): string {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by XMPP
 		return $this->identifyService->getL10n()->t('XMPP');

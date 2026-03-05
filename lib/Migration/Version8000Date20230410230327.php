@@ -26,6 +26,7 @@ class Version8000Date20230410230327 extends SimpleMigrationStep {
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
+	#[\Override]
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$libresignCliPath = $this->appConfig->getValueString(Application::APP_ID, 'libresign_cli_path');
 		if (!$libresignCliPath) {

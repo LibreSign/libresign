@@ -26,6 +26,7 @@ class Version7000Date20221028022904 extends SimpleMigrationStep {
 	 * This migration is to convert from the exposed format to this format:
 	 * {"commonName":"Test Company","names":[{"id":"C","value":"BR"},{"id":"O","value":"Organization"},{"id":"OU","value":"Organization Unit"}]}
 	 */
+	#[\Override]
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$rootCert = $this->appConfig->getValueString(Application::APP_ID, 'rootCert');
 		$rootCert = json_decode($rootCert, true);

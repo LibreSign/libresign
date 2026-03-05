@@ -28,6 +28,7 @@ class Signed implements IProvider {
 	) {
 	}
 
+	#[\Override]
 	public function parse($language, IEvent $event, ?IEvent $previousEvent = null): IEvent {
 		if ($event->getApp() !== Application::APP_ID) {
 			throw new UnknownActivityException('app');

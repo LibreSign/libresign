@@ -53,6 +53,7 @@ class Account extends AbstractIdentifyMethod {
 		);
 	}
 
+	#[\Override]
 	public function validateToRequest(): void {
 		$signer = $this->getSigner();
 		$this->validateSignatureMethodsForRequest($signer);
@@ -78,6 +79,7 @@ class Account extends AbstractIdentifyMethod {
 		}
 	}
 
+	#[\Override]
 	public function validateToIdentify(): void {
 		$signer = $this->getSigner();
 		$this->throwIfNotAuthenticated();
@@ -90,6 +92,7 @@ class Account extends AbstractIdentifyMethod {
 		$this->updateIdentifiedAt();
 	}
 
+	#[\Override]
 	public function validateToSign(): void {
 		$signer = $this->getSigner();
 		$this->throwIfNotAuthenticated();
@@ -144,6 +147,7 @@ class Account extends AbstractIdentifyMethod {
 		}
 	}
 
+	#[\Override]
 	public function getSettings(): array {
 		if (!empty($this->settings)) {
 			return $this->settings;

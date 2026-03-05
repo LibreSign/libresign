@@ -73,6 +73,7 @@ class InjectionMiddleware extends Middleware {
 	 * @param string $methodName
 	 * @throws \Exception
 	 */
+	#[\Override]
 	public function beforeController(Controller $controller, string $methodName) {
 		if ($controller instanceof AEnvironmentAwareController) {
 			$apiVersion = $this->request->getParam('apiVersion');
@@ -290,6 +291,7 @@ class InjectionMiddleware extends Middleware {
 	 * @throws \Exception
 	 * @return Response
 	 */
+	#[\Override]
 	public function afterException($controller, $methodName, \Exception $exception): Response {
 		if (str_contains($this->request->getHeader('Accept'), 'html')) {
 			$template = 'external';

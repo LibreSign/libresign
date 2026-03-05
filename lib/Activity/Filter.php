@@ -28,26 +28,32 @@ class Filter implements IFilter {
 		$this->url = $url;
 	}
 
+	#[\Override]
 	public function getIdentifier() {
 		return Application::APP_ID;
 	}
 
+	#[\Override]
 	public function getName() {
 		return 'LibreSign';
 	}
 
+	#[\Override]
 	public function getPriority() {
 		return 31;
 	}
 
+	#[\Override]
 	public function getIcon() {
 		return $this->url->getAbsoluteURL($this->url->imagePath('libresign', 'app-dark.svg'));
 	}
 
+	#[\Override]
 	public function filterTypes(array $types) {
 		return array_intersect(self::ALLOWED_TYPES, $types);
 	}
 
+	#[\Override]
 	public function allowedApps() {
 		return [
 			Application::APP_ID,

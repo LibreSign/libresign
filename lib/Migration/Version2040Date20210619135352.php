@@ -24,6 +24,7 @@ class Version2040Date20210619135352 extends SimpleMigrationStep {
 	 * @param array $options
 	 * @return ISchemaWrapper
 	 */
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ISchemaWrapper {
 		$schema = $schemaClosure();
 		$table = $schema->createTable('libresign_file_type');
