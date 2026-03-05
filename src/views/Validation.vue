@@ -18,10 +18,12 @@
 				</div>
 			<div v-else-if="!hasInfo" class="infor-container">
 				<div class="section">
+					<!-- TRANSLATORS: Page title of the signature validation feature. "Validate" here is a technical process: the app checks the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->
 					<h1>{{ t('libresign', 'Validate signature') }}</h1>
 					<NcNoteCard v-if="validationErrorMessage" type="error">
 						{{ validationErrorMessage }}
 					</NcNoteCard>
+					<!-- TRANSLATORS: Toolbar label for the signature validation feature. "Validate" here is a technical process: the app checks the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->
 					<NcActions :menu-name="t('libresign', 'Validate signature')" :inline="3" :force-name="true">
 						<NcActionButton :wide="true" :disabled="loading" @click="openUuidDialog()">
 							{{ t('libresign', 'From UUID') }}
@@ -38,8 +40,10 @@
 							</template>
 						</NcActionButton>
 					</NcActions>
+					<!-- TRANSLATORS: Dialog title of the signature validation feature. "Validate" here is a technical process: the app checks the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->
 					<NcDialog v-if="getUUID" :name="t('libresign', 'Validate signature')" is-form
 						@closing="getUUID = false">
+						<!-- TRANSLATORS: Heading inside the dialog. Same context as the dialog title: cryptographic check of signature integrity, not an approval action. -->
 						<h1>{{ t('libresign', 'Validate signature') }}</h1>
 						<NcTextField v-model="uuidToValidate"
 							:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
@@ -50,6 +54,7 @@
 								<template #icon>
 									<NcLoadingIcon v-if="loading" :size="20" />
 								</template>
+								<!-- TRANSLATORS: Submit button that starts the cryptographic check of the document signatures. "Validation" here is the technical process of verifying integrity, not an approval or authorization action. -->
 								{{ t('libresign', 'Validation') }}
 							</NcButton>
 						</template>
