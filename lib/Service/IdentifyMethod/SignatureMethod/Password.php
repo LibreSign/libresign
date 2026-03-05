@@ -53,7 +53,7 @@ class Password extends AbstractSignatureMethod {
 			return;
 		}
 		if ($status === CrlValidationStatus::REVOKED) {
-			throw new LibresignException($this->identifyService->getL10n()->t('Certificate has been revoked'), 400);
+			throw new LibresignException($this->identifyService->getL10n()->t('Certificate has been revoked'), 422);
 		}
 		// Admin explicitly disabled external CRL validation – allow signing.
 		if ($status === CrlValidationStatus::DISABLED) {
