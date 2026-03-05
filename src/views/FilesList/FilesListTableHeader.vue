@@ -7,7 +7,7 @@
 		class="files-list__row-head">
 		<th class="files-list__column files-list__row-checkbox"
 			@keyup.esc.exact="resetSelection">
-			<NcCheckboxRadioSwitch v-bind="selectAllBind" @update:checked="onToggleAll" />
+			<NcCheckboxRadioSwitch v-bind="selectAllBind" @update:modelValue="onToggleAll" />
 		</th>
 
 		<!-- Columns display -->
@@ -100,7 +100,7 @@ export default {
 			const label = t('libresign', 'Toggle selection for all files')
 			return {
 				'aria-label': label,
-				checked: this.isAllSelected,
+				'model-value': this.isAllSelected,
 				indeterminate: this.isSomeSelected,
 				title: label,
 			}

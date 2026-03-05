@@ -19,7 +19,7 @@
 				class="sharing__input"
 				:label="t('libresign', 'Maximum validity')"
 				:placeholder="t('libresign', 'Maximum validity')"
-				@update:value="saveMaximumValidity" />
+				@update:modelValue="saveMaximumValidity" />
 		</fieldset>
 		<NcCheckboxRadioSwitch type="switch"
 			v-model="enableRenewalInterval"
@@ -33,7 +33,7 @@
 				class="sharing__input"
 				:label="t('libresign', 'Renewal interval')"
 				:placeholder="t('libresign', 'Renewal interval')"
-				@update:value="saveRenewalInterval" />
+				@update:modelValue="saveRenewalInterval" />
 		</fieldset>
 		<fieldset id="settings-certificate-validity" class="sharing__sub-section">
 			{{ t('libresign', 'The length of time for which the generated certificate will be valid, in days.') }}
@@ -42,7 +42,7 @@
 				class="sharing__input"
 				:label="t('libresign', 'Expiration in days')"
 				:placeholder="t('libresign', 'Expiration in days')"
-				@update:value="saveExpiryInDays" />
+				@update:modelValue="saveExpiryInDays" />
 		</fieldset>
 	</NcSettingsSection>
 </template>

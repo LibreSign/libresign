@@ -17,7 +17,7 @@
 				:size="20" />
 			<div v-if="reminderState">
 			{{ t('libresign', 'Next job execution: {date}', {date: nextRunFormatted}) }}
-			<NcTextField v-model:value="reminderDaysBefore"
+			<NcTextField v-model="reminderDaysBefore"
 				:label="t('libresign', 'First reminder after (days)')"
 				:placeholder="t('libresign', 'First reminder after (days)')"
 					type="number"
