@@ -53,7 +53,7 @@ class Password extends AbstractSignatureMethod {
 			return;
 		}
 		if ($status === CrlValidationStatus::REVOKED) {
-			throw new LibresignException($this->identifyService->getL10n()->t('Certificate has been revoked'), 400);
+			throw new LibresignException($this->identifyService->getL10n()->t('Certificate has been revoked'), 422);
 		}
 		// Admin explicitly disabled external CRL validation – allow signing.
 		if ($status === CrlValidationStatus::DISABLED) {
@@ -63,7 +63,7 @@ class Password extends AbstractSignatureMethod {
 		// fail-closed – we cannot confirm the certificate is not revoked.
 		throw new LibresignException(
 			$this->identifyService->getL10n()->t('Certificate revocation status could not be verified'),
-			400
+			422
 		);
 	}
 
@@ -71,11 +71,11 @@ class Password extends AbstractSignatureMethod {
 		if (array_key_exists('validTo_time_t', $certificateData)) {
 			$validTo = $certificateData['validTo_time_t'];
 			if (!is_int($validTo)) {
-				throw new LibresignException($this->identifyService->getL10n()->t('Invalid certificate'), 400);
+				throw new LibresignException($this->identifyService->getL10n()->t('Invalid certificate'), 422);
 			}
 			$now = (new \DateTime())->getTimestamp();
 			if ($validTo <= $now) {
-				throw new LibresignException($this->identifyService->getL10n()->t('Certificate has expired'), 400);
+				throw new LibresignException($this->identifyService->getL10n()->t('Certificate has expired'), 422);
 			}
 		}
 	}
