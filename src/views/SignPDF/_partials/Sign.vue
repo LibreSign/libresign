@@ -146,6 +146,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
@@ -174,10 +176,10 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
-import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator.js'
-import { SignFlowHandler } from '../../../services/SignFlowHandler.js'
+import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
+import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import { FILE_STATUS } from '../../../constants.js'
-import { getFileSigners, getVisibleElementsFromDocument, idsMatch } from '../../../services/visibleElementsService.js'
+import { getFileSigners, getVisibleElementsFromDocument, idsMatch } from '../../../services/visibleElementsService'
 
 export default {
 	name: 'Sign',
@@ -191,11 +193,11 @@ export default {
 		CreatePassword,
 		TokenManager,
 		EmailManager,
+		UploadCertificate,
 		Documents,
 		Signatures,
-		Draw,
 		ManagePassword,
-		UploadCertificate,
+		Draw,
 	},
 	setup() {
 		const signStore = useSignStore()
@@ -203,7 +205,13 @@ export default {
 		const signatureElementsStore = useSignatureElementsStore()
 		const sidebarStore = useSidebarStore()
 		const identificationDocumentStore = useIdentificationDocumentStore()
-		return { signStore, signMethodsStore, signatureElementsStore, sidebarStore, identificationDocumentStore }
+		return {
+			signStore,
+			signMethodsStore,
+			signatureElementsStore,
+			sidebarStore,
+			identificationDocumentStore,
+		}
 	},
 	data() {
 		return {
@@ -329,7 +337,7 @@ export default {
 					})
 				}
 			})
-	},
+		},
 	watch: {
 		signRequestUuid(newUuid, oldUuid) {
 			if (newUuid && oldUuid && newUuid !== oldUuid) {
@@ -343,6 +351,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		initializeServices() {
 			this.requirementValidator = new SigningRequirementValidator(
 				this.signStore,

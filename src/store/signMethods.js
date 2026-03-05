@@ -5,7 +5,6 @@
 
 import { loadState } from '@nextcloud/initial-state'
 import { defineStore } from 'pinia'
-import { set } from 'vue'
 
 export const useSignMethodsStore = defineStore('signMethods', {
 	state: () => ({
@@ -24,25 +23,25 @@ export const useSignMethodsStore = defineStore('signMethods', {
 	}),
 	actions: {
 		closeModal(modalCode) {
-			set(this.modal, modalCode, false)
+			this.modal[modalCode] = false
 		},
 		showModal(modalCode) {
-			set(this.modal, modalCode, true)
+			this.modal[modalCode] = true
 		},
 		blurredEmail() {
 			return this.settings?.emailToken?.blurredEmail ?? ''
 		},
 		setHasEmailConfirmCode(hasConfirmCode) {
 			if (!Object.hasOwn(this.settings, 'emailToken')) {
-				set(this.settings, 'emailToken', {})
+				this.settings.emailToken = {}
 			}
-			set(this.settings.emailToken, 'hasConfirmCode', hasConfirmCode)
+			this.settings.emailToken.hasConfirmCode = hasConfirmCode
 		},
 		setEmailToken(token) {
 			if (!Object.hasOwn(this.settings, 'emailToken')) {
-				set(this.settings, 'emailToken', {})
+				this.settings.emailToken = {}
 			}
-			set(this.settings.emailToken, 'token', token)
+			this.settings.emailToken.token = token
 		},
 		hasSignatureFile() {
 			return Object.hasOwn(this.settings, 'password')
@@ -51,9 +50,9 @@ export const useSignMethodsStore = defineStore('signMethods', {
 		},
 		setHasSignatureFile(hasSignatureFile) {
 			if (!Object.hasOwn(this.settings, 'password')) {
-				set(this.settings, 'password', {})
+				this.settings.password = {}
 			}
-			set(this.settings.password, 'hasSignatureFile', hasSignatureFile)
+			this.settings.password.hasSignatureFile = hasSignatureFile
 		},
 		needCreatePassword() {
 			return this.needSignWithPassword() && !this.hasSignatureFile()

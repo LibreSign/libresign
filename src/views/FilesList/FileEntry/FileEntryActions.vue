@@ -10,7 +10,7 @@
 			:container="boundariesElement"
 			:force-name="true"
 			type="tertiary"
-			:open.sync="openedMenu"
+			v-model:open="openedMenu"
 			@close="openedMenu = null"
 			@closed="onMenuClosed">
 			<!-- Default actions list-->
@@ -33,10 +33,10 @@
 		<NcDialog v-if="confirmDelete"
 			:name="t('libresign', 'Confirm')"
 			:no-close="deleting"
-			:open.sync="confirmDelete">
+			v-model:open="confirmDelete">
 			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="deleteFile"
+				v-model="deleteFile"
 				:disabled="deleting">
 				{{ t('libresign', 'Also delete the file.') }}
 			</NcCheckboxRadioSwitch>
@@ -59,6 +59,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 import svgFileDocument from '@mdi/svg/svg/file-document-outline.svg?raw'
 import svgPencil from '@mdi/svg/svg/pencil-outline.svg?raw'
@@ -114,6 +116,7 @@ export default {
 		const sidebarStore = useSidebarStore()
 		const signStore = useSignStore()
 		return {
+			t,
 			actionsMenuStore,
 			filesStore,
 			sidebarStore,
@@ -190,7 +193,7 @@ export default {
 		})
 	},
 	created() {
-		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
+		this.document = loadState('libresign', 'file_info', {})
 	},
 	methods: {
 		visibleIf(action) {

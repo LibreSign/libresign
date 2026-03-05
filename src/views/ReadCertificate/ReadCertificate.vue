@@ -37,6 +37,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -53,12 +55,12 @@ import { useSignMethodsStore } from '../../store/signMethods.js'
 export default {
 	name: 'ReadCertificate',
 	components: {
-		CertificateContent,
 		NcDialog,
 		NcPasswordField,
 		NcButton,
 		NcNoteCard,
 		NcLoadingIcon,
+		CertificateContent,
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
@@ -77,6 +79,7 @@ export default {
 		this.reset()
 	},
 	methods: {
+		t,
 		reset() {
 			this.password = ''
 			this.certificate = {}

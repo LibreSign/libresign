@@ -28,6 +28,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { getCurrentUser } from '@nextcloud/auth'
 
 import Documents from './partials/Documents.vue'
@@ -44,7 +46,6 @@ export default {
 		Documents,
 		ManagePassword,
 	},
-
 	data() {
 		return {
 			user: getCurrentUser(),

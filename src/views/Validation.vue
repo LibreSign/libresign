@@ -79,28 +79,19 @@ import {
 	mdiAlertCircleOutline,
 	mdiArrowLeft,
 	mdiCancel,
-	mdiCheckboxMarkedCircle,
 	mdiCheckCircle,
-	mdiFileMultiple,
-	mdiFilePdfBox,
-	mdiHelpCircle,
-	mdiInformationOutline,
-	mdiInformationSlabCircle,
+	mdiCheckboxMarkedCircle,
 	mdiKey,
-	mdiShieldCheck,
-	mdiShieldOff,
-	mdiSignatureFreehand,
-	mdiUnfoldLessHorizontal,
-	mdiUnfoldMoreHorizontal,
 	mdiUpload,
 } from '@mdi/js'
 import JSConfetti from 'js-confetti'
 import axios from '@nextcloud/axios'
 import { formatFileSize } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t, translatePlural as n } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+import { defineAsyncComponent } from 'vue'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -115,9 +106,9 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-const EnvelopeValidation = () => import('../components/validation/EnvelopeValidation.vue')
-const FileValidation = () => import('../components/validation/FileValidation.vue')
-const SigningProgress = () => import('../components/validation/SigningProgress.vue')
+const EnvelopeValidation = defineAsyncComponent(() => import('../components/validation/EnvelopeValidation.vue'))
+const FileValidation = defineAsyncComponent(() => import('../components/validation/FileValidation.vue'))
+const SigningProgress = defineAsyncComponent(() => import('../components/validation/SigningProgress.vue'))
 
 import logoGray from '../../img/logo-gray.svg'
 import { openDocument } from '../utils/viewer.js'
@@ -150,31 +141,20 @@ export default {
 		const sidebarStore = useSidebarStore()
 		return {
 			t,
-			n,
 			signStore,
 			sidebarStore,
-		}
-	},
-	data() {
-		return {
 			mdiAlertCircle,
 			mdiAlertCircleOutline,
 			mdiArrowLeft,
 			mdiCancel,
-			mdiCheckboxMarkedCircle,
 			mdiCheckCircle,
-			mdiFileMultiple,
-			mdiFilePdfBox,
-			mdiHelpCircle,
-			mdiInformationOutline,
-			mdiInformationSlabCircle,
+			mdiCheckboxMarkedCircle,
 			mdiKey,
-			mdiShieldCheck,
-			mdiShieldOff,
-			mdiSignatureFreehand,
-			mdiUnfoldLessHorizontal,
-			mdiUnfoldMoreHorizontal,
 			mdiUpload,
+		}
+	},
+	data() {
+		return {
 			logo: logoGray,
 			uuidToValidate: this.$route.params?.uuid ?? '',
 			hasInfo: false,
@@ -269,22 +249,22 @@ export default {
 	},
 	created() {
 		this.document = loadState('libresign', 'file_info', {})
-		
+
 		if (!this.uuidToValidate) {
 			this.document = {}
 			this.hasInfo = false
 			return
 		}
-		
+
 		this.hasInfo = !!this.document?.name
-		
+
 		if (this.uuidToValidate !== this.document?.uuid) {
 			this.document = {}
 			this.hasInfo = false
 			this.validate(this.uuidToValidate)
 		} else if (this.hasInfo && this.document.signers) {
 			this.document.signers.forEach(signer => {
-				this.$set(signer, 'opened', false)
+				signer.opened = false
 			})
 		} else if (this.uuidToValidate.length > 0) {
 			this.validate(this.uuidToValidate)
@@ -296,7 +276,7 @@ export default {
 			this.loading = true
 		}
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		this.isActiveView = false
 	},
 	methods: {
@@ -342,10 +322,10 @@ export default {
 			return Moment(Date.parse(date)).format('LL LTS')
 		},
 		toggleDetail(signer) {
-			this.$set(signer, 'opened', !signer.opened)
+			signer.opened = !signer.opened
 		},
 		toggleFileDetail(file) {
-			this.$set(file, 'opened', !file.opened)
+			file.opened = !file.opened
 		},
 		getSignerStatus(status) {
 			const statusMap = {
@@ -576,7 +556,7 @@ export default {
 			this.validate(this.uuidToValidate)
 		},
 		toggleState(stateObject, index) {
-			this.$set(stateObject, index, !stateObject[index])
+			stateObject[index] = !stateObject[index]
 		},
 		hasValidationStatus(signer) {
 			return signer.signature_validation
@@ -621,10 +601,10 @@ export default {
 			}
 			this.document = data
 			this.document.signers?.forEach(signer => {
-				this.$set(signer, 'opened', false)
+				signer.opened = false
 			})
 			this.document.files?.forEach(file => {
-				this.$set(file, 'opened', false)
+				file.opened = false
 			})
 			this.hasInfo = true
 			const isSignedStatus = status => Number(status) === FILE_STATUS.SIGNED

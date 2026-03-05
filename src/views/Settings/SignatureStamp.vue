@@ -3,8 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name">
-		<p v-linkify="{ linkify: true, text: description }" class="settings-section__description" />
+	<NcSettingsSection
+		:name="t('libresign', 'Signature stamp')"
+		:description="t('libresign', 'Configure the content displayed with the signature. The text template uses Twig syntax: https://twig.symfony.com/')">
 		<fieldset class="settings-section__row">
 			<legend>{{ t('libresign', 'Display signature mode') }}</legend>
 			<NcCheckboxRadioSwitch v-model="renderMode"
@@ -44,7 +45,7 @@
 				:aria-label="t('libresign', 'Reset to default')"
 				@click="resetRenderMode">
 				<template #icon>
-					<Undo :size="20" />
+					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 				</template>
 			</NcButton>
 		</fieldset>
@@ -54,7 +55,7 @@
 					:aria-label="t('libresign', 'Show available variables')"
 					@click="showVariablesDialog = true">
 					<template #icon>
-						<HelpCircleOutline :size="20" />
+						<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="20" />
 					</template>
 					{{ t('libresign', 'Available variables') }}
 				</NcButton>
@@ -63,20 +64,19 @@
 				<CodeEditor
 					v-model="inputValue"
 					:label="t('libresign', 'Signature text template')"
-					:placeholder="t('libresign', 'Signature text template')"
-					@input="debouncedSaveTemplate" />
+					:placeholder="t('libresign', 'Signature text template')" />
 				<NcButton v-if="displayResetTemplate"
 					type="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetTemplate">
 					<template #icon>
-						<Undo :size="20" />
+						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 					</template>
 				</NcButton>
 			</div>
 			<div class="settings-section__row">
 				<div v-if="renderMode === 'SIGNAME_AND_DESCRIPTION'" class="settings-section__row_signature">
-					<NcTextField :value.sync="signatureFontSize"
+					<NcTextField v-model:value="signatureFontSize"
 						:label="t('libresign', 'Signature font size')"
 						:placeholder="t('libresign', 'Signature font size')"
 						type="number"
@@ -92,7 +92,7 @@
 						:aria-label="t('libresign', 'Reset to default')"
 						@click="resetSignatureFontSize">
 						<template #icon>
-							<Undo :size="20" />
+							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 						</template>
 					</NcButton>
 				</div>
@@ -100,7 +100,7 @@
 					'settings-section__row_template': renderMode === 'SIGNAME_AND_DESCRIPTION',
 					'settings-section__row_template-only': renderMode !== 'SIGNAME_AND_DESCRIPTION',
 				}">
-					<NcTextField :value.sync="templateFontSize"
+					<NcTextField v-model:value="templateFontSize"
 						:label="t('libresign', 'Template font size')"
 						:placeholder="t('libresign', 'Template font size')"
 						type="number"
@@ -116,7 +116,7 @@
 						:aria-label="t('libresign', 'Reset to default')"
 						@click="resetTemplateFontSize">
 						<template #icon>
-							<Undo :size="20" />
+							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 						</template>
 					</NcButton>
 				</div>
@@ -132,7 +132,7 @@
 		</div>
 		<div v-if="displayPreview" class="settings-section__row">
 			<div class="settings-section__row_dimension">
-				<NcTextField :value.sync="signatureWidth"
+				<NcTextField v-model:value="signatureWidth"
 					:label="t('libresign', 'Default signature width')"
 					:placeholder="t('libresign', 'Default signature width')"
 					type="number"
@@ -148,12 +148,12 @@
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetSignatureWidth">
 					<template #icon>
-						<Undo :size="20" />
+						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 					</template>
 				</NcButton>
 			</div>
 			<div class="settings-section__row_dimension">
-				<NcTextField :value.sync="signatureHeight"
+				<NcTextField v-model:value="signatureHeight"
 					:label="t('libresign', 'Default signature height')"
 					:placeholder="t('libresign', 'Default signature height')"
 					type="number"
@@ -169,7 +169,7 @@
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetSignatureHeight">
 					<template #icon>
-						<Undo :size="20" />
+						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 					</template>
 				</NcButton>
 			</div>
@@ -181,7 +181,7 @@
 				:aria-label="t('libresign', 'Upload new background image')"
 				@click="activateLocalFilePicker">
 				<template #icon>
-					<Upload :size="20" />
+					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 				</template>
 				{{ t('libresign', 'Upload') }}
 			</NcButton>
@@ -190,7 +190,7 @@
 				:aria-label="t('libresign', 'Reset to default')"
 				@click="undoBackground">
 				<template #icon>
-					<Undo :size="20" />
+					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 				</template>
 			</NcButton>
 			<NcButton v-if="displayRemoveBackground"
@@ -198,7 +198,7 @@
 				:aria-label="t('libresign', 'Remove background')"
 				@click="removeBackground">
 				<template #icon>
-					<Delete :size="20" />
+					<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 				</template>
 			</NcButton>
 			<NcLoadingIcon v-if="showLoadingBackground"
@@ -212,18 +212,18 @@
 				<NcButton :aria-label="t('libresign', 'Decrease zoom level')"
 					@click="changeZoomLevel(-10)">
 					<template #icon>
-						<MagnifyMinusOutline :size="20" />
+						<NcIconSvgWrapper :path="mdiMagnifyMinusOutline" :size="20" />
 					</template>
 				</NcButton>
 				<NcButton :aria-label="t('libresign', 'Increase zoom level')"
 					@click="changeZoomLevel(+10)">
 					<template #icon>
-						<MagnifyPlusOutline :size="20" />
+						<NcIconSvgWrapper :path="mdiMagnifyPlusOutline" :size="20" />
 					</template>
 				</NcButton>
 			</div>
 			<NcTextField v-if="displayPreview"
-				:value.sync="zoomLevel"
+				v-model:value="zoomLevel"
 				class="settings-section__zoom_level"
 				:label="t('libresign', 'Zoom level')"
 				type="number"
@@ -292,7 +292,7 @@
 		</div>
 
 		<NcDialog :name="t('libresign', 'Available template variables')"
-			:open.sync="showVariablesDialog"
+			v-model:open="showVariablesDialog"
 			size="normal">
 			<div class="variables-dialog">
 				<p class="variables-dialog__description">
@@ -310,8 +310,8 @@
 							{{ getVariableText(availableName) }}
 						</template>
 						<template #icon>
-							<Check v-if="isCopied(availableName)" :size="20" />
-							<ContentCopy v-else :size="20" />
+							<NcIconSvgWrapper v-if="isCopied(availableName)" :path="mdiCheck" :size="20" />
+							<NcIconSvgWrapper v-else :path="mdiContentCopy" :size="20" />
 						</template>
 						<template #description>
 							<p class="variable-description">{{ availableDescription }}</p>
@@ -325,20 +325,23 @@
 <script>
 import debounce from 'debounce'
 
-import Check from 'vue-material-design-icons/Check.vue'
-import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
-import Delete from 'vue-material-design-icons/Delete.vue'
-import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
-import MagnifyMinusOutline from 'vue-material-design-icons/MagnifyMinusOutline.vue'
-import MagnifyPlusOutline from 'vue-material-design-icons/MagnifyPlusOutline.vue'
-import Undo from 'vue-material-design-icons/UndoVariant.vue'
-import Upload from 'vue-material-design-icons/Upload.vue'
+import {
+	mdiCheck,
+	mdiContentCopy,
+	mdiDelete,
+	mdiHelpCircleOutline,
+	mdiMagnifyMinusOutline,
+	mdiMagnifyPlusOutline,
+	mdiUndoVariant,
+	mdiUpload,
+} from '@mdi/js'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t, isRTL } from '@nextcloud/l10n'
+import { isRTL, t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -360,36 +363,37 @@ export default {
 		Linkify,
 	},
 	components: {
-		Check,
 		CodeEditor,
-		ContentCopy,
-		Delete,
-		HelpCircleOutline,
-		MagnifyMinusOutline,
-		MagnifyPlusOutline,
 		NcButton,
-		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcFormBoxButton,
-		NcLoadingIcon,
+		NcIconSvgWrapper,
 		NcNoteCard,
 		NcSettingsSection,
 		NcTextField,
-		Undo,
-		Upload,
+		NcCheckboxRadioSwitch,
+		NcLoadingIcon,
 	},
 	setup() {
 		const isDarkTheme = useIsDarkTheme()
 		return {
+			t,
+			isRTL,
 			isDarkTheme,
+			mdiCheck,
+			mdiContentCopy,
+			mdiDelete,
+			mdiHelpCircleOutline,
+			mdiMagnifyMinusOutline,
+			mdiMagnifyPlusOutline,
+			mdiUndoVariant,
+			mdiUpload,
 		}
 	},
 	data() {
 		const templateError = loadState('libresign', 'signature_text_template_error', '')
 		const backgroundType = loadState('libresign', 'signature_background_type')
 		return {
-			name: t('libresign', 'Signature stamp'),
-			description: t('libresign', 'Configure the content displayed with the signature. The text template uses Twig syntax: https://twig.symfony.com/'),
 			showLoadingBackground: false,
 			backgroundType,
 			acceptMime: ['image/png'],
@@ -514,6 +518,7 @@ export default {
 		unsubscribe('collect-metadata:changed')
 	},
 	methods: {
+
 		getVariableText(name) {
 			return name
 		},
@@ -793,6 +798,15 @@ export default {
 		direction: rtl;
 		text-align: right;
 	}
+}
+
+.hidden-visually {
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
 }
 
 .variables-dialog {

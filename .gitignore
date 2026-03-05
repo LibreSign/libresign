@@ -11,6 +11,7 @@
 /tests/integration/vendor
 /tests/integration/output
 /js/
+/css/
 /build/
 node_modules/
 /.php-cs-fixer.cache
@@ -20,4 +21,4 @@ node_modules/
 /appinfo/install-*.json
 /lib/Vendor/
 /coverage
-
+/dist/

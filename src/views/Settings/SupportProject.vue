@@ -3,7 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Support LibreSign')"
+		:description="t('libresign', 'Help us continue developing and maintaining LibreSign')">
 		<div class="support-project-content">
 			<p class="support-message">
 				{{ t('libresign', 'LibreSign is developed with ❤️ by LibreCode coop. Your support helps us maintain and improve this free and open-source project.') }}
@@ -14,7 +16,7 @@
 					target="_blank"
 					rel="noopener noreferrer">
 					<template #icon>
-						<HeartIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiHeart" :size="20" />
 					</template>
 					{{ t('libresign', 'Sponsor on GitHub') }}
 				</NcButton>
@@ -22,7 +24,7 @@
 					target="_blank"
 					rel="noopener noreferrer">
 					<template #icon>
-						<CurrencyUsdIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiCurrencyUsd" :size="20" />
 					</template>
 					{{ t('libresign', 'Donate via Stripe') }}
 				</NcButton>
@@ -30,7 +32,7 @@
 					target="_blank"
 					rel="noopener noreferrer">
 					<template #icon>
-						<InformationIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiInformation" :size="20" />
 					</template>
 					{{ t('libresign', 'Learn more') }}
 				</NcButton>
@@ -40,29 +42,33 @@
 </template>
 
 <script>
-import CurrencyUsdIcon from 'vue-material-design-icons/CurrencyUsd.vue'
-import HeartIcon from 'vue-material-design-icons/Heart.vue'
-import InformationIcon from 'vue-material-design-icons/Information.vue'
-
-import { translate as t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import { t } from '@nextcloud/l10n'
+import {
+	mdiHeart,
+	mdiCurrencyUsd,
+	mdiInformation,
+} from '@mdi/js'
 
 export default {
 	name: 'SupportProject',
 	components: {
-		CurrencyUsdIcon,
-		HeartIcon,
-		InformationIcon,
 		NcButton,
 		NcSettingsSection,
+		NcIconSvgWrapper,
 	},
-	data() {
+	setup() {
 		return {
-			name: t('libresign', 'Support LibreSign'),
-			description: t('libresign', 'Help us continue developing and maintaining LibreSign'),
+			mdiHeart,
+			mdiCurrencyUsd,
+			mdiInformation,
 		}
+	},
+	methods: {
+		t,
 	},
 }
 </script>

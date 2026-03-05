@@ -58,6 +58,7 @@ class TemplateLoader implements IEventListener {
 		}
 
 		Util::addScript(Application::APP_ID, 'libresign-tab');
+		Util::addStyle(Application::APP_ID, 'libresign-tab');
 		Util::addStyle(Application::APP_ID, 'icons');
 	}
 

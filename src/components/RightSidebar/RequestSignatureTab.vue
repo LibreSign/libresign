@@ -17,7 +17,7 @@
 			:variant="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
 			<template #icon>
-				<AccountPlus :size="20" />
+				<NcIconSvgWrapper :path="mdiAccountPlus" :size="20" />
 			</template>
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
@@ -31,7 +31,7 @@
 			type="tertiary"
 			@click="showOrderDiagram = true">
 			<template #icon>
-				<ChartGantt :size="20" />
+				<NcIconSvgWrapper :path="mdiChartGantt" :size="20" />
 			</template>
 			{{ t('libresign', 'View signing order') }}
 		</NcButton>
@@ -47,14 +47,14 @@
 						@submit="confirmSigningOrder(signer); closeActions()"
 						@blur="confirmSigningOrder(signer)">
 						<template #icon>
-							<OrderNumericAscending :size="20" />
+							<NcIconSvgWrapper :path="mdiOrderNumericAscending" :size="20" />
 						</template>
 					</NcActionInput>
 					<NcActionButton v-if="canCustomizeMessage(signer)"
 						:close-after-click="true"
 						@click="customizeMessage(signer); closeActions()">
 						<template #icon>
-							<MessageText :size="20" />
+							<NcIconSvgWrapper :path="mdiMessageText" :size="20" />
 						</template>
 						{{ t('libresign', 'Customize message') }}
 					</NcActionButton>
@@ -63,7 +63,7 @@
 						:close-after-click="true"
 						@click="filesStore.deleteSigner(signer)">
 						<template #icon>
-							<Delete :size="20" />
+							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 						</template>
 						{{ t('libresign', 'Delete') }}
 					</NcActionButton>
@@ -71,7 +71,7 @@
 						:close-after-click="true"
 						@click="requestSignatureForSigner(signer)">
 						<template #icon>
-							<Send :size="20" />
+							<NcIconSvgWrapper :path="mdiSend" :size="20" />
 						</template>
 						{{ t('libresign', 'Request signature') }}
 					</NcActionButton>
@@ -79,7 +79,7 @@
 						:close-after-click="true"
 						@click="sendNotify(signer)">
 						<template #icon>
-							<Bell :size="20" />
+							<NcIconSvgWrapper :path="mdiBell" :size="20" />
 						</template>
 						{{ t('libresign', 'Send reminder') }}
 					</NcActionButton>
@@ -94,7 +94,7 @@
 				@click="openManageFiles">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<FileMultiple v-else :size="20" />
+					<NcIconSvgWrapper v-else :path="mdiFileMultiple" :size="20" />
 				</template>
 				{{ t('libresign', 'Manage files ({count})', { count: envelopeFilesCount }) }}
 			</NcButton>
@@ -107,7 +107,7 @@
 				@click="save()">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<Pencil v-else-if="isSignElementsAvailable()" :size="20" />
+					<NcIconSvgWrapper v-else-if="isSignElementsAvailable()" :path="mdiPencil" :size="20" />
 				</template>
 				{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
 			</NcButton>
@@ -118,7 +118,7 @@
 				@click="request()">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<Send v-else :size="20" />
+					<NcIconSvgWrapper v-else :path="mdiSend" :size="20" />
 				</template>
 				{{ t('libresign', 'Request signatures') }}
 			</NcButton>
@@ -137,7 +137,7 @@
 				@click="sign()">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<Draw v-else :size="20" />
+					<NcIconSvgWrapper v-else :path="mdiPencil" :size="20" />
 				</template>
 				{{ t('libresign', 'Sign document') }}
 			</NcButton>
@@ -148,7 +148,7 @@
 				variant="secondary"
 				@click="validationFile()">
 				<template #icon>
-					<Information :size="20" />
+					<NcIconSvgWrapper :path="mdiInformation" :size="20" />
 				</template>
 				{{ t('libresign', 'Validation info') }}
 			</NcButton>
@@ -157,7 +157,7 @@
 				variant="secondary"
 				@click="openFile()">
 				<template #icon>
-					<FileDocument :size="20" />
+					<NcIconSvgWrapper :path="mdiFileDocument" :size="20" />
 				</template>
 				{{ t('libresign', 'Open file') }}
 			</NcButton>
@@ -208,7 +208,7 @@
 					@click="confirmRequest">
 					<template #icon>
 						<NcLoadingIcon v-if="hasLoading" :size="20" />
-						<Send v-else :size="20" />
+						<NcIconSvgWrapper v-else :path="mdiSend" :size="20" />
 					</template>
 					{{ t('libresign', 'Send') }}
 				</NcButton>
@@ -227,7 +227,7 @@
 					@click="confirmRequestSigner">
 					<template #icon>
 						<NcLoadingIcon v-if="hasLoading" :size="20" />
-						<Send v-else :size="20" />
+						<NcIconSvgWrapper v-else :path="mdiSend" :size="20" />
 					</template>
 					{{ t('libresign', 'Send') }}
 				</NcButton>
@@ -251,28 +251,30 @@
 </template>
 <script>
 
+import { t } from '@nextcloud/l10n'
+
 import debounce from 'debounce'
+
+import {
+	mdiAccountPlus,
+	mdiBell,
+	mdiChartGantt,
+	mdiDelete,
+	mdiFileDocument,
+	mdiFileMultiple,
+	mdiFilePlus,
+	mdiInformation,
+	mdiMessageText,
+	mdiOrderNumericAscending,
+	mdiPencil,
+	mdiSend,
+} from '@mdi/js'
 
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
-import svgInfo from '@mdi/svg/svg/information-outline.svg?raw'
 import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
 import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
-
-import AccountPlus from 'vue-material-design-icons/AccountPlus.vue'
-import Bell from 'vue-material-design-icons/Bell.vue'
-import ChartGantt from 'vue-material-design-icons/ChartGantt.vue'
-import Delete from 'vue-material-design-icons/Delete.vue'
-import Draw from 'vue-material-design-icons/Draw.vue'
-import FileDocument from 'vue-material-design-icons/FileDocument.vue'
-import FileMultiple from 'vue-material-design-icons/FileMultiple.vue'
-import FilePlus from 'vue-material-design-icons/FilePlus.vue'
-import Information from 'vue-material-design-icons/Information.vue'
-import MessageText from 'vue-material-design-icons/MessageText.vue'
-import OrderNumericAscending from 'vue-material-design-icons/OrderNumericAscending.vue'
-import Pencil from 'vue-material-design-icons/Pencil.vue'
-import Send from 'vue-material-design-icons/Send.vue'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -306,12 +308,12 @@ import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
-import router from '../../router/router.js'
+import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
-import { startLongPolling } from '../../services/longPolling.js'
+import { startLongPolling } from '../../services/longPolling'
 
 const iconMap = {
 	svgAccount,
@@ -329,18 +331,7 @@ export default {
 	name: 'RequestSignatureTab',
 	mixins: [signingOrderMixin],
 	components: {
-		AccountPlus,
-		Bell,
-		ChartGantt,
-		Delete,
-		Draw,
-		EnvelopeFilesList,
-		FileDocument,
-		FilePlus,
-		FileMultiple,
 		IdentifySigner,
-		Information,
-		MessageText,
 		NcActionButton,
 		NcActionInput,
 		NcActions,
@@ -354,9 +345,6 @@ export default {
 		NcLoadingIcon,
 		NcModal,
 		NcNoteCard,
-		OrderNumericAscending,
-		Pencil,
-		Send,
 		Signers,
 		SigningOrderDiagram,
 		SigningProgress,
@@ -373,7 +361,25 @@ export default {
 		const signStore = useSignStore()
 		const sidebarStore = useSidebarStore()
 		const userConfigStore = useUserConfigStore()
-		return { filesStore, signStore, sidebarStore, userConfigStore }
+
+		return {
+			filesStore,
+			signStore,
+			sidebarStore,
+			userConfigStore,
+			mdiAccountPlus,
+			mdiBell,
+			mdiChartGantt,
+			mdiDelete,
+			mdiPencil,
+			mdiFileDocument,
+			mdiFileMultiple,
+			mdiFilePlus,
+			mdiInformation,
+			mdiMessageText,
+			mdiOrderNumericAscending,
+			mdiSend,
+		}
 	},
 	data() {
 		return {
@@ -396,6 +402,18 @@ export default {
 			signingProgressStatus: null,
 			signingProgressStatusText: '',
 			stopPollingFunction: null,
+			mdiAccountPlus,
+			mdiBell,
+			mdiChartGantt,
+			mdiDelete,
+			mdiPencil,
+			mdiFileDocument,
+			mdiFileMultiple,
+			mdiFilePlus,
+			mdiInformation,
+			mdiMessageText,
+			mdiOrderNumericAscending,
+			mdiSend,
 		}
 	},
 	computed: {
@@ -688,8 +706,8 @@ export default {
 		}
 	},
 	created() {
-		this.$set(this, 'methods', loadState('libresign', 'identify_methods', []))
-		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
+		this.methods = loadState('libresign', 'identify_methods', [])
+		this.document = loadState('libresign', 'file_info', {})
 
 		this.debouncedSave = debounce(async () => {
 			try {
@@ -713,6 +731,7 @@ export default {
 		}, 500)
 	},
 	methods: {
+		t,
 		isSignerSigned(signer) {
 			if (Array.isArray(signer?.signed)) {
 				return signer.signed.length > 0
@@ -727,24 +746,24 @@ export default {
 				if (file?.signers) {
 					file.signers.forEach((signer, index) => {
 						if (!signer.signingOrder) {
-							this.$set(signer, 'signingOrder', index + 1)
+							signer.signingOrder = index + 1
 						}
 					})
 				}
 				if (file) {
-					this.$set(file, 'signatureFlow', 'ordered_numeric')
+					file.signatureFlow = 'ordered_numeric'
 				}
 			} else {
 				if (!this.isAdminFlowForced) {
 					if (file?.signers) {
 						file.signers.forEach(signer => {
 							if (!this.isSignerSigned(signer)) {
-								this.$set(signer, 'signingOrder', 1)
+								signer.signingOrder = 1
 							}
 						})
 					}
 					if (file) {
-						this.$set(file, 'signatureFlow', 'parallel')
+						file.signatureFlow = 'parallel'
 					}
 				}
 			}
@@ -900,7 +919,7 @@ export default {
 				return
 			}
 
-			this.$set(file.signers[currentIndex], 'signingOrder', order)
+			file.signers[currentIndex].signingOrder = order
 
 			const sortedSigners = [...file.signers].sort((a, b) => {
 				const orderA = a.signingOrder || 999
@@ -911,7 +930,7 @@ export default {
 				return orderA - orderB
 			})
 
-			this.$set(file, 'signers', sortedSigners)
+			file.signers = sortedSigners
 		},
 		confirmSigningOrder(signer) {
 			const file = this.filesStore.getFile()
@@ -931,11 +950,11 @@ export default {
 
 				if (order < oldOrder) {
 					if (currentItemOrder >= order && currentItemOrder < oldOrder) {
-						this.$set(file.signers[i], 'signingOrder', currentItemOrder + 1)
+						file.signers[i].signingOrder = currentItemOrder + 1
 					}
 				} else if (order > oldOrder) {
 					if (currentItemOrder > oldOrder && currentItemOrder <= order) {
-						this.$set(file.signers[i], 'signingOrder', currentItemOrder - 1)
+						file.signers[i].signingOrder = currentItemOrder - 1
 					}
 				}
 			}
@@ -948,7 +967,7 @@ export default {
 
 			this.normalizeSigningOrders(sortedSigners)
 
-			this.$set(file, 'signers', sortedSigners)
+			file.signers = sortedSigners
 
 			this.debouncedSave()
 		},
@@ -1136,20 +1155,20 @@ export default {
 }
 
 #request-signature-identify-signer {
-	::v-deep .app-sidebar-header{
+	:deep(.app-sidebar-header) {
 		display: none;
 	}
-	::v-deep aside {
+	:deep(aside) {
 		border-left: unset;
 	}
-	::v-deep .app-sidebar__close {
+	:deep(.app-sidebar__close) {
 		display: none;
 	}
-	::v-deep .app-sidebar__tab {
+	:deep(.app-sidebar__tab) {
 		box-sizing: border-box;
 	}
 	@media (min-width: 513px) {
-		::v-deep #app-sidebar-vue {
+		:deep(#app-sidebar-vue) {
 			width: unset;
 		}
 	}

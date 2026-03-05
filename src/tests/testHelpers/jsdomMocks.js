@@ -83,3 +83,36 @@ if (typeof window !== 'undefined') {
 	}
 }
 
+if (typeof HTMLCanvasElement !== 'undefined') {
+	HTMLCanvasElement.prototype.getContext = HTMLCanvasElement.prototype.getContext || function getContext() {
+		return {
+			clearRect() {},
+			fillRect() {},
+			fillText() {},
+			measureText() { return { width: 0 } },
+			beginPath() {},
+			moveTo() {},
+			lineTo() {},
+			stroke() {},
+			setTransform() {},
+			save() {},
+			restore() {},
+		}
+	}
+}
+
+if (typeof window !== 'undefined') {
+	class MutationObserverMock {
+		constructor(callback) {
+			this._callback = callback
+		}
+		observe() {}
+		disconnect() {}
+		takeRecords() {
+			return []
+		}
+	}
+	window.MutationObserver = MutationObserverMock
+	globalThis.MutationObserver = MutationObserverMock
+}
+

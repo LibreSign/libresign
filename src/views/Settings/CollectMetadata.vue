@@ -3,19 +3,21 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Collect signers\'metadata')"
+		:description="t('libresign', 'Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer.')">
 		<NcCheckboxRadioSwitch type="switch"
-			:checked.sync="collectMetadataEnabled"
-			@update:checked="saveCollectMetadata()">
-			{{ t('libresign', 'Collect signers\' metadata when signing a document') }}
+			v-model="collectMetadataEnabled"
+			@update:model-value="saveCollectMetadata()">
+			{{ t('libresign', 'Collect signers\'metadata when signing a document') }}
 		</NcCheckboxRadioSwitch>
 	</NcSettingsSection>
 </template>
 <script>
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
@@ -28,8 +30,6 @@ export default {
 	},
 	data() {
 		return {
-			name: t('libresign', 'Collect signers\' metadata'),
-			description: t('libresign', 'Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer.'),
 			collectMetadataEnabled: false,
 		}
 	},
@@ -37,6 +37,7 @@ export default {
 		this.getData()
 	},
 	methods: {
+		t,
 		async getData() {
 			const responseCollectMetadata = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/collect_metadata'))
 			const value = responseCollectMetadata?.data?.ocs?.data?.data

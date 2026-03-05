@@ -19,28 +19,23 @@ use OCA\Libresign\Service\Identify\ResultEnricher;
 use OCA\Libresign\Service\Identify\ResultFilter;
 use OCA\Libresign\Service\Identify\ResultFormatter;
 use OCA\Libresign\Service\Identify\SearchNormalizer;
+use OCA\Libresign\Service\Identify\ShareTypeResolver;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
-use OCA\Libresign\Service\IdentifyMethod\Account;
-use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\Collaboration\Collaborators\ISearch;
 use OCP\IRequest;
-use OCP\Share\IShare;
 
 /**
  * @psalm-import-type LibresignIdentifyAccount from ResponseDefinitions
  */
 class IdentifyController extends AEnvironmentAwareController {
-	private const PHONE_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
-
 	public function __construct(
 		IRequest $request,
 		private ISearch $collaboratorSearch,
-		private Email $identifyEmailMethod,
-		private Account $identifyAccountMethod,
+		private ShareTypeResolver $shareTypeResolver,
 		private SearchNormalizer $searchNormalizer,
 		private SignerSearchContext $signerSearchContext,
 		private ResultFilter $resultFilter,
@@ -76,7 +71,7 @@ class IdentifyController extends AEnvironmentAwareController {
 			return new DataResponse([]);
 		}
 
-		$shareTypes = $this->getShareTypes();
+		$shareTypes = $this->shareTypeResolver->resolve($method);
 		$offset = $limit * ($page - 1);
 
 		$this->signerSearchContext->set($method, $search, $rawSearch);
@@ -112,21 +107,4 @@ class IdentifyController extends AEnvironmentAwareController {
 		$refProperty->setValue($this->collaboratorSearch, $plugins);
 	}
 
-	private function getShareTypes(): array {
-		$shareTypes = [];
-		$settings = $this->identifyEmailMethod->getSettings();
-		if ($settings['enabled']) {
-			$shareTypes[] = IShare::TYPE_EMAIL;
-		}
-		$settings = $this->identifyAccountMethod->getSettings();
-		if ($settings['enabled']) {
-			$shareTypes[] = IShare::TYPE_USER;
-		}
-
-		$shareTypes[] = SignerPlugin::TYPE_SIGNER;
-		$shareTypes[] = AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE;
-		$shareTypes[] = ContactPhonePlugin::TYPE_SIGNER_CONTACT_PHONE;
-		$shareTypes[] = ManualPhonePlugin::TYPE_SIGNER_MANUAL_PHONE;
-		return $shareTypes;
-	}
 }

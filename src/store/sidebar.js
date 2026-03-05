@@ -4,7 +4,6 @@
  */
 
 import { defineStore } from 'pinia'
-import { set } from 'vue'
 
 export const useSidebarStore = defineStore('sidebar', {
 	state: () => ({
@@ -24,18 +23,18 @@ export const useSidebarStore = defineStore('sidebar', {
 
 	actions: {
 		showSidebar() {
-			set(this, 'show', true)
+			this.show = true
 		},
 		activeSignTab() {
-			set(this, 'activeTab', 'sign-tab')
+			this.activeTab = 'sign-tab'
 			this.showSidebar()
 		},
 		activeRequestSignatureTab() {
-			set(this, 'activeTab', 'request-signature-tab')
+			this.activeTab = 'request-signature-tab'
 			this.showSidebar()
 		},
 		setActiveTab(id) {
-			set(this, 'activeTab', id ?? '')
+			this.activeTab = id ?? ''
 			if (id) {
 				this.showSidebar()
 			} else {
@@ -43,7 +42,7 @@ export const useSidebarStore = defineStore('sidebar', {
 			}
 		},
 		hideSidebar() {
-			set(this, 'show', false)
+			this.show = false
 		},
 		handleRouteChange(routeName) {
 			if (routeName && !this.sidebarRoutes.includes(routeName)) {
@@ -51,7 +50,7 @@ export const useSidebarStore = defineStore('sidebar', {
 			}
 		},
 		toggleSidebar() {
-			set(this, 'show', !this.show)
+			this.show = !this.show
 		},
 	},
 })

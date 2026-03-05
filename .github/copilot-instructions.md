@@ -163,7 +163,7 @@ The second example is clear without comments because the method names describe e
 - **Db**: `OCA\Libresign\Db\*` - Entities extend `Entity`, Mappers extend `QBMapper`
 
 ### Frontend Architecture
-- **Vue 2** with Composition API patterns via `@vueuse/core`
+- **Vue 3** with Composition API patterns via `@vueuse/core`
 - **Pinia stores** for state (not Vuex)
 - **Router**: `src/router/router.js` defines SPA routes
 - **OpenAPI integration**: TypeScript types generated from OpenAPI spec via `npm run typescript:generate`

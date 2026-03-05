@@ -1,15 +1,38 @@
 {
 	"extends": "@vue/tsconfig/tsconfig.json",
-	"include": ["src/**/*.ts", "src/env.d.ts"],
-	"exclude": ["node_modules", "vendor"],
+	"include": [
+		"src/vue-shim.d.ts",
+		"src/global.d.ts",
+		"src/tests/vitest.d.ts",
+		"src/**/*.ts",
+		"src/**/*.vue"
+	],
+	"exclude": [
+		"node_modules",
+		"vendor"
+	],
 	"compilerOptions": {
 		"outDir": "./js",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
 		"allowJs": true,
 		"checkJs": false,
 		"allowImportingTsExtensions": true,
-		"lib": ["ESNext"],
+		"noUncheckedIndexedAccess": false,
+		"strictNullChecks": true,
+		"lib": [
+			"ESNext",
+			"DOM",
+			"DOM.Iterable"
+		],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": [
+				"src/*"
+			]
+		}
 	},
 	"vueCompilerOptions": {
-		"target": 2.7,
+		"target": 3
 	}
 }

@@ -5,14 +5,16 @@
 <!-- eslint-disable vue/no-v-html -->
 
 <template>
-	<NcSettingsSection v-if="configureCheckStore.items.length > 0" :name="name" :description="description">
+	<NcSettingsSection v-if="configureCheckStore.items.length > 0"
+		:name="t('libresign', 'Configuration check')"
+		:description="t('libresign', 'Status of setup')">
 		<table class="grid">
 			<tbody>
 				<tr class="group-header">
-					<th>{{ t('libresign', 'Status') }}</th>
-					<th>{{ t('libresign', 'Message') }}</th>
-					<th>{{ t('libresign', 'Resource') }}</th>
-					<th>{{ t('libresign', 'Tip') }}</th>
+				<th>{{ t('libresign', 'Status') }}</th>
+				<th>{{ t('libresign', 'Message') }}</th>
+				<th>{{ t('libresign', 'Resource') }}</th>
+				<th>{{ t('libresign', 'Tip') }}</th>
 				</tr>
 				<tr v-for="(row, index) in configureCheckStore.items" :key="index">
 					<td :class="row.status">
@@ -29,10 +31,9 @@
 	</NcSettingsSection>
 </template>
 <script>
-import { translate as t } from '@nextcloud/l10n'
-
-import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
+import NcRichText from '@nextcloud/vue/components/NcRichText'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import { t } from '@nextcloud/l10n'
 
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
@@ -44,12 +45,8 @@ export default {
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
-		return { configureCheckStore }
+		return { t, configureCheckStore }
 	},
-	data: () => ({
-		name: t('libresign', 'Configuration check'),
-		description: t('libresign', 'Status of setup'),
-	}),
 }
 </script>
 <style lang="scss" scoped>

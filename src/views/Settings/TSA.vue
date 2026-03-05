@@ -4,10 +4,12 @@
 -->
 
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Timestamp Authority (TSA)')"
+		:description="t('libresign', 'Timestamp Authority (TSA) settings for digitally signing documents.')">
 		<NcCheckboxRadioSwitch type="switch"
-			:checked.sync="enabled"
-			@update:checked="toggleTsa">
+			v-model="enabled"
+			@update:model-value="toggleTsa">
 			{{ t('libresign', 'Use timestamp server') }}
 		</NcCheckboxRadioSwitch>
 
@@ -61,10 +63,10 @@
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
@@ -73,18 +75,17 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-import '@nextcloud/password-confirmation/dist/style.css'
+import '@nextcloud/password-confirmation/style.css'
 
 export default {
 	name: 'TSA',
 	components: {
-		NcCheckboxRadioSwitch,
 		NcPasswordField,
 		NcSelect,
 		NcSettingsSection,
 		NcTextField,
+		NcCheckboxRadioSwitch,
 	},
-
 	data() {
 		const AUTH_TYPES = {
 			NONE: 'none',
@@ -98,8 +99,6 @@ export default {
 			AUTH_TYPES,
 			DEFAULT_TSA_URL,
 			DEBOUNCE_DELAY,
-			name: t('libresign', 'Timestamp Authority (TSA)'),
-			description: t('libresign', 'Timestamp Authority (TSA) settings for digitally signing documents.'),
 			enabled: loadState('libresign', 'tsa_url', '').length > 0,
 			tsa_url: loadState('libresign', 'tsa_url', ''),
 			tsa_policy_oid: loadState('libresign', 'tsa_policy_oid', ''),
@@ -151,6 +150,8 @@ export default {
 	},
 
 	methods: {
+		t,
+
 		updateField(field, value) {
 			this[field] = value
 			this.clearFieldError(field)
@@ -340,7 +341,6 @@ export default {
 			return oidRegex.test(oid.trim())
 		},
 	},
-
 	created() {
 		const debounce = (func, wait) => {
 			let timeout

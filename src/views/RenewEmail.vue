@@ -31,7 +31,7 @@
 				{{ renewButton }}
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<ArrowRight v-else />
+					<NcIconSvgWrapper :path="mdiArrowRight" v-else />
 				</template>
 			</NcButton>
 		</div>
@@ -39,13 +39,17 @@
 </template>
 
 <script>
-import ArrowRight from 'vue-material-design-icons/ArrowRight.vue'
+import { t } from '@nextcloud/l10n'
+import {
+	mdiArrowRight,
+} from '@mdi/js'
 
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
@@ -55,8 +59,14 @@ export default {
 	components: {
 		NcButton,
 		NcNoteCard,
-		ArrowRight,
+		NcIconSvgWrapper,
 		NcLoadingIcon,
+	},
+	setup() {
+		return {
+			t,
+			mdiArrowRight,
+		}
 	},
 	data() {
 		return {

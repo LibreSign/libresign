@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 
 import FilesListTableHeaderButton from './FilesListTableHeaderButton.vue'
@@ -65,6 +67,7 @@ export default {
 		const filesStore = useFilesStore()
 		const selectionStore = useSelectionStore()
 		return {
+			t,
 			filesStore,
 			selectionStore,
 		}
@@ -133,7 +136,7 @@ export default {
 		},
 		onToggleAll(selected) {
 			if (selected) {
-				const selection = this.filesStore.ordered
+				const selection = this.filesStore.ordered.map(id => Number(id))
 				logger.debug('Added all nodes to selection', { selection })
 				this.selectionStore.setLastIndex(null)
 				this.selectionStore.set(selection)

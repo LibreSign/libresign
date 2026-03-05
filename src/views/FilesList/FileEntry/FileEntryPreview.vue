@@ -17,21 +17,19 @@
 				@load="backgroundFailed = false">
 		</span>
 
-		<FolderIcon v-if="isEnvelope" v-once />
-		<FileIcon v-else-if="!previewUrl" v-once />
-
-		<!-- Favorite icon -->
-		<span v-if="isFavorite" class="files-list__row-icon-favorite">
-			<FavoriteIcon v-once />
-		</span>
+		<NcIconSvgWrapper :path="mdiFolder" v-if="isEnvelope" v-once />
+		<NcIconSvgWrapper :path="mdiFile" v-else-if="!previewUrl" v-once />
 	</span>
 </template>
 
 <script>
-import FileIcon from 'vue-material-design-icons/File.vue'
-import FolderIcon from 'vue-material-design-icons/Folder.vue'
-
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import {
+	mdiFile,
+	mdiFolder,
+} from '@mdi/js'
 
 import { useUserConfigStore } from '../../../store/userconfig.js'
 
@@ -39,8 +37,7 @@ export default {
 	name: 'FileEntryPreview',
 
 	components: {
-		FileIcon,
-		FolderIcon,
+		NcIconSvgWrapper,
 	},
 	props: {
 		source: {
@@ -50,7 +47,11 @@ export default {
 	},
 	setup() {
 		const userConfigStore = useUserConfigStore()
-		return { userConfigStore }
+		return {
+			userConfigStore,
+			mdiFile,
+			mdiFolder,
+		}
 	},
 	data() {
 		return {

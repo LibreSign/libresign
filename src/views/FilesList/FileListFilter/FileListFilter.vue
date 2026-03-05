@@ -23,6 +23,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'

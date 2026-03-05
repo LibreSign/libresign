@@ -3,10 +3,12 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Identification documents')"
+		:description="t('libresign', 'The flow of identification documents will make it mandatory for anyone who must sign a file, to send their identification documents, this, in order for them to be approved by some member of the approval group. The user can only create the certificate after these are approved.')">
 		<NcCheckboxRadioSwitch type="switch"
-			:checked.sync="identificationDocumentsFlowEnabled"
-			@update:checked="saveIdentificationDocumentsStatus()">
+			v-model="identificationDocumentsFlowEnabled"
+			@update:modelValue="saveIdentificationDocumentsStatus">
 			{{ t('libresign', 'Enable identification documents flow') }}
 		</NcCheckboxRadioSwitch>
 		<p v-if="identificationDocumentsFlowEnabled">
@@ -25,14 +27,15 @@
 				:searchable="true"
 				:show-no-options="false"
 				@search-change="searchGroup"
-				@input="saveApprovalGroups" />
+				@update:modelValue="saveApprovalGroups" />
 		</p>
 	</NcSettingsSection>
 </template>
 <script>
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
+import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSelect from '@nextcloud/vue/components/NcSelect'
@@ -44,14 +47,19 @@ export default {
 	name: 'IdentificationDocuments',
 	components: {
 		NcSettingsSection,
-		NcCheckboxRadioSwitch,
 		NcSelect,
+		NcCheckboxRadioSwitch,
+	},
+	computed: {
+		description() {
+			return t('libresign', 'Search groups')
+		},
 	},
 	data() {
+		const approvalGroupState = loadState('libresign', 'approval_group', ['admin'])
 		return {
-			name: t('libresign', 'Identification documents'),
-			description: t('libresign', 'The flow of identification documents will make it mandatory for anyone who must sign a file, to send their identification documents, this, in order for them to be approved by some member of the approval group. The user can only create the certificate after these are approved.'),
-			identificationDocumentsFlowEnabled: false,
+			identificationDocumentsFlowEnabled: loadState('libresign', 'identification_documents', false) === true,
+			approvalGroupIds: Array.isArray(approvalGroupState) ? approvalGroupState : ['admin'],
 			approvalGroups: [],
 			groups: [],
 			loadingGroups: false,
@@ -60,28 +68,14 @@ export default {
 	},
 	async created() {
 		await this.searchGroup('')
-		await this.getData()
+		this.syncApprovalGroupsFromState()
 	},
 	methods: {
-		async getData() {
-			await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/identification_documents'))
-				.then(({ data }) => {
-					this.identificationDocumentsFlowEnabled = ['true', true, '1', 1].includes(data.ocs.data.data)
-				})
-
-			await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/approval_group'),
-			)
-				.then(({ data }) => {
-					const approvalGroups = JSON.parse(data.ocs.data.data)
-					if (!approvalGroups) {
-						return
-					}
-					this.approvalGroups = this.groups.filter(group => {
-						return approvalGroups.indexOf(group.id) !== -1
-					})
-				})
-				.catch((error) => logger.debug('Could not fetch groups_request_sign', { error }))
+		t,
+		syncApprovalGroupsFromState() {
+			this.approvalGroups = this.groups.filter(group => {
+				return this.approvalGroupIds.indexOf(group.id) !== -1
+			})
 		},
 		saveIdentificationDocumentsStatus() {
 			OCP.AppConfig.setValue('libresign', 'identification_documents', this.identificationDocumentsFlowEnabled ? '1' : '0')
@@ -94,6 +88,7 @@ export default {
 				}
 				return g
 			}))
+			this.approvalGroupIds = JSON.parse(listOfInputGroupsSelected)
 			OCP.AppConfig.setValue('libresign', 'approval_group', listOfInputGroupsSelected)
 			this.idApprovalGroupsKey += 1
 		},

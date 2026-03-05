@@ -13,7 +13,7 @@
 		<NcButton v-if="isAdmin"
 			@click="finishSetup">
 			<template #icon>
-				<CogsIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiCogs" :size="20" />
 			</template>
 			{{ t('libresign', 'Finish the setup') }}
 		</NcButton>
@@ -25,12 +25,15 @@
 
 <script>
 
-import CogsIcon from 'vue-material-design-icons/Cogs.vue'
+import { t } from '@nextcloud/l10n'
+import { mdiCogs } from '@mdi/js'
+
 
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import BackgroundImage from '../../img/logo-gray.svg'
 
@@ -38,7 +41,12 @@ export default {
 	name: 'IncompleteCertification',
 	components: {
 		NcButton,
-		CogsIcon,
+		NcIconSvgWrapper,
+	},
+	setup() {
+		return {
+			mdiCogs,
+		}
 	},
 	data() {
 		return {
@@ -47,6 +55,7 @@ export default {
 		}
 	},
 	methods: {
+		t,
 		finishSetup() {
 			window.location.href = generateUrl('settings/admin/libresign')
 		},

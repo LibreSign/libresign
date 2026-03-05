@@ -159,7 +159,7 @@
 </template>
 
 <script>
-import { translate as t, translatePlural as n } from '@nextcloud/l10n'
+import { n, t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
@@ -171,13 +171,13 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 
 import {
-	mdiPackageVariantClosed,
-	mdiFileMultiple,
-	mdiFilePdfBox,
 	mdiAccountMultiple,
 	mdiChevronDown,
 	mdiChevronUp,
 	mdiEye,
+	mdiFileMultiple,
+	mdiFilePdfBox,
+	mdiPackageVariantClosed,
 } from '@mdi/js'
 import Moment from '@nextcloud/moment'
 import { getStatusLabel } from '../../utils/fileStatus.js'
@@ -235,18 +235,18 @@ export default {
 	methods: {
 		initializeDocument(doc) {
 			doc.files?.forEach(file => {
-				this.$set(file, 'opened', false)
-				this.$set(file, 'statusText', getStatusLabel(file.status))
+				file.opened = false
+				file.statusText = getStatusLabel(file.status)
 			})
 		},
 		dateFromSqlAnsi(date) {
 			return Moment(Date.parse(date)).format('LL LTS')
 		},
 		toggleDetail(signer) {
-			this.$set(signer, 'opened', !signer.opened)
+			signer.opened = !signer.opened
 		},
 		toggleFileDetail(file) {
-			this.$set(file, 'opened', !file.opened)
+			file.opened = !file.opened
 		},
 		getName(signer) {
 			return signer.displayName || signer.email || t('libresign', 'Unknown')

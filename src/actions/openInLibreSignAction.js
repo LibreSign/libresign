@@ -2,10 +2,10 @@
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { registerFileAction, FileAction } from '@nextcloud/files'
+import { registerFileAction } from '@nextcloud/files'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 import EditNameDialog from '../components/Common/EditNameDialog.vue'
 
@@ -15,35 +15,24 @@ import SvgIcon from '../../img/app-dark.svg?raw'
 /**
  * Prompts user for envelope name via dialog
  */
-function promptEnvelopeName() {
-	return new Promise((resolve) => {
-		const propsData = {
+async function promptEnvelopeName() {
+	const envelopeName = await spawnDialog(
+		EditNameDialog,
+		{
 			title: t('libresign', 'Envelope name'),
 			label: t('libresign', 'Enter a name for the envelope'),
 			placeholder: t('libresign', 'Envelope name'),
-		}
-
-		spawnDialog(
-			{
-				...EditNameDialog,
-				mounted() {
-					EditNameDialog.mounted?.call(this)
-					this.$on('close', (value) => {
-						resolve(value)
-					})
-				},
-			},
-			propsData,
-		)
-	})
+		},
+	)
+	return envelopeName
 }
 
-export const action = new FileAction({
+export const action = {
 	id: 'open-in-libresign',
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
 
-	enabled(nodes) {
+	enabled({ nodes }) {
 		if (!loadState('libresign', 'certificate_ok', false)) {
 			return false
 		}
@@ -71,11 +60,10 @@ export const action = new FileAction({
 	/**
 	 * Single file or folder: open in sidebar
 	 */
-	async exec(node) {
-		const sidebar = window.OCA.Files.Sidebar
-		sidebar.close()
-		await sidebar.open(node.path)
-		sidebar.setActiveTab('libresign')
+	async exec({ nodes }) {
+		const node = nodes[0]
+		await window.OCA.Files.Sidebar.open(node.path)
+		window.OCA.Files.Sidebar.setActiveTab('libresign')
 		return null
 	},
 
@@ -83,9 +71,9 @@ export const action = new FileAction({
 	 * Multiple files: prepare envelope data and delegate to sidebar
 	 * Similar to exec, but passes multiple files to the sidebar for processing
 	 */
-	async execBatch(nodes) {
+	async execBatch({ nodes }) {
 		if (nodes.length === 1) {
-			await this.exec(nodes[0])
+			await this.exec({ nodes })
 			return [null]
 		}
 
@@ -112,16 +100,14 @@ export const action = new FileAction({
 			uuid: null,
 		}
 
-		const sidebar = window.OCA.Files.Sidebar
 		const firstNode = nodes[0]
-		sidebar.close()
-		await sidebar.open(firstNode.path)
-		sidebar.setActiveTab('libresign')
+		await window.OCA.Files.Sidebar.open(firstNode.path)
+		window.OCA.Files.Sidebar.setActiveTab('libresign')
 
 		return new Array(nodes.length).fill(null)
 	},
 
 	order: -1000,
-})
+}
 
 registerFileAction(action)

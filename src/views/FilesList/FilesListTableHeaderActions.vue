@@ -24,10 +24,10 @@
 		<NcDialog v-if="confirmDelete"
 			:name="t('libresign', 'Confirm')"
 			:no-close="deleting"
-			:open.sync="confirmDelete">
+			v-model:open="confirmDelete">
 			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="deleteFile"
+				v-model="deleteFile"
 				:disabled="deleting">
 				{{ t('libresign', 'Also delete the file.') }}
 			</NcCheckboxRadioSwitch>
@@ -50,6 +50,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -70,20 +72,20 @@ export default {
 	name: 'FilesListTableHeaderActions',
 
 	components: {
-		NcActions,
 		NcActionButton,
+		NcActions,
 		NcButton,
 		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcIconSvgWrapper,
 		NcLoadingIcon,
 	},
-
 	setup() {
 		const filesStore = useFilesStore()
 		const selectionStore = useSelectionStore()
 
 		return {
+			t,
 			filesStore,
 			selectionStore,
 		}
@@ -177,8 +179,9 @@ export default {
 		},
 		changeLoadingStatusOfSelectedFiles(status) {
 			this.selectionStore.selected.forEach(key => {
-				if (this.filesStore.files[key]) {
-					this.filesStore.files[key].loading = status
+				const file = this.filesStore.files[key]
+				if (file) {
+					file.loading = status
 				}
 			})
 		},

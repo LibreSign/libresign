@@ -129,6 +129,7 @@
 			class="extra"
 			compact
 			:name="t('libresign', 'Document certification')"
+			:aria-expanded="docMdpOpen ? 'true' : 'false'"
 			role="button"
 			@click="docMdpOpen = !docMdpOpen">
 			<template #name>
@@ -136,6 +137,7 @@
 			</template>
 			<template #extra-actions>
 				<NcButton variant="tertiary"
+					:aria-label="docMdpOpen ? t('libresign', 'Collapse document certification') : t('libresign', 'Expand document certification')"
 					@click.stop="docMdpOpen = !docMdpOpen">
 					<template #icon>
 						<NcIconSvgWrapper v-if="docMdpOpen"
@@ -231,7 +233,7 @@
 </template>
 
 <script>
-import { translate as t, translatePlural as n } from '@nextcloud/l10n'
+import { n, t } from '@nextcloud/l10n'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
@@ -259,11 +261,11 @@ import {
 export default {
 	name: 'SignerDetails',
 	components: {
+		CertificateChain,
 		NcAvatar,
 		NcButton,
 		NcIconSvgWrapper,
 		NcListItem,
-		CertificateChain,
 	},
 	props: {
 		signer: {

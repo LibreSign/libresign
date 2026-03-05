@@ -4,11 +4,12 @@
 -->
 <template>
 	<div class="user-display-password">
-		<NcButton :wide="true"
-			@click="$refs.uploadCertificate.triggerUpload()">
+		<NcButton v-if="mounted"
+			:wide="true"
+			@click="triggerUploadCertificate">
 			{{ t('libresign', 'Upload certificate') }}
 			<template #icon>
-				<CloudUploadIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiCloudUpload" :size="20" />
 			</template>
 		</NcButton>
 		<NcButton v-if="signMethodsStore.hasSignatureFile()"
@@ -16,7 +17,7 @@
 			@click="signMethodsStore.showModal('readCertificate')">
 			{{ t('libresign', 'Read certificate') }}
 			<template #icon>
-				<LockOpenCheckIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiLockOpenCheck" :size="20" />
 			</template>
 		</NcButton>
 		<NcButton v-if="signMethodsStore.hasSignatureFile()"
@@ -24,7 +25,7 @@
 			@click="deleteCertificate()">
 			{{ t('libresign', 'Delete certificate') }}
 			<template #icon>
-				<DeleteIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 			</template>
 		</NcButton>
 		<NcButton v-if="certificateEngine !== 'none' && !signMethodsStore.hasSignatureFile()"
@@ -32,7 +33,7 @@
 			@click="signMethodsStore.showModal('createPassword')">
 			{{ t('libresign', 'Create certificate') }}
 			<template #icon>
-				<CertificateIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiCertificate" :size="20" />
 			</template>
 		</NcButton>
 		<NcButton v-else-if="signMethodsStore.hasSignatureFile()"
@@ -40,7 +41,7 @@
 			@click="signMethodsStore.showModal('resetPassword')">
 			{{ t('librsign', 'Change password') }}
 			<template #icon>
-				<FileReplaceIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiFileReplace" :size="20" />
 			</template>
 		</NcButton>
 		<CreatePassword v-if="mounted" />
@@ -52,11 +53,15 @@
 </template>
 
 <script>
-import CertificateIcon from 'vue-material-design-icons/Certificate.vue'
-import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
-import DeleteIcon from 'vue-material-design-icons/Delete.vue'
-import FileReplaceIcon from 'vue-material-design-icons/FileReplace.vue'
-import LockOpenCheckIcon from 'vue-material-design-icons/LockOpenCheck.vue'
+import { t } from '@nextcloud/l10n'
+import {
+	mdiCertificate,
+	mdiCloudUpload,
+	mdiDelete,
+	mdiFileReplace,
+	mdiLockOpenCheck,
+} from '@mdi/js'
+
 
 import axios from '@nextcloud/axios'
 import { showSuccess } from '@nextcloud/dialogs'
@@ -64,6 +69,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import CreatePassword from '../../CreatePassword.vue'
 import ReadCertificate from '../../ReadCertificate/ReadCertificate.vue'
@@ -75,12 +81,8 @@ import { useSignMethodsStore } from '../../../store/signMethods.js'
 export default {
 	name: 'ManagePassword',
 	components: {
-		CertificateIcon,
-		CloudUploadIcon,
-		DeleteIcon,
-		FileReplaceIcon,
-		LockOpenCheckIcon,
 		NcButton,
+		NcIconSvgWrapper,
 		CreatePassword,
 		ReadCertificate,
 		ResetPassword,
@@ -89,7 +91,14 @@ export default {
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
 		signMethodsStore.setHasSignatureFile(loadState('libresign', 'config', {})?.hasSignatureFile ?? false)
-		return { signMethodsStore }
+		return {
+			signMethodsStore,
+			mdiCloudUpload,
+			mdiLockOpenCheck,
+			mdiDelete,
+			mdiCertificate,
+			mdiFileReplace,
+		}
 	},
 	data() {
 		return {
@@ -102,6 +111,10 @@ export default {
 		this.mounted = true
 	},
 	methods: {
+		t,
+		triggerUploadCertificate() {
+			this.$refs.uploadCertificate.triggerUpload()
+		},
 		onCertificateUploaded() {
 			this.$emit('certificate:uploaded')
 		},

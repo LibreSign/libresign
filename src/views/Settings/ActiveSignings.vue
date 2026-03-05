@@ -3,12 +3,14 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="t('libresign', 'Active Signings')" :description="t('libresign', 'Monitor documents currently being signed')">
+	<NcSettingsSection
+		:name="t('libresign', 'Active Signings')"
+		:description="t('libresign', 'Monitor documents currently being signed')">
 		<div class="active-signings-content">
 			<!-- Auto-refresh toggle -->
 			<div class="active-signings__controls">
 				<NcCheckboxRadioSwitch type="switch"
-					:checked.sync="autoRefresh"
+					v-model="autoRefresh"
 					:disabled="loading">
 					{{ t('libresign', 'Auto-refresh') }}
 				</NcCheckboxRadioSwitch>
@@ -16,7 +18,7 @@
 					:disabled="loading"
 					@click="refresh">
 					<template #icon>
-						<Refresh :size="20" />
+						<NcIconSvgWrapper :path="mdiRefresh" :size="20" />
 					</template>
 					{{ t('libresign', 'Refresh') }}
 				</NcButton>
@@ -67,24 +69,32 @@
 
 <script>
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
+import {
+	mdiRefresh,
+} from '@mdi/js'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
+import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
-import Refresh from 'vue-material-design-icons/Refresh.vue'
 
 export default {
 	name: 'ActiveSignings',
 	components: {
 		NcButton,
+		NcSettingsSection,
+		NcIconSvgWrapper,
 		NcCheckboxRadioSwitch,
 		NcLoadingIcon,
-		NcSettingsSection,
-		Refresh,
+	},
+	setup() {
+		return {
+			mdiRefresh,
+		}
 	},
 	data() {
 		return {

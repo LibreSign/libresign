@@ -22,6 +22,8 @@
 	</div>
 </template>
 <script>
+import { t } from '@nextcloud/l10n'
+
 import File from '../components/File/File.vue'
 import ReqestPicker from '../components/Request/RequestPicker.vue'
 
@@ -37,7 +39,11 @@ export default {
 	setup() {
 		const filesStore = useFilesStore()
 		const sidebarStore = useSidebarStore()
-		return { filesStore, sidebarStore }
+		return {
+			filesStore,
+			sidebarStore,
+			t,
+		}
 	},
 	async mounted() {
 		this.filesStore.disableIdentifySigner()

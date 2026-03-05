@@ -10,13 +10,13 @@
 				<div class="filter-wrapper" :class="{ 'filter-wrapper--active': hasActiveFilters }">
 					<NcActions :aria-label="hasActiveFilters ? t('libresign', 'Filters ({count})', { count: activeFilterCount }) : t('libresign', 'Filters')">
 						<template #icon>
-							<FilterIcon :size="20" />
+							<NcIconSvgWrapper :path="mdiFilter" :size="20" />
 						</template>
 						<NcActionInput v-model="filters.serialNumber"
 							:label="t('libresign', 'Serial Number')"
 							@update:value="onFilterChange">
 							<template #icon>
-								<Magnify :size="20" />
+								<NcIconSvgWrapper :path="mdiMagnify" :size="20" />
 							</template>
 						</NcActionInput>
 
@@ -24,7 +24,7 @@
 							:label="t('libresign', 'Owner')"
 							@update:value="onFilterChange">
 							<template #icon>
-								<AccountIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiAccount" :size="20" />
 							</template>
 						</NcActionInput>
 
@@ -32,7 +32,7 @@
 							:model-value="filters.status?.value === 'issued'"
 							@update:modelValue="setStatusFilter('issued', $event)">
 							<template #icon>
-								<CheckCircleIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiCheckCircle" :size="20" />
 							</template>
 							{{ t('libresign', 'Issued') }}
 						</NcActionButton>
@@ -41,7 +41,7 @@
 							:model-value="filters.status?.value === 'revoked'"
 							@update:modelValue="setStatusFilter('revoked', $event)">
 							<template #icon>
-								<CancelIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiCancel" :size="20" />
 							</template>
 							{{ t('libresign', 'Revoked') }}
 						</NcActionButton>
@@ -50,7 +50,7 @@
 							:model-value="filters.status?.value === 'expired'"
 							@update:modelValue="setStatusFilter('expired', $event)">
 							<template #icon>
-								<ClockAlertIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiClockAlert" :size="20" />
 							</template>
 							{{ t('libresign', 'Expired') }}
 						</NcActionButton>
@@ -60,7 +60,7 @@
 						<NcActionButton v-if="hasActiveFilters"
 							@click="clearFilters">
 							<template #icon>
-								<CloseIcon :size="20" />
+								<NcIconSvgWrapper :path="mdiClose" :size="20" />
 							</template>
 							{{ t('libresign', 'Clear filters') }}
 						</NcActionButton>
@@ -77,7 +77,7 @@
 				<NcEmptyContent :name="t('libresign', 'No CRL entries found')"
 					:description="t('libresign', 'There are no certificate revocation list entries to display.')">
 					<template #icon>
-						<ShieldLockIcon :size="64" />
+						<NcIconSvgWrapper :path="mdiShieldLock" :size="64" />
 					</template>
 				</NcEmptyContent>
 			</div>
@@ -156,11 +156,19 @@
 							<td class="crl-table__cell--monospace">{{ entry.serial_number }}</td>
 							<td>
 								<span v-if="entry.certificate_type === 'root'" class="certificate-type certificate-type--root">
-									<ShieldLockIcon :size="16" />
+									<span class="certificate-type__icon">
+										<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+											<path :d="mdiShieldLock" />
+										</svg>
+									</span>
 									{{ t('libresign', 'Root CA') }}
 								</span>
 								<span v-else-if="entry.certificate_type === 'intermediate'" class="certificate-type certificate-type--intermediate">
-									<ShieldLockIcon :size="16" />
+									<span class="certificate-type__icon">
+										<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+											<path :d="mdiShieldLock" />
+										</svg>
+									</span>
 									{{ t('libresign', 'Intermediate CA') }}
 								</span>
 								<span v-else class="certificate-type certificate-type--user">
@@ -284,14 +292,18 @@
 </template>
 
 <script>
-import Magnify from 'vue-material-design-icons/Magnify.vue'
-import FilterIcon from 'vue-material-design-icons/Filter.vue'
-import AccountIcon from 'vue-material-design-icons/Account.vue'
-import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
-import CancelIcon from 'vue-material-design-icons/Cancel.vue'
-import ClockAlertIcon from 'vue-material-design-icons/ClockAlert.vue'
-import CloseIcon from 'vue-material-design-icons/Close.vue'
-import ShieldLockIcon from 'vue-material-design-icons/ShieldLock.vue'
+import { t } from '@nextcloud/l10n'
+import {
+	mdiAccount,
+	mdiCheckCircle,
+	mdiCancel,
+	mdiClockAlert,
+	mdiClose,
+	mdiFilter,
+	mdiMagnify,
+	mdiShieldLock,
+} from '@mdi/js'
+
 
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -300,6 +312,7 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
 import NcActions from '@nextcloud/vue/components/NcActions'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/components/NcActionInput'
 import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
@@ -317,14 +330,6 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 export default {
 	name: 'CrlManagement',
 	components: {
-		Magnify,
-		FilterIcon,
-		AccountIcon,
-		CheckCircleIcon,
-		CancelIcon,
-		ClockAlertIcon,
-		CloseIcon,
-		ShieldLockIcon,
 		NcActions,
 		NcActionButton,
 		NcActionInput,
@@ -334,11 +339,25 @@ export default {
 		NcButton,
 		NcDialog,
 		NcEmptyContent,
-		NcLoadingIcon,
 		NcNoteCard,
 		NcSelect,
 		NcTextArea,
 		NcTextField,
+		NcIconSvgWrapper,
+		NcLoadingIcon,
+	},
+	setup() {
+		return {
+			t,
+			mdiFilter,
+			mdiMagnify,
+			mdiAccount,
+			mdiCheckCircle,
+			mdiCancel,
+			mdiClockAlert,
+			mdiClose,
+			mdiShieldLock,
+		}
 	},
 	data() {
 		const userConfigStore = useUserConfigStore()
@@ -418,6 +437,7 @@ export default {
 		this.loadEntries()
 	},
 	methods: {
+		t,
 		async loadEntries(append = false) {
 			if (!append) {
 				this.loading = true
@@ -842,11 +862,16 @@ export default {
 }
 
 .status-badge {
-	display: inline-block;
-	padding: 4px 8px;
-	border-radius: 12px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 26px;
+	padding: 0 10px;
+	border-radius: 13px;
+	box-sizing: border-box;
 	font-size: 12px;
 	font-weight: 600;
+	line-height: 1;
 	text-transform: uppercase;
 
 	&--issued {
@@ -868,11 +893,32 @@ export default {
 .certificate-type {
 	display: inline-flex;
 	align-items: center;
+	justify-content: center;
 	gap: 4px;
-	padding: 4px 8px;
-	border-radius: 12px;
+	height: 26px;
+	padding: 0 10px;
+	border-radius: 13px;
+	box-sizing: border-box;
 	font-size: 12px;
 	font-weight: 600;
+	line-height: 1;
+
+	&__icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 14px;
+		height: 14px;
+		flex: 0 0 14px;
+		line-height: 0;
+
+		svg {
+			display: block;
+			width: 14px;
+			height: 14px;
+			fill: currentColor;
+		}
+	}
 
 	&--root {
 		background-color: #e3f2fd;

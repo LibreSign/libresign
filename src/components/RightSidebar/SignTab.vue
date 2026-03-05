@@ -26,6 +26,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcChip from '@nextcloud/vue/components/NcChip'
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
 
@@ -55,6 +57,7 @@ export default {
 		}
 	},
 	methods: {
+		t,
 		signEnabled() {
 			return FILE_STATUS.ABLE_TO_SIGN === this.signStore.document.status
 				|| FILE_STATUS.PARTIAL_SIGNED === this.signStore.document.status
@@ -72,7 +75,7 @@ export default {
 				params: {
 					uuid: data.signRequestUuid,
 					isAfterSigned: true,
-				},
+		},
 			})
 		},
 		onSigningStarted(payload) {
@@ -82,7 +85,7 @@ export default {
 					uuid: payload.signRequestUuid,
 					isAfterSigned: false,
 					isAsync: true,
-				},
+		},
 			})
 		},
 	},

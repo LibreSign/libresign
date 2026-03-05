@@ -17,6 +17,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import NcCounterBubble from '@nextcloud/vue/components/NcCounterBubble'
 
 export default {
@@ -51,6 +53,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		next() {
 			this.setPage(this.value + 1)
 		},

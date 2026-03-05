@@ -18,24 +18,27 @@
 			:aria-label="t('libresign', 'Cancel upload')"
 			@click="$emit('cancel')">
 			<template #icon>
-				<CancelIcon :size="20" />
+				<NcIconSvgWrapper :path="mdiCancel" :size="20" />
 			</template>
 		</NcButton>
 	</div>
 </template>
 
 <script>
-import CancelIcon from 'vue-material-design-icons/Cancel.vue'
+import { t } from '@nextcloud/l10n'
+
+import { mdiCancel } from '@mdi/js'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcProgressBar from '@nextcloud/vue/components/NcProgressBar'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 export default {
 	name: 'UploadProgress',
 	components: {
-		CancelIcon,
 		NcButton,
 		NcProgressBar,
+		NcIconSvgWrapper,
 	},
 	props: {
 		isUploading: {
@@ -60,6 +63,11 @@ export default {
 		},
 	},
 	emits: ['cancel'],
+	setup() {
+		return {
+			mdiCancel,
+		}
+	},
 	computed: {
 		uploadEta() {
 			if (!this.isUploading || !this.uploadStartTime || this.uploadedBytes === 0) {
@@ -120,7 +128,6 @@ export default {
 
 .upload-picker-container .upload-picker__progress {
 	max-width: 200px;
-	margin-right: 20px;
-	margin-left: 8px;
+	margin-inline: 8px 20px;
 }
 </style>

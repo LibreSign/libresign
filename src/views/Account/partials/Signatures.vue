@@ -7,28 +7,30 @@
 		<h1>{{ t('libresign', 'Your signatures') }}</h1>
 
 		<Signature type="signature">
-			<template slot="title">
+			<template #title>
 				{{ t('libresign', 'Signature') }}
 			</template>
 
-			<span slot="no-signatures">
+			<template #no-signatures>
 				{{ t('libresign', 'No signature, click here to create a new one') }}
-			</span>
+			</template>
 		</Signature>
 
 		<Signature v-if="false" type="initial">
-			<template slot="title">
+			<template #title>
 				{{ t('libresign', 'Initials') }}
 			</template>
 
-			<span slot="no-signatures">
+			<template #no-signatures>
 				{{ t('libresign', 'No initials, click here to create a new one') }}
-			</span>
+			</template>
 		</Signature>
 	</div>
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { getCapabilities } from '@nextcloud/capabilities'
 
 import Signature from './Signature.vue'
@@ -39,6 +41,7 @@ export default {
 		Signature,
 	},
 	methods: {
+		t,
 		isSignaturesAvailable() {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
 				&& getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true

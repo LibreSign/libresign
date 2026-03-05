@@ -7,6 +7,7 @@
 		<NcListItem v-for="(signer, index) in signers"
 			:key="index"
 			class="signer-item"
+			:data-testid="`signer-item-${index}`"
 			:compact="compact">
 			<template #icon>
 				<NcAvatar disable-menu
@@ -17,12 +18,12 @@
 			</template>
 			<template #name>
 				<div class="signer-info">
-					<strong>{{ signer.displayName || signer.email }}</strong>
-					<span v-if="signer.signed" class="signer-status signed">
+					<strong data-testid="signer-name">{{ signer.displayName || signer.email }}</strong>
+					<span v-if="signer.signed" class="signer-status signed" data-testid="signer-status-signed">
 						<NcIconSvgWrapper :path="mdiCheckCircle" :size="16" class="status-icon" />
 						{{ t('libresign', 'Signed on') }} {{ dateFromSqlAnsi(signer.signed) }}
 					</span>
-					<span v-else class="signer-status pending">
+					<span v-else class="signer-status pending" data-testid="signer-status-pending">
 						<NcIconSvgWrapper :path="mdiClockOutline" :size="16" class="status-icon" />
 						{{ t('libresign', 'Awaiting signature') }}
 					</span>
@@ -33,11 +34,14 @@
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
-import { mdiCheckCircle, mdiClockOutline } from '@mdi/js'
+import {
+	mdiCheckCircle,
+	mdiClockOutline,
+} from '@mdi/js'
 import Moment from '@nextcloud/moment'
 
 export default {

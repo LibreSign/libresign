@@ -3,7 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection
+		:name="t('libresign', 'Dependencies')"
+		:description="description">
 		<NcNoteCard v-if="errors.length > 0" type="error" heading="Error">
 			<p v-for="error in errors" :key="error">
 				{{ error }}
@@ -30,9 +32,7 @@
 	</NcSettingsSection>
 </template>
 <script>
-import { set } from 'vue'
-
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -47,18 +47,17 @@ export default {
 	name: 'DownloadBinaries',
 	components: {
 		NcSettingsSection,
-		NcLoadingIcon,
 		NcButton,
 		NcNoteCard,
 		NcProgressBar,
+		NcLoadingIcon,
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
-		return { configureCheckStore }
+		return { t, configureCheckStore }
 	},
 	data() {
 		return {
-			name: t('libresign', 'Dependencies'),
 			errors: [],
 			downloadStatus: {
 				java: 0,
@@ -93,27 +92,27 @@ export default {
 		installAndValidate() {
 			const self = this
 			const updateEventSource = new OC.EventSource(generateOcsUrl('/apps/libresign/api/v1/admin/install-and-validate'))
-			set(this.configureCheckStore, 'state', 'in progress')
-			set(this.configureCheckStore, 'downloadInProgress', true)
+			this.configureCheckStore.state = 'in progress'
+			this.configureCheckStore.downloadInProgress = true
 			this.errors = []
 			updateEventSource.listen('total_size', function(message) {
-				set(self.configureCheckStore, 'state', 'downloading binaries')
+				self.configureCheckStore.state = 'downloading binaries'
 				const downloadStatus = JSON.parse(message)
 				Object.keys(downloadStatus).forEach(service => {
-					set(self.downloadStatus, service, downloadStatus[service])
+					self.downloadStatus[service] = downloadStatus[service]
 				})
 			})
 			updateEventSource.listen('configure_check', function(items) {
-				set(self.configureCheckStore, 'items', items)
+				self.configureCheckStore.items = items
 			})
 			updateEventSource.listen('errors', function(message) {
 				self.errors = JSON.parse(message)
-				set(self.configureCheckStore, 'state', 'need download')
+				self.configureCheckStore.state = 'need download'
 			})
 			updateEventSource.listen('done', function() {
 				self.downloadStatus = {}
-				set(self.configureCheckStore, 'state', 'done')
-				set(self.configureCheckStore, 'downloadInProgress', false)
+				self.configureCheckStore.state = 'done'
+				self.configureCheckStore.downloadInProgress = false
 			})
 		},
 	},

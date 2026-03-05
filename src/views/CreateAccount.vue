@@ -28,7 +28,7 @@
 					:helper-text="emailError"
 					:error="showErrorEmail"
 					required>
-					<EmailIcon :size="20" />
+					<NcIconSvgWrapper :path="mdiEmail" :size="20" />
 				</NcTextField>
 				<NcPasswordField v-model="password"
 					:label="t('libresign', 'Password')"
@@ -54,7 +54,7 @@
 					@click="createAccount">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
-						<RightIcon v-else :size="20" />
+						<NcIconSvgWrapper v-else :path="mdiChevronRight" :size="20" />
 					</template>
 					{{ t('libresign', 'Next') }}
 				</NcButton>
@@ -64,13 +64,15 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 // eslint-disable-next-line n/no-missing-import
 import md5 from 'crypto-js/md5'
 // eslint-disable-next-line n/no-missing-import
-import { required, email, minLength } from 'vuelidate/lib/validators'
+import useVuelidate from '@vuelidate/core'
+// eslint-disable-next-line n/no-missing-import
+import { required, email, minLength } from '@vuelidate/validators'
 
-import RightIcon from 'vue-material-design-icons/ArrowRight.vue'
-import EmailIcon from 'vue-material-design-icons/Email.vue'
 
 import axios from '@nextcloud/axios'
 import { showWarning } from '@nextcloud/dialogs'
@@ -82,17 +84,28 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import {
+	mdiEmail,
+	mdiChevronRight,
+} from '@mdi/js'
 
 export default {
 	name: 'CreateAccount',
 	components: {
 		NcNoteCard,
 		NcTextField,
-		EmailIcon,
 		NcPasswordField,
 		NcButton,
 		NcLoadingIcon,
-		RightIcon,
+		NcIconSvgWrapper,
+	},
+	setup() {
+		return {
+			v$: useVuelidate(),
+			mdiEmail,
+			mdiChevronRight,
+		}
 	},
 
 	data() {
@@ -113,11 +126,10 @@ export default {
 		password: { required, minLength: minLength(4) },
 		passwordConfirm: { required, minLength: minLength(4) },
 	},
-
 	computed: {
 		emailError() {
-			if (this.$v.email.$model) {
-				if (this.$v.email.$error) {
+			if (this.v$.email.$model) {
+				if (this.v$.email.$error) {
 					return this.t('libresign', 'This is not a valid email')
 				} else if (this.isEqualEmail === false) {
 					return this.t('libresign', 'The email entered is not the same as the email in the invitation')
@@ -157,7 +169,6 @@ export default {
 			return this.settings.accountHash === md5(this.email).toString()
 		},
 	},
-
 	created() {
 		if (this.message) {
 			showWarning(this.message)
@@ -165,6 +176,7 @@ export default {
 	},
 
 	methods: {
+		t,
 		async createAccount() {
 			this.loading = true
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}'), {

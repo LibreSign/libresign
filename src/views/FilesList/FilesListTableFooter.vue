@@ -24,6 +24,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { useFilesStore } from '../../store/files.js'
 import { useFiltersStore } from '../../store/filters.js'
 
@@ -33,6 +35,7 @@ export default {
 		const filesStore = useFilesStore()
 		const filtersStore = useFiltersStore()
 		return {
+			t,
 			filesStore,
 			filtersStore,
 		}
@@ -60,6 +63,15 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.hidden-visually {
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
 tr {
 	margin-bottom: max(25vh, var(--body-container-margin));
 	border-top: 1px solid var(--color-border);

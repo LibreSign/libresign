@@ -25,9 +25,9 @@
 
 <script>
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
-import { translate as t } from '@nextcloud/l10n'
-import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
-import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import { t } from '@nextcloud/l10n'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import { mdiInformationSlabCircle } from '@mdi/js'
 
 export default {
@@ -56,7 +56,10 @@ export default {
 		},
 	},
 	setup() {
-		return { t, mdiInformationSlabCircle }
+		return {
+			t,
+			mdiInformationSlabCircle,
+		}
 	},
 }
 </script>

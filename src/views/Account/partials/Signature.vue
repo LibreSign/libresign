@@ -11,12 +11,12 @@
 			<NcActions v-if="isSignatureLoaded" :inline="2">
 				<NcActionButton v-if="hasSignature" @click="removeSignature">
 					<template #icon>
-						<DeleteIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 					</template>
 				</NcActionButton>
 				<NcActionButton @click="edit">
 					<template #icon>
-						<DrawIcon :size="20" />
+						<NcIconSvgWrapper :path="mdiDraw" :size="20" />
 					</template>
 				</NcActionButton>
 			</NcActions>
@@ -42,12 +42,17 @@
 </template>
 
 <script>
-import DeleteIcon from 'vue-material-design-icons/Delete.vue'
-import DrawIcon from 'vue-material-design-icons/Draw.vue'
+import { t } from '@nextcloud/l10n'
+import {
+	mdiDelete,
+	mdiDraw,
+} from '@mdi/js'
+
 
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcActions from '@nextcloud/vue/components/NcActions'
 
 import Draw from '../../../components/Draw/Draw.vue'
@@ -58,12 +63,11 @@ import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 export default {
 	name: 'Signature',
 	components: {
+		Draw,
 		NcActions,
 		NcActionButton,
-		DeleteIcon,
-		DrawIcon,
+		NcIconSvgWrapper,
 		PreviewSignature,
-		Draw,
 	},
 	props: {
 		type: {
@@ -73,7 +77,11 @@ export default {
 	},
 	setup() {
 		const signatureElementsStore = useSignatureElementsStore()
-		return { signatureElementsStore }
+		return {
+			signatureElementsStore,
+			mdiDelete,
+			mdiDraw,
+		}
 	},
 	data: () => ({
 		isEditing: false,
@@ -92,6 +100,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		signatureLoaded(success) {
 			this.isSignatureLoaded = success
 			this.signatureExists = success

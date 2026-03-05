@@ -42,6 +42,8 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { confirmPassword } from '@nextcloud/password-confirmation'
@@ -52,7 +54,7 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-import { settingsService } from '../../../services/settingsService.js'
+import { settingsService } from '../../../services/settingsService'
 import { useSignStore } from '../../../store/sign.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 
@@ -65,9 +67,9 @@ export default {
 	name: 'ModalTokenManager',
 	components: {
 		NcDialog,
-		NcLoadingIcon,
 		NcTextField,
 		NcButton,
+		NcLoadingIcon,
 	},
 	props: {
 		phoneNumber: {
@@ -102,6 +104,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		async saveNumber() {
 			this.loading = true
 			this.sanitizeNumber()

@@ -3,11 +3,10 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcListItem v-bind="{ to, 'counter-number': hasElement ? '📎' : undefined }"
+	<NcListItem v-bind="{ ...$attrs, to, 'counter-number': hasElement ? '📎' : undefined }"
 		:name="displayName"
 		:details="signDate"
 		:class="`signer-row signer-row-${status}`"
-		v-on="$listeners"
 		@click="signerClickAction">
 		<template #icon>
 			<NcAvatar is-no-user
@@ -18,11 +17,15 @@
 		<template #subname>
 			<span class="signer-status">{{ status }}</span>
 		</template>
-		<slot v-if="$slots.actions" slot="actions" name="actions" />
+		<template v-if="$slots.actions" #actions>
+			<slot name="actions" />
+		</template>
 	</NcListItem>
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
+
 import { emit } from '@nextcloud/event-bus'
 import Moment from '@nextcloud/moment'
 
@@ -31,6 +34,7 @@ import NcListItem from '@nextcloud/vue/components/NcListItem'
 
 export default {
 	name: 'SignerRow',
+	inheritAttrs: false,
 	components: {
 		NcListItem,
 		NcAvatar,
@@ -84,6 +88,7 @@ export default {
 		},
 	},
 	methods: {
+		t,
 		signerClickAction(signer) {
 			emit(this.event, this.signer)
 		},

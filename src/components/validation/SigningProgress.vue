@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -61,7 +61,10 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-import { mdiAlertCircleOutline, mdiHelpCircle } from '@mdi/js'
+import {
+	mdiAlertCircleOutline,
+	mdiHelpCircle,
+} from '@mdi/js'
 import { buildStatusMap } from '../../utils/fileStatus.js'
 
 export default {
@@ -80,7 +83,11 @@ export default {
 	},
 	emits: ['completed', 'error', 'status-changed', 'file-errors'],
 	setup() {
-		return { t }
+		return {
+			t,
+			mdiAlertCircleOutline,
+			mdiHelpCircle,
+		}
 	},
 	data() {
 		return {
@@ -104,7 +111,7 @@ export default {
 			this.startPolling()
 		}
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		this.stopPolling()
 	},
 	methods: {

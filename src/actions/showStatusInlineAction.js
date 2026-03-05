@@ -2,14 +2,14 @@
  * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { FileAction, registerFileAction } from '@nextcloud/files'
+import { registerFileAction } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 
 import { FILE_STATUS } from '../constants.js'
 import { getStatusLabel, getStatusSvgInline } from '../utils/fileStatus.js'
 
-const action = new FileAction({
+const action = {
 	id: 'show-status-inline',
 	displayName: () => '',
 	title: ({ nodes }) => {
@@ -26,11 +26,10 @@ const action = new FileAction({
 		return t('libresign', 'original file')
 	},
 	exec: async ({ nodes }) => {
-		const sidebar = window.OCA.Files.Sidebar
 		const node = nodes?.[0]
 		if (!node) return null
-		sidebar.open(node.path)
-		sidebar.setActiveTab('libresign')
+		window.OCA.Files.Sidebar.open(node.path)
+		window.OCA.Files.Sidebar.setActiveTab('libresign')
 		return null
 	},
 	iconSvgInline: ({ nodes }) => {
@@ -62,6 +61,6 @@ const action = new FileAction({
 		return allPdfOrFolder
 	},
 	order: -1,
-})
+}
 
 registerFileAction(action)

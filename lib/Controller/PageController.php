@@ -111,6 +111,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information'));
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
+		Util::addStyle(Application::APP_ID, 'libresign-main');
 
 		if (class_exists(LoadViewer::class)) {
 			$this->eventDispatcher->dispatchTyped(new LoadViewer());
@@ -156,6 +157,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[FrontpageRoute(verb: 'GET', url: '/f/incomplete')]
 	public function incomplete(): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-main');
+		Util::addStyle(Application::APP_ID, 'libresign-main');
 		$response = new TemplateResponse(Application::APP_ID, 'main');
 		return $response;
 	}
@@ -172,6 +174,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[FrontpageRoute(verb: 'GET', url: '/p/incomplete')]
 	public function incompleteP(): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-main');
+		Util::addStyle(Application::APP_ID, 'libresign-main');
 		$response = new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
 		return $response;
 	}
@@ -378,6 +381,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('nodeType', $this->getFileEntity()->getNodeType());
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
+		Util::addStyle(Application::APP_ID, 'libresign-external');
 		if (class_exists(LoadViewer::class)) {
 			$this->eventDispatcher->dispatchTyped(new LoadViewer());
 		}
@@ -532,6 +536,7 @@ class PageController extends AEnvironmentPageAwareController {
 		}
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
+		Util::addStyle(Application::APP_ID, 'libresign-validation');
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
@@ -580,6 +585,7 @@ class PageController extends AEnvironmentPageAwareController {
 		);
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
+		Util::addStyle(Application::APP_ID, 'libresign-main');
 		$response = new TemplateResponse(Application::APP_ID, 'reset_password');
 
 		return $response;

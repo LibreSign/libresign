@@ -17,7 +17,7 @@
 				variant="tertiary"
 				:aria-pressed="activeTab === tab.id"
 				@click="activeTab = tab.id">
-				<component :is="tab.icon" :size="18" />
+				<NcIconSvgWrapper :path="tab.icon" :size="18" />
 				<span class="draw-signature__tab-label">{{ tab.label }}</span>
 			</NcButton>
 		</div>
@@ -31,12 +31,17 @@
 </template>
 
 <script>
-import DrawIcon from 'vue-material-design-icons/Draw.vue'
-import SignatureTextIcon from 'vue-material-design-icons/SignatureText.vue'
-import UploadIcon from 'vue-material-design-icons/Upload.vue'
+import { t } from '@nextcloud/l10n'
+
+import {
+	mdiCloudUpload,
+	mdiPencil,
+	mdiText,
+} from '@mdi/js'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import Editor from './Editor.vue'
 import FileUpload from './FileUpload.vue'
@@ -49,9 +54,7 @@ export default {
 	components: {
 		NcDialog,
 		NcButton,
-		SignatureTextIcon,
-		DrawIcon,
-		UploadIcon,
+		NcIconSvgWrapper,
 		TextInput,
 		Editor,
 		FileUpload,
@@ -79,7 +82,12 @@ export default {
 	},
 	setup() {
 		const signatureElementsStore = useSignatureElementsStore()
-		return { signatureElementsStore }
+		return {
+			signatureElementsStore,
+			mdiPencil,
+			mdiText,
+			mdiCloudUpload,
+		}
 	},
 	data() {
 		return {
@@ -94,13 +102,25 @@ export default {
 		availableTabs() {
 			const tabs = []
 			if (this.drawEditor) {
-				tabs.push({ id: 'draw', label: this.t('libresign', 'Draw'), icon: DrawIcon })
+				tabs.push({
+					id: 'draw',
+					label: this.t('libresign', 'Draw'),
+					icon: this.mdiPencil,
+				})
 			}
 			if (this.textEditor) {
-				tabs.push({ id: 'text', label: this.t('libresign', 'Text'), icon: SignatureTextIcon })
+				tabs.push({
+					id: 'text',
+					label: this.t('libresign', 'Text'),
+					icon: this.mdiText,
+				})
 			}
 			if (this.fileEditor) {
-				tabs.push({ id: 'file', label: this.t('libresign', 'Upload'), icon: UploadIcon })
+				tabs.push({
+					id: 'file',
+					label: this.t('libresign', 'Upload'),
+					icon: this.mdiCloudUpload,
+				})
 			}
 			return tabs
 		},
@@ -118,6 +138,7 @@ export default {
 		document.documentElement.classList.remove('libresign-modal-open')
 	},
 	methods: {
+		t,
 		close() {
 			this.$emit('close')
 		},
