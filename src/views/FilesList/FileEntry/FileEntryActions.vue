@@ -173,6 +173,7 @@ export default {
 		})
 		this.registerAction({
 			id: 'validate',
+			// TRANSLATORS: Action label for a technical process: the app checks the cryptographic integrity of the document signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize".
 			title: t('libresign', 'Validate'),
 			iconSvgInline: svgTextBoxCheck,
 		})
