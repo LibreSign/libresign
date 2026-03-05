@@ -10,12 +10,14 @@ namespace OCA\Libresign\Tests\Unit\Handler\CertificateEngine;
  */
 
 use OCA\Libresign\Db\CrlMapper;
+use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\SerialNumberService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -25,6 +27,7 @@ use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -40,6 +43,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CrlMapper $crlMapper;
 	private LoggerInterface $logger;
 	private SubjectAlternativeNameService $subjectAlternativeNameService;
+	private CrlRevocationChecker&MockObject $crlRevocationChecker;
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
@@ -53,6 +57,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->crlMapper = \OCP\Server::get(CrlMapper::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
 		$this->subjectAlternativeNameService = \OCP\Server::get(SubjectAlternativeNameService::class);
+		$this->crlRevocationChecker = $this->createMock(CrlRevocationChecker::class);
+		$this->crlRevocationChecker->method('validate')->willReturn(['status' => CrlValidationStatus::VALID]);
 		$this->caIdentifierService->generateCaId('openssl');
 	}
 
@@ -70,6 +76,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->logger,
 			$this->crlMapper,
 			$this->subjectAlternativeNameService,
+			$this->crlRevocationChecker,
 		);
 	}
 
