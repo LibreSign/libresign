@@ -162,6 +162,10 @@ describe('Validation.vue - Business Logic', () => {
 		})
 	})
 
+	afterEach(() => {
+		wrapper.unmount()
+	})
+
 	describe('canValidate computed property', () => {
 		it('returns false when uuidToValidate is empty', () => {
 			wrapper.setData({ uuidToValidate: '' })
@@ -520,6 +524,7 @@ describe('Validation.vue - Business Logic', () => {
 	describe('created() - async signing activation from history.state', () => {
 		const UUID = '550e8400-e29b-41d4-a716-446655440000'
 		let stateGetter: ReturnType<typeof vi.spyOn>
+		let localWrapper: ReturnType<typeof shallowMount> | null = null
 
 		beforeEach(() => {
 			// Prevent the validate() floating Promise from crashing on
@@ -528,6 +533,8 @@ describe('Validation.vue - Business Logic', () => {
 		})
 
 		afterEach(() => {
+			localWrapper?.unmount()
+			localWrapper = null
 			stateGetter?.mockRestore()
 			vi.mocked(axios.get).mockReset()
 		})
@@ -539,7 +546,7 @@ describe('Validation.vue - Business Logic', () => {
 		// This test verifies the OLD trigger (route params) no longer activates async signing.
 		it('does NOT set isAsyncSigning via $route.params (Vue Router 5 drops non-path params)', () => {
 			stateGetter = vi.spyOn(window.history, 'state', 'get').mockReturnValue({} as any)
-			const localWrapper = shallowMount(Validation, {
+			localWrapper = shallowMount(Validation, {
 				mocks: {
 					$route: { params: { uuid: UUID, isAsync: true }, query: {} },
 					$router: { ...mockRouter, replace: vi.fn() },
@@ -553,7 +560,7 @@ describe('Validation.vue - Business Logic', () => {
 
 		it('does not set isAsyncSigning when history.state has no isAsync flag', () => {
 			stateGetter = vi.spyOn(window.history, 'state', 'get').mockReturnValue({} as any)
-			const localWrapper = shallowMount(Validation, {
+			localWrapper = shallowMount(Validation, {
 				mocks: {
 					$route: { params: { uuid: UUID }, query: {} },
 					$router: { ...mockRouter, replace: vi.fn() },
@@ -606,14 +613,15 @@ describe('Validation.vue - Business Logic', () => {
 		})
 
 		it('does not fire confetti when document is not signed even if isAfterSigned is true', () => {
-			const localWrapper = shallowMount(Validation, {
+			const lw = shallowMount(Validation, {
 				mocks: {
 					$route: { params: { isAfterSigned: true }, query: {} },
 					$router: mockRouter,
 				},
 			})
-			localWrapper.vm.handleValidationSuccess({ status: 1, signers: [] })
+			lw.vm.handleValidationSuccess({ status: 1, signers: [] })
 			expect(mockAddConfetti).not.toHaveBeenCalled()
+			lw.unmount()
 		})
 
 		it('does not fire confetti when document is signed but neither isAfterSigned nor shouldFireAsyncConfetti is true', () => {
