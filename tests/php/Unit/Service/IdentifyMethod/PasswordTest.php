@@ -136,7 +136,12 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	#[DataProvider('providerValidateToSignWithCertificateData')]
-	public function testValidateToSignWithCertificateData(array $certificateData, bool $shouldThrow, string $expectedMessage = ''): void {
+	public function testValidateToSignWithCertificateData(
+		array $certificateData,
+		bool $shouldThrow,
+		string $expectedMessage = '',
+		?int $expectedCode = null,
+	): void {
 		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner', 'setCertificate', 'setPassword', 'readCertificate']);
 		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn('mock-pfx');
 		$this->pkcs12Handler->method('setCertificate')->willReturnSelf();
@@ -152,6 +157,9 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->expectException(LibresignException::class);
 			if ($expectedMessage) {
 				$this->expectExceptionMessage($expectedMessage);
+			}
+			if ($expectedCode !== null) {
+				$this->expectExceptionCode($expectedCode);
 			}
 		}
 
@@ -183,6 +191,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				'shouldThrow' => true,
 				'expectedMessage' => 'Certificate has expired',
+				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is string' => [
 				'certificateData' => [
@@ -190,6 +199,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				'shouldThrow' => true,
 				'expectedMessage' => 'Invalid certificate',
+				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is null' => [
 				'certificateData' => [
@@ -233,6 +243,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				'shouldThrow' => true,
 				'expectedMessage' => 'Certificate has been revoked',
+				'expectedCode' => 422,
 			],
 			'valid certificate with crl validation' => [
 				'certificateData' => [
@@ -255,6 +266,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				'shouldThrow' => true,
 				'expectedMessage' => 'Certificate revocation status could not be verified',
+				'expectedCode' => 422,
 			],
 			'invalid certificate - crl validation empty string' => [
 				'certificateData' => [
