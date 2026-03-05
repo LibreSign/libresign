@@ -6,6 +6,30 @@
 /// <reference types="@nextcloud/typings" />
 
 declare global {
+	interface OCAFilesSidebarTab {
+		id: string
+		name: string
+		icon?: string
+		iconSvg?: string
+		enabled: (fileInfo: unknown) => boolean
+		mount: (el: HTMLElement, fileInfo: unknown, context?: unknown) => void
+		update: (fileInfo: unknown) => void
+		destroy: (el?: HTMLElement) => void
+	}
+
+	interface OCAFilesSidebar {
+		open(path: string): Promise<void>
+		close?(): void
+		setActiveTab(id: string): void
+		registerTab?(tab: unknown): boolean
+		Tab?: new (options: Partial<OCAFilesSidebarTab>) => OCAFilesSidebarTab
+	}
+
+	interface OCAFilesNamespace {
+		Sidebar: OCAFilesSidebar
+		[key: string]: unknown
+	}
+
 	interface LibreSignGlobalNamespace {
 		fileInfo?: unknown
 		pendingEnvelope?: {
@@ -27,6 +51,7 @@ declare global {
 
 	interface OCAGlobalNamespace {
 		Libresign: LibreSignGlobalNamespace
+		Files?: OCAFilesNamespace
 		[key: string]: unknown
 	}
 
