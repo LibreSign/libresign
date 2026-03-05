@@ -7,6 +7,7 @@
 	<div>
 		<SupportProject />
 		<CertificateEngine />
+		<SignatureEngine />
 		<DownloadBinaries />
 		<ConfigureCheck />
 		<RootCertificateCfssl />
@@ -28,6 +29,7 @@
 		<Envelope />
 		<Reminders />
 		<TSA />
+		<Confetti />
 	</div>
 </template>
 
@@ -36,7 +38,7 @@ import { t } from '@nextcloud/l10n'
 
 import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'
-import CollectMetadata from './CollectMetadata.vue'
+import SignatureEngine from './SignatureEngine.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
 import DocMDP from './DocMDP.vue'
@@ -50,8 +52,11 @@ import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureFlow from './SignatureFlow.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
+import CollectMetadata from './CollectMetadata.vue'
+import CrlValidation from './CrlValidation.vue'
 import SignatureStamp from './SignatureStamp.vue'
 import SigningMode from './SigningMode.vue'
+import Confetti from './Confetti.vue'
 import Envelope from './Envelope.vue'
 import SupportProject from './SupportProject.vue'
 import TSA from './TSA.vue'
@@ -62,7 +67,7 @@ export default {
 	components: {
 		AllowedGroups,
 		CertificateEngine,
-		CollectMetadata,
+		SignatureEngine,
 		ConfigureCheck,
 		DefaultUserFolder,
 		DocMDP,
@@ -76,7 +81,10 @@ export default {
 		RootCertificateOpenSsl,
 		SignatureFlow,
 		SignatureHashAlgorithm,
+		CollectMetadata,
+		CrlValidation,
 		SignatureStamp,
+		Confetti,
 		SigningMode,
 		Envelope,
 		SupportProject,
