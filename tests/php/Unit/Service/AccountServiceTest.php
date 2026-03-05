@@ -17,11 +17,13 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -81,6 +83,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private RequestSignatureService&MockObject $requestSignatureService;
 	private Pkcs12Handler&MockObject $pkcs12Handler;
 	private FileUploadHelper&MockObject $uploadHelper;
+	private CrlService&MockObject $crlService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -115,6 +118,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->clientService = $this->createMock(ClientService::class);
 		$this->timeFactory = $this->createMock(TimeFactory::class);
 		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
+		$this->crlService = $this->createMock(CrlService::class);
 	}
 
 	private function getService(): AccountService {
@@ -146,8 +150,30 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->folderService,
 			$this->clientService,
 			$this->timeFactory,
-			$this->uploadHelper
+			$this->uploadHelper,
+			$this->crlService
 		);
+	}
+
+	public function testDeletePfxRevokesCertificatesWithReasonAndDeletesPfx(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('admin');
+
+		$this->crlService->expects($this->once())
+			->method('revokeUserCertificates')
+			->with(
+				'admin',
+				CRLReason::CESSATION_OF_OPERATION,
+				'Certificate deleted by account owner.',
+				'admin'
+			)
+			->willReturn(1);
+
+		$this->pkcs12Handler->expects($this->once())
+			->method('deletePfx')
+			->with('admin');
+
+		$this->getService()->deletePfx($user);
 	}
 
 	#[DataProvider('provideValidateCertificateDataCases')]
