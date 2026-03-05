@@ -68,7 +68,7 @@
 					:name="t('libresign', 'There are no documents')"
 					:description="canRequestSign ? t('libresign', 'Choose the file to request signatures.') : ''">
 					<template v-if="canRequestSign" #action>
-						<RequestPicker />
+						<RequestPicker variant="primary" />
 					</template>
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiFolder" />
