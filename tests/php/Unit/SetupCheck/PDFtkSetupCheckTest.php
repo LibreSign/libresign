@@ -416,6 +416,6 @@ class PDFtkSetupCheckTest extends TestCase {
 
 		$this->assertInstanceOf(SetupResult::class, $result);
 		$this->assertEquals(SetupResult::ERROR, $result->getSeverity());
-		$this->assertStringContainsString('PDFtk binary is invalid', $result->getDescription());
+		$this->assertStringContainsString('Failure to check PDFtk version', $result->getDescription());
 	}
 }
