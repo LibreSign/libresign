@@ -97,8 +97,9 @@ class PDFtkSetupCheck implements ISetupCheck {
 			);
 		}
 
+		/** @var list<string> $versionOutput */
 		exec($javaPath . ' -jar ' . $pdftkPath . ' --version 2>&1', $versionOutput, $resultCode);
-		if ($resultCode !== 0) {
+		if (empty($versionOutput) || $resultCode !== 0) {
 			return SetupResult::error(
 				$this->l10n->t('Failure to check PDFtk version.'),
 				$this->l10n->t('Run occ libresign:install --pdftk')

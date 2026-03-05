@@ -84,6 +84,7 @@ class JavaSetupCheck implements ISetupCheck {
 			);
 		}
 
+		/** @var list<string> $output */
 		exec($javaPath . ' -version 2>&1', $output, $returnCode);
 		if (empty($output)) {
 			return SetupResult::error(
