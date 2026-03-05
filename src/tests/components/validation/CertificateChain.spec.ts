@@ -430,6 +430,79 @@ describe('CertificateChain', () => {
 			const chainWrapper = wrapper.find('.chain-wrapper')
 			expect(chainWrapper.attributes('aria-label')).toContain('Certificate chain')
 		})
+
+		it('header has aria-expanded false when closed', () => {
+			wrapper = createWrapper({
+				chain: [
+					{ subject: { CN: 'Signer' } },
+				],
+			})
+
+			const header = wrapper.find('.extra')
+			expect(header.attributes('aria-expanded')).toBe('false')
+		})
+
+		it('header has aria-expanded true when open', async () => {
+			wrapper = createWrapper({
+				chain: [
+					{ subject: { CN: 'Signer' } },
+				],
+			})
+
+			wrapper.vm.chainOpen = true
+			await wrapper.vm.$nextTick()
+
+			const header = wrapper.find('.extra')
+			expect(header.attributes('aria-expanded')).toBe('true')
+		})
+
+		it('certificate items have aria-label', async () => {
+			wrapper = createWrapper({
+				chain: [
+					{ subject: { CN: 'Signer' }, issuer: { CN: 'CA' } },
+					{ subject: { CN: 'CA' }, issuer: { CN: 'Root' } },
+				],
+			})
+
+			wrapper.vm.chainOpen = true
+			await wrapper.vm.$nextTick()
+
+			const items = wrapper.findAll('.certificate-item')
+			expect(items.at(0)!.attributes('aria-label')).toContain('Signer certificate')
+			expect(items.at(1)!.attributes('aria-label')).toBeTruthy()
+		})
+
+		it('uses dl/dt/dd structure for certificate fields', async () => {
+			wrapper = createWrapper({
+				chain: [
+					{ subject: { CN: 'Signer' }, issuer: { CN: 'CA' }, serialNumber: '123' },
+				],
+			})
+
+			wrapper.vm.chainOpen = true
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.find('dl.cert-details').exists()).toBe(true)
+			expect(wrapper.find('dt').exists()).toBe(true)
+			expect(wrapper.find('dd').exists()).toBe(true)
+		})
+
+		it('each field has dt label and dd value', async () => {
+			wrapper = createWrapper({
+				chain: [
+					{ subject: { CN: 'Leon Green' }, issuer: { CN: 'LibreSign Test' } },
+				],
+			})
+
+			wrapper.vm.chainOpen = true
+			await wrapper.vm.$nextTick()
+
+			const dts = wrapper.findAll('dt')
+			const dds = wrapper.findAll('dd')
+
+			expect(dts.length).toBeGreaterThan(0)
+			expect(dds.length).toBe(dts.length)
+		})
 	})
 
 	describe('RULE: certificate items maintain order in chain', () => {
@@ -517,6 +590,29 @@ describe('CertificateChain', () => {
 			})
 
 			expect(wrapper.vm.chainOpen).toBe(false)
+		})
+
+		it('toggle button has aria-label when closed', () => {
+			wrapper = createWrapper({
+				chain: [
+					{ subject: { CN: 'Signer' } },
+				],
+			})
+
+			expect(wrapper.html()).toContain('Expand certificate chain')
+		})
+
+		it('toggle button has aria-label when open', async () => {
+			wrapper = createWrapper({
+				chain: [
+					{ subject: { CN: 'Signer' } },
+				],
+			})
+
+			wrapper.vm.chainOpen = true
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.html()).toContain('Collapse certificate chain')
 		})
 	})
 
