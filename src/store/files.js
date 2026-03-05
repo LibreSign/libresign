@@ -406,6 +406,9 @@ export const useFilesStore = function(...args) {
 				}
 			},
 			signerUpdate(signer) {
+				if (!this.selectedFileId || !this.files[this.selectedFileId]) {
+					return
+				}
 				this.addIdentifierToSigner(signer)
 				if (!this.getFile().signers?.length) {
 					this.getFile().signers = []
