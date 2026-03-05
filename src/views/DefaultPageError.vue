@@ -12,8 +12,8 @@
 		</div>
 
 		<div class="error-container">
-			<NcEmptyContent :name="t('libresign', 'Page not found')"
-				:description="paragrath">
+			<NcEmptyContent :name="title"
+				:description="description">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiAlertCircleOutline" :size="80" class="alert-icon" />
 				</template>
@@ -60,7 +60,6 @@ export default {
 	data() {
 		return {
 			logoLibreSign,
-			paragrath: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.'),
 		}
 	},
 	computed: {
@@ -75,6 +74,16 @@ export default {
 			}
 			return []
 		},
+		title() {
+			return this.errors.length
+				? t('libresign', 'An error occurred')
+				: t('libresign', 'Page not found')
+		},
+		description() {
+			return this.errors.length
+				? ''
+				: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.')
+		},
 	},
 }
 </script>
@@ -85,6 +94,7 @@ export default {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	width: 100%;
 	min-height: 100vh;
 	padding: 40px 20px;
 	gap: 24px;
