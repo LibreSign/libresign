@@ -52,25 +52,23 @@ export default {
 	--chip-size: 24px;
 	--chip-radius: 12px;
 
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
 	min-height: var(--chip-size);
 	max-width: 100%;
-	padding: 4px 12px;
+	padding: 4px 10px;
 	border-radius: var(--chip-radius);
 	line-height: 1.3;
 	text-align: center;
-	white-space: pre-wrap;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	hyphens: auto;
+	white-space: nowrap;
 	vertical-align: middle;
 
 	&__text {
 		display: inline-block;
 		max-width: 100%;
-		white-space: pre-wrap;
-		word-wrap: break-word;
-		overflow-wrap: break-word;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	&--error {

@@ -127,11 +127,6 @@ describe('FilesList.vue rendering rules', () => {
 				mocks: {
 					$route: routeMock,
 				},
-				stubs: {
-					ListViewIcon: {
-						template: '<i class="list-view-icon" />',
-					},
-				},
 			},
 		})
 	}
@@ -145,6 +140,7 @@ describe('FilesList.vue rendering rules', () => {
 
 		expect(wrapper.vm.mdiFolder).toBeTruthy()
 		expect(wrapper.vm.mdiViewGrid).toBeTruthy()
+		expect(wrapper.vm.mdiViewList).toBeTruthy()
 	})
 
 	it('shows empty-state request action when user can request sign', async () => {
@@ -192,5 +188,18 @@ describe('FilesList.vue rendering rules', () => {
 
 		const iconWithPath = wrapper.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
 		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewGrid)
+	})
+
+	it('renders list toggle icon path when in grid mode', async () => {
+		const filesStore = useFilesStore()
+		const userConfigStore = useUserConfigStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+		userConfigStore.files_list_grid_view = true
+
+		const wrapper = mountComponent()
+		await flushPromises()
+
+		const iconWithPath = wrapper.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
+		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewList)
 	})
 })
