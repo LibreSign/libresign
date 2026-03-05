@@ -258,6 +258,54 @@ describe('Settings', () => {
 		})
 	})
 
+	describe('RULE: unauthenticated users (signing via email link) do not crash the component', () => {
+		const createUnauthenticatedWrapper = () => {
+			getCurrentUserMock.mockReturnValue(null)
+
+			return mount(Settings, {
+				global: {
+					stubs: {
+						NcAppNavigationItem: {
+							name: 'NcAppNavigationItem',
+							props: ['name', 'to', 'href', 'icon'],
+							template: '<li><slot name="icon" /><span class="item-name">{{ name }}</span><slot /></li>',
+						},
+						AccountIcon: { template: '<div class="account-icon"></div>' },
+						StarIcon: { template: '<div class="star-icon"></div>' },
+						TuneIcon: { template: '<div class="tune-icon"></div>' },
+					},
+					mocks: { t },
+				},
+			})
+		}
+
+		it('mounts without throwing when getCurrentUser returns null', () => {
+			expect(() => createUnauthenticatedWrapper()).not.toThrow()
+		})
+
+		it('isAdmin is false when getCurrentUser returns null', () => {
+			wrapper = createUnauthenticatedWrapper()
+
+			expect(getWrapper().vm.isAdmin).toBe(false)
+		})
+
+		it('hides the Administration link when user is unauthenticated', () => {
+			wrapper = createUnauthenticatedWrapper()
+			const items = getItems()
+			const adminItem = findItemByName(items, 'Administration')
+
+			expect(adminItem).toBeUndefined()
+		})
+
+		it('shows 2 navigation items for unauthenticated user', () => {
+			wrapper = createUnauthenticatedWrapper()
+			const items = getItems()
+
+			// Account + Rate = 2
+			expect(items.length).toBe(2)
+		})
+	})
+
 	describe('RULE: navigation items count depends on admin status', () => {
 		it('shows 2 items for non-admin', () => {
 			wrapper = createWrapper(false)
