@@ -17,6 +17,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
@@ -24,6 +25,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -78,6 +80,7 @@ class AccountService {
 		private IClientService $clientService,
 		private ITimeFactory $timeFactory,
 		private FileUploadHelper $uploadHelper,
+		private CrlService $crlService,
 	) {
 	}
 
@@ -565,7 +568,16 @@ class AccountService {
 	}
 
 	public function deletePfx(IUser $user): void {
-		$this->pkcs12Handler->deletePfx($user->getUID());
+		$uid = $user->getUID();
+
+		$this->crlService->revokeUserCertificates(
+			$uid,
+			CRLReason::CESSATION_OF_OPERATION,
+			'Certificate deleted by account owner.',
+			$uid,
+		);
+
+		$this->pkcs12Handler->deletePfx($uid);
 	}
 
 	/**
