@@ -86,6 +86,7 @@ import {
 } from '@mdi/js'
 import JSConfetti from 'js-confetti'
 import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
 import { formatFileSize } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
@@ -614,8 +615,10 @@ export default {
 				&& this.document.files.every(file => isSignedStatus(file.status))
 			const signerCompleted = this.isCurrentSignerSigned()
 			if ((isSignedDoc || allFilesSigned || signerCompleted) && (this.isAfterSigned || this.shouldFireAsyncConfetti)) {
-				const jsConfetti = new JSConfetti()
-				jsConfetti.addConfetti()
+				if (getCapabilities()?.libresign?.config?.['show-confetti'] === true) {
+					const jsConfetti = new JSConfetti()
+					jsConfetti.addConfetti()
+				}
 				this.shouldFireAsyncConfetti = false
 			}
 		},
