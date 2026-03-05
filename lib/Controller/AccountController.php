@@ -30,7 +30,7 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\DataResponse;
-use OCP\IConfig;
+use OCP\Config\IUserConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -58,7 +58,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		protected IUserSession $userSession,
 		protected SessionService $sessionService,
 		private ValidateHelper $validateHelper,
-		private IConfig $config,
+		private IUserConfig $userConfig,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -419,7 +419,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 				$value = json_encode($value);
 			}
 
-			$this->config->setUserValue($user->getUID(), Application::APP_ID, $key, $value);
+			$this->userConfig->setValueString($user->getUID(), Application::APP_ID, $key, $value);
 
 			return new DataResponse([
 				'key' => $key,
