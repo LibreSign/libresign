@@ -36,8 +36,10 @@
 		<!-- Step 1: Token mode -->
 		<div v-else-if="mode === 'token' && step1Active" class="step-content">
 			<p class="step-explanation">
+				<!-- TRANSLATORS: Instruction shown when the signer must verify via a messaging channel. "contact information" here means a phone number used for SMS, WhatsApp, Telegram, Signal, or XMPP. -->
 				{{ t('libresign', 'To sign this document, we must verify your identity. Enter your contact information to receive a verification code.') }}
 			</p>
+			<!-- TRANSLATORS: Label and placeholder for the phone number input field used to receive a verification code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Contact information" here means a phone number, not a generic address book entry. -->
 			<NcTextField v-model="newPhoneNumber"
 				:disabled="loading"
 				name="cellphone"
@@ -55,6 +57,7 @@
 			<div class="contact-display">
 				{{ displayContact }}
 			</div>
+			<!-- TRANSLATORS: Label and placeholder for the input field where the signer types the numeric one-time password (OTP) delivered via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 			<NcTextField v-model="token"
 				:disabled="loading"
 				:label="t('libresign', 'Enter your code')"
@@ -70,9 +73,11 @@
 		<div v-else-if="identityVerified" class="step-content">
 			<div class="verification-success">
 				<p class="verification-message">
+					<!-- TRANSLATORS: Success message shown after the signer's identity has been confirmed via a numeric one-time password (OTP) delivered through email, SMS, WhatsApp, Telegram, Signal, or XMPP. "identity" here means the system confirmed the signer is who they claim to be. -->
 					{{ t('libresign', 'Your identity has been verified.') }}
 				</p>
 				<p class="signature-ready">
+					<!-- TRANSLATORS: Follow-up message shown right after identity verification succeeds, inviting the signer to proceed with signing the document. -->
 					{{ t('libresign', 'You can now sign the document.') }}
 				</p>
 			</div>
@@ -94,11 +99,12 @@
 			<!-- Step 2 actions (common) -->
 			<template v-else-if="!identityVerified">
 				<NcButton :disabled="loading"
-					type="submit"
+				type="submit"
 					@click="requestNewCode">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
+					<!-- TRANSLATORS: Button label. Sends a new numeric one-time password (OTP) to the signer via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 					{{ t('libresign', 'Request new code') }}
 				</NcButton>
 				<NcButton :disabled="!canSendCode"
@@ -108,6 +114,7 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
+					<!-- TRANSLATORS: Button label. Submits the numeric one-time password (OTP) typed by the signer to complete verification. The code was delivered via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 					{{ t('libresign', 'Validate code') }}
 				</NcButton>
 			</template>
@@ -215,29 +222,37 @@ export default {
 			if (this.step1Active) {
 				return this.mode === 'email'
 					? t('libresign', 'Email verification')
+					// TRANSLATORS Title for step 1 where the signer proves they are the owner of a registered contact channel by receiving a code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Identity" here means confirming who the signer is, not a reference to any specific document. Translate as a generic compound noun without a definite article.
 					: t('libresign', 'Identity verification')
 			}
 			if (!this.identityVerified) {
+				// TRANSLATORS Dialog title for step 2 where the signer enters the numeric verification code (OTP) received by email or messaging channel. "Code" here means a short numeric one-time password, not source code or any other kind of code.
 				return t('libresign', 'Code validation')
 			}
+			// TRANSLATORS Dialog title for step 3 where the signer reviews and confirms their intent to sign the document by clicking a button. This is not a receipt or acknowledgment — it is the final user action that triggers the signing process.
 			return t('libresign', 'Signature confirmation')
 		},
 		progressText() {
 			if (this.step1Active) {
 				return this.mode === 'email'
 					? t('libresign', 'Step 1 of 3 - Email verification')
+					// TRANSLATORS Progress text for step 1 where the signer proves they are the owner of a registered contact channel by receiving a code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Identity" here means confirming who the signer is, not a reference to any specific document. Translate as a generic compound noun without a definite article.
 					: t('libresign', 'Step 1 of 3 - Identity verification')
 			}
 			if (!this.identityVerified) {
+				// TRANSLATORS Progress text for step 2 where the signer enters the numeric verification code (OTP) received by email or messaging channel. "Code" here means a short numeric one-time password, not source code or any other kind of code.
 				return t('libresign', 'Step 2 of 3 - Code validation')
 			}
+			// TRANSLATORS Progress text for step 3 where the signer reviews and confirms their intent to sign the document by clicking a button. This is not a receipt or acknowledgment — it is the final user action that triggers the signing process.
 			return t('libresign', 'Step 3 of 3 - Signature confirmation')
 		},
 		codeExplanationText() {
 			const contact = this.displayContact
 			if (this.mode === 'email') {
+				// TRANSLATORS {contact} is the email address where the verification code was sent.
 				return t('libresign', 'A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code.', { contact })
 			}
+			// TRANSLATORS {contact} is the phone number or messaging channel (SMS, WhatsApp, Telegram, Signal, XMPP) where the verification code was sent.
 			return t('libresign', 'A verification code has been sent to: {contact}. Please enter the code to continue.', { contact })
 		},
 		displayContact() {
@@ -367,6 +382,7 @@ export default {
 				const msg = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
 				if (this.mode === 'token' && msg?.includes('Invalid configuration')) {
 					const method = this.activeTokenMethod.charAt(0).toUpperCase() + this.activeTokenMethod.slice(1)
+					// TRANSLATORS {method} is the name of a messaging service (e.g. SmsToken, WhatsappToken, TelegramToken, SignalToken, XmppToken).
 					showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
 				} else {
 					showError(msg)
