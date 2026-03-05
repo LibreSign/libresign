@@ -104,6 +104,13 @@ vi.mock('../../../views/FilesList/FilesListVirtual.vue', () => ({
 	},
 }))
 
+vi.mock('../../../views/FilesList/FileListFilters.vue', () => ({
+	default: {
+		name: 'FileListFilters',
+		template: '<div class="file-list-filters-stub" />',
+	},
+}))
+
 vi.mock('../../../components/Request/RequestPicker.vue', () => ({
 	default: {
 		name: 'RequestPicker',

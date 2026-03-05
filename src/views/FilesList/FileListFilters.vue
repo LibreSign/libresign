@@ -3,55 +3,71 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="file-list-filters">
-		<div class="file-list-filters__filter">
-			<div class="file-list-filters__filter">
-				<FileListFilterModified />
-				<FileListFilterStatus />
-			</div>
-		</div>
-		<ul v-if="filtersStore.activeChips.length > 0" class="file-list-filters__active" :aria-label="t('libresign', 'Active filters')">
-			<li v-for="(chip, index) of filtersStore.activeChips" :key="index">
-				<NcChip :aria-label-close="t('libresign', 'Remove filter')"
-					:icon-svg="chip.icon"
-					:text="chip.text"
-					@close="chip.onclick">
-					<template v-if="chip.user" #icon>
-						<NcAvatar disable-menu
-							:verbose-status="false"
-							:size="24"
-							:user="chip.user" />
+	<div class="file-list-filters" data-test-id="files-list-filters">
+		<!-- Wide: individual filter buttons shown inline -->
+		<template v-if="isWide">
+			<FileListFilterModified />
+			<FileListFilterStatus />
+		</template>
+
+		<!-- Narrow: single collapsed button; turns primary-blue when filters are active -->
+		<NcPopover v-else :boundary="boundary">
+			<template #trigger>
+				<NcButton :aria-label="t('libresign', 'Filters')"
+					:pressed="hasActiveFilters"
+					variant="tertiary">
+					<template #icon>
+						<NcIconSvgWrapper :path="mdiFilterVariant" />
 					</template>
-				</NcChip>
-			</li>
-		</ul>
+				</NcButton>
+			</template>
+			<template #default>
+				<div class="file-list-filters__popover">
+					<FileListFilterModified />
+					<FileListFilterStatus />
+				</div>
+			</template>
+		</NcPopover>
 	</div>
 </template>
 
 <script>
+import { computed } from 'vue'
+
+import { mdiFilterVariant } from '@mdi/js'
 import { t } from '@nextcloud/l10n'
 
-import NcAvatar from '@nextcloud/vue/components/NcAvatar'
-import NcChip from '@nextcloud/vue/components/NcChip'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import NcPopover from '@nextcloud/vue/components/NcPopover'
 
 import FileListFilterModified from './FileListFilter/FileListFilterModified.vue'
 import FileListFilterStatus from './FileListFilter/FileListFilterStatus.vue'
 
+import { useFileListWidth } from '../../composables/useFileListWidth.js'
 import { useFiltersStore } from '../../store/filters.js'
 
 export default {
 	name: 'FileListFilters',
 	components: {
-		NcChip,
-		NcAvatar,
+		NcButton,
+		NcIconSvgWrapper,
+		NcPopover,
 		FileListFilterModified,
 		FileListFilterStatus,
 	},
 	setup() {
 		const filtersStore = useFiltersStore()
+		const { isWide } = useFileListWidth()
+		const hasActiveFilters = computed(() => filtersStore.activeChips.length > 0)
+		const boundary = document.getElementById('app-content-vue') ?? document.body
+
 		return {
 			t,
-			filtersStore,
+			mdiFilterVariant,
+			isWide,
+			hasActiveFilters,
+			boundary,
 		}
 	},
 }
@@ -60,26 +76,17 @@ export default {
 <style scoped lang="scss">
 .file-list-filters {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
+	align-items: center;
 	gap: var(--default-grid-baseline);
 	height: 100%;
-	width: 100%;
 
-	&__filter {
+	&__popover {
 		display: flex;
-		align-items: start;
-		justify-content: start;
+		flex-direction: column;
 		gap: calc(var(--default-grid-baseline, 4px) * 2);
-
-		> * {
-			flex: 0 1 fit-content;
-		}
-	}
-
-	&__active {
-		display: flex;
-		flex-direction: row;
-		gap: calc(var(--default-grid-baseline, 4px) * 2);
+		padding: calc(var(--default-grid-baseline) / 2);
+		min-width: calc(7 * var(--default-clickable-area));
 	}
 }
 </style>

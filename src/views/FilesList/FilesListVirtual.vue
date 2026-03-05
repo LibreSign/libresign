@@ -8,7 +8,7 @@
 		:loading="loading"
 		:caption="caption">
 		<template #filters>
-			<FileListFilters />
+			<FileListFilterChips />
 		</template>
 		<template v-if="!isNoneSelected" #header-overlay>
 			<span class="files-list__selected">
@@ -35,7 +35,7 @@ import { t } from '@nextcloud/l10n'
 
 import FileEntry from './FileEntry/FileEntry.vue'
 import FileEntryGrid from './FileEntry/FileEntryGrid.vue'
-import FileListFilters from './FileListFilters.vue'
+import FileListFilterChips from './FileListFilter/FileListFilterChips.vue'
 import FilesListTableFooter from './FilesListTableFooter.vue'
 import FilesListTableHeader from './FilesListTableHeader.vue'
 import FilesListTableHeaderActions from './FilesListTableHeaderActions.vue'
@@ -53,7 +53,7 @@ export default {
 		FileEntry,
 		// eslint-disable-next-line vue/no-unused-components
 		FileEntryGrid,
-		FileListFilters,
+		FileListFilterChips,
 		FilesListTableFooter,
 		FilesListTableHeader,
 		FilesListTableHeaderActions,
@@ -109,14 +109,14 @@ export default {
 	--clickable-area: var(--default-clickable-area);
 	--icon-preview-size: 32px;
 
-	--fixed-block-start-position: var(--default-clickable-area);
+	--fixed-block-start-position: 0;
 
 	overflow: auto;
 	height: 100%;
 	will-change: scroll-position;
 
-	&:has(.file-list-filters__active) {
-		--fixed-block-start-position: calc(var(--default-clickable-area) + var(--default-grid-baseline) + var(--clickable-area-small));
+	&:has(.file-list-filter-chips) {
+		--fixed-block-start-position: calc(var(--default-grid-baseline) + var(--clickable-area-small) + var(--default-grid-baseline));
 	}
 
 	& :deep() {
