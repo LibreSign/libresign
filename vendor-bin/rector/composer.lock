@@ -9,20 +9,20 @@
     "packages-dev": [
         {
             "name": "nextcloud/ocp",
-            "version": "v32.0.6",
+            "version": "v33.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "83cf79e2922fe1c969adeeac8dbb10e173a8d781"
+                "reference": "a643b20f9ff1849a297d69ef250414ef16c48f6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/83cf79e2922fe1c969adeeac8dbb10e173a8d781",
-                "reference": "83cf79e2922fe1c969adeeac8dbb10e173a8d781",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/a643b20f9ff1849a297d69ef250414ef16c48f6a",
+                "reference": "a643b20f9ff1849a297d69ef250414ef16c48f6a",
                 "shasum": ""
             },
             "require": {
-                "php": "~8.1 || ~8.2 || ~8.3 || ~8.4",
+                "php": "~8.1 || ~8.2 || ~8.3 || ~8.4 || ~8.5",
                 "psr/clock": "^1.0",
                 "psr/container": "^2.0.2",
                 "psr/event-dispatcher": "^1.0",
@@ -31,7 +31,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-stable32": "32.0.0-dev"
+                    "dev-stable33": "33.0.0-dev"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -51,9 +51,9 @@
             "description": "Composer package containing Nextcloud's public OCP API and the unstable NCU API",
             "support": {
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
-                "source": "https://github.com/nextcloud-deps/ocp/tree/v32.0.6"
+                "source": "https://github.com/nextcloud-deps/ocp/tree/v33.0.0"
             },
-            "time": "2026-02-06T01:05:41+00:00"
+            "time": "2026-02-12T01:11:10+00:00"
         },
         {
             "name": "nextcloud/rector",

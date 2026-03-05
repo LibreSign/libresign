@@ -575,12 +575,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "8c360e27327c8bd29e1c57721574709d0d706118"
+                "reference": "50f0d9c9d0e3cff1163c959c50aaaaa4a7115f08"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/8c360e27327c8bd29e1c57721574709d0d706118",
-                "reference": "8c360e27327c8bd29e1c57721574709d0d706118",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/50f0d9c9d0e3cff1163c959c50aaaaa4a7115f08",
+                "reference": "50f0d9c9d0e3cff1163c959c50aaaaa4a7115f08",
                 "shasum": ""
             },
             "require": {
@@ -626,7 +626,7 @@
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
                 "source": "https://github.com/nikic/PHP-Parser/tree/master"
             },
-            "time": "2025-12-06T20:24:35+00:00"
+            "time": "2026-02-26T13:20:22+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -1136,12 +1136,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "6ddd961330ad6c86e2a782dec301b21d8c3f1299"
+                "reference": "657c4a4a904dc3d5bc730ade7f8e4840fba126a8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/6ddd961330ad6c86e2a782dec301b21d8c3f1299",
-                "reference": "6ddd961330ad6c86e2a782dec301b21d8c3f1299",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/657c4a4a904dc3d5bc730ade7f8e4840fba126a8",
+                "reference": "657c4a4a904dc3d5bc730ade7f8e4840fba126a8",
                 "shasum": ""
             },
             "require": {
@@ -1217,27 +1217,11 @@
             },
             "funding": [
                 {
-                    "url": "https://phpunit.de/sponsors.html",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/sebastianbergmann",
-                    "type": "github"
-                },
-                {
-                    "url": "https://liberapay.com/sebastianbergmann",
-                    "type": "liberapay"
-                },
-                {
-                    "url": "https://thanks.dev/u/gh/sebastianbergmann",
-                    "type": "thanks_dev"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/phpunit/phpunit",
-                    "type": "tidelift"
+                    "url": "https://phpunit.de/sponsoring.html",
+                    "type": "other"
                 }
             ],
-            "time": "2026-02-12T05:53:20+00:00"
+            "time": "2026-03-04T07:24:55+00:00"
         },
         {
             "name": "psr/http-client",
