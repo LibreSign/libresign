@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
@@ -16,6 +17,7 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
@@ -82,6 +84,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		protected IURLGenerator $urlGenerator,
 		protected CaIdentifierService $caIdentifierService,
 		protected LoggerInterface $logger,
+		private CrlRevocationChecker $crlRevocationChecker,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}
@@ -180,19 +183,17 @@ abstract class AEngineHandler implements IEngineHandler {
 
 	private function addCrlValidationInfo(array &$certData, string $certPem): void {
 		if (isset($certData['extensions']['crlDistributionPoints'])) {
-			$crlDistributionPoints = $certData['extensions']['crlDistributionPoints'];
-
-			preg_match_all('/URI:([^\s,\n]+)/', $crlDistributionPoints, $matches);
+			preg_match_all('/URI:([^\s,\n]+)/', $certData['extensions']['crlDistributionPoints'], $matches);
 			$extractedUrls = $matches[1] ?? [];
 
 			$certData['crl_urls'] = $extractedUrls;
-			$crlDetails = $this->validateCrlFromUrlsWithDetails($extractedUrls, $certPem);
+			$crlDetails = $this->crlRevocationChecker->validate($extractedUrls, $certPem);
 			$certData['crl_validation'] = $crlDetails['status'];
 			if (!empty($crlDetails['revoked_at'])) {
 				$certData['crl_revoked_at'] = $crlDetails['revoked_at'];
 			}
 		} else {
-			$certData['crl_validation'] = 'missing';
+			$certData['crl_validation'] = CrlValidationStatus::MISSING;
 			$certData['crl_urls'] = [];
 		}
 	}
@@ -786,244 +787,6 @@ abstract class AEngineHandler implements IEngineHandler {
 			'generation' => $caIdParsed['generation'],
 			'engineType' => $caIdParsed['engineType'],
 		]);
-	}
-
-	private function validateCrlFromUrls(array $crlUrls, string $certPem): string {
-		$details = $this->validateCrlFromUrlsWithDetails($crlUrls, $certPem);
-		return $details['status'];
-	}
-
-	private function validateCrlFromUrlsWithDetails(array $crlUrls, string $certPem): array {
-		if (empty($crlUrls)) {
-			return ['status' => 'no_urls'];
-		}
-
-		$accessibleUrls = 0;
-		foreach ($crlUrls as $crlUrl) {
-			try {
-				$validationResult = $this->downloadAndValidateCrlWithDetails($crlUrl, $certPem);
-				if ($validationResult['status'] === 'valid') {
-					return $validationResult;
-				}
-				if ($validationResult['status'] === 'revoked') {
-					return $validationResult;
-				}
-				$accessibleUrls++;
-			} catch (\Exception $e) {
-				continue;
-			}
-		}
-
-		if ($accessibleUrls === 0) {
-			return ['status' => 'urls_inaccessible'];
-		}
-
-		return ['status' => 'validation_failed'];
-	}
-
-	private function downloadAndValidateCrl(string $crlUrl, string $certPem): string {
-		try {
-			if ($this->isLocalCrlUrl($crlUrl)) {
-				$crlContent = $this->generateLocalCrl($crlUrl);
-			} else {
-				$crlContent = $this->downloadCrlContent($crlUrl);
-			}
-
-			if (!$crlContent) {
-				throw new \Exception('Failed to get CRL content');
-			}
-
-			return $this->checkCertificateInCrl($certPem, $crlContent);
-
-		} catch (\Exception $e) {
-			return 'validation_error';
-		}
-	}
-
-	private function downloadAndValidateCrlWithDetails(string $crlUrl, string $certPem): array {
-		try {
-			if ($this->isLocalCrlUrl($crlUrl)) {
-				$crlContent = $this->generateLocalCrl($crlUrl);
-			} else {
-				$crlContent = $this->downloadCrlContent($crlUrl);
-			}
-
-			if (!$crlContent) {
-				throw new \Exception('Failed to get CRL content');
-			}
-
-			return $this->checkCertificateInCrlWithDetails($certPem, $crlContent);
-
-		} catch (\Exception $e) {
-			return ['status' => 'validation_error'];
-		}
-	}
-
-	private function isLocalCrlUrl(string $url): bool {
-		$host = parse_url($url, PHP_URL_HOST);
-		if (!$host) {
-			return false;
-		}
-
-		$trustedDomains = $this->config->getSystemValue('trusted_domains', []);
-
-		return in_array($host, $trustedDomains, true);
-	}
-
-	private function generateLocalCrl(string $crlUrl): ?string {
-		try {
-			$templateUrl = $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList', [
-				'instanceId' => 'INSTANCEID',
-				'generation' => 999999,
-				'engineType' => 'ENGINETYPE',
-			]);
-
-			$patternUrl = str_replace('INSTANCEID', '([^/_]+)', $templateUrl);
-			$patternUrl = str_replace('999999', '(\d+)', $patternUrl);
-			$patternUrl = str_replace('ENGINETYPE', '([^/_]+)', $patternUrl);
-
-			$escapedPattern = str_replace([':', '/', '.'], ['\:', '\/', '\.'], $patternUrl);
-
-			$escapedPattern = str_replace('\/apps\/', '(?:\/index\.php)?\/apps\/', $escapedPattern);
-
-			$pattern = '/^' . $escapedPattern . '$/';
-			if (preg_match($pattern, $crlUrl, $matches)) {
-				$instanceId = $matches[1];
-				$generation = (int)$matches[2];
-				$engineType = $matches[3];
-
-				/** @var \OCA\Libresign\Service\Crl\CrlService */
-				$crlService = \OC::$server->get(\OCA\Libresign\Service\Crl\CrlService::class);
-
-				$crlData = $crlService->generateCrlDer($instanceId, $generation, $engineType);
-
-				return $crlData;
-			}
-
-			$this->logger->debug('CRL URL does not match expected pattern', ['url' => $crlUrl, 'pattern' => $pattern]);
-			return null;
-		} catch (\Exception $e) {
-			$this->logger->warning('Failed to generate local CRL: ' . $e->getMessage());
-			return null;
-		}
-	}
-
-	private function downloadCrlContent(string $url): ?string {
-		if (!filter_var($url, FILTER_VALIDATE_URL) || !in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'])) {
-			return null;
-		}
-
-		$context = stream_context_create([
-			'http' => [
-				'timeout' => 30,
-				'user_agent' => 'LibreSign/1.0 CRL Validator',
-				'follow_location' => 1,
-				'max_redirects' => 3,
-			]
-		]);
-
-		$content = @file_get_contents($url, false, $context);
-		return $content !== false ? $content : null;
-	}
-
-	private function isSerialNumberInCrl(string $crlText, string $serialNumber): bool {
-		$normalizedSerial = strtoupper($serialNumber);
-		$normalizedSerial = ltrim($normalizedSerial, '0') ?: '0';
-
-		return preg_match('/Serial Number: 0*' . preg_quote($normalizedSerial, '/') . '/', $crlText) === 1;
-	}
-
-	private function checkCertificateInCrl(string $certPem, string $crlContent): string {
-		try {
-			$certResource = openssl_x509_read($certPem);
-			if (!$certResource) {
-				return 'validation_error';
-			}
-
-			$certData = openssl_x509_parse($certResource);
-			if (!isset($certData['serialNumber'])) {
-				return 'validation_error';
-			}
-
-			return $this->checkCertificateInCrlWithDetails($certPem, $crlContent)['status'];
-
-		} catch (\Exception $e) {
-			return 'validation_error';
-		}
-	}
-
-	private function checkCertificateInCrlWithDetails(string $certPem, string $crlContent): array {
-		try {
-			$certResource = openssl_x509_read($certPem);
-			if (!$certResource) {
-				return ['status' => 'validation_error'];
-			}
-
-			$certData = openssl_x509_parse($certResource);
-			if (!isset($certData['serialNumber'])) {
-				return ['status' => 'validation_error'];
-			}
-
-			$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
-			file_put_contents($tempCrlFile, $crlContent);
-
-			try {
-				$crlTextCmd = sprintf(
-					'openssl crl -in %s -inform DER -text -noout',
-					escapeshellarg($tempCrlFile)
-				);
-
-				exec($crlTextCmd, $output, $exitCode);
-
-				if ($exitCode !== 0) {
-					return ['status' => 'validation_error'];
-				}
-
-				$crlText = implode("\n", $output);
-				$serialCandidates = [$certData['serialNumber']];
-				if (!empty($certData['serialNumberHex'])) {
-					$serialCandidates[] = $certData['serialNumberHex'];
-				}
-
-				foreach ($serialCandidates as $serial) {
-					if ($this->isSerialNumberInCrl($crlText, $serial)) {
-						$revokedAt = $this->extractRevocationDateFromCrlText($crlText, $serialCandidates);
-						return array_filter([
-							'status' => 'revoked',
-							'revoked_at' => $revokedAt,
-						]);
-					}
-				}
-
-				return ['status' => 'valid'];
-
-			} finally {
-				if (file_exists($tempCrlFile)) {
-					unlink($tempCrlFile);
-				}
-			}
-
-		} catch (\Exception $e) {
-			return ['status' => 'validation_error'];
-		}
-	}
-
-	private function extractRevocationDateFromCrlText(string $crlText, array $serialNumbers): ?string {
-		foreach ($serialNumbers as $serial) {
-			$normalizedSerial = strtoupper(ltrim((string)$serial, '0')) ?: '0';
-			$pattern = '/Serial Number:\s*0*' . preg_quote($normalizedSerial, '/') . '\s*\R\s*Revocation Date:\s*([^\r\n]+)/i';
-			if (preg_match($pattern, $crlText, $matches) !== 1) {
-				continue;
-			}
-			$dateText = trim($matches[1]);
-			try {
-				$date = new \DateTimeImmutable($dateText, new \DateTimeZone('UTC'));
-				return $date->setTimezone(new \DateTimeZone('UTC'))->format(\DateTimeInterface::ATOM);
-			} catch (\Exception $e) {
-				continue;
-			}
-		}
-		return null;
 	}
 
 	#[\Override]
