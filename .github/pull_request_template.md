@@ -5,6 +5,19 @@ Resolves: # <!-- related github issue -->
 A concise description of what this PR does and why.
 
 ## 🧪 How to test
+<!--
+IMPORTANT: The "How to see this running using GitHub Codespaces" details block SHOULD NOT be included in the final template.
+Testing instructions should be written specifically for each PR,
+describing the steps needed to validate the proposed changes.
+
+Example:
+1. Access the signatures page
+2. Upload a test PDF
+3. Click "Sign" and verify the modal opens correctly
+4. Confirm the signature was applied
+
+Feel free to paste terminal commands or URLs that help reviewers follow along.
+-->
 
 <details>
 <summary>How to see this running using GitHub Codespaces</summary>
