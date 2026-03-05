@@ -46,6 +46,7 @@ use OCP\IUser;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 use stdClass;
+use TypeError;
 
 /**
  * @psalm-import-type LibresignEnvelopeChildFile from ResponseDefinitions
@@ -660,22 +661,22 @@ class FileService {
 		$this->idDocsMapper->deleteByFileId($file->getId());
 		$this->fileMapper->delete($file);
 		if ($deleteFile) {
-			if ($file->getSignedNodeId()) {
-				try {
-					$signedNextcloudFile = $this->folderService->getFileByNodeId($file->getSignedNodeId());
-					$parentFolder = $signedNextcloudFile->getParent();
-					$signedNextcloudFile->delete();
-					$this->deleteEmptyFolder($parentFolder);
-				} catch (NotFoundException) {
-				}
-			}
-			try {
-				$nextcloudFile = $this->folderService->getFileByNodeId($file->getNodeId());
-				$parentFolder = $nextcloudFile->getParent();
-				$nextcloudFile->delete();
-				$this->deleteEmptyFolder($parentFolder);
-			} catch (NotFoundException) {
-			}
+			$this->deletePhysicalFileIfPossible($file->getSignedNodeId());
+			$this->deletePhysicalFileIfPossible($file->getNodeId());
+		}
+	}
+
+	private function deletePhysicalFileIfPossible(?int $nodeId): void {
+		if ($nodeId === null) {
+			return;
+		}
+
+		try {
+			$nextcloudFile = $this->folderService->getFileByNodeId($nodeId);
+			$parentFolder = $nextcloudFile->getParent();
+			$nextcloudFile->delete();
+			$this->deleteEmptyFolder($parentFolder);
+		} catch (NotFoundException|TypeError) {
 		}
 	}
 
