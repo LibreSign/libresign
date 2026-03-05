@@ -64,6 +64,7 @@ export const action = {
 		const node = nodes[0]
 		await window.OCA.Files.Sidebar.open(node.path)
 		window.OCA.Files.Sidebar.setActiveTab('libresign')
+		return null
 	},
 
 	/**
