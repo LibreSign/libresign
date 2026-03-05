@@ -121,13 +121,6 @@
       <code><![CDATA[private]]></code>
     </UndefinedClass>
   </file>
-  <file src="lib/Service/Crl/Ldap/PhpLdapConnection.php">
-    <UndefinedConstant>
-      <code><![CDATA[LDAP_OPT_NETWORK_TIMEOUT]]></code>
-      <code><![CDATA[LDAP_OPT_PROTOCOL_VERSION]]></code>
-      <code><![CDATA[LDAP_OPT_REFERRALS]]></code>
-    </UndefinedConstant>
-  </file>
   <file src="lib/Service/IdentifyMethod/SignatureMethod/TokenService.php">
     <UndefinedClass>
       <code><![CDATA[\OCA\TwoFactorGateway\Provider\Gateway\Factory]]></code>
