@@ -13,6 +13,7 @@ import { useUserConfigStore } from '../../../store/userconfig.js'
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn((_app: string, text: string) => text),
+	isRTL: vi.fn(() => false),
 }))
 
 vi.mock('@nextcloud/logger', () => ({
@@ -114,13 +115,6 @@ vi.mock('../../../views/FilesList/FilesListVirtual.vue', () => ({
 	},
 }))
 
-vi.mock('../../../views/FilesList/FileListFilters.vue', () => ({
-	default: {
-		name: 'FileListFilters',
-		template: '<div class="file-list-filters-stub" />',
-	},
-}))
-
 vi.mock('../../../components/Request/RequestPicker.vue', () => ({
 	default: {
 		name: 'RequestPicker',
@@ -158,6 +152,45 @@ describe('FilesList.vue rendering rules', () => {
 		expect(wrapper.vm.mdiFolder).toBeTruthy()
 		expect(wrapper.vm.mdiViewGrid).toBeTruthy()
 		expect(wrapper.vm.mdiViewList).toBeTruthy()
+		expect(wrapper.vm.mdiChevronDown).toBeTruthy()
+		expect(wrapper.vm.mdiChevronUp).toBeTruthy()
+		expect(wrapper.vm.mdiReload).toBeTruthy()
+	})
+
+	it('initialises isMenuOpen as false', async () => {
+		const filesStore = useFilesStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+		const wrapper = mountComponent()
+		await flushPromises()
+
+		expect(wrapper.vm.isMenuOpen).toBe(false)
+	})
+
+	it('renders RequestPicker before the breadcrumbs in the header', async () => {
+		const filesStore = useFilesStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+
+		const wrapper = mountComponent()
+		await flushPromises()
+
+		const header = wrapper.find('.files-list__header')
+		const firstChild = header.element.children[0]
+		expect(firstChild.classList.contains('request-picker-stub')).toBe(true)
+	})
+
+	it('calls filesStore.updateAllFiles once more when reload button is clicked', async () => {
+		const filesStore = useFilesStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+		const updateSpy = vi.spyOn(filesStore, 'updateAllFiles').mockResolvedValue({})
+
+		const wrapper = mountComponent()
+		await flushPromises()
+
+		const callsBefore = updateSpy.mock.calls.length
+		await wrapper.find('.nc-action-button-stub').trigger('click')
+
+		expect(updateSpy.mock.calls.length).toBe(callsBefore + 1)
 	})
 
 	it('shows empty-state request action when user can request sign', async () => {
@@ -217,7 +250,8 @@ describe('FilesList.vue rendering rules', () => {
 		const wrapper = mountComponent()
 		await flushPromises()
 
-		const iconWithPath = wrapper.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
+		const gridButton = wrapper.find('.files-list__header-grid-button')
+		const iconWithPath = gridButton.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
 		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiViewList)
 	})
 })
