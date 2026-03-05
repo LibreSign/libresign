@@ -1166,6 +1166,14 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'LibreCode',
 				'Jane Doe',
 			],
+			'array CNs should be normalized' => [
+				[
+					'issuer' => ['CN' => ['LibreCode', 'CA']],
+					'subject' => ['CN' => ['Doe', 'Jane']],
+				],
+				'LibreCode, CA',
+				'Doe, Jane',
+			],
 			'empty CNs' => [
 				[
 					'issuer' => ['CN' => ''],
