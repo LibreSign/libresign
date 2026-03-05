@@ -46,6 +46,11 @@ class SigningErrorHandlerTest extends TestCase {
 				'message' => 'Password required',
 				'expectedAction' => JSActions::ACTION_CREATE_SIGNATURE_PASSWORD,
 			],
+			'code 422 revoked certificate triggers do nothing action' => [
+				'code' => 422,
+				'message' => 'Certificate has been revoked',
+				'expectedAction' => JSActions::ACTION_DO_NOTHING,
+			],
 			'code 401 triggers do nothing action' => [
 				'code' => 401,
 				'message' => 'Unauthorized',
