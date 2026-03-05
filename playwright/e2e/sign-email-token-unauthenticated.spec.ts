@@ -82,4 +82,10 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await page.waitForURL('**/validation/**');
 	await expect(page.getByText('This document is valid')).toBeVisible();
 	await expect(page.getByText('Congratulations you have')).toBeVisible();
+
+	// Revisit the sign link after the document has been signed.
+	// The signer must not be able to sign a second time.
+	await page.goto(signLink)
+	await expect(page.getByRole('button', { name: 'Sign the document.' })).not.toBeVisible({ timeout: 10_000 })
+	await expect(page.getByText('This document is valid')).toBeVisible();
 });
