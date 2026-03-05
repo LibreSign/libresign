@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 use DateTime;
 use DateTimeInterface;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Service\File\SignersLoader;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
@@ -368,7 +369,7 @@ final class SignersLoaderTest extends TestCase {
 						'valid_from' => 'January 28, 2026, 11:58:51 PM',
 						'valid_to' => 'January 29, 2026, 11:58:51 PM',
 						'crl_urls' => ['http://localhost/index.php/apps/libresign/crl/libresign_g0sm1ngk87_29_o.crl'],
-						'crl_validation' => 'revoked',
+						'crl_validation' => CrlValidationStatus::REVOKED,
 						'crl_revoked_at' => '2026-01-28T23:58:53+00:00',
 						'signature_validation' => ['id' => 1, 'label' => 'Signature is valid.'],
 						'isLibreSignRootCA' => true,
@@ -479,7 +480,7 @@ final class SignersLoaderTest extends TestCase {
 								'hash' => 'endentity123',
 								'serialNumber' => '111',
 								'isLibreSignRootCA' => true,
-								'crl_validation' => 'valid',
+								'crl_validation' => CrlValidationStatus::VALID,
 								'validFrom_time_t' => 1609459200,  // 2021-01-01
 								'validTo_time_t' => 1640995200,    // 2022-01-01
 							],
@@ -501,7 +502,7 @@ final class SignersLoaderTest extends TestCase {
 						$signer = $signers[0];
 						assert($signer->hash === 'endentity123', 'root hash should be from chain[0]');
 						assert($signer->serialNumber === '111', 'root serialNumber should be from chain[0]');
-						assert($signer->crl_validation === 'valid', 'root crl_validation should be from chain[0]');
+						assert($signer->crl_validation === CrlValidationStatus::VALID, 'root crl_validation should be from chain[0]');
 						assert($signer->chain[1]['hash'] === 'cacert456', 'chain[1] should retain its hash');
 						assert($signer->chain[1]['serialNumber'] === '222', 'chain[1] should retain its serialNumber');
 					},
