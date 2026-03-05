@@ -836,6 +836,60 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 	})
 
+	describe('RULE: getPageAriaLabel accessibility labels', () => {
+		it('single doc, not adding mode: returns plain page label', () => {
+			const label = wrapper.vm.getPageAriaLabel({
+				docIndex: 0,
+				docName: 'contract.pdf',
+				totalDocs: 1,
+				pageNumber: 2,
+				totalPages: 5,
+				isAddingMode: false,
+			})
+
+			expect(label).toBe('Page 2 of 5.')
+		})
+
+		it('single doc, adding mode: includes keyboard placement hint', () => {
+			const label = wrapper.vm.getPageAriaLabel({
+				docIndex: 0,
+				docName: 'contract.pdf',
+				totalDocs: 1,
+				pageNumber: 3,
+				totalPages: 5,
+				isAddingMode: true,
+			})
+
+			expect(label).toBe('Page 3 of 5. Press Enter or Space to place the signature here.')
+		})
+
+		it('multi-doc, not adding mode: includes document context', () => {
+			const label = wrapper.vm.getPageAriaLabel({
+				docIndex: 1,
+				docName: 'annex.pdf',
+				totalDocs: 3,
+				pageNumber: 1,
+				totalPages: 4,
+				isAddingMode: false,
+			})
+
+			expect(label).toBe('Document 2 of 3 (annex.pdf), page 1 of 4.')
+		})
+
+		it('multi-doc, adding mode: includes document context and keyboard placement hint', () => {
+			const label = wrapper.vm.getPageAriaLabel({
+				docIndex: 0,
+				docName: 'main.pdf',
+				totalDocs: 2,
+				pageNumber: 1,
+				totalPages: 10,
+				isAddingMode: true,
+			})
+
+			expect(label).toBe('Document 1 of 2 (main.pdf), page 1 of 10. Press Enter or Space to place the signature here.')
+		})
+	})
+
 	describe('RULE: coordinate system conversion', () => {
 		beforeEach(() => {
 			Object.assign(wrapper.vm.$refs.pdfElements, {
