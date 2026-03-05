@@ -400,6 +400,53 @@ describe('Sign.vue - signWithTokenCode', () => {
 		})
 	})
 
+	describe('Sign.vue - API error handling', () => {
+		it('keeps certificate validation errors in signStore and does not open certificate modal', async () => {
+			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const submitSignature = (SignComponent.default as any).methods.submitSignature
+
+			const apiErrors = [{ message: 'Certificate has been revoked', code: 422 }]
+			const context = {
+				loading: false,
+				elements: [],
+				canCreateSignature: false,
+				signRequestUuid: 'test-sign-request-uuid',
+				signMethodsStore: {
+					certificateEngine: 'openssl',
+				},
+				signatureElementsStore: {
+					signs: {},
+				},
+				actionHandler: {
+					showModal: vi.fn(),
+					closeModal: vi.fn(),
+				},
+				signStore: {
+					document: { id: 10 },
+					clearSigningErrors: vi.fn(),
+					setSigningErrors: vi.fn(),
+					submitSignature: vi.fn().mockRejectedValue({
+						type: 'signError',
+						errors: apiErrors,
+					}),
+				},
+				$emit: vi.fn(),
+				sidebarStore: {
+					hideSidebar: vi.fn(),
+				},
+			}
+
+			await submitSignature.call(context, {
+				method: 'password',
+				token: '123456',
+			})
+
+			expect(context.actionHandler.showModal).not.toHaveBeenCalled()
+			expect(context.signStore.setSigningErrors).toHaveBeenCalledWith(apiErrors)
+			expect(context.loading).toBe(false)
+		})
+	})
+
 	describe('proceedWithSigning - Full flow with WhatsApp token', () => {
 		let proceedWithSigningLogic: ProceedWithSigningLogic
 
