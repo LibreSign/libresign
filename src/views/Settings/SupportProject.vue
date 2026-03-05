@@ -11,7 +11,7 @@
 				{{ t('libresign', 'LibreSign is developed with ❤️ by LibreCode coop. Your support helps us maintain and improve this free and open-source project.') }}
 			</p>
 			<div class="support-buttons">
-				<NcButton type="primary"
+				<NcButton variant="primary"
 					href="https://github.com/sponsors/libresign"
 					target="_blank"
 					rel="noopener noreferrer">

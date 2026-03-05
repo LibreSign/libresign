@@ -11,7 +11,7 @@ declare module '*.vue' {
 	export default component
 }
 
-declare module '@nextcloud/vue/dist/Components/*.js' {
+declare module '@nextcloud/vue/components/*' {
 	import type { DefineComponent } from 'vue'
 	const component: DefineComponent
 	export default component

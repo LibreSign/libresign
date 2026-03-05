@@ -24,7 +24,7 @@
 						:helper-text="nameHelperText"
 						:minlength="ENVELOPE_NAME_MIN_LENGTH"
 						:maxlength="ENVELOPE_NAME_MAX_LENGTH"
-						@update:value="onEnvelopeNameChange" />
+						@update:modelValue="onEnvelopeNameChange" />
 					<span v-if="isSavingName" class="saving-indicator">
 						<NcLoadingIcon :size="20" />
 					</span>
@@ -47,12 +47,12 @@
 			</NcEmptyContent>
 			<div v-else ref="scrollContainer" class="files-list" @scroll="onScroll">
 				<div v-if="canDelete" class="files-list__header">
-					<NcCheckboxRadioSwitch :checked="allSelected"
-						@update:checked="toggleSelectAll">
+					<NcCheckboxRadioSwitch :modelValue="allSelected"
+						@update:modelValue="toggleSelectAll">
 						{{ selectedCount > 0 ? t('libresign', '{count} selected', { count: selectedCount }) : t('libresign', 'Select all') }}
 					</NcCheckboxRadioSwitch>
 					<NcButton v-if="selectedCount > 0"
-						type="error"
+						variant="error"
 						:disabled="hasLoading"
 						@click="handleDeleteSelected">
 						<template #icon>
@@ -67,8 +67,8 @@
 					:details="file.statusText">
 					<template #icon>
 						<NcCheckboxRadioSwitch v-if="canDelete"
-						:checked="isSelected(file.id)"
-						@update:checked="toggleSelect(file.id)" />
+						:modelValue="isSelected(file.id)"
+						@update:modelValue="toggleSelect(file.id)" />
 						<img v-if="getPreviewUrl(file)"
 							:src="getPreviewUrl(file)"
 							alt=""
@@ -114,7 +114,7 @@
 		</div>
 		<template #actions>
 			<NcButton v-if="canAddFile"
-				type="primary"
+				variant="primary"
 				:disabled="hasLoading"
 				@click="addFileToEnvelope">
 				<template #icon>
