@@ -79,7 +79,7 @@ Feel free to remove this section when your PR only affects the backend/API code.
 
 🏚️ Before | 🏡 After
 --- | ---
-<!-- Add screenshot  |  Add screenshot -->
+Screenshot before | Screenshot after
 
 <!-- ☀️ Light theme | 🌑 Dark theme → Please test and document both themes -->
 
