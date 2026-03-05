@@ -19,14 +19,17 @@ class ImagickSetupCheck implements ISetupCheck {
 		$this->l10n = $l10n;
 	}
 
+	#[\Override]
 	public function getName(): string {
 		return $this->l10n->t('Imagick PHP extension');
 	}
 
+	#[\Override]
 	public function getCategory(): string {
 		return 'system';
 	}
 
+	#[\Override]
 	public function run(): SetupResult {
 		if (!extension_loaded('imagick')) {
 			return SetupResult::info(
