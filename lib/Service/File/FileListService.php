@@ -257,6 +257,8 @@ class FileListService {
 
 		$file['statusText'] = $this->fileMapper->getTextOfStatus((int)$file['status']);
 
+		$file['signersCount'] = count($file['signers']);
+
 		if (count($file['signers']) > 0) {
 			usort($file['signers'], function ($a, $b) {
 				$orderA = $a['signingOrder'] ?? PHP_INT_MAX;
@@ -273,8 +275,6 @@ class FileListService {
 		} else {
 			$file['visibleElements'] = [];
 		}
-
-		$file['signersCount'] = count($file['signers']);
 
 		ksort($file);
 		/** @var LibresignFileDetail */

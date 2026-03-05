@@ -1023,6 +1023,57 @@ describe('Sign.vue - signWithTokenCode', () => {
 			expect(wrapper.vm.hasSignatures).toBe(true)
 			expect(wrapper.vm.needCreateSignature).toBe(false)
 		})
+
+		it('returns false for needCreateSignature when signer has no placed visibleElements (clickToSign scenario)', async () => {
+			// Regression: commit e9ea79495 removed visibleElements.some() check, causing
+			// needCreateSignature to return true for clickToSign documents where no visual
+			// element box was placed — hiding the "Sign the document." button.
+			const { default: realSign } = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const { useSignStore } = await import('../../../store/sign.js')
+
+			const signStore = useSignStore()
+
+			// Signer has signRequestId but NO placed visibleElements (typical clickToSign)
+			signStore.document = {
+				id: 1,
+				nodeType: 'file',
+				signers: [
+					{ signRequestId: 501, me: true },
+				],
+				visibleElements: [],
+			}
+
+			const wrapper = mount(realSign, {
+				global: {
+					stubs: {
+						NcButton: true,
+						NcDialog: true,
+						NcLoadingIcon: true,
+						TokenManager: true,
+						EmailManager: true,
+						UploadCertificate: true,
+						Documents: true,
+						Signatures: true,
+						Draw: true,
+						ManagePassword: true,
+						CreatePassword: true,
+						NcNoteCard: true,
+						NcPasswordField: true,
+						NcRichText: true,
+					},
+					mocks: {
+						$watch: vi.fn(),
+					},
+				},
+			})
+
+			// canCreateSignature is true (mocked globally), but no element was placed for
+			// this signer, so we must NOT show "Define your signature" — the "Sign the
+			// document." button should be reachable.
+			expect(wrapper.vm.canCreateSignature).toBe(true)
+			expect(wrapper.vm.hasSignatures).toBe(false)
+			expect(wrapper.vm.needCreateSignature).toBe(false)
+		})
 	})
 
 	describe('Sign.vue - create signature modal', () => {
