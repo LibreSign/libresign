@@ -340,6 +340,53 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->delete(1, false);
 	}
 
+	public function testDeleteWithNullNodeIdDoesNotCallFolderService(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(1);
+		$file->setNodeType('single');
+		$file->setParentFileId(null);
+		$file->setNodeId(null);
+		$file->setSignedNodeId(null);
+
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->fileMapper->expects($this->once())->method('delete')->with($file);
+
+		$this->folderService->expects($this->never())->method('getFileByNodeId');
+
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+		$this->fileElementService->expects($this->once())->method('deleteVisibleElements');
+		$this->idDocsMapper->expects($this->once())->method('deleteByFileId');
+
+		$service = $this->createFileService();
+
+		$service->delete(1, true);
+	}
+
+	public function testDeleteIgnoresMissingPhysicalFile(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(1);
+		$file->setNodeId(100);
+		$file->setSignedNodeId(null);
+		$file->setNodeType('single');
+		$file->setParentFileId(null);
+
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->fileMapper->expects($this->once())->method('delete')->with($file);
+
+		$this->folderService->expects($this->once())
+			->method('getFileByNodeId')
+			->with(100)
+			->willThrowException(new \OCP\Files\NotFoundException());
+
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+		$this->fileElementService->expects($this->once())->method('deleteVisibleElements');
+		$this->idDocsMapper->expects($this->once())->method('deleteByFileId');
+
+		$service = $this->createFileService();
+
+		$service->delete(1, true);
+	}
+
 	#[DataProvider('providerTestVisibleElements')]
 	public function testVisibleElements(bool $showVisibleElementsFlag, bool $expectedInResult): void {
 		$file = new \OCA\Libresign\Db\File();
