@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Helper;
 
 use InvalidArgumentException;
-use OC\Files\FilenameValidator;
+use OCP\Files\IFilenameValidator;
 use OCP\IL10N;
 
 /**
@@ -18,6 +18,7 @@ use OCP\IL10N;
 class FileUploadHelper {
 	public function __construct(
 		private IL10N $l10n,
+		private IFilenameValidator $filenameValidator,
 	) {
 	}
 
@@ -43,8 +44,7 @@ class FileUploadHelper {
 			throw new InvalidArgumentException($this->l10n->t('File is too big'));
 		}
 
-		$validator = \OCP\Server::get(FilenameValidator::class);
-		if ($validator->isForbidden($uploadedFile['tmp_name'])) {
+		if (!$this->filenameValidator->isFilenameValid(basename($uploadedFile['tmp_name']))) {
 			@unlink($uploadedFile['tmp_name']);
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
 		}
