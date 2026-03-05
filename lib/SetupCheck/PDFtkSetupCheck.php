@@ -8,17 +8,17 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\SetupCheck;
 
-use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Service\Install\SignSetupService;
+use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
-use OCP\IL10N;
-use OCP\IAppConfig;
-use OCP\IURLGenerator;
+use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\App\IAppManager;
+use OCP\IAppConfig;
+use OCP\IConfig;
+use OCP\IL10N;
+use OCP\IURLGenerator;
 use OCP\SetupCheck\ISetupCheck;
 use OCP\SetupCheck\SetupResult;
-use OCP\IConfig;
 use Psr\Log\LoggerInterface;
 
 class PDFtkSetupCheck implements ISetupCheck {
@@ -29,10 +29,10 @@ class PDFtkSetupCheck implements ISetupCheck {
 	private IConfig $systemConfig;
 	private JavaHelper $javaHelper;
 
-  private SignSetupService $signSetupService;
-  private IURLGenerator $urlGenerator;
-  private IAppManager $appManager;
-  private LoggerInterface $logger;
+	private SignSetupService $signSetupService;
+	private IURLGenerator $urlGenerator;
+	private IAppManager $appManager;
+	private LoggerInterface $logger;
 
 	public function __construct(
 		IL10N $l10n,
@@ -42,7 +42,7 @@ class PDFtkSetupCheck implements ISetupCheck {
 		IAppManager $appManager,
 		LoggerInterface $logger,
 		IConfig $systemConfig,
-		JavaHelper $javaHelper
+		JavaHelper $javaHelper,
 	) {
 		$this->l10n = $l10n;
 		$this->appConfig = $appConfig;
@@ -54,14 +54,17 @@ class PDFtkSetupCheck implements ISetupCheck {
 		$this->javaHelper = $javaHelper;
 	}
 
+	#[\Override]
 	public function getName(): string {
 		return $this->l10n->t('PDFtk');
 	}
 
+	#[\Override]
 	public function getCategory(): string {
 		return 'system';
 	}
 
+	#[\Override]
 	public function run(): SetupResult {
 		$debugEnabled = $this->systemConfig->getSystemValueBool('debug', false);
 		$pdftkPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
