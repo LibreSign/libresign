@@ -793,6 +793,23 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(filesStore.files[1].signers[1].signingOrder).toBe(2)
 		})
 
+		it('reassigns sequential orders when all signers share the same signingOrder', async () => {
+			// Signers saved via the API return signingOrder: 1 as default for all of them.
+			// The old check (!signer.signingOrder) would skip them because !1 === false,
+			// leaving both at order 1 and causing the backend to notify both simultaneously.
+			await updateFile({
+				signatureFlow: 'parallel',
+				signers: [
+					{ email: 'signer1@example.com', signed: [], signingOrder: 1 },
+					{ email: 'signer2@example.com', signed: [], signingOrder: 1 },
+				],
+			})
+			wrapper.vm.onPreserveOrderChange(true)
+			await wrapper.vm.$nextTick()
+			expect(filesStore.files[1].signers[0].signingOrder).toBe(1)
+			expect(filesStore.files[1].signers[1].signingOrder).toBe(2)
+		})
+
 		it('reverts to parallel when disabling', async () => {
 			await wrapper.setData({ adminSignatureFlow: 'none' })
 			await updateFile({
