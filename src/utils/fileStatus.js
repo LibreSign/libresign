@@ -12,6 +12,11 @@ import {
 	mdiSync,
 	mdiHelpCircle,
 } from '@mdi/js'
+import fileSvg from '@mdi/svg/svg/file.svg?raw'
+import signatureSvg from '@mdi/svg/svg/signature.svg?raw'
+import fractionOneHalfSvg from '@mdi/svg/svg/fraction-one-half.svg?raw'
+import signatureFreehandSvg from '@mdi/svg/svg/signature-freehand.svg?raw'
+import loadingSvg from '@mdi/svg/svg/loading.svg?raw'
 import { t } from '@nextcloud/l10n'
 
 import { FILE_STATUS } from '../constants.js'
@@ -65,11 +70,11 @@ export function getStatusIcon(status) {
 export function getStatusSvgInline(status) {
 	try {
 		const svgs = {
-			[FILE_STATUS.DRAFT]: require('@mdi/svg/svg/file.svg?raw').default,
-			[FILE_STATUS.ABLE_TO_SIGN]: require('@mdi/svg/svg/signature.svg?raw').default,
-			[FILE_STATUS.PARTIAL_SIGNED]: require('@mdi/svg/svg/fraction-one-half.svg?raw').default,
-			[FILE_STATUS.SIGNED]: require('@mdi/svg/svg/signature-freehand.svg?raw').default,
-			[FILE_STATUS.SIGNING_IN_PROGRESS]: require('@mdi/svg/svg/loading.svg?raw').default,
+			[FILE_STATUS.DRAFT]: fileSvg,
+			[FILE_STATUS.ABLE_TO_SIGN]: signatureSvg,
+			[FILE_STATUS.PARTIAL_SIGNED]: fractionOneHalfSvg,
+			[FILE_STATUS.SIGNED]: signatureFreehandSvg,
+			[FILE_STATUS.SIGNING_IN_PROGRESS]: loadingSvg,
 		}
 
 		const colors = {
