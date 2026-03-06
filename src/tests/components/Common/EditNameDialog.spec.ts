@@ -17,6 +17,17 @@ describe('EditNameDialog.vue - Business Logic', () => {
 
 	let wrapper: ReturnType<typeof shallowMount>
 
+	const setLocalName = async (value: string) => {
+		wrapper.vm.localName = value
+		await wrapper.vm.$nextTick()
+	}
+
+	const setMessages = async ({ success = wrapper.vm.localSuccessMessage, error = wrapper.vm.localErrorMessage }: { success?: string, error?: string }) => {
+		wrapper.vm.localSuccessMessage = success
+		wrapper.vm.localErrorMessage = error
+		await wrapper.vm.$nextTick()
+	}
+
 	beforeEach(() => {
 		wrapper = shallowMount(EditNameDialog, {
 			props: {
@@ -35,126 +46,125 @@ describe('EditNameDialog.vue - Business Logic', () => {
 	})
 
 	describe('isNameValid computed property', () => {
-		it('returns true for valid name within limits', () => {
-			wrapper.setData({ localName: 'Valid Name' })
+		it('returns true for valid name within limits', async () => {
+			await setLocalName('Valid Name')
 			expect(wrapper.vm.isNameValid).toBe(true)
 		})
 
-		it('returns false for empty string', () => {
-			wrapper.setData({ localName: '' })
+		it('returns false for empty string', async () => {
+			await setLocalName('')
 			expect(wrapper.vm.isNameValid).toBe(false)
 		})
 
-		it('returns false for whitespace-only string', () => {
-			wrapper.setData({ localName: '   ' })
+		it('returns false for whitespace-only string', async () => {
+			await setLocalName('   ')
 			expect(wrapper.vm.isNameValid).toBe(false)
 		})
 
-		it('returns true for name with exactly min length after trim', () => {
-			wrapper.setData({ localName: '  A  ' }) // trims to 'A' which is length 1
+		it('returns true for name with exactly min length after trim', async () => {
+			await setLocalName('  A  ')
 			expect(wrapper.vm.isNameValid).toBe(true)
 		})
 
-		it('returns true for name with exactly max length', () => {
+		it('returns true for name with exactly max length', async () => {
 			const maxLengthName = 'A'.repeat(ENVELOPE_NAME_MAX_LENGTH)
-			wrapper.setData({ localName: maxLengthName })
+			await setLocalName(maxLengthName)
 			expect(wrapper.vm.isNameValid).toBe(true)
 		})
 
-		it('returns false for name exceeding max length', () => {
+		it('returns false for name exceeding max length', async () => {
 			const tooLongName = 'A'.repeat(ENVELOPE_NAME_MAX_LENGTH + 1)
-			wrapper.setData({ localName: tooLongName })
+			await setLocalName(tooLongName)
 			expect(wrapper.vm.isNameValid).toBe(false)
 		})
 
-		it('returns true for name with leading/trailing spaces but valid after trim', () => {
-			wrapper.setData({ localName: '  Valid Name  ' })
+		it('returns true for name with leading/trailing spaces but valid after trim', async () => {
+			await setLocalName('  Valid Name  ')
 			expect(wrapper.vm.isNameValid).toBe(true)
 		})
 	})
 
 	describe('dialogButtons computed property', () => {
-		it('disables Save button when name is invalid', () => {
-			wrapper.setData({ localName: '' })
+		it('disables Save button when name is invalid', async () => {
+			await setLocalName('')
 			const buttons = wrapper.vm.dialogButtons as DialogButton[]
 			const saveButton = buttons.find((btn) => btn.type === 'primary')
 			expect(saveButton).toBeDefined()
 			expect(saveButton!.disabled).toBe(true)
 		})
 
-		it('enables Save button when name is valid', () => {
-			wrapper.setData({ localName: 'Valid Name' })
+		it('enables Save button when name is valid', async () => {
+			await setLocalName('Valid Name')
 			const buttons = wrapper.vm.dialogButtons as DialogButton[]
 			const saveButton = buttons.find((btn) => btn.type === 'primary')
 			expect(saveButton).toBeDefined()
 			expect(saveButton!.disabled).toBe(false)
 		})
 
-		it('has Cancel button that calls handleClose', () => {
-			const handleCloseSpy = vi.spyOn(wrapper.vm, 'handleClose')
+		it('has Cancel button that closes with null', () => {
 			const buttons = wrapper.vm.dialogButtons as DialogButton[]
 			// First button is Cancel (not primary)
 			const cancelButton = buttons.find((btn) => btn.type !== 'primary')
 			expect(cancelButton).toBeDefined()
 			cancelButton!.callback()
-			expect(handleCloseSpy).toHaveBeenCalled()
+			expect(wrapper.emitted('close')?.[0]).toEqual([null])
 		})
 
-		it('has Save button that calls handleSave', () => {
-			const handleSaveSpy = vi.spyOn(wrapper.vm, 'handleSave')
+		it('has Save button that emits the trimmed name when valid', async () => {
+			await setLocalName('  Valid Name  ')
 			const buttons = wrapper.vm.dialogButtons as DialogButton[]
 			const saveButton = buttons.find((btn) => btn.type === 'primary')
 			expect(saveButton).toBeDefined()
 			saveButton!.callback()
-			expect(handleSaveSpy).toHaveBeenCalled()
+			expect(wrapper.emitted('close')?.[0]).toEqual(['Valid Name'])
 		})
 	})
 
 	describe('handleSave method', () => {
-		it('does not emit when name is invalid', () => {
-			wrapper.setData({ localName: '' })
+		it('does not emit when name is invalid', async () => {
+			await setLocalName('')
 			wrapper.vm.handleSave()
 			expect(wrapper.emitted('close')).toBeUndefined()
 		})
 
-		it('emits close with trimmed name when valid', () => {
-			wrapper.setData({ localName: '  Valid Name  ' })
+		it('emits close with trimmed name when valid', async () => {
+			await setLocalName('  Valid Name  ')
 			wrapper.vm.handleSave()
 			expect(wrapper.emitted('close')).toBeTruthy()
 			expect(wrapper.emitted('close')?.[0]).toEqual(['Valid Name'])
 		})
 
-		it('does not emit when trimmed name is empty (handled by isNameValid)', () => {
-			wrapper.setData({ localName: '   ' })
+		it('does not emit when trimmed name is empty (handled by isNameValid)', async () => {
+			await setLocalName('   ')
 			wrapper.vm.handleSave()
 			// isNameValid already catches this case, so handleSave returns early
 			expect(wrapper.emitted('close')).toBeUndefined()
 		})
 
-		it('does not emit when name is empty (handled by isNameValid)', () => {
-			wrapper.setData({ localName: '' })
+		it('does not emit when name is empty (handled by isNameValid)', async () => {
+			await setLocalName('')
 			wrapper.vm.handleSave()
 			// isNameValid already catches this case, so handleSave returns early
 			expect(wrapper.emitted('close')).toBeUndefined()
 		})
 
-		it('emits with single character name (minimum valid)', () => {
-			wrapper.setData({ localName: 'A' })
+		it('emits with single character name (minimum valid)', async () => {
+			await setLocalName('A')
 			wrapper.vm.handleSave()
 			expect(wrapper.emitted('close')).toBeTruthy()
 			expect(wrapper.emitted('close')?.[0]).toEqual(['A'])
 		})
 
-		it('emits with max length name', () => {
+		it('emits with max length name', async () => {
 			const maxName = 'A'.repeat(ENVELOPE_NAME_MAX_LENGTH)
-			wrapper.setData({ localName: maxName })
+			await setLocalName(maxName)
 			wrapper.vm.handleSave()
 			expect(wrapper.emitted('close')).toBeTruthy()
 			expect(wrapper.emitted('close')?.[0]).toEqual([maxName])
 		})
 
-		it('preserves internal spaces in name', () => {
-			wrapper.setData({ localName: '  Name With   Spaces  ' })
+		it('preserves internal spaces in name', async () => {
+			await setLocalName('  Name With   Spaces  ')
 			wrapper.vm.handleSave()
 			expect(wrapper.emitted('close')).toBeTruthy()
 			expect(wrapper.emitted('close')?.[0]).toEqual(['Name With   Spaces'])
@@ -170,15 +180,15 @@ describe('EditNameDialog.vue - Business Logic', () => {
 	})
 
 	describe('showSuccess method', () => {
-		it('sets success message and clears error message', () => {
-			wrapper.setData({ localErrorMessage: 'Previous error' })
+		it('sets success message and clears error message', async () => {
+			await setMessages({ error: 'Previous error' })
 			wrapper.vm.showSuccess('Success!')
 			expect(wrapper.vm.localSuccessMessage).toBe('Success!')
 			expect(wrapper.vm.localErrorMessage).toBe('')
 		})
 
-		it('clears previous success message', () => {
-			wrapper.setData({ localSuccessMessage: 'Old success' })
+		it('clears previous success message', async () => {
+			await setMessages({ success: 'Old success' })
 			wrapper.vm.showSuccess('New success')
 			expect(wrapper.vm.localSuccessMessage).toBe('New success')
 		})
@@ -207,15 +217,15 @@ describe('EditNameDialog.vue - Business Logic', () => {
 	})
 
 	describe('showError method', () => {
-		it('sets error message and clears success message', () => {
-			wrapper.setData({ localSuccessMessage: 'Previous success' })
+		it('sets error message and clears success message', async () => {
+			await setMessages({ success: 'Previous success' })
 			wrapper.vm.showError('Error!')
 			expect(wrapper.vm.localErrorMessage).toBe('Error!')
 			expect(wrapper.vm.localSuccessMessage).toBe('')
 		})
 
-		it('clears previous error message', () => {
-			wrapper.setData({ localErrorMessage: 'Old error' })
+		it('clears previous error message', async () => {
+			await setMessages({ error: 'Old error' })
 			wrapper.vm.showError('New error')
 			expect(wrapper.vm.localErrorMessage).toBe('New error')
 		})
@@ -233,11 +243,8 @@ describe('EditNameDialog.vue - Business Logic', () => {
 	})
 
 	describe('clearMessages method', () => {
-		it('clears both success and error messages', () => {
-			wrapper.setData({
-				localSuccessMessage: 'Success',
-				localErrorMessage: 'Error',
-			})
+		it('clears both success and error messages', async () => {
+			await setMessages({ success: 'Success', error: 'Error' })
 			wrapper.vm.clearMessages()
 			expect(wrapper.vm.localSuccessMessage).toBe('')
 			expect(wrapper.vm.localErrorMessage).toBe('')
@@ -277,7 +284,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 	})
 
 	describe('integration scenarios', () => {
-		it('handles complete edit flow: open with name, edit, and save', () => {
+		it('handles complete edit flow: open with name, edit, and save', async () => {
 			wrapper = shallowMount(EditNameDialog, {
 				props: { name: 'Original Name' },
 				stubs: {
@@ -290,7 +297,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 
 			expect(wrapper.vm.localName).toBe('Original Name')
 
-			wrapper.setData({ localName: 'Edited Name' })
+			await setLocalName('Edited Name')
 			wrapper.vm.handleSave()
 
 			expect(wrapper.emitted('close')).toBeTruthy()
@@ -314,17 +321,17 @@ describe('EditNameDialog.vue - Business Logic', () => {
 			expect(wrapper.emitted('close')?.[0]).toEqual([null])
 		})
 
-		it('handles edge case: exactly at boundary lengths', () => {
+		it('handles edge case: exactly at boundary lengths', async () => {
 			const minName = 'A'.repeat(ENVELOPE_NAME_MIN_LENGTH)
-			wrapper.setData({ localName: minName })
+			await setLocalName(minName)
 			expect(wrapper.vm.isNameValid).toBe(true)
 
 			const maxName = 'B'.repeat(ENVELOPE_NAME_MAX_LENGTH)
-			wrapper.setData({ localName: maxName })
+			await setLocalName(maxName)
 			expect(wrapper.vm.isNameValid).toBe(true)
 
 			const tooLong = 'C'.repeat(ENVELOPE_NAME_MAX_LENGTH + 1)
-			wrapper.setData({ localName: tooLong })
+			await setLocalName(tooLong)
 			expect(wrapper.vm.isNameValid).toBe(false)
 		})
 	})

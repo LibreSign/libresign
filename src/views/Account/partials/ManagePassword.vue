@@ -52,7 +52,7 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import {
 	mdiCertificate,
@@ -77,57 +77,50 @@ import ResetPassword from '../../ResetPassword.vue'
 import UploadCertificate from '../../UploadCertificate.vue'
 
 import { useSignMethodsStore } from '../../../store/signMethods.js'
+import { onMounted, ref } from 'vue'
 
-export default {
+defineOptions({
 	name: 'ManagePassword',
-	emits: ['certificate:uploaded'],
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-		CreatePassword,
-		ReadCertificate,
-		ResetPassword,
-		UploadCertificate,
-	},
-	setup() {
-		const signMethodsStore = useSignMethodsStore()
-		signMethodsStore.setHasSignatureFile(loadState('libresign', 'config', {})?.hasSignatureFile ?? false)
-		return {
-			signMethodsStore,
-			mdiCloudUpload,
-			mdiLockOpenCheck,
-			mdiDelete,
-			mdiCertificate,
-			mdiFileReplace,
-		}
-	},
-	data() {
-		return {
-			modal: '',
-			certificateEngine: loadState('libresign', 'certificate_engine', ''),
-			mounted: false,
-		}
-	},
-	mounted() {
-		this.mounted = true
-	},
-	methods: {
-		t,
-		triggerUploadCertificate() {
-			this.$refs.uploadCertificate.triggerUpload()
-		},
-		onCertificateUploaded() {
-			this.$emit('certificate:uploaded')
-		},
-		async deleteCertificate() {
-			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/pfx'))
-				.then(({ data }) => {
-					showSuccess(data.ocs.data.message)
-					this.signMethodsStore.setHasSignatureFile(false)
-				})
-		},
-	},
+})
+
+const emit = defineEmits<{
+	(event: 'certificate:uploaded'): void
+}>()
+
+const signMethodsStore = useSignMethodsStore()
+signMethodsStore.setHasSignatureFile(loadState('libresign', 'config', {})?.hasSignatureFile ?? false)
+
+const certificateEngine = loadState('libresign', 'certificate_engine', '')
+const mounted = ref(false)
+const uploadCertificate = ref<InstanceType<typeof UploadCertificate> | null>(null)
+
+onMounted(() => {
+	mounted.value = true
+})
+
+function triggerUploadCertificate() {
+	uploadCertificate.value?.triggerUpload()
 }
+
+function onCertificateUploaded() {
+	emit('certificate:uploaded')
+}
+
+async function deleteCertificate() {
+	const { data } = await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/pfx'))
+	showSuccess(data.ocs.data.message)
+	signMethodsStore.setHasSignatureFile(false)
+}
+
+defineExpose({
+	uploadCertificate,
+	triggerUploadCertificate,
+	mdiCloudUpload,
+	mdiLockOpenCheck,
+	mdiDelete,
+	mdiCertificate,
+	mdiFileReplace,
+})
 </script>
 <style lang="scss" scoped>
 
