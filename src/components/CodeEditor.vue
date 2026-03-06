@@ -31,6 +31,7 @@ import { material } from '@uiw/codemirror-theme-material'
 
 export default {
 	name: 'CodeEditor',
+	emits: ['update:modelValue'],
 	components: {
 		CodeMirror,
 	},
