@@ -232,13 +232,14 @@
 	</li>
 </template>
 
-<script>
+<script setup lang="ts">
 import { n, t } from '@nextcloud/l10n'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import Moment from '@nextcloud/moment'
+import { computed, ref } from 'vue'
 
 import CertificateChain from './CertificateChain.vue'
 
@@ -258,213 +259,272 @@ import {
 	mdiUnfoldMoreHorizontal,
 } from '@mdi/js'
 
-export default {
-	name: 'SignerDetails',
-	components: {
-		CertificateChain,
-		NcAvatar,
-		NcButton,
-		NcIconSvgWrapper,
-		NcListItem,
-	},
-	props: {
-		signer: {
-			type: Object,
-			required: true,
-		},
-		initiallyOpen: {
-			type: Boolean,
-			default: false,
-		},
-	},
-	setup() {
-		return {
-			mdiAlertCircle,
-			mdiAlertCircleOutline,
-			mdiCancel,
-			mdiCheckCircle,
-			mdiCloseCircle,
-			mdiHelpCircle,
-			mdiInformationOutline,
-			mdiKey,
-			mdiShieldAlert,
-			mdiShieldCheck,
-			mdiShieldOff,
-			mdiUnfoldLessHorizontal,
-			mdiUnfoldMoreHorizontal,
-			t,
-			n,
-		}
-	},
-	computed: {
-		toggleDetailsAriaLabel() {
-			const signerName = this.getName(this.signer)
-			if (this.isOpen) {
-				// TRANSLATORS Accessible label for the button that collapses the signature details of
-				// a specific signer in the document validation page. {signerName} is the signer's
-				// display name, email, or "Unknown" when no identification is available.
-				return t('libresign', 'Collapse details of {signerName}', { signerName })
-			}
-			// TRANSLATORS Accessible label for the button that expands the signature details of
-			// a specific signer in the document validation page. {signerName} is the signer's
-			// display name, email, or "Unknown" when no identification is available.
-			return t('libresign', 'Expand details of {signerName}', { signerName })
-		},
-	},
-	data() {
-		return {
-			isOpen: this.initiallyOpen,
-			validationStatusOpen: false,
-			docMdpOpen: false,
-			chainOpen: false,
-			MODIFICATION_UNMODIFIED: 1,
-			MODIFICATION_ALLOWED: 2,
-			MODIFICATION_VIOLATION: 3,
-			crlStatusMap: {
-				valid: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Not revoked'), class: 'icon-success' },
-				revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'icon-error' },
-				missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'icon-warning' },
-				no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'icon-warning' },
-				urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'icon-warning' },
-				validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'icon-warning' },
-				validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'icon-warning' },
-			},
-		}
-	},
-	methods: {
-		toggleOpen() {
-			if (!this.signer?.signed) {
-				return
-			}
-			this.isOpen = !this.isOpen
-		},
-		getName(signer) {
-			return signer.displayName || signer.email || signer.name || t('libresign', 'Unknown')
-		},
-		hasValidationIssues(signer) {
-			return signer.signature_validation?.id !== 1
-				|| signer.certificate_validation?.id !== 1
-				|| this.isRevokedBeforeSigning(signer)
-		},
-		isRevokedStatus(status) {
-			return status === 'revoked'
-		},
-		isRevokedBeforeSigning(signer) {
-			if (!this.isRevokedStatus(signer.crl_validation)) {
-				return false
-			}
 
-			const revokedAt = signer.crl_revoked_at
-			const signedAt = signer.signed
-			if (!revokedAt || !signedAt) {
-				return true
-			}
-
-			const revokedDate = new Date(revokedAt)
-			const signedDate = new Date(signedAt)
-			if (Number.isNaN(revokedDate.getTime()) || Number.isNaN(signedDate.getTime())) {
-				return true
-			}
-
-			return revokedDate <= signedDate
-		},
-		getIconValidityPath(signer) {
-			if (signer.signature_validation?.id === 1) {
-				return mdiCheckCircle
-			}
-			return mdiShieldAlert
-		},
-		getValidityStatus(signer) {
-			if (!signer.valid_to) return 'valid'
-
-			const now = Date.now() / 1000
-			const validTo = new Date(signer.valid_to).getTime() / 1000
-			const thirtyDays = 30 * 24 * 60 * 60
-
-			if (validTo < now) return 'expired'
-			if (validTo - now < thirtyDays) return 'expiring'
-			return 'valid'
-		},
-		hasValidationStatus(signer) {
-			return !!(signer.signature_validation || signer.certificate_validation || signer.crl_validation
-				|| (signer.valid_from && signer.valid_to && signer.signed))
-		},
-		getSignatureValidationMessage(signer) {
-			if (signer.signature_validation?.id === 1) {
-				return t('libresign', 'Document integrity verified')
-			}
-			return signer.signature_validation?.message || t('libresign', 'Document integrity check failed')
-		},
-		getCertificateTrustMessage(signer) {
-			if (signer.certificate_validation?.id === 1) {
-				const trustedBy = signer.certificate_validation?.trustedBy || 'LibreSign CA'
-				return t('libresign', 'Trust Chain: Trusted ({trustedBy})', { trustedBy })
-			}
-			return signer.certificate_validation?.message || t('libresign', 'Trust Chain: Not Trusted')
-		},
-		getValidityStatusAtSigning(signer) {
-			if (!signer.valid_from || !signer.valid_to || !signer.signed) return 'unknown'
-
-			const signedTime = new Date(signer.signed).getTime() / 1000
-			const validFrom = new Date(signer.valid_from).getTime() / 1000
-			const validTo = new Date(signer.valid_to).getTime() / 1000
-
-			return (signedTime >= validFrom && signedTime <= validTo) ? 'valid' : 'invalid'
-		},
-		getCrlValidationIconClass(signer) {
-			if (this.isRevokedStatus(signer.crl_validation)) {
-				return this.isRevokedBeforeSigning(signer) ? 'icon-error' : 'icon-success'
-			}
-			return this.crlStatusMap[signer.crl_validation]?.class || 'icon-warning'
-		},
-		getCrlStatusText(signer) {
-			const status = signer.crl_validation
-			if (!this.isRevokedStatus(status)) {
-				return this.crlStatusMap[status]?.text || status
-			}
-
-			if (this.isRevokedBeforeSigning(signer)) {
-				return t('libresign', 'CRL: Certificate revoked before signing')
-			}
-
-			if (signer.crl_revoked_at) {
-				const formattedDate = this.dateFromSqlAnsi(signer.crl_revoked_at)
-				return t('libresign', 'CRL: Valid at signing time (revoked on {date})', { date: formattedDate })
-			}
-			return t('libresign', 'CRL: Valid at signing time')
-		},
-		hasDocMdpInfo(signer) {
-			return signer.docmdp
-				|| signer.docmdp_validation
-				|| signer.modification_validation
-				|| (signer.modifications && signer.modifications.modified)
-		},
-		getModificationStatusIcon(signer) {
-			if (!signer.modification_validation) return null
-			const status = signer.modification_validation.status
-			if (status === this.MODIFICATION_UNMODIFIED || status === this.MODIFICATION_ALLOWED) {
-				return mdiCheckCircle
-			}
-			return mdiAlertCircle
-		},
-		getModificationStatusClass(signer) {
-			if (!signer.modification_validation) return ''
-			const status = signer.modification_validation.status
-			if (status === this.MODIFICATION_UNMODIFIED || status === this.MODIFICATION_ALLOWED) {
-				return 'icon-success'
-			}
-			return 'icon-error'
-		},
-		dateFromSqlAnsi(date) {
-			if (!date) return ''
-			return Moment(date).format('LLL')
-		},
-		formatTimestamp(timestamp) {
-			if (!timestamp) return ''
-			return Moment.unix(timestamp).format('LLL')
-		},
-	},
+type ValidationState = {
+	id?: number
+	message?: string
+	trustedBy?: string
 }
+
+type SignerDocMdp = {
+	isCertifying?: boolean
+	label?: string
+	description?: string
+}
+
+type SignerModificationValidation = {
+	status?: number
+	message?: string
+}
+
+type SignerModifications = {
+	modified?: boolean
+	revisionCount?: number
+}
+
+type SignerModel = {
+	signed?: string | null
+	displayName?: string
+	email?: string
+	name?: string
+	valid_to?: string
+	valid_from?: string
+	crl_validation?: string
+	crl_revoked_at?: string
+	signature_validation?: ValidationState
+	certificate_validation?: ValidationState
+	docmdp?: SignerDocMdp
+	docmdp_validation?: { message?: string }
+	modification_validation?: SignerModificationValidation
+	modifications?: SignerModifications
+	signatureTypeSN?: string
+	hash?: string
+	remote_address?: string
+	user_agent?: string
+	chain?: unknown[]
+	[key: string]: unknown
+}
+
+type CrlStatusMeta = {
+	icon: string
+	text: string
+	class: string
+}
+
+defineOptions({
+	name: 'SignerDetails',
+})
+
+const props = withDefaults(defineProps<{
+	signer: SignerModel
+	initiallyOpen?: boolean
+}>(), {
+	initiallyOpen: false,
+})
+
+const isOpen = ref(props.initiallyOpen)
+const validationStatusOpen = ref(false)
+const docMdpOpen = ref(false)
+const chainOpen = ref(false)
+const MODIFICATION_UNMODIFIED = 1
+const MODIFICATION_ALLOWED = 2
+const MODIFICATION_VIOLATION = 3
+const crlStatusMap: Record<string, CrlStatusMeta> = {
+	valid: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Not revoked'), class: 'icon-success' },
+	revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'icon-error' },
+	missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'icon-warning' },
+	no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'icon-warning' },
+	urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'icon-warning' },
+	validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'icon-warning' },
+	validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'icon-warning' },
+}
+
+function toggleOpen() {
+	if (!props.signer?.signed) {
+		return
+	}
+	isOpen.value = !isOpen.value
+}
+
+function getName(signer: SignerModel) {
+	return signer.displayName || signer.email || signer.name || t('libresign', 'Unknown')
+}
+
+function isRevokedStatus(status?: string) {
+	return status === 'revoked'
+}
+
+function isRevokedBeforeSigning(signer: SignerModel) {
+	if (!isRevokedStatus(signer.crl_validation)) {
+		return false
+	}
+
+	const revokedAt = signer.crl_revoked_at
+	const signedAt = signer.signed
+	if (!revokedAt || !signedAt) {
+		return true
+	}
+
+	const revokedDate = new Date(revokedAt)
+	const signedDate = new Date(signedAt)
+	if (Number.isNaN(revokedDate.getTime()) || Number.isNaN(signedDate.getTime())) {
+		return true
+	}
+
+	return revokedDate <= signedDate
+}
+
+function hasValidationIssues(signer: SignerModel) {
+	return signer.signature_validation?.id !== 1
+		|| signer.certificate_validation?.id !== 1
+		|| isRevokedBeforeSigning(signer)
+}
+
+function getIconValidityPath(signer: SignerModel) {
+	if (signer.signature_validation?.id === 1) {
+		return mdiCheckCircle
+	}
+	return mdiShieldAlert
+}
+
+function getValidityStatus(signer: SignerModel) {
+	if (!signer.valid_to) return 'valid'
+
+	const now = Date.now() / 1000
+	const validTo = new Date(signer.valid_to).getTime() / 1000
+	const thirtyDays = 30 * 24 * 60 * 60
+
+	if (validTo < now) return 'expired'
+	if (validTo - now < thirtyDays) return 'expiring'
+	return 'valid'
+}
+
+function hasValidationStatus(signer: SignerModel) {
+	return !!(signer.signature_validation || signer.certificate_validation || signer.crl_validation
+		|| (signer.valid_from && signer.valid_to && signer.signed))
+}
+
+function getSignatureValidationMessage(signer: SignerModel) {
+	if (signer.signature_validation?.id === 1) {
+		return t('libresign', 'Document integrity verified')
+	}
+	return signer.signature_validation?.message || t('libresign', 'Document integrity check failed')
+}
+
+function getCertificateTrustMessage(signer: SignerModel) {
+	if (signer.certificate_validation?.id === 1) {
+		const trustedBy = signer.certificate_validation?.trustedBy || 'LibreSign CA'
+		return t('libresign', 'Trust Chain: Trusted ({trustedBy})', { trustedBy })
+	}
+	return signer.certificate_validation?.message || t('libresign', 'Trust Chain: Not Trusted')
+}
+
+function getValidityStatusAtSigning(signer: SignerModel) {
+	if (!signer.valid_from || !signer.valid_to || !signer.signed) return 'unknown'
+
+	const signedTime = new Date(signer.signed).getTime() / 1000
+	const validFrom = new Date(signer.valid_from).getTime() / 1000
+	const validTo = new Date(signer.valid_to).getTime() / 1000
+
+	return (signedTime >= validFrom && signedTime <= validTo) ? 'valid' : 'invalid'
+}
+
+function getCrlValidationIconClass(signer: SignerModel) {
+	if (isRevokedStatus(signer.crl_validation)) {
+		return isRevokedBeforeSigning(signer) ? 'icon-error' : 'icon-success'
+	}
+	return crlStatusMap[signer.crl_validation ?? '']?.class || 'icon-warning'
+}
+
+function dateFromSqlAnsi(date?: string | null) {
+	if (!date) return ''
+	return Moment(date).format('LLL')
+}
+
+function getCrlStatusText(signer: SignerModel) {
+	const status = signer.crl_validation
+	if (!isRevokedStatus(status)) {
+		return crlStatusMap[status ?? '']?.text || status
+	}
+
+	if (isRevokedBeforeSigning(signer)) {
+		return t('libresign', 'CRL: Certificate revoked before signing')
+	}
+
+	if (signer.crl_revoked_at) {
+		const formattedDate = dateFromSqlAnsi(signer.crl_revoked_at)
+		return t('libresign', 'CRL: Valid at signing time (revoked on {date})', { date: formattedDate })
+	}
+	return t('libresign', 'CRL: Valid at signing time')
+}
+
+function hasDocMdpInfo(signer: SignerModel) {
+	return !!(signer.docmdp
+		|| signer.docmdp_validation
+		|| signer.modification_validation
+		|| (signer.modifications && signer.modifications.modified))
+}
+
+function getModificationStatusIcon(signer: SignerModel) {
+	if (!signer.modification_validation) return null
+	const status = signer.modification_validation.status
+	if (status === MODIFICATION_UNMODIFIED || status === MODIFICATION_ALLOWED) {
+		return mdiCheckCircle
+	}
+	return mdiAlertCircle
+}
+
+function getModificationStatusClass(signer: SignerModel) {
+	if (!signer.modification_validation) return ''
+	const status = signer.modification_validation.status
+	if (status === MODIFICATION_UNMODIFIED || status === MODIFICATION_ALLOWED) {
+		return 'icon-success'
+	}
+	return 'icon-error'
+}
+
+function formatTimestamp(timestamp?: number | null) {
+	if (!timestamp) return ''
+	return Moment.unix(timestamp).format('LLL')
+}
+
+const toggleDetailsAriaLabel = computed(() => {
+	const signerName = getName(props.signer)
+	if (isOpen.value) {
+		return t('libresign', 'Collapse details of {signerName}', { signerName })
+	}
+	return t('libresign', 'Expand details of {signerName}', { signerName })
+})
+
+defineExpose({
+	isOpen,
+	validationStatusOpen,
+	docMdpOpen,
+	chainOpen,
+	MODIFICATION_UNMODIFIED,
+	MODIFICATION_ALLOWED,
+	MODIFICATION_VIOLATION,
+	crlStatusMap,
+	toggleDetailsAriaLabel,
+	toggleOpen,
+	getName,
+	hasValidationIssues,
+	isRevokedStatus,
+	isRevokedBeforeSigning,
+	getIconValidityPath,
+	getValidityStatus,
+	hasValidationStatus,
+	getSignatureValidationMessage,
+	getCertificateTrustMessage,
+	getValidityStatusAtSigning,
+	getCrlValidationIconClass,
+	getCrlStatusText,
+	hasDocMdpInfo,
+	getModificationStatusIcon,
+	getModificationStatusClass,
+	dateFromSqlAnsi,
+	formatTimestamp,
+})
 </script>
 
 <style scoped lang="scss">
