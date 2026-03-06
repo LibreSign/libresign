@@ -5,9 +5,15 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { markRaw } from 'vue'
+import { markRaw } from '@vue/reactivity'
 
 import VirtualList from '../../../views/FilesList/VirtualList.vue'
+
+const RowComponent = markRaw({
+	name: 'RowComponent',
+	props: ['source', 'loading'],
+	template: '<tr class="row-component"><td>{{ source.name }}</td></tr>',
+})
 
 const filesStoreMock = {
 	loading: false,
@@ -69,11 +75,7 @@ describe('VirtualList.vue', () => {
 	function createWrapper() {
 		return mount(VirtualList, {
 			props: {
-				dataComponent: markRaw({
-					name: 'RowComponent',
-					props: ['source', 'loading'],
-					template: '<tr class="row-component"><td>{{ source.name }}</td></tr>',
-				}),
+				dataComponent: RowComponent,
 				loading: false,
 				caption: 'Files table',
 			},
