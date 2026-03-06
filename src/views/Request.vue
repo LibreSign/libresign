@@ -21,8 +21,9 @@
 		</div>
 	</div>
 </template>
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { onBeforeUnmount, onMounted } from 'vue'
 
 import File from '../components/File/File.vue'
 import ReqestPicker from '../components/Request/RequestPicker.vue'
@@ -30,28 +31,35 @@ import ReqestPicker from '../components/Request/RequestPicker.vue'
 import { useFilesStore } from '../store/files.js'
 import { useSidebarStore } from '../store/sidebar.js'
 
-export default {
+defineOptions({
 	name: 'Request',
-	components: {
-		File,
-		ReqestPicker,
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		const sidebarStore = useSidebarStore()
-		return {
-			filesStore,
-			sidebarStore,
-			t,
-		}
-	},
-	async mounted() {
-		this.filesStore.disableIdentifySigner()
-	},
-	beforeUnmount() {
-		this.filesStore.selectFile()
-	},
+})
+
+type FilesStore = {
+	selectedFileId: number
+	disableIdentifySigner: () => void
+	selectFile: () => void
 }
+
+type SidebarStore = {
+	isVisible: boolean
+}
+
+const filesStore = useFilesStore() as FilesStore
+const sidebarStore = useSidebarStore() as SidebarStore
+
+onMounted(() => {
+	filesStore.disableIdentifySigner()
+})
+
+onBeforeUnmount(() => {
+	filesStore.selectFile()
+})
+
+defineExpose({
+	filesStore,
+	sidebarStore,
+})
 </script>
 
 <style lang="scss" scoped>
