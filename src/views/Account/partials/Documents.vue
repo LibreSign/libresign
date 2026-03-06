@@ -58,8 +58,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, ref } from 'vue'
 import {
 	mdiDelete,
 	mdiFolder,
@@ -88,203 +89,227 @@ const loadFileToBase64 = file => {
 	})
 }
 
-export default {
+defineOptions({
 	name: 'Documents',
-	components: {
-		NcButton,
-		NcLoadingIcon,
-		NcNoteCard,
-		NcIconSvgWrapper,
-	},
-	setup() {
-		return {
-			mdiFolder,
-			mdiUpload,
-			mdiDelete,
-		}
-	},
-	props: {
-		signRequestUuid: {
-			type: String,
-			required: false,
-			default: '',
-		},
-	},
-	data() {
-		return {
-			documentList: [],
-			loading: true,
-			selectedType: null,
-		}
-	},
-	computed: {
-		fileTypeInfo() {
-			return {
-				IDENTIFICATION: {
-					key: 'IDENTIFICATION',
-					name: t('libresign', 'Identification Document'),
-					description: t('libresign', 'Identification Document'),
-		},
-			}
-		},
-		documents() {
-			return {
-				default: this.findDocumentByType(this.documentList, 'IDENTIFICATION'),
-			}
-		},
-		list() {
-			return Object.values(this.documents)
-		},
-		hasDocumentsWaitingApproval() {
-			return this.list.some(doc => doc.status === IDENTIFICATION_DOCUMENTS_STATUS.NEED_APPROVAL)
-		},
-		isAuthenticatedUser() {
-			return Boolean(getCurrentUser())
-		},
-		enabledFlow() {
-			const config = loadState('libresign', 'config', {})
-			return config.identificationDocumentsFlow || false
-		},
-	},
-	mounted() {
-		this.loadDocuments()
-	},
-	methods: {
-		t,
-		findDocumentByType(list, type) {
-			return list.find(row => row?.file_type?.type === type) || {
-				nodeId: 0,
-				uuid: '',
-				status: -1,
-				statusText: t('libresign', 'Not sent yet'),
-				name: t('libresign', 'Not defined yet'),
-				file_type: this.fileTypeInfo[type] || { type },
-			}
-		},
-		async toggleFilePicker(type) {
-			this.selectedType = type
+})
 
-			const filePicker = getFilePickerBuilder(t('libresign', 'Select your file'))
-				.setMultiSelect(false)
-				.setMimeTypeFilter(['application/pdf'])
-				.addButton({
-					label: t('libresign', 'Choose'),
-					callback: (nodes) => this.handleFileChoose(nodes),
-					type: 'primary',
-				})
-				.build()
-
-			try {
-				const nodes = await filePicker.pick()
-				await this.handleFileChoose(nodes)
-			} catch (error) {
-				// User cancelled
-			}
-		},
-		async loadDocuments() {
-			this.loading = true
-			const params = {};
-			if (this.signRequestUuid) {
-				params.uuid = this.signRequestUuid
-			}
-			await axios.get(generateOcsUrl('/apps/libresign/api/v1/id-docs'), { params })
-				.then(({ data }) => {
-					this.documentList = data.ocs.data.data
-				})
-				.catch(({ response }) => {
-					showError(response.data.ocs.data.message)
-				})
-			this.loading = false
-		},
-		async handleFileChoose(nodes) {
-			const path = nodes[0]?.path
-			if (!path) {
-				showWarning(t('libresign', 'Impossible to get file entry'))
-				return
-			}
-
-			this.loading = true
-
-			const params = {
-				files: [{
-					type: this.selectedType,
-					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
-					file: {
-						path,
-		},
-				}],
-			}
-			if (this.signRequestUuid) {
-				params.uuid = this.signRequestUuid
-			}
-
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/id-docs'), params)
-				.then(async () => {
-					showSuccess(t('libresign', 'File was sent.'))
-					await this.loadDocuments()
-				})
-				.catch(({ response }) => {
-					showError(response?.data?.ocs?.data?.message || this.t('libresign', 'Upload failed'))
-				})
-			this.loading = false
-		},
-		async uploadFile(type, inputFile) {
-			this.loading = true
-			const raw = await loadFileToBase64(inputFile)
-			const params = {
-				files: [{
-					type,
-					name: inputFile.name,
-					file: {
-						base64: raw,
-		},
-				}],
-			}
-			if (this.signRequestUuid) {
-				params.uuid = this.signRequestUuid
-			}
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/id-docs'), params)
-				.then(async () => {
-					showSuccess(t('libresign', 'File was sent.'))
-					await this.loadDocuments()
-				})
-				.catch(({ response }) => {
-					showError(response.data.ocs.data.message)
-				})
-			this.loading = false
-		},
-		async deleteFile(doc) {
-			this.loading = true
-			const nodeId = doc.file.file.nodeId
-			const params = this.signRequestUuid ? { uuid: this.signRequestUuid } : {}
-			await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/id-docs/${nodeId}`), { params })
-				.then(async () => {
-					showSuccess(t('libresign', 'File was deleted.'))
-					await this.loadDocuments()
-				})
-				.catch(({ response }) => {
-					showError(response.data.ocs.data.message)
-				})
-			this.loading = false
-		},
-		inputFile(type) {
-			const input = document.createElement('input')
-			input.accept = 'application/pdf'
-			input.type = 'file'
-
-			input.onchange = (ev) => {
-				const file = ev.target.files[0]
-				if (file) {
-					this.uploadFile(type, file)
-				}
-
-				input.remove()
-			}
-
-			input.click()
-		},
-	},
+type DocumentTypeInfo = {
+	key?: string
+	type?: string
+	name?: string
+	description?: string
 }
+
+type IdentificationDocument = {
+	nodeId?: number
+	uuid?: string
+	status?: number
+	statusText?: string
+	name?: string
+	file_type?: DocumentTypeInfo
+	file?: {
+		file?: {
+			nodeId?: number
+		}
+	}
+}
+
+const props = withDefaults(defineProps<{
+	signRequestUuid?: string
+}>(), {
+	signRequestUuid: '',
+})
+
+const documentList = ref<IdentificationDocument[]>([])
+const loading = ref(true)
+const selectedType = ref<string | null>(null)
+
+const fileTypeInfo = computed<Record<string, DocumentTypeInfo>>(() => ({
+	IDENTIFICATION: {
+		key: 'IDENTIFICATION',
+		type: 'IDENTIFICATION',
+		name: t('libresign', 'Identification Document'),
+		description: t('libresign', 'Identification Document'),
+	},
+}))
+
+const documents = computed(() => ({
+	default: findDocumentByType(documentList.value, 'IDENTIFICATION'),
+}))
+
+const list = computed(() => Object.values(documents.value))
+const hasDocumentsWaitingApproval = computed(() => list.value.some((doc) => doc.status === IDENTIFICATION_DOCUMENTS_STATUS.NEED_APPROVAL))
+const isAuthenticatedUser = computed(() => Boolean(getCurrentUser()))
+const enabledFlow = computed(() => {
+	const config = loadState('libresign', 'config', {})
+	return config.identificationDocumentsFlow || false
+})
+
+function findDocumentByType(list: IdentificationDocument[], type: string) {
+	return list.find((row) => row?.file_type?.type === type) || {
+		nodeId: 0,
+		uuid: '',
+		status: -1,
+		statusText: t('libresign', 'Not sent yet'),
+		name: t('libresign', 'Not defined yet'),
+		file_type: fileTypeInfo.value[type] || { type },
+	}
+}
+
+async function toggleFilePicker(type: string) {
+	selectedType.value = type
+
+	const filePicker = getFilePickerBuilder(t('libresign', 'Select your file'))
+		.setMultiSelect(false)
+		.setMimeTypeFilter(['application/pdf'])
+		.addButton({
+			label: t('libresign', 'Choose'),
+			callback: (nodes) => handleFileChoose(nodes),
+			type: 'primary',
+		})
+		.build()
+
+	try {
+		const nodes = await filePicker.pick()
+		await handleFileChoose(nodes)
+	} catch {
+		// User cancelled
+	}
+}
+
+async function loadDocuments() {
+	loading.value = true
+	const params: Record<string, string> = {}
+	if (props.signRequestUuid) {
+		params.uuid = props.signRequestUuid
+	}
+	await axios.get(generateOcsUrl('/apps/libresign/api/v1/id-docs'), { params })
+		.then(({ data }) => {
+			documentList.value = data.ocs.data.data
+		})
+		.catch(({ response }) => {
+			showError(response.data.ocs.data.message)
+		})
+	loading.value = false
+}
+
+async function handleFileChoose(nodes: Array<{ path?: string }>) {
+	const path = nodes[0]?.path
+	if (!path) {
+		showWarning(t('libresign', 'Impossible to get file entry'))
+		return
+	}
+
+	loading.value = true
+
+	const params: Record<string, unknown> = {
+		files: [{
+			type: selectedType.value,
+			name: path.match(/([^/]*?)(?:\.[^.]*)?$/)?.[1] ?? '',
+			file: {
+				path,
+			},
+		}],
+	}
+	if (props.signRequestUuid) {
+		params.uuid = props.signRequestUuid
+	}
+
+	await axios.post(generateOcsUrl('/apps/libresign/api/v1/id-docs'), params)
+		.then(async () => {
+			showSuccess(t('libresign', 'File was sent.'))
+			await loadDocuments()
+		})
+		.catch(({ response }) => {
+			showError(response?.data?.ocs?.data?.message || t('libresign', 'Upload failed'))
+		})
+	loading.value = false
+}
+
+async function uploadFile(type: string, inputFile: File) {
+	loading.value = true
+	const raw = await loadFileToBase64(inputFile)
+	const params: Record<string, unknown> = {
+		files: [{
+			type,
+			name: inputFile.name,
+			file: {
+				base64: raw,
+			},
+		}],
+	}
+	if (props.signRequestUuid) {
+		params.uuid = props.signRequestUuid
+	}
+	await axios.post(generateOcsUrl('/apps/libresign/api/v1/id-docs'), params)
+		.then(async () => {
+			showSuccess(t('libresign', 'File was sent.'))
+			await loadDocuments()
+		})
+		.catch(({ response }) => {
+			showError(response.data.ocs.data.message)
+		})
+	loading.value = false
+}
+
+async function deleteFile(doc: IdentificationDocument) {
+	loading.value = true
+	const nodeId = doc.file?.file?.nodeId
+	const params = props.signRequestUuid ? { uuid: props.signRequestUuid } : {}
+	await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/id-docs/${nodeId}`), { params })
+		.then(async () => {
+			showSuccess(t('libresign', 'File was deleted.'))
+			await loadDocuments()
+		})
+		.catch(({ response }) => {
+			showError(response.data.ocs.data.message)
+		})
+	loading.value = false
+}
+
+function inputFile(type: string) {
+	const input = document.createElement('input')
+	input.accept = 'application/pdf'
+	input.type = 'file'
+
+	input.onchange = (ev) => {
+		const file = (ev.target as HTMLInputElement).files?.[0]
+		if (file) {
+			uploadFile(type, file)
+		}
+
+		input.remove()
+	}
+
+	input.click()
+}
+
+onMounted(() => {
+	loadDocuments()
+})
+
+defineExpose({
+	t,
+	mdiFolder,
+	mdiUpload,
+	mdiDelete,
+	documentList,
+	loading,
+	selectedType,
+	fileTypeInfo,
+	documents,
+	list,
+	hasDocumentsWaitingApproval,
+	isAuthenticatedUser,
+	enabledFlow,
+	findDocumentByType,
+	toggleFilePicker,
+	loadDocuments,
+	handleFileChoose,
+	uploadFile,
+	deleteFile,
+	inputFile,
+})
 </script>
 
 <style lang="scss" scoped>
