@@ -70,13 +70,14 @@
 	</NcSettingsSection>
 </template>
 
-<script>
+<script setup lang="ts">
 import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
-import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { generateOcsUrl } from '@nextcloud/router'
+import { onMounted, ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
@@ -85,124 +86,158 @@ import NcSavingIndicatorIcon from '@nextcloud/vue/components/NcSavingIndicatorIc
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-export default {
-	name: 'SigningMode',
-	components: {
-		NcLoadingIcon,
-		NcNoteCard,
-		NcSettingsSection,
-		NcTextField,
-		NcCheckboxRadioSwitch,
-		NcSavingIndicatorIcon,
-	},
-	data() {
-		return {
-			asyncEnabled: false,
-			externalWorkerEnabled: false,
-			parallelWorkersCount: '4',
-			lastSavedParallelWorkers: '4',
-			loading: false,
-			errorMessage: '',
-			saved: false,
-			showErrorIcon: false,
-			debouncedSaveParallelWorkers: null,
+type SaveConfigError = {
+	response?: {
+		data?: {
+			ocs?: {
+				data?: {
+					error?: string
+				}
+			}
 		}
-	},
-	created() {
-		this.debouncedSaveParallelWorkers = debounce(this.saveParallelWorkers, 800)
-	},
-	mounted() {
-		this.loadConfig()
-	},
-	methods: {
-		t,
-		loadConfig() {
-			try {
-				const mode = loadState('libresign', 'signing_mode', 'sync')
-				this.asyncEnabled = mode === 'async'
-
-				const workerType = loadState('libresign', 'worker_type', 'local')
-				this.externalWorkerEnabled = workerType === 'external'
-
-				const parallelWorkers = loadState('libresign', 'parallel_workers', '4')
-				this.parallelWorkersCount = String(parallelWorkers)
-				this.lastSavedParallelWorkers = this.parallelWorkersCount
-			} catch (error) {
-				console.error('Error loading signing mode configuration:', error)
-				this.errorMessage = t('libresign', 'Could not load configuration.')
-				this.asyncEnabled = false
-				this.externalWorkerEnabled = false
-				this.parallelWorkersCount = '4'
-			}
-		},
-		onToggleChange(value) {
-			this.asyncEnabled = value
-			this.errorMessage = ''
-			this.showErrorIcon = false
-			this.saveConfig()
-		},
-		onWorkerTypeChange(value) {
-			this.externalWorkerEnabled = value
-			this.errorMessage = ''
-			this.showErrorIcon = false
-			this.saveConfig()
-		},
-		saveConfig() {
-			this.loading = true
-			this.errorMessage = ''
-			this.saved = false
-
-			const url = generateOcsUrl('apps/libresign/api/v1/admin/signing-mode/config')
-			axios.post(url, {
-				mode: this.asyncEnabled ? 'async' : 'sync',
-				workerType: this.externalWorkerEnabled ? 'external' : 'local',
-			})
-				.then(() => {
-					this.saved = true
-					setTimeout(() => {
-						this.saved = false
-					}, 3000)
-				})
-				.catch((error) => {
-					console.error('Error saving signing mode configuration:', error)
-					this.errorMessage = error.response?.data?.ocs?.data?.error
-						?? t('libresign', 'Error saving configuration.')
-				})
-				.finally(() => {
-					this.loading = false
-				})
-		},
-		saveParallelWorkers() {
-			const numValue = parseInt(this.parallelWorkersCount, 10)
-
-			if (isNaN(numValue) || numValue < 1 || numValue > 32) {
-				this.parallelWorkersCount = this.lastSavedParallelWorkers
-				return
-			}
-
-			const normalizedValue = String(numValue)
-			this.parallelWorkersCount = normalizedValue
-
-			if (normalizedValue === this.lastSavedParallelWorkers) {
-				return
-			}
-
-			OCP.AppConfig.setValue('libresign', 'parallel_workers', normalizedValue, {
-				success: () => {
-					this.lastSavedParallelWorkers = normalizedValue
-					this.saved = true
-					setTimeout(() => {
-						this.saved = false
-					}, 3000)
-				},
-				error: (error) => {
-					this.errorMessage = t('libresign', 'Error saving parallel workers configuration.')
-					this.showErrorIcon = true
-				},
-			})
-		},
-	},
+	}
 }
+
+type AppConfigCallbacks = {
+	success?: () => void
+	error?: (error: unknown) => void
+}
+
+type OcpGlobal = {
+	AppConfig: {
+		setValue: (app: string, key: string, value: string, callbacks?: AppConfigCallbacks) => void
+	}
+}
+
+defineOptions({
+	name: 'SigningMode',
+})
+
+const asyncEnabled = ref(false)
+const externalWorkerEnabled = ref(false)
+const parallelWorkersCount = ref('4')
+const lastSavedParallelWorkers = ref('4')
+const loading = ref(false)
+const errorMessage = ref('')
+const saved = ref(false)
+const showErrorIcon = ref(false)
+
+function showSavedIndicator() {
+	saved.value = true
+	setTimeout(() => {
+		saved.value = false
+	}, 3000)
+}
+
+function loadConfig() {
+	try {
+		const mode = loadState('libresign', 'signing_mode', 'sync')
+		asyncEnabled.value = mode === 'async'
+
+		const workerType = loadState('libresign', 'worker_type', 'local')
+		externalWorkerEnabled.value = workerType === 'external'
+
+		const parallelWorkers = loadState('libresign', 'parallel_workers', '4')
+		parallelWorkersCount.value = String(parallelWorkers)
+		lastSavedParallelWorkers.value = parallelWorkersCount.value
+	} catch (error) {
+		console.error('Error loading signing mode configuration:', error)
+		errorMessage.value = t('libresign', 'Could not load configuration.')
+		asyncEnabled.value = false
+		externalWorkerEnabled.value = false
+		parallelWorkersCount.value = '4'
+		lastSavedParallelWorkers.value = '4'
+	}
+}
+
+async function saveConfig() {
+	loading.value = true
+	errorMessage.value = ''
+	saved.value = false
+
+	try {
+		const url = generateOcsUrl('apps/libresign/api/v1/admin/signing-mode/config')
+		await axios.post(url, {
+			mode: asyncEnabled.value ? 'async' : 'sync',
+			workerType: externalWorkerEnabled.value ? 'external' : 'local',
+		})
+		showSavedIndicator()
+	} catch (error) {
+		console.error('Error saving signing mode configuration:', error)
+		const requestError = error as SaveConfigError
+		errorMessage.value = requestError.response?.data?.ocs?.data?.error
+			?? t('libresign', 'Error saving configuration.')
+	} finally {
+		loading.value = false
+	}
+}
+
+function onToggleChange(value: boolean) {
+	asyncEnabled.value = value
+	errorMessage.value = ''
+	showErrorIcon.value = false
+	void saveConfig()
+}
+
+function onWorkerTypeChange(value: boolean) {
+	externalWorkerEnabled.value = value
+	errorMessage.value = ''
+	showErrorIcon.value = false
+	void saveConfig()
+}
+
+function saveParallelWorkers() {
+	const numValue = parseInt(parallelWorkersCount.value, 10)
+
+	if (isNaN(numValue) || numValue < 1 || numValue > 32) {
+		parallelWorkersCount.value = lastSavedParallelWorkers.value
+		return
+	}
+
+	const normalizedValue = String(numValue)
+	parallelWorkersCount.value = normalizedValue
+
+	if (normalizedValue === lastSavedParallelWorkers.value) {
+		return
+	}
+
+	;(globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP.AppConfig.setValue('libresign', 'parallel_workers', normalizedValue, {
+		success: () => {
+			lastSavedParallelWorkers.value = normalizedValue
+			showSavedIndicator()
+		},
+		error: () => {
+			errorMessage.value = t('libresign', 'Error saving parallel workers configuration.')
+			showErrorIcon.value = true
+		},
+	})
+}
+
+const debouncedSaveParallelWorkers = debounce(() => {
+	saveParallelWorkers()
+}, 800)
+
+onMounted(() => {
+	loadConfig()
+})
+
+defineExpose({
+	t,
+	asyncEnabled,
+	externalWorkerEnabled,
+	parallelWorkersCount,
+	lastSavedParallelWorkers,
+	loading,
+	errorMessage,
+	saved,
+	showErrorIcon,
+	debouncedSaveParallelWorkers,
+	loadConfig,
+	onToggleChange,
+	onWorkerTypeChange,
+	saveConfig,
+	saveParallelWorkers,
+})
 </script>
 
 <style lang="scss" scoped>
