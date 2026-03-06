@@ -138,25 +138,32 @@ describe('SigningProgress', () => {
 	})
 
 	describe('RULE: startPolling initiates polling when UUID provided', () => {
-		it('starts polling when conditions met', () => {
+		it('starts polling when conditions met', async () => {
+			axios.get = vi.fn().mockResolvedValue({
+				data: { ocs: { data: { status: 'SIGNING_IN_PROGRESS' } } },
+			})
 			wrapper = createWrapper()
 			wrapper.vm.stopPolling()
-			const pollSpy = vi.spyOn(wrapper.vm, 'pollFileProgress').mockImplementation(() => undefined)
+			vi.clearAllMocks()
 
 			wrapper.vm.startPolling()
+			await wrapper.vm.$nextTick()
 
 			expect(wrapper.vm.isPolling).toBe(true)
-			expect(pollSpy).toHaveBeenCalled()
+			expect(axios.get).toHaveBeenCalled()
 		})
 
 		it('does not start if already polling', () => {
+			axios.get = vi.fn().mockResolvedValue({
+				data: { ocs: { data: { status: 'SIGNING_IN_PROGRESS' } } },
+			})
 			wrapper = createWrapper()
 			wrapper.vm.isPolling = true
-			wrapper.vm.pollFileProgress = vi.fn()
+			vi.clearAllMocks()
 
 			wrapper.vm.startPolling()
 
-			expect(wrapper.vm.pollFileProgress).not.toHaveBeenCalled()
+			expect(axios.get).not.toHaveBeenCalled()
 		})
 
 		it('does nothing without signRequestUuid', () => {
@@ -320,56 +327,65 @@ describe('SigningProgress', () => {
 
 	describe('RULE: mounted starts polling if UUID provided', async () => {
 		it('starts polling on mount with UUID', async () => {
-			// Spy on the method before mounting
-			const startPollingSpy = vi.spyOn(SigningProgress.methods, 'startPolling')
-
+			axios.get = vi.fn().mockResolvedValue({
+				data: { ocs: { data: { status: 'SIGNING_IN_PROGRESS' } } },
+			})
 			wrapper = createWrapper()
 			await wrapper.vm.$nextTick()
 
-			expect(startPollingSpy).toHaveBeenCalled()
-			startPollingSpy.mockRestore()
+			expect(wrapper.vm.isPolling).toBe(true)
+			expect(axios.get).toHaveBeenCalled()
 		})
 
 		it('does nothing on mount without UUID', async () => {
-			// Spy on the method before mounting
-			const startPollingSpy = vi.spyOn(SigningProgress.methods, 'startPolling')
-
+			axios.get = vi.fn().mockResolvedValue({
+				data: { ocs: { data: { status: 'SIGNING_IN_PROGRESS' } } },
+			})
 			wrapper = createWrapper({ signRequestUuid: '' })
 			await wrapper.vm.$nextTick()
 
-			expect(startPollingSpy).not.toHaveBeenCalled()
-			startPollingSpy.mockRestore()
+			expect(wrapper.vm.isPolling).toBe(false)
+			expect(axios.get).not.toHaveBeenCalled()
 		})
 	})
 
 	describe('RULE: beforeUnmount stops polling', () => {
 		it('stops polling on unmount', () => {
 			wrapper = createWrapper()
-			const stopPollingSpy = vi.spyOn(wrapper.vm, 'stopPolling')
+			wrapper.vm.isPolling = true
+			wrapper.vm.pollingInterval = setTimeout(() => {}, 1000)
 
 			wrapper.unmount()
 
-			expect(stopPollingSpy).toHaveBeenCalled()
+			expect(wrapper.vm.isPolling).toBe(false)
+			expect(wrapper.vm.pollingInterval).toBeNull()
 		})
 	})
 
 	describe('RULE: watch signRequestUuid starts polling on change', async () => {
-		it('starts polling when UUID changes', () => {
+		it('starts polling when UUID changes', async () => {
+			axios.get = vi.fn().mockResolvedValue({
+				data: { ocs: { data: { status: 'SIGNING_IN_PROGRESS' } } },
+			})
 			wrapper = createWrapper({ signRequestUuid: 'old-uuid' })
-			wrapper.vm.startPolling = vi.fn()
+			wrapper.vm.stopPolling()
+			vi.clearAllMocks()
 
-			wrapper.vm.$options.watch.signRequestUuid.call(wrapper.vm, 'new-uuid', 'old-uuid')
+			await wrapper.setProps({ signRequestUuid: 'new-uuid' })
 
-			expect(wrapper.vm.startPolling).toHaveBeenCalled()
+			expect(axios.get).toHaveBeenCalledWith(
+				'/apps/libresign/api/v1/file/progress/new-uuid',
+				expect.any(Object)
+			)
 		})
 
-		it('does not restart when UUID is same', () => {
+		it('does not restart when UUID is same', async () => {
 			wrapper = createWrapper()
-			wrapper.vm.startPolling = vi.fn()
+			wrapper.vm.stopPolling()
 
-			wrapper.vm.$options.watch.signRequestUuid.call(wrapper.vm, 'same-uuid', 'same-uuid')
+			await wrapper.setProps({ signRequestUuid: 'test-uuid-123' })
 
-			expect(wrapper.vm.startPolling).not.toHaveBeenCalled()
+			expect(wrapper.vm.isPolling).toBe(false)
 		})
 	})
 })
