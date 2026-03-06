@@ -22,54 +22,71 @@
 	</NcSettingsSection>
 </template>
 
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
+import { t } from '@nextcloud/l10n'
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import { generateOcsUrl } from '@nextcloud/router'
-import { t } from '@nextcloud/l10n'
+import { onMounted, ref } from 'vue'
 
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import '@nextcloud/password-confirmation/style.css'
 
-export default {
-	name: 'SignatureHashAlgorithm',
-	components: {
-		NcSettingsSection,
-		NcSelect,
-	},
-	data: () => ({
-		selected: [],
-		hashes: ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'],
-		loading: false,
-		idKey: 0,
-	}),
-
-	mounted() {
-		this.getData()
-	},
-
-	methods: {
-		t,
-		async getData() {
-			this.loading = true
-			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/signature_hash_algorithm'),
-			)
-			this.selected = this.hashes.includes(response.data.ocs.data.data)
-				? response.data.ocs.data.data
-				: 'SHA256'
-			this.loading = false
-		},
-
-		async saveSignatureHash() {
-			await confirmPassword()
-
-			const selected = this.hashes.includes(this.selected) ? this.selected : 'SHA256'
-			OCP.AppConfig.setValue('libresign', 'signature_hash_algorithm', selected)
-			this.idKey += 1
-		},
-	},
+type OcsConfigResponse = {
+	data?: {
+		ocs?: {
+			data?: {
+				data?: string
+			}
+		}
+	}
 }
+
+type OcpGlobal = {
+	AppConfig: {
+		setValue: (app: string, key: string, value: string) => void
+	}
+}
+
+defineOptions({
+	name: 'SignatureHashAlgorithm',
+})
+
+const selected = ref<string | string[]>('')
+const hashes = ref(['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'])
+const loading = ref(false)
+const idKey = ref(0)
+
+async function getData() {
+	loading.value = true
+	const response = await axios.get(
+		generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/signature_hash_algorithm'),
+	) as OcsConfigResponse
+	const value = response.data?.ocs?.data?.data
+	selected.value = hashes.value.includes(value || '') ? (value as string) : 'SHA256'
+	loading.value = false
+}
+
+async function saveSignatureHash() {
+	await confirmPassword()
+	const normalizedSelected = hashes.value.includes(String(selected.value)) ? String(selected.value) : 'SHA256'
+	;(globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP.AppConfig.setValue('libresign', 'signature_hash_algorithm', normalizedSelected)
+	idKey.value += 1
+}
+
+onMounted(() => {
+	void getData()
+})
+
+defineExpose({
+	t,
+	selected,
+	hashes,
+	loading,
+	idKey,
+	getData,
+	saveSignatureHash,
+})
 </script>
