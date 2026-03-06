@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<td class="files-list__row-actions">
+	<td ref="rootElement" class="files-list__row-actions">
 		<!-- Menu actions -->
 		<NcActions ref="actionsMenu"
 			:boundaries-element="boundariesElement"
@@ -58,8 +58,10 @@
 	</td>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 import svgFileDocument from '@mdi/svg/svg/file-document-outline.svg?raw'
@@ -85,212 +87,224 @@ import { useFilesStore } from '../../../store/files.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { useSignStore } from '../../../store/sign.js'
 
-export default {
+defineOptions({
 	name: 'FileEntryActions',
-	components: {
-		NcActionButton,
-		NcActions,
-		NcButton,
-		NcCheckboxRadioSwitch,
-		NcDialog,
-		NcIconSvgWrapper,
-		NcLoadingIcon,
-	},
-	props: {
-		opened: {
-			type: Boolean,
-			default: false,
-		},
-		source: {
-			type: Object,
-			required: true,
-		},
-		loading: {
-			type: Boolean,
-			required: true,
-		},
-	},
-	setup() {
-		const actionsMenuStore = useActionsMenuStore()
-		const filesStore = useFilesStore()
-		const sidebarStore = useSidebarStore()
-		const signStore = useSignStore()
-		return {
-			t,
-			actionsMenuStore,
-			filesStore,
-			sidebarStore,
-			signStore,
-		}
-	},
-	data() {
-		return {
-			enabledMenuActions: [],
-			confirmDelete: false,
-			deleteFile: true,
-			deleting: false,
-			document: {},
-			hasInfo: false,
-		}
-	},
-	emits: ['rename', 'start-rename'],
-	computed: {
-		openedMenu: {
-			get() {
-				return this.actionsMenuStore.opened === this.source.id
-			},
-			set(opened) {
-				this.actionsMenuStore.opened = opened ? this.source.id : null
-			},
-		},
-		visibleMenu() {
-			return this.enabledMenuActions.filter(action => this.visibleIf(action))
-		},
-		file() {
-			return this.filesStore.files[this.source.id]
-		},
-		boundariesElement() {
-			return document.querySelector('.app-content > .files-list')
-				|| document.querySelector('.app-content')
-				|| document.body
-		},
-	},
-	mounted() {
-		this.registerAction({
-			id: 'request-signature',
-			title: t('libresign', 'Request signature'),
-			iconSvgInline: svgSignature,
-		})
-		this.registerAction({
-			id: 'details',
-			title: t('libresign', 'Details'),
-			iconSvgInline: svgInformation,
-		})
-		this.registerAction({
-			id: 'rename',
-			title: t('libresign', 'Rename'),
-			iconSvgInline: svgPencil,
-		})
-		this.registerAction({
-			id: 'validate',
-			// TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize".
-			title: t('libresign', 'Validate'),
-			iconSvgInline: svgTextBoxCheck,
-		})
-		this.registerAction({
-			id: 'sign',
-			title: t('libresign', 'Sign'),
-			iconSvgInline: svgSignature,
-		})
-		this.registerAction({
-			id: 'delete',
-			title: t('libresign', 'Delete'),
-			iconSvgInline: svgDelete,
-		})
-		this.registerAction({
-			id: 'open',
-			title: t('libresign', 'Open file'),
-			iconSvgInline: svgFileDocument,
-		})
-	},
-	created() {
-		this.document = loadState('libresign', 'file_info', {})
-	},
-	methods: {
-		visibleIf(action) {
-			let visible = false
-			if (action.id === 'request-signature') {
-				visible = (this.source?.signers?.length ?? 0) === 0
-			} else if (action.id === 'details') {
-				visible = (this.source?.signers?.length ?? 0) > 0
-			} else if (action.id === 'rename') {
-				visible = true
-			} else if (action.id === 'sign') {
-				visible = this.filesStore.canSign(this.file)
-			} else if (action.id === 'validate') {
-				visible = this.filesStore.canValidate(this.file)
-			} else if (action.id === 'delete') {
-				visible = this.filesStore.canDelete(this.file)
-			} else if (action.id === 'open') {
-				visible = this.source?.nodeType !== 'envelope'
-					&& !this.filesStore.isOriginalFileDeleted(this.file)
-			}
-			return visible
-		},
-		async onActionClick(action) {
-			this.openedMenu = null
-			this.sidebarStore.hideSidebar()
-			if (action.id === 'details' || action.id === 'request-signature') {
-				this.filesStore.selectFile(this.source.id)
-				this.sidebarStore.activeRequestSignatureTab()
-			} else if (action.id === 'sign') {
-				const signUuid = this.source.signers
-					.reduce((accumulator, signer) => {
-						if (signer.me) {
-							return signer.sign_uuid
-						}
-						return accumulator
-					}, '')
-				const files = await this.filesStore.getAllFiles({
-					signer_uuid: signUuid,
-					force_fetch: true,
-				})
-				this.signStore.setFileToSign(files[this.source.id])
-				this.$router.push({
-					name: 'SignPDF',
-					params: {
-						uuid: signUuid,
-					},
-				})
-				this.filesStore.selectFile(this.source.id)
-				this.sidebarStore.activeRequestSignatureTab()
-			} else if (action.id === 'validate') {
-				this.$router.push({
-					name: 'ValidationFile',
-					params: {
-						uuid: this.source.uuid,
-					},
-				})
-			} else if (action.id === 'delete') {
-				this.confirmDelete = true
-			} else if (action.id === 'rename') {
-				this.$emit('start-rename')
-			} else if (action.id === 'open') {
-				this.openFile()
-			}
-		},
-		registerAction(action) {
-			this.enabledMenuActions = [...this.enabledMenuActions, action]
-		},
-		async doDelete() {
-			this.deleting = true
-			await this.filesStore.delete(this.source, this.deleteFile)
-			this.deleting = false
-		},
-		openFile() {
-			const fileUrl = this.source.file
-				|| generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.source.uuid })
+})
 
-			openDocument({
-				fileUrl,
-				filename: this.source.name,
-				nodeId: this.source.nodeId,
-			})
-		},
-		doRename(newName) {
-			return this.filesStore.rename(this.source.uuid, newName)
-		},
-		onMenuClosed() {
-			if (this.actionsMenuStore.opened === null) {
-				const root = this.$el?.closest('.app-content')
-				if (root) {
-					root.style.removeProperty('--mouse-pos-x')
-					root.style.removeProperty('--mouse-pos-y')
-				}
-			}
-		},
-	},
+type SourceSigner = {
+	me?: boolean
+	sign_uuid?: string
 }
+
+type SourceFile = {
+	id: number
+	uuid: string
+	name: string
+	nodeId?: number
+	nodeType?: string
+	file?: string
+	signers?: SourceSigner[]
+}
+
+type MenuAction = {
+	id: string
+	title: string
+	iconSvgInline: string
+}
+
+const props = withDefaults(defineProps<{
+	opened?: boolean
+	source: SourceFile
+	loading: boolean | string
+}>(), {
+	opened: false,
+})
+
+const emit = defineEmits<{
+	(e: 'rename'): void
+	(e: 'start-rename'): void
+}>()
+
+const router = useRouter()
+const actionsMenuStore = useActionsMenuStore()
+const filesStore = useFilesStore()
+const sidebarStore = useSidebarStore()
+const signStore = useSignStore()
+
+const rootElement = ref<HTMLElement | null>(null)
+const enabledMenuActions = ref<MenuAction[]>([])
+const confirmDelete = ref(false)
+const deleteFile = ref(true)
+const deleting = ref(false)
+const documentData = ref(loadState('libresign', 'file_info', {}))
+const hasInfo = ref(false)
+
+const openedMenu = computed({
+	get: () => actionsMenuStore.opened === props.source.id,
+	set: (opened) => {
+		actionsMenuStore.opened = opened ? props.source.id : null
+	},
+})
+
+const visibleMenu = computed(() => enabledMenuActions.value.filter(action => visibleIf(action)))
+const file = computed(() => filesStore.files[props.source.id])
+const boundariesElement = computed(() => document.querySelector('.app-content > .files-list')
+	|| document.querySelector('.app-content')
+	|| document.body)
+
+function registerAction(action: MenuAction) {
+	enabledMenuActions.value = [...enabledMenuActions.value, action]
+}
+
+function visibleIf(action: Pick<MenuAction, 'id'>) {
+	let visible = false
+	if (action.id === 'request-signature') {
+		visible = (props.source?.signers?.length ?? 0) === 0
+	} else if (action.id === 'details') {
+		visible = (props.source?.signers?.length ?? 0) > 0
+	} else if (action.id === 'rename') {
+		visible = true
+	} else if (action.id === 'sign') {
+		visible = filesStore.canSign(file.value)
+	} else if (action.id === 'validate') {
+		visible = filesStore.canValidate(file.value)
+	} else if (action.id === 'delete') {
+		visible = filesStore.canDelete(file.value)
+	} else if (action.id === 'open') {
+		visible = props.source?.nodeType !== 'envelope'
+			&& !filesStore.isOriginalFileDeleted(file.value)
+	}
+	return visible
+}
+
+async function onActionClick(action: Pick<MenuAction, 'id'>) {
+	openedMenu.value = null
+	sidebarStore.hideSidebar()
+	if (action.id === 'details' || action.id === 'request-signature') {
+		filesStore.selectFile(props.source.id)
+		sidebarStore.activeRequestSignatureTab()
+	} else if (action.id === 'sign') {
+		const signUuid = (props.source.signers ?? [])
+			.reduce((accumulator, signer) => {
+				if (signer.me) {
+					return signer.sign_uuid ?? ''
+				}
+				return accumulator
+			}, '')
+		const files = await filesStore.getAllFiles({
+			signer_uuid: signUuid,
+			force_fetch: true,
+		})
+		signStore.setFileToSign(files[props.source.id])
+		router.push({
+			name: 'SignPDF',
+			params: {
+				uuid: signUuid,
+			},
+		})
+		filesStore.selectFile(props.source.id)
+		sidebarStore.activeRequestSignatureTab()
+	} else if (action.id === 'validate') {
+		router.push({
+			name: 'ValidationFile',
+			params: {
+				uuid: props.source.uuid,
+			},
+		})
+	} else if (action.id === 'delete') {
+		confirmDelete.value = true
+	} else if (action.id === 'rename') {
+		emit('start-rename')
+	} else if (action.id === 'open') {
+		openFile()
+	}
+}
+
+async function doDelete() {
+	deleting.value = true
+	await filesStore.delete(props.source, deleteFile.value)
+	deleting.value = false
+}
+
+function openFile() {
+	const fileUrl = props.source.file
+		|| generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: props.source.uuid })
+
+	openDocument({
+		fileUrl,
+		filename: props.source.name,
+		nodeId: props.source.nodeId,
+	})
+}
+
+function doRename(newName: string) {
+	return filesStore.rename(props.source.uuid, newName)
+}
+
+function onMenuClosed() {
+	if (actionsMenuStore.opened === null) {
+		const root = rootElement.value?.closest('.app-content')
+		if (root) {
+			root.style.removeProperty('--mouse-pos-x')
+			root.style.removeProperty('--mouse-pos-y')
+		}
+	}
+}
+
+onMounted(() => {
+	registerAction({
+		id: 'request-signature',
+		title: t('libresign', 'Request signature'),
+		iconSvgInline: svgSignature,
+	})
+	registerAction({
+		id: 'details',
+		title: t('libresign', 'Details'),
+		iconSvgInline: svgInformation,
+	})
+	registerAction({
+		id: 'rename',
+		title: t('libresign', 'Rename'),
+		iconSvgInline: svgPencil,
+	})
+	registerAction({
+		id: 'validate',
+		title: t('libresign', 'Validate'),
+		iconSvgInline: svgTextBoxCheck,
+	})
+	registerAction({
+		id: 'sign',
+		title: t('libresign', 'Sign'),
+		iconSvgInline: svgSignature,
+	})
+	registerAction({
+		id: 'delete',
+		title: t('libresign', 'Delete'),
+		iconSvgInline: svgDelete,
+	})
+	registerAction({
+		id: 'open',
+		title: t('libresign', 'Open file'),
+		iconSvgInline: svgFileDocument,
+	})
+	hasInfo.value = Object.keys(documentData.value as Record<string, unknown>).length > 0
+})
+
+defineExpose({
+	enabledMenuActions,
+	confirmDelete,
+	deleteFile,
+	deleting,
+	documentData,
+	hasInfo,
+	visibleIf,
+	onActionClick,
+	registerAction,
+	doDelete,
+	openFile,
+	doRename,
+	onMenuClosed,
+})
 </script>
 
 <style lang="scss">
