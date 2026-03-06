@@ -407,15 +407,6 @@ OC.L10N.register(
     "Last 7 days" : "Siste 7 dager",
     "Last 30 days" : "Siste 30 dager",
     "This year ({year})" : "I år ({year})",
-    "Last year ({year})" : "I fjor ({year})",
-    "The code to sign file was successfully requested." : "Koden som skal signeres, ble forespurt.",
-    "Collect signers' metadata when signing a document" : "Samle inn underskrivernes metadata når det signeres et dokument",
-    "Sign with your email." : "Signer med e-postadressen din.",
-    "Enter the code you received" : "Skriv inn koden du mottok",
-    "Request code." : "Be om kode.",
-    "Send code." : "Send kode.",
-    "Review the entered number." : "Se gjennom det angitte nummeret.",
-    "Phone stored." : "Telefon lagret.",
-    "Subscription password." : "Passord for abonnement."
+    "Last year ({year})" : "I fjor ({year})"
 },
 "nplurals=2; plural=(n != 1);");

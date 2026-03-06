@@ -871,18 +871,6 @@ OC.L10N.register(
     "Last 7 days" : "7 lá seo caite",
     "Last 30 days" : "30 lá anuas",
     "This year ({year})" : "i mbliana ({year})",
-    "Last year ({year})" : "An bhliain seo caite {year}",
-    "The code to sign file was successfully requested." : "Iarradh an cód chun an comhad a shíniú.",
-    "Collapse details" : "Laghdaigh sonraí",
-    "Expand details" : "Leathnaigh sonraí",
-    "Collect signers' metadata when signing a document" : "Bailigh meiteashonraí sínitheoirí agus doiciméad á shíniú",
-    "Sign with your email." : "Sínigh le do ríomhphost.",
-    "Enter the code you received" : "Cuir isteach an cód a fuair tú",
-    "Request code." : "Cóid iarratais.",
-    "Send code." : "Seol cód.",
-    "Review the entered number." : "Déan athbhreithniú ar an uimhir iontrála.",
-    "Phone stored." : "Fón a stóráil.",
-    "Sign with your phone number." : "Sínigh le d’uimhir ghuthán.",
-    "Subscription password." : "Pasfhocal síntiús."
+    "Last year ({year})" : "An bhliain seo caite {year}"
 },
 "nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);");

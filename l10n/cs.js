@@ -864,18 +864,6 @@ OC.L10N.register(
     "Last 7 days" : "Uplynulých 7 dnů",
     "Last 30 days" : "Uplynulých 30 dnů",
     "This year ({year})" : "Tento rok ({year})",
-    "Last year ({year})" : "Minulý rok ({year})",
-    "The code to sign file was successfully requested." : "Kód pro podepsání souboru byl úspěšně vyžádán.",
-    "Collapse details" : "Sbalit podrobnosti",
-    "Expand details" : "Rozbalit podrobnosti",
-    "Collect signers' metadata when signing a document" : "Shromáždit při podepisování metadata o podepisujících",
-    "Sign with your email." : "Přihlaste se svým e-mailem.",
-    "Enter the code you received" : "Zadejte kód, který jste obdrželi",
-    "Request code." : "Vyžádat si kód.",
-    "Send code." : "Odeslat kód.",
-    "Review the entered number." : "Zkontrolujte zadané číslo.",
-    "Phone stored." : "Telefon uložen.",
-    "Sign with your phone number." : "Přihlaste se svým telefonním číslem.",
-    "Subscription password." : "Heslo podpisu."
+    "Last year ({year})" : "Minulý rok ({year})"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

@@ -113,7 +113,6 @@
     "Optional" : "Opcional",
     "Forgot password?" : "¿Olvidaste tu contraseña?",
     "Complete" : "Terminar",
-    "Today" : "Hoy",
-    "The code to sign file was successfully requested." : "El código para firmar fue exitosamente solicitado"
+    "Today" : "Hoy"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

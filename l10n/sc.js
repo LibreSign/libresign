@@ -208,7 +208,6 @@ OC.L10N.register(
     "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
     "Today" : "Oe ",
     "Last 7 days" : "Ùrtimas 7 dies",
-    "Last 30 days" : "Ùrtimas 30 dies",
-    "Subscription password." : "Crae de sutaiscritzione"
+    "Last 30 days" : "Ùrtimas 30 dies"
 },
 "nplurals=2; plural=(n != 1);");

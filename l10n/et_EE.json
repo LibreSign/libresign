@@ -657,17 +657,6 @@
     "Last 7 days" : "Viimase 7 päeva jooksul",
     "Last 30 days" : "Viimase 30 päeva jooksul",
     "This year ({year})" : "Sel aastal ({year})",
-    "Last year ({year})" : "Eelmisel aastal ({year})",
-    "The code to sign file was successfully requested." : "Faili allkirjastamise koodi päring õnnestus.",
-    "Collapse details" : "Sulge üksikasjad",
-    "Expand details" : "Näita üksikasju",
-    "Sign with your email." : "Allkirjasta oma e-posti aadressiga.",
-    "Enter the code you received" : "Sisesta sulle saadetud kood",
-    "Request code." : "Küsi koodi.",
-    "Send code." : "Saada kood.",
-    "Review the entered number." : "Kontrolli sisestatud numbrit.",
-    "Phone stored." : "Telefoninumber on salvestatud.",
-    "Sign with your phone number." : "Logi sisse oma telefoninumbriga.",
-    "Subscription password." : "Tellimuse salasõna."
+    "Last year ({year})" : "Eelmisel aastal ({year})"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

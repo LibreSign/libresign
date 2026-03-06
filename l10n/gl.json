@@ -869,18 +869,6 @@
     "Last 7 days" : "Últimos 7 días",
     "Last 30 days" : "Últimos 30 días",
     "This year ({year})" : "Este ano ({year})",
-    "Last year ({year})" : "O ano pasado ({year})",
-    "The code to sign file was successfully requested." : "O código para asinar o ficheiro foi solicitado correctamente.",
-    "Collapse details" : "Contraer os detalles",
-    "Expand details" : "Expandir os detalles",
-    "Collect signers' metadata when signing a document" : "Recoller os metadatos dos asinantes ao asinar un documento",
-    "Sign with your email." : "Asine co seu correo-e.",
-    "Enter the code you received" : "Introduza o código que recibiu",
-    "Request code." : "Solicitar código.",
-    "Send code." : "Enviar código.",
-    "Review the entered number." : "Revise o número introducido.",
-    "Phone stored." : "Teléfono almacenado.",
-    "Sign with your phone number." : "Asine co seu número de teléfono.",
-    "Subscription password." : "Contrasinal de subscrición."
+    "Last year ({year})" : "O ano pasado ({year})"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

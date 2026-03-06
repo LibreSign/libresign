@@ -911,18 +911,6 @@ OC.L10N.register(
     "Last 7 days" : "過去7日",
     "Last 30 days" : "過去30日",
     "This year ({year})" : "今年 ({year})",
-    "Last year ({year})" : "去年 ({year})",
-    "The code to sign file was successfully requested." : "已成功請求籤名文件的代碼。",
-    "Collapse details" : "收合詳細資料",
-    "Expand details" : "展開詳細資料",
-    "Collect signers' metadata when signing a document" : "簽署文件時收集簽名者元數據",
-    "Sign with your email." : "使用電郵地址簽署。",
-    "Enter the code you received" : "輸入您收到的代碼",
-    "Request code." : "請求代碼。",
-    "Send code." : "傳送代碼。",
-    "Review the entered number." : "查看輸入的號碼。",
-    "Phone stored." : "已儲存電話號碼",
-    "Sign with your phone number." : "使用您的電話號碼簽署。",
-    "Subscription password." : "訂閱密碼。"
+    "Last year ({year})" : "去年 ({year})"
 },
 "nplurals=1; plural=0;");

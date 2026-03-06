@@ -360,14 +360,6 @@
     "Last 7 days" : "Azken 7 egunetan",
     "Last 30 days" : "Azken 30 egunetan",
     "This year ({year})" : "Aurten ({year})",
-    "Last year ({year})" : "Iaz ({year})",
-    "The code to sign file was successfully requested." : "Fitxategia sinatzeko kodea ondo eskatu da.",
-    "Collect signers' metadata when signing a document" : "Bildu sinatzailearen metadatuak, dokumentu bat sinatzen duenean",
-    "Sign with your email." : "Sinatu zure e-postarekin.",
-    "Request code." : "Eskatu kodea.",
-    "Send code." : "Bidali kodea.",
-    "Review the entered number." : "Egiaztatu sartutako zenbakia.",
-    "Phone stored." : "Telefonoa gordeta.",
-    "Subscription password." : "Harpidetzaren pasahitza."
+    "Last year ({year})" : "Iaz ({year})"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

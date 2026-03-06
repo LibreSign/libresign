@@ -562,15 +562,6 @@ OC.L10N.register(
     "Last 7 days" : "Последњих 7 дана",
     "Last 30 days" : "Последњих 30 дана",
     "This year ({year})" : "Ове године ({year})",
-    "Last year ({year})" : "Прошле године ({year})",
-    "The code to sign file was successfully requested." : "Успешно је захтеван кôд за потписивање фајла.",
-    "Collect signers' metadata when signing a document" : "Прикупи метаподатке потписника када се потписује документ",
-    "Sign with your email." : "Потпишите својим и-мејлом.",
-    "Enter the code you received" : "Унесите кôд који сте примили",
-    "Request code." : "Захтевај кôд.",
-    "Send code." : "Пошаљи кôд.",
-    "Review the entered number." : "Прегледај унети број.",
-    "Phone stored." : "Телефон је сачуван.",
-    "Subscription password." : "Лозинка претплате."
+    "Last year ({year})" : "Прошле године ({year})"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

@@ -354,14 +354,6 @@
     "Last 7 days" : "Előző 7 nap",
     "Last 30 days" : "Előző 30 nap",
     "This year ({year})" : "Ezen év ({year})",
-    "Last year ({year})" : "Előző év ({year})",
-    "The code to sign file was successfully requested." : "A fájl aláírásához használt kód kérése sikeres.",
-    "Collect signers' metadata when signing a document" : "Az aláírók metaadatainak begyűjtése a dokumentum aláírásakor",
-    "Sign with your email." : "Aláírás az Ön e-mail-címével.",
-    "Request code." : "Kód kérése.",
-    "Send code." : "Kód küldése.",
-    "Review the entered number." : "Ellenőrizze a megadott számot.",
-    "Phone stored." : "Telefonszám tárolva.",
-    "Subscription password." : "Feliratkozási jelszó."
+    "Last year ({year})" : "Előző év ({year})"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

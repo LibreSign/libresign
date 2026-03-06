@@ -501,15 +501,6 @@
     "Last 7 days" : "Ultimi 7 giorni",
     "Last 30 days" : "Ultimi 30 giorni",
     "This year ({year})" : "Quest'anno ({year})",
-    "Last year ({year})" : "L'anno scorso ({year})",
-    "The code to sign file was successfully requested." : "Il codice per firmare il file è stato richiesto correttamente.",
-    "Collect signers' metadata when signing a document" : "Raccogliere i metadati dei firmatari quando firmano un documento",
-    "Sign with your email." : "Firma con la tua e-mail.",
-    "Enter the code you received" : "Inserisci il codice che hai ricevuto",
-    "Request code." : "Richiedi il codice.",
-    "Send code." : "Invia il codice",
-    "Review the entered number." : "Controlla il numero inserito.",
-    "Phone stored." : "Telefono archiviato",
-    "Subscription password." : "Password di sottoscrizione."
+    "Last year ({year})" : "L'anno scorso ({year})"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }
