@@ -33,6 +33,8 @@ export const action = {
 	iconSvgInline: () => SvgIcon,
 
 	enabled({ nodes }) {
+		const getNodeMime = (node) => node?.mime || node?.mimetype || ''
+
 		if (!loadState('libresign', 'certificate_ok', false)) {
 			return false
 		}
@@ -45,7 +47,7 @@ export const action = {
 			return nodes[0].attributes?.['libresign-signature-status'] !== undefined
 		}
 
-		const allPdf = nodes.every(node => node.mime === 'application/pdf')
+		const allPdf = nodes.every(node => getNodeMime(node) === 'application/pdf')
 		if (!allPdf) {
 			return false
 		}
@@ -73,6 +75,8 @@ export const action = {
 	 * Similar to exec, but passes multiple files to the sidebar for processing
 	 */
 	async execBatch({ nodes }) {
+		const getNodeFileId = (node) => node?.fileid ?? node?.id
+
 		if (nodes.length === 1) {
 			await this.exec({ nodes })
 			return [null]
@@ -95,7 +99,7 @@ export const action = {
 			settings: {
 				path: envelopePath,
 			},
-			files: nodes.map(node => ({ fileId: node.fileid })),
+			files: nodes.map(node => ({ fileId: getNodeFileId(node) })),
 			filesCount: nodes.length,
 			signers: [],
 			uuid: null,
