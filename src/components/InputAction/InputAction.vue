@@ -18,6 +18,7 @@ import { t } from '@nextcloud/l10n'
 
 export default {
 	name: 'InputAction',
+	emits: ['submit'],
 	props: {
 		type: {
 			type: String,
