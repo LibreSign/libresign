@@ -18,6 +18,12 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 12.3.3 - 2026-03-06
+
+### Fixes
+- fix: avoid router resolution in request signature tab modal
+- test: cover modal urls in request signature tab
+
 ## 12.3.2 - 2026-03-06
 
 ### Fixes
