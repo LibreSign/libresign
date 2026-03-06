@@ -57,7 +57,7 @@ class SignJobCoordinator {
 				'signRequestUuid' => $signRequest?->getUuid() ?? ($argument['signRequestUuid'] ?? null),
 			]);
 		} finally {
-			$this->deleteCredentials($argument['userId'], $argument['credentialsId'] ?? null);
+			$this->deleteCredentials($argument['userId'] ?? null, $argument['credentialsId'] ?? null);
 		}
 	}
 
@@ -88,7 +88,7 @@ class SignJobCoordinator {
 				'signRequestUuid' => $signRequest?->getUuid() ?? ($argument['signRequestUuid'] ?? null),
 			]);
 		} finally {
-			$this->deleteCredentials($argument['userId'], $argument['credentialsId'] ?? null);
+			$this->deleteCredentials($argument['userId'] ?? null, $argument['credentialsId'] ?? null);
 		}
 	}
 
@@ -181,8 +181,8 @@ class SignJobCoordinator {
 		$this->fileService->update($file);
 	}
 
-	private function deleteCredentials(string $userId, ?string $credentialsId): void {
-		if (empty($credentialsId)) {
+	private function deleteCredentials(?string $userId, ?string $credentialsId): void {
+		if (empty($credentialsId) || empty($userId)) {
 			return;
 		}
 		$this->credentialsManager->delete($userId, $credentialsId);
