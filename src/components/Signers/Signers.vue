@@ -34,79 +34,94 @@
 		</Signer>
 	</ul>
 </template>
-<script>
-import { t } from '@nextcloud/l10n'
-
-import { loadState } from '@nextcloud/initial-state'
+<script setup lang="ts">
+import { computed } from 'vue'
 
 import draggable from 'vuedraggable'
 
 import Signer from './Signer.vue'
 import { useFilesStore } from '../../store/files.js'
 
-export default {
+defineOptions({
 	name: 'Signers',
-	emits: ['signing-order-changed'],
-	components: {
-		Signer,
-		draggable,
-	},
-	props: {
-		event: {
-			type: String,
-			required: false,
-			default: '',
-		},
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		return { filesStore }
-	},
-	computed: {
-		signers() {
-			return this.filesStore.getFile().signers
-		},
-		sortableSigners: {
-			get() {
-				return this.signers
-			},
-			set(value) {
-				const file = this.filesStore.getFile()
-				file.signers = value
-			},
-		},
-		isOrderedNumeric() {
-			const file = this.filesStore.getFile()
-			let flow = file?.signatureFlow
+})
 
-			if (typeof flow === 'number') {
-				const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-				flow = flowMap[flow]
-			}
-
-			return flow === 'ordered_numeric'
-		},
-		canReorder() {
-			return this.filesStore.canSave() && this.signers.length > 1
-		},
-	},
-	methods: {
-		t,
-		onDragEnd(evt) {
-			const { oldIndex, newIndex } = evt
-			if (oldIndex === newIndex) {
-				return
-			}
-
-			const file = this.filesStore.getFile()
-			file.signers.forEach((signer, index) => {
-				signer.signingOrder = index + 1
-			})
-
-			this.$emit('signing-order-changed')
-		},
-	},
+type SignerRow = {
+	identify?: string
+	signed?: unknown
+	signingOrder?: number
+	[key: string]: unknown
 }
+
+type FileWithSigners = {
+	signers?: SignerRow[]
+	signatureFlow?: string | number
+}
+
+const props = withDefaults(defineProps<{
+	event?: string
+}>(), {
+	event: '',
+})
+
+const emit = defineEmits<{
+	(e: 'signing-order-changed'): void
+}>()
+
+const filesStore = useFilesStore()
+
+const signers = computed<SignerRow[] | undefined>(() => {
+	const file = filesStore.getFile() as FileWithSigners | undefined
+	return file?.signers
+})
+
+const sortableSigners = computed<SignerRow[] | undefined>({
+	get() {
+		return signers.value
+	},
+	set(value) {
+		const file = filesStore.getFile() as FileWithSigners | undefined
+		if (file) {
+			file.signers = value
+		}
+	},
+})
+
+const isOrderedNumeric = computed(() => {
+	const file = filesStore.getFile() as FileWithSigners | undefined
+	let flow = file?.signatureFlow
+
+	if (typeof flow === 'number') {
+		const flowMap: Record<number, string> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		flow = flowMap[flow]
+	}
+
+	return flow === 'ordered_numeric'
+})
+
+const canReorder = computed(() => filesStore.canSave() && (signers.value?.length || 0) > 1)
+
+function onDragEnd(evt: { oldIndex: number; newIndex: number }) {
+	const { oldIndex, newIndex } = evt
+	if (oldIndex === newIndex) {
+		return
+	}
+
+	const file = filesStore.getFile() as FileWithSigners | undefined
+	file?.signers?.forEach((signer, index) => {
+		signer.signingOrder = index + 1
+	})
+
+	emit('signing-order-changed')
+}
+
+defineExpose({
+	signers,
+	sortableSigners,
+	isOrderedNumeric,
+	canReorder,
+	onDragEnd,
+})
 </script>
 
 <style lang="scss" scoped>
