@@ -11,41 +11,54 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { usernameToColor } from '@nextcloud/vue/functions/usernameToColor'
+import { computed } from 'vue'
 
-export default {
+defineOptions({
 	name: 'SignatureBox',
-	props: {
-		label: {
-			type: String,
-			default: '',
-		},
-		signer: {
-			type: Object,
-			default: null,
-		},
-	},
-	computed: {
-		signatureBoxAriaLabel() {
-			// TRANSLATORS Accessible label for a placed signature box on the PDF. {name} is the signer's display name.
-			return t('libresign', 'Signature position for {name}', { name: this.label })
-		},
-		boxStyle() {
-			const signer = this.signer || {}
-			const seed = signer.displayName || signer.name || signer.email || signer.id || this.label
-			if (!seed) {
-				return {}
-			}
-			const { r, g, b } = usernameToColor(String(seed))
-			return {
-				borderColor: `rgb(${r}, ${g}, ${b})`,
-				backgroundColor: `rgba(${r}, ${g}, ${b}, 0.12)`,
-			}
-		},
-	},
-}
+})
+
+type Signer = {
+	displayName?: string
+	name?: string
+	email?: string
+	id?: string
+} | null
+
+const props = withDefaults(defineProps<{
+	label?: string
+	signer?: Signer
+}>(), {
+	label: '',
+	signer: null,
+})
+
+const signatureBoxAriaLabel = computed(() => {
+	return t('libresign', 'Signature position for {name}', { name: props.label })
+})
+
+const boxStyle = computed(() => {
+	const signer = props.signer || {}
+	const seed = signer.displayName || signer.name || signer.email || signer.id || props.label
+
+	if (!seed) {
+		return {}
+	}
+
+	const { r, g, b } = usernameToColor(String(seed))
+	return {
+		borderColor: `rgb(${r}, ${g}, ${b})`,
+		backgroundColor: `rgba(${r}, ${g}, ${b}, 0.12)`,
+	}
+})
+
+defineExpose({
+	signatureBoxAriaLabel,
+	boxStyle,
+	props,
+})
 </script>
 
 <style lang="scss" scoped>
