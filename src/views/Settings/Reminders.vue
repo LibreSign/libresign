@@ -59,13 +59,14 @@
 		</div>
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import NcDateTimePickerNative from '@nextcloud/vue/components/NcDateTimePickerNative'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
@@ -73,166 +74,206 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-export default {
+defineOptions({
 	name: 'Reminders',
-	components: {
-		NcDateTimePickerNative,
-		NcSettingsSection,
-		NcTextField,
-		NcCheckboxRadioSwitch,
-		NcLoadingIcon,
-	},
-	data() {
-		return {
-			value: '',
-			reminderDaysBefore: 0,
-			previousReminderDaysBefore: 0,
-			displaySuccessReminderDaysBefore: false,
-			reminderDaysBetween: 0,
-			previousReminderDaysBetween: 0,
-			displaySuccessReminderDaysBetween: false,
-			reminderSendTimer: null,
-			previousReminderSendTimer: null,
-			displaySuccessReminderSendTimer: false,
-			reminderMax: 5,
-			previousReminderMax: 0,
-			displaySuccessReminderMax: false,
-			reminderState: false,
-			nextRun: null,
-			loading: false,
+})
+
+type ReminderResponse = {
+	ocs: {
+		data: {
+			days_before: number | string
+			days_between: number | string
+			max: number | string
+			send_timer: string
+			next_run: string | null
 		}
-	},
-	computed: {
-		labelReminderSendTimer() {
-			// TRANSLATORS The time that a sign reminder will be sent to a signer
-			return t('libresign', 'Send time (HH:mm)')
-		},
-		switchText() {
-			// TRANSLATORS Toggle reminders for signers who have not signed yet
-			return t('libresign', 'Turn {reminderState} auto reminders', {
-				// TRANSLATORS The reminder state to auto reminders, usage example: Turn {reminderState} auto reminders
-				reminderState: this.reminderState ? t('libresign', 'off') : t('libresign', 'on'),
-			})
-		},
-		nextRunFormatted() {
-			if (this.nextRun) {
-				return this.dateFromSqlAnsi(this.nextRun)
-			}
-			// TRANSLATORS No next reminder job to signers is scheduled
-			return t('libresign', 'Not scheduled')
-		},
-	},
-	watch: {
-		reminderState(reminderState) {
-			if (!reminderState) {
-				this.reminderDaysBefore = 0
-				this.reminderDaysBetween = 0
-				this.reminderMax = 0
-				this.reminderSendTimer = null
-				this.save()
-			}
-		},
-	},
-	created() {
-		this.getData()
-	},
-	methods: {
-		t,
-
-		dateFromSqlAnsi(date) {
-			return Moment(Date.parse(date)).format('LL LTS')
-		},
-		async getData() {
-			this.loading = true
-
-			await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/reminder'))
-				.then(({ data }) => {
-					const response = data.ocs.data
-					this.reminderDaysBefore = parseInt(response.days_before) || 0
-					this.previousReminderDaysBefore = this.reminderDaysBefore
-
-					this.reminderDaysBetween = parseInt(response.days_between) || 0
-					this.previousReminderDaysBetween = this.reminderDaysBetween
-
-					this.reminderMax = parseInt(response.max) || 0
-					this.previousReminderMax = this.reminderMax
-
-					this.setSendTimer(response.send_timer)
-
-					this.reminderState = this.reminderDaysBefore > 0
-						|| this.reminderDaysBetween > 0
-						|| this.max > 0
-					this.nextRun = response.next_run
-				})
-				.finally(() => {
-					this.loading = false
-				})
-		},
-		setSendTimer(timer) {
-			if (timer.length > 0) {
-				this.reminderSendTimer = new Date('2022-10-10 ' + timer)
-			} else {
-				this.reminderSendTimer = new Date('2022-10-10 10:00:00')
-			}
-			this.previousReminderSendTimer = this.reminderSendTimer
-		},
-		save: debounce(async function() {
-			this.displaySuccessReminderDaysBefore = false
-			this.displaySuccessReminderDaysBetween = false
-			this.displaySuccessReminderSendTimer = false
-			this.loading = true
-
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/reminder'), {
-				daysBefore: parseInt(this.reminderDaysBefore),
-				daysBetween: parseInt(this.reminderDaysBetween),
-				max: parseInt(this.reminderMax),
-				sendTimer: this.formatHourMinute(this.reminderSendTimer),
-			})
-				.then(({ data }) => {
-					const response = data.ocs.data
-					if (response.days_before !== this.previousReminderDaysBefore) {
-						this.previousReminderDaysBefore = response.days_before
-						this.displaySuccessReminderDaysBefore = true
-						setTimeout(() => { this.displaySuccessReminderDaysBefore = false }, 2000)
-					}
-					if (response.days_between !== this.previousReminderDaysBetween) {
-						this.previousReminderDaysBetween = response.days_between
-						this.displaySuccessReminderDaysBetween = true
-						setTimeout(() => { this.displaySuccessReminderDaysBetween = false }, 2000)
-					}
-					if (response.days_between !== this.previousReminderMax) {
-						this.previousReminderMax = response.days_between
-						this.displaySuccessReminderMax = true
-						setTimeout(() => { this.displaySuccessReminderMax = false }, 2000)
-					}
-					if (response.send_timer !== this.formatHourMinute(this.previousReminderSendTimer)) {
-						this.setSendTimer(response.send_timer)
-						this.displaySuccessReminderSendTimer = true
-						setTimeout(() => { this.displaySuccessReminderSendTimer = false }, 2000)
-					}
-					this.nextRun = response.next_run
-				})
-				.catch(() => {
-					this.nextRun = null
-				})
-				.finally(() => {
-					this.loading = false
-				})
-		}, 1000),
-		formatHourMinute(date) {
-			if (!date) {
-				return ''
-			}
-			const hours = date.getHours()
-			const minutes = date.getMinutes()
-
-			const formattedHours = hours < 10 ? '0' + hours : hours
-			const formattedMinutes = minutes < 10 ? '0' + minutes : minutes
-
-			return `${formattedHours}:${formattedMinutes}`
-		},
-	},
+	}
 }
+
+const value = ref('')
+const reminderDaysBefore = ref<number | string>(0)
+const previousReminderDaysBefore = ref(0)
+const displaySuccessReminderDaysBefore = ref(false)
+const reminderDaysBetween = ref<number | string>(0)
+const previousReminderDaysBetween = ref(0)
+const displaySuccessReminderDaysBetween = ref(false)
+const reminderSendTimer = ref<Date | null>(null)
+const previousReminderSendTimer = ref<Date | null>(null)
+const displaySuccessReminderSendTimer = ref(false)
+const reminderMax = ref<number | string>(5)
+const previousReminderMax = ref(0)
+const displaySuccessReminderMax = ref(false)
+const reminderState = ref(false)
+const nextRun = ref<string | null>(null)
+const loading = ref(false)
+
+const labelReminderSendTimer = computed(() => t('libresign', 'Send time (HH:mm)'))
+
+const switchText = computed(() => {
+	return t('libresign', 'Turn {reminderState} auto reminders', {
+		reminderState: reminderState.value ? t('libresign', 'off') : t('libresign', 'on'),
+	})
+})
+
+const nextRunFormatted = computed(() => {
+	if (nextRun.value) {
+		return dateFromSqlAnsi(nextRun.value)
+	}
+
+	return t('libresign', 'Not scheduled')
+})
+
+function dateFromSqlAnsi(date: string) {
+	return Moment(Date.parse(date)).format('LL LTS')
+}
+
+async function getData() {
+	loading.value = true
+
+	await axios.get<ReminderResponse>(generateOcsUrl('/apps/libresign/api/v1/admin/reminder'))
+		.then(({ data }) => {
+			const response = data.ocs.data
+			reminderDaysBefore.value = parseInt(String(response.days_before)) || 0
+			previousReminderDaysBefore.value = Number(reminderDaysBefore.value)
+
+			reminderDaysBetween.value = parseInt(String(response.days_between)) || 0
+			previousReminderDaysBetween.value = Number(reminderDaysBetween.value)
+
+			reminderMax.value = parseInt(String(response.max)) || 0
+			previousReminderMax.value = Number(reminderMax.value)
+
+			setSendTimer(response.send_timer)
+
+			reminderState.value = Number(reminderDaysBefore.value) > 0
+				|| Number(reminderDaysBetween.value) > 0
+				|| Number(reminderMax.value) > 0
+			nextRun.value = response.next_run
+		})
+		.finally(() => {
+			loading.value = false
+		})
+}
+
+function setSendTimer(timer: string) {
+	if (timer.length > 0) {
+		reminderSendTimer.value = new Date(`2022-10-10 ${timer}`)
+	} else {
+		reminderSendTimer.value = new Date('2022-10-10 10:00:00')
+	}
+
+	previousReminderSendTimer.value = reminderSendTimer.value
+}
+
+const save = debounce(async () => {
+	displaySuccessReminderDaysBefore.value = false
+	displaySuccessReminderDaysBetween.value = false
+	displaySuccessReminderSendTimer.value = false
+	loading.value = true
+
+	await axios.post<ReminderResponse>(generateOcsUrl('/apps/libresign/api/v1/admin/reminder'), {
+		daysBefore: parseInt(String(reminderDaysBefore.value)),
+		daysBetween: parseInt(String(reminderDaysBetween.value)),
+		max: parseInt(String(reminderMax.value)),
+		sendTimer: formatHourMinute(reminderSendTimer.value),
+	})
+		.then(({ data }) => {
+			const response = data.ocs.data
+
+			if (Number(response.days_before) !== previousReminderDaysBefore.value) {
+				previousReminderDaysBefore.value = Number(response.days_before)
+				displaySuccessReminderDaysBefore.value = true
+				setTimeout(() => {
+					displaySuccessReminderDaysBefore.value = false
+				}, 2000)
+			}
+
+			if (Number(response.days_between) !== previousReminderDaysBetween.value) {
+				previousReminderDaysBetween.value = Number(response.days_between)
+				displaySuccessReminderDaysBetween.value = true
+				setTimeout(() => {
+					displaySuccessReminderDaysBetween.value = false
+				}, 2000)
+			}
+
+			if (Number(response.max) !== previousReminderMax.value) {
+				previousReminderMax.value = Number(response.max)
+				displaySuccessReminderMax.value = true
+				setTimeout(() => {
+					displaySuccessReminderMax.value = false
+				}, 2000)
+			}
+
+			if (response.send_timer !== formatHourMinute(previousReminderSendTimer.value)) {
+				setSendTimer(response.send_timer)
+				displaySuccessReminderSendTimer.value = true
+				setTimeout(() => {
+					displaySuccessReminderSendTimer.value = false
+				}, 2000)
+			}
+
+			nextRun.value = response.next_run
+		})
+		.catch(() => {
+			nextRun.value = null
+		})
+		.finally(() => {
+			loading.value = false
+		})
+}, 1000)
+
+function formatHourMinute(date: Date | null) {
+	if (!date) {
+		return ''
+	}
+
+	const hours = date.getHours()
+	const minutes = date.getMinutes()
+	const formattedHours = hours < 10 ? `0${hours}` : String(hours)
+	const formattedMinutes = minutes < 10 ? `0${minutes}` : String(minutes)
+
+	return `${formattedHours}:${formattedMinutes}`
+}
+
+watch(reminderState, (nextReminderState) => {
+	if (!nextReminderState) {
+		reminderDaysBefore.value = 0
+		reminderDaysBetween.value = 0
+		reminderMax.value = 0
+		reminderSendTimer.value = null
+		void save()
+	}
+})
+
+onMounted(() => {
+	void getData()
+})
+
+defineExpose({
+	value,
+	reminderDaysBefore,
+	previousReminderDaysBefore,
+	displaySuccessReminderDaysBefore,
+	reminderDaysBetween,
+	previousReminderDaysBetween,
+	displaySuccessReminderDaysBetween,
+	reminderSendTimer,
+	previousReminderSendTimer,
+	displaySuccessReminderSendTimer,
+	reminderMax,
+	previousReminderMax,
+	displaySuccessReminderMax,
+	reminderState,
+	nextRun,
+	loading,
+	labelReminderSendTimer,
+	switchText,
+	nextRunFormatted,
+	dateFromSqlAnsi,
+	getData,
+	setSendTimer,
+	save,
+	formatHourMinute,
+})
 </script>
 <style lang="scss" scoped>
 .reminders-content{
