@@ -129,7 +129,7 @@
 	</NcDialog>
 </template>
 
-<script>
+<script lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import {

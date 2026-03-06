@@ -454,12 +454,13 @@ describe('EnvelopeValidation', () => {
 				name: 'test.pdf',
 				nodeId: 123,
 			}
-
-			const viewFileSpy = vi.spyOn(wrapper.vm, 'viewFile')
 			wrapper.vm.viewFile(testFile)
 
-			expect(viewFileSpy).toHaveBeenCalledWith(testFile)
-			viewFileSpy.mockRestore()
+			expect(viewer.openDocument).toHaveBeenCalledWith({
+				fileUrl: '/apps/libresign/p/pdf/test-uuid',
+				filename: 'test.pdf',
+				nodeId: 123,
+			})
 		})
 
 		it('openDocument is called when viewFile is invoked', () => {
