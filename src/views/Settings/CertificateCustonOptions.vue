@@ -145,8 +145,11 @@ export default {
 		},
 	},
 	watch: {
-		names(values) {
-			this.certificateList = values
+		names: {
+			handler(values) {
+				this.certificateList = values
+			},
+			immediate: true,
 		},
 	},
 	methods: {
