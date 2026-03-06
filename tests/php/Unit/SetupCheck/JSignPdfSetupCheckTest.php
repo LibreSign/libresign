@@ -6,14 +6,23 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+namespace OCA\Libresign\SetupCheck;
+
+if (!function_exists('OCA\Libresign\SetupCheck\file_exists')) {
+	function file_exists(string $filename): bool {
+		return \OCA\Libresign\Tests\Mock\FileSystemMock::fileExists($filename);
+	}
+}
+
 namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
+
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\SetupCheck\JSignPdfSetupCheck;
-use OCA\Libresign\Tests\Unit\SetupCheck\Mock\FileSystemMock;
+use OCA\Libresign\Tests\Mock\FileSystemMock;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
 use OCP\IConfig;

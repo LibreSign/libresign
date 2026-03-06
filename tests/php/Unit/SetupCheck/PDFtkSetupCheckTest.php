@@ -6,14 +6,30 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+namespace OCA\Libresign\SetupCheck;
+
+if (!function_exists('OCA\Libresign\SetupCheck\file_exists')) {
+	function file_exists(string $filename): bool {
+		return \OCA\Libresign\Tests\Mock\FileSystemMock::fileExists($filename);
+	}
+}
+
+if (!function_exists('OCA\Libresign\SetupCheck\exec')) {
+	function exec(string $command, &$output = null, &$result_code = null): string|false {
+		return \OCA\Libresign\Tests\Mock\ExecMock::exec($command, $output, $result_code);
+	}
+}
+
 namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
+
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCA\Libresign\SetupCheck\PDFtkSetupCheck;
-use OCA\Libresign\Tests\Unit\SetupCheck\Mock\ExecMock;
-use OCA\Libresign\Tests\Unit\SetupCheck\Mock\FileSystemMock;
+
+use OCA\Libresign\Tests\Mock\ExecMock;
+use OCA\Libresign\Tests\Mock\FileSystemMock;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
 use OCP\IConfig;
