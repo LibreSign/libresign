@@ -729,18 +729,6 @@ OC.L10N.register(
     "Last 7 days" : "ئاخىرقى 7 كۈن",
     "Last 30 days" : "ئاخىرقى 30 كۈن",
     "This year ({year})" : "بۇ يىل ({year})",
-    "Last year ({year})" : "ئۆتكەن يىلى ({year})",
-    "The code to sign file was successfully requested." : "ھۆججەتكە ئىمزا قويۇش كودى مۇۋەپپەقىيەتلىك تەلەپ قىلىندى.",
-    "Collapse details" : "تەپسىلاتلارنى يىغىش",
-    "Expand details" : "تەپسىلاتلارنى كېڭەيتىش",
-    "Collect signers' metadata when signing a document" : "ھۆججەتكە ئىمزا قويغاندا ئىمزا قويغۇچىلارنىڭ ئۇچۇرلىرىنى توپلاڭ",
-    "Sign with your email." : "ئېلېكترونلۇق خەت بىلەن تىزىملىتىڭ.",
-    "Enter the code you received" : "تاپشۇرۇۋالغان كودنى كىرگۈزۈڭ",
-    "Request code." : "تەلەپ كودى.",
-    "Send code." : "كود ئەۋەتىڭ.",
-    "Review the entered number." : "كىرگۈزۈلگەن نومۇرنى تەكشۈرۈڭ.",
-    "Phone stored." : "تېلېفون ساقلاندى.",
-    "Sign with your phone number." : "تېلېفون نومۇرىڭىز بىلەن ئىمزا قويۇڭ.",
-    "Subscription password." : "مۇشتەرىلىك پارولى."
+    "Last year ({year})" : "ئۆتكەن يىلى ({year})"
 },
 "nplurals=2; plural=(n != 1);");

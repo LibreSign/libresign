@@ -442,15 +442,6 @@ OC.L10N.register(
     "Last 7 days" : "آخر 7 أيام",
     "Last 30 days" : "آخر 30 يوماً",
     "This year ({year})" : "هذا العام ({year})",
-    "Last year ({year})" : "العام الماضي ({year})",
-    "The code to sign file was successfully requested." : "تم طلب كود توقيع الملف بنجاح.",
-    "Collect signers' metadata when signing a document" : "جمع البيانات التعريفية بالموقعين عند توقيعهم للمستند",
-    "Sign with your email." : "وقع باستخدام بريدك الإلكتروني.",
-    "Enter the code you received" : "قُم بإدخال الرمز الذي استلمته",
-    "Request code." : "كود الطلب.",
-    "Send code." : "أرسل الكود.",
-    "Review the entered number." : "راجع الرقم المُدخل.",
-    "Phone stored." : "مُخزن علي الهاتف.",
-    "Subscription password." : "كلمة مرور الاشتراك."
+    "Last year ({year})" : "العام الماضي ({year})"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");

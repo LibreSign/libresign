@@ -521,15 +521,6 @@ OC.L10N.register(
     "Last 7 days" : "За останні 7 днів",
     "Last 30 days" : "За останні 30 днів",
     "This year ({year})" : "Цього року ({year})",
-    "Last year ({year})" : "Минулого року ({year})",
-    "The code to sign file was successfully requested." : "Код для підписання файлу було успішно запитано.",
-    "Collect signers' metadata when signing a document" : "Збирати метадані підписувачів під час підписання документа",
-    "Sign with your email." : "Підпишіться за допомогою електронної пошти.",
-    "Enter the code you received" : "Введіть отриманий код",
-    "Request code." : "Запитайте код.",
-    "Send code." : "Надіслати код.",
-    "Review the entered number." : "Перевірте введений номер.",
-    "Phone stored." : "Телефон збережено.",
-    "Subscription password." : "Пароль підписки."
+    "Last year ({year})" : "Минулого року ({year})"
 },
 "nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);");

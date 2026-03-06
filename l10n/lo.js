@@ -555,15 +555,6 @@ OC.L10N.register(
     "Last 7 days" : "7 ມື້ຜ່ານມາ",
     "Last 30 days" : "30 ມື້ຜ່ານມາ",
     "This year ({year})" : "ປີນີ້ ({year})",
-    "Last year ({year})" : "ປີກາຍ ({year})",
-    "The code to sign file was successfully requested." : "ໄດ້ຮ້ອງຂໍລະຫັດເພື່ອເຊັນໄຟລ໌ສຳເລັດແລ້ວ.",
-    "Collect signers' metadata when signing a document" : "ເກັບກຳຂໍ້ມູນເມຕາຂອງຜູ້ເຊັນເມື່ອເຊັນເອກະສານ",
-    "Sign with your email." : "ເຊັນດ້ວຍອີເມວຂອງທ່ານ.",
-    "Enter the code you received" : "ໃສ່ລະຫັດທີ່ທ່ານໄດ້ຮັບ",
-    "Request code." : "ຂໍລະຫັດ.",
-    "Send code." : "ສົ່ງລະຫັດ.",
-    "Review the entered number." : "ກວດສອບເບີທີ່ປ້ອນ.",
-    "Phone stored." : "ເບີໂທຖືກບັນທຶກແລ້ວ.",
-    "Subscription password." : "ລະຫັດຜ່ານການສະໝັກ."
+    "Last year ({year})" : "ປີກາຍ ({year})"
 },
 "nplurals=1; plural=0;");

@@ -305,13 +305,6 @@ OC.L10N.register(
     "Last 7 days" : "Laatste 7 dagen",
     "Last 30 days" : "Laatste 30 dagen",
     "This year ({year})" : "Dit jaar ({year})",
-    "Last year ({year})" : "Afgelopen jaar ({year})",
-    "The code to sign file was successfully requested." : "De code om het bestand te signeren is succesvol opgevraagd.",
-    "Sign with your email." : "Onderteken met uw e-mail.",
-    "Request code." : "Vraag code aan.",
-    "Send code." : "Verzend code.",
-    "Review the entered number." : "Controleer het ingevoerde nummer.",
-    "Phone stored." : "Telefoon opgeslagen.",
-    "Subscription password." : "Abonnementswachtwoord."
+    "Last year ({year})" : "Afgelopen jaar ({year})"
 },
 "nplurals=2; plural=(n != 1);");

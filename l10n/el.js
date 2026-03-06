@@ -519,15 +519,6 @@ OC.L10N.register(
     "Last 7 days" : "Τελευταίες 7 ημέρες",
     "Last 30 days" : "Τελευταίες 30 ημέρες",
     "This year ({year})" : "Αυτό το έτος ({year})",
-    "Last year ({year})" : "Το περασμένο έτος ({year})",
-    "The code to sign file was successfully requested." : "Ο κωδικός για υπογραφή αρχείου ζητήθηκε με επιτυχία.",
-    "Collect signers' metadata when signing a document" : "Συλλογή μεταδεδομένων υπογραφόντων κατά την υπογραφή εγγράφου",
-    "Sign with your email." : "Υπογράψτε με το email σας.",
-    "Enter the code you received" : "Εισάγετε τον κωδικό που λάβατε",
-    "Request code." : "Αίτημα κωδικού.",
-    "Send code." : "Αποστολή κωδικού.",
-    "Review the entered number." : "Ελέγξτε τον εισαγόμενο αριθμό.",
-    "Phone stored." : "Αποθηκεύτηκε το τηλέφωνο.",
-    "Subscription password." : "Συνθηματικό εγγραφής."
+    "Last year ({year})" : "Το περασμένο έτος ({year})"
 },
 "nplurals=2; plural=(n != 1);");

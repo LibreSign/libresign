@@ -820,18 +820,6 @@
     "Last 7 days" : "7 hari terakhir",
     "Last 30 days" : "30 hari terakhir",
     "This year ({year})" : "Tahun ini ({year})",
-    "Last year ({year})" : "Tahun lalu ({year})",
-    "The code to sign file was successfully requested." : "Kode untuk menandatangani file berhasil diminta.",
-    "Collapse details" : "Ciutkan rincian",
-    "Expand details" : "Perluas rincian",
-    "Collect signers' metadata when signing a document" : "Kumpulkan metadata penandatangan saat menandatangani dokumen",
-    "Sign with your email." : "Tandatangani dengan email Anda.",
-    "Enter the code you received" : "Masukkan kode yang Anda terima",
-    "Request code." : "Minta kode.",
-    "Send code." : "Kirim kode.",
-    "Review the entered number." : "Tinjau nomor yang dimasukkan.",
-    "Phone stored." : "Nomor telepon disimpan.",
-    "Sign with your phone number." : "Tandatangani dengan nomor telepon Anda.",
-    "Subscription password." : "Kata sandi langganan."
+    "Last year ({year})" : "Tahun lalu ({year})"
 },"pluralForm" :"nplurals=1; plural=0;"
 }
