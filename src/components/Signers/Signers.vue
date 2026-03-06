@@ -46,6 +46,7 @@ import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'Signers',
+	emits: ['signing-order-changed'],
 	components: {
 		Signer,
 		draggable,
