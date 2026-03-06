@@ -41,36 +41,28 @@
 	</NcSettingsSection>
 </template>
 
-<script>
+<script setup lang="ts">
+import {
+	mdiCurrencyUsd,
+	mdiHeart,
+	mdiInformation,
+} from '@mdi/js'
+import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
-import { t } from '@nextcloud/l10n'
-import {
+import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+
+defineOptions({
+	name: 'SupportProject',
+})
+
+defineExpose({
+	t,
 	mdiHeart,
 	mdiCurrencyUsd,
 	mdiInformation,
-} from '@mdi/js'
-
-export default {
-	name: 'SupportProject',
-	components: {
-		NcButton,
-		NcSettingsSection,
-		NcIconSvgWrapper,
-	},
-	setup() {
-		return {
-			mdiHeart,
-			mdiCurrencyUsd,
-			mdiInformation,
-		}
-	},
-	methods: {
-		t,
-	},
-}
+})
 </script>
 
 <style scoped>
