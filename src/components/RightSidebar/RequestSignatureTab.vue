@@ -308,7 +308,6 @@ import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
-import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
@@ -878,8 +877,7 @@ export default {
 			}
 
 			if (this.useModal) {
-				const route = router.resolve({ name: 'ValidationFileExternal', params: { uuid: targetUuid } })
-				this.modalSrc = route.href
+				this.modalSrc = generateUrl('/apps/libresign/p/validation/{uuid}', { uuid: targetUuid })
 				return
 			}
 			this.$router.push({ name: 'ValidationFile', params: { uuid: targetUuid } })
@@ -1029,8 +1027,7 @@ export default {
 
 			const uuid = file.signUuid
 			if (this.useModal) {
-				const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
-				this.modalSrc = route.href
+				this.modalSrc = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid })
 				return
 			}
 			this.signStore.setFileToSign(this.filesStore.getFile())
