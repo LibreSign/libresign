@@ -18,6 +18,11 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 12.3.1 - 2026-03-06
+
+### Fixes
+- fix: include css assets in appstore package
+
 ## 12.3.0 - 2026-03-05
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
