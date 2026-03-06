@@ -2,23 +2,21 @@
   - SPDX-FileCopyrightText: 2024 LibreCode coop and LibreCode contributors
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 
-export default {
+defineOptions({
 	name: 'UserImage',
-	components: {
-		NcAvatar,
-	},
-	props: {
-		user: {
-			type: Object,
-			required: true,
-		},
-	},
-}
+})
+
+defineProps<{
+	user: {
+		uid: string
+		displayName: string
+	}
+}>()
 </script>
 <template>
 	<div class="user-image">
