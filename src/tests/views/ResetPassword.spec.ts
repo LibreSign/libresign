@@ -73,12 +73,11 @@ describe('ResetPassword.vue', () => {
 			},
 		})
 
-		await wrapper.setData({
-			currentPassword: 'current-secret',
-			newPassword: 'new-secret',
-			rPassword: 'new-secret',
-			hasLoading: true,
-		})
+		wrapper.vm.currentPassword = 'current-secret'
+		wrapper.vm.newPassword = 'new-secret'
+		wrapper.vm.rPassword = 'new-secret'
+		wrapper.vm.hasLoading = true
+		await wrapper.vm.$nextTick()
 
 		wrapper.vm.onClose()
 
@@ -111,11 +110,10 @@ describe('ResetPassword.vue', () => {
 			},
 		})
 
-		await wrapper.setData({
-			currentPassword: 'current-secret',
-			newPassword: 'new-secret',
-			rPassword: 'new-secret',
-		})
+		wrapper.vm.currentPassword = 'current-secret'
+		wrapper.vm.newPassword = 'new-secret'
+		wrapper.vm.rPassword = 'new-secret'
+		await wrapper.vm.$nextTick()
 
 		await wrapper.vm.send()
 
@@ -144,15 +142,16 @@ describe('ResetPassword.vue', () => {
 			},
 		})
 
-		const focusFirstInvalidField = vi.fn()
+		const currentFocus = vi.fn()
+		wrapper.vm.currentPasswordField = { focus: currentFocus }
+		wrapper.vm.currentPassword = ''
+		wrapper.vm.newPassword = ''
+		wrapper.vm.rPassword = ''
 
-		await wrapper.vm.$options.methods.send.call({
-			canSave: false,
-			focusFirstInvalidField,
-		})
+		await wrapper.vm.send()
 
 		expect(patchMock).not.toHaveBeenCalled()
-		expect(focusFirstInvalidField).toHaveBeenCalledTimes(1)
+		expect(currentFocus).toHaveBeenCalledTimes(1)
 	})
 
 	it('prioritizes focus order for invalid fields', () => {
@@ -167,34 +166,31 @@ describe('ResetPassword.vue', () => {
 			},
 		})
 
-		const focusField = vi.fn()
+		const focusCurrent = vi.fn()
+		const focusNew = vi.fn()
+		const focusRepeat = vi.fn()
 
-		wrapper.vm.$options.methods.focusFirstInvalidField.call({
-			currentPassword: '',
-			newPassword: '',
-			rPassword: '',
-			validNewPassord: false,
-			focusField,
-		})
-		expect(focusField).toHaveBeenLastCalledWith('currentPasswordField')
+		wrapper.vm.currentPasswordField = { focus: focusCurrent }
+		wrapper.vm.newPasswordField = { focus: focusNew }
+		wrapper.vm.repeatPasswordField = { focus: focusRepeat }
 
-		wrapper.vm.$options.methods.focusFirstInvalidField.call({
-			currentPassword: 'current-secret',
-			newPassword: '',
-			rPassword: '',
-			validNewPassord: false,
-			focusField,
-		})
-		expect(focusField).toHaveBeenLastCalledWith('newPasswordField')
+		wrapper.vm.currentPassword = ''
+		wrapper.vm.newPassword = ''
+		wrapper.vm.rPassword = ''
+		wrapper.vm.focusFirstInvalidField()
+		expect(focusCurrent).toHaveBeenCalledTimes(1)
 
-		wrapper.vm.$options.methods.focusFirstInvalidField.call({
-			currentPassword: 'current-secret',
-			newPassword: 'new-secret',
-			rPassword: '',
-			validNewPassord: false,
-			focusField,
-		})
-		expect(focusField).toHaveBeenLastCalledWith('repeatPasswordField')
+		wrapper.vm.currentPassword = 'current-secret'
+		wrapper.vm.newPassword = ''
+		wrapper.vm.rPassword = ''
+		wrapper.vm.focusFirstInvalidField()
+		expect(focusNew).toHaveBeenCalledTimes(1)
+
+		wrapper.vm.currentPassword = 'current-secret'
+		wrapper.vm.newPassword = 'new-secret'
+		wrapper.vm.rPassword = ''
+		wrapper.vm.focusFirstInvalidField()
+		expect(focusRepeat).toHaveBeenCalledTimes(1)
 	})
 
 	it('routes Enter key to focus invalid field or submit', async () => {
@@ -209,24 +205,33 @@ describe('ResetPassword.vue', () => {
 			},
 		})
 
-		const focusFirstInvalidField = vi.fn()
-		const send = vi.fn()
+		const focusCurrent = vi.fn()
+		wrapper.vm.currentPasswordField = { focus: focusCurrent }
 
-		wrapper.vm.$options.methods.handleEnter.call({
-			canSave: false,
-			focusFirstInvalidField,
-			send,
+		wrapper.vm.currentPassword = ''
+		wrapper.vm.newPassword = ''
+		wrapper.vm.rPassword = ''
+		wrapper.vm.handleEnter()
+		expect(focusCurrent).toHaveBeenCalledTimes(1)
+		expect(patchMock).not.toHaveBeenCalled()
+
+		patchMock.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						message: 'Password changed',
+					},
+				},
+			},
 		})
 
-		expect(focusFirstInvalidField).toHaveBeenCalledTimes(1)
-		expect(send).not.toHaveBeenCalled()
+		wrapper.vm.currentPassword = 'current-secret'
+		wrapper.vm.newPassword = 'new-secret'
+		wrapper.vm.rPassword = 'new-secret'
+		await wrapper.vm.$nextTick()
+		wrapper.vm.handleEnter()
+		await wrapper.vm.$nextTick()
 
-		wrapper.vm.$options.methods.handleEnter.call({
-			canSave: true,
-			focusFirstInvalidField,
-			send,
-		})
-
-		expect(send).toHaveBeenCalledTimes(1)
+		expect(patchMock).toHaveBeenCalledTimes(1)
 	})
 })
