@@ -25,8 +25,9 @@
 	</FileListFilter>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import { mdiListStatus } from '@mdi/js'
 
@@ -39,107 +40,103 @@ import { FILE_STATUS } from '../../../constants.js'
 import { getStatusLabel, getStatusIcon } from '../../../utils/fileStatus.js'
 import { useFiltersStore } from '../../../store/filters.js'
 
-export default {
+defineOptions({
 	name: 'FileListFilterStatus',
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-		FileListFilter,
-	},
-	setup() {
-		const filtersStore = useFiltersStore()
-		return {
-			mdiListStatus,
-			filtersStore,
-		}
-	},
-	data() {
-		return {
-			selectedOptions: this.filtersStore.filterStatusArray || [],
-		}
-	},
-	computed: {
-		isActive() {
-			return this.selectedOptions.length > 0
-		},
-		fileStatus() {
-			const codes = [FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED, FILE_STATUS.SIGNED]
-			return codes.map(id => ({ id, icon: getStatusIcon(id), label: getStatusLabel(id) }))
-		},
-	},
-	mounted() {
-		if (this.selectedOptions.length > 0) {
-			this.setMarkedFilter()
-		}
-	},
-	watch: {
-		selectedOptions(newValue, oldValue) {
-			if (newValue.length === 0) {
-				this.setPreset()
-			} else {
-				this.setPreset(newValue)
-			}
-			this.setMarkedFilter()
-		},
-	},
-	methods: {
-		t,
-		setPreset(presets) {
-			const chips = []
-			if (presets && presets.length > 0) {
-				for (const id of presets) {
-					const status = this.fileStatus.find(item => item.id === id)
-					if (!status) continue
+})
 
-					chips.push({
-						id: status.id,
-						text: status.label,
-						onclick: () => {
-							this.selectedOptions = this.selectedOptions.filter(v => v !== status.id)
-						},
-					})
-				}
-			} else {
-				this.resetFilter()
-			}
-			this.filtersStore.onFilterUpdateChips({ detail: chips, id: 'status' })
-		},
-		resetFilter() {
-			if (this.selectedOptions.length > 0) {
-				this.selectedOptions = []
-				this.filtersStore.onFilterUpdateChipsAndSave({ detail: [], id: 'status' })
-			}
-		},
-		toggleOption(option) {
-			const idx = this.selectedOptions.indexOf(option)
-			if (idx !== -1) {
-				this.selectedOptions = this.selectedOptions.filter(v => v !== option)
-			} else {
-				this.selectedOptions = [...this.selectedOptions, option]
-			}
-		},
-		setMarkedFilter() {
-			const chips = []
-
-			if (this.selectedOptions.length > 0) {
-				for (const id of this.selectedOptions) {
-					const status = this.fileStatus.find(item => item.id === id)
-					if (!status) continue
-
-					chips.push({
-						id: status.id,
-						text: status.label,
-						onclick: () => {
-							this.selectedOptions = this.selectedOptions.filter(v => v !== id)
-						},
-					})
-				}
-			}
-
-			this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'status' })
-		}
-	},
+type FileStatusOption = {
+	id: number
+	icon: string
+	label: string
 }
+
+const filtersStore = useFiltersStore()
+const selectedOptions = ref<number[]>(filtersStore.filterStatusArray || [])
+
+const isActive = computed(() => selectedOptions.value.length > 0)
+const fileStatus = computed<FileStatusOption[]>(() => {
+	const codes = [FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED, FILE_STATUS.SIGNED]
+	return codes.map((id) => ({ id, icon: getStatusIcon(id), label: getStatusLabel(id) }))
+})
+
+function setPreset(presets?: number[]) {
+	const chips = []
+	if (presets && presets.length > 0) {
+		for (const id of presets) {
+			const status = fileStatus.value.find((item) => item.id === id)
+			if (!status) continue
+
+			chips.push({
+				id: status.id,
+				text: status.label,
+				onclick: () => {
+					selectedOptions.value = selectedOptions.value.filter((value) => value !== status.id)
+				},
+			})
+		}
+	} else {
+		resetFilter()
+	}
+	filtersStore.onFilterUpdateChips({ detail: chips, id: 'status' })
+}
+
+function resetFilter() {
+	if (selectedOptions.value.length > 0) {
+		selectedOptions.value = []
+		filtersStore.onFilterUpdateChipsAndSave({ detail: [], id: 'status' })
+	}
+}
+
+function toggleOption(option: number) {
+	const index = selectedOptions.value.indexOf(option)
+	if (index !== -1) {
+		selectedOptions.value = selectedOptions.value.filter((value) => value !== option)
+	} else {
+		selectedOptions.value = [...selectedOptions.value, option]
+	}
+}
+
+function setMarkedFilter() {
+	const chips = []
+
+	if (selectedOptions.value.length > 0) {
+		for (const id of selectedOptions.value) {
+			const status = fileStatus.value.find((item) => item.id === id)
+			if (!status) continue
+
+			chips.push({
+				id: status.id,
+				text: status.label,
+				onclick: () => {
+					selectedOptions.value = selectedOptions.value.filter((value) => value !== id)
+				},
+			})
+		}
+	}
+
+	filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'status' })
+}
+
+onMounted(() => {
+	if (selectedOptions.value.length > 0) {
+		setMarkedFilter()
+	}
+})
+
+watch(selectedOptions, (newValue) => {
+	if (newValue.length === 0) {
+		setPreset()
+	} else {
+		setPreset(newValue)
+	}
+	setMarkedFilter()
+})
+
+defineExpose({
+	selectedOptions,
+	isActive,
+	resetFilter,
+})
 </script>
 
 <style>
