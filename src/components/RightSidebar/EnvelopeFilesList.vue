@@ -155,7 +155,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import UploadProgress from '../UploadProgress.vue'
-import isTouchDevice from '../../mixins/isTouchDevice.js'
+import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 
 import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
@@ -163,7 +163,6 @@ import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'EnvelopeFilesList',
-	mixins: [isTouchDevice],
 	components: {
 		NcActionButton,
 		NcButton,
@@ -185,7 +184,9 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
+		const { isTouchDevice } = useIsTouchDevice()
 		return {
+			isTouchDevice,
 			filesStore,
 			FILE_STATUS,
 			ENVELOPE_NAME_MIN_LENGTH,

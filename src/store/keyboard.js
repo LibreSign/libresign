@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
 /**
  * Observe various events and save the current
@@ -11,36 +12,39 @@ import { defineStore } from 'pinia'
  * @param {...any} args properties
  */
 export const useKeyboardStore = function(...args) {
-	const store = defineStore('keyboard', {
-		state: () => ({
-			altKey: false,
-			ctrlKey: false,
-			metaKey: false,
-			shiftKey: false,
-		}),
-
-		actions: {
-			onEvent(event) {
-				if (!event) {
-					event = window.event
-				}
-				this.altKey = !!event.altKey
-				this.ctrlKey = !!event.ctrlKey
-				this.metaKey = !!event.metaKey
-				this.shiftKey = !!event.shiftKey
-			},
-		},
-	})
-
-	const keyboardStore = store(...args)
-	// Make sure we only register the listeners once
-	if (!keyboardStore._initialized) {
+	const keyboardStore = _keyboardStore(...args)
+	if (!_initialized) {
 		window.addEventListener('keydown', keyboardStore.onEvent)
 		window.addEventListener('keyup', keyboardStore.onEvent)
 		window.addEventListener('mousemove', keyboardStore.onEvent)
-
-		keyboardStore._initialized = true
+		_initialized = true
 	}
-
 	return keyboardStore
 }
+
+const _keyboardStore = defineStore('keyboard', () => {
+	const altKey = ref(false)
+	const ctrlKey = ref(false)
+	const metaKey = ref(false)
+	const shiftKey = ref(false)
+
+	const onEvent = (event) => {
+		if (!event) {
+			event = window.event
+		}
+		altKey.value = !!event.altKey
+		ctrlKey.value = !!event.ctrlKey
+		metaKey.value = !!event.metaKey
+		shiftKey.value = !!event.shiftKey
+	}
+
+	return {
+		altKey,
+		ctrlKey,
+		metaKey,
+		shiftKey,
+		onEvent,
+	}
+})
+
+let _initialized = false
