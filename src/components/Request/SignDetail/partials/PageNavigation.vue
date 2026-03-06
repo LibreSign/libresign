@@ -24,8 +24,9 @@ import NcCounterBubble from '@nextcloud/vue/components/NcCounterBubble'
 export default {
 	name: 'PageNavigation',
 	components: { NcCounterBubble },
+	emits: ['update:modelValue'],
 	props: {
-		value: {
+		modelValue: {
 			type: Number,
 			required: true,
 		},
@@ -43,25 +44,25 @@ export default {
 			return this.pages.length
 		},
 		actual() {
-			return this.value
+			return this.modelValue
 		},
 		allowNext() {
 			return this.actual < this.size
 		},
 		allowPrevious() {
-			return this.value > 1
+			return this.modelValue > 1
 		},
 	},
 	methods: {
 		t,
 		next() {
-			this.setPage(this.value + 1)
+			this.setPage(this.modelValue + 1)
 		},
 		previous() {
-			this.setPage(this.value - 1)
+			this.setPage(this.modelValue - 1)
 		},
 		setPage(val) {
-			this.$emit('input', val)
+			this.$emit('update:modelValue', val)
 		},
 	},
 }

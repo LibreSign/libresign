@@ -81,6 +81,7 @@ import { ensurePdfWorker } from '../../helpers/pdfWorker'
 
 export default {
 	name: 'PdfEditor',
+	emits: ['pdf-editor:end-init', 'pdf-editor:on-delete-signer', 'pdf-editor:object-click'],
 	components: {
 		NcButton,
 		NcIconSvgWrapper,

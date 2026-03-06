@@ -52,6 +52,7 @@ import { useSignatureElementsStore } from '../../store/signatureElements.js'
 
 export default {
 	name: 'Draw',
+	emits: ['close', 'save'],
 	components: {
 		NcDialog,
 		NcButton,

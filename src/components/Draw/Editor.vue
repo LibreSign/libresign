@@ -82,6 +82,7 @@ import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
 
 export default {
 	name: 'Editor',
+	emits: ['close', 'save'],
 
 	components: {
 		NcDialog,

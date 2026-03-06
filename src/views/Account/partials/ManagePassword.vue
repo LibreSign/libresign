@@ -80,6 +80,7 @@ import { useSignMethodsStore } from '../../../store/signMethods.js'
 
 export default {
 	name: 'ManagePassword',
+	emits: ['certificate:uploaded'],
 	components: {
 		NcButton,
 		NcIconSvgWrapper,
