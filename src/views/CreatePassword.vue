@@ -30,12 +30,13 @@
 	</NcDialog>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import axios from '@nextcloud/axios'
 import { showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
+import { ref } from 'vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
@@ -44,53 +45,70 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 
 import { useSignMethodsStore } from '../store/signMethods.js'
-export default {
-	name: 'CreatePassword',
-	emits: ['password:created'],
-	components: {
-		NcDialog,
-		NcNoteCard,
-		NcPasswordField,
-		NcButton,
-		NcLoadingIcon,
-	},
-	setup() {
-		const signMethodsStore = useSignMethodsStore()
-		return { signMethodsStore }
-	},
-	data() {
-		return {
-			hasLoading: false,
-			password: '',
-			errorMessage: '',
-		}
-	},
-	methods: {
-		t,
-		async send() {
-			this.hasLoading = true
-			this.errorMessage = ''
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature'), {
-				signPassword: this.password,
-			})
-				.then(() => {
-					showSuccess(t('libresign', 'New password to sign documents has been created'))
-					this.signMethodsStore.setHasSignatureFile(true)
-					this.password = ''
-					this.$emit('password:created', true)
-					this.signMethodsStore.closeModal('createPassword')
-				})
-				.catch(({ response }) => {
-					this.signMethodsStore.setHasSignatureFile(false)
-					if (response.data?.ocs?.data?.message) {
-						this.errorMessage = response.data.ocs.data.message
-					} else {
-						this.errorMessage = t('libresign', 'Error creating new password, please contact the administrator')
-					}
-					this.$emit('password:created', false)
-				})
-			this.hasLoading = false
-		},
-	},
+
+type SignMethodsStore = {
+	modal: {
+		createPassword: boolean
+	}
+	setHasSignatureFile: (value: boolean) => void
+	closeModal: (modalCode: string) => void
 }
+
+type CreatePasswordError = {
+	response?: {
+		data?: {
+			ocs?: {
+				data?: {
+					message?: string
+				}
+			}
+		}
+	}
+}
+
+defineOptions({
+	name: 'CreatePassword',
+})
+
+const emit = defineEmits<{
+	(e: 'password:created', value: boolean): void
+}>()
+
+const signMethodsStore = useSignMethodsStore() as SignMethodsStore
+const hasLoading = ref(false)
+const password = ref('')
+const errorMessage = ref('')
+
+async function send() {
+	hasLoading.value = true
+	errorMessage.value = ''
+
+	try {
+		await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature'), {
+			signPassword: password.value,
+		})
+		showSuccess(t('libresign', 'New password to sign documents has been created'))
+		signMethodsStore.setHasSignatureFile(true)
+		password.value = ''
+		emit('password:created', true)
+		signMethodsStore.closeModal('createPassword')
+	} catch (error) {
+		const requestError = error as CreatePasswordError
+		signMethodsStore.setHasSignatureFile(false)
+		errorMessage.value = requestError.response?.data?.ocs?.data?.message
+			|| t('libresign', 'Error creating new password, please contact the administrator')
+		emit('password:created', false)
+	} finally {
+		hasLoading.value = false
+	}
+}
+
+defineExpose({
+	t,
+	signMethodsStore,
+	hasLoading,
+	password,
+	errorMessage,
+	send,
+})
 </script>
