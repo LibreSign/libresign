@@ -25,11 +25,12 @@
 	</NcSettingsSection>
 </template>
 
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { onMounted, ref } from 'vue'
 
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
@@ -38,77 +39,80 @@ import logger from '../../logger.js'
 
 import '@nextcloud/password-confirmation/style.css'
 
-export default {
+defineOptions({
 	name: 'AllowedGroups',
-	components: {
-		NcSettingsSection,
-		NcSelect,
-	},
-	data: () => ({
-		groupsSelected: [],
-		groups: [],
-		loadingGroups: false,
-		idKey: 0,
-	}),
+})
 
-	async created() {
-		await this.searchGroup('')
-		await this.getData()
-	},
-
-	methods: {
-		t,
-		async getData() {
-			this.loadingGroups = true
-			await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/groups_request_sign'),
-			)
-				.then(({ data }) => {
-					const groupsSelected = JSON.parse(data.ocs.data.data)
-					if (!Array.isArray(groupsSelected)) {
-						this.groupsSelected = []
-						return
-					}
-					this.groupsSelected = this.groups.filter(group => {
-						return groupsSelected.indexOf(group.id) !== -1
-					})
-				})
-				.catch((error) => logger.debug('Could not fetch groups_request_sign', { error }))
-			this.loadingGroups = false
-		},
-
-		async saveGroups(value) {
-			if (Array.isArray(value)) {
-				this.groupsSelected = value
-			}
-
-			await confirmPassword()
-
-			const listOfInputGroupsSelected = JSON.stringify(this.groupsSelected.map((g) => {
-				if (typeof g === 'object') {
-					return g.id
-				}
-				return g
-			}))
-			OCP.AppConfig.setValue('libresign', 'groups_request_sign', listOfInputGroupsSelected)
-			this.idKey += 1
-		},
-
-		async searchGroup(query) {
-			this.loadingGroups = true
-			await axios.get(generateOcsUrl('cloud/groups/details'), {
-				search: query,
-				limit: 20,
-				offset: 0,
-			})
-				.then(({ data }) => {
-					this.groups = data.ocs.data.groups.sort(function(a, b) {
-						return a.displayname.localeCompare(b.displayname)
-					})
-				})
-				.catch((error) => logger.debug('Could not search by groups', { error }))
-			this.loadingGroups = false
-		},
-	},
+type GroupRow = {
+	id: string
+	displayname: string
 }
+
+const groupsSelected = ref<Array<GroupRow | string>>([])
+const groups = ref<GroupRow[]>([])
+const loadingGroups = ref(false)
+const idKey = ref(0)
+
+async function getData() {
+	loadingGroups.value = true
+	await axios.get(
+		generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/groups_request_sign'),
+	)
+		.then(({ data }) => {
+			const selected = JSON.parse(data.ocs.data.data)
+			if (!Array.isArray(selected)) {
+				groupsSelected.value = []
+				return
+			}
+			groupsSelected.value = groups.value.filter(group => selected.indexOf(group.id) !== -1)
+		})
+		.catch((error) => logger.debug('Could not fetch groups_request_sign', { error }))
+	loadingGroups.value = false
+}
+
+async function saveGroups(value: Array<GroupRow | string>) {
+	if (Array.isArray(value)) {
+		groupsSelected.value = value
+	}
+
+	await confirmPassword()
+
+	const listOfInputGroupsSelected = JSON.stringify(groupsSelected.value.map((g) => {
+		if (typeof g === 'object') {
+			return g.id
+		}
+		return g
+	}))
+	OCP.AppConfig.setValue('libresign', 'groups_request_sign', listOfInputGroupsSelected)
+	idKey.value += 1
+}
+
+async function searchGroup(query: string) {
+	loadingGroups.value = true
+	await axios.get(generateOcsUrl('cloud/groups/details'), {
+		search: query,
+		limit: 20,
+		offset: 0,
+	})
+		.then(({ data }) => {
+			groups.value = data.ocs.data.groups.sort((a: GroupRow, b: GroupRow) => a.displayname.localeCompare(b.displayname))
+		})
+		.catch((error) => logger.debug('Could not search by groups', { error }))
+	loadingGroups.value = false
+}
+
+onMounted(async () => {
+	await searchGroup('')
+	await getData()
+})
+
+defineExpose({
+	groupsSelected,
+	groups,
+	loadingGroups,
+	idKey,
+	getData,
+	saveGroups,
+	searchGroup,
+})
 </script>

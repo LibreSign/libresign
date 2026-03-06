@@ -70,74 +70,62 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import Moment from '@nextcloud/moment'
+import { ref } from 'vue'
 
 import {
 	mdiUnfoldLessHorizontal,
 	mdiUnfoldMoreHorizontal,
 } from '@mdi/js'
 
-export default {
+defineOptions({
 	name: 'CertificateChain',
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-		NcListItem,
-	},
-	props: {
-		chain: {
-			type: Array,
-			required: true,
-		},
-	},
-	setup() {
-		return {
-			mdiUnfoldLessHorizontal,
-			mdiUnfoldMoreHorizontal,
-			t,
-		}
-	},
-	data() {
-		return {
-			chainOpen: false,
-		}
-	},
-	methods: {
-		formatTimestamp(timestamp) {
-			if (!timestamp) return ''
-			return Moment.unix(timestamp).format('LLL')
-		},
-		getToggleAriaLabel() {
-			if (this.chainOpen) {
-				// TRANSLATORS: Button label read by screen readers. Clicking it hides the list of certificates in the trust chain (the digital identity cards behind the signature)
-				return t('libresign', 'Collapse certificate chain')
-			}
-			// TRANSLATORS: Button label read by screen readers. Clicking it reveals the list of certificates in the trust chain (the digital identity cards behind the signature)
-			return t('libresign', 'Expand certificate chain')
-		},
-		getCertItemLabel(certIndex) {
-			if (certIndex === 0) {
-				// TRANSLATORS: Label read by screen readers to identify the first certificate — the one belonging to the person who actually signed the document
-				return t('libresign', 'Signer certificate')
-			}
-			// TRANSLATORS: Label read by screen readers to identify additional certificates higher up in the trust chain. {index} is a number starting at 2 (e.g. "Certificate 2" is the issuing authority of the signer, "Certificate 3" is the authority above that, and so on)
-			return t('libresign', 'Certificate {index}', { index: certIndex + 1 })
-		},
-		getCertRoleLabel(certIndex) {
-			if (certIndex === 0) {
-				// TRANSLATORS: Label shown next to the name of the person or entity who signed the document. Their identity is proven by their certificate.
-				return t('libresign', 'Signer:')
-			}
-			// TRANSLATORS: Label shown next to the name of the Certificate Authority (CA) that issued the certificate above it in the chain. A CA is an organization trusted to verify and certify digital identities, like a notary or government agency.
-			return t('libresign', 'Issuer:')
-		},
-	},
+})
+
+defineProps<{
+	chain: Array<Record<string, any>>
+}>()
+
+const chainOpen = ref(false)
+
+function formatTimestamp(timestamp?: number) {
+	if (!timestamp) return ''
+	return Moment.unix(timestamp).format('LLL')
 }
+
+function getToggleAriaLabel() {
+	if (chainOpen.value) {
+		return t('libresign', 'Collapse certificate chain')
+	}
+	return t('libresign', 'Expand certificate chain')
+}
+
+function getCertItemLabel(certIndex: number) {
+	if (certIndex === 0) {
+		return t('libresign', 'Signer certificate')
+	}
+	return t('libresign', 'Certificate {index}', { index: certIndex + 1 })
+}
+
+function getCertRoleLabel(certIndex: number) {
+	if (certIndex === 0) {
+		return t('libresign', 'Signer:')
+	}
+	return t('libresign', 'Issuer:')
+}
+
+defineExpose({
+	chainOpen,
+	formatTimestamp,
+	getToggleAriaLabel,
+	getCertItemLabel,
+	getCertRoleLabel,
+})
 </script>
 
 <style scoped lang="scss">

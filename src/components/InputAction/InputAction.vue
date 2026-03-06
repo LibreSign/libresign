@@ -13,51 +13,45 @@
 	</form>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { ref } from 'vue'
 
-export default {
+defineOptions({
 	name: 'InputAction',
-	emits: ['submit'],
-	props: {
-		type: {
-			type: String,
-			required: false,
-			default: 'text',
-		},
-		placeholder: {
-			type: String,
-			required: false,
-			default: '',
-		},
-		disabled: {
-			type: Boolean,
-			required: false,
-			default: false,
-		},
-		loading: {
-			type: Boolean,
-			required: false,
-			default: false,
-		},
-	},
+})
 
-	data() {
-		return {
-			value: '',
-		}
-	},
+withDefaults(defineProps<{
+	type?: string
+	placeholder?: string
+	disabled?: boolean
+	loading?: boolean
+}>(), {
+	type: 'text',
+	placeholder: '',
+	disabled: false,
+	loading: false,
+})
 
-	methods: {
-		t,
-		clearInput() {
-			this.value = ''
-		},
-		onSubmit(event) {
-			this.$emit('submit', this.value)
-		},
-	},
+const emit = defineEmits<{
+	(e: 'submit', value: string): void
+}>()
+
+const value = ref('')
+
+function clearInput() {
+	value.value = ''
 }
+
+function onSubmit() {
+	emit('submit', value.value)
+}
+
+defineExpose({
+	value,
+	clearInput,
+	onSubmit,
+})
 </script>
 
 <style lang="scss" scoped>

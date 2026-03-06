@@ -80,7 +80,8 @@ describe('Confetti', () => {
 			},
 		})
 
-		await wrapper.setData({ showConfetti: true })
+		wrapper.vm.showConfetti = true
+		await wrapper.vm.$nextTick()
 		wrapper.vm.saveShowConfetti()
 
 		expect(setValueMock).toHaveBeenCalledWith('libresign', 'show_confetti_after_signing', '1')
@@ -103,7 +104,8 @@ describe('Confetti', () => {
 			},
 		})
 
-		await wrapper.setData({ showConfetti: false })
+		wrapper.vm.showConfetti = false
+		await wrapper.vm.$nextTick()
 		wrapper.vm.saveShowConfetti()
 
 		expect(setValueMock).toHaveBeenCalledWith('libresign', 'show_confetti_after_signing', '0')

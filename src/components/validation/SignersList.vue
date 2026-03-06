@@ -33,8 +33,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { toRefs } from 'vue'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
@@ -44,36 +45,35 @@ import {
 } from '@mdi/js'
 import Moment from '@nextcloud/moment'
 
-export default {
+defineOptions({
 	name: 'SignersList',
-	components: {
-		NcAvatar,
-		NcIconSvgWrapper,
-		NcListItem,
-	},
-	props: {
-		signers: {
-			type: Array,
-			required: true,
-		},
-		compact: {
-			type: Boolean,
-			default: false,
-		},
-	},
-	setup() {
-		return {
-			mdiCheckCircle,
-			mdiClockOutline,
-			t,
-		}
-	},
-	methods: {
-		dateFromSqlAnsi(date) {
-			return Moment(Date.parse(date)).format('LL LTS')
-		},
-	},
+})
+
+type Signer = {
+	displayName?: string
+	email?: string
+	userId?: string
+	signed?: string | null
 }
+
+const props = withDefaults(defineProps<{
+	signers: Signer[]
+	compact?: boolean
+}>(), {
+	compact: false,
+})
+
+const { signers, compact } = toRefs(props)
+
+function dateFromSqlAnsi(date: string) {
+	return Moment(Date.parse(date)).format('LL LTS')
+}
+
+defineExpose({
+	signers,
+	compact,
+	dateFromSqlAnsi,
+})
 </script>
 
 <style lang="scss" scoped>
