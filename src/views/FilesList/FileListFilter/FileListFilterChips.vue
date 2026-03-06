@@ -22,7 +22,7 @@
 	</ul>
 </template>
 
-<script>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { t } from '@nextcloud/l10n'
 
@@ -31,21 +31,12 @@ import NcChip from '@nextcloud/vue/components/NcChip'
 
 import { useFiltersStore } from '../../../store/filters.js'
 
-export default {
+defineOptions({
 	name: 'FileListFilterChips',
-	components: {
-		NcAvatar,
-		NcChip,
-	},
-	setup() {
-		const filtersStore = useFiltersStore()
-		const activeChips = computed(() => filtersStore.activeChips)
-		return {
-			t,
-			activeChips,
-		}
-	},
-}
+})
+
+const filtersStore = useFiltersStore()
+const activeChips = computed(() => filtersStore.activeChips)
 </script>
 
 <style scoped lang="scss">

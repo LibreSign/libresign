@@ -31,11 +31,12 @@
 		</p>
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSelect from '@nextcloud/vue/components/NcSelect'
@@ -43,72 +44,63 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import logger from '../../logger.js'
 
-export default {
+defineOptions({
 	name: 'IdentificationDocuments',
-	components: {
-		NcSettingsSection,
-		NcSelect,
-		NcCheckboxRadioSwitch,
-	},
-	computed: {
-		description() {
-			return t('libresign', 'Search groups')
-		},
-	},
-	data() {
-		const approvalGroupState = loadState('libresign', 'approval_group', ['admin'])
-		return {
-			identificationDocumentsFlowEnabled: loadState('libresign', 'identification_documents', false) === true,
-			approvalGroupIds: Array.isArray(approvalGroupState) ? approvalGroupState : ['admin'],
-			approvalGroups: [],
-			groups: [],
-			loadingGroups: false,
-			idApprovalGroupsKey: 0,
-		}
-	},
-	async created() {
-		await this.searchGroup('')
-		this.syncApprovalGroupsFromState()
-	},
-	methods: {
-		t,
-		syncApprovalGroupsFromState() {
-			this.approvalGroups = this.groups.filter(group => {
-				return this.approvalGroupIds.indexOf(group.id) !== -1
-			})
-		},
-		saveIdentificationDocumentsStatus() {
-			OCP.AppConfig.setValue('libresign', 'identification_documents', this.identificationDocumentsFlowEnabled ? '1' : '0')
-		},
+})
 
-		saveApprovalGroups() {
-			const listOfInputGroupsSelected = JSON.stringify(this.approvalGroups.map((g) => {
-				if (typeof g === 'object') {
-					return g.id
-				}
-				return g
-			}))
-			this.approvalGroupIds = JSON.parse(listOfInputGroupsSelected)
-			OCP.AppConfig.setValue('libresign', 'approval_group', listOfInputGroupsSelected)
-			this.idApprovalGroupsKey += 1
-		},
-		async searchGroup(query) {
-			this.loadingGroups = true
-			await axios.get(generateOcsUrl('cloud/groups/details'), {
-				search: query,
-				limit: 20,
-				offset: 0,
-			})
-				.then(({ data }) => {
-					this.groups = data.ocs.data.groups.sort(function(a, b) {
-						return a.displayname.localeCompare(b.displayname)
-					})
-				})
-				.catch((error) => logger.debug('Could not search by groups', { error }))
-			this.loadingGroups = false
-		},
-	},
+type Group = {
+	id: string
+	displayname: string
 }
+
+const approvalGroupState = loadState('libresign', 'approval_group', ['admin'])
+const identificationDocumentsFlowEnabled = ref(loadState('libresign', 'identification_documents', false) === true)
+const approvalGroupIds = ref<string[]>(Array.isArray(approvalGroupState) ? approvalGroupState : ['admin'])
+const approvalGroups = ref<Array<Group | string>>([])
+const groups = ref<Group[]>([])
+const loadingGroups = ref(false)
+const idApprovalGroupsKey = ref(0)
+
+const description = computed(() => t('libresign', 'Search groups'))
+
+function syncApprovalGroupsFromState() {
+	approvalGroups.value = groups.value.filter((group) => approvalGroupIds.value.indexOf(group.id) !== -1)
+}
+
+function saveIdentificationDocumentsStatus() {
+	OCP.AppConfig.setValue('libresign', 'identification_documents', identificationDocumentsFlowEnabled.value ? '1' : '0')
+}
+
+function saveApprovalGroups() {
+	const listOfInputGroupsSelected = JSON.stringify(approvalGroups.value.map((group) => {
+		if (typeof group === 'object') {
+			return group.id
+		}
+		return group
+	}))
+	approvalGroupIds.value = JSON.parse(listOfInputGroupsSelected)
+	OCP.AppConfig.setValue('libresign', 'approval_group', listOfInputGroupsSelected)
+	idApprovalGroupsKey.value += 1
+}
+
+async function searchGroup(query: string) {
+	loadingGroups.value = true
+	await axios.get(generateOcsUrl('cloud/groups/details'), {
+		search: query,
+		limit: 20,
+		offset: 0,
+	})
+		.then(({ data }) => {
+			groups.value = data.ocs.data.groups.sort((groupA: Group, groupB: Group) => groupA.displayname.localeCompare(groupB.displayname))
+		})
+		.catch((error) => logger.debug('Could not search by groups', { error }))
+	loadingGroups.value = false
+}
+
+onMounted(async () => {
+	await searchGroup('')
+	syncApprovalGroupsFromState()
+})
 </script>
 <style scoped>
 .identification-documents-content{

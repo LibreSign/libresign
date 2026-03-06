@@ -31,7 +31,7 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { computed } from 'vue'
 
 import { mdiFilterVariant } from '@mdi/js'
@@ -47,30 +47,18 @@ import FileListFilterStatus from './FileListFilter/FileListFilterStatus.vue'
 import { useFileListWidth } from '../../composables/useFileListWidth.js'
 import { useFiltersStore } from '../../store/filters.js'
 
-export default {
+defineOptions({
 	name: 'FileListFilters',
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-		NcPopover,
-		FileListFilterModified,
-		FileListFilterStatus,
-	},
-	setup() {
-		const filtersStore = useFiltersStore()
-		const { isWide } = useFileListWidth()
-		const hasActiveFilters = computed(() => filtersStore.activeChips.length > 0)
-		const boundary = document.getElementById('app-content-vue') ?? document.body
+})
 
-		return {
-			t,
-			mdiFilterVariant,
-			isWide,
-			hasActiveFilters,
-			boundary,
-		}
-	},
-}
+const filtersStore = useFiltersStore()
+const { isWide } = useFileListWidth()
+const hasActiveFilters = computed(() => filtersStore.activeChips.length > 0)
+const boundary = document.getElementById('app-content-vue') ?? document.body
+
+defineExpose({
+	mdiFilterVariant,
+})
 </script>
 
 <style scoped lang="scss">

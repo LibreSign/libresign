@@ -11,39 +11,28 @@
 	</div>
 </template>
 
-<script>
-export default {
+<script setup lang="ts">
+defineOptions({
 	name: 'FileEntryStatus',
-	props: {
-		statusText: {
-			type: String,
-			required: true,
-			default: 'none',
-		},
-		status: {
-			type: Number,
-			required: true,
-			default: 0,
-		},
-		signers: {
-			type: Array,
-			default: () => [],
-		},
-	},
-	methods: {
-		statusToVariant(status) {
-			const statusMap = {
-				'-1': 'not-libresign',
-				'0': 'draft',
-				'1': 'available',
-				'2': 'partial',
-				'3': 'signed',
-				'4': 'deleted',
-				'5': 'signing',
-			}
-			return statusMap[String(status)] || 'draft'
-		},
-	},
+})
+
+defineProps<{
+	statusText: string
+	status: number
+	signers?: unknown[]
+}>()
+
+function statusToVariant(status: number) {
+	const statusMap: Record<string, string> = {
+		'-1': 'not-libresign',
+		'0': 'draft',
+		'1': 'available',
+		'2': 'partial',
+		'3': 'signed',
+		'4': 'deleted',
+		'5': 'signing',
+	}
+	return statusMap[String(status)] || 'draft'
 }
 </script>
 

@@ -365,7 +365,6 @@ describe('FileStatusList', () => {
 
 		it('calls loadFiles at interval', async () => {
 			vi.useFakeTimers()
-			vi.spyOn(FileStatusList.methods, 'loadFiles')
 
 			wrapper = createWrapper({ fileIds: [1] })
 
