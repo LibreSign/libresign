@@ -31,8 +31,10 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { loadState } from '@nextcloud/initial-state'
+import { computed } from 'vue'
+
 import {
 	mdiAlertCircleOutline,
 } from '@mdi/js'
@@ -42,50 +44,35 @@ import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
-import logoLibreSign from '../../img/logo-gray.svg'
+import logoLibreSignAsset from '../../img/logo-gray.svg'
 
-export default {
+defineOptions({
 	name: 'DefaultPageError',
-	components: {
-		NcEmptyContent,
-		NcNoteCard,
-		NcIconSvgWrapper,
-	},
+})
 
-	setup() {
-		return {
-			mdiAlertCircleOutline,
-		}
-	},
-	data() {
-		return {
-			logoLibreSign,
-		}
-	},
-	computed: {
-		errors() {
-			const errors = loadState('libresign', 'errors', [])
-			if (errors.length) {
-				return errors
-			}
-			const errorMessage = loadState('libresign', 'error', {})?.message
-			if (errorMessage) {
-				return [{ message: errorMessage }]
-			}
-			return []
-		},
-		title() {
-			return this.errors.length
-				? t('libresign', 'An error occurred')
-				: t('libresign', 'Page not found')
-		},
-		description() {
-			return this.errors.length
-				? ''
-				: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.')
-		},
-	},
-}
+type ErrorRow = { message: string }
+
+const logoLibreSign = logoLibreSignAsset
+
+const errors = computed<ErrorRow[]>(() => {
+	const loadedErrors = loadState('libresign', 'errors', []) as ErrorRow[]
+	if (loadedErrors.length) {
+		return loadedErrors
+	}
+	const errorMessage = (loadState('libresign', 'error', {}) as { message?: string })?.message
+	if (errorMessage) {
+		return [{ message: errorMessage }]
+	}
+	return []
+})
+
+const title = computed(() => (errors.value.length
+	? t('libresign', 'An error occurred')
+	: t('libresign', 'Page not found')))
+
+const description = computed(() => (errors.value.length
+	? ''
+	: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.')))
 </script>
 
 <style lang="scss" scoped>

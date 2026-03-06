@@ -16,7 +16,7 @@
 	</NcButton>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import { mdiMenu } from '@mdi/js'
@@ -26,21 +26,13 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { useSidebarStore } from '../../store/sidebar.js'
 
-export default {
+defineOptions({
 	name: 'SidebarToggle',
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-	},
-	setup() {
-		const sidebarStore = useSidebarStore()
-		return { sidebarStore, mdiMenu }
-	},
-	methods: {
-		t,
-		openSidebar() {
-			this.sidebarStore.showSidebar()
-		},
-	},
+})
+
+const sidebarStore = useSidebarStore()
+
+function openSidebar() {
+	sidebarStore.showSidebar()
 }
 </script>

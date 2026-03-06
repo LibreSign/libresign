@@ -13,52 +13,51 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { mdiAccountMultiple } from '@mdi/js'
 import { vTooltip } from 'floating-vue'
+import { computed } from 'vue'
 import 'floating-vue/dist/style.css'
 
-export default {
+defineOptions({
 	name: 'FileEntrySigners',
-	components: {
-		NcIconSvgWrapper,
-	},
 	directives: {
 		tooltip: vTooltip,
 	},
-	setup() {
-		return {
-			mdiAccountMultiple,
-		}
-	},
-	props: {
-		signersCount: {
-			type: Number,
-			default: 0,
-		},
-		signers: {
-			type: Array,
-			default: () => [],
-		},
-	},
-	computed: {
-		tooltipContent() {
-			if (this.signersCount === 0 || !this.signers || this.signers.length === 0) {
-				return ''
-			}
+})
 
-			const content = this.signers
-				.map(signer => signer.displayName || signer.email || 'Unknown')
-				.join('<br>')
-
-			return {
-				content,
-				html: true,
-			}
-		},
-	},
+type Signer = {
+	displayName?: string
+	email?: string
 }
+
+const props = withDefaults(defineProps<{
+	signersCount?: number
+	signers?: Signer[]
+}>(), {
+	signersCount: 0,
+	signers: () => [],
+})
+
+const tooltipContent = computed(() => {
+	if (props.signersCount === 0 || props.signers.length === 0) {
+		return ''
+	}
+
+	const content = props.signers
+		.map((signer) => signer.displayName || signer.email || 'Unknown')
+		.join('<br>')
+
+	return {
+		content,
+		html: true,
+	}
+})
+
+defineExpose({
+	tooltipContent,
+})
 </script>
 
 <style lang="scss" scoped>

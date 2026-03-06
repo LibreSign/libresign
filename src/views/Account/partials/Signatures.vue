@@ -28,26 +28,25 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import { getCapabilities } from '@nextcloud/capabilities'
 
 import Signature from './Signature.vue'
 
-export default {
+defineOptions({
 	name: 'Signatures',
-	components: {
-		Signature,
-	},
-	methods: {
-		t,
-		isSignaturesAvailable() {
-			return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
-				&& getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
-		},
-	},
+})
+
+function isSignaturesAvailable() {
+	return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
+		&& getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
 }
+
+defineExpose({
+	isSignaturesAvailable,
+})
 </script>
 
 <style lang="scss" scoped>

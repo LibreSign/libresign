@@ -32,123 +32,127 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { mdiFilePdfBox } from '@mdi/js'
 import { t } from '@nextcloud/l10n'
 import { formatFileSize } from '@nextcloud/files'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import Moment from '@nextcloud/moment'
+import { onBeforeUnmount, onMounted, ref, watch, toRefs } from 'vue'
 
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { FILE_STATUS } from '../../constants.js'
 import { getStatusLabel, getStatusIcon } from '../../utils/fileStatus.js'
 
-export default {
+defineOptions({
 	name: 'FileStatusList',
-	components: {
-		NcIconSvgWrapper,
-	},
-	props: {
-		fileIds: {
-			type: Array,
-			default: () => [],
-		},
-		updateInterval: {
-			type: Number,
-			default: 2000, // 2 seconds
-		},
-	},
-	emits: ['file-signed', 'files-updated'],
-	setup() {
-		return {
-			t,
-			formatFileSize,
-			mdiFilePdfBox,
-		}
-	},
-	data() {
-		return {
-			files: [],
-			updateTimer: null,
-		}
-	},
-	watch: {
-		fileIds(newIds) {
-			if (newIds.length > 0) {
-				this.loadFiles()
-				this.startUpdatePolling()
-			} else {
-				this.stopUpdatePolling()
-			}
-		},
-	},
-	mounted() {
-		if (this.fileIds.length > 0) {
-			this.loadFiles()
-			this.startUpdatePolling()
-		}
-	},
-	beforeUnmount() {
-		this.stopUpdatePolling()
-	},
-	methods: {
-		async loadFiles() {
-			try {
-				const fileRequests = this.fileIds.map(fileId =>
-					axios.get(
-						generateOcsUrl(`/apps/libresign/api/v1/file/${fileId}`)
-					)
-				)
-				const responses = await Promise.all(fileRequests)
-				this.files = responses.map(response => response.data.ocs.data)
-				this.$emit('files-updated', this.files)
-			} catch (error) {
-				console.error('[libresign][front] Failed to load files', error)
-			}
-		},
-		startUpdatePolling() {
-			if (this.updateTimer) {
-				return
-			}
-			this.updateTimer = setInterval(() => {
-				this.loadFiles()
-			}, this.updateInterval)
-		},
-		stopUpdatePolling() {
-			if (this.updateTimer) {
-				clearInterval(this.updateTimer)
-				this.updateTimer = null
-			}
-		},
-		getStatusClass(status) {
-			// Map status codes to CSS classes
-			const statusMap = {
-				[FILE_STATUS.NOT_LIBRESIGN_FILE]: 'not-libresign',
-				[FILE_STATUS.DRAFT]: 'draft',
-				[FILE_STATUS.ABLE_TO_SIGN]: 'ready',
-				[FILE_STATUS.PARTIAL_SIGNED]: 'partial',
-				[FILE_STATUS.SIGNED]: 'signed',
-				[FILE_STATUS.DELETED]: 'deleted',
-				[FILE_STATUS.SIGNING_IN_PROGRESS]: 'signing',
-			}
-			return statusMap[status] || 'unknown'
-		},
-		getStatusLabel(status) {
-			return getStatusLabel(status)
-		},
-		getStatusIcon(status) {
-			return getStatusIcon(status)
-		},
-		formatDate(dateString) {
-			if (!dateString) {
-				return ''
-			}
-			return Moment(dateString).format('LL LTS')
-		},
-	},
+})
+
+type FileEntry = {
+	id: number
+	name: string
+	status?: string | number
+	size?: number
+	signed?: string
 }
+
+const emit = defineEmits<{
+	(event: 'file-signed', file: FileEntry): void
+	(event: 'files-updated', files: FileEntry[]): void
+}>()
+
+const props = withDefaults(defineProps<{
+	fileIds?: number[]
+	updateInterval?: number
+}>(), {
+	fileIds: () => [],
+	updateInterval: 2000,
+})
+
+const { fileIds, updateInterval } = toRefs(props)
+const files = ref<FileEntry[]>([])
+const updateTimer = ref<ReturnType<typeof setInterval> | null>(null)
+
+async function loadFiles() {
+	try {
+		const fileRequests = fileIds.value.map((fileId) => axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/${fileId}`)))
+		const responses = await Promise.all(fileRequests)
+		files.value = responses.map((response) => response.data.ocs.data)
+		emit('files-updated', files.value)
+	} catch (error) {
+		console.error('[libresign][front] Failed to load files', error)
+	}
+}
+
+function startUpdatePolling() {
+	if (updateTimer.value) {
+		return
+	}
+	updateTimer.value = setInterval(() => {
+		loadFiles()
+	}, updateInterval.value)
+}
+
+function stopUpdatePolling() {
+	if (updateTimer.value) {
+		clearInterval(updateTimer.value)
+		updateTimer.value = null
+	}
+}
+
+function getStatusClass(status: string | number) {
+	const statusMap: Record<string | number, string> = {
+		[FILE_STATUS.NOT_LIBRESIGN_FILE]: 'not-libresign',
+		[FILE_STATUS.DRAFT]: 'draft',
+		[FILE_STATUS.ABLE_TO_SIGN]: 'ready',
+		[FILE_STATUS.PARTIAL_SIGNED]: 'partial',
+		[FILE_STATUS.SIGNED]: 'signed',
+		[FILE_STATUS.DELETED]: 'deleted',
+		[FILE_STATUS.SIGNING_IN_PROGRESS]: 'signing',
+	}
+	return statusMap[status] || 'unknown'
+}
+
+function formatDate(dateString?: string) {
+	if (!dateString) {
+		return ''
+	}
+	return Moment(dateString).format('LL LTS')
+}
+
+watch(fileIds, (newIds) => {
+	if (newIds.length > 0) {
+		loadFiles()
+		startUpdatePolling()
+	} else {
+		stopUpdatePolling()
+	}
+})
+
+onMounted(() => {
+	if (fileIds.value.length > 0) {
+		loadFiles()
+		startUpdatePolling()
+	}
+})
+
+onBeforeUnmount(() => {
+	stopUpdatePolling()
+})
+
+defineExpose({
+	files,
+	updateTimer,
+	loadFiles,
+	startUpdatePolling,
+	stopUpdatePolling,
+	getStatusClass,
+	getStatusLabel,
+	getStatusIcon,
+	formatDate,
+})
 </script>
 
 <style lang="scss" scoped>

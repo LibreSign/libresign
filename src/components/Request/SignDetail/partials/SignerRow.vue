@@ -23,8 +23,9 @@
 	</NcListItem>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed } from 'vue'
 
 import { emit } from '@nextcloud/event-bus'
 import Moment from '@nextcloud/moment'
@@ -32,67 +33,55 @@ import Moment from '@nextcloud/moment'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 
-export default {
+defineOptions({
 	name: 'SignerRow',
 	inheritAttrs: false,
-	components: {
-		NcListItem,
-		NcAvatar,
-	},
-	props: {
-		signer: {
-			type: Object,
-			required: true,
-		},
-		to: {
-			type: Object,
-			required: false,
-			default: undefined,
-		},
-		event: {
-			type: String,
-			required: false,
-			default: '',
-		},
-	},
-	computed: {
-		displayName() {
-			const { signer } = this
+})
 
-			if (signer.displayName) {
-				return signer.displayName
-			}
+type Signer = {
+	displayName?: string
+	email?: string
+	signed?: string | boolean
+	element?: {
+		elementId?: number
+	}
+}
 
-			if (signer.email) {
-				return signer.email
-			}
+const props = withDefaults(defineProps<{
+	signer: Signer
+	to?: Record<string, unknown>
+	event?: string
+}>(), {
+	to: undefined,
+	event: '',
+})
 
-			return t('libresign', 'Account does not exist')
-		},
-		status() {
-			const { signer } = this
-			return signer.signed ? 'signed' : 'pending'
-		},
-		signDate() {
-			const { signer } = this
+const displayName = computed(() => {
+	if (props.signer.displayName) {
+		return props.signer.displayName
+	}
 
-			return signer.signed
-				? Moment(signer.signed, 'YYYY-MM-DD').toDate()
-				: ''
-		},
-		element() {
-			return this.signer.element || {}
-		},
-		hasElement() {
-			return this.element.elementId > 0
-		},
-	},
-	methods: {
-		t,
-		signerClickAction(signer) {
-			emit(this.event, this.signer)
-		},
-	},
+	if (props.signer.email) {
+		return props.signer.email
+	}
+
+	return t('libresign', 'Account does not exist')
+})
+
+const status = computed(() => (props.signer.signed ? 'signed' : 'pending'))
+
+const signDate = computed(() => (
+	props.signer.signed
+		? Moment(props.signer.signed, 'YYYY-MM-DD').toDate()
+		: ''
+))
+
+const element = computed(() => props.signer.element || {})
+
+const hasElement = computed(() => (element.value.elementId || 0) > 0)
+
+function signerClickAction() {
+	emit(props.event, props.signer)
 }
 </script>
 

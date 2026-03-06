@@ -27,7 +27,7 @@
 	</ul>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
@@ -41,29 +41,17 @@ import {
 	mdiTune,
 } from '@mdi/js'
 
-export default {
+defineOptions({
 	name: 'Settings',
-	components: {
-		NcAppNavigationItem,
-		NcIconSvgWrapper,
-	},
-	setup() {
-		return {
-			mdiAccount,
-			mdiStar,
-			mdiTune,
-		}
-	},
-	data() {
-		return {
-			isAdmin: getCurrentUser()?.isAdmin ?? false,
-		}
-	},
-	methods: {
-		t,
-		getAdminRoute() {
-			return generateUrl('settings/admin/libresign')
-		},
-	},
+})
+
+const isAdmin = getCurrentUser()?.isAdmin ?? false
+
+function getAdminRoute() {
+	return generateUrl('settings/admin/libresign')
 }
+
+defineExpose({
+	getAdminRoute,
+})
 </script>
