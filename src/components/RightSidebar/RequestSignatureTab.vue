@@ -314,6 +314,7 @@ import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
+import { useSigningOrder } from '../../composables/useSigningOrder.js'
 
 const iconMap = {
 	svgAccount,
@@ -325,11 +326,8 @@ const iconMap = {
 	svgXmpp,
 }
 
-import signingOrderMixin from '../../mixins/signingOrderMixin.js'
-
 export default {
 	name: 'RequestSignatureTab',
-	mixins: [signingOrderMixin],
 	components: {
 		IdentifySigner,
 		NcActionButton,
@@ -361,12 +359,15 @@ export default {
 		const signStore = useSignStore()
 		const sidebarStore = useSidebarStore()
 		const userConfigStore = useUserConfigStore()
+		const { normalizeSigningOrders, recalculateSigningOrders } = useSigningOrder()
 
 		return {
 			filesStore,
 			signStore,
 			sidebarStore,
 			userConfigStore,
+			normalizeSigningOrders,
+			recalculateSigningOrders,
 			mdiAccountPlus,
 			mdiBell,
 			mdiChartGantt,
