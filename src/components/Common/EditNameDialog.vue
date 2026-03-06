@@ -22,8 +22,9 @@
 	</NcDialog>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, ref, watch } from 'vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
@@ -32,117 +33,120 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 
-export default {
+defineOptions({
 	name: 'EditNameDialog',
-	components: {
-		NcButton,
-		NcDialog,
-		NcNoteCard,
-		NcTextField,
-	},
-	props: {
-		name: {
-			type: String,
-			default: '',
-		},
-		title: {
-			type: String,
-			default: 'Edit name',
-		},
-		label: {
-			type: String,
-			default: 'Name',
-		},
-		placeholder: {
-			type: String,
-			default: 'Enter name',
-		},
-	},
-	emits: ['close'],
-	data() {
-		return {
-			localName: this.name || '',
-			localSuccessMessage: '',
-			localErrorMessage: '',
-			ENVELOPE_NAME_MIN_LENGTH,
-			ENVELOPE_NAME_MAX_LENGTH,
-		}
-	},
-	computed: {
-		isNameValid() {
-			const trimmedName = this.localName.trim()
-			return trimmedName.length >= ENVELOPE_NAME_MIN_LENGTH && trimmedName.length <= ENVELOPE_NAME_MAX_LENGTH
-		},
-		dialogButtons() {
-			return [
-				{
-					label: this.t('libresign', 'Cancel'),
-					callback: () => {
-						this.handleClose()
-					},
-				},
-				{
-					label: this.t('libresign', 'Save'),
-					type: 'primary',
-					disabled: !this.isNameValid,
-					callback: () => {
-						this.handleSave()
-					},
-				},
-			]
-		},
-	},
-	watch: {
-		name(newVal) {
-			this.localName = newVal || ''
-		},
-	},
-	methods: {
-		t,
-		clearMessages() {
-			this.localSuccessMessage = ''
-			this.localErrorMessage = ''
-		},
-		showSuccess(message) {
-			this.clearMessages()
-			this.localSuccessMessage = message
-			setTimeout(() => {
-				this.localSuccessMessage = ''
-			}, 5000)
-		},
-		showError(message) {
-			this.clearMessages()
-			this.localErrorMessage = message
-		},
-		handleClose() {
-			this.$emit('close', null)
-		},
-		handleSave() {
-			if (!this.isNameValid) {
-				return
-			}
+})
 
-			const trimmedName = this.localName.trim()
+const props = withDefaults(defineProps<{
+	name?: string | null
+	title?: string
+	label?: string
+	placeholder?: string
+}>(), {
+	name: '',
+	title: 'Edit name',
+	label: 'Name',
+	placeholder: 'Enter name',
+})
 
-			if (!trimmedName) {
-				this.showError(this.t('libresign', 'Name cannot be empty'))
-				return
-			}
+const emit = defineEmits<{
+	(event: 'close', value: string | null): void
+}>()
 
-			if (trimmedName.length < ENVELOPE_NAME_MIN_LENGTH) {
-				this.showError(this.t('libresign', 'Name must be at least {min} characters', { min: ENVELOPE_NAME_MIN_LENGTH }))
-				return
-			}
+const localName = ref(props.name || '')
+const localSuccessMessage = ref('')
+const localErrorMessage = ref('')
 
-			if (trimmedName.length > ENVELOPE_NAME_MAX_LENGTH) {
-				this.showError(this.t('libresign', 'Name must not exceed {max} characters', { max: ENVELOPE_NAME_MAX_LENGTH }))
-				return
-			}
+const isNameValid = computed(() => {
+	const trimmedName = localName.value.trim()
+	return trimmedName.length >= ENVELOPE_NAME_MIN_LENGTH && trimmedName.length <= ENVELOPE_NAME_MAX_LENGTH
+})
 
-			this.$emit('close', trimmedName)
-		},
-	},
+function clearMessages() {
+	localSuccessMessage.value = ''
+	localErrorMessage.value = ''
 }
+
+function showSuccess(message: string) {
+	clearMessages()
+	localSuccessMessage.value = message
+	setTimeout(() => {
+		localSuccessMessage.value = ''
+	}, 5000)
+}
+
+function showError(message: string) {
+	clearMessages()
+	localErrorMessage.value = message
+}
+
+function handleClose() {
+	emit('close', null)
+}
+
+function handleSave() {
+	if (!isNameValid.value) {
+		return
+	}
+
+	const trimmedName = localName.value.trim()
+
+	if (!trimmedName) {
+		showError(t('libresign', 'Name cannot be empty'))
+		return
+	}
+
+	if (trimmedName.length < ENVELOPE_NAME_MIN_LENGTH) {
+		showError(t('libresign', 'Name must be at least {min} characters', { min: ENVELOPE_NAME_MIN_LENGTH }))
+		return
+	}
+
+	if (trimmedName.length > ENVELOPE_NAME_MAX_LENGTH) {
+		showError(t('libresign', 'Name must not exceed {max} characters', { max: ENVELOPE_NAME_MAX_LENGTH }))
+		return
+	}
+
+	emit('close', trimmedName)
+}
+
+const dialogButtons = computed(() => {
+	return [
+		{
+			label: t('libresign', 'Cancel'),
+			callback: () => {
+				handleClose()
+			},
+		},
+		{
+			label: t('libresign', 'Save'),
+			type: 'primary',
+			disabled: !isNameValid.value,
+			callback: () => {
+				handleSave()
+			},
+		},
+	]
+})
+
+watch(() => props.name, (newVal) => {
+	localName.value = newVal || ''
+})
+
+defineExpose({
+	localName,
+	localSuccessMessage,
+	localErrorMessage,
+	ENVELOPE_NAME_MIN_LENGTH,
+	ENVELOPE_NAME_MAX_LENGTH,
+	isNameValid,
+	dialogButtons,
+	t,
+	clearMessages,
+	showSuccess,
+	showError,
+	handleClose,
+	handleSave,
+})
 </script>
 
 <style scoped>
