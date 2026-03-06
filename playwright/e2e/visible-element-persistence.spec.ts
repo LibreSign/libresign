@@ -8,6 +8,19 @@ import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
 
 test('visible signature element persists and can be deleted', async ({ page }) => {
+	const requestSignatureTab = page.locator('#request-signature-tab')
+	const setupSignaturePositionsButton = requestSignatureTab.getByRole('button', { name: 'Setup signature positions' })
+	const openSidebarButton = page.getByRole('button', { name: 'Open sidebar' })
+
+	async function reopenFileFromUuid(uuid: string) {
+		await page.goto(`./apps/libresign/f/filelist/sign?uuid=${uuid}`)
+		if (await openSidebarButton.isVisible()) {
+			await openSidebarButton.click()
+		}
+		await expect(setupSignaturePositionsButton).toBeVisible()
+		await setupSignaturePositionsButton.click()
+	}
+
 	await login(
 		page.request,
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
@@ -44,8 +57,16 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Admin Name')
 
 	// Save the signer first, then open the signature positions modal
+	const createRequestResponsePromise = page.waitForResponse(response =>
+		response.url().includes('/apps/libresign/api/v1/request-signature')
+		&& ['POST', 'PATCH'].includes(response.request().method()),
+	)
 	await page.getByRole('button', { name: 'Save' }).click()
-	await page.getByRole('button', { name: 'Setup signature positions' }).click()
+	const createRequestResponse = await createRequestResponsePromise
+	const createRequestBody = await createRequestResponse.json()
+	const requestUuid = createRequestBody.ocs.data.uuid as string
+	await expect(setupSignaturePositionsButton).toBeVisible()
+	await setupSignaturePositionsButton.click()
 	await expect(page.getByLabel('Page 1 of 1.')).toBeVisible()
 
 	// Select the signer to enter element-placement mode
@@ -68,23 +89,8 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	// Save closes the modal and persists the element via API
 	await page.getByLabel('Signature positions').getByRole('button', { name: 'Save' }).click()
 
-	// Navigate to the Files list and ensure it is sorted by Created at, newest first (descending)
-	await page.locator('#fileslist').getByRole('link', { name: 'Files' }).click()
-	const createdAtTh = page.locator('th.files-list__row-created_at')
-	const sortDirection = await createdAtTh.getAttribute('aria-sort')
-	if (sortDirection !== 'descending') {
-		await page.getByRole('button', { name: 'Created at' }).click()
-		if (sortDirection === 'none') {
-			// Column was sortable but not active: first click set it to ascending, one more for descending
-			await page.getByRole('button', { name: 'Created at' }).click()
-		}
-	}
-	const firstRow = page.locator('[data-cy-files-list-tbody] tr.files-list__row').first()
-	await expect(firstRow.getByRole('button', { name: 'small_valid' })).toBeVisible()
-
-	// Re-open the document by clicking the file name — the sidebar opens automatically
-	await firstRow.getByRole('button', { name: 'small_valid' }).click()
-	await page.getByRole('button', { name: 'Setup signature positions' }).click()
+	// Open the document again through the Files route using the request uuid to force a fresh load
+	await reopenFileFromUuid(requestUuid)
 
 	// Verify the element survived the round-trip to the server
 	await expect(
@@ -104,22 +110,9 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 
 	// Navigate away and back to force a fresh load from the server
 	await page.getByRole('link', { name: 'Request' }).click()
-	await page.locator('#fileslist').getByRole('link', { name: 'Files' }).click()
-	const createdAtTh2 = page.getByRole('columnheader', { name: 'Created at' })
-	const sortDirection2 = await createdAtTh2.evaluate((el: HTMLElement) => el.ariaSort)
-	if (sortDirection2 !== 'descending') {
-		await page.getByRole('button', { name: 'Created at' }).click()
-		if (sortDirection2 === 'none') {
-			// Column was sortable but not active: first click set it to ascending, one more for descending
-			await page.getByRole('button', { name: 'Created at' }).click()
-		}
-	}
-	const lastRow = page.locator('[data-cy-files-list-tbody] tr.files-list__row').first()
-	await expect(lastRow.getByRole('button', { name: 'small_valid' })).toBeVisible()
 
 	// Re-open the document one last time and confirm the element is gone
-	await lastRow.getByRole('button', { name: 'small_valid' }).click()
-	await page.getByRole('button', { name: 'Setup signature positions' }).click()
+	await reopenFileFromUuid(requestUuid)
 	await expect(page.getByLabel('Page 1 of 1.')).toBeVisible()
 
 	await expect(
