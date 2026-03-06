@@ -77,7 +77,7 @@ describe('Documents', () => {
 		})
 		await flushPromises()
 
-		expect(wrapper.vm.$options.components.NcIconSvgWrapper).toBeTruthy()
+		expect(wrapper.findAll('.icon')).toHaveLength(2)
 		expect(wrapper.vm.mdiFolder).toBeTruthy()
 		expect(wrapper.vm.mdiUpload).toBeTruthy()
 		expect(wrapper.vm.mdiDelete).toBeTruthy()
