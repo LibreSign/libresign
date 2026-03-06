@@ -41,7 +41,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path: string, params?: Record<string, string>) => path.replace('{uuid}', params?.uuid ?? '')), 
+	generateOcsUrl: vi.fn((path: string, params?: Record<string, string>) => path.replace('{uuid}', params?.uuid ?? '')),
 }))
 
 describe('RenewEmail.vue', () => {
