@@ -70,6 +70,7 @@ describe('SignPDF.vue', () => {
 
 	it('attaches envelope files to signStore document', async () => {
 		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { loadState } = await import('@nextcloud/initial-state')
 		const { useSignStore } = await import('../../../store/sign.js')
 		const signStore = useSignStore()
 
@@ -88,18 +89,28 @@ describe('SignPDF.vue', () => {
 					NcButton: true,
 				},
 				mocks: {
-					$route: { name: 'SignPDFExternal', params: { uuid: 'uuid-123' }, query: {} },
+					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
 				},
 			},
 		})
 
 		const envelopeFiles = [
-			{ id: 10, name: 'file1', metadata: { extension: 'pdf' } },
-			{ id: 11, name: 'file2', metadata: { extension: 'pdf' } },
+			{ id: 10, name: 'file1', file: '/file1.pdf', metadata: { extension: 'pdf' } },
+			{ id: 11, name: 'file2', file: '/file2.pdf', metadata: { extension: 'pdf' } },
 		]
 
-		wrapper.vm.fetchEnvelopeFiles = vi.fn().mockResolvedValue(envelopeFiles)
-		wrapper.vm.handleInitialStatePdfs = vi.fn()
+		vi.mocked(loadState).mockImplementation((app, key, defaultValue) => {
+			if (key === 'envelopeFiles') {
+				return envelopeFiles
+			}
+			return defaultValue
+		})
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+			headers: {
+				get: vi.fn(() => 'application/pdf'),
+			},
+			blob: vi.fn(async () => new Blob(['pdf'], { type: 'application/pdf' })),
+		}))
 
 		await wrapper.vm.loadEnvelopePdfs(1)
 
