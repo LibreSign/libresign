@@ -69,60 +69,62 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import { computed } from 'vue'
+
 import { FILE_STATUS } from '../constants.js'
 import { getStatusIcon } from '../utils/fileStatus.js'
 
-export default {
+defineOptions({
 	name: 'RequestSigningProgress',
-	components: {
-		NcIconSvgWrapper,
-	},
-	props: {
-		status: {
-			type: Number,
-			required: true,
-		},
-		statusText: {
-			type: String,
-			required: false,
-			default: '',
-		},
-		progress: {
-			type: Object,
-			required: false,
-			default: null,
-		},
-		isLoading: {
-			type: Boolean,
-			required: false,
-			default: false,
-		},
-	},
-	setup() {
-		return {
-			t,
-		}
-	},
-	computed: {
-		isInProgress() {
-			return this.status === FILE_STATUS.SIGNING_IN_PROGRESS
-		},
+})
 
-		statusIconPath() {
-			return getStatusIcon(this.status) || ''
-		},
-
-		progressPercentage() {
-			if (!this.progress || this.progress.total === 0) {
-				return 0
-			}
-			return Math.round((this.progress.signed / this.progress.total) * 100)
-		},
-	},
+type SigningProgress = {
+	total: number
+	signed: number
+	files?: Array<{
+		uuid: string
+		name: string
+		signedCount: number
+		totalSigners: number
+		isSigned: boolean
+	}>
+	signers?: Array<{
+		id: string | number
+		displayName: string
+		signed: boolean
+	}>
 }
+
+const props = withDefaults(defineProps<{
+	status: number
+	statusText?: string
+	progress?: SigningProgress | null
+	isLoading?: boolean
+}>(), {
+	statusText: '',
+	progress: null,
+	isLoading: false,
+})
+
+const isInProgress = computed(() => props.status === FILE_STATUS.SIGNING_IN_PROGRESS)
+
+const statusIconPath = computed(() => getStatusIcon(props.status) || '')
+
+const progressPercentage = computed(() => {
+	if (!props.progress || props.progress.total === 0) {
+		return 0
+	}
+	return Math.round((props.progress.signed / props.progress.total) * 100)
+})
+
+defineExpose({
+	isInProgress,
+	statusIconPath,
+	progressPercentage,
+})
 </script>
 
 <style lang="scss" scoped>
