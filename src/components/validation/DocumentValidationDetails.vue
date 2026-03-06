@@ -52,9 +52,10 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { generateUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { computed, toRefs } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
@@ -68,50 +69,58 @@ import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
 
-export default {
+defineOptions({
 	name: 'DocumentValidationDetails',
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-		NcListItem,
-		NcRichText,
-		SignerDetails,
-	},
-	props: {
-		document: { type: Object, required: true },
-		legalInformation: { type: String, default: '' },
-		documentValidMessage: { type: String, default: '' },
-		isAfterSigned: { type: Boolean, default: false },
-	},
-	setup() {
-		return {
-			t,
-			mdiEye,
-		}
-	},
-	computed: {
-		size() {
-			if (!this.document.size) return ''
-			const size = parseInt(this.document.size)
-			if (size < 1024) return size + ' B'
-			if (size < 1048576) return (size / 1024).toFixed(2) + ' KB'
-			return (size / 1048576).toFixed(2) + ' MB'
-		},
-		documentStatus() {
-			return getStatusLabel(this.document.status)
-		},
-	},
-	methods: {
-		async viewDocument() {
-			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.document.uuid })
-			await openDocument({
-				fileUrl,
-				filename: this.document.name,
-				nodeId: this.document.nodeId,
-			})
-		},
-	},
+})
+
+type ValidationDocument = {
+	name: string
+	status?: string | number
+	totalPages?: number
+	size?: string
+	pdfVersion?: string
+	uuid?: string
+	nodeId?: number
+	signers?: Array<{ displayName?: string; email?: string }>
 }
+
+const props = withDefaults(defineProps<{
+	document: ValidationDocument
+	legalInformation?: string
+	documentValidMessage?: string
+	isAfterSigned?: boolean
+}>(), {
+	legalInformation: '',
+	documentValidMessage: '',
+	isAfterSigned: false,
+})
+
+const { document } = toRefs(props)
+
+const size = computed(() => {
+	if (!document.value.size) return ''
+	const parsedSize = parseInt(document.value.size)
+	if (parsedSize < 1024) return parsedSize + ' B'
+	if (parsedSize < 1048576) return (parsedSize / 1024).toFixed(2) + ' KB'
+	return (parsedSize / 1048576).toFixed(2) + ' MB'
+})
+
+const documentStatus = computed(() => getStatusLabel(document.value.status))
+
+async function viewDocument() {
+	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid as string })
+	await openDocument({
+		fileUrl,
+		filename: document.value.name,
+		nodeId: document.value.nodeId,
+	})
+}
+
+defineExpose({
+	documentStatus,
+	size,
+	viewDocument,
+})
 </script>
 
 <style lang="scss" scoped>
