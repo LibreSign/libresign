@@ -24,8 +24,10 @@
 	</NcAppSidebar>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 import NcAppSidebar from '@nextcloud/vue/components/NcAppSidebar'
 import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
@@ -37,57 +39,67 @@ import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 
-export default {
+defineOptions({
 	name: 'RightSidebar',
-	components: {
-		NcAppSidebar,
-		NcAppSidebarTab,
-		RequestSignatureTab,
-		SignTab,
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		const signStore = useSignStore()
-		const sidebarStore = useSidebarStore()
-		return { filesStore, signStore, sidebarStore }
-	},
-	computed: {
-		fileName() {
-			return this.filesStore.getFile()?.name ?? ''
-		},
-		subTitle() {
-			if (!this.opened) {
-				return t('libresign', 'Enter who will receive the request')
-			}
-			return this.filesStore.getSubtitle()
-		},
-		showRequestSignatureTab() {
-			return this.sidebarStore.activeTab === 'request-signature-tab'
-		},
-		showSign() {
-			return this.sidebarStore.activeTab === 'sign-tab'
-		},
-	},
-	watch: {
-		'sidebarStore.activeTab'(newValue, previousValue) {
-			if (this.$refs?.rightAppSidebar?.$refs?.tabs) {
-				this.$refs.rightAppSidebar.$refs.tabs.activeTab = newValue
-			}
-		},
-		'$route.name'(routeName) {
-			this.sidebarStore.handleRouteChange(routeName)
-		},
-	},
-	methods: {
-		t,
-		handleUpdateActive(active) {
-			this.sidebarStore.setActiveTab(active)
-		},
-		closeSidebar() {
-			this.sidebarStore.hideSidebar()
-		},
-	},
+})
+
+type SidebarRef = {
+	$refs?: {
+		tabs?: {
+			activeTab?: string
+		}
+	}
 }
+
+const filesStore = useFilesStore()
+const signStore = useSignStore()
+const sidebarStore = useSidebarStore()
+const route = useRoute()
+const rightAppSidebar = ref<SidebarRef | null>(null)
+
+const fileName = computed(() => filesStore.getFile()?.name ?? '')
+const opened = computed(() => sidebarStore.isVisible)
+const subTitle = computed(() => {
+	if (!opened.value) {
+		return t('libresign', 'Enter who will receive the request')
+	}
+	return filesStore.getSubtitle()
+})
+
+const showRequestSignatureTab = computed(() => sidebarStore.activeTab === 'request-signature-tab')
+const showSign = computed(() => sidebarStore.activeTab === 'sign-tab')
+
+watch(() => sidebarStore.activeTab, (newValue) => {
+	if (rightAppSidebar.value?.$refs?.tabs) {
+		rightAppSidebar.value.$refs.tabs.activeTab = newValue
+	}
+})
+
+watch(() => route.name, (routeName) => {
+	sidebarStore.handleRouteChange(routeName)
+})
+
+function handleUpdateActive(active: string) {
+	sidebarStore.setActiveTab(active)
+}
+
+function closeSidebar() {
+	sidebarStore.hideSidebar()
+}
+
+defineExpose({
+	filesStore,
+	signStore,
+	sidebarStore,
+	rightAppSidebar,
+	fileName,
+	opened,
+	subTitle,
+	showRequestSignatureTab,
+	showSign,
+	handleUpdateActive,
+	closeSidebar,
+})
 </script>
 <style lang="scss" scoped>
 .app-sidebar__tab  {
