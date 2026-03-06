@@ -106,6 +106,7 @@ appstore:
 	cp -r \
 		appinfo \
 		composer \
+		css \
 		img \
 		js \
 		l10n \
