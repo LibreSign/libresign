@@ -138,6 +138,8 @@ jobs:
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
+          cache: npm
+          cache-dependency-path: apps/${{ env.APP_NAME }}/package-lock.json
 
       - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
         run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
@@ -147,8 +149,26 @@ jobs:
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
-          npm ci
+          npm ci --prefer-offline
           TESTING=true npm run build --if-present
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles(format('apps/{0}/package-lock.json', env.APP_NAME)) }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Cache LibreSign binary payloads
+        id: libresign-binaries-cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/libresign-binaries
+          key: ${{ runner.os }}-libresign-binaries-${{ hashFiles(format('apps/{0}/appinfo/install-*.json', env.APP_NAME), format('apps/{0}/lib/Service/Install/InstallService.php', env.APP_NAME)) }}
+          restore-keys: |
+            ${{ runner.os }}-libresign-binaries-
 
       - name: Set up Nextcloud
         run: |
@@ -160,6 +180,14 @@ jobs:
             --admin-user admin \
             --admin-pass admin
           ./occ --version
+
+      - name: Restore cached LibreSign binaries
+        if: steps.libresign-binaries-cache.outputs.cache-hit == 'true'
+        run: |
+          instance_id="$(./occ config:system:get instanceid)"
+          target_dir="data/appdata_${instance_id}/libresign"
+          mkdir -p "$target_dir"
+          cp -a .cache/libresign-binaries/. "$target_dir/"
 
       - name: Install app dependencies
         run: |
@@ -193,6 +221,16 @@ jobs:
             --l="Rio de Janeiro"
           ./occ user:setting admin settings email admin@email.tld
 
+      - name: Refresh cached LibreSign binaries snapshot
+        run: |
+          instance_id="$(./occ config:system:get instanceid)"
+          source_dir="data/appdata_${instance_id}/libresign"
+          rm -rf .cache/libresign-binaries
+          mkdir -p .cache/libresign-binaries
+          if [ -d "$source_dir" ]; then
+            cp -a "$source_dir"/. .cache/libresign-binaries/
+          fi
+
       - name: Start PHP built-in server
         run: |
           # front_controller_active tells Nextcloud to generate clean URLs (without index.php prefix)
@@ -202,9 +240,14 @@ jobs:
           timeout 30 bash -c 'until curl -s http://localhost:8080/status.php > /dev/null; do sleep 1; done'
           echo "Nextcloud is ready at http://localhost:8080"
 
-      - name: Install Playwright browsers
+      - name: Install Playwright system dependencies
         working-directory: apps/${{ env.APP_NAME }}
-        run: npx playwright install chromium --with-deps
+        run: npx playwright install-deps chromium
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: apps/${{ env.APP_NAME }}
+        run: npx playwright install chromium
 
       - name: Run Playwright tests
         working-directory: apps/${{ env.APP_NAME }}
