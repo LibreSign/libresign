@@ -19,7 +19,7 @@
 					{{ t('libresign', 'Loading …') }}
 				</p>
 			</div>
-			<div v-if="!signEnabled">
+			<div v-if="!signEnabled()">
 				{{ t('libresign', 'Document not available for signature.') }}
 			</div>
 			<Sign v-else-if="signStore.mounted"
@@ -29,8 +29,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { getCurrentInstance, onMounted } from 'vue'
 
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
 
@@ -40,53 +41,76 @@ import { FILE_STATUS } from '../../constants.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 
-export default {
+defineOptions({
 	name: 'SignTab',
-	components: {
-		Sign,
-	},
-	setup() {
-		const signStore = useSignStore()
-		const sidebarStore = useSidebarStore()
-		return { signStore, sidebarStore }
-	},
-	mounted() {
-		if (this.signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
-			const signRequestUuid = this.getSignRequestUuid()
-			if (signRequestUuid) {
-				this.onSigningStarted({ signRequestUuid })
-			}
-		}
-	},
-	methods: {
-		t,
-		signEnabled() {
-			return FILE_STATUS.ABLE_TO_SIGN === this.signStore.document.status
-				|| FILE_STATUS.PARTIAL_SIGNED === this.signStore.document.status
-		},
-		getSignRequestUuid() {
-			const doc = this.signStore.document || {}
-			const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
-			const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
-			const fromSigner = signer.sign_uuid
-			return fromDoc || fromSigner || loadState('libresign', 'sign_request_uuid', null)
-		},
-		onSigned(data) {
-			this.$router.push({
-				name: this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile',
-				params: { uuid: data.signRequestUuid },
-				state: { isAfterSigned: true },
-			})
-		},
-		onSigningStarted(payload) {
-			this.$router.push({
-				name: this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile',
-				params: { uuid: payload.signRequestUuid },
-				state: { isAfterSigned: false, isAsync: true },
-			})
-		},
-	},
+})
+
+const signStore = useSignStore()
+const sidebarStore = useSidebarStore()
+
+const instance = getCurrentInstance()
+
+function getRouter() {
+	return (instance?.appContext.config.globalProperties.$router
+		|| instance?.proxy?.$router) as { push: (payload: unknown) => Promise<unknown> | void } | undefined
 }
+
+function getRoute() {
+	return (instance?.appContext.config.globalProperties.$route
+		|| instance?.proxy?.$route) as { path?: string } | undefined
+}
+
+function signEnabled() {
+	return FILE_STATUS.ABLE_TO_SIGN === signStore.document.status
+		|| FILE_STATUS.PARTIAL_SIGNED === signStore.document.status
+}
+
+function getSignRequestUuid() {
+	const doc = signStore.document || {}
+	const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
+	const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
+	const fromSigner = signer.sign_uuid
+	return fromDoc || fromSigner || loadState('libresign', 'sign_request_uuid', null)
+}
+
+function getValidationRouteName() {
+	const path = getRoute()?.path || ''
+	return path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile'
+}
+
+function onSigned(data: { signRequestUuid: string }) {
+	getRouter()?.push({
+		name: getValidationRouteName(),
+		params: { uuid: data.signRequestUuid },
+		state: { isAfterSigned: true },
+	})
+}
+
+function onSigningStarted(payload: { signRequestUuid: string }) {
+	getRouter()?.push({
+		name: getValidationRouteName(),
+		params: { uuid: payload.signRequestUuid },
+		state: { isAfterSigned: false, isAsync: true },
+	})
+}
+
+onMounted(() => {
+	if (signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
+		const signRequestUuid = getSignRequestUuid()
+		if (signRequestUuid) {
+			onSigningStarted({ signRequestUuid })
+		}
+	}
+})
+
+defineExpose({
+	signStore,
+	sidebarStore,
+	signEnabled,
+	getSignRequestUuid,
+	onSigned,
+	onSigningStarted,
+})
 </script>
 
 <style lang="scss" scoped>
