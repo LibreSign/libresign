@@ -305,9 +305,14 @@ describe('RequestPicker component rules', () => {
 		it('passes picker results to handleFileChoose', async () => {
 			const nodes = [{ path: '/Documents/file.pdf' }]
 			filePickerPick.mockResolvedValue(nodes)
-			const handleSpy = vi.spyOn(wrapper.vm, 'handleFileChoose').mockResolvedValue()
+			filesStore.upload.mockResolvedValue(1)
 			await wrapper.vm.openFilePicker()
-			expect(handleSpy).toHaveBeenCalledWith(nodes)
+			expect(filesStore.upload).toHaveBeenCalledWith(
+				expect.objectContaining({
+					file: { path: '/Documents/file.pdf' },
+					name: 'file',
+				}),
+			)
 		})
 	})
 

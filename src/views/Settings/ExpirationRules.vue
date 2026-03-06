@@ -46,86 +46,132 @@
 		</fieldset>
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { generateOcsUrl } from '@nextcloud/router'
+import { onMounted, ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-export default {
-	name: 'ExpirationRules',
-	components: {
-		NcSettingsSection,
-		NcTextField,
-		NcCheckboxRadioSwitch,
-	},
-	data() {
-		return {
-			paternValidadeUrl: 'https://validador.librecode.coop/',
-			enableMaximumValidity: false,
-			maximumValidity: '0',
-			enableRenewalInterval: false,
-			renewalInterval: '0',
-			expiryInDays: 0,
-			url: null,
+type OcsConfigResponse = {
+	data?: {
+		ocs?: {
+			data?: {
+				data?: string | number
+			}
 		}
-	},
-	created() {
-		this.getData()
-	},
-	methods: {
-		t,
-		async getData() {
-			this.getMaximumValidity()
-			this.getRenewalInterval()
-			this.getExpiryInDays()
-		},
-		async getMaximumValidity() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/maximum_validity'),
-			)
-			this.maximumValidity = Number(response.data.ocs.data.data).toString()
-			this.enableMaximumValidity = Number(this.maximumValidity) > 0
-		},
-		async saveMaximumValidity() {
-			if (!this.enableMaximumValidity) {
-				this.maximumValidity = '0'
-			}
-			OCP.AppConfig.setValue('libresign', 'maximum_validity', String(Number(this.maximumValidity)))
-		},
-		async getRenewalInterval() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/renewal_interval'),
-			)
-			this.renewalInterval = Number(response.data.ocs.data.data).toString()
-			this.enableRenewalInterval = Number(this.renewalInterval) > 0
-		},
-		async saveRenewalInterval() {
-			if (!this.enableRenewalInterval) {
-				this.renewalInterval = '0'
-			}
-			OCP.AppConfig.setValue('libresign', 'renewal_interval', String(Number(this.renewalInterval)))
-		},
-		async getExpiryInDays() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/expiry_in_days'),
-			)
-			this.expiryInDays = Number(response.data.ocs.data.data).toString()
-			if (this.expiryInDays === 0) {
-				this.expiryInDays = 365
-			}
-		},
-		async saveExpiryInDays() {
-			if (!this.expiryInDays) {
-				this.expiryInDays = 365
-			}
-			OCP.AppConfig.setValue('libresign', 'expiry_in_days', String(Number(this.expiryInDays)))
-		},
-	},
+	}
 }
+
+type OcpGlobal = {
+	AppConfig: {
+		setValue: (app: string, key: string, value: string) => void
+	}
+}
+
+defineOptions({
+	name: 'ExpirationRules',
+})
+
+const paternValidadeUrl = ref('https://validador.librecode.coop/')
+const enableMaximumValidity = ref(false)
+const maximumValidity = ref('0')
+const enableRenewalInterval = ref(false)
+const renewalInterval = ref('0')
+const expiryInDays = ref<string | number>(0)
+const url = ref<string | null>(null)
+
+async function getMaximumValidity() {
+	const response = await axios.get(
+		generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/maximum_validity'),
+	) as OcsConfigResponse
+	maximumValidity.value = Number(response.data?.ocs?.data?.data).toString()
+	enableMaximumValidity.value = Number(maximumValidity.value) > 0
+}
+
+async function saveMaximumValidity() {
+	if (!enableMaximumValidity.value) {
+		maximumValidity.value = '0'
+	}
+	;(globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP.AppConfig.setValue(
+		'libresign',
+		'maximum_validity',
+		String(Number(maximumValidity.value)),
+	)
+}
+
+async function getRenewalInterval() {
+	const response = await axios.get(
+		generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/renewal_interval'),
+	) as OcsConfigResponse
+	renewalInterval.value = Number(response.data?.ocs?.data?.data).toString()
+	enableRenewalInterval.value = Number(renewalInterval.value) > 0
+}
+
+async function saveRenewalInterval() {
+	if (!enableRenewalInterval.value) {
+		renewalInterval.value = '0'
+	}
+	;(globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP.AppConfig.setValue(
+		'libresign',
+		'renewal_interval',
+		String(Number(renewalInterval.value)),
+	)
+}
+
+async function getExpiryInDays() {
+	const response = await axios.get(
+		generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/expiry_in_days'),
+	) as OcsConfigResponse
+	expiryInDays.value = Number(response.data?.ocs?.data?.data).toString()
+	if (Number(expiryInDays.value) === 0) {
+		expiryInDays.value = 365
+	}
+}
+
+async function saveExpiryInDays() {
+	if (!expiryInDays.value) {
+		expiryInDays.value = 365
+	}
+	;(globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP.AppConfig.setValue(
+		'libresign',
+		'expiry_in_days',
+		String(Number(expiryInDays.value)),
+	)
+}
+
+async function getData() {
+	await Promise.all([
+		getMaximumValidity(),
+		getRenewalInterval(),
+		getExpiryInDays(),
+	])
+}
+
+onMounted(() => {
+	void getData()
+})
+
+defineExpose({
+	t,
+	paternValidadeUrl,
+	enableMaximumValidity,
+	maximumValidity,
+	enableRenewalInterval,
+	renewalInterval,
+	expiryInDays,
+	url,
+	getData,
+	getMaximumValidity,
+	saveMaximumValidity,
+	getRenewalInterval,
+	saveRenewalInterval,
+	getExpiryInDays,
+	saveExpiryInDays,
+})
 </script>
 <style scoped>
 

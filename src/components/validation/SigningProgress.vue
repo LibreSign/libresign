@@ -52,10 +52,11 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -67,263 +68,326 @@ import {
 } from '@mdi/js'
 import { buildStatusMap } from '../../utils/fileStatus.js'
 
-export default {
+
+type ProgressFile = {
+	id: number
+	name?: string
+	status?: number
+	error?: {
+		message?: string
+	} | null
+}
+
+type ProgressState = {
+	total?: number
+	signed?: number
+	pending?: number
+	inProgress?: number
+	errors?: number
+	files?: ProgressFile[]
+}
+
+type ValidationDocument = {
+	nodeType?: string
+	files?: Array<{
+		id: number
+		name: string
+		status: number
+	}>
+	signers?: Array<{
+		signed?: boolean
+	}>
+}
+
+type StatusMeta = {
+	label: string
+	icon?: string
+	class?: string
+}
+
+type PollResponse = {
+	status?: string
+	statusCode?: number | null
+	progress?: ProgressState
+	error?: {
+		message?: string
+	}
+	file?: unknown
+}
+
+defineOptions({
 	name: 'SigningProgress',
-	components: {
-		NcLoadingIcon,
-		NcNoteCard,
-		NcIconSvgWrapper,
-	},
-	props: {
-		signRequestUuid: {
-			type: String,
-			required: true,
-			description: 'Sign request UUID (not file UUID)',
-		},
-	},
-	emits: ['completed', 'error', 'status-changed', 'file-errors'],
-	setup() {
-		return {
-			t,
-			mdiAlertCircleOutline,
-			mdiHelpCircle,
+})
+
+const props = defineProps<{
+	signRequestUuid: string
+}>()
+
+const emit = defineEmits<{
+	(e: 'completed', file?: unknown): void
+	(e: 'error', message: string): void
+	(e: 'status-changed', status: string | undefined): void
+	(e: 'file-errors', fileErrors: ProgressFile[]): void
+}>()
+
+const isPolling = ref(false)
+const pollingInterval = ref<ReturnType<typeof setTimeout> | null>(null)
+const progress = ref<ProgressState | null>(null)
+const generalErrorMessage = ref<string | null>(null)
+const statusMap = ref<Record<string, StatusMeta>>(buildStatusMap())
+const pollTimeoutSeconds = ref(30)
+
+function getHeaderTitle() {
+	const { allProcessed, errorCount } = getProgressState()
+	if (!isPolling.value && allProcessed && errorCount > 0) {
+		return t('libresign', 'Signing finished with errors')
+	}
+	return t('libresign', 'Signing document...')
+}
+
+function getHeaderSubtitle() {
+	const { allProcessed, errorCount } = getProgressState()
+	if (!isPolling.value && allProcessed && errorCount > 0) {
+		return t('libresign', 'Some files could not be signed. Please review the errors below.')
+	}
+	return t('libresign', 'Your document is being signed. This may take a few moments.')
+}
+
+function stopPolling() {
+	isPolling.value = false
+	if (pollingInterval.value) {
+		clearTimeout(pollingInterval.value)
+		pollingInterval.value = null
+	}
+}
+
+async function fetchProgressFromValidation() {
+	try {
+		const { errorCount, hasFileErrors } = getProgressState()
+		if (hasFileErrors || errorCount > 0) {
+			return
 		}
-	},
-	data() {
-		return {
-			isPolling: false,
-			pollingInterval: null,
-			progress: null,
-			generalErrorMessage: null,
-			statusMap: buildStatusMap(),
-			pollTimeoutSeconds: 30,
+		const { data } = await axios.get(
+			generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${props.signRequestUuid}`)
+		)
+		const doc = data.ocs?.data || data
+		const derived = buildProgressFromValidation(doc)
+		if (derived && !hasFileErrors && errorCount === 0) {
+			progress.value = derived
 		}
-	},
-	watch: {
-		signRequestUuid(newUuid, oldUuid) {
-			if (newUuid && newUuid !== oldUuid) {
-				this.startPolling()
+	} catch (error) {
+	}
+}
+
+async function pollFileProgress() {
+	if (!isPolling.value) {
+		return
+	}
+
+	try {
+		const { data } = await axios.get(
+			generateOcsUrl(`/apps/libresign/api/v1/file/progress/${props.signRequestUuid}`),
+			{
+				params: { timeout: pollTimeoutSeconds.value },
+				timeout: (pollTimeoutSeconds.value + 5) * 1000,
 			}
-		},
-	},
-	mounted() {
-		if (this.signRequestUuid) {
-			this.startPolling()
-		}
-	},
-	beforeUnmount() {
-		this.stopPolling()
-	},
-	methods: {
-		getHeaderTitle() {
-			const { allProcessed, errorCount } = this.getProgressState()
-			if (!this.isPolling && allProcessed && errorCount > 0) {
-				return t('libresign', 'Signing finished with errors')
-			}
-			return t('libresign', 'Signing document...')
-		},
-		getHeaderSubtitle() {
-			const { allProcessed, errorCount } = this.getProgressState()
-			if (!this.isPolling && allProcessed && errorCount > 0) {
-				return t('libresign', 'Some files could not be signed. Please review the errors below.')
-			}
-			return t('libresign', 'Your document is being signed. This may take a few moments.')
-		},
-		startPolling() {
-			if (this.isPolling || !this.signRequestUuid) {
-				return
-			}
-			this.isPolling = true
-			this.pollFileProgress()
-			if (!this.progress) {
-				this.fetchProgressFromValidation()
-			}
-		},
-		stopPolling() {
-			this.isPolling = false
-			if (this.pollingInterval) {
-				clearTimeout(this.pollingInterval)
-				this.pollingInterval = null
-			}
-		},
-		async pollFileProgress() {
-			if (!this.isPolling) {
-				return
-			}
+		)
 
-			try {
-				const { data } = await axios.get(
-					generateOcsUrl(`/apps/libresign/api/v1/file/progress/${this.signRequestUuid}`),
-					{
-						params: { timeout: this.pollTimeoutSeconds },
-						timeout: (this.pollTimeoutSeconds + 5) * 1000,
-					}
-				)
+		const responseData: PollResponse = data.ocs?.data || data
+		const status = responseData?.status
+		const statusCode = responseData?.statusCode ?? null
 
-				const responseData = data.ocs?.data || data
-				const status = responseData?.status
-				const statusCode = responseData?.statusCode ?? null
+		emit('status-changed', status)
 
-				this.$emit('status-changed', status)
-
-				if (responseData?.progress) {
-					this.progress = responseData.progress
-				} else if (!this.progress) {
-					await this.fetchProgressFromValidation()
-				}
-
-				const {
-					allProcessed,
-					errorCount,
-					fileErrors,
-					hasFileErrors,
-					hasPendingWork,
-				} = this.getProgressState()
-
-				if (hasFileErrors) {
-					this.$emit('file-errors', fileErrors)
-				}
-
-				if (responseData?.error && !hasFileErrors) {
-					this.stopPolling()
-					this.generalErrorMessage = responseData.error.message || t('libresign', 'Signing failed. Please try again.')
-					this.$emit('error', this.generalErrorMessage)
-					return
-				}
-
-				if (responseData?.file) {
-					this.stopPolling()
-					this.$emit('completed', responseData.file)
-					return
-				}
-
-				if (status === 'ABLE_TO_SIGN' || statusCode === 1) {
-					this.stopPolling()
-					this.$emit('error', t('libresign', 'Document ready to sign'))
-					return
-				}
-
-				if (allProcessed && errorCount > 0) {
-					this.stopPolling()
-					const firstError = fileErrors.find(file => file?.error?.message)?.error?.message
-					this.$emit('error', firstError || t('libresign', 'Signing failed. Please try again.'))
-					return
-				}
-
-				const totalCount = this.progress?.total ?? 0
-				const isSingleFile = totalCount === 1
-				if (status === 'SIGNED' && (!hasPendingWork || isSingleFile)) {
-					this.stopPolling()
-					this.$emit('completed')
-					return
-				}
-
-				if (status === 'ERROR' && !hasPendingWork && !hasFileErrors) {
-					this.stopPolling()
-					this.generalErrorMessage = t('libresign', 'Signing failed. Please try again.')
-					this.$emit('error', this.generalErrorMessage)
-					return
-				}
-
-				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 0)
-			} catch (error) {
-				if (error.code === 'ECONNABORTED') {
-					this.pollingInterval = setTimeout(() => this.pollFileProgress(), 0)
-				} else {
-					this.stopPolling()
-					this.$emit('error', t('libresign', 'Failed to check signing progress'))
-				}
-			}
-		},
-	async fetchProgressFromValidation() {
-		try {
-			const { errorCount, hasFileErrors } = this.getProgressState()
-			if (hasFileErrors || errorCount > 0) {
-				return
-			}
-			const { data } = await axios.get(
-				generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.signRequestUuid}`)
-			)
-			const doc = data.ocs?.data || data
-			const derived = this.buildProgressFromValidation(doc)
-			if (derived && !hasFileErrors && errorCount === 0) {
-				this.progress = derived
-			}
-		} catch (e) {
-		}
-	},
-	buildProgressFromValidation(doc) {
-		if (!doc) {
-			return null
-		}
-		if (doc.nodeType === 'envelope' || (Array.isArray(doc.files) && doc.files.length > 0)) {
-			const files = doc.files.map(f => ({ id: f.id, name: f.name, status: f.status }))
-			const total = files.length
-			const signed = files.filter(f => f.status === 3).length
-			const inProgress = files.filter(f => f.status === 5).length
-			return {
-				total,
-				signed,
-				pending: total - signed - inProgress,
-				inProgress,
-				files,
-			}
+		if (responseData?.progress) {
+			progress.value = responseData.progress
+		} else if (!progress.value) {
+			await fetchProgressFromValidation()
 		}
 
-		if (Array.isArray(doc.signers)) {
-			const total = doc.signers.length
-			const signed = doc.signers.filter(s => !!s.signed).length
-			return {
-				total,
-				signed,
-				pending: total - signed,
-			}
-		}
-		return null
-	},
-	getStatusMeta(status) {
-		const meta = this.statusMap[status]
-		if (meta) {
-			return meta
-		}
-		return { label: t('libresign', 'Unknown'), icon: mdiHelpCircle }
-	},
-	getFileStatusMeta(file) {
-		if (file?.error) {
-			return {
-				label: t('libresign', 'Error'),
-				icon: mdiAlertCircleOutline,
-				class: 'error',
-			}
-		}
-		return this.getStatusMeta(file?.status)
-	},
-	getProgressState() {
-		const progress = this.progress
-		const progressReady = !!progress && (progress.total ?? 0) > 0
-		const total = progress?.total ?? 0
-		const signed = progress?.signed ?? 0
-		const inProgress = progress?.inProgress ?? 0
-		const fileErrors = Array.isArray(progress?.files)
-			? progress.files.filter(file => file?.error)
-			: []
-		const errorCount = progress?.errors ?? fileErrors.length
-		const processedCount = signed + errorCount
-		const pending = progress?.pending ?? Math.max(total - processedCount - inProgress, 0)
-		const allProcessed = progressReady && processedCount >= total
-		const hasPendingWork = !progressReady || pending > 0 || inProgress > 0 || !allProcessed
-		const hasFileErrors = fileErrors.length > 0
-
-		return {
+		const {
 			allProcessed,
 			errorCount,
 			fileErrors,
 			hasFileErrors,
 			hasPendingWork,
+		} = getProgressState()
+
+		if (hasFileErrors) {
+			emit('file-errors', fileErrors)
 		}
-	},
-	},
+
+		if (responseData?.error && !hasFileErrors) {
+			stopPolling()
+			generalErrorMessage.value = responseData.error.message || t('libresign', 'Signing failed. Please try again.')
+			emit('error', generalErrorMessage.value)
+			return
+		}
+
+		if (responseData?.file) {
+			stopPolling()
+			emit('completed', responseData.file)
+			return
+		}
+
+		if (status === 'ABLE_TO_SIGN' || statusCode === 1) {
+			stopPolling()
+			emit('error', t('libresign', 'Document ready to sign'))
+			return
+		}
+
+		if (allProcessed && errorCount > 0) {
+			stopPolling()
+			const firstError = fileErrors.find(file => file?.error?.message)?.error?.message
+			emit('error', firstError || t('libresign', 'Signing failed. Please try again.'))
+			return
+		}
+
+		const totalCount = progress.value?.total ?? 0
+		const isSingleFile = totalCount === 1
+		if (status === 'SIGNED' && (!hasPendingWork || isSingleFile)) {
+			stopPolling()
+			emit('completed')
+			return
+		}
+
+		if (status === 'ERROR' && !hasPendingWork && !hasFileErrors) {
+			stopPolling()
+			generalErrorMessage.value = t('libresign', 'Signing failed. Please try again.')
+			emit('error', generalErrorMessage.value)
+			return
+		}
+
+		pollingInterval.value = setTimeout(() => pollFileProgress(), 0)
+	} catch (error: unknown) {
+		if ((error as { code?: string })?.code === 'ECONNABORTED') {
+			pollingInterval.value = setTimeout(() => pollFileProgress(), 0)
+		} else {
+			stopPolling()
+			emit('error', t('libresign', 'Failed to check signing progress'))
+		}
+	}
 }
+
+function startPolling() {
+	if (isPolling.value || !props.signRequestUuid) {
+		return
+	}
+	isPolling.value = true
+	void pollFileProgress()
+	if (!progress.value) {
+		void fetchProgressFromValidation()
+	}
+}
+
+function buildProgressFromValidation(doc: ValidationDocument | null | undefined): ProgressState | null {
+	if (!doc) {
+		return null
+	}
+	if (doc.nodeType === 'envelope' || (Array.isArray(doc.files) && doc.files.length > 0)) {
+		const files = (doc.files ?? []).map(file => ({ id: file.id, name: file.name, status: file.status }))
+		const total = files.length
+		const signed = files.filter(file => file.status === 3).length
+		const inProgress = files.filter(file => file.status === 5).length
+		return {
+			total,
+			signed,
+			pending: total - signed - inProgress,
+			inProgress,
+			files,
+		}
+	}
+
+	if (Array.isArray(doc.signers)) {
+		const total = doc.signers.length
+		const signed = doc.signers.filter(signer => !!signer.signed).length
+		return {
+			total,
+			signed,
+			pending: total - signed,
+		}
+	}
+	return null
+}
+
+function getStatusMeta(status?: number) {
+	const meta = statusMap.value[String(status)]
+	if (meta) {
+		return meta
+	}
+	return { label: t('libresign', 'Unknown'), icon: mdiHelpCircle }
+}
+
+function getFileStatusMeta(file?: ProgressFile) {
+	if (file?.error) {
+		return {
+			label: t('libresign', 'Error'),
+			icon: mdiAlertCircleOutline,
+			class: 'error',
+		}
+	}
+	return getStatusMeta(file?.status)
+}
+
+function getProgressState() {
+	const currentProgress = progress.value
+	const progressReady = !!currentProgress && (currentProgress.total ?? 0) > 0
+	const total = currentProgress?.total ?? 0
+	const signed = currentProgress?.signed ?? 0
+	const inProgress = currentProgress?.inProgress ?? 0
+	const fileErrors = Array.isArray(currentProgress?.files)
+		? currentProgress.files.filter(file => file?.error)
+		: []
+	const errorCount = currentProgress?.errors ?? fileErrors.length
+	const processedCount = signed + errorCount
+	const pending = currentProgress?.pending ?? Math.max(total - processedCount - inProgress, 0)
+	const allProcessed = progressReady && processedCount >= total
+	const hasPendingWork = !progressReady || pending > 0 || inProgress > 0 || !allProcessed
+	const hasFileErrors = fileErrors.length > 0
+
+	return {
+		allProcessed,
+		errorCount,
+		fileErrors,
+		hasFileErrors,
+		hasPendingWork,
+	}
+}
+
+watch(() => props.signRequestUuid, (newUuid, oldUuid) => {
+	if (newUuid && newUuid !== oldUuid) {
+		startPolling()
+	}
+})
+
+onMounted(() => {
+	if (props.signRequestUuid) {
+		startPolling()
+	}
+})
+
+onBeforeUnmount(() => {
+	stopPolling()
+})
+
+defineExpose({
+	isPolling,
+	pollingInterval,
+	progress,
+	generalErrorMessage,
+	statusMap,
+	pollTimeoutSeconds,
+	getHeaderTitle,
+	getHeaderSubtitle,
+	startPolling,
+	stopPolling,
+	pollFileProgress,
+	fetchProgressFromValidation,
+	buildProgressFromValidation,
+	getStatusMeta,
+	getFileStatusMeta,
+	getProgressState,
+})
 </script>
 
 <style lang="scss" scoped>
