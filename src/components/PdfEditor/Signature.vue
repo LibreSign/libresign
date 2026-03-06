@@ -44,243 +44,283 @@
 	</div>
 </template>
 
-<script>
+<script setup>
 import { mdiCloseCircle } from '@mdi/js'
+import { computed, onMounted, ref } from 'vue'
 
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-export default {
+defineOptions({
 	name: 'Signature',
-	emits: ['onUpdate', 'onDelete'],
-	components: {
-		NcIconSvgWrapper,
+})
+
+const props = defineProps({
+	displayName: {
+		type: String,
+		default: '',
 	},
-	setup() {
-		return { mdiCloseCircle }
+	width: {
+		type: Number,
+		default: 0,
 	},
-	props: {
-		displayName: {
-			type: String,
-			default: '',
-		},
-		width: {
-			type: Number,
-			default: 0,
-		},
-		height: {
-			type: Number,
-			default: 0,
-		},
-		originWidth: {
-			type: Number,
-			default: 0,
-		},
-		originHeight: {
-			type: Number,
-			default: 0,
-		},
-		x: {
-			type: Number,
-			default: 0,
-		},
-		y: {
-			type: Number,
-			default: 0,
-		},
-		pageScale: {
-			type: Number,
-			default: 1,
-		},
-		fixSize: {
-			type: Boolean,
-			default: false,
-		},
-		readOnly: {
-			type: Boolean,
-			default: false,
-		},
-		useContainerSize: {
-			type: Boolean,
-			default: false,
-		},
-		disableInteractions: {
-			type: Boolean,
-			default: false,
-		},
+	height: {
+		type: Number,
+		default: 0,
 	},
-	data() {
+	originWidth: {
+		type: Number,
+		default: 0,
+	},
+	originHeight: {
+		type: Number,
+		default: 0,
+	},
+	x: {
+		type: Number,
+		default: 0,
+	},
+	y: {
+		type: Number,
+		default: 0,
+	},
+	pageScale: {
+		type: Number,
+		default: 1,
+	},
+	fixSize: {
+		type: Boolean,
+		default: false,
+	},
+	readOnly: {
+		type: Boolean,
+		default: false,
+	},
+	useContainerSize: {
+		type: Boolean,
+		default: false,
+	},
+	disableInteractions: {
+		type: Boolean,
+		default: false,
+	},
+})
+
+const emit = defineEmits(['onUpdate', 'onDelete'])
+
+const startX = ref(null)
+const startY = ref(null)
+const operation = ref('')
+const directions = ref([])
+const dx = ref(0)
+const dy = ref(0)
+const dw = ref(0)
+const dh = ref(0)
+
+const isInteractive = computed(() => !props.readOnly && !props.disableInteractions)
+
+const ratio = computed(() => {
+	const baseWidth = props.originWidth || props.width
+	const baseHeight = props.originHeight || props.height
+	if (!baseWidth || !baseHeight) {
+		return 1
+	}
+	return baseWidth / baseHeight
+})
+
+const containerStyle = computed(() => {
+	if (props.useContainerSize) {
 		return {
-			startX: null,
-			startY: null,
-			operation: '',
-			directions: [],
-			dx: 0,
-			dy: 0,
-			dw: 0,
-			dh: 0,
+			width: '100%',
+			height: '100%',
+			transform: translateCoordinates(),
 		}
-	},
-	computed: {
-		containerStyle() {
-			if (this.useContainerSize) {
-				return {
-					width: '100%',
-					height: '100%',
-					transform: this.translateCoordinates(),
-				}
-			}
-			return {
-				width: `${this.width + this.dw}px`,
-				height: `${Math.round((this.width + this.dw) / this.ratio)}px`,
-				transform: this.translateCoordinates(),
-			}
-		},
-		isInteractive() {
-			return !this.readOnly && !this.disableInteractions
-		},
-		ratio() {
-			const baseWidth = this.originWidth || this.width
-			const baseHeight = this.originHeight || this.height
-			if (!baseWidth || !baseHeight) {
-				return 1
-			}
-			return baseWidth / baseHeight
-		},
-	},
-	async mounted() {
-		await this.render()
-	},
-	methods: {
-		t,
-		translateCoordinates() {
-			return `translate(${this.dx}px, ${this.dy}px)`
-		},
-		async render() {
-			let scale = 1
-			const MAX_TARGET = 500
-			if (this.width > MAX_TARGET) {
-				scale = MAX_TARGET / this.width
-			}
-			if (this.height > MAX_TARGET) {
-				scale = Math.min(scale, MAX_TARGET / this.height)
-			}
-			// eslint-disable-next-line vue/custom-event-name-casing
-			this.$emit('onUpdate', {
-				width: this.width * scale,
-				height: this.height * scale,
-			})
-		},
-		handleMousedown(event) {
-			return { detail: { x: event.clientX, y: event.clientY, target: event.target } }
-		},
-		handleMousemove(event) {
-			return { detail: { x: event.clientX, y: event.clientY } }
-		},
-		handleMouseup(event) {
-			return { detail: { x: event.clientX, y: event.clientY } }
-		},
-		handleTouchStart(event) {
-			const touch = event.touches[0]
-			return { detail: { x: touch.clientX, y: touch.clientY, target: event.currentTarget } }
-		},
-		handleTouchmove(event) {
-			const touch = event.touches[0]
-			return { detail: { x: touch.clientX, y: touch.clientY } }
-		},
-		handleTouchend(event) {
-			const touch = event.changedTouches[0]
-			return { detail: { x: touch.clientX, y: touch.clientY } }
-		},
-		handlePanMove(event) {
-			let coordinate
-			if (event.type === 'mousemove') {
-				coordinate = this.handleMousemove(event)
-			}
-			if (event.type === 'touchmove') {
-				coordinate = this.handleTouchmove(event)
-			}
+	}
 
-			const _dx = (coordinate.detail.x - this.startX) / this.pageScale
-			const _dy = (coordinate.detail.y - this.startY) / this.pageScale
-			if (this.operation === 'move') {
-				this.dx = _dx
-				this.dy = _dy
-			} else if (this.operation === 'scale') {
-				if (this.directions.includes('left')) {
-					this.dx = _dx
-					this.dw = -_dx
-				}
-				if (this.directions.includes('top')) {
-					this.dy = _dy
-					this.dh = -_dy
-				}
-				if (this.directions.includes('right')) {
-					this.dw = _dx
-				}
-				if (this.directions.includes('bottom')) {
-					this.dh = _dy
-				}
-			}
-		},
+	return {
+		width: `${props.width + dw.value}px`,
+		height: `${Math.round((props.width + dw.value) / ratio.value)}px`,
+		transform: translateCoordinates(),
+	}
+})
 
-		handlePanEnd(event) {
-			if (event.type === 'mouseup') {
-				this.handleMouseup(event)
-			}
-			if (event.type === 'touchend') {
-				this.handleTouchend(event)
-			}
-			if (this.operation === 'move') {
-			// eslint-disable-next-line vue/custom-event-name-casing
-				this.$emit('onUpdate', {
-					x: this.x + this.dx,
-					y: this.y + this.dy,
-				})
-				this.dx = 0
-				this.dy = 0
-			} else if (this.operation === 'scale') {
-			// eslint-disable-next-line vue/custom-event-name-casing
-				this.$emit('onUpdate', {
-					x: this.x + this.dx,
-					y: this.y + this.dy,
-					width: this.width + this.dw,
-					height: Math.round((this.width + this.dw) / this.ratio),
-				})
-				this.dx = 0
-				this.dy = 0
-				this.dw = 0
-				this.dh = 0
-				this.directions = []
-			}
-			this.operation = ''
-		},
-		handlePanStart(event) {
-			if (this.readOnly || this.disableInteractions) {
-				return
-			}
-			let coordinate
-			if (event.type === 'mousedown') {
-				coordinate = this.handleMousedown(event)
-			}
-			if (event.type === 'touchstart') {
-				coordinate = this.handleTouchStart(event)
-			}
-			if (!coordinate) return
-
-			this.startX = coordinate.detail.x
-			this.startY = coordinate.detail.y
-			if (coordinate.detail.target === event.currentTarget) {
-				return (this.operation = 'move')
-			}
-			this.operation = 'scale'
-			this.directions = coordinate.detail.target.dataset.direction.split('-')
-		},
-		onDelete() {
-			// eslint-disable-next-line vue/custom-event-name-casing
-			this.$emit('onDelete')
-		},
-	},
+function translateCoordinates() {
+	return `translate(${dx.value}px, ${dy.value}px)`
 }
+
+async function render() {
+	let scale = 1
+	const maxTarget = 500
+	if (props.width > maxTarget) {
+		scale = maxTarget / props.width
+	}
+	if (props.height > maxTarget) {
+		scale = Math.min(scale, maxTarget / props.height)
+	}
+	emit('onUpdate', {
+		width: props.width * scale,
+		height: props.height * scale,
+	})
+}
+
+function handleMousedown(event) {
+	return { detail: { x: event.clientX, y: event.clientY, target: event.target } }
+}
+
+function handleMousemove(event) {
+	return { detail: { x: event.clientX, y: event.clientY } }
+}
+
+function handleMouseup(event) {
+	return { detail: { x: event.clientX, y: event.clientY } }
+}
+
+function handleTouchStart(event) {
+	const touch = event.touches[0]
+	return { detail: { x: touch.clientX, y: touch.clientY, target: event.currentTarget } }
+}
+
+function handleTouchmove(event) {
+	const touch = event.touches[0]
+	return { detail: { x: touch.clientX, y: touch.clientY } }
+}
+
+function handleTouchend(event) {
+	const touch = event.changedTouches[0]
+	return { detail: { x: touch.clientX, y: touch.clientY } }
+}
+
+function handlePanMove(event) {
+	let coordinate
+	if (event.type === 'mousemove') {
+		coordinate = handleMousemove(event)
+	}
+	if (event.type === 'touchmove') {
+		coordinate = handleTouchmove(event)
+	}
+	if (!coordinate) {
+		return
+	}
+
+	const nextDx = (coordinate.detail.x - startX.value) / props.pageScale
+	const nextDy = (coordinate.detail.y - startY.value) / props.pageScale
+	if (operation.value === 'move') {
+		dx.value = nextDx
+		dy.value = nextDy
+	} else if (operation.value === 'scale') {
+		if (directions.value.includes('left')) {
+			dx.value = nextDx
+			dw.value = -nextDx
+		}
+		if (directions.value.includes('top')) {
+			dy.value = nextDy
+			dh.value = -nextDy
+		}
+		if (directions.value.includes('right')) {
+			dw.value = nextDx
+		}
+		if (directions.value.includes('bottom')) {
+			dh.value = nextDy
+		}
+	}
+}
+
+function resetInteractionState() {
+	dx.value = 0
+	dy.value = 0
+	dw.value = 0
+	dh.value = 0
+	directions.value = []
+	operation.value = ''
+}
+
+function handlePanEnd(event) {
+	if (event.type === 'mouseup') {
+		handleMouseup(event)
+	}
+	if (event.type === 'touchend') {
+		handleTouchend(event)
+	}
+
+	if (operation.value === 'move') {
+		emit('onUpdate', {
+			x: props.x + dx.value,
+			y: props.y + dy.value,
+		})
+		resetInteractionState()
+		return
+	}
+
+	if (operation.value === 'scale') {
+		emit('onUpdate', {
+			x: props.x + dx.value,
+			y: props.y + dy.value,
+			width: props.width + dw.value,
+			height: Math.round((props.width + dw.value) / ratio.value),
+		})
+		resetInteractionState()
+	}
+}
+
+function handlePanStart(event) {
+	if (props.readOnly || props.disableInteractions) {
+		return
+	}
+
+	let coordinate
+	if (event.type === 'mousedown') {
+		coordinate = handleMousedown(event)
+	}
+	if (event.type === 'touchstart') {
+		coordinate = handleTouchStart(event)
+	}
+	if (!coordinate) {
+		return
+	}
+
+	startX.value = coordinate.detail.x
+	startY.value = coordinate.detail.y
+	if (coordinate.detail.target === event.currentTarget) {
+		operation.value = 'move'
+		return
+	}
+
+	operation.value = 'scale'
+	directions.value = coordinate.detail.target.dataset.direction.split('-')
+}
+
+function onDelete() {
+	emit('onDelete')
+}
+
+onMounted(() => {
+	void render()
+})
+
+defineExpose({
+	startX,
+	startY,
+	operation,
+	directions,
+	dx,
+	dy,
+	dw,
+	dh,
+	containerStyle,
+	isInteractive,
+	ratio,
+	translateCoordinates,
+	render,
+	handleMousedown,
+	handleMousemove,
+	handleMouseup,
+	handleTouchStart,
+	handleTouchmove,
+	handleTouchend,
+	handlePanMove,
+	handlePanEnd,
+	handlePanStart,
+	onDelete,
+})
 </script>
 
 <style lang="scss" scoped>
