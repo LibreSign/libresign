@@ -4,6 +4,7 @@
  */
 
 import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
 
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
@@ -12,74 +13,65 @@ import { generateOcsUrl } from '@nextcloud/router'
 import logger from '../helpers/logger'
 import { getTimePresetRange } from '../utils/timePresets.js'
 
-export const useFiltersStore = defineStore('filter', {
-	state: () => ({
-		chips: {},
-		filter_modified: loadState('libresign', 'filters', {}).files_list_filter_modified ?? '',
-		filter_status: loadState('libresign', 'filters', {}).files_list_filter_status ?? ''
-	}),
+export const useFiltersStore = defineStore('filter', () => {
+	const initialFilters = loadState('libresign', 'filters', {})
+	const chips = ref({})
+	const filter_modified = ref(initialFilters.files_list_filter_modified ?? '')
+	const filter_status = ref(initialFilters.files_list_filter_status ?? '')
 
-	getters: {
-		activeChips(state) {
-			return Object.values(state.chips).flat()
-		},
-		filterStatusArray(state) {
-			try {
-				return state.filter_status != '' ? JSON.parse(state.filter_status) : []
-			} catch (e) {
-				return []
-			}
-		},
-		/**
-		 * Returns { start, end } in ms for the saved modified preset, or null.
-		 * Computed fresh on each access so date boundaries are always current.
-		 */
-		filterModifiedRange(state) {
-			return getTimePresetRange(state.filter_modified)
-		},
-	},
+	const activeChips = computed(() => Object.values(chips.value).flat())
 
+	const filterStatusArray = computed(() => {
+		try {
+			return filter_status.value !== '' ? JSON.parse(filter_status.value) : []
+		} catch (e) {
+			return []
+		}
+	})
 
-	actions: {
-		async onFilterUpdateChips(event) {
-			this.chips = { ...this.chips, [event.id]: [...event.detail] }
+	/**
+	 * Returns { start, end } in ms for the saved modified preset, or null.
+	 * Computed fresh on each access so date boundaries are always current.
+	 */
+	const filterModifiedRange = computed(() => getTimePresetRange(filter_modified.value))
 
-			logger.debug('File list filter chips updated', { chips: event.detail })
+	const onFilterUpdateChips = async (event) => {
+		chips.value = { ...chips.value, [event.id]: [...event.detail] }
+		logger.debug('File list filter chips updated', { chips: event.detail })
+	}
 
-		},
+	const onFilterUpdateChipsAndSave = async (event) => {
+		chips.value = { ...chips.value, [event.id]: [...event.detail] }
 
-		async onFilterUpdateChipsAndSave(event) {
-			this.chips = { ...this.chips, [event.id]: [...event.detail] }
+		if (event.id === 'modified') {
+			const value = chips.value.modified?.[0]?.id || ''
+			await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_filter_modified' }), {
+				value,
+			})
+			filter_modified.value = value
+			emit('libresign:filters:update')
+		}
 
+		if (event.id === 'status') {
+			const value = event.detail.length > 0 ? JSON.stringify(event.detail.map(item => item.id)) : ''
+			await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_filter_status' }), {
+				value,
+			})
+			filter_status.value = value
+			emit('libresign:filters:update')
+		}
 
-			if(event.id == 'modified'){
-				let value = this.chips['modified'][0]?.id || '';
+		logger.debug('File list filter chips updated', { chips: event.detail })
+	}
 
-				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_filter_modified' }), {
-					value,
-				})
-
-				this.filter_modified = value
-
-				emit('libresign:filters:update')
-			}
-
-			if(event.id == 'status'){
-
-				const value = event.detail.length > 0 ? JSON.stringify(event.detail.map(item => item.id)) : '';
-
-				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_filter_status' }), {
-					value,
-				})
-
-				this.filter_status = value
-
-				emit('libresign:filters:update')
-			}
-
-
-			logger.debug('File list filter chips updated', { chips: event.detail })
-		},
-
-	},
+	return {
+		chips,
+		filter_modified,
+		filter_status,
+		activeChips,
+		filterStatusArray,
+		filterModifiedRange,
+		onFilterUpdateChips,
+		onFilterUpdateChipsAndSave,
+	}
 })
