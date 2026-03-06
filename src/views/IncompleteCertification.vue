@@ -23,7 +23,7 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 
 import { t } from '@nextcloud/l10n'
 import { mdiCogs } from '@mdi/js'
@@ -37,30 +37,20 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import BackgroundImage from '../../img/logo-gray.svg'
 
-export default {
+defineOptions({
 	name: 'IncompleteCertification',
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-	},
-	setup() {
-		return {
-			mdiCogs,
-		}
-	},
-	data() {
-		return {
-			image: BackgroundImage,
-			isAdmin: getCurrentUser()?.isAdmin ?? false,
-		}
-	},
-	methods: {
-		t,
-		finishSetup() {
-			window.location.href = generateUrl('settings/admin/libresign')
-		},
-	},
+})
+
+const image = BackgroundImage
+const isAdmin = getCurrentUser()?.isAdmin ?? false
+
+function finishSetup() {
+	window.location.href = generateUrl('settings/admin/libresign')
 }
+
+defineExpose({
+	mdiCogs,
+})
 </script>
 
 <style lang="scss" scoped>
