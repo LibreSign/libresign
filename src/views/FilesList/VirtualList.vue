@@ -55,8 +55,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
 
 import debounce from 'debounce'
 
@@ -65,67 +66,78 @@ import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { useFilesStore } from '../../store/files.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
-export default {
+defineOptions({
 	name: 'VirtualList',
-	props: {
-		dataComponent: {
-			type: [Object, Function],
-			required: true,
-		},
-		loading: {
-			type: Boolean,
-			required: true,
-		},
-		/**
-		 * Visually hidden caption for the table accessibility
-		 */
-		caption: {
-			type: String,
-			default: '',
-		},
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		const userConfigStore = useUserConfigStore()
-		return {
-			t,
-			filesStore,
-			userConfigStore,
-		}
-	},
-	data() {
-		return {
-			observer: null,
-		}
-	},
-	mounted() {
-		this.observer = new IntersectionObserver(debounce(([entry]) => {
-			if (entry && entry.isIntersecting) {
-				this.getFilesIfNotLoading()
-			}
-		}, 100))
-		subscribe('libresign:files:updated', this.updateObserver)
-	},
-	beforeUnmount() {
-		this.observer.disconnect()
-		unsubscribe('libresign:files:updated')
-	},
-	methods: {
-		getFilesIfNotLoading() {
-			if (this.filesStore.loading) {
-				setTimeout(this.getFilesIfNotLoading, 100)
-			} else {
-				this.filesStore.getAllFiles()
-			}
-		},
-		updateObserver() {
-			const endOfListElement = this.$refs?.endOfList
-			if (!endOfListElement) return
-			this.observer.disconnect()
-			this.observer.observe(endOfListElement)
-		},
-	},
+})
+
+type FileItem = {
+	id: string | number
 }
+
+type FilesStore = {
+	loading: boolean
+	filesSorted: () => FileItem[]
+	getAllFiles: () => void
+}
+
+type UserConfigStore = {
+	files_list_grid_view: boolean
+}
+
+const props = withDefaults(defineProps<{
+	dataComponent: object | (() => unknown)
+	loading: boolean
+	caption?: string
+}>(), {
+	caption: '',
+})
+
+const filesStore = useFilesStore() as FilesStore
+const userConfigStore = useUserConfigStore() as UserConfigStore
+const endOfList = useTemplateRef<HTMLElement>('endOfList')
+const observer = ref<IntersectionObserver | null>(null)
+
+function getFilesIfNotLoading() {
+	if (filesStore.loading) {
+		setTimeout(getFilesIfNotLoading, 100)
+	} else {
+		filesStore.getAllFiles()
+	}
+}
+
+function updateObserver() {
+	const endOfListElement = endOfList.value
+	if (!endOfListElement || !observer.value) {
+		return
+	}
+	observer.value.disconnect()
+	observer.value.observe(endOfListElement)
+}
+
+onMounted(() => {
+	observer.value = new IntersectionObserver(debounce(([entry]) => {
+		if (entry && entry.isIntersecting) {
+			getFilesIfNotLoading()
+		}
+	}, 100))
+	subscribe('libresign:files:updated', updateObserver)
+})
+
+onBeforeUnmount(() => {
+	observer.value?.disconnect()
+	unsubscribe('libresign:files:updated')
+})
+
+defineExpose({
+	filesStore,
+	userConfigStore,
+	observer,
+	endOfList,
+	getFilesIfNotLoading,
+	updateObserver,
+	props,
+	t,
+})
 </script>
 
 <style scoped lang="scss">
