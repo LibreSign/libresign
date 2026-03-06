@@ -46,8 +46,9 @@
 		</p>
 	</div>
 </template>
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
 	mdiAlertCircle,
 } from '@mdi/js'
@@ -83,177 +84,194 @@ const apiIconToKey = {
 	'icon-telegram': 'svgTelegram',
 	'icon-xmpp': 'svgXmpp',
 }
-export default {
+defineOptions({
 	name: 'SignerSelect',
-	emits: ['update:signer'],
-	components: {
-		NcAvatar,
-		NcSelect,
-		NcIconSvgWrapper,
-	},
-	setup() {
-		return {
-			mdiAlertCircle,
-		}
-	},
-	props: {
-		signer: {
-			type: Object,
-			default: () => {},
-		},
-		method: {
-			type: String,
-			default: 'all',
-		},
-		placeholder: {
-			type: String,
-			default: t('libresign', 'Name'),
-		},
-	},
-	data() {
-		return {
-			loading: false,
-			options: [],
-			selectedSigner: null,
-			haveError: false,
-			intersectionObserver: null,
-			activeRequestId: 0,
-		}
-	},
-	computed: {
-		noResultText() {
-			if (this.loading) {
-				return t('libresign', 'Searching …')
-			}
-			return t('libresign', 'No signers.')
-		},
-	},
-	watch: {
-		method() {
-			this.options = []
-			this.haveError = false
-			this.loading = false
-		},
-		selectedSigner(selected) {
-			this.haveError = selected === null
-			this.$emit('update:signer', selected)
-		},
-	},
-	mounted() {
-		if (Object.keys(this.signer).length > 0) {
-			this.selectedSigner = this.signer
-		}
-		this.setupVisibilityObserver()
-		this.focusInput()
-	},
-	beforeUnmount() {
-		if (this.intersectionObserver) {
-			this.intersectionObserver.disconnect()
-		}
-	},
-	methods: {
-		t,
-		async _asyncFind(search, lookup = false) {
-			search = search.trim()
-			if (!search) {
-				this.options = []
-				this.loading = false
-				return
-			}
+})
 
-			const requestId = ++this.activeRequestId
-			this.loading = true
-			try {
-				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/identify-account/search'), {
-					params: {
-						search,
-						method: this.method,
-					},
-				})
-				if (requestId !== this.activeRequestId) {
-					return
-				}
-				this.options = this.injectIcons(response.data.ocs.data)
-			} catch (error) {
-				if (requestId === this.activeRequestId) {
-					this.haveError = true
-				}
-			} finally {
-				if (requestId === this.activeRequestId) {
-					this.loading = false
-				}
-			}
-		},
-		asyncFind: debounce(function(search, lookup = false) {
-			this._asyncFind(search, lookup)
-		}, 500),
-		injectIcons(items) {
-			return items.map(item => {
-				const { iconSvg: _iconSvg, ...safeItem } = item
-				const iconFromApi = item.icon ? iconMap[apiIconToKey[item.icon]] : undefined
-				const iconFromSvgKey = item.iconSvg ? iconMap[item.iconSvg] : undefined
-				const icon = iconFromApi || iconFromSvgKey
-				return {
-					...safeItem,
-					...(icon ? { iconSvg: icon } : {}),
-					label: item.label ?? item.displayName ?? item.id ?? item.subname ?? '',
-					displayName: item.displayName ?? '',
-					subname: item.subname ?? '',
-				}
-			})
-		},
-		getOption(slotProps) {
-			if (slotProps?.option) {
-				return slotProps.option
-			}
-			if (slotProps && typeof slotProps === 'object') {
-				return slotProps
-			}
-			return {}
-		},
-		getOptionLabel(slotProps) {
-			const option = this.getOption(slotProps)
-			return option.displayName || option.label || option.id || option.subname || ''
-		},
-		getOptionSubname(slotProps) {
-			const option = this.getOption(slotProps)
-			if (!option.subname || option.subname === option.displayName) {
-				return ''
-			}
-			return option.subname
-		},
-		getOptionIcon(slotProps) {
-			return this.getOption(slotProps).iconSvg || ''
-		},
-		focusInput() {
-			if (this.selectedSigner) {
-				return
-			}
-			this.$nextTick(() => {
-				const input = this.$refs.select?.$el?.querySelector('input')
-				if (input) {
-					input.focus()
-				}
-			})
-		},
-		setupVisibilityObserver() {
-			const container = this.$el
-			if (!container) {
-				return
-			}
-			this.intersectionObserver = new IntersectionObserver((entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
-						this.focusInput()
-					}
-				})
-			}, {
-				threshold: 0.1,
-			})
-			this.intersectionObserver.observe(container)
-		},
-	},
+type SignerOption = {
+	id?: string
+	displayName?: string
+	subname?: string
+	label?: string
+	icon?: string
+	iconSvg?: string
 }
+
+const emit = defineEmits<{
+	(event: 'update:signer', signer: SignerOption | null): void
+}>()
+
+const props = withDefaults(defineProps<{
+	signer?: Record<string, unknown>
+	method?: string
+	placeholder?: string
+}>(), {
+	signer: () => ({}),
+	method: 'all',
+	placeholder: t('libresign', 'Name'),
+})
+
+const select = ref<{ $el?: HTMLElement } | null>(null)
+const container = ref<HTMLElement | null>(null)
+const loading = ref(false)
+const options = ref<SignerOption[]>([])
+const selectedSigner = ref<SignerOption | null>(null)
+const haveError = ref(false)
+const intersectionObserver = ref<IntersectionObserver | null>(null)
+const activeRequestId = ref(0)
+
+const noResultText = computed(() => loading.value ? t('libresign', 'Searching …') : t('libresign', 'No signers.'))
+
+function handleMethodChange() {
+	options.value = []
+	haveError.value = false
+	loading.value = false
+}
+
+watch(() => props.method, () => {
+	handleMethodChange()
+})
+
+watch(selectedSigner, (selected) => {
+	haveError.value = selected === null
+	emit('update:signer', selected)
+})
+
+function injectIcons(items: SignerOption[]) {
+	return items.map((item) => {
+		const { iconSvg: _iconSvg, ...safeItem } = item
+		const iconFromApi = item.icon ? iconMap[apiIconToKey[item.icon as keyof typeof apiIconToKey]] : undefined
+		const iconFromSvgKey = item.iconSvg ? iconMap[item.iconSvg as keyof typeof iconMap] : undefined
+		const icon = iconFromApi || iconFromSvgKey
+		return {
+			...safeItem,
+			...(icon ? { iconSvg: icon } : {}),
+			label: item.label ?? item.displayName ?? item.id ?? item.subname ?? '',
+			displayName: item.displayName ?? '',
+			subname: item.subname ?? '',
+		}
+	})
+}
+
+function getOption(slotProps?: { option?: SignerOption } | SignerOption) {
+	if ((slotProps as { option?: SignerOption })?.option) {
+		return (slotProps as { option: SignerOption }).option
+	}
+	if (slotProps && typeof slotProps === 'object') {
+		return slotProps as SignerOption
+	}
+	return {}
+}
+
+function getOptionLabel(slotProps?: { option?: SignerOption } | SignerOption) {
+	const option = getOption(slotProps)
+	return option.displayName || option.label || option.id || option.subname || ''
+}
+
+function getOptionSubname(slotProps?: { option?: SignerOption } | SignerOption) {
+	const option = getOption(slotProps)
+	if (!option.subname || option.subname === option.displayName) {
+		return ''
+	}
+	return option.subname
+}
+
+function getOptionIcon(slotProps?: { option?: SignerOption } | SignerOption) {
+	return getOption(slotProps).iconSvg || ''
+}
+
+async function _asyncFind(search: string, lookup = false) {
+	search = search.trim()
+	if (!search) {
+		options.value = []
+		loading.value = false
+		return
+	}
+
+	const requestId = ++activeRequestId.value
+	loading.value = true
+	try {
+		const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/identify-account/search'), {
+			params: {
+				search,
+				method: props.method,
+			},
+		})
+		if (requestId !== activeRequestId.value) {
+			return
+		}
+		options.value = injectIcons(response.data.ocs.data)
+	} catch (error) {
+		if (requestId === activeRequestId.value) {
+			haveError.value = true
+		}
+	} finally {
+		if (requestId === activeRequestId.value) {
+			loading.value = false
+		}
+	}
+}
+
+const asyncFind = debounce((search: string, lookup = false) => {
+	_asyncFind(search, lookup)
+}, 500)
+
+function focusInput() {
+	if (selectedSigner.value) {
+		return
+	}
+	nextTick(() => {
+		const inputElement = select.value?.$el?.querySelector('input') as HTMLInputElement | null
+		inputElement?.focus()
+	})
+}
+
+function setupVisibilityObserver() {
+	if (typeof IntersectionObserver === 'undefined' || !container.value) {
+		return
+	}
+	intersectionObserver.value = new IntersectionObserver((entries) => {
+		entries.forEach((entry) => {
+			if (entry.isIntersecting) {
+				focusInput()
+			}
+		})
+	}, {
+		threshold: 0.1,
+	})
+	intersectionObserver.value.observe(container.value)
+}
+
+onMounted(() => {
+	if (Object.keys(props.signer).length > 0) {
+		selectedSigner.value = props.signer as SignerOption
+	}
+	setupVisibilityObserver()
+	focusInput()
+})
+
+onBeforeUnmount(() => {
+	intersectionObserver.value?.disconnect()
+})
+
+defineExpose({
+	loading,
+	options,
+	selectedSigner,
+	haveError,
+	activeRequestId,
+	noResultText,
+	handleMethodChange,
+	injectIcons,
+	getOption,
+	getOptionLabel,
+	getOptionSubname,
+	getOptionIcon,
+	_asyncFind,
+	asyncFind,
+	focusInput,
+	setupVisibilityObserver,
+})
 </script>
 <style lang="scss" scoped>
 .account-or-email {
