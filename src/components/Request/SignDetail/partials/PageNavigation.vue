@@ -16,56 +16,53 @@
 	</nav>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed } from 'vue'
 
 import NcCounterBubble from '@nextcloud/vue/components/NcCounterBubble'
 
-export default {
+defineOptions({
 	name: 'PageNavigation',
-	components: { NcCounterBubble },
-	emits: ['update:modelValue'],
-	props: {
-		modelValue: {
-			type: Number,
-			required: true,
-		},
-		pages: {
-			type: Array,
-			required: true,
-		},
-		width: {
-			type: String,
-			required: true,
-		},
-	},
-	computed: {
-		size() {
-			return this.pages.length
-		},
-		actual() {
-			return this.modelValue
-		},
-		allowNext() {
-			return this.actual < this.size
-		},
-		allowPrevious() {
-			return this.modelValue > 1
-		},
-	},
-	methods: {
-		t,
-		next() {
-			this.setPage(this.modelValue + 1)
-		},
-		previous() {
-			this.setPage(this.modelValue - 1)
-		},
-		setPage(val) {
-			this.$emit('update:modelValue', val)
-		},
-	},
+})
+
+const props = defineProps<{
+	modelValue: number
+	pages: unknown[]
+	width: string
+}>()
+
+const emit = defineEmits<{
+	(event: 'update:modelValue', value: number): void
+}>()
+
+const size = computed(() => props.pages.length)
+const actual = computed(() => props.modelValue)
+const allowNext = computed(() => actual.value < size.value)
+const allowPrevious = computed(() => props.modelValue > 1)
+
+function setPage(value: number) {
+	emit('update:modelValue', value)
 }
+
+function next() {
+	setPage(props.modelValue + 1)
+}
+
+function previous() {
+	setPage(props.modelValue - 1)
+}
+
+defineExpose({
+	size,
+	actual,
+	allowNext,
+	allowPrevious,
+	setPage,
+	next,
+	previous,
+	props,
+})
 </script>
 
 <style scoped>
