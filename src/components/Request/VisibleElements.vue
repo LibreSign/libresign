@@ -79,7 +79,7 @@
 	</NcModal>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import axios from '@nextcloud/axios'
@@ -88,6 +88,7 @@ import { showSuccess, showError } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcChip from '@nextcloud/vue/components/NcChip'
@@ -109,366 +110,467 @@ import {
 	idsMatch,
 } from '../../services/visibleElementsService'
 
-export default {
-	name: 'VisibleElements',
-	components: {
-		NcNoteCard,
-		NcModal,
-		NcChip,
-		Signer,
-		NcButton,
-		NcLoadingIcon,
-		PdfEditor,
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		return { filesStore }
-	},
-	data() {
-		return {
-			canRequestSign: loadState('libresign', 'can_request_sign', false),
-			modal: false,
-			loading: false,
-			signerSelected: null,
-			width: getCapabilities().libresign.config['sign-elements']['full-signature-width'],
-			height: getCapabilities().libresign.config['sign-elements']['full-signature-height'],
-			filePagesMap: {},
-			elementsLoaded: false,
-		}
-	},
-	computed: {
-		variantOfSaveButton() {
-			if (this.canSave) {
-				return 'primary'
-			}
-			return 'secondary'
-		},
-		variantOfSignButton() {
-			if (this.canSave) {
-				return 'secondary'
-			}
-			return 'primary'
-		},
-		document() {
-			return this.filesStore.getFile()
-		},
-		pdfFiles() {
-			return (this.document.files || [])
-				.map(file => getFileUrl(file))
-				.filter(Boolean)
-		},
-		pdfFileNames() {
-			return (this.document.files || []).map(f => `${f.name}.${f.metadata?.extension || 'pdf'}`)
-		},
-		documentNameWithExtension() {
-			const doc = this.document
-			if (!doc.metadata?.extension) {
-				return doc.name
-			}
-			return `${doc.name}.${doc.metadata.extension}`
-		},
-		canSign() {
-			if (this.status !== FILE_STATUS.ABLE_TO_SIGN) {
-				return false
-			}
-
-			return (this.document?.settings?.signerFileUuid ?? '').length > 0
-		},
-		canSave() {
-			if (
-				[
-					FILE_STATUS.DRAFT,
-					FILE_STATUS.ABLE_TO_SIGN,
-					FILE_STATUS.PARTIAL_SIGNED,
-				].includes(this.status)
-			) {
-				return true
-			}
-			return false
-		},
-		status() {
-			return Number(this.document?.status ?? -1)
-		},
-		statusLabel() {
-			return this.document.statusText
-		},
-		isDraft() {
-			return this.status === FILE_STATUS.DRAFT
-		},
-	},
-	mounted() {
-		subscribe('libresign:show-visible-elements', this.showModal)
-		subscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
-	},
-	beforeUnmount() {
-		unsubscribe('libresign:show-visible-elements', this.showModal)
-		unsubscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
-	},
-	methods: {
-		t,
-		getPdfElements() {
-			return this.$refs.pdfEditor?.$refs?.pdfElements
-		},
-		async showModal() {
-			if (!this.canRequestSign) {
-				return
-			}
-			if (getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === false) {
-				return
-			}
-			this.modal = true
-			this.filesStore.loading = true
-
-			if (!this.document.files || this.document.files.length === 0) {
-				await this.fetchFiles()
-			}
-
-			this.buildFilePagesMap()
-			this.filesStore.loading = false
-		},
-		async fetchFiles() {
-			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), {
-				params: {
-					parentFileId: this.document.id,
-					force_fetch: true,
-				},
-			})
-			const childFiles = response?.data?.ocs?.data?.data || []
-			this.document.files = Array.isArray(childFiles) ? childFiles : []
-
-			const allVisibleElements = this.aggregateVisibleElementsByFiles(this.document.files)
-			if (allVisibleElements.length > 0) {
-				this.document.visibleElements = allVisibleElements
-				return
-			}
-
-			const nestedDocumentElements = getVisibleElementsFromDocument(this.document)
-			if (nestedDocumentElements.length > 0) {
-				this.document.visibleElements = nestedDocumentElements
-			}
-		},
-		aggregateVisibleElementsByFiles(files) {
-			return aggregateVisibleElementsByFiles(files)
-		},
-		buildFilePagesMap() {
-			this.filePagesMap = {}
-
-			const filesToProcess = this.document.files || []
-			if (!Array.isArray(filesToProcess)) {
-				return
-			}
-
-			let currentPage = 1
-			filesToProcess.forEach((file, index) => {
-				const metadata = file.metadata
-				const pageCount = metadata?.p || 0
-				for (let i = 0; i < pageCount; i++) {
-					this.filePagesMap[currentPage + i] = {
-						id: file.id,
-						fileIndex: index,
-						startPage: currentPage,
-						fileName: file.name,
-					}
-				}
-				currentPage += pageCount
-			})
-		},
-		closeModal() {
-			this.modal = false
-			this.filesStore.loading = false
-			this.elementsLoaded = false
-			this.stopAddSigner()
-		},
-		getPageHeightForFile(fileId, page) {
-			const filesToSearch = this.document.files || []
-			const fileInfo = filesToSearch.find(f => f.id === fileId)
-			const metadata = fileInfo?.metadata
-			return metadata?.d?.[page - 1]?.h
-		},
-		async updateSigners() {
-			const filesToProcess = this.document.files || []
-			if (this.elementsLoaded || filesToProcess.length === 0) {
-				return
-			}
-			const pdfElements = this.getPdfElements()
-
-			const fileIndexById = new Map(
-				filesToProcess.map((file, index) => [String(file.id), index]),
-			)
-			const elements = getVisibleElementsFromDocument(this.document)
-			const elementsByDoc = new Map()
-			elements.forEach(element => {
-				const fileInfo = findFileById(filesToProcess, element.fileId)
-				if (!fileInfo) {
-					return
-				}
-				const docIndex = fileIndexById.get(String(element.fileId))
-				if (docIndex === undefined) {
-					return
-				}
-				const signer = getFileSigners(fileInfo).find((s) => idsMatch(s.signRequestId, element.signRequestId))
-				if (!signer) {
-					return
-				}
-				const items = elementsByDoc.get(docIndex) || []
-				items.push({ element, signer })
-				elementsByDoc.set(docIndex, items)
-			})
-
-			for (const [docIndex, items] of elementsByDoc.entries()) {
-				if (typeof pdfElements?.selectPage === 'function') {
-					pdfElements.selectPage(docIndex, 0)
-				} else if (pdfElements) {
-					pdfElements.selectedDocIndex = docIndex
-					pdfElements.selectedPageIndex = 0
-				}
-				await this.$nextTick()
-				await this.$nextTick()
-
-				items.forEach(({ element, signer }) => {
-					const object = structuredClone(signer)
-					object.element = { ...element, documentIndex: docIndex }
-					this.$refs.pdfEditor.addSigner(object)
-				})
-			}
-
-			this.elementsLoaded = true
-
-			this.filesStore.loading = false
-		},
-		onSelectSigner(signer) {
-			if (!this.$refs.pdfEditor) {
-				return
-			}
-			this.signerSelected = signer
-			const started = this.$refs.pdfEditor.startAddingSigner(this.signerSelected, {
-				width: this.width,
-				height: this.height,
-			})
-			if (!started) {
-				this.signerSelected = null
-				return
-			}
-
-			this.$nextTick(() => {
-				const pdfElements = this.getPdfElements()
-				const watchAdding = () => {
-					if (!this.signerSelected) {
-						return
-					}
-					if (!pdfElements?.isAddingMode) {
-						this.stopAddSigner()
-						return
-					}
-					requestAnimationFrame(watchAdding)
-				}
-				requestAnimationFrame(watchAdding)
-			})
-		},
-		stopAddSigner() {
-			if (this.$refs.pdfEditor) {
-				this.$refs.pdfEditor.cancelAdding()
-			}
-			this.signerSelected = null
-		},
-		async onDeleteSigner(object) {
-			if (!object?.signer?.element?.elementId) {
-				return
-			}
-			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}/{elementId}', {
-				uuid: this.document.uuid,
-				elementId: object.signer.element.elementId,
-			}))
-		},
-		async goToSign() {
-			const uuid = this.document.settings.signerFileUuid
-			if (await this.save()) {
-				const route = this.$router.resolve({ name: 'SignPDF', params: { uuid } })
-				window.location.href = route.href
-			}
-		},
-		async save() {
-			this.loading = true
-			const visibleElements = this.buildVisibleElements()
-
-			try {
-				const response = await this.filesStore.saveOrUpdateSignatureRequest({ visibleElements })
-				showSuccess(t('libresign', response.message))
-				this.closeModal()
-				this.loading = false
-				return true
-			} catch (error) {
-				showError(error.response?.data?.ocs?.data?.message || t('libresign', 'An error occurred'))
-				this.loading = false
-				return false
-			}
-		},
-		buildVisibleElements() {
-			const visibleElements = []
-			const numDocuments = this.document.files.length
-			for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
-				const objects = this.$refs.pdfEditor.$refs.pdfElements.getAllObjects(docIndex)
-				objects.forEach(object => {
-					if (!object.signer) return
-
-					let globalPageNumber = object.pageNumber
-					for (const [page, info] of Object.entries(this.filePagesMap)) {
-						if (info.fileIndex === docIndex) {
-							globalPageNumber = info.startPage + object.pageNumber - 1
-							break
-						}
-					}
-
-					const pageInfo = this.filePagesMap[globalPageNumber]
-					const pageHeight = this.getPageHeightForFile(pageInfo.id, object.pageNumber)
-					if (!pageHeight) {
-						return
-					}
-
-					const left = Math.floor(object.x)
-					const top = Math.floor(object.y)
-					const width = Math.floor(object.width)
-					const height = Math.floor(object.height)
-
-					const coordinates = {
-						page: globalPageNumber,
-						width,
-						height,
-						left,
-						top,
-					}
-
-					const element = {
-						type: 'signature',
-						elementId: object.signer?.element?.elementId,
-						coordinates,
-					}
-
-					const targetFileId = pageInfo.id
-					element.fileId = targetFileId
-					element.coordinates.page = globalPageNumber - pageInfo.startPage + 1
-
-					const fileInfo = this.document.files.find(f => f.id === targetFileId)
-					if (!fileInfo || !Array.isArray(fileInfo.signers)) {
-						return
-					}
-					const envIdMethods = (object.signer.identifyMethods || []).map(m => `${m.method}:${m.value}`).sort().join('|')
-					const candidate = fileInfo.signers.find(s => {
-						const childIdMethods = (s.identifyMethods || []).map(m => `${m.method}:${m.value}`).sort().join('|')
-						return childIdMethods === envIdMethods
-					})
-					if (!candidate || !candidate.signRequestId) {
-						return
-					}
-					element.signRequestId = candidate.signRequestId
-
-					visibleElements.push(element)
-				})
-			}
-			return visibleElements
-		},
-	},
+type VisibleElementCoordinate = {
+	page: number
+	width: number
+	height: number
+	left: number
+	top: number
 }
+
+type VisibleElementPayload = {
+	type: 'signature'
+	elementId?: string
+	fileId?: number
+	signRequestId?: number | string
+	coordinates: VisibleElementCoordinate
+}
+
+type SignerIdentifyMethod = {
+	method: string
+	value: string
+}
+
+type FileSigner = {
+	signRequestId?: number | string
+	identifyMethods?: SignerIdentifyMethod[]
+	[key: string]: unknown
+}
+
+type DocumentFile = {
+	id: number
+	name: string
+	metadata?: {
+		extension?: string
+		p?: number
+		d?: Array<{ h?: number }>
+	}
+	file?: unknown
+	files?: Array<{ file?: unknown }>
+	visibleElements?: VisibleElementPayload[] | null
+	signers?: FileSigner[]
+	[key: string]: unknown
+}
+
+type DocumentModel = {
+	id?: number
+	uuid?: string
+	name?: string
+	status?: number | string
+	statusText?: string
+	metadata?: { extension?: string }
+	settings?: { signerFileUuid?: string }
+	files?: DocumentFile[]
+	visibleElements?: VisibleElementPayload[]
+	signers?: Array<Record<string, unknown>>
+	[key: string]: unknown
+}
+
+type FilePageInfo = {
+	id: number
+	fileIndex: number
+	startPage: number
+	fileName: string
+}
+
+type PdfObjectSigner = {
+	element?: { elementId?: string }
+	identifyMethods?: SignerIdentifyMethod[]
+	[key: string]: unknown
+}
+
+type PdfObject = {
+	signer?: PdfObjectSigner
+	pageNumber: number
+	x: number
+	y: number
+	width: number
+	height: number
+}
+
+type PdfElementsRef = {
+	getAllObjects: (docIndex: number) => PdfObject[]
+	selectPage?: (docIndex: number, pageIndex: number) => void
+	selectedDocIndex?: number
+	selectedPageIndex?: number
+	isAddingMode?: boolean
+}
+
+type PdfEditorRef = {
+	$refs?: { pdfElements?: PdfElementsRef }
+	startAddingSigner?: (signer: Record<string, unknown>, size: { width: number; height: number }) => boolean
+	cancelAdding?: () => void
+	addSigner?: (signer: Record<string, unknown>) => void
+}
+
+type SaveResponse = {
+	message: string
+}
+
+type FilesStore = {
+	loading: boolean
+	getFile: () => DocumentModel
+	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<SaveResponse>
+}
+
+defineOptions({
+	name: 'VisibleElements',
+})
+
+const filesStore = useFilesStore() as FilesStore
+const instance = getCurrentInstance()
+const pdfEditor = ref<PdfEditorRef | null>(null)
+const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
+const modal = ref(false)
+const loading = ref(false)
+const signerSelected = ref<Record<string, unknown> | null>(null)
+const width = ref(getCapabilities().libresign.config['sign-elements']['full-signature-width'])
+const height = ref(getCapabilities().libresign.config['sign-elements']['full-signature-height'])
+const filePagesMap = ref<Record<number, FilePageInfo>>({})
+const elementsLoaded = ref(false)
+
+const document = computed(() => filesStore.getFile())
+const status = computed(() => Number(document.value?.status ?? -1))
+const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
+const canSave = computed(() => [FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED].includes(status.value))
+const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && (document.value?.settings?.signerFileUuid ?? '').length > 0)
+const variantOfSaveButton = computed(() => canSave.value ? 'primary' : 'secondary')
+const variantOfSignButton = computed(() => canSave.value ? 'secondary' : 'primary')
+const statusLabel = computed(() => document.value.statusText)
+const pdfFiles = computed(() => (document.value.files || []).map(file => getFileUrl(file)).filter(Boolean))
+const pdfFileNames = computed(() => (document.value.files || []).map(file => `${file.name}.${file.metadata?.extension || 'pdf'}`))
+const documentNameWithExtension = computed(() => {
+	const currentDocument = document.value
+	if (!currentDocument.metadata?.extension) {
+		return currentDocument.name
+	}
+	return `${currentDocument.name}.${currentDocument.metadata.extension}`
+})
+
+function getPdfEditor() {
+	const instancePdfEditor = instance?.proxy?.$refs?.pdfEditor as PdfEditorRef | undefined
+	return instancePdfEditor || pdfEditor.value
+}
+
+function getPdfElements() {
+	return getPdfEditor()?.$refs?.pdfElements
+}
+
+async function showModal() {
+	if (!canRequestSign.value) {
+		return
+	}
+	if (getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === false) {
+		return
+	}
+	modal.value = true
+	filesStore.loading = true
+
+	if (!document.value.files || document.value.files.length === 0) {
+		await fetchFiles()
+	}
+
+	buildFilePagesMap()
+	filesStore.loading = false
+}
+
+async function fetchFiles() {
+	const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), {
+		params: {
+			parentFileId: document.value.id,
+			force_fetch: true,
+		},
+	})
+	const childFiles = response?.data?.ocs?.data?.data || []
+	document.value.files = Array.isArray(childFiles) ? childFiles : []
+
+	const allVisibleElements = aggregateVisibleElementsByFiles(document.value.files)
+	if (allVisibleElements.length > 0) {
+		document.value.visibleElements = allVisibleElements
+		return
+	}
+
+	const nestedDocumentElements = getVisibleElementsFromDocument(document.value)
+	if (nestedDocumentElements.length > 0) {
+		document.value.visibleElements = nestedDocumentElements
+	}
+}
+
+function buildFilePagesMap() {
+	filePagesMap.value = {}
+
+	const filesToProcess = document.value.files || []
+	if (!Array.isArray(filesToProcess)) {
+		return
+	}
+
+	let currentPage = 1
+	filesToProcess.forEach((file, index) => {
+		const pageCount = file.metadata?.p || 0
+		for (let pageIndex = 0; pageIndex < pageCount; pageIndex++) {
+			filePagesMap.value[currentPage + pageIndex] = {
+				id: file.id,
+				fileIndex: index,
+				startPage: currentPage,
+				fileName: file.name,
+			}
+		}
+		currentPage += pageCount
+	})
+}
+
+function closeModal() {
+	modal.value = false
+	filesStore.loading = false
+	elementsLoaded.value = false
+	stopAddSigner()
+}
+
+function getPageHeightForFile(fileId: number, page: number) {
+	const filesToSearch = document.value.files || []
+	const fileInfo = filesToSearch.find(file => file.id === fileId)
+	return fileInfo?.metadata?.d?.[page - 1]?.h
+}
+
+async function updateSigners() {
+	const filesToProcess = document.value.files || []
+	if (elementsLoaded.value || filesToProcess.length === 0) {
+		return
+	}
+	const pdfElements = getPdfElements()
+	const pdfEditorRef = getPdfEditor()
+
+	const fileIndexById = new Map(filesToProcess.map((file, index) => [String(file.id), index]))
+	const elements = getVisibleElementsFromDocument(document.value)
+	const elementsByDoc = new Map<number, Array<{ element: Record<string, unknown>; signer: Record<string, unknown> }>>()
+
+	elements.forEach((element) => {
+		const fileInfo = findFileById(filesToProcess, element.fileId)
+		if (!fileInfo) {
+			return
+		}
+		const docIndex = fileIndexById.get(String(element.fileId))
+		if (docIndex === undefined) {
+			return
+		}
+		const signer = getFileSigners(fileInfo).find((item) => idsMatch(item.signRequestId, element.signRequestId))
+		if (!signer) {
+			return
+		}
+		const items = elementsByDoc.get(docIndex) || []
+		items.push({ element, signer })
+		elementsByDoc.set(docIndex, items)
+	})
+
+	for (const [docIndex, items] of elementsByDoc.entries()) {
+		if (typeof pdfElements?.selectPage === 'function') {
+			pdfElements.selectPage(docIndex, 0)
+		} else if (pdfElements) {
+			pdfElements.selectedDocIndex = docIndex
+			pdfElements.selectedPageIndex = 0
+		}
+		await nextTick()
+		await nextTick()
+
+		items.forEach(({ element, signer }) => {
+			const object = structuredClone(signer)
+			object.element = { ...element, documentIndex: docIndex }
+			pdfEditorRef?.addSigner?.(object)
+		})
+	}
+
+	elementsLoaded.value = true
+	filesStore.loading = false
+}
+
+function onSelectSigner(signer: Record<string, unknown>) {
+	const pdfEditorRef = getPdfEditor()
+	if (!pdfEditorRef) {
+		return
+	}
+	signerSelected.value = signer
+	const started = pdfEditorRef.startAddingSigner?.(signerSelected.value, {
+		width: width.value,
+		height: height.value,
+	})
+	if (!started) {
+		signerSelected.value = null
+		return
+	}
+
+	void nextTick().then(() => {
+		const pdfElements = getPdfElements()
+		const watchAdding = () => {
+			if (!signerSelected.value) {
+				return
+			}
+			if (!pdfElements?.isAddingMode) {
+				stopAddSigner()
+				return
+			}
+			requestAnimationFrame(watchAdding)
+		}
+		requestAnimationFrame(watchAdding)
+	})
+}
+
+function stopAddSigner() {
+	getPdfEditor()?.cancelAdding?.()
+	signerSelected.value = null
+}
+
+async function onDeleteSigner(object: { signer?: { element?: { elementId?: string } } }) {
+	if (!object?.signer?.element?.elementId) {
+		return
+	}
+	await axios.delete(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}/{elementId}', {
+		uuid: document.value.uuid,
+		elementId: object.signer.element.elementId,
+	}))
+}
+
+async function goToSign() {
+	const uuid = document.value.settings?.signerFileUuid
+	if (await save()) {
+		const route = instance?.proxy?.$router.resolve({ name: 'SignPDF', params: { uuid } })
+		if (route?.href) {
+			window.location.href = route.href
+		}
+	}
+}
+
+async function save() {
+	loading.value = true
+	const visibleElements = buildVisibleElements()
+
+	try {
+		const response = await filesStore.saveOrUpdateSignatureRequest({ visibleElements })
+		showSuccess(t('libresign', response.message))
+		closeModal()
+		loading.value = false
+		return true
+	} catch (error) {
+		showError((error as { response?: { data?: { ocs?: { data?: { message?: string } } } } })?.response?.data?.ocs?.data?.message || t('libresign', 'An error occurred'))
+		loading.value = false
+		return false
+	}
+}
+
+function buildVisibleElements() {
+	const visibleElements: VisibleElementPayload[] = []
+	const currentFiles = document.value.files || []
+	const pdfElements = getPdfElements()
+	const numDocuments = currentFiles.length
+
+	for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
+		const objects = pdfElements?.getAllObjects(docIndex) || []
+		objects.forEach((object) => {
+			if (!object.signer) return
+
+			let globalPageNumber = object.pageNumber
+			for (const info of Object.values(filePagesMap.value)) {
+				if (info.fileIndex === docIndex) {
+					globalPageNumber = info.startPage + object.pageNumber - 1
+					break
+				}
+			}
+
+			const pageInfo = filePagesMap.value[globalPageNumber]
+			if (!pageInfo) {
+				return
+			}
+			const pageHeight = getPageHeightForFile(pageInfo.id, object.pageNumber)
+			if (!pageHeight) {
+				return
+			}
+
+			const coordinates = {
+				page: globalPageNumber,
+				width: Math.floor(object.width),
+				height: Math.floor(object.height),
+				left: Math.floor(object.x),
+				top: Math.floor(object.y),
+			}
+
+			const element: VisibleElementPayload = {
+				type: 'signature',
+				elementId: object.signer.element?.elementId,
+				coordinates,
+			}
+
+			const targetFileId = pageInfo.id
+			element.fileId = targetFileId
+			element.coordinates.page = globalPageNumber - pageInfo.startPage + 1
+
+			const fileInfo = currentFiles.find((file) => file.id === targetFileId)
+			if (!fileInfo || !Array.isArray(fileInfo.signers)) {
+				return
+			}
+			const envIdMethods = (object.signer.identifyMethods || []).map((method) => `${method.method}:${method.value}`).sort().join('|')
+			const candidate = fileInfo.signers.find((signer) => {
+				const childIdMethods = (signer.identifyMethods || []).map((method) => `${method.method}:${method.value}`).sort().join('|')
+				return childIdMethods === envIdMethods
+			})
+			if (!candidate?.signRequestId) {
+				return
+			}
+			element.signRequestId = candidate.signRequestId
+
+			visibleElements.push(element)
+		})
+	}
+
+	return visibleElements
+}
+
+onMounted(() => {
+	subscribe('libresign:show-visible-elements', showModal)
+	subscribe('libresign:visible-elements-select-signer', onSelectSigner)
+})
+
+onBeforeUnmount(() => {
+	unsubscribe('libresign:show-visible-elements', showModal)
+	unsubscribe('libresign:visible-elements-select-signer', onSelectSigner)
+})
+
+defineExpose({
+	filesStore,
+	pdfEditor,
+	t,
+	canRequestSign,
+	modal,
+	loading,
+	signerSelected,
+	width,
+	height,
+	filePagesMap,
+	elementsLoaded,
+	variantOfSaveButton,
+	variantOfSignButton,
+	document,
+	pdfFiles,
+	pdfFileNames,
+	documentNameWithExtension,
+	canSign,
+	canSave,
+	status,
+	statusLabel,
+	isDraft,
+	getPdfElements,
+	showModal,
+	fetchFiles,
+	aggregateVisibleElementsByFiles,
+	buildFilePagesMap,
+	closeModal,
+	getPageHeightForFile,
+	updateSigners,
+	onSelectSigner,
+	stopAddSigner,
+	onDeleteSigner,
+	goToSign,
+	save,
+	buildVisibleElements,
+})
 </script>
 
 <style lang="scss" scoped>
