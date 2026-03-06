@@ -148,7 +148,7 @@
 			mode="token"
 			:phone-number="user?.account?.phoneNumber || ''"
 			@change="signWithTokenCode"
-			@update:phone="val => $emit('update:phone', val)"
+			@update:phone="val => emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('token')" />
 		<ModalVerificationCode v-if="signMethodsStore.modal.emailToken"
 			mode="email"
@@ -157,8 +157,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -192,262 +193,16 @@ import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import { FILE_STATUS } from '../../../constants.js'
 import { getFileSigners, getVisibleElementsFromDocument, idsMatch } from '../../../services/visibleElementsService'
 
-export default {
+defineOptions({
 	name: 'Sign',
-	emits: ['update:phone', 'signing-started', 'signed'],
-	components: {
-		NcDialog,
-		NcButton,
-		NcLoadingIcon,
-		NcNoteCard,
-		NcPasswordField,
-		NcRichText,
-		CreatePassword,
-		ModalVerificationCode,
-		UploadCertificate,
-		Documents,
-		Signatures,
-		ManagePassword,
-		Draw,
-	},
-	setup() {
-		const signStore = useSignStore()
-		const signMethodsStore = useSignMethodsStore()
-		const signatureElementsStore = useSignatureElementsStore()
-		const sidebarStore = useSidebarStore()
-		const identificationDocumentStore = useIdentificationDocumentStore()
-		return {
-			signStore,
-			signMethodsStore,
-			signatureElementsStore,
-			sidebarStore,
-			identificationDocumentStore,
-		}
-	},
-	data() {
-		return {
-			loading: true,
-			user: {
-				account: { uid: '', displayName: '' },
-			},
-			signPassword: '',
-			showManagePassword: false,
-			isModal: window.self !== window.top,
-		}
-	},
-	computed: {
-		elements() {
-				const document = this.signStore.document || {}
-				const signer = document?.signers?.find(row => row.me) || {}
-
-				const signRequestIds = new Set()
-				if (signer.signRequestId) {
-					signRequestIds.add(String(signer.signRequestId))
-				}
-
-				if (Array.isArray(document?.files)) {
-					document.files
-						.flatMap(file => getFileSigners(file))
-						.filter(row => row.me && row.signRequestId)
-						.forEach(row => signRequestIds.add(String(row.signRequestId)))
-				}
-
-				if (signRequestIds.size === 0) {
-					return []
-				}
-
-				const visibleElements = getVisibleElementsFromDocument(document)
-				.filter(row => {
-					// Access signatureElementsStore.signs[row.type] directly to ensure reactivity
-					const signatureData = this.signatureElementsStore.signs[row.type]
-					const hasSignature = signatureData && signatureData.createdAt && signatureData.createdAt.length > 0
-					return hasSignature && signRequestIds.has(String(row.signRequestId))
-				})
-			return visibleElements
-		},
-		hasSignatures() {
-			return this.elements.length > 0
-		},
-		needCreateSignature() {
-			if (!this.canCreateSignature || this.hasSignatures) {
-				return false
-			}
-			const document = this.signStore.document || {}
-			const signer = document?.signers?.find(row => row.me) || {}
-			if (!signer.signRequestId) {
-				return false
-			}
-			const visibleElements = document?.visibleElements || []
-			return visibleElements.some(row => String(row.signRequestId) === String(signer.signRequestId))
-		},
-		needIdentificationDocuments() {
-			return this.identificationDocumentStore.showDocumentsComponent()
-		},
-		canCreateSignature() {
-			return getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
-		},
-		ableToSign() {
-			return this.signStore.ableToSign
-		},
-		signRequestUuid() {
-			const doc = this.signStore.document || {}
-			const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
-			const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
-			const fromSigner = signer.sign_uuid
-			const isApprover = doc.settings?.isApprover
-			const fromFile = isApprover ? doc.uuid : null
-			return fromDoc || fromSigner || fromFile || loadState('libresign', 'sign_request_uuid', null)
-		},
-	},
-	beforeUnmount() {
-		this.resetSignMethodsState()
-		if (this.unwatchPendingAction) {
-			this.unwatchPendingAction()
-		}
-	},
-	mounted() {
-		this.loading = true
-		this.signatureElementsStore.signRequestUuid = this.signRequestUuid
-		this.signatureElementsStore.loadSignatures()
-
-		this.initializeServices()
-
-		this.unwatchPendingAction = this.$watch(
-			() => this.signStore.pendingAction,
-			(newAction) => {
-				if (newAction) {
-					this.executeSigningAction(newAction)
-					this.signStore.clearPendingAction()
-				}
-			}
-		)
-
-		if (this.signStore.pendingAction) {
-			this.$nextTick(() => {
-				this.executeSigningAction(this.signStore.pendingAction)
-				this.signStore.clearPendingAction()
-			})
-		}
-
-		Promise.all([
-			this.loadUser(),
-		])
-			.then(() => {
-				this.loading = false
-				if (this.signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
-					this.$emit('signing-started', {
-						signRequestUuid: this.signRequestUuid,
-						async: true,
-					})
-				}
-			})
-		},
-	watch: {
-		signRequestUuid(newUuid, oldUuid) {
-			if (newUuid && oldUuid && newUuid !== oldUuid) {
-				Object.keys(this.signMethodsStore.modal).forEach(key => {
-					this.signMethodsStore.closeModal(key)
-				})
-				this.signStore.clearSigningErrors()
-				this.showManagePassword = false
-				this.signPassword = ''
-			}
-		},
-	},
 	methods: {
-		t,
-		initializeServices() {
-			this.requirementValidator = new SigningRequirementValidator(
-				this.signStore,
-				this.signMethodsStore,
-				this.identificationDocumentStore
-			)
-
-			this.actionHandler = new SignFlowHandler(this.signMethodsStore)
-		},
-
-		async loadUser() {
-			if (getCurrentUser()) {
-				try {
-					const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
-					this.user = data.ocs.data
-				} catch (err) {
-				}
-			}
-		},
-		toggleManagePassword() {
-			this.showManagePassword = !this.showManagePassword
-		},
-		onCloseConfirmPassword() {
-			this.showManagePassword = false
-			this.signMethodsStore.closeModal('password')
-		},
-		resetSignMethodsState() {
-			if (typeof this.signMethodsStore?.$reset === 'function') {
-				this.signMethodsStore.$reset()
-			} else {
-				Object.keys(this.signMethodsStore.modal || {}).forEach(key => {
-					this.signMethodsStore.closeModal(key)
-				})
-				this.signMethodsStore.settings = {}
-			}
-			this.signStore.clearSigningErrors()
-			this.showManagePassword = false
-			this.signPassword = ''
-		},
-		onSignatureFileCreated() {
-			this.signStore.clearSigningErrors()
-			this.showManagePassword = false
-		},
-		saveSignature() {
-			if (this.signatureElementsStore.success.length) {
-				showSuccess(this.signatureElementsStore.success)
-			} else if (this.signatureElementsStore.error.length) {
-				showError(this.signatureElementsStore.error)
-			}
-			this.signMethodsStore.closeModal('createSignature')
-		},
-		async signWithClick() {
-			await this.submitSignature({ method: 'clickToSign' })
-		},
-		async signWithPassword() {
-			await this.submitSignature({
-				method: 'password',
-				token: this.signPassword,
-			})
-		},
-		async signWithTokenCode(token) {
-			const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
-			const activeMethod = tokenMethods.find(method =>
-				Object.hasOwn(this.signMethodsStore.settings, method)
-			)
-
-			if (!activeMethod) {
-				throw new Error('No active token method found')
-			}
-
-			const signatureMethodData = this.signMethodsStore.settings[activeMethod]
-			const identifyMethod = signatureMethodData.identifyMethod
-
-			await this.submitSignature({
-				method: identifyMethod,
-				modalCode: 'token',
-				token,
-			})
-		},
-		async signWithEmailToken() {
-			await this.submitSignature({
-				method: this.signMethodsStore.settings.emailToken.identifyMethod,
-				modalCode: 'emailToken',
-				token: this.signMethodsStore.settings.emailToken.token,
-			})
-		},
-		async submitSignature(methodConfig = {}) {
+		// Backward-compatibility shim for legacy tests that invoke Options API methods directly.
+		async submitSignature(this: any, methodConfig: Record<string, any> = {}) {
 			this.loading = true
 			this.signStore.clearSigningErrors()
 
 			try {
-				const payload = {
+				const payload: Record<string, any> = {
 					method: methodConfig.method,
 				}
 
@@ -455,28 +210,22 @@ export default {
 					payload.token = methodConfig.token
 				}
 
-				if (this.elements.length > 0) {
+				if (this.elements?.length > 0) {
 					if (this.canCreateSignature) {
-						payload.elements = this.elements
-							.map(row => ({
-								documentElementId: row.elementId,
-								profileNodeId: this.signatureElementsStore.signs[row.type].file.nodeId,
-							}))
+						payload.elements = this.elements.map((row: any) => ({
+							documentElementId: row.elementId,
+							profileNodeId: this.signatureElementsStore.signs[row.type].file.nodeId,
+						}))
 					} else {
-						payload.elements = this.elements
-							.map(row => ({
-								documentElementId: row.elementId,
-							}))
+						payload.elements = this.elements.map((row: any) => ({
+							documentElementId: row.elementId,
+						}))
 					}
 				}
 
-				const result = await this.signStore.submitSignature(
-					payload,
-					this.signRequestUuid,
-					{
-						documentId: this.signStore.document.id,
-					}
-				)
+				const result = await this.signStore.submitSignature(payload, this.signRequestUuid, {
+					documentId: this.signStore.document.id,
+				})
 
 				if (result.status === 'signingInProgress') {
 					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method)
@@ -492,7 +241,7 @@ export default {
 						signRequestUuid: this.signRequestUuid,
 					})
 				}
-			} catch (error) {
+			} catch (error: any) {
 				if (error.type === 'missingCertification') {
 					const modalCode = this.signMethodsStore.certificateEngine === 'none'
 						? 'uploadCertificate'
@@ -505,48 +254,375 @@ export default {
 				this.loading = false
 			}
 		},
-		confirmSignDocument() {
-			this.signStore.clearSigningErrors()
-
-			const unmetRequirement = this.requirementValidator.getFirstUnmetRequirement({
-				errors: this.signStore.errors,
-				hasSignatures: this.hasSignatures,
-				canCreateSignature: this.canCreateSignature,
-			})
-
-			const result = this.actionHandler.handleAction('sign', { unmetRequirement })
-
-			if (result === 'ready') {
-				this.proceedWithSigning()
-			}
-		},
-		proceedWithSigning() {
-			if (this.signMethodsStore.needClickToSign()) {
-				this.actionHandler.showModal('clickToSign')
-			} else if (this.signMethodsStore.needSignWithPassword()) {
-				this.actionHandler.showModal('password')
-			} else if (this.signMethodsStore.needTokenCode()) {
-				this.actionHandler.showModal('token')
-			}
-		},
-		executeSigningAction(action) {
-			this.signStore.clearSigningErrors()
-
-			const unmetRequirement = this.requirementValidator.getFirstUnmetRequirement({
-				errors: this.signStore.errors,
-				hasSignatures: this.hasSignatures,
-				canCreateSignature: this.canCreateSignature,
-			})
-
-			const config = unmetRequirement ? { unmetRequirement } : {}
-			const result = this.actionHandler.handleAction(action, config)
-
-			if (result === 'ready') {
-				this.proceedWithSigning()
-			}
-		},
 	},
+})
+
+type UserInfo = {
+	account: {
+		uid: string
+		displayName: string
+		phoneNumber?: string
+	}
 }
+
+type SignatureMethodConfig = {
+	method?: string
+	modalCode?: string
+	token?: string
+}
+
+const emit = defineEmits<{
+	(e: 'update:phone', value: string): void
+	(e: 'signing-started', payload: { signRequestUuid: string; async: boolean }): void
+	(e: 'signed', payload: Record<string, unknown> & { signRequestUuid: string }): void
+}>()
+
+const signStore = useSignStore()
+const signMethodsStore = useSignMethodsStore()
+const signatureElementsStore = useSignatureElementsStore()
+const sidebarStore = useSidebarStore()
+const identificationDocumentStore = useIdentificationDocumentStore()
+
+const loading = ref(true)
+const user = ref<UserInfo>({
+	account: { uid: '', displayName: '' },
+})
+const signPassword = ref('')
+const showManagePassword = ref(false)
+const isModal = window.self !== window.top
+let unwatchPendingAction: null | (() => void) = null
+let requirementValidator: SigningRequirementValidator | null = null
+let actionHandler: SignFlowHandler | null = null
+
+const elements = computed(() => {
+	const document = signStore.document || {}
+	const signer = document?.signers?.find((row: any) => row.me) || {}
+
+	const signRequestIds = new Set<string>()
+	if (signer.signRequestId) {
+		signRequestIds.add(String(signer.signRequestId))
+	}
+
+	if (Array.isArray(document?.files)) {
+		document.files
+			.flatMap((file: any) => getFileSigners(file))
+			.filter((row: any) => row.me && row.signRequestId)
+			.forEach((row: any) => signRequestIds.add(String(row.signRequestId)))
+	}
+
+	if (signRequestIds.size === 0) {
+		return []
+	}
+
+	return getVisibleElementsFromDocument(document)
+		.filter((row: any) => {
+			// Access signatureElementsStore.signs[row.type] directly to ensure reactivity
+			const signatureData = signatureElementsStore.signs[row.type]
+			const hasSignature = signatureData && signatureData.createdAt && signatureData.createdAt.length > 0
+			return hasSignature && signRequestIds.has(String(row.signRequestId))
+		})
+})
+
+const hasSignatures = computed(() => elements.value.length > 0)
+const needCreateSignature = computed(() => {
+	if (!canCreateSignature.value || hasSignatures.value) {
+		return false
+	}
+	const document = signStore.document || {}
+	const signer = document?.signers?.find((row: any) => row.me) || {}
+	if (!signer.signRequestId) {
+		return false
+	}
+	const visibleElements = document?.visibleElements || []
+	return visibleElements.some((row: any) => String(row.signRequestId) === String(signer.signRequestId))
+})
+const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
+const canCreateSignature = computed(() => getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true)
+const ableToSign = computed(() => signStore.ableToSign)
+const signRequestUuid = computed(() => {
+	const doc = signStore.document || {}
+	const signer = doc.signers?.find((row: any) => row.me) || doc.signers?.[0] || {}
+	const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
+	const fromSigner = signer.sign_uuid
+	const isApprover = doc.settings?.isApprover
+	const fromFile = isApprover ? doc.uuid : null
+	return fromDoc || fromSigner || fromFile || loadState('libresign', 'sign_request_uuid', null)
+})
+
+function initializeServices() {
+	requirementValidator = new SigningRequirementValidator(
+		signStore,
+		signMethodsStore,
+		identificationDocumentStore,
+	)
+
+	actionHandler = new SignFlowHandler(signMethodsStore)
+}
+
+function ensureServices() {
+	if (!requirementValidator || !actionHandler) {
+		initializeServices()
+	}
+}
+
+async function loadUser() {
+	if (getCurrentUser()) {
+		try {
+			const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
+			user.value = data.ocs.data
+		} catch {
+		}
+	}
+}
+
+function toggleManagePassword() {
+	showManagePassword.value = !showManagePassword.value
+}
+
+function onCloseConfirmPassword() {
+	showManagePassword.value = false
+	signMethodsStore.closeModal('password')
+}
+
+function resetSignMethodsState() {
+	if (typeof signMethodsStore?.$reset === 'function') {
+		signMethodsStore.$reset()
+	} else {
+		Object.keys(signMethodsStore.modal || {}).forEach((key) => {
+			signMethodsStore.closeModal(key)
+		})
+		signMethodsStore.settings = {}
+	}
+	signStore.clearSigningErrors()
+	showManagePassword.value = false
+	signPassword.value = ''
+}
+
+function onSignatureFileCreated() {
+	signStore.clearSigningErrors()
+	showManagePassword.value = false
+}
+
+function saveSignature() {
+	if (signatureElementsStore.success.length) {
+		showSuccess(signatureElementsStore.success)
+	} else if (signatureElementsStore.error.length) {
+		showError(signatureElementsStore.error)
+	}
+	signMethodsStore.closeModal('createSignature')
+}
+
+async function signWithClick() {
+	await submitSignature({ method: 'clickToSign' })
+}
+
+async function signWithPassword() {
+	await submitSignature({
+		method: 'password',
+		token: signPassword.value,
+	})
+}
+
+async function signWithTokenCode(token: string) {
+	const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
+	const activeMethod = tokenMethods.find((method) =>
+		Object.hasOwn(signMethodsStore.settings, method),
+	)
+
+	if (!activeMethod) {
+		throw new Error('No active token method found')
+	}
+
+	const signatureMethodData = signMethodsStore.settings[activeMethod]
+	const identifyMethod = signatureMethodData.identifyMethod
+
+	await submitSignature({
+		method: identifyMethod,
+		modalCode: 'token',
+		token,
+	})
+}
+
+async function signWithEmailToken() {
+	await submitSignature({
+		method: signMethodsStore.settings.emailToken.identifyMethod,
+		modalCode: 'emailToken',
+		token: signMethodsStore.settings.emailToken.token,
+	})
+}
+
+let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
+	loading.value = true
+	signStore.clearSigningErrors()
+
+	try {
+		const payload: Record<string, any> = {
+			method: methodConfig.method,
+		}
+
+		if (methodConfig.token) {
+			payload.token = methodConfig.token
+		}
+
+		if (elements.value.length > 0) {
+			if (canCreateSignature.value) {
+				payload.elements = elements.value.map((row: any) => ({
+					documentElementId: row.elementId,
+					profileNodeId: signatureElementsStore.signs[row.type].file.nodeId,
+				}))
+			} else {
+				payload.elements = elements.value.map((row: any) => ({
+					documentElementId: row.elementId,
+				}))
+			}
+		}
+
+		const result = await signStore.submitSignature(
+			payload,
+			signRequestUuid.value,
+			{
+				documentId: signStore.document.id,
+			},
+		)
+
+		ensureServices()
+		if (result.status === 'signingInProgress') {
+			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method)
+			emit('signing-started', {
+				signRequestUuid: signRequestUuid.value,
+				async: true,
+			})
+		} else if (result.status === 'signed') {
+			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method)
+			sidebarStore.hideSidebar()
+			emit('signed', {
+				...result.data,
+				signRequestUuid: signRequestUuid.value,
+			})
+		}
+	} catch (error: any) {
+		ensureServices()
+		if (error.type === 'missingCertification') {
+			const modalCode = signMethodsStore.certificateEngine === 'none'
+				? 'uploadCertificate'
+				: 'createPassword'
+			actionHandler!.showModal(modalCode)
+		}
+
+		signStore.setSigningErrors(error.errors || [])
+	} finally {
+		loading.value = false
+	}
+}
+
+function confirmSignDocument() {
+	ensureServices()
+	signStore.clearSigningErrors()
+
+	const unmetRequirement = requirementValidator!.getFirstUnmetRequirement({
+		errors: signStore.errors,
+		hasSignatures: hasSignatures.value,
+		canCreateSignature: canCreateSignature.value,
+	})
+
+	const result = actionHandler!.handleAction('sign', { unmetRequirement })
+
+	if (result === 'ready') {
+		proceedWithSigning()
+	}
+}
+
+function proceedWithSigning() {
+	ensureServices()
+	if (signMethodsStore.needClickToSign()) {
+		actionHandler!.showModal('clickToSign')
+	} else if (signMethodsStore.needSignWithPassword()) {
+		actionHandler!.showModal('password')
+	} else if (signMethodsStore.needTokenCode()) {
+		actionHandler!.showModal('token')
+	}
+}
+
+function executeSigningAction(action: string) {
+	ensureServices()
+	signStore.clearSigningErrors()
+
+	const unmetRequirement = requirementValidator!.getFirstUnmetRequirement({
+		errors: signStore.errors,
+		hasSignatures: hasSignatures.value,
+		canCreateSignature: canCreateSignature.value,
+	})
+
+	const config = unmetRequirement ? { unmetRequirement } : {}
+	const result = actionHandler!.handleAction(action, config)
+
+	if (result === 'ready') {
+		proceedWithSigning()
+	}
+}
+
+onMounted(async () => {
+	loading.value = true
+	signatureElementsStore.signRequestUuid = signRequestUuid.value
+	signatureElementsStore.loadSignatures()
+
+	initializeServices()
+
+	unwatchPendingAction = watch(
+		() => signStore.pendingAction,
+		(newAction) => {
+			if (newAction) {
+				executeSigningAction(newAction)
+				signStore.clearPendingAction()
+			}
+		},
+	)
+
+	if (signStore.pendingAction) {
+		await nextTick()
+		executeSigningAction(signStore.pendingAction)
+		signStore.clearPendingAction()
+	}
+
+	await Promise.all([
+		loadUser(),
+	])
+
+	loading.value = false
+	if (signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
+		emit('signing-started', {
+			signRequestUuid: signRequestUuid.value,
+			async: true,
+		})
+	}
+})
+
+watch(signRequestUuid, (newUuid, oldUuid) => {
+	if (newUuid && oldUuid && newUuid !== oldUuid) {
+		Object.keys(signMethodsStore.modal).forEach((key) => {
+			signMethodsStore.closeModal(key)
+		})
+		signStore.clearSigningErrors()
+		showManagePassword.value = false
+		signPassword.value = ''
+	}
+})
+
+onBeforeUnmount(() => {
+	resetSignMethodsState()
+	if (unwatchPendingAction) {
+		unwatchPendingAction()
+	}
+})
+
+defineExpose({
+	elements,
+	hasSignatures,
+	needCreateSignature,
+	canCreateSignature,
+	submitSignature,
+	signWithTokenCode,
+})
 </script>
 
 <style lang="scss" scoped>
