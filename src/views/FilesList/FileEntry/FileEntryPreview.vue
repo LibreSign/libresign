@@ -22,8 +22,9 @@
 	</span>
 </template>
 
-<script>
+<script setup lang="ts">
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+import { computed, ref } from 'vue'
 
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import {
@@ -33,69 +34,71 @@ import {
 
 import { useUserConfigStore } from '../../../store/userconfig.js'
 
-export default {
+defineOptions({
 	name: 'FileEntryPreview',
+})
 
-	components: {
-		NcIconSvgWrapper,
-	},
-	props: {
-		source: {
-			type: Object,
-			required: true,
-		},
-	},
-	setup() {
-		const userConfigStore = useUserConfigStore()
-		return {
-			userConfigStore,
-			mdiFile,
-			mdiFolder,
-		}
-	},
-	data() {
-		return {
-			backgroundFailed: false,
-		}
-	},
-	computed: {
-		isFavorite() {
-			return this.source?.attributes?.favorite === 1
-		},
-		isEnvelope() {
-			return this.source?.nodeType === 'envelope'
-		},
-		previewUrl() {
-			if (this.backgroundFailed === true) {
-				return null
-			}
-
-			let previewUrl = ''
-			if (this.source?.nodeId) {
-				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
-					nodeId: this.source.nodeId,
-				})
-			} else if (this.source?.id) {
-				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
-					fileId: this.source.id,
-				})
-			} else {
-				previewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
-					fileid: this.source.nodeId,
-				})
-			}
-
-			const url = new URL(previewUrl)
-
-			// Request tiny previews
-			url.searchParams.set('x', this.userConfigStore.files_list_grid_view ? '128' : '32')
-			url.searchParams.set('y', this.userConfigStore.files_list_grid_view ? '128' : '32')
-			url.searchParams.set('mimeFallback', 'true')
-
-			// Handle cropping
-			url.searchParams.set('a', this.cropPreviews === true ? '0' : '1')
-			return url
-		},
-	},
+type Source = {
+	attributes?: {
+		favorite?: number
+	}
+	nodeType?: string
+	nodeId?: number
+	id?: number
 }
+
+type UserConfigStore = {
+	files_list_grid_view: boolean
+}
+
+const props = defineProps<{
+	source: Source
+}>()
+
+const userConfigStore = useUserConfigStore() as UserConfigStore
+const backgroundFailed = ref(false)
+const cropPreviews = false
+
+const isFavorite = computed(() => props.source?.attributes?.favorite === 1)
+const isEnvelope = computed(() => props.source?.nodeType === 'envelope')
+
+const previewUrl = computed(() => {
+	if (backgroundFailed.value === true) {
+		return null
+	}
+
+	let nextPreviewUrl = ''
+	if (props.source?.nodeId) {
+		nextPreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
+			nodeId: props.source.nodeId,
+		})
+	} else if (props.source?.id) {
+		nextPreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
+			fileId: props.source.id,
+		})
+	} else {
+		nextPreviewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
+			fileid: props.source.nodeId,
+		})
+	}
+
+	const url = new URL(nextPreviewUrl)
+	url.searchParams.set('x', userConfigStore.files_list_grid_view ? '128' : '32')
+	url.searchParams.set('y', userConfigStore.files_list_grid_view ? '128' : '32')
+	url.searchParams.set('mimeFallback', 'true')
+	url.searchParams.set('a', cropPreviews === true ? '0' : '1')
+	return url
+})
+
+defineExpose({
+	userConfigStore,
+	backgroundFailed,
+	cropPreviews,
+	isFavorite,
+	isEnvelope,
+	previewUrl,
+	props,
+	mdiFile,
+	mdiFolder,
+})
 </script>
