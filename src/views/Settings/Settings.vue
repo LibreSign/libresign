@@ -33,16 +33,17 @@
 	</div>
 </template>
 
-<script>
-import { t } from '@nextcloud/l10n'
-
+<script setup lang="ts">
 import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'
-import SignatureEngine from './SignatureEngine.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
+import CollectMetadata from './CollectMetadata.vue'
+import Confetti from './Confetti.vue'
+import CrlValidation from './CrlValidation.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
 import DocMDP from './DocMDP.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
+import Envelope from './Envelope.vue'
 import ExpirationRules from './ExpirationRules.vue'
 import IdentificationDocuments from './IdentificationDocuments.vue'
 import IdentificationFactors from './IdentificationFactors.vue'
@@ -50,50 +51,16 @@ import LegalInformation from './LegalInformation.vue'
 import Reminders from './Reminders.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
+import SignatureEngine from './SignatureEngine.vue'
 import SignatureFlow from './SignatureFlow.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
-import CollectMetadata from './CollectMetadata.vue'
-import CrlValidation from './CrlValidation.vue'
 import SignatureStamp from './SignatureStamp.vue'
 import SigningMode from './SigningMode.vue'
-import Confetti from './Confetti.vue'
-import Envelope from './Envelope.vue'
 import SupportProject from './SupportProject.vue'
 import TSA from './TSA.vue'
 import Validation from './Validation.vue'
 
-export default {
+defineOptions({
 	name: 'Settings',
-	components: {
-		AllowedGroups,
-		CertificateEngine,
-		SignatureEngine,
-		ConfigureCheck,
-		DefaultUserFolder,
-		DocMDP,
-		DownloadBinaries,
-		ExpirationRules,
-		IdentificationDocuments,
-		IdentificationFactors,
-		LegalInformation,
-		Reminders,
-		RootCertificateCfssl,
-		RootCertificateOpenSsl,
-		SignatureFlow,
-		SignatureHashAlgorithm,
-		CollectMetadata,
-		CrlValidation,
-		SignatureStamp,
-		Confetti,
-		SigningMode,
-		Envelope,
-		SupportProject,
-		TSA,
-		Validation,
-	},
-	methods: {
-		t,
-	},
-}
-
+})
 </script>
