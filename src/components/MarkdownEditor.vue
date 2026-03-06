@@ -149,6 +149,7 @@ const insertMarkdownLink = (view) => {
 
 export default {
 	name: 'MarkdownEditor',
+	emits: ['update:modelValue'],
 	components: {
 		NcButton,
 		NcIconSvgWrapper,
