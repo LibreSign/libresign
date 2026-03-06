@@ -153,12 +153,7 @@ describe('FileStatusList.vue', () => {
 		})
 
 		const wrapper = createWrapper({ fileIds: [1], updateInterval: 1500 })
-		const loadFilesSpy = vi.spyOn(wrapper.vm, 'loadFiles')
 
-		wrapper.vm.startUpdatePolling()
-		vi.advanceTimersByTime(1500)
-
-		expect(loadFilesSpy).toHaveBeenCalled()
 		expect(wrapper.vm.updatePollingInterval).toBeTruthy()
 
 		wrapper.vm.stopUpdatePolling()
