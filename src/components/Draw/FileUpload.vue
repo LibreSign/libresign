@@ -123,6 +123,7 @@ import 'vue-advanced-cropper/dist/style.css'
 
 export default {
 	name: 'FileUpload',
+	emits: ['save', 'close'],
 	components: {
 		NcButton,
 		Cropper,
