@@ -74,8 +74,14 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		await filesStore.addFile({ ...current, ...patch, id: 1 })
 		await wrapper.vm.$nextTick()
 	}
+	const setVmState = async (patch: Record<string, unknown>) => {
+		Object.entries(patch).forEach(([key, value]) => {
+			;(wrapper.vm as Record<string, unknown>)[key] = value
+		})
+		await wrapper.vm.$nextTick()
+	}
 	const updateMethods = async (methods: unknown[]) => {
-		await wrapper.setData({ methods })
+		await setVmState({ methods })
 	}
 
 	beforeEach(async () => {
@@ -352,13 +358,13 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 	describe('RULE: showSigningProgress when document active', () => {
 		it('shows when signingProgressStatus is SIGNING_IN_PROGRESS', async () => {
-			await wrapper.setData({ signingProgressStatus: FILE_STATUS.SIGNING_IN_PROGRESS })
+			await setVmState({ signingProgressStatus: FILE_STATUS.SIGNING_IN_PROGRESS })
 
 			expect(wrapper.vm.showSigningProgress).toBe(true)
 		})
 
 		it('hides when signingProgressStatus is not SIGNING_IN_PROGRESS', async () => {
-			await wrapper.setData({ signingProgressStatus: FILE_STATUS.DRAFT })
+			await setVmState({ signingProgressStatus: FILE_STATUS.DRAFT })
 
 			expect(wrapper.vm.showSigningProgress).toBe(false)
 		})
@@ -618,13 +624,13 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('uses admin flow when file flow is none', async () => {
-			await wrapper.setData({ adminSignatureFlow: 'ordered_numeric' })
+			await setVmState({ adminSignatureFlow: 'ordered_numeric' })
 			await updateFile({ signatureFlow: 'none' })
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
 		})
 
 		it('defaults to parallel when both file and admin are none', async () => {
-			await wrapper.setData({ adminSignatureFlow: 'none' })
+			await setVmState({ adminSignatureFlow: 'none' })
 			await updateFile({ signatureFlow: 'none' })
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
@@ -632,22 +638,22 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 	describe('RULE: isAdminFlowForced detection', () => {
 		it('returns true when admin flow set to ordered_numeric', async () => {
-			await wrapper.setData({ adminSignatureFlow: 'ordered_numeric' })
+			await setVmState({ adminSignatureFlow: 'ordered_numeric' })
 			expect(wrapper.vm.isAdminFlowForced).toBe(true)
 		})
 
 		it('returns true when admin flow set to parallel', async () => {
-			await wrapper.setData({ adminSignatureFlow: 'parallel' })
+			await setVmState({ adminSignatureFlow: 'parallel' })
 			expect(wrapper.vm.isAdminFlowForced).toBe(true)
 		})
 
 		it('returns false when admin flow is none', async () => {
-			await wrapper.setData({ adminSignatureFlow: 'none' })
+			await setVmState({ adminSignatureFlow: 'none' })
 			expect(wrapper.vm.isAdminFlowForced).toBe(false)
 		})
 
 		it('hides preserve order switch when admin forces flow', async () => {
-			await wrapper.setData({ adminSignatureFlow: 'ordered_numeric' })
+			await setVmState({ adminSignatureFlow: 'ordered_numeric' })
 			await updateFile({
 				signers: [
 					{ email: 'test1@example.com' },
@@ -846,7 +852,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('reverts to parallel when disabling', async () => {
-			await wrapper.setData({ adminSignatureFlow: 'none' })
+			await setVmState({ adminSignatureFlow: 'none' })
 			await updateFile({
 				signatureFlow: 'ordered_numeric',
 				signers: [
@@ -859,7 +865,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('preserves admin flow when disabling user preference', async () => {
-			await wrapper.setData({ adminSignatureFlow: 'ordered_numeric' })
+			await setVmState({ adminSignatureFlow: 'ordered_numeric' })
 			await updateFile({
 				signatureFlow: 'ordered_numeric',
 				signers: [
@@ -892,7 +898,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('disables preserve order when admin forces flow', async () => {
-			await wrapper.setData({ adminSignatureFlow: 'ordered_numeric' })
+			await setVmState({ adminSignatureFlow: 'ordered_numeric' })
 			await updateFile({ signatureFlow: 'ordered_numeric' })
 			wrapper.vm.syncPreserveOrderWithFile()
 			expect(wrapper.vm.preserveOrder).toBe(false)
@@ -945,7 +951,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 				{ name: 'sms', enabled: true, friendly_name: 'SMS' },
 				{ name: 'account', enabled: false, friendly_name: 'Account' },
 			])
-			await wrapper.setData({ signerToEdit: {} })
+			await setVmState({ signerToEdit: {} })
 			expect(wrapper.vm.enabledMethods).toHaveLength(2)
 			expect(wrapper.vm.enabledMethods.map((m: { name: string }) => m.name)).toContain('email')
 			expect(wrapper.vm.enabledMethods.map((m: { name: string }) => m.name)).toContain('sms')
@@ -956,7 +962,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 				{ name: 'email', enabled: true, friendly_name: 'Email' },
 				{ name: 'sms', enabled: false, friendly_name: 'SMS' },
 			])
-			await wrapper.setData({
+			await setVmState({
 				signerToEdit: {
 					identify: 'test@example.com',
 					identifyMethods: [{ method: 'sms' }],
@@ -968,7 +974,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 		it('detects disabled method for edited signer', async () => {
 			await updateMethods([{ name: 'sms', enabled: false }])
-			await wrapper.setData({
+			await setVmState({
 				signerToEdit: {
 					identify: 'test@example.com',
 					identifyMethods: [{ method: 'sms' }],
