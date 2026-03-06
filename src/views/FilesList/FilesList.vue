@@ -87,9 +87,10 @@
 	</NcAppContent>
 </template>
 
-<script>
+<script setup lang="ts">
 
 import { t } from '@nextcloud/l10n'
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import HomeSvg from '@mdi/svg/svg/home.svg?raw'
 import {
@@ -119,98 +120,71 @@ import { useFiltersStore } from '../../store/filters.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 
-export default {
+defineOptions({
 	name: 'FilesList',
-	components: {
-		NcActionButton,
-		NcAppContent,
-		NcButton,
-		NcBreadcrumb,
-		NcBreadcrumbs,
-		NcIconSvgWrapper,
-		NcLoadingIcon,
-		FileListFilters,
-		FilesListVirtual,
-		RequestPicker,
-		NcEmptyContent,
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		const filtersStore = useFiltersStore()
-		const userConfigStore = useUserConfigStore()
-		const sidebarStore = useSidebarStore()
-		return {
-			filesStore,
-			filtersStore,
-			userConfigStore,
-			sidebarStore,
-			mdiChevronDown,
-			mdiChevronUp,
-			mdiFolder,
-			mdiFormatListBulletedSquare,
-			mdiReload,
-			mdiViewGridOutline,
-		}
-	},
-	data() {
-		return {
-			isMenuOpen: false,
-			loading: true,
-			dirContentsFiltered: [],
-		}
-	},
-	computed: {
-		canRequestSign() {
-			return this.filesStore.canRequestSign
-		},
-		viewIcon() {
-			return HomeSvg
-		},
-		gridViewButtonLabel() {
-			return this.userConfigStore.files_list_grid_view
-				? t('libresign', 'Switch to list view')
-				: t('libresign', 'Switch to grid view')
-		},
-		dirContentsSorted() {
-			return this.filesStore.filesSorted()
-		},
-		isEmptyDir() {
-			return this.filesStore.filesSorted().length === 0
-		},
-		isRefreshing() {
-			return !this.isEmptyDir
-				&& this.loading
-		},
-	},
-	async mounted() {
-		await this.filesStore.getAllFiles({ force_fetch: true })
-		this.loading = false
-		this.filesStore.disableIdentifySigner()
-		this.checkAndOpenFileFromUri()
-	},
-	beforeUnmount() {
-		this.filesStore.selectFile()
-	},
-	methods: {
-		t,
-		refresh() {
-			this.filesStore.updateAllFiles()
-		},
-		toggleGridView() {
-			this.userConfigStore.update('files_list_grid_view', !this.userConfigStore.files_list_grid_view)
-		},
-		checkAndOpenFileFromUri() {
-			const uuid = this.$route.query.uuid
-			if (uuid) {
-				this.filesStore.selectFileByUuid(uuid).then((fileId) => {
-					if (fileId) {
-						this.sidebarStore.activeRequestSignatureTab()
-					}
-				})
-			}
-		},
-	},
+})
+
+const filesStore = useFilesStore()
+const filtersStore = useFiltersStore()
+const userConfigStore = useUserConfigStore()
+const sidebarStore = useSidebarStore()
+
+const instance = getCurrentInstance()
+const route = computed(() => instance?.proxy?.$route ?? { query: {} })
+
+const isMenuOpen = ref(false)
+const loading = ref(true)
+
+const canRequestSign = computed(() => filesStore.canRequestSign)
+const viewIcon = computed(() => HomeSvg)
+const gridViewButtonLabel = computed(() => {
+	return userConfigStore.files_list_grid_view
+		? t('libresign', 'Switch to list view')
+		: t('libresign', 'Switch to grid view')
+})
+const dirContentsSorted = computed(() => filesStore.filesSorted())
+const isEmptyDir = computed(() => filesStore.filesSorted().length === 0)
+const isRefreshing = computed(() => !isEmptyDir.value && loading.value)
+
+function refresh() {
+	filesStore.updateAllFiles()
 }
+
+function toggleGridView() {
+	userConfigStore.update('files_list_grid_view', !userConfigStore.files_list_grid_view)
+}
+
+function checkAndOpenFileFromUri() {
+	const uuid = route.value.query.uuid
+	if (uuid) {
+		filesStore.selectFileByUuid(uuid).then((fileId) => {
+			if (fileId) {
+				sidebarStore.activeRequestSignatureTab()
+			}
+		})
+	}
+}
+
+onMounted(async () => {
+	await filesStore.getAllFiles({ force_fetch: true })
+	loading.value = false
+	filesStore.disableIdentifySigner()
+	checkAndOpenFileFromUri()
+})
+
+onBeforeUnmount(() => {
+	filesStore.selectFile()
+})
+
+defineExpose({
+	isMenuOpen,
+	mdiChevronDown,
+	mdiChevronUp,
+	mdiFolder,
+	mdiFormatListBulletedSquare,
+	mdiReload,
+	mdiViewGridOutline,
+})
 </script>
 
 <style scoped lang="scss">
