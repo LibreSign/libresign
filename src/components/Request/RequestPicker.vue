@@ -118,8 +118,9 @@
 		</NcDialog>
 	</div>
 </template>
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, ref } from 'vue'
 
 import {
 	mdiCloudUpload,
@@ -152,324 +153,374 @@ import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 
-export default {
+
+type UploadFile = {
+	name: string
+	size: number
+}
+
+type FilePickerNode = {
+	path?: string
+}
+
+type UploadProgressEvent = {
+	loaded: number
+	total: number
+}
+
+type UploadConfig = {
+	signal?: AbortSignal
+	onUploadProgress?: (progressEvent: UploadProgressEvent) => void
+}
+
+type FilesStore = {
+	upload: (payload: FormData | Record<string, unknown>, config?: UploadConfig) => Promise<number>
+	selectFile: (id?: number) => void
+}
+
+type SidebarStore = {
+	activeRequestSignatureTab: () => void
+}
+
+type ActionsMenuStore = {
+	opened: boolean
+}
+
+defineOptions({
 	name: 'RequestPicker',
-	components: {
-		NcActionButton,
-		NcActions,
-		NcButton,
-		NcDialog,
-		NcIconSvgWrapper,
-		NcLoadingIcon,
-		NcNoteCard,
-		NcTextField,
-		UploadProgress,
-	},
-	props: {
-		inline: {
-			type: Boolean,
-			default: false,
-		},
-		variant: {
-			type: String,
-			default: 'tertiary',
-		},
-	},
-	setup() {
-		const actionsMenuStore = useActionsMenuStore()
-		const filesStore = useFilesStore()
-		const sidebarStore = useSidebarStore()
-		return {
-			actionsMenuStore,
-			filesStore,
-			sidebarStore,
-			mdiCloudUpload,
-			mdiFolder,
-			mdiLink,
-			mdiPlus,
-			mdiUpload,
-		}
-	},
-	data() {
-		return {
-			modalUploadFromUrl: false,
-			uploadUrlErrors: [],
-			pdfUrl: '',
-			loading: false,
-			openedMenu: false,
-			canRequestSign: loadState('libresign', 'can_request_sign', false),
-			uploadProgress: 0,
-			isUploading: false,
-			uploadAbortController: null,
-			uploadedBytes: 0,
-			totalBytes: 0,
-			uploadStartTime: null,
-			pendingPaths: [],
-			pendingFiles: [],
-			envelopeName: '',
-			showEnvelopeNameDialog: false,
-			envelopeNameInput: '',
-			ENVELOPE_NAME_MIN_LENGTH,
-			ENVELOPE_NAME_MAX_LENGTH,
-		}
-	},
-	computed: {
-		envelopeEnabled() {
-			const capabilities = getCapabilities()
-			return capabilities?.libresign?.config?.envelope?.['is-available'] === true
-		},
-		canUploadFronUrl() {
-			if (this.loading) {
-				return false
-			}
-			try {
-				// eslint-disable-next-line no-new
-				new URL(this.pdfUrl)
-				return true
-			} catch (e) {
-				return false
-			}
-		},
-	},
-	methods: {
-		t,
-		async openFilePicker() {
-			this.openedMenu = false
+})
 
-			const filePicker = getFilePickerBuilder(
-				this.envelopeEnabled
-					? t('libresign', 'Select your files')
-					: t('libresign', 'Select your file')
-			)
-				.setMultiSelect(this.envelopeEnabled)
-				.setMimeTypeFilter(['application/pdf'])
-				.addButton({
-					label: t('libresign', 'Choose'),
-					callback: (nodes) => this.handleFileChoose(nodes),
-					type: 'primary',
-				})
-				.build()
+withDefaults(defineProps<{
+	inline?: boolean
+	variant?: string
+}>(), {
+	inline: false,
+	variant: 'tertiary',
+})
 
-			try {
-				const nodes = await filePicker.pick()
-				await this.handleFileChoose(nodes)
-			} catch (error) {
-				// User cancelled
+const actionsMenuStore = useActionsMenuStore() as ActionsMenuStore
+const filesStore = useFilesStore() as FilesStore
+const sidebarStore = useSidebarStore() as SidebarStore
+
+const modalUploadFromUrl = ref(false)
+const uploadUrlErrors = ref<string[]>([])
+const pdfUrl = ref('')
+const loading = ref(false)
+const openedMenu = ref(false)
+const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
+const uploadProgress = ref(0)
+const isUploading = ref(false)
+const uploadAbortController = ref<AbortController | null>(null)
+const uploadedBytes = ref(0)
+const totalBytes = ref(0)
+const uploadStartTime = ref<number | null>(null)
+const pendingPaths = ref<string[]>([])
+const pendingFiles = ref<UploadFile[]>([])
+const envelopeName = ref('')
+const showEnvelopeNameDialog = ref(false)
+const envelopeNameInput = ref('')
+
+const envelopeEnabled = computed(() => {
+	const capabilities = getCapabilities()
+	return capabilities?.libresign?.config?.envelope?.['is-available'] === true
+})
+
+const canUploadFronUrl = computed(() => {
+	if (loading.value) {
+		return false
+	}
+	try {
+		// eslint-disable-next-line no-new
+		new URL(pdfUrl.value)
+		return true
+	} catch (error) {
+		return false
+	}
+})
+
+async function openFilePicker() {
+	openedMenu.value = false
+
+	const filePicker = getFilePickerBuilder(
+		envelopeEnabled.value
+			? t('libresign', 'Select your files')
+			: t('libresign', 'Select your file')
+	)
+		.setMultiSelect(envelopeEnabled.value)
+		.setMimeTypeFilter(['application/pdf'])
+		.addButton({
+			label: t('libresign', 'Choose'),
+			callback: (nodes: FilePickerNode[]) => handleFileChoose(nodes),
+			type: 'primary',
+		})
+		.build()
+
+	try {
+		const nodes = await filePicker.pick()
+		await handleFileChoose(nodes as FilePickerNode[])
+	} catch (error) {
+	}
+}
+
+function getMaxFileUploads() {
+	const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
+	return Number.isFinite(capabilitiesMax) && capabilitiesMax > 0 ? Math.floor(capabilitiesMax) : 20
+}
+
+function validateMaxFileUploads(filesCount: number) {
+	const maxFileUploads = getMaxFileUploads()
+	if (filesCount > maxFileUploads) {
+		showError(t('libresign', 'You can upload at most {max} files at once.', { max: maxFileUploads }))
+		return false
+	}
+	return true
+}
+
+function handleEnvelopeNameSubmit() {
+	const trimmedName = envelopeNameInput.value.trim()
+	if (trimmedName.length >= ENVELOPE_NAME_MIN_LENGTH && pendingFiles.value.length > 0) {
+		showEnvelopeNameDialog.value = false
+		void upload(pendingFiles.value, trimmedName)
+		pendingFiles.value = []
+		envelopeNameInput.value = ''
+	}
+}
+
+function closeEnvelopeNameDialog() {
+	showEnvelopeNameDialog.value = false
+	pendingFiles.value = []
+	envelopeNameInput.value = ''
+}
+
+function showModalUploadFromUrl() {
+	actionsMenuStore.opened = false
+	modalUploadFromUrl.value = true
+	openedMenu.value = false
+	loading.value = false
+}
+
+function closeModalUploadFromUrl() {
+	uploadUrlErrors.value = []
+	pdfUrl.value = ''
+	modalUploadFromUrl.value = false
+	loading.value = false
+}
+
+async function upload(files: UploadFile[], selectedEnvelopeName: string | null = null) {
+	if (!validateMaxFileUploads(files.length)) {
+		return
+	}
+
+	loading.value = true
+	isUploading.value = true
+	uploadProgress.value = 0
+	uploadedBytes.value = 0
+	totalBytes.value = 0
+	uploadStartTime.value = Date.now()
+
+	const formData = new FormData()
+
+	if (files.length === 1) {
+		const name = files[0].name.replace(/\.pdf$/i, '')
+		formData.append('name', name)
+		formData.append('file', files[0] as unknown as Blob)
+		totalBytes.value = files[0].size
+	} else {
+		formData.append('name', selectedEnvelopeName?.trim() ?? '')
+		let totalSize = 0
+		files.forEach((file) => {
+			formData.append('files[]', file as unknown as Blob)
+			totalSize += file.size
+		})
+		totalBytes.value = totalSize
+	}
+
+	const abortController = new AbortController()
+	uploadAbortController.value = abortController
+
+	await filesStore.upload(formData, {
+		signal: abortController.signal,
+		onUploadProgress: (progressEvent) => {
+			if (progressEvent.total) {
+				uploadedBytes.value = progressEvent.loaded
+				uploadProgress.value = Math.round((progressEvent.loaded / progressEvent.total) * 100)
 			}
 		},
-		getMaxFileUploads() {
-			const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
-			return Number.isFinite(capabilitiesMax) && capabilitiesMax > 0 ? Math.floor(capabilitiesMax) : 20
-		},
-		validateMaxFileUploads(filesCount) {
-			const maxFileUploads = this.getMaxFileUploads()
-			if (filesCount > maxFileUploads) {
-				showError(t('libresign', 'You can upload at most {max} files at once.', { max: maxFileUploads }))
-				return false
-			}
-			return true
-		},
-		handleEnvelopeNameSubmit() {
-			const trimmedName = this.envelopeNameInput.trim()
-			if (trimmedName.length >= ENVELOPE_NAME_MIN_LENGTH && this.pendingFiles.length > 0) {
-				this.showEnvelopeNameDialog = false
-				this.upload(this.pendingFiles, trimmedName)
-				this.pendingFiles = []
-				this.envelopeNameInput = ''
-			}
-		},
-		closeEnvelopeNameDialog() {
-			this.showEnvelopeNameDialog = false
-			this.pendingFiles = []
-			this.envelopeNameInput = ''
-		},
-		showModalUploadFromUrl() {
-			this.actionsMenuStore.opened = false
-			this.modalUploadFromUrl = true
-			this.openedMenu = false
-			this.loading = false
-		},
-		closeModalUploadFromUrl() {
-			this.uploadUrlErrors = []
-			this.pdfUrl = ''
-			this.modalUploadFromUrl = false
-			this.loading = false
-		},
-		async upload(files, envelopeName = null) {
-			if (!this.validateMaxFileUploads(files.length)) {
+	})
+		.then((id) => {
+			filesStore.selectFile(id)
+			sidebarStore.activeRequestSignatureTab()
+		})
+		.catch((error: { code?: string; response?: { data?: { ocs?: { data?: { message?: string } } } } }) => {
+			if (error.code === 'ERR_CANCELED') {
 				return
 			}
-
-			this.loading = true
-			this.isUploading = true
-			this.uploadProgress = 0
-			this.uploadedBytes = 0
-			this.totalBytes = 0
-			this.uploadStartTime = Date.now()
-
-			const formData = new FormData()
-
-			if (files.length === 1) {
-				const name = files[0].name.replace(/\.pdf$/i, '')
-				formData.append('name', name)
-				formData.append('file', files[0])
-				this.totalBytes = files[0].size
+			if (error.response?.data?.ocs?.data?.message) {
+				showError(error.response.data.ocs.data.message)
 			} else {
-				formData.append('name', envelopeName.trim())
-				let totalSize = 0
-				files.forEach((file) => {
-					formData.append('files[]', file)
-					totalSize += file.size
-				})
-				this.totalBytes = totalSize
+				showError(t('libresign', 'Upload failed'))
 			}
+		})
+		.finally(() => {
+			loading.value = false
+			isUploading.value = false
+			uploadAbortController.value = null
+			pendingFiles.value = []
+			envelopeName.value = ''
+		})
+}
 
-			const abortController = new AbortController()
-			this.uploadAbortController = abortController
+function cancelUpload() {
+	uploadAbortController.value?.abort()
+}
 
-			await this.filesStore.upload(formData, {
-				signal: abortController.signal,
-				onUploadProgress: (progressEvent) => {
-					if (progressEvent.total) {
-						this.uploadedBytes = progressEvent.loaded
-						this.uploadProgress = Math.round((progressEvent.loaded / progressEvent.total) * 100)
-					}
-				},
+function uploadFile() {
+	openedMenu.value = false
+	const input = document.createElement('input')
+	input.accept = 'application/pdf'
+	input.type = 'file'
+	input.multiple = envelopeEnabled.value && getMaxFileUploads() > 1
+
+	input.onchange = async (event) => {
+		const target = event.target as HTMLInputElement | null
+		const files = Array.from(target?.files ?? []) as unknown as UploadFile[]
+		if (!validateMaxFileUploads(files.length)) {
+			input.remove()
+			return
+		}
+
+		if (files.length > 1 && envelopeEnabled.value) {
+			pendingFiles.value = files
+			envelopeNameInput.value = ''
+			showEnvelopeNameDialog.value = true
+			input.remove()
+			return
+		}
+
+		if (files.length > 0) {
+			await upload(files)
+		}
+
+		input.remove()
+	}
+
+	input.click()
+}
+
+async function uploadUrl() {
+	loading.value = true
+	await filesStore.upload({
+		file: {
+			url: pdfUrl.value,
+		},
+	})
+		.then((id) => {
+			filesStore.selectFile(id)
+			sidebarStore.activeRequestSignatureTab()
+			closeModalUploadFromUrl()
+		})
+		.catch(({ response }: { response: { data: { ocs: { data: { message: string } } } } }) => {
+			uploadUrlErrors.value = [response.data.ocs.data.message]
+			loading.value = false
+		})
+}
+
+async function handleFileChoose(nodes: FilePickerNode[] = []) {
+	const paths = nodes.map(node => node?.path).filter((path): path is string => Boolean(path))
+	if (!paths.length) {
+		return
+	}
+
+	if (envelopeEnabled.value && paths.length > 1) {
+		pendingPaths.value = paths
+		const [dialogEnvelopeName] = await spawnDialog(
+			EditNameDialog,
+			{
+				title: t('libresign', 'Envelope name'),
+				label: t('libresign', 'Enter a name for the envelope'),
+				placeholder: t('libresign', 'Envelope name'),
+			},
+		)
+
+		if (dialogEnvelopeName) {
+			const filesPayload = paths.map((path) => ({
+				file: { path },
+				name: (path.match(/([^/]*?)(?:\.[^.]*)?$/)?.[1] ?? ''),
+			}))
+			await filesStore.upload({
+				files: filesPayload,
+				name: dialogEnvelopeName.trim(),
 			})
 				.then((id) => {
-					this.filesStore.selectFile(id)
-					this.sidebarStore.activeRequestSignatureTab()
+					filesStore.selectFile(id)
+					sidebarStore.activeRequestSignatureTab()
 				})
-				.catch((error) => {
-					if (error.code === 'ERR_CANCELED') {
-						return
-					}
-					if (error.response?.data?.ocs?.data?.message) {
-						showError(error.response.data.ocs.data.message)
-					} else {
-						showError(t('libresign', 'Upload failed'))
-					}
+				.catch(({ response }: { response?: { data?: { ocs?: { data?: { message?: string } } } } }) => {
+					showError(response?.data?.ocs?.data?.message || t('libresign', 'Upload failed'))
 				})
 				.finally(() => {
-					this.loading = false
-					this.isUploading = false
-					this.uploadAbortController = null
-					this.pendingFiles = []
-					this.envelopeName = ''
+					pendingPaths.value = []
 				})
+		} else {
+			pendingPaths.value = []
+		}
+		return
+	}
+
+	const path = paths[0]
+	await filesStore.upload({
+		file: {
+			path,
 		},
-		cancelUpload() {
-			if (this.uploadAbortController) {
-				this.uploadAbortController.abort()
-			}
-		},
-		uploadFile() {
-			this.openedMenu = false
-			const input = document.createElement('input')
-			input.accept = 'application/pdf'
-			input.type = 'file'
-			input.multiple = this.envelopeEnabled && this.getMaxFileUploads() > 1
-
-			input.onchange = async (ev) => {
-				const files = Array.from(ev.target.files)
-				if (!this.validateMaxFileUploads(files.length)) {
-					input.remove()
-					return
-				}
-
-				if (files.length > 1 && this.envelopeEnabled) {
-					this.pendingFiles = files
-					this.envelopeNameInput = ''
-					this.showEnvelopeNameDialog = true
-					input.remove()
-					return
-				}
-
-				if (files.length > 0) {
-					await this.upload(files)
-				}
-
-				input.remove()
-			}
-
-			input.click()
-		},
-		async uploadUrl() {
-			this.loading = true
-			await this.filesStore.upload({
-				file: {
-					url: this.pdfUrl,
-				},
-			})
-				.then((id) => {
-					this.filesStore.selectFile(id)
-					this.sidebarStore.activeRequestSignatureTab()
-					this.closeModalUploadFromUrl()
-				})
-				.catch(({ response }) => {
-					this.uploadUrlErrors = [response.data.ocs.data.message]
-					this.loading = false
-				})
-		},
-		async handleFileChoose(nodes) {
-			const paths = (nodes || []).map(n => n?.path).filter(Boolean)
-			if (!paths.length) {
-				return
-			}
-
-			if (this.envelopeEnabled && paths.length > 1) {
-				this.pendingPaths = paths
-				const [envelopeName] = await spawnDialog(
-					EditNameDialog,
-					{
-						title: this.t('libresign', 'Envelope name'),
-						label: this.t('libresign', 'Enter a name for the envelope'),
-						placeholder: this.t('libresign', 'Envelope name'),
-					},
-				)
-
-				if (envelopeName) {
-					const filesPayload = paths.map((path) => ({
-						file: { path },
-						name: (path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? ''),
-					}))
-					await this.filesStore.upload({
-						files: filesPayload,
-						name: envelopeName.trim(),
-					})
-						.then((id) => {
-							this.filesStore.selectFile(id)
-							this.sidebarStore.activeRequestSignatureTab()
-						})
-						.catch(({ response }) => {
-							showError(response?.data?.ocs?.data?.message || this.t('libresign', 'Upload failed'))
-						})
-						.finally(() => {
-							this.pendingPaths = []
-						})
-				} else {
-					this.pendingPaths = []
-				}
-				return
-			}
-
-			const path = paths[0]
-			await this.filesStore.upload({
-				file: {
-					path,
-				},
-				name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
-			})
-				.then((id) => {
-					this.filesStore.selectFile(id)
-					this.sidebarStore.activeRequestSignatureTab()
-				})
-				.catch(({ response }) => {
-					showError(response?.data?.ocs?.data?.message || this.t('libresign', 'Upload failed'))
-				})
-		},
-	},
+		name: path.match(/([^/]*?)(?:\.[^.]*)?$/)?.[1] ?? '',
+	})
+		.then((id) => {
+			filesStore.selectFile(id)
+			sidebarStore.activeRequestSignatureTab()
+		})
+		.catch(({ response }: { response?: { data?: { ocs?: { data?: { message?: string } } } } }) => {
+			showError(response?.data?.ocs?.data?.message || t('libresign', 'Upload failed'))
+		})
 }
+
+defineExpose({
+	actionsMenuStore,
+	filesStore,
+	sidebarStore,
+	modalUploadFromUrl,
+	uploadUrlErrors,
+	pdfUrl,
+	loading,
+	openedMenu,
+	canRequestSign,
+	uploadProgress,
+	isUploading,
+	uploadAbortController,
+	uploadedBytes,
+	totalBytes,
+	uploadStartTime,
+	pendingPaths,
+	pendingFiles,
+	envelopeName,
+	showEnvelopeNameDialog,
+	envelopeNameInput,
+	ENVELOPE_NAME_MIN_LENGTH,
+	ENVELOPE_NAME_MAX_LENGTH,
+	envelopeEnabled,
+	canUploadFronUrl,
+	openFilePicker,
+	getMaxFileUploads,
+	validateMaxFileUploads,
+	handleEnvelopeNameSubmit,
+	closeEnvelopeNameDialog,
+	showModalUploadFromUrl,
+	closeModalUploadFromUrl,
+	upload,
+	cancelUpload,
+	uploadFile,
+	uploadUrl,
+	handleFileChoose,
+})
 </script>
 
 <style lang="scss" scoped>
