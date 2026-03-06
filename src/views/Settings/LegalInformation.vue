@@ -21,33 +21,29 @@
 		</div>
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
+import { ref } from 'vue'
 
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import MarkdownEditor from '../../components/MarkdownEditor.vue'
 
-export default {
+defineOptions({
 	name: 'LegalInformation',
-	components: {
-		MarkdownEditor,
-		NcRichText,
-		NcSettingsSection,
-	},
-	data() {
-		return {
-			legalInformation: loadState('libresign', 'legal_information', ''),
-		}
-	},
-	methods: {
-		t,
-		saveLegalInformation() {
-			OCP.AppConfig.setValue('libresign', 'legal_information', this.legalInformation)
-		},
-	},
+})
+
+const legalInformation = ref(loadState('libresign', 'legal_information', ''))
+
+function saveLegalInformation() {
+	OCP.AppConfig.setValue('libresign', 'legal_information', legalInformation.value)
 }
+
+defineExpose({
+	legalInformation,
+	saveLegalInformation,
+})
 </script>
 <style scoped>
 .legal-information-content{
