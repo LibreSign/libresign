@@ -711,8 +711,9 @@ function validationFile() {
 	}
 
 	if (props.useModal) {
+		const absoluteUrl = generateUrl('/apps/libresign/p/validation/{uuid}', { uuid: targetUuid })
 		const route = router.resolve({ name: 'ValidationFileExternal', params: { uuid: targetUuid } })
-		modalSrc.value = route.href
+		modalSrc.value = route.href || absoluteUrl
 		return
 	}
 	router.push({ name: 'ValidationFile', params: { uuid: targetUuid } })
@@ -861,8 +862,9 @@ async function sign() {
 
 	const uuid = file.signUuid
 	if (props.useModal) {
+		const absoluteUrl = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid })
 		const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
-		modalSrc.value = route.href
+		modalSrc.value = route.href || absoluteUrl
 		return
 	}
 	signStore.setFileToSign(filesStore.getFile())
