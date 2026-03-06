@@ -22,8 +22,8 @@
 	</div>
 </template>
 
-<script>
-import { t } from '@nextcloud/l10n'
+<script setup lang="ts">
+import { computed, ref } from 'vue'
 
 import { mdiFile } from '@mdi/js'
 
@@ -33,91 +33,69 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 
-export default {
+defineOptions({
 	name: 'File',
-	components: {
-		NcIconSvgWrapper,
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		const sidebarStore = useSidebarStore()
-		return {
-			filesStore,
-			sidebarStore,
-			mdiFile,
-		}
-	},
-	data() {
-		return {
-			backgroundFailed: false,
-			gridMode: true,
-			cropPreviews: true,
-		}
-	},
-	computed: {
-		currentFileId() {
-			return this.filesStore.selectedFileId
-		},
-		currentFile() {
-			return this.filesStore.files[this.currentFileId]
-		},
-		previewUrl() {
-			if (this.backgroundFailed === true) {
-				return null
-			}
+})
 
-			if (!this.currentFile) {
-				return null
-			}
+const filesStore = useFilesStore()
+const sidebarStore = useSidebarStore()
 
-			let previewUrl = ''
-			if (this.currentFile.nodeId) {
-				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
-					nodeId: this.currentFile.nodeId,
-				})
-			} else if (this.currentFile.id) {
-				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
-					fileId: this.currentFile.id,
-				})
-			} else {
-				previewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
-					fileid: this.currentFile.id,
-				})
-			}
+const backgroundFailed = ref(false)
+const gridMode = true
+const cropPreviews = true
 
-			const url = new URL(previewUrl)
+const currentFileId = computed(() => filesStore.selectedFileId)
+const currentFile = computed(() => filesStore.files[currentFileId.value])
+const previewUrl = computed(() => {
+	if (backgroundFailed.value === true || !currentFile.value) {
+		return null
+	}
 
-			// Request tiny previews
-			url.searchParams.set('x', this.gridMode ? '128' : '32')
-			url.searchParams.set('y', this.gridMode ? '128' : '32')
-			url.searchParams.set('mimeFallback', 'true')
+	let filePreviewUrl = ''
+	if (currentFile.value.nodeId) {
+		filePreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
+			nodeId: currentFile.value.nodeId,
+		})
+	} else if (currentFile.value.id) {
+		filePreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
+			fileId: currentFile.value.id,
+		})
+	} else {
+		filePreviewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
+			fileid: currentFile.value.id,
+		})
+	}
 
-			// Handle cropping
-			url.searchParams.set('a', this.cropPreviews === true ? '0' : '1')
-			return url.toString()
-		},
-	},
-	methods: {
-		t,
-		openSidebar() {
-			this.filesStore.selectFile(this.currentFileId)
-			this.sidebarStore.activeRequestSignatureTab()
-		},
-		statusToClass(status) {
-			switch (Number(status)) {
-			case 0:
-				return 'no-signers'
-			case 1:
-			case 2:
-				return 'pending'
-			case 3:
-				return 'signed'
-			default:
-				return ''
-			}
-		},
-	},
+	const url = new URL(filePreviewUrl)
+	url.searchParams.set('x', gridMode ? '128' : '32')
+	url.searchParams.set('y', gridMode ? '128' : '32')
+	url.searchParams.set('mimeFallback', 'true')
+	url.searchParams.set('a', cropPreviews === true ? '0' : '1')
+	return url.toString()
+})
+
+function openSidebar() {
+	filesStore.selectFile(currentFileId.value)
+	sidebarStore.activeRequestSignatureTab()
 }
+
+function statusToClass(status: number | string) {
+	switch (Number(status)) {
+	case 0:
+		return 'no-signers'
+	case 1:
+	case 2:
+		return 'pending'
+	case 3:
+		return 'signed'
+	default:
+		return ''
+	}
+}
+
+defineExpose({
+	statusToClass,
+})
 </script>
 
 <style lang="scss" scoped>

@@ -30,8 +30,9 @@
 	</VirtualList>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed } from 'vue'
 
 import FileEntry from './FileEntry/FileEntry.vue'
 import FileEntryGrid from './FileEntry/FileEntryGrid.vue'
@@ -45,58 +46,22 @@ import { useFilesStore } from '../../store/files.js'
 import { useSelectionStore } from '../../store/selection.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
-export default {
+defineOptions({
 	name: 'FilesListVirtual',
-	components: {
-		VirtualList,
-		// eslint-disable-next-line vue/no-unused-components
-		FileEntry,
-		// eslint-disable-next-line vue/no-unused-components
-		FileEntryGrid,
-		FileListFilterChips,
-		FilesListTableFooter,
-		FilesListTableHeader,
-		FilesListTableHeaderActions,
-	},
-	props: {
-		nodes: {
-			type: Array,
-			required: true,
-		},
-		loading: {
-			type: Boolean,
-			required: true,
-		},
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		const selectionStore = useSelectionStore()
-		const userConfigStore = useUserConfigStore()
-		return {
-			t,
-			filesStore,
-			selectionStore,
-			userConfigStore,
-		}
-	},
-	data() {
-		return {
-			FileEntry,
-			FileEntryGrid,
-		}
-	},
-	computed: {
-		selectedNodes() {
-			return this.selectionStore.selected
-		},
-		isNoneSelected() {
-			return this.selectedNodes.length === 0
-		},
-		caption() {
-			return t('libresign', 'List of files. Column headers with buttons are sortable.')
-		},
-	},
-}
+})
+
+defineProps<{
+	nodes: unknown[]
+	loading: boolean
+}>()
+
+useFilesStore()
+const selectionStore = useSelectionStore()
+const userConfigStore = useUserConfigStore()
+
+const selectedNodes = computed(() => selectionStore.selected)
+const isNoneSelected = computed(() => selectedNodes.value.length === 0)
+const caption = computed(() => t('libresign', 'List of files. Column headers with buttons are sortable.'))
 </script>
 
 <style scoped lang="scss">
