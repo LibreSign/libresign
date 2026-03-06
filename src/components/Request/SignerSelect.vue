@@ -85,6 +85,7 @@ const apiIconToKey = {
 }
 export default {
 	name: 'SignerSelect',
+	emits: ['update:signer'],
 	components: {
 		NcAvatar,
 		NcSelect,

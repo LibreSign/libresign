@@ -46,6 +46,7 @@ import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import { useSignMethodsStore } from '../store/signMethods.js'
 export default {
 	name: 'CreatePassword',
+	emits: ['password:created'],
 	components: {
 		NcDialog,
 		NcNoteCard,

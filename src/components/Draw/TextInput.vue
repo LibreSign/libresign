@@ -50,6 +50,7 @@ import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
 
 export default {
 	name: 'TextInput',
+	emits: ['save', 'close'],
 	components: {
 		NcTextField,
 		NcDialog,

@@ -194,6 +194,7 @@ import { getFileSigners, getVisibleElementsFromDocument, idsMatch } from '../../
 
 export default {
 	name: 'Sign',
+	emits: ['update:phone', 'signing-started', 'signed'],
 	components: {
 		NcDialog,
 		NcButton,

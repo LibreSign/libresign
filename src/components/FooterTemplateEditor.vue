@@ -157,6 +157,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 export default {
 	name: 'FooterTemplateEditor',
+	emits: ['template-reset'],
 	directives: {
 		Linkify,
 	},
