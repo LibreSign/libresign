@@ -49,7 +49,7 @@ describe('IncompleteCertification', () => {
 			},
 		})
 
-		expect(wrapper.vm.$options.components.NcIconSvgWrapper).toBeTruthy()
+		expect(wrapper.findComponent({ name: 'NcIconSvgWrapper' }).exists()).toBe(true)
 		expect(wrapper.vm.mdiCogs).toBeTruthy()
 	})
 })
