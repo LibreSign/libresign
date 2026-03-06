@@ -28,6 +28,7 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
 export default {
 	name: 'PreviewSignature',
+	emits: ['loaded'],
 	components: {
 		NcLoadingIcon,
 	},
