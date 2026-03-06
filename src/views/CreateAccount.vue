@@ -63,15 +63,12 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, getCurrentInstance, onBeforeMount, reactive, ref, toRefs } from 'vue'
 
 // eslint-disable-next-line n/no-missing-import
 import md5 from 'crypto-js/md5'
-// eslint-disable-next-line n/no-missing-import
-import useVuelidate from '@vuelidate/core'
-// eslint-disable-next-line n/no-missing-import
-import { required, email, minLength } from '@vuelidate/validators'
 
 
 import axios from '@nextcloud/axios'
@@ -90,111 +87,176 @@ import {
 	mdiChevronRight,
 } from '@mdi/js'
 
-export default {
+defineOptions({
 	name: 'CreateAccount',
-	components: {
-		NcNoteCard,
-		NcTextField,
-		NcPasswordField,
-		NcButton,
-		NcLoadingIcon,
-		NcIconSvgWrapper,
-	},
-	setup() {
-		return {
-			v$: useVuelidate(),
-			mdiEmail,
-			mdiChevronRight,
-		}
-	},
+})
 
-	data() {
-		return {
-			loading: false,
-			email: '',
-			password: '',
-			passwordConfirm: '',
-			settings: loadState('libresign', 'settings'),
-			message: loadState('libresign', 'message'),
-			errorMessage: '',
-			enabledFeatures: [],
-		}
-	},
+const instance = getCurrentInstance()
+const route = computed(() => instance?.proxy?.$route ?? { params: {} })
+const router = computed(() => instance?.proxy?.$router)
 
-	validations: {
-		email: { required, email },
-		password: { required, minLength: minLength(4) },
-		passwordConfirm: { required, minLength: minLength(4) },
-	},
-	computed: {
-		emailError() {
-			if (this.v$.email.$model) {
-				if (this.v$.email.$error) {
-					return this.t('libresign', 'This is not a valid email')
-				} else if (this.isEqualEmail === false) {
-					return this.t('libresign', 'The email entered is not the same as the email in the invitation')
-				}
-			}
-			return ''
-		},
-		showErrorEmail() {
-			return this.emailError.length > 2
-		},
-		passwordError() {
-			if (this.password && this.passwordConfirm) {
-				if (this.password.length <= 4) {
-					return this.t('libresign', 'Your password must be greater than 4 digits')
-				}
-			}
-			return ''
-		},
-		confirmPasswordError() {
-			if (this.password && this.passwordConfirm) {
-				if (this.password !== this.passwordConfirm) {
-					return this.t('libresign', 'Passwords does not match')
-				}
-			}
-			return ''
-		},
-		canSave() {
-			return this.password.length > 0
-				&& this.passwordConfirm.length > 0
-				&& this.passwordError.length === 0
-				&& this.confirmPasswordError.length === 0
-				&& this.email.length > 0
-				&& !this.showErrorEmail
-				&& !this.loading
-		},
-		isEqualEmail() {
-			return this.settings.accountHash === md5(this.email).toString()
-		},
-	},
-	created() {
-		if (this.message) {
-			showWarning(this.message)
-		}
-	},
+const state = reactive({
+	loading: false,
+	email: '',
+	password: '',
+	passwordConfirm: '',
+	settings: loadState('libresign', 'settings'),
+	message: loadState('libresign', 'message'),
+	errorMessage: '',
+	enabledFeatures: [] as unknown[],
+})
 
-	methods: {
-		t,
-		async createAccount() {
-			this.loading = true
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}'), {
-				uuid: this.$route.params.uuid,
-				email: this.email,
-				password: this.password,
-			})
-				.then(() => {
-					const url = this.$router.resolve({ name: 'SignPDF' })
-					window.location.href = url.href
-				})
-				.catch(({ response }) => {
-					this.errorMessage = response.data.ocs.data.message
-				})
-			this.loading = false
+const {
+	loading,
+	email,
+	password,
+	passwordConfirm,
+	errorMessage,
+} = toRefs(state)
+
+const emailTouched = ref(false)
+const passwordTouched = ref(false)
+const passwordConfirmTouched = ref(false)
+
+const isRequired = (value: string) => value.length > 0
+const isEmailValid = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+const hasMinLength = (value: string, length: number) => value.length >= length
+
+function createValidationField(source: typeof email, touched: typeof emailTouched, validators: Record<string, () => boolean>) {
+	const requiredValidator = validators.required ?? (() => true)
+	const emailValidator = validators.email ?? (() => true)
+	const minLengthValidator = validators.minLength ?? (() => true)
+
+	return {
+		get $model() {
+			return source.value
 		},
-	},
+		set $model(value: string) {
+			source.value = value
+		},
+		async $touch() {
+			touched.value = true
+		},
+		get $error() {
+			return touched.value && [requiredValidator, emailValidator, minLengthValidator].some((validator) => !validator())
+		},
+		get required() {
+			return {
+				get $invalid() {
+					return !requiredValidator()
+				},
+			}
+		},
+		get email() {
+			return {
+				get $invalid() {
+					return !emailValidator()
+				},
+			}
+		},
+		get minLength() {
+			return {
+				get $invalid() {
+					return !minLengthValidator()
+				},
+			}
+		},
+	}
 }
+
+const v$ = {
+	email: createValidationField(email, emailTouched, {
+		required: () => isRequired(email.value),
+		email: () => isEmailValid(email.value),
+	}),
+	password: createValidationField(password, passwordTouched, {
+		required: () => isRequired(password.value),
+		minLength: () => hasMinLength(password.value, 4),
+	}),
+	passwordConfirm: createValidationField(passwordConfirm, passwordConfirmTouched, {
+		required: () => isRequired(passwordConfirm.value),
+		minLength: () => hasMinLength(passwordConfirm.value, 4),
+	}),
+}
+
+const emailError = computed(() => {
+	if (email.value) {
+		if (v$.email.$error) {
+			return t('libresign', 'This is not a valid email')
+		}
+		if (!isEqualEmail.value) {
+			return t('libresign', 'The email entered is not the same as the email in the invitation')
+		}
+	}
+	return ''
+})
+
+const showErrorEmail = computed(() => emailError.value.length > 2)
+
+const passwordError = computed(() => {
+	if (state.password && state.passwordConfirm && state.password.length <= 4) {
+		return t('libresign', 'Your password must be greater than 4 digits')
+	}
+	return ''
+})
+
+const confirmPasswordError = computed(() => {
+	if (state.password && state.passwordConfirm && state.password !== state.passwordConfirm) {
+		return t('libresign', 'Passwords does not match')
+	}
+	return ''
+})
+
+const isEqualEmail = computed(() => state.settings.accountHash === md5(email.value).toString())
+
+const canSave = computed(() => {
+	return state.password.length > 0
+		&& state.passwordConfirm.length > 0
+		&& passwordError.value.length === 0
+		&& confirmPasswordError.value.length === 0
+		&& state.email.length > 0
+		&& !showErrorEmail.value
+		&& !state.loading
+})
+
+onBeforeMount(() => {
+	if (state.message) {
+		showWarning(state.message)
+	}
+})
+
+async function createAccount() {
+	state.loading = true
+	try {
+		await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}'), {
+			uuid: route.value.params.uuid,
+			email: state.email,
+			password: state.password,
+		})
+		const url = router.value.resolve({ name: 'SignPDF' })
+		window.location.href = url.href
+	} catch (error: any) {
+		state.errorMessage = error.response.data.ocs.data.message
+	}
+	state.loading = false
+}
+
+defineExpose({
+	v$,
+	email,
+	password,
+	passwordConfirm,
+	loading,
+	errorMessage,
+	settings: state.settings,
+	emailError,
+	showErrorEmail,
+	passwordError,
+	confirmPasswordError,
+	canSave,
+	isEqualEmail,
+	createAccount,
+})
 </script>
 
 <style lang="scss">
