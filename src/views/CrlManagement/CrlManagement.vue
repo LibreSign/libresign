@@ -291,8 +291,9 @@
 	</NcAppContent>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, reactive, ref } from 'vue'
 import {
 	mdiAccount,
 	mdiCheckCircle,
@@ -325,333 +326,364 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
-import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-export default {
-	name: 'CrlManagement',
-	components: {
-		NcActions,
-		NcActionButton,
-		NcActionInput,
-		NcActionSeparator,
-		NcAppContent,
-		NcAvatar,
-		NcButton,
-		NcDialog,
-		NcEmptyContent,
-		NcNoteCard,
-		NcSelect,
-		NcTextArea,
-		NcTextField,
-		NcIconSvgWrapper,
-		NcLoadingIcon,
-	},
-	setup() {
-		return {
-			t,
-			mdiFilter,
-			mdiMagnify,
-			mdiAccount,
-			mdiCheckCircle,
-			mdiCancel,
-			mdiClockAlert,
-			mdiClose,
-			mdiShieldLock,
-		}
-	},
-	data() {
-		const userConfigStore = useUserConfigStore()
-
-		return {
-			userConfigStore,
-			entries: [],
-			loading: false,
-			loadingMore: false,
-			page: 1,
-			length: 50,
-			total: 0,
-			hasMore: true,
-			filters: {
-				serialNumber: userConfigStore.crl_filters?.serialNumber || '',
-				status: userConfigStore.crl_filters?.status || null,
-				owner: userConfigStore.crl_filters?.owner || '',
-			},
-			sortBy: userConfigStore.crl_sort.sortBy || 'revoked_at',
-			sortOrder: userConfigStore.crl_sort.sortOrder || 'DESC',
-			caWarningDialog: {
-				open: false,
-				entry: null,
-				typeLabel: '',
-			},
-			revokeDialog: {
-				open: false,
-				entry: null,
-				reasonCode: { value: 0, label: '' },
-				reasonText: '',
-				loading: false,
-			},
-			statusOptions: [
-				{ value: 'issued', label: this.t('libresign', 'Issued') },
-				{ value: 'revoked', label: this.t('libresign', 'Revoked') },
-				{ value: 'expired', label: this.t('libresign', 'Expired') },
-			],
-			reasonCodes: {
-				0: this.t('libresign', 'Unspecified'),
-				1: this.t('libresign', 'Key Compromise'),
-				2: this.t('libresign', 'CA Compromise'),
-				3: this.t('libresign', 'Affiliation Changed'),
-				4: this.t('libresign', 'Superseded'),
-				5: this.t('libresign', 'Cessation of Operation'),
-				6: this.t('libresign', 'Certificate Hold'),
-				8: this.t('libresign', 'Remove from CRL'),
-				9: this.t('libresign', 'Privilege Withdrawn'),
-				10: this.t('libresign', 'AA Compromise'),
-			},
-			reasonCodeOptions: [
-				{ value: 0, label: this.t('libresign', 'Unspecified') },
-				{ value: 1, label: this.t('libresign', 'Key Compromise') },
-				{ value: 2, label: this.t('libresign', 'CA Compromise') },
-				{ value: 3, label: this.t('libresign', 'Affiliation Changed') },
-				{ value: 4, label: this.t('libresign', 'Superseded') },
-				{ value: 5, label: this.t('libresign', 'Cessation of Operation') },
-				{ value: 6, label: this.t('libresign', 'Certificate Hold') },
-				{ value: 8, label: this.t('libresign', 'Remove from CRL') },
-				{ value: 9, label: this.t('libresign', 'Privilege Withdrawn') },
-				{ value: 10, label: this.t('libresign', 'AA Compromise') },
-			],
-		}
-	},
-	computed: {
-		hasActiveFilters() {
-			return !!(this.filters.serialNumber || this.filters.status || this.filters.owner)
-		},
-		activeFilterCount() {
-			let count = 0
-			if (this.filters.serialNumber) count++
-			if (this.filters.status) count++
-			if (this.filters.owner) count++
-			return count
-		},
-	},
-	mounted() {
-		this.loadEntries()
-	},
-	methods: {
-		t,
-		async loadEntries(append = false) {
-			if (!append) {
-				this.loading = true
-				this.page = 1
-				this.entries = []
-			} else {
-				this.loadingMore = true
-			}
-
-			try {
-				const params = {
-					page: this.page,
-					length: this.length,
-				}
-
-				if (this.filters.serialNumber) {
-					params.serialNumber = this.filters.serialNumber
-				}
-				if (this.filters.status?.value) {
-					params.status = this.filters.status.value
-				}
-				if (this.filters.owner) {
-					params.owner = this.filters.owner
-				}
-
-				if (this.sortBy) {
-					params.sortBy = this.sortBy
-					params.sortOrder = this.sortOrder
-				}
-
-			const response = await axios.get(
-				generateOcsUrl('/apps/libresign/api/{apiVersion}/crl/list', { apiVersion: 'v1' }),
-				{ params }
-			)
-
-			const data = response.data.ocs.data
-
-			if (append) {
-				this.entries.push(...data.data)
-			} else {
-				this.entries = data.data
-			}
-
-			this.total = data.total
-			this.hasMore = this.entries.length < this.total
-
-			} catch (error) {
-				console.error('Failed to load CRL entries:', error)
-				console.error('Error response:', error.response)
-				showError(this.t('libresign', 'Failed to load CRL entries'))
-			} finally {
-				this.loading = false
-				this.loadingMore = false
-			}
-		},
-		onFilterChange() {
-			clearTimeout(this.filterTimeout)
-			this.filterTimeout = setTimeout(() => {
-				this.saveFilters()
-				this.loadEntries()
-			}, 500)
-		},
-		async saveFilters() {
-			try {
-				const filters = {
-					serialNumber: this.filters.serialNumber,
-					status: this.filters.status,
-					owner: this.filters.owner,
-				}
-				await this.userConfigStore.update('crl_filters', filters)
-			} catch (error) {
-				console.error('Failed to save filters:', error)
-			}
-		},
-		async saveSort() {
-			try {
-				const sort = {
-					sortBy: this.sortBy,
-					sortOrder: this.sortOrder,
-				}
-				await this.userConfigStore.update('crl_sort', sort)
-			} catch (error) {
-				console.error('Failed to save sort:', error)
-			}
-		},
-		onScroll(event) {
-			if (this.loadingMore || !this.hasMore) {
-				return
-			}
-
-			const container = event.target
-			const scrollPosition = container.scrollTop + container.clientHeight
-			const scrollHeight = container.scrollHeight
-
-			if (scrollPosition >= scrollHeight * 0.8) {
-				this.page++
-				this.loadEntries(true)
-			}
-		},
-		formatDate(dateString) {
-			if (!dateString) {
-				return '-'
-			}
-			const date = new Date(dateString)
-			return date.toLocaleString()
-		},
-		getReasonText(reasonCode) {
-			if (reasonCode === null || reasonCode === undefined) {
-				return '-'
-			}
-			return this.reasonCodes[reasonCode] || this.t('libresign', 'Unknown')
-		},
-		getCertificateTypeLabel(type) {
-			const labels = {
-				root: this.t('libresign', 'Root Certificate (CA)'),
-				intermediate: this.t('libresign', 'Intermediate Certificate (CA)'),
-				leaf: this.t('libresign', 'User Certificate'),
-			}
-			return labels[type] || type
-		},
-		clearFilters() {
-			this.filters.serialNumber = ''
-			this.filters.status = null
-			this.filters.owner = ''
-			this.saveFilters()
-			this.loadEntries()
-		},
-		setStatusFilter(status, value) {
-			if (value) {
-				const option = this.statusOptions.find(opt => opt.value === status)
-				this.filters.status = option
-			} else {
-				this.filters.status = null
-			}
-			this.onFilterChange()
-		},
-		sortColumn(column) {
-			if (this.sortBy === column) {
-				if (this.sortOrder === 'DESC') {
-					this.sortOrder = 'ASC'
-				} else if (this.sortOrder === 'ASC') {
-					this.sortBy = null
-					this.sortOrder = null
-				}
-			} else {
-				this.sortBy = column
-				this.sortOrder = 'DESC'
-			}
-			this.saveSort()
-			this.loadEntries()
-		},
-		openRevokeDialog(entry) {
-			if (entry.certificate_type === 'root' || entry.certificate_type === 'intermediate') {
-				this.caWarningDialog.open = true
-				this.caWarningDialog.entry = entry
-				this.caWarningDialog.typeLabel = entry.certificate_type === 'root' ? 'ROOT' : 'INTERMEDIATE'
-				return
-			}
-
-			this.revokeDialog.open = true
-			this.revokeDialog.entry = entry
-			this.revokeDialog.reasonCode = this.reasonCodeOptions[0]
-			this.revokeDialog.reasonText = ''
-		},
-		closeCaWarningDialog() {
-			this.caWarningDialog.open = false
-			this.caWarningDialog.entry = null
-			this.caWarningDialog.typeLabel = ''
-		},
-		proceedToRevokeDialog() {
-			const entry = this.caWarningDialog.entry
-			this.closeCaWarningDialog()
-
-			this.revokeDialog.open = true
-			this.revokeDialog.entry = entry
-			this.revokeDialog.reasonCode = this.reasonCodeOptions[0]
-			this.revokeDialog.reasonText = ''
-		},
-		closeRevokeDialog() {
-			this.revokeDialog.open = false
-			this.revokeDialog.entry = null
-			this.revokeDialog.reasonCode = null
-			this.revokeDialog.reasonText = ''
-			this.revokeDialog.loading = false
-		},
-		async confirmRevoke() {
-			this.revokeDialog.loading = true
-
-			try {
-				const response = await axios.post(
-					generateOcsUrl('/apps/libresign/api/{apiVersion}/crl/revoke', { apiVersion: 'v1' }),
-					{
-						serialNumber: this.revokeDialog.entry.serial_number,
-						reasonCode: this.revokeDialog.reasonCode?.value ?? 0,
-						reasonText: this.revokeDialog.reasonText || null,
-					}
-				)
-				if (response.data.ocs.data.success) {
-					showSuccess(this.t('libresign', 'Certificate revoked successfully'))
-					this.closeRevokeDialog()
-					this.loadEntries()
-				} else {
-					showError(response.data.ocs.data.message || this.t('libresign', 'Failed to revoke certificate'))
-				}
-			} catch (error) {
-				console.error('Failed to revoke certificate:', error)
-				const message = error.response?.data?.ocs?.data?.message || this.t('libresign', 'An error occurred while revoking the certificate')
-				showError(message)
-			} finally {
-				this.revokeDialog.loading = false
-			}
-		},
-	},
+type SelectOption = {
+	value: string
+	label: string
 }
+
+type ReasonOption = {
+	value: number
+	label: string
+}
+
+type CrlEntry = Record<string, any>
+
+defineOptions({
+	name: 'CrlManagement',
+})
+
+const userConfigStore = useUserConfigStore()
+const scrollContainer = ref<HTMLElement | null>(null)
+const entries = ref<CrlEntry[]>([])
+const loading = ref(false)
+const loadingMore = ref(false)
+const page = ref(1)
+const length = ref(50)
+const total = ref(0)
+const hasMore = ref(true)
+const filters = reactive({
+	serialNumber: userConfigStore.crl_filters?.serialNumber || '',
+	status: userConfigStore.crl_filters?.status || null,
+	owner: userConfigStore.crl_filters?.owner || '',
+})
+const sortBy = ref<string | null>(userConfigStore.crl_sort?.sortBy || 'revoked_at')
+const sortOrder = ref<'ASC' | 'DESC' | null>(userConfigStore.crl_sort?.sortOrder || 'DESC')
+const caWarningDialog = reactive({
+	open: false,
+	entry: null as CrlEntry | null,
+	typeLabel: '',
+})
+const revokeDialog = reactive({
+	open: false,
+	entry: null as CrlEntry | null,
+	reasonCode: { value: 0, label: '' } as ReasonOption | null,
+	reasonText: '',
+	loading: false,
+})
+const statusOptions: SelectOption[] = [
+	{ value: 'issued', label: t('libresign', 'Issued') },
+	{ value: 'revoked', label: t('libresign', 'Revoked') },
+	{ value: 'expired', label: t('libresign', 'Expired') },
+]
+const reasonCodes: Record<number, string> = {
+	0: t('libresign', 'Unspecified'),
+	1: t('libresign', 'Key Compromise'),
+	2: t('libresign', 'CA Compromise'),
+	3: t('libresign', 'Affiliation Changed'),
+	4: t('libresign', 'Superseded'),
+	5: t('libresign', 'Cessation of Operation'),
+	6: t('libresign', 'Certificate Hold'),
+	8: t('libresign', 'Remove from CRL'),
+	9: t('libresign', 'Privilege Withdrawn'),
+	10: t('libresign', 'AA Compromise'),
+}
+const reasonCodeOptions: ReasonOption[] = [
+	{ value: 0, label: t('libresign', 'Unspecified') },
+	{ value: 1, label: t('libresign', 'Key Compromise') },
+	{ value: 2, label: t('libresign', 'CA Compromise') },
+	{ value: 3, label: t('libresign', 'Affiliation Changed') },
+	{ value: 4, label: t('libresign', 'Superseded') },
+	{ value: 5, label: t('libresign', 'Cessation of Operation') },
+	{ value: 6, label: t('libresign', 'Certificate Hold') },
+	{ value: 8, label: t('libresign', 'Remove from CRL') },
+	{ value: 9, label: t('libresign', 'Privilege Withdrawn') },
+	{ value: 10, label: t('libresign', 'AA Compromise') },
+]
+
+const hasActiveFilters = computed(() => !!(filters.serialNumber || filters.status || filters.owner))
+const activeFilterCount = computed(() => {
+	let count = 0
+	if (filters.serialNumber) count++
+	if (filters.status) count++
+	if (filters.owner) count++
+	return count
+})
+
+let filterTimeout: ReturnType<typeof setTimeout> | undefined
+
+async function loadEntries(append = false) {
+	if (!append) {
+		loading.value = true
+		page.value = 1
+		entries.value = []
+	} else {
+		loadingMore.value = true
+	}
+
+	try {
+		const params: Record<string, any> = {
+			page: page.value,
+			length: length.value,
+		}
+
+		if (filters.serialNumber) {
+			params.serialNumber = filters.serialNumber
+		}
+		if (filters.status?.value) {
+			params.status = filters.status.value
+		}
+		if (filters.owner) {
+			params.owner = filters.owner
+		}
+		if (sortBy.value) {
+			params.sortBy = sortBy.value
+			params.sortOrder = sortOrder.value
+		}
+
+		const response = await axios.get(
+			generateOcsUrl('/apps/libresign/api/{apiVersion}/crl/list', { apiVersion: 'v1' }),
+			{ params },
+		)
+
+		const data = response.data.ocs.data
+
+		if (append) {
+			entries.value.push(...data.data)
+		} else {
+			entries.value = data.data
+		}
+
+		total.value = data.total
+		hasMore.value = entries.value.length < total.value
+	} catch (error: any) {
+		console.error('Failed to load CRL entries:', error)
+		console.error('Error response:', error.response)
+		showError(t('libresign', 'Failed to load CRL entries'))
+	} finally {
+		loading.value = false
+		loadingMore.value = false
+	}
+}
+
+function onFilterChange() {
+	clearTimeout(filterTimeout)
+	filterTimeout = setTimeout(() => {
+		saveFilters()
+		loadEntries()
+	}, 500)
+}
+
+async function saveFilters() {
+	try {
+		await userConfigStore.update('crl_filters', {
+			serialNumber: filters.serialNumber,
+			status: filters.status,
+			owner: filters.owner,
+		})
+	} catch (error) {
+		console.error('Failed to save filters:', error)
+	}
+}
+
+async function saveSort() {
+	try {
+		await userConfigStore.update('crl_sort', {
+			sortBy: sortBy.value,
+			sortOrder: sortOrder.value,
+		})
+	} catch (error) {
+		console.error('Failed to save sort:', error)
+	}
+}
+
+function onScroll(event: Event) {
+	if (loadingMore.value || !hasMore.value) {
+		return
+	}
+
+	const container = event.target as HTMLElement
+	const scrollPosition = container.scrollTop + container.clientHeight
+	const scrollHeight = container.scrollHeight
+
+	if (scrollPosition >= scrollHeight * 0.8) {
+		page.value++
+		loadEntries(true)
+	}
+}
+
+function formatDate(dateString: string | null | undefined) {
+	if (!dateString) {
+		return '-'
+	}
+	return new Date(dateString).toLocaleString()
+}
+
+function getReasonText(reasonCode: number | null | undefined) {
+	if (reasonCode === null || reasonCode === undefined) {
+		return '-'
+	}
+	return reasonCodes[reasonCode] || t('libresign', 'Unknown')
+}
+
+function getCertificateTypeLabel(type: string) {
+	const labels: Record<string, string> = {
+		root: t('libresign', 'Root Certificate (CA)'),
+		intermediate: t('libresign', 'Intermediate Certificate (CA)'),
+		leaf: t('libresign', 'User Certificate'),
+	}
+	return labels[type] || type
+}
+
+function clearFilters() {
+	filters.serialNumber = ''
+	filters.status = null
+	filters.owner = ''
+	saveFilters()
+	loadEntries()
+}
+
+function setStatusFilter(status: string, value: boolean) {
+	if (value) {
+		filters.status = statusOptions.find(option => option.value === status) || null
+	} else {
+		filters.status = null
+	}
+	onFilterChange()
+}
+
+function sortColumn(column: string) {
+	if (sortBy.value === column) {
+		if (sortOrder.value === 'DESC') {
+			sortOrder.value = 'ASC'
+		} else if (sortOrder.value === 'ASC') {
+			sortBy.value = null
+			sortOrder.value = null
+		}
+	} else {
+		sortBy.value = column
+		sortOrder.value = 'DESC'
+	}
+	saveSort()
+	loadEntries()
+}
+
+function openRevokeDialog(entry: CrlEntry) {
+	if (entry.certificate_type === 'root' || entry.certificate_type === 'intermediate') {
+		caWarningDialog.open = true
+		caWarningDialog.entry = entry
+		caWarningDialog.typeLabel = entry.certificate_type === 'root' ? 'ROOT' : 'INTERMEDIATE'
+		return
+	}
+
+	revokeDialog.open = true
+	revokeDialog.entry = entry
+	revokeDialog.reasonCode = reasonCodeOptions[0]
+	revokeDialog.reasonText = ''
+}
+
+function closeCaWarningDialog() {
+	caWarningDialog.open = false
+	caWarningDialog.entry = null
+	caWarningDialog.typeLabel = ''
+}
+
+function proceedToRevokeDialog() {
+	const entry = caWarningDialog.entry
+	closeCaWarningDialog()
+	revokeDialog.open = true
+	revokeDialog.entry = entry
+	revokeDialog.reasonCode = reasonCodeOptions[0]
+	revokeDialog.reasonText = ''
+}
+
+function closeRevokeDialog() {
+	revokeDialog.open = false
+	revokeDialog.entry = null
+	revokeDialog.reasonCode = null
+	revokeDialog.reasonText = ''
+	revokeDialog.loading = false
+}
+
+async function confirmRevoke() {
+	revokeDialog.loading = true
+
+	try {
+		const response = await axios.post(
+			generateOcsUrl('/apps/libresign/api/{apiVersion}/crl/revoke', { apiVersion: 'v1' }),
+			{
+				serialNumber: revokeDialog.entry?.serial_number,
+				reasonCode: revokeDialog.reasonCode?.value ?? 0,
+				reasonText: revokeDialog.reasonText || null,
+			},
+		)
+
+		if (response.data.ocs.data.success) {
+			showSuccess(t('libresign', 'Certificate revoked successfully'))
+			closeRevokeDialog()
+			loadEntries()
+		} else {
+			showError(response.data.ocs.data.message || t('libresign', 'Failed to revoke certificate'))
+		}
+	} catch (error: any) {
+		console.error('Failed to revoke certificate:', error)
+		const message = error.response?.data?.ocs?.data?.message || t('libresign', 'An error occurred while revoking the certificate')
+		showError(message)
+	} finally {
+		revokeDialog.loading = false
+	}
+}
+
+onMounted(() => {
+	loadEntries()
+})
+
+defineExpose({
+	t,
+	mdiFilter,
+	mdiMagnify,
+	mdiAccount,
+	mdiCheckCircle,
+	mdiCancel,
+	mdiClockAlert,
+	mdiClose,
+	mdiShieldLock,
+	userConfigStore,
+	scrollContainer,
+	entries,
+	loading,
+	loadingMore,
+	page,
+	length,
+	total,
+	hasMore,
+	filters,
+	sortBy,
+	sortOrder,
+	caWarningDialog,
+	revokeDialog,
+	statusOptions,
+	reasonCodes,
+	reasonCodeOptions,
+	hasActiveFilters,
+	activeFilterCount,
+	loadEntries,
+	onFilterChange,
+	saveFilters,
+	saveSort,
+	onScroll,
+	formatDate,
+	getReasonText,
+	getCertificateTypeLabel,
+	clearFilters,
+	setStatusFilter,
+	sortColumn,
+	openRevokeDialog,
+	closeCaWarningDialog,
+	proceedToRevokeDialog,
+	closeRevokeDialog,
+	confirmRevoke,
+})
 </script>
 
 <style lang="scss" scoped>
