@@ -9,6 +9,7 @@ import { getTimePresetRange, getTimePresets } from '../../utils/timePresets.js'
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: (_app: string, text: string) => text,
+	isRTL: () => false,
 }))
 
 describe('getTimePresets', () => {

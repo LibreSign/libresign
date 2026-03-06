@@ -3,54 +3,59 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
 import { subscribe } from '@nextcloud/event-bus'
 
-export const useSelectionStore = function(...args) {
-	const store = defineStore('selection', {
-		state: () => ({
-			selected: [],
-			lastSelection: [],
-			lastSelectedIndex: null,
-		}),
+const _selectionStore = defineStore('selection', () => {
+	const selected = ref([])
+	const lastSelection = ref([])
+	const lastSelectedIndex = ref(null)
 
-		actions: {
-			/**
-			 * Set the selection of fileIds
-			 * @param {Array} selection Selected files
-			 */
-			set(selection = []) {
-				this.selected = [...new Set(selection)]
-			},
-
-			/**
-			 * Set the last selected index
-			 * @param {number | null} lastSelectedIndex Position of last selected file
-			 */
-			setLastIndex(lastSelectedIndex = null) {
-				// Update the last selection if we provided a new selection starting point
-				this.lastSelection = lastSelectedIndex ? this.selected : []
-				this.lastSelectedIndex = lastSelectedIndex
-			},
-
-			/**
-			 * Reset the selection
-			 */
-			reset() {
-				this.selected = []
-				this.lastSelection = []
-				this.lastSelectedIndex = null
-			},
-		},
-	})
-
-	const selectionStore = store(...args)
-
-	// Make sure we only register the listeners once
-	if (!selectionStore._initialized) {
-		subscribe('libresign:filters:update', selectionStore.reset)
-		selectionStore._initialized = true
+	/**
+	 * Set the selection of fileIds
+	 * @param {Array} selection Selected files
+	 */
+	const set = (selection = []) => {
+		selected.value = [...new Set(selection)]
 	}
 
+	/**
+	 * Set the last selected index
+	 * @param {number | null} index Position of last selected file
+	 */
+	const setLastIndex = (index = null) => {
+		// Update the last selection if we provided a new selection starting point
+		lastSelection.value = index ? selected.value : []
+		lastSelectedIndex.value = index
+	}
+
+	/**
+	 * Reset the selection
+	 */
+	const reset = () => {
+		selected.value = []
+		lastSelection.value = []
+		lastSelectedIndex.value = null
+	}
+
+	return {
+		selected,
+		lastSelection,
+		lastSelectedIndex,
+		set,
+		setLastIndex,
+		reset,
+	}
+})
+
+let _initialized = false
+
+export const useSelectionStore = function(...args) {
+	const selectionStore = _selectionStore(...args)
+	if (!_initialized) {
+		subscribe('libresign:filters:update', selectionStore.reset)
+		_initialized = true
+	}
 	return selectionStore
 }

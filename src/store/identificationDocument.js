@@ -4,40 +4,55 @@
  */
 
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
 
-export const useIdentificationDocumentStore = defineStore('identificationDocument', {
-	state: () => ({
-		modal: false,
-		enabled: loadState('libresign', 'needIdentificationDocuments', false),
-		waitingApproval: loadState('libresign', 'identificationDocumentsWaitingApproval', false),
-	}),
-	actions: {
-		isDocumentPending() {
-			if (!this.enabled) return false
+export const useIdentificationDocumentStore = defineStore('identificationDocument', () => {
+	const modal = ref(false)
+	const enabled = ref(loadState('libresign', 'needIdentificationDocuments', false))
+	const waitingApproval = ref(loadState('libresign', 'identificationDocumentsWaitingApproval', false))
+
+	const isDocumentPending = () => {
+		if (!enabled.value) return false
+		return true
+	}
+
+	const needIdentificationDocument = () => {
+		if (waitingApproval.value) {
 			return true
-		},
-		needIdentificationDocument() {
-			if (this.waitingApproval) {
-				return true
-			}
-			return this.enabled
-		},
-		showDocumentsComponent() {
-			return this.enabled
-		},
-		setEnabled(enabled) {
-			this.enabled = enabled
-		},
-		setWaitingApproval(waitingApproval) {
-			this.waitingApproval = waitingApproval
-		},
-		showModal() {
-			this.modal = true
-		},
-		closeModal() {
-			this.modal = false
-		},
-	},
+		}
+		return enabled.value
+	}
+
+	const showDocumentsComponent = () => enabled.value
+
+	const setEnabled = (value) => {
+		enabled.value = value
+	}
+
+	const setWaitingApproval = (value) => {
+		waitingApproval.value = value
+	}
+
+	const showModal = () => {
+		modal.value = true
+	}
+
+	const closeModal = () => {
+		modal.value = false
+	}
+
+	return {
+		modal,
+		enabled,
+		waitingApproval,
+		isDocumentPending,
+		needIdentificationDocument,
+		showDocumentsComponent,
+		setEnabled,
+		setWaitingApproval,
+		showModal,
+		closeModal,
+	}
 })

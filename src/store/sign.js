@@ -4,6 +4,7 @@
  */
 
 import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -34,168 +35,192 @@ const defaultState = {
 	pendingAction: null,
 }
 
-export const useSignStore = defineStore('sign', {
-	state: () => ({ ...defaultState }),
+export const useSignStore = defineStore('sign', () => {
+	const errors = ref([...defaultState.errors])
+	const document = ref({ ...defaultState.document })
+	const mounted = ref(defaultState.mounted)
+	const pendingAction = ref(defaultState.pendingAction)
 
-	getters: {
-		ableToSign(state) {
-			const allowedStatuses = [FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED]
-			if (!allowedStatuses.includes(state.document?.status)) {
-				return false
-			}
+	const ableToSign = computed(() => {
+		const allowedStatuses = [FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED]
+		if (!allowedStatuses.includes(document.value?.status)) {
+			return false
+		}
 
-			const mySigner = state.document?.signers?.find(signer => signer.me)
-			const isIdDocApprover = state.document?.settings?.isApprover
+		const mySigner = document.value?.signers?.find(signer => signer.me)
+		const isIdDocApprover = document.value?.settings?.isApprover
 
-			if (!mySigner && !isIdDocApprover) {
-				return false
-			}
+		if (!mySigner && !isIdDocApprover) {
+			return false
+		}
 
-			if (mySigner && mySigner.status !== SIGN_REQUEST_STATUS.ABLE_TO_SIGN) {
-				return false
-			}
+		if (mySigner && mySigner.status !== SIGN_REQUEST_STATUS.ABLE_TO_SIGN) {
+			return false
+		}
 
-			const identificationDocumentStore = useIdentificationDocumentStore()
-			if (identificationDocumentStore.isDocumentPending()) {
-				return false
-			}
+		const identificationDocumentStore = useIdentificationDocumentStore()
+		if (identificationDocumentStore.isDocumentPending()) {
+			return false
+		}
 
-			return true
-		},
-	},
+		return true
+	})
 
-	actions: {
-		getSignatureMethodsForFile(file) {
-			const currentUserAsSigner = file.signers.find(row => row.me)
-			return currentUserAsSigner?.signatureMethods || file.settings?.signatureMethods || {}
-		},
+	const getSignatureMethodsForFile = (file) => {
+		const currentUserAsSigner = file.signers.find(row => row.me)
+		return currentUserAsSigner?.signatureMethods || file.settings?.signatureMethods || {}
+	}
 
-		async initFromState() {
-			this.errors = loadState('libresign', 'errors', [])
+	const initFromState = async () => {
+		errors.value = loadState('libresign', 'errors', [])
 
-			const file = {
-				id: loadState('libresign', 'id', 0),
-				name: loadState('libresign', 'filename', ''),
-				description: loadState('libresign', 'description', ''),
-				status: loadState('libresign', 'status', ''),
-				statusText: loadState('libresign', 'statusText', ''),
-				nodeId: loadState('libresign', 'nodeId', 0),
-				nodeType: loadState('libresign', 'nodeType', ''),
-				uuid: loadState('libresign', 'uuid', null),
-				signers: loadState('libresign', 'signers', []),
-				visibleElements: loadState('libresign', 'visibleElements', []),
-			}
-			const filesStore = useFilesStore()
+		const file = {
+			id: loadState('libresign', 'id', 0),
+			name: loadState('libresign', 'filename', ''),
+			description: loadState('libresign', 'description', ''),
+			status: loadState('libresign', 'status', ''),
+			statusText: loadState('libresign', 'statusText', ''),
+			nodeId: loadState('libresign', 'nodeId', 0),
+			nodeType: loadState('libresign', 'nodeType', ''),
+			uuid: loadState('libresign', 'uuid', null),
+			signers: loadState('libresign', 'signers', []),
+			visibleElements: loadState('libresign', 'visibleElements', []),
+		}
+
+		const filesStore = useFilesStore()
+		const sidebarStore = useSidebarStore()
+		await filesStore.addFile(file)
+		filesStore.selectFile(file.id)
+		setFileToSign(file)
+		sidebarStore.activeSignTab()
+	}
+
+	const setFileToSign = (file) => {
+		if (file) {
+			errors.value = []
+			document.value = file
+
 			const sidebarStore = useSidebarStore()
-			await filesStore.addFile(file)
-			filesStore.selectFile(file.id)
-			this.setFileToSign(file)
 			sidebarStore.activeSignTab()
-		},
-		setFileToSign(file) {
-			if (file) {
-				this.errors = []
-				this.document = file
 
-				const sidebarStore = useSidebarStore()
-				sidebarStore.activeSignTab()
+			const signMethodsStore = useSignMethodsStore()
+			signMethodsStore.settings = getSignatureMethodsForFile(file)
+			return
+		}
 
-				const signMethodsStore = useSignMethodsStore()
-				signMethodsStore.settings = this.getSignatureMethodsForFile(file)
+		useSignStore().reset()
+	}
 
-				return
-			}
-			this.reset()
-		},
-		reset() {
-			this.errors = []
-			this.document = defaultState.document
-			const sidebarStore = useSidebarStore()
-			sidebarStore.setActiveTab()
-		},
-		queueAction(action) {
-			this.pendingAction = action
-		},
-		clearPendingAction() {
-			this.pendingAction = null
-		},
+	const reset = () => {
+		errors.value = []
+		document.value = defaultState.document
+		const sidebarStore = useSidebarStore()
+		sidebarStore.setActiveTab()
+	}
 
-		async submitSignature(payload, signRequestUuid, options = {}) {
-			const url = this.buildSignUrl(signRequestUuid, options)
-			try {
-				const response = await axios.post(url, payload)
-				return this.parseSignResponse(response.data)
-			} catch (error) {
-				throw this.parseSignError(error)
-			}
-		},
+	const queueAction = (action) => {
+		pendingAction.value = action
+	}
 
-		buildSignUrl(signRequestUuid, options = {}) {
-			const { documentId } = options
-			const isApprover = this.document?.settings?.isApprover
+	const clearPendingAction = () => {
+		pendingAction.value = null
+	}
 
-			let url
-			if (signRequestUuid) {
-				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: signRequestUuid }) + '?async=true'
-			} else {
-				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: documentId }) + '?async=true'
-			}
+	const submitSignature = async (payload, signRequestUuid, options = {}) => {
+		const url = buildSignUrl(signRequestUuid, options)
+		try {
+			const response = await axios.post(url, payload)
+			return parseSignResponse(response.data)
+		} catch (error) {
+			throw parseSignError(error)
+		}
+	}
 
-			if (isApprover) {
-				url += '&idDocApproval=true'
-			}
+	const buildSignUrl = (signRequestUuid, options = {}) => {
+		const { documentId } = options
+		const isApprover = document.value?.settings?.isApprover
 
-			return url
-		},
+		let url
+		if (signRequestUuid) {
+			url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: signRequestUuid }) + '?async=true'
+		} else {
+			url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: documentId }) + '?async=true'
+		}
 
-		parseSignResponse(data) {
-			const responseData = data.ocs?.data
+		if (isApprover) {
+			url += '&idDocApproval=true'
+		}
 
-			if (responseData?.job?.status === 'SIGNING_IN_PROGRESS') {
-				return {
-					status: 'signingInProgress',
-					data: responseData,
-				}
-			}
+		return url
+	}
 
-			if (responseData?.action === 3500) { // ACTION_SIGNED
-				return {
-					status: 'signed',
-					data: responseData,
-				}
-			}
+	const parseSignResponse = (data) => {
+		const responseData = data.ocs?.data
 
+		if (responseData?.job?.status === 'SIGNING_IN_PROGRESS') {
 			return {
-				status: 'unknown',
+				status: 'signingInProgress',
 				data: responseData,
 			}
-		},
+		}
 
-		parseSignError(error) {
-			const errorData = error.response?.data?.ocs?.data
-			const action = errorData?.action
-
-			if (action === 4000) {
-				return {
-					type: 'missingCertification',
-					action,
-					errors: errorData?.errors || [],
-				}
-			}
-
+		if (responseData?.action === 3500) {
 			return {
-				type: 'signError',
+				status: 'signed',
+				data: responseData,
+			}
+		}
+
+		return {
+			status: 'unknown',
+			data: responseData,
+		}
+	}
+
+	const parseSignError = (error) => {
+		const errorData = error.response?.data?.ocs?.data
+		const action = errorData?.action
+
+		if (action === 4000) {
+			return {
+				type: 'missingCertification',
 				action,
 				errors: errorData?.errors || [],
 			}
-		},
+		}
 
-		clearSigningErrors() {
-			this.errors = []
-		},
+		return {
+			type: 'signError',
+			action,
+			errors: errorData?.errors || [],
+		}
+	}
 
-		setSigningErrors(errors) {
-			this.errors = errors || []
-		},
-	},
+	const clearSigningErrors = () => {
+		errors.value = []
+	}
+
+	const setSigningErrors = (newErrors) => {
+		errors.value = newErrors || []
+	}
+
+	return {
+		errors,
+		document,
+		mounted,
+		pendingAction,
+		ableToSign,
+		getSignatureMethodsForFile,
+		initFromState,
+		setFileToSign,
+		reset,
+		queueAction,
+		clearPendingAction,
+		submitSignature,
+		buildSignUrl,
+		parseSignResponse,
+		parseSignError,
+		clearSigningErrors,
+		setSigningErrors,
+	}
 })
