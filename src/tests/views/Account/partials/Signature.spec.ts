@@ -43,7 +43,7 @@ beforeAll(async () => {
 })
 
 describe('Signature', () => {
-	it('registers icon wrapper and exposes mdi icon paths used in template', () => {
+	it('registers icon wrapper and exposes mdi icon paths used in template', async () => {
 		const wrapper = mount(Signature as never, {
 			props: {
 				type: 'signature',
@@ -59,7 +59,10 @@ describe('Signature', () => {
 			},
 		})
 
-		expect(wrapper.vm.$options.components.NcIconSvgWrapper).toBeTruthy()
+		wrapper.vm.signatureLoaded(true)
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.findAll('.icon')).toHaveLength(2)
 		expect(wrapper.vm.mdiDelete).toBeTruthy()
 		expect(wrapper.vm.mdiDraw).toBeTruthy()
 	})
