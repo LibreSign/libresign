@@ -36,8 +36,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 
 import '@fontsource/dancing-script'
 
@@ -48,147 +49,169 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
 
-export default {
+defineOptions({
 	name: 'TextInput',
-	emits: ['save', 'close'],
-	components: {
-		NcTextField,
-		NcDialog,
-		NcButton,
-		PreviewSignature,
-	},
-	data: () => ({
-		canvasWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
-		canvasHeight: getCapabilities().libresign.config['sign-elements']['signature-height'],
-		value: '',
-		modal: false,
-		imageData: null,
-		scale: 1,
-	}),
-	computed: {
-		isValid() {
-			return !!this.value
-		},
-	},
-	watch: {
-		value(val) {
-			const canvas = this.$refs.canvas
-			if (!canvas) {
-				return
-			}
-			const ctx = canvas.getContext('2d')
-			if (!ctx) {
-				return
-			}
-			ctx.clearRect(0, 0, canvas.width, canvas.height)
-			ctx.fillStyle = 'black'
-			ctx.font = "30px 'Dancing Script'"
-			const paddingX = 15
-			const maxWidth = Math.max(0, canvas.width - (paddingX * 2))
-			const lineHeight = 36
-			const words = String(val).trim().split(/\s+/).filter(Boolean)
+})
 
-			const lines = []
-			let line = ''
-			for (const word of words) {
-				const testLine = line ? `${line} ${word}` : word
-				if (ctx.measureText(testLine).width <= maxWidth || !line) {
-					line = testLine
-				} else {
-					lines.push(line)
-					line = word
-				}
-			}
-			if (line) {
-				lines.push(line)
-			}
+const emit = defineEmits<{
+	(event: 'save', imageData: string | null): void
+	(event: 'close'): void
+}>()
 
-			ctx.textAlign = 'center'
-			ctx.textBaseline = 'middle'
+const capabilities = getCapabilities()
+const canvasWidth = capabilities.libresign.config['sign-elements']['signature-width']
+const canvasHeight = capabilities.libresign.config['sign-elements']['signature-height']
+const value = ref('')
+const modal = ref(false)
+const imageData = ref<string | null>(null)
+const scale = ref(1)
+const canvasWrapper = ref<HTMLElement | null>(null)
+const canvas = ref<HTMLCanvasElement | null>(null)
+const input = ref<{ focus: () => void } | null>(null)
 
-			const totalHeight = lines.length * lineHeight
-			const startY = (canvas.height / 2) - ((totalHeight - lineHeight) / 2)
-			const centerX = canvas.width / 2
+const isValid = computed(() => !!value.value)
 
-			lines.forEach((text, index) => {
-				ctx.fillText(text, centerX, startY + (index * lineHeight))
-			})
-		},
-	},
-	mounted() {
-		this.$nextTick(() => {
-			this.applyCanvasSize()
-		})
-		this.setFocus()
-	},
+watch(value, (newValue) => {
+	const currentCanvas = canvas.value
+	if (!currentCanvas) {
+		return
+	}
+	const context = currentCanvas.getContext('2d')
+	if (!context) {
+		return
+	}
+	context.clearRect(0, 0, currentCanvas.width, currentCanvas.height)
+	context.fillStyle = 'black'
+	context.font = "30px 'Dancing Script'"
+	const paddingX = 15
+	const maxWidth = Math.max(0, currentCanvas.width - (paddingX * 2))
+	const lineHeight = 36
+	const words = String(newValue).trim().split(/\s+/).filter(Boolean)
 
-	methods: {
-		t,
-		applyCanvasSize() {
-			if (!this.$refs.canvasWrapper || !this.$refs.canvas) {
-				return
-			}
-			const padding = 12
-			const wrapperWidth = this.$refs.canvasWrapper.offsetWidth || 0
-			const maxScaleWidth = wrapperWidth ? (wrapperWidth - padding) / this.canvasWidth : 1
-			const maxScale = maxScaleWidth
+	const lines: string[] = []
+	let line = ''
+	for (const word of words) {
+		const testLine = line ? `${line} ${word}` : word
+		if (context.measureText(testLine).width <= maxWidth || !line) {
+			line = testLine
+		} else {
+			lines.push(line)
+			line = word
+		}
+	}
+	if (line) {
+		lines.push(line)
+	}
 
-			const minDisplayWidth = 420
-			const minDisplayHeight = 220
-			const minScaleWidth = minDisplayWidth / this.canvasWidth
-			const minScaleHeight = minDisplayHeight / this.canvasHeight
-			const minScale = Math.max(1, minScaleWidth, minScaleHeight)
+	context.textAlign = 'center'
+	context.textBaseline = 'middle'
 
-			this.scale = Math.min(maxScale || 1, minScale)
+	const totalHeight = lines.length * lineHeight
+	const startY = (currentCanvas.height / 2) - ((totalHeight - lineHeight) / 2)
+	const centerX = currentCanvas.width / 2
 
-			const finalWidth = Math.round(this.canvasWidth * this.scale)
-			const finalHeight = Math.round(this.canvasHeight * this.scale)
+	lines.forEach((text, index) => {
+		context.fillText(text, centerX, startY + (index * lineHeight))
+	})
+})
 
-			this.$refs.canvas.width = finalWidth
-			this.$refs.canvas.height = finalHeight
-			this.$refs.canvas.style.width = `${finalWidth}px`
-			this.$refs.canvas.style.height = `${finalHeight}px`
-		},
-		saveSignature() {
-			this.handleModal(false)
-			this.$emit('save', this.imageData)
-		},
+function applyCanvasSize() {
+	if (!canvasWrapper.value || !canvas.value) {
+		return
+	}
+	const padding = 12
+	const wrapperWidth = canvasWrapper.value.offsetWidth || 0
+	const maxScaleWidth = wrapperWidth ? (wrapperWidth - padding) / canvasWidth : 1
+	const maxScale = maxScaleWidth
 
-		setFocus() {
-			this.$nextTick(() => {
-				this.$refs.input.focus()
-			})
-		},
+	const minDisplayWidth = 420
+	const minDisplayHeight = 220
+	const minScaleWidth = minDisplayWidth / canvasWidth
+	const minScaleHeight = minDisplayHeight / canvasHeight
+	const minScale = Math.max(1, minScaleWidth, minScaleHeight)
 
-		close() {
-			this.$emit('close')
-		},
+	scale.value = Math.min(maxScale || 1, minScale)
 
-		clearCanvas() {
-			const ctx = this.$refs.canvas.getContext('2d')
-			ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
-			this.imageData = null
-		},
+	const finalWidth = Math.round(canvasWidth * scale.value)
+	const finalHeight = Math.round(canvasHeight * scale.value)
 
-		handleModal(status) {
-			this.modal = status
-		},
-
-		cancelConfirm() {
-			this.handleModal(false)
-			this.clearCanvas()
-		},
-
-		stringToImage() {
-			this.imageData = this.$refs.canvas.toDataURL('image/png').replace(/^data:image\/[^;]/, 'data:application/octet-stream')
-		},
-
-		confirmSignature() {
-			this.stringToImage()
-			this.handleModal(true)
-		},
-	},
+	canvas.value.width = finalWidth
+	canvas.value.height = finalHeight
+	canvas.value.style.width = `${finalWidth}px`
+	canvas.value.style.height = `${finalHeight}px`
 }
+
+function saveSignature() {
+	handleModal(false)
+	emit('save', imageData.value)
+}
+
+function setFocus() {
+	nextTick(() => {
+		input.value?.focus()
+	})
+}
+
+function close() {
+	emit('close')
+}
+
+function clearCanvas() {
+	const context = canvas.value?.getContext('2d')
+	if (!context || !canvas.value) {
+		return
+	}
+	context.clearRect(0, 0, canvasWidth, canvasHeight)
+	imageData.value = null
+}
+
+function handleModal(status: boolean) {
+	modal.value = status
+}
+
+function cancelConfirm() {
+	handleModal(false)
+	clearCanvas()
+}
+
+function stringToImage() {
+	if (!canvas.value) {
+		return
+	}
+	imageData.value = canvas.value.toDataURL('image/png').replace(/^data:image\/[^;]/, 'data:application/octet-stream')
+}
+
+function confirmSignature() {
+	stringToImage()
+	handleModal(true)
+}
+
+onMounted(() => {
+	nextTick(() => {
+		applyCanvasSize()
+	})
+	setFocus()
+})
+
+defineExpose({
+	canvas,
+	canvasWidth,
+	canvasHeight,
+	value,
+	modal,
+	imageData,
+	scale,
+	isValid,
+	applyCanvasSize,
+	saveSignature,
+	setFocus,
+	close,
+	clearCanvas,
+	handleModal,
+	cancelConfirm,
+	stringToImage,
+	confirmSignature,
+})
 </script>
 
 <style lang="scss" scoped>
