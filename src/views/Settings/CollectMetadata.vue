@@ -13,45 +13,66 @@
 		</NcCheckboxRadioSwitch>
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
-import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { generateOcsUrl } from '@nextcloud/router'
+import { onMounted, ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
-export default {
-	name: 'CollectMetadata',
-	components: {
-		NcSettingsSection,
-		NcCheckboxRadioSwitch,
-	},
-	data() {
-		return {
-			collectMetadataEnabled: false,
+type CollectMetadataResponse = {
+	data?: {
+		ocs?: {
+			data?: {
+				data?: unknown
+			}
 		}
-	},
-	created() {
-		this.getData()
-	},
-	methods: {
-		t,
-		async getData() {
-			const responseCollectMetadata = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/collect_metadata'))
-			const value = responseCollectMetadata?.data?.ocs?.data?.data
-			this.collectMetadataEnabled = ['true', true, '1', 1].includes(value)
-		},
-		saveCollectMetadata() {
-			OCP.AppConfig.setValue('libresign', 'collect_metadata', this.collectMetadataEnabled ? '1' : '0', {
-				success: () => {
-					emit('collect-metadata:changed')
-				},
-			})
-		},
-	},
+	}
 }
+
+type OcpCallbacks = {
+	success?: () => void
+}
+
+type OcpGlobal = {
+	AppConfig: {
+		setValue: (app: string, key: string, value: string, callbacks?: OcpCallbacks) => void
+	}
+}
+
+defineOptions({
+	name: 'CollectMetadata',
+})
+
+const collectMetadataEnabled = ref(false)
+
+async function getData() {
+	const responseCollectMetadata = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/collect_metadata')) as CollectMetadataResponse
+	const value = responseCollectMetadata?.data?.ocs?.data?.data
+	collectMetadataEnabled.value = ['true', true, '1', 1].includes(value as never)
+}
+
+function saveCollectMetadata() {
+	;(globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP.AppConfig.setValue('libresign', 'collect_metadata', collectMetadataEnabled.value ? '1' : '0', {
+		success: () => {
+			emit('collect-metadata:changed')
+		},
+	})
+}
+
+onMounted(() => {
+	void getData()
+})
+
+defineExpose({
+	t,
+	collectMetadataEnabled,
+	getData,
+	saveCollectMetadata,
+})
 </script>
 <style scoped>
 .collect-metadata-content{
