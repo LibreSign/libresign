@@ -48,6 +48,12 @@ const signStoreMock = {
 
 const routerPushMock = vi.fn()
 
+vi.mock('vue-router', () => ({
+	useRouter: vi.fn(() => ({
+		push: routerPushMock,
+	})),
+}))
+
 vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn((_app: string, text: string) => text),
 }))
@@ -146,13 +152,6 @@ describe('FileEntryActions.vue', () => {
 			opened: false,
 			source,
 			loading: false,
-		},
-		global: {
-			mocks: {
-				$router: {
-					push: routerPushMock,
-				},
-			},
 		},
 	})
 
