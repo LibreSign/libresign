@@ -6,10 +6,20 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+namespace OCA\Libresign\SetupCheck;
+
+if (!function_exists('OCA\Libresign\SetupCheck\exec')) {
+	function exec(string $command, &$output = null, &$result_code = null): string|false {
+		return \OCA\Libresign\Tests\Mock\ExecMock::exec($command, $output, $result_code);
+	}
+}
+
 namespace OCA\Libresign\Tests\Unit\SetupCheck;
 
 use OCA\Libresign\SetupCheck\PopplerSetupCheck;
-use OCA\Libresign\Tests\Unit\SetupCheck\Mock\ExecMock;
+
+use OCA\Libresign\Tests\Mock\ExecMock;
+
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
