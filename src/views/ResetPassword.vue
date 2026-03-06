@@ -37,8 +37,9 @@
 	</NcDialog>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, ref } from 'vue'
 
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -51,102 +52,122 @@ import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 
 import { useSignMethodsStore } from '../store/signMethods.js'
 
-export default {
+defineOptions({
 	name: 'ResetPassword',
-	emits: ['close'],
-	components: {
-		NcDialog,
-		NcPasswordField,
-		NcButton,
-		NcLoadingIcon,
-	},
-	setup() {
-		const signMethodsStore = useSignMethodsStore()
-		return { signMethodsStore }
-	},
-	data() {
-		return {
-			newPassword: '',
-			currentPassword: '',
-			rPassword: '',
-			hasLoading: false,
-		}
-	},
-	computed: {
-		canSave() {
-			return this.currentPassword && this.validNewPassord && !this.hasLoading
-		},
-		validNewPassord() {
-			return this.newPassword.length > 3 && this.newPassword === this.rPassword
-		},
-	},
-	methods: {
-		t,
-		resetForm() {
-			this.newPassword = ''
-			this.currentPassword = ''
-			this.rPassword = ''
-			this.hasLoading = false
-		},
-		focusField(fieldRefName) {
-			const field = this.$refs[fieldRefName]
-			if (typeof field?.focus === 'function') {
-				field.focus()
-				return
-			}
-			const input = field?.$el?.querySelector?.('input')
-			if (typeof input?.focus === 'function') {
-				input.focus()
-			}
-		},
-		focusFirstInvalidField() {
-			if (!this.currentPassword) {
-				this.focusField('currentPasswordField')
-				return
-			}
-			if (!this.newPassword) {
-				this.focusField('newPasswordField')
-				return
-			}
-			if (!this.rPassword || !this.validNewPassord) {
-				this.focusField('repeatPasswordField')
-			}
-		},
-		handleEnter() {
-			if (this.canSave) {
-				this.send()
-				return
-			}
-			this.focusFirstInvalidField()
-		},
-		onClose() {
-			this.signMethodsStore.closeModal('resetPassword')
-			this.resetForm()
-		},
-		async send() {
-			if (!this.canSave) {
-				this.focusFirstInvalidField()
-				return
-			}
-			this.hasLoading = true
-			await axios.patch(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), {
-				current: this.currentPassword,
-				new: this.newPassword,
-			})
-				.then(({ data }) => {
-					showSuccess(data.ocs.data.message)
-					this.onClose()
-					this.$emit('close', true)
-				})
-				.catch(({ response }) => {
-					if (response.data.ocs.data.message) {
-						showError(response.data.ocs.data.message)
-					} else {
-						showError(t('libresign', 'Error creating new password, please contact the administrator'))
-					}
-				})
-			this.hasLoading = false
-		},
-	},
+})
+
+const emit = defineEmits<{
+	(e: 'close', success: boolean): void
+}>()
+
+const signMethodsStore = useSignMethodsStore()
+
+const currentPasswordField = ref<any | null>(null)
+const newPasswordField = ref<any | null>(null)
+const repeatPasswordField = ref<any | null>(null)
+
+const newPassword = ref('')
+const currentPassword = ref('')
+const rPassword = ref('')
+const hasLoading = ref(false)
+
+const validNewPassord = computed(() => newPassword.value.length > 3 && newPassword.value === rPassword.value)
+const canSave = computed(() => currentPassword.value && validNewPassord.value && !hasLoading.value)
+
+function resetForm() {
+	newPassword.value = ''
+	currentPassword.value = ''
+	rPassword.value = ''
+	hasLoading.value = false
 }
+
+function getFieldRef(fieldRefName: string) {
+	const refs: Record<string, any> = {
+		currentPasswordField: currentPasswordField.value,
+		newPasswordField: newPasswordField.value,
+		repeatPasswordField: repeatPasswordField.value,
+	}
+	return refs[fieldRefName]
+}
+
+function focusField(fieldRefName: string) {
+	const field = getFieldRef(fieldRefName)
+	if (typeof field?.focus === 'function') {
+		field.focus()
+		return
+	}
+	const input = field?.$el?.querySelector?.('input')
+	if (typeof input?.focus === 'function') {
+		input.focus()
+	}
+}
+
+function focusFirstInvalidField() {
+	if (!currentPassword.value) {
+		focusField('currentPasswordField')
+		return
+	}
+	if (!newPassword.value) {
+		focusField('newPasswordField')
+		return
+	}
+	if (!rPassword.value || !validNewPassord.value) {
+		focusField('repeatPasswordField')
+	}
+}
+
+function handleEnter() {
+	if (canSave.value) {
+		send()
+		return
+	}
+	focusFirstInvalidField()
+}
+
+function onClose() {
+	signMethodsStore.closeModal('resetPassword')
+	resetForm()
+}
+
+async function send() {
+	if (!canSave.value) {
+		focusFirstInvalidField()
+		return
+	}
+	hasLoading.value = true
+	try {
+		const { data } = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), {
+			current: currentPassword.value,
+			new: newPassword.value,
+		})
+		showSuccess(data.ocs.data.message)
+		onClose()
+		emit('close', true)
+	} catch ({ response }: any) {
+		if (response?.data?.ocs?.data?.message) {
+			showError(response.data.ocs.data.message)
+		} else {
+			showError(t('libresign', 'Error creating new password, please contact the administrator'))
+		}
+	}
+	hasLoading.value = false
+}
+
+defineExpose({
+	currentPasswordField,
+	newPasswordField,
+	repeatPasswordField,
+	newPassword,
+	currentPassword,
+	rPassword,
+	hasLoading,
+	canSave,
+	validNewPassord,
+	resetForm,
+	focusField,
+	focusFirstInvalidField,
+	handleEnter,
+	onClose,
+	send,
+})
 </script>
