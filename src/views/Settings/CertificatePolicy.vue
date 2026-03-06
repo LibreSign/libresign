@@ -59,18 +59,18 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import debounce from 'debounce'
 import {
 	mdiDelete,
 	mdiUpload,
 } from '@mdi/js'
 
-
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import { computed, onMounted, ref, useTemplateRef } from 'vue'
 
 import { openDocument } from '../../utils/viewer.js'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -81,117 +81,157 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import '@nextcloud/password-confirmation/style.css'
 
-export default {
+defineOptions({
 	name: 'CertificatePolicy',
-	emits: ['certificate-policy-valid'],
-	components: {
-		NcButton,
-		NcNoteCard,
-		NcTextField,
-		NcIconSvgWrapper,
-		NcLoadingIcon,
-	},
-	props: {
-		disabled: {
-			type: Boolean,
-			default: false,
-		},
-	},
-	setup() {
-		return {
-			t,
-			mdiDelete,
-			mdiUpload,
+})
+
+const props = withDefaults(defineProps<{
+	disabled?: boolean
+}>(), {
+	disabled: false,
+})
+
+const emit = defineEmits<{
+	(event: 'certificate-policy-valid', valid: string): void
+}>()
+
+type CertificatePolicyUploadResponse = {
+	ocs: {
+		data: {
+			CPS: string
 		}
-	},
-	data() {
-		return {
-			acceptMime: ['application/pdf'],
-			OID: loadState('libresign', 'certificate_policies_oid'),
-			CPS: loadState('libresign', 'certificate_policies_cps'),
-			loading: false,
-			dislaySuccessOID: false,
-			errorMessage: '',
-		}
-	},
-	computed: {
-		certificatePolicyValid() {
-			return this.CPS
-		},
-	},
-	mounted() {
-		this.$emit('certificate-policy-valid', this.certificatePolicyValid)
-	},
-	methods: {
-		t,
-
-		view() {
-			openDocument({
-				fileUrl: this.CPS,
-				filename: 'Certificate Policy',
-				nodeId: null,
-			})
-		},
-		activateLocalFilePicker() {
-			// Set to null so that selecting the same file will trigger the change event
-			this.$refs.input.value = null
-			this.$refs.input.click()
-		},
-		async onUploadCsp(e) {
-			const file = e.target.files[0]
-
-			const formData = new FormData()
-			formData.append('pdf', file)
-
-			this.errorMessage = ''
-			this.loading = true
-			this.$emit('certificate-policy-valid', this.certificatePolicyValid)
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy'), formData)
-				.then(({ data }) => {
-					this.CPS = data.ocs.data.CPS
-					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
-					this.loading = false
-				})
-				.catch(({ response }) => {
-					this.errorMessage = response?.data?.ocs?.data?.message
-					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
-					this.loading = false
-				})
-		},
-		async removeCps() {
-			this.errorMessage = ''
-			this.loading = true
-			this.$emit('certificate-policy-valid', this.certificatePolicyValid)
-			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy'))
-				.then(() => {
-					this.CPS = ''
-					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
-					this.loading = false
-				})
-		},
-		async _saveOID() {
-			this.dislaySuccessOID = false
-			this.errorMessage = ''
-			this.$emit('certificate-policy-valid', this.certificatePolicyValid)
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy/oid'), {
-				oid: this.OID,
-			})
-				.then(() => {
-					this.dislaySuccessOID = true
-					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
-					setTimeout(() => { this.dislaySuccessOID = false }, 2000)
-				})
-				.catch(({ response }) => {
-					this.errorMessage = response?.data?.ocs?.data?.message
-					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
-					this.loading = false
-				})
-		},
-		saveOID: debounce(function() {
-			this._saveOID()
-		}, 500),
-	},
+	}
 }
+
+type CertificatePolicySettingsResponse = {
+	ocs: {
+		data: {
+			message?: string
+		}
+	}
+}
+
+const input = useTemplateRef<HTMLInputElement>('input')
+const acceptMime = ['application/pdf']
+const OID = ref(loadState('libresign', 'certificate_policies_oid'))
+const CPS = ref(loadState('libresign', 'certificate_policies_cps'))
+const loading = ref(false)
+const dislaySuccessOID = ref(false)
+const errorMessage = ref('')
+
+const certificatePolicyValid = computed(() => CPS.value)
+
+function emitValidity() {
+	emit('certificate-policy-valid', certificatePolicyValid.value)
+}
+
+function view() {
+	openDocument({
+		fileUrl: CPS.value,
+		filename: 'Certificate Policy',
+		nodeId: null,
+	})
+}
+
+function activateLocalFilePicker() {
+	if (!input.value) {
+		return
+	}
+
+	input.value.value = ''
+	input.value.click()
+}
+
+async function onUploadCsp(event: Event) {
+	const target = event.target as HTMLInputElement
+	const file = target.files?.[0]
+
+	if (!file) {
+		return
+	}
+
+	const formData = new FormData()
+	formData.append('pdf', file)
+
+	errorMessage.value = ''
+	loading.value = true
+	emitValidity()
+
+	await axios.post<CertificatePolicyUploadResponse>(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy'), formData)
+		.then(({ data }) => {
+			CPS.value = data.ocs.data.CPS
+			emitValidity()
+		})
+		.catch(({ response }: { response?: { data?: CertificatePolicySettingsResponse } }) => {
+			errorMessage.value = response?.data?.ocs?.data?.message ?? ''
+			emitValidity()
+		})
+		.finally(() => {
+			loading.value = false
+		})
+}
+
+async function removeCps() {
+	errorMessage.value = ''
+	loading.value = true
+	emitValidity()
+
+	await axios.delete(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy'))
+		.then(() => {
+			CPS.value = ''
+			emitValidity()
+		})
+		.finally(() => {
+			loading.value = false
+		})
+}
+
+async function _saveOID() {
+	dislaySuccessOID.value = false
+	errorMessage.value = ''
+	emitValidity()
+
+	await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy/oid'), {
+		oid: OID.value,
+	})
+		.then(() => {
+			dislaySuccessOID.value = true
+			emitValidity()
+			setTimeout(() => {
+				dislaySuccessOID.value = false
+			}, 2000)
+		})
+		.catch(({ response }: { response?: { data?: CertificatePolicySettingsResponse } }) => {
+			errorMessage.value = response?.data?.ocs?.data?.message ?? ''
+			emitValidity()
+			loading.value = false
+		})
+}
+
+const saveOID = debounce(() => {
+	void _saveOID()
+}, 500)
+
+onMounted(() => {
+	emitValidity()
+})
+
+defineExpose({
+	acceptMime,
+	OID,
+	CPS,
+	loading,
+	dislaySuccessOID,
+	errorMessage,
+	certificatePolicyValid,
+	view,
+	activateLocalFilePicker,
+	onUploadCsp,
+	removeCps,
+	_saveOID,
+	saveOID,
+	props,
+})
 </script>
 
 <style lang="scss" scoped>
