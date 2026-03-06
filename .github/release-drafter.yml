@@ -1,8 +1,12 @@
 # SPDX-FileCopyrightText: 2020-2025 LibreCode coop and contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-name-template: 'v${{ env.VERSION_PREFIX }}$RESOLVED_VERSION'
-tag-template: 'v${{ env.VERSION_PREFIX }}$RESOLVED_VERSION'
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+filter-by-commitish: true
+exclude-contributors:
+  - 'dependabot[bot]'
+  - 'renovate[bot]'
 
 categories:
   - title: 'Added'
@@ -82,8 +86,8 @@ version-resolver:
   default: patch
 
 template: |
-  ## $RESOLVED_VERSION - $DATE
+  ## What's Changed
 
   $CHANGES
 
-  **Full Changelog:** https://github.com/LibreSign/libresign/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  **Full Changelog:** https://github.com/LibreSign/libresign/compare/$PREVIOUS_TAG...$TAG
