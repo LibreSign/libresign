@@ -96,7 +96,7 @@ describe('UploadCertificate.vue', () => {
 
 	it('closes the modal and clears local errors', async () => {
 		const wrapper = createWrapper()
-		await wrapper.setData({ localErrors: [{ title: 'Error', message: 'Invalid file' }] })
+		wrapper.vm.localErrors = [{ title: 'Error', message: 'Invalid file' }]
 
 		wrapper.vm.closeDialog()
 
