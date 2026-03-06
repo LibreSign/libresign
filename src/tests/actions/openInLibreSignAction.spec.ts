@@ -291,11 +291,11 @@ describe('openInLibreSignAction rules', () => {
 
 		it('uses node id when fileid is not available', async () => {
 			const nodes = [
-				{ type: 'file', mime: 'application/pdf', id: 999, dirname: '/Test' },
-				{ type: 'file', mime: 'application/pdf', id: 1000, dirname: '/Test' },
+				{ type: 'file', mime: 'application/pdf', id: 999, dirname: '/Test', path: '/Test/file1.pdf' },
+				{ type: 'file', mime: 'application/pdf', id: 1000, dirname: '/Test', path: '/Test/file2.pdf' },
 			]
 
-			window.OCA = { Libresign: {} }
+			window.OCA.Libresign = {}
 
 			await action.execBatch({ nodes })
 
