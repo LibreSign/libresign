@@ -68,13 +68,13 @@ vi.mock('@nextcloud/router', () => ({
 
 vi.mock('vue', async () => {
 	const actual = await vi.importActual('vue')
-	const Vue = actual.default ?? actual
 	return {
 		...actual,
-		default: Object.assign(Vue, {
+		default: {
+			...(actual.default ?? {}),
 			del: vi.fn((obj: Record<string, unknown>, key: string) => { delete obj[key] }),
 			set: vi.fn((obj: Record<string, unknown>, key: string, value: unknown) => { obj[key] = value }),
-		}),
+		},
 	}
 })
 
@@ -102,11 +102,11 @@ vi.mock('@nextcloud/moment', () => ({
 	})),
 }))
 
-vi.mock('./filesSorting.js', () => ({
+vi.mock('../../store/filesSorting.js', () => ({
 	useFilesSortingStore: vi.fn(() => ({ sortedFiles: [] })),
 }))
 
-vi.mock('./filters.js', () => ({
+vi.mock('../../store/filters.js', () => ({
 	useFiltersStore: vi.fn(() => ({
 		filterStatusArray: [],
 		filterModifiedRange: null,
@@ -115,15 +115,15 @@ vi.mock('./filters.js', () => ({
 	})),
 }))
 
-vi.mock('./identificationDocument.js', () => ({
+vi.mock('../../store/identificationDocument.js', () => ({
 	useIdentificationDocumentStore: vi.fn(() => ({ documents: [] })),
 }))
 
-vi.mock('./sidebar.js', () => ({
+vi.mock('../../store/sidebar.js', () => ({
 	useSidebarStore: vi.fn(() => ({ hideSidebar: vi.fn() })),
 }))
 
-vi.mock('./sign.js', () => ({
+vi.mock('../../store/sign.js', () => ({
 	useSignStore: vi.fn(() => ({ signData: {} })),
 }))
 
