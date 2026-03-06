@@ -182,13 +182,12 @@ import {
 import Moment from '@nextcloud/moment'
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
-import isTouchDevice from '../../mixins/isTouchDevice.js'
+import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import SignerDetails from './SignerDetails.vue'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
 
 export default {
 	name: 'EnvelopeValidation',
-	mixins: [isTouchDevice],
 	components: {
 		NcIconSvgWrapper,
 		NcListItem,
@@ -207,7 +206,9 @@ export default {
 		isAfterSigned: { type: Boolean, default: false },
 	},
 	setup() {
+		const { isTouchDevice } = useIsTouchDevice()
 		return {
+			isTouchDevice,
 			mdiPackageVariantClosed,
 			mdiFileMultiple,
 			mdiFilePdfBox,

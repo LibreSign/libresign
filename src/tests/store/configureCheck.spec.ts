@@ -53,13 +53,13 @@ vi.mock('@nextcloud/initial-state', () => ({
 
 vi.mock('vue', async () => {
 	const actual = await vi.importActual('vue')
-	const Vue = actual.default ?? actual
 	return {
 		...actual,
-		default: Object.assign(Vue, {
+		default: {
+			...(actual.default ?? {}),
 			del: vi.fn((obj, key) => { delete obj[key] }),
 			set: vi.fn((obj, key, value) => { obj[key] = value }),
-		}),
+		},
 	}
 })
 

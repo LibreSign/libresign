@@ -4,9 +4,12 @@
  */
 
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
-export const useActionsMenuStore = defineStore('actionsmenu', {
-	state: () => ({
-		opened: null,
-	}),
+export const useActionsMenuStore = defineStore('actionsmenu', () => {
+	const opened = ref(null)
+
+	return {
+		opened,
+	}
 })
