@@ -322,8 +322,9 @@
 		</NcDialog>
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import debounce from 'debounce'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import {
 	mdiCheck,
@@ -353,353 +354,400 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { useIsDarkTheme } from '@nextcloud/vue/composables/useIsDarkTheme'
-import Linkify from '@nextcloud/vue/directives/Linkify'
 
 import CodeEditor from '../../components/CodeEditor.vue'
 
-export default {
+defineOptions({
 	name: 'SignatureStamp',
-	directives: {
-		Linkify,
-	},
-	components: {
-		CodeEditor,
-		NcButton,
-		NcDialog,
-		NcFormBoxButton,
-		NcIconSvgWrapper,
-		NcNoteCard,
-		NcSettingsSection,
-		NcTextField,
-		NcCheckboxRadioSwitch,
-		NcLoadingIcon,
-	},
-	setup() {
-		const isDarkTheme = useIsDarkTheme()
-		return {
-			t,
-			isRTL,
-			isDarkTheme,
-			mdiCheck,
-			mdiContentCopy,
-			mdiDelete,
-			mdiHelpCircleOutline,
-			mdiMagnifyMinusOutline,
-			mdiMagnifyPlusOutline,
-			mdiUndoVariant,
-			mdiUpload,
-		}
-	},
-	data() {
-		const templateError = loadState('libresign', 'signature_text_template_error', '')
-		const backgroundType = loadState('libresign', 'signature_background_type')
-		return {
-			showLoadingBackground: false,
-			backgroundType,
-			acceptMime: ['image/png'],
-			errorMessageBackground: '',
-			backgroundUrl: backgroundType !== 'deleted'
-				? generateOcsUrl('/apps/libresign/api/v1/admin/signature-background')
-				: '',
-			defaultSignatureTextTemplate: loadState('libresign', 'default_signature_text_template'),
-			defaultTemplateFontSize: loadState('libresign', 'default_template_font_size'),
-			defaultSignatureFontSize: loadState('libresign', 'default_signature_font_size'),
-			defaultSignatureWidth: loadState('libresign', 'default_signature_width'),
-			defaultSignatureHeight: loadState('libresign', 'default_signature_height'),
-			signatureTextTemplate: loadState('libresign', 'signature_text_template'),
-			signatureWidth: loadState('libresign', 'signature_width'),
-			signatureHeight: loadState('libresign', 'signature_height'),
-			signatureFontSize: loadState('libresign', 'signature_font_size'),
-			templateFontSize: loadState('libresign', 'template_font_size'),
-			isSignatureImageLoaded: false,
-			templateSaved: true,
-			zoomLevel: loadState('libresign', 'signature_preview_zoom_level'),
-			renderMode: loadState('libresign', 'signature_render_mode'),
-			dislaySuccessTemplate: false,
-			errorMessageTemplate: templateError ? [templateError] : [],
-			parsed: loadState('libresign', 'signature_text_parsed'),
-			isRTLDirection: isRTL(),
-			availableVariables: loadState('libresign', 'signature_available_variables'),
-			isOverflowing: false,
-			showVariablesDialog: false,
-			copiedVariable: null,
-		}
-	},
-	computed: {
-		displayResetBackground() {
-			return this.backgroundType === 'custom' || this.backgroundType === 'deleted'
-		},
-		displayRemoveBackground() {
-			return this.backgroundType === 'custom' || this.backgroundType === 'default'
-		},
-		displayPreview() {
-			if (this.backgroundType !== 'deleted') {
-				return true
-			}
-			if (this.renderMode === 'DESCRIPTION_ONLY' && !this.parsed) {
-				return false
-			}
-			return true
-		},
-		inputValue: {
-			get() {
-				return this.signatureTextTemplate
-			},
-			set(value) {
-				this.signatureTextTemplate = value
-				this.debouncePropertyChange()
-			},
-		},
-		displayResetRenderMode() {
-			return this.renderMode !== 'GRAPHIC_AND_DESCRIPTION'
-		},
-		displayResetTemplate() {
-			return this.signatureTextTemplate !== this.defaultSignatureTextTemplate
-		},
-		displayResetTemplateFontSize() {
-			return this.templateFontSize !== this.defaultTemplateFontSize
-		},
-		dislayResetSignatureFontSize() {
-			return this.signatureFontSize !== this.defaultSignatureFontSize
-		},
-		displayResetSignatureWidth() {
-			return this.signatureWidth !== this.defaultSignatureWidth
-		},
-		displayResetSignatureHeight() {
-			return this.signatureHeight !== this.defaultSignatureHeight
-		},
-		previewSignatureImageWidth() {
-			return (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak)
-				? this.signatureWidth
-				: Math.floor(this.signatureWidth / 2)
-		},
-		previewSignatureImageHeight() {
-			return this.signatureHeight
-		},
-		signatureImageUrl() {
-			const text = this.renderMode === 'SIGNAME_AND_DESCRIPTION'
-				? getCurrentUser()?.displayName ?? 'John Doe'
-				: t('libresign', 'Signature image here')
-			const align = this.renderMode === 'GRAPHIC_AND_DESCRIPTION' ? 'right' : 'center'
-			const isDarkTheme = this.isDarkTheme ? 1 : 0
+})
 
-			return generateOcsUrl('/apps/libresign/api/v1/admin/signer-name')
-				+ `?width=${this.previewSignatureImageWidth}`
-				+ `&height=${this.previewSignatureImageHeight}`
-				+ `&text=${encodeURIComponent(text)}`
-				+ `&fontSize=${this.signatureFontSize}`
-				+ `&isDarkTheme=${isDarkTheme}`
-				+ `&align=${align}`
-		},
-		previewLoaded() {
-			return this.isSignatureImageLoaded && !this.showLoadingBackground && this.templateSaved
-		},
-		debouncePropertyChange() {
-			return debounce(async function() {
-				await this.saveTemplate()
-			}, 1000)
-		},
-		parsedWithLineBreak() {
-			return this.parsed.replace(/\n/g, '<br>')
-		},
+const isDarkTheme = useIsDarkTheme()
+const templateError = loadState('libresign', 'signature_text_template_error', '')
+const initialBackgroundType = loadState('libresign', 'signature_background_type') as string
+
+const input = ref<HTMLInputElement | null>(null)
+const rightColumn = ref<HTMLElement | null>(null)
+const textareaEditor = ref<any>(null)
+
+const showLoadingBackground = ref(false)
+const backgroundType = ref(initialBackgroundType)
+const acceptMime = ['image/png']
+const mimeName = ref<string | undefined>(undefined)
+const errorMessageBackground = ref('')
+const backgroundUrl = ref(backgroundType.value !== 'deleted'
+	? generateOcsUrl('/apps/libresign/api/v1/admin/signature-background')
+	: '')
+const defaultSignatureTextTemplate = ref(loadState('libresign', 'default_signature_text_template'))
+const defaultTemplateFontSize = ref(loadState('libresign', 'default_template_font_size'))
+const defaultSignatureFontSize = ref(loadState('libresign', 'default_signature_font_size'))
+const defaultSignatureWidth = ref(loadState('libresign', 'default_signature_width'))
+const defaultSignatureHeight = ref(loadState('libresign', 'default_signature_height'))
+const signatureTextTemplate = ref(loadState('libresign', 'signature_text_template'))
+const signatureWidth = ref(loadState('libresign', 'signature_width'))
+const signatureHeight = ref(loadState('libresign', 'signature_height'))
+const signatureFontSize = ref(loadState('libresign', 'signature_font_size'))
+const templateFontSize = ref(loadState('libresign', 'template_font_size'))
+const isSignatureImageLoaded = ref(false)
+const templateSaved = ref(true)
+const zoomLevel = ref(loadState('libresign', 'signature_preview_zoom_level'))
+const renderMode = ref(loadState('libresign', 'signature_render_mode'))
+const dislaySuccessTemplate = ref(false)
+const errorMessageTemplate = ref<string[]>(templateError ? [templateError as string] : [])
+const parsed = ref(loadState('libresign', 'signature_text_parsed') as string)
+const isRTLDirection = isRTL()
+const availableVariables = ref<Record<string, string>>(loadState('libresign', 'signature_available_variables') as Record<string, string>)
+const isOverflowing = ref(false)
+const showVariablesDialog = ref(false)
+const copiedVariable = ref<string | null>(null)
+
+const displayResetBackground = computed(() => backgroundType.value === 'custom' || backgroundType.value === 'deleted')
+const displayRemoveBackground = computed(() => backgroundType.value === 'custom' || backgroundType.value === 'default')
+const displayPreview = computed(() => {
+	if (backgroundType.value !== 'deleted') {
+		return true
+	}
+	if (renderMode.value === 'DESCRIPTION_ONLY' && !parsed.value) {
+		return false
+	}
+	return true
+})
+const inputValue = computed({
+	get: () => signatureTextTemplate.value,
+	set: (value) => {
+		signatureTextTemplate.value = value
+		debouncePropertyChange()
 	},
-	watch: {
-		signatureImageUrl() {
-			this.isSignatureImageLoaded = false
-		},
-	},
-	mounted() {
-		subscribe('collect-metadata:changed', this.refreshAfterChangeCollectMetadata)
-	},
-	created() {
-		this.debouncedSaveTemplate = debounce(this.saveTemplate, 500)
-	},
-	beforeUnmount() {
-		unsubscribe('collect-metadata:changed')
-	},
-	methods: {
+})
+const displayResetRenderMode = computed(() => renderMode.value !== 'GRAPHIC_AND_DESCRIPTION')
+const displayResetTemplate = computed(() => signatureTextTemplate.value !== defaultSignatureTextTemplate.value)
+const displayResetTemplateFontSize = computed(() => templateFontSize.value !== defaultTemplateFontSize.value)
+const dislayResetSignatureFontSize = computed(() => signatureFontSize.value !== defaultSignatureFontSize.value)
+const displayResetSignatureWidth = computed(() => signatureWidth.value !== defaultSignatureWidth.value)
+const displayResetSignatureHeight = computed(() => signatureHeight.value !== defaultSignatureHeight.value)
+const parsedWithLineBreak = computed(() => String(parsed.value ?? '').replace(/\n/g, '<br>'))
+const previewSignatureImageWidth = computed(() => (renderMode.value === 'GRAPHIC_ONLY' || !parsedWithLineBreak.value)
+	? signatureWidth.value
+	: Math.floor(Number(signatureWidth.value) / 2))
+const previewSignatureImageHeight = computed(() => signatureHeight.value)
+const signatureImageUrl = computed(() => {
+	const text = renderMode.value === 'SIGNAME_AND_DESCRIPTION'
+		? getCurrentUser()?.displayName ?? 'John Doe'
+		: t('libresign', 'Signature image here')
+	const align = renderMode.value === 'GRAPHIC_AND_DESCRIPTION' ? 'right' : 'center'
+	const darkTheme = isDarkTheme ? 1 : 0
 
-		getVariableText(name) {
-			return name
-		},
-		isCopied(name) {
-			return this.copiedVariable === this.getVariableText(name)
-		},
-		copyToClipboard(text) {
-			if (this.copiedVariable === text) {
-				return
-			}
+	return generateOcsUrl('/apps/libresign/api/v1/admin/signer-name')
+		+ `?width=${previewSignatureImageWidth.value}`
+		+ `&height=${previewSignatureImageHeight.value}`
+		+ `&text=${encodeURIComponent(text)}`
+		+ `&fontSize=${signatureFontSize.value}`
+		+ `&isDarkTheme=${darkTheme}`
+		+ `&align=${align}`
+})
+const previewLoaded = computed(() => isSignatureImageLoaded.value && !showLoadingBackground.value && templateSaved.value)
 
-			const value = text
-			try {
-				navigator.clipboard.writeText(value)
-			} catch {
-				// Fallback for a case when clipboard API is not available or permission denied
-				// eslint-disable-next-line no-alert
-				prompt('', value)
-			}
-
-			this.copiedVariable = text
-			setTimeout(() => {
-				this.copiedVariable = null
-			}, 2000)
-		},
-		reset() {
-			this.dislaySuccessTemplate = false
-			this.errorMessageBackground = ''
-			this.errorMessageTemplate = []
-		},
-		async refreshAfterChangeCollectMetadata() {
-			await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/signature-settings'))
-				.then(({ data }) => {
-					this.availableVariables = data.ocs.data.signature_available_variables
-					this.defaultSignatureTextTemplate = data.ocs.data.default_signature_text_template
-				})
-		},
-		activateLocalFilePicker() {
-			this.reset()
-			// Set to null so that selecting the same file will trigger the change event
-			this.$refs.input.value = null
-			this.$refs.input.click()
-		},
-		changeZoomLevel(zoom) {
-			this.zoomLevel += zoom
-			this.saveZoomLevel()
-		},
-		async saveZoomLevel() {
-			OCP.AppConfig.setValue('libresign', 'signature_preview_zoom_level', this.zoomLevel)
-		},
-		async onChangeBackground(e) {
-			const file = e.target.files[0]
-
-			const formData = new FormData()
-			formData.append('image', file)
-
-			this.showLoadingBackground = true
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), formData)
-				.then(({ data }) => {
-					this.showLoadingBackground = false
-					this.backgroundType = 'custom'
-					this.backgroundUrl = generateOcsUrl('/apps/libresign/api/v1/admin/signature-background') + '?t=' + Date.now()
-				})
-				.catch(({ response }) => {
-					this.showLoadingBackground = false
-					this.errorMessageBackground = response.data.ocs.data?.message
-				})
-		},
-		async undoBackground() {
-			this.reset()
-			this.showLoadingBackground = true
-			await axios.patch(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), {
-				setting: this.mimeName,
-			})
-				.then(() => {
-					this.showLoadingBackground = false
-					this.backgroundType = 'default'
-					this.backgroundUrl = generateOcsUrl('/apps/libresign/api/v1/admin/signature-background') + '?t=' + Date.now()
-				})
-				.catch(({ response }) => {
-					this.showLoadingBackground = false
-					this.errorMessageBackground = response.data.ocs.data?.message
-				})
-		},
-		async removeBackground() {
-			this.reset()
-			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), {
-				setting: this.mimeName,
-				value: 'backgroundColor',
-			})
-				.then(() => {
-					this.backgroundType = 'deleted'
-					this.backgroundUrl = ''
-				})
-				.catch(({ response }) => {
-					this.errorMessageBackground = response.data.ocs.data?.message
-				})
-		},
-		checkPreviewOverflow() {
-			const rightColumn = this.$refs.rightColumn
-			if (!rightColumn) {
-				return
-			}
-			this.isOverflowing = rightColumn.scrollHeight > rightColumn.clientHeight
-			const overflowMessage = t('libresign', 'Signature template content is overflowing. Reduce the text.')
-			if (this.isOverflowing && !this.errorMessageTemplate.includes(overflowMessage)) {
-				this.errorMessageTemplate.push(overflowMessage)
-			}
-		},
-		resizeHeight: debounce(function() {
-			const wrapper = this.$refs.textareaEditor
-			if (!wrapper) {
-				return
-			}
-			const mainWrapper = wrapper.$el.querySelector('.textarea__main-wrapper')
-			const textarea = wrapper.$el.querySelector('textarea')
-
-			if (mainWrapper && textarea) {
-				mainWrapper.style.height = 'auto'
-				mainWrapper.style.height = `${textarea.scrollHeight + 4}px`
-			}
-
-			this.checkPreviewOverflow()
-		}, 100),
-		async resetRenderMode() {
-			this.renderMode = 'GRAPHIC_AND_DESCRIPTION'
-			await this.saveTemplate()
-		},
-		async resetTemplate() {
-			this.signatureTextTemplate = this.defaultSignatureTextTemplate
-			await this.saveTemplate()
-		},
-		async resetTemplateFontSize() {
-			this.templateFontSize = this.defaultTemplateFontSize
-			await this.saveTemplate()
-		},
-		async resetSignatureFontSize() {
-			this.signatureFontSize = this.defaultSignatureFontSize
-			await this.saveTemplate()
-		},
-		async resetSignatureWidth() {
-			this.signatureWidth = this.defaultSignatureWidth
-			await this.saveTemplate()
-		},
-		async resetSignatureHeight() {
-			this.signatureHeight = this.defaultSignatureHeight
-			await this.saveTemplate()
-		},
-		async saveTemplate() {
-			this.reset()
-			this.templateSaved = false
-			this.resizeHeight()
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), {
-				template: this.signatureTextTemplate,
-				templateFontSize: this.templateFontSize,
-				signatureFontSize: this.signatureFontSize,
-				signatureWidth: this.signatureWidth,
-				signatureHeight: this.signatureHeight,
-				renderMode: this.renderMode,
-			})
-				.then(({ data }) => {
-					this.parsed = data.ocs.data.parsed
-					this.checkPreviewOverflow()
-					if (data.ocs.data.templateFontSize !== this.templateFontSize) {
-						this.templateFontSize = data.ocs.data.templateFontSize
-					}
-					if (data.ocs.data.signatureFontSize !== this.signatureFontSize) {
-						this.signatureFontSize = data.ocs.data.signatureFontSize
-					}
-					this.dislaySuccessTemplate = true
-					this.templateSaved = true
-					setTimeout(() => { this.dislaySuccessTemplate = false }, 2000)
-				})
-				.catch(({ response }) => {
-					this.errorMessageTemplate.push(response.data.ocs.data.error)
-					this.parsed = ''
-					this.checkPreviewOverflow()
-				})
-		},
-	},
+function getVariableText(name: string) {
+	return name
 }
+
+function isCopied(name: string) {
+	return copiedVariable.value === getVariableText(name)
+}
+
+function copyToClipboard(text: string) {
+	if (copiedVariable.value === text) {
+		return
+	}
+
+	const value = text
+	try {
+		navigator.clipboard.writeText(value)
+	} catch {
+		prompt('', value)
+	}
+
+	copiedVariable.value = text
+	setTimeout(() => {
+		copiedVariable.value = null
+	}, 2000)
+}
+
+function reset() {
+	dislaySuccessTemplate.value = false
+	errorMessageBackground.value = ''
+	errorMessageTemplate.value = []
+}
+
+async function refreshAfterChangeCollectMetadata() {
+	await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/signature-settings'))
+		.then(({ data }) => {
+			availableVariables.value = data.ocs.data.signature_available_variables
+			defaultSignatureTextTemplate.value = data.ocs.data.default_signature_text_template
+		})
+}
+
+function activateLocalFilePicker() {
+	reset()
+	if (!input.value) {
+		return
+	}
+	input.value.value = ''
+	input.value.click()
+}
+
+function changeZoomLevel(zoom: number) {
+	zoomLevel.value = Number(zoomLevel.value) + zoom
+	saveZoomLevel()
+}
+
+async function saveZoomLevel() {
+	OCP.AppConfig.setValue('libresign', 'signature_preview_zoom_level', zoomLevel.value)
+}
+
+async function onChangeBackground(event: Event) {
+	const file = (event.target as HTMLInputElement)?.files?.[0]
+	if (!file) {
+		return
+	}
+
+	const formData = new FormData()
+	formData.append('image', file)
+
+	showLoadingBackground.value = true
+	await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), formData)
+		.then(() => {
+			showLoadingBackground.value = false
+			backgroundType.value = 'custom'
+			backgroundUrl.value = generateOcsUrl('/apps/libresign/api/v1/admin/signature-background') + '?t=' + Date.now()
+		})
+		.catch(({ response }) => {
+			showLoadingBackground.value = false
+			errorMessageBackground.value = response.data.ocs.data?.message
+		})
+}
+
+async function undoBackground() {
+	reset()
+	showLoadingBackground.value = true
+	await axios.patch(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), {
+		setting: mimeName.value,
+	})
+		.then(() => {
+			showLoadingBackground.value = false
+			backgroundType.value = 'default'
+			backgroundUrl.value = generateOcsUrl('/apps/libresign/api/v1/admin/signature-background') + '?t=' + Date.now()
+		})
+		.catch(({ response }) => {
+			showLoadingBackground.value = false
+			errorMessageBackground.value = response.data.ocs.data?.message
+		})
+}
+
+async function removeBackground() {
+	reset()
+	await axios.delete(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), {
+		setting: mimeName.value,
+		value: 'backgroundColor',
+	})
+		.then(() => {
+			backgroundType.value = 'deleted'
+			backgroundUrl.value = ''
+		})
+		.catch(({ response }) => {
+			errorMessageBackground.value = response.data.ocs.data?.message
+		})
+}
+
+function checkPreviewOverflow() {
+	if (!rightColumn.value) {
+		return
+	}
+
+	isOverflowing.value = rightColumn.value.scrollHeight > rightColumn.value.clientHeight
+	const overflowMessage = t('libresign', 'Signature template content is overflowing. Reduce the text.')
+	if (isOverflowing.value && !errorMessageTemplate.value.includes(overflowMessage)) {
+		errorMessageTemplate.value.push(overflowMessage)
+	}
+}
+
+const resizeHeight = debounce(() => {
+	const wrapper = textareaEditor.value
+	if (!wrapper) {
+		return
+	}
+
+	const mainWrapper = wrapper.$el.querySelector('.textarea__main-wrapper')
+	const textarea = wrapper.$el.querySelector('textarea')
+
+	if (mainWrapper && textarea) {
+		mainWrapper.style.height = 'auto'
+		mainWrapper.style.height = `${textarea.scrollHeight + 4}px`
+	}
+
+	checkPreviewOverflow()
+}, 100)
+
+async function saveTemplate() {
+	reset()
+	templateSaved.value = false
+	resizeHeight()
+	await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), {
+		template: signatureTextTemplate.value,
+		templateFontSize: templateFontSize.value,
+		signatureFontSize: signatureFontSize.value,
+		signatureWidth: signatureWidth.value,
+		signatureHeight: signatureHeight.value,
+		renderMode: renderMode.value,
+	})
+		.then(({ data }) => {
+			parsed.value = data.ocs.data.parsed
+			checkPreviewOverflow()
+			if (data.ocs.data.templateFontSize !== templateFontSize.value) {
+				templateFontSize.value = data.ocs.data.templateFontSize
+			}
+			if (data.ocs.data.signatureFontSize !== signatureFontSize.value) {
+				signatureFontSize.value = data.ocs.data.signatureFontSize
+			}
+			dislaySuccessTemplate.value = true
+			templateSaved.value = true
+			setTimeout(() => { dislaySuccessTemplate.value = false }, 2000)
+		})
+		.catch(({ response }) => {
+			errorMessageTemplate.value.push(response.data.ocs.data.error)
+			parsed.value = ''
+			checkPreviewOverflow()
+		})
+}
+
+const debouncePropertyChange = debounce(async () => {
+	await saveTemplate()
+}, 1000)
+
+const debouncedSaveTemplate = debounce(saveTemplate, 500)
+
+async function resetRenderMode() {
+	renderMode.value = 'GRAPHIC_AND_DESCRIPTION'
+	await saveTemplate()
+}
+
+async function resetTemplate() {
+	signatureTextTemplate.value = defaultSignatureTextTemplate.value
+	await saveTemplate()
+}
+
+async function resetTemplateFontSize() {
+	templateFontSize.value = defaultTemplateFontSize.value
+	await saveTemplate()
+}
+
+async function resetSignatureFontSize() {
+	signatureFontSize.value = defaultSignatureFontSize.value
+	await saveTemplate()
+}
+
+async function resetSignatureWidth() {
+	signatureWidth.value = defaultSignatureWidth.value
+	await saveTemplate()
+}
+
+async function resetSignatureHeight() {
+	signatureHeight.value = defaultSignatureHeight.value
+	await saveTemplate()
+}
+
+watch(signatureImageUrl, () => {
+	isSignatureImageLoaded.value = false
+})
+
+onMounted(() => {
+	subscribe('collect-metadata:changed', refreshAfterChangeCollectMetadata)
+})
+
+onBeforeUnmount(() => {
+	unsubscribe('collect-metadata:changed')
+})
+
+defineExpose({
+	t,
+	isRTL,
+	isDarkTheme,
+	mdiCheck,
+	mdiContentCopy,
+	mdiDelete,
+	mdiHelpCircleOutline,
+	mdiMagnifyMinusOutline,
+	mdiMagnifyPlusOutline,
+	mdiUndoVariant,
+	mdiUpload,
+	input,
+	rightColumn,
+	textareaEditor,
+	showLoadingBackground,
+	backgroundType,
+	acceptMime,
+	mimeName,
+	errorMessageBackground,
+	backgroundUrl,
+	defaultSignatureTextTemplate,
+	defaultTemplateFontSize,
+	defaultSignatureFontSize,
+	defaultSignatureWidth,
+	defaultSignatureHeight,
+	signatureTextTemplate,
+	signatureWidth,
+	signatureHeight,
+	signatureFontSize,
+	templateFontSize,
+	isSignatureImageLoaded,
+	templateSaved,
+	zoomLevel,
+	renderMode,
+	dislaySuccessTemplate,
+	errorMessageTemplate,
+	parsed,
+	isRTLDirection,
+	availableVariables,
+	isOverflowing,
+	showVariablesDialog,
+	copiedVariable,
+	displayResetBackground,
+	displayRemoveBackground,
+	displayPreview,
+	inputValue,
+	displayResetRenderMode,
+	displayResetTemplate,
+	displayResetTemplateFontSize,
+	dislayResetSignatureFontSize,
+	displayResetSignatureWidth,
+	displayResetSignatureHeight,
+	previewSignatureImageWidth,
+	previewSignatureImageHeight,
+	signatureImageUrl,
+	previewLoaded,
+	debouncePropertyChange,
+	debouncedSaveTemplate,
+	parsedWithLineBreak,
+	getVariableText,
+	isCopied,
+	copyToClipboard,
+	reset,
+	refreshAfterChangeCollectMetadata,
+	activateLocalFilePicker,
+	changeZoomLevel,
+	saveZoomLevel,
+	onChangeBackground,
+	undoBackground,
+	removeBackground,
+	checkPreviewOverflow,
+	resizeHeight,
+	resetRenderMode,
+	resetTemplate,
+	resetTemplateFontSize,
+	resetSignatureFontSize,
+	resetSignatureWidth,
+	resetSignatureHeight,
+	saveTemplate,
+})
 </script>
 
 <style lang="scss" scoped>
