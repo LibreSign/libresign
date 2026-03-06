@@ -134,12 +134,13 @@
 	</NcDialog>Step 1
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import {
 	mdiEmail,
 	mdiFormTextboxPassword,
 } from '@mdi/js'
+import { computed, nextTick, ref, watch } from 'vue'
 
 import md5 from 'blueimp-md5'
 
@@ -163,252 +164,306 @@ const sanitizePhoneNumber = val => {
 	return `+${val}`
 }
 
-export default {
-	name: 'ModalVerificationCode',
-	emits: ['change', 'close', 'update:phone'],
-	components: {
-		NcDialog,
-		NcTextField,
-		NcButton,
-		NcLoadingIcon,
-		NcIconSvgWrapper,
-	},
-	props: {
-		mode: {
-			type: String,
-			required: true,
-			validator: (val) => ['email', 'token'].includes(val),
-		},
-		phoneNumber: {
-			type: String,
-			default: '',
-		},
-	},
-	setup() {
-		const signStore = useSignStore()
-		const signMethodsStore = useSignMethodsStore()
-		return {
-			signStore,
-			signMethodsStore,
-			mdiEmail,
-			mdiFormTextboxPassword,
-		}
-	},
-	data() {
-		return {
-			loading: false,
-			tokenLength: loadState('libresign', 'token_length', 6),
-			token: '',
-			identityVerified: false,
-			// email-specific
-			sendTo: '',
-			errorMessage: '',
-			// token-specific
-			newPhoneNumber: this.phoneNumber || '',
-			tokenRequested: false,
-		}
-	},
-	computed: {
-		step1Active() {
-			if (this.mode === 'email') {
-				return !this.signMethodsStore.settings.emailToken?.hasConfirmCode
-			}
-			return !this.tokenRequested
-		},
-		step2Active() {
-			return !this.step1Active && !this.identityVerified
-		},
-		dialogTitle() {
-			if (this.step1Active) {
-				return this.mode === 'email'
-					? t('libresign', 'Email verification')
-					// TRANSLATORS Title for step 1 where the signer proves they are the owner of a registered contact channel by receiving a code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Identity" here means confirming who the signer is, not a reference to any specific document. Translate as a generic compound noun without a definite article.
-					: t('libresign', 'Identity verification')
-			}
-			if (!this.identityVerified) {
-				// TRANSLATORS Dialog title for step 2 where the signer enters the numeric verification code (OTP) received by email or messaging channel. "Code" here means a short numeric one-time password, not source code or any other kind of code.
-				return t('libresign', 'Code validation')
-			}
-			// TRANSLATORS Dialog title for step 3 where the signer reviews and confirms their intent to sign the document by clicking a button. This is not a receipt or acknowledgment — it is the final user action that triggers the signing process.
-			return t('libresign', 'Signature confirmation')
-		},
-		progressText() {
-			if (this.step1Active) {
-				return this.mode === 'email'
-					? t('libresign', 'Step 1 of 3 - Email verification')
-					// TRANSLATORS Progress text for step 1 where the signer proves they are the owner of a registered contact channel by receiving a code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Identity" here means confirming who the signer is, not a reference to any specific document. Translate as a generic compound noun without a definite article.
-					: t('libresign', 'Step 1 of 3 - Identity verification')
-			}
-			if (!this.identityVerified) {
-				// TRANSLATORS Progress text for step 2 where the signer enters the numeric verification code (OTP) received by email or messaging channel. "Code" here means a short numeric one-time password, not source code or any other kind of code.
-				return t('libresign', 'Step 2 of 3 - Code validation')
-			}
-			// TRANSLATORS Progress text for step 3 where the signer reviews and confirms their intent to sign the document by clicking a button. This is not a receipt or acknowledgment — it is the final user action that triggers the signing process.
-			return t('libresign', 'Step 3 of 3 - Signature confirmation')
-		},
-		codeExplanationText() {
-			const contact = this.displayContact
-			if (this.mode === 'email') {
-				// TRANSLATORS {contact} is the email address where the verification code was sent.
-				return t('libresign', 'A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code.', { contact })
-			}
-			// TRANSLATORS {contact} is the phone number or messaging channel (SMS, WhatsApp, Telegram, Signal, XMPP) where the verification code was sent.
-			return t('libresign', 'A verification code has been sent to: {contact}. Please enter the code to continue.', { contact })
-		},
-		displayContact() {
-			if (this.mode === 'email') {
-				return this.signMethodsStore.blurredEmail() || this.sendTo
-			}
-			return this.newPhoneNumber
-		},
-		canRequestCode() {
-			if (this.mode === 'email') {
-				return this.emailIsValid
-			}
-			return this.newPhoneNumber.length > 0
-		},
-		canSendCode() {
-			return !this.loading && this.token.length === this.tokenLength
-		},
-		// --- email-specific ---
-		emailIsValid() {
-			if (!validateEmail(this.sendTo)) {
-				return false
-			}
-			return md5(this.sendTo.toLowerCase()) === this.signMethodsStore.settings.emailToken?.hashOfEmail
-		},
-		// --- token-specific ---
-		activeTokenMethod() {
-			const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
-			return tokenMethods.find(method =>
-				Object.hasOwn(this.signMethodsStore.settings, method)
-			)
-		},
-		activeIdentifyMethod() {
-			return this.signMethodsStore.settings[this.activeTokenMethod]?.identifyMethod
-		},
-	},
-	watch: {
-		token(token) {
-			if (this.mode === 'email') {
-				this.signMethodsStore.setEmailToken(token)
-			}
-		},
-		'signStore.errors'(errors) {
-			if (errors && errors.length > 0 && this.loading) {
-				this.loading = false
-			}
-		},
-	},
-	methods: {
-		t,
-		// --- email-specific ---
-		onChangeEmail() {
-			if (this.sendTo.length === 0) {
-				this.errorMessage = ''
-				return
-			}
-			this.errorMessage = this.emailIsValid ? '' : t('libresign', 'Invalid email')
-		},
-		// --- token-specific ---
-		sanitizeNumber() {
-			this.newPhoneNumber = sanitizePhoneNumber(this.newPhoneNumber)
-		},
-		// --- common ---
-		requestNewCode() {
-			if (this.mode === 'email') {
-				this.signMethodsStore.setHasEmailConfirmCode(false)
-				this.signMethodsStore.setEmailToken('')
-			} else {
-				this.tokenRequested = false
-				this.token = ''
-			}
-			this.identityVerified = false
-		},
-		async requestCode() {
-			this.loading = true
-			if (this.mode === 'email') {
-				this.signMethodsStore.setHasEmailConfirmCode(false)
-			} else {
-				this.tokenRequested = false
-			}
+type Mode = 'email' | 'token'
 
-			await this.$nextTick()
+type TokenMethod = 'smsToken' | 'whatsappToken' | 'signalToken' | 'telegramToken' | 'xmppToken'
 
-			if (!this.canRequestCode) {
-				if (this.mode === 'email') {
-					this.onChangeEmail()
-				}
-				this.loading = false
-				return
-			}
-
-			try {
-				const params = this.mode === 'email'
-					? {
-						identify: this.sendTo,
-						identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
-						signMethod: 'emailToken',
-					}
-					: {
-						identifyMethod: this.activeIdentifyMethod,
-						signMethod: this.activeTokenMethod,
-					}
-
-				if (this.signStore.document.fileId) {
-					await axios.post(
-						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
-							fileId: this.signStore.document.fileId,
-						}),
-						params,
-					)
-				} else {
-					const signer = this.signStore.document.signers.find(row => row.me) || {}
-					await axios.post(
-						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {
-							uuid: signer.sign_uuid,
-						}),
-						params,
-					)
-				}
-
-				if (this.mode === 'email') {
-					this.signMethodsStore.setHasEmailConfirmCode(true)
-					this.errorMessage = ''
-				} else {
-					this.tokenRequested = true
-				}
-			} catch (err) {
-				const msg = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
-				if (this.mode === 'token' && msg?.includes('Invalid configuration')) {
-					const method = this.activeTokenMethod.charAt(0).toUpperCase() + this.activeTokenMethod.slice(1)
-					// TRANSLATORS {method} is the name of a messaging service (e.g. SmsToken, WhatsappToken, TelegramToken, SignalToken, XmppToken).
-					showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
-				} else {
-					showError(msg)
-				}
-			} finally {
-				this.loading = false
-			}
-		},
-		sendCode() {
-			if (!this.canSendCode) {
-				return
-			}
-			this.identityVerified = true
-		},
-		signDocument() {
-			this.loading = true
-			this.$emit('change', this.token)
-		},
-		close() {
-			if (this.mode === 'token') {
-				this.signMethodsStore.closeModal('token')
-			}
-			this.$emit('close')
-		},
-	},
+type EmailTokenSettings = {
+	hasConfirmCode?: boolean
+	hashOfEmail?: string
+	blurredEmail?: string
+	identifyMethod?: string
 }
+
+type SignMethodsSettings = Record<string, { identifyMethod?: string } | undefined> & {
+	emailToken?: EmailTokenSettings
+}
+
+type SignMethodsStore = {
+	settings: SignMethodsSettings
+	modal: Record<string, boolean>
+	blurredEmail: () => string
+	setEmailToken: (token: string) => void
+	setHasEmailConfirmCode: (value: boolean) => void
+	closeModal: (type: string) => void
+}
+
+type SignStore = {
+	document: {
+		fileId?: number
+		signers?: Array<{ me?: boolean; sign_uuid?: string }>
+	}
+	errors?: Array<{ message?: string }>
+}
+
+type RequestCodeError = {
+	response?: {
+		data?: {
+			ocs?: {
+				data?: {
+					message?: string
+				}
+			}
+			message?: string
+		}
+	}
+	message?: string
+}
+
+defineOptions({
+	name: 'ModalVerificationCode',
+})
+
+const props = withDefaults(defineProps<{
+	mode: Mode
+	phoneNumber?: string
+}>(), {
+	phoneNumber: '',
+})
+
+const emit = defineEmits<{
+	(e: 'change', token: string): void
+	(e: 'close'): void
+	(e: 'update:phone', value: string): void
+}>()
+
+const signStore = useSignStore() as SignStore
+const signMethodsStore = useSignMethodsStore() as SignMethodsStore
+
+const loading = ref(false)
+const tokenLength = ref(loadState('libresign', 'token_length', 6))
+const token = ref('')
+const identityVerified = ref(false)
+const sendTo = ref('')
+const errorMessage = ref('')
+const newPhoneNumber = ref(props.phoneNumber || '')
+const tokenRequested = ref(false)
+
+const step1Active = computed(() => {
+	if (props.mode === 'email') {
+		return !signMethodsStore.settings.emailToken?.hasConfirmCode
+	}
+	return !tokenRequested.value
+})
+
+const step2Active = computed(() => !step1Active.value && !identityVerified.value)
+
+const dialogTitle = computed(() => {
+	if (step1Active.value) {
+		return props.mode === 'email'
+			? t('libresign', 'Email verification')
+			: t('libresign', 'Identity verification')
+	}
+	if (!identityVerified.value) {
+		return t('libresign', 'Code validation')
+	}
+	return t('libresign', 'Signature confirmation')
+})
+
+const progressText = computed(() => {
+	if (step1Active.value) {
+		return props.mode === 'email'
+			? t('libresign', 'Step 1 of 3 - Email verification')
+			: t('libresign', 'Step 1 of 3 - Identity verification')
+	}
+	if (!identityVerified.value) {
+		return t('libresign', 'Step 2 of 3 - Code validation')
+	}
+	return t('libresign', 'Step 3 of 3 - Signature confirmation')
+})
+
+const displayContact = computed(() => {
+	if (props.mode === 'email') {
+		return signMethodsStore.blurredEmail() || sendTo.value
+	}
+	return newPhoneNumber.value
+})
+
+const codeExplanationText = computed(() => {
+	const contact = displayContact.value
+	if (props.mode === 'email') {
+		return t('libresign', 'A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code.', { contact })
+	}
+	return t('libresign', 'A verification code has been sent to: {contact}. Please enter the code to continue.', { contact })
+})
+
+const emailIsValid = computed(() => {
+	if (!validateEmail(sendTo.value)) {
+		return false
+	}
+	return md5(sendTo.value.toLowerCase()) === signMethodsStore.settings.emailToken?.hashOfEmail
+})
+
+const canRequestCode = computed(() => {
+	if (props.mode === 'email') {
+		return emailIsValid.value
+	}
+	return newPhoneNumber.value.length > 0
+})
+
+const canSendCode = computed(() => !loading.value && token.value.length === tokenLength.value)
+
+const activeTokenMethod = computed<TokenMethod | undefined>(() => {
+	const tokenMethods: TokenMethod[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
+	return tokenMethods.find((method) => Object.hasOwn(signMethodsStore.settings, method))
+})
+
+const activeIdentifyMethod = computed(() => signMethodsStore.settings[activeTokenMethod.value ?? '']?.identifyMethod)
+
+watch(token, (newToken) => {
+	if (props.mode === 'email') {
+		signMethodsStore.setEmailToken(newToken)
+	}
+})
+
+watch(() => signStore.errors, (errors) => {
+	if (errors && errors.length > 0 && loading.value) {
+		loading.value = false
+	}
+}, { deep: true })
+
+function onChangeEmail() {
+	if (sendTo.value.length === 0) {
+		errorMessage.value = ''
+		return
+	}
+	errorMessage.value = emailIsValid.value ? '' : t('libresign', 'Invalid email')
+}
+
+function sanitizeNumber() {
+	newPhoneNumber.value = sanitizePhoneNumber(newPhoneNumber.value)
+	emit('update:phone', newPhoneNumber.value)
+}
+
+function requestNewCode() {
+	if (props.mode === 'email') {
+		signMethodsStore.setHasEmailConfirmCode(false)
+		signMethodsStore.setEmailToken('')
+	} else {
+		tokenRequested.value = false
+		token.value = ''
+	}
+	identityVerified.value = false
+}
+
+async function requestCode() {
+	loading.value = true
+	if (props.mode === 'email') {
+		signMethodsStore.setHasEmailConfirmCode(false)
+	} else {
+		tokenRequested.value = false
+	}
+
+	await nextTick()
+
+	if (!canRequestCode.value) {
+		if (props.mode === 'email') {
+			onChangeEmail()
+		}
+		loading.value = false
+		return
+	}
+
+	try {
+		const params = props.mode === 'email'
+			? {
+				identify: sendTo.value,
+				identifyMethod: signMethodsStore.settings.emailToken?.identifyMethod,
+				signMethod: 'emailToken',
+			}
+			: {
+				identifyMethod: activeIdentifyMethod.value,
+				signMethod: activeTokenMethod.value,
+			}
+
+		if (signStore.document.fileId) {
+			await axios.post(
+				generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
+					fileId: signStore.document.fileId,
+				}),
+				params,
+			)
+		} else {
+			const signer = signStore.document.signers?.find((row) => row.me) || {}
+			await axios.post(
+				generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {
+					uuid: signer.sign_uuid,
+				}),
+				params,
+			)
+		}
+
+		if (props.mode === 'email') {
+			signMethodsStore.setHasEmailConfirmCode(true)
+			errorMessage.value = ''
+		} else {
+			tokenRequested.value = true
+		}
+	} catch (error) {
+		const err = error as RequestCodeError
+		const msg = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
+		if (props.mode === 'token' && msg?.includes('Invalid configuration') && activeTokenMethod.value) {
+			const method = activeTokenMethod.value.charAt(0).toUpperCase() + activeTokenMethod.value.slice(1)
+			showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
+		} else {
+			showError(msg)
+		}
+	} finally {
+		loading.value = false
+	}
+}
+
+function sendCode() {
+	if (!canSendCode.value) {
+		return
+	}
+	identityVerified.value = true
+}
+
+function signDocument() {
+	loading.value = true
+	emit('change', token.value)
+}
+
+function close() {
+	if (props.mode === 'token') {
+		signMethodsStore.closeModal('token')
+	}
+	emit('close')
+}
+
+defineExpose({
+	signStore,
+	signMethodsStore,
+	mdiEmail,
+	mdiFormTextboxPassword,
+	loading,
+	tokenLength,
+	token,
+	identityVerified,
+	sendTo,
+	errorMessage,
+	newPhoneNumber,
+	tokenRequested,
+	step1Active,
+	step2Active,
+	dialogTitle,
+	progressText,
+	codeExplanationText,
+	displayContact,
+	canRequestCode,
+	canSendCode,
+	emailIsValid,
+	activeTokenMethod,
+	activeIdentifyMethod,
+	onChangeEmail,
+	sanitizeNumber,
+	requestNewCode,
+	requestCode,
+	sendCode,
+	signDocument,
+	close,
+})
 </script>
 
 <style lang="scss" scoped>
