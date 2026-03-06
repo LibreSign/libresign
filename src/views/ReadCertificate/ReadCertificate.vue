@@ -36,8 +36,9 @@
 	</NcDialog>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { onMounted, ref } from 'vue'
 
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -52,65 +53,70 @@ import CertificateContent from './CertificateContent.vue'
 
 import { useSignMethodsStore } from '../../store/signMethods.js'
 
-export default {
+defineOptions({
 	name: 'ReadCertificate',
-	components: {
-		NcDialog,
-		NcPasswordField,
-		NcButton,
-		NcNoteCard,
-		NcLoadingIcon,
-		CertificateContent,
-	},
-	setup() {
-		const signMethodsStore = useSignMethodsStore()
-		return { signMethodsStore }
-	},
-	data() {
-		return {
-			hasLoading: false,
-			password: '',
-			certificate: {},
-			error: '',
-			size: 'small',
-		}
-	},
-	mounted() {
-		this.reset()
-	},
-	methods: {
-		t,
-		reset() {
-			this.password = ''
-			this.certificate = {}
-			this.error = ''
-			this.size = 'small'
-		},
-		async send() {
-			this.hasLoading = true
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx/read'), {
-				password: this.password,
-			})
-				.then(({ data }) => {
-					this.certificate = data.ocs.data
-					this.size = 'large'
-					this.error = ''
-				})
-				.catch(({ response }) => {
-					if (response?.data?.ocs?.data?.message?.length > 0) {
-						this.error = response.data.ocs.data.message
-					} else {
-						this.error = t('libresign', 'Invalid password')
-					}
-				})
-			this.hasLoading = false
-		},
-		onClose() {
-			this.signMethodsStore.closeModal('readCertificate')
-			this.reset()
-		},
-	},
+})
+
+type CertificateData = Record<string, unknown>
+
+type SignMethodsStore = {
+	modal: {
+		readCertificate: boolean
+	}
+	closeModal: (modalName: string) => void
 }
+
+const signMethodsStore = useSignMethodsStore() as SignMethodsStore
+const hasLoading = ref(false)
+const password = ref('')
+const certificate = ref<CertificateData>({})
+const error = ref('')
+const size = ref<'small' | 'large'>('small')
+
+function reset() {
+	password.value = ''
+	certificate.value = {}
+	error.value = ''
+	size.value = 'small'
+}
+
+async function send() {
+	hasLoading.value = true
+	try {
+		const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx/read'), {
+			password: password.value,
+		})
+		certificate.value = data.ocs.data
+		size.value = 'large'
+		error.value = ''
+	} catch (caughtError) {
+		const message = (caughtError as { response?: { data?: { ocs?: { data?: { message?: string } } } } }).response?.data?.ocs?.data?.message
+		error.value = message && message.length > 0 ? message : t('libresign', 'Invalid password')
+	}
+	hasLoading.value = false
+}
+
+function onClose() {
+	signMethodsStore.closeModal('readCertificate')
+	reset()
+}
+
+onMounted(() => {
+	reset()
+})
+
+defineExpose({
+	signMethodsStore,
+	hasLoading,
+	password,
+	certificate,
+	error,
+	size,
+	reset,
+	send,
+	onClose,
+	t,
+})
 </script>
 
 <style lang="scss" scoped>

@@ -18,8 +18,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, ref, watch } from 'vue'
 import CodeMirror from 'vue-codemirror6'
 import { twig } from '@ssddanbrown/codemirror-lang-twig'
 import { EditorView, lineNumbers } from '@codemirror/view'
@@ -29,66 +30,61 @@ import { indentUnit, bracketMatching } from '@codemirror/language'
 import { defaultKeymap, indentWithTab } from '@codemirror/commands'
 import { material } from '@uiw/codemirror-theme-material'
 
-export default {
+defineOptions({
 	name: 'CodeEditor',
-	emits: ['update:modelValue'],
-	components: {
-		CodeMirror,
-	},
-	props: {
-		modelValue: {
-			type: String,
-			default: '',
-		},
-		label: {
-			type: String,
-			default: '',
-		},
-		placeholder: {
-			type: String,
-			default: '',
-		},
-	},
-	data() {
-		return {
-			editorId: `code-editor-${Math.random().toString(36).substr(2, 9)}`,
-			internalValue: this.modelValue,
-		}
-	},
-	computed: {
-		extensions() {
-			return [
-				twig(),
-				lineNumbers(),
-				EditorView.lineWrapping,
-				bracketMatching(),
-				closeBrackets(),
-				material,
-				indentUnit.of('\t'),
-				keymap.of([
-					...closeBracketsKeymap,
-					...defaultKeymap,
-					indentWithTab,
-				]),
-			]
-		},
-	},
-	watch: {
-		modelValue(newValue) {
-			if (newValue !== this.internalValue) {
-				this.internalValue = newValue
-			}
-		},
-		internalValue(newValue) {
-			if (newValue !== this.modelValue) {
-				this.$emit('update:modelValue', newValue)
-			}
-		},
-	},
-	methods: {
-		t,
-	},
-}
+})
+
+const props = withDefaults(defineProps<{
+	modelValue?: string
+	label?: string
+	placeholder?: string
+}>(), {
+	modelValue: '',
+	label: '',
+	placeholder: '',
+})
+
+const emit = defineEmits<{
+	'update:modelValue': [value: string]
+}>()
+
+const editorId = `code-editor-${Math.random().toString(36).slice(2, 11)}`
+const internalValue = ref(props.modelValue)
+
+const extensions = computed(() => {
+	return [
+		twig(),
+		lineNumbers(),
+		EditorView.lineWrapping,
+		bracketMatching(),
+		closeBrackets(),
+		material,
+		indentUnit.of('\t'),
+		keymap.of([
+			...closeBracketsKeymap,
+			...defaultKeymap,
+			indentWithTab,
+		]),
+	]
+})
+
+watch(() => props.modelValue, (newValue) => {
+	if (newValue !== internalValue.value) {
+		internalValue.value = newValue
+	}
+})
+
+watch(internalValue, (newValue) => {
+	if (newValue !== props.modelValue) {
+		emit('update:modelValue', newValue)
+	}
+})
+
+defineExpose({
+	editorId,
+	internalValue,
+	extensions,
+})
 </script>
 
 <style lang="scss">

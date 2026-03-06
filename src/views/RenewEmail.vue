@@ -38,8 +38,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { ref } from 'vue'
 import {
 	mdiArrowRight,
 } from '@mdi/js'
@@ -53,48 +54,42 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
-export default {
+defineOptions({
 	name: 'RenewEmail',
+})
 
-	components: {
-		NcButton,
-		NcNoteCard,
-		NcIconSvgWrapper,
-		NcLoadingIcon,
-	},
-	setup() {
-		return {
-			t,
-			mdiArrowRight,
-		}
-	},
-	data() {
-		return {
-			title: loadState('libresign', 'title'),
-			body: loadState('libresign', 'body'),
-			renewButton: loadState('libresign', 'renewButton'),
-			uuid: loadState('libresign', 'uuid'),
-			hasLoading: false,
-			response: '',
-			error: '',
-		}
-	},
-	methods: {
-		async renew() {
-			this.hasLoading = true
-			this.error = ''
-			try {
-				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/renew/email', {
-					uuid: this.uuid,
-				}))
-				this.response = response.data.ocs.data.message
-			} catch (e) {
-				this.error = e.response.data.ocs.data.message
-			}
-			this.hasLoading = false
-		},
-	},
+const title = loadState('libresign', 'title')
+const body = loadState('libresign', 'body')
+const renewButton = loadState('libresign', 'renewButton')
+const uuid = loadState('libresign', 'uuid')
+const hasLoading = ref(false)
+const response = ref('')
+const error = ref('')
+
+async function renew() {
+	hasLoading.value = true
+	error.value = ''
+	try {
+		const result = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/renew/email', {
+			uuid,
+		}))
+		response.value = result.data.ocs.data.message
+	} catch (caughtError) {
+		error.value = (caughtError as { response?: { data?: { ocs?: { data?: { message?: string } } } } }).response?.data?.ocs?.data?.message ?? ''
+	}
+	hasLoading.value = false
 }
+
+defineExpose({
+	title,
+	body,
+	renewButton,
+	uuid,
+	hasLoading,
+	response,
+	error,
+	renew,
+})
 </script>
 
 <style lang="scss">
