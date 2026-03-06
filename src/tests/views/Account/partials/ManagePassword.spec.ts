@@ -43,7 +43,7 @@ describe('ManagePassword', () => {
 		hasSignatureFileMock.mockReset()
 	})
 
-	it('registers icon wrapper and exposes mdi icon paths used in template', () => {
+	it('registers icon wrapper and exposes mdi icon paths used in template', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
 			if (key === 'certificate_engine') return 'openssl'
 			if (key === 'config') return { hasSignatureFile: true }
@@ -57,21 +57,23 @@ describe('ManagePassword', () => {
 					NcButton: { template: '<button><slot /><slot name="icon" /></button>' },
 					NcIconSvgWrapper: { name: 'NcIconSvgWrapper', props: ['path'], template: '<i class="icon" :data-path="path" />' },
 					CreatePassword: true,
-					ReadCertificate: true,
+					ReadCertificate: { name: 'ReadCertificate', template: '<div />' },
 					ResetPassword: true,
-					UploadCertificate: true,
+					UploadCertificate: { name: 'UploadCertificate', template: '<div />' },
 				},
 			},
 		})
 
-		expect(wrapper.vm.$options.components.NcIconSvgWrapper).toBeTruthy()
+		await (wrapper.vm as { $nextTick: () => Promise<void> }).$nextTick()
+
+		expect(wrapper.findAll('.icon')).toHaveLength(4)
 		expect(wrapper.vm.mdiCloudUpload).toBeTruthy()
 		expect(wrapper.vm.mdiLockOpenCheck).toBeTruthy()
 		expect(wrapper.vm.mdiDelete).toBeTruthy()
 		expect(wrapper.vm.mdiCertificate).toBeTruthy()
 		expect(wrapper.vm.mdiFileReplace).toBeTruthy()
-		expect(wrapper.vm.$options.components.UploadCertificate).toBeTruthy()
-		expect(wrapper.vm.$options.components.ReadCertificate).toBeTruthy()
+		expect(wrapper.findComponent({ name: 'UploadCertificate' }).exists()).toBe(true)
+		expect(wrapper.findComponent({ name: 'ReadCertificate' }).exists()).toBe(true)
 	})
 
 	it('calls UploadCertificate triggerUpload through ref safely', () => {
@@ -96,11 +98,8 @@ describe('ManagePassword', () => {
 		})
 
 		const triggerUpload = vi.fn()
-		wrapper.vm.$options.methods.triggerUploadCertificate.call({
-			$refs: {
-				uploadCertificate: { triggerUpload },
-			},
-		})
+		;(wrapper.vm as { uploadCertificate?: { triggerUpload: () => void }, triggerUploadCertificate: () => void }).uploadCertificate = { triggerUpload }
+		wrapper.vm.triggerUploadCertificate()
 
 		expect(triggerUpload).toHaveBeenCalledTimes(1)
 	})
