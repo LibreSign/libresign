@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { mount } from '@vue/test-utils'
 import SignerSelect from '../../../components/Request/SignerSelect.vue'
 
 const { axiosGetMock } = vi.hoisted(() => ({
@@ -35,8 +36,27 @@ describe('SignerSelect.vue', () => {
 		axiosGetMock.mockReset()
 	})
 
+	function createWrapper(props: Record<string, unknown> = {}) {
+		return mount(SignerSelect, {
+			props,
+			global: {
+				stubs: {
+					NcAvatar: true,
+					NcSelect: {
+						name: 'NcSelect',
+						template: '<div><slot name="option" :option="{}" /><slot name="no-options" :search="\'\'" /></div>',
+						props: ['modelValue'],
+						emits: ['update:modelValue', 'search'],
+					},
+					NcIconSvgWrapper: true,
+				},
+			},
+		})
+	}
+
 	it('injectIcons sets a visible label fallback from displayName or id', () => {
-		const result = SignerSelect.methods.injectIcons.call({ method: 'all' }, [
+		const wrapper = createWrapper()
+		const result = wrapper.vm.injectIcons([
 			{ id: 'alice@example.com', displayName: 'Alice Example', subname: 'alice@example.com', iconSvg: 'svgAccount' },
 			{ id: 'bob@example.com', subname: 'bob@example.com' },
 			{ id: 'email@example.com', displayName: 'Email User', iconSvg: 'svgEmail' },
@@ -51,7 +71,8 @@ describe('SignerSelect.vue', () => {
 	})
 
 	it('injectIcons does not infer icon when backend does not provide icon fields', () => {
-		const result = SignerSelect.methods.injectIcons.call({ method: 'email' }, [
+		const wrapper = createWrapper({ method: 'email' })
+		const result = wrapper.vm.injectIcons([
 			{ id: 'user@example.com', displayName: 'User Email' },
 		])
 
@@ -59,7 +80,8 @@ describe('SignerSelect.vue', () => {
 	})
 
 	it('injectIcons maps API icon classes to corresponding svg icons', () => {
-		const result = SignerSelect.methods.injectIcons.call({ method: 'all' }, [
+		const wrapper = createWrapper()
+		const result = wrapper.vm.injectIcons([
 			{ id: 'leon@example.com', displayName: 'Leon Green', method: 'email', icon: 'icon-mail' },
 			{ id: 'user01', displayName: 'user01', method: 'account', icon: 'icon-user' },
 		])
@@ -69,6 +91,7 @@ describe('SignerSelect.vue', () => {
 	})
 
 	it('async search populates options with readable labels', async () => {
+		const wrapper = createWrapper({ method: 'account' })
 		axiosGetMock.mockResolvedValue({
 			data: {
 				ocs: {
@@ -78,26 +101,17 @@ describe('SignerSelect.vue', () => {
 				},
 			},
 		})
-
-		const context: any = {
-			method: 'account',
-			loading: false,
-			haveError: false,
-			options: [],
-			activeRequestId: 0,
-			injectIcons: SignerSelect.methods.injectIcons,
-		}
-
-		await SignerSelect.methods._asyncFind.call(context, 'car')
+		await wrapper.vm._asyncFind('car')
 
 		expect(axiosGetMock).toHaveBeenCalled()
-		expect(context.loading).toBe(false)
-		expect(context.haveError).toBe(false)
-		expect(context.options).toHaveLength(1)
-		expect(context.options[0].label).toBe('Carol')
+		expect(wrapper.vm.loading).toBe(false)
+		expect(wrapper.vm.haveError).toBe(false)
+		expect(wrapper.vm.options).toHaveLength(1)
+		expect(wrapper.vm.options[0].label).toBe('Carol')
 	})
 
 	it('ignores stale async response when a newer search was triggered', async () => {
+		const wrapper = createWrapper({ method: 'account' })
 		let resolveFirst: ((value: any) => void) | undefined
 		let resolveSecond: ((value: any) => void) | undefined
 
@@ -109,17 +123,9 @@ describe('SignerSelect.vue', () => {
 				resolveSecond = resolve
 			}))
 
-		const context: any = {
-			method: 'account',
-			loading: false,
-			haveError: false,
-			options: [],
-			activeRequestId: 0,
-			injectIcons: SignerSelect.methods.injectIcons,
-		}
 
-		const firstCall = SignerSelect.methods._asyncFind.call(context, 'a')
-		const secondCall = SignerSelect.methods._asyncFind.call(context, 'ab')
+		const firstCall = wrapper.vm._asyncFind('a')
+		const secondCall = wrapper.vm._asyncFind('ab')
 
 		resolveSecond?.({
 			data: {
@@ -139,36 +145,33 @@ describe('SignerSelect.vue', () => {
 		})
 		await firstCall
 
-		expect(context.options).toHaveLength(1)
-		expect(context.options[0].label).toBe('User 02')
+		expect(wrapper.vm.options).toHaveLength(1)
+		expect(wrapper.vm.options[0].label).toBe('User 02')
 	})
 
 	it('clears stale options when method changes', () => {
-		const context: any = {
-			options: [{ id: 'legacy' }],
-			haveError: true,
-			loading: true,
-		}
+		const wrapper = createWrapper()
+		wrapper.vm.options = [{ id: 'legacy' }]
+		wrapper.vm.haveError = true
+		wrapper.vm.loading = true
 
-		SignerSelect.watch.method.call(context)
+		wrapper.vm.handleMethodChange()
 
-		expect(context.options).toEqual([])
-		expect(context.haveError).toBe(false)
-		expect(context.loading).toBe(false)
+		expect(wrapper.vm.options).toEqual([])
+		expect(wrapper.vm.haveError).toBe(false)
+		expect(wrapper.vm.loading).toBe(false)
 	})
 
 	it('option helpers safely handle undefined slot payload', () => {
-		const context: any = {
-			getOption: SignerSelect.methods.getOption,
-		}
+		const wrapper = createWrapper()
 
-		expect(SignerSelect.methods.getOptionLabel.call(context, undefined)).toBe('')
-		expect(SignerSelect.methods.getOptionSubname.call(context, undefined)).toBe('')
-		expect(SignerSelect.methods.getOptionIcon.call(context, undefined)).toBe('')
+		expect(wrapper.vm.getOptionLabel(undefined)).toBe('')
+		expect(wrapper.vm.getOptionSubname(undefined)).toBe('')
+		expect(wrapper.vm.getOptionIcon(undefined)).toBe('')
 
 		const slotProps = { option: { displayName: 'Admin', subname: 'admin', iconSvg: '<svg>x</svg>' } }
-		expect(SignerSelect.methods.getOptionLabel.call(context, slotProps)).toBe('Admin')
-		expect(SignerSelect.methods.getOptionSubname.call(context, slotProps)).toBe('admin')
-		expect(SignerSelect.methods.getOptionIcon.call(context, slotProps)).toBe('<svg>x</svg>')
+		expect(wrapper.vm.getOptionLabel(slotProps)).toBe('Admin')
+		expect(wrapper.vm.getOptionSubname(slotProps)).toBe('admin')
+		expect(wrapper.vm.getOptionIcon(slotProps)).toBe('<svg>x</svg>')
 	})
 })

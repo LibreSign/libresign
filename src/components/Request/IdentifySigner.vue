@@ -61,8 +61,9 @@
 		</div>
 	</div>
 </template>
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, onBeforeMount, ref } from 'vue'
 
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
@@ -94,177 +95,197 @@ const iconMap = {
 	svgXmpp,
 }
 
-export default {
+defineOptions({
 	name: 'IdentifySigner',
-	components: {
-		NcButton,
-		NcCheckboxRadioSwitch,
-		NcIconSvgWrapper,
-		NcNoteCard,
-		NcTextArea,
-		NcTextField,
-		SignerSelect,
-	},
-	props: {
-		signerToEdit: {
-			type: Object,
-			default: () => ({
-				identify: '',
-				displayName: '',
-				identifyMethods: [],
-			}),
-		},
-		method: {
-			type: String,
-			default: 'all',
-		},
-		placeholder: {
-			type: String,
-			default: t('libresign', 'Name'),
-		},
-		methods: {
-			type: Array,
-			default: () => [],
-		},
-		disabled: {
-			type: Boolean,
-			default: false,
-		},
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		return { filesStore }
-	},
-	data() {
-		return {
-			id: null,
-			nameHelperText: '',
-			nameHaveError: false,
-			displayName: '',
-			description: '',
-			enableCustomMessage: false,
-			identify: '',
-			signer: {},
-		}
-	},
-	computed: {
-		signerSelected() {
-			return !!this.signer?.id
-		},
-		isNewSigner() {
-			return !this.signerToEdit || Object.keys(this.signerToEdit).length === 0
-		},
-		saveButtonText() {
-			if (this.isNewSigner) {
-				return t('libresign', 'Save')
-			}
-			return t('libresign', 'Update')
-		},
-		identifyMethodLabel() {
-			if (!this.signer?.method) {
-				return ''
-			}
-			const methodConfig = this.methods.find(m => m.name === this.signer.method)
-			if (!methodConfig?.friendly_name) {
-				return ''
-			}
-			return methodConfig.friendly_name
-		},
-		showCustomMessage() {
-			if (this.signer?.method === 'account') {
-				return this.signer?.acceptsEmailNotifications === true
-			}
-			return !!this.signer?.method
-		},
-	},
-	beforeMount() {
-		if (!this.signerToEdit) {
+})
+
+type IdentifyMethodConfig = {
+	name: string
+	friendly_name?: string
+}
+
+type SignerMethodValue = {
+	method: string
+	value: string
+}
+
+type SignerToEdit = {
+	identify?: string
+	signRequestId?: string
+	displayName?: string
+	description?: string
+	identifyMethods?: SignerMethodValue[]
+}
+
+type SelectedSigner = {
+	id?: string
+	method?: string
+	displayName?: string
+	acceptsEmailNotifications?: boolean
+}
+
+const props = withDefaults(defineProps<{
+	signerToEdit?: SignerToEdit
+	method?: string
+	placeholder?: string
+	methods?: IdentifyMethodConfig[]
+	disabled?: boolean
+}>(), {
+	signerToEdit: () => ({
+		identify: '',
+		displayName: '',
+		identifyMethods: [],
+	}),
+	method: 'all',
+	placeholder: t('libresign', 'Name'),
+	methods: () => [],
+	disabled: false,
+})
+
+const filesStore = useFilesStore()
+
+const id = ref<string | null>(null)
+const nameHelperText = ref('')
+const nameHaveError = ref(false)
+const displayName = ref('')
+const description = ref('')
+const enableCustomMessage = ref(false)
+const identify = ref('')
+const signer = ref<SelectedSigner>({})
+
+const signerSelected = computed(() => !!signer.value?.id)
+const isNewSigner = computed(() => !props.signerToEdit || Object.keys(props.signerToEdit).length === 0)
+const saveButtonText = computed(() => isNewSigner.value ? t('libresign', 'Save') : t('libresign', 'Update'))
+const identifyMethodLabel = computed(() => {
+	if (!signer.value?.method) {
+		return ''
+	}
+	const methodConfig = props.methods.find((item) => item.name === signer.value.method)
+	if (!methodConfig?.friendly_name) {
+		return ''
+	}
+	return methodConfig.friendly_name
+})
+const showCustomMessage = computed(() => {
+	if (signer.value?.method === 'account') {
+		return signer.value?.acceptsEmailNotifications === true
+	}
+	return !!signer.value?.method
+})
+
+function getMethodIcon() {
+	const method = signer.value?.method
+	if (!method) {
+		return iconMap.svgAccount
+	}
+	return iconMap[`svg${method.charAt(0).toUpperCase() + method.slice(1)}`] || iconMap.svgAccount
+}
+
+function updateSigner(nextSigner: SelectedSigner | null) {
+	signer.value = nextSigner ?? {}
+	displayName.value = nextSigner?.displayName ?? ''
+	identify.value = nextSigner?.id ?? ''
+
+	if (nextSigner?.method === 'account' && nextSigner?.acceptsEmailNotifications === false) {
+		enableCustomMessage.value = false
+		description.value = ''
+	}
+}
+
+async function saveSigner() {
+	if (!signer.value?.method || !signer.value?.id) {
+		return
+	}
+	const file = filesStore.getFile()
+	const signers = Array.isArray(file?.signers) ? [...file.signers] : []
+	signers.push({
+		displayName: displayName.value,
+		description: description.value.trim() || undefined,
+		identify: identify.value,
+		identifyMethods: [
+			{
+				method: signer.value.method,
+				value: signer.value.id,
+			},
+		],
+	})
+
+	try {
+		const response = await filesStore.saveOrUpdateSignatureRequest({ signers })
+		if (response?.success === false) {
+			showError(response.message)
 			return
 		}
-		this.displayName = this.signerToEdit.displayName ?? ''
-		this.description = this.signerToEdit.description ?? ''
-		this.enableCustomMessage = !!(this.signerToEdit.description)
-		this.identify = this.signerToEdit.identify ?? this.signerToEdit.signRequestId ?? ''
-		if (Object.keys(this.signerToEdit).length > 0 && this.signerToEdit.identifyMethods?.length) {
-			const method = this.signerToEdit.identifyMethods[0]
-			this.signer = {
-				id: method.value,
-				method: method.method,
-				displayName: this.signerToEdit.displayName,
-			}
-		}
-	},
-	methods: {
-		t,
-		getMethodIcon() {
-			const method = this.signer?.method
-			if (!method) {
-				return iconMap.svgAccount
-			}
-			return iconMap[`svg${method.charAt(0).toUpperCase() + method.slice(1)}`] || iconMap.svgAccount
-		},
-		updateSigner(signer) {
-			this.signer = signer ?? {}
-			this.displayName = signer?.displayName ?? ''
-			this.identify = signer?.id ?? ''
+	} catch {
+		showError(t('libresign', 'Failed to save or update signature request'))
+		return
+	}
 
-			if (signer?.method === 'account' && signer?.acceptsEmailNotifications === false) {
-				this.enableCustomMessage = false
-				this.description = ''
-			}
-		},
-		async saveSigner() {
-			if (!this.signer?.method || !this.signer?.id) {
-				return
-			}
-			const file = this.filesStore.getFile()
-			const signers = Array.isArray(file?.signers) ? [...file.signers] : []
-			signers.push({
-				displayName: this.displayName,
-				description: this.description.trim() || undefined,
-				identify: this.identify,
-				identifyMethods: [
-					{
-						method: this.signer.method,
-						value: this.signer.id,
-					},
-				],
-			})
-
-			try {
-				const response = await this.filesStore.saveOrUpdateSignatureRequest({ signers })
-				if (response?.success === false) {
-					showError(response.message)
-					return
-				}
-			} catch (error) {
-				showError(t('libresign', 'Failed to save or update signature request'))
-				return
-			}
-
-			this.displayName = ''
-			this.description = ''
-			this.identify = ''
-			this.signer = {}
-			this.filesStore.disableIdentifySigner()
-		},
-		onNameChange() {
-			const name = this.displayName.trim()
-			if (name.length > 2) {
-				this.nameHelperText = ''
-				this.nameHaveError = false
-				return
-			}
-			this.nameHelperText = t('libresign', 'Please enter signer name.')
-			this.nameHaveError = true
-		},
-		onToggleCustomMessage(checked) {
-			if (!checked) {
-				this.description = ''
-			}
-		},
-	},
+	displayName.value = ''
+	description.value = ''
+	identify.value = ''
+	signer.value = {}
+	filesStore.disableIdentifySigner()
 }
+
+function onNameChange() {
+	const name = displayName.value.trim()
+	if (name.length > 2) {
+		nameHelperText.value = ''
+		nameHaveError.value = false
+		return
+	}
+	nameHelperText.value = t('libresign', 'Please enter signer name.')
+	nameHaveError.value = true
+}
+
+function onToggleCustomMessage(checked: boolean) {
+	if (!checked) {
+		description.value = ''
+	}
+}
+
+onBeforeMount(() => {
+	if (!props.signerToEdit) {
+		return
+	}
+	displayName.value = props.signerToEdit.displayName ?? ''
+	description.value = props.signerToEdit.description ?? ''
+	enableCustomMessage.value = !!props.signerToEdit.description
+	identify.value = props.signerToEdit.identify ?? props.signerToEdit.signRequestId ?? ''
+	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
+		const method = props.signerToEdit.identifyMethods[0]
+		signer.value = {
+			id: method.value,
+			method: method.method,
+			displayName: props.signerToEdit.displayName,
+		}
+	}
+})
+
+defineExpose({
+	props,
+	t,
+	filesStore,
+	id,
+	nameHelperText,
+	nameHaveError,
+	displayName,
+	description,
+	enableCustomMessage,
+	identify,
+	signer,
+	signerSelected,
+	isNewSigner,
+	saveButtonText,
+	identifyMethodLabel,
+	showCustomMessage,
+	getMethodIcon,
+	updateSigner,
+	saveSigner,
+	onNameChange,
+	onToggleCustomMessage,
+})
 </script>
 
 <style lang="scss" scoped>

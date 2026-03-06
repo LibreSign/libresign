@@ -331,27 +331,35 @@ describe('AppFilesTab', () => {
 
 	describe('RULE: handleLibreSignFileChange routes to path or nodeId handler', () => {
 		it('uses path handler when path provided', async () => {
+			const mockStat = vi.fn().mockResolvedValue({
+				data: { id: 321, name: 'Path.pdf' },
+			})
+			getClientMock.mockReturnValue({ stat: mockStat } as Partial<import('webdav').WebDAVClient> as import('webdav').WebDAVClient)
 			wrapper = createWrapper()
-			wrapper.vm.handleLibreSignFileChangeWithPath = vi.fn()
 
 			await wrapper.vm.handleLibreSignFileChange(
 				{ path: '/Documents/file.pdf' },
 				'created'
 			)
 
-			expect(wrapper.vm.handleLibreSignFileChangeWithPath).toHaveBeenCalledWith(
-				'/Documents/file.pdf',
-				'created'
+			expect(mockStat).toHaveBeenCalledWith(
+				expect.stringContaining('/Documents/file.pdf'),
+				expect.any(Object)
 			)
+			expect(emit).toHaveBeenCalledWith('files:node:created', { id: 321, name: 'Path.pdf' })
 		})
 
 		it('uses current folder handler when only nodeId provided', async () => {
+			const mockStat = vi.fn().mockResolvedValue({
+				data: { id: 123, type: 'folder' },
+			})
+			getClientMock.mockReturnValue({ stat: mockStat } as Partial<import('webdav').WebDAVClient> as import('webdav').WebDAVClient)
 			wrapper = createWrapper()
-			wrapper.vm.handleLibreSignFileChangeAtCurretntFolder = vi.fn()
 
 			await wrapper.vm.handleLibreSignFileChange({ nodeId: 123 }, 'updated')
 
-			expect(wrapper.vm.handleLibreSignFileChangeAtCurretntFolder).toHaveBeenCalled()
+			expect(mockStat).toHaveBeenCalled()
+			expect(emit).toHaveBeenCalledWith('files:node:updated', { id: 123, type: 'folder' })
 		})
 
 		it('does nothing when not in files app', async () => {
@@ -359,12 +367,14 @@ describe('AppFilesTab', () => {
 				value: { pathname: '/apps/settings' },
 				writable: true,
 			})
+			const mockStat = vi.fn().mockResolvedValue({ data: { id: 1 } })
+			getClientMock.mockReturnValue({ stat: mockStat } as Partial<import('webdav').WebDAVClient> as import('webdav').WebDAVClient)
 			wrapper = createWrapper()
-			wrapper.vm.handleLibreSignFileChangeWithPath = vi.fn()
 
 			await wrapper.vm.handleLibreSignFileChange({ path: '/file.pdf' }, 'created')
 
-			expect(wrapper.vm.handleLibreSignFileChangeWithPath).not.toHaveBeenCalled()
+			expect(mockStat).not.toHaveBeenCalled()
+			expect(emit).not.toHaveBeenCalled()
 		})
 	})
 
@@ -427,32 +437,46 @@ describe('AppFilesTab', () => {
 	describe('RULE: handleEnvelopeRenamed updates title when matching UUID', () => {
 		it('updates sidebar title for matching envelope', () => {
 			filesStore.getFile = vi.fn().mockReturnValue({ uuid: 'abc123' })
+			const titleElement = document.createElement('div')
+			titleElement.className = 'app-sidebar-header__mainname'
+			document.body.appendChild(titleElement)
 			wrapper = createWrapper()
-			wrapper.vm.updateSidebarTitle = vi.fn()
 
 			wrapper.vm.handleEnvelopeRenamed({ uuid: 'abc123', name: 'New Name' })
 
-			expect(wrapper.vm.updateSidebarTitle).toHaveBeenCalledWith('New Name')
+			expect(titleElement.textContent).toBe('New Name')
+
+			document.body.removeChild(titleElement)
 		})
 
 		it('does nothing when UUID does not match', () => {
 			filesStore.getFile = vi.fn().mockReturnValue({ uuid: 'different' })
+			const titleElement = document.createElement('div')
+			titleElement.className = 'app-sidebar-header__mainname'
+			titleElement.textContent = 'Original'
+			document.body.appendChild(titleElement)
 			wrapper = createWrapper()
-			wrapper.vm.updateSidebarTitle = vi.fn()
 
 			wrapper.vm.handleEnvelopeRenamed({ uuid: 'abc123', name: 'New Name' })
 
-			expect(wrapper.vm.updateSidebarTitle).not.toHaveBeenCalled()
+			expect(titleElement.textContent).toBe('Original')
+
+			document.body.removeChild(titleElement)
 		})
 
 		it('does nothing when current file has no UUID', () => {
 			filesStore.getFile = vi.fn().mockReturnValue({ id: 1 })
+			const titleElement = document.createElement('div')
+			titleElement.className = 'app-sidebar-header__mainname'
+			titleElement.textContent = 'Original'
+			document.body.appendChild(titleElement)
 			wrapper = createWrapper()
-			wrapper.vm.updateSidebarTitle = vi.fn()
 
 			wrapper.vm.handleEnvelopeRenamed({ uuid: 'abc123', name: 'New Name' })
 
-			expect(wrapper.vm.updateSidebarTitle).not.toHaveBeenCalled()
+			expect(titleElement.textContent).toBe('Original')
+
+			document.body.removeChild(titleElement)
 		})
 	})
 })

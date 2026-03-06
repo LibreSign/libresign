@@ -41,8 +41,9 @@
 	</tr>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 
@@ -53,114 +54,103 @@ import { useFilesStore } from '../../store/files.js'
 import { useFilesSortingStore } from '../../store/filesSorting.js'
 import { useSelectionStore } from '../../store/selection.js'
 
-export default {
+defineOptions({
 	name: 'FilesListTableHeader',
+})
 
-	components: {
-		NcCheckboxRadioSwitch,
-		FilesListTableHeaderButton,
-	},
+defineProps<{
+	nodes: unknown[]
+}>()
 
-	props: {
-		nodes: {
-			type: Array,
-			required: true,
-		},
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		const filesSortingStore = useFilesSortingStore()
-		const selectionStore = useSelectionStore()
-		return {
-			t,
-			filesStore,
-			filesSortingStore,
-			selectionStore,
-		}
-	},
-	data() {
-		return {
-			columns: [
-				{
-					title: t('libresign', 'Status'),
-					id: 'status',
-					sort: true,
-				},
-				{
-					title: t('libresign', 'Signers'),
-					id: 'signers',
-					sort: true,
-				},
-				{
-					title: t('libresign', 'Created at'),
-					id: 'created_at',
-					sort: true,
-				},
-			],
-		}
-	},
-	computed: {
-		selectAllBind() {
-			const label = t('libresign', 'Toggle selection for all files')
-			return {
-				'aria-label': label,
-				'model-value': this.isAllSelected,
-				indeterminate: this.isSomeSelected,
-				title: label,
-			}
-		},
-		selectedNodes() {
-			return this.selectionStore.selected
-		},
-		isAllSelected() {
-			return this.selectedNodes.length === this.filesStore.ordered.length
-				&& this.filesStore.ordered.length > 0
-		},
-		isNoneSelected() {
-			return this.selectedNodes.length === 0
-		},
-		isSomeSelected() {
-			return !this.isAllSelected && !this.isNoneSelected
-		},
-	},
-	methods: {
-		// Returns the aria-sort value for a given column mode.
-		// Sortable columns that are not currently active must declare aria-sort="none"
-		// so screen readers announce that the column can be sorted.
-		// Non-sortable columns should have no aria-sort attribute at all (return null).
-		ariaSortForMode(mode, isSortable = true) {
-			if (!isSortable) {
-				return null
-			}
-			if (this.filesSortingStore.sortingMode === mode) {
-				return this.filesSortingStore.sortingDirection === 'asc' ? 'ascending' : 'descending'
-			}
-			return 'none'
-		},
-		classForColumn(column) {
-			return {
-				'files-list__column': true,
-				'files-list__column--sortable': !!column.sort,
-				'files-list__row-column-custom': true,
-				[`files-list__row-${column.id}`]: true,
-			}
-		},
-		onToggleAll(selected) {
-			if (selected) {
-				const selection = this.filesStore.ordered.map(id => Number(id))
-				logger.debug('Added all nodes to selection', { selection })
-				this.selectionStore.setLastIndex(null)
-				this.selectionStore.set(selection)
-			} else {
-				logger.debug('Cleared selection')
-				this.selectionStore.reset()
-			}
-		},
-		resetSelection() {
-			this.selectionStore.reset()
-		},
-	},
+type Column = {
+	title: string
+	id: string
+	sort?: boolean
 }
+
+const filesStore = useFilesStore()
+const filesSortingStore = useFilesSortingStore()
+const selectionStore = useSelectionStore()
+
+const columns = ref<Column[]>([
+	{
+		title: t('libresign', 'Status'),
+		id: 'status',
+		sort: true,
+	},
+	{
+		title: t('libresign', 'Signers'),
+		id: 'signers',
+		sort: true,
+	},
+	{
+		title: t('libresign', 'Created at'),
+		id: 'created_at',
+		sort: true,
+	},
+])
+
+const selectedNodes = computed(() => selectionStore.selected)
+const isAllSelected = computed(() => selectedNodes.value.length === filesStore.ordered.length && filesStore.ordered.length > 0)
+const isNoneSelected = computed(() => selectedNodes.value.length === 0)
+const isSomeSelected = computed(() => !isAllSelected.value && !isNoneSelected.value)
+const selectAllBind = computed(() => {
+	const label = t('libresign', 'Toggle selection for all files')
+	return {
+		'aria-label': label,
+		'model-value': isAllSelected.value,
+		indeterminate: isSomeSelected.value,
+		title: label,
+	}
+})
+
+function ariaSortForMode(mode: string, isSortable = true) {
+	if (!isSortable) {
+		return null
+	}
+	if (filesSortingStore.sortingMode === mode) {
+		return filesSortingStore.sortingDirection === 'asc' ? 'ascending' : 'descending'
+	}
+	return 'none'
+}
+
+function classForColumn(column: Column) {
+	return {
+		'files-list__column': true,
+		'files-list__column--sortable': !!column.sort,
+		'files-list__row-column-custom': true,
+		[`files-list__row-${column.id}`]: true,
+	}
+}
+
+function onToggleAll(selected: boolean) {
+	if (selected) {
+		const selection = filesStore.ordered.map((item: any) => Number(item))
+		logger.debug('Added all nodes to selection', { selection })
+		selectionStore.setLastIndex(null)
+		selectionStore.set(selection)
+	} else {
+		logger.debug('Cleared selection')
+		selectionStore.reset()
+	}
+}
+
+function resetSelection() {
+	selectionStore.reset()
+}
+
+defineExpose({
+	columns,
+	selectAllBind,
+	selectedNodes,
+	isAllSelected,
+	isNoneSelected,
+	isSomeSelected,
+	classForColumn,
+	ariaSortForMode,
+	onToggleAll,
+	resetSelection,
+})
 </script>
 
 <style scoped lang="scss">

@@ -31,8 +31,9 @@
 	</NcDialog>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import {
 	mdiCloudUpload,
@@ -50,108 +51,106 @@ import TextInput from './TextInput.vue'
 
 import { useSignatureElementsStore } from '../../store/signatureElements.js'
 
-export default {
+defineOptions({
 	name: 'Draw',
-	emits: ['close', 'save'],
-	components: {
-		NcDialog,
-		NcButton,
-		NcIconSvgWrapper,
-		TextInput,
-		Editor,
-		FileUpload,
-	},
-	props: {
-		drawEditor: {
-			type: Boolean,
-			required: false,
-			default: true,
-		},
-		textEditor: {
-			type: Boolean,
-			required: false,
-			default: false,
-		},
-		fileEditor: {
-			type: Boolean,
-			required: false,
-			default: false,
-		},
-		type: {
-			type: String,
-			required: true,
-		},
-	},
-	setup() {
-		const signatureElementsStore = useSignatureElementsStore()
-		return {
-			signatureElementsStore,
-			mdiPencil,
-			mdiText,
-			mdiCloudUpload,
-		}
-	},
-	data() {
-		return {
-			mounted: false,
-			activeTab: 'draw',
-		}
-	},
-	computed: {
-		size() {
-			return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'small'
-		},
-		availableTabs() {
-			const tabs = []
-			if (this.drawEditor) {
-				tabs.push({
-					id: 'draw',
-					label: this.t('libresign', 'Draw'),
-					icon: this.mdiPencil,
-				})
-			}
-			if (this.textEditor) {
-				tabs.push({
-					id: 'text',
-					label: this.t('libresign', 'Text'),
-					icon: this.mdiText,
-				})
-			}
-			if (this.fileEditor) {
-				tabs.push({
-					id: 'file',
-					label: this.t('libresign', 'Upload'),
-					icon: this.mdiCloudUpload,
-				})
-			}
-			return tabs
-		},
-	},
-	mounted() {
-		this.mounted = true
-		if (!this.availableTabs.find(tab => tab.id === this.activeTab)) {
-			this.activeTab = this.availableTabs[0]?.id || 'draw'
-		}
-		document.body.classList.add('libresign-modal-open')
-		document.documentElement.classList.add('libresign-modal-open')
-	},
-	beforeUnmount() {
-		document.body.classList.remove('libresign-modal-open')
-		document.documentElement.classList.remove('libresign-modal-open')
-	},
-	methods: {
-		t,
-		close() {
-			this.$emit('close')
-		},
-		async save(base64) {
-			this.signatureElementsStore.loadSignatures()
-			await this.signatureElementsStore.save(this.type, base64)
-			this.$emit('save')
-			this.close()
-		},
-	},
+})
+
+type AvailableTab = {
+	id: string
+	label: string
+	icon: string
 }
+
+const props = withDefaults(defineProps<{
+	drawEditor?: boolean
+	textEditor?: boolean
+	fileEditor?: boolean
+	type: string
+}>(), {
+	drawEditor: true,
+	textEditor: false,
+	fileEditor: false,
+})
+
+const emit = defineEmits<{
+	(event: 'close'): void
+	(event: 'save'): void
+}>()
+
+const signatureElementsStore = useSignatureElementsStore()
+const mounted = ref(false)
+const activeTab = ref('draw')
+
+const size = computed(() => {
+	return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'small'
+})
+
+const availableTabs = computed<AvailableTab[]>(() => {
+	const tabs: AvailableTab[] = []
+	if (props.drawEditor) {
+		tabs.push({
+			id: 'draw',
+			label: t('libresign', 'Draw'),
+			icon: mdiPencil,
+		})
+	}
+	if (props.textEditor) {
+		tabs.push({
+			id: 'text',
+			label: t('libresign', 'Text'),
+			icon: mdiText,
+		})
+	}
+	if (props.fileEditor) {
+		tabs.push({
+			id: 'file',
+			label: t('libresign', 'Upload'),
+			icon: mdiCloudUpload,
+		})
+	}
+	return tabs
+})
+
+function close() {
+	emit('close')
+}
+
+async function save(base64: string) {
+	signatureElementsStore.loadSignatures()
+	await signatureElementsStore.save(props.type, base64)
+	emit('save')
+	close()
+}
+
+onMounted(() => {
+	mounted.value = true
+	if (!availableTabs.value.find((tab) => tab.id === activeTab.value)) {
+		activeTab.value = availableTabs.value[0]?.id || 'draw'
+	}
+	document.body.classList.add('libresign-modal-open')
+	document.documentElement.classList.add('libresign-modal-open')
+})
+
+onBeforeUnmount(() => {
+	document.body.classList.remove('libresign-modal-open')
+	document.documentElement.classList.remove('libresign-modal-open')
+})
+
+defineExpose({
+	t,
+	props,
+	type: props.type,
+	signatureElementsStore,
+	mdiPencil,
+	mdiText,
+	mdiCloudUpload,
+	mounted,
+	activeTab,
+	size,
+	availableTabs,
+	close,
+	save,
+})
 </script>
 
 <style lang="scss" scoped>
