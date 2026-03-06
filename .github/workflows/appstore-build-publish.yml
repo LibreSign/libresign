@@ -161,7 +161,7 @@ jobs:
           mkdir -p build/tools/certificates/
           echo '${{ secrets.APP_PRIVATE_KEY }}' > build/tools/certificates/${{ env.APP_NAME }}.key
           ls -la build/tools/certificates/
-          make appstore
+          make appstore verify-appstore-package
 
       - name: Sign app
         run: |
