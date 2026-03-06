@@ -63,7 +63,7 @@
 				</div>
 			</div>
 			<div v-else class="infor-container">
-				<component :is="isEnvelope ? 'EnvelopeValidation' : 'FileValidation'"
+				<component :is="validationComponent"
 					:document="document"
 					:legal-information="legalInformation"
 					:document-valid-message="documentValidMessage"
@@ -175,6 +175,8 @@ const isAfterSigned = computed(() => history.state?.isAfterSigned ?? shouldFireA
 
 const isEnvelope = computed(() => document.value?.nodeType === 'envelope'
 	|| (Array.isArray(document.value?.files) && document.value.files.length > 0))
+
+const validationComponent = computed(() => (isEnvelope.value ? EnvelopeValidation : FileValidation))
 
 const canValidate = computed(() => {
 	if (!uuidToValidate.value) {
@@ -716,6 +718,7 @@ defineExpose({
 	signRequestUuidForProgress,
 	isAfterSigned,
 	isEnvelope,
+	validationComponent,
 	canValidate,
 	helperTextValidation,
 	size,
