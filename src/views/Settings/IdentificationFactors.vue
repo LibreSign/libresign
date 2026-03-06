@@ -43,94 +43,115 @@
 		</div>
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, watch } from 'vue'
 
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
-export default {
+defineOptions({
 	name: 'IdentificationFactors',
-	components: {
-		NcCheckboxRadioSwitch,
-		NcSettingsSection,
-	},
-	setup() {
-		const configureCheckStore = useConfigureCheckStore()
-		return { t, configureCheckStore }
-	},
-	computed: {
-		description() {
-			// TRANSLATORS Name of a section at "Administration Settings" of LibreSign that an admin can configure the ways that a person will be identified when accessing the link to sign a document.
-			return t('libresign', 'Ways to identify a person who will sign a document.')
-		},
-		isNoneEngine() {
-			return this.configureCheckStore.isNoneEngine
-		},
-		identifyMethods() {
-			return this.configureCheckStore.identifyMethods
-		},
-	},
-	mounted() {
-		this.updateSignatureMethodsEnabled()
-	},
-	watch: {
-		identifyMethods: {
-			handler() {
-				this.updateSignatureMethodsEnabled()
-			},
-			deep: true,
-		},
-	},
-	methods: {
-		updateSignatureMethodsEnabled() {
-			this.identifyMethods.forEach((identifyMethod) => {
-				if (!Object.hasOwn(identifyMethod, 'signatureMethodEnabled')) {
-					identifyMethod.signatureMethodEnabled = ''
-				}
-				if (identifyMethod.signatureMethodEnabled.length === 0) {
-					const signatureMethodEnabled = Object.keys(identifyMethod.signatureMethods)
-						.reduce((signatureMethodEnabled, signatureMethodName) => {
-							if (signatureMethodEnabled.length === 0 && identifyMethod.signatureMethods[signatureMethodName].enabled) {
-								signatureMethodEnabled = signatureMethodName
-							}
-							return signatureMethodEnabled
-						}, identifyMethod.signatureMethodEnabled)
-					if (signatureMethodEnabled.length > 0) {
-						identifyMethod.signatureMethodEnabled = signatureMethodEnabled
-					} else {
-						identifyMethod.signatureMethodEnabled = Object.keys(identifyMethod.signatureMethods)[0]
-					}
-				}
-				Object.keys(identifyMethod.signatureMethods).forEach(signatureMethodName => {
-					identifyMethod.signatureMethods[signatureMethodName].enabled
-						= identifyMethod.signatureMethodEnabled === signatureMethodName
-				})
-			})
-		},
-		save() {
-			this.updateSignatureMethodsEnabled()
-			// Get only enabled
-			let props = this.identifyMethods.filter(identifyMethod => identifyMethod.enabled)
-			// Remove label from signature method, we don't need to save this
-			props = JSON.parse(JSON.stringify(props))
-				.map(identifyMethod => {
-					Object.keys(identifyMethod.signatureMethods).forEach(id => {
-						Object.keys(identifyMethod.signatureMethods[id]).forEach(signatureMethdoPropName => {
-							if (signatureMethdoPropName === 'label') {
-								delete identifyMethod.signatureMethods[id][signatureMethdoPropName]
-							}
-						})
-					})
-					return identifyMethod
-				})
-			OCP.AppConfig.setValue('libresign', 'identify_methods',
-				JSON.stringify(props),
-			)
-		},
-	},
+})
+
+type SignatureMethod = {
+	enabled: boolean
+	label?: string
 }
+
+type IdentifyMethod = {
+	name: string
+	friendly_name: string
+	enabled: boolean
+	can_create_account?: boolean
+	mandatory?: boolean
+	signatureMethods: Record<string, SignatureMethod>
+	signatureMethodEnabled?: string
+}
+
+type ConfigureCheckStore = {
+	isNoneEngine: boolean
+	identifyMethods: IdentifyMethod[]
+}
+
+type AppConfigGlobal = {
+	AppConfig: {
+		setValue: (app: string, key: string, value: string) => void
+	}
+}
+
+const configureCheckStore = useConfigureCheckStore() as ConfigureCheckStore
+
+const description = computed(() => {
+	// TRANSLATORS Name of a section at "Administration Settings" of LibreSign that an admin can configure the ways that a person will be identified when accessing the link to sign a document.
+	return t('libresign', 'Ways to identify a person who will sign a document.')
+})
+
+const isNoneEngine = computed(() => configureCheckStore.isNoneEngine)
+const identifyMethods = computed(() => configureCheckStore.identifyMethods)
+
+function updateSignatureMethodsEnabled() {
+	identifyMethods.value.forEach((identifyMethod) => {
+		if (!Object.hasOwn(identifyMethod, 'signatureMethodEnabled')) {
+			identifyMethod.signatureMethodEnabled = ''
+		}
+
+		if (identifyMethod.signatureMethodEnabled.length === 0) {
+			const selectedSignatureMethod = Object.keys(identifyMethod.signatureMethods)
+				.reduce((currentSelection, signatureMethodName) => {
+					if (currentSelection.length === 0 && identifyMethod.signatureMethods[signatureMethodName].enabled) {
+						return signatureMethodName
+					}
+					return currentSelection
+				}, identifyMethod.signatureMethodEnabled)
+
+			identifyMethod.signatureMethodEnabled = selectedSignatureMethod.length > 0
+				? selectedSignatureMethod
+				: Object.keys(identifyMethod.signatureMethods)[0]
+		}
+
+		Object.keys(identifyMethod.signatureMethods).forEach((signatureMethodName) => {
+			identifyMethod.signatureMethods[signatureMethodName].enabled = identifyMethod.signatureMethodEnabled === signatureMethodName
+		})
+	})
+}
+
+function save() {
+	updateSignatureMethodsEnabled()
+
+	const props = JSON.parse(JSON.stringify(
+		identifyMethods.value.filter((identifyMethod) => identifyMethod.enabled),
+	)) as IdentifyMethod[]
+
+	props.forEach((identifyMethod) => {
+		Object.keys(identifyMethod.signatureMethods).forEach((id) => {
+			delete identifyMethod.signatureMethods[id].label
+		})
+	})
+
+	;(globalThis as typeof globalThis & { OCP: AppConfigGlobal }).OCP.AppConfig.setValue(
+		'libresign',
+		'identify_methods',
+		JSON.stringify(props),
+	)
+}
+
+onMounted(() => {
+	updateSignatureMethodsEnabled()
+})
+
+watch(identifyMethods, () => {
+	updateSignatureMethodsEnabled()
+}, { deep: true })
+
+defineExpose({
+	description,
+	isNoneEngine,
+	identifyMethods,
+	updateSignatureMethodsEnabled,
+	save,
+})
 </script>
 <style lang="scss" scoped>
 .settings-section{
