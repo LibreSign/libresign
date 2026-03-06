@@ -12,42 +12,38 @@
 		</NcCheckboxRadioSwitch>
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
-export default {
+defineOptions({
 	name: 'EnvelopeSettings',
-	components: {
-		NcSettingsSection,
-		NcCheckboxRadioSwitch,
-	},
-	data() {
-		return {
-			envelopeEnabled: false,
-		}
-	},
-	created() {
-		this.envelopeEnabled = loadState('libresign', 'envelope_enabled', true) === true
-	},
-	methods: {
-		t,
-		onEnvelopeToggle() {
-			this.saveEnvelopeEnabled()
+})
+
+const envelopeEnabled = ref(loadState('libresign', 'envelope_enabled', true) === true)
+
+function saveEnvelopeEnabled() {
+	OCP.AppConfig.setValue('libresign', 'envelope_enabled', envelopeEnabled.value ? '1' : '0', {
+		success: () => {
+			emit('envelope:changed')
 		},
-		saveEnvelopeEnabled() {
-			OCP.AppConfig.setValue('libresign', 'envelope_enabled', this.envelopeEnabled ? '1' : '0', {
-				success: () => {
-					emit('envelope:changed')
-				},
-			})
-		},
-	},
+	})
 }
+
+function onEnvelopeToggle() {
+	saveEnvelopeEnabled()
+}
+
+defineExpose({
+	envelopeEnabled,
+	onEnvelopeToggle,
+	saveEnvelopeEnabled,
+})
 </script>
