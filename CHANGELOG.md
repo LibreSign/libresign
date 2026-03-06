@@ -18,10 +18,24 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 13.1.2 - 2026-03-06
+
+### Fixes
+- fix: include dist assets in appstore package
+- ci: verify appstore package in release workflow
+- ci: verify appstore package in nightly release
+
 ## 13.1.1 - 2026-03-06
 
 ### Fixes
 - fix: include css assets in appstore package
+
+## 12.3.2 - 2026-03-06
+
+### Fixes
+- fix: include dist assets in appstore package
+- ci: verify appstore package in release workflow
+- ci: verify appstore package in nightly release
 
 ## 12.3.1 - 2026-03-06
 
