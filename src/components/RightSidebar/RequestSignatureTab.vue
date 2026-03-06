@@ -249,7 +249,7 @@
 			@close="showEnvelopeFilesDialog = false" />
 	</div>
 </template>
-<script>
+<script lang="ts">
 
 import { t } from '@nextcloud/l10n'
 
@@ -315,16 +315,6 @@ import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
-
-const iconMap = {
-	svgAccount,
-	svgEmail,
-	svgSignal,
-	svgSms,
-	svgTelegram,
-	svgWhatsapp,
-	svgXmpp,
-}
 
 export default {
 	name: 'RequestSignatureTab',
@@ -787,7 +777,16 @@ export default {
 			}
 		},
 		getSvgIcon(name) {
-			return iconMap[`svg${name.charAt(0).toUpperCase() + name.slice(1)}`] || iconMap.svgAccount
+			const iconByMethod = {
+				account: svgAccount,
+				email: svgEmail,
+				signal: svgSignal,
+				sms: svgSms,
+				telegram: svgTelegram,
+				whatsapp: svgWhatsapp,
+				xmpp: svgXmpp,
+			}
+			return iconByMethod[name] || svgAccount
 		},
 		canSignerActInOrder(signer) {
 			const method = signer.identifyMethods?.[0]?.method
