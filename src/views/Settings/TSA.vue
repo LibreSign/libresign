@@ -288,9 +288,10 @@ function handleSaveError(error: any) {
 		const mappingKey = errorMappings[message]
 			? message
 			: Object.keys(errorMappings).find(key => message.includes(key))
+		const mappedErrors = mappingKey ? errorMappings[mappingKey] : undefined
 
-		if (mappingKey) {
-			for (const { field, message: errorMessage } of errorMappings[mappingKey]) {
+		if (mappedErrors) {
+			for (const { field, message: errorMessage } of mappedErrors) {
 				setFieldError(field, errorMessage)
 			}
 		} else {
