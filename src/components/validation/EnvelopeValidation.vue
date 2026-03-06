@@ -158,17 +158,10 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { n, t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
-import NcListItem from '@nextcloud/vue/components/NcListItem'
-import NcButton from '@nextcloud/vue/components/NcButton'
-import NcActionButton from '@nextcloud/vue/components/NcActionButton'
-import NcAvatar from '@nextcloud/vue/components/NcAvatar'
-import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
-// eslint-disable-next-line import/no-named-as-default
-import NcRichText from '@nextcloud/vue/components/NcRichText'
+import { computed, watch } from 'vue'
 
 import {
 	mdiAccountMultiple,
@@ -183,90 +176,106 @@ import Moment from '@nextcloud/moment'
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
-import SignerDetails from './SignerDetails.vue'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
 
-export default {
+defineOptions({
 	name: 'EnvelopeValidation',
-	components: {
-		NcIconSvgWrapper,
-		NcListItem,
-		NcButton,
-		NcActionButton,
-		NcAvatar,
-		NcNoteCard,
-		NcRichText,
-		SignerDetails,
-		DocumentValidationDetails,
-	},
-	props: {
-		document: { type: Object, required: true },
-		legalInformation: { type: String, default: '' },
-		documentValidMessage: { type: String, default: null },
-		isAfterSigned: { type: Boolean, default: false },
-	},
-	setup() {
-		const { isTouchDevice } = useIsTouchDevice()
-		return {
-			isTouchDevice,
-			mdiPackageVariantClosed,
-			mdiFileMultiple,
-			mdiFilePdfBox,
-			mdiAccountMultiple,
-			mdiChevronDown,
-			mdiChevronUp,
-			mdiEye,
-			t,
-			n,
-		}
-	},
-	computed: {
-		documentStatus() {
-			return getStatusLabel(this.document.status)
-		},
-	},
-	watch: {
-		document(newDoc) {
-			this.initializeDocument(newDoc)
-		},
-	},
-	created() {
-		this.initializeDocument(this.document)
-	},
-	methods: {
-		initializeDocument(doc) {
-			doc.files?.forEach(file => {
-				file.opened = false
-				file.statusText = getStatusLabel(file.status)
-			})
-		},
-		dateFromSqlAnsi(date) {
-			return Moment(Date.parse(date)).format('LL LTS')
-		},
-		toggleDetail(signer) {
-			signer.opened = !signer.opened
-		},
-		toggleFileDetail(file) {
-			file.opened = !file.opened
-		},
-		getName(signer) {
-			return signer.displayName || signer.email || t('libresign', 'Unknown')
-		},
-		getSignerProgressText(signer) {
-			const progress = signer.documentsSignedCount || 0
-			const total = signer.totalDocuments || 0
-			return n('libresign', '{progress} of {total} document signed', '{progress} of {total} documents signed', total, { progress, total })
-		},
-		viewFile(file) {
-			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
-			openDocument({
-				fileUrl,
-				filename: file.name,
-				nodeId: file.nodeId,
-			})
-		},
-	},
+})
+
+type EnvelopeFile = {
+	status: string | number
+	opened?: boolean
+	statusText?: string
+	uuid?: string
+	name?: string
+	nodeId?: number
 }
+
+type EnvelopeSigner = {
+	opened?: boolean
+	displayName?: string
+	email?: string
+	documentsSignedCount?: number
+	totalDocuments?: number
+}
+
+type EnvelopeDocument = {
+	name?: string
+	status?: string | number
+	filesCount?: number
+	files?: EnvelopeFile[]
+	signers?: EnvelopeSigner[]
+	signedDate?: string
+}
+
+const props = withDefaults(defineProps<{
+	document: EnvelopeDocument
+	legalInformation?: string
+	documentValidMessage?: string | null
+	isAfterSigned?: boolean
+}>(), {
+	legalInformation: '',
+	documentValidMessage: null,
+	isAfterSigned: false,
+})
+
+const { isTouchDevice } = useIsTouchDevice()
+
+const documentStatus = computed(() => getStatusLabel(props.document.status))
+
+function initializeDocument(doc: EnvelopeDocument) {
+	doc.files?.forEach((file) => {
+		file.opened = false
+		file.statusText = getStatusLabel(file.status)
+	})
+}
+
+function dateFromSqlAnsi(date: string) {
+	return Moment(Date.parse(date)).format('LL LTS')
+}
+
+function toggleDetail(signer: EnvelopeSigner) {
+	signer.opened = !signer.opened
+}
+
+function toggleFileDetail(file: EnvelopeFile) {
+	file.opened = !file.opened
+}
+
+function getName(signer: EnvelopeSigner) {
+	return signer.displayName || signer.email || t('libresign', 'Unknown')
+}
+
+function getSignerProgressText(signer: EnvelopeSigner) {
+	const progress = signer.documentsSignedCount || 0
+	const total = signer.totalDocuments || 0
+	return n('libresign', '{progress} of {total} document signed', '{progress} of {total} documents signed', total, { progress, total })
+}
+
+function viewFile(file: EnvelopeFile) {
+	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
+	openDocument({
+		fileUrl,
+		filename: file.name,
+		nodeId: file.nodeId,
+	})
+}
+
+watch(() => props.document, (newDoc) => {
+	initializeDocument(newDoc)
+}, { immediate: true })
+
+defineExpose({
+	isTouchDevice,
+	documentStatus,
+	initializeDocument,
+	dateFromSqlAnsi,
+	toggleDetail,
+	toggleFileDetail,
+	getName,
+	getSignerProgressText,
+	viewFile,
+})
 </script>
 
 <style lang="scss" scoped>
