@@ -235,11 +235,9 @@ describe('MarkdownEditor', () => {
 			wrapper = createWrapper()
 			await flushPromises()
 
-			// Test that syncHistoryState can be called (it's mocked in createWrapper)
-			wrapper.vm.syncHistoryState = vi.fn()
-			wrapper.vm.syncHistoryState({ doc: { length: 10 } })
-
-			expect(wrapper.vm.syncHistoryState).toHaveBeenCalled()
+			expect(wrapper.vm.canUndo).toBe(false)
+			expect(wrapper.vm.canRedo).toBe(false)
+			expect(typeof wrapper.vm.syncHistoryState).toBe('function')
 		})
 	})
 
