@@ -4,53 +4,65 @@
  */
 
 import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
 
-export const useSidebarStore = defineStore('sidebar', {
-	state: () => ({
-		show: false,
-		activeTab: '',
-		sidebarRoutes: ['fileslist', 'SignPDF', 'SignPDFExternal', 'ValidationFile', 'IdDocsApprove'],
-	}),
+export const useSidebarStore = defineStore('sidebar', () => {
+	const show = ref(false)
+	const activeTab = ref('')
+	const sidebarRoutes = ref(['fileslist', 'SignPDF', 'SignPDFExternal', 'ValidationFile', 'IdDocsApprove'])
 
-	getters: {
-		canShow() {
-			return this.show === false && this.activeTab.length > 0
-		},
-		isVisible() {
-			return this.show === true && this.activeTab.length > 0
-		},
-	},
+	const canShow = computed(() => show.value === false && activeTab.value.length > 0)
+	const isVisible = computed(() => show.value === true && activeTab.value.length > 0)
 
-	actions: {
-		showSidebar() {
-			this.show = true
-		},
-		activeSignTab() {
-			this.activeTab = 'sign-tab'
-			this.showSidebar()
-		},
-		activeRequestSignatureTab() {
-			this.activeTab = 'request-signature-tab'
-			this.showSidebar()
-		},
-		setActiveTab(id) {
-			this.activeTab = id ?? ''
-			if (id) {
-				this.showSidebar()
-			} else {
-				this.hideSidebar()
-			}
-		},
-		hideSidebar() {
-			this.show = false
-		},
-		handleRouteChange(routeName) {
-			if (routeName && !this.sidebarRoutes.includes(routeName)) {
-				this.hideSidebar()
-			}
-		},
-		toggleSidebar() {
-			this.show = !this.show
-		},
-	},
+	const showSidebar = () => {
+		show.value = true
+	}
+
+	const activeSignTab = () => {
+		activeTab.value = 'sign-tab'
+		showSidebar()
+	}
+
+	const activeRequestSignatureTab = () => {
+		activeTab.value = 'request-signature-tab'
+		showSidebar()
+	}
+
+	const setActiveTab = (id) => {
+		activeTab.value = id ?? ''
+		if (id) {
+			showSidebar()
+		} else {
+			hideSidebar()
+		}
+	}
+
+	const hideSidebar = () => {
+		show.value = false
+	}
+
+	const handleRouteChange = (routeName) => {
+		if (routeName && !sidebarRoutes.value.includes(routeName)) {
+			hideSidebar()
+		}
+	}
+
+	const toggleSidebar = () => {
+		show.value = !show.value
+	}
+
+	return {
+		show,
+		activeTab,
+		sidebarRoutes,
+		canShow,
+		isVisible,
+		showSidebar,
+		activeSignTab,
+		activeRequestSignatureTab,
+		setActiveTab,
+		hideSidebar,
+		handleRouteChange,
+		toggleSidebar,
+	}
 })
