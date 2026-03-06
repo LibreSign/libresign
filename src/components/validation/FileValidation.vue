@@ -23,45 +23,28 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
 import { t } from '@nextcloud/l10n'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import { mdiInformationSlabCircle } from '@mdi/js'
 
-export default {
+defineOptions({
 	name: 'FileValidation',
-	components: {
-		DocumentValidationDetails,
-		NcIconSvgWrapper,
-		NcNoteCard,
-	},
-	props: {
-		document: {
-			type: Object,
-			required: true,
-		},
-		legalInformation: {
-			type: String,
-			default: '',
-		},
-		documentValidMessage: {
-			type: String,
-			default: '',
-		},
-		isAfterSigned: {
-			type: Boolean,
-			default: false,
-		},
-	},
-	setup() {
-		return {
-			t,
-			mdiInformationSlabCircle,
-		}
-	},
+})
+
+type ValidationDocument = {
+	name?: string
+	[key: string]: unknown
 }
+
+defineProps<{
+	document: ValidationDocument
+	legalInformation?: string
+	documentValidMessage?: string
+	isAfterSigned?: boolean
+}>()
 </script>
 
 <style lang="scss" scoped>
