@@ -10,28 +10,28 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed } from 'vue'
+
 import SidebarToggle from './SidebarToggle.vue'
 
-export default {
+defineOptions({
 	name: 'TopBar',
-	components: {
-		SidebarToggle,
-	},
-	props: {
-		sidebarToggle: {
-			type: Boolean,
-			default: false,
-		},
-	},
-	computed: {
-		topBarStyle() {
-			return {
-				'--original-color-main-background': window.getComputedStyle(document.body).getPropertyValue('--color-main-background'),
-			}
-		},
-	},
-}
+})
+
+withDefaults(defineProps<{
+	sidebarToggle?: boolean
+}>(), {
+	sidebarToggle: false,
+})
+
+const topBarStyle = computed(() => ({
+	'--original-color-main-background': window.getComputedStyle(document.body).getPropertyValue('--color-main-background'),
+}))
+
+defineExpose({
+	topBarStyle,
+})
 </script>
 
 <style lang="scss" scoped>
