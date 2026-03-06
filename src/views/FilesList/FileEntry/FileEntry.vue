@@ -52,8 +52,9 @@
 	</tr>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { getCurrentInstance, ref } from 'vue'
 
 import { showSuccess } from '@nextcloud/dialogs'
 import NcDateTime from '@nextcloud/vue/components/NcDateTime'
@@ -69,56 +70,52 @@ import FileEntryMixin from './FileEntryMixin.js'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
 
-export default {
+defineOptions({
 	name: 'FileEntry',
-	components: {
-		NcDateTime,
-		FileEntryActions,
-		FileEntryCheckbox,
-		FileEntryName,
-		FileEntryPreview,
-		FileEntrySigners,
-		FileEntryStatus,
-	},
-	mixins: [
-		FileEntryMixin,
-	],
-	setup() {
-		const actionsMenuStore = useActionsMenuStore()
-		const filesStore = useFilesStore()
-		return {
-			t,
-			actionsMenuStore,
-			filesStore,
-		}
-	},
-	data() {
-		return {
-			isRenaming: false,
-			renamingSaving: false,
-		}
-	},
-	methods: {
-		async onRename(newName) {
-			const oldName = this.source.name
-			this.renamingSaving = true
-			try {
-				await this.$refs.actions.doRename(newName)
-				this.$refs.name?.stopRenaming?.()
-				showSuccess(t('libresign', 'Renamed "{oldName}" to "{newName}"', {
-					oldName,
-					newName,
-				}))
-			} finally {
-				this.renamingSaving = false
-			}
-		},
-		onStartRename() {
-			this.$refs.name?.startRenaming?.()
-		},
-		onFileRenaming(isRenaming) {
-			this.isRenaming = isRenaming
-		},
-	},
+	mixins: [FileEntryMixin],
+})
+
+const actionsMenuStore = useActionsMenuStore()
+const filesStore = useFilesStore()
+const isRenaming = ref(false)
+const renamingSaving = ref(false)
+const instance = getCurrentInstance()
+
+function getVm() {
+	return instance?.proxy as any
 }
+
+async function onRename(newName: string) {
+	const vm = getVm()
+	const oldName = vm.source.name
+	renamingSaving.value = true
+	try {
+		await vm.$refs.actions.doRename(newName)
+		vm.$refs.name?.stopRenaming?.()
+		showSuccess(t('libresign', 'Renamed "{oldName}" to "{newName}"', {
+			oldName,
+			newName,
+		}))
+	} finally {
+		renamingSaving.value = false
+	}
+}
+
+function onStartRename() {
+	getVm().$refs.name?.startRenaming?.()
+}
+
+function onFileRenaming(nextIsRenaming: boolean) {
+	isRenaming.value = nextIsRenaming
+}
+
+defineExpose({
+	actionsMenuStore,
+	filesStore,
+	isRenaming,
+	renamingSaving,
+	onRename,
+	onStartRename,
+	onFileRenaming,
+})
 </script>
