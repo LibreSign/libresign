@@ -52,8 +52,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, ref } from 'vue'
 import {
 	mdiDelete,
 	mdiDraw,
@@ -71,75 +72,78 @@ import PreviewSignature from '../../../components/PreviewSignature/PreviewSignat
 
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 
-export default {
+defineOptions({
 	name: 'Signature',
-	components: {
-		Draw,
-		NcActions,
-		NcActionButton,
-		NcIconSvgWrapper,
-		PreviewSignature,
-	},
-	props: {
-		type: {
-			type: String,
-			required: true,
-		},
-	},
-	setup() {
-		const signatureElementsStore = useSignatureElementsStore()
-		return {
-			signatureElementsStore,
-			mdiDelete,
-			mdiDraw,
-		}
-	},
-	data: () => ({
-		isEditing: false,
-		isSignatureLoaded: false,
-		signatureExists: true,
-	}),
-	computed: {
-		hasSignature() {
-			return this.signatureElementsStore.hasSignatureOfType(this.type) && this.signatureExists
-		},
-		imgSrc() {
-			if (this.signatureElementsStore.signs[this.type]?.value?.startsWith('data:')) {
-				return this.signatureElementsStore.signs[this.type].value
-			}
-			return `${this.signatureElementsStore.signs[this.type].file.url}&_t=${Date.now()}`
-		},
-	},
-	methods: {
-		t,
-		signatureLoaded(success) {
-			this.isSignatureLoaded = success
-			this.signatureExists = success
-		},
-		edit() {
-			this.isEditing = true
-		},
-		async removeSignature() {
-			await this.signatureElementsStore.delete(this.type)
-			if (this.signatureElementsStore.success.length) {
-				showSuccess(this.signatureElementsStore.success)
-			} else if (this.signatureElementsStore.error?.message) {
-				showError(this.signatureElementsStore.error.message)
-			}
-		},
-		close() {
-			this.isEditing = false
-		},
-		save() {
-			if (this.signatureElementsStore.success.length) {
-				showSuccess(this.signatureElementsStore.success)
-			} else if (this.signatureElementsStore.error?.message) {
-				showError(this.signatureElementsStore.error.message)
-			}
-			this.close()
-		},
-	},
+})
+
+const props = defineProps<{
+	type: string
+}>()
+
+const signatureElementsStore = useSignatureElementsStore()
+
+const isEditing = ref(false)
+const isSignatureLoaded = ref(false)
+const signatureExists = ref(true)
+
+const hasSignature = computed(() => {
+	return signatureElementsStore.hasSignatureOfType(props.type) && signatureExists.value
+})
+
+const imgSrc = computed(() => {
+	if (signatureElementsStore.signs[props.type]?.value?.startsWith('data:')) {
+		return signatureElementsStore.signs[props.type].value
+	}
+	return `${signatureElementsStore.signs[props.type].file.url}&_t=${Date.now()}`
+})
+
+function signatureLoaded(success: boolean) {
+	isSignatureLoaded.value = success
+	signatureExists.value = success
 }
+
+function edit() {
+	isEditing.value = true
+}
+
+async function removeSignature() {
+	await signatureElementsStore.delete(props.type)
+	if (signatureElementsStore.success.length) {
+		showSuccess(signatureElementsStore.success)
+	} else if (signatureElementsStore.error?.message) {
+		showError(signatureElementsStore.error.message)
+	}
+}
+
+function close() {
+	isEditing.value = false
+}
+
+function save() {
+	if (signatureElementsStore.success.length) {
+		showSuccess(signatureElementsStore.success)
+	} else if (signatureElementsStore.error?.message) {
+		showError(signatureElementsStore.error.message)
+	}
+	close()
+}
+
+defineExpose({
+	signatureElementsStore,
+	mdiDelete,
+	mdiDraw,
+	isEditing,
+	isSignatureLoaded,
+	signatureExists,
+	hasSignature,
+	imgSrc,
+	t,
+	signatureLoaded,
+	edit,
+	removeSignature,
+	close,
+	save,
+})
 </script>
 
 <style lang="scss" scoped>
