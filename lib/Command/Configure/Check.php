@@ -9,8 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Configure;
 
 use OC\Core\Command\Base;
-use OCA\Libresign\Service\Install\ConfigureCheckService;
-use OCP\IConfig;
+use OCP\SetupCheck\ISetupCheckManager;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableCell;
 use Symfony\Component\Console\Helper\TableCellStyle;
@@ -20,8 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Check extends Base {
 	public function __construct(
-		private ConfigureCheckService $configureCheckService,
-		private IConfig $config,
+		private ContainerInterface $container,
 	) {
 		parent::__construct();
 	}
@@ -49,31 +48,52 @@ class Check extends Base {
 		$certificate = $input->getOption('certificate');
 		$all = (!$sign && !$certificate);
 
-		$result = [];
-		if ($all) {
-			$result = $this->configureCheckService->checkAll();
-		} else {
-			if ($sign) {
-				$result = array_merge($result, $this->configureCheckService->checkSign());
-			}
-			if ($certificate) {
-				$result = array_merge($result, $this->configureCheckService->checkCertificate());
+		$checkManager = $this->container->get(ISetupCheckManager::class);
+		$allResults = $checkManager->runAll();
+
+		$filteredRows = [];
+
+		foreach ($allResults as $category => $checks) {
+			foreach ($checks as $checkName => $result) {
+
+				if (!str_starts_with($checkName, 'OCA\\Libresign\\SetupCheck\\')) {
+					continue;
+				}
+
+				$includeCategory = $all
+					|| ($sign && $category === 'system')
+					|| ($certificate && $category === 'security');
+
+				if (!$includeCategory) {
+					continue;
+				}
+
+				$status = $this->mapSeverityToStatus($result->getSeverity());
+				$shortName = substr($checkName, strrpos($checkName, '\\') + 1);
+				$resource = str_replace('SetupCheck', '', $shortName);
+
+				$filteredRows[] = [
+					'status' => $status,
+					'resource' => $resource,
+					'message' => $result->getDescription(),
+					'tip' => $result->getLinkToDoc() ?? '',
+				];
 			}
 		}
 
-		if (count($result)) {
+		if (!empty($filteredRows)) {
 			$table = new Table($output);
 			$table->setColumnMaxWidth(3, 40);
-			foreach ($result as $row) {
+			foreach ($filteredRows as $row) {
 				$table->addRow([
-					new TableCell($row->getStatus(), ['style' => new TableCellStyle([
-						'bg' => $this->getStatusColor($row->getStatus()),
+					new TableCell($row['status'], ['style' => new TableCellStyle([
+						'bg' => $this->getStatusColor($row['status']),
 						'fg' => 'black',
 						'align' => 'center',
 					])]),
-					$row->getResource(),
-					$row->getMessage(),
-					$row->getTip(),
+					$row['resource'],
+					$row['message'],
+					$row['tip'],
 				]);
 			}
 			$table
@@ -86,7 +106,17 @@ class Check extends Base {
 				->setStyle('symfony-style-guide')
 				->render();
 		}
+
 		return 0;
+	}
+
+	private function mapSeverityToStatus(string $severity): string {
+		return match ($severity) {
+			'error' => 'error',
+			'warning' => 'info',
+			'success' => 'success',
+			default => 'error',
+		};
 	}
 
 	private function getStatusColor($status): string {
