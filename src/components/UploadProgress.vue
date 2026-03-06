@@ -24,8 +24,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed } from 'vue'
 
 import { mdiCancel } from '@mdi/js'
 
@@ -33,64 +34,53 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcProgressBar from '@nextcloud/vue/components/NcProgressBar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-export default {
+defineOptions({
 	name: 'UploadProgress',
-	components: {
-		NcButton,
-		NcProgressBar,
-		NcIconSvgWrapper,
-	},
-	props: {
-		isUploading: {
-			type: Boolean,
-			required: true,
-		},
-		uploadProgress: {
-			type: Number,
-			default: 0,
-		},
-		uploadedBytes: {
-			type: Number,
-			default: 0,
-		},
-		totalBytes: {
-			type: Number,
-			default: 0,
-		},
-		uploadStartTime: {
-			type: Number,
-			default: null,
-		},
-	},
-	emits: ['cancel'],
-	setup() {
-		return {
-			mdiCancel,
-		}
-	},
-	computed: {
-		uploadEta() {
-			if (!this.isUploading || !this.uploadStartTime || this.uploadedBytes === 0) {
-				return ''
-			}
+})
 
-			const elapsed = Date.now() - this.uploadStartTime
-			const rate = this.uploadedBytes / elapsed // bytes por ms
-			const remaining = this.totalBytes - this.uploadedBytes
-			const eta = remaining / rate // ms restantes
+defineEmits<{
+	(e: 'cancel'): void
+}>()
 
-			if (eta < 1000) {
-				return t('libresign', 'a few seconds left')
-			} else if (eta < 60000) {
-				const seconds = Math.ceil(eta / 1000)
-				return t('libresign', '{seconds} seconds left', { seconds })
-			} else {
-				const minutes = Math.ceil(eta / 60000)
-				return t('libresign', '{minutes} minutes left', { minutes })
-			}
-		},
-	},
-}
+const props = withDefaults(defineProps<{
+	isUploading: boolean
+	uploadProgress?: number
+	uploadedBytes?: number
+	totalBytes?: number
+	uploadStartTime?: number | null
+}>(), {
+	uploadProgress: 0,
+	uploadedBytes: 0,
+	totalBytes: 0,
+	uploadStartTime: null,
+})
+
+const uploadEta = computed(() => {
+	if (!props.isUploading || !props.uploadStartTime || props.uploadedBytes === 0) {
+		return ''
+	}
+
+	const elapsed = Date.now() - props.uploadStartTime
+	const rate = props.uploadedBytes / elapsed
+	const remaining = props.totalBytes - props.uploadedBytes
+	const eta = remaining / rate
+
+	if (eta < 1000) {
+		return t('libresign', 'a few seconds left')
+	}
+
+	if (eta < 60000) {
+		const seconds = Math.ceil(eta / 1000)
+		return t('libresign', '{seconds} seconds left', { seconds })
+	}
+
+	const minutes = Math.ceil(eta / 60000)
+	return t('libresign', '{minutes} minutes left', { minutes })
+})
+
+defineExpose({
+	uploadEta,
+})
 </script>
 
 <style lang="scss" scoped>
