@@ -83,6 +83,7 @@ import '@nextcloud/password-confirmation/style.css'
 
 export default {
 	name: 'CertificatePolicy',
+	emits: ['certificate-policy-valid'],
 	components: {
 		NcButton,
 		NcNoteCard,
