@@ -39,106 +39,96 @@
 	</component>
 </template>
 
-<script>
+<script setup lang="ts">
 
 import { t } from '@nextcloud/l10n'
+import { computed, nextTick, ref, watch } from 'vue'
 
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-export default {
+defineOptions({
 	name: 'FileEntryName',
+})
 
-	components: {
-		NcTextField,
-	},
-	props: {
-		/**
-		 * The filename without extension
-		 */
-		basename: {
-			type: String,
-			required: true,
-		},
-		/**
-		 * The extension of the filename
-		 */
-		extension: {
-			type: String,
-			required: true,
-		},
-	},
-
-	emits: ['rename', 'update:basename', 'renaming'],
-
-	setup() {
-		return {
-			t,
-		}
-	},
-
-	data() {
-		return {
-			isRenaming: false,
-			newName: '',
-		}
-	},
-
-	computed: {
-		linkTo() {
-			return {
-				is: 'button',
-				params: {
-					'aria-label': this.basename,
-					title: this.basename,
-					tabindex: '0',
-				},
-			}
-		},
-	},
-	watch: {
-		basename(newVal) {
-			if (!this.isRenaming) {
-				this.newName = newVal
-			}
-		},
-	},
-	methods: {
-		startRenaming() {
-			this.isRenaming = true
-			this.$emit('renaming', true)
-			this.newName = this.basename
-			this.$nextTick(() => {
-				const input = this.$refs.renameInput?.$el?.querySelector('input')
-				if (input) {
-					input.focus()
-					input.setSelectionRange(0, this.basename.length)
-				}
-			})
-		},
-
-		stopRenaming() {
-			this.isRenaming = false
-			this.$emit('renaming', false)
-			this.newName = ''
-		},
-
-		async onRename() {
-			const trimmedName = this.newName.trim()
-
-			if (!trimmedName || trimmedName.length < 1) {
-				this.stopRenaming()
-				return
-			}
-
-			if (trimmedName === this.basename) {
-				this.stopRenaming()
-				return
-			}
-
-			this.$emit('rename', trimmedName)
-		},
-	},
+type RenameInputRef = {
+	$el?: {
+		querySelector: (selector: string) => HTMLInputElement | null
+	}
 }
+
+const props = defineProps<{
+	basename: string
+	extension: string
+}>()
+
+const emit = defineEmits<{
+	rename: [name: string]
+	'update:basename': [name: string]
+	renaming: [value: boolean]
+}>()
+
+const renameInput = ref<RenameInputRef | null>(null)
+const isRenaming = ref(false)
+const newName = ref('')
+
+const linkTo = computed(() => ({
+	is: 'button',
+	params: {
+		'aria-label': props.basename,
+		title: props.basename,
+		tabindex: '0',
+	},
+}))
+
+watch(() => props.basename, (newValue) => {
+	if (!isRenaming.value) {
+		newName.value = newValue
+	}
+})
+
+async function startRenaming() {
+	isRenaming.value = true
+	emit('renaming', true)
+	newName.value = props.basename
+	await nextTick()
+	const input = renameInput.value?.$el?.querySelector('input')
+	if (input) {
+		input.focus()
+		input.setSelectionRange(0, props.basename.length)
+	}
+}
+
+function stopRenaming() {
+	isRenaming.value = false
+	emit('renaming', false)
+	newName.value = ''
+}
+
+async function onRename() {
+	const trimmedName = newName.value.trim()
+
+	if (!trimmedName || trimmedName.length < 1) {
+		stopRenaming()
+		return
+	}
+
+	if (trimmedName === props.basename) {
+		stopRenaming()
+		return
+	}
+
+	emit('rename', trimmedName)
+}
+
+defineExpose({
+	isRenaming,
+	newName,
+	linkTo,
+	startRenaming,
+	stopRenaming,
+	onRename,
+	renameInput,
+})
 </script>
 
 <style scoped lang="scss">
