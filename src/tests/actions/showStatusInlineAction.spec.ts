@@ -8,10 +8,12 @@ import type { MockedFunction } from 'vitest'
 
 describe('showStatusInlineAction', () => {
 	type FileNode = {
-		fileid: number
+		fileid?: number
+		id?: number
 		name?: string
 		attributes?: Record<string, number>
 		mime?: string
+		mimetype?: string
 		type?: string
 	}
 
@@ -151,6 +153,19 @@ describe('showStatusInlineAction', () => {
 			})
 			expect(result).toBe('original file')
 		})
+
+		it('uses id fallback when fileid is unavailable', () => {
+			const result = action.title({
+				nodes: [{
+					id: 456,
+					attributes: {
+						'libresign-signed-node-id': 456,
+						'libresign-signature-status': 3,
+					},
+				}],
+			})
+			expect(result).toBe('Status 3')
+		})
 	})
 
 	describe('iconSvgInline', () => {
@@ -253,6 +268,22 @@ describe('showStatusInlineAction', () => {
 				nodes: [{
 					fileid: 1,
 					mime: 'application/pdf',
+					attributes: {
+						'libresign-signature-status': 3,
+					},
+				}],
+			})
+
+			expect(result).toBe(true)
+		})
+
+		it('returns true for PDF when only mimetype is available', () => {
+			mockLoadState.mockReturnValue(true)
+
+			const result = action.enabled({
+				nodes: [{
+					fileid: 1,
+					mimetype: 'application/pdf',
 					attributes: {
 						'libresign-signature-status': 3,
 					},

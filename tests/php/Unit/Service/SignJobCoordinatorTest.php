@@ -331,4 +331,20 @@ class SignJobCoordinatorTest extends TestCase {
 			'visibleElements' => [],
 		]);
 	}
+
+	public function testRunSignFileWithEmptyArgumentDoesNotDeleteCredentials(): void {
+		$this->credentialsManager->expects($this->never())
+			->method('delete');
+
+		$this->coordinator->runSignFile([]);
+		$this->addToAssertionCount(1);
+	}
+
+	public function testRunSignSingleFileWithEmptyArgumentDoesNotDeleteCredentials(): void {
+		$this->credentialsManager->expects($this->never())
+			->method('delete');
+
+		$this->coordinator->runSignSingleFile([]);
+		$this->addToAssertionCount(1);
+	}
 }
