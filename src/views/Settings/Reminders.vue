@@ -124,7 +124,6 @@ export default {
 	},
 	watch: {
 		reminderState(reminderState) {
-			this.reminderState = reminderState
 			if (!reminderState) {
 				this.reminderDaysBefore = 0
 				this.reminderDaysBetween = 0
