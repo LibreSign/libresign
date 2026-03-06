@@ -4,6 +4,7 @@
  */
 
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
@@ -12,46 +13,48 @@ import { generateOcsUrl } from '@nextcloud/router'
 
 const DEFAULT_SORTING_DIRECTION = 'desc'
 
-export const useFilesSortingStore = defineStore('filesSorting', {
-	state: () => {
-		const initialSorting = loadState('libresign', 'sorting', { sorting_mode: 'created_at', sorting_direction: DEFAULT_SORTING_DIRECTION })
-		return {
-			sortingMode: initialSorting.sorting_mode || 'created_at',
-			sortingDirection: initialSorting.sorting_direction || DEFAULT_SORTING_DIRECTION,
+export const useFilesSortingStore = defineStore('filesSorting', () => {
+	const initialSorting = loadState('libresign', 'sorting', { sorting_mode: 'created_at', sorting_direction: DEFAULT_SORTING_DIRECTION })
+	const sortingMode = ref(initialSorting.sorting_mode || 'created_at')
+	const sortingDirection = ref(initialSorting.sorting_direction || DEFAULT_SORTING_DIRECTION)
+
+	const saveSorting = async () => {
+		try {
+			await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_sorting_mode' }), {
+				value: sortingMode.value,
+			})
+			await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_sorting_direction' }), {
+				value: sortingDirection.value,
+			})
+		} catch (error) {
+			console.error('Failed to save sorting:', error)
 		}
-	},
+	}
 
-	actions: {
-		toggleSortingDirection() {
-			this.sortingDirection = this.sortingDirection === 'asc' ? 'desc' : 'asc'
-			this.saveSorting()
-			emit('libresign:sorting:update')
-		},
+	const toggleSortingDirection = async () => {
+		sortingDirection.value = sortingDirection.value === 'asc' ? 'desc' : 'asc'
+		await saveSorting()
+		emit('libresign:sorting:update')
+	}
 
-		toggleSortBy(key) {
-			// If we're already sorting by this key, flip the direction
-			if (this.sortingMode === key) {
-				this.toggleSortingDirection()
-				return
-			}
-			// else sort ASC by this new key
-			this.sortingMode = key
-			this.sortingDirection = 'asc'
-			this.saveSorting()
-			emit('libresign:sorting:update')
-		},
+	const toggleSortBy = async (key) => {
+		// If we're already sorting by this key, flip the direction
+		if (sortingMode.value === key) {
+			await toggleSortingDirection()
+			return
+		}
+		// else sort ASC by this new key
+		sortingMode.value = key
+		sortingDirection.value = 'asc'
+		await saveSorting()
+		emit('libresign:sorting:update')
+	}
 
-		async saveSorting() {
-			try {
-				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_sorting_mode' }), {
-					value: this.sortingMode,
-				})
-				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_sorting_direction' }), {
-					value: this.sortingDirection,
-				})
-			} catch (error) {
-				console.error('Failed to save sorting:', error)
-			}
-		},
-	},
+	return {
+		sortingMode,
+		sortingDirection,
+		toggleSortingDirection,
+		toggleSortBy,
+		saveSorting,
+	}
 })
