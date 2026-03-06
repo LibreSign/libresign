@@ -52,11 +52,12 @@
 	</NcSettingsSection>
 </template>
 
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
@@ -64,128 +65,130 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSavingIndicatorIcon from '@nextcloud/vue/components/NcSavingIndicatorIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
-export default {
+defineOptions({
 	name: 'DocMDP',
-	constants: {
-		PREFERRED_DEFAULT_LEVEL: 2,
-	},
-	components: {
-		NcLoadingIcon,
-		NcNoteCard,
-		NcSettingsSection,
-		NcCheckboxRadioSwitch,
-		NcSavingIndicatorIcon,
-	},
-	data() {
-		return {
-			enabled: false,
-			selectedLevel: null,
-			availableLevels: [],
-			loading: false,
-			errorMessage: '',
-			saved: false,
-			showErrorIcon: false,
-		}
-	},
-	computed: {
-		name() {
-			// TRANSLATORS DocMDP (Document Modification Detection and Prevention) is a PDF specification extension that allows setting certification levels for digitally signed documents. It controls what types of changes are allowed after signing and ensures viewers can detect unauthorized modifications.
-			return t('libresign', 'PDF certification (DocMDP)')
-		},
-		selectedLevelValue: {
-			get() {
-				return String(this.selectedLevel?.value ?? 0)
-			},
-			set(value) {
-				const numericValue = Number(value)
-				this.selectedLevel = this.availableLevels.find(level => level.value === numericValue) ?? this.availableLevels[0] ?? null
-			},
-		},
-	},
-	async mounted() {
-		this.loadConfig()
-	},
-	methods: {
-		t,
-		getPreferredDefaultLevel() {
-			return this.availableLevels.find(level => level.value === this.$options.constants.PREFERRED_DEFAULT_LEVEL)
-				?? this.availableLevels[0]
-				?? null
-		},
-		loadConfig() {
-			try {
-				const config = loadState('libresign', 'docmdp_config', {
-					enabled: false,
-					defaultLevel: this.$options.constants.PREFERRED_DEFAULT_LEVEL,
-					availableLevels: [],
-				})
-				this.enabled = config.enabled
-				this.availableLevels = config.availableLevels
-				const defaultLevel = config.defaultLevel
+})
 
-				this.selectedLevel = this.availableLevels.find(
-					level => level.value === defaultLevel
-				)
-
-				if (!this.selectedLevel) {
-					this.selectedLevel = this.getPreferredDefaultLevel()
-				}
-			} catch (error) {
-				console.error('Error loading DocMDP configuration:', error)
-				this.errorMessage = t('libresign', 'Could not load configuration.')
-			}
-		},
-		onEnabledChange() {
-			this.saved = false
-			this.errorMessage = ''
-			this.showErrorIcon = false
-
-			if (this.enabled) {
-				if (!this.selectedLevel) {
-					this.selectedLevel = this.getPreferredDefaultLevel()
-				}
-			} else {
-				this.selectedLevel = this.getPreferredDefaultLevel()
-			}
-
-			this.saveConfig()
-		},
-		onLevelChange() {
-			this.errorMessage = ''
-			this.showErrorIcon = false
-			this.saveConfig()
-		},
-		async saveConfig() {
-			this.loading = true
-			this.errorMessage = ''
-			this.saved = false
-			this.showErrorIcon = false
-
-			try {
-				const url = generateOcsUrl('apps/libresign/api/v1/admin/docmdp/config')
-				await axios.post(url, {
-					enabled: this.enabled,
-					defaultLevel: this.enabled ? (this.selectedLevel?.value ?? 0) : 0,
-				})
-
-				this.saved = true
-				setTimeout(() => {
-					this.saved = false
-				}, 3000)
-			} catch (error) {
-				console.error('Error saving DocMDP configuration:', error)
-				this.errorMessage = error.response?.data?.ocs?.data?.error
-					|| t('libresign', 'Could not save configuration.')
-				this.showErrorIcon = true
-				setTimeout(() => {
-					this.showErrorIcon = false
-				}, 3000)
-			} finally {
-				this.loading = false
-			}
-		},
-	},
+interface LevelOption {
+	value: number
+	label: string
+	description: string
 }
+
+interface DocMDPConfig {
+	enabled: boolean
+	defaultLevel: number
+	availableLevels: LevelOption[]
+}
+
+const PREFERRED_DEFAULT_LEVEL = 2
+
+const enabled = ref(false)
+const selectedLevel = ref<LevelOption | null>(null)
+const availableLevels = ref<LevelOption[]>([])
+const loading = ref(false)
+const errorMessage = ref('')
+const saved = ref(false)
+const showErrorIcon = ref(false)
+
+const name = computed(() => {
+	return t('libresign', 'PDF certification (DocMDP)')
+})
+
+const selectedLevelValue = computed({
+	get() {
+		return String(selectedLevel.value?.value ?? 0)
+	},
+	set(value: string) {
+		const numericValue = Number(value)
+		selectedLevel.value = availableLevels.value.find(level => level.value === numericValue) ?? availableLevels.value[0] ?? null
+	},
+})
+
+function getPreferredDefaultLevel() {
+	return availableLevels.value.find(level => level.value === PREFERRED_DEFAULT_LEVEL)
+		?? availableLevels.value[0]
+		?? null
+}
+
+function loadConfig() {
+	try {
+		const config = loadState('libresign', 'docmdp_config', {
+			enabled: false,
+			defaultLevel: PREFERRED_DEFAULT_LEVEL,
+			availableLevels: [],
+		}) as DocMDPConfig
+
+		enabled.value = config.enabled
+		availableLevels.value = config.availableLevels
+		selectedLevel.value = availableLevels.value.find(level => level.value === config.defaultLevel) ?? null
+
+		if (!selectedLevel.value) {
+			selectedLevel.value = getPreferredDefaultLevel()
+		}
+	} catch (error) {
+		console.error('Error loading DocMDP configuration:', error)
+		errorMessage.value = t('libresign', 'Could not load configuration.')
+	}
+}
+
+function onEnabledChange() {
+	saved.value = false
+	errorMessage.value = ''
+	showErrorIcon.value = false
+
+	if (!selectedLevel.value || !enabled.value) {
+		selectedLevel.value = getPreferredDefaultLevel()
+	}
+
+	void saveConfig()
+}
+
+function onLevelChange() {
+	errorMessage.value = ''
+	showErrorIcon.value = false
+	void saveConfig()
+}
+
+async function saveConfig() {
+	loading.value = true
+	errorMessage.value = ''
+	saved.value = false
+	showErrorIcon.value = false
+
+	try {
+		const url = generateOcsUrl('apps/libresign/api/v1/admin/docmdp/config')
+		await axios.post(url, {
+			enabled: enabled.value,
+			defaultLevel: enabled.value ? (selectedLevel.value?.value ?? 0) : 0,
+		})
+
+		saved.value = true
+		setTimeout(() => {
+			saved.value = false
+		}, 3000)
+	} catch (error: any) {
+		console.error('Error saving DocMDP configuration:', error)
+		errorMessage.value = error.response?.data?.ocs?.data?.error
+			|| t('libresign', 'Could not save configuration.')
+		showErrorIcon.value = true
+		setTimeout(() => {
+			showErrorIcon.value = false
+		}, 3000)
+	} finally {
+		loading.value = false
+	}
+}
+
+onMounted(() => {
+	loadConfig()
+})
+
+defineExpose({
+	enabled,
+	selectedLevel,
+	onEnabledChange,
+})
 </script>
 
 <style lang="scss" scoped>

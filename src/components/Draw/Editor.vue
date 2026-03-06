@@ -6,7 +6,7 @@
 	<div class="container-draw">
 		<div class="actions">
 			<div class="color-selector">
-				<label class="color-label" @click="$refs.colorPicker.$el.querySelector('button').click()">
+				<label class="color-label" @click="openColorPicker">
 					{{ t('libresign', 'Color') }}
 				</label>
 				<NcColorPicker ref="colorPicker"
@@ -64,9 +64,10 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { mdiDelete } from '@mdi/js'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import SignaturePad from 'signature_pad'
 
@@ -80,108 +81,151 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
 
-export default {
+defineOptions({
 	name: 'Editor',
-	emits: ['close', 'save'],
+})
 
-	components: {
-		NcDialog,
-		NcColorPicker,
-		NcButton,
-		NcIconSvgWrapper,
-		PreviewSignature,
-	},
-	setup() {
-		return {
-			mdiDelete,
-		}
-	},
-	data: () => ({
-		canvasWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
-		canvasHeight: getCapabilities().libresign.config['sign-elements']['signature-height'],
-		color: '#000000',
-		customPalette: [
-			'#000000',
-			'#ff0000',
-			'#0000ff',
-			'#008000',
-		],
-		imageData: null,
-		modal: false,
-		mounted: false,
-		canSave: false,
-		scale: 1,
-	}),
-	mounted() {
-		this.mounted = true
-		this.$nextTick(() => {
-			this.applyCanvasSize()
-			this.$refs.canvas.signaturePad = new SignaturePad(this.$refs.canvas)
-			this.$refs.canvas.signaturePad.addEventListener('endStroke', () => {
-				this.canSave = !this.$refs.canvas.signaturePad.isEmpty()
-			})
-		})
-	},
-	beforeUnmount() {
-		this.mounted = false
-		if (this.$refs.canvas?.signaturePad) {
-			this.$refs.canvas.signaturePad.clear()
-		}
-		this.imageData = null
-	},
-	methods: {
-		t,
-		applyCanvasSize() {
-			if (!this.$refs.canvasWrapper || !this.$refs.canvas) {
-				return
-			}
-			const padding = 12
-			const wrapperWidth = this.$refs.canvasWrapper.offsetWidth || 0
-			const maxScaleWidth = wrapperWidth ? (wrapperWidth - padding) / this.canvasWidth : 1
-			const maxScale = maxScaleWidth
-
-			const minDisplayWidth = 420
-			const minDisplayHeight = 220
-			const minScaleWidth = minDisplayWidth / this.canvasWidth
-			const minScaleHeight = minDisplayHeight / this.canvasHeight
-			const minScale = Math.max(1, minScaleWidth, minScaleHeight)
-
-			this.scale = Math.min(maxScale || 1, minScale)
-
-			const finalWidth = Math.round(this.canvasWidth * this.scale)
-			const finalHeight = Math.round(this.canvasHeight * this.scale)
-
-			this.$refs.canvas.width = finalWidth
-			this.$refs.canvas.height = finalHeight
-			this.$refs.canvas.style.width = `${finalWidth}px`
-			this.$refs.canvas.style.height = `${finalHeight}px`
-		},
-		updateColor() {
-			this.$refs.canvas.signaturePad.penColor = this.color
-		},
-		clear() {
-			this.$refs.canvas.signaturePad.clear()
-			this.canSave = false
-		},
-		createDataImage() {
-			this.imageData = this.$refs.canvas.signaturePad.toDataURL('image/png')
-		},
-		confirmationDraw() {
-			this.createDataImage()
-			this.handleModal(true)
-		},
-		handleModal(status) {
-			this.modal = status
-		},
-		close() {
-			this.$emit('close')
-		},
-		saveSignature() {
-			this.handleModal(false)
-			this.$emit('save', this.imageData)
-		},
-	},
+type SignaturePadCanvas = HTMLCanvasElement & {
+	signaturePad?: InstanceType<typeof SignaturePad>
 }
+
+type ColorPickerRef = {
+	$el?: HTMLElement
+}
+
+const emit = defineEmits<{
+	(event: 'close'): void
+	(event: 'save', value: string | null): void
+}>()
+
+const capabilities = getCapabilities()
+const canvasWidth = capabilities.libresign.config['sign-elements']['signature-width']
+const canvasHeight = capabilities.libresign.config['sign-elements']['signature-height']
+const color = ref('#000000')
+const customPalette = [
+	'#000000',
+	'#ff0000',
+	'#0000ff',
+	'#008000',
+]
+const imageData = ref<string | null>(null)
+const modal = ref(false)
+const mounted = ref(false)
+const canSave = ref(false)
+const scale = ref(1)
+
+const canvasWrapper = ref<HTMLElement | null>(null)
+const canvas = ref<SignaturePadCanvas | null>(null)
+const colorPicker = ref<ColorPickerRef | null>(null)
+
+function openColorPicker() {
+	colorPicker.value?.$el?.querySelector('button')?.click()
+}
+
+function applyCanvasSize() {
+	if (!canvasWrapper.value || !canvas.value) {
+		return
+	}
+	const padding = 12
+	const wrapperWidth = canvasWrapper.value.offsetWidth || 0
+	const maxScaleWidth = wrapperWidth ? (wrapperWidth - padding) / canvasWidth : 1
+	const maxScale = maxScaleWidth
+
+	const minDisplayWidth = 420
+	const minDisplayHeight = 220
+	const minScaleWidth = minDisplayWidth / canvasWidth
+	const minScaleHeight = minDisplayHeight / canvasHeight
+	const minScale = Math.max(1, minScaleWidth, minScaleHeight)
+
+	scale.value = Math.min(maxScale || 1, minScale)
+
+	const finalWidth = Math.round(canvasWidth * scale.value)
+	const finalHeight = Math.round(canvasHeight * scale.value)
+
+	canvas.value.width = finalWidth
+	canvas.value.height = finalHeight
+	canvas.value.style.width = `${finalWidth}px`
+	canvas.value.style.height = `${finalHeight}px`
+}
+
+function updateColor() {
+	if (canvas.value?.signaturePad) {
+		canvas.value.signaturePad.penColor = color.value
+	}
+}
+
+function clear() {
+	canvas.value?.signaturePad?.clear()
+	canSave.value = false
+}
+
+function createDataImage() {
+	imageData.value = canvas.value?.signaturePad?.toDataURL('image/png') || null
+}
+
+function confirmationDraw() {
+	createDataImage()
+	handleModal(true)
+}
+
+function handleModal(status: boolean) {
+	modal.value = status
+}
+
+function close() {
+	emit('close')
+}
+
+function saveSignature() {
+	handleModal(false)
+	emit('save', imageData.value)
+}
+
+onMounted(() => {
+	mounted.value = true
+	nextTick(() => {
+		applyCanvasSize()
+		if (!canvas.value) {
+			return
+		}
+		canvas.value.signaturePad = new SignaturePad(canvas.value)
+		canvas.value.signaturePad.addEventListener('endStroke', () => {
+			canSave.value = !canvas.value?.signaturePad?.isEmpty()
+		})
+	})
+})
+
+onBeforeUnmount(() => {
+	mounted.value = false
+	canvas.value?.signaturePad?.clear()
+	imageData.value = null
+})
+
+defineExpose({
+	t,
+	mdiDelete,
+	canvasWidth,
+	canvasHeight,
+	color,
+	customPalette,
+	imageData,
+	modal,
+	mounted,
+	canSave,
+	scale,
+	canvasWrapper,
+	canvas,
+	colorPicker,
+	openColorPicker,
+	applyCanvasSize,
+	updateColor,
+	clear,
+	createDataImage,
+	confirmationDraw,
+	handleModal,
+	close,
+	saveSignature,
+})
 </script>
 
 <style lang="scss" scoped>

@@ -11,8 +11,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import { emit, subscribe } from '@nextcloud/event-bus'
@@ -25,219 +26,254 @@ import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 
-export default {
+defineOptions({
 	name: 'AppFilesTab',
-	components: {
-		RequestSignatureTab,
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		const sidebarStore = useSidebarStore()
-		return {
-			filesStore,
-			sidebarStore,
-		}
-	},
-	data() {
-		return {
-			sidebarTitleObserver: null,
-			unsubscribeCreated: null,
-			unsubscribeUpdated: null,
-			unsubscribeDeleted: null,
-			unsubscribeEnvelopeRenamed: null,
-		}
-	},
-	mounted() {
-		this.unsubscribeCreated = subscribe('libresign:file:created', this.handleLibreSignFileCreated)
-		this.unsubscribeUpdated = subscribe('libresign:file:updated', this.handleLibreSignFileUpdated)
-		this.unsubscribeDeleted = subscribe('files:node:deleted', this.handleFilesNodeDeleted)
-		this.unsubscribeEnvelopeRenamed = subscribe('libresign:envelope:renamed', this.handleEnvelopeRenamed)
-	},
-	beforeUnmount() {
-		this.disconnectTitleObserver()
-		if (this.unsubscribeCreated) {
-			this.unsubscribeCreated()
-		}
-		if (this.unsubscribeUpdated) {
-			this.unsubscribeUpdated()
-		}
-		if (this.unsubscribeDeleted) {
-			this.unsubscribeDeleted()
-		}
-		if (this.unsubscribeEnvelopeRenamed) {
-			this.unsubscribeEnvelopeRenamed()
-		}
-	},
-	methods: {
-		t,
-		handleEnvelopeRenamed({ uuid, name }) {
-			const current = this.filesStore.getFile()
-			if (current?.uuid && current.uuid === uuid) {
-				this.updateSidebarTitle(name)
-			}
-		},
-		async checkAndLoadPendingEnvelope() {
-			const pendingEnvelope = window.OCA?.Libresign?.pendingEnvelope
-			if (!pendingEnvelope) {
-				return false
-			}
+})
 
-			await this.filesStore.addFile(pendingEnvelope)
-			this.filesStore.selectFile(pendingEnvelope.id)
-			this.sidebarStore.activeRequestSignatureTab()
-			delete window.OCA.Libresign.pendingEnvelope
+type PendingEnvelope = {
+	id: number
+	uuid?: string
+	name: string
+}
 
-			this.$nextTick(() => {
-				this.updateSidebarTitle(pendingEnvelope.name)
-			})
+type FileInfo = {
+	id: number
+	type?: string
+	name?: string
+	path?: string
+	attributes?: Record<string, unknown>
+}
 
-			return true
-		},
+type LibreSignNodePayload = {
+	path?: string
+	nodeId?: number
+}
 
-		updateSidebarTitle(envelopeName) {
-			if (!envelopeName) return
+type DeletedNode = {
+	fileid?: number | string
+	id?: number | string
+	fileId?: number | string
+	nodeId?: number | string
+}
 
-			this.disconnectTitleObserver()
+type EnvelopeRenamedPayload = {
+	uuid?: string
+	name?: string
+}
 
-			const titleElement = document.querySelector('.app-sidebar-header__mainname')
+const filesStore = useFilesStore()
+const sidebarStore = useSidebarStore()
 
-			if (titleElement) {
+const sidebarTitleObserver = ref<MutationObserver | null>(null)
+const unsubscribeCreated = ref<(() => void) | null>(null)
+const unsubscribeUpdated = ref<(() => void) | null>(null)
+const unsubscribeDeleted = ref<(() => void) | null>(null)
+const unsubscribeEnvelopeRenamed = ref<(() => void) | null>(null)
+
+function handleEnvelopeRenamed({ uuid, name }: EnvelopeRenamedPayload) {
+	const current = filesStore.getFile()
+	if (current?.uuid && current.uuid === uuid) {
+		updateSidebarTitle(name)
+	}
+}
+
+async function checkAndLoadPendingEnvelope() {
+	const pendingEnvelope = (window as Window & { OCA?: { Libresign?: { pendingEnvelope?: PendingEnvelope } } }).OCA?.Libresign?.pendingEnvelope
+	if (!pendingEnvelope) {
+		return false
+	}
+
+	await filesStore.addFile(pendingEnvelope)
+	filesStore.selectFile(pendingEnvelope.id)
+	sidebarStore.activeRequestSignatureTab()
+	delete (window as Window & { OCA?: { Libresign?: { pendingEnvelope?: PendingEnvelope } } }).OCA?.Libresign?.pendingEnvelope
+
+	nextTick(() => {
+		updateSidebarTitle(pendingEnvelope.name)
+	})
+
+	return true
+}
+
+function updateSidebarTitle(envelopeName?: string) {
+	if (!envelopeName) return
+
+	disconnectTitleObserver()
+
+	const titleElement = document.querySelector('.app-sidebar-header__mainname')
+
+	if (titleElement) {
+		titleElement.textContent = envelopeName
+		titleElement.setAttribute('title', envelopeName)
+
+		sidebarTitleObserver.value = new MutationObserver(() => {
+			if (titleElement.textContent !== envelopeName) {
 				titleElement.textContent = envelopeName
 				titleElement.setAttribute('title', envelopeName)
-
-				this.sidebarTitleObserver = new MutationObserver(() => {
-					if (titleElement.textContent !== envelopeName) {
-						titleElement.textContent = envelopeName
-						titleElement.setAttribute('title', envelopeName)
-					}
-				})
-
-				this.sidebarTitleObserver.observe(titleElement, {
-					childList: true,
-					characterData: true,
-					subtree: true
-				})
-
-				setTimeout(() => this.disconnectTitleObserver(), 5000)
 			}
-		},
+		})
 
-		disconnectTitleObserver() {
-			if (this.sidebarTitleObserver) {
-				this.sidebarTitleObserver.disconnect()
-				this.sidebarTitleObserver = null
-			}
-		},
+		sidebarTitleObserver.value.observe(titleElement, {
+			childList: true,
+			characterData: true,
+			subtree: true,
+		})
 
-		async update(fileInfo) {
-			if (await this.checkAndLoadPendingEnvelope()) {
-				return
-			}
-
-			this.disconnectTitleObserver()
-
-			const isEnvelopeFolder = fileInfo.type === 'folder' &&
-				fileInfo.attributes?.['libresign-signature-status'] !== undefined
-
-			if (isEnvelopeFolder) {
-				await this.filesStore.getAllFiles({
-					'nodeIds[]': [fileInfo.id],
-					force_fetch: true,
-				})
-			}
-
-			const fileId = await this.filesStore.selectFileByNodeId(fileInfo.id)
-			if (fileId) {
-				const file = this.filesStore.getFile()
-				const displayName = file?.name || fileInfo.name
-
-				this.$nextTick(() => {
-					const titleElement = document.querySelector('.app-sidebar-header__mainname')
-					if (titleElement) {
-						titleElement.textContent = displayName
-						titleElement.setAttribute('title', displayName)
-					}
-				})
-				return
-			}
-
-			await this.filesStore.addFile({
-				id: -fileInfo.id,
-				nodeId: fileInfo.id,
-				name: fileInfo.name,
-				file: generateRemoteUrl(`dav/files/${getCurrentUser()?.uid}/${fileInfo.path + '/' + fileInfo.name}`)
-					.replace(/\/\/$/, '/'),
-				signers: [],
-			})
-			this.filesStore.selectFile(-fileInfo.id)
-			this.sidebarStore.activeRequestSignatureTab()
-
-			this.$nextTick(() => {
-				const titleElement = document.querySelector('.app-sidebar-header__mainname')
-				if (titleElement) {
-					titleElement.textContent = fileInfo.name
-					titleElement.setAttribute('title', fileInfo.name)
-				}
-			})
-		},
-
-		async handleLibreSignFileChangeWithPath(path, eventType) {
-			const client = getClient()
-			const propfindPayload = getDefaultPropfind()
-			const rootPath = getRootPath()
-
-			const result = await client.stat(`${rootPath}${path}`, {
-				details: true,
-				data: propfindPayload,
-			})
-			emit(`files:node:${eventType}`, resultToNode(result.data))
-		},
-
-		async handleLibreSignFileChangeAtCurretntFolder() {
-			const client = getClient()
-			const propfindPayload = getDefaultPropfind()
-			const rootPath = getRootPath()
-
-			const navigation = getNavigation()
-			const currentFolder = navigation?.active?.params?.dir || '/'
-
-			const result = await client.stat(`${rootPath}${currentFolder}`, {
-				details: true,
-				data: propfindPayload,
-			})
-			emit('files:node:updated', resultToNode(result.data))
-		},
-
-		async handleLibreSignFileChange({ path, nodeId }, eventType) {
-			if (!window.location.pathname.includes('/apps/files')) {
-				return
-			}
-
-			if (path) {
-				await this.handleLibreSignFileChangeWithPath(path, eventType)
-			} else if (nodeId) {
-				await this.handleLibreSignFileChangeAtCurretntFolder()
-			}
-		},
-
-		async handleLibreSignFileCreated(payload) {
-			await this.handleLibreSignFileChange(payload, 'created')
-		},
-
-		async handleLibreSignFileUpdated(payload) {
-			await this.handleLibreSignFileChange(payload, 'updated')
-		},
-
-		handleFilesNodeDeleted(node) {
-			const rawNodeId = node?.fileid ?? node?.id ?? node?.fileId ?? node?.nodeId
-			const nodeId = typeof rawNodeId === 'string' ? parseInt(rawNodeId, 10) : rawNodeId
-
-			if (!nodeId) {
-				return
-			}
-
-			this.filesStore.removeFileByNodeId(nodeId)
-		},
-	},
+		setTimeout(() => disconnectTitleObserver(), 5000)
+	}
 }
+
+function disconnectTitleObserver() {
+	if (sidebarTitleObserver.value) {
+		sidebarTitleObserver.value.disconnect()
+		sidebarTitleObserver.value = null
+	}
+}
+
+async function update(fileInfo: FileInfo) {
+	if (await checkAndLoadPendingEnvelope()) {
+		return
+	}
+
+	disconnectTitleObserver()
+
+	const isEnvelopeFolder = fileInfo.type === 'folder'
+		&& fileInfo.attributes?.['libresign-signature-status'] !== undefined
+
+	if (isEnvelopeFolder) {
+		await filesStore.getAllFiles({
+			'nodeIds[]': [fileInfo.id],
+			force_fetch: true,
+		})
+	}
+
+	const fileId = await filesStore.selectFileByNodeId(fileInfo.id)
+	if (fileId) {
+		const file = filesStore.getFile()
+		const displayName = file?.name || fileInfo.name
+
+		nextTick(() => {
+			const titleElement = document.querySelector('.app-sidebar-header__mainname')
+			if (titleElement && displayName) {
+				titleElement.textContent = displayName
+				titleElement.setAttribute('title', displayName)
+			}
+		})
+		return
+	}
+
+	await filesStore.addFile({
+		id: -fileInfo.id,
+		nodeId: fileInfo.id,
+		name: fileInfo.name,
+		file: generateRemoteUrl(`dav/files/${getCurrentUser()?.uid}/${fileInfo.path + '/' + fileInfo.name}`)
+			.replace(/\/\/$/, '/'),
+		signers: [],
+	})
+	filesStore.selectFile(-fileInfo.id)
+	sidebarStore.activeRequestSignatureTab()
+
+	nextTick(() => {
+		const titleElement = document.querySelector('.app-sidebar-header__mainname')
+		if (titleElement && fileInfo.name) {
+			titleElement.textContent = fileInfo.name
+			titleElement.setAttribute('title', fileInfo.name)
+		}
+	})
+}
+
+async function handleLibreSignFileChangeWithPath(path: string, eventType: string) {
+	const client = getClient()
+	const propfindPayload = getDefaultPropfind()
+	const rootPath = getRootPath()
+
+	const result = await client.stat(`${rootPath}${path}`, {
+		details: true,
+		data: propfindPayload,
+	})
+	emit(`files:node:${eventType}`, resultToNode(result.data))
+}
+
+async function handleLibreSignFileChangeAtCurretntFolder() {
+	const client = getClient()
+	const propfindPayload = getDefaultPropfind()
+	const rootPath = getRootPath()
+
+	const navigation = getNavigation()
+	const currentFolder = navigation?.active?.params?.dir || '/'
+
+	const result = await client.stat(`${rootPath}${currentFolder}`, {
+		details: true,
+		data: propfindPayload,
+	})
+	emit('files:node:updated', resultToNode(result.data))
+}
+
+async function handleLibreSignFileChange({ path, nodeId }: LibreSignNodePayload, eventType: string) {
+	if (!window.location.pathname.includes('/apps/files')) {
+		return
+	}
+
+	if (path) {
+		await handleLibreSignFileChangeWithPath(path, eventType)
+	} else if (nodeId) {
+		await handleLibreSignFileChangeAtCurretntFolder()
+	}
+}
+
+async function handleLibreSignFileCreated(payload: LibreSignNodePayload) {
+	await handleLibreSignFileChange(payload, 'created')
+}
+
+async function handleLibreSignFileUpdated(payload: LibreSignNodePayload) {
+	await handleLibreSignFileChange(payload, 'updated')
+}
+
+function handleFilesNodeDeleted(node: DeletedNode) {
+	const rawNodeId = node?.fileid ?? node?.id ?? node?.fileId ?? node?.nodeId
+	const nodeId = typeof rawNodeId === 'string' ? parseInt(rawNodeId, 10) : rawNodeId
+
+	if (!nodeId) {
+		return
+	}
+
+	filesStore.removeFileByNodeId(nodeId)
+}
+
+onMounted(() => {
+	unsubscribeCreated.value = subscribe('libresign:file:created', handleLibreSignFileCreated)
+	unsubscribeUpdated.value = subscribe('libresign:file:updated', handleLibreSignFileUpdated)
+	unsubscribeDeleted.value = subscribe('files:node:deleted', handleFilesNodeDeleted)
+	unsubscribeEnvelopeRenamed.value = subscribe('libresign:envelope:renamed', handleEnvelopeRenamed)
+})
+
+onBeforeUnmount(() => {
+	disconnectTitleObserver()
+	unsubscribeCreated.value?.()
+	unsubscribeUpdated.value?.()
+	unsubscribeDeleted.value?.()
+	unsubscribeEnvelopeRenamed.value?.()
+})
+
+defineExpose({
+	filesStore,
+	sidebarStore,
+	sidebarTitleObserver,
+	unsubscribeCreated,
+	unsubscribeUpdated,
+	unsubscribeDeleted,
+	unsubscribeEnvelopeRenamed,
+	t,
+	handleEnvelopeRenamed,
+	checkAndLoadPendingEnvelope,
+	updateSidebarTitle,
+	disconnectTitleObserver,
+	update,
+	handleLibreSignFileChangeWithPath,
+	handleLibreSignFileChangeAtCurretntFolder,
+	handleLibreSignFileChange,
+	handleLibreSignFileCreated,
+	handleLibreSignFileUpdated,
+	handleFilesNodeDeleted,
+})
 </script>

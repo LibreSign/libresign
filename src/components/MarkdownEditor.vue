@@ -60,8 +60,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, ref, watch } from 'vue'
 
 import CodeMirror from 'vue-codemirror6'
 import { EditorView, lineNumbers, keymap } from '@codemirror/view'
@@ -147,139 +148,150 @@ const insertMarkdownLink = (view) => {
 	return true
 }
 
-export default {
+defineOptions({
 	name: 'MarkdownEditor',
-	emits: ['update:modelValue'],
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-		CodeMirror,
-	},
-	setup() {
-		return {
-			t,
-			mdiFormatBold,
-			mdiFormatItalic,
-			mdiFormatUnderline,
-			mdiUndo,
-			mdiRedo,
-		}
-	},
-	props: {
-		modelValue: {
-			type: String,
-			default: '',
-		},
-		label: {
-			type: String,
-			default: '',
-		},
-		placeholder: {
-			type: String,
-			default: '',
-		},
-		minHeight: {
-			type: String,
-			default: '80px',
-		},
-	},
-	data() {
-		return {
-			editorId: `markdown-editor-${Math.random().toString(36).substr(2, 9)}`,
-			internalValue: this.modelValue,
-			canUndo: false,
-			canRedo: false,
-		}
-	},
-	computed: {
-		extensions() {
-			return [
-				history(),
-				lineNumbers(),
-				EditorView.lineWrapping,
-				bracketMatching(),
-				closeBrackets(),
-				material,
-				indentUnit.of('\t'),
-				keymap.of([
-					{ key: 'Mod-b', run: (view) => toggleSurroundSelection(view, '**') },
-					{ key: 'Mod-i', run: (view) => toggleSurroundSelection(view, '_') },
-					{ key: 'Mod-u', run: (view) => toggleSurroundSelection(view, '<u>', '</u>') },
-					{ key: 'Mod-Shift-s', run: (view) => toggleSurroundSelection(view, '~~') },
-					{ key: 'Mod-k', run: insertMarkdownLink },
-					...closeBracketsKeymap,
-					...defaultKeymap,
-					indentWithTab,
-				]),
-			]
-		},
-	},
-	watch: {
-		modelValue(newValue) {
-			if (newValue !== this.internalValue) {
-				this.internalValue = newValue
-			}
-		},
-		internalValue(newValue) {
-			if (newValue !== this.modelValue) {
-				this.$emit('update:modelValue', newValue)
-			}
-		},
-	},
-	methods: {
-		getCurrentView() {
-			const codeMirrorRef = this.$refs.codeMirror
-			if (!codeMirrorRef) {
-				return null
-			}
+})
 
-			if (codeMirrorRef.view?.value) {
-				return codeMirrorRef.view.value
-			}
+const props = withDefaults(defineProps<{
+	modelValue?: string
+	label?: string
+	placeholder?: string
+	minHeight?: string
+}>(), {
+	modelValue: '',
+	label: '',
+	placeholder: '',
+	minHeight: '80px',
+})
 
-			return codeMirrorRef.view || null
-		},
-		syncHistoryState(state) {
-			this.canUndo = undoDepth(state) > 0
-			this.canRedo = redoDepth(state) > 0
-		},
-		onEditorReady({ view }) {
-			this.syncHistoryState(view.state)
-		},
-		onEditorUpdate(viewUpdate) {
-			this.syncHistoryState(viewUpdate.state)
-		},
-		withEditor(callback, { focus = true } = {}) {
-			const view = this.getCurrentView()
-			if (!view) {
-				return
-			}
-			callback(view)
-			if (focus) {
-				view.focus()
-			}
-		},
-		applyBold() {
-			this.withEditor((view) => toggleSurroundSelection(view, '**'))
-		},
-		applyItalic() {
-			this.withEditor((view) => toggleSurroundSelection(view, '_'))
-		},
-		applyUnderline() {
-			this.withEditor((view) => toggleSurroundSelection(view, '<u>', '</u>'))
-		},
-		undoAction() {
-			this.withEditor((view) => {
-				undo(view)
-			}, { focus: false })
-		},
-		redoAction() {
-			this.withEditor((view) => {
-				redo(view)
-			}, { focus: false })
-		},
-	},
+const emit = defineEmits<{
+	(event: 'update:modelValue', value: string): void
+}>()
+
+const codeMirror = ref<any>(null)
+const editorId = `markdown-editor-${Math.random().toString(36).substr(2, 9)}`
+const internalValue = ref(props.modelValue)
+const canUndo = ref(false)
+const canRedo = ref(false)
+
+const extensions = computed(() => {
+	return [
+		history(),
+		lineNumbers(),
+		EditorView.lineWrapping,
+		bracketMatching(),
+		closeBrackets(),
+		material,
+		indentUnit.of('\t'),
+		keymap.of([
+			{ key: 'Mod-b', run: (view) => toggleSurroundSelection(view, '**') },
+			{ key: 'Mod-i', run: (view) => toggleSurroundSelection(view, '_') },
+			{ key: 'Mod-u', run: (view) => toggleSurroundSelection(view, '<u>', '</u>') },
+			{ key: 'Mod-Shift-s', run: (view) => toggleSurroundSelection(view, '~~') },
+			{ key: 'Mod-k', run: insertMarkdownLink },
+			...closeBracketsKeymap,
+			...defaultKeymap,
+			indentWithTab,
+		]),
+	]
+})
+
+watch(() => props.modelValue, (newValue) => {
+	if (newValue !== internalValue.value) {
+		internalValue.value = newValue
+	}
+})
+
+watch(internalValue, (newValue) => {
+	if (newValue !== props.modelValue) {
+		emit('update:modelValue', newValue)
+	}
+})
+
+function getCurrentView() {
+	const codeMirrorRef = codeMirror.value
+	if (!codeMirrorRef) {
+		return null
+	}
+
+	if (codeMirrorRef.view?.value) {
+		return codeMirrorRef.view.value
+	}
+
+	return codeMirrorRef.view || null
 }
+
+function syncHistoryState(state) {
+	canUndo.value = undoDepth(state) > 0
+	canRedo.value = redoDepth(state) > 0
+}
+
+function onEditorReady({ view }) {
+	syncHistoryState(view.state)
+}
+
+function onEditorUpdate(viewUpdate) {
+	syncHistoryState(viewUpdate.state)
+}
+
+function withEditor(callback, { focus = true } = {}) {
+	const view = getCurrentView()
+	if (!view) {
+		return
+	}
+	callback(view)
+	if (focus) {
+		view.focus()
+	}
+}
+
+function applyBold() {
+	withEditor((view) => toggleSurroundSelection(view, '**'))
+}
+
+function applyItalic() {
+	withEditor((view) => toggleSurroundSelection(view, '_'))
+}
+
+function applyUnderline() {
+	withEditor((view) => toggleSurroundSelection(view, '<u>', '</u>'))
+}
+
+function undoAction() {
+	withEditor((view) => {
+		undo(view)
+	}, { focus: false })
+}
+
+function redoAction() {
+	withEditor((view) => {
+		redo(view)
+	}, { focus: false })
+}
+
+defineExpose({
+	t,
+	mdiFormatBold,
+	mdiFormatItalic,
+	mdiFormatUnderline,
+	mdiUndo,
+	mdiRedo,
+	editorId,
+	internalValue,
+	canUndo,
+	canRedo,
+	extensions,
+	getCurrentView,
+	syncHistoryState,
+	onEditorReady,
+	onEditorUpdate,
+	withEditor,
+	applyBold,
+	applyItalic,
+	applyUnderline,
+	undoAction,
+	redoAction,
+})
 </script>
 
 <style lang="scss">
