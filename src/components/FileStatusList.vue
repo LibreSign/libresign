@@ -53,8 +53,8 @@ import { generateOcsUrl } from '@nextcloud/router'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-import { FILE_STATUS } from '../../constants.js'
-import { getStatusLabel, getStatusIcon } from '../../utils/fileStatus.js'
+import { FILE_STATUS } from '../constants.js'
+import { getStatusLabel, getStatusIcon } from '../utils/fileStatus.js'
 
 export default {
 	name: 'FileStatusList',
