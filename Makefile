@@ -107,6 +107,7 @@ appstore:
 		appinfo \
 		composer \
 		css \
+		dist \
 		img \
 		js \
 		l10n \
@@ -169,4 +170,12 @@ appstore:
 	@if [ -f $(cert_dir)/$(app_name).key ]; then \
 		echo "Signing package…"; \
 		openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(appstore_package_name).tar.gz | openssl base64; \
+	fi
+
+.PHONY: verify-appstore-package
+verify-appstore-package:
+	test -d $(appstore_sign_dir)/$(app_name)/css
+	if [ -d dist ]; then \
+		test -d $(appstore_sign_dir)/$(app_name)/dist; \
+		find $(appstore_sign_dir)/$(app_name)/dist -maxdepth 1 -name 'pdf.worker.min-*.mjs' | grep -q .; \
 	fi
