@@ -127,9 +127,10 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 
 import { t } from '@nextcloud/l10n'
+import { computed } from 'vue'
 
 import { selectCustonOption } from '../../helpers/certification'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
@@ -146,161 +147,170 @@ import {
 	mdiShieldOff,
 } from '@mdi/js'
 
-export default {
+defineOptions({
 	name: 'CertificateContent',
-	components: {
-		NcSettingsSection,
-		NcNoteCard,
-		NcChip,
-		NcIconSvgWrapper,
-	},
-	props: {
-		certificate: {
-			type: Object,
-			default: () => {},
-			required: false,
-		},
-		index: {
-			type: String,
-			default: '0',
-		},
-	},
-	data() {
-		return {
-			mdiCheckCircle,
-			mdiCancel,
-			mdiAlertCircleOutline,
-			mdiHelpCircle,
-			mdiShieldCheck,
-			mdiShieldAlert,
-			mdiShieldOff,
-			EXPIRATION_WARNING_DAYS: 30,
-		}
-	},
-	computed: {
-		shouldShowPurposes() {
-			return this.certificate.purposes &&
-				Object.keys(this.certificate.purposes).length &&
-				this.index === '0'
-		},
-		validityStatusMap() {
-			return {
-				unknown: { text: this.t('libresign', 'Unknown'), variant: 'tertiary', icon: this.mdiHelpCircle },
-				expired: { text: this.t('libresign', 'Expired'), variant: 'error', icon: this.mdiCancel },
-				expiring: { text: this.t('libresign', 'Expires Soon'), variant: 'warning', icon: this.mdiAlertCircleOutline },
-				valid: { text: this.t('libresign', 'Valid'), variant: 'success', icon: this.mdiCheckCircle }
-			}
-		},
-		crlStatusMap() {
-			return {
-				valid: { text: this.t('libresign', 'Valid (Not Revoked)'), variant: 'success', icon: this.mdiShieldCheck },
-				revoked: { text: this.t('libresign', 'Revoked'), variant: 'error', icon: this.mdiShieldOff },
-				missing: { text: this.t('libresign', 'No CRL Information'), variant: 'warning', icon: this.mdiShieldAlert },
-				no_urls: { text: this.t('libresign', 'No CRL URLs Found'), variant: 'warning', icon: this.mdiShieldAlert },
-				urls_inaccessible: { text: this.t('libresign', 'CRL URLs Inaccessible'), variant: 'tertiary', icon: this.mdiHelpCircle },
-				validation_failed: { text: this.t('libresign', 'CRL Validation Failed'), variant: 'tertiary', icon: this.mdiHelpCircle },
-				validation_error: { text: this.t('libresign', 'CRL Validation Error'), variant: 'tertiary', icon: this.mdiHelpCircle }
-			}
-		},
-		certificateValidityStatus() {
-			return this.validityStatusMap[this.getValidityStatus()]
-		},
-		crlValidationStatus() {
-			return this.crlStatusMap[this.certificate.crl_validation] || {
-				text: this.t('libresign', 'Unknown Status'),
-				variant: 'tertiary',
-				icon: this.mdiHelpCircle
-			}
-		},
-	},
-	methods: {
-		t,
-		orderList(data) {
-			const sorted = {};
-			['CN', 'OU', 'O'].forEach(element => {
-				if (data[element]) {
-					sorted[element] = data[element]
-				}
-			})
-			Object.keys(data).forEach((key) => {
-				if (!sorted[key]) {
-					sorted[key] = data[key]
-				}
-			})
-			return sorted
-		},
-		getLabelFromId(id) {
-			const option = selectCustonOption(id)
-			if (option.isSome()) {
-				return this.camelCaseToTitleCase(option.unwrap().label)
-			}
-			return this.camelCaseToTitleCase(id)
-		},
-		camelCaseToTitleCase(text) {
-			if (text.includes(' ')) {
-				return text.replace(/^./, str => str.toUpperCase())
-			}
+})
 
-			return text
-				// Handle acronyms (consecutive uppercase letters)
-				.replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-				// Add space before uppercase letters that follow lowercase
-				.replace(/([a-z])([A-Z])/g, '$1 $2')
-				// Capitalize first letter
-				.replace(/^./, str => str.toUpperCase())
-				.trim()
-		},
-		formatPurposeName(purpose) {
-			const purposeNames = {
-				'sslclient': this.t('libresign', 'SSL Client'),
-				'sslserver': this.t('libresign', 'SSL Server'),
-				'nssslserver': this.t('libresign', 'Netscape SSL Server'),
-				'smimesign': this.t('libresign', 'S/MIME Signing'),
-				'smimeencrypt': this.t('libresign', 'S/MIME Encryption'),
-				'crlsign': this.t('libresign', 'CRL Signing'),
-				'any': this.t('libresign', 'Any Purpose'),
-				'ocsphelper': this.t('libresign', 'OCSP Helper'),
-				'timestampsign': this.t('libresign', 'Timestamp Signing'),
-				'codesign': this.t('libresign', 'Code Signing'),
-			}
-			return purposeNames[purpose] || purpose
-		},
-		getChainCertificateLabel(index, certificate) {
-			if (index === 0) {
-				return this.t('libresign', 'Intermediate Certificate')
-			}
-			if (certificate.subject && certificate.issuer &&
-				JSON.stringify(certificate.subject) === JSON.stringify(certificate.issuer)) {
-				return this.t('libresign', 'Root Certificate (CA)')
-			}
-			return this.t('libresign', 'Certificate {number}', { number: index + 1 })
-		},
-		getValidityStatus() {
-			if (!this.certificate.validTo_time_t) {
-				return 'unknown'
-			}
-
-			const now = new Date()
-			const expirationDate = this.unixTimestampToDate(this.certificate.validTo_time_t)
-
-			if (expirationDate <= now) {
-				return 'expired'
-			}
-
-			const warningDate = new Date()
-			warningDate.setDate(now.getDate() + this.EXPIRATION_WARNING_DAYS)
-
-			if (expirationDate <= warningDate) {
-				return 'expiring'
-			}
-
-			return 'valid'
-		},
-		unixTimestampToDate(unixTimestamp) {
-			return new Date(unixTimestamp * 1000)
-		},
-	},
+type PurposeEntry = [boolean, boolean, string]
+type CertificateMap = Record<string, unknown>
+type CertificateData = {
+	subject?: Record<string, unknown>
+	issuer?: Record<string, unknown>
+	purposes?: Record<string, PurposeEntry>
+	extracerts?: CertificateData[]
+	valid_from?: string
+	valid_to?: string
+	validTo_time_t?: number
+	version?: number
+	hash?: string
+	signatureTypeLN?: string
+	serialNumber?: string
+	serialNumberHex?: string
+	name?: string
+	extensions?: Record<string, unknown>
+	crl_validation?: string
 }
+
+const props = withDefaults(defineProps<{
+	certificate?: CertificateData
+	index?: string
+}>(), {
+	certificate: () => ({}),
+	index: '0',
+})
+
+const EXPIRATION_WARNING_DAYS = 30
+
+const validityStatusMap = computed(() => ({
+	unknown: { text: t('libresign', 'Unknown'), variant: 'tertiary', icon: mdiHelpCircle },
+	expired: { text: t('libresign', 'Expired'), variant: 'error', icon: mdiCancel },
+	expiring: { text: t('libresign', 'Expires Soon'), variant: 'warning', icon: mdiAlertCircleOutline },
+	valid: { text: t('libresign', 'Valid'), variant: 'success', icon: mdiCheckCircle },
+}))
+
+const crlStatusMap = computed(() => ({
+	valid: { text: t('libresign', 'Valid (Not Revoked)'), variant: 'success', icon: mdiShieldCheck },
+	revoked: { text: t('libresign', 'Revoked'), variant: 'error', icon: mdiShieldOff },
+	missing: { text: t('libresign', 'No CRL Information'), variant: 'warning', icon: mdiShieldAlert },
+	no_urls: { text: t('libresign', 'No CRL URLs Found'), variant: 'warning', icon: mdiShieldAlert },
+	urls_inaccessible: { text: t('libresign', 'CRL URLs Inaccessible'), variant: 'tertiary', icon: mdiHelpCircle },
+	validation_failed: { text: t('libresign', 'CRL Validation Failed'), variant: 'tertiary', icon: mdiHelpCircle },
+	validation_error: { text: t('libresign', 'CRL Validation Error'), variant: 'tertiary', icon: mdiHelpCircle },
+}))
+
+const shouldShowPurposes = computed(() => Boolean(
+	props.certificate.purposes
+	&& Object.keys(props.certificate.purposes).length
+	&& props.index === '0',
+))
+
+const certificateValidityStatus = computed(() => validityStatusMap.value[getValidityStatus()])
+const crlValidationStatus = computed(() => crlStatusMap.value[props.certificate.crl_validation ?? ''] || {
+	text: t('libresign', 'Unknown Status'),
+	variant: 'tertiary',
+	icon: mdiHelpCircle,
+})
+
+function orderList(data: CertificateMap = {}) {
+	const sorted: CertificateMap = {}
+	;['CN', 'OU', 'O'].forEach(element => {
+		if (data[element]) {
+			sorted[element] = data[element]
+		}
+	})
+	Object.keys(data).forEach((key) => {
+		if (!sorted[key]) {
+			sorted[key] = data[key]
+		}
+	})
+	return sorted
+}
+
+function getLabelFromId(id: string) {
+	const option = selectCustonOption(id)
+	if (option.isSome()) {
+		return camelCaseToTitleCase(option.unwrap().label)
+	}
+	return camelCaseToTitleCase(id)
+}
+
+function camelCaseToTitleCase(text: string) {
+	if (text.includes(' ')) {
+		return text.replace(/^./, str => str.toUpperCase())
+	}
+
+	return text
+		.replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+		.replace(/([a-z])([A-Z])/g, '$1 $2')
+		.replace(/^./, str => str.toUpperCase())
+		.trim()
+}
+
+function formatPurposeName(purpose: string) {
+	const purposeNames: Record<string, string> = {
+		sslclient: t('libresign', 'SSL Client'),
+		sslserver: t('libresign', 'SSL Server'),
+		nssslserver: t('libresign', 'Netscape SSL Server'),
+		smimesign: t('libresign', 'S/MIME Signing'),
+		smimeencrypt: t('libresign', 'S/MIME Encryption'),
+		crlsign: t('libresign', 'CRL Signing'),
+		any: t('libresign', 'Any Purpose'),
+		ocsphelper: t('libresign', 'OCSP Helper'),
+		timestampsign: t('libresign', 'Timestamp Signing'),
+		codesign: t('libresign', 'Code Signing'),
+	}
+	return purposeNames[purpose] || purpose
+}
+
+function getChainCertificateLabel(index: number, certificate: CertificateData) {
+	if (index === 0) {
+		return t('libresign', 'Intermediate Certificate')
+	}
+	if (certificate.subject && certificate.issuer
+		&& JSON.stringify(certificate.subject) === JSON.stringify(certificate.issuer)) {
+		return t('libresign', 'Root Certificate (CA)')
+	}
+	return t('libresign', 'Certificate {number}', { number: index + 1 })
+}
+
+function getValidityStatus() {
+	if (!props.certificate.validTo_time_t) {
+		return 'unknown'
+	}
+
+	const now = new Date()
+	const expirationDate = unixTimestampToDate(props.certificate.validTo_time_t)
+	if (expirationDate <= now) {
+		return 'expired'
+	}
+
+	const warningDate = new Date()
+	warningDate.setDate(now.getDate() + EXPIRATION_WARNING_DAYS)
+	if (expirationDate <= warningDate) {
+		return 'expiring'
+	}
+
+	return 'valid'
+}
+
+function unixTimestampToDate(unixTimestamp: number) {
+	return new Date(unixTimestamp * 1000)
+}
+
+defineExpose({
+	shouldShowPurposes,
+	validityStatusMap,
+	crlStatusMap,
+	certificateValidityStatus,
+	crlValidationStatus,
+	orderList,
+	getLabelFromId,
+	camelCaseToTitleCase,
+	formatPurposeName,
+	getChainCertificateLabel,
+	getValidityStatus,
+	unixTimestampToDate,
+})
 </script>
 
 <style lang="scss" scoped>
