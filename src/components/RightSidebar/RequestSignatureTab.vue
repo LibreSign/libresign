@@ -669,9 +669,6 @@ export default {
 		},
 	},
 	watch: {
-		signers(signers) {
-			this.init(signers)
-		},
 		'filesStore.selectedFileId': {
 			handler(newFileId) {
 				if (newFileId) {
