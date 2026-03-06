@@ -66,6 +66,20 @@ describe('CreateAccount.vue - Business Logic', () => {
 				RightIcon: true,
 			},
 		})
+
+		;(wrapper as typeof wrapper & { setData: (values: Record<string, unknown>) => Promise<void> }).setData = async (values) => {
+			const vm = wrapper.vm as Record<string, any> & { $nextTick: () => Promise<void> }
+			for (const [key, value] of Object.entries(values)) {
+				vm[key] = value
+				if (vm.v?.[key]?.$model !== undefined) {
+					vm.v[key].$model = value
+				}
+				if (vm.v$?.[key]?.$model !== undefined) {
+					vm.v$[key].$model = value
+				}
+			}
+			await vm.$nextTick()
+		}
 	})
 
 	describe('emailError computed property', () => {
@@ -82,9 +96,6 @@ describe('CreateAccount.vue - Business Logic', () => {
 
 		it('returns error when email does not match invitation', async () => {
 			wrapper.setData({ email: 'wrong@example.com' })
-			await wrapper.vm.$nextTick()
-			// Force vuelidate to not show format error
-			wrapper.vm.v$.email.$model = 'wrong@example.com'
 			await wrapper.vm.$nextTick()
 			expect(wrapper.vm.emailError).toBe('The email entered is not the same as the email in the invitation')
 		})
