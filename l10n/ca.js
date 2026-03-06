@@ -344,14 +344,6 @@ OC.L10N.register(
     "Last 7 days" : "Últims 7 dies",
     "Last 30 days" : "Últims 30 dies",
     "This year ({year})" : "Aquest any ({year})",
-    "Last year ({year})" : "L'any passat ({year})",
-    "The code to sign file was successfully requested." : "El codi per signar el fitxer s'ha sol·licitat correctament.",
-    "Collect signers' metadata when signing a document" : "Recolliu metadades dels signants en signar un document",
-    "Sign with your email." : "Signa amb el teu correu electrònic.",
-    "Request code." : "Sol·licita el codi.",
-    "Send code." : "Enviar codi.",
-    "Review the entered number." : "Revisa el número introduït.",
-    "Phone stored." : "Telèfon emmagatzemat.",
-    "Subscription password." : "Contrasenya de subscripció."
+    "Last year ({year})" : "L'any passat ({year})"
 },
 "nplurals=2; plural=(n != 1);");

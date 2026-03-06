@@ -499,15 +499,6 @@
     "Last 7 days" : "Senaste 7 dagarna",
     "Last 30 days" : "Senaste 30 dagarna",
     "This year ({year})" : "I år ({year})",
-    "Last year ({year})" : "Förra året ({year})",
-    "The code to sign file was successfully requested." : "Koden för att signera filen har begärts.",
-    "Collect signers' metadata when signing a document" : "Samla in undertecknares metadata när ett dokument signeras",
-    "Sign with your email." : "Signera med din e-postadress.",
-    "Enter the code you received" : "Ange koden du fick",
-    "Request code." : "Begär kod.",
-    "Send code." : "Skicka kod.",
-    "Review the entered number." : "Granska det angivna numret.",
-    "Phone stored." : "Telefon lagrad.",
-    "Subscription password." : "Lösenord för prenumeration."
+    "Last year ({year})" : "Förra året ({year})"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

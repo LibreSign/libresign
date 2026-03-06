@@ -324,14 +324,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Abrir en LibreSign",
     "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}",
     "Today" : "Hoy",
-    "Last 7 days" : "Últimos 7 días",
-    "The code to sign file was successfully requested." : "El código para firmar el archivo fue solicitado con éxito.",
-    "Collect signers' metadata when signing a document" : "Recopilar metadatos de los firmantes al firmar un documento",
-    "Sign with your email." : "Firma con tu correo electrónico.",
-    "Request code." : "Solicitar código.",
-    "Send code." : "Enviar código.",
-    "Review the entered number." : "Revisar el número ingresado.",
-    "Phone stored." : "Teléfono almacenado.",
-    "Subscription password." : "Contraseña de suscripción."
+    "Last 7 days" : "Últimos 7 días"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

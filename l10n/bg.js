@@ -339,14 +339,6 @@ OC.L10N.register(
     "Last 7 days" : "Последни 7 дни",
     "Last 30 days" : "Последните 30 дни",
     "This year ({year})" : "Тази година ({year})",
-    "Last year ({year})" : "Миналата година ({year})",
-    "The code to sign file was successfully requested." : "Кодът за подписване на файла беше успешно поискан.",
-    "Collect signers' metadata when signing a document" : "Събиране на метаданни на подписващите при подписване на документ",
-    "Sign with your email." : "Подпишете се с вашия имейл.",
-    "Request code." : "Заявка за код.",
-    "Send code." : "Изпращане на код.",
-    "Review the entered number." : "Преглед на въведения номер.",
-    "Phone stored." : "Телефонът е съхранен.",
-    "Subscription password." : "Парола за абонамент."
+    "Last year ({year})" : "Миналата година ({year})"
 },
 "nplurals=2; plural=(n != 1);");

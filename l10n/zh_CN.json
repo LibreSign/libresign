@@ -307,13 +307,6 @@
     "Last 7 days" : "过去 7 天",
     "Last 30 days" : "过去 30 天",
     "This year ({year})" : "今年（{year}）",
-    "Last year ({year})" : "去年（{year}）",
-    "The code to sign file was successfully requested." : "已成功请求文件签名的代码",
-    "Sign with your email." : "用电子邮件签名",
-    "Request code." : "请求代码",
-    "Send code." : "发送代码",
-    "Review the entered number." : "查看输入的数字",
-    "Phone stored." : "号码已保存",
-    "Subscription password." : "订阅密码"
+    "Last year ({year})" : "去年（{year}）"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

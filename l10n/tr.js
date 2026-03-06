@@ -891,18 +891,6 @@ OC.L10N.register(
     "Last 7 days" : "Son 7 gün",
     "Last 30 days" : "Son 30 gün",
     "This year ({year})" : "Bu yıl ({year})",
-    "Last year ({year})" : "Son yıl ({year})",
-    "The code to sign file was successfully requested." : "Dosyayı imzalama kodu istendi.",
-    "Collapse details" : "Ayrıntıları gizle",
-    "Expand details" : "Ayrıntıları göster",
-    "Collect signers' metadata when signing a document" : "Bir belge imzalanırken imzalayanın üst verileri alınsın",
-    "Sign with your email." : "E-posta adresinizle imzalayın. ",
-    "Enter the code you received" : "Aldığınız kodu yazın",
-    "Request code." : "İstek kodu.",
-    "Send code." : "Kodu gönder.",
-    "Review the entered number." : "Yazdığınız numarayı gözden geçirin.",
-    "Phone stored." : "Telefon kaydedildi.",
-    "Sign with your phone number." : "Telefon numaranız ile imzalayın.",
-    "Subscription password." : "Abonelik parolası."
+    "Last year ({year})" : "Son yıl ({year})"
 },
 "nplurals=2; plural=(n > 1);");

@@ -436,6 +436,8 @@
     "Cancel upload" : "取消上傳",
     "Collapse certificate chain" : "折疊憑證鏈",
     "Expand certificate chain" : "展開憑證鏈",
+    "Signer certificate" : "簽署者憑證",
+    "Certificate {index}" : "憑證 {index}",
     "Signer:" : "簽署者：",
     "Issuer:" : "發行者：",
     "Certificate chain" : "憑證鏈",
@@ -779,6 +781,9 @@
     "Include certificate policy" : "包含憑證政策",
     "Define custom values to use {engine}" : "定義使用 {engine} 的自訂值",
     "Not mandatory, leave blank to use the default value." : "不強制，留空以使用預設值。",
+    "Native" : "原生",
+    "Signature engine" : "簽章引擎",
+    "Select the signature engine to sign the documents" : "選取要用來簽署文件的簽章引擎",
     "Simultaneous (Parallel)" : "同時（平行）",
     "All signers receive the document at the same time and can sign in any order." : "所有簽署者將同時收到文件，並可按任意順序簽署。",
     "Sequential" : "循序",
@@ -909,18 +914,6 @@
     "Last 7 days" : "過去 7 天",
     "Last 30 days" : "過去 30 天",
     "This year ({year})" : "今年 ({year})",
-    "Last year ({year})" : "去年 ({year})",
-    "The code to sign file was successfully requested." : "已成功請求檔案簽名的代碼。",
-    "Collapse details" : "折疊詳細資訊",
-    "Expand details" : "展開詳細資訊",
-    "Collect signers' metadata when signing a document" : "簽署文件時蒐集簽署者的中介資料",
-    "Sign with your email." : "使用您的電子郵件簽署。",
-    "Enter the code you received" : "輸入您收到的代碼",
-    "Request code." : "請求代碼。",
-    "Send code." : "傳送代碼。",
-    "Review the entered number." : "審閱輸入的號碼。",
-    "Phone stored." : "已儲存電話號碼。",
-    "Sign with your phone number." : "使用您的電話號碼簽署。",
-    "Subscription password." : "署名密碼"
+    "Last year ({year})" : "去年 ({year})"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

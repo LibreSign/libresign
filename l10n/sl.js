@@ -401,15 +401,6 @@ OC.L10N.register(
     "Last 7 days" : "Zadnjih 7 dni",
     "Last 30 days" : "Zadnjih 30 dni",
     "This year ({year})" : "Letos ({year})",
-    "Last year ({year})" : "Lansko leto ({year})",
-    "The code to sign file was successfully requested." : "Koda, namenjena podpisu datoteke, je uspešno ustvarjena.",
-    "Collect signers' metadata when signing a document" : "Zbiraj metapodatke podpisnikov pri podpisovanju dokumenta",
-    "Sign with your email." : "Podpiši z elektronskim naslovom.",
-    "Enter the code you received" : "Vpišite kodo, ki ste jo prejeli",
-    "Request code." : "Zahtevaj kodo.",
-    "Send code." : "Pošlji kodo.",
-    "Review the entered number." : "Preglej vpisano številko.",
-    "Phone stored." : "Telefonska številka je shranjena.",
-    "Subscription password." : "Geslo za naročnino."
+    "Last year ({year})" : "Lansko leto ({year})"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

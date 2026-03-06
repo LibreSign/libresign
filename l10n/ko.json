@@ -288,13 +288,6 @@
     "Last 7 days" : "지난 7일",
     "Last 30 days" : "지난 30일",
     "This year ({year})" : "올해 ({year})",
-    "Last year ({year})" : "작년 ({year})",
-    "The code to sign file was successfully requested." : "파일에 서명할 코드가 성공적으로 요청되었습니다.",
-    "Sign with your email." : "이메일로 서명하세요.",
-    "Request code." : "코드 요청",
-    "Send code." : "코드 전송",
-    "Review the entered number." : "입력한 번호를 검토합니다.",
-    "Phone stored." : "핸드폰 저장됨.",
-    "Subscription password." : "구독 암호."
+    "Last year ({year})" : "작년 ({year})"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

@@ -911,18 +911,6 @@ OC.L10N.register(
     "Last 7 days" : "Last 7 days",
     "Last 30 days" : "Last 30 days",
     "This year ({year})" : "This year ({year})",
-    "Last year ({year})" : "Last year ({year})",
-    "The code to sign file was successfully requested." : "The code to sign file was successfully requested.",
-    "Collapse details" : "Collapse details",
-    "Expand details" : "Expand details",
-    "Collect signers' metadata when signing a document" : "Collect signers' metadata when signing a document",
-    "Sign with your email." : "Sign with your email.",
-    "Enter the code you received" : "Enter the code you received",
-    "Request code." : "Request code.",
-    "Send code." : "Send code.",
-    "Review the entered number." : "Review the entered number.",
-    "Phone stored." : "Phone stored.",
-    "Sign with your phone number." : "Sign with your phone number.",
-    "Subscription password." : "Subscription password."
+    "Last year ({year})" : "Last year ({year})"
 },
 "nplurals=2; plural=(n != 1);");

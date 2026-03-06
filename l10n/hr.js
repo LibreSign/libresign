@@ -280,7 +280,6 @@ OC.L10N.register(
     "Last 7 days" : "Zadnjih 7 dana",
     "Last 30 days" : "Zadnjih 30 dana",
     "This year ({year})" : "Ove godine ({year})",
-    "Last year ({year})" : "Prošle godine ({year})",
-    "Subscription password." : "Zaporka za pretplatu."
+    "Last year ({year})" : "Prošle godine ({year})"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

@@ -467,15 +467,6 @@
     "Last 7 days" : "Edelliset 7 päivää",
     "Last 30 days" : "Edelliset 30 päivää",
     "This year ({year})" : "Tämä vuosi ({year})",
-    "Last year ({year})" : "Viime vuosi ({year})",
-    "The code to sign file was successfully requested." : "Tiedoston allekirjoittamiseen tarvittava koodi pyydettiin onnistuneesti.",
-    "Collapse details" : "Supista yksityiskohdat",
-    "Expand details" : "Laajenna yksityiskohdat",
-    "Sign with your email." : "Allekirjoita sähköpostiosoitteellasi.",
-    "Enter the code you received" : "Kirjoita saamasi koodi",
-    "Request code." : "Pyydä koodi.",
-    "Send code." : "Lähetä koodi.",
-    "Sign with your phone number." : "Allekirjoita puhelinnumerollasi.",
-    "Subscription password." : "Tilauksen salasana."
+    "Last year ({year})" : "Viime vuosi ({year})"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
