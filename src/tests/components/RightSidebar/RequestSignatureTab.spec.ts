@@ -10,6 +10,18 @@ import type { useFilesStore as useFilesStoreType } from '../../../store/files.js
 let RequestSignatureTab: unknown
 import { FILE_STATUS } from '../../../constants.js'
 
+const { generateUrlMock } = vi.hoisted(() => ({
+	generateUrlMock: vi.fn((path: string, params?: Record<string, string | number>) => {
+		if (!params) {
+			return path
+		}
+
+		return Object.entries(params).reduce((url, [key, value]) => {
+			return url.replace(`{${key}}`, String(value))
+		}, path)
+	}),
+}))
+
 // Mock translation function
 ;(globalThis as typeof globalThis & { t: (app: string, msg: string) => string }).t = vi.fn((app: string, msg: string) => msg)
 
@@ -46,7 +58,7 @@ vi.mock('@nextcloud/dialogs')
 vi.mock('@nextcloud/axios')
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path) => `/ocs${path}`),
-	generateUrl: vi.fn((path) => path),
+	generateUrl: (...args: Parameters<typeof generateUrlMock>) => generateUrlMock(...args),
 	getRootUrl: vi.fn(() => ''),
 }))
 
@@ -68,6 +80,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
+		generateUrlMock.mockClear()
 		RequestSignatureTab = (await import('../../../components/RightSidebar/RequestSignatureTab.vue')).default
 		const { useFilesStore } = await import('../../../store/files.js')
 		filesStore = useFilesStore()
@@ -348,6 +361,28 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await wrapper.setData({ signingProgressStatus: FILE_STATUS.DRAFT })
 
 			expect(wrapper.vm.showSigningProgress).toBe(false)
+		})
+	})
+
+	describe('RULE: modal navigation uses absolute generated URLs', () => {
+		it('uses generateUrl for validation modal links', async () => {
+			await wrapper.setProps({ useModal: true })
+			await updateFile({ uuid: 'validation-uuid' })
+
+			wrapper.vm.validationFile()
+
+			expect(generateUrlMock).toHaveBeenCalledWith('/apps/libresign/p/validation/{uuid}', { uuid: 'validation-uuid' })
+			expect(wrapper.vm.modalSrc).toBe('/apps/libresign/p/validation/validation-uuid')
+		})
+
+		it('uses generateUrl for signing modal links', async () => {
+			await wrapper.setProps({ useModal: true })
+			await updateFile({ signUuid: 'sign-uuid' })
+
+			await wrapper.vm.sign()
+
+			expect(generateUrlMock).toHaveBeenCalledWith('/apps/libresign/p/sign/{uuid}/pdf', { uuid: 'sign-uuid' })
+			expect(wrapper.vm.modalSrc).toBe('/apps/libresign/p/sign/sign-uuid/pdf')
 		})
 	})
 
