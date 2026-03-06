@@ -27,7 +27,7 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import { getCurrentUser } from '@nextcloud/auth'
@@ -37,21 +37,21 @@ import ManagePassword from './partials/ManagePassword.vue'
 import Signatures from './partials/Signatures.vue'
 import UserImage from './partials/UserImage.vue'
 
-export default {
+defineOptions({
 	name: 'Account',
+})
 
-	components: {
-		Signatures,
-		UserImage,
-		Documents,
-		ManagePassword,
-	},
-	data() {
-		return {
-			user: getCurrentUser(),
-		}
-	},
+type User = {
+	uid?: string
+	displayName?: string
 }
+
+const user = getCurrentUser() as User
+
+defineExpose({
+	user,
+	t,
+})
 </script>
 
 <style lang="scss" scoped>
