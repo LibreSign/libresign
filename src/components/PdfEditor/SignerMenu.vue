@@ -37,7 +37,7 @@
 	</NcActions>
 </template>
 
-<script>
+<script setup lang="ts">
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
@@ -45,56 +45,58 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { mdiChevronDown } from '@mdi/js'
 
-export default {
+defineOptions({
 	name: 'SignerMenu',
-	emits: ['change'],
-	components: {
-		NcActionButton,
-		NcActions,
-		NcAvatar,
-		NcIconSvgWrapper,
-	},
-	setup() {
-		return {
-			mdiChevronDown,
-		}
-	},
-	props: {
-		signers: {
-			type: Array,
-			default: () => [],
-		},
-		currentSigner: {
-			type: Object,
-			default: null,
-		},
-		getSignerLabel: {
-			type: Function,
-			default: null,
-		},
-		show: {
-			type: Boolean,
-			default: true,
-		},
-	},
-	methods: {
-		label(signer) {
-			if (this.getSignerLabel) {
-				return this.getSignerLabel(signer)
-			}
-			if (!signer) {
-				return ''
-			}
-			return signer.displayName || signer.name || signer.email || signer.id || ''
-		},
-		signerKey(signer) {
-			return signer?.signRequestId || signer?.uuid || signer?.id || signer?.email || ''
-		},
-		selectSigner(signer) {
-			this.$emit('change', signer)
-		},
-	},
+})
+
+type Signer = {
+	signRequestId?: string | number
+	uuid?: string
+	id?: string | number
+	email?: string
+	name?: string
+	displayName?: string
 }
+
+const props = withDefaults(defineProps<{
+	signers?: Signer[]
+	currentSigner?: Signer | null
+	getSignerLabel?: ((signer: Signer | null | undefined) => string) | null
+	show?: boolean
+}>(), {
+	signers: () => [],
+	currentSigner: null,
+	getSignerLabel: null,
+	show: true,
+})
+
+const emit = defineEmits<{
+	change: [signer: Signer]
+}>()
+
+function label(signer: Signer | null | undefined) {
+	if (props.getSignerLabel) {
+		return props.getSignerLabel(signer)
+	}
+	if (!signer) {
+		return ''
+	}
+	return signer.displayName || signer.name || signer.email || signer.id || ''
+}
+
+function signerKey(signer: Signer) {
+	return signer?.signRequestId || signer?.uuid || signer?.id || signer?.email || ''
+}
+
+function selectSigner(signer: Signer) {
+	emit('change', signer)
+}
+
+defineExpose({
+	label,
+	signerKey,
+	selectSigner,
+})
 </script>
 
 <style lang="scss">
