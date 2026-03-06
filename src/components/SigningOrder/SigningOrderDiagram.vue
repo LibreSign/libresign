@@ -94,8 +94,9 @@
 		</div>
 	</div>
 </template>
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed } from 'vue'
 import {
 	mdiCheck,
 	mdiCheckCircle,
@@ -106,87 +107,109 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
-export default {
+defineOptions({
 	name: 'SigningOrderDiagram',
-	components: {
-		NcAvatar,
-		NcChip,
-		NcPopover,
-		NcIconSvgWrapper,
-	},
-	setup() {
-		return {
-			mdiCheck,
-			mdiCheckCircle,
-			mdiClockOutline,
-			mdiCircleOutline,
-		}
-	},
-	props: {
-		signers: {
-			type: Array,
-			required: true,
-		},
-		senderName: {
-			type: String,
-			default: '',
-		},
-	},
-	computed: {
-		uniqueOrders() {
-			const orders = this.signers.map(s => s.signingOrder || 1)
-			return [...new Set(orders)].sort((a, b) => a - b)
-		},
-	},
-	methods: {
-		t,
-		getSignersByOrder(order) {
-			return this.signers.filter(s => (s.signingOrder || 1) === order)
-		},
-		getSignerDisplayName(signer) {
-			return signer.displayName || signer.identifyMethods?.[0]?.value || this.t('libresign', 'Signer')
-		},
-		getSignerIdentify(signer) {
-			const method = signer.identifyMethods?.[0]?.method
-			const value = signer.identifyMethods?.[0]?.value
-			if (method === 'email') {
-				return value
-			}
-			if (method === 'account') {
-				return `v.${method}.${value}@colab.rio`
-			}
-			return value
-		},
-		getIdentifyMethods(signer) {
-			return signer.identifyMethods?.map(method => method.method) || []
-		},
-		getStatusLabel(signer) {
-			if (signer.signed) return this.t('libresign', 'Signed')
-			if (signer.me?.status === 0) return this.t('libresign', 'Draft')
-			return this.t('libresign', 'Pending')
-		},
-		getStatusIconPath(signer) {
-			if (signer.signed) return this.mdiCheckCircle
-			if (signer.me?.status === 0) return this.mdiCircleOutline
-			return this.mdiClockOutline
-		},
-		getChipType(signer) {
-			if (signer.signed) return 'success'
-			if (signer.me?.status === 0) return 'secondary'
-			return 'warning'
-		},
-		getStatusClass(signer) {
-			if (signer.signed) return 'signed'
-			if (signer.me?.status === 0) return 'draft'
-			return 'pending'
-		},
-		formatDate(timestamp) {
-			if (!timestamp) return ''
-			const date = new Date(timestamp * 1000)
-			return date.toLocaleString()
-		},
-	},
+})
+
+type IdentifyMethod = {
+	method?: string
+	value?: string
 }
+
+type Signer = {
+	displayName?: string
+	identifyMethods?: IdentifyMethod[]
+	signingOrder?: number
+	signed?: boolean
+	signDate?: number | null
+	me?: {
+		status?: number
+	}
+}
+
+const props = withDefaults(defineProps<{
+	signers: Signer[]
+	senderName?: string
+}>(), {
+	senderName: '',
+})
+
+const uniqueOrders = computed(() => {
+	const orders = props.signers.map((signer) => signer.signingOrder || 1)
+	return [...new Set(orders)].sort((a, b) => a - b)
+})
+
+function getSignersByOrder(order: number) {
+	return props.signers.filter((signer) => (signer.signingOrder || 1) === order)
+}
+
+function getSignerDisplayName(signer: Signer) {
+	return signer.displayName || signer.identifyMethods?.[0]?.value || t('libresign', 'Signer')
+}
+
+function getSignerIdentify(signer: Signer) {
+	const method = signer.identifyMethods?.[0]?.method
+	const value = signer.identifyMethods?.[0]?.value
+	if (method === 'email') {
+		return value
+	}
+	if (method === 'account') {
+		return `v.${method}.${value}@colab.rio`
+	}
+	return value
+}
+
+function getIdentifyMethods(signer: Signer) {
+	return signer.identifyMethods?.map((method) => method.method) || []
+}
+
+function getStatusLabel(signer: Signer) {
+	if (signer.signed) return t('libresign', 'Signed')
+	if (signer.me?.status === 0) return t('libresign', 'Draft')
+	return t('libresign', 'Pending')
+}
+
+function getStatusIconPath(signer: Signer) {
+	if (signer.signed) return mdiCheckCircle
+	if (signer.me?.status === 0) return mdiCircleOutline
+	return mdiClockOutline
+}
+
+function getChipType(signer: Signer) {
+	if (signer.signed) return 'success'
+	if (signer.me?.status === 0) return 'secondary'
+	return 'warning'
+}
+
+function getStatusClass(signer: Signer) {
+	if (signer.signed) return 'signed'
+	if (signer.me?.status === 0) return 'draft'
+	return 'pending'
+}
+
+function formatDate(timestamp?: number | null) {
+	if (!timestamp) return ''
+	const date = new Date(timestamp * 1000)
+	return date.toLocaleString()
+}
+
+defineExpose({
+	t,
+	mdiCheck,
+	mdiCheckCircle,
+	mdiClockOutline,
+	mdiCircleOutline,
+	uniqueOrders,
+	getSignersByOrder,
+	getSignerDisplayName,
+	getSignerIdentify,
+	getIdentifyMethods,
+	getStatusLabel,
+	getStatusIconPath,
+	getChipType,
+	getStatusClass,
+	formatDate,
+})
 </script>
 <style lang="scss" scoped>
 .signing-order-diagram {
