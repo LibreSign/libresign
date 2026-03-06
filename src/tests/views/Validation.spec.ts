@@ -13,8 +13,8 @@ import Validation from '../../views/Validation.vue'
 // Mock async components to prevent defineAsyncComponent from triggering
 // pending Vite dev-server fetches that outlive the worker and cause
 // "Closing rpc while fetch was pending" errors in Vitest.
-vi.mock('../../components/validation/EnvelopeValidation.vue', () => ({ default: { template: '<div />' } }))
-vi.mock('../../components/validation/FileValidation.vue', () => ({ default: { template: '<div />' } }))
+vi.mock('../../components/validation/EnvelopeValidation.vue', () => ({ default: { template: '<div data-test="envelope-validation" />' } }))
+vi.mock('../../components/validation/FileValidation.vue', () => ({ default: { template: '<div data-test="file-validation" />' } }))
 vi.mock('../../components/validation/SigningProgress.vue', () => ({ default: { template: '<div />' } }))
 
 // Mock js-confetti
@@ -281,6 +281,20 @@ describe('Validation.vue - Business Logic', () => {
 			})
 
 			expect(wrapper.html()).not.toContain('[object Promise]')
+		})
+
+		it('uses component references instead of string names for validation content', async () => {
+			wrapper.vm.document = { uuid: 'doc-uuid', nodeType: 'file', name: 'contract.pdf' }
+			await wrapper.vm.$nextTick()
+
+			expect(typeof wrapper.vm.validationComponent).toBe('object')
+			expect(wrapper.vm.validationComponent).not.toBe('FileValidation')
+
+			wrapper.vm.document = { uuid: 'doc-uuid', nodeType: 'envelope', name: 'envelope', files: [{ id: 1 }] }
+			await wrapper.vm.$nextTick()
+
+			expect(typeof wrapper.vm.validationComponent).toBe('object')
+			expect(wrapper.vm.validationComponent).not.toBe('EnvelopeValidation')
 		})
 	})
 
