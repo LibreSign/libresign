@@ -49,8 +49,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, ref } from 'vue'
 
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 
@@ -68,125 +69,115 @@ import logger from '../../logger.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSelectionStore } from '../../store/selection.js'
 
-export default {
+defineOptions({
 	name: 'FilesListTableHeaderActions',
+})
 
-	components: {
-		NcActionButton,
-		NcActions,
-		NcButton,
-		NcCheckboxRadioSwitch,
-		NcDialog,
-		NcIconSvgWrapper,
-		NcLoadingIcon,
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		const selectionStore = useSelectionStore()
-
-		return {
-			t,
-			filesStore,
-			selectionStore,
-		}
-	},
-
-	data() {
-		return {
-			enabledMenuActions: [],
-			loading: null,
-			toDelete: [],
-			confirmDelete: false,
-			deleteFile: true,
-			deleting: false,
-		}
-	},
-	computed: {
-		areFilesLoading() {
-			return this.filesStore.loading
-		},
-	},
-	mounted() {
-		this.registerAction({
-			id: 'delete',
-			displayName: () => t('libresign', 'Delete'),
-			iconSvgInline: () => svgDelete,
-			execBatch: (files) => {
-				this.confirmDelete = true
-				this.toDelete = files
-				return files.map(() => (null))
-			},
-		})
-	},
-	methods: {
-		registerAction(action) {
-			this.enabledMenuActions = [...this.enabledMenuActions, action]
-		},
-		doDelete() {
-			this.deleting = true
-			this.filesStore.deleteMultiple(this.toDelete, this.deleteFile)
-				.then(() => {
-					this.toDelete = []
-					this.selectionStore.reset()
-					this.deleting = false
-				})
-		},
-		async onActionClick(action) {
-			const displayName = action.displayName(this.selectionStore.selected)
-			const selectionSources = this.selectionStore.selected
-			try {
-				// Set loading markers
-				this.loading = action.id
-				this.changeLoadingStatusOfSelectedFiles('loading')
-
-				// Dispatch action execution
-				const results = await action.execBatch(this.selectionStore.selected)
-
-				// Check if all actions returned null
-				if (!results.some(result => result !== null)) {
-					// If the actions returned null, we stay silent
-					return
-				}
-
-				// Handle potential failures
-				if (results.some(result => result === false)) {
-					// Remove the failed ids from the selection
-					const failedSources = selectionSources
-						.filter((source, index) => results[index] === false)
-					this.selectionStore.set(failedSources)
-
-					if (results.some(result => result === null)) {
-						// If some actions returned null, we assume that the dev
-						// is handling the error messages and we stay silent
-						return
-					}
-
-					showError(this.t('libresign', '"{displayName}" failed on some elements ', { displayName }))
-					return
-				}
-
-				// Show success message and clear selection
-				showSuccess(this.t('libresign', '"{displayName}" batch action executed successfully', { displayName }))
-				this.selectionStore.reset()
-			} catch (e) {
-				logger.error('Error while executing action', { action, e })
-				showError(this.t('libresign', '"{displayName}" action failed', { displayName }))
-			} finally {
-				// Remove loading markers
-				this.loading = null
-				this.changeLoadingStatusOfSelectedFiles()
-			}
-		},
-		changeLoadingStatusOfSelectedFiles(status) {
-			this.selectionStore.selected.forEach(key => {
-				const file = this.filesStore.files[key]
-				if (file) {
-					file.loading = status
-				}
-			})
-		},
-	},
+type BatchActionResult = boolean | null
+type BatchAction = {
+	id: string
+	displayName: (selection: number[]) => string
+	iconSvgInline: (selection: number[]) => string
+	execBatch: (selection: number[]) => Promise<BatchActionResult[]> | BatchActionResult[]
 }
+
+const filesStore = useFilesStore()
+const selectionStore = useSelectionStore()
+
+const enabledMenuActions = ref<BatchAction[]>([])
+const loading = ref<string | null>(null)
+const toDelete = ref<number[]>([])
+const confirmDelete = ref(false)
+const deleteFile = ref(true)
+const deleting = ref(false)
+
+const areFilesLoading = computed(() => filesStore.loading)
+
+function registerAction(action: BatchAction) {
+	enabledMenuActions.value = [...enabledMenuActions.value, action]
+}
+
+function doDelete() {
+	deleting.value = true
+	filesStore.deleteMultiple(toDelete.value, deleteFile.value)
+		.then(() => {
+			toDelete.value = []
+			selectionStore.reset()
+			deleting.value = false
+		})
+}
+
+async function onActionClick(action: BatchAction) {
+	const displayName = action.displayName(selectionStore.selected)
+	const selectionSources = selectionStore.selected
+	try {
+		loading.value = action.id
+		changeLoadingStatusOfSelectedFiles('loading')
+
+		const results = await action.execBatch(selectionStore.selected)
+
+		if (!results.some(result => result !== null)) {
+			return
+		}
+
+		if (results.some(result => result === false)) {
+			const failedSources = selectionSources
+				.filter((source, index) => results[index] === false)
+			selectionStore.set(failedSources)
+
+			if (results.some(result => result === null)) {
+				return
+			}
+
+			showError(t('libresign', '"{displayName}" failed on some elements ', { displayName }))
+			return
+		}
+
+		showSuccess(t('libresign', '"{displayName}" batch action executed successfully', { displayName }))
+		selectionStore.reset()
+	} catch (e) {
+		logger.error('Error while executing action', { action, e })
+		showError(t('libresign', '"{displayName}" action failed', { displayName }))
+	} finally {
+		loading.value = null
+		changeLoadingStatusOfSelectedFiles()
+	}
+}
+
+function changeLoadingStatusOfSelectedFiles(status?: string) {
+	selectionStore.selected.forEach((key: number) => {
+		const file = filesStore.files[key]
+		if (file) {
+			file.loading = status
+		}
+	})
+}
+
+onMounted(() => {
+	registerAction({
+		id: 'delete',
+		displayName: () => t('libresign', 'Delete'),
+		iconSvgInline: () => svgDelete,
+		execBatch: (files) => {
+			confirmDelete.value = true
+			toDelete.value = files
+			return files.map(() => null)
+		},
+	})
+})
+
+defineExpose({
+	enabledMenuActions,
+	loading,
+	toDelete,
+	confirmDelete,
+	deleteFile,
+	deleting,
+	registerAction,
+	doDelete,
+	onActionClick,
+	changeLoadingStatusOfSelectedFiles,
+})
 </script>
 
 <style scoped lang="scss">
