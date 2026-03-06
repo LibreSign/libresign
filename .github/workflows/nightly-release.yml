@@ -181,7 +181,7 @@ jobs:
           # Setting up keys
           mkdir -p build/tools/certificates/
           echo '${{ secrets.APP_PRIVATE_KEY }}' > build/tools/certificates/${{ env.APP_NAME }}.key
-          make appstore
+          make appstore verify-appstore-package
 
       - name: Define nightly metadata
         id: version
