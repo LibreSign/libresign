@@ -18,6 +18,12 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 13.1.3 - 2026-03-06
+
+### Fixes
+- fix: avoid router resolution in request signature tab modal
+- test: cover modal urls in request signature tab
+
 ## 13.1.2 - 2026-03-06
 
 ### Fixes
@@ -29,6 +35,12 @@ Types of changes:
 
 ### Fixes
 - fix: include css assets in appstore package
+
+## 12.3.3 - 2026-03-06
+
+### Fixes
+- fix: avoid router resolution in request signature tab modal
+- test: cover modal urls in request signature tab
 
 ## 12.3.2 - 2026-03-06
 
