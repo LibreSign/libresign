@@ -46,8 +46,10 @@
 		</template>
 	</NcListItem>
 </template>
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, ref } from 'vue'
+
 import {
 	mdiCheckCircle,
 	mdiCircleOutline,
@@ -62,184 +64,192 @@ import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
-export default {
+defineOptions({
 	name: 'Signer',
-	components: {
-		NcListItem,
-		NcAvatar,
-		NcChip,
-		NcIconSvgWrapper,
-	},
-	props: {
-		signerIndex: {
-			type: Number,
-			required: true,
-		},
-		event: {
-			type: String,
-			required: false,
-			default: '',
-		},
-		draggable: {
-			type: Boolean,
-			required: false,
-			default: false,
-		},
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		return {
-			filesStore,
-			mdiCheckCircle,
-			mdiClockOutline,
-			mdiCircleOutline,
-			mdiDragVertical,
-		}
-	},
-	data() {
-		return {
-			canRequestSign: loadState('libresign', 'can_request_sign', false),
-			methods: loadState('libresign', 'identify_methods', []),
-		}
-	},
-	computed: {
-		signatureFlow() {
-			const file = this.filesStore.getFile()
-			let flow = file?.signatureFlow ?? 'parallel'
-			if (typeof flow === 'number') {
-				const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-				flow = flowMap[flow] || 'parallel'
-			}
-			return flow
-		},
-		signer() {
-			const file = this.filesStore.getFile()
-			return file?.signers?.[this.signerIndex]
-		},
-		signerName() {
-			return this.signer.displayName
-		},
-		counterNumber() {
-			const file = this.filesStore.getFile()
-			const totalSigners = file?.signers?.length || 0
-			if (this.signatureFlow === 'ordered_numeric' && totalSigners > 1 && this.signer.signingOrder) {
-				return this.signer.signingOrder
-			}
-			return 0
-		},
-		counterType() {
-			return this.counterNumber > 0 ? 'highlighted' : undefined
-		},
-		isMethodDisabled() {
-			if (!this.signer.identifyMethods?.length) {
-				return false
-			}
-			const signerMethod = this.signer.identifyMethods[0].method
-			const methodConfig = this.methods.find(m => m.name === signerMethod)
-			return !methodConfig?.enabled
-		},
-		disabledMethodLabel() {
-			if (!this.signer.identifyMethods?.length) {
-				return ''
-			}
-			const signerMethod = this.signer.identifyMethods[0].method
-			const methodConfig = this.methods.find(m => m.name === signerMethod)
-			return methodConfig?.friendly_name || signerMethod
-		},
-		disabledTooltip() {
-			if (this.isMethodDisabled) {
-				return this.t('libresign', 'This signer cannot be used because the identification method "{method}" has been disabled by the administrator.', { method: this.disabledMethodLabel })
-			}
-			return ''
-		},
-		signerClass() {
-			return {
-				'signer-signed': this.signer.signed,
-				'signer-method-disabled': this.isMethodDisabled,
-			}
-		},
-		showDragHandle() {
-			if (!this.draggable) {
-				return false
-			}
-			if (this.filesStore.isOriginalFileDeleted()) {
-				return false
-			}
-			const file = this.filesStore.getFile()
-			if (!file || !file.signers) {
-				return false
-			}
-			const totalSigners = file.signers.length
-			return this.signatureFlow === 'ordered_numeric' &&
-				totalSigners > 1 &&
-				!this.signer.signed &&
-				this.filesStore.canSave()
-		},
-		identifyMethodsNames() {
-			if (!this.signer?.identifyMethods) {
-				return []
-			}
-			return this.signer.identifyMethods.map(method => method.method)
-		},
-		chipType() {
-			switch (this.signer.status) {
-			case SIGN_REQUEST_STATUS.SIGNED:
-				return 'success'
-			case SIGN_REQUEST_STATUS.ABLE_TO_SIGN:
-				return 'warning'
-			case SIGN_REQUEST_STATUS.DRAFT:
-			default:
-				return 'secondary'
-			}
-		},
-		signerLinkAriaLabel() {
-			if (this.signer.signed) {
-				// TRANSLATORS Accessible label for a signed signer list item. {name} is the signer's display name.
-				return t('libresign', 'Signer {name} (already signed)', { name: this.signerName })
-			}
-			// TRANSLATORS Accessible label for a signer list item. {name} is the signer's display name.
-			return t('libresign', 'Edit signer {name}', { name: this.signerName })
-		},
-		statusIconPath() {
-			switch (this.signer.status) {
-			case SIGN_REQUEST_STATUS.SIGNED:
-				return this.mdiCheckCircle
-			case SIGN_REQUEST_STATUS.ABLE_TO_SIGN:
-				return this.mdiClockOutline
-			case SIGN_REQUEST_STATUS.DRAFT:
-			default:
-				return this.mdiCircleOutline
-			}
-		},
-	},
-	methods: {
-		t,
-		signerClickAction(signer) {
-			if (!this.canRequestSign) {
-				return
-			}
-			if (this.filesStore.isOriginalFileDeleted()) {
-				return
-			}
-			if (this.event.length === 0) {
-				return
-			}
-			if (this.signer.signed) {
-				return
-			}
-			if (this.isMethodDisabled) {
-				return
-			}
-			emit(this.event, this.signer)
-		},
-		closeActions() {
-			const actionsRef = this.$refs.listItem?.$refs.actions
-			if (actionsRef && typeof actionsRef.closeMenu === 'function') {
-				actionsRef.closeMenu()
-			}
-		},
-	},
+})
+
+type SignerMethod = {
+	method: string
 }
+
+type SignerRow = {
+	signed?: boolean
+	identifyMethods?: SignerMethod[]
+	status?: number
+	displayName?: string
+	signingOrder?: number
+}
+
+const props = withDefaults(defineProps<{
+	signerIndex: number
+	event?: string
+	draggable?: boolean
+}>(), {
+	event: '',
+	draggable: false,
+})
+
+const filesStore = useFilesStore()
+const listItem = ref<any | null>(null)
+
+const canRequestSign = loadState('libresign', 'can_request_sign', false)
+const methods = loadState('libresign', 'identify_methods', []) as Array<{ name: string; enabled: boolean; friendly_name?: string }>
+
+const signatureFlow = computed(() => {
+	const file = filesStore.getFile()
+	let flow = file?.signatureFlow ?? 'parallel'
+	if (typeof flow === 'number') {
+		const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		flow = flowMap[flow] || 'parallel'
+	}
+	return flow
+})
+
+const signer = computed<SignerRow>(() => {
+	const file = filesStore.getFile()
+	return file?.signers?.[props.signerIndex] || {}
+})
+
+const signerName = computed(() => signer.value.displayName || '')
+
+const counterNumber = computed(() => {
+	const file = filesStore.getFile()
+	const totalSigners = file?.signers?.length || 0
+	if (signatureFlow.value === 'ordered_numeric' && totalSigners > 1 && signer.value.signingOrder) {
+		return signer.value.signingOrder
+	}
+	return 0
+})
+
+const counterType = computed(() => (counterNumber.value > 0 ? 'highlighted' : undefined))
+
+const isMethodDisabled = computed(() => {
+	if (!signer.value.identifyMethods?.length) {
+		return false
+	}
+	const signerMethod = signer.value.identifyMethods[0].method
+	const methodConfig = methods.find(m => m.name === signerMethod)
+	return !methodConfig?.enabled
+})
+
+const disabledMethodLabel = computed(() => {
+	if (!signer.value.identifyMethods?.length) {
+		return ''
+	}
+	const signerMethod = signer.value.identifyMethods[0].method
+	const methodConfig = methods.find(m => m.name === signerMethod)
+	return methodConfig?.friendly_name || signerMethod
+})
+
+const disabledTooltip = computed(() => {
+	if (isMethodDisabled.value) {
+		return t('libresign', 'This signer cannot be used because the identification method "{method}" has been disabled by the administrator.', { method: disabledMethodLabel.value })
+	}
+	return ''
+})
+
+const signerClass = computed(() => ({
+	'signer-signed': signer.value.signed,
+	'signer-method-disabled': isMethodDisabled.value,
+}))
+
+const showDragHandle = computed(() => {
+	if (!props.draggable) {
+		return false
+	}
+	if (filesStore.isOriginalFileDeleted()) {
+		return false
+	}
+	const file = filesStore.getFile()
+	if (!file || !file.signers) {
+		return false
+	}
+	const totalSigners = file.signers.length
+	return signatureFlow.value === 'ordered_numeric'
+		&& totalSigners > 1
+		&& !signer.value.signed
+		&& filesStore.canSave()
+})
+
+const identifyMethodsNames = computed(() => {
+	if (!signer.value?.identifyMethods) {
+		return []
+	}
+	return signer.value.identifyMethods.map(method => method.method)
+})
+
+const chipType = computed(() => {
+	switch (signer.value.status) {
+	case SIGN_REQUEST_STATUS.SIGNED:
+		return 'success'
+	case SIGN_REQUEST_STATUS.ABLE_TO_SIGN:
+		return 'warning'
+	case SIGN_REQUEST_STATUS.DRAFT:
+	default:
+		return 'secondary'
+	}
+})
+
+const signerLinkAriaLabel = computed(() => {
+	if (signer.value.signed) {
+		return t('libresign', 'Signer {name} (already signed)', { name: signerName.value })
+	}
+	return t('libresign', 'Edit signer {name}', { name: signerName.value })
+})
+
+const statusIconPath = computed(() => {
+	switch (signer.value.status) {
+	case SIGN_REQUEST_STATUS.SIGNED:
+		return mdiCheckCircle
+	case SIGN_REQUEST_STATUS.ABLE_TO_SIGN:
+		return mdiClockOutline
+	case SIGN_REQUEST_STATUS.DRAFT:
+	default:
+		return mdiCircleOutline
+	}
+})
+
+function signerClickAction() {
+	if (!canRequestSign) {
+		return
+	}
+	if (filesStore.isOriginalFileDeleted()) {
+		return
+	}
+	if (props.event.length === 0) {
+		return
+	}
+	if (signer.value.signed) {
+		return
+	}
+	if (isMethodDisabled.value) {
+		return
+	}
+	emit(props.event, signer.value)
+}
+
+function closeActions() {
+	const actionsRef = listItem.value?.$refs?.actions
+	if (actionsRef && typeof actionsRef.closeMenu === 'function') {
+		actionsRef.closeMenu()
+	}
+}
+
+defineExpose({
+	signatureFlow,
+	signer,
+	signerName,
+	counterNumber,
+	counterType,
+	isMethodDisabled,
+	disabledTooltip,
+	showDragHandle,
+	chipType,
+	statusIconPath,
+	signerClickAction,
+	closeActions,
+	filesStore,
+})
 </script>
 <style lang="scss" scoped>
 .signer-subname {
