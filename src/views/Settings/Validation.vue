@@ -49,131 +49,182 @@
 			@template-reset="onTemplateReset" />
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { onMounted, ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import FooterTemplateEditor from '../../components/FooterTemplateEditor.vue'
 
-export default {
-	name: 'Validation',
-	components: {
-		NcSettingsSection,
-		FooterTemplateEditor,
-		NcCheckboxRadioSwitch,
-	},
-	data() {
-		const isDefaultFooterTemplate = loadState('libresign', 'footer_template_is_default', true)
-		return {
-			paternValidadeUrl: 'https://validador.librecode.coop/',
-			makeValidationUrlPrivate: false,
-			url: null,
-			addFooter: true,
-			writeQrcodeOnFooter: true,
-			isDefaultFooterTemplate,
-			customizeFooter: !isDefaultFooterTemplate,
+type SettingsResponse = {
+	data?: {
+		ocs?: {
+			data?: {
+				data?: string | boolean | number
+			}
 		}
-	},
-	created() {
-		this.getData()
-	},
-	methods: {
-		t,
-		validationUrlEnter() {
-			this.$refs.urlInput.blur()
-		},
-		async getData() {
-			this.getMakeValidationUrlPrivate()
-			this.getAddFooterData()
-			this.getWriteQrcodeOnFooter()
-			this.getValidationUrlData()
-			this.getCustomizeFooterData()
-		},
-		async getMakeValidationUrlPrivate() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private'),
-			)
-			const value = response?.data?.ocs?.data.data
-			this.makeValidationUrlPrivate = ['true', true, '1', 1].includes(value)
-		},
-		async getAddFooterData() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/add_footer'),
-			)
-			const value = response?.data?.ocs?.data.data
-			this.addFooter = ['true', true, '1', 1].includes(value)
-		},
-		async getWriteQrcodeOnFooter() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/write_qrcode_on_footer'),
-			)
-			const value = response?.data?.ocs?.data.data
-			this.writeQrcodeOnFooter = ['true', true, '1', 1].includes(value)
-		},
-		async getValidationUrlData() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/validation_site'),
-			)
-			this.placeHolderValidationUrl(response.data.ocs.data.data)
-		},
-		async getCustomizeFooterData() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/footer_template_is_default'),
-			)
-			const value = response?.data?.ocs?.data.data
-			this.isDefaultFooterTemplate = ['true', true, '1', 1].includes(value)
-			this.customizeFooter = !this.isDefaultFooterTemplate
-		},
-		async onTemplateReset() {
-			this.customizeFooter = false
-		},
-		saveValidationiUrl() {
-			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
-		},
-		async toggleSetting(setting, value) {
-			try {
-				await OCP.AppConfig.setValue('libresign', setting, value ? '1' : '0')
-			} catch (error) {
-				console.error('Error toggling setting:', setting, error)
-			}
-		},
-		async onMakeValidationUrlPrivateChange(value) {
-			await this.toggleSetting('make_validation_url_private', value)
-		},
-		async onAddFooterChange(value) {
-			await this.toggleSetting('add_footer', value)
-		},
-		async onWriteQrcodeOnFooterChange(value) {
-			await this.toggleSetting('write_qrcode_on_footer', value)
-		},
-		async onCustomizeFooterChange(value) {
-			await this.toggleSetting('footer_template_is_default', !value)
-			this.isDefaultFooterTemplate = !value
-			if (!value && this.$refs.footerTemplateEditor) {
-				this.$refs.footerTemplateEditor.resetFooterTemplate()
-			}
-		},
-		placeHolderValidationUrl(data) {
-			if (data !== '') {
-				this.url = data
-			} else {
-				this.url = this.paternValidadeUrl
-			}
-		},
-		fillValidationUrl() {
-			if (this.url !== this.paternValidadeUrl) {
-				if (this.$refs.urlInput.value.length === 0) {
-					this.$refs.urlInput.value = this.url
-				}
-			}
-		},
-	},
+	}
 }
+
+type OcpGlobal = {
+	AppConfig: {
+		setValue: (app: string, key: string, value: string) => Promise<void> | void
+	}
+}
+
+type FooterTemplateEditorInstance = {
+	resetFooterTemplate: () => Promise<void> | void
+}
+
+defineOptions({
+	name: 'Validation',
+})
+
+const isDefaultFooterTemplateState = loadState('libresign', 'footer_template_is_default', true)
+
+const paternValidadeUrl = ref('https://validador.librecode.coop/')
+const makeValidationUrlPrivate = ref(false)
+const url = ref<string | null>(null)
+const addFooter = ref(true)
+const writeQrcodeOnFooter = ref(true)
+const isDefaultFooterTemplate = ref(isDefaultFooterTemplateState)
+const customizeFooter = ref(!isDefaultFooterTemplateState)
+
+const urlInput = ref<HTMLInputElement | null>(null)
+const footerTemplateEditor = ref<FooterTemplateEditorInstance | null>(null)
+
+function parseBooleanSetting(value: string | boolean | number | undefined) {
+	return ['true', true, '1', 1].includes(value)
+}
+
+function getOcp() {
+	return (globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP
+}
+
+function validationUrlEnter() {
+	urlInput.value?.blur()
+}
+
+async function getData() {
+	await Promise.all([
+		getMakeValidationUrlPrivate(),
+		getAddFooterData(),
+		getWriteQrcodeOnFooter(),
+		getValidationUrlData(),
+		getCustomizeFooterData(),
+	])
+}
+
+async function getMakeValidationUrlPrivate() {
+	const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private')) as SettingsResponse
+	makeValidationUrlPrivate.value = parseBooleanSetting(response.data?.ocs?.data?.data)
+}
+
+async function getAddFooterData() {
+	const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/add_footer')) as SettingsResponse
+	addFooter.value = parseBooleanSetting(response.data?.ocs?.data?.data)
+}
+
+async function getWriteQrcodeOnFooter() {
+	const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/write_qrcode_on_footer')) as SettingsResponse
+	writeQrcodeOnFooter.value = parseBooleanSetting(response.data?.ocs?.data?.data)
+}
+
+async function getValidationUrlData() {
+	const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/validation_site')) as SettingsResponse
+	placeHolderValidationUrl(String(response.data?.ocs?.data?.data ?? ''))
+}
+
+async function getCustomizeFooterData() {
+	const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/footer_template_is_default')) as SettingsResponse
+	isDefaultFooterTemplate.value = parseBooleanSetting(response.data?.ocs?.data?.data)
+	customizeFooter.value = !isDefaultFooterTemplate.value
+}
+
+function onTemplateReset() {
+	customizeFooter.value = false
+}
+
+function saveValidationiUrl() {
+	getOcp().AppConfig.setValue('libresign', 'validation_site', urlInput.value?.value.trim() || '')
+}
+
+async function toggleSetting(setting: string, value: boolean) {
+	try {
+		await getOcp().AppConfig.setValue('libresign', setting, value ? '1' : '0')
+	} catch (error) {
+		console.error('Error toggling setting:', setting, error)
+	}
+}
+
+async function onMakeValidationUrlPrivateChange(value: boolean) {
+	await toggleSetting('make_validation_url_private', value)
+}
+
+async function onAddFooterChange(value: boolean) {
+	await toggleSetting('add_footer', value)
+}
+
+async function onWriteQrcodeOnFooterChange(value: boolean) {
+	await toggleSetting('write_qrcode_on_footer', value)
+}
+
+async function onCustomizeFooterChange(value: boolean) {
+	await toggleSetting('footer_template_is_default', !value)
+	isDefaultFooterTemplate.value = !value
+	if (!value) {
+		footerTemplateEditor.value?.resetFooterTemplate()
+	}
+}
+
+function placeHolderValidationUrl(data: string) {
+	url.value = data !== '' ? data : paternValidadeUrl.value
+}
+
+function fillValidationUrl() {
+	if (url.value !== paternValidadeUrl.value && urlInput.value && urlInput.value.value.length === 0) {
+		urlInput.value.value = url.value || ''
+	}
+}
+
+onMounted(() => {
+	void getData()
+})
+
+defineExpose({
+	t,
+	paternValidadeUrl,
+	makeValidationUrlPrivate,
+	url,
+	addFooter,
+	writeQrcodeOnFooter,
+	isDefaultFooterTemplate,
+	customizeFooter,
+	urlInput,
+	footerTemplateEditor,
+	parseBooleanSetting,
+	validationUrlEnter,
+	getData,
+	getMakeValidationUrlPrivate,
+	getAddFooterData,
+	getWriteQrcodeOnFooter,
+	getValidationUrlData,
+	getCustomizeFooterData,
+	onTemplateReset,
+	saveValidationiUrl,
+	toggleSetting,
+	onMakeValidationUrlPrivateChange,
+	onAddFooterChange,
+	onWriteQrcodeOnFooterChange,
+	onCustomizeFooterChange,
+	placeHolderValidationUrl,
+	fillValidationUrl,
+})
 </script>
 <style lang="scss" scoped>
 input {
