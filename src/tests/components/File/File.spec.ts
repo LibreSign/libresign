@@ -8,6 +8,14 @@ import { mount } from '@vue/test-utils'
 
 import File from '../../../components/File/File.vue'
 
+type FileEntry = {
+	id: number
+	nodeId?: number
+	name: string
+	status: number
+	statusText: string
+}
+
 const filesStoreMock = {
 	selectedFileId: 7,
 	files: {
@@ -18,7 +26,7 @@ const filesStoreMock = {
 			status: 3,
 			statusText: 'Signed',
 		},
-	},
+	} as Record<number, FileEntry>,
 	selectFile: vi.fn(),
 }
 
