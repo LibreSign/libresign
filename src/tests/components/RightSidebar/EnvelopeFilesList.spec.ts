@@ -48,7 +48,7 @@ describe('EnvelopeFilesList', () => {
 	let filesStore: FilesStoreMock
 
 	const createWrapper = (props = {}) => {
-		return mount(EnvelopeFilesList, {
+		const localWrapper = mount(EnvelopeFilesList, {
 			props: {
 				open: true,
 				...props,
@@ -73,6 +73,17 @@ describe('EnvelopeFilesList', () => {
 				FilePlus: true,
 			},
 		})
+
+		;(localWrapper as typeof localWrapper & {
+			setData: (values: Record<string, unknown>) => Promise<void>
+		}).setData = async (values: Record<string, unknown>) => {
+			Object.entries(values).forEach(([key, value]) => {
+				;(localWrapper.vm as Record<string, unknown>)[key] = value
+			})
+			await localWrapper.vm.$nextTick()
+		}
+
+		return localWrapper
 	}
 
 	beforeEach(() => {
@@ -504,8 +515,11 @@ describe('EnvelopeFilesList', () => {
 
 	describe('RULE: onScroll loads next page when near bottom', () => {
 		it('loads next page when scrolled near bottom', async () => {
+			filesStore.selectedFile = { id: 1 }
+			;(axios.get as MockedFunction<typeof axios.get>).mockResolvedValue({
+				data: { ocs: { data: { data: [], pagination: { next: null } } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
 			wrapper = createWrapper()
-			wrapper.vm.loadFiles = vi.fn()
 			await wrapper.setData({
 				currentPage: 1,
 				hasMore: true,
@@ -521,12 +535,15 @@ describe('EnvelopeFilesList', () => {
 			}
 			wrapper.vm.onScroll(scrollEvent)
 
-			expect(wrapper.vm.loadFiles).toHaveBeenCalledWith(2)
+			expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('page=2'))
 		})
 
 		it('does not load when already loading', async () => {
+			filesStore.selectedFile = { id: 1 }
+			;(axios.get as MockedFunction<typeof axios.get>).mockResolvedValue({
+				data: { ocs: { data: { data: [], pagination: { next: null } } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
 			wrapper = createWrapper()
-			wrapper.vm.loadFiles = vi.fn()
 			await wrapper.setData({
 				currentPage: 1,
 				hasMore: true,
@@ -542,12 +559,15 @@ describe('EnvelopeFilesList', () => {
 			}
 			wrapper.vm.onScroll(scrollEvent)
 
-			expect(wrapper.vm.loadFiles).not.toHaveBeenCalled()
+			expect(axios.get).not.toHaveBeenCalled()
 		})
 
 		it('does not load when no more items', async () => {
+			filesStore.selectedFile = { id: 1 }
+			;(axios.get as MockedFunction<typeof axios.get>).mockResolvedValue({
+				data: { ocs: { data: { data: [], pagination: { next: null } } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
 			wrapper = createWrapper()
-			wrapper.vm.loadFiles = vi.fn()
 			await wrapper.setData({
 				currentPage: 1,
 				hasMore: false,
@@ -563,12 +583,15 @@ describe('EnvelopeFilesList', () => {
 			}
 			wrapper.vm.onScroll(scrollEvent)
 
-			expect(wrapper.vm.loadFiles).not.toHaveBeenCalled()
+			expect(axios.get).not.toHaveBeenCalled()
 		})
 
 		it('does not load when not near threshold', async () => {
+			filesStore.selectedFile = { id: 1 }
+			;(axios.get as MockedFunction<typeof axios.get>).mockResolvedValue({
+				data: { ocs: { data: { data: [], pagination: { next: null } } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
 			wrapper = createWrapper()
-			wrapper.vm.loadFiles = vi.fn()
 			await wrapper.setData({
 				currentPage: 1,
 				hasMore: true,
@@ -584,7 +607,7 @@ describe('EnvelopeFilesList', () => {
 			}
 			wrapper.vm.onScroll(scrollEvent)
 
-			expect(wrapper.vm.loadFiles).not.toHaveBeenCalled()
+			expect(axios.get).not.toHaveBeenCalled()
 		})
 	})
 
@@ -637,8 +660,8 @@ describe('EnvelopeFilesList', () => {
 		})
 
 		it('calls openFile when file open button is clicked', async () => {
+			const viewer = await import('../../../utils/viewer.js')
 			wrapper = createWrapper()
-			const openFileSpy = vi.spyOn(wrapper.vm, 'openFile')
 
 			const testFile = {
 				id: 1,
@@ -649,13 +672,15 @@ describe('EnvelopeFilesList', () => {
 
 			wrapper.vm.openFile(testFile)
 
-			expect(openFileSpy).toHaveBeenCalledWith(testFile)
-			openFileSpy.mockRestore()
+			expect(viewer.openDocument).toHaveBeenCalledWith({
+				fileUrl: '/apps/libresign/p/pdf/test-uuid',
+				filename: 'test.pdf',
+				nodeId: 1,
+			})
 		})
 
 		it('calls handleDelete when delete button is clicked', async () => {
 			wrapper = createWrapper()
-			const handleDeleteSpy = vi.spyOn(wrapper.vm, 'handleDelete')
 
 			const testFile = {
 				id: 1,
@@ -666,8 +691,8 @@ describe('EnvelopeFilesList', () => {
 
 			wrapper.vm.handleDelete(testFile)
 
-			expect(handleDeleteSpy).toHaveBeenCalledWith(testFile)
-			handleDeleteSpy.mockRestore()
+			expect(wrapper.vm.showDeleteDialog).toBe(true)
+			expect(wrapper.vm.deleteDialogConfig.message).toContain('remove this file')
 		})
 
 		it('openDocument invoked when openFile called', async () => {
