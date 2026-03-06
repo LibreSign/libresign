@@ -18,9 +18,9 @@ import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { useSidebarStore } from './sidebar.js'
 import { useSignStore } from './sign.js'
 
-export const useFilesStore = function(...args) {
-	const emptyFile = { signers: [] }
-	const store = defineStore('files', {
+const emptyFile = { signers: [] }
+
+const _filesStore = defineStore('files', {
 		state: () => {
 			return {
 				files: {},
@@ -738,14 +738,14 @@ export const useFilesStore = function(...args) {
 		},
 	})
 
-	const filesStore = store(...args)
+let _initialized = false
 
-	// Make sure we only register the listeners once
-	if (!filesStore._initialized) {
+export const useFilesStore = function(...args) {
+	const filesStore = _filesStore(...args)
+	if (!_initialized) {
 		subscribe('libresign:filters:update', filesStore.updateAllFiles)
 		subscribe('libresign:sorting:update', filesStore.updateAllFiles)
-		filesStore._initialized = true
+		_initialized = true
 	}
-
 	return filesStore
 }
