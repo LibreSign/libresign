@@ -138,9 +138,8 @@ describe('Request.vue - File Request Business Logic', () => {
 
 		it('clears selected file on destroy', () => {
 			wrapper = createWrapper()
-				if (wrapper.vm.$options.beforeUnmount) {
-					wrapper.vm.$options.beforeUnmount.call(wrapper.vm)
-				}
+			wrapper.unmount()
+			wrapper = undefined as unknown as ReturnType<typeof createWrapper>
 			expect(mockFilesStore.selectFile).toHaveBeenCalled()
 		})
 	})

@@ -48,7 +48,7 @@
 	</tr>
 </template>
 
-<script>
+<script setup lang="ts">
 import NcDateTime from '@nextcloud/vue/components/NcDateTime'
 
 import FileEntryActions from './FileEntryActions.vue'
@@ -62,27 +62,16 @@ import FileEntryMixin from './FileEntryMixin.js'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
 
-export default {
+defineOptions({
 	name: 'FileEntryGrid',
-	components: {
-		NcDateTime,
-		FileEntryActions,
-		FileEntryCheckbox,
-		FileEntryName,
-		FileEntryPreview,
-		FileEntrySigners,
-		FileEntryStatus,
-	},
-	mixins: [
-		FileEntryMixin,
-	],
-	setup() {
-		const actionsMenuStore = useActionsMenuStore()
-		const filesStore = useFilesStore()
-		return {
-			actionsMenuStore,
-			filesStore,
-		}
-	},
-}
+	mixins: [FileEntryMixin],
+})
+
+const actionsMenuStore = useActionsMenuStore()
+const filesStore = useFilesStore()
+
+defineExpose({
+	actionsMenuStore,
+	filesStore,
+})
 </script>

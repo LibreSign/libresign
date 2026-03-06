@@ -21,50 +21,46 @@
 	</NcButton>
 </template>
 
-<script>
+<script setup lang="ts">
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import {
 	mdiMenuDown,
 	mdiMenuUp,
 } from '@mdi/js'
+import { computed } from 'vue'
 
 import { useFilesSortingStore } from '../../store/filesSorting.js'
 
-export default {
+defineOptions({
 	name: 'FilesListTableHeaderButton',
+})
 
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-	},
-	props: {
-		name: {
-			type: String,
-			required: true,
-		},
-		mode: {
-			type: String,
-			required: true,
-		},
-	},
-
-	setup() {
-		const filesSortingStore = useFilesSortingStore()
-		return {
-			filesSortingStore,
-			mdiMenuDown,
-			mdiMenuUp,
-		}
-	},
-
-	computed: {
-		isAscending() {
-			return this.filesSortingStore.sortingMode !== this.mode
-				|| this.filesSortingStore.sortingDirection === 'asc'
-		},
-	},
+type FilesSortingStore = {
+	sortingMode: string
+	sortingDirection: string
+	toggleSortBy: (mode: string) => void
 }
+
+const props = defineProps<{
+	name: string
+	mode: string
+}>()
+
+const filesSortingStore = useFilesSortingStore() as FilesSortingStore
+
+const isAscending = computed(() => {
+	return filesSortingStore.sortingMode !== props.mode
+		|| filesSortingStore.sortingDirection === 'asc'
+})
+
+defineExpose({
+	filesSortingStore,
+	isAscending,
+	props,
+	mdiMenuDown,
+	mdiMenuUp,
+})
 </script>
 
 <style scoped lang="scss">
