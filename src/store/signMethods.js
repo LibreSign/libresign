@@ -5,80 +5,101 @@
 
 import { loadState } from '@nextcloud/initial-state'
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
-export const useSignMethodsStore = defineStore('signMethods', {
-	state: () => ({
-		modal: {
-			emailToken: false,
-			clickToSign: false,
-			createPassword: false,
-			signPassword: false,
-			createSignature: false,
-			password: false,
-			token: false, // Generic token modal for all token-based methods
-			uploadCertificate: false,
-		},
-		settings: {},
-		certificateEngine: loadState('libresign', 'certificate_engine', ''),
-	}),
-	actions: {
-		closeModal(modalCode) {
-			this.modal[modalCode] = false
-		},
-		showModal(modalCode) {
-			this.modal[modalCode] = true
-		},
-		blurredEmail() {
-			return this.settings?.emailToken?.blurredEmail ?? ''
-		},
-		setHasEmailConfirmCode(hasConfirmCode) {
-			if (!Object.hasOwn(this.settings, 'emailToken')) {
-				this.settings.emailToken = {}
-			}
-			this.settings.emailToken.hasConfirmCode = hasConfirmCode
-		},
-		setEmailToken(token) {
-			if (!Object.hasOwn(this.settings, 'emailToken')) {
-				this.settings.emailToken = {}
-			}
-			this.settings.emailToken.token = token
-		},
-		hasSignatureFile() {
-			return Object.hasOwn(this.settings, 'password')
-				&& Object.hasOwn(this.settings.password, 'hasSignatureFile')
-				&& this.settings.password.hasSignatureFile
-		},
-		setHasSignatureFile(hasSignatureFile) {
-			if (!Object.hasOwn(this.settings, 'password')) {
-				this.settings.password = {}
-			}
-			this.settings.password.hasSignatureFile = hasSignatureFile
-		},
-		needCreatePassword() {
-			return this.needSignWithPassword() && !this.hasSignatureFile()
-		},
-		needSignWithPassword() {
-			return Object.hasOwn(this.settings, 'password')
-		},
-		needEmailCode() {
-			return Object.hasOwn(this.settings, 'emailToken')
-				&& this.settings.emailToken.needCode
-		},
-		needClickToSign() {
-			return Object.hasOwn(this.settings, 'clickToSign')
-		},
-		needSmsCode() {
-			return Object.hasOwn(this.settings, 'smsToken')
-				&& this.settings.smsToken.needCode
-		},
-		needTokenCode() {
-			const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
-			return tokenMethods.some(method =>
-				Object.hasOwn(this.settings, method) && this.settings[method].needCode
-			)
-		},
-		needCertificate() {
-			return this.certificateEngine === 'none' && !this.hasSignatureFile()
-		},
-	},
+export const useSignMethodsStore = defineStore('signMethods', () => {
+	const modal = ref({
+		emailToken: false,
+		clickToSign: false,
+		createPassword: false,
+		signPassword: false,
+		createSignature: false,
+		password: false,
+		token: false, // Generic token modal for all token-based methods
+		uploadCertificate: false,
+	})
+	const settings = ref({})
+	const certificateEngine = ref(loadState('libresign', 'certificate_engine', ''))
+
+	const closeModal = (modalCode) => {
+		modal.value[modalCode] = false
+	}
+
+	const showModal = (modalCode) => {
+		modal.value[modalCode] = true
+	}
+
+	const blurredEmail = () => settings.value?.emailToken?.blurredEmail ?? ''
+
+	const setHasEmailConfirmCode = (hasConfirmCode) => {
+		if (!Object.hasOwn(settings.value, 'emailToken')) {
+			settings.value.emailToken = {}
+		}
+		settings.value.emailToken.hasConfirmCode = hasConfirmCode
+	}
+
+	const setEmailToken = (token) => {
+		if (!Object.hasOwn(settings.value, 'emailToken')) {
+			settings.value.emailToken = {}
+		}
+		settings.value.emailToken.token = token
+	}
+
+	const hasSignatureFile = () => {
+		return Object.hasOwn(settings.value, 'password')
+			&& Object.hasOwn(settings.value.password, 'hasSignatureFile')
+			&& settings.value.password.hasSignatureFile
+	}
+
+	const setHasSignatureFile = (hasSignatureFile) => {
+		if (!Object.hasOwn(settings.value, 'password')) {
+			settings.value.password = {}
+		}
+		settings.value.password.hasSignatureFile = hasSignatureFile
+	}
+
+	const needSignWithPassword = () => Object.hasOwn(settings.value, 'password')
+
+	const needCreatePassword = () => needSignWithPassword() && !hasSignatureFile()
+
+	const needEmailCode = () => {
+		return Object.hasOwn(settings.value, 'emailToken')
+			&& settings.value.emailToken.needCode
+	}
+
+	const needClickToSign = () => Object.hasOwn(settings.value, 'clickToSign')
+
+	const needSmsCode = () => {
+		return Object.hasOwn(settings.value, 'smsToken')
+			&& settings.value.smsToken.needCode
+	}
+
+	const needTokenCode = () => {
+		const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
+		return tokenMethods.some(method =>
+			Object.hasOwn(settings.value, method) && settings.value[method].needCode
+		)
+	}
+
+	const needCertificate = () => certificateEngine.value === 'none' && !hasSignatureFile()
+
+	return {
+		modal,
+		settings,
+		certificateEngine,
+		closeModal,
+		showModal,
+		blurredEmail,
+		setHasEmailConfirmCode,
+		setEmailToken,
+		hasSignatureFile,
+		setHasSignatureFile,
+		needCreatePassword,
+		needSignWithPassword,
+		needEmailCode,
+		needClickToSign,
+		needSmsCode,
+		needTokenCode,
+		needCertificate,
+	}
 })
