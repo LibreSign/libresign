@@ -38,6 +38,7 @@ import NcPopover from '@nextcloud/vue/components/NcPopover'
 
 export default {
 	name: 'FileListFilter',
+	emits: ['reset-filter'],
 	components: {
 		NcButton,
 		NcPopover,

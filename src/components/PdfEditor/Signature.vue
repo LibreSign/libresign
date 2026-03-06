@@ -51,6 +51,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 export default {
 	name: 'Signature',
+	emits: ['onUpdate', 'onDelete'],
 	components: {
 		NcIconSvgWrapper,
 	},

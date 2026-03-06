@@ -53,6 +53,7 @@ import { useSignMethodsStore } from '../store/signMethods.js'
 
 export default {
 	name: 'ResetPassword',
+	emits: ['close'],
 	components: {
 		NcDialog,
 		NcPasswordField,
