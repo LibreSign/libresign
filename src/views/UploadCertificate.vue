@@ -39,6 +39,7 @@ import { useSignMethodsStore } from '../store/signMethods.js'
 
 export default {
 	name: 'UploadCertificate',
+	emits: ['certificate:uploaded'],
 	components: {
 		NcButton,
 		NcDialog,
