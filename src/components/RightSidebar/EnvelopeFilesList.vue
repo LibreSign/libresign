@@ -6,7 +6,7 @@
 	<NcDialog v-if="open"
 		:name="t('libresign', 'Manage files ({count})', { count: totalFiles || files.length })"
 		size="normal"
-		@closing="$emit('close')">
+		@closing="emit('close')">
 		<NcDialog v-if="showDeleteDialog"
 			:name="deleteDialogConfig.title"
 			:buttons="deleteDialogButtons"
@@ -122,15 +122,16 @@
 				</template>
 				{{ t('libresign', 'Add file') }}
 			</NcButton>
-			<NcButton @click="$emit('close')">
+			<NcButton @click="emit('close')">
 				{{ t('libresign', 'Close') }}
 			</NcButton>
 		</template>
 	</NcDialog>
 </template>
 
-<script lang="ts">
-import { t } from '@nextcloud/l10n'
+<script setup lang="ts">
+import { n, t } from '@nextcloud/l10n'
+import { computed, ref, watch } from 'vue'
 
 import {
 	mdiDelete,
@@ -150,7 +151,6 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
-import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
@@ -161,435 +161,527 @@ import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from 
 import { openDocument } from '../../utils/viewer.js'
 import { useFilesStore } from '../../store/files.js'
 
-export default {
-	name: 'EnvelopeFilesList',
-	components: {
-		NcActionButton,
-		NcButton,
-		NcCheckboxRadioSwitch,
-		NcDialog,
-		NcEmptyContent,
-		NcListItem,
-		NcLoadingIcon,
-		NcNoteCard,
-		NcTextField,
-		NcIconSvgWrapper,
-		UploadProgress,
-	},
-	props: {
-		open: {
-			type: Boolean,
-			required: true,
-		},
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		const { isTouchDevice } = useIsTouchDevice()
-		return {
-			isTouchDevice,
-			filesStore,
-			FILE_STATUS,
-			ENVELOPE_NAME_MIN_LENGTH,
-			ENVELOPE_NAME_MAX_LENGTH,
-			mdiDelete,
-			mdiFileEye,
-			mdiFilePdfBox,
-			mdiFilePlus,
-		}
-	},
-	data() {
-		return {
-			hasLoading: false,
-			successMessage: '',
-			errorMessage: '',
-			selectedFiles: [],
-			files: [],
-			currentPage: 1,
-			hasMore: true,
-			isLoadingFiles: false,
-			isLoadingMore: false,
-			totalFiles: 0,
-			showDeleteDialog: false,
-			deleteDialogConfig: {
-				title: '',
-				message: '',
-				action: null,
-			},
-			uploadProgress: 0,
-			isUploading: false,
-			uploadAbortController: null,
-			uploadedBytes: 0,
-			totalBytes: 0,
-			uploadStartTime: null,
-			editableEnvelopeName: '',
-			isSavingName: false,
-			nameUpdateSuccess: false,
-			nameUpdateError: false,
-			nameHelperText: '',
-			debounceTimer: null,
-		}
-	},
-	computed: {
-		envelope() {
-			return this.filesStore.getFile()
-		},
-		canDelete() {
-			return this.envelope?.status === FILE_STATUS.DRAFT && this.files.length >= 1
-		},
-		canAddFile() {
-			if (!this.envelope || this.envelope.status !== FILE_STATUS.DRAFT) {
-				return false
-			}
-			const capabilities = getCapabilities()
-			return capabilities?.libresign?.config?.envelope?.['is-available'] === true
-		},
-		deleteDialogButtons() {
-			return [
-				{
-					label: this.t('libresign', 'Cancel'),
-					callback: () => {
-						this.showDeleteDialog = false
-					},
-				},
-				{
-					label: this.t('libresign', 'Delete'),
-					type: 'error',
-					callback: () => {
-						this.showDeleteDialog = false
-						if (this.deleteDialogConfig.action) {
-							this.deleteDialogConfig.action()
-						}
-					},
-				},
-			]
-		},
-		selectedCount() {
-			return this.selectedFiles.length
-		},
-		allSelected() {
-			return this.files.length > 0 && this.selectedFiles.length === this.files.length
-		},
-	},
-	emits: ['close'],
-	watch: {
-		open(newVal) {
-			if (newVal) {
-				this.files = []
-				this.currentPage = 1
-				this.totalFiles = this.envelope?.filesCount || 0
-				this.hasMore = this.totalFiles > 0
-				this.editableEnvelopeName = this.envelope?.name || ''
-				this.nameUpdateSuccess = false
-				this.nameUpdateError = false
-				this.nameHelperText = ''
 
-				if (this.totalFiles > 0) {
-					this.loadFiles(1)
-				}
-			} else {
-				this.clearMessages()
-				this.selectedFiles = []
-				this.files = []
-				this.currentPage = 1
-				this.hasMore = true
-			}
-		},
-	},
-	methods: {
-		t,
-		async loadFiles(page = 1) {
-			if (!this.envelope?.id) {
-				return
-			}
-
-			const isFirstPage = page === 1
-			if (isFirstPage) {
-				this.isLoadingFiles = true
-			} else {
-				this.isLoadingMore = true
-			}
-
-			const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
-			const params = new URLSearchParams({
-				page: page,
-				length: 50,
-				parentFileId: this.envelope.id,
-			})
-
-			await axios.get(`${url}?${params.toString()}`)
-				.then(({ data }) => {
-					if (data.ocs?.data) {
-						const newFiles = data.ocs.data.data || []
-						const pagination = data.ocs.data.pagination || {}
-
-						if (isFirstPage) {
-							this.files = newFiles
-						} else {
-							this.files.push(...newFiles)
-						}
-
-						this.currentPage = page
-						this.totalFiles = pagination.total || this.totalFiles
-						this.hasMore = pagination.next !== null
-					}
-				})
-				.catch((error) => {
-					this.showError(this.t('libresign', 'Failed to load files'))
-				})
-				.finally(() => {
-					this.isLoadingFiles = false
-					this.isLoadingMore = false
-				})
-		},
-		onScroll(event) {
-			if (this.isLoadingMore || !this.hasMore) {
-				return
-			}
-
-			const { scrollTop, scrollHeight, clientHeight } = event.target
-			const scrollPosition = scrollTop + clientHeight
-			const threshold = scrollHeight - 100
-
-			if (scrollPosition >= threshold) {
-				this.loadFiles(this.currentPage + 1)
-			}
-		},
-		clearMessages() {
-			this.successMessage = ''
-			this.errorMessage = ''
-		},
-		showSuccess(message) {
-			this.clearMessages()
-			this.successMessage = message
-			setTimeout(() => {
-				this.successMessage = ''
-			}, 5000)
-		},
-		showError(message) {
-			this.clearMessages()
-			this.errorMessage = message
-		},
-		getMaxFileUploads() {
-			const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
-			const max = Number.isFinite(capabilitiesMax) ? capabilitiesMax : 20
-			return max > 0 ? Math.floor(max) : 20
-		},
-		validateMaxFileUploads(filesCount) {
-			const maxFileUploads = this.getMaxFileUploads()
-			if (filesCount > maxFileUploads) {
-				this.showError(this.t('libresign', 'You can upload at most {max} files at once.', { max: maxFileUploads }))
-				return false
-			}
-			return true
-		},
-		getPreviewUrl(file) {
-			if (!file.nodeId) return null
-			const url = new URL(
-				generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
-					nodeId: file.nodeId,
-				})
-			)
-			url.searchParams.set('x', '32')
-			url.searchParams.set('y', '32')
-			url.searchParams.set('mimeFallback', 'true')
-			url.searchParams.set('a', '1')
-			return url.toString()
-		},
-		openFile(file) {
-			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
-			openDocument({
-				fileUrl,
-				filename: file.name,
-				nodeId: file.id,
-			})
-		},
-		isSelected(fileId) {
-			return this.selectedFiles.includes(fileId)
-		},
-		toggleSelect(fileId) {
-			const index = this.selectedFiles.indexOf(fileId)
-			if (index > -1) {
-				this.selectedFiles.splice(index, 1)
-			} else {
-				this.selectedFiles.push(fileId)
-			}
-		},
-		toggleSelectAll() {
-			if (this.allSelected) {
-				this.selectedFiles = []
-			} else {
-				this.selectedFiles = this.files.map(f => f.id)
-			}
-		},
-		async handleDeleteSelected() {
-			this.deleteDialogConfig = {
-				title: this.t('libresign', 'Delete'),
-				message: this.n('libresign', 'Are you sure you want to remove %n file from the envelope?', 'Are you sure you want to remove %n files from the envelope?', this.selectedCount),
-				action: async () => {
-					await this.confirmDeleteSelected()
-				},
-			}
-			this.showDeleteDialog = true
-		},
-		async confirmDeleteSelected() {
-			this.hasLoading = true
-			const fileIds = [...this.selectedFiles]
-
-			const result = await this.filesStore.removeFilesFromEnvelope(fileIds)
-
-			if (result.success) {
-				// Remover arquivos da lista local
-				this.files = this.files.filter(f => !fileIds.includes(f.id))
-				this.selectedFiles = []
-				this.totalFiles = Math.max(0, this.totalFiles - result.removedCount)
-				this.showSuccess(this.t('libresign', result.message))
-			} else {
-				this.showError(this.t('libresign', result.message))
-			}
-
-			this.hasLoading = false
-		},
-		addFileToEnvelope() {
-			const input = document.createElement('input')
-			input.type = 'file'
-			input.accept = '.pdf'
-			input.multiple = true
-			input.onchange = async (e) => {
-				const files = e.target.files
-				if (!files || files.length === 0) return
-				if (!this.validateMaxFileUploads(files.length)) {
-					return
-				}
-
-				this.hasLoading = true
-				this.isUploading = true
-				this.uploadProgress = 0
-				this.uploadedBytes = 0
-				this.totalBytes = 0
-				this.uploadStartTime = Date.now()
-
-				const formData = new FormData()
-				let totalSize = 0
-
-				for (const file of files) {
-					formData.append('files[]', file)
-					totalSize += file.size
-				}
-
-				this.totalBytes = totalSize
-
-				const abortController = new AbortController()
-				this.uploadAbortController = abortController
-
-				const result = await this.filesStore.addFilesToEnvelope(this.envelope.uuid, formData, {
-					signal: abortController.signal,
-					onUploadProgress: (progressEvent) => {
-						if (progressEvent.total) {
-							this.uploadedBytes = progressEvent.loaded
-							this.uploadProgress = Math.round((progressEvent.loaded / progressEvent.total) * 100)
-						}
-					},
-				})
-
-				if (result.success) {
-					this.showSuccess(this.t('libresign', result.message))
-					this.files.push(...result.files)
-					this.totalFiles = result.filesCount
-				} else {
-					if (result.message !== 'Upload cancelled') {
-						this.showError(this.t('libresign', result.message))
-					}
-				}
-
-				this.hasLoading = false
-				this.isUploading = false
-				this.uploadAbortController = null
-			}
-			input.click()
-		},
-		cancelUpload() {
-			if (this.uploadAbortController) {
-				this.uploadAbortController.abort()
-			}
-		},
-		onEnvelopeNameChange(newName) {
-			if (this.debounceTimer) {
-				clearTimeout(this.debounceTimer)
-			}
-
-			this.nameUpdateSuccess = false
-			this.nameUpdateError = false
-			this.nameHelperText = ''
-
-			const trimmedName = newName.trim()
-			if (trimmedName.length < ENVELOPE_NAME_MIN_LENGTH) {
-				this.nameUpdateError = true
-				this.nameHelperText = this.t('libresign', 'Name must be at least {min} characters', { min: ENVELOPE_NAME_MIN_LENGTH })
-				return
-			}
-
-			if (trimmedName === this.envelope?.name) {
-				return
-			}
-
-			this.debounceTimer = setTimeout(() => {
-				this.saveEnvelopeNameDebounced(trimmedName)
-			}, 1000)
-		},
-		async saveEnvelopeNameDebounced(newName) {
-			this.isSavingName = true
-			this.nameUpdateSuccess = false
-			this.nameUpdateError = false
-			this.nameHelperText = ''
-
-			try {
-				const success = await this.filesStore.rename(this.envelope.uuid, newName)
-
-				if (success) {
-					this.nameUpdateSuccess = true
-					this.nameHelperText = this.t('libresign', 'Saved')
-					setTimeout(() => {
-						this.nameUpdateSuccess = false
-						this.nameHelperText = ''
-					}, 3000)
-				} else {
-					this.nameUpdateError = true
-					this.nameHelperText = this.t('libresign', 'Failed to update')
-				}
-			} catch (error) {
-				this.nameUpdateError = true
-				this.nameHelperText = error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to update')
-			} finally {
-				this.isSavingName = false
-			}
-		},
-		handleDelete(file) {
-			this.deleteDialogConfig = {
-				title: this.t('libresign', 'Delete'),
-				message: this.t('libresign', 'Are you sure you want to remove this file from the envelope?'),
-				action: async () => {
-					await this.confirmDelete(file)
-				},
-			}
-			this.showDeleteDialog = true
-		},
-		async confirmDelete(file) {
-			this.hasLoading = true
-
-			const result = await this.filesStore.removeFilesFromEnvelope([file.id])
-
-			if (result.success) {
-				this.showSuccess(this.t('libresign', result.message))
-				this.files = this.files.filter(f => f.id !== file.id)
-				this.totalFiles = Math.max(0, this.totalFiles - result.removedCount)
-			} else {
-				this.showError(this.t('libresign', result.message))
-			}
-
-			this.hasLoading = false
-		},
-	},
+type Envelope = {
+	id?: number
+	uuid?: string
+	name?: string
+	status?: number
+	filesCount?: number
 }
+
+type EnvelopeFile = {
+	id: number
+	uuid?: string
+	name?: string
+	statusText?: string
+	nodeId?: number
+	size?: number
+	[key: string]: unknown
+}
+
+type DeleteDialogConfig = {
+	title: string
+	message: string
+	action: null | (() => void | Promise<void>)
+}
+
+type RemoveFilesResult = {
+	success: boolean
+	removedCount?: number
+	message: string
+}
+
+type AddFilesResult = {
+	success: boolean
+	message: string
+	files: EnvelopeFile[]
+	filesCount: number
+}
+
+type UploadProgressEvent = {
+	loaded: number
+	total: number
+}
+
+type FilesStore = {
+	getFile: () => Envelope | null
+	removeFilesFromEnvelope: (fileIds: number[]) => Promise<RemoveFilesResult>
+	addFilesToEnvelope: (uuid: string, formData: FormData, options: { signal: AbortSignal; onUploadProgress: (event: UploadProgressEvent) => void }) => Promise<AddFilesResult>
+	rename: (uuid: string, newName: string) => Promise<boolean>
+}
+
+type RenameError = {
+	response?: {
+		data?: {
+			ocs?: {
+				data?: {
+					message?: string
+				}
+			}
+		}
+	}
+}
+
+defineOptions({
+	name: 'EnvelopeFilesList',
+})
+
+const props = defineProps<{
+	open: boolean
+}>()
+
+const emit = defineEmits<{
+	(e: 'close'): void
+}>()
+
+const filesStore = useFilesStore() as FilesStore
+const { isTouchDevice } = useIsTouchDevice()
+
+const hasLoading = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
+const selectedFiles = ref<number[]>([])
+const files = ref<EnvelopeFile[]>([])
+const currentPage = ref(1)
+const hasMore = ref(true)
+const isLoadingFiles = ref(false)
+const isLoadingMore = ref(false)
+const totalFiles = ref(0)
+const showDeleteDialog = ref(false)
+const deleteDialogConfig = ref<DeleteDialogConfig>({
+	title: '',
+	message: '',
+	action: null,
+})
+const uploadProgress = ref(0)
+const isUploading = ref(false)
+const uploadAbortController = ref<AbortController | null>(null)
+const uploadedBytes = ref(0)
+const totalBytes = ref(0)
+const uploadStartTime = ref<number | null>(null)
+const editableEnvelopeName = ref('')
+const isSavingName = ref(false)
+const nameUpdateSuccess = ref(false)
+const nameUpdateError = ref(false)
+const nameHelperText = ref('')
+const debounceTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+
+const envelope = computed(() => filesStore.getFile())
+const canDelete = computed(() => envelope.value?.status === FILE_STATUS.DRAFT && files.value.length >= 1)
+const canAddFile = computed(() => {
+	if (!envelope.value || envelope.value.status !== FILE_STATUS.DRAFT) {
+		return false
+	}
+	const capabilities = getCapabilities()
+	return capabilities?.libresign?.config?.envelope?.['is-available'] === true
+})
+const deleteDialogButtons = computed(() => [
+	{
+		label: t('libresign', 'Cancel'),
+		callback: () => {
+			showDeleteDialog.value = false
+		},
+	},
+	{
+		label: t('libresign', 'Delete'),
+		type: 'error',
+		callback: () => {
+			showDeleteDialog.value = false
+			deleteDialogConfig.value.action?.()
+		},
+	},
+])
+const selectedCount = computed(() => selectedFiles.value.length)
+const allSelected = computed(() => files.value.length > 0 && selectedFiles.value.length === files.value.length)
+
+watch(() => props.open, (newVal) => {
+	if (newVal) {
+		files.value = []
+		currentPage.value = 1
+		totalFiles.value = envelope.value?.filesCount || 0
+		hasMore.value = totalFiles.value > 0
+		editableEnvelopeName.value = envelope.value?.name || ''
+		nameUpdateSuccess.value = false
+		nameUpdateError.value = false
+		nameHelperText.value = ''
+
+		if (totalFiles.value > 0) {
+			void loadFiles(1)
+		}
+	} else {
+		clearMessages()
+		selectedFiles.value = []
+		files.value = []
+		currentPage.value = 1
+		hasMore.value = true
+	}
+})
+
+async function loadFiles(page = 1) {
+	if (!envelope.value?.id) {
+		return
+	}
+
+	const isFirstPage = page === 1
+	if (isFirstPage) {
+		isLoadingFiles.value = true
+	} else {
+		isLoadingMore.value = true
+	}
+
+	const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
+	const params = new URLSearchParams({
+		page: String(page),
+		length: '50',
+		parentFileId: String(envelope.value.id),
+	})
+
+	await axios.get(`${url}?${params.toString()}`)
+		.then(({ data }) => {
+			if (data.ocs?.data) {
+				const newFiles = data.ocs.data.data || []
+				const pagination = data.ocs.data.pagination || {}
+
+				if (isFirstPage) {
+					files.value = newFiles
+				} else {
+					files.value.push(...newFiles)
+				}
+
+				currentPage.value = page
+				totalFiles.value = pagination.total || totalFiles.value
+				hasMore.value = pagination.next !== null
+			}
+		})
+		.catch(() => {
+			showError(t('libresign', 'Failed to load files'))
+		})
+		.finally(() => {
+			isLoadingFiles.value = false
+			isLoadingMore.value = false
+		})
+}
+
+function onScroll(event: { target: { scrollTop: number; scrollHeight: number; clientHeight: number } }) {
+	if (isLoadingMore.value || !hasMore.value) {
+		return
+	}
+
+	const { scrollTop, scrollHeight, clientHeight } = event.target
+	const scrollPosition = scrollTop + clientHeight
+	const threshold = scrollHeight - 100
+
+	if (scrollPosition >= threshold) {
+		void loadFiles(currentPage.value + 1)
+	}
+}
+
+function clearMessages() {
+	successMessage.value = ''
+	errorMessage.value = ''
+}
+
+function showSuccess(message: string) {
+	clearMessages()
+	successMessage.value = message
+	setTimeout(() => {
+		successMessage.value = ''
+	}, 5000)
+}
+
+function showError(message: string) {
+	clearMessages()
+	errorMessage.value = message
+}
+
+function getMaxFileUploads() {
+	const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
+	const max = Number.isFinite(capabilitiesMax) ? capabilitiesMax : 20
+	return max > 0 ? Math.floor(max) : 20
+}
+
+function validateMaxFileUploads(filesCount: number) {
+	const maxFileUploads = getMaxFileUploads()
+	if (filesCount > maxFileUploads) {
+		showError(t('libresign', 'You can upload at most {max} files at once.', { max: maxFileUploads }))
+		return false
+	}
+	return true
+}
+
+function getPreviewUrl(file: Partial<EnvelopeFile> & { nodeId?: number }) {
+	if (!file.nodeId) return null
+	const url = new URL(generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
+		nodeId: file.nodeId,
+	}))
+	url.searchParams.set('x', '32')
+	url.searchParams.set('y', '32')
+	url.searchParams.set('mimeFallback', 'true')
+	url.searchParams.set('a', '1')
+	return url.toString()
+}
+
+function openFile(file: EnvelopeFile) {
+	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
+	openDocument({
+		fileUrl,
+		filename: file.name || '',
+		nodeId: file.id,
+	})
+}
+
+function isSelected(fileId: number) {
+	return selectedFiles.value.includes(fileId)
+}
+
+function toggleSelect(fileId: number) {
+	const index = selectedFiles.value.indexOf(fileId)
+	if (index > -1) {
+		selectedFiles.value.splice(index, 1)
+	} else {
+		selectedFiles.value.push(fileId)
+	}
+}
+
+function toggleSelectAll() {
+	if (allSelected.value) {
+		selectedFiles.value = []
+	} else {
+		selectedFiles.value = files.value.map(file => file.id)
+	}
+}
+
+async function handleDeleteSelected() {
+	deleteDialogConfig.value = {
+		title: t('libresign', 'Delete'),
+		message: n('libresign', 'Are you sure you want to remove %n file from the envelope?', 'Are you sure you want to remove %n files from the envelope?', selectedCount.value),
+		action: async () => {
+			await confirmDeleteSelected()
+		},
+	}
+	showDeleteDialog.value = true
+}
+
+async function confirmDeleteSelected() {
+	hasLoading.value = true
+	const fileIds = [...selectedFiles.value]
+	const result = await filesStore.removeFilesFromEnvelope(fileIds)
+
+	if (result.success) {
+		files.value = files.value.filter(file => !fileIds.includes(file.id))
+		selectedFiles.value = []
+		totalFiles.value = Math.max(0, totalFiles.value - (result.removedCount || 0))
+		showSuccess(t('libresign', result.message))
+	} else {
+		showError(t('libresign', result.message))
+	}
+
+	hasLoading.value = false
+}
+
+function addFileToEnvelope() {
+	const input = document.createElement('input')
+	input.type = 'file'
+	input.accept = '.pdf'
+	input.multiple = true
+	input.onchange = async (event) => {
+		const target = event.target as HTMLInputElement | null
+		const selectedFileList = target?.files
+		if (!selectedFileList || selectedFileList.length === 0) return
+		if (!validateMaxFileUploads(selectedFileList.length)) {
+			return
+		}
+
+		hasLoading.value = true
+		isUploading.value = true
+		uploadProgress.value = 0
+		uploadedBytes.value = 0
+		totalBytes.value = 0
+		uploadStartTime.value = Date.now()
+
+		const formData = new FormData()
+		let aggregateSize = 0
+
+		for (const file of selectedFileList) {
+			formData.append('files[]', file)
+			aggregateSize += file.size
+		}
+
+		totalBytes.value = aggregateSize
+
+		const abortController = new AbortController()
+		uploadAbortController.value = abortController
+
+		const result = await filesStore.addFilesToEnvelope(envelope.value?.uuid || '', formData, {
+			signal: abortController.signal,
+			onUploadProgress: (progressEvent) => {
+				if (progressEvent.total) {
+					uploadedBytes.value = progressEvent.loaded
+					uploadProgress.value = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+				}
+			},
+		})
+
+		if (result.success) {
+			showSuccess(t('libresign', result.message))
+			files.value.push(...result.files)
+			totalFiles.value = result.filesCount
+		} else if (result.message !== 'Upload cancelled') {
+			showError(t('libresign', result.message))
+		}
+
+		hasLoading.value = false
+		isUploading.value = false
+		uploadAbortController.value = null
+	}
+	input.click()
+}
+
+function cancelUpload() {
+	uploadAbortController.value?.abort()
+}
+
+function onEnvelopeNameChange(newName: string) {
+	if (debounceTimer.value) {
+		clearTimeout(debounceTimer.value)
+	}
+
+	nameUpdateSuccess.value = false
+	nameUpdateError.value = false
+	nameHelperText.value = ''
+
+	const trimmedName = newName.trim()
+	if (trimmedName.length < ENVELOPE_NAME_MIN_LENGTH) {
+		nameUpdateError.value = true
+		nameHelperText.value = t('libresign', 'Name must be at least {min} characters', { min: ENVELOPE_NAME_MIN_LENGTH })
+		return
+	}
+
+	if (trimmedName === envelope.value?.name) {
+		return
+	}
+
+	debounceTimer.value = setTimeout(() => {
+		void saveEnvelopeNameDebounced(trimmedName)
+	}, 1000)
+}
+
+async function saveEnvelopeNameDebounced(newName: string) {
+	isSavingName.value = true
+	nameUpdateSuccess.value = false
+	nameUpdateError.value = false
+	nameHelperText.value = ''
+
+	try {
+		const success = await filesStore.rename(envelope.value?.uuid || '', newName)
+
+		if (success) {
+			nameUpdateSuccess.value = true
+			nameHelperText.value = t('libresign', 'Saved')
+			setTimeout(() => {
+				nameUpdateSuccess.value = false
+				nameHelperText.value = ''
+			}, 3000)
+		} else {
+			nameUpdateError.value = true
+			nameHelperText.value = t('libresign', 'Failed to update')
+		}
+	} catch (error) {
+		nameUpdateError.value = true
+		nameHelperText.value = (error as RenameError).response?.data?.ocs?.data?.message || t('libresign', 'Failed to update')
+	} finally {
+		isSavingName.value = false
+	}
+}
+
+function handleDelete(file: EnvelopeFile) {
+	deleteDialogConfig.value = {
+		title: t('libresign', 'Delete'),
+		message: t('libresign', 'Are you sure you want to remove this file from the envelope?'),
+		action: async () => {
+			await confirmDelete(file)
+		},
+	}
+	showDeleteDialog.value = true
+}
+
+async function confirmDelete(file: EnvelopeFile) {
+	hasLoading.value = true
+	const result = await filesStore.removeFilesFromEnvelope([file.id])
+
+	if (result.success) {
+		showSuccess(t('libresign', result.message))
+		files.value = files.value.filter(item => item.id !== file.id)
+		totalFiles.value = Math.max(0, totalFiles.value - (result.removedCount || 0))
+	} else {
+		showError(t('libresign', result.message))
+	}
+
+	hasLoading.value = false
+}
+
+defineExpose({
+	isTouchDevice,
+	filesStore,
+	FILE_STATUS,
+	ENVELOPE_NAME_MIN_LENGTH,
+	ENVELOPE_NAME_MAX_LENGTH,
+	mdiDelete,
+	mdiFileEye,
+	mdiFilePdfBox,
+	mdiFilePlus,
+	hasLoading,
+	successMessage,
+	errorMessage,
+	selectedFiles,
+	files,
+	currentPage,
+	hasMore,
+	isLoadingFiles,
+	isLoadingMore,
+	totalFiles,
+	showDeleteDialog,
+	deleteDialogConfig,
+	uploadProgress,
+	isUploading,
+	uploadAbortController,
+	uploadedBytes,
+	totalBytes,
+	uploadStartTime,
+	editableEnvelopeName,
+	isSavingName,
+	nameUpdateSuccess,
+	nameUpdateError,
+	nameHelperText,
+	debounceTimer,
+	envelope,
+	canDelete,
+	canAddFile,
+	deleteDialogButtons,
+	selectedCount,
+	allSelected,
+	loadFiles,
+	onScroll,
+	clearMessages,
+	showSuccess,
+	showError,
+	getMaxFileUploads,
+	validateMaxFileUploads,
+	getPreviewUrl,
+	openFile,
+	isSelected,
+	toggleSelect,
+	toggleSelectAll,
+	handleDeleteSelected,
+	confirmDeleteSelected,
+	addFileToEnvelope,
+	cancelUpload,
+	onEnvelopeNameChange,
+	saveEnvelopeNameDebounced,
+	handleDelete,
+	confirmDelete,
+})
 </script>
 
 <style scoped>

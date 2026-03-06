@@ -18,87 +18,103 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
+import { onMounted, ref, watch } from 'vue'
 
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
-export default {
-	name: 'PreviewSignature',
-	emits: ['loaded'],
-	components: {
-		NcLoadingIcon,
-	},
-	props: {
-		src: {
-			type: String,
-			default: () => '',
-			required: true,
-		},
-		signRequestUuid: {
-			type: String,
-			required: false,
-			default: '',
-		},
-		alt: {
-			type: String,
-			required: false,
-			// TRANSLATORS Alt text for an image showing the user's handwritten, typed, or uploaded signature. Used as fallback when the parent component does not pass a more specific description, for example "Current signature" or "Confirm your initials".
-			default: () => t('libresign', 'Signature preview'),
-		},
-	},
-	data() {
-		return {
-			loading: true,
-			isLoaded: false,
-			imageData: '',
-			width: getCapabilities().libresign.config['sign-elements'].width,
-			height: getCapabilities().libresign.config['sign-elements'].height,
-		}
-	},
-	watch: {
-		src() {
-			this.loadImage()
-		},
-	},
-	mounted() {
-		this.loadImage()
-	},
-	methods: {
-		t,
-		async loadImage() {
-			if (this.src.startsWith('data:')) {
-				this.imageData = this.src
-				return
-			}
-			const config = {
-				url: this.src,
-				method: 'get',
-				responseType: 'arraybuffer',
-			}
-			if (this.signRequestUuid !== '') {
-				config.headers = {
-					'libresign-sign-request-uuid': this.signRequestUuid,
-				}
-			}
-			await axios(config)
-				.then(response => {
-					const buffer = Buffer.from(response.data, 'binary').toString('base64')
-					this.imageData = 'data:' + response.headers['content-type'] + ';base64,' + buffer
-					this.onImageLoad(true)
-				})
-				.catch(() => this.onImageLoad(false))
-		},
-		onImageLoad(status) {
-			this.loading = false
-			this.isLoaded = true
-			this.$emit('loaded', status)
-		},
-	},
+type AxiosImageResponse = {
+	data: ArrayBuffer | string
+	headers: {
+		'content-type': string
+	}
 }
+
+type AxiosConfig = {
+	url: string
+	method: 'get'
+	responseType: 'arraybuffer'
+	headers?: Record<string, string>
+}
+
+defineOptions({
+	name: 'PreviewSignature',
+})
+
+const props = withDefaults(defineProps<{
+	src: string
+	signRequestUuid?: string
+	alt?: string
+}>(), {
+	signRequestUuid: '',
+	alt: () => t('libresign', 'Signature preview'),
+})
+
+const emit = defineEmits<{
+	(e: 'loaded', status: boolean | Event): void
+}>()
+
+const loading = ref(true)
+const isLoaded = ref(false)
+const imageData = ref('')
+const width = ref(getCapabilities().libresign.config['sign-elements'].width)
+const height = ref(getCapabilities().libresign.config['sign-elements'].height)
+
+async function loadImage() {
+	if (props.src.startsWith('data:')) {
+		imageData.value = props.src
+		return
+	}
+
+	const config: AxiosConfig = {
+		url: props.src,
+		method: 'get',
+		responseType: 'arraybuffer',
+	}
+	if (props.signRequestUuid !== '') {
+		config.headers = {
+			'libresign-sign-request-uuid': props.signRequestUuid,
+		}
+	}
+
+	try {
+		const response = await axios(config) as AxiosImageResponse
+		const buffer = Buffer.from(response.data, 'binary').toString('base64')
+		imageData.value = `data:${response.headers['content-type']};base64,${buffer}`
+		onImageLoad(true)
+	} catch {
+		onImageLoad(false)
+	}
+}
+
+function onImageLoad(status: boolean | Event) {
+	loading.value = false
+	isLoaded.value = true
+	emit('loaded', status)
+}
+
+watch(() => props.src, () => {
+	void loadImage()
+})
+
+onMounted(() => {
+	void loadImage()
+})
+
+defineExpose({
+	t,
+	loading,
+	isLoaded,
+	imageData,
+	width,
+	height,
+	loadImage,
+	onImageLoad,
+})
 </script>
 
 <style lang="scss" scoped>

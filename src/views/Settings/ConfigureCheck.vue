@@ -30,24 +30,18 @@
 		</table>
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import { t } from '@nextcloud/l10n'
 
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
-export default {
+defineOptions({
 	name: 'ConfigureCheck',
-	components: {
-		NcRichText,
-		NcSettingsSection,
-	},
-	setup() {
-		const configureCheckStore = useConfigureCheckStore()
-		return { t, configureCheckStore }
-	},
-}
+})
+
+const configureCheckStore = useConfigureCheckStore()
 </script>
 <style lang="scss" scoped>
 table {
