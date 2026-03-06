@@ -196,6 +196,14 @@ describe('openInLibreSignAction rules', () => {
 			expect(enabled).toBe(false)
 		})
 
+		it('enables for single PDF when only mimetype is provided', () => {
+			const enabled = action.enabled({
+				nodes: [{ type: 'file', mimetype: 'application/pdf' }],
+			})
+
+			expect(enabled).toBe(true)
+		})
+
 		it('enables for folder with signature status', () => {
 			const enabled = action.enabled({
 				nodes: [{
@@ -279,6 +287,21 @@ describe('openInLibreSignAction rules', () => {
 			})
 
 			expect(enabled).toBe(false)
+		})
+
+		it('uses node id when fileid is not available', async () => {
+			const nodes = [
+				{ type: 'file', mime: 'application/pdf', id: 999, dirname: '/Test', path: '/Test/file1.pdf' },
+				{ type: 'file', mime: 'application/pdf', id: 1000, dirname: '/Test', path: '/Test/file2.pdf' },
+			]
+
+			window.OCA.Libresign = {}
+
+			await action.execBatch({ nodes })
+
+			const pending = getPendingEnvelope()
+			expect(pending.files[0].fileId).toBe(999)
+			expect(pending.files[1].fileId).toBe(1000)
 		})
 	})
 

@@ -9,6 +9,9 @@ import { t } from '@nextcloud/l10n'
 import { FILE_STATUS } from '../constants.js'
 import { getStatusLabel, getStatusSvgInline } from '../utils/fileStatus.js'
 
+const getNodeId = (node) => node?.fileid ?? node?.id
+const getNodeMime = (node) => node?.mime || node?.mimetype || ''
+
 const action = {
 	id: 'show-status-inline',
 	displayName: () => '',
@@ -19,7 +22,7 @@ const action = {
 		const signedNodeId = node.attributes['libresign-signed-node-id']
 		const statusCode = node.attributes['libresign-signature-status']
 
-		if (!signedNodeId || node.fileid === signedNodeId) {
+		if (!signedNodeId || getNodeId(node) === signedNodeId) {
 			return getStatusLabel(statusCode) || ''
 		}
 
@@ -39,7 +42,7 @@ const action = {
 		const signedNodeId = node.attributes['libresign-signed-node-id']
 		const statusCode = node.attributes['libresign-signature-status']
 
-		if (!signedNodeId || node.fileid === signedNodeId) {
+		if (!signedNodeId || getNodeId(node) === signedNodeId) {
 			return getStatusSvgInline(statusCode) || ''
 		}
 
@@ -55,7 +58,7 @@ const action = {
 		}
 
 		const allPdfOrFolder = nodes?.length > 0 && nodes.every(node =>
-			node.mime === 'application/pdf' || node.type === 'folder'
+			getNodeMime(node) === 'application/pdf' || node.type === 'folder'
 		)
 
 		return allPdfOrFolder
