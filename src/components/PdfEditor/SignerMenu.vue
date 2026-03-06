@@ -47,6 +47,7 @@ import { mdiChevronDown } from '@mdi/js'
 
 export default {
 	name: 'SignerMenu',
+	emits: ['change'],
 	components: {
 		NcActionButton,
 		NcActions,
