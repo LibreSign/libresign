@@ -124,8 +124,9 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { nextTick, onMounted, ref, computed } from 'vue'
 
 import debounce from 'debounce'
 
@@ -155,167 +156,203 @@ import {
 } from '@mdi/js'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-export default {
+defineOptions({
 	name: 'FooterTemplateEditor',
-	emits: ['template-reset'],
-	directives: {
-		Linkify,
-	},
-	components: {
-		CodeEditor,
-		NcButton,
-		NcDialog,
-		NcFormBoxButton,
-		NcIconSvgWrapper,
-		NcLoadingIcon,
-		NcTextField,
-		PDFElements,
-	},
-	setup() {
-		return {
-			mdiCheck,
-			mdiContentCopy,
-			mdiHelpCircleOutline,
-			mdiMagnifyMinusOutline,
-			mdiMagnifyPlusOutline,
-			mdiUndoVariant,
-		}
-	},
-	data() {
-		const DEFAULT_PREVIEW_WIDTH = 595
-		const DEFAULT_PREVIEW_HEIGHT = 100
-		return {
-			DEFAULT_PREVIEW_WIDTH,
-			DEFAULT_PREVIEW_HEIGHT,
-			footerDescription: t('libresign', 'Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/'),
-			footerTemplate: '',
-			pdfPreviewFile: null,
-			loadingPreview: false,
-			pdfKey: 0,
-			zoomLevel: loadState('libresign', 'footer_preview_zoom_level', 100),
-			previewWidth: DEFAULT_PREVIEW_WIDTH,
-			previewHeight: DEFAULT_PREVIEW_HEIGHT,
-			containerHeight: null,
-			showVariablesDialog: false,
-			templateVariables: loadState('libresign', 'footer_template_variables', {}),
-			copiedVariable: null,
-		}
-	},
-	computed: {
-		showResetDimensions() {
-			return Number(this.previewWidth) !== this.DEFAULT_PREVIEW_WIDTH || Number(this.previewHeight) !== this.DEFAULT_PREVIEW_HEIGHT
-		},
-	},
-	created() {
-		ensurePdfWorker()
-		this.debouncedSaveFooterTemplate = debounce(this.saveFooterTemplate, 500)
-		this.debouncedUpdateScale = debounce(this.updateScale, 300)
-		this.debouncedSaveDimensions = debounce(this.saveDimensions, 500)
-	},
-	mounted() {
-		axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
-			.then(response => {
-				this.footerTemplate = response.data.ocs.data.template
-				this.previewHeight = response.data.ocs.data.preview_height
-				this.previewWidth = response.data.ocs.data.preview_width
-				this.saveFooterTemplate()
-			})
-	},
-	methods: {
-		t,
-		getVariableText(name) {
-			return `{{ ${name} }}`
-		},
-		isCopied(name) {
-			return this.copiedVariable === this.getVariableText(name)
-		},
-		copyToClipboard(text) {
-			if (this.copiedVariable === text) {
-				return
-			}
+})
 
-			const value = text
-			try {
-				navigator.clipboard.writeText(value)
-			} catch {
-				// Fallback for a case when clipboard API is not available or permission denied
-				// eslint-disable-next-line no-alert
-				prompt('', value)
-			}
+const emit = defineEmits<{
+	(event: 'template-reset'): void
+}>()
 
-			this.copiedVariable = text
-			setTimeout(() => {
-				this.copiedVariable = null
-			}, 2000)
-		},
-		async resetFooterTemplate() {
-			this.$emit('template-reset')
-			this.resetDimensions()
-			axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
-		},
-		resetDimensions() {
-			this.previewWidth = this.DEFAULT_PREVIEW_WIDTH
-			this.previewHeight = this.DEFAULT_PREVIEW_HEIGHT
-			OCP.AppConfig.deleteKey('libresign', 'footer_preview_width')
-			OCP.AppConfig.deleteKey('libresign', 'footer_preview_height')
-		},
-		saveDimensions() {
-			if (Number(this.previewWidth) === this.DEFAULT_PREVIEW_WIDTH && Number(this.previewHeight) === this.DEFAULT_PREVIEW_HEIGHT) {
-				OCP.AppConfig.deleteKey('libresign', 'footer_preview_width')
-				OCP.AppConfig.deleteKey('libresign', 'footer_preview_height')
-			} else {
-				OCP.AppConfig.setValue('libresign', 'footer_preview_width', this.previewWidth)
-				OCP.AppConfig.setValue('libresign', 'footer_preview_height', this.previewHeight)
-			}
-			this.saveFooterTemplate()
-		},
-		saveFooterTemplate() {
-			axios.post(
-				generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
-				{
-					template: this.footerTemplate,
-					width: Number(this.previewWidth),
-					height: Number(this.previewHeight),
-				},
-				{ responseType: 'blob' }
-			).then(response => {
-				this.setPdfPreview(response.data)
-			}).catch(error => {
-				console.error('Error saving footer template:', error)
-			})
-		},
-		setPdfPreview(blob) {
-			this.loadingPreview = true
+const vLinkify = Linkify
 
-			if (this.$refs.pdfContainer) {
-				this.containerHeight = this.$refs.pdfContainer.offsetHeight
-			}
-
-			this.$nextTick(() => {
-				const timestamp = Date.now()
-				const pdfFile = new File([blob], `footer-preview-${timestamp}.pdf`, { type: 'application/pdf' })
-				this.pdfPreviewFile = pdfFile
-				this.pdfKey++
-			})
-		},
-		onPdfReady() {
-			this.loadingPreview = false
-			this.containerHeight = null
-		},
-		changeZoomLevel(delta) {
-			this.zoomLevel = Number(this.zoomLevel) + delta
-			this.updateScale()
-		},
-		onZoomInput() {
-			this.debouncedUpdateScale()
-		},
-		updateScale() {
-			if (this.$refs.pdfPreview) {
-				this.$refs.pdfPreview.scale = this.zoomLevel / 100
-			}
-		},
-	},
+type TemplateVariableMeta = {
+	description?: string
+	type?: string
+	example?: string
+	default?: string
 }
+
+type PdfPreviewRef = {
+	scale: number
+}
+
+type AppConfigApi = {
+	deleteKey: (app: string, key: string) => void
+	setValue: (app: string, key: string, value: string | number) => void
+}
+
+const DEFAULT_PREVIEW_WIDTH = 595
+const DEFAULT_PREVIEW_HEIGHT = 100
+
+const footerDescription = t('libresign', 'Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/')
+const footerTemplate = ref('')
+const pdfPreviewFile = ref<File | null>(null)
+const loadingPreview = ref(false)
+const pdfKey = ref(0)
+const zoomLevel = ref(loadState('libresign', 'footer_preview_zoom_level', 100))
+const previewWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
+const previewHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
+const containerHeight = ref<number | null>(null)
+const showVariablesDialog = ref(false)
+const templateVariables = ref<Record<string, TemplateVariableMeta>>(loadState('libresign', 'footer_template_variables', {}))
+const copiedVariable = ref<string | null>(null)
+
+const pdfContainer = ref<HTMLElement | null>(null)
+const pdfPreview = ref<PdfPreviewRef | null>(null)
+
+const showResetDimensions = computed(() => Number(previewWidth.value) !== DEFAULT_PREVIEW_WIDTH || Number(previewHeight.value) !== DEFAULT_PREVIEW_HEIGHT)
+
+const appConfig = (globalThis as typeof globalThis & { OCP?: { AppConfig: AppConfigApi } }).OCP?.AppConfig
+
+ensurePdfWorker()
+
+function getVariableText(name: string) {
+	return `{{ ${name} }}`
+}
+
+function isCopied(name: string) {
+	return copiedVariable.value === getVariableText(name)
+}
+
+function copyToClipboard(text: string) {
+	if (copiedVariable.value === text) {
+		return
+	}
+
+	try {
+		navigator.clipboard.writeText(text)
+	} catch {
+		prompt('', text)
+	}
+
+	copiedVariable.value = text
+	setTimeout(() => {
+		copiedVariable.value = null
+	}, 2000)
+}
+
+async function resetFooterTemplate() {
+	emit('template-reset')
+	resetDimensions()
+	await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
+}
+
+function resetDimensions() {
+	previewWidth.value = DEFAULT_PREVIEW_WIDTH
+	previewHeight.value = DEFAULT_PREVIEW_HEIGHT
+	appConfig?.deleteKey('libresign', 'footer_preview_width')
+	appConfig?.deleteKey('libresign', 'footer_preview_height')
+}
+
+function saveDimensions() {
+	if (Number(previewWidth.value) === DEFAULT_PREVIEW_WIDTH && Number(previewHeight.value) === DEFAULT_PREVIEW_HEIGHT) {
+		appConfig?.deleteKey('libresign', 'footer_preview_width')
+		appConfig?.deleteKey('libresign', 'footer_preview_height')
+	} else {
+		appConfig?.setValue('libresign', 'footer_preview_width', previewWidth.value)
+		appConfig?.setValue('libresign', 'footer_preview_height', previewHeight.value)
+	}
+	saveFooterTemplate()
+}
+
+function saveFooterTemplate() {
+	axios.post(
+		generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
+		{
+			template: footerTemplate.value,
+			width: Number(previewWidth.value),
+			height: Number(previewHeight.value),
+		},
+		{ responseType: 'blob' },
+	).then(response => {
+		setPdfPreview(response.data)
+	}).catch(error => {
+		console.error('Error saving footer template:', error)
+	})
+}
+
+function setPdfPreview(blob: Blob) {
+	loadingPreview.value = true
+
+	if (pdfContainer.value) {
+		containerHeight.value = pdfContainer.value.offsetHeight
+	}
+
+	nextTick(() => {
+		const timestamp = Date.now()
+		pdfPreviewFile.value = new File([blob], `footer-preview-${timestamp}.pdf`, { type: 'application/pdf' })
+		pdfKey.value += 1
+	})
+}
+
+function onPdfReady() {
+	loadingPreview.value = false
+	containerHeight.value = null
+}
+
+function changeZoomLevel(delta: number) {
+	zoomLevel.value = Number(zoomLevel.value) + delta
+	updateScale()
+}
+
+function onZoomInput() {
+	debouncedUpdateScale()
+}
+
+function updateScale() {
+	if (pdfPreview.value) {
+		pdfPreview.value.scale = Number(zoomLevel.value) / 100
+	}
+}
+
+const debouncedSaveFooterTemplate = debounce(saveFooterTemplate, 500)
+const debouncedUpdateScale = debounce(updateScale, 300)
+const debouncedSaveDimensions = debounce(saveDimensions, 500)
+
+onMounted(() => {
+	axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
+		.then(response => {
+			footerTemplate.value = response.data.ocs.data.template
+			previewHeight.value = response.data.ocs.data.preview_height
+			previewWidth.value = response.data.ocs.data.preview_width
+			saveFooterTemplate()
+		})
+})
+
+defineExpose({
+	DEFAULT_PREVIEW_WIDTH,
+	DEFAULT_PREVIEW_HEIGHT,
+	footerDescription,
+	footerTemplate,
+	pdfPreviewFile,
+	loadingPreview,
+	pdfKey,
+	zoomLevel,
+	previewWidth,
+	previewHeight,
+	containerHeight,
+	showVariablesDialog,
+	templateVariables,
+	copiedVariable,
+	showResetDimensions,
+	getVariableText,
+	isCopied,
+	copyToClipboard,
+	resetFooterTemplate,
+	resetDimensions,
+	saveDimensions,
+	saveFooterTemplate,
+	setPdfPreview,
+	onPdfReady,
+	changeZoomLevel,
+	onZoomInput,
+	updateScale,
+	debouncedSaveFooterTemplate,
+	debouncedUpdateScale,
+	debouncedSaveDimensions,
+	pdfPreview,
+})
 </script>
 
 <style lang="scss" scoped>
