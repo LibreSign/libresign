@@ -58,8 +58,10 @@
 	</NcAppNavigation>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed } from 'vue'
+import { getCurrentInstance } from 'vue'
 import {
 	mdiAccountCheck,
 	mdiFileCheck,
@@ -81,51 +83,37 @@ import Settings from '../Settings/Settings.vue'
 
 import { useFilesStore } from '../../store/files.js'
 
-export default {
+defineOptions({
 	name: 'LeftSidebar',
-	components: {
-		NcAppNavigation,
-		NcAppNavigationItem,
-		NcAppNavigationSettings,
-		NcIconSvgWrapper,
-		Settings,
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		return {
-			filesStore,
-			mdiFileSign,
-			mdiFolder,
-			mdiFileCheck,
-			mdiAccountCheck,
-			mdiShieldLock,
-		}
-	},
-	data() {
-		return {
-			canRequestSign: loadState('libresign', 'can_request_sign', false),
-			config: loadState('libresign', 'config', {
-				identificationDocumentsFlow: false,
-				isApprover: false,
-			}),
-		}
-	},
-	computed: {
-		isAdmin() {
-			const user = getCurrentUser()
-			return user?.isAdmin ?? false
-		},
-	},
-	methods: {
-		t,
-		unselectFile() {
-			this.filesStore.selectFile()
-		},
-		goToSign() {
-			const route = this.$router.resolve({ name: 'SignPDF' })
+})
 
-			window.location = route.href
-		},
-	},
+const filesStore = useFilesStore()
+const canRequestSign = loadState('libresign', 'can_request_sign', false)
+const config = loadState('libresign', 'config', {
+	identificationDocumentsFlow: false,
+	isApprover: false,
+})
+
+const isAdmin = computed(() => {
+	const user = getCurrentUser()
+	return user?.isAdmin ?? false
+})
+
+function unselectFile() {
+	filesStore.selectFile()
 }
+
+function goToSign() {
+	const router = getCurrentInstance()?.proxy?.$router
+	if (!router) {
+		return
+	}
+	const route = router.resolve({ name: 'SignPDF' })
+	window.location = route.href as unknown as Location
+}
+
+defineExpose({
+	isAdmin,
+	goToSign,
+})
 </script>
