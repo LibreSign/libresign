@@ -67,117 +67,127 @@
 	</NcSettingsSection>
 </template>
 
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
-import {
-	mdiRefresh,
-} from '@mdi/js'
+import { t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
-import { t } from '@nextcloud/l10n'
+import { mdiRefresh } from '@mdi/js'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
-export default {
-	name: 'ActiveSignings',
-	components: {
-		NcButton,
-		NcSettingsSection,
-		NcIconSvgWrapper,
-		NcCheckboxRadioSwitch,
-		NcLoadingIcon,
-	},
-	setup() {
-		return {
-			mdiRefresh,
-		}
-	},
-	data() {
-		return {
-			signings: [],
-			loading: false,
-			autoRefresh: true,
-			lastUpdateTime: '',
-			refreshInterval: null,
-		}
-	},
-	computed: {
-		// Auto-refresh every 10 seconds when enabled
-		shouldRefresh() {
-			return this.autoRefresh
-		},
-	},
-	watch: {
-		autoRefresh(newValue) {
-			if (newValue) {
-				this.startAutoRefresh()
-			} else {
-				this.stopAutoRefresh()
-			}
-		},
-	},
-	mounted() {
-		this.refresh()
-		if (this.autoRefresh) {
-			this.startAutoRefresh()
-		}
-	},
-	beforeUnmount() {
-		this.stopAutoRefresh()
-	},
-	methods: {
-		t,
-
-		async refresh() {
-			this.loading = true
-			try {
-				const response = await axios.get(
-					generateOcsUrl('/apps/libresign/api/v1/admin/active-signings')
-				)
-				this.signings = response.data.ocs.data || []
-				this.updateLastRefreshTime()
-			} catch (error) {
-				console.error('Failed to fetch active signings:', error)
-				this.signings = []
-			} finally {
-				this.loading = false
-			}
-		},
-
-		startAutoRefresh() {
-			if (this.refreshInterval) {
-				clearInterval(this.refreshInterval)
-			}
-			this.refreshInterval = setInterval(() => {
-				this.refresh()
-			}, 10000) // Refresh every 10 seconds
-		},
-
-		stopAutoRefresh() {
-			if (this.refreshInterval) {
-				clearInterval(this.refreshInterval)
-				this.refreshInterval = null
-			}
-		},
-
-		updateLastRefreshTime() {
-			this.lastUpdateTime = Moment().format('HH:mm:ss')
-		},
-
-		formatTime(timestamp) {
-			return Moment(timestamp * 1000).fromNow()
-		},
-
-		getFileUrl(fileId) {
-			// Build URL to view the file
-			return `/index.php/apps/files/?fileid=${fileId}`
-		},
-	},
+type SigningItem = {
+	id: number
+	name: string
+	signerDisplayName?: string
+	signerEmail?: string
+	updatedAt: number
 }
+
+type OcsResponse = {
+	data?: {
+		ocs?: {
+			data?: SigningItem[]
+		}
+	}
+}
+
+defineOptions({
+	name: 'ActiveSignings',
+})
+
+const signings = ref<SigningItem[]>([])
+const loading = ref(false)
+const autoRefresh = ref(true)
+const lastUpdateTime = ref('')
+const refreshInterval = ref<ReturnType<typeof setInterval> | null>(null)
+
+const shouldRefresh = computed(() => autoRefresh.value)
+
+async function refresh() {
+	loading.value = true
+	try {
+		const response = await axios.get(
+			generateOcsUrl('/apps/libresign/api/v1/admin/active-signings'),
+		) as OcsResponse
+		signings.value = response.data?.ocs?.data || []
+		updateLastRefreshTime()
+	} catch (error) {
+		console.error('Failed to fetch active signings:', error)
+		signings.value = []
+	} finally {
+		loading.value = false
+	}
+}
+
+function startAutoRefresh() {
+	if (refreshInterval.value) {
+		clearInterval(refreshInterval.value)
+	}
+	refreshInterval.value = setInterval(() => {
+		void refresh()
+	}, 10000)
+}
+
+function stopAutoRefresh() {
+	if (refreshInterval.value) {
+		clearInterval(refreshInterval.value)
+		refreshInterval.value = null
+	}
+}
+
+function updateLastRefreshTime() {
+	lastUpdateTime.value = Moment().format('HH:mm:ss')
+}
+
+function formatTime(timestamp: number) {
+	return Moment(timestamp * 1000).fromNow()
+}
+
+function getFileUrl(fileId: number) {
+	return `/index.php/apps/files/?fileid=${fileId}`
+}
+
+watch(autoRefresh, (newValue) => {
+	if (newValue) {
+		startAutoRefresh()
+	} else {
+		stopAutoRefresh()
+	}
+})
+
+onMounted(() => {
+	void refresh()
+	if (autoRefresh.value) {
+		startAutoRefresh()
+	}
+})
+
+onBeforeUnmount(() => {
+	stopAutoRefresh()
+})
+
+defineExpose({
+	t,
+	mdiRefresh,
+	signings,
+	loading,
+	autoRefresh,
+	lastUpdateTime,
+	refreshInterval,
+	shouldRefresh,
+	refresh,
+	startAutoRefresh,
+	stopAutoRefresh,
+	updateLastRefreshTime,
+	formatTime,
+	getFileUrl,
+})
 </script>
 
 <style lang="scss" scoped>
