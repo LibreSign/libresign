@@ -23,43 +23,53 @@
 	</tr>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed } from 'vue'
 
 import { useFilesStore } from '../../store/files.js'
 import { useFiltersStore } from '../../store/filters.js'
 
-export default {
+defineOptions({
 	name: 'FilesListTableFooter',
-	setup() {
-		const filesStore = useFilesStore()
-		const filtersStore = useFiltersStore()
-		return {
-			t,
-			filesStore,
-			filtersStore,
-		}
-	},
-	computed: {
-		totalFiles() {
-			return Object.keys(this.filesStore.files).length
-		},
-		summary() {
-			const fileCount = this.totalFiles
-			if (fileCount === 1) {
-				return t('libresign', '1 file')
-			}
-			return t('libresign', '{fileCount} files', { fileCount })
-		},
-		haveFiles() {
-			const fileCount = this.totalFiles
-			if (this.filesStore.loading) {
-				return false
-			}
-			return fileCount > 0
-		},
-	},
+})
+
+type FilesStore = {
+	files: Record<string, unknown>
+	loading: boolean
 }
+
+type FiltersStore = {
+	activeChips: unknown[]
+}
+
+const filesStore = useFilesStore() as FilesStore
+const filtersStore = useFiltersStore() as FiltersStore
+
+const totalFiles = computed(() => Object.keys(filesStore.files).length)
+
+const summary = computed(() => {
+	const fileCount = totalFiles.value
+	if (fileCount === 1) {
+		return t('libresign', '1 file')
+	}
+	return t('libresign', '{fileCount} files', { fileCount })
+})
+
+const haveFiles = computed(() => {
+	if (filesStore.loading) {
+		return false
+	}
+	return totalFiles.value > 0
+})
+
+defineExpose({
+	filesStore,
+	filtersStore,
+	totalFiles,
+	summary,
+	haveFiles,
+})
 </script>
 
 <style scoped lang="scss">
