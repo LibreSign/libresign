@@ -19,43 +19,61 @@
 		</div>
 	</NcSettingsSection>
 </template>
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { generateOcsUrl } from '@nextcloud/router'
+import { onMounted, ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-export default {
-	name: 'DefaultUserFolder',
-	components: {
-		NcSettingsSection,
-		NcTextField,
-		NcCheckboxRadioSwitch,
-	},
-	data() {
-		return {
-			value: '',
-			customUserFolder: false,
+type DefaultFolderResponse = {
+	data?: {
+		ocs?: {
+			data?: {
+				data?: string
+			}
 		}
-	},
-	created() {
-		this.getData()
-	},
-	methods: {
-		t,
-		async getData() {
-			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/default_user_folder'))
-			this.customUserFolder = !!response.data.ocs.data.data
-			this.value = response.data.ocs.data.data || 'LibreSign'
-		},
-		saveDefaultUserFolder() {
-			OCP.AppConfig.setValue('libresign', 'default_user_folder', this.value)
-		},
-	},
+	}
 }
+
+type OcpGlobal = {
+	AppConfig: {
+		setValue: (app: string, key: string, value: string) => void
+	}
+}
+
+defineOptions({
+	name: 'DefaultUserFolder',
+})
+
+const value = ref('')
+const customUserFolder = ref(false)
+
+async function getData() {
+	const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/default_user_folder')) as DefaultFolderResponse
+	const folder = response.data?.ocs?.data?.data || ''
+	customUserFolder.value = !!folder
+	value.value = folder || 'LibreSign'
+}
+
+function saveDefaultUserFolder() {
+	;(globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP.AppConfig.setValue('libresign', 'default_user_folder', value.value)
+}
+
+onMounted(() => {
+	void getData()
+})
+
+defineExpose({
+	t,
+	value,
+	customUserFolder,
+	getData,
+	saveDefaultUserFolder,
+})
 </script>
 <style scoped>
 .default-user-folder-content{
