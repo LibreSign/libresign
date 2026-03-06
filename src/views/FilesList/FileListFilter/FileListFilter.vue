@@ -30,34 +30,26 @@
 	</NcPopover>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 
-export default {
+defineOptions({
 	name: 'FileListFilter',
-	emits: ['reset-filter'],
-	components: {
-		NcButton,
-		NcPopover,
-	},
-	props: {
-		isActive: {
-			type: Boolean,
-			required: true,
-		},
-		filterName: {
-			type: String,
-			required: true,
-		},
-	},
-	setup() {
-		const boundary = document.getElementById('app-content-vue') ?? document.body
-		return { t, boundary }
-	},
-}
+})
+
+defineEmits<{
+	(event: 'reset-filter'): void
+}>()
+
+defineProps<{
+	isActive: boolean
+	filterName: string
+}>()
+
+const boundary = document.getElementById('app-content-vue') ?? document.body
 </script>
 
 <style scoped lang="scss">
