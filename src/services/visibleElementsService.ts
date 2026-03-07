@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-interface Coordinates {
+export interface Coordinates {
 	page?: number | string
 	left?: number | string
 	top?: number | string
 }
 
-interface VisibleElement {
+export interface VisibleElement {
 	elementId?: number | string
 	fileId?: number | string
 	signRequestId?: number | string
@@ -18,23 +18,23 @@ interface VisibleElement {
 	[key: string]: unknown
 }
 
-interface Signer {
+export interface Signer {
 	visibleElements?: VisibleElement[]
 	me?: boolean
 	signRequestId?: number | string
 	[key: string]: unknown
 }
 
-interface FileData {
+export interface FileData {
 	id?: number | string
-	file?: string
-	files?: Array<{ file?: string; signers?: Signer[] }>
+	file?: unknown
+	files?: Array<{ file?: unknown; signers?: Signer[] }>
 	visibleElements?: VisibleElement[]
 	signers?: Signer[]
 	[key: string]: unknown
 }
 
-interface DocumentData {
+export interface DocumentData {
 	visibleElements?: VisibleElement[]
 	signers?: Signer[]
 	files?: FileData[]
@@ -102,7 +102,11 @@ const collectSignerVisibleElements = (signers: unknown): VisibleElement[] => {
 export const idsMatch = (left: unknown, right: unknown): boolean => keyOf(left) === keyOf(right)
 
 export const getFileUrl = (file: FileData | null | undefined): string | null =>
-	file?.file || file?.files?.[0]?.file || null
+	typeof file?.file === 'string'
+		? file.file
+		: typeof file?.files?.[0]?.file === 'string'
+			? file.files[0].file
+			: null
 
 export const getFileSigners = (file: FileData): Signer[] => {
 	if (Array.isArray(file?.signers) && file.signers.length > 0) {
