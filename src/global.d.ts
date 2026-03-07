@@ -6,6 +6,7 @@
 /// <reference types="@nextcloud/typings" />
 
 declare global {
+<<<<<<< HEAD
 	interface OCAFilesSidebarTab {
 		id: string
 		name: string
@@ -21,13 +22,18 @@ declare global {
 		open(path: string): Promise<void>
 		close?(): void
 		setActiveTab(id: string): void
-		registerTab?(tab: unknown): boolean
 		Tab?: new (options: Partial<OCAFilesSidebarTab>) => OCAFilesSidebarTab
 	}
 
 	interface OCAFilesNamespace {
 		Sidebar: OCAFilesSidebar
 		[key: string]: unknown
+||||||| parent of a84972d6d (chore(types): extend global app config typing)
+=======
+	interface LibreSignAppConfigApi {
+		setValue: (app: string, key: string, value: string | number | boolean, options?: { success?: () => void; error?: () => void }) => void
+		deleteKey?: (app: string, key: string) => void
+>>>>>>> a84972d6d (chore(types): extend global app config typing)
 	}
 
 	interface LibreSignGlobalNamespace {
@@ -38,15 +44,12 @@ declare global {
 				fileId?: number | string
 				[key: string]: unknown
 			}>
-			filesCount?: number
-			signers?: unknown[]
-			settings?: {
-				path?: string
-				[key: string]: unknown
 			}
-			[key: string]: unknown
-		}
-		[key: string]: unknown
+
+			interface LibreSignAppConfigApi {
+				setValue: (app: string, key: string, value: string | number | boolean, options?: { success?: () => void; error?: () => void }) => void
+				deleteKey?: (app: string, key: string) => void
+			settings?: {
 	}
 
 	interface OCAGlobalNamespace {
@@ -59,11 +62,16 @@ declare global {
 		// Nextcloud Globals
 		OC: Nextcloud.v29.OC
 		OCA: OCAGlobalNamespace
-		OCP: Nextcloud.v29.OCP
+		OCP: Nextcloud.v29.OCP & {
+			AppConfig: LibreSignAppConfigApi
+		}
 	}
 
 	const OC: Nextcloud.v29.OC
 	const OCA: OCAGlobalNamespace
+	const OCP: Nextcloud.v29.OCP & {
+		AppConfig: LibreSignAppConfigApi
+	}
 }
 
 export {}
