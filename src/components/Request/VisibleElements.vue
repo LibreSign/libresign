@@ -15,9 +15,9 @@
 		<div v-else class="visible-elements-container">
 			<div class="sign-details">
 				<div class="modal_name">
-					<NcChip :text="statusLabel"
+					<NcChip :text="statusLabel ?? ''"
 						:variant="isDraft ? 'warning' : 'primary'"
-						:aria-label="t('libresign', 'Document status: {status}', { status: statusLabel })"
+						:aria-label="t('libresign', 'Document status: {status}', { status: statusLabel ?? '' })"
 						no-close />
 					<h2 class="name">{{ document.name }}</h2>
 				</div>
@@ -73,7 +73,7 @@
 				:file-names="pdfFileNames"
 				:signers="document.signers"
 				@pdf-editor:end-init="updateSigners"
-				@pdf-editor:on-delete-signer="onDeleteSigner">
+				@pdf-editor:on-delete-signer="handleDeleteSigner">
 			</PdfEditor>
 		</div>
 	</NcModal>
@@ -86,9 +86,12 @@ import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
+import type { PDFElementObject } from '@libresign/pdf-elements'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcChip from '@nextcloud/vue/components/NcChip'
@@ -103,41 +106,42 @@ import { FILE_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
 import {
 	aggregateVisibleElementsByFiles,
+	type DocumentData,
+	type FileData,
 	findFileById,
 	getFileSigners,
 	getFileUrl,
 	getVisibleElementsFromDocument,
 	idsMatch,
+	type Signer as VisibleElementsSigner,
+	type VisibleElement,
 } from '../../services/visibleElementsService'
-
-type VisibleElementCoordinate = {
-	page: number
-	width: number
-	height: number
-	left: number
-	top: number
-}
-
-type VisibleElementPayload = {
-	type: 'signature'
-	elementId?: string
-	fileId?: number
-	signRequestId?: number | string
-	coordinates: VisibleElementCoordinate
-}
+import type { NextcloudCapabilities } from '../../types/capabilities'
 
 type SignerIdentifyMethod = {
 	method: string
 	value: string
 }
 
-type FileSigner = {
-	signRequestId?: number | string
+type FileSigner = VisibleElementsSigner & {
 	identifyMethods?: SignerIdentifyMethod[]
-	[key: string]: unknown
 }
 
-type DocumentFile = {
+type VisibleElementPayload = VisibleElement & {
+	type: 'signature'
+	elementId?: string
+	fileId?: number
+	signRequestId?: number | string
+	coordinates: {
+		page: number
+		width: number
+		height: number
+		left: number
+		top: number
+	}
+}
+
+type DocumentFile = FileData & {
 	id: number
 	name: string
 	metadata?: {
@@ -145,14 +149,11 @@ type DocumentFile = {
 		p?: number
 		d?: Array<{ h?: number }>
 	}
-	file?: unknown
-	files?: Array<{ file?: unknown }>
 	visibleElements?: VisibleElementPayload[] | null
 	signers?: FileSigner[]
-	[key: string]: unknown
 }
 
-type DocumentModel = {
+type DocumentModel = DocumentData & {
 	id?: number
 	uuid?: string
 	name?: string
@@ -162,8 +163,7 @@ type DocumentModel = {
 	settings?: { signerFileUuid?: string }
 	files?: DocumentFile[]
 	visibleElements?: VisibleElementPayload[]
-	signers?: Array<Record<string, unknown>>
-	[key: string]: unknown
+	signers?: FileSigner[]
 }
 
 type FilePageInfo = {
@@ -173,13 +173,15 @@ type FilePageInfo = {
 	fileName: string
 }
 
+type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
+
 type PdfObjectSigner = {
 	element?: { elementId?: string }
 	identifyMethods?: SignerIdentifyMethod[]
 	[key: string]: unknown
 }
 
-type PdfObject = {
+type PdfObject = PDFElementObject & {
 	signer?: PdfObjectSigner
 	pageNumber: number
 	x: number
@@ -196,7 +198,7 @@ type PdfElementsRef = {
 	isAddingMode?: boolean
 }
 
-type PdfEditorRef = {
+type PdfEditorRef = ComponentPublicInstance & {
 	$refs?: { pdfElements?: PdfElementsRef }
 	startAddingSigner?: (signer: Record<string, unknown>, size: { width: number; height: number }) => boolean
 	cancelAdding?: () => void
@@ -213,32 +215,68 @@ type FilesStore = {
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<SaveResponse>
 }
 
+const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElementPayload[] =>
+	elements.flatMap((element) => {
+		if (element.type !== 'signature' || !element.coordinates) {
+			return []
+		}
+
+		const page = Number(element.coordinates.page)
+		const left = Number(element.coordinates.left)
+		const top = Number(element.coordinates.top)
+		const width = Number((element.coordinates as VisibleElementPayload['coordinates']).width)
+		const height = Number((element.coordinates as VisibleElementPayload['coordinates']).height)
+
+		if (![page, left, top, width, height].every(Number.isFinite)) {
+			return []
+		}
+
+		return [{
+			type: 'signature',
+			elementId: typeof element.elementId === 'string' ? element.elementId : undefined,
+			fileId: typeof element.fileId === 'number' ? element.fileId : Number(element.fileId),
+			signRequestId: element.signRequestId,
+			coordinates: {
+				page,
+				left,
+				top,
+				width,
+				height,
+			},
+		} satisfies VisibleElementPayload]
+	})
+
 defineOptions({
 	name: 'VisibleElements',
 })
 
-const filesStore = useFilesStore() as FilesStore
+const filesStore = useFilesStore() as unknown as FilesStore
 const instance = getCurrentInstance()
 const pdfEditor = ref<PdfEditorRef | null>(null)
 const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
 const modal = ref(false)
 const loading = ref(false)
 const signerSelected = ref<Record<string, unknown> | null>(null)
-const width = ref(getCapabilities().libresign.config['sign-elements']['full-signature-width'])
-const height = ref(getCapabilities().libresign.config['sign-elements']['full-signature-height'])
+const capabilities = getCapabilities() as NextcloudCapabilities
+const width = ref(capabilities.libresign?.config?.['sign-elements']?.['full-signature-width'] ?? 180)
+const height = ref(capabilities.libresign?.config?.['sign-elements']?.['full-signature-height'] ?? 60)
 const filePagesMap = ref<Record<number, FilePageInfo>>({})
 const elementsLoaded = ref(false)
 
-const document = computed(() => filesStore.getFile())
+const document = computed<DocumentModel>(() => filesStore.getFile())
+const documentFiles = computed<DocumentFile[]>(() => Array.isArray(document.value.files) ? document.value.files as DocumentFile[] : [])
 const status = computed(() => Number(document.value?.status ?? -1))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
-const canSave = computed(() => [FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED].includes(status.value))
+const canSave = computed(() => ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
 const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && (document.value?.settings?.signerFileUuid ?? '').length > 0)
 const variantOfSaveButton = computed(() => canSave.value ? 'primary' : 'secondary')
 const variantOfSignButton = computed(() => canSave.value ? 'secondary' : 'primary')
 const statusLabel = computed(() => document.value.statusText)
-const pdfFiles = computed(() => (document.value.files || []).map(file => getFileUrl(file)).filter(Boolean))
-const pdfFileNames = computed(() => (document.value.files || []).map(file => `${file.name}.${file.metadata?.extension || 'pdf'}`))
+const pdfFiles = computed<PdfInput[]>(() => documentFiles.value.flatMap((file) => {
+	const fileUrl = getFileUrl(file)
+	return fileUrl ? [fileUrl] : []
+}))
+const pdfFileNames = computed(() => documentFiles.value.map(file => `${file.name}.${file.metadata?.extension || 'pdf'}`))
 const documentNameWithExtension = computed(() => {
 	const currentDocument = document.value
 	if (!currentDocument.metadata?.extension) {
@@ -260,13 +298,13 @@ async function showModal() {
 	if (!canRequestSign.value) {
 		return
 	}
-	if (getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === false) {
+	if (capabilities.libresign?.config?.['sign-elements']?.['is-available'] === false) {
 		return
 	}
 	modal.value = true
 	filesStore.loading = true
 
-	if (!document.value.files || document.value.files.length === 0) {
+	if (documentFiles.value.length === 0) {
 		await fetchFiles()
 	}
 
@@ -282,34 +320,36 @@ async function fetchFiles() {
 		},
 	})
 	const childFiles = response?.data?.ocs?.data?.data || []
-	document.value.files = Array.isArray(childFiles) ? childFiles : []
+	document.value.files = Array.isArray(childFiles) ? childFiles as DocumentFile[] : []
 
-	const allVisibleElements = aggregateVisibleElementsByFiles(document.value.files)
+	const allVisibleElements = aggregateVisibleElementsByFiles(documentFiles.value)
 	if (allVisibleElements.length > 0) {
-		document.value.visibleElements = allVisibleElements
+		document.value.visibleElements = normalizeVisibleElements(allVisibleElements)
 		return
 	}
 
 	const nestedDocumentElements = getVisibleElementsFromDocument(document.value)
 	if (nestedDocumentElements.length > 0) {
-		document.value.visibleElements = nestedDocumentElements
+		document.value.visibleElements = normalizeVisibleElements(nestedDocumentElements)
 	}
 }
 
 function buildFilePagesMap() {
 	filePagesMap.value = {}
 
-	const filesToProcess = document.value.files || []
-	if (!Array.isArray(filesToProcess)) {
-		return
-	}
+	const filesToProcess = documentFiles.value
 
 	let currentPage = 1
 	filesToProcess.forEach((file, index) => {
 		const pageCount = file.metadata?.p || 0
+		const fileId = typeof file.id === 'number' ? file.id : Number(file.id)
+		if (!Number.isFinite(fileId)) {
+			currentPage += pageCount
+			return
+		}
 		for (let pageIndex = 0; pageIndex < pageCount; pageIndex++) {
 			filePagesMap.value[currentPage + pageIndex] = {
-				id: file.id,
+				id: fileId,
 				fileIndex: index,
 				startPage: currentPage,
 				fileName: file.name,
@@ -327,13 +367,13 @@ function closeModal() {
 }
 
 function getPageHeightForFile(fileId: number, page: number) {
-	const filesToSearch = document.value.files || []
+	const filesToSearch = documentFiles.value
 	const fileInfo = filesToSearch.find(file => file.id === fileId)
 	return fileInfo?.metadata?.d?.[page - 1]?.h
 }
 
 async function updateSigners() {
-	const filesToProcess = document.value.files || []
+	const filesToProcess = documentFiles.value
 	if (elementsLoaded.value || filesToProcess.length === 0) {
 		return
 	}
@@ -419,7 +459,7 @@ function stopAddSigner() {
 	signerSelected.value = null
 }
 
-async function onDeleteSigner(object: { signer?: { element?: { elementId?: string } } }) {
+async function onDeleteSigner(object: PdfObject) {
 	if (!object?.signer?.element?.elementId) {
 		return
 	}
@@ -427,6 +467,10 @@ async function onDeleteSigner(object: { signer?: { element?: { elementId?: strin
 		uuid: document.value.uuid,
 		elementId: object.signer.element.elementId,
 	}))
+}
+
+function handleDeleteSigner(object: unknown) {
+	void onDeleteSigner(object as PdfObject)
 }
 
 async function goToSign() {
@@ -456,14 +500,22 @@ async function save() {
 	}
 }
 
+const handleShowVisibleElements = (() => {
+	void showModal()
+}) as EventHandler<NextcloudEvent>
+
+const handleSelectSigner = ((event: NextcloudEvent) => {
+	onSelectSigner((event as CustomEvent<Record<string, unknown>>).detail)
+}) as EventHandler<NextcloudEvent>
+
 function buildVisibleElements() {
 	const visibleElements: VisibleElementPayload[] = []
-	const currentFiles = document.value.files || []
+	const currentFiles = documentFiles.value
 	const pdfElements = getPdfElements()
 	const numDocuments = currentFiles.length
 
 	for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
-		const objects = pdfElements?.getAllObjects(docIndex) || []
+		const objects = (pdfElements?.getAllObjects(docIndex) || []) as PdfObject[]
 		objects.forEach((object) => {
 			if (!object.signer) return
 
@@ -506,9 +558,11 @@ function buildVisibleElements() {
 			if (!fileInfo || !Array.isArray(fileInfo.signers)) {
 				return
 			}
-			const envIdMethods = (object.signer.identifyMethods || []).map((method) => `${method.method}:${method.value}`).sort().join('|')
+			const envIdentifyMethods = Array.isArray(object.signer.identifyMethods) ? object.signer.identifyMethods as SignerIdentifyMethod[] : []
+			const envIdMethods = envIdentifyMethods.map((method) => `${method.method}:${method.value}`).sort().join('|')
 			const candidate = fileInfo.signers.find((signer) => {
-				const childIdMethods = (signer.identifyMethods || []).map((method) => `${method.method}:${method.value}`).sort().join('|')
+				const childIdentifyMethods = Array.isArray(signer.identifyMethods) ? signer.identifyMethods : []
+				const childIdMethods = childIdentifyMethods.map((method: SignerIdentifyMethod) => `${method.method}:${method.value}`).sort().join('|')
 				return childIdMethods === envIdMethods
 			})
 			if (!candidate?.signRequestId) {
@@ -524,13 +578,13 @@ function buildVisibleElements() {
 }
 
 onMounted(() => {
-	subscribe('libresign:show-visible-elements', showModal)
-	subscribe('libresign:visible-elements-select-signer', onSelectSigner)
+	subscribe('libresign:show-visible-elements', handleShowVisibleElements)
+	subscribe('libresign:visible-elements-select-signer', handleSelectSigner)
 })
 
 onBeforeUnmount(() => {
-	unsubscribe('libresign:show-visible-elements', showModal)
-	unsubscribe('libresign:visible-elements-select-signer', onSelectSigner)
+	unsubscribe('libresign:show-visible-elements', handleShowVisibleElements)
+	unsubscribe('libresign:visible-elements-select-signer', handleSelectSigner)
 })
 
 defineExpose({
