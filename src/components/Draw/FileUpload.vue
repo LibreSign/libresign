@@ -121,6 +121,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import 'vue-advanced-cropper/dist/style.css'
+import type { LibreSignSignElementsConfig, NextcloudCapabilities } from '../../types/capabilities'
 
 type CropperResult = {
 	canvas?: {
@@ -158,8 +159,8 @@ const emit = defineEmits<{
 	(event: 'close'): void
 }>()
 
-const capabilities = getCapabilities()
-const signElementsConfig = capabilities?.libresign?.config?.['sign-elements'] || {}
+const capabilities = getCapabilities() as NextcloudCapabilities
+const signElementsConfig: Partial<LibreSignSignElementsConfig> = capabilities.libresign?.config?.['sign-elements'] ?? {}
 
 const file = ref<HTMLInputElement | null>(null)
 const cropper = ref<CropperInstance | null>(null)
@@ -175,8 +176,8 @@ const zoomLevel = ref(1)
 const zoomMin = 0.1
 const zoomMax = 8
 const zoomStep = 0.1
-const stencilBaseWidth = Number(signElementsConfig['signature-width'] || 0)
-const stencilBaseHeight = Number(signElementsConfig['signature-height'] || 0)
+const stencilBaseWidth = Number(signElementsConfig['signature-width'] ?? 0)
+const stencilBaseHeight = Number(signElementsConfig['signature-height'] ?? 0)
 
 const hasImage = computed(() => !!image.value)
 
