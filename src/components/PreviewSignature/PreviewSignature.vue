@@ -26,6 +26,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import { onMounted, ref, watch } from 'vue'
 
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import type { NextcloudCapabilities } from '../../types/capabilities'
 
 type AxiosImageResponse = {
 	data: ArrayBuffer | string
@@ -61,8 +62,10 @@ const emit = defineEmits<{
 const loading = ref(true)
 const isLoaded = ref(false)
 const imageData = ref('')
-const width = ref(getCapabilities().libresign.config['sign-elements'].width)
-const height = ref(getCapabilities().libresign.config['sign-elements'].height)
+const capabilities = getCapabilities() as NextcloudCapabilities
+const signElementsConfig = capabilities.libresign?.config['sign-elements']
+const width = ref(`${Number(signElementsConfig?.['signature-width'] ?? 0)}px`)
+const height = ref(`${Number(signElementsConfig?.['signature-height'] ?? 0)}px`)
 
 async function loadImage() {
 	if (props.src.startsWith('data:')) {
@@ -83,7 +86,9 @@ async function loadImage() {
 
 	try {
 		const response = await axios(config) as AxiosImageResponse
-		const buffer = Buffer.from(response.data, 'binary').toString('base64')
+		const buffer = typeof response.data === 'string'
+			? Buffer.from(response.data, 'binary')
+			: Buffer.from(response.data)
 		imageData.value = `data:${response.headers['content-type']};base64,${buffer}`
 		onImageLoad(true)
 	} catch {
