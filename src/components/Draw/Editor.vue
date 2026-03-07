@@ -51,7 +51,7 @@
 		<NcDialog v-if="modal"
 			:name="t('libresign', 'Confirm your signature')"
 			@closing="handleModal(false)">
-			<PreviewSignature :src="imageData" />
+			<PreviewSignature :src="imageData ?? ''" />
 			<template #actions>
 				<NcButton variant="primary" @click="saveSignature">
 					{{ t('libresign', 'Save') }}
@@ -80,6 +80,7 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
+import type { NextcloudCapabilities } from '../../types/capabilities'
 
 defineOptions({
 	name: 'Editor',
@@ -98,9 +99,10 @@ const emit = defineEmits<{
 	(event: 'save', value: string | null): void
 }>()
 
-const capabilities = getCapabilities()
-const canvasWidth = capabilities.libresign.config['sign-elements']['signature-width']
-const canvasHeight = capabilities.libresign.config['sign-elements']['signature-height']
+const capabilities = getCapabilities() as NextcloudCapabilities
+const signElementsConfig = capabilities.libresign?.config['sign-elements']
+const canvasWidth = Number(signElementsConfig?.['signature-width'] ?? 0)
+const canvasHeight = Number(signElementsConfig?.['signature-height'] ?? 0)
 const color = ref('#000000')
 const customPalette = [
 	'#000000',
