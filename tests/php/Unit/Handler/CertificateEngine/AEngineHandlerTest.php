@@ -302,7 +302,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testToArrayFiltersCaIdFromOrganizationalUnitWhenNotGenerated(
 		bool $certificateGenerated,
 		array $organizationalUnits,
-		array $expectedOuValues,
+		?string $expectedOuValues,
 		string $description,
 	): void {
 		$instance = $this->getInstance();
@@ -399,37 +399,37 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'OU without CA ID - not generated' => [
 				false,
 				['Engineering', 'Security'],
-				['Engineering', 'Security'],
+				'Engineering, Security',
 				'normal OU values should pass through when not generated',
 			],
 			'OU without CA ID - generated' => [
 				true,
 				['Engineering', 'Security'],
-				['Engineering', 'Security'],
+				'Engineering, Security',
 				'normal OU values should pass through when generated',
 			],
 			'OU with CA ID - not generated (filtered)' => [
 				false,
 				['libresign-ca-id:abc123_g:1_e:openssl', 'Engineering', 'Security'],
-				['Engineering', 'Security'],
+				'Engineering, Security',
 				'CA ID should be filtered when certificate not generated',
 			],
 			'OU with CA ID - generated (kept)' => [
 				true,
 				['libresign-ca-id:abc123_g:1_e:openssl', 'Engineering', 'Security'],
-				['libresign-ca-id:abc123_g:1_e:openssl', 'Engineering', 'Security'],
+				'libresign-ca-id:abc123_g:1_e:openssl, Engineering, Security',
 				'CA ID should be kept when certificate is generated',
 			],
 			'OU with only CA ID - not generated' => [
 				false,
 				['libresign-ca-id:abc123_g:1_e:openssl'],
-				[],
+				null,
 				'OU should be empty when only CA ID and not generated',
 			],
 			'OU with only CA ID - generated' => [
 				true,
 				['libresign-ca-id:abc123_g:1_e:openssl'],
-				['libresign-ca-id:abc123_g:1_e:openssl'],
+				'libresign-ca-id:abc123_g:1_e:openssl',
 				'OU with only CA ID should be kept when generated',
 			],
 		];
