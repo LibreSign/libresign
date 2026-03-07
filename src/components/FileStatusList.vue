@@ -21,7 +21,7 @@
 					</div>
 					<div class="file-details">
 						<p class="file-name">{{ file.name }}</p>
-						<p class="file-size">{{ formatFileSize(file.size) }}</p>
+						<p class="file-size">{{ formatFileSize(file.size ?? 0) }}</p>
 					</div>
 				</div>
 
