@@ -25,3 +25,5 @@ declare module '@vue/runtime-core' {
 		OCA: OCAGlobalNamespace
 	}
 }
+
+export {}
