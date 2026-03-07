@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineOptions } from 'vue'
+import { ref, computed } from 'vue'
 
 defineOptions({ name: 'LibreSign' })
 

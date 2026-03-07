@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
-import { getCurrentInstance, ref } from 'vue'
+import { ref } from 'vue'
 
 import { showSuccess } from '@nextcloud/dialogs'
 import NcDateTime from '@nextcloud/vue/components/NcDateTime'
@@ -66,32 +66,45 @@ import FileEntryPreview from './FileEntryPreview.vue'
 import FileEntrySigners from './FileEntrySigners.vue'
 import FileEntryStatus from './FileEntryStatus.vue'
 
-import FileEntryMixin from './FileEntryMixin.js'
+import { useFileEntry, type FileEntrySource } from '../../../composables/useFileEntry.js'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
 
 defineOptions({
 	name: 'FileEntry',
-	mixins: [FileEntryMixin],
 })
+
+type FileEntryActionsRef = {
+	doRename: (newName: string) => Promise<void>
+}
+
+type FileEntryNameRef = {
+	startRenaming?: () => void
+	stopRenaming?: () => void
+}
+
+const props = defineProps<{
+	source: FileEntrySource
+	loading: boolean
+}>()
 
 const actionsMenuStore = useActionsMenuStore()
 const filesStore = useFilesStore()
+const { mtime, openedMenu, mtimeOpacity, fileExtension, onRightClick, openDetailsIfAvailable } = useFileEntry(props, {
+	actionsMenuStore,
+	filesStore,
+})
+const actions = ref<FileEntryActionsRef | null>(null)
+const name = ref<FileEntryNameRef | null>(null)
 const isRenaming = ref(false)
 const renamingSaving = ref(false)
-const instance = getCurrentInstance()
-
-function getVm() {
-	return instance?.proxy as any
-}
 
 async function onRename(newName: string) {
-	const vm = getVm()
-	const oldName = vm.source.name
+	const oldName = props.source.name
 	renamingSaving.value = true
 	try {
-		await vm.$refs.actions.doRename(newName)
-		vm.$refs.name?.stopRenaming?.()
+		await actions.value?.doRename(newName)
+		name.value?.stopRenaming?.()
 		showSuccess(t('libresign', 'Renamed "{oldName}" to "{newName}"', {
 			oldName,
 			newName,
@@ -102,7 +115,7 @@ async function onRename(newName: string) {
 }
 
 function onStartRename() {
-	getVm().$refs.name?.startRenaming?.()
+	name.value?.startRenaming?.()
 }
 
 function onFileRenaming(nextIsRenaming: boolean) {
@@ -112,6 +125,14 @@ function onFileRenaming(nextIsRenaming: boolean) {
 defineExpose({
 	actionsMenuStore,
 	filesStore,
+	mtime,
+	openedMenu,
+	mtimeOpacity,
+	fileExtension,
+	onRightClick,
+	openDetailsIfAvailable,
+	actions,
+	name,
 	isRenaming,
 	renamingSaving,
 	onRename,
