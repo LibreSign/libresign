@@ -65,7 +65,8 @@
 import { t } from '@nextcloud/l10n'
 
 import { computed, nextTick, onMounted, ref, toRaw } from 'vue'
-import PDFElements from '@libresign/pdf-elements/src/components/PDFElements.vue'
+import PDFElements from '@libresign/pdf-elements'
+import type { PDFElementObject, PDFElementsPublicApi } from '@libresign/pdf-elements'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
@@ -107,16 +108,12 @@ type SignerRecord = {
 	[key: string]: unknown
 }
 
-type PdfObject = {
+type PdfObject = PDFElementObject & {
 	id: string
-	type?: string
 	signer?: SignerRecord | null
-	width?: number
-	height?: number
-	x?: number
-	y?: number
-	[key: string]: unknown
 }
+
+type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
 
 type PdfPage = {
 	getViewport: (options: { scale: number }) => {
@@ -131,11 +128,8 @@ type PdfDocument = {
 	allObjects?: PdfObject[][]
 }
 
-type PdfElementsInstance = {
-	startAddingElement: (payload: Record<string, unknown>) => void
+type PdfElementsInstance = PDFElementsPublicApi & {
 	cancelAdding: () => void
-	addObjectToPage: (object: PdfObject, pageIndex: number, docIndex: number) => void
-	updateObject: (docIndex: number, objectId: string, patch: Record<string, unknown>) => void
 	adjustZoomToFit?: () => void
 	getPageHeight?: (docIndex: number, pageIndex: number) => number
 	pdfDocuments?: PdfDocument[]
@@ -150,10 +144,10 @@ defineOptions({
 })
 
 const props = withDefaults(defineProps<{
-	files?: unknown[]
+	files?: PdfInput[]
 	fileNames?: string[]
 	readOnly?: boolean
-	signers?: SignerRecord[] | null
+	signers?: SignerRecord[]
 }>(), {
 	files: () => [],
 	fileNames: () => [],
@@ -249,7 +243,7 @@ function getSignerLabel(signer: SignerRecord | null | undefined) {
 	if (!signer) {
 		return ''
 	}
-	return signer.displayName || signer.name || signer.email || signer.id || ''
+	return String(signer.displayName || signer.name || signer.email || signer.id || '')
 }
 
 function onSignerChange(object: PdfObject | null | undefined, signer: SignerRecord | null | undefined) {
@@ -319,6 +313,8 @@ function startAddingSigner(signer: SignerRecord | null | undefined, size: { widt
 
 	pdfElements.value.startAddingElement({
 		type: 'signature',
+		x: 0,
+		y: 0,
 		width: size.width,
 		height: size.height,
 		signer: signerPayload,
