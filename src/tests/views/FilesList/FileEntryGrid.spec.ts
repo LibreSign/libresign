@@ -5,6 +5,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { setActivePinia, createPinia } from 'pinia'
 
 import FileEntryGrid from '../../../views/FilesList/FileEntry/FileEntryGrid.vue'
 
@@ -14,6 +15,11 @@ const actionsMenuStoreMock = {
 
 const filesStoreMock = {
 	loading: true,
+	selectFile: vi.fn(),
+}
+
+const sidebarStoreMock = {
+	activeRequestSignatureTab: vi.fn(),
 }
 
 vi.mock('@nextcloud/vue/components/NcDateTime', () => ({
@@ -72,42 +78,6 @@ vi.mock('../../../views/FilesList/FileEntry/FileEntryStatus.vue', () => ({
 	},
 }))
 
-vi.mock('../../../views/FilesList/FileEntry/FileEntryMixin.js', () => ({
-	default: {
-		props: {
-			source: {
-				type: Object,
-				required: true,
-			},
-			loading: {
-				type: Boolean,
-				required: true,
-			},
-		},
-		computed: {
-			fileExtension() {
-				return '.pdf'
-			},
-			mtime() {
-				return new Date('2026-03-06T10:00:00Z')
-			},
-			mtimeOpacity() {
-				return { color: 'red' }
-			},
-			openedMenu: {
-				get() {
-					return false
-				},
-				set() {},
-			},
-		},
-		methods: {
-			onRightClick: vi.fn(),
-			openDetailsIfAvailable: vi.fn(),
-		},
-	},
-}))
-
 vi.mock('../../../store/actionsmenu.js', () => ({
 	useActionsMenuStore: vi.fn(() => actionsMenuStoreMock),
 }))
@@ -116,10 +86,17 @@ vi.mock('../../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStoreMock),
 }))
 
+vi.mock('../../../store/sidebar.js', () => ({
+	useSidebarStore: vi.fn(() => sidebarStoreMock),
+}))
+
 describe('FileEntryGrid.vue', () => {
 	beforeEach(() => {
+		setActivePinia(createPinia())
 		actionsMenuStoreMock.opened = null
 		filesStoreMock.loading = true
+		filesStoreMock.selectFile.mockReset()
+		sidebarStoreMock.activeRequestSignatureTab.mockReset()
 	})
 
 	function createWrapper() {
@@ -159,5 +136,18 @@ describe('FileEntryGrid.vue', () => {
 
 		expect(checkbox.props('isLoading')).toBe(true)
 		expect(checkbox.props('source')).toMatchObject({ id: 7 })
+	})
+
+	it('opens the details sidebar for the selected file', () => {
+		const wrapper = createWrapper()
+		const event = {
+			preventDefault: vi.fn(),
+			stopPropagation: vi.fn(),
+		} as unknown as Event
+
+		wrapper.vm.openDetailsIfAvailable(event)
+
+		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(7)
+		expect(sidebarStoreMock.activeRequestSignatureTab).toHaveBeenCalled()
 	})
 })
