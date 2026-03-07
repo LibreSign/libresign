@@ -51,7 +51,7 @@ defineOptions({
 
 type Signer = {
 	signRequestId?: string | number
-	uuid?: string
+	uuid?: string | number
 	id?: string | number
 	email?: string
 	name?: string
@@ -81,11 +81,11 @@ function label(signer: Signer | null | undefined) {
 	if (!signer) {
 		return ''
 	}
-	return signer.displayName || signer.name || signer.email || signer.id || ''
+	return String(signer.displayName || signer.name || signer.email || signer.id || '')
 }
 
 function signerKey(signer: Signer) {
-	return signer?.signRequestId || signer?.uuid || signer?.id || signer?.email || ''
+	return String(signer?.signRequestId || signer?.uuid || signer?.id || signer?.email || '')
 }
 
 function selectSigner(signer: Signer) {
