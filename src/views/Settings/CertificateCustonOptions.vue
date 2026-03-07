@@ -32,7 +32,7 @@
 					<div class="array-field-header">
 						<strong>{{ getOptionProperty(certificate.id, 'label') }}</strong>
 						<span v-if="isMaxItemsReached(certificate)" class="max-items-warning">
-							({{ t('libresign', 'Maximum {max} items', {max: $options.MAX_ARRAY_ITEMS}) }})
+							({{ t('libresign', 'Maximum {max} items', {max: MAX_ARRAY_ITEMS}) }})
 						</span>
 						<NcButton :aria-label="t('libresign', 'Add new')"
 							:disabled="isMaxItemsReached(certificate)"
@@ -86,8 +86,10 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+
+import { computed, ref, watch } from 'vue'
 
 import { emit } from '@nextcloud/event-bus'
 
@@ -106,131 +108,128 @@ import { options, selectCustonOption } from '../../helpers/certification'
 
 const MAX_ARRAY_ITEMS = 10
 
-export default {
+defineOptions({
 	name: 'CertificateCustonOptions',
-	MAX_ARRAY_ITEMS,
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-		NcListItem,
-		NcPopover,
-		NcTextField,
-	},
-	props: {
-		names: {
-			type: Array,
-			required: true,
-		},
-	},
-	setup() {
-		return {
-			t,
-			mdiDelete,
-			mdiPlus,
-		}
-	},
-	data() {
-		return {
-			certificateList: [],
-		}
-	},
-	computed: {
-		customNamesOptions() {
-			return this.options.filter(itemA =>
-				!this.certificateList.some(itemB => itemB.id === itemA.id),
-			)
-		},
-		options() {
-			return options.filter(option => option.id !== 'CN')
-		},
-	},
-	watch: {
-		names: {
-			handler(values) {
-				this.certificateList = values
-			},
-			immediate: true,
-		},
-	},
-	methods: {
-		getOptionProperty(id, property) {
-			return this.options.find(option => option.id === id)[property]
-		},
-		isMaxItemsReached(certificate) {
-			if (!Array.isArray(certificate.value)) return false
-			return certificate.value.length >= MAX_ARRAY_ITEMS
-		},
-		validateMin(item) {
-			return item.value.length >= item.min
-		},
-		validateMax(item) {
-			if (Object.hasOwn(item, 'max')) {
-				return item.value.length <= item.max
-			}
-			return true
-		},
-		validate(id) {
-			const custonOption = selectCustonOption(id)
-			if (custonOption.isSome()) {
-				const item = custonOption.unwrap()
-				if (this.validateMin(item) && this.validateMax(item)) {
-					item.error = false
-				} else {
-					item.error = true
-				}
-				const listToSave = this.certificateList.map(certificate => ({
-					id: certificate.id,
-					value: certificate.value,
-				}))
-				emit('libresign:update:certificateToSave', listToSave)
-			}
-		},
-		validateArray(id) {
-			const listToSave = this.certificateList.map(certificate => ({
-				id: certificate.id,
-				value: certificate.value,
-			}))
-			emit('libresign:update:certificateToSave', listToSave)
-		},
-		addArrayEntry(id) {
-			const certificate = this.certificateList.find(cert => cert.id === id)
-			if (certificate && Array.isArray(certificate.value)) {
-				if (certificate.value.length < MAX_ARRAY_ITEMS) {
-					certificate.value.push('')
-					this.validateArray(id)
-				}
-			}
-		},
-		removeArrayEntry(id, index) {
-			const certificate = this.certificateList.find(cert => cert.id === id)
-			if (certificate && Array.isArray(certificate.value) && certificate.value.length > 1) {
-				certificate.value.splice(index, 1)
-				this.validateArray(id)
-			}
-		},
-		async removeOptionalAttribute(id) {
-			const custonOption = selectCustonOption(id)
-			if (custonOption.isSome()) {
-				const itemSelected = {
-					...custonOption.unwrap(),
-					value: '',
-				}
-				const list = this.certificateList.filter(item => item.id !== itemSelected.id)
-				this.certificateList = list
-			}
-		},
-		async onOptionalAttributeSelect(selected) {
-			const custonOption = selectCustonOption(selected.id)
-			if (custonOption.isSome()) {
-				const option = custonOption.unwrap()
-				if (option.id === 'OU') {
-					option.value = ['']
-				}
-				this.certificateList = [option, ...this.certificateList]
-			}
-		},
-	},
+})
+
+interface CertificateOption {
+	id: string
+	label?: string
+	helperText?: string
+	min?: number
+	max?: number
+	value: string | string[]
+	error?: boolean
 }
+
+const props = defineProps<{
+	names: CertificateOption[]
+}>()
+
+const certificateList = ref<CertificateOption[]>([])
+
+const availableOptions = computed(() => options.filter(option => option.id !== 'CN'))
+
+const customNamesOptions = computed(() => availableOptions.value.filter(itemA =>
+	!certificateList.value.some(itemB => itemB.id === itemA.id),
+))
+
+watch(() => props.names, (values) => {
+	certificateList.value = values as CertificateOption[]
+}, { immediate: true })
+
+function getOptionProperty(id: string, property: 'label' | 'helperText' | 'max') {
+	return availableOptions.value.find(option => option.id === id)?.[property]
+}
+
+function isMaxItemsReached(certificate: CertificateOption) {
+	if (!Array.isArray(certificate.value)) {
+		return false
+	}
+	return certificate.value.length >= MAX_ARRAY_ITEMS
+}
+
+function validateMin(item: CertificateOption) {
+	return item.min === undefined || String(item.value).length >= item.min
+}
+
+function validateMax(item: CertificateOption) {
+	return item.max === undefined || String(item.value).length <= item.max
+}
+
+function emitCertificateList() {
+	const listToSave = certificateList.value.map(certificate => ({
+		id: certificate.id,
+		value: certificate.value,
+	}))
+	emit('libresign:update:certificateToSave', listToSave)
+}
+
+function validate(id: string) {
+	const metadata = selectCustonOption(id)
+	const certificate = certificateList.value.find(item => item.id === id)
+	if (metadata.isSome() && certificate) {
+		const option = metadata.unwrap()
+		certificate.min = option.min
+		certificate.max = option.max
+		certificate.error = !(validateMin(certificate) && validateMax(certificate))
+		emitCertificateList()
+	}
+}
+
+function validateArray(_id: string) {
+	emitCertificateList()
+}
+
+function addArrayEntry(id: string) {
+	const certificate = certificateList.value.find(cert => cert.id === id)
+	if (certificate && Array.isArray(certificate.value) && certificate.value.length < MAX_ARRAY_ITEMS) {
+		certificate.value.push('')
+		validateArray(id)
+	}
+}
+
+function removeArrayEntry(id: string, index: number) {
+	const certificate = certificateList.value.find(cert => cert.id === id)
+	if (certificate && Array.isArray(certificate.value) && certificate.value.length > 1) {
+		certificate.value.splice(index, 1)
+		validateArray(id)
+	}
+}
+
+async function removeOptionalAttribute(id: string) {
+	const custonOption = selectCustonOption(id)
+	if (custonOption.isSome()) {
+		certificateList.value = certificateList.value.filter(item => item.id !== custonOption.unwrap().id)
+	}
+}
+
+async function onOptionalAttributeSelect(selected: { id: string }) {
+	const custonOption = selectCustonOption(selected.id)
+	if (custonOption.isSome()) {
+		const option = custonOption.unwrap()
+		certificateList.value = [{
+			...option,
+			value: option.id === 'OU' ? [''] : option.value,
+		}, ...certificateList.value]
+	}
+}
+
+defineExpose({
+	certificateList,
+	customNamesOptions,
+	availableOptions,
+	getOptionProperty,
+	isMaxItemsReached,
+	validateMin,
+	validateMax,
+	validate,
+	validateArray,
+	addArrayEntry,
+	removeArrayEntry,
+	removeOptionalAttribute,
+	onOptionalAttributeSelect,
+})
 </script>
 
 <style lang="scss" scoped>

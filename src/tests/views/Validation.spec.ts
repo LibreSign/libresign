@@ -13,8 +13,8 @@ import Validation from '../../views/Validation.vue'
 // Mock async components to prevent defineAsyncComponent from triggering
 // pending Vite dev-server fetches that outlive the worker and cause
 // "Closing rpc while fetch was pending" errors in Vitest.
-vi.mock('../../components/validation/EnvelopeValidation.vue', () => ({ default: { template: '<div />' } }))
-vi.mock('../../components/validation/FileValidation.vue', () => ({ default: { template: '<div />' } }))
+vi.mock('../../components/validation/EnvelopeValidation.vue', () => ({ default: { template: '<div data-test="envelope-validation" />' } }))
+vi.mock('../../components/validation/FileValidation.vue', () => ({ default: { template: '<div data-test="file-validation" />' } }))
 vi.mock('../../components/validation/SigningProgress.vue', () => ({ default: { template: '<div />' } }))
 
 // Mock js-confetti
@@ -152,9 +152,17 @@ vi.mock('../../utils/fileStatus.js', () => ({
 describe('Validation.vue - Business Logic', () => {
 	let wrapper!: ReturnType<typeof shallowMount>
 	let mockAddConfetti: ReturnType<typeof vi.fn>
+	const setVmState = async (patch: Record<string, unknown>) => {
+		Object.entries(patch).forEach(([key, value]) => {
+			;(wrapper.vm as Record<string, unknown>)[key] = value
+		})
+		await wrapper.vm.$nextTick()
+	}
 
 	beforeEach(() => {
+		history.replaceState({}, '')
 		mockAddConfetti = vi.fn()
+		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: {} } } })
 		// Must use `function` syntax so vitest accepts it as a valid constructor mock
 		vi.mocked(JSConfetti).mockImplementation(function() {
 			return { addConfetti: mockAddConfetti }
@@ -182,95 +190,111 @@ describe('Validation.vue - Business Logic', () => {
 	})
 
 	afterEach(() => {
+		history.replaceState({}, '')
+		vi.mocked(axios.get).mockReset()
 		wrapper.unmount()
 	})
 
 	describe('canValidate computed property', () => {
 		it('returns false when uuidToValidate is empty', () => {
-			wrapper.setData({ uuidToValidate: '' })
+			wrapper.vm.uuidToValidate = ''
 			expect(wrapper.vm.canValidate).toBe(false)
 		})
 
 		it('accepts numeric IDs', () => {
-			wrapper.setData({ uuidToValidate: '12345' })
+			wrapper.vm.uuidToValidate = '12345'
 			expect(wrapper.vm.canValidate).toBe(true)
 		})
 
 		it('accepts valid UUID format', () => {
-			wrapper.setData({ uuidToValidate: '550e8400-e29b-41d4-a716-446655440000' })
+			wrapper.vm.uuidToValidate = '550e8400-e29b-41d4-a716-446655440000'
 			expect(wrapper.vm.canValidate).toBe(true)
 		})
 
 		it('rejects invalid UUID format', () => {
-			wrapper.setData({ uuidToValidate: 'invalid-uuid-format' })
+			wrapper.vm.uuidToValidate = 'invalid-uuid-format'
 			expect(wrapper.vm.canValidate).toBe(false)
 		})
 
 		it('rejects UUID with wrong version (not v4)', () => {
-			wrapper.setData({ uuidToValidate: '550e8400-e29b-31d4-a716-446655440000' })
+			wrapper.vm.uuidToValidate = '550e8400-e29b-31d4-a716-446655440000'
 			expect(wrapper.vm.canValidate).toBe(false)
 		})
 
 		it('rejects UUID with wrong variant', () => {
-			wrapper.setData({ uuidToValidate: '550e8400-e29b-41d4-1716-446655440000' })
+			wrapper.vm.uuidToValidate = '550e8400-e29b-41d4-1716-446655440000'
 			expect(wrapper.vm.canValidate).toBe(false)
 		})
 	})
 
 	describe('helperTextValidation computed property', () => {
 		it('shows error message for invalid UUID', () => {
-			wrapper.setData({ uuidToValidate: 'invalid' })
+			wrapper.vm.uuidToValidate = 'invalid'
 			expect(wrapper.vm.helperTextValidation).toBe('Invalid UUID')
 		})
 
 		it('returns empty string for valid UUID', () => {
-			wrapper.setData({ uuidToValidate: '550e8400-e29b-41d4-a716-446655440000' })
+			wrapper.vm.uuidToValidate = '550e8400-e29b-41d4-a716-446655440000'
 			expect(wrapper.vm.helperTextValidation).toBe('')
 		})
 
 		it('returns empty string when uuidToValidate is empty', () => {
-			wrapper.setData({ uuidToValidate: '' })
+			wrapper.vm.uuidToValidate = ''
 			expect(wrapper.vm.helperTextValidation).toBe('')
 		})
 	})
 
 	describe('isEnvelope computed property', () => {
 		it('returns true when nodeType is envelope', () => {
-			wrapper.setData({
+			wrapper.vm.document = {
 				document: { nodeType: 'envelope' },
-			})
+			}.document
 			expect(wrapper.vm.isEnvelope).toBe(true)
 		})
 
 		it('returns true when document has files array', () => {
-			wrapper.setData({
+			wrapper.vm.document = {
 				document: { files: [{ id: 1 }] },
-			})
+			}.document
 			expect(wrapper.vm.isEnvelope).toBe(true)
 		})
 
 		it('returns false when files array is empty', () => {
-			wrapper.setData({
+			wrapper.vm.document = {
 				document: { files: [] },
-			})
+			}.document
 			expect(wrapper.vm.isEnvelope).toBe(false)
 		})
 
 		it('returns false for regular document', () => {
-			wrapper.setData({
+			wrapper.vm.document = {
 				document: { nodeType: 'file' },
-			})
+			}.document
 			expect(wrapper.vm.isEnvelope).toBe(false)
 		})
 	})
 
 	describe('async signing rendering', () => {
 		it('does not render Promise text in async signing mode', async () => {
-			await wrapper.setData({
+			await setVmState({
 				isAsyncSigning: true,
 			})
 
 			expect(wrapper.html()).not.toContain('[object Promise]')
+		})
+
+		it('uses component references instead of string names for validation content', async () => {
+			wrapper.vm.document = { uuid: 'doc-uuid', nodeType: 'file', name: 'contract.pdf' }
+			await wrapper.vm.$nextTick()
+
+			expect(typeof wrapper.vm.validationComponent).toBe('object')
+			expect(wrapper.vm.validationComponent).not.toBe('FileValidation')
+
+			wrapper.vm.document = { uuid: 'doc-uuid', nodeType: 'envelope', name: 'envelope', files: [{ id: 1 }] }
+			await wrapper.vm.$nextTick()
+
+			expect(typeof wrapper.vm.validationComponent).toBe('object')
+			expect(wrapper.vm.validationComponent).not.toBe('EnvelopeValidation')
 		})
 	})
 
@@ -528,7 +552,7 @@ describe('Validation.vue - Business Logic', () => {
 
 		it('falls back to shouldFireAsyncConfetti when history.state has no isAfterSigned', async () => {
 			history.pushState({}, '')
-			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			await setVmState({ shouldFireAsyncConfetti: true })
 			expect(wrapper.vm.isAfterSigned).toBe(true)
 		})
 
@@ -595,21 +619,19 @@ describe('Validation.vue - Business Logic', () => {
 		const SIGNED_STATUS = 3
 
 		it('fires confetti when document is signed and isAfterSigned returns true', () => {
-			// Spy on the computed getter to simulate the route-param path
-			// (Vue 3 mocked $route.params lacks reactivity in test env — covered separately)
-			vi.spyOn(wrapper.vm, 'isAfterSigned', 'get').mockReturnValue(true)
+			history.pushState({ isAfterSigned: true }, '')
 			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
 			expect(mockAddConfetti).toHaveBeenCalledOnce()
 		})
 
 		it('fires confetti when document is signed and shouldFireAsyncConfetti is true', async () => {
-			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			await setVmState({ shouldFireAsyncConfetti: true })
 			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
 			expect(mockAddConfetti).toHaveBeenCalledOnce()
 		})
 
 		it('fires confetti when all files in envelope are signed and shouldFireAsyncConfetti is true', async () => {
-			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			await setVmState({ shouldFireAsyncConfetti: true })
 			wrapper.vm.handleValidationSuccess({
 				status: 0,
 				files: [
@@ -622,7 +644,7 @@ describe('Validation.vue - Business Logic', () => {
 		})
 
 		it('fires confetti when current signer is signed and shouldFireAsyncConfetti is true', async () => {
-			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			await setVmState({ shouldFireAsyncConfetti: true })
 			// SIGN_REQUEST_STATUS.SIGNED = 2
 			wrapper.vm.handleValidationSuccess({
 				status: 0,
@@ -649,20 +671,20 @@ describe('Validation.vue - Business Logic', () => {
 		})
 
 		it('resets shouldFireAsyncConfetti to false after firing confetti', async () => {
-			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			await setVmState({ shouldFireAsyncConfetti: true })
 			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
 			expect(wrapper.vm.shouldFireAsyncConfetti).toBe(false)
 		})
 
 		it('does not reset shouldFireAsyncConfetti when confetti is not fired', async () => {
-			await wrapper.setData({ shouldFireAsyncConfetti: true })
+			await setVmState({ shouldFireAsyncConfetti: true })
 			// document not signed → confetti won't fire
 			wrapper.vm.handleValidationSuccess({ status: 1, signers: [] })
 			expect(wrapper.vm.shouldFireAsyncConfetti).toBe(true)
 		})
 
 		it('does not fire confetti when isActiveView is false', async () => {
-			await wrapper.setData({ shouldFireAsyncConfetti: true, isActiveView: false })
+			await setVmState({ shouldFireAsyncConfetti: true, isActiveView: false })
 			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
 			expect(mockAddConfetti).not.toHaveBeenCalled()
 		})
@@ -675,7 +697,7 @@ describe('Validation.vue - Business Logic', () => {
 					},
 				},
 			} as ReturnType<typeof getCapabilities>)
-			vi.spyOn(wrapper.vm, 'isAfterSigned', 'get').mockReturnValue(true)
+			history.pushState({ isAfterSigned: true }, '')
 			wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
 			expect(mockAddConfetti).not.toHaveBeenCalled()
 		})
@@ -688,7 +710,7 @@ describe('Validation.vue - Business Logic', () => {
 		const SIGNER_SIGNED_STATUS = 2
 
 		it('sets isAsyncSigning to false when called', async () => {
-			await wrapper.setData({ isAsyncSigning: true })
+			await setVmState({ isAsyncSigning: true })
 			vi.spyOn(wrapper.vm, 'refreshAfterAsyncSigning').mockResolvedValue(undefined)
 			wrapper.vm.handleSigningComplete(null)
 			expect(wrapper.vm.isAsyncSigning).toBe(false)
@@ -701,7 +723,7 @@ describe('Validation.vue - Business Logic', () => {
 		})
 
 		it('does nothing when isActiveView is false', async () => {
-			await wrapper.setData({ isAsyncSigning: true, isActiveView: false })
+			await setVmState({ isAsyncSigning: true, isActiveView: false })
 			wrapper.vm.handleSigningComplete(null)
 			expect(wrapper.vm.isAsyncSigning).toBe(true)
 			expect(wrapper.vm.shouldFireAsyncConfetti).toBe(false)
@@ -709,6 +731,7 @@ describe('Validation.vue - Business Logic', () => {
 
 		describe('RULE: when a file is returned directly by SigningProgress', () => {
 			it('fires confetti when the file has signed status', () => {
+				history.pushState({ isAfterSigned: true }, '')
 				const signedFile = { status: SIGNED_STATUS, signers: [] }
 				wrapper.vm.handleSigningComplete(signedFile)
 				expect(mockAddConfetti).toHaveBeenCalledOnce()
@@ -734,12 +757,9 @@ describe('Validation.vue - Business Logic', () => {
 
 		describe('RULE: when SigningProgress emits completed without a file (async polling path)', () => {
 			it('fires confetti after polling returns a signed document', async () => {
-				await wrapper.setData({ uuidToValidate: '550e8400-e29b-41d4-a716-446655440000' })
-
-				// Simulate the validate call returning a signed document via handleValidationSuccess
-				vi.spyOn(wrapper.vm, 'validate').mockImplementation(async () => {
-					wrapper.vm.handleValidationSuccess({ status: SIGNED_STATUS, signers: [] })
-				})
+				await setVmState({ uuidToValidate: '550e8400-e29b-41d4-a716-446655440000' })
+				history.pushState({ isAfterSigned: true }, '')
+				vi.mocked(axios.get).mockResolvedValueOnce({ data: { ocs: { data: { status: SIGNED_STATUS, signers: [] } } } })
 
 				wrapper.vm.handleSigningComplete(null)
 
@@ -750,13 +770,17 @@ describe('Validation.vue - Business Logic', () => {
 			})
 
 			it('fires confetti after polling finds that the current signer is signed', async () => {
-				await wrapper.setData({ uuidToValidate: '550e8400-e29b-41d4-a716-446655440000' })
-
-				vi.spyOn(wrapper.vm, 'validate').mockImplementation(async () => {
-					wrapper.vm.handleValidationSuccess({
-						status: 1,
-						signers: [{ me: true, status: SIGNER_SIGNED_STATUS, signed: '2025-01-01T00:00:00Z' }],
-					})
+				await setVmState({ uuidToValidate: '550e8400-e29b-41d4-a716-446655440000' })
+				history.pushState({ isAfterSigned: true }, '')
+				vi.mocked(axios.get).mockResolvedValueOnce({
+					data: {
+						ocs: {
+							data: {
+								status: 1,
+								signers: [{ me: true, status: SIGNER_SIGNED_STATUS, signed: '2025-01-01T00:00:00Z' }],
+							},
+						},
+					},
 				})
 
 				wrapper.vm.handleSigningComplete(null)

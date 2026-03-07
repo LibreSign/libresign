@@ -105,13 +105,14 @@
 	</NcSettingsSection>
 </template>
 
-<script>
+<script setup lang="ts">
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
@@ -126,177 +127,212 @@ import { selectCustonOption } from '../../helpers/certification'
 import logger from '../../logger.js'
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
-export default {
-	name: 'RootCertificateOpenSsl',
-	components: {
-		NcSettingsSection,
-		NcDialog,
-		NcButton,
-		NcTextField,
-		NcCheckboxRadioSwitch,
-		CertificateCustonOptions,
-		CertificatePolicy,
-	},
-	setup() {
-		const configureCheckStore = useConfigureCheckStore()
-		return {
-			configureCheckStore,
-			t,
-		}
-	},
-	data() {
-		const OID = loadState('libresign', 'certificate_policies_oid')
-		const CPS = loadState('libresign', 'certificate_policies_cps')
-		return {
-			isThisEngine: loadState('libresign', 'certificate_engine') === 'openssl',
-			modal: false,
-			certificate: {
-				rootCert: {
-					commonName: '',
-					names: [],
-				},
-				configPath: '',
-			},
-			error: false,
-			customData: false,
-			formDisabled: false,
-			OID,
-			CPS,
-			toggleCertificatePolicy: !!(OID || CPS),
-			certificatePolicyValid: !!CPS || (!!CPS && !!OID),
-			description: '',
-			submitLabel: '',
-		}
-	},
-	computed: {
-		includeCertificatePolicy() {
-			return this.toggleCertificatePolicy || this.CPS || this.OID
-		},
-		canSave() {
-			if (this.formDisabled) {
-				return false
-			}
-			if (!this.toggleCertificatePolicy) {
-				return true
-			}
-			return this.certificatePolicyValid
-		},
-		configureOk() {
-			return this.configureCheckStore.isConfigureOk('openssl')
-		},
-		isCertificateGenerated() {
-			return this.certificate.generated
-		},
-		loaded() {
-			return this.configureCheckStore.items.length > 0
-		},
-	},
-	async mounted() {
-		this.description = t('libresign', 'To generate new signatures, you must first generate the root certificate.')
-		this.submitLabel = t('libresign', 'Generate root certificate')
-		this.loadRootCertificate()
-		subscribe('libresign:certificate-engine:changed', this.changeEngine)
-		subscribe('libresign:update:certificateToSave', this.updateNames)
-	},
-	beforeUnmount() {
-		unsubscribe('libresign:certificate-engine:changed')
-		unsubscribe('libresign:update:certificateToSave')
-	},
-	methods: {
-		t,
-		handleCertificatePolicyValid(isValid) {
-			this.certificatePolicyValid = isValid
-		},
-		updateNames(names) {
-			this.certificate.rootCert.names = names
-		},
-		getLabelFromId(id) {
-			const item = selectCustonOption(id).unwrap()
-			return item.label
-		},
-		changeEngine(engine) {
-			this.isThisEngine = engine === 'openssl'
-			this.loadRootCertificate()
-		},
-		showModal() {
-			this.modal = true
-		},
-		closeModal() {
-			this.modal = false
-		},
-		clearAndShowForm() {
-			this.certificate = {
-				rootCert: {
-					commonName: '',
-					names: [],
-				},
-				configPath: '',
-			}
-			this.customData = false
-			this.formDisabled = false
-			this.modal = false
-			this.submitLabel = t('libresign', 'Generate root certificate')
-		},
-		async generateCertificate() {
-			this.formDisabled = true
-			this.submitLabel = t('libresign', 'Generating certificate.')
-			await axios.post(
-				generateOcsUrl('/apps/libresign/api/v1/admin/certificate/openssl'),
-				this.getDataToSave(),
-			)
-				.then(({ data }) => {
-					if (!data.ocs.data || data.ocs.data.message) {
-						throw new Error(data.ocs.data)
-					}
-					this.certificate = data.ocs.data.data
-					this.afterCertificateGenerated()
-					this.configureCheckStore.checkSetup()
-				})
-				.catch(({ response }) => {
-					if (response?.data?.ocs?.data?.message?.length > 0) {
-						showError(t('libresign', 'Could not generate certificate.') + '\n' + response.data.ocs.data.message)
-					} else if (response.length) {
-						showError(t('libresign', 'Could not generate certificate.') + '\n' + response)
-					} else {
-						showError(t('libresign', 'Could not generate certificate.'))
-					}
-					this.submitLabel = t('libresign', 'Generate root certificate')
-				})
-			this.formDisabled = false
-		},
-		getDataToSave() {
-			if (!this.customData) {
-				this.certificate.configPath = ''
-			}
-			return this.certificate
-		},
-		async loadRootCertificate() {
-			if (!this.isThisEngine) {
-				return
-			}
-			this.formDisabled = true
-			await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/certificate'))
-				.then(({ data }) => {
-					if (!data.ocs.data || data.ocs.data.message) {
-						throw new Error(data.ocs.data)
-					}
-					this.certificate = data.ocs.data
-					this.customData = loadState('libresign', 'config_path').length > 0
-						&& this.certificate.configPath.length > 0
-					if (this.certificate.generated) {
-						this.afterCertificateGenerated()
-					}
-				})
-				.catch((error) => logger.debug('Error when generate certificate', { error }))
-			this.formDisabled = false
-		},
-
-		afterCertificateGenerated() {
-			this.submitLabel = t('libresign', 'Generated certificate!')
-			this.description = ''
-		},
-	},
+type CertificateName = {
+	id: string
+	value: string | string[]
 }
+
+type RootCertificatePayload = {
+	generated?: boolean
+	rootCert: {
+		commonName: string
+		names: CertificateName[]
+	}
+	configPath: string
+}
+
+defineOptions({
+	name: 'RootCertificateOpenSsl',
+})
+
+const configureCheckStore = useConfigureCheckStore()
+const OID = loadState('libresign', 'certificate_policies_oid', '')
+const CPS = loadState('libresign', 'certificate_policies_cps', '')
+
+const isThisEngine = ref(loadState('libresign', 'certificate_engine', '') === 'openssl')
+const modal = ref(false)
+const certificate = ref<RootCertificatePayload>({
+	rootCert: {
+		commonName: '',
+		names: [],
+	},
+	configPath: '',
+})
+const error = ref(false)
+const customData = ref(false)
+const formDisabled = ref(false)
+const toggleCertificatePolicy = ref(!!(OID || CPS))
+const certificatePolicyValid = ref(!!CPS || (!!CPS && !!OID))
+const description = ref('')
+const submitLabel = ref('')
+
+const includeCertificatePolicy = computed(() => toggleCertificatePolicy.value || !!CPS || !!OID)
+const canSave = computed(() => {
+	if (formDisabled.value) {
+		return false
+	}
+	if (!toggleCertificatePolicy.value) {
+		return true
+	}
+	return certificatePolicyValid.value
+})
+const configureOk = computed(() => configureCheckStore.isConfigureOk('openssl'))
+const isCertificateGenerated = computed(() => !!certificate.value.generated)
+const loaded = computed(() => configureCheckStore.items.length > 0)
+
+function handleCertificatePolicyValid(isValid: boolean) {
+	certificatePolicyValid.value = isValid
+}
+
+function updateNames(names: CertificateName[]) {
+	certificate.value.rootCert.names = names
+}
+
+function getLabelFromId(id: string) {
+	return selectCustonOption(id).unwrap().label
+}
+
+async function changeEngine(engine: string) {
+	isThisEngine.value = engine === 'openssl'
+	await loadRootCertificate()
+}
+
+function showModal() {
+	modal.value = true
+}
+
+function closeModal() {
+	modal.value = false
+}
+
+function clearAndShowForm() {
+	certificate.value = {
+		rootCert: {
+			commonName: '',
+			names: [],
+		},
+		configPath: '',
+	}
+	customData.value = false
+	formDisabled.value = false
+	modal.value = false
+	submitLabel.value = t('libresign', 'Generate root certificate')
+}
+
+async function generateCertificate() {
+	formDisabled.value = true
+	submitLabel.value = t('libresign', 'Generating certificate.')
+
+	try {
+		const { data } = await axios.post(
+			generateOcsUrl('/apps/libresign/api/v1/admin/certificate/openssl'),
+			getDataToSave(),
+		)
+
+		if (!data.ocs.data || data.ocs.data.message) {
+			throw new Error(data.ocs.data)
+		}
+
+		certificate.value = data.ocs.data.data
+		afterCertificateGenerated()
+		configureCheckStore.checkSetup()
+	} catch (caughtError: any) {
+		const response = caughtError?.response
+		if (response?.data?.ocs?.data?.message?.length > 0) {
+			showError(t('libresign', 'Could not generate certificate.') + '\n' + response.data.ocs.data.message)
+		} else if (response?.length) {
+			showError(t('libresign', 'Could not generate certificate.') + '\n' + response)
+		} else {
+			showError(t('libresign', 'Could not generate certificate.'))
+		}
+		submitLabel.value = t('libresign', 'Generate root certificate')
+	} finally {
+		formDisabled.value = false
+	}
+}
+
+function getDataToSave() {
+	if (!customData.value) {
+		certificate.value.configPath = ''
+	}
+	return certificate.value
+}
+
+async function loadRootCertificate() {
+	if (!isThisEngine.value) {
+		return
+	}
+
+	formDisabled.value = true
+	try {
+		const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/certificate'))
+		if (!data.ocs.data || data.ocs.data.message) {
+			throw new Error(data.ocs.data)
+		}
+
+		certificate.value = data.ocs.data
+		customData.value = loadState('libresign', 'config_path', '').length > 0
+			&& certificate.value.configPath.length > 0
+		if (certificate.value.generated) {
+			afterCertificateGenerated()
+		}
+	} catch (caughtError) {
+		logger.debug('Error when generate certificate', { error: caughtError })
+	} finally {
+		formDisabled.value = false
+	}
+}
+
+function afterCertificateGenerated() {
+	submitLabel.value = t('libresign', 'Generated certificate!')
+	description.value = ''
+}
+
+onMounted(() => {
+	description.value = t('libresign', 'To generate new signatures, you must first generate the root certificate.')
+	submitLabel.value = t('libresign', 'Generate root certificate')
+	void loadRootCertificate()
+	subscribe('libresign:certificate-engine:changed', changeEngine)
+	subscribe('libresign:update:certificateToSave', updateNames)
+})
+
+onBeforeUnmount(() => {
+	unsubscribe('libresign:certificate-engine:changed')
+	unsubscribe('libresign:update:certificateToSave')
+})
+
+defineExpose({
+	t,
+	configureCheckStore,
+	OID,
+	CPS,
+	isThisEngine,
+	modal,
+	certificate,
+	error,
+	customData,
+	formDisabled,
+	toggleCertificatePolicy,
+	certificatePolicyValid,
+	description,
+	submitLabel,
+	includeCertificatePolicy,
+	canSave,
+	configureOk,
+	isCertificateGenerated,
+	loaded,
+	handleCertificatePolicyValid,
+	updateNames,
+	getLabelFromId,
+	changeEngine,
+	showModal,
+	closeModal,
+	clearAndShowForm,
+	generateCertificate,
+	getDataToSave,
+	loadRootCertificate,
+	afterCertificateGenerated,
+})
 </script>
 <style lang="scss" scoped>
 #formRootCertificateOpenSsl{

@@ -63,7 +63,7 @@
 				</div>
 			</div>
 			<div v-else class="infor-container">
-				<component :is="isEnvelope ? 'EnvelopeValidation' : 'FileValidation'"
+				<component :is="validationComponent"
 					:document="document"
 					:legal-information="legalInformation"
 					:document-valid-message="documentValidMessage"
@@ -79,7 +79,7 @@
 	</div>
 </template>
 
-<script>
+<script setup>
 import {
 	mdiAlertCircle,
 	mdiAlertCircleOutline,
@@ -87,6 +87,7 @@ import {
 	mdiCancel,
 	mdiCheckCircle,
 	mdiCheckboxMarkedCircle,
+	mdiHelpCircle,
 	mdiKey,
 	mdiUpload,
 } from '@mdi/js'
@@ -98,7 +99,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
-import { defineAsyncComponent } from 'vue'
+import { computed, defineAsyncComponent, getCurrentInstance, onBeforeUnmount, ref, watch } from 'vue'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -125,562 +126,640 @@ import logger from '../logger.js'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
 
-export default {
+defineOptions({
 	name: 'Validation',
-	components: {
-		NcActionButton,
-		NcActions,
-		NcAvatar,
-		NcButton,
-		NcDialog,
-		NcIconSvgWrapper,
-		NcListItem,
-		NcLoadingIcon,
-		NcNoteCard,
-		NcRichText,
-		NcTextField,
-		EnvelopeValidation,
-		FileValidation,
-		SigningProgress,
-	},
-	setup() {
-		const signStore = useSignStore()
-		const sidebarStore = useSidebarStore()
-		return {
-			t,
-			signStore,
-			sidebarStore,
-			mdiAlertCircle,
-			mdiAlertCircleOutline,
-			mdiArrowLeft,
-			mdiCancel,
-			mdiCheckCircle,
-			mdiCheckboxMarkedCircle,
-			mdiKey,
-			mdiUpload,
-		}
-	},
-	data() {
-		return {
-			logo: logoGray,
-			uuidToValidate: this.$route.params?.uuid ?? '',
-			hasInfo: false,
-			loading: false,
-			document: {},
-			legalInformation: loadState('libresign', 'legal_information', ''),
-			clickedValidate: false,
-			getUUID: false,
-			EXPIRATION_WARNING_DAYS: 30,
-			validationStatusOpenState: {},
-			extensionsOpenState: {},
-			tsaOpenState: {},
-			chainOpenState: {},
-			notificationsOpenState: {},
-			docMdpOpenState: {},
-			validationErrorMessage: null,
-			documentValidMessage: null,
-			isAsyncSigning: false,
-			shouldFireAsyncConfetti: false,
-			isActiveView: true,
-		}
-	},
-	computed: {
-		signRequestUuidForProgress() {
-			const doc = this.signStore?.document || {}
-			const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
-			const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
-			const fromSigner = signer.sign_uuid
-			return this.$route.query?.signRequestUuid
-				|| this.$route.params?.signRequestUuid
-				|| fromDoc
-				|| fromSigner
-				|| loadState('libresign', 'sign_request_uuid', null)
-				|| this.uuidToValidate
-		},
-		isAfterSigned() {
-			return history.state?.isAfterSigned ?? this.shouldFireAsyncConfetti ?? false
-		},
-		isEnvelope() {
-			return this.document?.nodeType === 'envelope'
-				|| (Array.isArray(this.document?.files) && this.document.files.length > 0)
-		},
-		canValidate() {
-			if (!this.uuidToValidate) {
-				return false
-			}
-			const isNumericId = /^\d+$/.test(this.uuidToValidate)
-			const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-			return isNumericId || (this.uuidToValidate.length === 36 && uuidRegex.test(this.uuidToValidate))
-		},
-		helperTextValidation() {
-			if (this.uuidToValidate && this.uuidToValidate.length > 0 && !this.canValidate) {
-				return t('libresign', 'Invalid UUID')
-			}
-			return ''
-		},
-		size() {
-			return formatFileSize(this.document.size)
-		},
-		documentStatus() {
-			return getStatusLabel(this.document.status)
-		},
-		validityStatusMap() {
-			return {
-				unknown: { text: t('libresign', 'Unknown validity'), variant: 'tertiary', icon: this.mdiHelpCircle },
-				expired: { text: t('libresign', 'Expired'), variant: 'error', icon: this.mdiCancel },
-				expiring: { text: t('libresign', 'Expiring soon'), variant: 'warning', icon: this.mdiAlertCircleOutline },
-				valid: { text: t('libresign', 'Currently valid'), variant: 'success', icon: this.mdiCheckCircle },
-			}
-		},
-		crlStatusMap() {
-			return {
-				valid: { text: t('libresign', 'Not revoked'), variant: 'success', icon: this.mdiCheckCircle },
-				revoked: { text: t('libresign', 'Certificate revoked'), variant: 'error', icon: this.mdiCancel },
-				missing: { text: t('libresign', 'No CRL information'), variant: 'warning', icon: this.mdiAlertCircle },
-				no_urls: { text: t('libresign', 'No CRL URLs found'), variant: 'warning', icon: this.mdiAlertCircle },
-				urls_inaccessible: { text: t('libresign', 'CRL URLs inaccessible'), variant: 'tertiary', icon: this.mdiHelpCircle },
-				validation_failed: { text: t('libresign', 'CRL validation failed'), variant: 'tertiary', icon: this.mdiHelpCircle },
-				validation_error: { text: t('libresign', 'CRL validation error'), variant: 'tertiary', icon: this.mdiHelpCircle },
-			}
-		},
-	},
-	watch: {
-		isAsyncSigning(active) {
-			if (active) {
-				this.sidebarStore.hideSidebar()
-			}
-		},
-		'$route.params.uuid'(uuid) {
-			this.validate(uuid)
-		},
-	},
-	created() {
-		this.document = loadState('libresign', 'file_info', {})
+})
 
-		if (!this.uuidToValidate) {
-			this.document = {}
-			this.hasInfo = false
+const signStore = useSignStore()
+const sidebarStore = useSidebarStore()
+const instance = getCurrentInstance()
+const EXPIRATION_WARNING_DAYS = 30
+
+const route = computed(() => instance?.proxy?.$route ?? { params: {}, query: {} })
+const router = computed(() => instance?.proxy?.$router ?? { push: () => {}, replace: () => {} })
+
+const logo = ref(logoGray)
+const uuidToValidate = ref(route.value.params?.uuid ?? '')
+const hasInfo = ref(false)
+const loading = ref(false)
+const document = ref({})
+const legalInformation = ref(loadState('libresign', 'legal_information', ''))
+const clickedValidate = ref(false)
+const getUUID = ref(false)
+const validationStatusOpenState = ref({})
+const extensionsOpenState = ref({})
+const tsaOpenState = ref({})
+const chainOpenState = ref({})
+const notificationsOpenState = ref({})
+const docMdpOpenState = ref({})
+const validationErrorMessage = ref(null)
+const documentValidMessage = ref(null)
+const isAsyncSigning = ref(false)
+const shouldFireAsyncConfetti = ref(false)
+const isActiveView = ref(true)
+
+const signRequestUuidForProgress = computed(() => {
+	const doc = signStore?.document || {}
+	const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
+	const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
+	const fromSigner = signer.sign_uuid
+	return route.value.query?.signRequestUuid
+		|| route.value.params?.signRequestUuid
+		|| fromDoc
+		|| fromSigner
+		|| loadState('libresign', 'sign_request_uuid', null)
+		|| uuidToValidate.value
+})
+
+const isAfterSigned = computed(() => history.state?.isAfterSigned ?? shouldFireAsyncConfetti.value ?? false)
+
+const isEnvelope = computed(() => document.value?.nodeType === 'envelope'
+	|| (Array.isArray(document.value?.files) && document.value.files.length > 0))
+
+const validationComponent = computed(() => (isEnvelope.value ? EnvelopeValidation : FileValidation))
+
+const canValidate = computed(() => {
+	if (!uuidToValidate.value) {
+		return false
+	}
+	const isNumericId = /^\d+$/.test(uuidToValidate.value)
+	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+	return isNumericId || (uuidToValidate.value.length === 36 && uuidRegex.test(uuidToValidate.value))
+})
+
+const helperTextValidation = computed(() => {
+	if (uuidToValidate.value && uuidToValidate.value.length > 0 && !canValidate.value) {
+		return t('libresign', 'Invalid UUID')
+	}
+	return ''
+})
+
+const size = computed(() => formatFileSize(document.value.size))
+const documentStatus = computed(() => getStatusLabel(document.value.status))
+
+const validityStatusMap = computed(() => ({
+	unknown: { text: t('libresign', 'Unknown validity'), variant: 'tertiary', icon: mdiHelpCircle },
+	expired: { text: t('libresign', 'Expired'), variant: 'error', icon: mdiCancel },
+	expiring: { text: t('libresign', 'Expiring soon'), variant: 'warning', icon: mdiAlertCircleOutline },
+	valid: { text: t('libresign', 'Currently valid'), variant: 'success', icon: mdiCheckCircle },
+}))
+
+const crlStatusMap = computed(() => ({
+	valid: { text: t('libresign', 'Not revoked'), variant: 'success', icon: mdiCheckCircle },
+	revoked: { text: t('libresign', 'Certificate revoked'), variant: 'error', icon: mdiCancel },
+	missing: { text: t('libresign', 'No CRL information'), variant: 'warning', icon: mdiAlertCircle },
+	no_urls: { text: t('libresign', 'No CRL URLs found'), variant: 'warning', icon: mdiAlertCircle },
+	urls_inaccessible: { text: t('libresign', 'CRL URLs inaccessible'), variant: 'tertiary', icon: mdiHelpCircle },
+	validation_failed: { text: t('libresign', 'CRL validation failed'), variant: 'tertiary', icon: mdiHelpCircle },
+	validation_error: { text: t('libresign', 'CRL validation error'), variant: 'tertiary', icon: mdiHelpCircle },
+}))
+
+async function upload(file) {
+	const formData = new FormData()
+	formData.append('file', file)
+	await axios.postForm(generateOcsUrl('/apps/libresign/api/v1/file/validate'), formData, {
+		headers: {
+			'Content-Type': 'multipart/form-data',
+		},
+	})
+		.then(({ data }) => {
+			clickedValidate.value = true
+			handleValidationSuccess(data.ocs.data)
+		})
+		.catch(({ response }) => {
+			const errorMsg = response?.data?.ocs?.data?.errors?.length > 0
+				? response.data.ocs.data.errors[0].message
+				: t('libresign', 'Failed to validate document')
+			setValidationError(errorMsg)
+		})
+}
+
+async function uploadFile() {
+	loading.value = true
+	const input = window.document.createElement('input')
+	input.accept = 'application/pdf'
+	input.type = 'file'
+
+	input.onchange = async (ev) => {
+		const file = ev.target.files[0]
+
+		if (file) {
+			await upload(file)
+		}
+
+		loading.value = false
+		input.remove()
+	}
+
+	input.click()
+}
+
+function dateFromSqlAnsi(date) {
+	return Moment(Date.parse(date)).format('LL LTS')
+}
+
+function toggleDetail(signer) {
+	signer.opened = !signer.opened
+}
+
+function toggleFileDetail(file) {
+	file.opened = !file.opened
+}
+
+function getSignerStatus(status) {
+	const statusMap = {
+		pending: t('libresign', 'Pending'),
+		partial: t('libresign', 'Partial'),
+		complete: t('libresign', 'Complete'),
+	}
+	return statusMap[status] || status
+}
+
+async function validate(id, { suppressLoading = false, forceRefresh = false } = {}) {
+	validationErrorMessage.value = null
+	documentValidMessage.value = null
+	if (id === document.value?.uuid && !forceRefresh) {
+		documentValidMessage.value = t('libresign', 'This document is valid')
+		hasInfo.value = true
+	} else if (id.length === 36) {
+		await validateByUUID(id, { suppressLoading })
+	} else {
+		await validateByNodeID(id, { suppressLoading })
+	}
+	getUUID.value = false
+}
+
+async function validateByUUID(uuid, { suppressLoading = false } = {}) {
+	if (!suppressLoading) {
+		loading.value = true
+	}
+	const cacheBuster = suppressLoading ? `?_t=${Date.now()}` : ''
+	await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}${cacheBuster}`))
+		.then(({ data }) => {
+			handleValidationSuccess(data.ocs.data)
+		})
+		.catch(({ response }) => {
+			if (response?.status === 404) {
+				setValidationError(t('libresign', 'Document not found'))
+			} else if (response?.data?.ocs?.data?.errors?.length > 0) {
+				setValidationError(response.data.ocs.data.errors[0].message)
+			} else {
+				setValidationError(t('libresign', 'Failed to validate document'))
+			}
+		})
+	if (!suppressLoading) {
+		loading.value = false
+	}
+}
+
+async function validateByNodeID(nodeId, { suppressLoading = false } = {}) {
+	if (!suppressLoading) {
+		loading.value = true
+	}
+	const cacheBuster = suppressLoading ? `?_t=${Date.now()}` : ''
+	await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}${cacheBuster}`))
+		.then(({ data }) => {
+			handleValidationSuccess(data.ocs.data)
+		})
+		.catch(({ response }) => {
+			if (response?.status === 404) {
+				setValidationError(t('libresign', 'Document not found'))
+			} else if (response?.data?.ocs?.data?.errors?.length > 0) {
+				setValidationError(response.data.ocs.data.errors[0].message)
+			} else {
+				setValidationError(t('libresign', 'Failed to validate document'))
+			}
+		})
+	if (!suppressLoading) {
+		loading.value = false
+	}
+}
+
+function getName(signer) {
+	return signer.displayName || signer.email || signer.signature_validation?.label || t('libresign', 'Unknown')
+}
+
+function getIconValidityPath(signer) {
+	if (signer.signature_validation?.id === 1) {
+		return mdiCheckboxMarkedCircle
+	}
+	return mdiAlertCircle
+}
+
+async function viewDocument() {
+	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid })
+	await openDocument({
+		fileUrl,
+		filename: document.value.name,
+		nodeId: document.value.nodeId,
+	})
+}
+
+function goBack() {
+	const urlParams = new URLSearchParams(window.location.search)
+	if (urlParams.has('path')) {
+		try {
+			const redirectPath = window.atob(urlParams.get('path'))
+			if (redirectPath && redirectPath.startsWith('/apps')) {
+				window.location = generateUrl(redirectPath)
+				return
+			}
+		} catch (error) {
+			logger.error('Failed going back', { error })
+		}
+	}
+	hasInfo.value = false
+	uuidToValidate.value = route.value.params?.uuid ?? ''
+	validationErrorMessage.value = null
+	documentValidMessage.value = null
+}
+
+function getValidityStatus(signer) {
+	if (!signer.valid_to) {
+		return 'unknown'
+	}
+
+	const now = new Date()
+	const expirationDate = new Date(signer.valid_to)
+
+	if (expirationDate <= now) {
+		return 'expired'
+	}
+
+	const warningDate = new Date()
+	warningDate.setDate(now.getDate() + EXPIRATION_WARNING_DAYS)
+
+	if (expirationDate <= warningDate) {
+		return 'expiring'
+	}
+
+	return 'valid'
+}
+
+function getValidityStatusAtSigning(signer) {
+	if (!signer.signed || !signer.valid_from || !signer.valid_to) {
+		return 'unknown'
+	}
+
+	const signedDate = new Date(signer.signed)
+	const validFrom = new Date(signer.valid_from)
+	const validTo = new Date(signer.valid_to)
+
+	if (signedDate < validFrom || signedDate > validTo) {
+		return 'expired'
+	}
+
+	return 'valid'
+}
+
+function getSignatureValidationMessage(signer) {
+	if (signer.signature_validation.id === 1) {
+		return t('libresign', 'Document integrity verified')
+	}
+	return t('libresign', 'Signature: {validationStatus}', { validationStatus: signer.signature_validation.label })
+}
+
+function getCertificateTrustMessage(signer) {
+	if (!signer.certificate_validation) {
+		return t('libresign', 'Trust Chain: Unknown')
+	}
+
+	if (signer.certificate_validation.id === 1) {
+		if (signer.isLibreSignRootCA) {
+			return t('libresign', 'Trust Chain: Trusted (LibreSign CA)')
+		}
+		return t('libresign', 'Trust Chain: Trusted')
+	}
+
+	return t('libresign', 'Trust chain: {validationStatus}', { validationStatus: signer.certificate_validation.label })
+}
+
+function getCrlValidationIconClass(signer) {
+	const variant = crlStatusMap.value[signer.crl_validation]?.variant
+	if (variant === 'success') return 'icon-success'
+	if (variant === 'error') return 'icon-error'
+	if (variant === 'warning') return 'icon-warning'
+	return 'icon-default'
+}
+
+function camelCaseToTitleCase(text) {
+	if (text.includes(' ')) {
+		return text.replace(/^./, str => str.toUpperCase())
+	}
+
+	return text
+		.replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+		.replace(/([a-z])([A-Z])/g, '$1 $2')
+		.replace(/^./, str => str.toUpperCase())
+		.trim()
+}
+
+function hasValidationIssues(signer) {
+	if (signer.signature_validation && signer.signature_validation.id !== 1) {
+		return true
+	}
+	if (signer.certificate_validation && signer.certificate_validation.id !== 1) {
+		return true
+	}
+	if (signer.crl_validation === 'revoked') {
+		return true
+	}
+	if (signer.valid_from && signer.valid_to && signer.signed && getValidityStatusAtSigning(signer) !== 'valid') {
+		return true
+	}
+	const currentStatus = getValidityStatus(signer)
+	if (currentStatus === 'expired' || currentStatus === 'expiring') {
+		return true
+	}
+	return false
+}
+
+function hasDocMdpInfo(signer) {
+	return signer.docmdp || signer.modifications || signer.modification_validation
+}
+
+function getModificationStatusIcon(signer) {
+	if (!signer.modification_validation) {
+		return null
+	}
+	const status = signer.modification_validation.status
+	const valid = signer.modification_validation.valid
+
+	if (valid && status === 2) return mdiCheckCircle
+	if (status === 1) return mdiCheckCircle
+	if (status === 3) return mdiCancel
+	return mdiHelpCircle
+}
+
+function getModificationStatusClass(signer) {
+	if (!signer.modification_validation) {
+		return ''
+	}
+	const status = signer.modification_validation.status
+	const valid = signer.modification_validation.valid
+
+	if (valid && status === 2) return 'icon-success'
+	if (status === 1) return 'icon-success'
+	if (status === 3) return 'icon-error'
+	return ''
+}
+
+function formatTimestamp(timestamp) {
+	return timestamp ? new Date(timestamp * 1000).toLocaleString() : ''
+}
+
+function validateAndProceed() {
+	clickedValidate.value = true
+	validate(uuidToValidate.value)
+}
+
+function toggleState(stateObject, index) {
+	stateObject[index] = !stateObject[index]
+}
+
+function hasValidationStatus(signer) {
+	return signer.signature_validation
+		|| signer.certificate_validation
+		|| (signer.valid_from && signer.valid_to && signer.signed)
+		|| signer.crl_validation
+}
+
+function setValidationError(message, timeout = 5000) {
+	validationErrorMessage.value = message
+	if (timeout > 0) {
+		setTimeout(() => {
+			validationErrorMessage.value = null
+		}, timeout)
+	}
+}
+
+function openUuidDialog() {
+	validationErrorMessage.value = null
+	getUUID.value = true
+}
+
+function handleValidationSuccess(data) {
+	if (!isActiveView.value) {
+		return
+	}
+	documentValidMessage.value = t('libresign', 'This document is valid')
+	if (!data?.nodeType && Array.isArray(data?.files) && data.files.length > 0) {
+		data.nodeType = 'envelope'
+	}
+	const routeName = route.value?.name || ''
+	const shouldUpdateRoute = routeName === 'validation'
+		|| routeName === 'ValidationFile'
+		|| routeName === 'ValidationFileExternal'
+		|| routeName === 'ValidationFileShortUrl'
+	if (shouldUpdateRoute && data?.uuid && route.value.params?.uuid !== data.uuid) {
+		router.value.replace({
+			name: route.value.name,
+			params: {
+				...route.value.params,
+				uuid: data.uuid,
+			},
+			query: route.value.query,
+		})
+	}
+	document.value = data
+	document.value.signers?.forEach(signer => {
+		signer.opened = false
+	})
+	document.value.files?.forEach(file => {
+		file.opened = false
+	})
+	hasInfo.value = true
+	const isSignedStatus = status => Number(status) === FILE_STATUS.SIGNED
+	const isSignedDoc = isSignedStatus(document.value?.status)
+	const allFilesSigned = Array.isArray(document.value?.files)
+		&& document.value.files.length > 0
+		&& document.value.files.every(file => isSignedStatus(file.status))
+	const signerCompleted = isCurrentSignerSigned()
+	if ((isSignedDoc || allFilesSigned || signerCompleted) && (isAfterSigned.value || shouldFireAsyncConfetti.value)) {
+		if (getCapabilities()?.libresign?.config?.['show-confetti'] === true) {
+			const jsConfetti = new JSConfetti()
+			jsConfetti.addConfetti()
+		}
+		shouldFireAsyncConfetti.value = false
+	}
+}
+
+async function refreshAfterAsyncSigning() {
+	const maxAttempts = 8
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		if (!isActiveView.value) {
+			return
+		}
+		await validate(uuidToValidate.value, { suppressLoading: true, forceRefresh: true })
+
+		if (isCurrentSignerSigned()) {
 			return
 		}
 
-		this.hasInfo = !!this.document?.name
+		const isSignedStatus = status => Number(status) === FILE_STATUS.SIGNED
+		const isSigned = isSignedStatus(document.value?.status)
+		const allFilesSigned = Array.isArray(document.value?.files)
+			&& document.value.files.length > 0
+			&& document.value.files.every(file => isSignedStatus(file.status))
 
-		if (this.uuidToValidate !== this.document?.uuid) {
-			this.document = {}
-			this.hasInfo = false
-			this.validate(this.uuidToValidate)
-		} else if (this.hasInfo && this.document.signers) {
-			this.document.signers.forEach(signer => {
-				signer.opened = false
-			})
-		} else if (this.uuidToValidate.length > 0) {
-			this.validate(this.uuidToValidate)
+		if (isSigned || allFilesSigned) {
+			return
 		}
 
-		if (history.state?.isAsync === true) {
-			this.isAsyncSigning = true
-			this.shouldFireAsyncConfetti = true
-			this.loading = true
-		}
-	},
-	beforeUnmount() {
-		this.isActiveView = false
-	},
-	methods: {
-		async upload(file) {
-			const formData = new FormData()
-			formData.append('file', file)
-			await axios.postForm(generateOcsUrl('/apps/libresign/api/v1/file/validate'), formData, {
-				headers: {
-					'Content-Type': 'multipart/form-data',
-				},
-			})
-				.then(({ data }) => {
-					this.clickedValidate = true
-					this.handleValidationSuccess(data.ocs.data)
-				})
-				.catch(({ response }) => {
-					const errorMsg = response?.data?.ocs?.data?.errors?.length > 0
-						? response.data.ocs.data.errors[0].message
-						: t('libresign', 'Failed to validate document')
-					this.setValidationError(errorMsg)
-				})
-		},
-		async uploadFile() {
-			this.loading = true
-			const input = document.createElement('input')
-			input.accept = 'application/pdf'
-			input.type = 'file'
-
-			input.onchange = async (ev) => {
-				const file = ev.target.files[0]
-
-				if (file) {
-					await this.upload(file)
-				}
-				this.loading = false
-
-				input.remove()
-			}
-
-			input.click()
-		},
-		dateFromSqlAnsi(date) {
-			return Moment(Date.parse(date)).format('LL LTS')
-		},
-		toggleDetail(signer) {
-			signer.opened = !signer.opened
-		},
-		toggleFileDetail(file) {
-			file.opened = !file.opened
-		},
-		getSignerStatus(status) {
-			const statusMap = {
-				pending: t('libresign', 'Pending'),
-				partial: t('libresign', 'Partial'),
-				complete: t('libresign', 'Complete'),
-			}
-			return statusMap[status] || status
-		},
-		async validate(id, { suppressLoading = false, forceRefresh = false } = {}) {
-			this.validationErrorMessage = null
-			this.documentValidMessage = null
-			if (id === this.document?.uuid && !forceRefresh) {
-				this.documentValidMessage = t('libresign', 'This document is valid')
-				this.hasInfo = true
-			} else if (id.length === 36) {
-				await this.validateByUUID(id, { suppressLoading })
-			} else {
-				await this.validateByNodeID(id, { suppressLoading })
-			}
-			this.getUUID = false
-		},
-		async validateByUUID(uuid, { suppressLoading = false } = {}) {
-			if (!suppressLoading) {
-				this.loading = true
-			}
-			const cacheBuster = suppressLoading ? `?_t=${Date.now()}` : ''
-			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}${cacheBuster}`))
-				.then(({ data }) => {
-					this.handleValidationSuccess(data.ocs.data)
-				})
-				.catch(({ response }) => {
-					if (response?.status === 404) {
-						this.setValidationError(t('libresign', 'Document not found'))
-					} else if (response?.data?.ocs?.data?.errors?.length > 0) {
-						this.setValidationError(response.data.ocs.data.errors[0].message)
-					} else {
-						this.setValidationError(t('libresign', 'Failed to validate document'))
-					}
-				})
-			if (!suppressLoading) {
-				this.loading = false
-			}
-		},
-		async validateByNodeID(nodeId, { suppressLoading = false } = {}) {
-			if (!suppressLoading) {
-				this.loading = true
-			}
-			const cacheBuster = suppressLoading ? `?_t=${Date.now()}` : ''
-			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}${cacheBuster}`))
-				.then(({ data }) => {
-					this.handleValidationSuccess(data.ocs.data)
-				})
-				.catch(({ response }) => {
-					if (response?.status === 404) {
-						this.setValidationError(t('libresign', 'Document not found'))
-					} else if (response?.data?.ocs?. data?.errors?.length > 0) {
-						this.setValidationError(response.data.ocs.data.errors[0].message)
-					} else {
-						this.setValidationError(t('libresign', 'Failed to validate document'))
-					}
-				})
-			if (!suppressLoading) {
-				this.loading = false
-			}
-		},
-		getName(signer) {
-			return signer.displayName || signer.email || signer.signature_validation?.label || t('libresign', 'Unknown')
-		},
-		getIconValidityPath(signer) {
-			if (signer.signature_validation?.id === 1) {
-				return mdiCheckboxMarkedCircle
-			}
-			return mdiAlertCircle
-		},
-		async viewDocument() {
-			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.document.uuid })
-			await openDocument({
-				fileUrl,
-				filename: this.document.name,
-				nodeId: this.document.nodeId,
-			})
-		},
-		goBack() {
-			const urlParams = new URLSearchParams(window.location.search)
-			if (urlParams.has('path')) {
-				try {
-					const redirectPath = window.atob(urlParams.get('path'))
-					if (redirectPath && redirectPath.startsWith('/apps')) {
-						window.location = generateUrl(redirectPath)
-						return
-					}
-				} catch (error) {
-					logger.error('Failed going back', { error })
-				}
-			}
-			this.hasInfo = false
-			this.uuidToValidate = this.$route.params?.uuid ?? ''
-			this.validationErrorMessage = null
-			this.documentValidMessage = null
-		},
-		getValidityStatus(signer) {
-			if (!signer.valid_to) {
-				return 'unknown'
-			}
-
-			const now = new Date()
-			const expirationDate = new Date(signer.valid_to)
-
-			if (expirationDate <= now) {
-				return 'expired'
-			}
-
-			const warningDate = new Date()
-			warningDate.setDate(now.getDate() + this.EXPIRATION_WARNING_DAYS)
-
-			if (expirationDate <= warningDate) {
-				return 'expiring'
-			}
-
-			return 'valid'
-		},
-		getValidityStatusAtSigning(signer) {
-			if (!signer.signed || !signer.valid_from || !signer.valid_to) {
-				return 'unknown'
-			}
-
-			const signedDate = new Date(signer.signed)
-			const validFrom = new Date(signer.valid_from)
-			const validTo = new Date(signer.valid_to)
-
-			if (signedDate < validFrom || signedDate > validTo) {
-				return 'expired'
-			}
-
-			return 'valid'
-		},
-		getSignatureValidationMessage(signer) {
-			if (signer.signature_validation.id === 1) {
-				return t('libresign', 'Document integrity verified')
-			}
-			// TRANSLATORS validationStatus is the signature validation status (e.g., "Valid", "Invalid")
-			return t('libresign', 'Signature: {validationStatus}', { validationStatus: signer.signature_validation.label })
-		},
-		getCertificateTrustMessage(signer) {
-			if (!signer.certificate_validation) {
-				return t('libresign', 'Trust Chain: Unknown')
-			}
-
-			if (signer.certificate_validation.id === 1) {
-				if (signer.isLibreSignRootCA) {
-					return t('libresign', 'Trust Chain: Trusted (LibreSign CA)')
-				}
-				return t('libresign', 'Trust Chain: Trusted')
-			}
-
-			return t('libresign', 'Trust chain: {validationStatus}', { validationStatus: signer.certificate_validation.label })
-		},
-		getCrlValidationIconClass(signer) {
-			const variant = this.crlStatusMap[signer.crl_validation]?.variant
-			if (variant === 'success') return 'icon-success'
-			if (variant === 'error') return 'icon-error'
-			if (variant === 'warning') return 'icon-warning'
-			return 'icon-default'
-		},
-		camelCaseToTitleCase(text) {
-			if (text.includes(' ')) {
-				return text.replace(/^./, str => str.toUpperCase())
-			}
-
-			return text
-				.replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-				.replace(/([a-z])([A-Z])/g, '$1 $2')
-				.replace(/^./, str => str.toUpperCase())
-				.trim()
-		},
-		hasValidationIssues(signer) {
-			if (signer.signature_validation && signer.signature_validation.id !== 1) {
-				return true
-			}
-			if (signer.certificate_validation && signer.certificate_validation.id !== 1) {
-				return true
-			}
-			if (signer.crl_validation === 'revoked') {
-				return true
-			}
-			if (signer.valid_from && signer.valid_to && signer.signed && this.getValidityStatusAtSigning(signer) !== 'valid') {
-				return true
-			}
-			const currentStatus = this.getValidityStatus(signer)
-			if (currentStatus === 'expired' || currentStatus === 'expiring') {
-				return true
-			}
-			return false
-		},
-		hasDocMdpInfo(signer) {
-			return signer.docmdp || signer.modifications || signer.modification_validation
-		},
-		getModificationStatusIcon(signer) {
-			if (!signer.modification_validation) {
-				return null
-			}
-			const status = signer.modification_validation.status
-			const valid = signer.modification_validation.valid
-
-			if (valid && status === 2) return this.mdiCheckCircle
-			if (status === 1) return this.mdiCheckCircle
-			if (status === 3) return this.mdiCancel
-			return this.mdiHelpCircle
-		},
-		getModificationStatusClass(signer) {
-			if (!signer.modification_validation) {
-				return ''
-			}
-			const status = signer.modification_validation.status
-			const valid = signer.modification_validation.valid
-
-			if (valid && status === 2) return 'icon-success'
-			if (status === 1) return 'icon-success'
-			if (status === 3) return 'icon-error'
-			return ''
-		},
-		formatTimestamp(timestamp) {
-			return timestamp ? new Date(timestamp * 1000).toLocaleString() : ''
-		},
-		validateAndProceed() {
-			this.clickedValidate = true
-			this.validate(this.uuidToValidate)
-		},
-		toggleState(stateObject, index) {
-			stateObject[index] = !stateObject[index]
-		},
-		hasValidationStatus(signer) {
-			return signer.signature_validation
-				|| signer.certificate_validation
-				|| (signer.valid_from && signer.valid_to && signer.signed)
-				|| signer.crl_validation
-		},
-		setValidationError(message, timeout = 5000) {
-			this.validationErrorMessage = message
-			if (timeout > 0) {
-				setTimeout(() => {
-					this.validationErrorMessage = null
-				}, timeout)
-			}
-		},
-		openUuidDialog() {
-			this.validationErrorMessage = null
-			this.getUUID = true
-		},
-		handleValidationSuccess(data) {
-			if (!this.isActiveView) {
-				return
-			}
-			this.documentValidMessage = t('libresign', 'This document is valid')
-			if (!data?.nodeType && Array.isArray(data?.files) && data.files.length > 0) {
-				data.nodeType = 'envelope'
-			}
-			const routeName = this.$route?.name || ''
-			const shouldUpdateRoute = routeName === 'validation'
-				|| routeName === 'ValidationFile'
-				|| routeName === 'ValidationFileExternal'
-				|| routeName === 'ValidationFileShortUrl'
-			if (shouldUpdateRoute && data?.uuid && this.$route.params?.uuid !== data.uuid) {
-				this.$router.replace({
-					name: this.$route.name,
-					params: {
-						...this.$route.params,
-						uuid: data.uuid,
-					},
-					query: this.$route.query,
-				})
-			}
-			this.document = data
-			this.document.signers?.forEach(signer => {
-				signer.opened = false
-			})
-			this.document.files?.forEach(file => {
-				file.opened = false
-			})
-			this.hasInfo = true
-			const isSignedStatus = status => Number(status) === FILE_STATUS.SIGNED
-			const isSignedDoc = isSignedStatus(this.document?.status)
-			const allFilesSigned = Array.isArray(this.document?.files)
-				&& this.document.files.length > 0
-				&& this.document.files.every(file => isSignedStatus(file.status))
-			const signerCompleted = this.isCurrentSignerSigned()
-			if ((isSignedDoc || allFilesSigned || signerCompleted) && (this.isAfterSigned || this.shouldFireAsyncConfetti)) {
-				if (getCapabilities()?.libresign?.config?.['show-confetti'] === true) {
-					const jsConfetti = new JSConfetti()
-					jsConfetti.addConfetti()
-				}
-				this.shouldFireAsyncConfetti = false
-			}
-		},
-		async refreshAfterAsyncSigning() {
-			const maxAttempts = 8
-			for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-				if (!this.isActiveView) {
-					return
-				}
-				await this.validate(this.uuidToValidate, { suppressLoading: true, forceRefresh: true })
-
-				if (this.isCurrentSignerSigned()) {
-					return
-				}
-
-				const isSignedStatus = status => Number(status) === FILE_STATUS.SIGNED
-				const isSigned = isSignedStatus(this.document?.status)
-				const allFilesSigned = Array.isArray(this.document?.files)
-					&& this.document.files.length > 0
-					&& this.document.files.every(file => isSignedStatus(file.status))
-
-				if (isSigned || allFilesSigned) {
-					return
-				}
-
-				await new Promise(resolve => setTimeout(resolve, 900))
-			}
-		},
-		handleSigningComplete(file) {
-			if (!this.isActiveView) {
-				return
-			}
-			this.isAsyncSigning = false
-			this.shouldFireAsyncConfetti = true
-			if (file) {
-				this.loading = false
-				this.handleValidationSuccess(file)
-				return
-			}
-			this.loading = true
-			this.refreshAfterAsyncSigning()
-				.finally(() => {
-					this.loading = false
-				})
-		},
-		handleSigningError(message) {
-			this.loading = false
-			const errorMessage = message || t('libresign', 'Signing failed. Please try again.')
-			this.setValidationError(errorMessage)
-		},
-		isCurrentSignerSigned() {
-			const signer = this.document?.signers?.find(row => row.me)
-			return !!signer?.signed || Number(signer?.status) === SIGN_REQUEST_STATUS.SIGNED
-		},
-	},
+		await new Promise(resolve => setTimeout(resolve, 900))
+	}
 }
+
+function handleSigningComplete(file) {
+	if (!isActiveView.value) {
+		return
+	}
+	isAsyncSigning.value = false
+	shouldFireAsyncConfetti.value = true
+	if (file) {
+		loading.value = false
+		handleValidationSuccess(file)
+		return
+	}
+	loading.value = true
+	refreshAfterAsyncSigning()
+		.finally(() => {
+			loading.value = false
+		})
+}
+
+function handleSigningError(message) {
+	loading.value = false
+	const errorMessage = message || t('libresign', 'Signing failed. Please try again.')
+	setValidationError(errorMessage)
+}
+
+function isCurrentSignerSigned() {
+	const signer = document.value?.signers?.find(row => row.me)
+	return !!signer?.signed || Number(signer?.status) === SIGN_REQUEST_STATUS.SIGNED
+}
+
+watch(isAsyncSigning, (active) => {
+	if (active) {
+		sidebarStore.hideSidebar()
+	}
+})
+
+watch(() => route.value.params?.uuid, (uuid) => {
+	if (uuid) {
+		validate(uuid)
+	}
+})
+
+document.value = loadState('libresign', 'file_info', {})
+
+if (!uuidToValidate.value) {
+	document.value = {}
+	hasInfo.value = false
+} else {
+	hasInfo.value = !!document.value?.name
+
+	if (uuidToValidate.value !== document.value?.uuid) {
+		document.value = {}
+		hasInfo.value = false
+		void validate(uuidToValidate.value)
+	} else if (hasInfo.value && document.value.signers) {
+		document.value.signers.forEach(signer => {
+			signer.opened = false
+		})
+	} else if (uuidToValidate.value.length > 0) {
+		void validate(uuidToValidate.value)
+	}
+}
+
+if (history.state?.isAsync === true) {
+	isAsyncSigning.value = true
+	shouldFireAsyncConfetti.value = true
+	loading.value = true
+}
+
+onBeforeUnmount(() => {
+	isActiveView.value = false
+})
+
+defineExpose({
+	t,
+	signStore,
+	sidebarStore,
+	mdiAlertCircle,
+	mdiAlertCircleOutline,
+	mdiArrowLeft,
+	mdiCancel,
+	mdiCheckCircle,
+	mdiCheckboxMarkedCircle,
+	mdiHelpCircle,
+	mdiKey,
+	mdiUpload,
+	logo,
+	uuidToValidate,
+	hasInfo,
+	loading,
+	document,
+	legalInformation,
+	clickedValidate,
+	getUUID,
+	EXPIRATION_WARNING_DAYS,
+	validationStatusOpenState,
+	extensionsOpenState,
+	tsaOpenState,
+	chainOpenState,
+	notificationsOpenState,
+	docMdpOpenState,
+	validationErrorMessage,
+	documentValidMessage,
+	isAsyncSigning,
+	shouldFireAsyncConfetti,
+	isActiveView,
+	signRequestUuidForProgress,
+	isAfterSigned,
+	isEnvelope,
+	validationComponent,
+	canValidate,
+	helperTextValidation,
+	size,
+	documentStatus,
+	validityStatusMap,
+	crlStatusMap,
+	upload,
+	uploadFile,
+	dateFromSqlAnsi,
+	toggleDetail,
+	toggleFileDetail,
+	getSignerStatus,
+	validate,
+	validateByUUID,
+	validateByNodeID,
+	getName,
+	getIconValidityPath,
+	viewDocument,
+	goBack,
+	getValidityStatus,
+	getValidityStatusAtSigning,
+	getSignatureValidationMessage,
+	getCertificateTrustMessage,
+	getCrlValidationIconClass,
+	camelCaseToTitleCase,
+	hasValidationIssues,
+	hasDocMdpInfo,
+	getModificationStatusIcon,
+	getModificationStatusClass,
+	formatTimestamp,
+	validateAndProceed,
+	toggleState,
+	hasValidationStatus,
+	setValidationError,
+	openUuidDialog,
+	handleValidationSuccess,
+	refreshAfterAsyncSigning,
+	handleSigningComplete,
+	handleSigningError,
+	isCurrentSignerSigned,
+})
 </script>
 
 <style lang="scss" scoped>
