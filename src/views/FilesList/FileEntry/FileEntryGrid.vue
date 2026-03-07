@@ -58,20 +58,34 @@ import FileEntryPreview from './FileEntryPreview.vue'
 import FileEntrySigners from './FileEntrySigners.vue'
 import FileEntryStatus from './FileEntryStatus.vue'
 
-import FileEntryMixin from './FileEntryMixin.js'
+import { useFileEntry, type FileEntrySource } from '../../../composables/useFileEntry.js'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
 
 defineOptions({
 	name: 'FileEntryGrid',
-	mixins: [FileEntryMixin],
 })
+
+const props = defineProps<{
+	source: FileEntrySource
+	loading: boolean
+}>()
 
 const actionsMenuStore = useActionsMenuStore()
 const filesStore = useFilesStore()
+const { mtime, openedMenu, mtimeOpacity, fileExtension, onRightClick, openDetailsIfAvailable } = useFileEntry(props, {
+	actionsMenuStore,
+	filesStore,
+})
 
 defineExpose({
 	actionsMenuStore,
 	filesStore,
+	mtime,
+	openedMenu,
+	mtimeOpacity,
+	fileExtension,
+	onRightClick,
+	openDetailsIfAvailable,
 })
 </script>
