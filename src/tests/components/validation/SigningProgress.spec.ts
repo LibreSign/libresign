@@ -13,7 +13,7 @@ type AxiosMock = {
 	get: MockedFunction<(url: string) => Promise<{ data: { ocs: { data: unknown } } }>>
 }
 
-const t: TranslationFunction = (_app, text, vars) => {
+const translateMessage: TranslationFunction = (_app, text, vars) => {
 	if (vars) {
 		return text.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))
 	}
@@ -31,12 +31,21 @@ vi.mock('@nextcloud/axios', () => ({
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((url: string) => url),
 }))
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn(t),
-	translate: vi.fn(t),
-	translatePlural: vi.fn((app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	isRTL: vi.fn(() => false),
-}))
+vi.mock('@nextcloud/l10n', () => {
+	const translate = (_app: string, text: string, vars?: Record<string, unknown>) => {
+		if (vars) {
+			return text.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))
+		}
+		return text
+	}
+
+	return {
+		t: vi.fn(translate),
+		translate: vi.fn(translate),
+		translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
+		isRTL: vi.fn(() => false),
+	}
+})
 vi.mock('../../../utils/fileStatus.js', () => ({
 	buildStatusMap: vi.fn(() => ({
 		'0': { label: 'Draft' },
@@ -66,7 +75,7 @@ describe('SigningProgress', () => {
 				NcIconSvgWrapper: true,
 			},
 			mocks: {
-				t,
+				t: translateMessage,
 			},
 		})
 	}

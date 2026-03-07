@@ -61,10 +61,10 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
-import { toRaw } from 'vue'
+import { computed, nextTick, onMounted, ref, toRaw } from 'vue'
 import PDFElements from '@libresign/pdf-elements/src/components/PDFElements.vue'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -79,267 +79,347 @@ import SignerMenu from './SignerMenu.vue'
 import SignatureBox from './SignatureBox.vue'
 import { ensurePdfWorker } from '../../helpers/pdfWorker'
 
-export default {
-	name: 'PdfEditor',
-	emits: ['pdf-editor:end-init', 'pdf-editor:on-delete-signer', 'pdf-editor:object-click'],
-	components: {
-		NcButton,
-		NcIconSvgWrapper,
-		PDFElements,
-		SignerMenu,
-		SignatureBox,
-	},
-	setup() {
-		return {
-			mdiContentCopy,
-			mdiDelete,
-		}
-	},
-	props: {
-		files: {
-			type: Array,
-			default: () => [],
-		},
-		fileNames: {
-			type: Array,
-			default: () => [],
-		},
-		readOnly: {
-			type: Boolean,
-			default: false,
-		},
-		signers: {
-			type: Array,
-			default: () => [],
-		},
-	},
-	created() {
-		ensurePdfWorker()
-	},
-	computed: {
-		ignoreClickOutsideSelectors() {
-			return ['.action-item__popper', '.action-item']
-		},
-		toolbarStyleVars() {
-			return {
-				'--pdf-elements-toolbar-gap': '10px',
-				'--pdf-elements-toolbar-padding': '10px 10px 6px 18px',
-			}
-		},
-		hasMultipleSigners() {
-			return (this.signers || []).length > 1
-		},
-	},
-	methods: {
-		t,
-		getPageAriaLabel({ docIndex, docName, totalDocs, pageNumber, totalPages, isAddingMode }) {
-			const docNumber = docIndex + 1
-			if (totalDocs > 1 && isAddingMode) {
-				// TRANSLATORS Accessible label for a PDF page overlay when placing a signature in a multi-document envelope. {docNumber} is the current document number, {totalDocs} is the total number of documents, {docName} is the document file name, {pageNumber} is the current page, {totalPages} is the total pages.
-				return t('libresign', 'Document {docNumber} of {totalDocs} ({docName}), page {pageNumber} of {totalPages}. Press Enter or Space to place the signature here.', { docNumber, totalDocs, docName, pageNumber, totalPages })
-			}
-			if (totalDocs > 1) {
-				// TRANSLATORS Accessible label for a PDF page in a multi-document envelope (read-only mode). {docNumber} is the current document number, {totalDocs} is the total number of documents, {docName} is the document file name, {pageNumber} is the current page, {totalPages} is the total pages.
-				return t('libresign', 'Document {docNumber} of {totalDocs} ({docName}), page {pageNumber} of {totalPages}.', { docNumber, totalDocs, docName, pageNumber, totalPages })
-			}
-			if (isAddingMode) {
-				// TRANSLATORS Accessible label for a PDF page overlay when placing a signature in a single document. {pageNumber} is the current page, {totalPages} is the total number of pages.
-				return t('libresign', 'Page {pageNumber} of {totalPages}. Press Enter or Space to place the signature here.', { pageNumber, totalPages })
-			}
-			// TRANSLATORS Accessible label for a PDF page in a single document (read-only mode). {pageNumber} is the current page, {totalPages} is the total number of pages.
-			return t('libresign', 'Page {pageNumber} of {totalPages}.', { pageNumber, totalPages })
-		},
-		endInit(event) {
-			this.$nextTick(async () => {
-				const shouldAutoFit = this.$refs.pdfElements?.autoFitZoom
-				if (!shouldAutoFit && this.$refs.pdfElements?.adjustZoomToFit) {
-					this.$refs.pdfElements.adjustZoomToFit()
-				}
-
-				await this.$nextTick()
-				const measurement = await this.calculatePdfMeasurement()
-				this.$emit('pdf-editor:end-init', { ...event, measurement })
-			})
-		},
-		async calculatePdfMeasurement() {
-			const measurement = {}
-			const pdfElements = this.$refs.pdfElements
-			if (!pdfElements?.pdfDocuments?.length) return measurement
-
-			const doc = pdfElements.pdfDocuments[0]
-			for (let pageIndex = 0; pageIndex < doc.numPages; pageIndex++) {
-				const pageNumber = pageIndex + 1
-				const pdfPage = await doc.pages[pageIndex]
-				const viewport = pdfPage.getViewport({ scale: 1 })
-
-				measurement[pageNumber] = {
-					width: viewport.width,
-					height: viewport.height,
-				}
-			}
-			return measurement
-		},
-		onDeleteSigner(object) {
-			this.$emit('pdf-editor:on-delete-signer', object)
-		},
-		handleDeleteObject({ object }) {
-			if (object?.signer) {
-				this.onDeleteSigner(object)
-			}
-		},
-		handleObjectClick(event) {
-			this.$emit('pdf-editor:object-click', event)
-		},
-		getSignerLabel(signer) {
-			if (!signer) {
-				return ''
-			}
-			return signer.displayName || signer.name || signer.email || signer.id || ''
-		},
-		onSignerChange(object, signer) {
-			if (!object || !signer) {
-				return
-			}
-			const pdfElements = this.$refs.pdfElements
-			if (!pdfElements) {
-				return
-			}
-
-			const signerId = String(signer.signRequestId || signer.uuid || signer.id || signer.email || '')
-			if (!signerId) {
-				return
-			}
-			const targetSigner = (this.signers || []).find(entry => {
-				const candidateId = String(entry.signRequestId || entry.uuid || entry.id || entry.email || '')
-				return candidateId === signerId
-			})
-			if (!targetSigner) {
-				return
-			}
-
-			const currentElement = object.signer?.element ? { ...object.signer.element } : null
-			const nextSigner = structuredClone(toRaw(targetSigner))
-			if (currentElement) {
-				nextSigner.element = { ...currentElement, signRequestId: targetSigner.signRequestId }
-			}
-			if (!nextSigner.displayName) {
-				const fallbackName = this.getSignerLabel(signer)
-				if (fallbackName) {
-					nextSigner.displayName = fallbackName
-				}
-			}
-
-			const location = this.findObjectLocation(pdfElements, object.id)
-			let docIndex = location?.docIndex
-			if (!Number.isFinite(docIndex)) {
-				docIndex = object.signer?.element?.documentIndex
-			}
-			if (!Number.isFinite(docIndex)) {
-				return
-			}
-
-			object.signer = nextSigner
-
-			pdfElements.updateObject(docIndex, object.id, { signer: nextSigner })
-		},
-		findObjectLocation(pdfElements, objectId) {
-			const docs = pdfElements?.pdfDocuments || []
-			for (let docIndex = 0; docIndex < docs.length; docIndex++) {
-				const pages = docs[docIndex]?.allObjects || []
-				for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
-					if (pages[pageIndex]?.some(obj => obj.id === objectId)) {
-						return { docIndex, pageIndex }
-					}
-				}
-			}
-			return null
-		},
-		startAddingSigner(signer, size) {
-			const pdfElements = this.$refs.pdfElements
-			if (!pdfElements || !size?.width || !size?.height) {
-				return false
-			}
-
-			const signerPayload = signer
-				? { ...signer, element: signer.element ? { ...signer.element } : {} }
-				: { element: {} }
-
-			pdfElements.startAddingElement({
-				type: 'signature',
-				width: size.width,
-				height: size.height,
-				signer: signerPayload,
-			})
-
-			return true
-		},
-		cancelAdding() {
-			this.$refs.pdfElements?.cancelAdding()
-		},
-		async addSigner(signer) {
-			const pdfElements = this.$refs.pdfElements
-			if (!pdfElements) {
-				return
-			}
-
-			const docIndex = signer.element.documentIndex !== undefined
-				? signer.element.documentIndex
-				: pdfElements.selectedDocIndex
-
-			const pageIndex = signer.element.coordinates.page - 1
-
-			await this.waitForPageRender(docIndex, pageIndex)
-
-			const coordinates = signer.element.coordinates || {}
-			const pageHeight = pdfElements?.getPageHeight?.(docIndex, pageIndex) || 0
-			const width = Number.isFinite(coordinates.width)
-				? coordinates.width
-				: Number.isFinite(coordinates.urx) && Number.isFinite(coordinates.llx)
-					? Math.abs(coordinates.urx - coordinates.llx)
-					: 0
-			const height = Number.isFinite(coordinates.height)
-				? coordinates.height
-				: Number.isFinite(coordinates.ury) && Number.isFinite(coordinates.lly)
-					? Math.abs(coordinates.ury - coordinates.lly)
-					: 0
-			const x = Number.isFinite(coordinates.left)
-				? coordinates.left
-				: Number.isFinite(coordinates.llx)
-					? coordinates.llx
-					: 0
-			let y = 0
-			if (Number.isFinite(coordinates.top)) {
-				y = coordinates.top
-			} else if (Number.isFinite(coordinates.ury) && pageHeight) {
-				y = Math.max(0, pageHeight - coordinates.ury)
-			} else if (Number.isFinite(coordinates.lly) && pageHeight) {
-				y = Math.max(0, pageHeight - coordinates.lly - height)
-			}
-
-			const object = {
-				id: `obj-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-				type: 'signature',
-				signer,
-				width,
-				height,
-				x,
-				y,
-			}
-
-			pdfElements.addObjectToPage(object, pageIndex, docIndex)
-		},
-		async waitForPageRender(docIndex, pageIndex) {
-			const pdfElements = this.$refs.pdfElements
-			const doc = pdfElements?.pdfDocuments?.[docIndex]
-			if (!doc?.pages?.[pageIndex]) {
-				return
-			}
-			await doc.pages[pageIndex]
-			await this.$nextTick()
-			await this.$nextTick()
-		},
-	},
+type Coordinates = {
+	page: number
+	left?: number
+	top?: number
+	width?: number
+	height?: number
+	llx?: number
+	lly?: number
+	urx?: number
+	ury?: number
 }
+
+type SignerRecord = {
+	displayName?: string
+	name?: string
+	email?: string
+	id?: string | number
+	uuid?: string | number
+	signRequestId?: string | number
+	element?: {
+		documentIndex?: number
+		signRequestId?: string | number
+		coordinates?: Coordinates
+		[key: string]: unknown
+	}
+	[key: string]: unknown
+}
+
+type PdfObject = {
+	id: string
+	type?: string
+	signer?: SignerRecord | null
+	width?: number
+	height?: number
+	x?: number
+	y?: number
+	[key: string]: unknown
+}
+
+type PdfPage = {
+	getViewport: (options: { scale: number }) => {
+		width: number
+		height: number
+	}
+}
+
+type PdfDocument = {
+	numPages?: number
+	pages?: Array<Promise<PdfPage>>
+	allObjects?: PdfObject[][]
+}
+
+type PdfElementsInstance = {
+	startAddingElement: (payload: Record<string, unknown>) => void
+	cancelAdding: () => void
+	addObjectToPage: (object: PdfObject, pageIndex: number, docIndex: number) => void
+	updateObject: (docIndex: number, objectId: string, patch: Record<string, unknown>) => void
+	adjustZoomToFit?: () => void
+	getPageHeight?: (docIndex: number, pageIndex: number) => number
+	pdfDocuments?: PdfDocument[]
+	selectedDocIndex?: number
+	autoFitZoom?: boolean
+}
+
+type EndInitPayload = Record<string, unknown>
+
+defineOptions({
+	name: 'PdfEditor',
+})
+
+const props = withDefaults(defineProps<{
+	files?: unknown[]
+	fileNames?: string[]
+	readOnly?: boolean
+	signers?: SignerRecord[] | null
+}>(), {
+	files: () => [],
+	fileNames: () => [],
+	readOnly: false,
+	signers: () => [],
+})
+
+const emit = defineEmits<{
+	(event: 'pdf-editor:end-init', payload: EndInitPayload): void
+	(event: 'pdf-editor:on-delete-signer', payload: PdfObject): void
+	(event: 'pdf-editor:object-click', payload: Record<string, unknown>): void
+}>()
+
+const pdfElements = ref<PdfElementsInstance | null>(null)
+
+const ignoreClickOutsideSelectors = computed(() => ['.action-item__popper', '.action-item'])
+
+const toolbarStyleVars = computed(() => ({
+	'--pdf-elements-toolbar-gap': '10px',
+	'--pdf-elements-toolbar-padding': '10px 10px 6px 18px',
+}))
+
+const hasMultipleSigners = computed(() => (props.signers || []).length > 1)
+
+function getPageAriaLabel({ docIndex, docName, totalDocs, pageNumber, totalPages, isAddingMode }: {
+	docIndex: number
+	docName: string
+	totalDocs: number
+	pageNumber: number
+	totalPages: number
+	isAddingMode: boolean
+}) {
+	const docNumber = docIndex + 1
+	if (totalDocs > 1 && isAddingMode) {
+		return t('libresign', 'Document {docNumber} of {totalDocs} ({docName}), page {pageNumber} of {totalPages}. Press Enter or Space to place the signature here.', { docNumber, totalDocs, docName, pageNumber, totalPages })
+	}
+	if (totalDocs > 1) {
+		return t('libresign', 'Document {docNumber} of {totalDocs} ({docName}), page {pageNumber} of {totalPages}.', { docNumber, totalDocs, docName, pageNumber, totalPages })
+	}
+	if (isAddingMode) {
+		return t('libresign', 'Page {pageNumber} of {totalPages}. Press Enter or Space to place the signature here.', { pageNumber, totalPages })
+	}
+	return t('libresign', 'Page {pageNumber} of {totalPages}.', { pageNumber, totalPages })
+}
+
+async function endInit(event: EndInitPayload) {
+	await nextTick()
+	if (!pdfElements.value?.autoFitZoom && pdfElements.value?.adjustZoomToFit) {
+		pdfElements.value.adjustZoomToFit()
+	}
+
+	await nextTick()
+	const measurement = await calculatePdfMeasurement()
+	emit('pdf-editor:end-init', { ...event, measurement })
+}
+
+async function calculatePdfMeasurement() {
+	const measurement: Record<number, { width: number, height: number }> = {}
+	const firstDocument = pdfElements.value?.pdfDocuments?.[0]
+	if (!firstDocument?.pages?.length || !firstDocument.numPages) {
+		return measurement
+	}
+
+	for (let pageIndex = 0; pageIndex < firstDocument.numPages; pageIndex++) {
+		const pageNumber = pageIndex + 1
+		const pdfPage = await firstDocument.pages[pageIndex]
+		const viewport = pdfPage.getViewport({ scale: 1 })
+
+		measurement[pageNumber] = {
+			width: viewport.width,
+			height: viewport.height,
+		}
+	}
+
+	return measurement
+}
+
+function onDeleteSigner(object: PdfObject) {
+	emit('pdf-editor:on-delete-signer', object)
+}
+
+function handleDeleteObject({ object }: { object?: PdfObject }) {
+	if (object?.signer) {
+		onDeleteSigner(object)
+	}
+}
+
+function handleObjectClick(event: Record<string, unknown>) {
+	emit('pdf-editor:object-click', event)
+}
+
+function getSignerLabel(signer: SignerRecord | null | undefined) {
+	if (!signer) {
+		return ''
+	}
+	return signer.displayName || signer.name || signer.email || signer.id || ''
+}
+
+function onSignerChange(object: PdfObject | null | undefined, signer: SignerRecord | null | undefined) {
+	if (!object || !signer || !pdfElements.value) {
+		return
+	}
+
+	const signerId = String(signer.signRequestId || signer.uuid || signer.id || signer.email || '')
+	if (!signerId) {
+		return
+	}
+
+	const targetSigner = (props.signers || []).find(entry => {
+		const candidateId = String(entry.signRequestId || entry.uuid || entry.id || entry.email || '')
+		return candidateId === signerId
+	})
+	if (!targetSigner) {
+		return
+	}
+
+	const currentElement = object.signer?.element ? { ...object.signer.element } : null
+	const nextSigner = structuredClone(toRaw(targetSigner)) as SignerRecord
+	if (currentElement) {
+		nextSigner.element = { ...currentElement, signRequestId: targetSigner.signRequestId }
+	}
+	if (!nextSigner.displayName) {
+		const fallbackName = getSignerLabel(signer)
+		if (fallbackName) {
+			nextSigner.displayName = String(fallbackName)
+		}
+	}
+
+	const location = findObjectLocation(pdfElements.value, object.id)
+	let docIndex = location?.docIndex
+	if (!Number.isFinite(docIndex)) {
+		docIndex = object.signer?.element?.documentIndex
+	}
+	if (!Number.isFinite(docIndex)) {
+		return
+	}
+
+	object.signer = nextSigner
+	pdfElements.value.updateObject(docIndex as number, object.id, { signer: nextSigner })
+}
+
+function findObjectLocation(pdfElementsInstance: PdfElementsInstance | null | undefined, objectId: string) {
+	const documents = pdfElementsInstance?.pdfDocuments || []
+	for (let docIndex = 0; docIndex < documents.length; docIndex++) {
+		const pages = documents[docIndex]?.allObjects || []
+		for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+			if (pages[pageIndex]?.some(object => object.id === objectId)) {
+				return { docIndex, pageIndex }
+			}
+		}
+	}
+	return null
+}
+
+function startAddingSigner(signer: SignerRecord | null | undefined, size: { width?: number, height?: number }) {
+	if (!pdfElements.value || !size?.width || !size?.height) {
+		return false
+	}
+
+	const signerPayload = signer
+		? { ...signer, element: signer.element ? { ...signer.element } : {} }
+		: { element: {} }
+
+	pdfElements.value.startAddingElement({
+		type: 'signature',
+		width: size.width,
+		height: size.height,
+		signer: signerPayload,
+	})
+
+	return true
+}
+
+function cancelAdding() {
+	pdfElements.value?.cancelAdding()
+}
+
+async function addSigner(signer: SignerRecord) {
+	if (!pdfElements.value || !signer.element?.coordinates) {
+		return
+	}
+
+	const docIndex = signer.element.documentIndex !== undefined
+		? signer.element.documentIndex
+		: pdfElements.value.selectedDocIndex || 0
+
+	const pageIndex = signer.element.coordinates.page - 1
+	await waitForPageRender(docIndex, pageIndex)
+
+	const coordinates = signer.element.coordinates || { page: 1 }
+	const pageHeight = pdfElements.value.getPageHeight?.(docIndex, pageIndex) || 0
+	const width = Number.isFinite(coordinates.width)
+		? coordinates.width as number
+		: Number.isFinite(coordinates.urx) && Number.isFinite(coordinates.llx)
+			? Math.abs((coordinates.urx as number) - (coordinates.llx as number))
+			: 0
+	const height = Number.isFinite(coordinates.height)
+		? coordinates.height as number
+		: Number.isFinite(coordinates.ury) && Number.isFinite(coordinates.lly)
+			? Math.abs((coordinates.ury as number) - (coordinates.lly as number))
+			: 0
+	const x = Number.isFinite(coordinates.left)
+		? coordinates.left as number
+		: Number.isFinite(coordinates.llx)
+			? coordinates.llx as number
+			: 0
+
+	let y = 0
+	if (Number.isFinite(coordinates.top)) {
+		y = coordinates.top as number
+	} else if (Number.isFinite(coordinates.ury) && pageHeight) {
+		y = Math.max(0, pageHeight - (coordinates.ury as number))
+	} else if (Number.isFinite(coordinates.lly) && pageHeight) {
+		y = Math.max(0, pageHeight - (coordinates.lly as number) - height)
+	}
+
+	const object: PdfObject = {
+		id: `obj-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+		type: 'signature',
+		signer,
+		width,
+		height,
+		x,
+		y,
+	}
+
+	pdfElements.value.addObjectToPage(object, pageIndex, docIndex)
+}
+
+async function waitForPageRender(docIndex: number, pageIndex: number) {
+	const document = pdfElements.value?.pdfDocuments?.[docIndex]
+	if (!document?.pages?.[pageIndex]) {
+		return
+	}
+
+	await document.pages[pageIndex]
+	await nextTick()
+	await nextTick()
+}
+
+onMounted(() => {
+	ensurePdfWorker()
+})
+
+defineExpose({
+	t,
+	mdiContentCopy,
+	mdiDelete,
+	pdfElements,
+	ignoreClickOutsideSelectors,
+	toolbarStyleVars,
+	hasMultipleSigners,
+	getPageAriaLabel,
+	endInit,
+	calculatePdfMeasurement,
+	onDeleteSigner,
+	handleDeleteObject,
+	handleObjectClick,
+	getSignerLabel,
+	onSignerChange,
+	findObjectLocation,
+	startAddingSigner,
+	cancelAdding,
+	addSigner,
+	waitForPageRender,
+})
 </script>
 
 <style lang="scss">
