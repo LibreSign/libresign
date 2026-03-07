@@ -15,13 +15,13 @@
 					</div>
 					<div class="file-details">
 						<div class="file-name">{{ file.name }}</div>
-						<div class="file-size">{{ formatFileSize(file.size) }}</div>
+						<div class="file-size">{{ formatFileSize(file.size ?? 0) }}</div>
 					</div>
 				</div>
 				<div class="file-status">
-					<div :class="['status-badge', `status-${getStatusClass(file.status)}`]">
-						<NcIconSvgWrapper :path="getStatusIcon(file.status)" />
-						<span>{{ getStatusLabel(file.status) }}</span>
+					<div :class="['status-badge', `status-${getStatusClass(file.status ?? 0)}`]">
+						<NcIconSvgWrapper :path="getStatusIcon(file.status ?? 0)" />
+						<span>{{ getStatusLabel(file.status ?? '') }}</span>
 					</div>
 					<div v-if="file.signed" class="signed-date">
 						{{ formatDate(file.signed) }}
