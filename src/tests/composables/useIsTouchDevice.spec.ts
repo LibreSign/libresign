@@ -19,4 +19,10 @@ describe('useIsTouchDevice composable', () => {
 
 		expect(isTouchDevice.value).toBe(expected)
 	})
+
+	it('keeps the same value across repeated reads', () => {
+		const { isTouchDevice } = useIsTouchDevice()
+
+		expect(isTouchDevice.value).toBe(isTouchDevice.value)
+	})
 })
