@@ -169,8 +169,22 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import {
+	mdiAccount,
+	mdiCheckCircle,
+	mdiClockAlert,
+	mdiClose,
+	mdiDelete,
+	mdiEye,
+	mdiFileDocument,
+	mdiFileDocumentOutline,
+	mdiFilter,
+	mdiPencil,
+} from '@mdi/js'
 
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
@@ -188,8 +202,275 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+type SortOrder = 'ASC' | 'DESC' | null
 
-import {
+type StatusOption = {
+	value: 'signed' | 'pending'
+	label: string
+}
+
+type IdDocEntry = Record<string, any>
+
+defineOptions({
+	name: 'IdDocsValidation',
+})
+
+const router = useRouter()
+const userConfigStore = useUserConfigStore()
+const scrollContainer = ref<HTMLElement | null>(null)
+const documentList = ref<IdDocEntry[]>([])
+const loading = ref(true)
+const loadingMore = ref(false)
+const page = ref(1)
+const length = ref(50)
+const total = ref(0)
+const hasMore = ref(true)
+const sortBy = ref<string | null>(userConfigStore.id_docs_sort?.sortBy || null)
+const sortOrder = ref<SortOrder>(userConfigStore.id_docs_sort?.sortOrder || null)
+const filters = reactive({
+	owner: userConfigStore.id_docs_filters?.owner || '',
+	status: userConfigStore.id_docs_filters?.status || null as StatusOption | null,
+})
+const statusOptions: StatusOption[] = [
+	{ value: 'signed', label: t('libresign', 'Signed') },
+	{ value: 'pending', label: t('libresign', 'Pending') },
+]
+
+const hasActiveFilters = computed(() => !!(filters.owner || filters.status))
+const activeFilterCount = computed(() => {
+	let count = 0
+	if (filters.owner) count++
+	if (filters.status) count++
+	return count
+})
+const filteredDocuments = computed(() => {
+	let docs = [...documentList.value]
+
+	if (filters.owner) {
+		const ownerLower = filters.owner.toLowerCase()
+		docs = docs.filter(doc => {
+			const displayName = doc.account?.displayName || doc.account?.userId || ''
+			return displayName.toLowerCase().includes(ownerLower)
+		})
+	}
+
+	if (filters.status?.value === 'signed') {
+		docs = docs.filter(doc => doc.file?.status === FILE_STATUS.SIGNED)
+	} else if (filters.status?.value === 'pending') {
+		docs = docs.filter(doc => doc.file?.status !== FILE_STATUS.SIGNED)
+	}
+
+	return docs
+})
+
+let filterTimeout: ReturnType<typeof setTimeout> | undefined
+
+async function loadDocuments(append = false) {
+	if (!append) {
+		loading.value = true
+		page.value = 1
+		documentList.value = []
+	} else {
+		loadingMore.value = true
+	}
+
+	try {
+		const params: Record<string, any> = {
+			page: page.value,
+			length: length.value,
+		}
+
+		if (sortBy.value) {
+			params.sortBy = sortBy.value
+			params.sortOrder = sortOrder.value
+		}
+
+		const response = await axios.get(
+			generateOcsUrl('/apps/libresign/api/v1/id-docs/approval/list'),
+			{ params },
+		)
+
+		const data = response.data.ocs.data as { data: IdDocEntry[]; total?: number }
+
+		if (append) {
+			documentList.value.push(...data.data)
+		} else {
+			documentList.value = data.data
+		}
+
+		total.value = data.total || data.data.length
+		hasMore.value = documentList.value.length < total.value
+	} catch (error: any) {
+		showError(error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to load documents'))
+	} finally {
+		loading.value = false
+		loadingMore.value = false
+	}
+}
+
+function onScroll(event: Event) {
+	if (loadingMore.value || !hasMore.value) {
+		return
+	}
+
+	const container = event.target as HTMLElement
+	const scrollPosition = container.scrollTop + container.clientHeight
+	const scrollHeight = container.scrollHeight
+
+	if (scrollPosition >= scrollHeight * 0.8) {
+		page.value++
+		loadDocuments(true)
+	}
+}
+
+function openApprove(doc: IdDocEntry) {
+	const uuid = doc.file?.uuid || doc.uuid
+	if (!uuid) {
+		showError(t('libresign', 'Document UUID not found'))
+		return
+	}
+	router.push({
+		name: 'IdDocsApprove',
+		params: { uuid },
+		query: { idDocApproval: 'true' },
+	})
+}
+
+async function deleteDocument(doc: IdDocEntry) {
+	try {
+		await axios.delete(generateOcsUrl('/apps/libresign/api/v1/id-docs/{nodeId}', { nodeId: doc.file.file.nodeId }))
+		await loadDocuments()
+	} catch (error: any) {
+		showError(error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to delete document'))
+	}
+}
+
+function openFile(doc: IdDocEntry) {
+	const fileUrl = doc.file?.file?.url
+
+	if (!fileUrl) {
+		showError(t('libresign', 'File not found'))
+		return
+	}
+
+	openDocument({
+		fileUrl,
+		filename: doc.file.name,
+		nodeId: doc.file.file.nodeId,
+	})
+}
+
+function openValidationURL(doc: IdDocEntry) {
+	const uuid = doc.file?.uuid || doc.uuid
+	if (!uuid) {
+		showError(t('libresign', 'Document UUID not found'))
+		return
+	}
+	router.push({
+		name: 'ValidationFile',
+		params: { uuid },
+	})
+}
+
+function onFilterChange() {
+	clearTimeout(filterTimeout)
+	filterTimeout = setTimeout(() => {
+		saveFilters()
+	}, 500)
+}
+
+async function saveFilters() {
+	try {
+		await userConfigStore.update('id_docs_filters', {
+			owner: filters.owner,
+			status: filters.status,
+		})
+	} catch (error) {
+		console.error('Failed to save filters:', error)
+	}
+}
+
+function clearFilters() {
+	filters.owner = ''
+	filters.status = null
+	saveFilters()
+}
+
+function setStatusFilter(status: StatusOption['value'], value: boolean) {
+	if (value) {
+		filters.status = statusOptions.find(option => option.value === status) || null
+	} else {
+		filters.status = null
+	}
+	onFilterChange()
+}
+
+function sortColumn(column: string) {
+	if (sortBy.value === column) {
+		if (sortOrder.value === 'DESC') {
+			sortOrder.value = 'ASC'
+		} else if (sortOrder.value === 'ASC') {
+			sortBy.value = null
+			sortOrder.value = null
+		}
+	} else {
+		sortBy.value = column
+		sortOrder.value = 'DESC'
+	}
+	saveSort()
+	loadDocuments()
+}
+
+async function saveSort() {
+	try {
+		await userConfigStore.update('id_docs_sort', {
+			sortBy: sortBy.value,
+			sortOrder: sortOrder.value,
+		})
+	} catch (error) {
+		console.error('Failed to save sort:', error)
+	}
+}
+
+onMounted(() => {
+	loadDocuments()
+})
+
+onBeforeUnmount(() => {
+	clearTimeout(filterTimeout)
+})
+
+defineExpose({
+	t,
+	FILE_STATUS,
+	userConfigStore,
+	scrollContainer,
+	documentList,
+	loading,
+	loadingMore,
+	page,
+	length,
+	total,
+	hasMore,
+	sortBy,
+	sortOrder,
+	filters,
+	statusOptions,
+	hasActiveFilters,
+	activeFilterCount,
+	filteredDocuments,
+	loadDocuments,
+	onScroll,
+	openApprove,
+	deleteDocument,
+	openFile,
+	openValidationURL,
+	onFilterChange,
+	saveFilters,
+	clearFilters,
+	setStatusFilter,
+	sortColumn,
+	saveSort,
 	mdiAccount,
 	mdiCheckCircle,
 	mdiClockAlert,
@@ -200,265 +481,7 @@ import {
 	mdiFileDocumentOutline,
 	mdiFilter,
 	mdiPencil,
-} from '@mdi/js'
-
-export default {
-	name: 'IdDocsValidation',
-	components: {
-		NcActions,
-		NcActionButton,
-		NcActionInput,
-		NcActionSeparator,
-		NcAvatar,
-		NcEmptyContent,
-		NcIconSvgWrapper,
-		NcLoadingIcon,
-	},
-	setup() {
-		return {
-			mdiAccount,
-			mdiCheckCircle,
-			mdiClockAlert,
-			mdiClose,
-			mdiDelete,
-			mdiEye,
-			mdiFileDocument,
-			mdiFileDocumentOutline,
-			mdiFilter,
-			mdiPencil,
-		}
-	},
-	data() {
-		const userConfigStore = useUserConfigStore()
-
-		return {
-			FILE_STATUS,
-			userConfigStore,
-			documentList: [],
-			loading: true,
-			loadingMore: false,
-			page: 1,
-			length: 50,
-			total: 0,
-			hasMore: true,
-			sortBy: userConfigStore.id_docs_sort?.sortBy || null,
-			sortOrder: userConfigStore.id_docs_sort?.sortOrder || null,
-			filters: {
-				owner: userConfigStore.id_docs_filters?.owner || '',
-				status: userConfigStore.id_docs_filters?.status || null,
-			},
-			statusOptions: [
-				{ value: 'signed', label: 'Signed' },
-				{ value: 'pending', label: 'Pending' },
-			],
-		}
-	},
-	computed: {
-		hasActiveFilters() {
-			return !!(this.filters.owner || this.filters.status)
-		},
-		activeFilterCount() {
-			let count = 0
-			if (this.filters.owner) count++
-			if (this.filters.status) count++
-			return count
-		},
-		filteredDocuments() {
-			let docs = [...this.documentList]
-
-			if (this.filters.owner) {
-				const ownerLower = this.filters.owner.toLowerCase()
-				docs = docs.filter(doc => {
-					const displayName = doc.account?.displayName || doc.account?.userId || ''
-					return displayName.toLowerCase().includes(ownerLower)
-				})
-			}
-
-			if (this.filters.status?.value === 'signed') {
-				docs = docs.filter(doc => doc.file?.status === FILE_STATUS.SIGNED)
-			} else if (this.filters.status?.value === 'pending') {
-				docs = docs.filter(doc => doc.file?.status !== FILE_STATUS.SIGNED)
-			}
-
-			return docs
-		},
-	},
-	mounted() {
-		this.loadDocuments()
-	},
-	methods: {
-		t,
-		async loadDocuments(append = false) {
-			if (!append) {
-				this.loading = true
-				this.page = 1
-				this.documentList = []
-			} else {
-				this.loadingMore = true
-			}
-
-			try {
-				const params = {
-					page: this.page,
-					length: this.length,
-				}
-
-				if (this.sortBy) {
-					params.sortBy = this.sortBy
-					params.sortOrder = this.sortOrder
-				}
-
-				const response = await axios.get(
-					generateOcsUrl('/apps/libresign/api/v1/id-docs/approval/list'),
-					{ params }
-				)
-
-				const data = response.data.ocs.data
-
-				if (append) {
-					this.documentList.push(...data.data)
-				} else {
-					this.documentList = data.data
-				}
-
-				this.total = data.total || data.data.length
-				this.hasMore = this.documentList.length < this.total
-			} catch (error) {
-				showError(error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to load documents'))
-			} finally {
-				this.loading = false
-				this.loadingMore = false
-			}
-		},
-
-		onScroll(event) {
-			if (this.loadingMore || !this.hasMore) {
-				return
-			}
-
-			const container = event.target
-			const scrollPosition = container.scrollTop + container.clientHeight
-			const scrollHeight = container.scrollHeight
-
-			if (scrollPosition >= scrollHeight * 0.8) {
-				this.page++
-				this.loadDocuments(true)
-			}
-		},
-
-		openApprove(doc) {
-			const uuid = doc.file?.uuid || doc.uuid
-			if (!uuid) {
-				showError(this.t('libresign', 'Document UUID not found'))
-				return
-			}
-			this.$router.push({
-				name: 'IdDocsApprove',
-				params: { uuid },
-				query: { idDocApproval: 'true' },
-			})
-		},
-
-		async deleteDocument(doc) {
-			try {
-				await axios.delete(generateOcsUrl('/apps/libresign/api/v1/id-docs/{nodeId}', { nodeId: doc.file.file.nodeId }))
-				await this.loadDocuments()
-			} catch (error) {
-				showError(error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to delete document'))
-			}
-		},
-
-		openFile(doc) {
-			const fileUrl = doc.file?.file?.url
-
-			if (!fileUrl) {
-				showError(t('libresign', 'File not found'))
-				return
-			}
-
-			openDocument({
-				fileUrl,
-				filename: doc.file.name,
-				nodeId: doc.file.file.nodeId,
-			})
-		},
-
-		openValidationURL(doc) {
-			const uuid = doc.file?.uuid || doc.uuid
-			if (!uuid) {
-				showError(this.t('libresign', 'Document UUID not found'))
-				return
-			}
-			this.$router.push({
-				name: 'ValidationFile',
-				params: { uuid },
-			})
-		},
-
-		onFilterChange() {
-			clearTimeout(this.filterTimeout)
-			this.filterTimeout = setTimeout(() => {
-				this.saveFilters()
-			}, 500)
-		},
-
-		async saveFilters() {
-			try {
-				const filters = {
-					owner: this.filters.owner,
-					status: this.filters.status,
-				}
-				await this.userConfigStore.update('id_docs_filters', filters)
-			} catch (error) {
-				console.error('Failed to save filters:', error)
-			}
-		},
-
-		clearFilters() {
-			this.filters.owner = ''
-			this.filters.status = null
-			this.saveFilters()
-		},
-
-		setStatusFilter(status, value) {
-			if (value) {
-				const option = this.statusOptions.find(opt => opt.value === status)
-				this.filters.status = option
-			} else {
-				this.filters.status = null
-			}
-			this.onFilterChange()
-		},
-
-		sortColumn(column) {
-			if (this.sortBy === column) {
-				if (this.sortOrder === 'DESC') {
-					this.sortOrder = 'ASC'
-				} else if (this.sortOrder === 'ASC') {
-					this.sortBy = null
-					this.sortOrder = null
-				}
-			} else {
-				this.sortBy = column
-				this.sortOrder = 'DESC'
-			}
-			this.saveSort()
-			this.loadDocuments()
-		},
-
-		async saveSort() {
-			try {
-				const sort = {
-					sortBy: this.sortBy,
-					sortOrder: this.sortOrder,
-				}
-				await this.userConfigStore.update('id_docs_sort', sort)
-			} catch (error) {
-				console.error('Failed to save sort:', error)
-			}
-		},
-	},
-}
+})
 </script>
 
 <style lang="scss" scoped>
