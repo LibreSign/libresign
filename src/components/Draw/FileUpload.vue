@@ -7,7 +7,7 @@
 		<div class="file-input-container">
 			<NcButton variant="primary"
 				:wide="true"
-				@click="$refs.file.click()">
+				@click="file?.click()">
 				{{
 					hasImage
 						? t('libresign', 'Change file')
@@ -103,7 +103,7 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
 import {
@@ -111,6 +111,7 @@ import {
 	mdiMagnifyMinusOutline,
 	mdiMagnifyPlusOutline,
 } from '@mdi/js'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Cropper } from 'vue-advanced-cropper'
 import { getCapabilities } from '@nextcloud/capabilities'
 
@@ -121,237 +122,317 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import 'vue-advanced-cropper/dist/style.css'
 
-export default {
-	name: 'FileUpload',
-	emits: ['save', 'close'],
-	components: {
-		NcButton,
-		Cropper,
-		NcDialog,
-		NcTextField,
-		NcIconSvgWrapper,
-	},
-	setup() {
-		return {
-			mdiMagnifyMinusOutline,
-			mdiMagnifyPlusOutline,
-			mdiFitToPageOutline,
-		}
-	},
-	data() {
-		return {
-			modal: false,
-			image: '',
-			imageData: '',
-			containerWidth: 0,
-			pendingFitCenter: false,
-			zoomLevel: 1,
-			zoomMin: 0.1,
-			zoomMax: 8,
-			zoomStep: 0.1,
-			stencilBaseWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
-			stencilBaseHeight: getCapabilities().libresign.config['sign-elements']['signature-height'],
-		}
-	},
-	computed: {
-		hasImage() {
-			return !!this.image
-		},
-		zoomPercentValue: {
-			get() {
-				return Math.round(this.zoomLevel * 100)
-			},
-			set(value) {
-				this.onZoomPercentChange(value)
-			},
-		},
-		stencilAspectRatio() {
-			if (!this.stencilBaseWidth || !this.stencilBaseHeight) {
-				return undefined
-			}
-			return this.stencilBaseWidth / this.stencilBaseHeight
-		},
-		stencilProps() {
-			return {
-				aspectRatio: this.stencilAspectRatio,
-			}
-		},
-		defaultStencilSize() {
-			if (!this.containerWidth) {
-				return {
-					width: this.stencilBaseWidth,
-					height: this.stencilBaseHeight,
-				}
-			}
-			const availableWidth = Math.max(0, this.containerWidth - 24)
-			const scale = Math.min(1, availableWidth / this.stencilBaseWidth)
-			return {
-				width: Math.floor(this.stencilBaseWidth * scale),
-				height: Math.floor(this.stencilBaseHeight * scale),
-			}
-		},
-	},
-	mounted() {
-		this.updateContainerWidth()
-		if (window.ResizeObserver) {
-			this.$nextTick(() => {
-				this.initResizeObserver()
-			})
-		} else {
-			window.addEventListener('resize', this.updateContainerWidth)
-		}
-	},
-	beforeUnmount() {
-		this.resizeObserver?.disconnect()
-		window.removeEventListener('resize', this.updateContainerWidth)
-	},
-	methods: {
-		t,
-		initResizeObserver() {
-			if (!window.ResizeObserver || !this.$refs.cropperContainer) {
-				return
-			}
-			if (!this.resizeObserver) {
-				this.resizeObserver = new ResizeObserver(() => this.updateContainerWidth())
-			} else {
-				this.resizeObserver.disconnect()
-			}
-			this.resizeObserver.observe(this.$refs.cropperContainer)
-		},
-		updateContainerWidth() {
-			this.containerWidth = this.$refs.cropperContainer?.offsetWidth || 0
-		},
-		updateZoomLevel(result) {
-			if (result) {
-				this.updateZoomLevelFromResult(result)
-				return
-			}
-			const cropper = this.$refs.cropper
-			if (!cropper?.getResult) {
-				return
-			}
-			this.updateZoomLevelFromResult(cropper.getResult())
-		},
-		updateZoomLevelFromResult(result) {
-			const visibleWidth = result?.visibleArea?.width
-			const imageWidth = result?.image?.width
-			if (!Number.isFinite(visibleWidth) || !Number.isFinite(imageWidth) || visibleWidth <= 0) {
-				return
-			}
-			const nextZoom = imageWidth / visibleWidth
-			if (Number.isFinite(nextZoom) && nextZoom > 0) {
-				this.zoomLevel = Math.min(this.zoomMax, Math.max(this.zoomMin, nextZoom))
-			}
-		},
-		zoomBy(factor) {
-			const cropper = this.$refs.cropper
-			if (!cropper?.zoom || !Number.isFinite(factor) || factor <= 0) {
-				return
-			}
-			cropper.zoom(factor)
-			this.$nextTick(() => this.updateZoomLevel())
-		},
-		setZoomLevel(targetZoom) {
-			const clamped = Math.min(this.zoomMax, Math.max(this.zoomMin, targetZoom))
-			const factor = clamped / (this.zoomLevel || 1)
-			if (!Number.isFinite(factor) || Math.abs(factor - 1) < 0.001) {
-				return
-			}
-			this.zoomBy(factor)
-		},
-		fitToArea() {
-			const cropper = this.$refs.cropper
-			if (!cropper?.move || !cropper?.getResult) {
-				this.setZoomLevel(1)
-				return
-			}
-			this.pendingFitCenter = true
-			this.setZoomLevel(1)
-		},
-		zoomIn() {
-			this.setZoomLevel(this.zoomLevel + this.zoomStep)
-		},
-		zoomOut() {
-			this.setZoomLevel(this.zoomLevel - this.zoomStep)
-		},
-		onZoomPercentChange(value) {
-			const raw = Number.parseFloat(value)
-			if (!Number.isFinite(raw)) {
-				return
-			}
-			this.setZoomLevel(raw / 100)
-		},
-		fileSelect(ev) {
-			const fr = new FileReader()
-
-			fr.addEventListener('load', () => {
-				this.image = fr.result
-			})
-
-			fr.addEventListener('error', (err) => {
-				console.error(err)
-			})
-
-			fr.readAsDataURL(ev.target.files[0])
-		},
-		centerImage(result) {
-			const cropper = this.$refs.cropper
-			if (!cropper?.move) {
-				return
-			}
-			const visible = result?.visibleArea
-			const image = result?.image
-			if (!visible || !image) {
-				return
-			}
-			const targetLeft = Math.max(0, (image.width - visible.width) / 2)
-			const targetTop = Math.max(0, (image.height - visible.height) / 2)
-			const deltaX = targetLeft - visible.left
-			const deltaY = targetTop - visible.top
-			if (Number.isFinite(deltaX) && Number.isFinite(deltaY) && (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5)) {
-				cropper.move(deltaX, deltaY)
-			}
-		},
-		change(result) {
-			if (result?.canvas) {
-				this.imageData = result.canvas.toDataURL('image/png')
-			}
-			this.updateZoomLevel(result)
-			if (this.pendingFitCenter && Math.abs(this.zoomLevel - 1) < 0.02) {
-				this.centerImage(result)
-				this.pendingFitCenter = false
-			}
-		},
-		saveSignature() {
-			this.modal = false
-			this.$emit('save', this.imageData)
-		},
-		confirmSave() {
-			this.modal = true
-		},
-		cancel() {
-			this.modal = false
-		},
-		close() {
-			this.$emit('close')
-		},
-	},
-	watch: {
-		hasImage(value) {
-			if (value) {
-				this.$nextTick(() => {
-					this.updateContainerWidth()
-					this.initResizeObserver()
-				})
-				return
-			}
-			this.resizeObserver?.disconnect()
-			this.containerWidth = 0
-			this.zoomLevel = 1
-			this.pendingFitCenter = false
-		},
-	},
+type CropperResult = {
+	canvas?: {
+		toDataURL: (type?: string) => string
+	}
+	visibleArea?: {
+		width: number
+		height: number
+		left: number
+		top: number
+	}
+	image?: {
+		width: number
+		height: number
+	}
 }
+
+type CropperInstance = {
+	zoom?: (factor: number) => void
+	move?: (left: number, top: number) => void
+	getResult?: () => CropperResult
+}
+
+type ResizeObserverLike = {
+	disconnect: () => void
+	observe: (target: Element) => void
+}
+
+defineOptions({
+	name: 'FileUpload',
+})
+
+const emit = defineEmits<{
+	(event: 'save', payload: string): void
+	(event: 'close'): void
+}>()
+
+const capabilities = getCapabilities()
+const signElementsConfig = capabilities?.libresign?.config?.['sign-elements'] || {}
+
+const file = ref<HTMLInputElement | null>(null)
+const cropper = ref<CropperInstance | null>(null)
+const cropperContainer = ref<HTMLElement | null>(null)
+const resizeObserver = ref<ResizeObserverLike | null>(null)
+
+const modal = ref(false)
+const image = ref('')
+const imageData = ref('')
+const containerWidth = ref(0)
+const pendingFitCenter = ref(false)
+const zoomLevel = ref(1)
+const zoomMin = 0.1
+const zoomMax = 8
+const zoomStep = 0.1
+const stencilBaseWidth = Number(signElementsConfig['signature-width'] || 0)
+const stencilBaseHeight = Number(signElementsConfig['signature-height'] || 0)
+
+const hasImage = computed(() => !!image.value)
+
+const zoomPercentValue = computed({
+	get: () => Math.round(zoomLevel.value * 100),
+	set: (value: string | number) => {
+		onZoomPercentChange(value)
+	},
+})
+
+const stencilAspectRatio = computed(() => {
+	if (!stencilBaseWidth || !stencilBaseHeight) {
+		return undefined
+	}
+	return stencilBaseWidth / stencilBaseHeight
+})
+
+const stencilProps = computed(() => ({
+	aspectRatio: stencilAspectRatio.value,
+}))
+
+const defaultStencilSize = computed(() => {
+	if (!containerWidth.value) {
+		return {
+			width: stencilBaseWidth,
+			height: stencilBaseHeight,
+		}
+	}
+	const availableWidth = Math.max(0, containerWidth.value - 24)
+	const scale = Math.min(1, availableWidth / stencilBaseWidth)
+	return {
+		width: Math.floor(stencilBaseWidth * scale),
+		height: Math.floor(stencilBaseHeight * scale),
+	}
+})
+
+function initResizeObserver() {
+	if (!window.ResizeObserver || !cropperContainer.value) {
+		return
+	}
+	if (!resizeObserver.value) {
+		resizeObserver.value = new window.ResizeObserver(() => updateContainerWidth()) as ResizeObserverLike
+	} else {
+		resizeObserver.value.disconnect()
+	}
+	resizeObserver.value.observe(cropperContainer.value)
+}
+
+function updateContainerWidth() {
+	containerWidth.value = cropperContainer.value?.offsetWidth || 0
+}
+
+function updateZoomLevel(result?: CropperResult) {
+	if (result) {
+		updateZoomLevelFromResult(result)
+		return
+	}
+	if (!cropper.value?.getResult) {
+		return
+	}
+	updateZoomLevelFromResult(cropper.value.getResult())
+}
+
+function updateZoomLevelFromResult(result?: CropperResult) {
+	const visibleWidth = result?.visibleArea?.width
+	const imageWidth = result?.image?.width
+	if (!Number.isFinite(visibleWidth) || !Number.isFinite(imageWidth) || (visibleWidth as number) <= 0) {
+		return
+	}
+	const nextZoom = (imageWidth as number) / (visibleWidth as number)
+	if (Number.isFinite(nextZoom) && nextZoom > 0) {
+		zoomLevel.value = Math.min(zoomMax, Math.max(zoomMin, nextZoom))
+	}
+}
+
+function zoomBy(factor: number) {
+	if (!cropper.value?.zoom || !Number.isFinite(factor) || factor <= 0) {
+		return
+	}
+	cropper.value.zoom(factor)
+	void nextTick(() => updateZoomLevel())
+}
+
+function setZoomLevel(targetZoom: number) {
+	const clamped = Math.min(zoomMax, Math.max(zoomMin, targetZoom))
+	const factor = clamped / (zoomLevel.value || 1)
+	if (!Number.isFinite(factor) || Math.abs(factor - 1) < 0.001) {
+		return
+	}
+	zoomBy(factor)
+}
+
+function fitToArea() {
+	if (!cropper.value?.move || !cropper.value?.getResult) {
+		setZoomLevel(1)
+		return
+	}
+	pendingFitCenter.value = true
+	setZoomLevel(1)
+}
+
+function zoomIn() {
+	setZoomLevel(zoomLevel.value + zoomStep)
+}
+
+function zoomOut() {
+	setZoomLevel(zoomLevel.value - zoomStep)
+}
+
+function onZoomPercentChange(value: string | number) {
+	const raw = Number.parseFloat(String(value))
+	if (!Number.isFinite(raw)) {
+		return
+	}
+	setZoomLevel(raw / 100)
+}
+
+function fileSelect(event: Event) {
+	const target = event.target as HTMLInputElement | null
+	const selectedFile = target?.files?.[0]
+	if (!selectedFile) {
+		return
+	}
+
+	const fileReader = new FileReader()
+
+	fileReader.addEventListener('load', () => {
+		image.value = String(fileReader.result || '')
+	})
+
+	fileReader.addEventListener('error', error => {
+		console.error(error)
+	})
+
+	fileReader.readAsDataURL(selectedFile)
+}
+
+function centerImage(result?: CropperResult) {
+	if (!cropper.value?.move) {
+		return
+	}
+	const visible = result?.visibleArea
+	const currentImage = result?.image
+	if (!visible || !currentImage) {
+		return
+	}
+	const targetLeft = Math.max(0, (currentImage.width - visible.width) / 2)
+	const targetTop = Math.max(0, (currentImage.height - visible.height) / 2)
+	const deltaX = targetLeft - visible.left
+	const deltaY = targetTop - visible.top
+	if (Number.isFinite(deltaX) && Number.isFinite(deltaY) && (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5)) {
+		cropper.value.move(deltaX, deltaY)
+	}
+}
+
+function change(result?: CropperResult) {
+	if (result?.canvas) {
+		imageData.value = result.canvas.toDataURL('image/png')
+	}
+	updateZoomLevel(result)
+	if (pendingFitCenter.value && Math.abs(zoomLevel.value - 1) < 0.02) {
+		centerImage(result)
+		pendingFitCenter.value = false
+	}
+}
+
+function saveSignature() {
+	modal.value = false
+	emit('save', imageData.value)
+}
+
+function confirmSave() {
+	modal.value = true
+}
+
+function cancel() {
+	modal.value = false
+}
+
+function close() {
+	emit('close')
+}
+
+onMounted(() => {
+	updateContainerWidth()
+	if (window.ResizeObserver) {
+		void nextTick(() => {
+			initResizeObserver()
+		})
+	} else {
+		window.addEventListener('resize', updateContainerWidth)
+	}
+})
+
+onBeforeUnmount(() => {
+	resizeObserver.value?.disconnect()
+	window.removeEventListener('resize', updateContainerWidth)
+})
+
+watch(hasImage, value => {
+	if (value) {
+		void nextTick(() => {
+			updateContainerWidth()
+			initResizeObserver()
+		})
+		return
+	}
+	resizeObserver.value?.disconnect()
+	containerWidth.value = 0
+	zoomLevel.value = 1
+	pendingFitCenter.value = false
+})
+
+defineExpose({
+	t,
+	mdiMagnifyMinusOutline,
+	mdiMagnifyPlusOutline,
+	mdiFitToPageOutline,
+	file,
+	cropper,
+	cropperContainer,
+	resizeObserver,
+	modal,
+	image,
+	imageData,
+	containerWidth,
+	pendingFitCenter,
+	zoomLevel,
+	zoomMin,
+	zoomMax,
+	zoomStep,
+	stencilBaseWidth,
+	stencilBaseHeight,
+	hasImage,
+	zoomPercentValue,
+	stencilAspectRatio,
+	stencilProps,
+	defaultStencilSize,
+	initResizeObserver,
+	updateContainerWidth,
+	updateZoomLevel,
+	updateZoomLevelFromResult,
+	zoomBy,
+	setZoomLevel,
+	fitToArea,
+	zoomIn,
+	zoomOut,
+	onZoomPercentChange,
+	fileSelect,
+	centerImage,
+	change,
+	saveSignature,
+	confirmSave,
+	cancel,
+	close,
+})
 </script>
 
 <style lang="scss" scoped>

@@ -35,6 +35,7 @@ vi.mock('../../../helpers/pdfWorker.js', () => ({
 
 describe('PdfEditor Component - Business Rules', () => {
 	let wrapper: ReturnType<typeof mount>
+	const getPdfElements = () => wrapper.vm.pdfElements
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -143,11 +144,9 @@ describe('PdfEditor Component - Business Rules', () => {
 
 	describe('RULE: startAddingSigner validation', () => {
 		it('returns false when pdfElements not available', () => {
-			const result = wrapper.vm.$options.methods.startAddingSigner.call({
-				$refs: {
-					pdfElements: null,
-				},
-			},
+			wrapper.vm.pdfElements = null
+
+			const result = wrapper.vm.startAddingSigner(
 				{ email: 'test@example.com' },
 				{ width: 200, height: 100 },
 			)
@@ -180,7 +179,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			const result = wrapper.vm.startAddingSigner(signer, size)
 
 			expect(result).toBe(true)
-		expect(wrapper.vm.$refs.pdfElements.startAddingElement).toHaveBeenCalledWith({
+		expect(getPdfElements().startAddingElement).toHaveBeenCalledWith({
 				type: 'signature',
 				width: 200,
 				height: 100,
@@ -200,7 +199,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			wrapper.vm.startAddingSigner(signer, size)
 
-		expect(wrapper.vm.$refs.pdfElements.startAddingElement).toHaveBeenCalledWith(
+		expect(getPdfElements().startAddingElement).toHaveBeenCalledWith(
 				expect.objectContaining({
 					signer: expect.objectContaining({
 						element: expect.objectContaining({
@@ -215,7 +214,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 	describe('RULE: addSigner coordinate calculations', () => {
 		beforeEach(() => {
-			Object.assign(wrapper.vm.$refs.pdfElements, {
+			Object.assign(getPdfElements(), {
 				selectedDocIndex: 0,
 				getPageHeight: vi.fn(() => 841.89),
 				addObjectToPage: vi.fn(),
@@ -241,7 +240,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.addSigner(signer)
 
-			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
+			expect(getPdfElements().addObjectToPage).toHaveBeenCalledWith(
 				expect.objectContaining({
 					x: 100,
 					y: 200,
@@ -269,7 +268,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.addSigner(signer)
 
-			const call = wrapper.vm.$refs.pdfElements.addObjectToPage.mock.calls[0][0]
+			const call = getPdfElements().addObjectToPage.mock.calls[0][0]
 
 			expect(call.width).toBe(200) // urx - llx = 250 - 50
 			expect(call.height).toBe(200) // ury - lly = 300 - 100
@@ -278,7 +277,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 		it('calculates y from ury when using PDF coordinates', async () => {
 			const pageHeight = 841.89
-			wrapper.vm.$refs.pdfElements.getPageHeight.mockReturnValue(pageHeight)
+			getPdfElements().getPageHeight.mockReturnValue(pageHeight)
 
 			const signer = {
 				element: {
@@ -295,7 +294,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.addSigner(signer)
 
-			const call = wrapper.vm.$refs.pdfElements.addObjectToPage.mock.calls[0][0]
+			const call = getPdfElements().addObjectToPage.mock.calls[0][0]
 
 			// y = pageHeight - ury = 841.89 - 700
 			expect(call.y).toBeCloseTo(141.89, 2)
@@ -313,7 +312,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.addSigner(signer)
 
-			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
+			expect(getPdfElements().addObjectToPage).toHaveBeenCalledWith(
 				expect.objectContaining({
 					x: 0,
 					y: 0,
@@ -326,7 +325,7 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('uses correct page index (page - 1)', async () => {
-			wrapper.vm.$refs.pdfElements.pdfDocuments = [
+			getPdfElements().pdfDocuments = [
 				{ pages: [Promise.resolve({}), Promise.resolve({}), Promise.resolve({}), Promise.resolve({}), Promise.resolve({})] },
 			]
 
@@ -345,7 +344,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.addSigner(signer)
 
-			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
+			expect(getPdfElements().addObjectToPage).toHaveBeenCalledWith(
 				expect.anything(),
 				4, // 0-indexed: page 5 = index 4
 				0,
@@ -353,8 +352,8 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('uses selectedDocIndex when documentIndex not specified', async () => {
-			wrapper.vm.$refs.pdfElements.selectedDocIndex = 2
-			wrapper.vm.$refs.pdfElements.pdfDocuments = [
+			getPdfElements().selectedDocIndex = 2
+			getPdfElements().pdfDocuments = [
 				{ pages: [Promise.resolve({})] },
 				{ pages: [Promise.resolve({})] },
 				{ pages: [Promise.resolve({})] },
@@ -374,7 +373,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.addSigner(signer)
 
-			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
+			expect(getPdfElements().addObjectToPage).toHaveBeenCalledWith(
 				expect.anything(),
 				0,
 				2, // uses selectedDocIndex
@@ -391,7 +390,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.addSigner(signer)
 
-			const call = wrapper.vm.$refs.pdfElements.addObjectToPage.mock.calls[0][0]
+			const call = getPdfElements().addObjectToPage.mock.calls[0][0]
 
 			expect(call.id).toMatch(/^obj-\d+-[a-z0-9]{6}$/)
 		})
@@ -421,7 +420,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 	describe('RULE: findObjectLocation in documents', () => {
 		beforeEach(() => {
-			Object.assign(wrapper.vm.$refs.pdfElements, {
+			Object.assign(getPdfElements(), {
 				pdfDocuments: [
 					{
 						allObjects: [
@@ -441,7 +440,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 		it('finds object in first document, first page', () => {
 			const location = wrapper.vm.findObjectLocation(
-				wrapper.vm.$refs.pdfElements,
+				getPdfElements(),
 				'obj-1',
 			)
 
@@ -450,7 +449,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 		it('finds object in first document, second page', () => {
 			const location = wrapper.vm.findObjectLocation(
-				wrapper.vm.$refs.pdfElements,
+				getPdfElements(),
 				'obj-3',
 			)
 
@@ -459,7 +458,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 		it('finds object in second document', () => {
 			const location = wrapper.vm.findObjectLocation(
-				wrapper.vm.$refs.pdfElements,
+				getPdfElements(),
 				'obj-5',
 			)
 
@@ -482,10 +481,10 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('returns null when pdfDocuments is empty', () => {
-			wrapper.vm.$refs.pdfElements.pdfDocuments = []
+			getPdfElements().pdfDocuments = []
 
 			const location = wrapper.vm.findObjectLocation(
-				wrapper.vm.$refs.pdfElements,
+				getPdfElements(),
 				'obj-1',
 			)
 
@@ -503,7 +502,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				],
 			})
 
-			Object.assign(wrapper.vm.$refs.pdfElements, {
+			Object.assign(getPdfElements(), {
 				updateObject: vi.fn(),
 				pdfDocuments: [
 					{
@@ -518,7 +517,7 @@ describe('PdfEditor Component - Business Rules', () => {
 		it('does nothing when object is null', () => {
 			wrapper.vm.onSignerChange(null, { signRequestId: 2 })
 
-			expect(wrapper.vm.$refs.pdfElements.updateObject).not.toHaveBeenCalled()
+			expect(getPdfElements().updateObject).not.toHaveBeenCalled()
 		})
 
 		it('does nothing when signer is null', () => {
@@ -526,7 +525,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			wrapper.vm.onSignerChange(object, null)
 
-			expect(wrapper.vm.$refs.pdfElements.updateObject).not.toHaveBeenCalled()
+			expect(getPdfElements().updateObject).not.toHaveBeenCalled()
 		})
 
 		it('updates object with new signer from signers list', () => {
@@ -538,7 +537,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			wrapper.vm.onSignerChange(object, newSigner)
 
-			expect(wrapper.vm.$refs.pdfElements.updateObject).toHaveBeenCalledWith(
+			expect(getPdfElements().updateObject).toHaveBeenCalledWith(
 				0, // docIndex
 				'obj-1',
 				{
@@ -563,7 +562,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			wrapper.vm.onSignerChange(object, newSigner)
 
-			expect(wrapper.vm.$refs.pdfElements.updateObject).toHaveBeenCalledWith(
+			expect(getPdfElements().updateObject).toHaveBeenCalledWith(
 				expect.anything(),
 				expect.anything(),
 				{
@@ -592,7 +591,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			wrapper.vm.onSignerChange(object, { email: 'signer2@example.com' })
 
-			expect(wrapper.vm.$refs.pdfElements.updateObject).toHaveBeenCalledWith(
+			expect(getPdfElements().updateObject).toHaveBeenCalledWith(
 				expect.anything(),
 				expect.anything(),
 				{
@@ -608,7 +607,36 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			wrapper.vm.onSignerChange(object, { signRequestId: 999 })
 
-			expect(wrapper.vm.$refs.pdfElements.updateObject).not.toHaveBeenCalled()
+			expect(getPdfElements().updateObject).not.toHaveBeenCalled()
+		})
+	})
+
+	describe('RULE: endInit emits measured dimensions', () => {
+		it('adjusts zoom when auto-fit is disabled and emits page measurements', async () => {
+			Object.assign(getPdfElements(), {
+				autoFitZoom: false,
+				adjustZoomToFit: vi.fn(),
+				pdfDocuments: [
+					{
+						numPages: 2,
+						pages: [
+							Promise.resolve({ getViewport: vi.fn(() => ({ width: 595.28, height: 841.89 })) }),
+							Promise.resolve({ getViewport: vi.fn(() => ({ width: 600, height: 800 })) }),
+						],
+					},
+				],
+			})
+
+			await wrapper.vm.endInit({ ready: true })
+
+			expect(getPdfElements().adjustZoomToFit).toHaveBeenCalledTimes(1)
+			expect(wrapper.emitted('pdf-editor:end-init')?.[0]?.[0]).toEqual({
+				ready: true,
+				measurement: {
+					1: { width: 595.28, height: 841.89 },
+					2: { width: 600, height: 800 },
+				},
+			})
 		})
 	})
 
@@ -644,22 +672,21 @@ describe('PdfEditor Component - Business Rules', () => {
 		it('calls pdfElements cancelAdding when available', () => {
 			wrapper.vm.cancelAdding()
 
-			expect(wrapper.vm.$refs.pdfElements.cancelAdding).toHaveBeenCalled()
+			expect(getPdfElements().cancelAdding).toHaveBeenCalled()
 		})
 
 		it('does not error when pdfElements not available', () => {
+			wrapper.vm.pdfElements = null
+
 			expect(() => {
-				const { cancelAdding } = wrapper.vm.$options.methods
-				cancelAdding.call({
-					$refs: { pdfElements: null },
-				})
+				wrapper.vm.cancelAdding()
 			}).not.toThrow()
 		})
 	})
 
 	describe('RULE: waitForPageRender awaits page Promise', () => {
 		it('resolves immediately when page promise is already resolved', async () => {
-			Object.assign(wrapper.vm.$refs.pdfElements, {
+			Object.assign(getPdfElements(), {
 				pdfDocuments: [
 					{ pages: [Promise.resolve({})] },
 				],
@@ -675,7 +702,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			let resolveSecondPage: ((value: object) => void) | undefined
 			const secondPagePromise = new Promise<object>(resolve => { resolveSecondPage = resolve })
 
-			Object.assign(wrapper.vm.$refs.pdfElements, {
+			Object.assign(getPdfElements(), {
 				pdfDocuments: [
 					{ pages: [Promise.resolve({})] },
 					{ pages: [secondPagePromise] },
@@ -700,7 +727,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			let resolveSecondPage: ((value: object) => void) | undefined
 			const secondPagePromise = new Promise<object>(resolve => { resolveSecondPage = resolve })
 
-			Object.assign(wrapper.vm.$refs.pdfElements, {
+			Object.assign(getPdfElements(), {
 				pdfDocuments: [
 					{ pages: [Promise.resolve({})] },
 					{ pages: [secondPagePromise] },
@@ -722,7 +749,7 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('resolves immediately when document does not exist', async () => {
-			Object.assign(wrapper.vm.$refs.pdfElements, {
+			Object.assign(getPdfElements(), {
 				pdfDocuments: [],
 			})
 
@@ -730,10 +757,8 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('resolves immediately when pdfElements is null', async () => {
-			const { waitForPageRender } = wrapper.vm.$options.methods
-			await waitForPageRender.call({
-				$refs: { pdfElements: null },
-			}, 0, 0)
+			wrapper.vm.pdfElements = null
+			await wrapper.vm.waitForPageRender?.(0, 0)
 		})
 	})
 
@@ -742,7 +767,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			let resolveSecondPage: ((value: unknown) => void) | undefined
 			const secondPagePromise = new Promise(resolve => { resolveSecondPage = resolve })
 
-			Object.assign(wrapper.vm.$refs.pdfElements, {
+			Object.assign(getPdfElements(), {
 				selectedDocIndex: 0,
 				getPageHeight: vi.fn(() => 841.89),
 				addObjectToPage: vi.fn(),
@@ -769,14 +794,14 @@ describe('PdfEditor Component - Business Rules', () => {
 			const addPromise = wrapper.vm.addSigner(signer)
 
 			await wrapper.vm.$nextTick()
-			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).not.toHaveBeenCalled()
+			expect(getPdfElements().addObjectToPage).not.toHaveBeenCalled()
 
 			if (resolveSecondPage) {
 				resolveSecondPage({})
 			}
 			await addPromise
 
-			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
+			expect(getPdfElements().addObjectToPage).toHaveBeenCalledWith(
 				expect.objectContaining({
 					x: 148,
 					y: 16,
@@ -789,7 +814,7 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('adds immediately when page is already rendered', async () => {
-			Object.assign(wrapper.vm.$refs.pdfElements, {
+			Object.assign(getPdfElements(), {
 				selectedDocIndex: 0,
 				getPageHeight: vi.fn(() => 841.89),
 				addObjectToPage: vi.fn(),
@@ -808,11 +833,11 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.addSigner(signer)
 
-			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledTimes(1)
+			expect(getPdfElements().addObjectToPage).toHaveBeenCalledTimes(1)
 		})
 
 		it('does nothing when pdfElements is null', async () => {
-			const { addSigner } = wrapper.vm.$options.methods
+			wrapper.vm.pdfElements = null
 
 			const signer = {
 				element: {
@@ -821,9 +846,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				},
 			}
 
-			await addSigner.call({
-				$refs: { pdfElements: null },
-			}, signer)
+			await wrapper.vm.addSigner(signer)
 		})
 	})
 
@@ -892,7 +915,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 	describe('RULE: coordinate system conversion', () => {
 		beforeEach(() => {
-			Object.assign(wrapper.vm.$refs.pdfElements, {
+			Object.assign(getPdfElements(), {
 				selectedDocIndex: 0,
 				getPageHeight: vi.fn(() => 841.89), // A4 height in points
 				addObjectToPage: vi.fn(),
@@ -920,7 +943,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.addSigner(signer)
 
-			const call = wrapper.vm.$refs.pdfElements.addObjectToPage.mock.calls[0][0]
+			const call = getPdfElements().addObjectToPage.mock.calls[0][0]
 
 			// y should be: pageHeight - ury = 841.89 - 200 = 641.89
 			expect(call.y).toBeCloseTo(641.89, 2)
@@ -943,7 +966,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.addSigner(signer)
 
-			const call = wrapper.vm.$refs.pdfElements.addObjectToPage.mock.calls[0][0]
+			const call = getPdfElements().addObjectToPage.mock.calls[0][0]
 
 			expect(call.y).toBeGreaterThanOrEqual(0)
 		})
