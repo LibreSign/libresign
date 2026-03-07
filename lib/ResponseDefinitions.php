@@ -267,7 +267,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignConfigureCheck = array{
  *     message: string,
  *     resource: string,
- *     status: "error"|"success",
+ *     status: "error"|"info"|"success",
  *     tip: string,
  * }
  * @psalm-type LibresignConfigureChecksResponse = list<LibresignConfigureCheck>
