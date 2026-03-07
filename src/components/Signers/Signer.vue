@@ -23,10 +23,10 @@
 					:text="method"
 					:aria-label="t('libresign', 'Identification method: {method}', { method })"
 					:no-close="true" />
-				<NcChip :text="signer.statusText"
+				<NcChip :text="signer.statusText ?? ''"
 					:variant="chipType"
 					:icon-path="statusIconPath"
-					:aria-label="t('libresign', 'Signer status: {status}', { status: signer.statusText })"
+					:aria-label="t('libresign', 'Signer status: {status}', { status: signer.statusText ?? '' })"
 					:no-close="true"
 					class="signer-status-chip" />
 				<span v-if="disabledTooltip" class="sr-only">{{ disabledTooltip }}</span>
@@ -76,6 +76,7 @@ type SignerRow = {
 	signed?: boolean
 	identifyMethods?: SignerMethod[]
 	status?: number
+	statusText?: string
 	displayName?: string
 	signingOrder?: number
 }
@@ -99,7 +100,7 @@ const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
 	let flow = file?.signatureFlow ?? 'parallel'
 	if (typeof flow === 'number') {
-		const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		const flowMap: Record<number, string> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
 		flow = flowMap[flow] || 'parallel'
 	}
 	return flow
