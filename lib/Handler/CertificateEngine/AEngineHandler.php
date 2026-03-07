@@ -764,9 +764,11 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	private function filterNameValue(string $name, mixed $value, bool $generated): mixed {
-		if ($name === 'OU' && is_array($value) && !$generated) {
-			$filtered = $this->removeCaIdFromOrganizationalUnit($value);
-			return empty($filtered) ? null : $filtered;
+		if ($name === 'OU' && is_array($value)) {
+			if (!$generated) {
+				$value = $this->removeCaIdFromOrganizationalUnit($value);
+			}
+			return empty($value) ? null : implode(', ', $value);
 		}
 		return $value;
 	}
