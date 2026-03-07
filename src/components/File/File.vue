@@ -15,7 +15,7 @@
 			@load="backgroundFailed = false">
 		<NcIconSvgWrapper v-else v-once :path="mdiFile" :size="128" />
 		<div class="enDot">
-			<div :class="currentFile.statusText !== 'none' ? 'dot ' + statusToClass(currentFile.status ?? 0) : '' " />
+			<div :class="currentFile.statusText !== 'none' ? 'dot ' + statusToClass(currentFile.status ?? '') : '' " />
 			<span>{{ currentFile.statusText }}</span>
 		</div>
 		<h1>{{ currentFile.name }}</h1>
@@ -37,6 +37,14 @@ defineOptions({
 	name: 'File',
 })
 
+type CurrentFileRecord = {
+	id?: number
+	nodeId?: number
+	name?: string
+	status?: number | string
+	statusText?: string
+}
+
 const filesStore = useFilesStore()
 const sidebarStore = useSidebarStore()
 
@@ -45,7 +53,10 @@ const gridMode = true
 const cropPreviews = true
 
 const currentFileId = computed(() => filesStore.selectedFileId)
-const currentFile = computed(() => filesStore.files[currentFileId.value])
+const currentFile = computed<CurrentFileRecord | null>(() => {
+	const files = filesStore.files as Record<number, CurrentFileRecord | undefined>
+	return files[currentFileId.value] ?? null
+})
 const previewUrl = computed(() => {
 	if (backgroundFailed.value === true || !currentFile.value) {
 		return null
