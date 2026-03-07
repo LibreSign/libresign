@@ -56,7 +56,7 @@ vi.mock('../../helpers/pdfWorker', () => ({
 	ensurePdfWorker: vi.fn(() => ensurePdfWorkerMock()),
 }))
 
-vi.mock('@libresign/pdf-elements/src/components/PDFElements.vue', () => ({
+vi.mock('@libresign/pdf-elements', () => ({
 	default: {
 		name: 'PDFElements',
 		props: ['initialScale'],
