@@ -36,7 +36,7 @@ class SetupCheckResultService {
 				$formatted[] = [
 					'status' => $this->mapSeverityToStatus($result->getSeverity()),
 					'resource' => $this->formatResourceName($checkName),
-					'message' => (string)$result->getDescription(), // garantia de string
+					'message' => (string)$result->getDescription(),
 					'tip' => $result->getLinkToDoc() ?? '',
 					'category' => $category,
 				];
