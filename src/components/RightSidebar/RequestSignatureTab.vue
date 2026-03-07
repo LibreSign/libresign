@@ -125,9 +125,9 @@
 		</NcFormBox>
 		<SigningProgress
 			v-if="showSigningProgress"
-			:status="signingProgressStatus"
+			:status="signingProgressStatus ?? FILE_STATUS.SIGNING_IN_PROGRESS"
 			:status-text="signingProgressStatusText"
-			:progress="signingProgress"
+			:progress="signingProgress ?? undefined"
 			:is-loading="hasLoading" />
 		<NcFormBox v-if="filesStore.canSign()" class="action-form-box">
 			<NcButton
@@ -281,6 +281,7 @@ import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
+import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 
@@ -316,10 +317,28 @@ import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
+import type { NextcloudCapabilities } from '../../types/capabilities'
 
 defineOptions({
 	name: 'RequestSignatureTab',
 })
+
+type SigningProgressData = {
+	total: number
+	signed: number
+	files?: Array<{
+		uuid: string
+		name: string
+		signedCount: number
+		totalSigners: number
+		isSigned: boolean
+	}>
+	signers?: Array<{
+		id: string | number
+		displayName: string
+		signed: boolean
+	}>
+}
 
 const props = withDefaults(defineProps<{
 	useModal?: boolean
@@ -330,8 +349,11 @@ const props = withDefaults(defineProps<{
 const filesStore = useFilesStore()
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
-const userConfigStore = useUserConfigStore()
+const userConfigStore = useUserConfigStore() as ReturnType<typeof useUserConfigStore> & {
+	files_list_signer_identify_tab?: string
+}
 const { normalizeSigningOrders, recalculateSigningOrders } = useSigningOrder()
+const capabilities = getCapabilities() as NextcloudCapabilities
 
 const hasLoading = ref(false)
 const signerToEdit = ref<Record<string, any>>({})
@@ -346,7 +368,7 @@ const preserveOrder = ref(false)
 const showOrderDiagram = ref(false)
 const showEnvelopeFilesDialog = ref(false)
 const adminSignatureFlow = ref(loadState('libresign', 'signature_flow', 'none'))
-const signingProgress = ref<number | null>(null)
+const signingProgress = ref<SigningProgressData | null>(null)
 const signingProgressStatus = ref<number | null>(null)
 const signingProgressStatusText = ref('')
 const stopPollingFunction = ref<null | (() => void)>(null)
@@ -386,6 +408,7 @@ const envelopeFilesCount = computed(() => filesStore.getFile()?.filesCount || 0)
 const size = computed(() => window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal')
 const modalTitle = computed(() => Object.keys(signerToEdit.value).length > 0 ? t('libresign', 'Edit signer') : t('libresign', 'Add new signer'))
 const showSigningProgress = computed(() => signingProgressStatus.value === FILE_STATUS.SIGNING_IN_PROGRESS)
+const currentFile = computed(() => filesStore.getFile())
 
 function isSignerSigned(signer: any) {
 	if (Array.isArray(signer?.signed)) {
@@ -672,7 +695,7 @@ function getSvgIcon(name: string) {
 }
 
 function isSignElementsAvailable() {
-	return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
+	return capabilities.libresign?.config?.['sign-elements']?.['is-available'] === true
 }
 
 function closeModal() {
@@ -875,7 +898,7 @@ async function save() {
 	hasLoading.value = true
 	try {
 		await filesStore.saveOrUpdateSignatureRequest({})
-		emit('libresign:show-visible-elements')
+		emit('libresign:show-visible-elements', new CustomEvent('libresign:show-visible-elements'))
 	} catch (error: any) {
 		if (error.response?.data?.ocs?.data?.message) {
 			showError(error.response.data.ocs.data.message)
@@ -980,7 +1003,11 @@ watch(() => filesStore.selectedFileId, (newFileId) => {
 	}
 }, { immediate: true })
 
-watch(() => filesStore.currentFile?.status, (newStatus) => {
+const handleEditSigner = ((event: NextcloudEvent) => {
+	editSigner((event as CustomEvent<any>).detail)
+}) as EventHandler<NextcloudEvent>
+
+watch(() => currentFile.value?.status, (newStatus) => {
 	if (newStatus === FILE_STATUS.SIGNING_IN_PROGRESS) {
 		startSigningProgressPolling()
 	} else if (stopPollingFunction.value) {
@@ -989,14 +1016,14 @@ watch(() => filesStore.currentFile?.status, (newStatus) => {
 })
 
 onMounted(() => {
-	subscribe('libresign:edit-signer', editSigner)
+	subscribe('libresign:edit-signer', handleEditSigner)
 	filesStore.disableIdentifySigner()
 	activeTab.value = userConfigStore.files_list_signer_identify_tab || ''
 	syncPreserveOrderWithFile()
 })
 
 onBeforeUnmount(() => {
-	unsubscribe('libresign:edit-signer')
+	unsubscribe('libresign:edit-signer', handleEditSigner)
 	if (stopPollingFunction.value) {
 		stopSigningProgressPolling()
 	}
