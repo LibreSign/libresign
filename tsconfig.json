@@ -1,7 +1,7 @@
 {
 	"extends": "@vue/tsconfig/tsconfig.json",
 	"include": [
-		"src/vue-shim.d.ts",
+		"src/env.d.ts",
 		"src/global.d.ts",
 		"src/tests/vitest.d.ts",
 		"src/**/*.ts",
@@ -20,6 +20,7 @@
 		"allowImportingTsExtensions": true,
 		"noUncheckedIndexedAccess": false,
 		"strictNullChecks": true,
+		"types": [],
 		"lib": [
 			"ESNext",
 			"DOM",
