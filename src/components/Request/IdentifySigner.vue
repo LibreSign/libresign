@@ -95,6 +95,16 @@ const iconMap = {
 	svgXmpp,
 }
 
+const methodIconMap: Record<string, keyof typeof iconMap> = {
+	account: 'svgAccount',
+	email: 'svgEmail',
+	signal: 'svgSignal',
+	sms: 'svgSms',
+	telegram: 'svgTelegram',
+	whatsapp: 'svgWhatsapp',
+	xmpp: 'svgXmpp',
+}
+
 defineOptions({
 	name: 'IdentifySigner',
 })
@@ -124,6 +134,12 @@ type SelectedSigner = {
 	acceptsEmailNotifications?: boolean
 }
 
+type FilesStore = {
+	getFile: () => { signers?: Array<Record<string, unknown>> } | null | undefined
+	saveOrUpdateSignatureRequest: (payload: { signers: Array<Record<string, unknown>> }) => Promise<{ success?: boolean; message?: string }>
+	disableIdentifySigner: () => void
+}
+
 const props = withDefaults(defineProps<{
 	signerToEdit?: SignerToEdit
 	method?: string
@@ -142,7 +158,7 @@ const props = withDefaults(defineProps<{
 	disabled: false,
 })
 
-const filesStore = useFilesStore()
+const filesStore = useFilesStore() as unknown as FilesStore
 
 const id = ref<string | null>(null)
 const nameHelperText = ref('')
@@ -178,7 +194,8 @@ function getMethodIcon() {
 	if (!method) {
 		return iconMap.svgAccount
 	}
-	return iconMap[`svg${method.charAt(0).toUpperCase() + method.slice(1)}`] || iconMap.svgAccount
+	const iconKey = methodIconMap[method] || 'svgAccount'
+	return iconMap[iconKey]
 }
 
 function updateSigner(nextSigner: SelectedSigner | null) {
@@ -213,7 +230,7 @@ async function saveSigner() {
 	try {
 		const response = await filesStore.saveOrUpdateSignatureRequest({ signers })
 		if (response?.success === false) {
-			showError(response.message)
+			showError(response.message ?? t('libresign', 'Failed to save or update signature request'))
 			return
 		}
 	} catch {
