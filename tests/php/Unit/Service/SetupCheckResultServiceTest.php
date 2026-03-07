@@ -35,7 +35,7 @@ class SetupCheckResultServiceTest extends TestCase {
 						],
 					],
 					'system' => [
-						'OCA\\OtherApp\\SetupCheck\\DatabaseCheck' => [], // Será ignorado
+						'OCA\\OtherApp\\SetupCheck\\DatabaseCheck' => [],
 					],
 				],
 				'expectedCount' => 1,
@@ -95,9 +95,7 @@ class SetupCheckResultServiceTest extends TestCase {
 
 		$this->assertCount(1, $legacyFormatted);
 		$this->assertArrayNotHasKey('category', $legacyFormatted[0]);
-		// Verifica se o status foi mapeado corretamente (warning -> info)
 		$this->assertEquals('info', $legacyFormatted[0]['status']);
-		// Compara com o array original sem a categoria
 		$expected = $formatted[0];
 		unset($expected['category']);
 		$this->assertEquals($expected, $legacyFormatted[0]);
@@ -150,7 +148,6 @@ class SetupCheckResultServiceTest extends TestCase {
 					$mockResult->method('getLinkToDoc')->willReturn($data['link']);
 					$checks[$category][$checkName] = $mockResult;
 				} else {
-					// Para verificações de outros apps, criamos um mock genérico
 					$mockResult = $this->createMock(SetupResult::class);
 					$checks[$category][$checkName] = $mockResult;
 				}
