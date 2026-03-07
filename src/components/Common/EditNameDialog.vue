@@ -26,7 +26,6 @@
 import { t } from '@nextcloud/l10n'
 import { computed, ref, watch } from 'vue'
 
-import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
@@ -119,7 +118,7 @@ const dialogButtons = computed(() => {
 		},
 		{
 			label: t('libresign', 'Save'),
-			type: 'primary',
+			variant: 'primary' as const,
 			disabled: !isNameValid.value,
 			callback: () => {
 				handleSave()
