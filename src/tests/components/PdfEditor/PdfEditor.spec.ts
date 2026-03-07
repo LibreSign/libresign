@@ -7,7 +7,7 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import PdfEditor from '../../../components/PdfEditor/PdfEditor.vue'
 
-vi.mock('@libresign/pdf-elements/src/components/PDFElements.vue', () => ({
+vi.mock('@libresign/pdf-elements', () => ({
 	default: {
 		name: 'PDFElements',
 		template: '<div class="pdf-elements-mock"></div>',
