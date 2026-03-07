@@ -9,8 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Configure;
 
 use OC\Core\Command\Base;
-use OCP\SetupCheck\ISetupCheckManager;
-use Psr\Container\ContainerInterface;
+use OCA\Libresign\Service\SetupCheckResultService;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableCell;
 use Symfony\Component\Console\Helper\TableCellStyle;
@@ -19,8 +18,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Check extends Base {
+
 	public function __construct(
-		private ContainerInterface $container,
+		private SetupCheckResultService $setupCheckResultService,
 	) {
 		parent::__construct();
 	}
@@ -48,38 +48,20 @@ class Check extends Base {
 		$certificate = $input->getOption('certificate');
 		$all = (!$sign && !$certificate);
 
-		$checkManager = $this->container->get(ISetupCheckManager::class);
-		$allResults = $checkManager->runAll();
+		$allChecks = $this->setupCheckResultService->getFormattedChecks();
 
-		$filteredRows = [];
-
-		foreach ($allResults as $category => $checks) {
-			foreach ($checks as $checkName => $result) {
-
-				if (!str_starts_with($checkName, 'OCA\\Libresign\\SetupCheck\\')) {
-					continue;
-				}
-
-				$includeCategory = $all
-					|| ($sign && $category === 'system')
-					|| ($certificate && $category === 'security');
-
-				if (!$includeCategory) {
-					continue;
-				}
-
-				$status = $this->mapSeverityToStatus($result->getSeverity());
-				$shortName = substr($checkName, strrpos($checkName, '\\') + 1);
-				$resource = str_replace('SetupCheck', '', $shortName);
-
-				$filteredRows[] = [
-					'status' => $status,
-					'resource' => $resource,
-					'message' => $result->getDescription(),
-					'tip' => $result->getLinkToDoc() ?? '',
-				];
+		$filteredRows = array_filter($allChecks, function ($check) use ($all, $sign, $certificate) {
+			if ($all) {
+				return true;
 			}
-		}
+			if ($sign && $check['category'] === 'system') {
+				return true;
+			}
+			if ($certificate && $check['category'] === 'security') {
+				return true;
+			}
+			return false;
+		});
 
 		if (!empty($filteredRows)) {
 			$table = new Table($output);
@@ -110,16 +92,7 @@ class Check extends Base {
 		return 0;
 	}
 
-	private function mapSeverityToStatus(string $severity): string {
-		return match ($severity) {
-			'error' => 'error',
-			'warning' => 'info',
-			'success' => 'success',
-			default => 'error',
-		};
-	}
-
-	private function getStatusColor($status): string {
+	private function getStatusColor(string $status): string {
 		return match ($status) {
 			'success' => 'green',
 			'error' => 'red',

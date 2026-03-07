@@ -23,9 +23,9 @@ use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\ReminderService;
+use OCA\Libresign\Service\SetupCheckResultService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Settings\Admin;
@@ -57,7 +57,6 @@ class AdminController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		private IAppConfig $appConfig,
-		private ConfigureCheckService $configureCheckService,
 		private InstallService $installService,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private IEventSourceFactory $eventSourceFactory,
@@ -72,6 +71,7 @@ class AdminController extends AEnvironmentAwareController {
 		private DocMdpConfigService $docMdpConfigService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileMapper $fileMapper,
+		private SetupCheckResultService $setupCheckResultService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -244,11 +244,7 @@ class AdminController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/configure-check', requirements: ['apiVersion' => '(v1)'])]
 	public function configureCheck(): DataResponse {
-		/** @var LibresignConfigureCheck[] */
-		$configureCheckList = $this->configureCheckService->checkAll();
-		return new DataResponse(
-			$configureCheckList
-		);
+		return new DataResponse($this->setupCheckResultService->getLegacyFormattedChecks());
 	}
 
 	/**
@@ -287,8 +283,7 @@ class AdminController extends AEnvironmentAwareController {
 				$this->installService->installCfssl($async);
 			}
 
-			$this->configureCheckService->disableCache();
-			$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
+			$this->eventSource->send('configure_check', $this->setupCheckResultService->getLegacyFormattedChecks());
 			$seconds = 0;
 			while ($this->installService->isDownloadWip()) {
 				$totalSize = $this->installService->getTotalSize();
@@ -299,7 +294,7 @@ class AdminController extends AEnvironmentAwareController {
 				usleep(200000); // 0.2 seconds
 				$seconds += 0.2;
 				if ($seconds === 5.0) {
-					$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
+					$this->eventSource->send('configure_check', $this->setupCheckResultService->getLegacyFormattedChecks());
 					$seconds = 0;
 				}
 			}
@@ -313,7 +308,7 @@ class AdminController extends AEnvironmentAwareController {
 			]));
 		}
 
-		$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
+		$this->eventSource->send('configure_check', $this->setupCheckResultService->getLegacyFormattedChecks());
 		$this->eventSource->send('done', '');
 		$this->eventSource->close();
 		// Nextcloud inject a lot of headers that is incompatible with SSE
@@ -550,7 +545,7 @@ class AdminController extends AEnvironmentAwareController {
 		float $fontSize,
 		bool $isDarkTheme,
 		string $align,
-	):  FileDisplayResponse|DataResponse {
+	): FileDisplayResponse|DataResponse {
 		try {
 			$blob = $this->signatureTextService->signerNameImage(
 				width: $width,
