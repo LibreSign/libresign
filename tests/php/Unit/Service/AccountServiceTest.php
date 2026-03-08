@@ -61,7 +61,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IUserManager&MockObject $userManager;
-	private IAccountManager $accountManager;
+	private IAccountManager&MockObject $accountManager;
 	private IRootFolder&MockObject $root;
 	private IMimeTypeDetector&MockObject $mimeTypeDetector;
 	private FileMapper&MockObject $fileMapper;
