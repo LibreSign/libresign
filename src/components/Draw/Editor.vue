@@ -80,7 +80,7 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
-import type { NextcloudCapabilities } from '../../types/capabilities'
+import type { components as AdministrationComponents } from '../../types/openapi/openapi-administration'
 
 defineOptions({
 	name: 'Editor',
@@ -94,12 +94,16 @@ type ColorPickerRef = {
 	$el?: HTMLElement
 }
 
+type EditorCapabilities = {
+	libresign: AdministrationComponents['schemas']['Capabilities']
+}
+
 const emit = defineEmits<{
 	(event: 'close'): void
 	(event: 'save', value: string | null): void
 }>()
 
-const capabilities = getCapabilities() as NextcloudCapabilities
+const capabilities = getCapabilities() as EditorCapabilities
 const signElementsConfig = capabilities.libresign.config['sign-elements']
 const canvasWidth = signElementsConfig['signature-width']
 const canvasHeight = signElementsConfig['signature-height']
