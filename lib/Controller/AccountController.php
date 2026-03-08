@@ -187,7 +187,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * Validates API access data and returns the authenticated user's data.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{account: array{uid: string, emailAddress: string, displayName: string},settings: array{canRequestSign: bool,hasSignatureFile: bool}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{account: array{uid: string, emailAddress: string, displayName: string},settings: array{canRequestSign: bool,hasSignatureFile: bool,phoneNumber: string}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid user or password
