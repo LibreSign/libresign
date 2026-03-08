@@ -5,7 +5,12 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-let FileValidation: unknown
+import type { VueWrapper } from '@vue/test-utils'
+
+type FileValidationComponent = typeof import('../../../components/validation/FileValidation.vue').default
+type FileValidationWrapper = VueWrapper<any>
+
+let FileValidation: FileValidationComponent
 vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((_app: string, text: string) => text),
 	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
@@ -23,14 +28,14 @@ beforeAll(async () => {
 
 
 describe('FileValidation', () => {
-	let wrapper!: ReturnType<typeof createWrapper>
+	let wrapper!: FileValidationWrapper
 
 	const createWrapper = (props: Record<string, unknown> = {}) => {
 		const safeProps = props as {
 			document?: Record<string, unknown>
 			[key: string]: unknown
 		}
-		return mount(FileValidation as never, {
+		return mount(FileValidation, {
 			props: {
 				document: {
 					name: 'Test Document',
@@ -55,7 +60,7 @@ describe('FileValidation', () => {
 					t: (_app: string, text: string) => text,
 				},
 			},
-		})
+		}) as unknown as FileValidationWrapper
 	}
 
 	beforeEach(() => {
