@@ -88,7 +88,7 @@ describe('Signers', () => {
 		setActivePinia(pinia)
 		filesStore = useFilesStore() as FilesStoreMock
 		filesStore.selectedFile = { signers: [] }
-		filesStore.getFile = vi.fn(() => filesStore.selectedFile)
+		filesStore.getFile = vi.fn(() => filesStore.selectedFile || { signers: [] })
 		filesStore.canSave = vi.fn(() => true)
 		if (wrapper) {
 			wrapper.unmount()

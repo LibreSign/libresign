@@ -73,13 +73,15 @@ type SignerMethod = {
 }
 
 type SignerRow = {
-	signed?: boolean
+	signed?: unknown
 	identifyMethods?: SignerMethod[]
 	status?: number
 	statusText?: string
 	displayName?: string
 	signingOrder?: number
 }
+
+type SignatureFlow = 'none' | 'parallel' | 'ordered_numeric'
 
 const props = withDefaults(defineProps<{
 	signerIndex: number
@@ -98,10 +100,13 @@ const methods = loadState('libresign', 'identify_methods', []) as Array<{ name: 
 
 const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
-	let flow = file?.signatureFlow ?? 'parallel'
-	if (typeof flow === 'number') {
-		const flowMap: Record<number, string> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-		flow = flowMap[flow] || 'parallel'
+	const rawFlow = file?.signatureFlow
+	let flow: SignatureFlow = 'parallel'
+	if (typeof rawFlow === 'number') {
+		const flowMap: Record<number, SignatureFlow> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		flow = flowMap[rawFlow] || 'parallel'
+	} else if (rawFlow === 'none' || rawFlow === 'parallel' || rawFlow === 'ordered_numeric') {
+		flow = rawFlow
 	}
 	return flow
 })

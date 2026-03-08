@@ -144,7 +144,7 @@ describe('EnvelopeFilesList', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
 		filesStore = useFilesStore() as FilesStoreMock
-		filesStore.getFile = vi.fn(() => filesStore.selectedFile)
+		filesStore.getFile = vi.fn(() => filesStore.selectedFile || { signers: [] })
 		if (wrapper) {
 			wrapper.unmount()
 			wrapper = null

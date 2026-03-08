@@ -35,6 +35,17 @@ type PendingEnvelope = {
 	id: number
 	uuid?: string
 	name: string
+	nodeType?: string
+	files?: Array<{ fileId?: string | number, [key: string]: unknown }>
+	filesCount?: number
+	signers?: Array<{
+		identify?: string | number | { email?: string, account?: string }
+		signRequestId?: number
+		signed?: unknown
+		[key: string]: unknown
+	}>
+	settings?: Record<string, unknown>
+	[key: string]: unknown
 }
 
 type FileInfo = {
@@ -163,8 +174,10 @@ async function update(fileInfo: FileInfo) {
 		id: -fileInfo.id,
 		nodeId: fileInfo.id,
 		name: fileInfo.name,
-		file: generateRemoteUrl(`dav/files/${getCurrentUser()?.uid}/${fileInfo.path + '/' + fileInfo.name}`)
+		file: {
+			url: generateRemoteUrl(`dav/files/${getCurrentUser()?.uid}/${fileInfo.path + '/' + fileInfo.name}`)
 			.replace(/\/\/$/, '/'),
+		},
 		signers: [],
 	})
 	filesStore.selectFile(-fileInfo.id)
