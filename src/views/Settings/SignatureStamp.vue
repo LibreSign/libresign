@@ -361,6 +361,16 @@ defineOptions({
 	name: 'SignatureStamp',
 })
 
+type RenderMode = 'DESCRIPTION_ONLY' | 'GRAPHIC_AND_DESCRIPTION' | 'SIGNAME_AND_DESCRIPTION' | 'GRAPHIC_ONLY'
+
+function getStringState(key: string, fallback = '') {
+	return String(loadState('libresign', key, fallback) ?? fallback)
+}
+
+function getNumberState(key: string, fallback = 0) {
+	return Number(loadState('libresign', key, fallback) ?? fallback)
+}
+
 const isDarkTheme = useIsDarkTheme()
 const templateError = loadState('libresign', 'signature_text_template_error', '')
 const initialBackgroundType = loadState('libresign', 'signature_background_type') as string
@@ -377,20 +387,20 @@ const errorMessageBackground = ref('')
 const backgroundUrl = ref(backgroundType.value !== 'deleted'
 	? generateOcsUrl('/apps/libresign/api/v1/admin/signature-background')
 	: '')
-const defaultSignatureTextTemplate = ref(loadState('libresign', 'default_signature_text_template'))
-const defaultTemplateFontSize = ref(loadState('libresign', 'default_template_font_size'))
-const defaultSignatureFontSize = ref(loadState('libresign', 'default_signature_font_size'))
-const defaultSignatureWidth = ref(loadState('libresign', 'default_signature_width'))
-const defaultSignatureHeight = ref(loadState('libresign', 'default_signature_height'))
-const signatureTextTemplate = ref(loadState('libresign', 'signature_text_template'))
-const signatureWidth = ref(loadState('libresign', 'signature_width'))
-const signatureHeight = ref(loadState('libresign', 'signature_height'))
-const signatureFontSize = ref(loadState('libresign', 'signature_font_size'))
-const templateFontSize = ref(loadState('libresign', 'template_font_size'))
+const defaultSignatureTextTemplate = ref(getStringState('default_signature_text_template'))
+const defaultTemplateFontSize = ref<number>(getNumberState('default_template_font_size'))
+const defaultSignatureFontSize = ref<number>(getNumberState('default_signature_font_size'))
+const defaultSignatureWidth = ref<number>(getNumberState('default_signature_width'))
+const defaultSignatureHeight = ref<number>(getNumberState('default_signature_height'))
+const signatureTextTemplate = ref(getStringState('signature_text_template'))
+const signatureWidth = ref<number>(getNumberState('signature_width'))
+const signatureHeight = ref<number>(getNumberState('signature_height'))
+const signatureFontSize = ref<number>(getNumberState('signature_font_size'))
+const templateFontSize = ref<number>(getNumberState('template_font_size'))
 const isSignatureImageLoaded = ref(false)
 const templateSaved = ref(true)
-const zoomLevel = ref(loadState('libresign', 'signature_preview_zoom_level'))
-const renderMode = ref(loadState('libresign', 'signature_render_mode'))
+const zoomLevel = ref<number>(getNumberState('signature_preview_zoom_level', 100))
+const renderMode = ref<RenderMode>(loadState('libresign', 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION') as RenderMode)
 const dislaySuccessTemplate = ref(false)
 const errorMessageTemplate = ref<string[]>(templateError ? [templateError as string] : [])
 const parsed = ref(loadState('libresign', 'signature_text_parsed') as string)
@@ -411,9 +421,9 @@ const displayPreview = computed(() => {
 	}
 	return true
 })
-const inputValue = computed({
+const inputValue = computed<string>({
 	get: () => signatureTextTemplate.value,
-	set: (value) => {
+	set: (value: string) => {
 		signatureTextTemplate.value = value
 		debouncePropertyChange()
 	},
@@ -427,7 +437,7 @@ const displayResetSignatureHeight = computed(() => signatureHeight.value !== def
 const parsedWithLineBreak = computed(() => String(parsed.value ?? '').replace(/\n/g, '<br>'))
 const previewSignatureImageWidth = computed(() => (renderMode.value === 'GRAPHIC_ONLY' || !parsedWithLineBreak.value)
 	? signatureWidth.value
-	: Math.floor(Number(signatureWidth.value) / 2))
+: Math.floor(signatureWidth.value / 2))
 const previewSignatureImageHeight = computed(() => signatureHeight.value)
 const signatureImageUrl = computed(() => {
 	const text = renderMode.value === 'SIGNAME_AND_DESCRIPTION'
@@ -550,8 +560,10 @@ async function undoBackground() {
 async function removeBackground() {
 	reset()
 	await axios.delete(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), {
-		setting: mimeName.value,
-		value: 'backgroundColor',
+		data: {
+			setting: mimeName.value,
+			value: 'backgroundColor',
+		},
 	})
 		.then(() => {
 			backgroundType.value = 'deleted'
