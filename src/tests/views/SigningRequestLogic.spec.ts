@@ -51,13 +51,13 @@ describe('Signing Request Creation Business Logic', () => {
 	describe('Document and signer initialization', () => {
 		it('initializes signing request with document', () => {
 			const signStore = useSignStore()
-	        const document = { id: 1, name: 'contract.pdf', pages: 5 }
+			const document = { id: 1, name: 'contract.pdf', pages: 5 }
 
-				// ensure signers array exists to match store expectations
-				const doc = { ...document, signers: [] }
+			// ensure signers array exists to match store expectations
+			const doc = { ...document, signers: [] }
 
-				signStore.setFileToSign(doc)
-				expect(signStore.document.id).toBe(1)
+			signStore.setFileToSign(doc)
+			expect(signStore.document!.id).toBe(1)
 		})
 
 		it('stores document metadata', () => {
@@ -65,20 +65,22 @@ describe('Signing Request Creation Business Logic', () => {
 			const document = { id: 1, name: 'agreement.pdf', created_at: Date.now(), signers: [] }
 
 			signStore.setFileToSign(document)
-			expect(signStore.document.name).toBe('agreement.pdf')
+			expect(signStore.document!.name).toBe('agreement.pdf')
 		})
 
 		it('initializes empty signer list', () => {
 			const signStore = useSignStore()
-			expect(signStore.document.signers).toEqual([])
+			signStore.setFileToSign({ id: 1, name: 'contract.pdf', signers: [] })
+			expect(signStore.document!.signers).toEqual([])
 		})
 
 		it('adds signer to request', () => {
 			const signStore = useSignStore()
 			const signer = { id: 1, name: 'Alice', email: 'alice@example.com' }
 
-			signStore.document.signers = [signer]
-			expect(signStore.document.signers.length).toBe(1)
+			signStore.setFileToSign({ id: 1, name: 'contract.pdf', signers: [] })
+			signStore.document!.signers = [signer]
+			expect(signStore.document!.signers.length).toBe(1)
 		})
 	})
 
