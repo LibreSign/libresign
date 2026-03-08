@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<tr v-show="haveFiles || filtersStore.activeChips.length > 0">
+	<tr v-show="haveFiles || activeChips.length > 0">
 		<th class="files-list__row-checkbox">
 			<!-- TRANSLATORS Label for a table footer which summarizes the columns of the table -->
 			<span class="hidden-visually">{{ t('libresign', 'Total rows summary') }}</span>
@@ -34,17 +34,9 @@ defineOptions({
 	name: 'FilesListTableFooter',
 })
 
-type FilesStore = {
-	files: Record<string, unknown>
-	loading: boolean
-}
-
-type FiltersStore = {
-	activeChips: unknown[]
-}
-
-const filesStore = useFilesStore() as FilesStore
-const filtersStore = useFiltersStore() as FiltersStore
+const filesStore = useFilesStore()
+const filtersStore = useFiltersStore()
+const activeChips = computed(() => Array.isArray(filtersStore.activeChips) ? filtersStore.activeChips : [])
 
 const totalFiles = computed(() => Object.keys(filesStore.files).length)
 
@@ -66,6 +58,7 @@ const haveFiles = computed(() => {
 defineExpose({
 	filesStore,
 	filtersStore,
+	activeChips,
 	totalFiles,
 	summary,
 	haveFiles,
