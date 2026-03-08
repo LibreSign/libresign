@@ -157,9 +157,9 @@ defineOptions({
 	name: 'SignPDF',
 })
 
-const signStore = useSignStore() as SignStore
-const filesStore = useFilesStore() as FilesStore
-const sidebarStore = useSidebarStore() as SidebarStore
+const signStore = useSignStore() as unknown as SignStore
+const filesStore = useFilesStore() as unknown as FilesStore
+const sidebarStore = useSidebarStore() as unknown as SidebarStore
 const instance = getCurrentInstance()
 
 const pdfEditor = ref<PdfEditorRef | null>(null)
@@ -347,8 +347,11 @@ function updateSigners() {
 			envelopeFiles.value.map((file, index) => [String(file.id), index]),
 		)
 		const elements = aggregateVisibleElementsByFiles(envelopeFiles.value)
-		elements.forEach(element => {
-			const fileInfo = findFileById(envelopeFiles.value, element.fileId)
+			elements.forEach(element => {
+				const fileInfo = findFileById(envelopeFiles.value, element.fileId)
+				if (!fileInfo) {
+					return
+				}
 			const signers = getFileSigners(fileInfo)
 			const signer = signers.find(row => idsMatch(row.signRequestId, element.signRequestId))
 				|| signers.find(row => row.me)
@@ -433,7 +436,7 @@ async function redirectIfSigningInProgress() {
 		}
 	}
 
-	if (targetUuid) {
+	if (typeof targetUuid === 'string' && targetUuid.length > 0) {
 		await getRouter()?.push({
 			name: targetRoute,
 			params: { uuid: targetUuid },
@@ -465,7 +468,8 @@ const compat = {
 }
 
 function getCompatMethod<K extends keyof typeof compat>(name: K): typeof compat[K] {
-	const proxiedMethod = instance?.proxy?.[name]
+	const proxy = instance?.proxy as Record<string, unknown> | undefined
+	const proxiedMethod = proxy?.[name as string]
 	if (typeof proxiedMethod === 'function') {
 		return proxiedMethod as typeof compat[K]
 	}
