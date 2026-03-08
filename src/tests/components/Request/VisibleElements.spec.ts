@@ -5,6 +5,7 @@
 
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -59,8 +60,88 @@ vi.mock('@libresign/pdf-elements', () => ({
 }))
 
 describe('VisibleElements Component - Business Rules', () => {
-	let wrapper: ReturnType<typeof mount>
+	type FilePageInfo = {
+		id: number
+		fileIndex: number
+		startPage: number
+		fileName: string
+	}
+
+	type VisibleElementRecord = {
+		elementId?: string | number
+		fileId?: number
+		signRequestId?: number | string
+		coordinates: {
+			page: number
+			width: number
+			height: number
+			left: number
+			top: number
+		}
+	}
+
+	type VisibleElementsVm = {
+		$: {
+			refs?: {
+				pdfEditor?: {
+					startAddingSigner?: (signer: Record<string, unknown>, size: { width: number, height: number }) => boolean
+					cancelAdding?: () => void
+					$refs?: {
+						pdfElements?: {
+							getAllObjects: (docIndex: number) => Array<Record<string, unknown>>
+						}
+					}
+				}
+			}
+		}
+		$nextTick: () => Promise<void>
+		canSign: boolean
+		canSave: boolean
+		status: number
+		isDraft: boolean
+		variantOfSaveButton: string
+		variantOfSignButton: string
+		pdfFileNames: string[]
+		pdfFiles: unknown[]
+		getPageHeightForFile: (fileId: number, page: number) => number | undefined
+		signerSelected: Record<string, unknown> | null
+		modal: boolean
+		elementsLoaded: boolean
+		documentNameWithExtension: string | undefined
+		canRequestSign: boolean
+		filePagesMap: Record<number, FilePageInfo>
+		document: Record<string, any>
+		buildFilePagesMap: () => void
+		stopAddSigner: () => void
+		closeModal: () => void
+		showModal: () => Promise<void>
+		onSelectSigner: (signer: Record<string, unknown>) => void
+		buildVisibleElements: () => VisibleElementRecord[]
+		save: () => Promise<boolean>
+		aggregateVisibleElementsByFiles: (input: unknown) => unknown[]
+		fetchFiles: () => Promise<void>
+	}
+
+	type VisibleElementsWrapper = VueWrapper<VisibleElementsVm>
+
+	let wrapper: VisibleElementsWrapper
 	let filesStore: ReturnType<typeof useFilesStoreType>
+
+	function createWrapper(): VisibleElementsWrapper {
+		return mount(VisibleElements, {
+			global: {
+				stubs: {
+					NcModal: true,
+					NcNoteCard: true,
+					NcChip: true,
+					NcButton: true,
+					NcLoadingIcon: true,
+					PdfEditor: true,
+					Signer: true,
+				},
+			},
+		}) as unknown as VisibleElementsWrapper
+	}
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
@@ -77,19 +158,7 @@ describe('VisibleElements Component - Business Rules', () => {
 		}
 		filesStore.selectedFileId = 1
 
-		wrapper = mount(VisibleElements, {
-			global: {
-				stubs: {
-					NcModal: true,
-					NcNoteCard: true,
-					NcChip: true,
-					NcButton: true,
-					NcLoadingIcon: true,
-					PdfEditor: true,
-					Signer: true,
-				},
-			},
-		})
+		wrapper = createWrapper()
 	})
 
 	describe('RULE: canSign depends on status and signer UUID', () => {
@@ -313,8 +382,8 @@ describe('VisibleElements Component - Business Rules', () => {
 
 	describe('RULE: PDF files extraction', () => {
 		it('extracts file objects from files array', () => {
-			const file1 = { path: '/path/to/file1.pdf' }
-			const file2 = { path: '/path/to/file2.pdf' }
+			const file1 = '/path/to/file1.pdf'
+			const file2 = '/path/to/file2.pdf'
 
 			filesStore.files[1].files = [
 				{ name: 'doc1', file: file1 },
@@ -325,7 +394,7 @@ describe('VisibleElements Component - Business Rules', () => {
 		})
 
 		it('filters out files without file object', () => {
-			const file1 = { path: '/path/to/file1.pdf' }
+			const file1 = '/path/to/file1.pdf'
 
 			filesStore.files[1].files = [
 				{ name: 'doc1', file: file1 },
@@ -343,8 +412,8 @@ describe('VisibleElements Component - Business Rules', () => {
 		})
 
 		it('extracts file objects from nested files array payload', () => {
-			const file1 = { path: '/path/to/file1.pdf' }
-			const file2 = { path: '/path/to/file2.pdf' }
+			const file1 = '/path/to/file1.pdf'
+			const file2 = '/path/to/file2.pdf'
 
 			filesStore.files[1].files = [
 				{ id: 10, files: [{ file: file1 }] },
@@ -418,7 +487,7 @@ describe('VisibleElements Component - Business Rules', () => {
 						},
 					},
 				},
-			})
+			}) as unknown as VisibleElementsWrapper
 			wrapperWithSlots.vm.modal = true
 			await wrapperWithSlots.vm.$nextTick()
 
@@ -498,6 +567,8 @@ describe('VisibleElements Component - Business Rules', () => {
 					},
 				},
 			})
+			wrapper.unmount()
+			wrapper = createWrapper()
 
 			await wrapper.vm.showModal()
 
@@ -720,13 +791,13 @@ describe('VisibleElements Component - Business Rules', () => {
 			{
 				label: 'applies aggregated visible elements when available',
 				childFiles: [
-					{ id: 545, name: 'file1.pdf', visibleElements: [{ elementId: 185, fileId: 545 }] },
-					{ id: 546, name: 'file2.pdf', visibleElements: [{ elementId: 186, fileId: 546 }] },
+					{ id: 545, name: 'file1.pdf', visibleElements: [{ type: 'signature', elementId: '185', fileId: 545, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } }] },
+					{ id: 546, name: 'file2.pdf', visibleElements: [{ type: 'signature', elementId: '186', fileId: 546, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } }] },
 				],
-				initialVisibleElements: [{ elementId: 999, fileId: 1 }],
+				initialVisibleElements: [{ type: 'signature', elementId: '999', fileId: 1, coordinates: { page: 1, left: 1, top: 2, width: 3, height: 4 } }],
 				expectedVisibleElements: [
-					{ elementId: 185, fileId: 545 },
-					{ elementId: 186, fileId: 546 },
+					{ type: 'signature', elementId: '185', fileId: 545, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+					{ type: 'signature', elementId: '186', fileId: 546, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } },
 				],
 			},
 			{
@@ -735,8 +806,8 @@ describe('VisibleElements Component - Business Rules', () => {
 					{ id: 545, name: 'file1.pdf', visibleElements: [] },
 					{ id: 546, name: 'file2.pdf' },
 				],
-				initialVisibleElements: [{ elementId: 999, fileId: 1 }],
-				expectedVisibleElements: [{ elementId: 999, fileId: 1 }],
+				initialVisibleElements: [{ type: 'signature', elementId: '999', fileId: 1, coordinates: { page: 1, left: 1, top: 2, width: 3, height: 4 } }],
+				expectedVisibleElements: [{ type: 'signature', elementId: '999', fileId: 1, coordinates: { page: 1, left: 1, top: 2, width: 3, height: 4 } }],
 			},
 		])('$label', async ({ childFiles, initialVisibleElements, expectedVisibleElements }) => {
 			filesStore.files[1].id = 544
@@ -772,7 +843,7 @@ describe('VisibleElements Component - Business Rules', () => {
 					signers: [
 						{
 							signRequestId: 603,
-							visibleElements: [{ elementId: 185, fileId: 545, signRequestId: 603 }],
+							visibleElements: [{ type: 'signature', elementId: '185', fileId: 545, signRequestId: 603, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } }],
 						},
 					],
 				},
@@ -783,7 +854,7 @@ describe('VisibleElements Component - Business Rules', () => {
 					signers: [
 						{
 							signRequestId: 604,
-							visibleElements: [{ elementId: 186, fileId: 546, signRequestId: 604 }],
+							visibleElements: [{ type: 'signature', elementId: '186', fileId: 546, signRequestId: 604, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } }],
 						},
 					],
 				},
@@ -802,8 +873,8 @@ describe('VisibleElements Component - Business Rules', () => {
 			await wrapper.vm.fetchFiles()
 
 			expect(wrapper.vm.document.visibleElements).toEqual([
-				{ elementId: 185, fileId: 545, signRequestId: 603 },
-				{ elementId: 186, fileId: 546, signRequestId: 604 },
+				{ type: 'signature', elementId: '185', fileId: 545, signRequestId: 603, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+				{ type: 'signature', elementId: '186', fileId: 546, signRequestId: 604, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } },
 			])
 		})
 	})
