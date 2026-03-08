@@ -67,8 +67,7 @@
 import { t } from '@nextcloud/l10n'
 import { computed, getCurrentInstance, onBeforeMount, reactive, ref, toRefs } from 'vue'
 
-// eslint-disable-next-line n/no-missing-import
-import md5 from 'crypto-js/md5'
+import md5 from 'blueimp-md5'
 
 
 import axios from '@nextcloud/axios'
@@ -221,7 +220,7 @@ const confirmPasswordError = computed(() => {
 	return ''
 })
 
-const isEqualEmail = computed(() => state.settings.accountHash === md5(email.value).toString())
+const isEqualEmail = computed(() => state.settings.accountHash === md5(email.value))
 
 const canSave = computed(() => {
 	return state.password.length > 0
