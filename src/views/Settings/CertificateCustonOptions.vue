@@ -5,7 +5,7 @@
 <template>
 	<div class="form-group">
 		<label for="optionalAttribute">{{ t('libresign', 'Optional attributes') }}</label>
-		<NcPopover container="body" :popper-hide-triggers="(triggers) => [...triggers, 'click']">
+		<NcPopover container="body" :popper-hide-triggers="extendHideTriggers">
 			<template #trigger>
 				<NcButton :disabled="customNamesOptions.length === 0">
 					{{ t('libresign', 'Select a custom name') }}
@@ -67,13 +67,13 @@
 				<div v-else class="item">
 					<NcTextField v-if="certificate"
 						:id="certificate.id"
-						v-model="certificate.value"
+						:model-value="typeof certificate.value === 'string' ? certificate.value : ''"
 						:success="typeof certificate.error === 'boolean' && !certificate.error"
 						:error="certificate.error"
-						:maxlength="getOptionProperty(certificate.id, 'max')"
-						:label="getOptionProperty(certificate.id, 'label')"
-						:helper-text="getOptionProperty(certificate.id, 'helperText')"
-						@update:modelValue="validate(certificate.id)" />
+						:maxlength="getOptionMax(certificate.id)"
+						:label="getOptionLabel(certificate.id)"
+						:helper-text="getOptionHelperText(certificate.id)"
+						@update:modelValue="updateCertificateValue(certificate, $event)" />
 					<NcButton :aria-label="t('libresign', 'Remove custom name entry from root certificate')"
 						@click="removeOptionalAttribute(certificate.id)">
 						<template #icon>
@@ -142,6 +142,25 @@ function getOptionProperty(id: string, property: 'label' | 'helperText' | 'max')
 	return availableOptions.value.find(option => option.id === id)?.[property]
 }
 
+function getOptionLabel(id: string) {
+	const label = getOptionProperty(id, 'label')
+	return typeof label === 'string' ? label : undefined
+}
+
+function getOptionHelperText(id: string) {
+	const helperText = getOptionProperty(id, 'helperText')
+	return typeof helperText === 'string' ? helperText : undefined
+}
+
+function getOptionMax(id: string) {
+	const max = getOptionProperty(id, 'max')
+	return typeof max === 'number' ? max : undefined
+}
+
+function extendHideTriggers(triggers: string[]) {
+	return [...triggers, 'click']
+}
+
 function isMaxItemsReached(certificate: CertificateOption) {
 	if (!Array.isArray(certificate.value)) {
 		return false
@@ -175,6 +194,11 @@ function validate(id: string) {
 		certificate.error = !(validateMin(certificate) && validateMax(certificate))
 		emitCertificateList()
 	}
+}
+
+function updateCertificateValue(certificate: CertificateOption, value: string | number) {
+	certificate.value = String(value)
+	validate(certificate.id)
 }
 
 function validateArray(_id: string) {
