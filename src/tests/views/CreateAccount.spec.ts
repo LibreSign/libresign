@@ -7,7 +7,7 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import CreateAccount from '../../views/CreateAccount.vue'
-import md5 from 'crypto-js/md5'
+import md5 from 'blueimp-md5'
 
 type ValidationField = {
 	$model: string
@@ -46,7 +46,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
 		if (key === 'settings') {
 			return {
-				accountHash: md5('test@example.com').toString(),
+				accountHash: md5('test@example.com'),
 			}
 		}
 		if (key === 'message') {
