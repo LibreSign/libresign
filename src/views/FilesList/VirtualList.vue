@@ -4,7 +4,7 @@
 -->
 <template>
 	<div class="files-list"
-		:class="{ 'files-list--grid': userConfigStore.files_list_grid_view }"
+		:class="{ 'files-list--grid': !!userConfigStore.files_list_grid_view }"
 		data-cy-files-list>
 		<div class="files-list__filters">
 			<slot name="filters" />
@@ -80,10 +80,6 @@ type FilesStore = {
 	getAllFiles: () => void
 }
 
-type UserConfigStore = {
-	files_list_grid_view: boolean
-}
-
 const props = withDefaults(defineProps<{
 	dataComponent: object | (() => unknown)
 	loading: boolean
@@ -93,9 +89,13 @@ const props = withDefaults(defineProps<{
 })
 
 const filesStore = useFilesStore() as FilesStore
-const userConfigStore = useUserConfigStore() as UserConfigStore
+const userConfigStore = useUserConfigStore()
 const endOfList = useTemplateRef<HTMLElement>('endOfList')
 const observer = ref<IntersectionObserver | null>(null)
+
+const handleFilesUpdated = () => {
+	updateObserver()
+}
 
 function getFilesIfNotLoading() {
 	if (filesStore.loading) {
@@ -120,12 +120,12 @@ onMounted(() => {
 			getFilesIfNotLoading()
 		}
 	}, 100))
-	subscribe('libresign:files:updated', updateObserver)
+	subscribe('libresign:files:updated', handleFilesUpdated)
 })
 
 onBeforeUnmount(() => {
 	observer.value?.disconnect()
-	unsubscribe('libresign:files:updated')
+	unsubscribe('libresign:files:updated', handleFilesUpdated)
 })
 
 defineExpose({
