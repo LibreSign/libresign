@@ -6,6 +6,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 
 type TranslationFn = (app: string, text: string) => string
 
@@ -19,6 +20,26 @@ type FileStatusResponse = {
 	status?: string | number
 	size?: number
 	signed?: string
+}
+
+type FileStatusListVm = {
+	files: FileStatusResponse[]
+	updateTimer: ReturnType<typeof setInterval> | null
+	$nextTick: () => Promise<void>
+	loadFiles: () => Promise<void>
+	getStatusClass: (status: string | number) => string
+	getStatusLabel: (status: string | number) => string
+	getStatusIcon: (status: string | number) => string
+	formatDate: (date: string | null) => string
+	startUpdatePolling: () => void
+	stopUpdatePolling: () => void
+	$emit: (event: string, ...args: unknown[]) => void
+}
+
+type FileStatusListWrapper = VueWrapper<any> & {
+	vm: FileStatusListVm
+	setProps: (props: { fileIds?: number[]; updateInterval?: number }) => Promise<void>
+	props: (key: 'fileIds' | 'updateInterval') => unknown
 }
 
 type AxiosMock = {
@@ -89,10 +110,10 @@ beforeAll(async () => {
 })
 
 describe('FileStatusList', () => {
-	let wrapper: ReturnType<typeof mount> | null
+	let wrapper: FileStatusListWrapper | null
 	let mockAxios: AxiosMock
 
-	const createWrapper = (props: { fileIds?: number[]; updateInterval?: number } = {}) => {
+	const createWrapper = (props: { fileIds?: number[]; updateInterval?: number } = {}): FileStatusListWrapper => {
 		return mount(FileStatusList, {
 			props: {
 				fileIds: [],
@@ -107,7 +128,7 @@ describe('FileStatusList', () => {
 					t: ((app: string, text: string) => text) as TranslationFn,
 				},
 			},
-		})
+		}) as FileStatusListWrapper
 	}
 
 	beforeEach(() => {
