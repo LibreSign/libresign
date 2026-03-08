@@ -22,7 +22,7 @@ import { useSidebarStore } from './sidebar.js'
  * @typedef {{
  * 	id?: number
  * 	uuid?: string
- * 	nodeId?: number
+ * 	nodeId?: number | string
  * 	loading?: string | boolean
  * 	signers?: Array<Record<string, unknown>>
  * 	signersCount?: number
