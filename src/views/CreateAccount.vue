@@ -233,6 +233,9 @@ async function createAccount() {
 			email: state.email,
 			password: state.password,
 		})
+		if (!router.value) {
+			return
+		}
 		const url = router.value.resolve({ name: 'SignPDF' })
 		window.location.href = url.href
 	} catch (error: any) {
