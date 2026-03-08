@@ -371,6 +371,7 @@ class AccountService {
 	public function getSettings(?IUser $user = null): array {
 		$return['canRequestSign'] = $this->canRequestSign($user);
 		$return['hasSignatureFile'] = $this->hasSignatureFile($user);
+		$return['phoneNumber'] = $this->getPhoneNumber($user);
 		return $return;
 	}
 
