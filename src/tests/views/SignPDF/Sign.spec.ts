@@ -26,6 +26,7 @@ type SignMethodSettings = {
 type SignMethodsSettings = Partial<Record<TokenMethodKey, SignMethodSettings>> & {
 	emailToken?: SignMethodSettings
 	password?: SignMethodSettings
+	clickToSign?: SignMethodSettings
 }
 
 type SignMethodsStore = ReturnType<typeof useSignMethodsStore> & {
@@ -33,6 +34,8 @@ type SignMethodsStore = ReturnType<typeof useSignMethodsStore> & {
 }
 
 type SignStore = ReturnType<typeof useSignStore>
+
+type SignDocument = SignStore['document']
 
 type SubmitSignaturePayload = {
 	method: string
@@ -63,6 +66,21 @@ type ActionHandler = {
 }
 
 type ProceedWithSigningLogic = (store: SignMethodsStore, actionHandler: ActionHandler) => void
+
+const createSignDocument = (overrides: Partial<SignDocument> = {}): SignDocument => ({
+	id: 1,
+	name: 'Test file',
+	description: '',
+	status: '',
+	statusText: '',
+	url: '/apps/libresign/p/pdf/test-file',
+	nodeId: 1,
+	nodeType: 'file',
+	uuid: 'test-file-uuid',
+	signers: [],
+	visibleElements: [],
+	...overrides,
+})
 
 // Global mock for axios - prevents unhandled rejections during component mounting
 vi.mock('@nextcloud/axios', () => {
@@ -689,6 +707,9 @@ describe('Sign.vue - signWithTokenCode', () => {
 						// Extract the identify method from the signature method
 						const signatureMethodData = this.signMethodsStore.settings[activeMethod]
 						const identifyMethod = signatureMethodData?.identifyMethod
+						if (!identifyMethod) {
+							throw new Error('No identify method found for active token method')
+						}
 
 						await this.submitSignature({
 							method: identifyMethod,
@@ -938,13 +959,13 @@ describe('Sign.vue - signWithTokenCode', () => {
 			const signStore = useSignStore()
 			const signatureElementsStore = useSignatureElementsStore()
 
-			signStore.document = {
-				id: 1,
+			signStore.document = createSignDocument({
 				nodeType: 'envelope',
 				signers: [],
 				files: [
 					{
 						id: 10,
+						name: 'child-file',
 						signers: [
 							{ signRequestId: 501, me: true },
 						],
@@ -953,7 +974,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 						],
 					},
 				],
-			}
+			})
 
 			signatureElementsStore.signs.signature = {
 				id: 1,
@@ -1001,8 +1022,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			const signStore = useSignStore()
 			const signatureElementsStore = useSignatureElementsStore()
 
-			signStore.document = {
-				id: 1,
+			signStore.document = createSignDocument({
 				nodeType: 'envelope',
 				signers: [
 					{ signRequestId: 501, me: true },
@@ -1011,7 +1031,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				visibleElements: [
 					{ elementId: 201, signRequestId: 501, type: 'signature' },
 				],
-			}
+			})
 
 			// Initially, no signature exists
 			signatureElementsStore.signs.signature = {
@@ -1081,14 +1101,13 @@ describe('Sign.vue - signWithTokenCode', () => {
 			const signStore = useSignStore()
 
 			// Signer has signRequestId but NO placed visibleElements (typical clickToSign)
-			signStore.document = {
-				id: 1,
+			signStore.document = createSignDocument({
 				nodeType: 'file',
 				signers: [
 					{ signRequestId: 501, me: true },
 				],
 				visibleElements: [],
-			}
+			})
 
 			const wrapper = mount(realSign, {
 				global: {
