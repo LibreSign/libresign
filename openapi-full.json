@@ -785,6 +785,32 @@
                     }
                 }
             },
+            "IdentifyMethodSetting": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "friendly_name",
+                    "enabled",
+                    "mandatory"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "friendly_name": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "mandatory": {
+                        "type": "boolean"
+                    },
+                    "signatureMethods": {
+                        "$ref": "#/components/schemas/SignatureMethods"
+                    }
+                }
+            },
             "NewFile": {
                 "type": "object",
                 "properties": {
@@ -10547,10 +10573,7 @@
                                                         "identify_methods": {
                                                             "type": "array",
                                                             "items": {
-                                                                "type": "object",
-                                                                "additionalProperties": {
-                                                                    "type": "object"
-                                                                }
+                                                                "$ref": "#/components/schemas/IdentifyMethodSetting"
                                                             }
                                                         }
                                                     }
