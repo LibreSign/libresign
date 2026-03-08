@@ -93,14 +93,16 @@ const identifyMethods = computed(() => configureCheckStore.identifyMethods)
 
 function updateSignatureMethodsEnabled() {
 	identifyMethods.value.forEach((identifyMethod) => {
+		const signatureMethodNames = Object.keys(identifyMethod.signatureMethods)
 		if (!Object.hasOwn(identifyMethod, 'signatureMethodEnabled')) {
 			identifyMethod.signatureMethodEnabled = ''
 		}
 
 		if (identifyMethod.signatureMethodEnabled.length === 0) {
-			const selectedSignatureMethod = Object.keys(identifyMethod.signatureMethods)
+			const selectedSignatureMethod = signatureMethodNames
 				.reduce((currentSelection, signatureMethodName) => {
-					if (currentSelection.length === 0 && identifyMethod.signatureMethods[signatureMethodName].enabled) {
+					const signatureMethod = identifyMethod.signatureMethods[signatureMethodName]
+					if (currentSelection.length === 0 && signatureMethod?.enabled) {
 						return signatureMethodName
 					}
 					return currentSelection
@@ -108,11 +110,14 @@ function updateSignatureMethodsEnabled() {
 
 			identifyMethod.signatureMethodEnabled = selectedSignatureMethod.length > 0
 				? selectedSignatureMethod
-				: Object.keys(identifyMethod.signatureMethods)[0]
+				: (signatureMethodNames[0] ?? '')
 		}
 
-		Object.keys(identifyMethod.signatureMethods).forEach((signatureMethodName) => {
-			identifyMethod.signatureMethods[signatureMethodName].enabled = identifyMethod.signatureMethodEnabled === signatureMethodName
+		signatureMethodNames.forEach((signatureMethodName) => {
+			const signatureMethod = identifyMethod.signatureMethods[signatureMethodName]
+			if (signatureMethod) {
+				signatureMethod.enabled = identifyMethod.signatureMethodEnabled === signatureMethodName
+			}
 		})
 	})
 }
