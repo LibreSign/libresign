@@ -21,14 +21,14 @@ describe('actionsMenu store', () => {
 	it('can update opened state', () => {
 		const store = useActionsMenuStore()
 
-		store.opened = 'file-123'
+		store.opened = 123
 
-		expect(store.opened).toBe('file-123')
+		expect(store.opened).toBe(123)
 	})
 
 	it('can clear opened state', () => {
 		const store = useActionsMenuStore()
-		store.opened = 'file-456'
+		store.opened = 456
 
 		store.opened = null
 
