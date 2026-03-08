@@ -49,8 +49,11 @@ test('sign herself with drawn signature', async ({ page }) => {
 
 	await page.getByRole('button', { name: 'Save' }).click();
 	await page.getByRole('button', { name: 'Setup signature positions' }).click();
-	await expect(page.getByLabel('Page 1 of 1.')).toBeVisible();
-	await page.getByLabel('Signature positions').getByRole('link', { name: 'Edit signer Admin Name' }).click();
+	const signaturePositionsDialog = page.getByLabel('Signature positions')
+	const pageOverlay = signaturePositionsDialog.locator('.overlay[aria-label="Page 1 of 1."]:visible').first()
+	await expect(signaturePositionsDialog).toBeVisible()
+	await expect(pageOverlay).toBeVisible()
+	await signaturePositionsDialog.getByRole('link', { name: 'Edit signer Admin Name' }).click();
 
 	await expect(page.getByText('Click on the place you want to add.')).toBeVisible();
 
@@ -61,12 +64,12 @@ test('sign herself with drawn signature', async ({ page }) => {
 	//    (bound to mouseup on document) returns early because previewVisible is still false.
 	// 3. click() fires mouseup on the document, which triggers finishAdding() and places
 	//    the element at the current preview position.
-	const overlay = page.getByLabel('Page 1 of 1. Press Enter or Space to place the signature here.')
+	const overlay = signaturePositionsDialog.locator('.overlay[aria-label="Page 1 of 1. Press Enter or Space to place the signature here."]:visible').first()
 	await overlay.hover()
-	await page.getByLabel('Signature positions').locator('.preview-element').first().waitFor({ state: 'visible' })
+	await signaturePositionsDialog.locator('.preview-element').first().waitFor({ state: 'visible' })
 	await overlay.click()
 	await expect(
-		page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' })
+		signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' })
 	).toBeVisible()
 
 	await page.getByRole('button', { name: 'Save' }).click();
