@@ -8,6 +8,19 @@ import { mount } from '@vue/test-utils'
 
 import CertificateContent from '../../../views/ReadCertificate/CertificateContent.vue'
 
+type PurposeEntry = [boolean, boolean, string]
+
+type CertificateData = {
+	subject: { CN: string, emailAddress?: string }
+	issuer: { CN: string }
+	valid_from: string
+	valid_to: string
+	validTo_time_t: number
+	crl_validation: string
+	extensions: { keyUsage: string }
+	purposes: Record<string, PurposeEntry>
+}
+
 const selectCustonOptionMock = vi.fn()
 
 vi.mock('@nextcloud/l10n', () => ({
@@ -55,7 +68,7 @@ vi.mock('@nextcloud/vue/components/NcIconSvgWrapper', () => ({
 }))
 
 describe('CertificateContent.vue', () => {
-	const baseCertificate = {
+	const baseCertificate: CertificateData = {
 		subject: { CN: 'Ada Lovelace', emailAddress: 'ada@example.com' },
 		issuer: { CN: 'LibreSign CA' },
 		valid_from: '2025-01-01',
@@ -64,11 +77,11 @@ describe('CertificateContent.vue', () => {
 		crl_validation: 'valid',
 		extensions: { keyUsage: 'Digital Signature' },
 		purposes: {
-			0: [true, true, 'codesign'],
+			0: [true, true, 'codesign'] as PurposeEntry,
 		},
 	}
 
-	const createWrapper = (certificate = baseCertificate, index = '0') => mount(CertificateContent, {
+	const createWrapper = (certificate: CertificateData = baseCertificate, index = '0') => mount(CertificateContent, {
 		props: {
 			certificate,
 			index,
