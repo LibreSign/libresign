@@ -67,10 +67,12 @@ function signEnabled() {
 
 function getSignRequestUuid() {
 	const doc = signStore.document || {}
-	const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
-	const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
-	const fromSigner = signer.sign_uuid
-	return fromDoc || fromSigner || loadState('libresign', 'sign_request_uuid', null)
+	const signer = (doc.signers?.find(row => row.me) || doc.signers?.[0]) as { sign_uuid?: string } | undefined
+	const fromDoc = [doc.signRequestUuid, doc.sign_request_uuid, doc.signUuid, doc.sign_uuid]
+		.find((value): value is string => typeof value === 'string' && value.length > 0)
+	const fromSigner = signer?.sign_uuid
+	const fromState = loadState('libresign', 'sign_request_uuid', null) as string | null
+	return fromDoc || fromSigner || (typeof fromState === 'string' && fromState.length > 0 ? fromState : null)
 }
 
 function getValidationRouteName() {
