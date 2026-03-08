@@ -9,7 +9,7 @@
 			<div class="document-status">
 				<span class="document-status__label">{{ t('libresign', 'Status') }}</span>
 				<span class="document-status__dot" aria-hidden="true" />
-				<span class="document-status__text">{{ signStore.document.statusText }}</span>
+				<span class="document-status__text">{{ signStore.document?.statusText ?? '' }}</span>
 			</div>
 		</header>
 
