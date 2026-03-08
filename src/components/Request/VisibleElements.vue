@@ -116,7 +116,7 @@ import {
 	type Signer as VisibleElementsSigner,
 	type VisibleElement,
 } from '../../services/visibleElementsService'
-import type { NextcloudCapabilities } from '../../types/capabilities'
+import type { components as AdministrationComponents } from '../../types/openapi/openapi-administration'
 
 type SignerIdentifyMethod = {
 	method: string
@@ -215,6 +215,10 @@ type FilesStore = {
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<SaveResponse>
 }
 
+type VisibleElementsCapabilities = {
+	libresign: AdministrationComponents['schemas']['Capabilities']
+}
+
 const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElementPayload[] =>
 	elements.flatMap((element) => {
 		if (element.type !== 'signature' || !element.coordinates) {
@@ -270,7 +274,7 @@ const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
 const modal = ref(false)
 const loading = ref(false)
 const signerSelected = ref<Record<string, unknown> | null>(null)
-const capabilities = getCapabilities() as NextcloudCapabilities
+const capabilities = getCapabilities() as VisibleElementsCapabilities
 const signElementsConfig = capabilities.libresign.config['sign-elements']
 const width = ref(signElementsConfig['full-signature-width'])
 const height = ref(signElementsConfig['full-signature-height'])
