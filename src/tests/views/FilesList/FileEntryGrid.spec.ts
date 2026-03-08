@@ -9,6 +9,10 @@ import { setActivePinia, createPinia } from 'pinia'
 
 import FileEntryGrid from '../../../views/FilesList/FileEntry/FileEntryGrid.vue'
 
+type FileEntryGridVm = InstanceType<typeof FileEntryGrid> & {
+	openDetailsIfAvailable: (event?: Event) => void
+}
+
 const actionsMenuStoreMock = {
 	opened: null as number | null,
 }
@@ -107,7 +111,7 @@ describe('FileEntryGrid.vue', () => {
 					name: 'agreement.pdf',
 					status: 3,
 					statusText: 'Pending',
-					signers: [{ id: 1 }],
+					signers: [{ displayName: 'Ada Lovelace' }],
 					signersCount: 1,
 					created_at: '2026-03-06T10:00:00Z',
 				},
@@ -140,12 +144,13 @@ describe('FileEntryGrid.vue', () => {
 
 	it('opens the details sidebar for the selected file', () => {
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryGridVm
 		const event = {
 			preventDefault: vi.fn(),
 			stopPropagation: vi.fn(),
 		} as unknown as Event
 
-		wrapper.vm.openDetailsIfAvailable(event)
+		vm.openDetailsIfAvailable(event)
 
 		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(7)
 		expect(sidebarStoreMock.activeRequestSignatureTab).toHaveBeenCalled()
