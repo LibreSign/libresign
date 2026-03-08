@@ -11,12 +11,27 @@ type FileEntryMetadata = {
 	extension?: string
 }
 
+type FileEntrySigner = {
+	displayName?: string
+	email?: string
+	me?: boolean
+	sign_uuid?: string
+}
+
 export type FileEntrySource = {
 	id: number
 	name: string
+	basename?: string
+	uuid?: string
 	nodeType?: string
 	created_at?: number | string | Date | null
 	metadata?: FileEntryMetadata
+	status?: number
+	statusText?: string
+	signers?: FileEntrySigner[]
+	signersCount?: number
+	nodeId?: number
+	file?: string
 	[key: string]: unknown
 }
 
