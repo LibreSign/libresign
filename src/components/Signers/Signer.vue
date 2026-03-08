@@ -64,24 +64,10 @@ import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
+import type { IdentifyMethodSetting, SignerRecord, SignatureFlowMode } from '../../types/contracts'
 defineOptions({
 	name: 'Signer',
 })
-
-type SignerMethod = {
-	method: string
-}
-
-type SignerRow = {
-	signed?: unknown
-	identifyMethods?: SignerMethod[]
-	status?: number
-	statusText?: string
-	displayName?: string
-	signingOrder?: number
-}
-
-type SignatureFlow = 'none' | 'parallel' | 'ordered_numeric'
 
 const props = withDefaults(defineProps<{
 	signerIndex: number
@@ -95,21 +81,21 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-	(event: 'select', signer: SignerRow): void
+	(event: 'select', signer: SignerRecord): void
 }>()
 
 const filesStore = useFilesStore()
 const listItem = ref<any | null>(null)
 
 const canRequestSign = loadState('libresign', 'can_request_sign', false)
-const methods = loadState('libresign', 'identify_methods', []) as Array<{ name: string; enabled: boolean; friendly_name?: string }>
+const methods = loadState('libresign', 'identify_methods', []) as IdentifyMethodSetting[]
 
 const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
 	const rawFlow = file?.signatureFlow
-	let flow: SignatureFlow = 'parallel'
+	let flow: SignatureFlowMode = 'parallel'
 	if (typeof rawFlow === 'number') {
-		const flowMap: Record<number, SignatureFlow> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		const flowMap: Record<number, SignatureFlowMode> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
 		flow = flowMap[rawFlow] || 'parallel'
 	} else if (rawFlow === 'none' || rawFlow === 'parallel' || rawFlow === 'ordered_numeric') {
 		flow = rawFlow
@@ -117,7 +103,7 @@ const signatureFlow = computed(() => {
 	return flow
 })
 
-const signer = computed<SignerRow>(() => {
+const signer = computed<SignerRecord>(() => {
 	const file = filesStore.getFile()
 	return file?.signers?.[props.signerIndex] || {}
 })

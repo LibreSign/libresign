@@ -18,99 +18,13 @@ import { useFiltersStore } from './filters.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { useSidebarStore } from './sidebar.js'
 
-/**
- * @typedef {{
- * 	email?: string
- * 	account?: string
- * }} SignerIdentify
- */
-
-/**
- * @typedef {{
- * 	method: string
- * 	value?: string
- * 	mandatory?: number
- * }} SignerMethodRecord
- */
-
-/**
- * @typedef {{
- * 	identify?: string | number | SignerIdentify
- * 	signRequestId?: number
- * 	sign_uuid?: string
- * 	email?: string
- * 	displayName?: string
- * 	description?: string | null
- * 	signed?: unknown
- * 	me?: boolean
- * 	signingOrder?: number
- * 	status?: number
- * 	acceptsEmailNotifications?: boolean
- * 	identifyMethods?: SignerMethodRecord[]
- * 	[key: string]: unknown
- * }} SignerRecord
- */
-
-/**
- * @typedef {{
- * 	path?: string
- * 	folderName?: string
- * 	separator?: string
- * 	folderPatterns?: { name: string, setting?: string }
- * 	envelopeFolderId?: number
- * 	[key: string]: unknown
- * }} FileSettings
- */
-
-/**
- * @typedef {{
- * 	fileId?: number | string
- * 	nodeId?: number | string
- * 	url?: string
- * 	id?: number
- * 	name?: string
- * 	metadata?: Record<string, unknown>
- * 	settings?: FileSettings
- * 	[key: string]: unknown
- * }} FileReference
- */
-
-/**
- * @typedef {{
- * 	id?: number
- * 	uuid?: string
- * 	nodeId?: number | string
- * 	nodeType?: string
- * 	name?: string
- * 	message?: string
- * 	status?: number
- * 	statusText?: string
- * 	loading?: string | boolean
- * 	created_at?: string
- * 	metadata?: { original_file_deleted?: boolean, [key: string]: unknown }
- * 	settings?: FileSettings
- * 	requested_by?: { userId?: string, displayName?: string }
- * 	file?: string | FileReference
- * 	files?: FileReference[]
- * 	signatureFlow?: string | number
- * 	docmdpLevel?: number | string
- * 	signUuid?: string | null
- * 	signers?: SignerRecord[]
- * 	signersCount?: number
- * 	filesCount?: number
- * 	[key: string]: unknown
- * }} FileRecord
- */
-
-/**
- * @typedef {{
- * 	visibleElements?: Array<Record<string, unknown>>
- * 	signers?: SignerRecord[] | null
- * 	uuid?: string | null
- * 	status?: number | null
- * 	signatureFlow?: 'none' | 'parallel' | 'ordered_numeric' | 0 | 1 | 2 | null
- * }} SaveSignatureRequestPayload
- */
+/** @typedef {import('../types/contracts').SignerIdentify} SignerIdentify */
+/** @typedef {import('../types/contracts').IdentifyMethodRecord} SignerMethodRecord */
+/** @typedef {import('../types/contracts').SignerRecord} SignerRecord */
+/** @typedef {import('../types/contracts').FileSettings} FileSettings */
+/** @typedef {import('../types/contracts').FileReference} FileReference */
+/** @typedef {import('../types/contracts').FileRecord} FileRecord */
+/** @typedef {import('../types/contracts').SaveSignatureRequestPayload} SaveSignatureRequestPayload */
 
 /**
  * @typedef {FileRecord | { success: false, message: string, error: unknown }} SaveSignatureRequestResponse
