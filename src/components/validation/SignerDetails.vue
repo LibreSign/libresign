@@ -193,7 +193,7 @@
 					<NcIconSvgWrapper :path="mdiInformationOutline" />
 				</template>
 				<template #name>
-					{{ n('libresign', 'Document has %n revision', 'Document has %n revisions', signer.modifications.revisionCount) }}
+					{{ n('libresign', 'Document has %n revision', 'Document has %n revisions', signer.modifications.revisionCount ?? 0) }}
 				</template>
 			</NcListItem>
 		</div>
@@ -301,7 +301,7 @@ type SignerModel = {
 	hash?: string
 	remote_address?: string
 	user_agent?: string
-	chain?: unknown[]
+		chain?: Record<string, any>[]
 	[key: string]: unknown
 }
 
@@ -466,7 +466,7 @@ function hasDocMdpInfo(signer: SignerModel) {
 }
 
 function getModificationStatusIcon(signer: SignerModel) {
-	if (!signer.modification_validation) return null
+	if (!signer.modification_validation) return undefined
 	const status = signer.modification_validation.status
 	if (status === MODIFICATION_UNMODIFIED || status === MODIFICATION_ALLOWED) {
 		return mdiCheckCircle
