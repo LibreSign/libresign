@@ -344,7 +344,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		})
 
 		await wrapper.vm.$nextTick()
-		const canvas = wrapper.vm.$refs.canvas
+		const canvas = wrapper.vm.$refs.canvas as HTMLCanvasElement
 		expect(canvas.width).toBeGreaterThan(0)
 		expect(canvas.height).toBeGreaterThan(0)
 	})
