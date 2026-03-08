@@ -76,8 +76,20 @@ defineOptions({
 	name: 'Signature',
 })
 
+type SignatureType = 'signature' | 'initial'
+
+type SignatureElement = {
+	value?: string
+	file: {
+		url: string
+		nodeId: number
+	}
+}
+
+type SignatureError = string | { message?: string } | null
+
 const props = defineProps<{
-	type: string
+	type: SignatureType
 }>()
 
 const signatureElementsStore = useSignatureElementsStore()
@@ -90,14 +102,27 @@ const hasSignature = computed(() => {
 	return signatureElementsStore.hasSignatureOfType(props.type) && signatureExists.value
 })
 
-const imgSrc = computed(() => {
-	if (signatureElementsStore.signs[props.type]?.value?.startsWith('data:')) {
-		return signatureElementsStore.signs[props.type].value
+const currentSign = computed(() => signatureElementsStore.signs[props.type] as SignatureElement)
+
+function getErrorMessage(error: SignatureError) {
+	if (typeof error === 'string') {
+		return error
 	}
-	return `${signatureElementsStore.signs[props.type].file.url}&_t=${Date.now()}`
+	return error?.message ?? ''
+}
+
+const imgSrc = computed(() => {
+	if (currentSign.value?.value?.startsWith('data:')) {
+		return currentSign.value.value
+	}
+	return `${currentSign.value.file.url}&_t=${Date.now()}`
 })
 
-function signatureLoaded(success: boolean) {
+
+function signatureLoaded(status: boolean | Event) {
+	const success = typeof status === 'boolean'
+		? status
+		: !(status instanceof Event && status.type === 'error')
 	isSignatureLoaded.value = success
 	signatureExists.value = success
 }
@@ -110,8 +135,11 @@ async function removeSignature() {
 	await signatureElementsStore.delete(props.type)
 	if (signatureElementsStore.success.length) {
 		showSuccess(signatureElementsStore.success)
-	} else if (signatureElementsStore.error?.message) {
-		showError(signatureElementsStore.error.message)
+	} else {
+		const message = getErrorMessage(signatureElementsStore.error as SignatureError)
+		if (message) {
+			showError(message)
+		}
 	}
 }
 
@@ -122,8 +150,11 @@ function close() {
 function save() {
 	if (signatureElementsStore.success.length) {
 		showSuccess(signatureElementsStore.success)
-	} else if (signatureElementsStore.error?.message) {
-		showError(signatureElementsStore.error.message)
+	} else {
+		const message = getErrorMessage(signatureElementsStore.error as SignatureError)
+		if (message) {
+			showError(message)
+		}
 	}
 	close()
 }
