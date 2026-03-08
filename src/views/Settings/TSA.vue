@@ -21,7 +21,7 @@
 				:loading="loading"
 				:error="!!errors.tsa_url"
 				:helper-text="getHelperText('tsa_url')"
-				@update:modelValue="(value) => updateField('tsa_url', value)" />
+				@update:modelValue="(value) => updateField('tsa_url', String(value))" />
 
 			<NcTextField :modelValue="tsa_policy_oid"
 				:label="t('libresign', 'TSA Policy OID')"
@@ -30,7 +30,7 @@
 				:loading="loading"
 				:error="!!errors.tsa_policy_oid"
 				:helper-text="getHelperText('tsa_policy_oid')"
-				@update:modelValue="(value) => updateField('tsa_policy_oid', value)" />
+				@update:modelValue="(value) => updateField('tsa_policy_oid', String(value))" />
 
 			<NcSelect v-model="selectedAuthType"
 				:options="authOptions"
@@ -47,7 +47,7 @@
 					:loading="loading"
 					:error="!!errors.tsa_username"
 					:helper-text="getHelperText('tsa_username')"
-					@update:modelValue="(value) => updateField('tsa_username', value)" />
+					@update:modelValue="(value) => updateField('tsa_username', String(value))" />
 
 				<NcPasswordField :modelValue="tsa_password"
 					:label="t('libresign', 'Password')"
@@ -56,7 +56,7 @@
 					:loading="loading"
 					:error="!!errors.tsa_password"
 					:helper-text="getHelperText('tsa_password')"
-					@update:modelValue="(value) => updateField('tsa_password', value)" />
+					@update:modelValue="(value) => updateField('tsa_password', String(value))" />
 			</template>
 		</div>
 	</NcSettingsSection>
