@@ -263,14 +263,14 @@ function getSignerProgressText(signer: EnvelopeSigner) {
 }
 
 function viewFile(file: EnvelopeFile) {
-	if (!file.uuid) {
+	if (!file.uuid || !file.name || typeof file.nodeId !== 'number') {
 		return
 	}
 	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
 	openDocument({
 		fileUrl,
-		filename: file.name || '',
-		nodeId: file.nodeId ?? 0,
+		filename: file.name,
+		nodeId: file.nodeId,
 	})
 }
 
