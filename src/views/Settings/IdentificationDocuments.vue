@@ -54,7 +54,7 @@ type Group = {
 }
 
 const approvalGroupState = loadState('libresign', 'approval_group', ['admin'])
-const identificationDocumentsState = loadState('libresign', 'identification_documents', false)
+const identificationDocumentsState = loadState('libresign', 'identification_documents', false) as boolean | string
 const identificationDocumentsFlowEnabled = ref(identificationDocumentsState === true || identificationDocumentsState === '1')
 const approvalGroupIds = ref<string[]>(Array.isArray(approvalGroupState) ? approvalGroupState : ['admin'])
 const approvalGroups = ref<Array<Group | string>>([])
