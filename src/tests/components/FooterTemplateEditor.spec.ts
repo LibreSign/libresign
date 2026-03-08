@@ -123,7 +123,10 @@ describe('FooterTemplateEditor.vue', () => {
 	const createWrapper = () => mount(FooterTemplateEditor, {
 		global: {
 			directives: {
-				linkify: vi.fn(),
+				linkify: {
+					mounted: () => undefined,
+					updated: () => undefined,
+				},
 			},
 		},
 	})
