@@ -97,8 +97,9 @@ function updateSignatureMethodsEnabled() {
 		if (!Object.hasOwn(identifyMethod, 'signatureMethodEnabled')) {
 			identifyMethod.signatureMethodEnabled = ''
 		}
+		const currentSelection = identifyMethod.signatureMethodEnabled ?? ''
 
-		if (identifyMethod.signatureMethodEnabled.length === 0) {
+		if (currentSelection.length === 0) {
 			const selectedSignatureMethod = signatureMethodNames
 				.reduce((currentSelection, signatureMethodName) => {
 					const signatureMethod = identifyMethod.signatureMethods[signatureMethodName]
@@ -106,9 +107,9 @@ function updateSignatureMethodsEnabled() {
 						return signatureMethodName
 					}
 					return currentSelection
-				}, identifyMethod.signatureMethodEnabled)
+				}, currentSelection)
 
-			identifyMethod.signatureMethodEnabled = selectedSignatureMethod.length > 0
+			identifyMethod.signatureMethodEnabled = (selectedSignatureMethod ?? '').length > 0
 				? selectedSignatureMethod
 				: (signatureMethodNames[0] ?? '')
 		}
