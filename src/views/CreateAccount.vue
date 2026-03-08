@@ -87,21 +87,35 @@ import {
 	mdiChevronRight,
 } from '@mdi/js'
 
+type CreateAccountSettings = {
+	accountHash?: string
+}
+
+type RouteState = {
+	params: {
+		uuid?: string
+	}
+}
+
+type RouterState = {
+	resolve: (location: { name: string }) => { href: string }
+}
+
 defineOptions({
 	name: 'CreateAccount',
 })
 
 const instance = getCurrentInstance()
-const route = computed(() => instance?.proxy?.$route ?? { params: {} })
-const router = computed(() => instance?.proxy?.$router)
+const route = computed<RouteState>(() => (instance?.proxy?.$route as RouteState | undefined) ?? { params: {} })
+const router = computed<RouterState | undefined>(() => instance?.proxy?.$router as RouterState | undefined)
 
 const state = reactive({
 	loading: false,
 	email: '',
 	password: '',
 	passwordConfirm: '',
-	settings: loadState('libresign', 'settings'),
-	message: loadState('libresign', 'message'),
+	settings: loadState('libresign', 'settings', {}) as CreateAccountSettings,
+	message: loadState('libresign', 'message', '') as string,
 	errorMessage: '',
 	enabledFeatures: [] as unknown[],
 })
@@ -229,7 +243,7 @@ async function createAccount() {
 	state.loading = true
 	try {
 		await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}'), {
-			uuid: route.value.params.uuid,
+			uuid: route.value.params.uuid ?? '',
 			email: state.email,
 			password: state.password,
 		})
