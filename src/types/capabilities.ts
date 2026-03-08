@@ -11,7 +11,9 @@ export type LibreSignSignElementsConfig = LibreSignCapabilities['config']['sign-
 
 export type LibreSignUploadConfig = LibreSignCapabilities['config']['upload']
 
+export type LibreSignEnvelopeConfig = LibreSignCapabilities['config']['envelope']
+
 export type NextcloudCapabilities = {
-	libresign?: LibreSignCapabilities
+	libresign: LibreSignCapabilities
 	[key: string]: unknown
 }
