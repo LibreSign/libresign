@@ -37,11 +37,22 @@ import { t } from '@nextcloud/l10n'
 
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
+type ConfigureCheckItem = {
+	status: string
+	message: string
+	resource: string
+	tip: string
+}
+
+type ConfigureCheckStore = {
+	items: ConfigureCheckItem[]
+}
+
 defineOptions({
 	name: 'ConfigureCheck',
 })
 
-const configureCheckStore = useConfigureCheckStore()
+const configureCheckStore = useConfigureCheckStore() as unknown as ConfigureCheckStore
 </script>
 <style lang="scss" scoped>
 table {
