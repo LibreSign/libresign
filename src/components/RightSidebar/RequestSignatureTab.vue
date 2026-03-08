@@ -695,7 +695,7 @@ function getSvgIcon(name: string) {
 }
 
 function isSignElementsAvailable() {
-	return capabilities.libresign?.config?.['sign-elements']?.['is-available'] === true
+	return capabilities.libresign.config['sign-elements']['is-available'] === true
 }
 
 function closeModal() {
