@@ -15,7 +15,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="actionHandler.showModal('createSignature')">
+					@click="openModal('createSignature')">
 					{{ t('libresign', 'Define your signature.') }}
 				</NcButton>
 			</div>
@@ -26,7 +26,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="actionHandler.showModal('uploadCertificate')">
+					@click="openModal('uploadCertificate')">
 					{{ t('libresign', 'Upload certificate') }}
 				</NcButton>
 			</div>
@@ -37,7 +37,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="actionHandler.showModal('createPassword')">
+					@click="openModal('createPassword')">
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
 			</div>
@@ -271,17 +271,131 @@ type SignatureMethodConfig = {
 	token?: string
 }
 
+type SignError = {
+	title?: string
+	message: string
+	code?: number
+}
+
+type SignerRecord = {
+	me?: boolean
+	signRequestId?: string | number
+	sign_uuid?: string
+	status?: string | number
+	[key: string]: unknown
+}
+
+type VisibleElementRecord = {
+	elementId?: number
+	fileId?: number | string
+	signRequestId?: string | number
+	type: string
+	[key: string]: unknown
+}
+
+type SignatureProfile = {
+	file: {
+		nodeId: number
+		url: string
+	}
+	createdAt: string
+	[key: string]: unknown
+}
+
+type SignDocument = {
+	id: number
+	status?: string | number
+	uuid?: string
+	signRequestUuid?: string
+	sign_request_uuid?: string
+	signUuid?: string
+	sign_uuid?: string
+	nodeType?: string
+	signers?: SignerRecord[]
+	visibleElements?: VisibleElementRecord[]
+	files?: Array<Record<string, unknown>>
+	settings?: {
+		isApprover?: boolean
+		[key: string]: unknown
+	}
+	[key: string]: unknown
+}
+
+type SignResult = {
+	status: 'signingInProgress' | 'signed' | 'unknown'
+	data: Record<string, unknown>
+}
+
+type SignStoreContract = {
+	document: SignDocument
+	errors: SignError[]
+	ableToSign: boolean
+	pendingAction: string | null
+	clearSigningErrors: () => void
+	setSigningErrors: (errors: SignError[]) => void
+	submitSignature: (
+		payload: Record<string, unknown>,
+		signRequestUuid?: string,
+		options?: { documentId?: number },
+	) => Promise<SignResult>
+	clearPendingAction: () => void
+}
+
+type SignMethodSetting = {
+	identifyMethod?: string
+	token?: string
+	needCode?: boolean
+	hasSignatureFile?: boolean
+	[key: string]: unknown
+}
+
+type SignMethodsStoreContract = {
+	modal: Record<string, boolean>
+	settings: Record<string, SignMethodSetting | undefined> & {
+		emailToken?: SignMethodSetting
+	}
+	certificateEngine: string
+	$reset?: () => void
+	closeModal: (modalCode: string) => void
+	showModal: (modalCode: string) => void
+	needEmailCode: () => boolean
+	needCertificate: () => boolean
+	needCreatePassword: () => boolean
+	needSignWithPassword: () => boolean
+	needTokenCode: () => boolean
+	needClickToSign: () => boolean
+}
+
+type SignatureElementsStoreContract = {
+	signs: Record<string, SignatureProfile>
+	success: string
+	error: string
+	signRequestUuid: string
+	loadSignatures: () => void
+}
+
+type SidebarStoreContract = {
+	hideSidebar: () => void
+}
+
+type IdentificationDocumentStoreContract = {
+	enabled?: boolean
+	waitingApproval?: boolean
+	needIdentificationDocument: () => boolean
+	showDocumentsComponent: () => boolean
+}
+
 const emit = defineEmits<{
 	(e: 'update:phone', value: string): void
 	(e: 'signing-started', payload: { signRequestUuid: string; async: boolean }): void
 	(e: 'signed', payload: Record<string, unknown> & { signRequestUuid: string }): void
 }>()
 
-const signStore = useSignStore()
-const signMethodsStore = useSignMethodsStore()
-const signatureElementsStore = useSignatureElementsStore()
-const sidebarStore = useSidebarStore()
-const identificationDocumentStore = useIdentificationDocumentStore()
+const signStore = useSignStore() as unknown as SignStoreContract
+const signMethodsStore = useSignMethodsStore() as unknown as SignMethodsStoreContract
+const signatureElementsStore = useSignatureElementsStore() as unknown as SignatureElementsStoreContract
+const sidebarStore = useSidebarStore() as unknown as SidebarStoreContract
+const identificationDocumentStore = useIdentificationDocumentStore() as unknown as IdentificationDocumentStoreContract
 
 const loading = ref(true)
 const user = ref<UserInfo>({
@@ -337,7 +451,18 @@ const needCreateSignature = computed(() => {
 	return visibleElements.some((row: any) => String(row.signRequestId) === String(signer.signRequestId))
 })
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
-const canCreateSignature = computed(() => getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true)
+const canCreateSignature = computed(() => {
+	const capabilities = getCapabilities() as {
+		libresign?: {
+			config?: {
+				'sign-elements'?: {
+					'can-create-signature'?: boolean
+				}
+			}
+		}
+	}
+	return capabilities.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
+})
 const ableToSign = computed(() => signStore.ableToSign)
 const signRequestUuid = computed(() => {
 	const doc = signStore.document || {}
@@ -346,8 +471,13 @@ const signRequestUuid = computed(() => {
 	const fromSigner = signer.sign_uuid
 	const isApprover = doc.settings?.isApprover
 	const fromFile = isApprover ? doc.uuid : null
-	return fromDoc || fromSigner || fromFile || loadState('libresign', 'sign_request_uuid', null)
+	return String(fromDoc || fromSigner || fromFile || loadState('libresign', 'sign_request_uuid', '') || '')
 })
+
+function openModal(modalCode: string) {
+	ensureServices()
+	actionHandler?.showModal(modalCode)
+}
 
 function initializeServices() {
 	requirementValidator = new SigningRequirementValidator(
@@ -434,7 +564,13 @@ async function signWithTokenCode(token: string) {
 	}
 
 	const signatureMethodData = signMethodsStore.settings[activeMethod]
+	if (!signatureMethodData) {
+		throw new Error('No active token method settings found')
+	}
 	const identifyMethod = signatureMethodData.identifyMethod
+	if (!identifyMethod) {
+		throw new Error('No identify method found for active token method')
+	}
 
 	await submitSignature({
 		method: identifyMethod,
@@ -444,10 +580,14 @@ async function signWithTokenCode(token: string) {
 }
 
 async function signWithEmailToken() {
+	const identifyMethod = signMethodsStore.settings.emailToken?.identifyMethod
+	if (!identifyMethod) {
+		throw new Error('No identify method found for email token')
+	}
 	await submitSignature({
-		method: signMethodsStore.settings.emailToken.identifyMethod,
+		method: identifyMethod,
 		modalCode: 'emailToken',
-		token: signMethodsStore.settings.emailToken.token,
+		token: signMethodsStore.settings.emailToken?.token,
 	})
 }
 
@@ -456,7 +596,7 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	signStore.clearSigningErrors()
 
 	try {
-		const payload: Record<string, any> = {
+		const payload: Record<string, unknown> = {
 			method: methodConfig.method,
 		}
 
@@ -468,7 +608,7 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 			if (canCreateSignature.value) {
 				payload.elements = elements.value.map((row: any) => ({
 					documentElementId: row.elementId,
-					profileNodeId: signatureElementsStore.signs[row.type].file.nodeId,
+					profileNodeId: signatureElementsStore.signs[row.type]?.file.nodeId,
 				}))
 			} else {
 				payload.elements = elements.value.map((row: any) => ({
@@ -487,13 +627,13 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 
 		ensureServices()
 		if (result.status === 'signingInProgress') {
-			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method)
+			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 			emit('signing-started', {
 				signRequestUuid: signRequestUuid.value,
 				async: true,
 			})
 		} else if (result.status === 'signed') {
-			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method)
+			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 			sidebarStore.hideSidebar()
 			emit('signed', {
 				...result.data,
@@ -525,7 +665,7 @@ function confirmSignDocument() {
 		canCreateSignature: canCreateSignature.value,
 	})
 
-	const result = actionHandler!.handleAction('sign', { unmetRequirement })
+	const result = actionHandler!.handleAction('sign', { unmetRequirement: unmetRequirement || undefined })
 
 	if (result === 'ready') {
 		proceedWithSigning()
@@ -553,7 +693,7 @@ function executeSigningAction(action: string) {
 		canCreateSignature: canCreateSignature.value,
 	})
 
-	const config = unmetRequirement ? { unmetRequirement } : {}
+	const config = unmetRequirement ? { unmetRequirement } : { unmetRequirement: undefined }
 	const result = actionHandler!.handleAction(action, config)
 
 	if (result === 'ready') {
