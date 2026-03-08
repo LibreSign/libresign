@@ -5,6 +5,7 @@
 
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 
 vi.mock('../../../../store/signatureElements.js', () => ({
 	useSignatureElementsStore: () => ({
@@ -36,7 +37,21 @@ vi.mock('@nextcloud/l10n', () => ({
 	getLocale: vi.fn(() => 'en'),
 }))
 
-let Signature: unknown
+type SignatureComponent = typeof import('../../../../views/Account/partials/Signature.vue').default
+
+type SignatureVm = {
+	signatureLoaded: (success: boolean) => void
+	edit: () => void
+	$nextTick: () => Promise<void>
+	mdiDelete: string
+	mdiDraw: string
+}
+
+type SignatureWrapper = VueWrapper<any> & {
+	vm: SignatureVm
+}
+
+let Signature: SignatureComponent
 
 beforeAll(async () => {
 	;({ default: Signature } = await import('../../../../views/Account/partials/Signature.vue'))
@@ -44,7 +59,7 @@ beforeAll(async () => {
 
 describe('Signature', () => {
 	it('registers icon wrapper and exposes mdi icon paths used in template', async () => {
-		const wrapper = mount(Signature as never, {
+		const wrapper = mount(Signature, {
 			props: {
 				type: 'signature',
 			},
@@ -57,7 +72,7 @@ describe('Signature', () => {
 					Draw: true,
 				},
 			},
-		})
+		}) as SignatureWrapper
 
 		wrapper.vm.signatureLoaded(true)
 		await wrapper.vm.$nextTick()
@@ -68,7 +83,7 @@ describe('Signature', () => {
 	})
 
 	it('renders Draw editor when entering edit mode', async () => {
-		const wrapper = mount(Signature as never, {
+		const wrapper = mount(Signature, {
 			props: {
 				type: 'signature',
 			},
@@ -85,7 +100,7 @@ describe('Signature', () => {
 					},
 				},
 			},
-		})
+		}) as SignatureWrapper
 
 		wrapper.vm.edit()
 		await wrapper.vm.$nextTick()
