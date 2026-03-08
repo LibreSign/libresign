@@ -20,16 +20,103 @@ import { useSidebarStore } from './sidebar.js'
 
 /**
  * @typedef {{
+ * 	email?: string
+ * 	account?: string
+ * }} SignerIdentify
+ */
+
+/**
+ * @typedef {{
+ * 	method: string
+ * 	value?: string
+ * 	mandatory?: number
+ * }} SignerMethodRecord
+ */
+
+/**
+ * @typedef {{
+ * 	identify?: string | number | SignerIdentify
+ * 	signRequestId?: number
+ * 	sign_uuid?: string
+ * 	email?: string
+ * 	displayName?: string
+ * 	description?: string | null
+ * 	signed?: unknown
+ * 	me?: boolean
+ * 	signingOrder?: number
+ * 	status?: number
+ * 	acceptsEmailNotifications?: boolean
+ * 	identifyMethods?: SignerMethodRecord[]
+ * 	[key: string]: unknown
+ * }} SignerRecord
+ */
+
+/**
+ * @typedef {{
+ * 	path?: string
+ * 	folderName?: string
+ * 	separator?: string
+ * 	folderPatterns?: { name: string, setting?: string }
+ * 	envelopeFolderId?: number
+ * 	[key: string]: unknown
+ * }} FileSettings
+ */
+
+/**
+ * @typedef {{
+ * 	fileId?: number | string
+ * 	nodeId?: number | string
+ * 	url?: string
+ * 	id?: number
+ * 	name?: string
+ * 	metadata?: Record<string, unknown>
+ * 	settings?: FileSettings
+ * 	[key: string]: unknown
+ * }} FileReference
+ */
+
+/**
+ * @typedef {{
  * 	id?: number
  * 	uuid?: string
  * 	nodeId?: number | string
+ * 	nodeType?: string
+ * 	name?: string
+ * 	message?: string
+ * 	status?: number
+ * 	statusText?: string
  * 	loading?: string | boolean
- * 	signers?: Array<Record<string, unknown>>
+ * 	created_at?: string
+ * 	metadata?: { original_file_deleted?: boolean, [key: string]: unknown }
+ * 	settings?: FileSettings
+ * 	requested_by?: { userId?: string, displayName?: string }
+ * 	file?: string | FileReference
+ * 	files?: FileReference[]
+ * 	signatureFlow?: string | number
+ * 	docmdpLevel?: number | string
+ * 	signUuid?: string | null
+ * 	signers?: SignerRecord[]
  * 	signersCount?: number
+ * 	filesCount?: number
  * 	[key: string]: unknown
  * }} FileRecord
  */
 
+/**
+ * @typedef {{
+ * 	visibleElements?: Array<Record<string, unknown>>
+ * 	signers?: SignerRecord[] | null
+ * 	uuid?: string | null
+ * 	status?: number | null
+ * 	signatureFlow?: 'none' | 'parallel' | 'ordered_numeric' | 0 | 1 | 2 | null
+ * }} SaveSignatureRequestPayload
+ */
+
+/**
+ * @typedef {FileRecord | { success: false, message: string, error: unknown }} SaveSignatureRequestResponse
+ */
+
+/** @type {FileRecord} */
 const emptyFile = { signers: [] }
 
 const _filesStore = defineStore('files', () => {
@@ -151,6 +238,7 @@ const _filesStore = defineStore('files', () => {
 		loadedAll.value = false
 	}
 
+	/** @param {number | string | null | undefined} fileId */
 	function removeFileById(fileId) {
 		if (!fileId) {
 			return
@@ -169,6 +257,7 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
+	/** @param {number | string} nodeId */
 	function removeFileByNodeId(nodeId) {
 		const store = getStore()
 		const fileId = store.getFileIdByNodeId(nodeId)
@@ -179,6 +268,10 @@ const _filesStore = defineStore('files', () => {
 		store.removeFileById(fileId)
 	}
 
+	/**
+	 * @param {FileRecord} file
+	 * @param {{ position?: 'start' | 'end' }} [options]
+	 */
 	async function addFile(file, { position = 'start' } = {}) {
 		if (!file.id && !file.nodeId) {
 			return
@@ -208,6 +301,7 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
+	/** @param {number | string | null | undefined} [fileId] */
 	function selectFile(fileId) {
 		selectedFileId.value = fileId ?? 0
 		if (!fileId) {
@@ -284,6 +378,7 @@ const _filesStore = defineStore('files', () => {
 		return fileId
 	}
 
+	/** @param {FileRecord | null | undefined} [file] */
 	function getFile(file) {
 		if (typeof file === 'object' && file !== null) {
 			return file
@@ -541,6 +636,7 @@ const _filesStore = defineStore('files', () => {
 		})
 	}
 
+	/** @param {SignerRecord[] | undefined | null} signers */
 	function addUniqueIdentifierToAllSigners(signers) {
 		if (signers === undefined) {
 			return
@@ -548,6 +644,7 @@ const _filesStore = defineStore('files', () => {
 		signers.map(signer => addIdentifierToSigner(signer))
 	}
 
+	/** @param {SignerRecord} signer */
 	function addIdentifierToSigner(signer) {
 		if (signer.identify) {
 			return
@@ -561,6 +658,7 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
+	/** @param {SignerRecord} signer */
 	function signerUpdate(signer) {
 		const editableFile = ensureRequestDraft()
 		if (!selectedFileId.value || !editableFile) {
@@ -592,6 +690,7 @@ const _filesStore = defineStore('files', () => {
 		selectFile(selected) // to force reactivity
 	}
 
+	/** @param {SignerRecord} signer */
 	async function deleteSigner(signer) {
 		const selectedFile = ensureRequestDraft() || getFile()
 
@@ -794,6 +893,10 @@ const _filesStore = defineStore('files', () => {
 		return ordered.value.map(key => files.value[key])
 	}
 
+	/**
+	 * @param {SaveSignatureRequestPayload} [payload]
+	 * @returns {Promise<SaveSignatureRequestResponse>}
+	 */
 	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, signatureFlow = null } = {}) {
 		const store = getStore()
 		const currentFileKey = selectedFileId.value

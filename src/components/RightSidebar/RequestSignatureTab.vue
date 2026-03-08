@@ -237,7 +237,7 @@
 			:name="t('libresign', 'Signing order diagram')"
 			size="large"
 			@closing="showOrderDiagram = false">
-			<SigningOrderDiagram :signers="filesStore.getFile()?.signers || []"
+			<SigningOrderDiagram :signers="signingOrderDiagramSigners"
 				:sender-name="currentUserDisplayName" />
 			<template #actions>
 				<NcButton @click="showOrderDiagram = false">
@@ -326,6 +326,10 @@ type RequestSignatureTabCapabilities = {
 
 type SignatureFlowMode = components['schemas']['NextcloudFile']['signatureFlow']
 type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
+type SignerIdentify = {
+	email?: string
+	account?: string
+}
 type SignerMethodEntry = {
 	method: string
 	value?: string
@@ -334,7 +338,7 @@ type SignerLike = {
 	identifyMethods?: SignerMethodEntry[]
 }
 type SignerRow = {
-	identify?: string | number
+	identify?: string | number | SignerIdentify
 	signed?: unknown
 	displayName?: string
 	description?: string | null
@@ -346,15 +350,15 @@ type SignerRow = {
 	sign_uuid?: string
 	identifyMethods?: SignerMethodEntry[]
 }
-type RequestTabFile = Partial<components['schemas']['NextcloudFile']> & {
+type RequestTabFile = {
 	status?: number
 	statusText?: string
 	id?: number
 	uuid?: string
 	signUuid?: string | null
-	nodeId?: number
+	nodeId?: number | string
 	name?: string
-	nodeType?: 'file' | 'envelope'
+	nodeType?: string
 	filesCount?: number
 	signers?: SignerRow[]
 	signatureFlow?: SignatureFlowValue
@@ -388,6 +392,11 @@ type SigningProgressView = {
 		displayName: string
 		signed: boolean
 	}>
+}
+type SigningOrderDiagramSigner = {
+	displayName?: string
+	signed?: boolean
+	signingOrder?: number
 }
 type PollingStatusData = {
 	status: number
@@ -491,6 +500,21 @@ const signingProgressView = computed<SigningProgressView | null>(() => {
 		})),
 	}
 })
+const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
+	const signers = filesStore.getFile()?.signers || []
+	return signers.map((signer: SignerRow) => ({
+		displayName: signer.displayName,
+		signed: isSignerSigned(signer),
+		signingOrder: signer.signingOrder,
+	}))
+})
+
+function normalizeSignatureFlow(flow: unknown): SignatureFlowValue | null {
+	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric' || flow === 0 || flow === 1 || flow === 2) {
+		return flow
+	}
+	return null
+}
 
 function getSignerMethod(signer: SignerLike): string | undefined {
 	return signer.identifyMethods?.[0]?.method
@@ -709,7 +733,7 @@ function hasSequentialDraftSigners(file: RequestTabFile | null | undefined) {
 }
 
 const hasDraftSigners = computed(() => {
-	const file = filesStore.getFile()
+	const file = filesStore.getFile() as RequestTabFile
 	if (!file?.signers) {
 		return false
 	}
@@ -771,9 +795,10 @@ const debouncedSave = debounce(async () => {
 	try {
 		const file = filesStore.getFile()
 		const signers = isOrderedNumeric.value ? file?.signers : null
+		const signatureFlow = normalizeSignatureFlow(file?.signatureFlow)
 		await filesStore.saveOrUpdateSignatureRequest({
 			signers,
-			signatureFlow: file?.signatureFlow,
+			signatureFlow,
 		})
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to save signature request'))
@@ -1097,7 +1122,7 @@ async function confirmRequest() {
 	hasLoading.value = true
 	try {
 		const response = await filesStore.saveOrUpdateSignatureRequest({ status: 1 })
-		showSuccess(t('libresign', response.message))
+		showSuccess(t('libresign', response.message || 'Signature requested'))
 		showConfirmRequest.value = false
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to request signatures'))
@@ -1123,6 +1148,10 @@ function openFile() {
 		showError(t('libresign', 'Document URL not found'))
 		return
 	}
+	if (typeof file?.name !== 'string' || typeof file?.nodeId !== 'number') {
+		showError(t('libresign', 'Document not found'))
+		return
+	}
 
 	openDocument({
 		fileUrl,
@@ -1137,13 +1166,13 @@ function startSigningProgressPolling() {
 		return
 	}
 
-	signingProgressStatus.value = file.status
+	signingProgressStatus.value = file.status ?? null
 	signingProgressStatusText.value = file.statusText || ''
 	signingProgress.value = null
 
 	stopPollingFunction.value = startLongPolling(
 		file.id,
-		file.status,
+		file.status ?? 0,
 		(data: PollingStatusData) => {
 			signingProgressStatus.value = data.status
 			signingProgressStatusText.value = data.statusText || ''

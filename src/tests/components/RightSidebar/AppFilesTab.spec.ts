@@ -268,7 +268,9 @@ describe('AppFilesTab', () => {
 				id: -456,
 				nodeId: 456,
 				name: 'new.pdf',
-				file: expect.stringContaining('new.pdf'),
+				file: {
+					url: expect.stringContaining('new.pdf'),
+				},
 				signers: [],
 			})
 			expect(filesStore.selectFile).toHaveBeenCalledWith(-456)
