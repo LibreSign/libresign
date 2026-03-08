@@ -56,7 +56,7 @@ import {
 	mdiClockOutline,
 	mdiDragVertical,
 } from '@mdi/js'
-import { emit } from '@nextcloud/event-bus'
+import { emit as emitEventBus } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
@@ -87,10 +87,16 @@ const props = withDefaults(defineProps<{
 	signerIndex: number
 	event?: string
 	draggable?: boolean
+	requireRequestPermission?: boolean
 }>(), {
 	event: '',
 	draggable: false,
+	requireRequestPermission: true,
 })
+
+const emit = defineEmits<{
+	(event: 'select', signer: SignerRow): void
+}>()
 
 const filesStore = useFilesStore()
 const listItem = ref<any | null>(null)
@@ -135,7 +141,7 @@ const isMethodDisabled = computed(() => {
 	}
 	const signerMethod = signer.value.identifyMethods[0].method
 	const methodConfig = methods.find(m => m.name === signerMethod)
-	return !methodConfig?.enabled
+	return methodConfig ? !methodConfig.enabled : false
 })
 
 const disabledMethodLabel = computed(() => {
@@ -216,13 +222,10 @@ const statusIconPath = computed(() => {
 })
 
 function signerClickAction() {
-	if (!canRequestSign) {
+	if (props.requireRequestPermission && !canRequestSign) {
 		return
 	}
 	if (filesStore.isOriginalFileDeleted()) {
-		return
-	}
-	if (props.event.length === 0) {
 		return
 	}
 	if (signer.value.signed) {
@@ -231,7 +234,10 @@ function signerClickAction() {
 	if (isMethodDisabled.value) {
 		return
 	}
-	emit(props.event, signer.value)
+	emit('select', signer.value)
+	if (props.event.length > 0) {
+		emitEventBus(props.event, signer.value)
+	}
 }
 
 function closeActions() {
