@@ -92,7 +92,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-	(event: 'certificate-policy-valid', valid: string): void
+	(event: 'certificate-policy-valid', valid: boolean): void
 }>()
 
 type CertificatePolicyUploadResponse = {
@@ -113,13 +113,13 @@ type CertificatePolicySettingsResponse = {
 
 const input = useTemplateRef<HTMLInputElement>('input')
 const acceptMime = ['application/pdf']
-const OID = ref(loadState('libresign', 'certificate_policies_oid'))
-const CPS = ref(loadState('libresign', 'certificate_policies_cps'))
+const OID = ref(String(loadState('libresign', 'certificate_policies_oid', '')))
+const CPS = ref(String(loadState('libresign', 'certificate_policies_cps', '')))
 const loading = ref(false)
 const dislaySuccessOID = ref(false)
 const errorMessage = ref('')
 
-const certificatePolicyValid = computed(() => CPS.value)
+const certificatePolicyValid = computed(() => CPS.value.length > 0)
 
 function emitValidity() {
 	emit('certificate-policy-valid', certificatePolicyValid.value)
@@ -129,7 +129,7 @@ function view() {
 	openDocument({
 		fileUrl: CPS.value,
 		filename: 'Certificate Policy',
-		nodeId: null,
+		nodeId: 0,
 	})
 }
 
