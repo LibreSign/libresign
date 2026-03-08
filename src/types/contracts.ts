@@ -59,13 +59,7 @@ export type SaveSignatureRequestResponse = FileRecord | {
 	error: unknown
 }
 
-export type IdentifyMethodSetting = {
-	name: string
-	friendly_name: string
-	enabled: boolean
-	mandatory?: boolean
-	signatureMethods?: ApiComponents['schemas']['SignatureMethods']
-}
+export type IdentifyMethodSetting = AdministrationComponents['schemas']['IdentifyMethodSetting']
 
 export type LoadedFileInfoState = {
 	files?: Array<{

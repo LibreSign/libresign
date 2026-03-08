@@ -8,6 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+/**
+ * @psalm-import-type LibresignIdentifyMethodSetting from \OCA\Libresign\ResponseDefinitions
+ */
+
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
@@ -324,6 +328,9 @@ class IdentifyMethodService {
 		}
 	}
 
+	/**
+	 * @return list<LibresignIdentifyMethodSetting>
+	 */
 	public function getIdentifyMethodsSettings(): array {
 		if ($this->identifyMethodsSettings) {
 			return $this->identifyMethodsSettings;

@@ -531,6 +531,13 @@ export type components = {
             policySection: components["schemas"]["PolicySection"][];
             rootCert: components["schemas"]["RootCertificate"];
         };
+        IdentifyMethodSetting: {
+            name: string;
+            friendly_name: string;
+            enabled: boolean;
+            mandatory: boolean;
+            signatureMethods?: components["schemas"]["SignatureMethods"];
+        };
         OCSMeta: {
             status: string;
             statuscode: number;
@@ -562,6 +569,30 @@ export type components = {
         RootCertificateName: {
             id: string;
             value: string;
+        };
+        SignatureMethod: {
+            enabled: boolean;
+            label: string;
+            name: string;
+        };
+        SignatureMethodEmailToken: {
+            label: string;
+            /** @enum {string} */
+            identifyMethod: "email" | "account";
+            needCode: boolean;
+            hasConfirmCode: boolean;
+            blurredEmail: string;
+            hashOfEmail: string;
+        };
+        SignatureMethodPassword: {
+            label: string;
+            name: string;
+            hasSignatureFile: boolean;
+        };
+        SignatureMethods: {
+            clickToSign?: components["schemas"]["SignatureMethod"];
+            emailToken?: components["schemas"]["SignatureMethodEmailToken"];
+            password?: components["schemas"]["SignatureMethodPassword"];
         };
     };
     responses: never;
@@ -743,9 +774,7 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 engine: string;
-                                identify_methods: {
-                                    [key: string]: Record<string, never>;
-                                }[];
+                                identify_methods: components["schemas"]["IdentifyMethodSetting"][];
                             };
                         };
                     };

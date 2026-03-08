@@ -181,6 +181,32 @@
                     }
                 }
             },
+            "IdentifyMethodSetting": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "friendly_name",
+                    "enabled",
+                    "mandatory"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "friendly_name": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "mandatory": {
+                        "type": "boolean"
+                    },
+                    "signatureMethods": {
+                        "$ref": "#/components/schemas/SignatureMethods"
+                    }
+                }
+            },
             "OCSMeta": {
                 "type": "object",
                 "required": [
@@ -290,6 +316,93 @@
                     },
                     "value": {
                         "type": "string"
+                    }
+                }
+            },
+            "SignatureMethod": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "label",
+                    "name"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SignatureMethodEmailToken": {
+                "type": "object",
+                "required": [
+                    "label",
+                    "identifyMethod",
+                    "needCode",
+                    "hasConfirmCode",
+                    "blurredEmail",
+                    "hashOfEmail"
+                ],
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "identifyMethod": {
+                        "type": "string",
+                        "enum": [
+                            "email",
+                            "account"
+                        ]
+                    },
+                    "needCode": {
+                        "type": "boolean"
+                    },
+                    "hasConfirmCode": {
+                        "type": "boolean"
+                    },
+                    "blurredEmail": {
+                        "type": "string"
+                    },
+                    "hashOfEmail": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SignatureMethodPassword": {
+                "type": "object",
+                "required": [
+                    "label",
+                    "name",
+                    "hasSignatureFile"
+                ],
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "hasSignatureFile": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "SignatureMethods": {
+                "type": "object",
+                "properties": {
+                    "clickToSign": {
+                        "$ref": "#/components/schemas/SignatureMethod"
+                    },
+                    "emailToken": {
+                        "$ref": "#/components/schemas/SignatureMethodEmailToken"
+                    },
+                    "password": {
+                        "$ref": "#/components/schemas/SignatureMethodPassword"
                     }
                 }
             }
@@ -748,10 +861,7 @@
                                                         "identify_methods": {
                                                             "type": "array",
                                                             "items": {
-                                                                "type": "object",
-                                                                "additionalProperties": {
-                                                                    "type": "object"
-                                                                }
+                                                                "$ref": "#/components/schemas/IdentifyMethodSetting"
                                                             }
                                                         }
                                                     }

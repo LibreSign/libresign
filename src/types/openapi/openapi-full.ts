@@ -1747,6 +1747,13 @@ export type components = {
             /** Format: int64 */
             mandatory: number;
         };
+        IdentifyMethodSetting: {
+            name: string;
+            friendly_name: string;
+            enabled: boolean;
+            mandatory: boolean;
+            signatureMethods?: components["schemas"]["SignatureMethods"];
+        };
         NewFile: {
             base64?: string;
             /** Format: int64 */
@@ -5641,9 +5648,7 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 engine: string;
-                                identify_methods: {
-                                    [key: string]: Record<string, never>;
-                                }[];
+                                identify_methods: components["schemas"]["IdentifyMethodSetting"][];
                             };
                         };
                     };
