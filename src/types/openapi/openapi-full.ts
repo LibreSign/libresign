@@ -2705,6 +2705,7 @@ export interface operations {
                                 settings: {
                                     canRequestSign: boolean;
                                     hasSignatureFile: boolean;
+                                    phoneNumber: string;
                                 };
                             };
                         };
