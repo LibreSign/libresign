@@ -63,9 +63,9 @@ const loading = ref(true)
 const isLoaded = ref(false)
 const imageData = ref('')
 const capabilities = getCapabilities() as NextcloudCapabilities
-const signElementsConfig = capabilities.libresign?.config['sign-elements']
-const width = ref(`${Number(signElementsConfig?.['signature-width'] ?? 0)}px`)
-const height = ref(`${Number(signElementsConfig?.['signature-height'] ?? 0)}px`)
+const signElementsConfig = capabilities.libresign.config['sign-elements']
+const width = ref(`${signElementsConfig['signature-width']}px`)
+const height = ref(`${signElementsConfig['signature-height']}px`)
 
 async function loadImage() {
 	if (props.src.startsWith('data:')) {
