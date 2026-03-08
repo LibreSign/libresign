@@ -18,6 +18,14 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 
 /**
  * @typedef {{
+ * 	message?: string
+ * 	code?: number | string
+ * 	[key: string]: unknown
+ * }} SignError
+ */
+
+/**
+ * @typedef {{
  * 	id?: number
  * 	name?: string
  * 	email?: string
@@ -56,7 +64,7 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  */
 
 const defaultState = {
-	errors: [],
+	errors: /** @type {SignError[]} */ ([]),
 	document: /** @type {SignDocument} */ ({
 		id: 0,
 		name: '',
@@ -76,7 +84,7 @@ const defaultState = {
 
 export const useSignStore = defineStore('sign', () => {
 	const errors = ref([...defaultState.errors])
-	const document = ref(/** @type {SignDocument} */ ({ ...defaultState.document }))
+	const document = ref(/** @type {SignDocument | undefined} */ ({ ...defaultState.document }))
 	const mounted = ref(defaultState.mounted)
 	const pendingAction = ref(defaultState.pendingAction)
 
