@@ -45,6 +45,21 @@ defineOptions({
 	name: 'SignTab',
 })
 
+type SignTabSigner = {
+	me?: boolean
+	sign_uuid?: string
+}
+
+type SignTabDocument = {
+	status?: number
+	statusText?: string
+	signers?: SignTabSigner[]
+	signRequestUuid?: string
+	sign_request_uuid?: string
+	signUuid?: string
+	sign_uuid?: string
+}
+
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 
@@ -61,13 +76,14 @@ function getRoute() {
 }
 
 function signEnabled() {
-	return FILE_STATUS.ABLE_TO_SIGN === signStore.document.status
-		|| FILE_STATUS.PARTIAL_SIGNED === signStore.document.status
+	const document = signStore.document as SignTabDocument | undefined
+	return FILE_STATUS.ABLE_TO_SIGN === document?.status
+		|| FILE_STATUS.PARTIAL_SIGNED === document?.status
 }
 
 function getSignRequestUuid() {
-	const doc = signStore.document || {}
-	const signer = (doc.signers?.find(row => row.me) || doc.signers?.[0]) as { sign_uuid?: string } | undefined
+	const doc = (signStore.document ?? {}) as SignTabDocument
+	const signer = doc.signers?.find((row: SignTabSigner) => row.me) || doc.signers?.[0]
 	const fromDoc = [doc.signRequestUuid, doc.sign_request_uuid, doc.signUuid, doc.sign_uuid]
 		.find((value): value is string => typeof value === 'string' && value.length > 0)
 	const fromSigner = signer?.sign_uuid
