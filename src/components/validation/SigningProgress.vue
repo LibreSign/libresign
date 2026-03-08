@@ -134,7 +134,7 @@ const isPolling = ref(false)
 const pollingInterval = ref<ReturnType<typeof setTimeout> | null>(null)
 const progress = ref<ProgressState | null>(null)
 const generalErrorMessage = ref<string | null>(null)
-const statusMap = ref<Record<string, StatusMeta>>(buildStatusMap())
+const statusMap = ref<Record<string, StatusMeta>>(buildStatusMap() as unknown as Record<string, StatusMeta>)
 const pollTimeoutSeconds = ref(30)
 
 function getHeaderTitle() {
