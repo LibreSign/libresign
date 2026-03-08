@@ -188,6 +188,7 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
+import type { NextcloudCapabilities } from '../../../types/capabilities'
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import { FILE_STATUS } from '../../../constants.js'
@@ -452,16 +453,8 @@ const needCreateSignature = computed(() => {
 })
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const canCreateSignature = computed(() => {
-	const capabilities = getCapabilities() as {
-		libresign?: {
-			config?: {
-				'sign-elements'?: {
-					'can-create-signature'?: boolean
-				}
-			}
-		}
-	}
-	return capabilities.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
+	const capabilities = getCapabilities() as NextcloudCapabilities
+	return capabilities.libresign.config['sign-elements']['can-create-signature'] === true
 })
 const ableToSign = computed(() => signStore.ableToSign)
 const signRequestUuid = computed(() => {
