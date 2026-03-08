@@ -355,7 +355,7 @@ describe('EnvelopeValidation', () => {
 			})
 		})
 
-		it('handles file without nodeId', () => {
+		it('does not open viewer without nodeId', () => {
 			wrapper = createWrapper()
 
 			wrapper.vm.viewFile({
@@ -363,7 +363,7 @@ describe('EnvelopeValidation', () => {
 				name: 'Document.pdf',
 			})
 
-			expect(viewer.openDocument).toHaveBeenCalled()
+			expect(viewer.openDocument).not.toHaveBeenCalled()
 		})
 	})
 
