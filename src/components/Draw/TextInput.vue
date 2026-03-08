@@ -60,9 +60,9 @@ const emit = defineEmits<{
 }>()
 
 const capabilities = getCapabilities() as NextcloudCapabilities
-const signElementsConfig = capabilities.libresign?.config['sign-elements']
-const canvasWidth = Number(signElementsConfig?.['signature-width'] ?? 0)
-const canvasHeight = Number(signElementsConfig?.['signature-height'] ?? 0)
+const signElementsConfig = capabilities.libresign.config['sign-elements']
+const canvasWidth = signElementsConfig['signature-width']
+const canvasHeight = signElementsConfig['signature-height']
 const value = ref('')
 const modal = ref(false)
 const imageData = ref<string | null>(null)
