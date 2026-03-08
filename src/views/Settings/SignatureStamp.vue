@@ -486,6 +486,10 @@ async function refreshAfterChangeCollectMetadata() {
 		})
 }
 
+const handleCollectMetadataChanged = () => {
+	void refreshAfterChangeCollectMetadata()
+}
+
 function activateLocalFilePicker() {
 	reset()
 	if (!input.value) {
@@ -660,11 +664,11 @@ watch(signatureImageUrl, () => {
 })
 
 onMounted(() => {
-	subscribe('collect-metadata:changed', refreshAfterChangeCollectMetadata)
+	subscribe('collect-metadata:changed', handleCollectMetadataChanged)
 })
 
 onBeforeUnmount(() => {
-	unsubscribe('collect-metadata:changed')
+	unsubscribe('collect-metadata:changed', handleCollectMetadataChanged)
 })
 
 defineExpose({
