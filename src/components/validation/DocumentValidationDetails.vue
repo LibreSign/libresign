@@ -74,14 +74,15 @@ defineOptions({
 })
 
 type ValidationDocument = {
-	name: string
+	name?: string
 	status?: string | number
 	totalPages?: number
-	size?: string
+	size?: string | number
 	pdfVersion?: string
 	uuid?: string
 	nodeId?: number
-	signers?: Array<{ displayName?: string; email?: string }>
+	signers?: Array<{ displayName?: string; email?: string; [key: string]: unknown }>
+	[key: string]: unknown
 }
 
 const props = withDefaults(defineProps<{
@@ -99,7 +100,7 @@ const { document } = toRefs(props)
 
 const size = computed(() => {
 	if (!document.value.size) return ''
-	const parsedSize = parseInt(document.value.size)
+	const parsedSize = parseInt(String(document.value.size), 10)
 	if (parsedSize < 1024) return parsedSize + ' B'
 	if (parsedSize < 1048576) return (parsedSize / 1024).toFixed(2) + ' KB'
 	return (parsedSize / 1048576).toFixed(2) + ' MB'
@@ -111,8 +112,8 @@ async function viewDocument() {
 	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid as string })
 	await openDocument({
 		fileUrl,
-		filename: document.value.name,
-		nodeId: document.value.nodeId,
+		filename: document.value.name || '',
+		nodeId: document.value.nodeId ?? 0,
 	})
 }
 
