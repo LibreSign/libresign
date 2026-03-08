@@ -15,16 +15,16 @@
 
 			<div class="documents-list">
 				<div v-for="(doc, index) in list"
-					:key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`"
+					:key="`doc-${index}-${doc.nodeId}-${doc.file_type?.key ?? 'unknown'}`"
 					class="document-card">
 					<div class="document-header">
 						<div class="document-info">
-							<h3>{{ doc.file_type.name }}</h3>
+							<h3>{{ doc.file_type?.name ?? t('libresign', 'Document') }}</h3>
 							<p class="document-status">{{ doc.statusText }}</p>
 						</div>
 					</div>
 					<div class="document-actions">
-						<NcButton v-if="doc.status === -1 && isAuthenticatedUser"
+						<NcButton v-if="doc.status === -1 && isAuthenticatedUser && doc.file_type?.key"
 							variant="tertiary"
 							:aria-label="t('libresign', 'Choose from Files')"
 							@click="toggleFilePicker(doc.file_type.key)">
@@ -33,7 +33,7 @@
 							</template>
 							{{ t('libresign', 'Choose from Files') }}
 						</NcButton>
-						<NcButton v-if="doc.status === -1"
+						<NcButton v-if="doc.status === -1 && doc.file_type?.key"
 							variant="tertiary"
 							:aria-label="t('libresign', 'Upload file')"
 							@click="inputFile(doc.file_type.key)">
@@ -78,9 +78,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { IDENTIFICATION_DOCUMENTS_STATUS } from '../../../constants.js'
-
-
-const loadFileToBase64 = file => {
+const loadFileToBase64 = (file: File): Promise<string | ArrayBuffer | null> => {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader()
 		reader.readAsDataURL(file)
@@ -94,10 +92,10 @@ defineOptions({
 })
 
 type DocumentTypeInfo = {
-	key?: string
-	type?: string
-	name?: string
-	description?: string
+	key: string
+	type: string
+	name: string
+	description: string
 }
 
 type IdentificationDocument = {
@@ -106,12 +104,20 @@ type IdentificationDocument = {
 	status?: number
 	statusText?: string
 	name?: string
-	file_type?: DocumentTypeInfo
+	file_type: DocumentTypeInfo
 	file?: {
 		file?: {
 			nodeId?: number
 		}
 	}
+}
+
+type DocumentsConfig = {
+	identificationDocumentsFlow?: boolean
+}
+
+type FilePickerNode = {
+	path?: string
 }
 
 const props = withDefaults(defineProps<{
@@ -141,7 +147,7 @@ const list = computed(() => Object.values(documents.value))
 const hasDocumentsWaitingApproval = computed(() => list.value.some((doc) => doc.status === IDENTIFICATION_DOCUMENTS_STATUS.NEED_APPROVAL))
 const isAuthenticatedUser = computed(() => Boolean(getCurrentUser()))
 const enabledFlow = computed(() => {
-	const config = loadState('libresign', 'config', {})
+	const config = loadState('libresign', 'config', {}) as DocumentsConfig
 	return config.identificationDocumentsFlow || false
 })
 
@@ -152,7 +158,12 @@ function findDocumentByType(list: IdentificationDocument[], type: string) {
 		status: -1,
 		statusText: t('libresign', 'Not sent yet'),
 		name: t('libresign', 'Not defined yet'),
-		file_type: fileTypeInfo.value[type] || { type },
+		file_type: fileTypeInfo.value[type] || {
+			key: type,
+			type,
+			name: t('libresign', 'Document'),
+			description: t('libresign', 'Document'),
+		},
 	}
 }
 
@@ -164,14 +175,13 @@ async function toggleFilePicker(type: string) {
 		.setMimeTypeFilter(['application/pdf'])
 		.addButton({
 			label: t('libresign', 'Choose'),
-			callback: (nodes) => handleFileChoose(nodes),
-			type: 'primary',
+			callback: (nodes: FilePickerNode[]) => handleFileChoose(nodes),
 		})
 		.build()
 
 	try {
 		const nodes = await filePicker.pick()
-		await handleFileChoose(nodes)
+		await handleFileChoose(nodes as FilePickerNode[])
 	} catch {
 		// User cancelled
 	}
@@ -193,7 +203,7 @@ async function loadDocuments() {
 	loading.value = false
 }
 
-async function handleFileChoose(nodes: Array<{ path?: string }>) {
+async function handleFileChoose(nodes: FilePickerNode[]) {
 	const path = nodes[0]?.path
 	if (!path) {
 		showWarning(t('libresign', 'Impossible to get file entry'))
