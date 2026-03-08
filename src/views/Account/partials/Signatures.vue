@@ -39,9 +39,21 @@ defineOptions({
 	name: 'Signatures',
 })
 
+type SignElementCapabilities = {
+	libresign?: {
+		config?: {
+			'sign-elements'?: {
+				'is-available'?: boolean
+				'can-create-signature'?: boolean
+			}
+		}
+	}
+}
+
 function isSignaturesAvailable() {
-	return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
-		&& getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
+	const capabilities = getCapabilities() as SignElementCapabilities
+	return capabilities.libresign?.config?.['sign-elements']?.['is-available'] === true
+		&& capabilities.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
 }
 
 defineExpose({
