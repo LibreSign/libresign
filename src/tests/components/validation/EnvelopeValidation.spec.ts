@@ -5,6 +5,7 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
 
 type EnvelopeFile = {
@@ -19,10 +20,16 @@ type EnvelopeFile = {
 }
 
 type EnvelopeSigner = {
-	signed?: boolean | string | null
+	signed?: string | null
 	opened?: boolean
 	displayName?: string
 	email?: string
+	userId?: string
+	request_sign_date?: string
+	remote_address?: string
+	user_agent?: string
+	documentsSignedCount?: number
+	totalDocuments?: number
 }
 
 type EnvelopeDocument = {
@@ -42,6 +49,24 @@ type WrapperProps = Partial<{
 
 type EnvelopeValidationComponent = typeof import('../../../components/validation/EnvelopeValidation.vue').default
 type ViewerModule = typeof import('../../../utils/viewer.js')
+
+type EnvelopeValidationVm = {
+	isTouchDevice: boolean
+	documentStatus: string
+	$nextTick: () => Promise<void>
+	toggleDetail: (signer: EnvelopeSigner) => void
+	toggleFileDetail: (file: Partial<EnvelopeFile>) => void
+	getName: (signer: Partial<EnvelopeSigner>) => string
+	getSignerProgressText: (signer: Partial<EnvelopeSigner>) => string
+	dateFromSqlAnsi: (date: string) => string
+	viewFile: (file: Partial<EnvelopeFile>) => void
+}
+
+type EnvelopeValidationWrapper = VueWrapper<any> & {
+	vm: EnvelopeValidationVm
+	setProps: (props: WrapperProps) => Promise<void>
+	props: (key: 'document' | 'legalInformation' | 'documentValidMessage' | 'isAfterSigned') => unknown
+}
 
 const t: TranslationFunction = (_app, text, vars) => {
 	if (vars) {
@@ -94,9 +119,9 @@ beforeAll(async () => {
 })
 
 describe('EnvelopeValidation', () => {
-	let wrapper: ReturnType<typeof mount> | null
+	let wrapper: EnvelopeValidationWrapper | null
 
-	const createWrapper = (props: WrapperProps = {}) => {
+	const createWrapper = (props: WrapperProps = {}): EnvelopeValidationWrapper => {
 		return mount(EnvelopeValidation, {
 			props: {
 				document: {
@@ -131,7 +156,7 @@ describe('EnvelopeValidation', () => {
 					n,
 				},
 			},
-		})
+		}) as EnvelopeValidationWrapper
 	}
 
 	beforeEach(() => {
@@ -183,14 +208,15 @@ describe('EnvelopeValidation', () => {
 				},
 			})
 
-			expect(wrapper.props('document').files[0].opened).toBe(false)
+			const document = wrapper.props('document') as EnvelopeDocument
+			expect(document.files[0]!.opened).toBe(false)
 		})
 	})
 
 	describe('RULE: toggleDetail toggles signer details', () => {
 		it('toggles opened state from false to true', () => {
 			wrapper = createWrapper()
-			const signer = { signed: true, opened: false }
+			const signer: EnvelopeSigner = { signed: '2024-06-01', opened: false }
 
 			wrapper.vm.toggleDetail(signer)
 
@@ -199,7 +225,7 @@ describe('EnvelopeValidation', () => {
 
 		it('toggles opened state from true to false', () => {
 			wrapper = createWrapper()
-			const signer = { signed: true, opened: true }
+			const signer: EnvelopeSigner = { signed: '2024-06-01', opened: true }
 
 			wrapper.vm.toggleDetail(signer)
 
