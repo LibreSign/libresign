@@ -64,6 +64,21 @@ vi.mock('../../store/sign.js', async () => {
 })
 
 describe('SignPDF.vue', () => {
+	const createSignDocument = (overrides = {}) => ({
+		id: 1,
+		name: 'Envelope',
+		description: '',
+		status: '',
+		statusText: '',
+		url: '/apps/libresign/p/pdf/uuid-123',
+		nodeId: 1,
+		nodeType: 'file',
+		uuid: 'uuid-123',
+		signers: [],
+		visibleElements: [],
+		...overrides,
+	})
+
 	beforeEach(() => {
 		setActivePinia(createPinia())
 	})
@@ -74,11 +89,10 @@ describe('SignPDF.vue', () => {
 		const { useSignStore } = await import('../../../store/sign.js')
 		const signStore = useSignStore()
 
-		signStore.document = {
-			id: 1,
+		signStore.document = createSignDocument({
 			nodeType: 'envelope',
 			files: [],
-		}
+		})
 
 		const wrapper = mount(SignPDF, {
 			global: {
