@@ -20,8 +20,8 @@
 		<!-- Status -->
 		<td class="files-list__row-status"
 			@click="openDetailsIfAvailable">
-			<FileEntryStatus :status="source.status"
-				:status-text="source.statusText"
+			<FileEntryStatus :status="source.status ?? 0"
+				:status-text="source.statusText ?? ''"
 				:signers="source.signers || []" />
 		</td>
 
