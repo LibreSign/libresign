@@ -110,11 +110,14 @@ const size = computed(() => {
 const documentStatus = computed(() => getStatusLabel(document.value.status))
 
 async function viewDocument() {
-	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid as string })
+	if (!document.value.uuid || !document.value.name || typeof document.value.nodeId !== 'number') {
+		return
+	}
+	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid })
 	await openDocument({
 		fileUrl,
-		filename: document.value.name || '',
-		nodeId: document.value.nodeId ?? 0,
+		filename: document.value.name,
+		nodeId: document.value.nodeId,
 	})
 }
 
