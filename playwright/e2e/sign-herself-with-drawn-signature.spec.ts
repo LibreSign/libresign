@@ -4,8 +4,13 @@
  */
 
 import { expect, test } from '@playwright/test'
+import type { Locator } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+
+function getVisiblePdfOverlay(dialog: Locator) {
+	return dialog.locator('.overlay:visible').first()
+}
 
 test('sign herself with drawn signature', async ({ page }) => {
 	await login(
@@ -50,7 +55,7 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await page.getByRole('button', { name: 'Save' }).click();
 	await page.getByRole('button', { name: 'Setup signature positions' }).click();
 	const signaturePositionsDialog = page.getByLabel('Signature positions')
-	const pageOverlay = signaturePositionsDialog.locator('.overlay[aria-label="Page 1 of 1."]:visible').first()
+	const pageOverlay = getVisiblePdfOverlay(signaturePositionsDialog)
 	await expect(signaturePositionsDialog).toBeVisible()
 	await expect(pageOverlay).toBeVisible()
 	await signaturePositionsDialog.getByRole('link', { name: 'Edit signer Admin Name' }).click();
@@ -64,7 +69,7 @@ test('sign herself with drawn signature', async ({ page }) => {
 	//    (bound to mouseup on document) returns early because previewVisible is still false.
 	// 3. click() fires mouseup on the document, which triggers finishAdding() and places
 	//    the element at the current preview position.
-	const overlay = signaturePositionsDialog.locator('.overlay[aria-label="Page 1 of 1. Press Enter or Space to place the signature here."]:visible').first()
+	const overlay = getVisiblePdfOverlay(signaturePositionsDialog)
 	await overlay.hover()
 	await signaturePositionsDialog.locator('.preview-element').first().waitFor({ state: 'visible' })
 	await overlay.click()
