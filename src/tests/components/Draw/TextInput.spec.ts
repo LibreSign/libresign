@@ -154,7 +154,8 @@ describe('TextInput.vue - Text Signature Component', () => {
 		wrapper.vm.value = 'Test'
 		await wrapper.vm.$nextTick()
 
-		if (wrapper.vm.$refs.canvas && wrapper.vm.$refs.canvas.toDataURL) {
+		const canvas = wrapper.vm.$refs.canvas as HTMLCanvasElement | undefined
+		if (canvas?.toDataURL) {
 			wrapper.vm.stringToImage()
 			expect(wrapper.vm.imageData).toBeDefined()
 		}
