@@ -5,8 +5,27 @@
 
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 
-let FileEntrySigners: unknown
+type Signer = {
+	displayName?: string
+	email?: string
+}
+
+type TooltipContent = '' | {
+	content: string
+	html: boolean
+}
+
+type FileEntrySignersVm = {
+	tooltipContent: TooltipContent
+}
+
+type FileEntrySignersWrapper = VueWrapper<any> & {
+	vm: FileEntrySignersVm
+}
+
+let FileEntrySigners: any
 
 vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((_app: string, text: string) => text),
@@ -18,14 +37,14 @@ beforeAll(async () => {
 })
 
 describe('FileEntrySigners', () => {
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props: { signersCount?: number; signers?: Signer[] } = {}) => {
 		return mount(FileEntrySigners, {
 			props: {
 				signersCount: 0,
 				signers: [],
 				...props,
 			},
-		})
+		}) as FileEntrySignersWrapper
 	}
 
 	describe('DISPLAY: Shows signer count accurately', () => {
