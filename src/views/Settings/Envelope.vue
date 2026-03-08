@@ -32,7 +32,7 @@ const envelopeEnabled = ref(loadState('libresign', 'envelope_enabled', true) ===
 function saveEnvelopeEnabled() {
 	OCP.AppConfig.setValue('libresign', 'envelope_enabled', envelopeEnabled.value ? '1' : '0', {
 		success: () => {
-			emit('envelope:changed')
+			emit('envelope:changed', new CustomEvent('envelope:changed'))
 		},
 	})
 }
