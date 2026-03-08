@@ -285,7 +285,7 @@ describe('SignatureStamp.vue', () => {
 			target: {
 				files: [new File(['png'], 'signature.png', { type: 'image/png' })],
 			},
-		}
+		} as unknown as Event
 
 		await wrapper.vm.onChangeBackground(event)
 		await flushPromises()
