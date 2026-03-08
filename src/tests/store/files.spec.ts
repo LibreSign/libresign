@@ -570,7 +570,7 @@ describe('files store - critical business rules', () => {
 
 			await store.deleteSigner({ identify: 'id2', signingOrder: 2 })
 
-			const remainingSigners: Array<{ identify: string; signingOrder: number }> = store.files[1].signers
+			const remainingSigners = store.files[1].signers! as Array<{ identify: string; signingOrder: number }>
 			expect(remainingSigners).toHaveLength(2)
 			const signer = remainingSigners.find((s: { identify: string }) => s.identify === 'id3')
 			expect(signer?.signingOrder).toBe(2)
@@ -612,7 +612,7 @@ describe('files store - critical business rules', () => {
 			const newSigner = { email: 'new@example.com' }
 			store.signerUpdate(newSigner)
 
-			const addedSigner = store.files[1].signers.find((s: { email: string }) => s.email === 'new@example.com')
+			const addedSigner = store.files[1].signers!.find((s) => s.email === 'new@example.com')
 			expect(addedSigner?.signingOrder).toBe(3)
 		})
 
@@ -635,8 +635,8 @@ describe('files store - critical business rules', () => {
 			store.signerUpdate(updatedSigner)
 
 			expect(store.files[1].signers).toHaveLength(1)
-			expect(store.files[1].signers[0].email).toBe('updated@example.com')
-			expect(store.files[1].signers[0].extraField).toBe('new')
+			expect(store.files[1].signers![0]!.email).toBe('updated@example.com')
+			expect(store.files[1].signers![0]!.extraField).toBe('new')
 		})
 	})
 
@@ -831,15 +831,15 @@ describe('files store - critical business rules', () => {
 			const store = useFilesStore()
 			await store.addFile({ id: 1, signers: [{ email: 'a@example.com', signRequestId: 42 }] })
 
-			expect(store.files[1].signers[0].identify).toBe(42)
+			expect(store.files[1].signers![0]!.identify).toBe(42)
 		})
 
 		it('generates identify for new signers without signRequestId', async () => {
 			const store = useFilesStore()
 			await store.addFile({ id: 1, signers: [{ email: 'b@example.com' }] })
 
-			expect(store.files[1].signers[0].identify).toBeDefined()
-			expect(typeof store.files[1].signers[0].identify).toBe('string')
+			expect(store.files[1].signers![0]!.identify).toBeDefined()
+			expect(typeof store.files[1].signers![0]!.identify).toBe('string')
 		})
 
 		it('sets identify on every signer in a multi-signer file', async () => {
@@ -853,7 +853,7 @@ describe('files store - critical business rules', () => {
 				],
 			})
 
-			const signers = store.files[2].signers
+			const signers = store.files[2].signers!
 			for (const signer of signers) {
 				expect(signer.identify).toBeDefined()
 			}
@@ -1082,8 +1082,8 @@ describe('files store - critical business rules', () => {
 
 			await store.saveOrUpdateSignatureRequest()
 
-			expect(store.files[1].signers[0].signingOrder).toBe(1)
-			expect(store.files[1].signers[1].signingOrder).toBe(2)
+			expect(store.files[1].signers![0]!.signingOrder).toBe(1)
+			expect(store.files[1].signers![1]!.signingOrder).toBe(2)
 		})
 
 		it('replaces envelope nodeId when server returns new id', async () => {
