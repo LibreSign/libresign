@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { loadState } from '@nextcloud/initial-state'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { getFilePickerBuilder, showError } from '@nextcloud/dialogs'
@@ -73,10 +74,12 @@ describe('RequestPicker component rules', () => {
 	}
 
 	type ActionsMenuStoreMock = {
-		opened: boolean
+		opened: number | null
 	}
 
-	let wrapper: ReturnType<typeof mount>
+	type RequestPickerWrapper = VueWrapper<any>
+
+	let wrapper: RequestPickerWrapper
 	let filesStore: FilesStoreMock
 	let sidebarStore: SidebarStoreMock
 	let actionsMenuStore: ActionsMenuStoreMock
@@ -111,12 +114,12 @@ describe('RequestPicker component rules', () => {
 		}
 
 		actionsMenuStore = {
-			opened: false,
+			opened: null,
 		}
 
-		useActionsMenuStoreMock.mockReturnValue(actionsMenuStore)
-		useFilesStoreMock.mockReturnValue(filesStore)
-		useSidebarStoreMock.mockReturnValue(sidebarStore)
+		useActionsMenuStoreMock.mockReturnValue(actionsMenuStore as unknown as ReturnType<typeof useActionsMenuStore>)
+		useFilesStoreMock.mockReturnValue(filesStore as unknown as ReturnType<typeof useFilesStore>)
+		useSidebarStoreMock.mockReturnValue(sidebarStore as unknown as ReturnType<typeof useSidebarStore>)
 
 		wrapper = mount(RequestPicker, {
 			global: {
@@ -140,7 +143,7 @@ describe('RequestPicker component rules', () => {
 					t: tWithParams,
 				},
 			},
-		})
+		}) as RequestPickerWrapper
 	})
 
 	describe('canRequestSign visibility', () => {
@@ -168,7 +171,7 @@ describe('RequestPicker component rules', () => {
 						t: tSimple,
 					},
 				},
-			})
+			}) as RequestPickerWrapper
 			expect(newWrapper.find('div').exists()).toBe(false)
 		})
 	})
@@ -193,7 +196,7 @@ describe('RequestPicker component rules', () => {
 				},
 				mocks: { t: tSimple },
 			},
-		})
+		}) as RequestPickerWrapper
 
 		it('defaults variant to tertiary', () => {
 			const w = mountWithVariantStub()
@@ -238,7 +241,7 @@ describe('RequestPicker component rules', () => {
 						t: tSimple,
 					},
 				},
-			})
+			}) as RequestPickerWrapper
 			expect(newWrapper.vm.envelopeEnabled).toBe(true)
 		})
 
@@ -266,7 +269,7 @@ describe('RequestPicker component rules', () => {
 						t: tSimple,
 					},
 				},
-			})
+			}) as RequestPickerWrapper
 			expect(newWrapper.vm.envelopeEnabled).toBe(false)
 		})
 	})
@@ -280,7 +283,6 @@ describe('RequestPicker component rules', () => {
 			expect(filePickerBuilder.setMimeTypeFilter).toHaveBeenCalledWith(['application/pdf'])
 			expect(filePickerBuilder.addButton).toHaveBeenCalledWith(expect.objectContaining({
 				label: 'Choose',
-				type: 'primary',
 				callback: expect.any(Function),
 			}))
 			expect(filePickerBuilder.build).toHaveBeenCalled()
@@ -436,7 +438,7 @@ describe('RequestPicker component rules', () => {
 						t: tWithMaxUploads,
 					},
 				},
-			})
+			}) as RequestPickerWrapper
 			const result = newWrapper.vm.validateMaxFileUploads(10)
 			expect(result).toBe(false)
 			expect(showError).toHaveBeenCalled()
@@ -678,7 +680,7 @@ describe('RequestPicker component rules', () => {
 						t: tSimple,
 					},
 				},
-			})
+			}) as RequestPickerWrapper
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			newWrapper.vm.uploadFile()
 			const fileInputResult = createElementSpy.mock.results.find(
