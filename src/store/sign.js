@@ -16,9 +16,48 @@ import { useSignMethodsStore } from './signMethods.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 
+/**
+ * @typedef {{
+ * 	id?: number
+ * 	name?: string
+ * 	email?: string
+ * 	me?: boolean
+ * 	status?: string | number
+ * 	signatureMethods?: Record<string, unknown>
+ * 	[key: string]: unknown
+ * }} SignerRecord
+ */
+
+/**
+ * @typedef {{
+ * 	elementId?: number
+ * 	signRequestId?: number
+ * 	type?: string
+ * 	[key: string]: unknown
+ * }} VisibleElementRecord
+ */
+
+/**
+ * @typedef {{
+ * 	id: number
+ * 	name: string
+ * 	description: string
+ * 	status: string | number
+ * 	statusText: string
+ * 	url: string
+ * 	nodeId: number
+ * 	nodeType: string
+ * 	uuid: string
+ * 	signers: SignerRecord[]
+ * 	visibleElements: VisibleElementRecord[]
+ * 	settings?: Record<string, unknown>
+ * 	[key: string]: unknown
+ * }} SignDocument
+ */
+
 const defaultState = {
 	errors: [],
-	document: {
+	document: /** @type {SignDocument} */ ({
 		id: 0,
 		name: '',
 		description: '',
@@ -30,14 +69,14 @@ const defaultState = {
 		uuid: '',
 		signers: [],
 		visibleElements: [],
-	},
+	}),
 	mounted: false,
 	pendingAction: null,
 }
 
 export const useSignStore = defineStore('sign', () => {
 	const errors = ref([...defaultState.errors])
-	const document = ref({ ...defaultState.document })
+	const document = ref(/** @type {SignDocument} */ ({ ...defaultState.document }))
 	const mounted = ref(defaultState.mounted)
 	const pendingAction = ref(defaultState.pendingAction)
 
