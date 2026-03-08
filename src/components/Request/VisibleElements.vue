@@ -128,13 +128,13 @@ type FileSigner = VisibleElementsSigner & {
 
 type VisibleElementPayload = VisibleElement & {
 	type: 'signature'
-	elementId?: string
+	elementId?: number | string
 	fileId?: number
 	signRequestId?: number | string
 	coordinates: {
 		page: number
-		width: number
-		height: number
+		width?: number
+		height?: number
 		left: number
 		top: number
 	}
@@ -223,24 +223,37 @@ const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElementPay
 		const page = Number(element.coordinates.page)
 		const left = Number(element.coordinates.left)
 		const top = Number(element.coordinates.top)
-		const width = Number((element.coordinates as VisibleElementPayload['coordinates']).width)
-		const height = Number((element.coordinates as VisibleElementPayload['coordinates']).height)
+		const normalizedFileId = typeof element.fileId === 'number'
+			? element.fileId
+			: Number(element.fileId)
+		const rawWidth = element.coordinates.width
+		const rawHeight = element.coordinates.height
+		const width = rawWidth === undefined ? undefined : Number(rawWidth)
+		const height = rawHeight === undefined ? undefined : Number(rawHeight)
 
-		if (![page, left, top, width, height].every(Number.isFinite)) {
+		if (![page, left, top].every(Number.isFinite)) {
+			return []
+		}
+
+		if (!Number.isFinite(normalizedFileId)) {
+			return []
+		}
+
+		if ((width !== undefined && !Number.isFinite(width)) || (height !== undefined && !Number.isFinite(height))) {
 			return []
 		}
 
 		return [{
 			type: 'signature',
-			elementId: typeof element.elementId === 'string' ? element.elementId : undefined,
-			fileId: typeof element.fileId === 'number' ? element.fileId : Number(element.fileId),
+			elementId: element.elementId,
+			fileId: normalizedFileId,
 			signRequestId: element.signRequestId,
 			coordinates: {
 				page,
 				left,
 				top,
-				width,
-				height,
+				...(width !== undefined ? { width } : {}),
+				...(height !== undefined ? { height } : {}),
 			},
 		} satisfies VisibleElementPayload]
 	})
@@ -257,8 +270,9 @@ const modal = ref(false)
 const loading = ref(false)
 const signerSelected = ref<Record<string, unknown> | null>(null)
 const capabilities = getCapabilities() as NextcloudCapabilities
-const width = ref(capabilities.libresign?.config?.['sign-elements']?.['full-signature-width'] ?? 180)
-const height = ref(capabilities.libresign?.config?.['sign-elements']?.['full-signature-height'] ?? 60)
+const signElementsConfig = capabilities.libresign.config['sign-elements']
+const width = ref(signElementsConfig['full-signature-width'])
+const height = ref(signElementsConfig['full-signature-height'])
 const filePagesMap = ref<Record<number, FilePageInfo>>({})
 const elementsLoaded = ref(false)
 const fetchedFiles = ref<DocumentFile[]>([])
@@ -298,7 +312,7 @@ async function showModal() {
 	if (!canRequestSign.value) {
 		return
 	}
-	if (capabilities.libresign?.config?.['sign-elements']?.['is-available'] === false) {
+	if (signElementsConfig['is-available'] === false) {
 		return
 	}
 	modal.value = true
