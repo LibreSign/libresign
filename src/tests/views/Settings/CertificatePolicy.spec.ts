@@ -74,7 +74,7 @@ describe('CertificatePolicy.vue', () => {
 	it('emits the initial validity on mount', () => {
 		const wrapper = createWrapper()
 
-		expect(wrapper.emitted('certificate-policy-valid')).toEqual([['/apps/files/cps.pdf']])
+		expect(wrapper.emitted('certificate-policy-valid')).toEqual([[true]])
 	})
 
 	it('opens the current CPS document in the viewer', () => {
@@ -85,7 +85,7 @@ describe('CertificatePolicy.vue', () => {
 		expect(viewer.openDocument).toHaveBeenCalledWith({
 			fileUrl: '/apps/files/cps.pdf',
 			filename: 'Certificate Policy',
-			nodeId: null,
+			nodeId: 0,
 		})
 	})
 
@@ -117,6 +117,6 @@ describe('CertificatePolicy.vue', () => {
 
 		expect(axios.delete).toHaveBeenCalledWith('/apps/libresign/api/v1/admin/certificate-policy')
 		expect(wrapper.vm.CPS).toBe('')
-		expect(wrapper.emitted('certificate-policy-valid')?.at(-1)).toEqual([''])
+		expect(wrapper.emitted('certificate-policy-valid')?.at(-1)).toEqual([false])
 	})
 })
