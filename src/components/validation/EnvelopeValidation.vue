@@ -189,12 +189,21 @@ type EnvelopeFile = {
 	uuid?: string
 	name?: string
 	nodeId?: number
+	totalPages?: number
+	size?: string | number
+	pdfVersion?: string
+	signers?: Array<Record<string, unknown>>
 }
 
 type EnvelopeSigner = {
 	opened?: boolean
 	displayName?: string
 	email?: string
+	userId?: string
+	request_sign_date?: string
+	signed?: string
+	remote_address?: string
+	user_agent?: string
 	documentsSignedCount?: number
 	totalDocuments?: number
 }
@@ -253,11 +262,14 @@ function getSignerProgressText(signer: EnvelopeSigner) {
 }
 
 function viewFile(file: EnvelopeFile) {
+	if (!file.uuid) {
+		return
+	}
 	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
 	openDocument({
 		fileUrl,
-		filename: file.name,
-		nodeId: file.nodeId,
+		filename: file.name || '',
+		nodeId: file.nodeId ?? 0,
 	})
 }
 
