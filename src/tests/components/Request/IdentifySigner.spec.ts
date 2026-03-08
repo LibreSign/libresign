@@ -8,6 +8,7 @@ import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import IdentifySigner from '../../../components/Request/IdentifySigner.vue'
+import { useFilesStore } from '../../../store/files.js'
 
 vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn(),
@@ -20,11 +21,10 @@ vi.mock('vue-select', () => ({
 	},
 }))
 
-interface FilesStoreMock {
+type FilesStoreMock = Pick<ReturnType<typeof useFilesStore>, 'disableIdentifySigner' | 'getFile' | 'saveOrUpdateSignatureRequest'> & {
 	disableIdentifySigner: ReturnType<typeof vi.fn>
 	getFile: ReturnType<typeof vi.fn>
 	saveOrUpdateSignatureRequest: ReturnType<typeof vi.fn>
-	[key: string]: unknown
 }
 
 type IdentifyMethodConfig = {
@@ -140,9 +140,9 @@ describe('IdentifySigner rules', () => {
 		setActivePinia(createPinia())
 		const { useFilesStore: useFilesStoreModule } = await import('../../../store/files.js')
 		filesStore = {
-			disableIdentifySigner: vi.fn(),
-			getFile: vi.fn(() => ({ signers: [] })),
-			saveOrUpdateSignatureRequest: vi.fn().mockResolvedValue({}),
+			disableIdentifySigner: vi.fn<() => void>(),
+			getFile: vi.fn<() => { signers: never[] }>(() => ({ signers: [] })),
+			saveOrUpdateSignatureRequest: vi.fn<(payload?: unknown) => Promise<Record<string, never>>>().mockResolvedValue({}),
 		}
 		;(useFilesStoreModule as unknown as { mockReturnValue: (store: FilesStoreMock) => void }).mockReturnValue(filesStore)
 
