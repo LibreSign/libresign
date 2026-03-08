@@ -20,7 +20,7 @@ type EnvelopeFile = {
 }
 
 type EnvelopeSigner = {
-	signed?: string | null
+	signed?: string
 	opened?: boolean
 	displayName?: string
 	email?: string
@@ -443,7 +443,7 @@ describe('EnvelopeValidation', () => {
 		})
 
 		it('hides signer details when opened false', async () => {
-			const signer: EnvelopeSigner = { opened: false, signed: null }
+			const signer: EnvelopeSigner = { opened: false }
 			wrapper = createWrapper({
 				document: { signers: [signer] },
 			})
