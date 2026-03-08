@@ -65,15 +65,29 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSavingIndicatorIcon from '@nextcloud/vue/components/NcSavingIndicatorIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import type { operations } from '../../types/openapi/openapi-administration'
 
 defineOptions({
 	name: 'SignatureFlow',
 })
 
 type FlowOption = {
-	value: string
+	value: SignatureFlowMode
 	label: string
 	description: string
+}
+
+type SignatureFlowMode = 'none' | 'parallel' | 'ordered_numeric'
+
+type SignatureFlowRequestBody = operations['admin-set-signature-flow-config']['requestBody']['content']['application/json']
+type SignatureFlowErrorResponse =
+	| operations['admin-set-signature-flow-config']['responses'][400]['content']['application/json']
+	| operations['admin-set-signature-flow-config']['responses'][500]['content']['application/json']
+
+type SignatureFlowRequestError = {
+	response?: {
+		data?: SignatureFlowErrorResponse
+	}
 }
 
 const enabled = ref(false)
@@ -108,7 +122,7 @@ const selectedFlowValue = computed({
 
 function loadConfig() {
 	try {
-		const mode = loadState('libresign', 'signature_flow', 'none')
+		const mode = loadState('libresign', 'signature_flow', 'none') as SignatureFlowMode
 
 		if (mode === 'none') {
 			enabled.value = false
@@ -139,6 +153,11 @@ function onFlowChange() {
 	saveConfig()
 }
 
+function getErrorMessage(error: unknown): string | null {
+	const requestError = error as SignatureFlowRequestError
+	return requestError.response?.data?.ocs?.data?.error ?? null
+}
+
 async function saveConfig() {
 	loading.value = true
 	errorMessage.value = ''
@@ -147,20 +166,20 @@ async function saveConfig() {
 
 	try {
 		const url = generateOcsUrl('apps/libresign/api/v1/admin/signature-flow/config')
-		await axios.post(url, {
+		const payload: SignatureFlowRequestBody = {
 			enabled: enabled.value,
 			mode: enabled.value ? (selectedFlow.value?.value ?? 'parallel') : null,
-		})
+		}
+		await axios.post(url, payload)
 
 		saved.value = true
 		setTimeout(() => {
 			saved.value = false
 			flowChanging.value = false
 		}, 3000)
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error('Error saving signature flow configuration:', error)
-		errorMessage.value = error.response?.data?.ocs?.data?.error
-			?? t('libresign', 'Error saving configuration.')
+		errorMessage.value = getErrorMessage(error) ?? t('libresign', 'Error saving configuration.')
 		showErrorIcon.value = true
 	} finally {
 		loading.value = false
