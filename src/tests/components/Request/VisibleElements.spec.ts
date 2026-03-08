@@ -613,6 +613,33 @@ describe('VisibleElements Component - Business Rules', () => {
 
 			expect(wrapper.vm.signerSelected).toBe(null)
 		})
+
+		it('starts adding when a signer component emits select', async () => {
+			const startAddingSigner = vi.fn(() => true)
+			Object.defineProperty(wrapper.vm.$, 'refs', {
+				value: {
+					pdfEditor: {
+						startAddingSigner,
+						cancelAdding: vi.fn(),
+						$refs: {
+							pdfElements: {
+								isAddingMode: true,
+							},
+						},
+					},
+				},
+				configurable: true,
+			})
+
+			wrapper.vm.onSelectSigner({ email: 'local@example.com' })
+			await wrapper.vm.$nextTick()
+
+			expect(startAddingSigner).toHaveBeenCalledWith(
+				expect.objectContaining({ email: 'local@example.com' }),
+				{ width: 200, height: 100 },
+			)
+			expect(wrapper.vm.signerSelected).toEqual(expect.objectContaining({ email: 'local@example.com' }))
+		})
 	})
 
 	describe('RULE: buildVisibleElements mapping', () => {
