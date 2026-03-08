@@ -134,11 +134,8 @@ type SelectedSigner = {
 	acceptsEmailNotifications?: boolean
 }
 
-type FilesStore = {
-	getFile: () => { signers?: Array<Record<string, unknown>> } | null | undefined
-	saveOrUpdateSignatureRequest: (payload: { signers: Array<Record<string, unknown>> }) => Promise<{ success?: boolean; message?: string }>
-	disableIdentifySigner: () => void
-}
+type FilesStore = ReturnType<typeof useFilesStore>
+type StoredSigner = NonNullable<ReturnType<FilesStore['getFile']>['signers']>[number]
 
 const props = withDefaults(defineProps<{
 	signerToEdit?: SignerToEdit
@@ -158,7 +155,7 @@ const props = withDefaults(defineProps<{
 	disabled: false,
 })
 
-const filesStore = useFilesStore() as unknown as FilesStore
+const filesStore = useFilesStore()
 
 const id = ref<string | null>(null)
 const nameHelperText = ref('')
@@ -214,7 +211,7 @@ async function saveSigner() {
 		return
 	}
 	const file = filesStore.getFile()
-	const signers = Array.isArray(file?.signers) ? [...file.signers] : []
+	const signers: StoredSigner[] = Array.isArray(file?.signers) ? [...file.signers] : []
 	signers.push({
 		displayName: displayName.value,
 		description: description.value.trim() || undefined,
