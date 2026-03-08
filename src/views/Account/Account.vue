@@ -42,11 +42,15 @@ defineOptions({
 })
 
 type User = {
-	uid?: string
-	displayName?: string
+	uid: string
+	displayName: string
 }
 
-const user = getCurrentUser() as User
+const currentUser = getCurrentUser()
+const user: User = {
+	uid: currentUser?.uid ?? '',
+	displayName: currentUser?.displayName ?? '',
+}
 
 defineExpose({
 	user,
