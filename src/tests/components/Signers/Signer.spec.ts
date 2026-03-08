@@ -492,6 +492,7 @@ describe('Signer', () => {
 			wrapper.vm.signerClickAction()
 
 			expect(emit).toHaveBeenCalledWith('signer:clicked', wrapper.vm.signer)
+			expect(wrapper.emitted('select')).toEqual([[wrapper.vm.signer]])
 		})
 
 		it('does not emit when no event prop', () => {
@@ -504,6 +505,7 @@ describe('Signer', () => {
 			wrapper.vm.signerClickAction()
 
 			expect(emit).not.toHaveBeenCalled()
+			expect(wrapper.emitted('select')).toEqual([[wrapper.vm.signer]])
 		})
 
 		it('does not emit when signer already signed', () => {
@@ -516,6 +518,22 @@ describe('Signer', () => {
 			wrapper.vm.signerClickAction()
 
 			expect(emit).not.toHaveBeenCalled()
+			expect(wrapper.emitted('select')).toBeUndefined()
+		})
+
+		it('does not treat unknown methods as disabled', () => {
+			filesStore.selectedFile = {
+				signers: [
+					{ signed: false, identifyMethods: [{ method: 'account' }] },
+				],
+			}
+			filesStore.isOriginalFileDeleted = vi.fn().mockReturnValue(false)
+			wrapper = createWrapper({ signerIndex: 0, event: '' })
+
+			wrapper.vm.signerClickAction()
+
+			expect(wrapper.vm.isMethodDisabled).toBe(false)
+			expect(wrapper.emitted('select')).toEqual([[wrapper.vm.signer]])
 		})
 
 		it('does not emit when method disabled', () => {
@@ -530,6 +548,7 @@ describe('Signer', () => {
 			wrapper.vm.signerClickAction()
 
 			expect(emit).not.toHaveBeenCalled()
+			expect(wrapper.emitted('select')).toBeUndefined()
 		})
 
 		it('does not emit when file deleted', () => {
@@ -542,6 +561,7 @@ describe('Signer', () => {
 			wrapper.vm.signerClickAction()
 
 			expect(emit).not.toHaveBeenCalled()
+			expect(wrapper.emitted('select')).toBeUndefined()
 		})
 	})
 

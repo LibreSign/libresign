@@ -43,8 +43,9 @@
 					<Signer v-for="(signer, key) in document.signers"
 						:key="key"
 						:signer-index="key"
+						:require-request-permission="false"
 						:class="{ disabled: signerSelected }"
-						event="libresign:visible-elements-select-signer">
+						@select="handleSignerSelect">
 						<template #actions>
 							<slot name="actions" v-bind="{ signer }" />
 						</template>
@@ -489,23 +490,14 @@ function onSelectSigner(signer: SelectedSigner) {
 	})
 	if (!started) {
 		signerSelected.value = null
+	}
+	if (!started) {
 		return
 	}
+}
 
-	void nextTick().then(() => {
-		const pdfElements = getPdfElements()
-		const watchAdding = () => {
-			if (!signerSelected.value) {
-				return
-			}
-			if (!pdfElements?.isAddingMode) {
-				stopAddSigner()
-				return
-			}
-			requestAnimationFrame(watchAdding)
-		}
-		requestAnimationFrame(watchAdding)
-	})
+function handleSignerSelect(signer: unknown) {
+	onSelectSigner(signer as SelectedSigner)
 }
 
 function stopAddSigner() {
@@ -559,10 +551,6 @@ async function save() {
 
 const handleShowVisibleElements = (() => {
 	void showModal()
-}) as EventHandler<NextcloudEvent>
-
-const handleSelectSigner = ((event: NextcloudEvent) => {
-	onSelectSigner((event as CustomEvent<SelectedSigner>).detail)
 }) as EventHandler<NextcloudEvent>
 
 function buildVisibleElements() {
@@ -636,12 +624,10 @@ function buildVisibleElements() {
 
 onMounted(() => {
 	subscribe('libresign:show-visible-elements', handleShowVisibleElements)
-	subscribe('libresign:visible-elements-select-signer', handleSelectSigner)
 })
 
 onBeforeUnmount(() => {
 	unsubscribe('libresign:show-visible-elements', handleShowVisibleElements)
-	unsubscribe('libresign:visible-elements-select-signer', handleSelectSigner)
 })
 
 defineExpose({
