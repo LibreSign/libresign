@@ -6,6 +6,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { mdiCheckCircle, mdiClockOutline, mdiCircleOutline } from '@mdi/js'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
@@ -15,8 +16,9 @@ type SignerComponent = typeof import('../../../components/Signers/Signer.vue').d
 
 type FileSigner = {
 	signed?: boolean
-	identifyMethods?: unknown[]
+	identifyMethods?: Array<{ method: string }>
 	status?: number
+	statusText?: string
 	displayName?: string
 	signingOrder?: number
 }
@@ -28,10 +30,27 @@ type SelectedFile = {
 
 type FilesStoreMock = ReturnType<typeof useFilesStore> & {
 	selectedFile: SelectedFile
-	getFile: MockedFunction<() => SelectedFile>
+	getFile: MockedFunction<(file?: unknown) => SelectedFile>
 	canSave: MockedFunction<() => boolean>
 	isOriginalFileDeleted: MockedFunction<() => boolean>
 }
+
+type SignerVm = {
+	signatureFlow: string
+	signer: FileSigner
+	counterNumber: number
+	counterType?: string
+	isMethodDisabled: boolean
+	disabledTooltip: string
+	showDragHandle: boolean
+	chipType: string
+	statusIconPath: string
+	signerClickAction: () => void
+	closeActions: () => void
+	filesStore: FilesStoreMock
+}
+
+type SignerWrapper = VueWrapper<SignerVm>
 
 const { t, n } = vi.hoisted(() => {
 	const t: TranslationFunction = (_app, text, vars) => {
@@ -81,11 +100,11 @@ beforeAll(async () => {
 })
 
 describe('Signer', () => {
-	let wrapper: ReturnType<typeof mount> | null
+	let wrapper: SignerWrapper | null
 	let filesStore: FilesStoreMock
 	let pinia: ReturnType<typeof createPinia>
 
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props = {}): SignerWrapper => {
 		const ncListItemStub = {
 			name: 'NcListItem',
 			template: '<div><slot /></div>',
@@ -110,7 +129,7 @@ describe('Signer', () => {
 					DragVertical: true,
 				},
 			},
-		})
+		}) as unknown as SignerWrapper
 	}
 
 	beforeEach(() => {
@@ -123,7 +142,7 @@ describe('Signer', () => {
 				{ signed: false, identifyMethods: [], status: 0, displayName: 'Test Signer' },
 			],
 		}
-		filesStore.getFile = () => filesStore.selectedFile
+		filesStore.getFile = vi.fn(() => filesStore.selectedFile) as FilesStoreMock['getFile']
 		filesStore.canSave = vi.fn(() => true)
 		filesStore.isOriginalFileDeleted = vi.fn(() => false)
 		if (wrapper) {
