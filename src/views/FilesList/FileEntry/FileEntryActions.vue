@@ -11,7 +11,7 @@
 			:force-name="true"
 			variant="tertiary"
 			v-model:open="openedMenu"
-			@close="openedMenu = null"
+			@close="openedMenu = false"
 			@closed="onMenuClosed">
 			<!-- Default actions list-->
 			<NcActionButton v-for="action in visibleMenu"
@@ -98,7 +98,7 @@ type SourceSigner = {
 
 type SourceFile = {
 	id: number
-	uuid: string
+	uuid?: string
 	name: string
 	nodeId?: number
 	nodeType?: string
@@ -178,7 +178,7 @@ function visibleIf(action: Pick<MenuAction, 'id'>) {
 }
 
 async function onActionClick(action: Pick<MenuAction, 'id'>) {
-	openedMenu.value = null
+	openedMenu.value = false
 	sidebarStore.hideSidebar()
 	if (action.id === 'details' || action.id === 'request-signature') {
 		filesStore.selectFile(props.source.id)
@@ -205,6 +205,9 @@ async function onActionClick(action: Pick<MenuAction, 'id'>) {
 		filesStore.selectFile(props.source.id)
 		sidebarStore.activeRequestSignatureTab()
 	} else if (action.id === 'validate') {
+		if (!props.source.uuid) {
+			return
+		}
 		router.push({
 			name: 'ValidationFile',
 			params: {
@@ -233,17 +236,20 @@ function openFile() {
 	openDocument({
 		fileUrl,
 		filename: props.source.name,
-		nodeId: props.source.nodeId,
+		nodeId: props.source.nodeId ?? 0,
 	})
 }
 
 function doRename(newName: string) {
+	if (!props.source.uuid) {
+		return Promise.resolve()
+	}
 	return filesStore.rename(props.source.uuid, newName)
 }
 
 function onMenuClosed() {
 	if (actionsMenuStore.opened === null) {
-		const root = rootElement.value?.closest('.app-content')
+		const root = rootElement.value?.closest('.app-content') as HTMLElement | null
 		if (root) {
 			root.style.removeProperty('--mouse-pos-x')
 			root.style.removeProperty('--mouse-pos-y')
