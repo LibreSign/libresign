@@ -431,6 +431,7 @@ describe('DocumentValidationDetails', () => {
 				document: {
 					uuid: 'abc123',
 					name: 'file.pdf',
+					nodeId: 123,
 				},
 			})
 
@@ -444,6 +445,7 @@ describe('DocumentValidationDetails', () => {
 				document: {
 					uuid: 'id',
 					name: 'Important Document.pdf',
+					nodeId: 789,
 				},
 			})
 
@@ -454,6 +456,19 @@ describe('DocumentValidationDetails', () => {
 					filename: 'Important Document.pdf',
 				})
 			)
+		})
+
+		it('does not open viewer without required viewer data', async () => {
+			wrapper = createWrapper({
+				document: {
+					uuid: 'missing-node-id',
+					name: 'Missing nodeId.pdf',
+				},
+			})
+
+			await wrapper.vm.viewDocument()
+
+			expect(viewer.openDocument).not.toHaveBeenCalled()
 		})
 	})
 
