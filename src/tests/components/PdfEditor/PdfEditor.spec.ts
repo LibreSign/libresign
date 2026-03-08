@@ -5,7 +5,82 @@
 
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import PdfEditor from '../../../components/PdfEditor/PdfEditor.vue'
+
+type SignerRecord = {
+	displayName?: string
+	name?: string
+	email?: string
+	id?: string | number
+	uuid?: string | number
+	signRequestId?: string | number
+	element?: {
+		documentIndex?: number
+		signRequestId?: string | number
+		coordinates?: Record<string, number>
+		[key: string]: unknown
+	}
+	[key: string]: unknown
+}
+
+type PdfObjectRecord = {
+	id: string
+	signer?: SignerRecord | null
+	[key: string]: unknown
+}
+
+type PdfPageRecord = {
+	getViewport?: (options: { scale: number }) => { width: number, height: number }
+}
+
+type PdfDocumentRecord = {
+	numPages?: number
+	pages?: Array<Promise<PdfPageRecord>>
+	allObjects?: PdfObjectRecord[][]
+}
+
+type PdfElementsMock = {
+	startAddingElement: ReturnType<typeof vi.fn>
+	cancelAdding: ReturnType<typeof vi.fn>
+	addObjectToPage: ReturnType<typeof vi.fn>
+	updateObject: ReturnType<typeof vi.fn>
+	adjustZoomToFit: ReturnType<typeof vi.fn>
+	getPageHeight: ReturnType<typeof vi.fn>
+	pdfDocuments: PdfDocumentRecord[]
+	selectedDocIndex: number
+	autoFitZoom: boolean
+}
+
+type PdfEditorVm = {
+	pdfElements: PdfElementsMock | null
+	$refs: {
+		pdfElements: PdfElementsMock
+	}
+	$nextTick: () => Promise<void>
+	getSignerLabel: (signer: SignerRecord | null | undefined) => string
+	hasMultipleSigners: boolean
+	startAddingSigner: (signer: SignerRecord | null | undefined, size: { width?: number, height?: number }) => boolean
+	addSigner: (signer: SignerRecord) => Promise<void>
+	findObjectLocation: (pdfElements: PdfElementsMock | null | undefined, objectId: string) => { docIndex: number, pageIndex: number } | null
+	onSignerChange: (object: PdfObjectRecord | null | undefined, signer: SignerRecord | null | undefined) => void
+	endInit: (event: Record<string, unknown>) => Promise<void>
+	handleDeleteObject: (payload: { object?: PdfObjectRecord }) => void
+	handleObjectClick: (event: Record<string, unknown>) => void
+	cancelAdding: () => void
+	waitForPageRender?: (docIndex: number, pageIndex: number) => Promise<void>
+	getPageAriaLabel: (payload: {
+		docIndex: number
+		docName: string
+		totalDocs: number
+		pageNumber: number
+		totalPages: number
+		isAddingMode: boolean
+	}) => string
+	setProps: (props: Record<string, unknown>) => Promise<void>
+}
+
+type PdfEditorWrapper = VueWrapper<PdfEditorVm>
 
 vi.mock('@libresign/pdf-elements', () => ({
 	default: {
@@ -34,17 +109,17 @@ vi.mock('../../../helpers/pdfWorker.js', () => ({
 }))
 
 describe('PdfEditor Component - Business Rules', () => {
-	let wrapper: ReturnType<typeof mount>
-	const getPdfElements = () => wrapper.vm.pdfElements
+	let wrapper: PdfEditorWrapper
+	const getPdfElements = () => wrapper.vm.pdfElements as PdfElementsMock
 
-	beforeEach(() => {
-		vi.clearAllMocks()
-		wrapper = mount(PdfEditor, {
+	function createWrapper(props: Record<string, unknown> = {}): PdfEditorWrapper {
+		return mount(PdfEditor, {
 			props: {
 				files: [],
 				fileNames: [],
 				readOnly: false,
 				signers: [],
+				...props,
 			},
 			global: {
 				stubs: {
@@ -54,7 +129,12 @@ describe('PdfEditor Component - Business Rules', () => {
 					SignatureBox: true,
 				},
 			},
-		})
+		}) as unknown as PdfEditorWrapper
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+		wrapper = createWrapper()
 	})
 
 	describe('RULE: getSignerLabel with fallback chain', () => {
@@ -93,7 +173,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				id: 123,
 			}
 
-			expect(wrapper.vm.getSignerLabel(signer)).toBe(123)
+			expect(wrapper.vm.getSignerLabel(signer)).toBe('123')
 		})
 
 		it('returns empty string when signer is null', () => {
@@ -179,15 +259,19 @@ describe('PdfEditor Component - Business Rules', () => {
 			const result = wrapper.vm.startAddingSigner(signer, size)
 
 			expect(result).toBe(true)
-		expect(getPdfElements().startAddingElement).toHaveBeenCalledWith({
-				type: 'signature',
-				width: 200,
-				height: 100,
-				signer: expect.objectContaining({
-					email: 'test@example.com',
-					element: {},
+			expect(getPdfElements().startAddingElement).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: 'signature',
+					x: 0,
+					y: 0,
+					width: 200,
+					height: 100,
+					signer: expect.objectContaining({
+						email: 'test@example.com',
+						element: {},
+					}),
 				}),
-			})
+			)
 		})
 
 		it('preserves existing element data when adding', () => {
@@ -199,7 +283,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			wrapper.vm.startAddingSigner(signer, size)
 
-		expect(getPdfElements().startAddingElement).toHaveBeenCalledWith(
+			expect(getPdfElements().startAddingElement).toHaveBeenCalledWith(
 				expect.objectContaining({
 					signer: expect.objectContaining({
 						element: expect.objectContaining({
