@@ -142,6 +142,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import Linkify from '@nextcloud/vue/directives/Linkify'
 
 import PDFElements from '@libresign/pdf-elements'
+import '@libresign/pdf-elements/dist/index.css'
 
 import CodeEditor from './CodeEditor.vue'
 import { ensurePdfWorker } from '../helpers/pdfWorker'

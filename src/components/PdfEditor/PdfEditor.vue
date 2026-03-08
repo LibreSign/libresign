@@ -67,6 +67,7 @@ import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onMounted, ref, toRaw } from 'vue'
 import PDFElements from '@libresign/pdf-elements'
 import type { PDFElementObject, PDFElementsPublicApi } from '@libresign/pdf-elements'
+import '@libresign/pdf-elements/dist/index.css'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
