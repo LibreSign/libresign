@@ -7,6 +7,8 @@ export interface Coordinates {
 	page?: number | string
 	left?: number | string
 	top?: number | string
+	width?: number | string
+	height?: number | string
 }
 
 export interface VisibleElement {
