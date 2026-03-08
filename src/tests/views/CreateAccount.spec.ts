@@ -9,6 +9,34 @@ import CreateAccount from '../../views/CreateAccount.vue'
 // @ts-ignore: No types available for crypto-js/md5
 import md5 from 'crypto-js/md5'
 
+type ValidationField = {
+	$model: string
+	$touch: () => Promise<void>
+	$error: boolean
+	required: { $invalid: boolean }
+	email: { $invalid: boolean }
+	minLength: { $invalid: boolean }
+}
+
+type CreateAccountVm = InstanceType<typeof CreateAccount> & {
+	v$: {
+		email: ValidationField
+		password: ValidationField
+		passwordConfirm: ValidationField
+	}
+	emailError: string
+	showErrorEmail: boolean
+	passwordError: string
+	confirmPasswordError: string
+	isEqualEmail: boolean
+	canSave: boolean
+	loading: boolean
+	email: string
+	password: string
+	passwordConfirm: string
+	$nextTick: () => Promise<void>
+}
+
 // Mock @nextcloud modules
 vi.mock('@nextcloud/dialogs', () => ({
 	showWarning: vi.fn(),
@@ -52,9 +80,11 @@ describe('CreateAccount.vue - Business Logic', () => {
 
 	beforeEach(() => {
 		wrapper = shallowMount(CreateAccount, {
-			mocks: {
-				$route: mockRoute,
-				$router: mockRouter,
+			global: {
+				mocks: {
+					$route: mockRoute,
+					$router: mockRouter,
+				},
 			},
 			stubs: {
 				NcNoteCard: true,
@@ -68,14 +98,11 @@ describe('CreateAccount.vue - Business Logic', () => {
 		})
 
 		;(wrapper as typeof wrapper & { setData: (values: Record<string, unknown>) => Promise<void> }).setData = async (values) => {
-			const vm = wrapper.vm as Record<string, any> & { $nextTick: () => Promise<void> }
+			const vm = wrapper.vm as unknown as CreateAccountVm & Record<string, unknown>
 			for (const [key, value] of Object.entries(values)) {
-				vm[key] = value
-				if (vm.v?.[key]?.$model !== undefined) {
-					vm.v[key].$model = value
-				}
-				if (vm.v$?.[key]?.$model !== undefined) {
-					vm.v$[key].$model = value
+				;(vm as Record<string, unknown>)[key] = value
+				if (key in vm.v$ && typeof value === 'string') {
+					vm.v$[key as keyof CreateAccountVm['v$']].$model = value
 				}
 			}
 			await vm.$nextTick()
@@ -84,127 +111,149 @@ describe('CreateAccount.vue - Business Logic', () => {
 
 	describe('emailError computed property', () => {
 		it('returns empty string when email is not filled', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ email: '' })
-			expect(wrapper.vm.emailError).toBe('')
+			expect(vm.emailError).toBe('')
 		})
 
 		it('returns error message for invalid email format', async () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ email: 'invalid-email' })
-			await wrapper.vm.v$.email.$touch()
-			expect(wrapper.vm.emailError).toBe('This is not a valid email')
+			await vm.v$.email.$touch()
+			expect(vm.emailError).toBe('This is not a valid email')
 		})
 
 		it('returns error when email does not match invitation', async () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ email: 'wrong@example.com' })
 			await wrapper.vm.$nextTick()
-			expect(wrapper.vm.emailError).toBe('The email entered is not the same as the email in the invitation')
+			expect(vm.emailError).toBe('The email entered is not the same as the email in the invitation')
 		})
 
 		it('returns empty string for valid matching email', async () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ email: 'test@example.com' })
 			await wrapper.vm.$nextTick()
-			expect(wrapper.vm.emailError).toBe('')
+			expect(vm.emailError).toBe('')
 		})
 	})
 
 	describe('showErrorEmail computed property', () => {
 		it('returns true when emailError has content', async () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ email: 'invalid' })
-			await wrapper.vm.v$.email.$touch()
-			expect(wrapper.vm.showErrorEmail).toBe(true)
+			await vm.v$.email.$touch()
+			expect(vm.showErrorEmail).toBe(true)
 		})
 
 		it('returns false when emailError is empty', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ email: '' })
-			expect(wrapper.vm.showErrorEmail).toBe(false)
+			expect(vm.showErrorEmail).toBe(false)
 		})
 
 		it('returns false for very short error messages', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			// This tests the length > 2 condition
 			wrapper.setData({ email: '' })
-			expect(wrapper.vm.emailError.length).toBeLessThanOrEqual(2)
-			expect(wrapper.vm.showErrorEmail).toBe(false)
+			expect(vm.emailError.length).toBeLessThanOrEqual(2)
+			expect(vm.showErrorEmail).toBe(false)
 		})
 	})
 
 	describe('passwordError computed property', () => {
 		it('returns empty string when password is not filled', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: '' })
-			expect(wrapper.vm.passwordError).toBe('')
+			expect(vm.passwordError).toBe('')
 		})
 
 		it('returns empty string when passwordConfirm is not filled', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: 'test', passwordConfirm: '' })
-			expect(wrapper.vm.passwordError).toBe('')
+			expect(vm.passwordError).toBe('')
 		})
 
 		it('returns error for password with 4 or less characters', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: '1234', passwordConfirm: '1234' })
-			expect(wrapper.vm.passwordError).toBe('Your password must be greater than 4 digits')
+			expect(vm.passwordError).toBe('Your password must be greater than 4 digits')
 		})
 
 		it('returns error for password with exactly 4 characters', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: 'abcd', passwordConfirm: 'abcd' })
-			expect(wrapper.vm.passwordError).toBe('Your password must be greater than 4 digits')
+			expect(vm.passwordError).toBe('Your password must be greater than 4 digits')
 		})
 
 		it('returns empty string for password with more than 4 characters', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: '12345', passwordConfirm: '12345' })
-			expect(wrapper.vm.passwordError).toBe('')
+			expect(vm.passwordError).toBe('')
 		})
 
 		it('returns empty string for password with 5 characters', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: 'abcde', passwordConfirm: 'abcde' })
-			expect(wrapper.vm.passwordError).toBe('')
+			expect(vm.passwordError).toBe('')
 		})
 	})
 
 	describe('confirmPasswordError computed property', () => {
 		it('returns empty string when password is not filled', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: '', passwordConfirm: 'test' })
-			expect(wrapper.vm.confirmPasswordError).toBe('')
+			expect(vm.confirmPasswordError).toBe('')
 		})
 
 		it('returns empty string when passwordConfirm is not filled', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: 'test', passwordConfirm: '' })
-			expect(wrapper.vm.confirmPasswordError).toBe('')
+			expect(vm.confirmPasswordError).toBe('')
 		})
 
 		it('returns error when passwords do not match', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: 'password1', passwordConfirm: 'password2' })
-			expect(wrapper.vm.confirmPasswordError).toBe('Passwords does not match')
+			expect(vm.confirmPasswordError).toBe('Passwords does not match')
 		})
 
 		it('returns empty string when passwords match', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: 'password123', passwordConfirm: 'password123' })
-			expect(wrapper.vm.confirmPasswordError).toBe('')
+			expect(vm.confirmPasswordError).toBe('')
 		})
 
 		it('returns error for case-sensitive mismatch', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: 'Password', passwordConfirm: 'password' })
-			expect(wrapper.vm.confirmPasswordError).toBe('Passwords does not match')
+			expect(vm.confirmPasswordError).toBe('Passwords does not match')
 		})
 	})
 
 	describe('isEqualEmail computed property', () => {
 		it('returns true when email matches the account hash', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ email: 'test@example.com' })
-			expect(wrapper.vm.isEqualEmail).toBe(true)
+			expect(vm.isEqualEmail).toBe(true)
 		})
 
 		it('returns false when email does not match the account hash', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ email: 'wrong@example.com' })
-			expect(wrapper.vm.isEqualEmail).toBe(false)
+			expect(vm.isEqualEmail).toBe(false)
 		})
 
 		it('is case-sensitive', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ email: 'Test@example.com' })
-			expect(wrapper.vm.isEqualEmail).toBe(false)
+			expect(vm.isEqualEmail).toBe(false)
 		})
 
 		it('returns false for empty email', () => {
+			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ email: '' })
-			expect(wrapper.vm.isEqualEmail).toBe(false)
+			expect(vm.isEqualEmail).toBe(false)
 		})
 	})
 
