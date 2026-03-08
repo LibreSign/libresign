@@ -5,6 +5,26 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
+
+type Signer = {
+	displayName?: string
+	email?: string
+	signed?: string | null
+	userId?: string
+}
+
+type SignersListVm = {
+	signers: Signer[]
+	dateFromSqlAnsi: (date: string) => string
+	$nextTick: () => Promise<void>
+}
+
+type SignersListWrapper = VueWrapper<any> & {
+	vm: SignersListVm
+	props: (key: 'compact' | 'signers') => unknown
+	setProps: (props: Record<string, unknown>) => Promise<void>
+}
+
 let SignersList: unknown
 
 
@@ -29,9 +49,9 @@ beforeAll(async () => {
 })
 
 describe('SignersList', () => {
-	let wrapper: VueWrapper
+	let wrapper: SignersListWrapper
 
-	const createWrapper = (props: Record<string, unknown> = {}) => {
+	const createWrapper = (props: Record<string, unknown> = {}): SignersListWrapper => {
 		return mount(SignersList, {
 			props: {
 				signers: [],
@@ -50,7 +70,7 @@ describe('SignersList', () => {
 					t: (_app: string, text: string) => text,
 				},
 			},
-		})
+		}) as SignersListWrapper
 	}
 
 	beforeEach(() => {
