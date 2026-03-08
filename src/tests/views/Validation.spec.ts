@@ -10,6 +10,40 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import JSConfetti from 'js-confetti'
 import Validation from '../../views/Validation.vue'
 
+type ValidationVm = {
+	uuidToValidate: string
+	hasInfo: boolean
+	loading: boolean
+	document: Record<string, any>
+	legalInformation: string
+	clickedValidate: boolean
+	getUUID: boolean
+	validationErrorMessage: string | null
+	documentValidMessage: string | null
+	isAsyncSigning: boolean
+	shouldFireAsyncConfetti: boolean
+	isActiveView: boolean
+	EXPIRATION_WARNING_DAYS: number
+	isAfterSigned: boolean
+	isEnvelope: boolean
+	validationComponent: unknown
+	canValidate: boolean
+	helperTextValidation: string
+	getValidityStatus: (signer: Record<string, any>) => string
+	getValidityStatusAtSigning: (signer: Record<string, any>) => string
+	hasValidationIssues: (signer: Record<string, any>) => boolean
+	camelCaseToTitleCase: (text: string) => string
+	getName: (signer: Record<string, any>) => string
+	handleValidationSuccess: (data: Record<string, any>) => void
+	handleSigningComplete: (file: Record<string, any> | null) => void
+	refreshAfterAsyncSigning: () => Promise<void>
+	$nextTick: () => Promise<void>
+}
+
+type ValidationWrapper = ReturnType<typeof shallowMount> & {
+	vm: ValidationVm
+}
+
 // Mock async components to prevent defineAsyncComponent from triggering
 // pending Vite dev-server fetches that outlive the worker and cause
 // "Closing rpc while fetch was pending" errors in Vitest.
@@ -150,11 +184,11 @@ vi.mock('../../utils/fileStatus.js', () => ({
 }))
 
 describe('Validation.vue - Business Logic', () => {
-	let wrapper!: ReturnType<typeof shallowMount>
+	let wrapper!: ValidationWrapper
 	let mockAddConfetti: ReturnType<typeof vi.fn>
 	const setVmState = async (patch: Record<string, unknown>) => {
 		Object.entries(patch).forEach(([key, value]) => {
-			;(wrapper.vm as Record<string, unknown>)[key] = value
+			;(wrapper.vm as unknown as Record<string, unknown>)[key] = value
 		})
 		await wrapper.vm.$nextTick()
 	}
@@ -186,7 +220,7 @@ describe('Validation.vue - Business Logic', () => {
 				NcRichText: true,
 				NcTextField: true,
 			},
-		})
+		}) as ValidationWrapper
 	})
 
 	afterEach(() => {
@@ -567,7 +601,7 @@ describe('Validation.vue - Business Logic', () => {
 	describe('created() - async signing activation from history.state', () => {
 		const UUID = '550e8400-e29b-41d4-a716-446655440000'
 		let stateGetter: ReturnType<typeof vi.spyOn>
-		let localWrapper: ReturnType<typeof shallowMount> | null = null
+		let localWrapper: ValidationWrapper | null = null
 
 		beforeEach(() => {
 			// Prevent the validate() floating Promise from crashing on
@@ -594,7 +628,7 @@ describe('Validation.vue - Business Logic', () => {
 					$route: { params: { uuid: UUID, isAsync: true }, query: {} },
 					$router: { ...mockRouter, replace: vi.fn() },
 				},
-			})
+			}) as ValidationWrapper
 			// $route.params.isAsync is true in the mock, BUT the fixed code no longer reads
 			// from params — it reads from history.state (which is empty here).
 			expect(localWrapper.vm.isAsyncSigning).toBe(false)
@@ -608,7 +642,7 @@ describe('Validation.vue - Business Logic', () => {
 					$route: { params: { uuid: UUID }, query: {} },
 					$router: { ...mockRouter, replace: vi.fn() },
 				},
-			})
+			}) as ValidationWrapper
 			expect(localWrapper.vm.isAsyncSigning).toBe(false)
 			expect(localWrapper.vm.shouldFireAsyncConfetti).toBe(false)
 		})
@@ -668,7 +702,7 @@ describe('Validation.vue - Business Logic', () => {
 					$route: { params: { isAfterSigned: true }, query: {} },
 					$router: mockRouter,
 				},
-			})
+			}) as ValidationWrapper
 			lw.vm.handleValidationSuccess({ status: 1, signers: [] })
 			expect(mockAddConfetti).not.toHaveBeenCalled()
 			lw.unmount()
