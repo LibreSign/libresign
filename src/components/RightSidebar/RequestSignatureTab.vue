@@ -317,7 +317,11 @@ import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
-import type { NextcloudCapabilities } from '../../types/capabilities'
+import type { components as AdministrationComponents } from '../../types/openapi/openapi-administration'
+
+type RequestSignatureTabCapabilities = {
+	libresign: AdministrationComponents['schemas']['Capabilities']
+}
 
 defineOptions({
 	name: 'RequestSignatureTab',
@@ -353,7 +357,7 @@ const userConfigStore = useUserConfigStore() as ReturnType<typeof useUserConfigS
 	files_list_signer_identify_tab?: string
 }
 const { normalizeSigningOrders, recalculateSigningOrders } = useSigningOrder()
-const capabilities = getCapabilities() as NextcloudCapabilities
+const capabilities = getCapabilities() as RequestSignatureTabCapabilities
 
 const hasLoading = ref(false)
 const signerToEdit = ref<Record<string, any>>({})
