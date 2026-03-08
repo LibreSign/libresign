@@ -60,61 +60,36 @@ import {
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
+import type { components, operations } from '../../types/openapi/openapi'
 
-type Signer = {
-	me?: boolean
-	signRequestId?: number | string
-	[key: string]: unknown
+type OpenApiValidateFile = components['schemas']['ValidateFile']
+type OpenApiFileDetail = components['schemas']['FileDetail']
+type OpenApiEnvelopeChildFile = components['schemas']['EnvelopeChildFile']
+type OpenApiSigner = components['schemas']['Signer']
+type SignError = { title?: string; message?: string }
+type SignDocumentStatus = OpenApiValidateFile['status'] | 5
+type SignDocumentFile = OpenApiEnvelopeChildFile | OpenApiFileDetail
+type SignDocument = Omit<OpenApiValidateFile, 'status' | 'files'> & {
+	status: SignDocumentStatus
+	files?: SignDocumentFile[]
 }
-
-type VisibleElement = {
-	fileId?: number | string
-	signRequestId?: number | string
-	[key: string]: unknown
-}
-
-type DocumentFile = {
-	id: number
-	name: string
-	metadata?: {
-		extension?: string
-	}
-	signers?: Signer[]
-	file?: unknown
-	files?: Array<{ file?: unknown }>
-	visibleElements?: VisibleElement[]
-	[key: string]: unknown
-}
-
-type DocumentModel = {
-	id?: number
-	uuid?: string
-	name?: string
-	nodeId?: number | string
-	nodeType?: string
-	url?: string
-	metadata?: {
-		extension?: string
-	}
-	files?: DocumentFile[]
-	signers?: Signer[]
-	[key: string]: unknown
-}
+type ValidateFileResponse = operations['file-validate-uuid']['responses'][200]['content']['application/json']
+type FileListResponse = operations['file-list']['responses'][200]['content']['application/json']
 
 type SignStore = {
-	document: DocumentModel
-	errors: Array<{ title?: string; message?: string }>
+	document: SignDocument
+	errors: SignError[]
 	mounted: boolean
 	initFromState: () => Promise<void>
-	setFileToSign: (file: DocumentFile) => void
+	setFileToSign: (file: SignDocument) => void
 	queueAction: (action: string) => void
 }
 
 type FilesStore = {
-	getAllFiles: (filter: { signer_uuid?: string }) => Promise<Record<string, DocumentFile>>
-	addFile: (file: DocumentFile) => void
+	getAllFiles: (filter: { signer_uuid?: string }) => Promise<Record<string, SignDocument>>
+	addFile: (file: OpenApiFileDetail) => void
 	selectFile: (fileId: number) => void
-	getFile: () => { status?: number | string } | null
+	getFile: () => { status?: SignDocumentStatus } | null
 }
 
 type SidebarStore = {
@@ -125,12 +100,8 @@ type SidebarStore = {
 	activeSignTab: () => void
 }
 
-type OcsResponse<T> = {
-	data?: {
-		ocs?: {
-			data?: T
-		}
-	}
+type PdfFetchError = {
+	errors?: SignError[]
 }
 
 type PdfEditorRef = {
@@ -166,7 +137,7 @@ const pdfEditor = ref<PdfEditorRef | null>(null)
 const mounted = ref(false)
 const pdfBlobs = ref<File[]>([])
 const fileNames = ref<string[]>([])
-const envelopeFiles = ref<DocumentFile[]>([])
+const envelopeFiles = ref<OpenApiFileDetail[]>([])
 const elementClickHandler = ref<EventListener | null>(null)
 const isMobile = typeof window !== 'undefined' && window.innerWidth <= 512
 
@@ -208,8 +179,9 @@ function addIdDocApprovalParam(url: string | null | undefined) {
 
 async function initSignExternal() {
 	await signStore.initFromState()
-	if (!signStore.document.uuid) {
-		signStore.document.uuid = getRouteUuid()
+	const routeUuid = getRouteUuid()
+	if (!signStore.document.uuid && routeUuid) {
+		signStore.document.uuid = routeUuid
 	}
 }
 
@@ -218,9 +190,13 @@ async function initSignInternal() {
 		signer_uuid: getRouteUuid(),
 	})
 	for (const key in files) {
-		const signer = files[key].signers?.find(row => row.me) || {}
-		if (Object.keys(signer).length > 0) {
-			signStore.setFileToSign(files[key])
+		const file = files[key]
+		if (!file) {
+			continue
+		}
+		const signer = file.signers?.find((row) => row.me)
+		if (signer) {
+			signStore.setFileToSign(file)
 			filesStore.selectFile(parseInt(key, 10))
 			return
 		}
@@ -229,8 +205,8 @@ async function initSignInternal() {
 
 async function initIdDocsApprove() {
 	const url = generateOcsUrl('/apps/libresign/api/v1/file/validate/uuid/{uuid}', { uuid: getRouteUuid() })
-	const response = await axios.get(addIdDocApprovalParam(url) || url) as OcsResponse<DocumentFile>
-	const file = response.data?.ocs?.data
+	const response = await axios.get<ValidateFileResponse>(addIdDocApprovalParam(url) || url)
+	const file = response.data.ocs.data
 	if (!file) {
 		return
 	}
@@ -246,13 +222,14 @@ async function handleInitialStatePdfs(urls: string[]) {
 	const blobs: File[] = []
 	for (const url of urls) {
 		const response = await fetch(url)
-		const contentType = response.headers.get('Content-Type') || ''
+		const contentType = response.headers.get('Content-Type') ?? ''
 
 		if (contentType.includes('application/json')) {
-			const data = await response.json()
+			const data = await response.json() as PdfFetchError
 			sidebarStore.hideSidebar()
-			if (data?.errors?.[0]?.message?.length > 0) {
-				signStore.errors = data.errors
+			const firstErrorMessage = data.errors?.[0]?.message
+			if (firstErrorMessage && firstErrorMessage.length > 0) {
+				signStore.errors = data.errors ?? []
 			} else {
 				signStore.errors = [{ message: t('libresign', 'File not found') }]
 			}
@@ -279,8 +256,7 @@ async function loadPdfsFromStore() {
 		return
 	}
 
-	const baseFileUrl = doc.url
-		|| (doc.files?.[0]?.file as string | undefined)
+	const baseFileUrl = (doc.url ?? getFileUrl(doc.files?.[0]))
 		|| (doc.uuid ? generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: doc.uuid }) : null)
 	const fileUrl = addIdDocApprovalParam(baseFileUrl)
 	if (fileUrl) {
@@ -324,9 +300,9 @@ async function loadEnvelopePdfs(parentFileId: number | string) {
 }
 
 async function fetchEnvelopeFiles(parentFileId: number | string) {
-	const cachedEnvelopeFiles = loadState('libresign', 'envelopeFiles', [])
+	const cachedEnvelopeFiles = loadState('libresign', 'envelopeFiles', [] as OpenApiFileDetail[])
 	if (Array.isArray(cachedEnvelopeFiles) && cachedEnvelopeFiles.length > 0) {
-		return cachedEnvelopeFiles as DocumentFile[]
+		return cachedEnvelopeFiles
 	}
 
 	const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
@@ -337,8 +313,8 @@ async function fetchEnvelopeFiles(parentFileId: number | string) {
 		signer_uuid: getRouteUuid() || '',
 	})
 	const finalUrl = addIdDocApprovalParam(`${url}?${params.toString()}`) || `${url}?${params.toString()}`
-	const response = await axios.get(finalUrl) as OcsResponse<{ data?: DocumentFile[] }>
-	return response.data?.ocs?.data?.data ?? []
+	const response = await axios.get<FileListResponse>(finalUrl)
+	return response.data.ocs.data.data ?? []
 }
 
 function updateSigners() {
