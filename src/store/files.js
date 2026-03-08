@@ -18,15 +18,27 @@ import { useFiltersStore } from './filters.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { useSidebarStore } from './sidebar.js'
 
+/**
+ * @typedef {{
+ * 	id?: number
+ * 	uuid?: string
+ * 	nodeId?: number
+ * 	loading?: string | boolean
+ * 	signers?: Array<Record<string, unknown>>
+ * 	signersCount?: number
+ * 	[key: string]: unknown
+ * }} FileRecord
+ */
+
 const emptyFile = { signers: [] }
 
 const _filesStore = defineStore('files', () => {
-	const files = ref({})
+	const files = ref(/** @type {Record<string | number, FileRecord>} */ ({}))
 	const selectedFileId = ref(0)
 	const identifyingSigner = ref(false)
 	const loading = ref(false)
 	const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
-	const ordered = ref([])
+	const ordered = ref(/** @type {number[]} */ ([]))
 	const paginationNextUrl = ref('')
 	const loadedAll = ref(false)
 	const getStore = () => _filesStore()
