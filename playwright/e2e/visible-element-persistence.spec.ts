@@ -4,8 +4,13 @@
  */
 
 import { expect, test } from '@playwright/test'
+import type { Locator } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+
+function getVisiblePdfOverlay(dialog: Locator) {
+	return dialog.locator('.overlay:visible').first()
+}
 
 test('visible signature element persists and can be deleted', async ({ page }) => {
 	const requestSignatureTab = page.locator('#request-signature-tab')
@@ -68,7 +73,7 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	await expect(setupSignaturePositionsButton).toBeVisible()
 	await setupSignaturePositionsButton.click()
 	const signaturePositionsDialog = page.getByLabel('Signature positions')
-	const visiblePageOverlay = signaturePositionsDialog.locator('.overlay[aria-label="Page 1 of 1."]:visible').first()
+	const visiblePageOverlay = getVisiblePdfOverlay(signaturePositionsDialog)
 	await expect(signaturePositionsDialog).toBeVisible()
 	await expect(visiblePageOverlay).toBeVisible()
 
@@ -80,7 +85,7 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	// 1. hover() triggers handleMouseMove, setting previewVisible=true inside a rAF callback.
 	// 2. Waiting for .preview-element confirms the rAF ran.
 	// 3. click() fires mouseup, which calls finishAdding() and places the element.
-	const overlay = signaturePositionsDialog.locator('.overlay[aria-label="Page 1 of 1. Press Enter or Space to place the signature here."]:visible').first()
+	const overlay = getVisiblePdfOverlay(signaturePositionsDialog)
 	await overlay.hover()
 	await signaturePositionsDialog.locator('.preview-element').first().waitFor({ state: 'visible' })
 	await overlay.click()
@@ -116,7 +121,7 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 
 	// Re-open the document one last time and confirm the element is gone
 	await reopenFileFromUuid(requestUuid)
-	await expect(signaturePositionsDialog.locator('.overlay[aria-label="Page 1 of 1."]:visible').first()).toBeVisible()
+	await expect(getVisiblePdfOverlay(signaturePositionsDialog)).toBeVisible()
 
 	await expect(
 		signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' }),
