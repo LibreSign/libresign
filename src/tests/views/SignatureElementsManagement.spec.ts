@@ -7,6 +7,10 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import DefaultPageError from '../../views/DefaultPageError.vue'
 
+type DefaultPageErrorVm = {
+	errors: Array<{ message: string }>
+}
+
 const loadStateMock = vi.fn()
 
 vi.mock('@nextcloud/initial-state', () => ({
@@ -40,7 +44,7 @@ describe('DefaultPageError.vue - Error Aggregation Rules', () => {
 			},
 		})
 
-		expect(wrapper.vm.errors).toEqual([
+		expect((wrapper.vm as unknown as DefaultPageErrorVm).errors).toEqual([
 			{ message: 'Error A' },
 			{ message: 'Error B' },
 		])
@@ -65,7 +69,7 @@ describe('DefaultPageError.vue - Error Aggregation Rules', () => {
 			},
 		})
 
-		expect(wrapper.vm.errors).toEqual([{ message: 'Single error' }])
+		expect((wrapper.vm as unknown as DefaultPageErrorVm).errors).toEqual([{ message: 'Single error' }])
 	})
 
 	it('returns empty array when no error state is provided', () => {
@@ -79,6 +83,6 @@ describe('DefaultPageError.vue - Error Aggregation Rules', () => {
 			},
 		})
 
-		expect(wrapper.vm.errors).toEqual([])
+		expect((wrapper.vm as unknown as DefaultPageErrorVm).errors).toEqual([])
 	})
 })
