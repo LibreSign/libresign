@@ -7,7 +7,6 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import CreateAccount from '../../views/CreateAccount.vue'
-// @ts-ignore: No types available for crypto-js/md5
 import md5 from 'crypto-js/md5'
 
 type ValidationField = {
