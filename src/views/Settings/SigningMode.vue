@@ -113,6 +113,9 @@ defineOptions({
 	name: 'SigningMode',
 })
 
+type SigningModeState = 'sync' | 'async'
+type WorkerTypeState = 'local' | 'external'
+
 const asyncEnabled = ref(false)
 const externalWorkerEnabled = ref(false)
 const parallelWorkersCount = ref('4')
@@ -131,10 +134,10 @@ function showSavedIndicator() {
 
 function loadConfig() {
 	try {
-		const mode = loadState('libresign', 'signing_mode', 'sync')
+		const mode = loadState('libresign', 'signing_mode', 'sync') as SigningModeState
 		asyncEnabled.value = mode === 'async'
 
-		const workerType = loadState('libresign', 'worker_type', 'local')
+		const workerType = loadState('libresign', 'worker_type', 'local') as WorkerTypeState
 		externalWorkerEnabled.value = workerType === 'external'
 
 		const parallelWorkers = loadState('libresign', 'parallel_workers', '4')
