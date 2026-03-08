@@ -218,6 +218,19 @@ type RenameError = {
 	}
 }
 
+type LibreSignCapabilities = {
+	libresign?: {
+		config?: {
+			envelope?: {
+				'is-available'?: boolean
+			}
+			upload?: {
+				'max-file-uploads'?: number
+			}
+		}
+	}
+}
+
 defineOptions({
 	name: 'EnvelopeFilesList',
 })
@@ -268,7 +281,7 @@ const canAddFile = computed(() => {
 	if (!envelope.value || envelope.value.status !== FILE_STATUS.DRAFT) {
 		return false
 	}
-	const capabilities = getCapabilities()
+	const capabilities = getCapabilities() as LibreSignCapabilities
 	return capabilities?.libresign?.config?.envelope?.['is-available'] === true
 })
 const deleteDialogButtons = computed(() => [
@@ -280,7 +293,7 @@ const deleteDialogButtons = computed(() => [
 	},
 	{
 		label: t('libresign', 'Delete'),
-		type: 'error',
+		variant: 'error' as const,
 		callback: () => {
 			showDeleteDialog.value = false
 			deleteDialogConfig.value.action?.()
@@ -391,8 +404,9 @@ function showError(message: string) {
 }
 
 function getMaxFileUploads() {
-	const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
-	const max = Number.isFinite(capabilitiesMax) ? capabilitiesMax : 20
+	const capabilities = getCapabilities() as LibreSignCapabilities
+	const capabilitiesMax = capabilities?.libresign?.config?.upload?.['max-file-uploads']
+	const max = typeof capabilitiesMax === 'number' && Number.isFinite(capabilitiesMax) ? capabilitiesMax : 20
 	return max > 0 ? Math.floor(max) : 20
 }
 
@@ -537,7 +551,8 @@ function cancelUpload() {
 	uploadAbortController.value?.abort()
 }
 
-function onEnvelopeNameChange(newName: string) {
+function onEnvelopeNameChange(newName: string | number) {
+	const normalizedName = String(newName)
 	if (debounceTimer.value) {
 		clearTimeout(debounceTimer.value)
 	}
@@ -546,7 +561,7 @@ function onEnvelopeNameChange(newName: string) {
 	nameUpdateError.value = false
 	nameHelperText.value = ''
 
-	const trimmedName = newName.trim()
+	const trimmedName = normalizedName.trim()
 	if (trimmedName.length < ENVELOPE_NAME_MIN_LENGTH) {
 		nameUpdateError.value = true
 		nameHelperText.value = t('libresign', 'Name must be at least {min} characters', { min: ENVELOPE_NAME_MIN_LENGTH })
