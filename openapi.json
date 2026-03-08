@@ -2949,7 +2949,8 @@
                                                             "type": "object",
                                                             "required": [
                                                                 "canRequestSign",
-                                                                "hasSignatureFile"
+                                                                "hasSignatureFile",
+                                                                "phoneNumber"
                                                             ],
                                                             "properties": {
                                                                 "canRequestSign": {
@@ -2957,6 +2958,9 @@
                                                                 },
                                                                 "hasSignatureFile": {
                                                                     "type": "boolean"
+                                                                },
+                                                                "phoneNumber": {
+                                                                    "type": "string"
                                                                 }
                                                             }
                                                         }
