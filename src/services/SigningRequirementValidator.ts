@@ -11,31 +11,27 @@ interface SignStore {
 		signers?: Array<{ me?: boolean; signRequestId?: string | number }>
 		visibleElements?: Array<{ signRequestId?: string | number }>
 	}
-	[key: string]: unknown
 }
 
 interface SignMethodsStore {
-	needEmailCode(): boolean
-	needTokenCode(): boolean
-	needCertificate(): boolean
-	needCreatePassword(): boolean
-	needSignWithPassword(): boolean
-	needClickToSign(): boolean
-	[key: string]: unknown
+	needEmailCode(): boolean | undefined
+	needTokenCode(): boolean | undefined
+	needCertificate(): boolean | undefined
+	needCreatePassword(): boolean | undefined
+	needSignWithPassword(): boolean | undefined
+	needClickToSign(): boolean | undefined
 }
 
 interface IdentificationDocumentStore {
 	enabled?: boolean
 	waitingApproval?: boolean
 	needIdentificationDocument(): boolean
-	[key: string]: unknown
 }
 
 interface ValidatorConfig {
 	errors?: Array<{ code?: number; [key: string]: unknown }>
 	hasSignatures?: boolean
 	canCreateSignature?: boolean
-	[key: string]: unknown
 }
 
 export class SigningRequirementValidator {
@@ -61,7 +57,7 @@ export class SigningRequirementValidator {
 			},
 			{
 				name: 'emailCode',
-				check: () => this.signMethodsStore.needEmailCode(),
+				check: () => !!this.signMethodsStore.needEmailCode(),
 			},
 			{
 				name: 'createSignature',
@@ -69,23 +65,23 @@ export class SigningRequirementValidator {
 			},
 			{
 				name: 'tokenCode',
-				check: () => this.signMethodsStore.needTokenCode(),
+				check: () => !!this.signMethodsStore.needTokenCode(),
 			},
 			{
 				name: 'uploadCertificate',
-				check: () => this.signMethodsStore.needCertificate(),
+				check: () => !!this.signMethodsStore.needCertificate(),
 			},
 			{
 				name: 'createPassword',
-				check: () => this.signMethodsStore.needCreatePassword(),
+				check: () => !!this.signMethodsStore.needCreatePassword(),
 			},
 			{
 				name: 'passwordSignature',
-				check: () => this.signMethodsStore.needSignWithPassword(),
+				check: () => !!this.signMethodsStore.needSignWithPassword(),
 			},
 			{
 				name: 'clickToSign',
-				check: () => this.signMethodsStore.needClickToSign(),
+				check: () => !!this.signMethodsStore.needClickToSign(),
 			},
 		]
 
