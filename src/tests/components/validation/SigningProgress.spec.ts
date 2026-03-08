@@ -6,9 +6,53 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import type { TranslationFunction } from '../../test-types'
 
 type SigningProgressComponent = typeof import('../../../components/validation/SigningProgress.vue').default
+type StatusMeta = {
+	label?: string
+	icon?: string
+	[key: string]: unknown
+}
+
+type ProgressFile = {
+	id: number
+	name?: string
+	status?: number
+	error?: { message?: string } | null
+}
+
+type ProgressState = {
+	signed?: number
+	inProgress?: number
+	pending?: number
+	total?: number
+	files: ProgressFile[]
+}
+
+type SigningProgressVm = {
+	progress: ProgressState | null
+	statusMap: Record<string, StatusMeta>
+	isPolling: boolean
+	pollingInterval: ReturnType<typeof setTimeout> | null
+	generalErrorMessage: string | null
+	$nextTick: () => Promise<void>
+	getHeaderTitle: () => string
+	getHeaderSubtitle: () => string
+	startPolling: () => void
+	stopPolling: () => void
+	getProgressState: () => { allProcessed: boolean; errorCount: number; fileErrors: Array<{ error: { message?: string } | null }> }
+	getFileStatusMeta: (file: ProgressFile) => StatusMeta
+	pollFileProgress: ReturnType<typeof vi.fn> | (() => Promise<void>)
+	setProps?: (props: Record<string, unknown>) => Promise<void>
+}
+
+type SigningProgressWrapper = VueWrapper<any> & {
+	vm: SigningProgressVm
+	setProps: (props: Record<string, unknown>) => Promise<void>
+}
+
 type AxiosMock = {
 	get: MockedFunction<(url: string) => Promise<{ data: { ocs: { data: unknown } } }>>
 }
@@ -61,9 +105,9 @@ beforeAll(async () => {
 })
 
 describe('SigningProgress', () => {
-	let wrapper: ReturnType<typeof mount> | null
+	let wrapper: SigningProgressWrapper | null
 
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props = {}): SigningProgressWrapper => {
 		return mount(SigningProgress, {
 			props: {
 				signRequestUuid: 'test-uuid-123',
@@ -77,7 +121,7 @@ describe('SigningProgress', () => {
 			mocks: {
 				t: translateMessage,
 			},
-		})
+		}) as SigningProgressWrapper
 	}
 
 	beforeEach(() => {
