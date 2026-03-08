@@ -67,23 +67,26 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	const requestUuid = createRequestBody.ocs.data.uuid as string
 	await expect(setupSignaturePositionsButton).toBeVisible()
 	await setupSignaturePositionsButton.click()
-	await expect(page.getByLabel('Page 1 of 1.')).toBeVisible()
+	const signaturePositionsDialog = page.getByLabel('Signature positions')
+	const visiblePageOverlay = signaturePositionsDialog.locator('.overlay[aria-label="Page 1 of 1."]:visible').first()
+	await expect(signaturePositionsDialog).toBeVisible()
+	await expect(visiblePageOverlay).toBeVisible()
 
 	// Select the signer to enter element-placement mode
-	await page.getByLabel('Signature positions').getByRole('link', { name: 'Edit signer Admin Name' }).click()
+	await signaturePositionsDialog.getByRole('link', { name: 'Edit signer Admin Name' }).click()
 	await expect(page.getByText('Click on the place you want to add.')).toBeVisible()
 
 	// Placing a signature element requires three steps:
 	// 1. hover() triggers handleMouseMove, setting previewVisible=true inside a rAF callback.
 	// 2. Waiting for .preview-element confirms the rAF ran.
 	// 3. click() fires mouseup, which calls finishAdding() and places the element.
-	const overlay = page.getByLabel('Page 1 of 1. Press Enter or Space to place the signature here.')
+	const overlay = signaturePositionsDialog.locator('.overlay[aria-label="Page 1 of 1. Press Enter or Space to place the signature here."]:visible').first()
 	await overlay.hover()
-	await page.getByLabel('Signature positions').locator('.preview-element').first().waitFor({ state: 'visible' })
+	await signaturePositionsDialog.locator('.preview-element').first().waitFor({ state: 'visible' })
 	await overlay.click()
 
 	await expect(
-		page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' }),
+		signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' }),
 	).toBeVisible()
 
 	// Save closes the modal and persists the element via API
@@ -113,9 +116,9 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 
 	// Re-open the document one last time and confirm the element is gone
 	await reopenFileFromUuid(requestUuid)
-	await expect(page.getByLabel('Page 1 of 1.')).toBeVisible()
+	await expect(signaturePositionsDialog.locator('.overlay[aria-label="Page 1 of 1."]:visible').first()).toBeVisible()
 
 	await expect(
-		page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' }),
+		signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' }),
 	).toBeHidden()
 })
