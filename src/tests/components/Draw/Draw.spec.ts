@@ -9,6 +9,8 @@ import { setActivePinia, createPinia } from 'pinia'
 import Draw from '../../../components/Draw/Draw.vue'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 
+type MountGlobalOptions = NonNullable<Parameters<typeof mount>[1]>['global']
+
 vi.mock('@nextcloud/vue/components/NcDialog', () => ({
 	default: {
 		name: 'NcDialog',
@@ -91,8 +93,8 @@ const mountDraw = (options: {
 		stubs: {
 			...(stubs || {}),
 			...(global?.stubs || {}),
-		},
-	}
+		} as NonNullable<MountGlobalOptions>['stubs'],
+	} satisfies MountGlobalOptions
 
 	return mount(Draw, {
 		props: normalizedProps,
