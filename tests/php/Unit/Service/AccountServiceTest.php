@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OC\AppFramework\Utility\TimeFactory;
 use OC\Http\Client\ClientService;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
@@ -32,7 +33,9 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
+use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountManager;
+use OCP\Accounts\IAccountProperty;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Config\IUserConfig;
 use OCP\Files\Config\IMountProviderCollection;
@@ -340,6 +343,43 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(\OCP\IUser::class);
 		$actual = $this->getService()->canRequestSign($user);
 		$this->assertTrue($actual);
+	}
+
+	public function testGetSettingsIncludesPhoneNumber(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('testuser');
+
+		$this->appConfig
+			->method('getValueArray')
+			->with(Application::APP_ID, 'groups_request_sign', ['admin'])
+			->willReturn(['admin']);
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['admin']);
+		$this->pkcs12Handler
+			->method('getPfxOfCurrentSigner')
+			->with('testuser')
+			->willReturn('signature_content');
+
+		$accountProperty = $this->createMock(IAccountProperty::class);
+		$accountProperty->method('getValue')->willReturn('+5511999999999');
+
+		$account = $this->createMock(IAccount::class);
+		$account->method('getProperty')
+			->with(IAccountManager::PROPERTY_PHONE)
+			->willReturn($accountProperty);
+
+		$this->accountManager
+			->method('getAccount')
+			->with($user)
+			->willReturn($account);
+
+		$actual = $this->getService()->getSettings($user);
+
+		$this->assertSame(true, $actual['canRequestSign']);
+		$this->assertSame(true, $actual['hasSignatureFile']);
+		$this->assertSame('+5511999999999', $actual['phoneNumber']);
 	}
 
 	#[DataProvider('provideValidateCreateToSignCases')]
