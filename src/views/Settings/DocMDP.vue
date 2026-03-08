@@ -64,6 +64,7 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSavingIndicatorIcon from '@nextcloud/vue/components/NcSavingIndicatorIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import type { operations } from '../../types/openapi/openapi-administration'
 
 defineOptions({
 	name: 'DocMDP',
@@ -79,6 +80,17 @@ interface DocMDPConfig {
 	enabled: boolean
 	defaultLevel: number
 	availableLevels: LevelOption[]
+}
+
+type DocMdpRequestBody = operations['admin-set-doc-mdp-config']['requestBody']['content']['application/json']
+type DocMdpErrorResponse =
+	| operations['admin-set-doc-mdp-config']['responses'][400]['content']['application/json']
+	| operations['admin-set-doc-mdp-config']['responses'][500]['content']['application/json']
+
+type DocMdpRequestError = {
+	response?: {
+		data?: DocMdpErrorResponse
+	}
 }
 
 const PREFERRED_DEFAULT_LEVEL = 2
@@ -150,6 +162,11 @@ function onLevelChange() {
 	void saveConfig()
 }
 
+function getErrorMessage(error: unknown): string | null {
+	const requestError = error as DocMdpRequestError
+	return requestError.response?.data?.ocs?.data?.error ?? null
+}
+
 async function saveConfig() {
 	loading.value = true
 	errorMessage.value = ''
@@ -158,19 +175,19 @@ async function saveConfig() {
 
 	try {
 		const url = generateOcsUrl('apps/libresign/api/v1/admin/docmdp/config')
-		await axios.post(url, {
+		const payload: DocMdpRequestBody = {
 			enabled: enabled.value,
 			defaultLevel: enabled.value ? (selectedLevel.value?.value ?? 0) : 0,
-		})
+		}
+		await axios.post(url, payload)
 
 		saved.value = true
 		setTimeout(() => {
 			saved.value = false
 		}, 3000)
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error('Error saving DocMDP configuration:', error)
-		errorMessage.value = error.response?.data?.ocs?.data?.error
-			|| t('libresign', 'Could not save configuration.')
+		errorMessage.value = getErrorMessage(error) ?? t('libresign', 'Could not save configuration.')
 		showErrorIcon.value = true
 		setTimeout(() => {
 			showErrorIcon.value = false
