@@ -48,7 +48,11 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
-import type { NextcloudCapabilities } from '../../types/capabilities'
+import type { components as AdministrationComponents } from '../../types/openapi/openapi-administration'
+
+type TextInputCapabilities = {
+	libresign: AdministrationComponents['schemas']['Capabilities']
+}
 
 defineOptions({
 	name: 'TextInput',
@@ -59,7 +63,7 @@ const emit = defineEmits<{
 	(event: 'close'): void
 }>()
 
-const capabilities = getCapabilities() as NextcloudCapabilities
+const capabilities = getCapabilities() as TextInputCapabilities
 const signElementsConfig = capabilities.libresign.config['sign-elements']
 const canvasWidth = signElementsConfig['signature-width']
 const canvasHeight = signElementsConfig['signature-height']
