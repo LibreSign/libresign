@@ -188,8 +188,8 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
-import type { NextcloudCapabilities } from '../../../types/capabilities'
 import type { components, operations } from '../../../types/openapi/openapi'
+import type { components as AdministrationComponents } from '../../../types/openapi/openapi-administration'
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import { FILE_STATUS } from '../../../constants.js'
@@ -208,6 +208,9 @@ type LibreSignValidateFile = Omit<OpenApiValidateFile, 'status'> & {
 	status: OpenApiValidateFile['status'] | 5
 }
 type LibreSignVisibleElement = components['schemas']['VisibleElement']
+type SignCapabilities = {
+	libresign: AdministrationComponents['schemas']['Capabilities']
+}
 type OcsResponseData<T> = {
 	ocs: {
 		data: T
@@ -453,7 +456,7 @@ const needCreateSignature = computed(() => {
 })
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const canCreateSignature = computed(() => {
-	const capabilities = getCapabilities() as NextcloudCapabilities
+	const capabilities = getCapabilities() as SignCapabilities
 	return capabilities.libresign.config['sign-elements']['can-create-signature'] === true
 })
 const ableToSign = computed(() => signStore.ableToSign)
