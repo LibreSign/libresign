@@ -16,7 +16,8 @@ import { t } from '@nextcloud/l10n'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
-import { emit, subscribe } from '@nextcloud/event-bus'
+import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
+import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
 import { getNavigation } from '@nextcloud/files'
 import { generateRemoteUrl } from '@nextcloud/router'
@@ -65,10 +66,6 @@ const filesStore = useFilesStore()
 const sidebarStore = useSidebarStore()
 
 const sidebarTitleObserver = ref<MutationObserver | null>(null)
-const unsubscribeCreated = ref<(() => void) | null>(null)
-const unsubscribeUpdated = ref<(() => void) | null>(null)
-const unsubscribeDeleted = ref<(() => void) | null>(null)
-const unsubscribeEnvelopeRenamed = ref<(() => void) | null>(null)
 
 function handleEnvelopeRenamed({ uuid, name }: EnvelopeRenamedPayload) {
 	const current = filesStore.getFile()
@@ -191,7 +188,8 @@ async function handleLibreSignFileChangeWithPath(path: string, eventType: string
 		details: true,
 		data: propfindPayload,
 	})
-	emit(`files:node:${eventType}`, resultToNode(result.data))
+	const statResult = 'data' in result ? result.data : result
+	emit(`files:node:${eventType}`, resultToNode(statResult))
 }
 
 async function handleLibreSignFileChangeAtCurretntFolder() {
@@ -206,7 +204,8 @@ async function handleLibreSignFileChangeAtCurretntFolder() {
 		details: true,
 		data: propfindPayload,
 	})
-	emit('files:node:updated', resultToNode(result.data))
+	const statResult = 'data' in result ? result.data : result
+	emit('files:node:updated', resultToNode(statResult))
 }
 
 async function handleLibreSignFileChange({ path, nodeId }: LibreSignNodePayload, eventType: string) {
@@ -240,29 +239,41 @@ function handleFilesNodeDeleted(node: DeletedNode) {
 	filesStore.removeFileByNodeId(nodeId)
 }
 
+const onLibreSignFileCreated = ((payload: NextcloudEvent) => {
+	void handleLibreSignFileCreated((payload ?? {}) as LibreSignNodePayload)
+}) as EventHandler<NextcloudEvent>
+
+const onLibreSignFileUpdated = ((payload: NextcloudEvent) => {
+	void handleLibreSignFileUpdated((payload ?? {}) as LibreSignNodePayload)
+}) as EventHandler<NextcloudEvent>
+
+const onFilesNodeDeleted = ((payload: NextcloudEvent) => {
+	handleFilesNodeDeleted((payload ?? {}) as DeletedNode)
+}) as EventHandler<NextcloudEvent>
+
+const onEnvelopeRenamed = ((payload: NextcloudEvent) => {
+	handleEnvelopeRenamed((payload ?? {}) as EnvelopeRenamedPayload)
+}) as EventHandler<NextcloudEvent>
+
 onMounted(() => {
-	unsubscribeCreated.value = subscribe('libresign:file:created', handleLibreSignFileCreated)
-	unsubscribeUpdated.value = subscribe('libresign:file:updated', handleLibreSignFileUpdated)
-	unsubscribeDeleted.value = subscribe('files:node:deleted', handleFilesNodeDeleted)
-	unsubscribeEnvelopeRenamed.value = subscribe('libresign:envelope:renamed', handleEnvelopeRenamed)
+	subscribe('libresign:file:created', onLibreSignFileCreated)
+	subscribe('libresign:file:updated', onLibreSignFileUpdated)
+	subscribe('files:node:deleted', onFilesNodeDeleted)
+	subscribe('libresign:envelope:renamed', onEnvelopeRenamed)
 })
 
 onBeforeUnmount(() => {
 	disconnectTitleObserver()
-	unsubscribeCreated.value?.()
-	unsubscribeUpdated.value?.()
-	unsubscribeDeleted.value?.()
-	unsubscribeEnvelopeRenamed.value?.()
+	unsubscribe('libresign:file:created', onLibreSignFileCreated)
+	unsubscribe('libresign:file:updated', onLibreSignFileUpdated)
+	unsubscribe('files:node:deleted', onFilesNodeDeleted)
+	unsubscribe('libresign:envelope:renamed', onEnvelopeRenamed)
 })
 
 defineExpose({
 	filesStore,
 	sidebarStore,
 	sidebarTitleObserver,
-	unsubscribeCreated,
-	unsubscribeUpdated,
-	unsubscribeDeleted,
-	unsubscribeEnvelopeRenamed,
 	t,
 	handleEnvelopeRenamed,
 	checkAndLoadPendingEnvelope,
@@ -275,5 +286,9 @@ defineExpose({
 	handleLibreSignFileCreated,
 	handleLibreSignFileUpdated,
 	handleFilesNodeDeleted,
+	onLibreSignFileCreated,
+	onLibreSignFileUpdated,
+	onFilesNodeDeleted,
+	onEnvelopeRenamed,
 })
 </script>
