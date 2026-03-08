@@ -318,71 +318,24 @@ import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
 import type { components, operations } from '../../types/openapi/openapi'
-import type { components as AdministrationComponents } from '../../types/openapi/openapi-administration'
+import type {
+	FileRecord as RequestTabFile,
+	IdentifyMethodRecord,
+	IdentifyMethodSetting as IdentifyMethodConfig,
+	LibresignCapabilities as RequestSignatureTabCapabilities,
+	LoadedFileInfoState as LoadedDocumentState,
+	SignerRecord as SignerRow,
+	SignatureFlowMode,
+	SignatureFlowValue,
+} from '../../types/contracts'
 
-type RequestSignatureTabCapabilities = {
-	libresign: AdministrationComponents['schemas']['Capabilities']
-}
-
-type SignatureFlowMode = components['schemas']['NextcloudFile']['signatureFlow']
-type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
-type SignerIdentify = {
-	email?: string
-	account?: string
-}
-type SignerMethodEntry = {
-	method: string
-	value?: string
-}
-type SignerLike = {
-	identifyMethods?: SignerMethodEntry[]
-}
-type SignerRow = {
-	identify?: string | number | SignerIdentify
-	signed?: unknown
-	displayName?: string
-	description?: string | null
-	acceptsEmailNotifications?: boolean
-	signingOrder?: number
-	signRequestId?: number
-	status?: number
-	me?: boolean
-	sign_uuid?: string
-	identifyMethods?: SignerMethodEntry[]
-}
-type RequestTabFile = {
-	status?: number
-	statusText?: string
-	id?: number
-	uuid?: string
-	signUuid?: string | null
-	nodeId?: number | string
-	name?: string
-	nodeType?: string
-	filesCount?: number
-	signers?: SignerRow[]
-	signatureFlow?: SignatureFlowValue
-}
-type LoadedDocumentState = {
-	files?: Array<{
-		file?: string
-	}>
-}
-type IdentifySignerMethod = {
-	method: string
-	value: string
-}
+type IdentifySignerMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 type IdentifySignerToEdit = {
 	identify?: string
 	signRequestId?: string
 	displayName?: string
 	description?: string
 	identifyMethods?: IdentifySignerMethod[]
-}
-type IdentifyMethodConfig = {
-	name: string
-	enabled: boolean
-	friendly_name: string
 }
 type SigningProgressView = {
 	total: number
@@ -516,7 +469,7 @@ function normalizeSignatureFlow(flow: unknown): SignatureFlowValue | null {
 	return null
 }
 
-function getSignerMethod(signer: SignerLike): string | undefined {
+function getSignerMethod(signer: { identifyMethods?: Array<Pick<IdentifyMethodRecord, 'method'>> }): string | undefined {
 	return signer.identifyMethods?.[0]?.method
 }
 
@@ -705,7 +658,8 @@ const hasSignersWithDisabledMethods = computed(() => {
 })
 
 function hasAnyDraftSigner(file: RequestTabFile | null | undefined) {
-	const signers = Array.isArray(file?.signers) ? file.signers : []
+	const fileSigners = file?.signers
+	const signers: SignerRow[] = Array.isArray(fileSigners) ? fileSigners : []
 	return signers.some((signer: SignerRow) => signer.status === SIGN_REQUEST_STATUS.DRAFT)
 }
 
@@ -714,7 +668,8 @@ function getCurrentSigningOrder(signersNotSigned: SignerRow[]) {
 }
 
 function hasOrderDraftSigners(file: RequestTabFile | null | undefined, order: number) {
-	const signers = Array.isArray(file?.signers) ? file.signers : []
+	const fileSigners = file?.signers
+	const signers: SignerRow[] = Array.isArray(fileSigners) ? fileSigners : []
 	return signers.some((signer: SignerRow) => {
 		const signerOrder = signer.signingOrder || 1
 		return signerOrder === order && signer.status === SIGN_REQUEST_STATUS.DRAFT
@@ -722,7 +677,8 @@ function hasOrderDraftSigners(file: RequestTabFile | null | undefined, order: nu
 }
 
 function hasSequentialDraftSigners(file: RequestTabFile | null | undefined) {
-	const signers = Array.isArray(file?.signers) ? file.signers : []
+	const fileSigners = file?.signers
+	const signers: SignerRow[] = Array.isArray(fileSigners) ? fileSigners : []
 	const signersNotSigned = signers.filter((signer: SignerRow) => !isSignerSigned(signer))
 	if (signersNotSigned.length === 0) {
 		return false
@@ -850,7 +806,8 @@ function syncPreserveOrderWithFile() {
 	}
 
 	const flow = file.signatureFlow
-	preserveOrder.value = (flow === 'ordered_numeric' || flow === 2) && !isAdminFlowForced.value
+	const normalizedFlow = normalizeSignatureFlow(flow)
+	preserveOrder.value = (normalizedFlow === 'ordered_numeric' || normalizedFlow === 2) && !isAdminFlowForced.value
 }
 
 function getSvgIcon(name: string) {
@@ -1134,7 +1091,7 @@ async function openManageFiles() {
 	hasLoading.value = true
 	const response = await filesStore.saveOrUpdateSignatureRequest({})
 	hasLoading.value = false
-	if (response?.success === false && response?.message) {
+	if (response && 'success' in response && response.success === false && response.message) {
 		showError(response.message)
 		return
 	}
