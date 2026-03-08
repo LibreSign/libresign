@@ -58,7 +58,7 @@ async function getData() {
 function saveCollectMetadata() {
 	;(globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP.AppConfig.setValue('libresign', 'collect_metadata', collectMetadataEnabled.value ? '1' : '0', {
 		success: () => {
-			emit('collect-metadata:changed')
+			emit('collect-metadata:changed', undefined)
 		},
 	})
 }
