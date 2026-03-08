@@ -175,10 +175,17 @@ type FilePageInfo = {
 
 type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
 
-type PdfObjectSigner = {
+type PdfObjectSigner = FileSigner & {
 	element?: { elementId?: string }
-	identifyMethods?: SignerIdentifyMethod[]
-	[key: string]: unknown
+}
+
+type SelectedSigner = FileSigner & {
+	element?: {
+		elementId?: string | number
+		documentIndex?: number
+		signRequestId?: string | number
+		[key: string]: unknown
+	}
 }
 
 type PdfObject = PDFElementObject & {
@@ -200,16 +207,16 @@ type PdfElementsRef = {
 
 type PdfEditorRef = ComponentPublicInstance & {
 	$refs?: { pdfElements?: PdfElementsRef }
-	startAddingSigner?: (signer: Record<string, unknown>, size: { width: number; height: number }) => boolean
+	startAddingSigner?: (signer: SelectedSigner, size: { width: number; height: number }) => boolean
 	cancelAdding?: () => void
-	addSigner?: (signer: Record<string, unknown>) => void
+	addSigner?: (signer: SelectedSigner) => void
 }
 
 type SaveResponse = {
 	message: string
 }
 
-type FilesStore = {
+type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'saveOrUpdateSignatureRequest'> & {
 	loading: boolean
 	getFile: () => DocumentModel
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<SaveResponse>
@@ -267,13 +274,13 @@ defineOptions({
 	name: 'VisibleElements',
 })
 
-const filesStore = useFilesStore() as unknown as FilesStore
+const filesStore = useFilesStore() as FilesStore
 const instance = getCurrentInstance()
 const pdfEditor = ref<PdfEditorRef | null>(null)
 const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
 const modal = ref(false)
 const loading = ref(false)
-const signerSelected = ref<Record<string, unknown> | null>(null)
+const signerSelected = ref<SelectedSigner | null>(null)
 const capabilities = getCapabilities() as VisibleElementsCapabilities
 const signElementsConfig = capabilities.libresign.config['sign-elements']
 const width = ref(signElementsConfig['full-signature-width'])
@@ -281,7 +288,7 @@ const height = ref(signElementsConfig['full-signature-height'])
 const filePagesMap = ref<Record<number, FilePageInfo>>({})
 const elementsLoaded = ref(false)
 
-const document = computed<DocumentModel>(() => filesStore.getFile())
+const document = computed<DocumentModel>(() => filesStore.getFile() as DocumentModel)
 const documentFiles = computed<DocumentFile[]>(() => Array.isArray(document.value.files) ? document.value.files as DocumentFile[] : [])
 const status = computed(() => Number(document.value?.status ?? -1))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
@@ -310,6 +317,34 @@ function getPdfEditor() {
 
 function getPdfElements() {
 	return getPdfEditor()?.$refs?.pdfElements
+}
+
+function getOcsErrorMessage(error: unknown): string | null {
+	if (typeof error !== 'object' || error === null || !('response' in error)) {
+		return null
+	}
+
+	const response = error.response
+	if (typeof response !== 'object' || response === null || !('data' in response)) {
+		return null
+	}
+
+	const data = response.data
+	if (typeof data !== 'object' || data === null || !('ocs' in data)) {
+		return null
+	}
+
+	const ocs = data.ocs
+	if (typeof ocs !== 'object' || ocs === null || !('data' in ocs)) {
+		return null
+	}
+
+	const ocsData = ocs.data
+	if (typeof ocsData !== 'object' || ocsData === null || !('message' in ocsData)) {
+		return null
+	}
+
+	return typeof ocsData.message === 'string' ? ocsData.message : null
 }
 
 async function showModal() {
@@ -400,7 +435,7 @@ async function updateSigners() {
 
 	const fileIndexById = new Map(filesToProcess.map((file, index) => [String(file.id), index]))
 	const elements = getVisibleElementsFromDocument(document.value)
-	const elementsByDoc = new Map<number, Array<{ element: Record<string, unknown>; signer: Record<string, unknown> }>>()
+	const elementsByDoc = new Map<number, Array<{ element: VisibleElement; signer: SelectedSigner }>>()
 
 	elements.forEach((element) => {
 		const fileInfo = findFileById(filesToProcess, element.fileId)
@@ -441,7 +476,7 @@ async function updateSigners() {
 	filesStore.loading = false
 }
 
-function onSelectSigner(signer: Record<string, unknown>) {
+function onSelectSigner(signer: SelectedSigner) {
 	const pdfEditorRef = getPdfEditor()
 	if (!pdfEditorRef) {
 		return
@@ -507,12 +542,15 @@ async function save() {
 
 	try {
 		const response = await filesStore.saveOrUpdateSignatureRequest({ visibleElements })
-		showSuccess(t('libresign', response.message))
+		const successMessage = typeof response.message === 'string' && response.message.length > 0
+			? response.message
+			: t('libresign', 'Settings saved')
+		showSuccess(t('libresign', successMessage))
 		closeModal()
 		loading.value = false
 		return true
 	} catch (error) {
-		showError((error as { response?: { data?: { ocs?: { data?: { message?: string } } } } })?.response?.data?.ocs?.data?.message || t('libresign', 'An error occurred'))
+		showError(getOcsErrorMessage(error) || t('libresign', 'An error occurred'))
 		loading.value = false
 		return false
 	}
@@ -523,7 +561,7 @@ const handleShowVisibleElements = (() => {
 }) as EventHandler<NextcloudEvent>
 
 const handleSelectSigner = ((event: NextcloudEvent) => {
-	onSelectSigner((event as CustomEvent<Record<string, unknown>>).detail)
+	onSelectSigner((event as CustomEvent<SelectedSigner>).detail)
 }) as EventHandler<NextcloudEvent>
 
 function buildVisibleElements() {
