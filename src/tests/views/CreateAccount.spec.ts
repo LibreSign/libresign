@@ -5,6 +5,7 @@
 
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import CreateAccount from '../../views/CreateAccount.vue'
 // @ts-ignore: No types available for crypto-js/md5
 import md5 from 'crypto-js/md5'
@@ -76,7 +77,12 @@ const mockRouter = {
 }
 
 describe('CreateAccount.vue - Business Logic', () => {
-	let wrapper!: ReturnType<typeof shallowMount>
+	type CreateAccountWrapper = VueWrapper<any> & {
+		vm: CreateAccountVm
+		setData: (values: Record<string, unknown>) => Promise<void>
+	}
+
+	let wrapper!: CreateAccountWrapper
 
 	beforeEach(() => {
 		wrapper = shallowMount(CreateAccount, {
@@ -95,9 +101,9 @@ describe('CreateAccount.vue - Business Logic', () => {
 				EmailIcon: true,
 				RightIcon: true,
 			},
-		})
+		}) as CreateAccountWrapper
 
-		;(wrapper as typeof wrapper & { setData: (values: Record<string, unknown>) => Promise<void> }).setData = async (values) => {
+		wrapper.setData = async (values) => {
 			const vm = wrapper.vm as unknown as CreateAccountVm & Record<string, unknown>
 			for (const [key, value] of Object.entries(values)) {
 				;(vm as Record<string, unknown>)[key] = value
