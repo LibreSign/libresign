@@ -120,8 +120,7 @@ describe('FilesListVirtual.vue', () => {
 		const wrapper = createWrapper()
 
 		expect(wrapper.find('.virtual-list-stub').attributes('data-component')).toBe('FileEntry')
-		expect(wrapper.vm.selectedNodes).toEqual([])
-		expect(wrapper.vm.isNoneSelected).toBe(true)
+		expect(wrapper.find('.files-list__selected').exists()).toBe(false)
 	})
 
 	it('renders the grid row component when grid view is enabled', () => {
@@ -137,16 +136,16 @@ describe('FilesListVirtual.vue', () => {
 
 		const wrapper = createWrapper()
 
-		expect(wrapper.vm.selectedNodes).toHaveLength(2)
+		expect(selectionStoreMock.selected).toHaveLength(2)
 		expect(wrapper.find('.files-list__selected').text()).toContain('selected')
 		expect(wrapper.find('.files-list-table-header-actions-stub').exists()).toBe(true)
 	})
 
 	it('passes caption, header, footer, and empty slots to VirtualList', () => {
 		const wrapper = createWrapper()
+		const caption = 'List of files. Column headers with buttons are sortable.'
 
-		expect(wrapper.vm.caption).toBe('List of files. Column headers with buttons are sortable.')
-		expect(wrapper.find('.virtual-list-stub').attributes('data-caption')).toBe(wrapper.vm.caption)
+		expect(wrapper.find('.virtual-list-stub').attributes('data-caption')).toBe(caption)
 		expect(wrapper.find('.files-list-table-header-stub').text()).toBe('1')
 		expect(wrapper.find('.files-list-table-footer-stub').exists()).toBe(true)
 		expect(wrapper.find('.file-list-filter-chips-stub').exists()).toBe(true)
