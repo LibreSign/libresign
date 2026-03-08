@@ -84,6 +84,10 @@ const apiIconToKey = {
 	'icon-telegram': 'svgTelegram',
 	'icon-xmpp': 'svgXmpp',
 }
+
+type IconKey = keyof typeof iconMap
+type ApiIconKey = keyof typeof apiIconToKey
+
 defineOptions({
 	name: 'SignerSelect',
 })
@@ -93,6 +97,7 @@ type SignerOption = {
 	displayName?: string
 	subname?: string
 	label?: string
+	method?: string
 	icon?: string
 	iconSvg?: string
 }
@@ -140,8 +145,12 @@ watch(selectedSigner, (selected) => {
 function injectIcons(items: SignerOption[]) {
 	return items.map((item) => {
 		const { iconSvg: _iconSvg, ...safeItem } = item
-		const iconFromApi = item.icon ? iconMap[apiIconToKey[item.icon as keyof typeof apiIconToKey]] : undefined
-		const iconFromSvgKey = item.iconSvg ? iconMap[item.iconSvg as keyof typeof iconMap] : undefined
+		const iconFromApi = item.icon && item.icon in apiIconToKey
+			? iconMap[apiIconToKey[item.icon as ApiIconKey] as IconKey]
+			: undefined
+		const iconFromSvgKey = item.iconSvg && item.iconSvg in iconMap
+			? iconMap[item.iconSvg as IconKey]
+			: undefined
 		const icon = iconFromApi || iconFromSvgKey
 		return {
 			...safeItem,
