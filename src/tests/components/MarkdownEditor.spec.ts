@@ -5,8 +5,29 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 
-let MarkdownEditor: unknown
+type MarkdownEditorProps = {
+	modelValue?: string
+	label?: string
+	placeholder?: string
+	minHeight?: string
+}
+
+type MarkdownEditorVm = {
+	syncHistoryState: ReturnType<typeof vi.fn>
+	onEditorReady: ReturnType<typeof vi.fn>
+	canUndo: boolean
+	canRedo: boolean
+	$nextTick: () => Promise<void>
+	[key: string]: unknown
+}
+
+type MarkdownEditorWrapper = VueWrapper<any> & {
+	vm: MarkdownEditorVm
+}
+
+let MarkdownEditor: any
 
 vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((_app: string, text: string) => text),
@@ -23,10 +44,10 @@ beforeAll(async () => {
 })
 
 describe('MarkdownEditor', () => {
-	let wrapper!: ReturnType<typeof createWrapper>
+	let wrapper!: MarkdownEditorWrapper
 
-	const createWrapper = (props = {}) => {
-		const wrapper = mount(MarkdownEditor as never, {
+	const createWrapper = (props: MarkdownEditorProps = {}) => {
+		const wrapper = mount(MarkdownEditor, {
 			props: {
 				modelValue: '',
 				...props,
@@ -59,7 +80,7 @@ describe('MarkdownEditor', () => {
 					},
 				},
 			},
-		})
+		}) as MarkdownEditorWrapper
 
 		// Mock the syncHistoryState method to avoid EditorState complexity in tests
 		wrapper.vm.syncHistoryState = vi.fn()
