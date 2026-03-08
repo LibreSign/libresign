@@ -15,7 +15,7 @@
 			</div>
 		</NcSettingsSection>
 
-		<NcSettingsSection v-if="index !== 0"
+		<NcSettingsSection v-if="index !== '0'"
 			:name="t('libresign', 'Issuer of certificate')">
 			<div class="certificate-fields">
 				<div v-for="(value, customName, index) in orderList(certificate.issuer)"
@@ -151,6 +151,13 @@ defineOptions({
 	name: 'CertificateContent',
 })
 
+type ChipVariant = 'primary' | 'secondary' | 'tertiary' | 'error' | 'warning' | 'success'
+type StatusChip = {
+	text: string
+	variant: ChipVariant
+	icon: string
+}
+
 type PurposeEntry = [boolean, boolean, string]
 type CertificateMap = Record<string, unknown>
 type CertificateData = {
@@ -181,14 +188,14 @@ const props = withDefaults(defineProps<{
 
 const EXPIRATION_WARNING_DAYS = 30
 
-const validityStatusMap = computed(() => ({
+const validityStatusMap = computed<Record<string, StatusChip>>(() => ({
 	unknown: { text: t('libresign', 'Unknown'), variant: 'tertiary', icon: mdiHelpCircle },
 	expired: { text: t('libresign', 'Expired'), variant: 'error', icon: mdiCancel },
 	expiring: { text: t('libresign', 'Expires Soon'), variant: 'warning', icon: mdiAlertCircleOutline },
 	valid: { text: t('libresign', 'Valid'), variant: 'success', icon: mdiCheckCircle },
 }))
 
-const crlStatusMap = computed(() => ({
+const crlStatusMap = computed<Record<string, StatusChip>>(() => ({
 	valid: { text: t('libresign', 'Valid (Not Revoked)'), variant: 'success', icon: mdiShieldCheck },
 	revoked: { text: t('libresign', 'Revoked'), variant: 'error', icon: mdiShieldOff },
 	missing: { text: t('libresign', 'No CRL Information'), variant: 'warning', icon: mdiShieldAlert },
@@ -205,7 +212,7 @@ const shouldShowPurposes = computed(() => Boolean(
 ))
 
 const certificateValidityStatus = computed(() => validityStatusMap.value[getValidityStatus()])
-const crlValidationStatus = computed(() => crlStatusMap.value[props.certificate.crl_validation ?? ''] || {
+const crlValidationStatus = computed<StatusChip>(() => crlStatusMap.value[props.certificate.crl_validation ?? ''] || {
 	text: t('libresign', 'Unknown Status'),
 	variant: 'tertiary',
 	icon: mdiHelpCircle,
