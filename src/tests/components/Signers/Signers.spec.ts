@@ -12,6 +12,36 @@ type SignersComponent = typeof import('../../../components/Signers/Signers.vue')
 let Signers: SignersComponent
 import { useFilesStore } from '../../../store/files.js'
 
+type SignerRecord = {
+	id?: number
+	identify?: string
+	displayName?: string
+	signed?: boolean
+	signingOrder?: number
+	[key: string]: unknown
+}
+
+type SelectedFile = {
+	signers?: SignerRecord[]
+	signatureFlow?: string | number
+}
+
+type FilesStoreMock = ReturnType<typeof useFilesStore> & {
+	selectedFile: SelectedFile
+	getFile: ReturnType<typeof vi.fn<(file?: unknown) => SelectedFile>>
+	canSave: ReturnType<typeof vi.fn<() => boolean>>
+}
+
+type SignersVm = {
+	signers?: SignerRecord[]
+	sortableSigners?: SignerRecord[]
+	isOrderedNumeric: boolean
+	canReorder: boolean
+	onDragEnd: (evt: { oldIndex: number; newIndex: number }) => void
+}
+
+type SignersWrapper = VueWrapper<SignersVm>
+
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn(),
 }))
@@ -22,11 +52,11 @@ beforeAll(async () => {
 
 
 describe('Signers', () => {
-	let wrapper: VueWrapper<unknown> | null
-	let filesStore: ReturnType<typeof useFilesStore>
+	let wrapper: SignersWrapper | null
+	let filesStore: FilesStoreMock
 	let pinia: Pinia
 
-	const createWrapper = (props: Partial<{ event: string }> = {}) => {
+	const createWrapper = (props: Partial<{ event: string }> = {}): SignersWrapper => {
 		return shallowMount(Signers, {
 			props: {
 				event: '',
@@ -50,15 +80,15 @@ describe('Signers', () => {
 					},
 				},
 			},
-		})
+		}) as unknown as SignersWrapper
 	}
 
 	beforeEach(() => {
 		pinia = createPinia()
 		setActivePinia(pinia)
-		filesStore = useFilesStore()
+		filesStore = useFilesStore() as FilesStoreMock
 		filesStore.selectedFile = { signers: [] }
-		filesStore.getFile = () => filesStore.selectedFile
+		filesStore.getFile = vi.fn(() => filesStore.selectedFile)
 		filesStore.canSave = vi.fn(() => true)
 		if (wrapper) {
 			wrapper.unmount()
@@ -229,9 +259,9 @@ describe('Signers', () => {
 
 			wrapper.vm.onDragEnd({ oldIndex: 0, newIndex: 2 })
 
-			expect(filesStore.selectedFile.signers[0].signingOrder).toBe(1)
-			expect(filesStore.selectedFile.signers[1].signingOrder).toBe(2)
-			expect(filesStore.selectedFile.signers[2].signingOrder).toBe(3)
+			expect(filesStore.selectedFile.signers![0].signingOrder).toBe(1)
+			expect(filesStore.selectedFile.signers![1].signingOrder).toBe(2)
+			expect(filesStore.selectedFile.signers![2].signingOrder).toBe(3)
 		})
 
 		it('emits signing-order-changed event', async () => {
@@ -274,9 +304,9 @@ describe('Signers', () => {
 
 			wrapper.vm.onDragEnd({ oldIndex: 1, newIndex: 2 })
 
-			expect(filesStore.selectedFile.signers[0].signingOrder).toBe(1)
-			expect(filesStore.selectedFile.signers[1].signingOrder).toBe(2)
-			expect(filesStore.selectedFile.signers[2].signingOrder).toBe(3)
+			expect(filesStore.selectedFile.signers![0].signingOrder).toBe(1)
+			expect(filesStore.selectedFile.signers![1].signingOrder).toBe(2)
+			expect(filesStore.selectedFile.signers![2].signingOrder).toBe(3)
 		})
 
 		it('handles many signers correctly', () => {
@@ -294,7 +324,7 @@ describe('Signers', () => {
 			wrapper.vm.onDragEnd({ oldIndex: 0, newIndex: 4 })
 
 			for (let i = 0; i < 5; i++) {
-				expect(filesStore.selectedFile.signers[i].signingOrder).toBe(i + 1)
+				expect(filesStore.selectedFile.signers![i].signingOrder).toBe(i + 1)
 			}
 		})
 	})
