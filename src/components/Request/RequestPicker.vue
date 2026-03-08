@@ -183,7 +183,20 @@ type SidebarStore = {
 }
 
 type ActionsMenuStore = {
-	opened: boolean
+	opened: number | null
+}
+
+type LibreSignCapabilities = {
+	libresign?: {
+		config?: {
+			envelope?: {
+				'is-available'?: boolean
+			}
+			upload?: {
+				'max-file-uploads'?: number
+			}
+		}
+	}
 }
 
 defineOptions({
@@ -221,7 +234,7 @@ const showEnvelopeNameDialog = ref(false)
 const envelopeNameInput = ref('')
 
 const envelopeEnabled = computed(() => {
-	const capabilities = getCapabilities()
+	const capabilities = getCapabilities() as LibreSignCapabilities
 	return capabilities?.libresign?.config?.envelope?.['is-available'] === true
 })
 
@@ -251,7 +264,6 @@ async function openFilePicker() {
 		.addButton({
 			label: t('libresign', 'Choose'),
 			callback: (nodes: FilePickerNode[]) => handleFileChoose(nodes),
-			type: 'primary',
 		})
 		.build()
 
@@ -263,8 +275,8 @@ async function openFilePicker() {
 }
 
 function getMaxFileUploads() {
-	const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
-	return Number.isFinite(capabilitiesMax) && capabilitiesMax > 0 ? Math.floor(capabilitiesMax) : 20
+	const capabilitiesMax = (getCapabilities() as LibreSignCapabilities)?.libresign?.config?.upload?.['max-file-uploads']
+	return typeof capabilitiesMax === 'number' && Number.isFinite(capabilitiesMax) && capabilitiesMax > 0 ? Math.floor(capabilitiesMax) : 20
 }
 
 function validateMaxFileUploads(filesCount: number) {
@@ -293,7 +305,7 @@ function closeEnvelopeNameDialog() {
 }
 
 function showModalUploadFromUrl() {
-	actionsMenuStore.opened = false
+	actionsMenuStore.opened = null
 	modalUploadFromUrl.value = true
 	openedMenu.value = false
 	loading.value = false
@@ -433,7 +445,7 @@ async function handleFileChoose(nodes: FilePickerNode[] = []) {
 
 	if (envelopeEnabled.value && paths.length > 1) {
 		pendingPaths.value = paths
-		const [dialogEnvelopeName] = await spawnDialog(
+		const dialogEnvelopeName = await spawnDialog(
 			EditNameDialog,
 			{
 				title: t('libresign', 'Envelope name'),
