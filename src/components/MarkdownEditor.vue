@@ -65,10 +65,11 @@ import { t } from '@nextcloud/l10n'
 import { computed, ref, watch } from 'vue'
 
 import CodeMirror from 'vue-codemirror6'
-import { EditorView, lineNumbers, keymap } from '@codemirror/view'
+import { EditorView, lineNumbers, keymap, type ViewUpdate } from '@codemirror/view'
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
 import { indentUnit, bracketMatching } from '@codemirror/language'
 import { defaultKeymap, indentWithTab, history, undo, redo, undoDepth, redoDepth } from '@codemirror/commands'
+import { type EditorState } from '@codemirror/state'
 import { material } from '@uiw/codemirror-theme-material'
 import {
 	mdiFormatBold,
@@ -81,7 +82,7 @@ import {
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-const toggleSurroundSelection = (view, prefix, suffix = prefix) => {
+const toggleSurroundSelection = (view: EditorView, prefix: string, suffix = prefix) => {
 	const mainSelection = view.state.selection.main
 	const documentLength = view.state.doc.length
 	const markerStart = mainSelection.from - prefix.length
@@ -128,7 +129,7 @@ const toggleSurroundSelection = (view, prefix, suffix = prefix) => {
 	return true
 }
 
-const insertMarkdownLink = (view) => {
+const insertMarkdownLink = (view: EditorView) => {
 	const mainSelection = view.state.selection.main
 	const selectedText = view.state.sliceDoc(mainSelection.from, mainSelection.to) || 'text'
 	const outputText = `[${selectedText}](https://)`
@@ -168,7 +169,7 @@ const emit = defineEmits<{
 	(event: 'update:modelValue', value: string): void
 }>()
 
-const codeMirror = ref<any>(null)
+const codeMirror = ref<{ view?: EditorView | { value: EditorView } | unknown } | null>(null)
 const editorId = `markdown-editor-${Math.random().toString(36).substr(2, 9)}`
 const internalValue = ref(props.modelValue)
 const canUndo = ref(false)
@@ -208,33 +209,41 @@ watch(internalValue, (newValue) => {
 	}
 })
 
+function isEditorView(view: unknown): view is EditorView {
+	return !!view
+		&& typeof view === 'object'
+		&& 'state' in view
+		&& 'dispatch' in view
+		&& 'focus' in view
+}
+
 function getCurrentView() {
 	const codeMirrorRef = codeMirror.value
 	if (!codeMirrorRef) {
 		return null
 	}
 
-	if (codeMirrorRef.view?.value) {
-		return codeMirrorRef.view.value
+	if (codeMirrorRef.view && typeof codeMirrorRef.view === 'object' && 'value' in codeMirrorRef.view) {
+		return isEditorView(codeMirrorRef.view.value) ? codeMirrorRef.view.value : null
 	}
 
-	return codeMirrorRef.view || null
+	return isEditorView(codeMirrorRef.view) ? codeMirrorRef.view : null
 }
 
-function syncHistoryState(state) {
+function syncHistoryState(state: EditorState) {
 	canUndo.value = undoDepth(state) > 0
 	canRedo.value = redoDepth(state) > 0
 }
 
-function onEditorReady({ view }) {
+function onEditorReady({ view }: { view: EditorView }) {
 	syncHistoryState(view.state)
 }
 
-function onEditorUpdate(viewUpdate) {
+function onEditorUpdate(viewUpdate: ViewUpdate) {
 	syncHistoryState(viewUpdate.state)
 }
 
-function withEditor(callback, { focus = true } = {}) {
+function withEditor(callback: (view: EditorView) => void, { focus = true }: { focus?: boolean } = {}) {
 	const view = getCurrentView()
 	if (!view) {
 		return
@@ -281,6 +290,7 @@ defineExpose({
 	canUndo,
 	canRedo,
 	extensions,
+	isEditorView,
 	getCurrentView,
 	syncHistoryState,
 	onEditorReady,
