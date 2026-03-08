@@ -12,6 +12,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 
 /**
  * @typedef {Record<string, unknown> & {
+ * 	locale?: string
  * 	files_list_grid_view?: boolean
  * 	files_list_signer_identify_tab?: string
  * 	crl_filters?: { serialNumber?: string, status?: string | null, owner?: string }
