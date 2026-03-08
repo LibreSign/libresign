@@ -25,7 +25,6 @@
 			v-model:opened="openedMenu"
 			:source="source"
 			:loading="loading"
-			@rename="onRename"
 			@start-rename="onStartRename" />
 
 		<!-- Status -->
