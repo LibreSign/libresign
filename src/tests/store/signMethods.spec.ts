@@ -198,7 +198,7 @@ describe('signMethods store', () => {
 			}
 
 			expect(store.needEmailCode()).toBe(true)
-			expect(store.settings.emailToken.blurredEmail).toBe('te***@example.com')
+			expect(store.settings.emailToken!.blurredEmail).toBe('te***@example.com')
 		})
 	})
 
@@ -417,9 +417,9 @@ describe('signMethods store', () => {
 
 			store.setEmailToken('newtoken')
 
-			expect(store.settings.emailToken.token).toBe('newtoken')
-			expect(store.settings.emailToken.needCode).toBe(true)
-			expect(store.settings.emailToken.blurredEmail).toBe('te***@example.com')
+			expect(store.settings.emailToken!.token).toBe('newtoken')
+			expect(store.settings.emailToken!.needCode).toBe(true)
+			expect(store.settings.emailToken!.blurredEmail).toBe('te***@example.com')
 		})
 
 		it('returns blurred email when available', () => {
@@ -473,8 +473,8 @@ describe('signMethods store', () => {
 
 			store.setHasSignatureFile(true)
 
-			expect(store.settings.password.someOtherProp).toBe('value')
-			expect(store.settings.password.hasSignatureFile).toBe(true)
+			expect(store.settings.password!.someOtherProp).toBe('value')
+			expect(store.settings.password!.hasSignatureFile).toBe(true)
 		})
 	})
 })
