@@ -226,15 +226,19 @@ const length = ref(50)
 const total = ref(0)
 const hasMore = ref(true)
 const sortBy = ref<string | null>(userConfigStore.id_docs_sort?.sortBy || null)
-const sortOrder = ref<SortOrder>(userConfigStore.id_docs_sort?.sortOrder || null)
-const filters = reactive({
-	owner: userConfigStore.id_docs_filters?.owner || '',
-	status: userConfigStore.id_docs_filters?.status || null as StatusOption | null,
-})
+const sortOrder = ref<SortOrder>((userConfigStore.id_docs_sort?.sortOrder as SortOrder | undefined) || null)
 const statusOptions: StatusOption[] = [
 	{ value: 'signed', label: t('libresign', 'Signed') },
 	{ value: 'pending', label: t('libresign', 'Pending') },
 ]
+const initialStatus = userConfigStore.id_docs_filters?.status
+const initialStatusOption = typeof initialStatus === 'string'
+	? statusOptions.find(option => option.value === initialStatus) || null
+	: null
+const filters = reactive({
+	owner: userConfigStore.id_docs_filters?.owner || '',
+	status: initialStatusOption as StatusOption | null,
+})
 
 const hasActiveFilters = computed(() => !!(filters.owner || filters.status))
 const activeFilterCount = computed(() => {
