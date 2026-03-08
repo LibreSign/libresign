@@ -150,6 +150,13 @@ namespace OCA\Libresign;
  *     emailToken?: LibresignSignatureMethodEmailToken,
  *     password?: LibresignSignatureMethodPassword,
  * }
+ * @psalm-type LibresignIdentifyMethodSetting = array{
+ *     name: string,
+ *     friendly_name: string,
+ *     enabled: bool,
+ *     mandatory: bool,
+ *     signatureMethods?: LibresignSignatureMethods,
+ * }
  * @psalm-type LibresignNotify = array{
  *     date: string,
  *     method: "activity"|"notify"|"mail",
