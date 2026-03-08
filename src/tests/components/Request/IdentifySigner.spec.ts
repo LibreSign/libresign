@@ -5,6 +5,7 @@
 
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import IdentifySigner from '../../../components/Request/IdentifySigner.vue'
 
@@ -24,6 +25,54 @@ interface FilesStoreMock {
 	getFile: ReturnType<typeof vi.fn>
 	saveOrUpdateSignatureRequest: ReturnType<typeof vi.fn>
 	[key: string]: unknown
+}
+
+type IdentifyMethodConfig = {
+	name: string
+	friendly_name?: string
+}
+
+type SignerToEdit = {
+	displayName?: string
+	description?: string
+	identify?: string
+	identifyMethods?: Array<{ method: string; value: string }>
+}
+
+type SelectedSigner = {
+	id?: string
+	method?: string
+	displayName?: string
+	acceptsEmailNotifications?: boolean
+}
+
+type IdentifySignerVm = {
+	$props: {
+		disabled?: boolean
+	}
+	isNewSigner: boolean
+	signerSelected: boolean
+	saveButtonText: string
+	showCustomMessage: boolean
+	nameHaveError: boolean
+	nameHelperText: string
+	displayName: string
+	description: string
+	enableCustomMessage: boolean
+	identify: string
+	signer: SelectedSigner
+	identifyMethodLabel: string
+	updateSigner: (signer: SelectedSigner | null) => void
+	saveSigner: () => Promise<void>
+	onNameChange: () => void
+	onToggleCustomMessage: (checked: boolean) => void
+	getMethodIcon: () => string
+	$nextTick: () => Promise<void>
+}
+
+type IdentifySignerWrapper = VueWrapper<any> & {
+	vm: IdentifySignerVm
+	setProps: (props: Record<string, unknown>) => Promise<void>
 }
 
 let filesStore: FilesStoreMock
@@ -50,7 +99,42 @@ vi.mock('../../../../img/logo-signal-app.svg?raw', () => ({ default: '<svg></svg
 vi.mock('../../../../img/logo-telegram-app.svg?raw', () => ({ default: '<svg></svg>' }))
 
 describe('IdentifySigner rules', () => {
-	let wrapper: ReturnType<typeof mount>
+	let wrapper: IdentifySignerWrapper
+
+	const createWrapper = (props: {
+		signerToEdit?: SignerToEdit
+		method?: string
+		placeholder?: string
+		methods?: IdentifyMethodConfig[]
+		disabled?: boolean
+	} = {}) => mount(IdentifySigner, {
+		props: {
+			signerToEdit: {},
+			method: 'all',
+			placeholder: 'Name',
+			methods: [
+				{ name: 'email', friendly_name: 'Email' },
+				{ name: 'account', friendly_name: 'Account' },
+				{ name: 'sms', friendly_name: 'SMS' },
+			],
+			disabled: false,
+			...props,
+		},
+		global: {
+			stubs: {
+				NcButton: true,
+				NcCheckboxRadioSwitch: true,
+				NcIconSvgWrapper: true,
+				NcNoteCard: true,
+				NcTextArea: true,
+				NcTextField: true,
+				SignerSelect: true,
+			},
+			mocks: {
+				t: (_app: string, text: string) => text,
+			},
+		},
+	}) as IdentifySignerWrapper
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
@@ -62,33 +146,7 @@ describe('IdentifySigner rules', () => {
 		}
 		;(useFilesStoreModule as unknown as { mockReturnValue: (store: FilesStoreMock) => void }).mockReturnValue(filesStore)
 
-		wrapper = mount(IdentifySigner, {
-			props: {
-				signerToEdit: {},
-				method: 'all',
-				placeholder: 'Name',
-				methods: [
-					{ name: 'email', friendly_name: 'Email' },
-					{ name: 'account', friendly_name: 'Account' },
-					{ name: 'sms', friendly_name: 'SMS' },
-				],
-				disabled: false,
-			},
-			global: {
-				stubs: {
-					NcButton: true,
-					NcCheckboxRadioSwitch: true,
-					NcIconSvgWrapper: true,
-					NcNoteCard: true,
-					NcTextArea: true,
-					NcTextField: true,
-					SignerSelect: true,
-				},
-				mocks: {
-					t: (_app: string, text: string) => text,
-				},
-			},
-		})
+		wrapper = createWrapper()
 	})
 
 	describe('signer detection', () => {
@@ -426,26 +484,9 @@ describe('IdentifySigner rules', () => {
 				identifyMethods: [{ method: 'email', value: 'jane@example.com' }],
 			}
 
-			wrapper = mount(IdentifySigner, {
-				stubs: {
-					NcButton: true,
-					NcCheckboxRadioSwitch: true,
-					NcIconSvgWrapper: true,
-					NcNoteCard: true,
-					NcTextArea: true,
-					NcTextField: true,
-					SignerSelect: true,
-				},
-				mocks: {
-					t: (_app: string, text: string) => text,
-				},
-				props: {
-					signerToEdit: signer,
-					method: 'all',
-					placeholder: 'Name',
-					methods: [{ name: 'email', friendly_name: 'Email' }],
-					disabled: false,
-				},
+			wrapper = createWrapper({
+				signerToEdit: signer,
+				methods: [{ name: 'email', friendly_name: 'Email' }],
 			})
 
 			expect(wrapper.vm.displayName).toBe('Jane Doe')
@@ -459,26 +500,9 @@ describe('IdentifySigner rules', () => {
 				identifyMethods: [],
 			}
 
-			wrapper = mount(IdentifySigner, {
-				stubs: {
-					NcButton: true,
-					NcCheckboxRadioSwitch: true,
-					NcIconSvgWrapper: true,
-					NcNoteCard: true,
-					NcTextArea: true,
-					NcTextField: true,
-					SignerSelect: true,
-				},
-				mocks: {
-					t: (_app: string, text: string) => text,
-				},
-				props: {
-					signerToEdit: signer,
-					method: 'all',
-					placeholder: 'Name',
-					methods: [],
-					disabled: false,
-				},
+			wrapper = createWrapper({
+				signerToEdit: signer,
+				methods: [],
 			})
 
 			expect(wrapper.vm.enableCustomMessage).toBe(true)
