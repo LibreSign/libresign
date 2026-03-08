@@ -189,18 +189,30 @@ import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
 import type { NextcloudCapabilities } from '../../../types/capabilities'
-import type {
-	LibreSignAccountMe,
-	LibreSignSignatureMethods,
-	LibreSignUserElement,
-	LibreSignValidateFile,
-	LibreSignVisibleElement,
-	OcsResponseData,
-} from '../../../types/contracts'
+import type { components, operations } from '../../../types/openapi/openapi'
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import { FILE_STATUS } from '../../../constants.js'
 import { getFileSigners, getVisibleElementsFromDocument, idsMatch } from '../../../services/visibleElementsService'
+
+type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
+type OpenApiValidateFile = components['schemas']['ValidateFile']
+type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
+	settings: OpenApiAccountMe['settings'] & {
+		phoneNumber: string
+	}
+}
+type LibreSignSignatureMethods = components['schemas']['SignatureMethods']
+type LibreSignUserElement = components['schemas']['UserElement']
+type LibreSignValidateFile = Omit<OpenApiValidateFile, 'status'> & {
+	status: OpenApiValidateFile['status'] | 5
+}
+type LibreSignVisibleElement = components['schemas']['VisibleElement']
+type OcsResponseData<T> = {
+	ocs: {
+		data: T
+	}
+}
 
 defineOptions({
 	name: 'Sign',
