@@ -17,6 +17,8 @@ export const useSignMethodsStore = defineStore('signMethods', () => {
 		password: false,
 		token: false, // Generic token modal for all token-based methods
 		uploadCertificate: false,
+		readCertificate: false,
+		resetPassword: false,
 	})
 	const settings = ref({})
 	const certificateEngine = ref(loadState('libresign', 'certificate_engine', ''))
