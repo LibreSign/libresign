@@ -19,6 +19,17 @@ vi.mock('@nextcloud/router', () => ({
 }))
 
 describe('IncompleteCertification.vue - Setup Guidance', () => {
+	function createWrapper() {
+		return mount(IncompleteCertification, {
+			global: {
+				stubs: {
+					NcButton: { template: '<button class="nc-button-stub" @click="$emit(\'click\')"><slot /></button>' },
+					NcIconSvgWrapper: true,
+				},
+			},
+		})
+	}
+
 	beforeEach(() => {
 		getCurrentUserMock.mockReset()
 		generateUrlMock.mockClear()
@@ -27,52 +38,28 @@ describe('IncompleteCertification.vue - Setup Guidance', () => {
 	it('shows setup button for admins', () => {
 		getCurrentUserMock.mockReturnValue({ isAdmin: true })
 
-		const wrapper = mount(IncompleteCertification, {
-			stubs: {
-				NcButton: true,
-				CogsIcon: true,
-			},
-			mocks: {
-				t: (_app: string, text: string) => text,
-			},
-		})
+		const wrapper = createWrapper()
 
-		const button = wrapper.findComponent({ name: 'NcButton' })
+		const button = wrapper.find('.nc-button-stub')
 		expect(button.exists()).toBe(true)
 	})
 
 	it('hides setup button for non-admins', () => {
 		getCurrentUserMock.mockReturnValue({ isAdmin: false })
 
-		const wrapper = mount(IncompleteCertification, {
-			stubs: {
-				NcButton: true,
-				CogsIcon: true,
-			},
-			mocks: {
-				t: (_app: string, text: string) => text,
-			},
-		})
+		const wrapper = createWrapper()
 
-		const button = wrapper.findComponent({ name: 'NcButton' })
+		const button = wrapper.find('.nc-button-stub')
 		expect(button.exists()).toBe(false)
 	})
 
-	it('routes admin to setup page when finishSetup is called', () => {
+	it('routes admin to setup page when the setup button is clicked', async () => {
 		getCurrentUserMock.mockReturnValue({ isAdmin: true })
 		const hrefSpy = vi.spyOn(window.location, 'href', 'set')
 
-		const wrapper = mount(IncompleteCertification, {
-			stubs: {
-				NcButton: true,
-				CogsIcon: true,
-			},
-			mocks: {
-				t: (_app: string, text: string) => text,
-			},
-		})
+		const wrapper = createWrapper()
 
-		wrapper.vm.finishSetup()
+		await wrapper.find('.nc-button-stub').trigger('click')
 		expect(generateUrlMock).toHaveBeenCalledWith('settings/admin/libresign')
 		expect(hrefSpy).toHaveBeenCalledWith('settings/admin/libresign')
 		hrefSpy.mockRestore()
