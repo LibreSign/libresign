@@ -120,7 +120,9 @@ describe('UploadProgress', () => {
 			})
 
 			const eta = wrapper.vm.uploadEta
-			const seconds = parseInt(eta.match(/\d+/)[0])
+			const secondsMatch = eta.match(/\d+/)
+			expect(secondsMatch).not.toBeNull()
+			const seconds = parseInt(secondsMatch![0])
 			expect(seconds).toBeGreaterThan(0)
 		})
 
@@ -148,7 +150,9 @@ describe('UploadProgress', () => {
 			})
 
 			const eta = wrapper.vm.uploadEta
-			const minutes = parseInt(eta.match(/\d+/)[0])
+			const minutesMatch = eta.match(/\d+/)
+			expect(minutesMatch).not.toBeNull()
+			const minutes = parseInt(minutesMatch![0])
 			expect(minutes).toBeGreaterThan(0)
 		})
 	})
