@@ -181,7 +181,7 @@ async function toggleFilePicker(type: string) {
 
 	try {
 		const nodes = await filePicker.pick()
-		await handleFileChoose(nodes as FilePickerNode[])
+		await handleFileChoose(nodes as unknown as FilePickerNode[])
 	} catch {
 		// User cancelled
 	}
