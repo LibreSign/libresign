@@ -20,12 +20,13 @@ import { ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import type { AdminInitialState } from '../../types'
 
 defineOptions({
 	name: 'ConfettiSettings',
 })
 
-const showConfetti = ref(loadState('libresign', 'show_confetti_after_signing', true) === true)
+const showConfetti = ref(loadState<AdminInitialState['show_confetti_after_signing']>('libresign', 'show_confetti_after_signing', true))
 
 function saveShowConfetti() {
 	OCP.AppConfig.setValue('libresign', 'show_confetti_after_signing', showConfetti.value ? '1' : '0')
