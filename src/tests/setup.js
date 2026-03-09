@@ -49,15 +49,6 @@ vi.mock('vue-select', () => ({
 	},
 }))
 
-vi.mock('vue-select/dist/vue-select.es.js', () => ({
-	default: {
-		name: 'VueSelect',
-		render() {
-			return null
-		},
-	},
-}))
-
 vi.mock('@nextcloud/vue/components/NcSelect', () => ({
 	default: {
 		name: 'NcSelect',
