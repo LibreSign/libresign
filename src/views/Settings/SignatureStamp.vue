@@ -364,16 +364,16 @@ defineOptions({
 type RenderMode = 'DESCRIPTION_ONLY' | 'GRAPHIC_AND_DESCRIPTION' | 'SIGNAME_AND_DESCRIPTION' | 'GRAPHIC_ONLY'
 
 function getStringState(key: string, fallback = '') {
-	return String(loadState('libresign', key, fallback) ?? fallback)
+	return loadState<string>('libresign', key, fallback)
 }
 
 function getNumberState(key: string, fallback = 0) {
-	return Number(loadState('libresign', key, fallback) ?? fallback)
+	return loadState<number>('libresign', key, fallback)
 }
 
 const isDarkTheme = useIsDarkTheme()
-const templateError = loadState('libresign', 'signature_text_template_error', '')
-const initialBackgroundType = loadState('libresign', 'signature_background_type') as string
+const templateError = loadState<string>('libresign', 'signature_text_template_error', '')
+const initialBackgroundType = loadState<string>('libresign', 'signature_background_type', '')
 
 const input = ref<HTMLInputElement | null>(null)
 const rightColumn = ref<HTMLElement | null>(null)
@@ -400,12 +400,12 @@ const templateFontSize = ref<number>(getNumberState('template_font_size'))
 const isSignatureImageLoaded = ref(false)
 const templateSaved = ref(true)
 const zoomLevel = ref<number>(getNumberState('signature_preview_zoom_level', 100))
-const renderMode = ref<RenderMode>(loadState('libresign', 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION') as RenderMode)
+const renderMode = ref<RenderMode>(loadState<RenderMode>('libresign', 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION'))
 const dislaySuccessTemplate = ref(false)
-const errorMessageTemplate = ref<string[]>(templateError ? [templateError as string] : [])
-const parsed = ref(loadState('libresign', 'signature_text_parsed') as string)
+const errorMessageTemplate = ref<string[]>(templateError ? [templateError] : [])
+const parsed = ref(loadState<string>('libresign', 'signature_text_parsed', ''))
 const isRTLDirection = isRTL()
-const availableVariables = ref<Record<string, string>>(loadState('libresign', 'signature_available_variables') as Record<string, string>)
+const availableVariables = ref<Record<string, string>>(loadState<Record<string, string>>('libresign', 'signature_available_variables', {}))
 const isOverflowing = ref(false)
 const showVariablesDialog = ref(false)
 const copiedVariable = ref<string | null>(null)
