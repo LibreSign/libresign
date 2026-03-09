@@ -16,9 +16,56 @@ export type IdentifyMethodSetting = AdminComponents['schemas']['IdentifyMethodSe
 export type ProgressPayload = ApiComponents['schemas']['ProgressPayload']
 export type FileDetailRecord = ApiComponents['schemas']['FileDetail']
 export type ValidationFileRecord = ApiComponents['schemas']['ValidateFile']
+export type SigningModeState = 'sync' | 'async'
+export type WorkerTypeState = 'local' | 'external'
+export type SignatureEngineId = 'JSignPdf' | 'PhpNative'
+export type CertificateEngineId = 'openssl' | 'cfssl' | 'none'
+export type AdminDocMdpLevelOption = {
+	value: number
+	label: string
+	description: string
+}
+export type AdminDocMdpConfigState = {
+	enabled: boolean
+	defaultLevel: number
+	availableLevels: AdminDocMdpLevelOption[]
+}
+export type AdminInitialState = {
+	docmdp_config: AdminDocMdpConfigState
+	signature_engine: SignatureEngineId
+	signing_mode: SigningModeState
+	worker_type: WorkerTypeState
+	parallel_workers: string
+	show_confetti_after_signing: boolean
+	crl_external_validation_enabled: boolean
+	ldap_extension_available: boolean
+	envelope_enabled: boolean
+}
 
 type NextcloudFileRecord = ApiComponents['schemas']['NextcloudFile']
 type FileListItem = ApiComponents['schemas']['FileListItem']
+
+type ValidateMetadata = ApiComponents['schemas']['ValidateMetadata']
+type ValidateMetadataDimension = NonNullable<ValidateMetadata['d']>[number]
+
+type PartialValidateMetadata = Omit<Partial<ValidateMetadata>, 'd'> & {
+	d?: Array<Partial<ValidateMetadataDimension>>
+	original_file_deleted?: boolean
+}
+type FileStateSettings = Partial<FileSettings> & {
+	path?: string
+	signerFileUuid?: string
+	signatureMethods?: Record<string, unknown>
+	[key: string]: unknown
+}
+type VisibleElementState = Omit<Partial<VisibleElementRecord>, 'coordinates' | 'elementId' | 'fileId' | 'signRequestId'> & {
+	id?: number | string
+	elementId?: number | string
+	fileId?: number | string
+	signRequestId?: number | string
+	coordinates?: Partial<VisibleElementRecord['coordinates']>
+}
+type FileRecordBase = Omit<Partial<NextcloudFileRecord>, 'docmdpLevel' | 'file' | 'files' | 'loading' | 'metadata' | 'nodeId' | 'requested_by' | 'settings' | 'signatureFlow' | 'signers' | 'status' | 'visibleElements'>
 
 export type SignerRecord = Omit<Partial<ApiComponents['schemas']['Signer']>, 'signed' | 'identifyMethods' | 'signRequestId'> & {
 	id?: string | number
@@ -29,31 +76,46 @@ export type SignerRecord = Omit<Partial<ApiComponents['schemas']['Signer']>, 'si
 	signed?: unknown
 	acceptsEmailNotifications?: boolean
 	identifyMethods?: IdentifyMethodRecord[]
+	signatureMethods?: Record<string, unknown>
+	[key: string]: unknown
 }
 
-export type FileReference = Partial<ApiComponents['schemas']['FileListItem']> & {
+export type FileReference = Omit<Partial<ApiComponents['schemas']['FileListItem']>, 'docmdpLevel' | 'file' | 'fileId' | 'files' | 'metadata' | 'nodeId' | 'settings' | 'signers' | 'status'> & {
+	fileId?: string | number
+	nodeId?: number | string | null
+	status?: number | string
+	docmdpLevel?: number | string
+	file?: string | FileReference | null
+	files?: Array<Partial<FileListItem> | FileReference>
 	path?: string
 	url?: string
 	folderName?: string
 	separator?: string
 	setting?: string
-	settings?: FileSettings
+	metadata?: PartialValidateMetadata
+	signers?: SignerRecord[]
+	settings?: FileStateSettings
+	visibleElements?: VisibleElementState[] | null
 }
 
-export type FileRecord = Partial<NextcloudFileRecord> & {
-	file?: string | FileReference
-	files?: Array<FileListItem | FileReference>
+export type FileRecord = FileRecordBase & {
+	nodeId?: number | string
+	nodeType?: NextcloudFileRecord['nodeType'] | string
+	status?: number | string
+	docmdpLevel?: number | string
+	file?: string | FileReference | null
+	files?: Array<Partial<FileListItem> | FileReference>
 	loading?: string | boolean
-	metadata?: Partial<ApiComponents['schemas']['ValidateMetadata']> & {
-		original_file_deleted?: boolean
-	}
-	settings?: FileSettings
+	metadata?: PartialValidateMetadata
+	settings?: FileStateSettings
+	signatureMethods?: Record<string, unknown>
 	requested_by?: {
 		userId?: string
 		displayName?: string | null
 	}
 	signatureFlow?: SignatureFlowValue | null
 	signers?: SignerRecord[] | null
+	visibleElements?: VisibleElementState[] | null
 	signersCount?: number
 	filesCount?: number
 }
