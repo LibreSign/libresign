@@ -193,7 +193,7 @@ import type { LibresignCapabilities } from '../../../types/index'
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import { FILE_STATUS } from '../../../constants.js'
-import { getFileSigners, getVisibleElementsFromDocument, idsMatch } from '../../../services/visibleElementsService'
+import { getFileSigners, getVisibleElementsFromDocument, idsMatch, type DocumentData, type FileData } from '../../../services/visibleElementsService'
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
 type OpenApiValidateFile = components['schemas']['ValidateFile']
@@ -406,6 +406,25 @@ let unwatchPendingAction: null | (() => void) = null
 let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
 
+function normalizeFileDataForVisibleElements(file: FileData): FileData {
+	return {
+		...file,
+		signers: Array.isArray(file.signers) ? file.signers : undefined,
+		visibleElements: Array.isArray(file.visibleElements) ? file.visibleElements : undefined,
+	}
+}
+
+function normalizeDocumentDataForVisibleElements(document: DocumentData): DocumentData {
+	return {
+		...document,
+		signers: Array.isArray(document.signers) ? document.signers : undefined,
+		visibleElements: Array.isArray(document.visibleElements) ? document.visibleElements : undefined,
+		files: Array.isArray(document.files)
+			? document.files.map((file) => normalizeFileDataForVisibleElements(file))
+			: undefined,
+	}
+}
+
 const elements = computed(() => {
 	const document = signStore.document
 	const signer = document?.signers?.find((row) => row.me)
@@ -417,7 +436,7 @@ const elements = computed(() => {
 
 	if (Array.isArray(document?.files)) {
 		document.files
-			.flatMap((file) => getFileSigners(file))
+			.flatMap((file) => getFileSigners(normalizeFileDataForVisibleElements(file as FileData)))
 			.filter((row) => row.me && row.signRequestId !== undefined)
 			.forEach((row) => signRequestIds.add(String(row.signRequestId)))
 	}
@@ -426,7 +445,7 @@ const elements = computed(() => {
 		return []
 	}
 
-	return getVisibleElementsFromDocument(document)
+	return getVisibleElementsFromDocument(normalizeDocumentDataForVisibleElements(document as DocumentData))
 		.filter((row) => {
 			// Access signatureElementsStore.signs[row.type] directly to ensure reactivity
 			if (!row.type || row.signRequestId === undefined) {
@@ -454,7 +473,7 @@ const needCreateSignature = computed(() => {
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const canCreateSignature = computed(() => {
 	const capabilities = getCapabilities() as LibresignCapabilities
-	return capabilities.libresign.config['sign-elements']['can-create-signature'] === true
+	return capabilities.libresign?.config['sign-elements']['can-create-signature'] === true
 })
 const ableToSign = computed(() => signStore.ableToSign)
 const signRequestUuid = computed(() => {
