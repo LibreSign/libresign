@@ -23,6 +23,11 @@ use OCP\IAppConfig;
 use OCP\Settings\ISettings;
 use OCP\Util;
 
+/**
+ * @psalm-import-type LibresignAdminSignatureEngine from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignAdminSigningMode from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignAdminWorkerType from \OCA\Libresign\ResponseDefinitions
+ */
 class Admin implements ISettings {
 	public const PASSWORD_PLACEHOLDER = '••••••••';
 
@@ -71,7 +76,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('footer_template_variables', $this->footerService->getTemplateVariablesMetadata());
 		$this->initialState->provideInitialState('footer_template', $this->footerService->getTemplate());
 		$this->initialState->provideInitialState('footer_template_is_default', $this->footerService->isDefaultTemplate());
-		$this->initialState->provideInitialState('signature_engine', $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf'));
+		$this->initialState->provideInitialState('signature_engine', $this->getSignatureEngineInitialState());
 		$this->initialState->provideInitialState('signature_render_mode', $this->signatureTextService->getRenderMode());
 		$this->initialState->provideInitialState('signature_text_template', $this->signatureTextService->getTemplate());
 		$this->initialState->provideInitialState('signature_width', $this->signatureTextService->getFullSignatureWidth());
@@ -83,8 +88,8 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('tsa_password', $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', self::PASSWORD_PLACEHOLDER));
 		$this->initialState->provideInitialState('docmdp_config', $this->docMdpConfigService->getConfig());
 		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value));
-		$this->initialState->provideInitialState('signing_mode', $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'sync'));
-		$this->initialState->provideInitialState('worker_type', $this->appConfig->getValueString(Application::APP_ID, 'worker_type', 'local'));
+		$this->initialState->provideInitialState('signing_mode', $this->getSigningModeInitialState());
+		$this->initialState->provideInitialState('worker_type', $this->getWorkerTypeInitialState());
 		$this->initialState->provideInitialState('identification_documents', $this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false));
 		$this->initialState->provideInitialState('approval_group', $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']));
 		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true));
@@ -109,5 +114,32 @@ class Admin implements ISettings {
 	#[\Override]
 	public function getPriority(): int {
 		return 100;
+	}
+
+	/** @return LibresignAdminSignatureEngine */
+	private function getSignatureEngineInitialState(): string {
+		$engine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
+		if ($engine === 'PhpNative') {
+			return $engine;
+		}
+		return 'JSignPdf';
+	}
+
+	/** @return LibresignAdminSigningMode */
+	private function getSigningModeInitialState(): string {
+		$mode = $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'sync');
+		if ($mode === 'async') {
+			return $mode;
+		}
+		return 'sync';
+	}
+
+	/** @return LibresignAdminWorkerType */
+	private function getWorkerTypeInitialState(): string {
+		$workerType = $this->appConfig->getValueString(Application::APP_ID, 'worker_type', 'local');
+		if ($workerType === 'external') {
+			return $workerType;
+		}
+		return 'local';
 	}
 }
