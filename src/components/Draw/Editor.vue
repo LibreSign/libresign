@@ -100,7 +100,10 @@ const emit = defineEmits<{
 }>()
 
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign.config['sign-elements']
+const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
+	'signature-width': 0,
+	'signature-height': 0,
+}
 const canvasWidth = signElementsConfig['signature-width']
 const canvasHeight = signElementsConfig['signature-height']
 const color = ref('#000000')
