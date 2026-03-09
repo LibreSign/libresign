@@ -9,6 +9,8 @@ export type VisibleElementRecord = ApiComponents['schemas']['VisibleElement']
 export type FileSettings = ApiComponents['schemas']['FolderSettings']
 export type IdentifyMethodSetting = AdminComponents['schemas']['IdentifyMethodSetting']
 export type ProgressPayload = ApiComponents['schemas']['ProgressPayload']
+export type FileDetailRecord = ApiComponents['schemas']['FileDetail']
+export type ValidationFileRecord = ApiComponents['schemas']['ValidateFile']
 
 type NextcloudFileRecord = ApiComponents['schemas']['NextcloudFile']
 type FileListItem = ApiComponents['schemas']['FileListItem']
@@ -59,12 +61,6 @@ export type SaveSignatureRequestPayload = {
 	signatureFlow?: SignatureFlowValue | null
 }
 
-export type LoadedFileInfoState = {
-	files?: Array<{
-		file?: string
-	}>
-}
+export type LoadedFileInfoState = FileRecord
 
-export type LibresignCapabilities = {
-	libresign: ApiComponents['schemas']['Capabilities']
-}
+export type LibresignCapabilities = ApiComponents['schemas']['PublicCapabilities']
