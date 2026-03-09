@@ -26,6 +26,7 @@ import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
 
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
+import type { FileRecord, SignerRecord } from '../../types'
 
 defineOptions({
 	name: 'AppFilesTab',
@@ -35,16 +36,11 @@ type PendingEnvelope = {
 	id: number
 	uuid?: string
 	name: string
-	nodeType?: string
+	nodeType?: FileRecord['nodeType']
 	files?: Array<{ fileId?: string | number, [key: string]: unknown }>
 	filesCount?: number
-	signers?: Array<{
-		identify?: string | number | { email?: string, account?: string }
-		signRequestId?: number
-		signed?: unknown
-		[key: string]: unknown
-	}>
-	settings?: Record<string, unknown>
+	signers?: SignerRecord[]
+	settings?: FileRecord['settings']
 	[key: string]: unknown
 }
 
