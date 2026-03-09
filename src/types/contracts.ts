@@ -1,5 +1,5 @@
 import type { components as ApiComponents } from './openapi/openapi'
-import type { components as AdministrationComponents } from './openapi/openapi-administration'
+import type { components as FullComponents } from './openapi/openapi-full'
 
 export type SignatureFlowMode = ApiComponents['schemas']['NextcloudFile']['signatureFlow']
 export type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
@@ -59,7 +59,7 @@ export type SaveSignatureRequestResponse = FileRecord | {
 	error: unknown
 }
 
-export type IdentifyMethodSetting = AdministrationComponents['schemas']['IdentifyMethodSetting']
+export type IdentifyMethodSetting = FullComponents['schemas']['IdentifyMethodSetting']
 
 export type LoadedFileInfoState = {
 	files?: Array<{
@@ -72,5 +72,5 @@ export type AppSettingsState = Partial<ApiComponents['schemas']['Settings']> & {
 }
 
 export type LibresignCapabilities = {
-	libresign: AdministrationComponents['schemas']['Capabilities']
+	libresign: FullComponents['schemas']['Capabilities']
 }
