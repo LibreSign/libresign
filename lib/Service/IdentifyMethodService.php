@@ -12,7 +12,6 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -24,9 +23,6 @@ use OCA\Libresign\Service\IdentifyMethod\Xmpp;
 use OCP\IL10N;
 use OCP\IUserManager;
 
-/**
- * @psalm-import-type LibresignIdentifyMethodSetting from ResponseDefinitions
- */
 class IdentifyMethodService {
 	public const IDENTIFY_ACCOUNT = 'account';
 	public const IDENTIFY_EMAIL = 'email';
@@ -50,6 +46,19 @@ class IdentifyMethodService {
 	];
 	private bool $isRequest = true;
 	private ?IdentifyMethod $currentIdentifyMethod = null;
+	/**
+	 * @var list<array{
+	 *     name: string,
+	 *     friendly_name: string,
+	 *     enabled: bool,
+	 *     mandatory: bool,
+	 *     signatureMethods?: array{
+	 *         clickToSign?: array{enabled: bool, label: string, name: string},
+	 *         emailToken?: array{blurredEmail: string, hasConfirmCode: bool, hashOfEmail: string, identifyMethod: 'account'|'email', label: string, needCode: bool},
+	 *         password?: array{hasSignatureFile: bool, label: string, name: string}
+	 *     }
+	 * }>
+	 */
 	private array $identifyMethodsSettings = [];
 	/**
 	 * @var array<string,array<IIdentifyMethod>>
@@ -329,7 +338,17 @@ class IdentifyMethodService {
 	}
 
 	/**
-	 * @return list<LibresignIdentifyMethodSetting>
+	 * @return list<array{
+	 *     name: string,
+	 *     friendly_name: string,
+	 *     enabled: bool,
+	 *     mandatory: bool,
+	 *     signatureMethods?: array{
+	 *         clickToSign?: array{enabled: bool, label: string, name: string},
+	 *         emailToken?: array{blurredEmail: string, hasConfirmCode: bool, hashOfEmail: string, identifyMethod: 'account'|'email', label: string, needCode: bool},
+	 *         password?: array{hasSignatureFile: bool, label: string, name: string}
+	 *     }
+	 * }>
 	 */
 	public function getIdentifyMethodsSettings(): array {
 		if ($this->identifyMethodsSettings) {
