@@ -7,15 +7,11 @@ declare(strict_types=1);
  */
 
 namespace OCA\Libresign\Service;
-
-/**
- * @psalm-import-type LibresignIdentifyMethodSetting from \OCA\Libresign\ResponseDefinitions
- */
-
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -27,6 +23,9 @@ use OCA\Libresign\Service\IdentifyMethod\Xmpp;
 use OCP\IL10N;
 use OCP\IUserManager;
 
+/**
+ * @psalm-import-type LibresignIdentifyMethodSetting from ResponseDefinitions
+ */
 class IdentifyMethodService {
 	public const IDENTIFY_ACCOUNT = 'account';
 	public const IDENTIFY_EMAIL = 'email';
