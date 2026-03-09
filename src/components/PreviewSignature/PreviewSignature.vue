@@ -63,7 +63,10 @@ const loading = ref(true)
 const isLoaded = ref(false)
 const imageData = ref('')
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign.config['sign-elements']
+const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
+	'signature-width': 0,
+	'signature-height': 0,
+}
 const width = ref(`${signElementsConfig['signature-width']}px`)
 const height = ref(`${signElementsConfig['signature-height']}px`)
 
