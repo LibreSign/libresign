@@ -113,8 +113,8 @@ const state = reactive({
 	email: '',
 	password: '',
 	passwordConfirm: '',
-	settings: loadState('libresign', 'settings', {}) as CreateAccountSettings,
-	message: loadState('libresign', 'message', '') as string,
+	settings: loadState<CreateAccountSettings>('libresign', 'settings', {}),
+	message: loadState<string>('libresign', 'message', ''),
 	errorMessage: '',
 	enabledFeatures: [] as unknown[],
 })
