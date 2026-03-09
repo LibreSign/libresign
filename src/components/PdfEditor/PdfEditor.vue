@@ -127,6 +127,7 @@ type PdfElementsInstance = PDFElementsPublicApi & {
 	cancelAdding: () => void
 	adjustZoomToFit?: () => void
 	getPageHeight?: (docIndex: number, pageIndex: number) => number
+	isAddingMode?: boolean
 	pdfDocuments?: PdfDocument[]
 	selectedDocIndex?: number
 	autoFitZoom?: boolean
