@@ -1100,9 +1100,25 @@ async function openManageFiles() {
 	showEnvelopeFilesDialog.value = true
 }
 
+function getCurrentFileUrl(file: RequestTabFile | null | undefined): string | null {
+	if (typeof file?.file === 'string') {
+		return file.file
+	}
+
+	if (file?.file && typeof file.file === 'object' && typeof file.file.url === 'string') {
+		return file.file.url
+	}
+
+	if (file?.uuid) {
+		return generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
+	}
+
+	return null
+}
+
 function openFile() {
 	const file = filesStore.getFile()
-	const fileUrl = documentData.value?.files?.[0]?.file || (file?.uuid ? generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid }) : null)
+	const fileUrl = getCurrentFileUrl(file)
 	if (!fileUrl) {
 		showError(t('libresign', 'Document URL not found'))
 		return
@@ -1125,13 +1141,15 @@ function startSigningProgressPolling() {
 		return
 	}
 
-	signingProgressStatus.value = file.status ?? null
+	signingProgressStatus.value = file.status === undefined || file.status === null
+		? null
+		: Number(file.status)
 	signingProgressStatusText.value = file.statusText || ''
 	signingProgress.value = null
 
 	stopPollingFunction.value = startLongPolling(
 		file.id,
-		file.status ?? 0,
+		Number(file.status ?? 0),
 		(data: PollingStatusData) => {
 			signingProgressStatus.value = data.status
 			signingProgressStatusText.value = data.statusText || ''
