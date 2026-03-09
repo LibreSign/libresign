@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
-import { computed, nextTick, onMounted, ref, toRaw } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw } from 'vue'
 import PDFElements from '@libresign/pdf-elements'
 import type { PDFElementObject, PDFElementsPublicApi } from '@libresign/pdf-elements'
 import '@libresign/pdf-elements/dist/index.css'
@@ -154,9 +154,13 @@ const emit = defineEmits<{
 	(event: 'pdf-editor:end-init', payload: EndInitPayload): void
 	(event: 'pdf-editor:on-delete-signer', payload: PdfObject): void
 	(event: 'pdf-editor:object-click', payload: Record<string, unknown>): void
+	(event: 'pdf-editor:signer-added'): void
 }>()
 
 const pdfElements = ref<PdfElementsInstance | null>(null)
+const pendingAddedObjectCount = ref<number | null>(null)
+
+let pendingAddCheckTimer: ReturnType<typeof setTimeout> | null = null
 
 const ignoreClickOutsideSelectors = computed(() => ['.action-item__popper', '.action-item'])
 
@@ -297,6 +301,48 @@ function findObjectLocation(pdfElementsInstance: PdfElementsInstance | null | un
 	return null
 }
 
+function getTotalObjectsCount() {
+	const documents = pdfElements.value?.pdfDocuments || []
+	return documents.reduce((total, document) => {
+		const pageObjects = document?.allObjects || []
+		return total + pageObjects.reduce((pageTotal, objects) => pageTotal + (objects?.length || 0), 0)
+	}, 0)
+}
+
+function clearPendingAddCheck() {
+	if (pendingAddCheckTimer !== null) {
+		clearTimeout(pendingAddCheckTimer)
+		pendingAddCheckTimer = null
+	}
+	pendingAddedObjectCount.value = null
+}
+
+function checkSignerAdded() {
+	const objectsBefore = pendingAddedObjectCount.value
+	if (objectsBefore === null) {
+		return
+	}
+
+	pendingAddCheckTimer = null
+	const isAddingMode = pdfElements.value?.isAddingMode === true
+	const objectsAfter = getTotalObjectsCount()
+	pendingAddedObjectCount.value = null
+
+	if (!isAddingMode && objectsAfter > objectsBefore) {
+		emit('pdf-editor:signer-added')
+	}
+}
+
+function scheduleSignerAddedCheck() {
+	if (pendingAddedObjectCount.value === null) {
+		return
+	}
+	if (pendingAddCheckTimer !== null) {
+		clearTimeout(pendingAddCheckTimer)
+	}
+	pendingAddCheckTimer = setTimeout(checkSignerAdded, 0)
+}
+
 function startAddingSigner(signer: SignerRecord | null | undefined, size: { width?: number, height?: number }) {
 	if (!pdfElements.value || !size?.width || !size?.height) {
 		return false
@@ -314,12 +360,14 @@ function startAddingSigner(signer: SignerRecord | null | undefined, size: { widt
 		height: size.height,
 		signer: signerPayload,
 	})
+	pendingAddedObjectCount.value = getTotalObjectsCount()
 
 	return true
 }
 
 function cancelAdding() {
 	pdfElements.value?.cancelAdding()
+	clearPendingAddCheck()
 }
 
 async function addSigner(signer: SignerRecord) {
@@ -387,6 +435,16 @@ async function waitForPageRender(docIndex: number, pageIndex: number) {
 
 onMounted(() => {
 	ensurePdfWorker()
+	document.addEventListener('mouseup', scheduleSignerAddedCheck)
+	document.addEventListener('touchend', scheduleSignerAddedCheck)
+	document.addEventListener('keyup', scheduleSignerAddedCheck)
+})
+
+onBeforeUnmount(() => {
+	document.removeEventListener('mouseup', scheduleSignerAddedCheck)
+	document.removeEventListener('touchend', scheduleSignerAddedCheck)
+	document.removeEventListener('keyup', scheduleSignerAddedCheck)
+	clearPendingAddCheck()
 })
 
 defineExpose({
@@ -410,6 +468,9 @@ defineExpose({
 	cancelAdding,
 	addSigner,
 	waitForPageRender,
+	getTotalObjectsCount,
+	checkSignerAdded,
+	scheduleSignerAddedCheck,
 })
 </script>
 
