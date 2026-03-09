@@ -64,23 +64,12 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSavingIndicatorIcon from '@nextcloud/vue/components/NcSavingIndicatorIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import type { AdminDocMdpConfigState, AdminDocMdpLevelOption } from '../../types'
 import type { operations } from '../../types/openapi/openapi-administration'
 
 defineOptions({
 	name: 'DocMDP',
 })
-
-interface LevelOption {
-	value: number
-	label: string
-	description: string
-}
-
-interface DocMDPConfig {
-	enabled: boolean
-	defaultLevel: number
-	availableLevels: LevelOption[]
-}
 
 type DocMdpRequestBody = operations['admin-set-doc-mdp-config']['requestBody']['content']['application/json']
 type DocMdpErrorResponse =
@@ -96,8 +85,8 @@ type DocMdpRequestError = {
 const PREFERRED_DEFAULT_LEVEL = 2
 
 const enabled = ref(false)
-const selectedLevel = ref<LevelOption | null>(null)
-const availableLevels = ref<LevelOption[]>([])
+const selectedLevel = ref<AdminDocMdpLevelOption | null>(null)
+const availableLevels = ref<AdminDocMdpLevelOption[]>([])
 const loading = ref(false)
 const errorMessage = ref('')
 const saved = ref(false)
@@ -125,11 +114,11 @@ function getPreferredDefaultLevel() {
 
 function loadConfig() {
 	try {
-		const config = loadState('libresign', 'docmdp_config', {
+		const config = loadState<AdminDocMdpConfigState>('libresign', 'docmdp_config', {
 			enabled: false,
 			defaultLevel: PREFERRED_DEFAULT_LEVEL,
 			availableLevels: [],
-		}) as DocMDPConfig
+		})
 
 		enabled.value = config.enabled
 		availableLevels.value = config.availableLevels
