@@ -156,7 +156,7 @@ type DocumentFile = FileData & FileRecord & {
 	signers?: FileSigner[]
 }
 
-type DocumentModel = DocumentData & FileRecord & {
+type DocumentModel = Omit<DocumentData, 'files' | 'signers' | 'visibleElements'> & FileRecord & {
 	id?: number
 	uuid?: string
 	name?: string
@@ -281,7 +281,11 @@ const modal = ref(false)
 const loading = ref(false)
 const signerSelected = ref<SelectedSigner | null>(null)
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign.config['sign-elements']
+const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
+	'is-available': false,
+	'full-signature-width': 0,
+	'full-signature-height': 0,
+}
 const width = ref(signElementsConfig['full-signature-width'])
 const height = ref(signElementsConfig['full-signature-height'])
 const filePagesMap = ref<Record<number, FilePageInfo>>({})
