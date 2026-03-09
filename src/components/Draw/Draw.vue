@@ -115,10 +115,7 @@ function close() {
 	emit('close')
 }
 
-async function save(base64: string | null) {
-	if (!base64) {
-		return
-	}
+async function save(base64: string) {
 	signatureElementsStore.loadSignatures()
 	await signatureElementsStore.save(props.type, base64)
 	emit('save')
