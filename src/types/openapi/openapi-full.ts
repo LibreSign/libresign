@@ -1524,6 +1524,12 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        /** @enum {string} */
+        AdminSignatureEngine: "JSignPdf" | "PhpNative";
+        /** @enum {string} */
+        AdminSigningMode: "sync" | "async";
+        /** @enum {string} */
+        AdminWorkerType: "local" | "external";
         Capabilities: {
             features: string[];
             config: {
@@ -1591,6 +1597,18 @@ export type components = {
             width?: number;
             /** Format: int64 */
             height?: number;
+        };
+        DocMdpConfig: {
+            enabled: boolean;
+            /** Format: int64 */
+            defaultLevel: number;
+            availableLevels: components["schemas"]["DocMdpLevelOption"][];
+        };
+        DocMdpLevelOption: {
+            /** Format: int64 */
+            value: number;
+            label: string;
+            description: string;
         };
         EngineHandler: {
             configPath: string;
