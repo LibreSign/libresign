@@ -650,7 +650,7 @@ describe('VisibleElements Component - Business Rules', () => {
 					name: 'doc1',
 					metadata: { p: 2, d: [{ h: 100 }, { h: 100 }] },
 					signers: [
-						{ signRequestId: 101, identifyMethods: [{ method: 'email', value: 'a' }] },
+						{ signRequestId: 101, identifyMethods: [{ method: 'email', value: 'a', mandatory: 0 }] },
 					],
 				},
 				{
@@ -658,7 +658,7 @@ describe('VisibleElements Component - Business Rules', () => {
 					name: 'doc2',
 					metadata: { p: 1, d: [{ h: 200 }] },
 					signers: [
-						{ signRequestId: 202, identifyMethods: [{ method: 'email', value: 'b' }] },
+						{ signRequestId: 202, identifyMethods: [{ method: 'email', value: 'b', mandatory: 0 }] },
 					],
 				},
 			]
