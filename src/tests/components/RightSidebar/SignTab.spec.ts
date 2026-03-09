@@ -12,6 +12,7 @@ import SignTab from '../../../components/RightSidebar/SignTab.vue'
 import { useSignStore } from '../../../store/sign.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { FILE_STATUS } from '../../../constants.js'
+import type { FileRecord, SignerRecord } from '../../../types/index'
 import type { TranslationFunction } from '../../test-types'
 import type { MockedFunction } from 'vitest'
 
@@ -21,17 +22,6 @@ vi.mock('@nextcloud/initial-state', () => ({
 
 import { loadState } from '@nextcloud/initial-state'
 
-type SignerRecord = {
-	id?: number
-	name?: string
-	email?: string
-	me?: boolean
-	status?: string | number
-	sign_uuid?: string
-	signatureMethods?: Record<string, unknown>
-	[key: string]: unknown
-}
-
 type SignDocument = {
 	id: number
 	name: string
@@ -40,7 +30,7 @@ type SignDocument = {
 	statusText: string
 	url: string
 	nodeId: number
-	nodeType: string
+	nodeType: NonNullable<FileRecord['nodeType']>
 	uuid: string
 	signers: SignerRecord[]
 	visibleElements: Array<Record<string, unknown>>
