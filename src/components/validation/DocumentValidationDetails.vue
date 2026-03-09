@@ -70,6 +70,12 @@ import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
 import type { FileRecord, SignerRecord } from '../../types/index'
 
+type ValidationSigner = Omit<SignerRecord, 'signed' | 'valid_from' | 'valid_to'> & {
+	signed?: string | null
+	valid_from?: string
+	valid_to?: string
+}
+
 defineOptions({
 	name: 'DocumentValidationDetails',
 })
@@ -79,7 +85,7 @@ type ValidationDocument = Omit<FileRecord, 'status' | 'signers'> & {
 	totalPages?: number
 	size?: string | number
 	pdfVersion?: string
-	signers?: SignerRecord[]
+	signers?: ValidationSigner[]
 }
 
 const props = withDefaults(defineProps<{
