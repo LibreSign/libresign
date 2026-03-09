@@ -64,7 +64,7 @@ import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
-import type { IdentifyMethodSetting, SignerRecord, SignatureFlowMode } from '../../types/contracts'
+import type { IdentifyMethodSetting, SignerRecord, SignatureFlowMode } from '../../types/index'
 defineOptions({
 	name: 'Signer',
 })
