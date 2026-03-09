@@ -422,8 +422,19 @@ describe('useSignStore', () => {
 				signers: [{
 					me: true,
 					signatureMethods: {
-						emailToken: { needCode: true },
-						password: { hasSignatureFile: false },
+						emailToken: {
+							label: '',
+							identifyMethod: 'email',
+							needCode: true,
+							hasConfirmCode: false,
+							blurredEmail: '',
+							hashOfEmail: '',
+						},
+						password: {
+							label: '',
+							name: 'password',
+							hasSignatureFile: false,
+						},
 					},
 				}],
 			})
@@ -431,8 +442,19 @@ describe('useSignStore', () => {
 			store.setFileToSign(file)
 
 			expect(signMethodsStore.settings).toEqual({
-				emailToken: { needCode: true },
-				password: { hasSignatureFile: false },
+				emailToken: {
+					label: '',
+					identifyMethod: 'email',
+					needCode: true,
+					hasConfirmCode: false,
+					blurredEmail: '',
+					hashOfEmail: '',
+				},
+				password: {
+					label: '',
+					name: 'password',
+					hasSignatureFile: false,
+				},
 			})
 		})
 
@@ -521,7 +543,7 @@ describe('useSignStore', () => {
 				nodeType: 'file',
 				uuid: 'uuid-123',
 				signers: [{ me: true }],
-				visibleElements: [{ id: 1 }],
+				visibleElements: [{ elementId: 1 }],
 			})
 
 			store.reset()
