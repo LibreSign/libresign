@@ -88,7 +88,7 @@ const filesStore = useFilesStore()
 const listItem = ref<any | null>(null)
 
 const canRequestSign = loadState('libresign', 'can_request_sign', false)
-const methods = loadState('libresign', 'identify_methods', []) as IdentifyMethodSetting[]
+const methods = loadState<IdentifyMethodSetting[]>('libresign', 'identify_methods', [])
 
 const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
