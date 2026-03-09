@@ -80,6 +80,7 @@ import {
 import SignerMenu from './SignerMenu.vue'
 import SignatureBox from './SignatureBox.vue'
 import { ensurePdfWorker } from '../../helpers/pdfWorker'
+import type { SignerRecord as SharedSignerRecord } from '../../types/index'
 
 type Coordinates = {
 	page: number
@@ -93,20 +94,13 @@ type Coordinates = {
 	ury?: number
 }
 
-type SignerRecord = {
-	displayName?: string
-	name?: string
-	email?: string
-	id?: string | number
-	uuid?: string | number
-	signRequestId?: string | number
+type SignerRecord = SharedSignerRecord & {
 	element?: {
 		documentIndex?: number
 		signRequestId?: string | number
 		coordinates?: Coordinates
 		[key: string]: unknown
 	}
-	[key: string]: unknown
 }
 
 type PdfObject = PDFElementObject & {
