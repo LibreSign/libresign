@@ -219,6 +219,7 @@ async function saveSigner() {
 		identifyMethods: [
 			{
 				method: signer.value.method,
+				mandatory: 0,
 				value: signer.value.id,
 			},
 		],
@@ -226,7 +227,7 @@ async function saveSigner() {
 
 	try {
 		const response = await filesStore.saveOrUpdateSignatureRequest({ signers })
-		if (response?.success === false) {
+		if ('success' in response && response.success === false) {
 			showError(response.message ?? t('libresign', 'Failed to save or update signature request'))
 			return
 		}
