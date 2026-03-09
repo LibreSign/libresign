@@ -44,19 +44,13 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { mdiChevronDown } from '@mdi/js'
+import type { SignerRecord } from '../../types/index'
 
 defineOptions({
 	name: 'SignerMenu',
 })
 
-type Signer = {
-	signRequestId?: string | number
-	uuid?: string | number
-	id?: string | number
-	email?: string
-	name?: string
-	displayName?: string
-}
+type Signer = Pick<SignerRecord, 'signRequestId' | 'uuid' | 'id' | 'email' | 'name' | 'displayName'>
 
 const props = withDefaults(defineProps<{
 	signers?: Signer[]
