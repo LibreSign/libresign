@@ -383,12 +383,14 @@ const userConfigStore = useUserConfigStore() as ReturnType<typeof useUserConfigS
 }
 const { normalizeSigningOrders, recalculateSigningOrders } = useSigningOrder()
 const capabilities = getCapabilities() as RequestSignatureTabCapabilities
+const EMPTY_DOCUMENT_STATE: LoadedDocumentState = {}
+const EMPTY_IDENTIFY_METHODS: IdentifyMethodConfig[] = []
 
 const hasLoading = ref(false)
 const signerToEdit = ref<IdentifySignerToEdit>({})
 const modalSrc = ref('')
-const documentData = ref<LoadedDocumentState>(loadState('libresign', 'file_info', {}) as LoadedDocumentState)
-const methods = ref<IdentifyMethodConfig[]>(loadState('libresign', 'identify_methods', []) as IdentifyMethodConfig[])
+const documentData = ref<LoadedDocumentState>(loadState<LoadedDocumentState>('libresign', 'file_info', EMPTY_DOCUMENT_STATE))
+const methods = ref<IdentifyMethodConfig[]>(loadState<IdentifyMethodConfig[]>('libresign', 'identify_methods', EMPTY_IDENTIFY_METHODS))
 const showConfirmRequest = ref(false)
 const showConfirmRequestSigner = ref(false)
 const selectedSigner = ref<SignerRow | null>(null)
@@ -396,7 +398,7 @@ const activeTab = ref('')
 const preserveOrder = ref(false)
 const showOrderDiagram = ref(false)
 const showEnvelopeFilesDialog = ref(false)
-const adminSignatureFlow = ref<SignatureFlowMode>(loadState('libresign', 'signature_flow', 'none') as SignatureFlowMode)
+const adminSignatureFlow = ref<SignatureFlowMode>(loadState<SignatureFlowMode>('libresign', 'signature_flow', 'none'))
 const signingProgress = ref<components['schemas']['ProgressPayload'] | null>(null)
 const signingProgressStatus = ref<number | null>(null)
 const signingProgressStatusText = ref('')
@@ -824,7 +826,7 @@ function getSvgIcon(name: string) {
 }
 
 function isSignElementsAvailable() {
-	return capabilities.libresign.config['sign-elements']['is-available'] === true
+	return capabilities.libresign?.config['sign-elements']['is-available'] === true
 }
 
 function closeModal() {
@@ -843,7 +845,7 @@ function getValidationFileUuid() {
 		return signer.sign_uuid
 	}
 
-	const loadedUuid = loadState('libresign', 'sign_request_uuid', null)
+	const loadedUuid = loadState<string | null>('libresign', 'sign_request_uuid', null)
 	if (loadedUuid) {
 		return loadedUuid
 	}
