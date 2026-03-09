@@ -99,7 +99,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
-import { computed, defineAsyncComponent, getCurrentInstance, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from 'vue'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -113,10 +113,9 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 // eslint-disable-next-line import/no-named-as-default
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
-
-const EnvelopeValidation = defineAsyncComponent(() => import('../components/validation/EnvelopeValidation.vue'))
-const FileValidation = defineAsyncComponent(() => import('../components/validation/FileValidation.vue'))
-const SigningProgress = defineAsyncComponent(() => import('../components/validation/SigningProgress.vue'))
+import EnvelopeValidation from '../components/validation/EnvelopeValidation.vue'
+import FileValidation from '../components/validation/FileValidation.vue'
+import SigningProgress from '../components/validation/SigningProgress.vue'
 
 import logoGray from '../../img/logo-gray.svg'
 import { openDocument } from '../utils/viewer.js'
