@@ -20,6 +20,27 @@
             }
         },
         "schemas": {
+            "AdminSignatureEngine": {
+                "type": "string",
+                "enum": [
+                    "JSignPdf",
+                    "PhpNative"
+                ]
+            },
+            "AdminSigningMode": {
+                "type": "string",
+                "enum": [
+                    "sync",
+                    "async"
+                ]
+            },
+            "AdminWorkerType": {
+                "type": "string",
+                "enum": [
+                    "local",
+                    "external"
+                ]
+            },
             "Capabilities": {
                 "type": "object",
                 "required": [
@@ -241,6 +262,49 @@
                     "height": {
                         "type": "integer",
                         "format": "int64"
+                    }
+                }
+            },
+            "DocMdpConfig": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "defaultLevel",
+                    "availableLevels"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "defaultLevel": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "availableLevels": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DocMdpLevelOption"
+                        }
+                    }
+                }
+            },
+            "DocMdpLevelOption": {
+                "type": "object",
+                "required": [
+                    "value",
+                    "label",
+                    "description"
+                ],
+                "properties": {
+                    "value": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
                     }
                 }
             },
