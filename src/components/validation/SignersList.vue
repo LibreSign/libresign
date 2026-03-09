@@ -51,9 +51,12 @@ defineOptions({
 })
 
 type Signer = Pick<SignerRecord, 'displayName' | 'email' | 'userId' | 'signed'>
+type SignerListEntry = Omit<Signer, 'signed'> & {
+	signed?: string | null
+}
 
 const props = withDefaults(defineProps<{
-	signers: Signer[]
+	signers: SignerListEntry[]
 	compact?: boolean
 }>(), {
 	compact: false,
