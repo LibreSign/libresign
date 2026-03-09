@@ -327,7 +327,7 @@ import type {
 	SignerRecord as SignerRow,
 	SignatureFlowMode,
 	SignatureFlowValue,
-} from '../../types/contracts'
+} from '../../types/index'
 
 type IdentifySignerMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 type IdentifySignerToEdit = {
