@@ -12,10 +12,6 @@ export default defineConfig({
 	resolve: {
 		alias: [
 			{
-				find: /^@libresign\/pdf-elements\/dist\/index\.css$/,
-				replacement: resolve(__dirname, './src/tests/mocks/pdf-elements.css'),
-			},
-			{
 				find: /^vue-select\/dist\/vue-select\.css$/,
 				replacement: resolve(__dirname, './src/tests/mocks/vue-select.css'),
 			},
