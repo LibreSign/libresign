@@ -6,9 +6,9 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 
 import { useFilesStore } from './files.js'
 import { useSidebarStore } from './sidebar.js'
@@ -41,7 +41,7 @@ const defaultState = {
 		id: 0,
 		name: '',
 		description: '',
-		status: '',
+		status: 0,
 		statusText: '',
 		url: '',
 		nodeId: 0,
@@ -97,10 +97,10 @@ export const useSignStore = defineStore('sign', () => {
 			id: loadState('libresign', 'id', 0),
 			name: loadState('libresign', 'filename', ''),
 			description: loadState('libresign', 'description', ''),
-			status: loadState('libresign', 'status', ''),
+			status: loadState('libresign', 'status', 0),
 			statusText: loadState('libresign', 'statusText', ''),
 			nodeId: loadState('libresign', 'nodeId', 0),
-			nodeType: loadState('libresign', 'nodeType', ''),
+			nodeType: loadState('libresign', 'nodeType', 'file'),
 			uuid: loadState('libresign', 'uuid', null),
 			signers: loadState('libresign', 'signers', []),
 			visibleElements: loadState('libresign', 'visibleElements', []),
