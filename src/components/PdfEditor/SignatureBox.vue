@@ -15,17 +15,13 @@
 import { t } from '@nextcloud/l10n'
 import { usernameToColor } from '@nextcloud/vue/functions/usernameToColor'
 import { computed } from 'vue'
+import type { SignerRecord } from '../../types/index'
 
 defineOptions({
 	name: 'SignatureBox',
 })
 
-type Signer = {
-	displayName?: string
-	name?: string
-	email?: string
-	id?: string
-} | null
+type Signer = Pick<SignerRecord, 'displayName' | 'name' | 'email' | 'id'> | null
 
 const props = withDefaults(defineProps<{
 	label?: string
