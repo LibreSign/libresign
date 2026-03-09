@@ -238,6 +238,7 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
+import type { SignerRecord } from '../../types/index'
 import Moment from '@nextcloud/moment'
 import { computed, ref } from 'vue'
 
@@ -282,11 +283,8 @@ type SignerModifications = {
 	revisionCount?: number
 }
 
-type SignerModel = {
+type SignerModel = Omit<Pick<SignerRecord, 'signed' | 'displayName' | 'email' | 'name' | 'remote_address' | 'user_agent'>, 'signed'> & {
 	signed?: string | null
-	displayName?: string
-	email?: string
-	name?: string
 	valid_to?: string
 	valid_from?: string
 	crl_validation?: string
@@ -299,8 +297,6 @@ type SignerModel = {
 	modifications?: SignerModifications
 	signatureTypeSN?: string
 	hash?: string
-	remote_address?: string
-	user_agent?: string
 		chain?: Record<string, any>[]
 	[key: string]: unknown
 }
