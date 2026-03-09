@@ -121,7 +121,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import 'vue-advanced-cropper/dist/style.css'
-import type { components as AdministrationComponents } from '../../types/openapi/openapi-administration'
+import type { LibresignCapabilities } from '../../types/index'
 
 type CropperResult = {
 	canvas?: {
@@ -150,10 +150,6 @@ type ResizeObserverLike = {
 	observe: (target: Element) => void
 }
 
-type FileUploadCapabilities = {
-	libresign: AdministrationComponents['schemas']['Capabilities']
-}
-
 defineOptions({
 	name: 'FileUpload',
 })
@@ -163,7 +159,7 @@ const emit = defineEmits<{
 	(event: 'close'): void
 }>()
 
-const capabilities = getCapabilities() as FileUploadCapabilities
+const capabilities = getCapabilities() as LibresignCapabilities
 const signElementsConfig = capabilities.libresign.config['sign-elements']
 
 const file = ref<HTMLInputElement | null>(null)
