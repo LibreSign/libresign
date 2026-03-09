@@ -68,22 +68,18 @@ import {
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
+import type { FileRecord, SignerRecord } from '../../types/index'
 
 defineOptions({
 	name: 'DocumentValidationDetails',
 })
 
-type ValidationSigner = Partial<SignerDetailRecord>
-type ValidationDocument = {
-	name?: string
+type ValidationDocument = Omit<FileRecord, 'status' | 'signers'> & {
 	status?: string | number
 	totalPages?: number
 	size?: string | number
 	pdfVersion?: string
-	uuid?: string
-	nodeId?: number
-	signers?: Array<{ displayName?: string; email?: string; [key: string]: unknown }>
-	[key: string]: unknown
+	signers?: SignerRecord[]
 }
 
 const props = withDefaults(defineProps<{
