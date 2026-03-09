@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 namespace OCA\Libresign\Service;
+
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
