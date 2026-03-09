@@ -286,7 +286,13 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 		return null
 	}
 	if (doc.nodeType === 'envelope' || (Array.isArray(doc.files) && doc.files.length > 0)) {
-		const files = (doc.files ?? []).map(file => ({ id: file.id, name: file.name, status: file.status }))
+		const files = (doc.files ?? [])
+			.filter((file): file is typeof file & { id: number; name: string; status: number } => {
+				return typeof file.id === 'number'
+					&& typeof file.name === 'string'
+					&& typeof file.status === 'number'
+			})
+			.map(file => ({ id: file.id, name: file.name, status: file.status }))
 		const total = files.length
 		const signed = files.filter(file => file.status === 3).length
 		const inProgress = files.filter(file => file.status === 5).length
