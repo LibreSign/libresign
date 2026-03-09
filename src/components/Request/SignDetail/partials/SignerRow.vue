@@ -32,16 +32,14 @@ import Moment from '@nextcloud/moment'
 
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
+import type { SignerRecord } from '../../../../types/index'
 
 defineOptions({
 	name: 'SignerRow',
 	inheritAttrs: false,
 })
 
-type Signer = {
-	displayName?: string
-	email?: string
-	signed?: string | boolean
+type Signer = Pick<SignerRecord, 'displayName' | 'email' | 'signed'> & {
 	element?: {
 		elementId?: number
 	}
