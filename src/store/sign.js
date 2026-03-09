@@ -16,6 +16,10 @@ import { useSignMethodsStore } from './signMethods.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 
+/** @typedef {import('../types/index').FileRecord} FileRecord */
+/** @typedef {import('../types/index').SignerRecord} SignerRecord */
+/** @typedef {import('../types/index').VisibleElementRecord} VisibleElementRecord */
+
 /**
  * @typedef {{
  * 	message?: string
@@ -23,43 +27,11 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * 	[key: string]: unknown
  * }} SignError
  */
-
 /**
- * @typedef {{
- * 	id?: number
- * 	name?: string
- * 	email?: string
- * 	me?: boolean
- * 	status?: string | number
- * 	signatureMethods?: Record<string, unknown>
- * 	[key: string]: unknown
- * }} SignerRecord
- */
-
-/**
- * @typedef {{
- * 	elementId?: number
- * 	signRequestId?: number
- * 	type?: string
- * 	[key: string]: unknown
- * }} VisibleElementRecord
- */
-
-/**
- * @typedef {{
- * 	id: number
- * 	name: string
- * 	description: string
- * 	status: string | number
- * 	statusText: string
- * 	url: string
- * 	nodeId: number
- * 	nodeType: string
- * 	uuid: string
- * 	signers: SignerRecord[]
- * 	visibleElements: VisibleElementRecord[]
+ * @typedef {FileRecord & {
+ * 	description?: string
+ * 	url?: string
  * 	settings?: Record<string, unknown>
- * 	[key: string]: unknown
  * }} SignDocument
  */
 
