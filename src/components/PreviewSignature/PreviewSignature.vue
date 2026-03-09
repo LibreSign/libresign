@@ -26,7 +26,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import { onMounted, ref, watch } from 'vue'
 
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
-import type { components as AdministrationComponents } from '../../types/openapi/openapi-administration'
+import type { LibresignCapabilities } from '../../types/index'
 
 type AxiosImageResponse = {
 	data: ArrayBuffer | string
@@ -40,10 +40,6 @@ type AxiosConfig = {
 	method: 'get'
 	responseType: 'arraybuffer'
 	headers?: Record<string, string>
-}
-
-type PreviewSignatureCapabilities = {
-	libresign: AdministrationComponents['schemas']['Capabilities']
 }
 
 defineOptions({
@@ -66,7 +62,7 @@ const emit = defineEmits<{
 const loading = ref(true)
 const isLoaded = ref(false)
 const imageData = ref('')
-const capabilities = getCapabilities() as PreviewSignatureCapabilities
+const capabilities = getCapabilities() as LibresignCapabilities
 const signElementsConfig = capabilities.libresign.config['sign-elements']
 const width = ref(`${signElementsConfig['signature-width']}px`)
 const height = ref(`${signElementsConfig['signature-height']}px`)
