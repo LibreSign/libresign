@@ -107,19 +107,15 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import type { IdentifyMethodRecord, SignerRecord } from '../../types/index'
 defineOptions({
 	name: 'SigningOrderDiagram',
 })
 
-type IdentifyMethod = {
-	method?: string
-	value?: string
-}
+type IdentifyMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 
-type Signer = {
-	displayName?: string
+type Signer = Pick<SignerRecord, 'displayName' | 'signingOrder'> & {
 	identifyMethods?: IdentifyMethod[]
-	signingOrder?: number
 	signed?: boolean
 	signDate?: number | null
 	me?: {
