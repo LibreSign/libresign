@@ -1,3 +1,8 @@
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 import type { components as ApiComponents } from './openapi/openapi'
 import type { components as AdminComponents } from './openapi/openapi-administration'
 
