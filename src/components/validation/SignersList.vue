@@ -44,17 +44,13 @@ import {
 	mdiClockOutline,
 } from '@mdi/js'
 import Moment from '@nextcloud/moment'
+import type { SignerRecord } from '../../types/index'
 
 defineOptions({
 	name: 'SignersList',
 })
 
-type Signer = {
-	displayName?: string
-	email?: string
-	userId?: string
-	signed?: string | null
-}
+type Signer = Pick<SignerRecord, 'displayName' | 'email' | 'userId' | 'signed'>
 
 const props = withDefaults(defineProps<{
 	signers: Signer[]
