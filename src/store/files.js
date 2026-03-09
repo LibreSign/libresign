@@ -18,13 +18,13 @@ import { useFiltersStore } from './filters.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { useSidebarStore } from './sidebar.js'
 
-/** @typedef {import('../types/contracts').SignerIdentify} SignerIdentify */
-/** @typedef {import('../types/contracts').IdentifyMethodRecord} SignerMethodRecord */
-/** @typedef {import('../types/contracts').SignerRecord} SignerRecord */
-/** @typedef {import('../types/contracts').FileSettings} FileSettings */
-/** @typedef {import('../types/contracts').FileReference} FileReference */
-/** @typedef {import('../types/contracts').FileRecord} FileRecord */
-/** @typedef {import('../types/contracts').SaveSignatureRequestPayload} SaveSignatureRequestPayload */
+/** @typedef {import('../types/index').SignerIdentify} SignerIdentify */
+/** @typedef {import('../types/index').IdentifyMethodRecord} SignerMethodRecord */
+/** @typedef {import('../types/index').SignerRecord} SignerRecord */
+/** @typedef {import('../types/index').FileSettings} FileSettings */
+/** @typedef {import('../types/index').FileReference} FileReference */
+/** @typedef {import('../types/index').FileRecord} FileRecord */
+/** @typedef {import('../types/index').SaveSignatureRequestPayload} SaveSignatureRequestPayload */
 
 /**
  * @typedef {FileRecord | { success: false, message: string, error: unknown }} SaveSignatureRequestResponse
