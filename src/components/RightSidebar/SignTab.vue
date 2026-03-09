@@ -87,7 +87,7 @@ function getSignRequestUuid() {
 	const fromDoc = [doc.signRequestUuid, doc.sign_request_uuid, doc.signUuid, doc.sign_uuid]
 		.find((value): value is string => typeof value === 'string' && value.length > 0)
 	const fromSigner = signer?.sign_uuid
-	const fromState = loadState('libresign', 'sign_request_uuid', null) as string | null
+	const fromState = loadState<string | null>('libresign', 'sign_request_uuid', null)
 	return fromDoc || fromSigner || (typeof fromState === 'string' && fromState.length > 0 ? fromState : null)
 }
 
