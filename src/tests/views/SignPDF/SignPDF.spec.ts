@@ -72,7 +72,7 @@ describe('SignPDF.vue', () => {
 		statusText: '',
 		url: '/apps/libresign/p/pdf/uuid-123',
 		nodeId: 1,
-		nodeType: 'file',
+		nodeType: 'file' as const,
 		uuid: 'uuid-123',
 		signers: [],
 		visibleElements: [],
@@ -128,6 +128,6 @@ describe('SignPDF.vue', () => {
 
 		await wrapper.vm.loadEnvelopePdfs(1)
 
-		expect(signStore.document.files).toEqual(envelopeFiles)
+		expect(signStore.document!.files).toEqual(envelopeFiles)
 	})
 })
