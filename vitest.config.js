@@ -36,10 +36,6 @@ export default defineConfig({
 				replacement: resolve(__dirname, './src/tests/mocks/vue-select.js'),
 			},
 			{
-				find: '@libresign/pdf-elements',
-				replacement: resolve(__dirname, './src/tests/mocks/pdf-elements'),
-			},
-			{
 				find: /^@\//,
 				replacement: `${resolve(__dirname, './src')}/`,
 			},
