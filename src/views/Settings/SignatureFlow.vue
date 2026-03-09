@@ -122,7 +122,7 @@ const selectedFlowValue = computed({
 
 function loadConfig() {
 	try {
-		const mode = loadState('libresign', 'signature_flow', 'none') as SignatureFlowMode
+		const mode = loadState<SignatureFlowMode>('libresign', 'signature_flow', 'none')
 
 		if (mode === 'none') {
 			enabled.value = false
