@@ -501,6 +501,86 @@ describe('VisibleElements Component - Business Rules', () => {
 
 			expect(wrapper.vm.signerSelected).toBe(null)
 		})
+
+		it('hides the selected signer while placement mode is active', async () => {
+			filesStore.files[1].signers = [
+				{ signRequestId: 101, displayName: 'Admin Name' },
+				{ signRequestId: 202, displayName: 'Second Signer' },
+			]
+
+			const wrapperWithSignerList = mount(VisibleElements, {
+				global: {
+					stubs: {
+						NcModal: { template: '<div><slot /></div>' },
+						NcNoteCard: true,
+						NcChip: true,
+						NcButton: true,
+						NcLoadingIcon: true,
+						PdfEditor: true,
+						Signer: {
+							props: ['signerIndex'],
+							template: '<div class="signer-stub">{{ signerIndex }}</div>',
+						},
+					},
+				},
+			}) as unknown as VisibleElementsWrapper
+
+			wrapperWithSignerList.vm.modal = true
+			await wrapperWithSignerList.vm.$nextTick()
+
+			expect(wrapperWithSignerList.findAll('.signer-stub')).toHaveLength(2)
+
+			wrapperWithSignerList.vm.signerSelected = filesStore.files[1].signers?.[0] ?? null
+			await wrapperWithSignerList.vm.$nextTick()
+
+			expect(wrapperWithSignerList.findAll('.signer-stub')).toHaveLength(1)
+			expect(wrapperWithSignerList.text()).not.toContain('0')
+		})
+
+		it('returns to signer list after placing a visible element', async () => {
+			filesStore.files[1].signers = [
+				{ signRequestId: 101, displayName: 'Admin Name' },
+				{ signRequestId: 202, displayName: 'Second Signer' },
+			]
+			filesStore.files[1].files = [
+				{ id: 10, name: 'test.pdf', file: 'https://example.com/test.pdf', metadata: { p: 1 } },
+			]
+
+			const wrapperWithPdfEditorEvent = mount(VisibleElements, {
+				global: {
+					stubs: {
+						NcModal: { template: '<div><slot /></div>' },
+						NcNoteCard: true,
+						NcChip: true,
+						NcButton: {
+							template: '<button @click="$emit(\'click\')"><slot /></button>',
+						},
+						NcLoadingIcon: true,
+						PdfEditor: {
+							template: '<div class="pdf-editor-stub" @click="$emit(\'pdf-editor:signer-added\')" />',
+						},
+						Signer: {
+							props: ['signerIndex'],
+							template: '<div class="signer-stub">{{ signerIndex }}</div>',
+						},
+					},
+				},
+			}) as unknown as VisibleElementsWrapper
+
+			wrapperWithPdfEditorEvent.vm.modal = true
+			wrapperWithPdfEditorEvent.vm.signerSelected = filesStore.files[1].signers?.[0] ?? null
+			await wrapperWithPdfEditorEvent.vm.$nextTick()
+
+			expect(wrapperWithPdfEditorEvent.find('button').text()).toContain('Cancel')
+			expect(wrapperWithPdfEditorEvent.findAll('.signer-stub')).toHaveLength(1)
+
+			await wrapperWithPdfEditorEvent.find('.pdf-editor-stub').trigger('click')
+			await wrapperWithPdfEditorEvent.vm.$nextTick()
+
+			expect(wrapperWithPdfEditorEvent.vm.signerSelected).toBe(null)
+			expect(wrapperWithPdfEditorEvent.text()).not.toContain('Cancel')
+			expect(wrapperWithPdfEditorEvent.findAll('.signer-stub')).toHaveLength(2)
+		})
 	})
 
 	describe('RULE: modal state management', () => {
