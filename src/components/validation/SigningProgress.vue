@@ -67,14 +67,21 @@ import {
 	mdiHelpCircle,
 } from '@mdi/js'
 import { buildStatusMap } from '../../utils/fileStatus.js'
+import type { FileRecord, SignerRecord } from '../../types/index'
 
 
 type ProgressFile = {
 	id: number
-	name?: string
-	status?: number
+	name: string
+	status: number
+	statusText?: string
 	error?: {
 		message?: string
+		code?: number
+		timestamp?: string
+		fileId?: number
+		signRequestId?: number
+		signRequestUuid?: string
 	} | null
 }
 
@@ -87,16 +94,10 @@ type ProgressState = {
 	files?: ProgressFile[]
 }
 
-type ValidationDocument = {
+type ValidationDocument = FileRecord & {
 	nodeType?: string
-	files?: Array<{
-		id: number
-		name: string
-		status: number
-	}>
-	signers?: Array<{
-		signed?: boolean
-	}>
+	files?: Array<Pick<FileRecord, 'id' | 'name' | 'status'>>
+	signers?: Array<Pick<SignerRecord, 'signed'>>
 }
 
 type StatusMeta = {
