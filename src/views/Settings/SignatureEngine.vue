@@ -24,13 +24,14 @@ import { computed, ref } from 'vue'
 
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import type { AdminInitialState, SignatureEngineId } from '../../types'
 
 defineOptions({
 	name: 'SignatureEngine',
 })
 
 type SignatureEngineOption = {
-	id: string
+	id: SignatureEngineId
 	label: string
 }
 
@@ -45,7 +46,9 @@ type AppConfigGlobal = {
 	}
 }
 
-const selectedEngineId = ref(loadState('libresign', 'signature_engine', 'JSignPdf'))
+const DEFAULT_SIGNATURE_ENGINE: SignatureEngineId = 'JSignPdf'
+
+const selectedEngineId = ref(loadState<AdminInitialState['signature_engine']>('libresign', 'signature_engine', DEFAULT_SIGNATURE_ENGINE))
 
 const options = computed<SignatureEngineOption[]>(() => [
 	{ id: 'JSignPdf', label: 'JSignPdf' },
@@ -58,7 +61,7 @@ const selectedOption = computed<SignatureEngineOption>({
 		return options.value.find((option) => option.id === selectedEngineId.value) ?? options.value[0]
 	},
 	set(value) {
-		selectedEngineId.value = value?.id ?? 'JSignPdf'
+		selectedEngineId.value = value?.id ?? DEFAULT_SIGNATURE_ENGINE
 	},
 })
 
