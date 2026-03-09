@@ -74,12 +74,17 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	await setupSignaturePositionsButton.click()
 	const signaturePositionsDialog = page.getByLabel('Signature positions')
 	const visiblePageOverlay = getVisiblePdfOverlay(signaturePositionsDialog)
+	const addInstruction = signaturePositionsDialog.getByText('Click on the place you want to add.')
+	const cancelPlacementButton = signaturePositionsDialog.getByRole('button', { name: 'Cancel' })
+	const editSignerLink = signaturePositionsDialog.getByRole('link', { name: 'Edit signer Admin Name' })
 	await expect(signaturePositionsDialog).toBeVisible()
 	await expect(visiblePageOverlay).toBeVisible()
 
 	// Select the signer to enter element-placement mode
-	await signaturePositionsDialog.getByRole('link', { name: 'Edit signer Admin Name' }).click()
-	await expect(page.getByText('Click on the place you want to add.')).toBeVisible()
+	await editSignerLink.click()
+	await expect(addInstruction).toBeVisible()
+	await expect(cancelPlacementButton).toBeVisible()
+	await expect(editSignerLink).toBeHidden()
 
 	// Placing a signature element requires three steps:
 	// 1. hover() triggers handleMouseMove, setting previewVisible=true inside a rAF callback.
@@ -89,6 +94,9 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	await overlay.hover()
 	await signaturePositionsDialog.locator('.preview-element').first().waitFor({ state: 'visible' })
 	await overlay.click()
+	await expect(addInstruction).toBeHidden()
+	await expect(cancelPlacementButton).toBeHidden()
+	await expect(editSignerLink).toBeVisible()
 
 	await expect(
 		signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' }),
