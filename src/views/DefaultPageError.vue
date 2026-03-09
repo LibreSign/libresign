@@ -55,11 +55,11 @@ type ErrorRow = { message: string }
 const logoLibreSign = logoLibreSignAsset
 
 const errors = computed<ErrorRow[]>(() => {
-	const loadedErrors = loadState('libresign', 'errors', []) as ErrorRow[]
+	const loadedErrors = loadState<ErrorRow[]>('libresign', 'errors', [])
 	if (loadedErrors.length) {
 		return loadedErrors
 	}
-	const errorMessage = (loadState('libresign', 'error', {}) as { message?: string })?.message
+	const errorMessage = loadState<{ message?: string }>('libresign', 'error', {}).message
 	if (errorMessage) {
 		return [{ message: errorMessage }]
 	}
