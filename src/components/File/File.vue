@@ -15,7 +15,7 @@
 			@load="backgroundFailed = false">
 		<NcIconSvgWrapper v-else v-once :path="mdiFile" :size="128" />
 		<div class="enDot">
-			<div :class="currentFile.statusText !== 'none' ? 'dot ' + statusToClass(currentFile.status ?? '') : '' " />
+			<div :class="currentFile.statusText !== 'none' ? 'dot ' + statusToClass(currentFile.status) : '' " />
 			<span>{{ currentFile.statusText }}</span>
 		</div>
 		<h1>{{ currentFile.name }}</h1>
@@ -30,6 +30,7 @@ import { mdiFile } from '@mdi/js'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
+import type { FileRecord } from '../../types/index'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 
@@ -37,12 +38,10 @@ defineOptions({
 	name: 'File',
 })
 
-type CurrentFileRecord = {
-	id?: number
-	nodeId?: number
-	name?: string
-	status?: number | string
-	statusText?: string
+type CurrentFileRecord = Pick<FileRecord, 'id' | 'nodeId'> & {
+	name: string
+	status: number | string
+	statusText: string
 }
 
 const filesStore = useFilesStore()
