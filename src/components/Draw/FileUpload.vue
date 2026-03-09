@@ -75,7 +75,7 @@
 			</p>
 
 			<div class="action-buttons">
-				<NcButton variant="primary" @click="confirmSave">
+				<NcButton variant="primary" :disabled="!canSave" @click="confirmSave">
 					{{ t('libresign', 'Save') }}
 				</NcButton>
 				<NcButton @click="close">
@@ -183,6 +183,7 @@ const stencilBaseWidth = signElementsConfig['signature-width']
 const stencilBaseHeight = signElementsConfig['signature-height']
 
 const hasImage = computed(() => !!image.value)
+const canSave = computed(() => hasImage.value && imageData.value.length > 0)
 
 const zoomPercentValue = computed({
 	get: () => Math.round(zoomLevel.value * 100),
@@ -348,11 +349,17 @@ function change(result?: CropperResult) {
 }
 
 function saveSignature() {
+	if (!imageData.value) {
+		return
+	}
 	modal.value = false
 	emit('save', imageData.value)
 }
 
 function confirmSave() {
+	if (!canSave.value) {
+		return
+	}
 	modal.value = true
 }
 
@@ -392,6 +399,7 @@ watch(hasImage, value => {
 	containerWidth.value = 0
 	zoomLevel.value = 1
 	pendingFitCenter.value = false
+	imageData.value = ''
 })
 
 defineExpose({
@@ -415,6 +423,7 @@ defineExpose({
 	stencilBaseWidth,
 	stencilBaseHeight,
 	hasImage,
+	canSave,
 	zoomPercentValue,
 	stencilAspectRatio,
 	stencilProps,
