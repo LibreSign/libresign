@@ -160,6 +160,7 @@ import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useFilesStore } from '../../store/files.js'
+import type { LibresignCapabilities } from '../../types/index'
 
 
 type Envelope = {
@@ -223,19 +224,6 @@ type RenameError = {
 	}
 }
 
-type LibreSignCapabilities = {
-	libresign?: {
-		config?: {
-			envelope?: {
-				'is-available'?: boolean
-			}
-			upload?: {
-				'max-file-uploads'?: number
-			}
-		}
-	}
-}
-
 defineOptions({
 	name: 'EnvelopeFilesList',
 })
@@ -286,7 +274,7 @@ const canAddFile = computed(() => {
 	if (!envelope.value || envelope.value.status !== FILE_STATUS.DRAFT) {
 		return false
 	}
-	const capabilities = getCapabilities() as LibreSignCapabilities
+	const capabilities = getCapabilities() as LibresignCapabilities
 	return capabilities?.libresign?.config?.envelope?.['is-available'] === true
 })
 const deleteDialogButtons = computed(() => [
@@ -409,7 +397,7 @@ function showError(message: string) {
 }
 
 function getMaxFileUploads() {
-	const capabilities = getCapabilities() as LibreSignCapabilities
+	const capabilities = getCapabilities() as LibresignCapabilities
 	const capabilitiesMax = capabilities?.libresign?.config?.upload?.['max-file-uploads']
 	const max = typeof capabilitiesMax === 'number' && Number.isFinite(capabilitiesMax) ? capabilitiesMax : 20
 	return max > 0 ? Math.floor(max) : 20
