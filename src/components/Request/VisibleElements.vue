@@ -116,14 +116,17 @@ import {
 	type Signer as VisibleElementsSigner,
 	type VisibleElement,
 } from '../../services/visibleElementsService'
-import type { components as AdministrationComponents } from '../../types/openapi/openapi-administration'
+import type {
+	FileRecord,
+	IdentifyMethodRecord,
+	LibresignCapabilities,
+	SignerRecord,
+} from '../../types/index'
 
-type SignerIdentifyMethod = {
-	method: string
-	value: string
-}
+type SignerIdentifyMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 
-type FileSigner = VisibleElementsSigner & {
+type FileSigner = VisibleElementsSigner & Omit<SignerRecord, 'visibleElements'> & {
+	visibleElements?: VisibleElement[]
 	identifyMethods?: SignerIdentifyMethod[]
 }
 
@@ -141,7 +144,7 @@ type VisibleElementPayload = VisibleElement & {
 	}
 }
 
-type DocumentFile = FileData & {
+type DocumentFile = FileData & FileRecord & {
 	id: number
 	name: string
 	metadata?: {
@@ -153,14 +156,14 @@ type DocumentFile = FileData & {
 	signers?: FileSigner[]
 }
 
-type DocumentModel = DocumentData & {
+type DocumentModel = DocumentData & FileRecord & {
 	id?: number
 	uuid?: string
 	name?: string
 	status?: number | string
 	statusText?: string
 	metadata?: { extension?: string }
-	settings?: { signerFileUuid?: string }
+	settings?: NonNullable<FileRecord['settings']> & { signerFileUuid?: string }
 	files?: DocumentFile[]
 	visibleElements?: VisibleElementPayload[]
 	signers?: FileSigner[]
@@ -222,10 +225,6 @@ type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' |
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<SaveResponse>
 }
 
-type VisibleElementsCapabilities = {
-	libresign: AdministrationComponents['schemas']['Capabilities']
-}
-
 const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElementPayload[] =>
 	elements.flatMap((element) => {
 		if (element.type !== 'signature' || !element.coordinates) {
@@ -281,7 +280,7 @@ const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
 const modal = ref(false)
 const loading = ref(false)
 const signerSelected = ref<SelectedSigner | null>(null)
-const capabilities = getCapabilities() as VisibleElementsCapabilities
+const capabilities = getCapabilities() as LibresignCapabilities
 const signElementsConfig = capabilities.libresign.config['sign-elements']
 const width = ref(signElementsConfig['full-signature-width'])
 const height = ref(signElementsConfig['full-signature-height'])
@@ -435,7 +434,7 @@ async function updateSigners() {
 	const pdfElements = getPdfElements()
 	const pdfEditorRef = getPdfEditor()
 
-	const fileIndexById = new Map(filesToProcess.map((file, index) => [String(file.id), index]))
+	const fileIndexById = new Map<string, number>(filesToProcess.map((file, index) => [String(file.id), index]))
 	const elements = getVisibleElementsFromDocument(document.value)
 	const elementsByDoc = new Map<number, Array<{ element: VisibleElement; signer: SelectedSigner }>>()
 
@@ -565,7 +564,7 @@ function buildVisibleElements() {
 			if (!object.signer) return
 
 			let globalPageNumber = object.pageNumber
-			for (const info of Object.values(filePagesMap.value)) {
+			for (const info of Object.values(filePagesMap.value) as FilePageInfo[]) {
 				if (info.fileIndex === docIndex) {
 					globalPageNumber = info.startPage + object.pageNumber - 1
 					break
