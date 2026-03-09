@@ -8,10 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
-/**
- * @psalm-import-type LibresignIdentifyMethodSetting from ResponseDefinitions
- */
-
 use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
@@ -50,11 +46,12 @@ use OCP\ISession;
 use UnexpectedValueException;
 
 /**
- * @psalm-import-type LibresignEngineHandler from ResponseDefinitions
  * @psalm-import-type LibresignCetificateDataGenerated from ResponseDefinitions
  * @psalm-import-type LibresignConfigureCheck from ResponseDefinitions
- * @psalm-import-type LibresignRootCertificate from ResponseDefinitions
+ * @psalm-import-type LibresignEngineHandler from ResponseDefinitions
+ * @psalm-import-type LibresignIdentifyMethodSetting from ResponseDefinitions
  * @psalm-import-type LibresignReminderSettings from ResponseDefinitions
+ * @psalm-import-type LibresignRootCertificate from ResponseDefinitions
  */
 class AdminController extends AEnvironmentAwareController {
 	private IEventSource $eventSource;
