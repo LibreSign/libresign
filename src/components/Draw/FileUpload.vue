@@ -160,7 +160,10 @@ const emit = defineEmits<{
 }>()
 
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign.config['sign-elements']
+const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
+	'signature-width': 0,
+	'signature-height': 0,
+}
 
 const file = ref<HTMLInputElement | null>(null)
 const cropper = ref<CropperInstance | null>(null)
