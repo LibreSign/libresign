@@ -40,9 +40,9 @@
 							{{ t('libresign', 'Cancel') }}
 						</NcButton>
 					</li>
-					<Signer v-for="(signer, key) in document.signers"
-						:key="key"
-						:signer-index="key"
+					<Signer v-for="({ signer, index }) in sidebarSigners"
+						:key="index"
+						:signer-index="index"
 						:require-request-permission="false"
 						:class="{ disabled: signerSelected }"
 						@select="handleSignerSelect">
@@ -74,6 +74,7 @@
 				:file-names="pdfFileNames"
 				:signers="document.signers || []"
 				@pdf-editor:end-init="updateSigners"
+				@pdf-editor:signer-added="handleSignerAdded"
 				@pdf-editor:on-delete-signer="handleDeleteSigner">
 			</PdfEditor>
 		</div>
@@ -294,6 +295,12 @@ const fetchedFiles = ref<DocumentFile[]>([])
 
 const document = computed<DocumentModel>(() => filesStore.getFile() as DocumentModel)
 const documentFiles = computed<DocumentFile[]>(() => Array.isArray(document.value.files) ? document.value.files as DocumentFile[] : [])
+const sidebarSigners = computed(() => {
+	const signers = Array.isArray(document.value.signers) ? document.value.signers : []
+	return signers
+		.map((signer, index) => ({ signer, index }))
+		.filter(({ signer }) => !isSelectedSigner(signer))
+})
 const status = computed(() => Number(document.value?.status ?? -1))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
 const canSave = computed(() => ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
@@ -349,6 +356,22 @@ function getOcsErrorMessage(error: unknown): string | null {
 	}
 
 	return typeof ocsData.message === 'string' ? ocsData.message : null
+}
+
+function isSelectedSigner(signer: FileSigner): boolean {
+	if (!signerSelected.value) {
+		return false
+	}
+
+	if (signer === signerSelected.value) {
+		return true
+	}
+
+	if (signer.signRequestId !== undefined || signerSelected.value.signRequestId !== undefined) {
+		return idsMatch(signer.signRequestId, signerSelected.value.signRequestId)
+	}
+
+	return signer.identify === signerSelected.value.identify
 }
 
 async function showModal() {
@@ -501,6 +524,10 @@ function onSelectSigner(signer: SelectedSigner) {
 
 function handleSignerSelect(signer: unknown) {
 	onSelectSigner(signer as SelectedSigner)
+}
+
+function handleSignerAdded() {
+	stopAddSigner()
 }
 
 function stopAddSigner() {
