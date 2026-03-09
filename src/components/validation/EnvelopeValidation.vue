@@ -177,41 +177,31 @@ import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
+import type { FileRecord, SignerRecord } from '../../types/index'
 
 defineOptions({
 	name: 'EnvelopeValidation',
 })
 
-type EnvelopeFile = {
+type EnvelopeFile = Omit<FileRecord, 'status' | 'statusText' | 'signers'> & {
 	status: string | number
 	opened?: boolean
 	statusText?: string
-	uuid?: string
-	name?: string
-	nodeId?: number
 	totalPages?: number
 	size?: string | number
 	pdfVersion?: string
 	signers?: Array<Record<string, unknown>>
 }
 
-type EnvelopeSigner = {
+type EnvelopeSigner = Omit<Pick<SignerRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'signed' | 'remote_address' | 'user_agent'>, 'signed'> & {
 	opened?: boolean
-	displayName?: string
-	email?: string
-	userId?: string
-	request_sign_date?: string
 	signed?: string
-	remote_address?: string
-	user_agent?: string
 	documentsSignedCount?: number
 	totalDocuments?: number
 }
 
-type EnvelopeDocument = {
-	name?: string
+type EnvelopeDocument = Omit<FileRecord, 'status' | 'files' | 'signers'> & {
 	status?: string | number
-	filesCount?: number
 	files?: EnvelopeFile[]
 	signers?: EnvelopeSigner[]
 	signedDate?: string
