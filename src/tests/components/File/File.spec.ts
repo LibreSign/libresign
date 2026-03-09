@@ -36,6 +36,9 @@ const sidebarStoreMock = {
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn((_app: string, text: string) => text),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
 }))
 
 vi.mock('@nextcloud/router', () => ({
