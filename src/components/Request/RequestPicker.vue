@@ -151,6 +151,7 @@ import EditNameDialog from '../Common/EditNameDialog.vue'
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
+import type { LibresignCapabilities } from '../../types/index'
 import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 
 
@@ -184,19 +185,6 @@ type SidebarStore = {
 
 type ActionsMenuStore = {
 	opened: number | null
-}
-
-type LibreSignCapabilities = {
-	libresign?: {
-		config?: {
-			envelope?: {
-				'is-available'?: boolean
-			}
-			upload?: {
-				'max-file-uploads'?: number
-			}
-		}
-	}
 }
 
 defineOptions({
@@ -234,7 +222,7 @@ const showEnvelopeNameDialog = ref(false)
 const envelopeNameInput = ref('')
 
 const envelopeEnabled = computed(() => {
-	const capabilities = getCapabilities() as LibreSignCapabilities
+	const capabilities = getCapabilities() as LibresignCapabilities
 	return capabilities?.libresign?.config?.envelope?.['is-available'] === true
 })
 
@@ -275,7 +263,7 @@ async function openFilePicker() {
 }
 
 function getMaxFileUploads() {
-	const capabilitiesMax = (getCapabilities() as LibreSignCapabilities)?.libresign?.config?.upload?.['max-file-uploads']
+	const capabilitiesMax = (getCapabilities() as LibresignCapabilities)?.libresign?.config?.upload?.['max-file-uploads']
 	return typeof capabilitiesMax === 'number' && Number.isFinite(capabilitiesMax) && capabilitiesMax > 0 ? Math.floor(capabilitiesMax) : 20
 }
 
