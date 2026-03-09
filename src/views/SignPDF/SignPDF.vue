@@ -61,9 +61,10 @@ import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import type { components, operations } from '../../types/openapi/openapi'
+import type { FileDetailRecord, ValidationFileRecord } from '../../types/index'
 
-type OpenApiValidateFile = components['schemas']['ValidateFile']
-type OpenApiFileDetail = components['schemas']['FileDetail']
+type OpenApiValidateFile = ValidationFileRecord
+type OpenApiFileDetail = FileDetailRecord
 type OpenApiEnvelopeChildFile = components['schemas']['EnvelopeChildFile']
 type OpenApiSigner = components['schemas']['Signer']
 type SignError = { title?: string; message?: string }
@@ -140,6 +141,8 @@ const fileNames = ref<string[]>([])
 const envelopeFiles = ref<OpenApiFileDetail[]>([])
 const elementClickHandler = ref<EventListener | null>(null)
 const isMobile = typeof window !== 'undefined' && window.innerWidth <= 512
+const EMPTY_ENVELOPE_FILES: OpenApiFileDetail[] = []
+const EMPTY_PDFS: string[] = []
 
 const pdfFileName = computed(() => {
 	const doc = signStore.document
@@ -300,7 +303,7 @@ async function loadEnvelopePdfs(parentFileId: number | string) {
 }
 
 async function fetchEnvelopeFiles(parentFileId: number | string) {
-	const cachedEnvelopeFiles = loadState('libresign', 'envelopeFiles', [] as OpenApiFileDetail[])
+	const cachedEnvelopeFiles = loadState<OpenApiFileDetail[]>('libresign', 'envelopeFiles', EMPTY_ENVELOPE_FILES)
 	if (Array.isArray(cachedEnvelopeFiles) && cachedEnvelopeFiles.length > 0) {
 		return cachedEnvelopeFiles
 	}
@@ -402,13 +405,13 @@ async function redirectIfSigningInProgress() {
 
 	const file = filesStore.getFile()
 	if (file?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
-		targetUuid = loadState('libresign', 'sign_request_uuid', null)
+		targetUuid = loadState<string | null>('libresign', 'sign_request_uuid', null)
 	}
 
 	if (!targetUuid) {
-		const initialStatus = loadState('libresign', 'status', null)
+		const initialStatus = loadState<number | null>('libresign', 'status', null)
 		if (initialStatus === FILE_STATUS.SIGNING_IN_PROGRESS) {
-			targetUuid = loadState('libresign', 'sign_request_uuid', null)
+			targetUuid = loadState<string | null>('libresign', 'sign_request_uuid', null)
 		}
 	}
 
@@ -470,7 +473,7 @@ onBeforeMount(async () => {
 		getCompatMethod('toggleSidebar')()
 	}
 
-	const pdfs = loadState('libresign', 'pdfs', [])
+	const pdfs = loadState<string[]>('libresign', 'pdfs', EMPTY_PDFS)
 	if (Array.isArray(pdfs) && pdfs.length > 0) {
 		await getCompatMethod('handleInitialStatePdfs')(pdfs)
 	} else {
