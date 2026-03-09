@@ -396,6 +396,19 @@ namespace OCA\Libresign;
  *     send_timer: string,
  *     next_run?: string,
  * }
+ * @psalm-type LibresignAdminSigningMode = 'sync'|'async'
+ * @psalm-type LibresignAdminWorkerType = 'local'|'external'
+ * @psalm-type LibresignAdminSignatureEngine = 'JSignPdf'|'PhpNative'
+ * @psalm-type LibresignDocMdpLevelOption = array{
+ *     value: int,
+ *     label: string,
+ *     description: string,
+ * }
+ * @psalm-type LibresignDocMdpConfig = array{
+ *     enabled: bool,
+ *     defaultLevel: int,
+ *     availableLevels: list<LibresignDocMdpLevelOption>,
+ * }
  * @psalm-type LibresignCapabilities = array{
  *     features: list<string>,
  *     config: array{
