@@ -130,8 +130,8 @@ class SignFileService {
 	public function canDeleteRequestSignature(array $data): void {
 		if (!empty($data['uuid'])) {
 			$signatures = $this->signRequestMapper->getByFileUuid($data['uuid']);
-		} elseif (!empty($data['file']['fileId'])) {
-			$signatures = $this->signRequestMapper->getByNodeId($data['file']['fileId']);
+		} elseif (!empty($data['file']['nodeId'])) {
+			$signatures = $this->signRequestMapper->getByNodeId($data['file']['nodeId']);
 		} else {
 			throw new \Exception($this->l10n->t('Please provide either UUID or File object'));
 		}
