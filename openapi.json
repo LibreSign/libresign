@@ -653,17 +653,15 @@
             "IdentifyAccount": {
                 "type": "object",
                 "required": [
-                    "id",
+                    "identify",
                     "isNoUser",
                     "displayName",
                     "subname",
                     "shareType"
                 ],
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                    "identify": {
+                        "type": "string"
                     },
                     "isNoUser": {
                         "type": "boolean"
@@ -680,6 +678,18 @@
                         "enum": [
                             0,
                             4
+                        ]
+                    },
+                    "method": {
+                        "type": "string",
+                        "enum": [
+                            "account",
+                            "email",
+                            "signal",
+                            "sms",
+                            "telegram",
+                            "whatsapp",
+                            "xmpp"
                         ]
                     },
                     "iconName": {

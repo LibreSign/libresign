@@ -1745,8 +1745,7 @@ export type components = {
             type?: string;
         };
         IdentifyAccount: {
-            /** Format: int64 */
-            id: number;
+            identify: string;
             isNoUser: boolean;
             displayName: string;
             subname: string;
@@ -1755,6 +1754,8 @@ export type components = {
              * @enum {integer}
              */
             shareType: 0 | 4;
+            /** @enum {string} */
+            method?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
             /** @enum {string} */
             iconName?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
             acceptsEmailNotifications?: boolean;

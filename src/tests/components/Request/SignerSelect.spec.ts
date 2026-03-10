@@ -67,9 +67,9 @@ describe('SignerSelect.vue', () => {
 	it('injectIcons trusts the API displayName/subname contract', () => {
 		const wrapper = createWrapper()
 		const result = wrapper.vm.injectIcons([
-			{ id: 'alice@example.com', displayName: 'Alice Example', subname: 'alice@example.com', iconName: 'account' },
-			{ id: 'email@example.com', displayName: 'Email User', subname: 'email@example.com', iconName: 'email' },
-			{ id: 'custom@example.com', displayName: 'Custom Icon', subname: 'custom@example.com', iconName: 'unknown' as unknown as 'account' },
+			{ identify: 'alice@example.com', isNoUser: false, shareType: 0, displayName: 'Alice Example', subname: 'alice@example.com', iconName: 'account' },
+			{ identify: 'email@example.com', isNoUser: true, shareType: 4, displayName: 'Email User', subname: 'email@example.com', iconName: 'email' },
+			{ identify: 'custom@example.com', isNoUser: true, shareType: 4, displayName: 'Custom Icon', subname: 'custom@example.com', iconName: 'unknown' as unknown as 'account' },
 		])
 
 		expect(result[0].label).toBe('Alice Example')
@@ -83,7 +83,7 @@ describe('SignerSelect.vue', () => {
 	it('normalizeSignerOption keeps loose local signer state compatible', () => {
 		const wrapper = createWrapper({ method: 'email' })
 		const result = wrapper.vm.normalizeSignerOption({
-			id: 'user@example.com',
+			identify: 'user@example.com',
 			displayName: 'User Email',
 		})
 
@@ -95,8 +95,8 @@ describe('SignerSelect.vue', () => {
 	it('injectIcons keeps backend icon keys as the contract', () => {
 		const wrapper = createWrapper()
 		const result = wrapper.vm.injectIcons([
-			{ id: 'leon@example.com', displayName: 'Leon Green', subname: 'leon@example.com', method: 'email', iconName: 'email' },
-			{ id: 'user01', displayName: 'user01', subname: 'user01@example.com', method: 'account', iconName: 'account' },
+			{ identify: 'leon@example.com', isNoUser: true, shareType: 4, displayName: 'Leon Green', subname: 'leon@example.com', method: 'email', iconName: 'email' },
+			{ identify: 'user01', isNoUser: false, shareType: 0, displayName: 'user01', subname: 'user01@example.com', method: 'account', iconName: 'account' },
 		])
 
 		expect(result[0].iconName).toBe('email')
@@ -106,7 +106,7 @@ describe('SignerSelect.vue', () => {
 	it.each(supportedIconNames)('getOptionIcon resolves %s to an inline svg', (iconName) => {
 		const wrapper = createWrapper()
 		const mapped = wrapper.vm.injectIcons([
-			{ id: `${iconName}@example.com`, displayName: iconName, subname: `${iconName}@example.com`, iconName },
+			{ identify: `${iconName}@example.com`, isNoUser: true, shareType: 4, displayName: iconName, subname: `${iconName}@example.com`, iconName },
 		])[0]
 
 		expect(mapped.iconName).toBe(iconName)
@@ -119,7 +119,7 @@ describe('SignerSelect.vue', () => {
 			data: {
 				ocs: {
 					data: [
-						{ id: 'carol@example.com', displayName: 'Carol', subname: 'carol@example.com' },
+						{ identify: 'carol@example.com', isNoUser: false, shareType: 0, displayName: 'Carol', subname: 'carol@example.com' },
 					],
 				},
 			},
@@ -153,7 +153,7 @@ describe('SignerSelect.vue', () => {
 		resolveSecond?.({
 			data: {
 				ocs: {
-					data: [{ id: 'user02', displayName: 'User 02', subname: 'user02@example.com' }],
+					data: [{ identify: 'user02', isNoUser: false, shareType: 0, displayName: 'User 02', subname: 'user02@example.com' }],
 				},
 			},
 		})
@@ -162,7 +162,7 @@ describe('SignerSelect.vue', () => {
 		resolveFirst?.({
 			data: {
 				ocs: {
-					data: [{ id: 'old@example.com', displayName: 'Old Result', subname: 'old@example.com' }],
+					data: [{ identify: 'old@example.com', isNoUser: true, shareType: 4, displayName: 'Old Result', subname: 'old@example.com' }],
 				},
 			},
 		})
@@ -174,7 +174,7 @@ describe('SignerSelect.vue', () => {
 
 	it('clears stale options when method changes', () => {
 		const wrapper = createWrapper()
-		wrapper.vm.options = [{ id: 'legacy', displayName: 'Legacy', subname: 'legacy@example.com', label: 'Legacy' }]
+		wrapper.vm.options = [{ identify: 'legacy@example.com', displayName: 'Legacy', subname: 'legacy@example.com', label: 'Legacy' }]
 		wrapper.vm.haveError = true
 		wrapper.vm.loading = true
 
@@ -192,7 +192,7 @@ describe('SignerSelect.vue', () => {
 		expect(wrapper.vm.getOptionSubname(undefined)).toBe('')
 		expect(wrapper.vm.getOptionIcon(undefined)).toBe('')
 
-		const mapped = wrapper.vm.injectIcons([{ id: 'admin', displayName: 'Admin', subname: 'admin', iconName: 'account' }])[0]
+		const mapped = wrapper.vm.injectIcons([{ identify: 'admin', isNoUser: false, shareType: 0, displayName: 'Admin', subname: 'admin', iconName: 'account' }])[0]
 		const slotProps = { option: mapped }
 		expect(wrapper.vm.getOptionLabel(slotProps)).toBe('Admin')
 		expect(wrapper.vm.getOptionSubname(slotProps)).toBe('admin')

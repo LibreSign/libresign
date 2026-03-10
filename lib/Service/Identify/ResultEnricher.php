@@ -40,13 +40,13 @@ class ResultEnricher {
 			return $return;
 		}
 
-		$filtered = array_filter($return, fn ($i) => $i['id'] === $user->getUID());
+		$filtered = array_filter($return, fn ($i) => $i['identify'] === $user->getUID());
 		if (count($filtered)) {
 			return $return;
 		}
 
 		$return[] = [
-			'id' => $user->getUID(),
+			'identify' => $user->getUID(),
 			'isNoUser' => false,
 			'displayName' => $user->getDisplayName(),
 			'subname' => $user->getEMailAddress(),
@@ -78,13 +78,13 @@ class ResultEnricher {
 			return $return;
 		}
 
-		$filtered = array_filter($return, fn ($i) => $i['id'] === $user->getUID());
+		$filtered = array_filter($return, fn ($i) => $i['identify'] === $user->getUID());
 		if (count($filtered)) {
 			return $return;
 		}
 
 		$return[] = [
-			'id' => $user->getEMailAddress(),
+			'identify' => $user->getEMailAddress(),
 			'isNoUser' => true,
 			'displayName' => $user->getDisplayName(),
 			'subname' => $user->getEMailAddress(),
@@ -101,7 +101,7 @@ class ResultEnricher {
 				continue;
 			}
 
-			$user = $this->userManager->get($item['id']);
+			$user = $this->userManager->get($item['identify']);
 			if ($user === null) {
 				continue;
 			}
