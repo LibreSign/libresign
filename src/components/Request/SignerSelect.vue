@@ -65,6 +65,7 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
+import type { IdentifyAccountRecord } from '../../types'
 const iconMap = {
 	svgAccount,
 	svgEmail,
@@ -76,14 +77,14 @@ const iconMap = {
 }
 
 type IconKey = keyof typeof iconMap
-type IconName = Lowercase<IconKey extends `svg${infer Name}` ? Name : never>
+type IconName = NonNullable<IdentifyAccountRecord['iconName']>
 
 defineOptions({
 	name: 'SignerSelect',
 })
 
 type SignerOption = {
-	id?: string
+	identify?: string
 	displayName?: string
 	subname?: string
 	label?: string
@@ -92,16 +93,8 @@ type SignerOption = {
 	acceptsEmailNotifications?: boolean
 }
 
-type SearchResultSigner = {
-	id: string
-	displayName: string
-	subname: string
-	method?: string
-	iconName?: string
-	acceptsEmailNotifications?: boolean
-}
-
 type NormalizedSignerOption = SignerOption & {
+	identify: string
 	displayName: string
 	subname: string
 	label: string
@@ -147,16 +140,17 @@ watch(selectedSigner, (selected) => {
 	emit('update:signer', selected)
 })
 
-function injectIcons(items: SearchResultSigner[]): NormalizedSignerOption[] {
+function injectIcons(items: IdentifyAccountRecord[]): NormalizedSignerOption[] {
 	return items.map((item) => {
-		const { iconName: _iconName, ...safeItem } = item
 		const iconName = getIconName(item.iconName)
 		return {
-			...safeItem,
-			...(iconName ? { iconName } : {}),
-			label: item.displayName,
+			identify: item.identify,
 			displayName: item.displayName,
 			subname: item.subname,
+			method: item.method,
+			acceptsEmailNotifications: item.acceptsEmailNotifications,
+			...(iconName ? { iconName } : {}),
+			label: item.displayName,
 		}
 	})
 }
@@ -197,7 +191,7 @@ function getOption(slotProps?: { option?: SignerOption } | SignerOption) {
 
 function getOptionLabel(slotProps?: { option?: SignerOption } | SignerOption) {
 	const option = getOption(slotProps)
-	return option.displayName || option.label || option.id || option.subname || ''
+	return option.displayName || option.label || option.identify || option.subname || ''
 }
 
 function getOptionSubname(slotProps?: { option?: SignerOption } | SignerOption) {
@@ -233,7 +227,7 @@ async function _asyncFind(search: string, lookup = false) {
 		if (requestId !== activeRequestId.value) {
 			return
 		}
-		options.value = injectIcons(response.data.ocs.data as SearchResultSigner[])
+		options.value = injectIcons(response.data.ocs.data as IdentifyAccountRecord[])
 	} catch (error) {
 		if (requestId === activeRequestId.value) {
 			haveError.value = true

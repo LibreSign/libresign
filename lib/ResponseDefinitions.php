@@ -45,11 +45,12 @@ namespace OCA\Libresign;
  *     type?: string,
  * }
  * @psalm-type LibresignIdentifyAccount = array{
- *     id: non-negative-int,
+ *     identify: string,
  *     isNoUser: boolean,
  *     displayName: string,
  *     subname: string,
  *     shareType: 0|4,
+ *     method?: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
  *     iconName?: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
  *     acceptsEmailNotifications?: boolean,
  * }

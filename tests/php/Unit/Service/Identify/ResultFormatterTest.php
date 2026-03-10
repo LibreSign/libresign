@@ -36,7 +36,7 @@ class ResultFormatterTest extends TestCase {
 		$result = $this->formatter->formatForNcSelect($list);
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('test@example.com', $result[0]['id']);
+		$this->assertEquals('test@example.com', $result[0]['identify']);
 		$this->assertTrue($result[0]['isNoUser']);
 		$this->assertEquals('email', $result[0]['method']);
 		$this->assertEquals('email', $result[0]['iconName']);
@@ -54,7 +54,7 @@ class ResultFormatterTest extends TestCase {
 		$result = $this->formatter->formatForNcSelect($list);
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('john', $result[0]['id']);
+		$this->assertEquals('john', $result[0]['identify']);
 		$this->assertFalse($result[0]['isNoUser']);
 		$this->assertEquals('account', $result[0]['method']);
 		$this->assertEquals('account', $result[0]['iconName']);
@@ -72,7 +72,7 @@ class ResultFormatterTest extends TestCase {
 		$result = $this->formatter->formatForNcSelect($list);
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('+5521987776666', $result[0]['id']);
+		$this->assertEquals('+5521987776666', $result[0]['identify']);
 		$this->assertTrue($result[0]['isNoUser']);
 		$this->assertEquals('sms', $result[0]['method']);
 		$this->assertEquals('sms', $result[0]['iconName']);
@@ -90,7 +90,7 @@ class ResultFormatterTest extends TestCase {
 		$result = $this->formatter->formatForNcSelect($list);
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('signer@example.com', $result[0]['id']);
+		$this->assertEquals('signer@example.com', $result[0]['identify']);
 		$this->assertTrue($result[0]['isNoUser']);
 		$this->assertEquals('email', $result[0]['method']);
 		$this->assertEquals('email', $result[0]['iconName']);
@@ -108,7 +108,7 @@ class ResultFormatterTest extends TestCase {
 		$result = $this->formatter->formatForNcSelect($list);
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('john', $result[0]['id']);
+		$this->assertEquals('john', $result[0]['identify']);
 		$this->assertFalse($result[0]['isNoUser']);
 		$this->assertEquals('account', $result[0]['method']);
 		$this->assertEquals('account', $result[0]['iconName']);
@@ -173,15 +173,15 @@ class ResultFormatterTest extends TestCase {
 
 		$this->assertCount(3, $result);
 
-		$this->assertEquals('user1', $result[0]['id']);
+		$this->assertEquals('user1', $result[0]['identify']);
 		$this->assertFalse($result[0]['isNoUser']);
 		$this->assertEquals('account', $result[0]['method']);
 
-		$this->assertEquals('email@example.com', $result[1]['id']);
+		$this->assertEquals('email@example.com', $result[1]['identify']);
 		$this->assertTrue($result[1]['isNoUser']);
 		$this->assertEquals('email', $result[1]['method']);
 
-		$this->assertEquals('+5521987776666', $result[2]['id']);
+		$this->assertEquals('+5521987776666', $result[2]['identify']);
 		$this->assertTrue($result[2]['isNoUser']);
 		$this->assertEquals('whatsapp', $result[2]['method']);
 	}
@@ -199,7 +199,7 @@ class ResultFormatterTest extends TestCase {
 		$result = $this->formatter->formatForNcSelect($list);
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('+5521987776666', $result[0]['id']);
+		$this->assertEquals('+5521987776666', $result[0]['identify']);
 		$this->assertTrue($result[0]['isNoUser']);
 		$this->assertEquals('sms', $result[0]['method']);
 		$this->assertEquals('sms', $result[0]['iconName']);
@@ -218,7 +218,7 @@ class ResultFormatterTest extends TestCase {
 		$result = $this->formatter->formatForNcSelect($list);
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('+5521987776666', $result[0]['id']);
+		$this->assertEquals('+5521987776666', $result[0]['identify']);
 		$this->assertTrue($result[0]['isNoUser']);
 		$this->assertEquals('whatsapp', $result[0]['method']);
 		$this->assertEquals('whatsapp', $result[0]['iconName']);
@@ -237,7 +237,7 @@ class ResultFormatterTest extends TestCase {
 		$result = $this->formatter->formatForNcSelect($list);
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('+5521987776666', $result[0]['id']);
+		$this->assertEquals('+5521987776666', $result[0]['identify']);
 		$this->assertTrue($result[0]['isNoUser']);
 		$this->assertEquals('telegram', $result[0]['method']);
 		$this->assertEquals('telegram', $result[0]['iconName']);
@@ -256,7 +256,7 @@ class ResultFormatterTest extends TestCase {
 		$result = $this->formatter->formatForNcSelect($list);
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('+5521987776666', $result[0]['id']);
+		$this->assertEquals('+5521987776666', $result[0]['identify']);
 		$this->assertEquals('signal', $result[0]['method']);
 		$this->assertEquals('signal', $result[0]['iconName']);
 	}

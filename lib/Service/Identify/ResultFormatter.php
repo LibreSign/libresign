@@ -41,7 +41,7 @@ class ResultFormatter {
 			}
 
 			$formattedList[$key] = [
-				'id' => $item['value']['shareWith'],
+				'identify' => $item['value']['shareWith'],
 				'isNoUser' => $isNoUser,
 				'displayName' => $item['label'],
 				'subname' => $item['shareWithDisplayNameUnique'] ?? '',
