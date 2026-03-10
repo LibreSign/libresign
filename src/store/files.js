@@ -10,6 +10,7 @@ import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { emit, subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+import { t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -349,11 +350,11 @@ const _filesStore = defineStore('files', () => {
 				if (error.code === 'ERR_CANCELED') {
 					return {
 						success: false,
-						message: 'Upload cancelled',
+						message: t('libresign', 'Upload cancelled'),
 						error,
 					}
 				}
-				const message = error.response?.data?.ocs?.data?.message || 'Failed to add files to envelope'
+				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to add files to envelope')
 				return {
 					success: false,
 					message,
@@ -379,13 +380,15 @@ const _filesStore = defineStore('files', () => {
 				const isSingle = fileIds.length === 1
 				return {
 					success: true,
-					message: isSingle ? 'File removed from envelope' : 'Files removed from envelope',
+					message: isSingle
+						? t('libresign', 'File removed from envelope')
+						: t('libresign', 'Files removed from envelope'),
 					removedCount: fileIds.length,
 					removedIds: fileIds,
 				}
 			})
 			.catch((error) => {
-				const message = error.response?.data?.ocs?.data?.message || 'Failed to remove file(s) from envelope'
+				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to remove file(s) from envelope')
 				return {
 					success: false,
 					message,
@@ -854,7 +857,7 @@ const _filesStore = defineStore('files', () => {
 
 		let response = await axios(config)
 			.catch((error) => {
-				const message = error.response?.data?.ocs?.data?.message || 'Failed to save or update signature request'
+				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to save or update signature request')
 				return {
 					success: false,
 					message,
