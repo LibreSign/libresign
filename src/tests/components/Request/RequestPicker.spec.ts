@@ -498,10 +498,11 @@ describe('RequestPicker component rules', () => {
 
 	describe('URL upload dialog management', () => {
 		it('opens URL upload modal and closes actions menu', () => {
-			wrapper.vm.actionsMenuStore.opened = true
+			wrapper.vm.actionsMenuStore.opened = 123
 			wrapper.vm.openedMenu = true
 			wrapper.vm.showModalUploadFromUrl()
 			expect(wrapper.vm.modalUploadFromUrl).toBe(true)
+			expect(wrapper.vm.actionsMenuStore.opened).toBe(null)
 			expect(wrapper.vm.openedMenu).toBe(false)
 			expect(wrapper.vm.loading).toBe(false)
 		})
