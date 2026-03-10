@@ -125,11 +125,9 @@ import type {
 	SignerRecord,
 } from '../../types/index'
 
-type SignerIdentifyMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
-
 type FileSigner = VisibleElementsSigner & Omit<SignerRecord, 'visibleElements'> & {
 	visibleElements?: VisibleElement[]
-	identifyMethods?: SignerIdentifyMethod[]
+	identifyMethods?: IdentifyMethodRecord[]
 }
 
 type VisibleElementPayload = VisibleElement & {
@@ -161,9 +159,9 @@ type DocumentFile = FileData & FileRecord & {
 type DocumentModel = Omit<DocumentData, 'files' | 'signers' | 'visibleElements'> & FileRecord & {
 	id?: number
 	uuid?: string
-	name?: string
-	status?: number | string
-	statusText?: string
+	name: string
+	status: number | string
+	statusText: string
 	metadata?: { extension?: string }
 	settings?: NonNullable<FileRecord['settings']> & { signerFileUuid?: string }
 	files?: DocumentFile[]
@@ -180,21 +178,19 @@ type FilePageInfo = {
 
 type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
 
-type PdfObjectSigner = FileSigner & {
-	element?: { elementId?: string }
+type PlacementElement = {
+	elementId?: string | number
+	documentIndex?: number
+	signRequestId?: string | number
+	[key: string]: unknown
 }
 
-type SelectedSigner = FileSigner & {
-	element?: {
-		elementId?: string | number
-		documentIndex?: number
-		signRequestId?: string | number
-		[key: string]: unknown
-	}
+type PlacementSigner = FileSigner & {
+	element?: PlacementElement
 }
 
 type PdfObject = PDFElementObject & {
-	signer?: PdfObjectSigner
+	signer?: PlacementSigner
 	pageNumber: number
 	x: number
 	y: number
@@ -212,19 +208,15 @@ type PdfElementsRef = {
 
 type PdfEditorRef = ComponentPublicInstance & {
 	$refs?: { pdfElements?: PdfElementsRef }
-	startAddingSigner?: (signer: SelectedSigner, size: { width: number; height: number }) => boolean
+	startAddingSigner?: (signer: PlacementSigner, size: { width: number; height: number }) => boolean
 	cancelAdding?: () => void
-	addSigner?: (signer: SelectedSigner) => void
-}
-
-type SaveResponse = {
-	message: string
+	addSigner?: (signer: PlacementSigner) => void
 }
 
 type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'saveOrUpdateSignatureRequest'> & {
 	loading: boolean
 	getFile: () => DocumentModel
-	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<SaveResponse>
+	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<{ message: string }>
 }
 
 const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElementPayload[] =>
@@ -281,7 +273,7 @@ const pdfEditor = ref<PdfEditorRef | null>(null)
 const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
 const modal = ref(false)
 const loading = ref(false)
-const signerSelected = ref<SelectedSigner | null>(null)
+const signerSelected = ref<PlacementSigner | null>(null)
 const capabilities = getCapabilities() as LibresignCapabilities
 const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
 	'is-available': false,
@@ -301,7 +293,7 @@ const sidebarSigners = computed(() => {
 		.map((signer, index) => ({ signer, index }))
 		.filter(({ signer }) => !isSelectedSigner(signer))
 })
-const status = computed(() => Number(document.value?.status ?? -1))
+const status = computed(() => Number(document.value.status))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
 const canSave = computed(() => ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
 const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && (document.value?.settings?.signerFileUuid ?? '').length > 0)
@@ -462,7 +454,7 @@ async function updateSigners() {
 
 	const fileIndexById = new Map<string, number>(filesToProcess.map((file, index) => [String(file.id), index]))
 	const elements = getVisibleElementsFromDocument(document.value)
-	const elementsByDoc = new Map<number, Array<{ element: VisibleElement; signer: SelectedSigner }>>()
+	const elementsByDoc = new Map<number, Array<{ element: VisibleElement; signer: PlacementSigner }>>()
 
 	elements.forEach((element) => {
 		const fileInfo = findFileById(filesToProcess, element.fileId)
@@ -503,7 +495,7 @@ async function updateSigners() {
 	filesStore.loading = false
 }
 
-function onSelectSigner(signer: SelectedSigner) {
+function onSelectSigner(signer: PlacementSigner) {
 	const pdfEditorRef = getPdfEditor()
 	if (!pdfEditorRef) {
 		return
@@ -522,7 +514,7 @@ function onSelectSigner(signer: SelectedSigner) {
 }
 
 function handleSignerSelect(signer: unknown) {
-	onSelectSigner(signer as SelectedSigner)
+	onSelectSigner(signer as PlacementSigner)
 }
 
 function handleSignerAdded() {
@@ -632,11 +624,11 @@ function buildVisibleElements() {
 			if (!fileInfo || !Array.isArray(fileInfo.signers)) {
 				return
 			}
-			const envIdentifyMethods = Array.isArray(object.signer.identifyMethods) ? object.signer.identifyMethods as SignerIdentifyMethod[] : []
+			const envIdentifyMethods = Array.isArray(object.signer.identifyMethods) ? object.signer.identifyMethods : []
 			const envIdMethods = envIdentifyMethods.map((method) => `${method.method}:${method.value}`).sort().join('|')
 			const candidate = fileInfo.signers.find((signer) => {
 				const childIdentifyMethods = Array.isArray(signer.identifyMethods) ? signer.identifyMethods : []
-				const childIdMethods = childIdentifyMethods.map((method: SignerIdentifyMethod) => `${method.method}:${method.value}`).sort().join('|')
+				const childIdMethods = childIdentifyMethods.map((method) => `${method.method}:${method.value}`).sort().join('|')
 				return childIdMethods === envIdMethods
 			})
 			if (!candidate?.signRequestId) {
