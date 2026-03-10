@@ -896,7 +896,7 @@
                     "base64": {
                         "type": "string"
                     },
-                    "fileId": {
+                    "nodeId": {
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
@@ -4767,7 +4767,7 @@
                     {
                         "name": "nodeIds[]",
                         "in": "query",
-                        "description": "The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud",
+                        "description": "The list of nodeIds. It's the ids of files at Nextcloud",
                         "schema": {
                             "type": "array",
                             "nullable": true,
@@ -5940,7 +5940,7 @@
                                         "type": "integer",
                                         "format": "int64",
                                         "nullable": true,
-                                        "description": "File ID when using node identifier instead of UUID"
+                                        "description": "LibreSign file ID that owns the visible element"
                                     },
                                     "type": {
                                         "type": "string",
@@ -6125,7 +6125,7 @@
                                         "type": "integer",
                                         "format": "int64",
                                         "nullable": true,
-                                        "description": "File ID when using node identifier instead of UUID"
+                                        "description": "LibreSign file ID that owns the visible element"
                                     },
                                     "type": {
                                         "type": "string",
@@ -8376,7 +8376,7 @@
                     {
                         "name": "fileId",
                         "in": "path",
-                        "description": "Node id of a Nextcloud file",
+                        "description": "LibreSign file ID",
                         "required": true,
                         "schema": {
                             "type": "integer",
