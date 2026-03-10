@@ -308,10 +308,10 @@ describe('VisibleElements Component - Business Rules', () => {
 			expect(wrapper.vm.status).toBe(FILE_STATUS.ABLE_TO_SIGN)
 		})
 
-		it('defaults to -1 when status missing', () => {
-			delete filesStore.files[1].status
+		it('coerces string status values to numbers', () => {
+			filesStore.files[1].status = String(FILE_STATUS.ABLE_TO_SIGN)
 
-			expect(wrapper.vm.status).toBe(-1)
+			expect(wrapper.vm.status).toBe(FILE_STATUS.ABLE_TO_SIGN)
 		})
 
 		it('identifies draft status', () => {
