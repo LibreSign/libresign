@@ -10,6 +10,7 @@ export type SignatureFlowMode = ApiComponents['schemas']['NextcloudFile']['signa
 export type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
 export type SignerIdentify = NonNullable<ApiComponents['schemas']['NewSigner']['identify']>
 export type IdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
+export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']
 export type VisibleElementRecord = ApiComponents['schemas']['VisibleElement']
 export type FileSettings = ApiComponents['schemas']['FolderSettings']
 export type IdentifyMethodSetting = AdminComponents['schemas']['IdentifyMethodSetting']

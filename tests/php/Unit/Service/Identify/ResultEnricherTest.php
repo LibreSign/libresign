@@ -58,7 +58,7 @@ class ResultEnricherTest extends TestCase {
 		$result = $this->enricher->addHerselfAccount([], 'john');
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('john', $result[0]['id']);
+		$this->assertEquals('john', $result[0]['identify']);
 		$this->assertEquals('account', $result[0]['method']);
 		$this->assertFalse($result[0]['isNoUser']);
 		$this->assertEquals('account', $result[0]['iconName']);
@@ -83,7 +83,7 @@ class ResultEnricherTest extends TestCase {
 	public static function providerAddHerselfAccountDisabledOrDuplicate(): array {
 		return [
 			'disabled' => [false, [], 0],
-			'already exists' => [true, [['id' => 'john', 'method' => 'account']], 1],
+			'already exists' => [true, [['identify' => 'john', 'method' => 'account']], 1],
 		];
 	}
 
@@ -101,7 +101,7 @@ class ResultEnricherTest extends TestCase {
 		$result = $this->enricher->addHerselfEmail([], 'john@company.com');
 
 		$this->assertCount(1, $result);
-		$this->assertEquals('john@company.com', $result[0]['id']);
+		$this->assertEquals('john@company.com', $result[0]['identify']);
 		$this->assertEquals('email', $result[0]['method']);
 		$this->assertTrue($result[0]['isNoUser']);
 		$this->assertEquals('email', $result[0]['iconName']);

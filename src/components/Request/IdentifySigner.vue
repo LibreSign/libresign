@@ -13,7 +13,7 @@
 			<template #icon>
 				<NcIconSvgWrapper :size="20" :svg="getMethodIcon()" />
 			</template>
-			<strong>{{ identifyMethodLabel }}:</strong> {{ signer.id }}
+			<strong>{{ identifyMethodLabel }}:</strong> {{ signer.identify }}
 		</NcNoteCard>
 
 		<NcNoteCard v-if="disabled" type="warning" class="disabled-warning">
@@ -128,7 +128,7 @@ type SignerToEdit = {
 }
 
 type SelectedSigner = {
-	id?: string
+	identify?: string
 	method?: string
 	displayName?: string
 	acceptsEmailNotifications?: boolean
@@ -157,7 +157,6 @@ const props = withDefaults(defineProps<{
 
 const filesStore = useFilesStore()
 
-const id = ref<string | null>(null)
 const nameHelperText = ref('')
 const nameHaveError = ref(false)
 const displayName = ref('')
@@ -166,7 +165,7 @@ const enableCustomMessage = ref(false)
 const identify = ref('')
 const signer = ref<SelectedSigner>({})
 
-const signerSelected = computed(() => !!signer.value?.id)
+const signerSelected = computed(() => !!signer.value?.identify)
 const isNewSigner = computed(() => !props.signerToEdit || Object.keys(props.signerToEdit).length === 0)
 const saveButtonText = computed(() => isNewSigner.value ? t('libresign', 'Save') : t('libresign', 'Update'))
 const identifyMethodLabel = computed(() => {
@@ -198,7 +197,7 @@ function getMethodIcon() {
 function updateSigner(nextSigner: SelectedSigner | null) {
 	signer.value = nextSigner ?? {}
 	displayName.value = nextSigner?.displayName ?? ''
-	identify.value = nextSigner?.id ?? ''
+	identify.value = nextSigner?.identify ?? ''
 
 	if (nextSigner?.method === 'account' && nextSigner?.acceptsEmailNotifications === false) {
 		enableCustomMessage.value = false
@@ -207,7 +206,7 @@ function updateSigner(nextSigner: SelectedSigner | null) {
 }
 
 async function saveSigner() {
-	if (!signer.value?.method || !signer.value?.id) {
+	if (!signer.value?.method || !signer.value?.identify) {
 		return
 	}
 	const file = filesStore.getFile()
@@ -220,7 +219,7 @@ async function saveSigner() {
 			{
 				method: signer.value.method,
 				mandatory: 0,
-				value: signer.value.id,
+					value: signer.value.identify,
 			},
 		],
 	})
@@ -271,7 +270,7 @@ onBeforeMount(() => {
 	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
 		const method = props.signerToEdit.identifyMethods[0]
 		signer.value = {
-			id: method.value,
+			identify: method.value,
 			method: method.method,
 			displayName: props.signerToEdit.displayName,
 		}
@@ -282,7 +281,6 @@ defineExpose({
 	props,
 	t,
 	filesStore,
-	id,
 	nameHelperText,
 	nameHaveError,
 	displayName,
