@@ -139,9 +139,6 @@ class FileService {
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
 			return $data['file']['fileNode'];
 		}
-		if (isset($data['file']['fileId'])) {
-			return $this->folderService->getFileByNodeId($data['file']['fileId']);
-		}
 		if (isset($data['file']['path'])) {
 			return $this->folderService->getFileByPath($data['file']['path']);
 		}
