@@ -221,9 +221,14 @@ const envelopeName = ref('')
 const showEnvelopeNameDialog = ref(false)
 const envelopeNameInput = ref('')
 
+function getLibresignConfig() {
+	const capabilities = getCapabilities() as LibresignCapabilities | undefined
+	return capabilities?.libresign?.config ?? null
+}
+
 const envelopeEnabled = computed(() => {
-	const capabilities = getCapabilities() as LibresignCapabilities
-	return capabilities?.libresign?.config?.envelope?.['is-available'] === true
+	const config = getLibresignConfig()
+	return config?.envelope['is-available'] === true
 })
 
 const canUploadFronUrl = computed(() => {
@@ -263,7 +268,8 @@ async function openFilePicker() {
 }
 
 function getMaxFileUploads() {
-	const capabilitiesMax = (getCapabilities() as LibresignCapabilities)?.libresign?.config?.upload?.['max-file-uploads']
+	const config = getLibresignConfig()
+	const capabilitiesMax = config?.upload['max-file-uploads']
 	return typeof capabilitiesMax === 'number' && Number.isFinite(capabilitiesMax) && capabilitiesMax > 0 ? Math.floor(capabilitiesMax) : 20
 }
 

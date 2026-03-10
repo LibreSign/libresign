@@ -268,14 +268,19 @@ const nameUpdateError = ref(false)
 const nameHelperText = ref('')
 const debounceTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
+function getLibresignConfig() {
+	const capabilities = getCapabilities() as LibresignCapabilities | undefined
+	return capabilities?.libresign?.config ?? null
+}
+
 const envelope = computed(() => filesStore.getFile())
 const canDelete = computed(() => envelope.value?.status === FILE_STATUS.DRAFT && files.value.length >= 1)
 const canAddFile = computed(() => {
 	if (!envelope.value || envelope.value.status !== FILE_STATUS.DRAFT) {
 		return false
 	}
-	const capabilities = getCapabilities() as LibresignCapabilities
-	return capabilities?.libresign?.config?.envelope?.['is-available'] === true
+	const config = getLibresignConfig()
+	return config?.envelope['is-available'] === true
 })
 const deleteDialogButtons = computed(() => [
 	{
@@ -397,8 +402,8 @@ function showError(message: string) {
 }
 
 function getMaxFileUploads() {
-	const capabilities = getCapabilities() as LibresignCapabilities
-	const capabilitiesMax = capabilities?.libresign?.config?.upload?.['max-file-uploads']
+	const config = getLibresignConfig()
+	const capabilitiesMax = config?.upload['max-file-uploads']
 	const max = typeof capabilitiesMax === 'number' && Number.isFinite(capabilitiesMax) ? capabilitiesMax : 20
 	return max > 0 ? Math.floor(max) : 20
 }
