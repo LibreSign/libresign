@@ -474,9 +474,9 @@ async function confirmDeleteSelected() {
 		files.value = files.value.filter(file => !fileIds.includes(file.id))
 		selectedFiles.value = []
 		totalFiles.value = Math.max(0, totalFiles.value - (result.removedCount || 0))
-		showSuccess(t('libresign', result.message))
+		showSuccess(result.message)
 	} else {
-		showError(t('libresign', result.message))
+		showError(result.message)
 	}
 
 	hasLoading.value = false
@@ -526,11 +526,11 @@ function addFileToEnvelope() {
 		})
 
 		if (result.success) {
-			showSuccess(t('libresign', result.message))
+			showSuccess(result.message)
 			files.value.push(...result.files)
 			totalFiles.value = result.filesCount
-		} else if (result.message !== 'Upload cancelled') {
-			showError(t('libresign', result.message))
+		} else if (result.message !== t('libresign', 'Upload cancelled')) {
+			showError(result.message)
 		}
 
 		hasLoading.value = false
@@ -614,11 +614,11 @@ async function confirmDelete(file: EnvelopeFile) {
 	const result = await filesStore.removeFilesFromEnvelope([file.id])
 
 	if (result.success) {
-		showSuccess(t('libresign', result.message))
+		showSuccess(result.message)
 		files.value = files.value.filter(item => item.id !== file.id)
 		totalFiles.value = Math.max(0, totalFiles.value - (result.removedCount || 0))
 	} else {
-		showError(t('libresign', result.message))
+		showError(result.message)
 	}
 
 	hasLoading.value = false
