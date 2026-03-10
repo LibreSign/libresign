@@ -15,9 +15,9 @@
 		<div v-else class="visible-elements-container">
 			<div class="sign-details">
 				<div class="modal_name">
-					<NcChip :text="statusLabel ?? ''"
+					<NcChip :text="statusLabel"
 						:variant="isDraft ? 'warning' : 'primary'"
-						:aria-label="t('libresign', 'Document status: {status}', { status: statusLabel ?? '' })"
+						:aria-label="t('libresign', 'Document status: {status}', { status: statusLabel })"
 						no-close />
 					<h2 class="name">{{ document.name }}</h2>
 				</div>
