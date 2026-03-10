@@ -255,7 +255,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * @param string|null $signer_uuid Signer UUID
 	 * @param list<int>|null $fileIds The list of fileIds (database file IDs). It's the ids of LibreSign files
-	 * @param list<int>|null $nodeIds The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud
+	 * @param list<int>|null $nodeIds The list of nodeIds. It's the ids of files at Nextcloud
 	 * @param list<int>|null $status Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
