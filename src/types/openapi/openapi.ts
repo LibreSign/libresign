@@ -1254,7 +1254,7 @@ export type components = {
         NewFile: {
             base64?: string;
             /** Format: int64 */
-            fileId?: number;
+            nodeId?: number;
             url?: string;
         };
         NewSigner: {
@@ -2782,7 +2782,7 @@ export interface operations {
                 signer_uuid?: string | null;
                 /** @description The list of fileIds (database file IDs). It's the ids of LibreSign files */
                 "fileIds[]"?: number[] | null;
-                /** @description The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud */
+                /** @description The list of nodeIds. It's the ids of files at Nextcloud */
                 "nodeIds[]"?: number[] | null;
                 /** @description Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted. */
                 "status[]"?: number[] | null;
@@ -3262,7 +3262,7 @@ export interface operations {
                     elementId?: number | null;
                     /**
                      * Format: int64
-                     * @description File ID when using node identifier instead of UUID
+                     * @description LibreSign file ID that owns the visible element
                      */
                     fileId?: number | null;
                     /**
@@ -3401,7 +3401,7 @@ export interface operations {
                     signRequestId: number;
                     /**
                      * Format: int64
-                     * @description File ID when using node identifier instead of UUID
+                     * @description LibreSign file ID that owns the visible element
                      */
                     fileId?: number | null;
                     /**
@@ -4315,7 +4315,7 @@ export interface operations {
             };
             path: {
                 apiVersion: "v1";
-                /** @description Node id of a Nextcloud file */
+                /** @description LibreSign file ID */
                 fileId: number;
             };
             cookie?: never;
