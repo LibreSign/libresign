@@ -289,33 +289,22 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testValidateFileWithInvalidFileId():void {
-		$this->expectExceptionMessage('Invalid fileID');
+		$this->expectExceptionMessageMatches('/Specify a URL, Base64 string, path or a fileID/');
 		$this->getValidateHelper()->validateFile([
 			'file' => ['fileId' => 'invalid'],
 			'name' => 'test'
 		]);
 	}
 
-	public function testValidateNewFileUsingFileIdWithSuccess():void {
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file
-			->method('getMimeType')
-			->willReturn('application/pdf');
-		$this->root
-			->method('getUserFolder')
-			->willReturn($this->root);
-		$this->root
-			->method('getFirstNodeById')
-			->willReturn($file);
-
+	public function testValidateNewFileUsingFileIdWithoutNodeIdFails():void {
+		$this->expectExceptionMessageMatches('/Specify a URL, Base64 string, path or a fileID/');
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')->willReturn('john.doe');
-		$actual = $this->getValidateHelper()->validateNewFile([
+		$this->getValidateHelper()->validateNewFile([
 			'file' => ['fileId' => 123],
 			'name' => 'test',
 			'userManager' => $user,
 		]);
-		$this->assertNull($actual);
 	}
 
 	public function testValidateNewFileUsingNodeIdWithSuccess():void {
