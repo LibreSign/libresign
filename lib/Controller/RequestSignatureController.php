@@ -318,7 +318,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * You can only request exclusion as any sign
 	 *
-	 * @param integer $fileId Node id of a Nextcloud file
+	 * @param integer $fileId LibreSign file ID
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>}, array{}>
 	 *
 	 * 200: OK
