@@ -61,6 +61,7 @@ class ResultEnricherTest extends TestCase {
 		$this->assertEquals('john', $result[0]['id']);
 		$this->assertEquals('account', $result[0]['method']);
 		$this->assertFalse($result[0]['isNoUser']);
+		$this->assertEquals('account', $result[0]['iconName']);
 	}
 
 	#[DataProvider('providerAddHerselfAccountDisabledOrDuplicate')]
@@ -103,6 +104,7 @@ class ResultEnricherTest extends TestCase {
 		$this->assertEquals('john@company.com', $result[0]['id']);
 		$this->assertEquals('email', $result[0]['method']);
 		$this->assertTrue($result[0]['isNoUser']);
+		$this->assertEquals('email', $result[0]['iconName']);
 	}
 
 	#[DataProvider('providerAddHerselfEmailSkipScenarios')]

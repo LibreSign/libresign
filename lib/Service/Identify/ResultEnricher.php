@@ -50,7 +50,7 @@ class ResultEnricher {
 			'isNoUser' => false,
 			'displayName' => $user->getDisplayName(),
 			'subname' => $user->getEMailAddress(),
-			'icon' => 'icon-user',
+			'iconName' => 'account',
 			'method' => 'account',
 		];
 
@@ -88,7 +88,7 @@ class ResultEnricher {
 			'isNoUser' => true,
 			'displayName' => $user->getDisplayName(),
 			'subname' => $user->getEMailAddress(),
-			'icon' => 'icon-mail',
+			'iconName' => 'email',
 			'method' => 'email',
 		];
 

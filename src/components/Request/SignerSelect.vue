@@ -75,18 +75,8 @@ const iconMap = {
 	svgXmpp,
 }
 
-const apiIconToKey = {
-	'icon-user': 'svgAccount',
-	'icon-mail': 'svgEmail',
-	'icon-sms': 'svgSms',
-	'icon-whatsapp': 'svgWhatsapp',
-	'icon-signal': 'svgSignal',
-	'icon-telegram': 'svgTelegram',
-	'icon-xmpp': 'svgXmpp',
-}
-
 type IconKey = keyof typeof iconMap
-type ApiIconKey = keyof typeof apiIconToKey
+type IconName = Lowercase<IconKey extends `svg${infer Name}` ? Name : never>
 
 defineOptions({
 	name: 'SignerSelect',
@@ -98,8 +88,23 @@ type SignerOption = {
 	subname?: string
 	label?: string
 	method?: string
-	icon?: string
-	iconSvg?: string
+	iconName?: IconName
+	acceptsEmailNotifications?: boolean
+}
+
+type SearchResultSigner = {
+	id: string
+	displayName: string
+	subname: string
+	method?: string
+	iconName?: string
+	acceptsEmailNotifications?: boolean
+}
+
+type NormalizedSignerOption = SignerOption & {
+	displayName: string
+	subname: string
+	label: string
 }
 
 const emit = defineEmits<{
@@ -119,7 +124,7 @@ const props = withDefaults(defineProps<{
 const select = ref<{ $el?: HTMLElement } | null>(null)
 const container = ref<HTMLElement | null>(null)
 const loading = ref(false)
-const options = ref<SignerOption[]>([])
+const options = ref<NormalizedSignerOption[]>([])
 const selectedSigner = ref<SignerOption | null>(null)
 const haveError = ref(false)
 const intersectionObserver = ref<IntersectionObserver | null>(null)
@@ -142,24 +147,42 @@ watch(selectedSigner, (selected) => {
 	emit('update:signer', selected)
 })
 
-function injectIcons(items: SignerOption[]) {
+function injectIcons(items: SearchResultSigner[]): NormalizedSignerOption[] {
 	return items.map((item) => {
-		const { iconSvg: _iconSvg, ...safeItem } = item
-		const iconFromApi = item.icon && item.icon in apiIconToKey
-			? iconMap[apiIconToKey[item.icon as ApiIconKey] as IconKey]
-			: undefined
-		const iconFromSvgKey = item.iconSvg && item.iconSvg in iconMap
-			? iconMap[item.iconSvg as IconKey]
-			: undefined
-		const icon = iconFromApi || iconFromSvgKey
+		const { iconName: _iconName, ...safeItem } = item
+		const iconName = getIconName(item.iconName)
 		return {
 			...safeItem,
-			...(icon ? { iconSvg: icon } : {}),
-			label: item.label ?? item.displayName ?? item.id ?? item.subname ?? '',
-			displayName: item.displayName ?? '',
-			subname: item.subname ?? '',
+			...(iconName ? { iconName } : {}),
+			label: item.displayName,
+			displayName: item.displayName,
+			subname: item.subname,
 		}
 	})
+}
+
+function normalizeSignerOption(item: SignerOption): SignerOption {
+	const iconName = getIconName(item.iconName)
+	return {
+		...item,
+		...(iconName ? { iconName } : {}),
+		label: item.label ?? item.displayName ?? '',
+		displayName: item.displayName ?? '',
+		subname: item.subname ?? '',
+	}
+}
+
+function toIconKey(iconName?: string): IconKey | undefined {
+	if (typeof iconName !== 'string' || iconName.length === 0) {
+		return undefined
+	}
+
+	const iconKey = `svg${iconName.charAt(0).toUpperCase()}${iconName.slice(1)}` as IconKey
+	return iconKey in iconMap ? iconKey : undefined
+}
+
+function getIconName(iconName?: string): IconName | undefined {
+	return toIconKey(iconName) ? iconName as IconName : undefined
 }
 
 function getOption(slotProps?: { option?: SignerOption } | SignerOption) {
@@ -186,7 +209,8 @@ function getOptionSubname(slotProps?: { option?: SignerOption } | SignerOption) 
 }
 
 function getOptionIcon(slotProps?: { option?: SignerOption } | SignerOption) {
-	return getOption(slotProps).iconSvg || ''
+	const iconKey = toIconKey(getOption(slotProps).iconName)
+	return iconKey ? iconMap[iconKey] : ''
 }
 
 async function _asyncFind(search: string, lookup = false) {
@@ -209,7 +233,7 @@ async function _asyncFind(search: string, lookup = false) {
 		if (requestId !== activeRequestId.value) {
 			return
 		}
-		options.value = injectIcons(response.data.ocs.data)
+		options.value = injectIcons(response.data.ocs.data as SearchResultSigner[])
 	} catch (error) {
 		if (requestId === activeRequestId.value) {
 			haveError.value = true
@@ -253,7 +277,7 @@ function setupVisibilityObserver() {
 
 onMounted(() => {
 	if (Object.keys(props.signer).length > 0) {
-		selectedSigner.value = props.signer as SignerOption
+		selectedSigner.value = normalizeSignerOption(props.signer as SignerOption)
 	}
 	setupVisibilityObserver()
 	focusInput()
@@ -272,6 +296,7 @@ defineExpose({
 	noResultText,
 	handleMethodChange,
 	injectIcons,
+	normalizeSignerOption,
 	getOption,
 	getOptionLabel,
 	getOptionSubname,

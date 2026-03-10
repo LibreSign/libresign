@@ -50,7 +50,7 @@ namespace OCA\Libresign;
  *     displayName: string,
  *     subname: string,
  *     shareType: 0|4,
- *     icon?: 'icon-mail'|'icon-user',
+ *     iconName?: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
  *     acceptsEmailNotifications?: boolean,
  * }
  * @psalm-type LibresignPagination = array{
