@@ -43,7 +43,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param integer $signRequestId Id of sign request
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
-	 * @param integer|null $fileId File ID when using node identifier instead of UUID
+	 * @param integer|null $fileId LibreSign file ID that owns the visible element
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
 	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
@@ -94,7 +94,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param integer $signRequestId Id of sign request
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
-	 * @param integer|null $fileId File ID when using node identifier instead of UUID
+	 * @param integer|null $fileId LibreSign file ID that owns the visible element
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
 	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
