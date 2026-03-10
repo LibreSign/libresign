@@ -21,14 +21,23 @@ type TranslationParams = {
 	date?: string
 }
 
-type GlobalT = (app: string, msg: string, params?: TranslationParams) => string
-
 type Signer = {
 	email: string
 	identify?: string | number
 	localKey?: string
 	signRequestId?: number
 }
+
+vi.mock('@nextcloud/l10n', () => ({
+	t: vi.fn((_app: string, msg: string, params?: TranslationParams) => {
+		if (!params) {
+			return msg
+		}
+		const name = params.name ?? ''
+		const date = params.date ?? ''
+		return msg.replace('{name}', name).replace('{date}', date)
+	}),
+}))
 
 // Mock @nextcloud/logger to avoid import-time errors
 vi.mock('@nextcloud/logger', () => ({
@@ -140,15 +149,6 @@ describe('files store - critical business rules', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
 		vi.clearAllMocks()
-		const tMock: GlobalT = (app, msg, params) => {
-			if (!params) {
-				return msg
-			}
-			const name = params.name ?? ''
-			const date = params.date ?? ''
-			return msg.replace('{name}', name).replace('{date}', date)
-		}
-		;(globalThis as typeof globalThis & { t: GlobalT }).t = vi.fn(tMock)
 	})
 
 	describe('RULE: removing selected file clears selection', () => {

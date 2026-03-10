@@ -13,7 +13,24 @@ import { useFilesStore } from '../../../store/files.js'
 import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../../constants.js'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
 
+const interpolateText = (text: string, vars?: Record<string, unknown>) => {
+	if (!vars) {
+		return text
+	}
+
+	return text.replace(/{(\w+)}/g, (_match: string, key: string) => String(vars[key]))
+}
+
 vi.mock('@nextcloud/axios')
+vi.mock('@nextcloud/l10n', () => ({
+	t: vi.fn((_app, text, vars) => interpolateText(text, vars)),
+	n: vi.fn((_app, singular, plural, count) => (count === 1 ? singular : plural)),
+	translate: vi.fn((_app, text, vars) => interpolateText(text, vars)),
+	translatePlural: vi.fn((_app, singular, plural, count) => (count === 1 ? singular : plural)),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
+}))
 
 vi.mock('@nextcloud/capabilities')
 vi.mock('@nextcloud/router', () => ({
