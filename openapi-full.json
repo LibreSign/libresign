@@ -816,11 +816,16 @@
                             4
                         ]
                     },
-                    "icon": {
+                    "iconName": {
                         "type": "string",
                         "enum": [
-                            "icon-mail",
-                            "icon-user"
+                            "account",
+                            "email",
+                            "signal",
+                            "sms",
+                            "telegram",
+                            "whatsapp",
+                            "xmpp"
                         ]
                     },
                     "acceptsEmailNotifications": {

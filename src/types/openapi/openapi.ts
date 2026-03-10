@@ -1241,7 +1241,7 @@ export type components = {
              */
             shareType: 0 | 4;
             /** @enum {string} */
-            icon?: "icon-mail" | "icon-user";
+            iconName?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
             acceptsEmailNotifications?: boolean;
         };
         IdentifyMethod: {
