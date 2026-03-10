@@ -326,8 +326,8 @@ class RequestSignatureService {
 		$fileId = null;
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
 			$fileId = $data['file']['fileNode']->getId();
-		} elseif (!empty($data['file']['fileId'])) {
-			$fileId = $data['file']['fileId'];
+		} elseif (!empty($data['file']['nodeId'])) {
+			$fileId = $data['file']['nodeId'];
 		}
 		if (!is_null($fileId)) {
 			try {
