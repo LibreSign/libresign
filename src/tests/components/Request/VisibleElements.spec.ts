@@ -861,13 +861,13 @@ describe('VisibleElements Component - Business Rules', () => {
 			{
 				label: 'mixed files with invalid entries',
 				input: [
-					{ id: 545, visibleElements: [{ elementId: 185, fileId: 545 }] },
+					{ id: 545, visibleElements: [{ elementId: 185, fileId: 545, signRequestId: 603, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } }] },
 					{ id: 999, visibleElements: null },
-					{ id: 546, visibleElements: [{ elementId: 186, fileId: 546 }] },
+					{ id: 546, visibleElements: [{ elementId: 186, fileId: 546, signRequestId: 604, type: 'signature', coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } }] },
 				],
 				expected: [
-					{ elementId: 185, fileId: 545 },
-					{ elementId: 186, fileId: 546 },
+					{ elementId: 185, fileId: 545, signRequestId: 603, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+					{ elementId: 186, fileId: 546, signRequestId: 604, type: 'signature', coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } },
 				],
 			},
 			{
@@ -876,16 +876,16 @@ describe('VisibleElements Component - Business Rules', () => {
 					{
 						id: 100,
 						visibleElements: [
-							{ elementId: 1, fileId: 100 },
-							{ elementId: 2, fileId: 100 },
+							{ elementId: 1, fileId: 100, signRequestId: 601, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+							{ elementId: 2, fileId: 100, signRequestId: 602, type: 'signature', coordinates: { page: 2, left: 11, top: 21, width: 31, height: 41 } },
 						],
 					},
-					{ id: 200, visibleElements: [{ elementId: 3, fileId: 200 }] },
+					{ id: 200, visibleElements: [{ elementId: 3, fileId: 200, signRequestId: 603, type: 'signature', coordinates: { page: 1, left: 12, top: 22, width: 32, height: 42 } }] },
 				],
 				expected: [
-					{ elementId: 1, fileId: 100 },
-					{ elementId: 2, fileId: 100 },
-					{ elementId: 3, fileId: 200 },
+					{ elementId: 1, fileId: 100, signRequestId: 601, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+					{ elementId: 2, fileId: 100, signRequestId: 602, type: 'signature', coordinates: { page: 2, left: 11, top: 21, width: 31, height: 41 } },
+					{ elementId: 3, fileId: 200, signRequestId: 603, type: 'signature', coordinates: { page: 1, left: 12, top: 22, width: 32, height: 42 } },
 				],
 			},
 		])('handles $label', ({ input, expected }) => {
@@ -898,13 +898,13 @@ describe('VisibleElements Component - Business Rules', () => {
 			{
 				label: 'applies aggregated visible elements when available',
 				childFiles: [
-					{ id: 545, name: 'file1.pdf', visibleElements: [{ type: 'signature', elementId: '185', fileId: 545, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } }] },
-					{ id: 546, name: 'file2.pdf', visibleElements: [{ type: 'signature', elementId: '186', fileId: 546, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } }] },
+					{ id: 545, name: 'file1.pdf', visibleElements: [{ type: 'signature', elementId: 185, fileId: 545, signRequestId: 603, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } }] },
+					{ id: 546, name: 'file2.pdf', visibleElements: [{ type: 'signature', elementId: 186, fileId: 546, signRequestId: 604, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } }] },
 				],
-				initialVisibleElements: [{ type: 'signature', elementId: '999', fileId: 1, coordinates: { page: 1, left: 1, top: 2, width: 3, height: 4 } }],
+				initialVisibleElements: [{ type: 'signature', elementId: 999, fileId: 1, signRequestId: 600, coordinates: { page: 1, left: 1, top: 2, width: 3, height: 4 } }],
 				expectedVisibleElements: [
-					{ type: 'signature', elementId: '185', fileId: 545, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
-					{ type: 'signature', elementId: '186', fileId: 546, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } },
+					{ type: 'signature', elementId: 185, fileId: 545, signRequestId: 603, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+					{ type: 'signature', elementId: 186, fileId: 546, signRequestId: 604, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } },
 				],
 			},
 			{
@@ -913,8 +913,8 @@ describe('VisibleElements Component - Business Rules', () => {
 					{ id: 545, name: 'file1.pdf', visibleElements: [] },
 					{ id: 546, name: 'file2.pdf' },
 				],
-				initialVisibleElements: [{ type: 'signature', elementId: '999', fileId: 1, coordinates: { page: 1, left: 1, top: 2, width: 3, height: 4 } }],
-				expectedVisibleElements: [{ type: 'signature', elementId: '999', fileId: 1, coordinates: { page: 1, left: 1, top: 2, width: 3, height: 4 } }],
+				initialVisibleElements: [{ type: 'signature', elementId: 999, fileId: 1, signRequestId: 600, coordinates: { page: 1, left: 1, top: 2, width: 3, height: 4 } }],
+				expectedVisibleElements: [{ type: 'signature', elementId: 999, fileId: 1, signRequestId: 600, coordinates: { page: 1, left: 1, top: 2, width: 3, height: 4 } }],
 			},
 		])('$label', async ({ childFiles, initialVisibleElements, expectedVisibleElements }) => {
 			filesStore.files[1].id = 544
@@ -980,8 +980,8 @@ describe('VisibleElements Component - Business Rules', () => {
 			await wrapper.vm.fetchFiles()
 
 			expect(wrapper.vm.document.visibleElements).toEqual([
-				{ type: 'signature', elementId: '185', fileId: 545, signRequestId: 603, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
-				{ type: 'signature', elementId: '186', fileId: 546, signRequestId: 604, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } },
+				{ type: 'signature', elementId: 185, fileId: 545, signRequestId: 603, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+				{ type: 'signature', elementId: 186, fileId: 546, signRequestId: 604, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } },
 			])
 		})
 	})
