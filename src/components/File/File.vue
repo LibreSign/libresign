@@ -38,7 +38,7 @@ defineOptions({
 	name: 'File',
 })
 
-type OpenApiNextcloudFile = components['schemas']['NextcloudFile']
+type OpenApiNextcloudFile = components['schemas']['FileSummary']
 
 type CurrentFileRecord = {
 	id?: OpenApiNextcloudFile['id'] | string | number
