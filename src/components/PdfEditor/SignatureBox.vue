@@ -17,7 +17,7 @@ import { usernameToColor } from '@nextcloud/vue/functions/usernameToColor'
 import { computed } from 'vue'
 import type { components } from '../../types/openapi/openapi'
 
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiSigner = components['schemas']['SignerDetail']
 
 type SignerIdentity = {
 	displayName?: OpenApiSigner['displayName']
