@@ -113,7 +113,7 @@ defineOptions({
 })
 
 type OpenApiIdentifyMethod = components['schemas']['IdentifyMethod']
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiSigner = components['schemas']['SignerDetail']
 
 type IdentifyMethod = Pick<OpenApiIdentifyMethod, 'method' | 'value'>
 
