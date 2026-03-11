@@ -69,8 +69,8 @@ import {
 import { buildStatusMap } from '../../utils/fileStatus.js'
 import type { components } from '../../types/openapi/openapi'
 
-type OpenApiNextcloudFile = components['schemas']['NextcloudFile']
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiNextcloudFile = components['schemas']['DetailedFileResponse']
+type OpenApiSigner = components['schemas']['SignerDetail']
 
 type ProgressFile = {
 	id: number
