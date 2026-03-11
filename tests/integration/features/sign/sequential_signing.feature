@@ -19,14 +19,14 @@ Feature: sequential-signing
       | name | Parallel Document |
     Then the response should have a status code 200
     And as user "signer1"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And the response should have a status code 200
     And fetch field "(SIGN_UUID_1)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID_1>"
       | method | clickToSign |
     Then the response should have a status code 200
     And as user "signer2"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And the response should have a status code 200
     And fetch field "(SIGN_UUID_2)ocs.data.data.0.signers.1.sign_uuid" from previous JSON response
     When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID_2>"
@@ -47,14 +47,14 @@ Feature: sequential-signing
     Then the response should have a status code 200
     # Signer2 should NOT see the file yet (their sign_request is in DRAFT status)
     Given as user "signer2"
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                        | value |
       | (jq).ocs.data.data\|length | 0     |
     # Signer1 can see and sign the document
     Given as user "signer1"
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should have a status code 200
     And fetch field "(SIGN_UUID_1)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID_1>"
@@ -62,7 +62,7 @@ Feature: sequential-signing
     Then the response should have a status code 200
     # After signer1 signs, signer2 should now see the file and be able to sign
     Given as user "signer2"
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should have a status code 200
     And fetch field "(SIGN_UUID_2)ocs.data.data.0.signers.1.sign_uuid" from previous JSON response
     When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID_2>"

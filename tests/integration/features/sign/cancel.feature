@@ -9,7 +9,7 @@ Feature: sign-request-cancel
       | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     And the response should have a status code 200
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
     And fetch field "(SIGN_REQUEST_ID)ocs.data.data.0.signers.0.signRequestId" from previous JSON response
     When sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/<SIGN_REQUEST_ID>"
@@ -31,7 +31,7 @@ Feature: sign-request-cancel
       | name | document |
       | status | 0 |
     And the response should have a status code 200
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
     And fetch field "(SIGN_REQUEST_ID)ocs.data.data.0.signers.0.signRequestId" from previous JSON response
     And sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/<SIGN_REQUEST_ID>"
@@ -50,7 +50,7 @@ Feature: sign-request-cancel
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
     And fetch field "(SIGN_REQUEST_ID)ocs.data.data.0.signers.0.signRequestId" from previous JSON response
     And sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/<SIGN_REQUEST_ID>"
@@ -67,7 +67,7 @@ Feature: sign-request-cancel
       | signers | [{"identify":{"account":"signer1"}}] |
       | name | document |
     And the response should have a status code 200
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
     And fetch field "(SIGN_REQUEST_ID)ocs.data.data.0.signers.0.signRequestId" from previous JSON response
     Then the response should be a JSON array with the following mandatory values
