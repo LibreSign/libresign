@@ -49,7 +49,7 @@
 @@ -328,6 +328,50 @@
          return true;
      }
- 
+
 +    protected function mergeAllOfSchemas(array $schemas): array
 +    {
 +        $mergedSchema = [];
@@ -99,7 +99,7 @@
       * @param array $schemaArray
 @@ -362,27 +406,21 @@
          }
- 
+
          if (isset($schemaArray['allOf'])) {
 -            $allOfSchemas = $schemaArray['allOf'];
 -            foreach ($allOfSchemas as &$schema) {
@@ -112,7 +112,7 @@
 -            return $this->matchSchema($name, $mergedSchema, $body);
 +            return $this->matchSchema($name, $this->mergeAllOfSchemas($schemaArray['allOf']), $body);
          }
- 
+
 -        if (isset($schemaArray['oneOf'])) {
 +        if (isset($schemaArray['oneOf']) || isset($schemaArray['anyOf'])) {
 +            $schemas = $schemaArray['oneOf'] ?? $schemaArray['anyOf'];
