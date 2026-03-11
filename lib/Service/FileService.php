@@ -49,9 +49,7 @@ use stdClass;
 use TypeError;
 
 /**
- * @psalm-import-type LibresignEnvelopeChildFile from ResponseDefinitions
- * @psalm-import-type LibresignValidateFile from ResponseDefinitions
- * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
+ * @psalm-import-type LibresignValidatedFile from ResponseDefinitions
  */
 class FileService {
 
@@ -585,8 +583,8 @@ class FileService {
 	}
 
 	/**
-	 * @return LibresignValidateFile
-	 * @psalm-return LibresignValidateFile
+	 * @return array
+	 * @psalm-return LibresignValidatedFile
 	 */
 	public function toArray(): array {
 		$this->loadLibreSignData();
