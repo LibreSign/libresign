@@ -13,6 +13,20 @@ import { useSidebarStore } from '../../../store/sidebar.js'
 import type { FileEntrySource } from '../../../composables/useFileEntry.js'
 import type { TranslationFunction } from '../../test-types'
 
+vi.mock('@nextcloud/axios', () => ({
+	default: {
+		get: vi.fn().mockResolvedValue({ data: { ocs: { data: null } } }),
+		post: vi.fn(),
+		patch: vi.fn(),
+		delete: vi.fn(),
+	},
+}))
+
+vi.mock('@nextcloud/router', () => ({
+	generateOcsUrl: vi.fn((path: string) => path),
+	generateUrl: vi.fn((path: string) => path),
+}))
+
 type FileEntryVm = InstanceType<typeof FileEntry> & {
 	actions: {
 		doRename: (newName: string) => Promise<void>
