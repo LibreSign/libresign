@@ -177,31 +177,48 @@ import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
-import type { FileRecord, SignerRecord } from '../../types/index'
+import type { components } from '../../types/openapi/openapi'
 
 defineOptions({
 	name: 'EnvelopeValidation',
 })
 
-type EnvelopeFile = Omit<FileRecord, 'status' | 'statusText' | 'signers'> & {
-	status: string | number
+type OpenApiFileListItem = components['schemas']['FileListItem']
+type OpenApiSigner = components['schemas']['Signer']
+type OpenApiValidateFile = components['schemas']['ValidateFile']
+
+type EnvelopeFile = {
+	uuid?: OpenApiFileListItem['uuid']
+	name?: OpenApiFileListItem['name']
+	nodeId?: OpenApiFileListItem['nodeId'] | number | string
+	status: OpenApiFileListItem['status'] | string | number
 	opened?: boolean
 	statusText?: string
 	totalPages?: number
 	size?: string | number
 	pdfVersion?: string
-	signers?: Array<Record<string, unknown>>
+	signers?: EnvelopeSigner[]
 }
 
-type EnvelopeSigner = Omit<Pick<SignerRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'signed' | 'remote_address' | 'user_agent'>, 'signed'> & {
+type EnvelopeSigner = {
+	displayName?: OpenApiSigner['displayName']
+	email?: OpenApiSigner['email']
+	userId?: OpenApiSigner['userId']
+	request_sign_date?: OpenApiSigner['request_sign_date']
+	remote_address?: OpenApiSigner['remote_address']
+	user_agent?: OpenApiSigner['user_agent']
 	opened?: boolean
 	signed?: string
 	documentsSignedCount?: number
 	totalDocuments?: number
 }
 
-type EnvelopeDocument = Omit<FileRecord, 'status' | 'files' | 'signers'> & {
-	status?: string | number
+type EnvelopeDocument = {
+	uuid?: OpenApiValidateFile['uuid']
+	name?: OpenApiValidateFile['name']
+	nodeId?: OpenApiValidateFile['nodeId'] | number | string
+	status?: OpenApiValidateFile['status'] | string | number
+	filesCount?: number
 	files?: EnvelopeFile[]
 	signers?: EnvelopeSigner[]
 	signedDate?: string
