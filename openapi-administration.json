@@ -20,6 +20,53 @@
             }
         },
         "schemas": {
+            "ActiveSigningItem": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "uuid",
+                    "name",
+                    "signerEmail",
+                    "signerDisplayName",
+                    "updatedAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "signerEmail": {
+                        "type": "string"
+                    },
+                    "signerDisplayName": {
+                        "type": "string"
+                    },
+                    "updatedAt": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "ActiveSigningsResponse": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ActiveSigningItem"
+                        }
+                    }
+                }
+            },
             "Capabilities": {
                 "type": "object",
                 "required": [
@@ -111,6 +158,42 @@
                     }
                 }
             },
+            "CertificateEngineConfigResponse": {
+                "type": "object",
+                "required": [
+                    "engine",
+                    "identify_methods"
+                ],
+                "properties": {
+                    "engine": {
+                        "type": "string"
+                    },
+                    "identify_methods": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/IdentifyMethodSetting"
+                        }
+                    }
+                }
+            },
+            "CertificatePolicyResponse": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "CPS"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "success"
+                        ]
+                    },
+                    "CPS": {
+                        "type": "string"
+                    }
+                }
+            },
             "CetificateDataGenerated": {
                 "allOf": [
                     {
@@ -156,6 +239,141 @@
                     }
                 }
             },
+            "ConfigureChecksResponse": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/ConfigureCheck"
+                }
+            },
+            "CrlListItem": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "serial_number",
+                    "owner",
+                    "status",
+                    "certificate_type",
+                    "engine",
+                    "instance_id",
+                    "generation",
+                    "issued_at",
+                    "valid_to",
+                    "revoked_at",
+                    "reason_code",
+                    "comment",
+                    "revoked_by",
+                    "invalidity_date",
+                    "crl_number"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "serial_number": {
+                        "type": "string"
+                    },
+                    "owner": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "certificate_type": {
+                        "type": "string"
+                    },
+                    "engine": {
+                        "type": "string"
+                    },
+                    "instance_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "generation": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "issued_at": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "valid_to": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "revoked_at": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "reason_code": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "comment": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "revoked_by": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "invalidity_date": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "crl_number": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    }
+                }
+            },
+            "CrlListResponse": {
+                "type": "object",
+                "required": [
+                    "data",
+                    "total",
+                    "page",
+                    "length"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CrlListItem"
+                        }
+                    },
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "length": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "CrlRevokeResponse": {
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
             "EngineHandler": {
                 "type": "object",
                 "required": [
@@ -178,6 +396,100 @@
                     },
                     "rootCert": {
                         "$ref": "#/components/schemas/RootCertificate"
+                    }
+                }
+            },
+            "EngineHandlerResponse": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/EngineHandler"
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "required": [
+                    "error"
+                ],
+                "properties": {
+                    "error": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ErrorStatusResponse": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "message"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "error"
+                        ]
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "FailureStatusResponse": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "message"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "failure"
+                        ]
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "FooterTemplateResponse": {
+                "type": "object",
+                "required": [
+                    "template",
+                    "isDefault",
+                    "preview_width",
+                    "preview_height"
+                ],
+                "properties": {
+                    "template": {
+                        "type": "string"
+                    },
+                    "isDefault": {
+                        "type": "boolean"
+                    },
+                    "preview_width": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "preview_height": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "HasRootCertResponse": {
+                "type": "object",
+                "required": [
+                    "hasRootCert"
+                ],
+                "properties": {
+                    "hasRootCert": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -204,6 +516,17 @@
                     },
                     "signatureMethods": {
                         "$ref": "#/components/schemas/SignatureMethods"
+                    }
+                }
+            },
+            "MessageResponse": {
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
                     }
                 }
             },
@@ -405,6 +728,77 @@
                         "$ref": "#/components/schemas/SignatureMethodPassword"
                     }
                 }
+            },
+            "SignatureTemplateSettingsResponse": {
+                "type": "object",
+                "required": [
+                    "default_signature_text_template",
+                    "signature_available_variables"
+                ],
+                "properties": {
+                    "default_signature_text_template": {
+                        "type": "string"
+                    },
+                    "signature_available_variables": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "SignatureTextSettingsResponse": {
+                "type": "object",
+                "required": [
+                    "template",
+                    "parsed",
+                    "templateFontSize",
+                    "signatureFontSize",
+                    "signatureWidth",
+                    "signatureHeight",
+                    "renderMode"
+                ],
+                "properties": {
+                    "template": {
+                        "type": "string"
+                    },
+                    "parsed": {
+                        "type": "string"
+                    },
+                    "templateFontSize": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "signatureFontSize": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "signatureWidth": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "signatureHeight": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "renderMode": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SuccessStatusResponse": {
+                "type": "object",
+                "required": [
+                    "status"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "success"
+                        ]
+                    }
+                }
             }
         }
     },
@@ -533,15 +927,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/EngineHandler"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/EngineHandlerResponse"
                                                 }
                                             }
                                         }
@@ -571,15 +957,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
@@ -710,15 +1088,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/EngineHandler"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/EngineHandlerResponse"
                                                 }
                                             }
                                         }
@@ -748,15 +1118,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
@@ -849,22 +1211,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "engine",
-                                                        "identify_methods"
-                                                    ],
-                                                    "properties": {
-                                                        "engine": {
-                                                            "type": "string"
-                                                        },
-                                                        "identify_methods": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/components/schemas/IdentifyMethodSetting"
-                                                            }
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/CertificateEngineConfigResponse"
                                                 }
                                             }
                                         }
@@ -894,15 +1241,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
@@ -1050,10 +1389,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "$ref": "#/components/schemas/ConfigureCheck"
-                                                    }
+                                                    "$ref": "#/components/schemas/ConfigureChecksResponse"
                                                 }
                                             }
                                         }
@@ -1199,18 +1535,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "success"
-                                                            ]
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/SuccessStatusResponse"
                                                 }
                                             }
                                         }
@@ -1240,22 +1565,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status",
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "failure"
-                                                            ]
-                                                        },
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/FailureStatusResponse"
                                                 }
                                             }
                                         }
@@ -1380,18 +1690,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "success"
-                                                            ]
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/SuccessStatusResponse"
                                                 }
                                             }
                                         }
@@ -1463,18 +1762,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "success"
-                                                            ]
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/SuccessStatusResponse"
                                                 }
                                             }
                                         }
@@ -1596,43 +1884,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "template",
-                                                        "parsed",
-                                                        "templateFontSize",
-                                                        "signatureFontSize",
-                                                        "signatureWidth",
-                                                        "signatureHeight",
-                                                        "renderMode"
-                                                    ],
-                                                    "properties": {
-                                                        "template": {
-                                                            "type": "string"
-                                                        },
-                                                        "parsed": {
-                                                            "type": "string"
-                                                        },
-                                                        "templateFontSize": {
-                                                            "type": "number",
-                                                            "format": "double"
-                                                        },
-                                                        "signatureFontSize": {
-                                                            "type": "number",
-                                                            "format": "double"
-                                                        },
-                                                        "signatureWidth": {
-                                                            "type": "number",
-                                                            "format": "double"
-                                                        },
-                                                        "signatureHeight": {
-                                                            "type": "number",
-                                                            "format": "double"
-                                                        },
-                                                        "renderMode": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/SignatureTextSettingsResponse"
                                                 }
                                             }
                                         }
@@ -1662,15 +1914,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -1760,43 +2004,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "template",
-                                                        "parsed",
-                                                        "templateFontSize",
-                                                        "signatureFontSize",
-                                                        "signatureWidth",
-                                                        "signatureHeight",
-                                                        "renderMode"
-                                                    ],
-                                                    "properties": {
-                                                        "template": {
-                                                            "type": "string"
-                                                        },
-                                                        "parsed": {
-                                                            "type": "string"
-                                                        },
-                                                        "templateFontSize": {
-                                                            "type": "number",
-                                                            "format": "double"
-                                                        },
-                                                        "signatureFontSize": {
-                                                            "type": "number",
-                                                            "format": "double"
-                                                        },
-                                                        "signatureWidth": {
-                                                            "type": "number",
-                                                            "format": "double"
-                                                        },
-                                                        "signatureHeight": {
-                                                            "type": "number",
-                                                            "format": "double"
-                                                        },
-                                                        "renderMode": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/SignatureTextSettingsResponse"
                                                 }
                                             }
                                         }
@@ -1826,15 +2034,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -1908,22 +2108,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "default_signature_text_template",
-                                                        "signature_available_variables"
-                                                    ],
-                                                    "properties": {
-                                                        "default_signature_text_template": {
-                                                            "type": "string"
-                                                        },
-                                                        "signature_available_variables": {
-                                                            "type": "object",
-                                                            "additionalProperties": {
-                                                                "type": "string"
-                                                            }
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/SignatureTemplateSettingsResponse"
                                                 }
                                             }
                                         }
@@ -2079,15 +2264,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -2161,22 +2338,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status",
-                                                        "CPS"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "success"
-                                                            ]
-                                                        },
-                                                        "CPS": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/CertificatePolicyResponse"
                                                 }
                                             }
                                         }
@@ -2206,22 +2368,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status",
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "failure"
-                                                            ]
-                                                        },
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/FailureStatusResponse"
                                                 }
                                             }
                                         }
@@ -2386,18 +2533,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "success"
-                                                            ]
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/SuccessStatusResponse"
                                                 }
                                             }
                                         }
@@ -2427,22 +2563,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status",
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "failure"
-                                                            ]
-                                                        },
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/FailureStatusResponse"
                                                 }
                                             }
                                         }
@@ -2736,18 +2857,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "success"
-                                                            ]
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/SuccessStatusResponse"
                                                 }
                                             }
                                         }
@@ -2777,22 +2887,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status",
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "error"
-                                                            ]
-                                                        },
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorStatusResponse"
                                                 }
                                             }
                                         }
@@ -2864,18 +2959,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "success"
-                                                            ]
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/SuccessStatusResponse"
                                                 }
                                             }
                                         }
@@ -2949,29 +3033,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "template",
-                                                        "isDefault",
-                                                        "preview_width",
-                                                        "preview_height"
-                                                    ],
-                                                    "properties": {
-                                                        "template": {
-                                                            "type": "string"
-                                                        },
-                                                        "isDefault": {
-                                                            "type": "boolean"
-                                                        },
-                                                        "preview_width": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "preview_height": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/FooterTemplateResponse"
                                                 }
                                             }
                                         }
@@ -3083,15 +3145,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -3189,15 +3243,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
@@ -3227,15 +3273,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -3265,15 +3303,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -3371,15 +3401,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
@@ -3409,15 +3431,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -3447,15 +3461,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -3554,15 +3560,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
@@ -3592,15 +3590,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -3630,15 +3620,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -3712,48 +3694,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "data": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object",
-                                                                "required": [
-                                                                    "id",
-                                                                    "uuid",
-                                                                    "name",
-                                                                    "signerEmail",
-                                                                    "signerDisplayName",
-                                                                    "updatedAt"
-                                                                ],
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer",
-                                                                        "format": "int64"
-                                                                    },
-                                                                    "uuid": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "signerEmail": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "signerDisplayName": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "updatedAt": {
-                                                                        "type": "integer",
-                                                                        "format": "int64"
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ActiveSigningsResponse"
                                                 }
                                             }
                                         }
@@ -3783,15 +3724,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "error"
-                                                    ],
-                                                    "properties": {
-                                                        "error": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
@@ -3967,33 +3900,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "data",
-                                                        "total",
-                                                        "page",
-                                                        "length"
-                                                    ],
-                                                    "properties": {
-                                                        "data": {
-                                                            "type": "object",
-                                                            "additionalProperties": {
-                                                                "type": "object"
-                                                            }
-                                                        },
-                                                        "total": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "page": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "length": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/CrlListResponse"
                                                 }
                                             }
                                         }
@@ -4097,19 +4004,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "success",
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "success": {
-                                                            "type": "boolean"
-                                                        },
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/CrlRevokeResponse"
                                                 }
                                             }
                                         }
@@ -4139,19 +4034,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "success",
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "success": {
-                                                            "type": "boolean"
-                                                        },
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/CrlRevokeResponse"
                                                 }
                                             }
                                         }
@@ -4181,19 +4064,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "success",
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "success": {
-                                                            "type": "boolean"
-                                                        },
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/CrlRevokeResponse"
                                                 }
                                             }
                                         }
@@ -4267,15 +4138,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "hasRootCert"
-                                                    ],
-                                                    "properties": {
-                                                        "hasRootCert": {
-                                                            "type": "boolean"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/HasRootCertResponse"
                                                 }
                                             }
                                         }
