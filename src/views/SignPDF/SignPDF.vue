@@ -66,8 +66,8 @@ import type { FileDetailRecord, ValidationFileRecord } from '../../types/index'
 
 type OpenApiValidateFile = ValidationFileRecord
 type OpenApiFileDetail = FileDetailRecord
-type OpenApiEnvelopeChildFile = components['schemas']['EnvelopeChildFile']
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiEnvelopeChildFile = components['schemas']['ValidatedChildFile']
+type OpenApiSigner = components['schemas']['SignerDetail']
 type SignError = { title?: string; message?: string }
 type SignDocumentStatus = OpenApiValidateFile['status'] | 5
 type SignDocumentFile = OpenApiEnvelopeChildFile | OpenApiFileDetail
@@ -284,20 +284,20 @@ async function loadEnvelopePdfs(parentFileId: number | string) {
 			return
 		}
 
-		const fileWithMe = loadedEnvelopeFiles.find(file => file.signers?.some(isCurrentUserSigner))
+		const fileWithMe = loadedEnvelopeFiles.find((file: SignDocumentFile) => file.signers?.some(isCurrentUserSigner))
 		if (fileWithMe) {
 			filesStore.addFile(fileWithMe)
 		}
 
 		const urls = loadedEnvelopeFiles
-			.map(file => getFileUrl(file))
+			.map((file: SignDocumentFile) => getFileUrl(file))
 			.filter((url): url is string => Boolean(url))
 		if (!urls.length) {
 			signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
 			return
 		}
 
-		fileNames.value = loadedEnvelopeFiles.map(file => `${file.name}.${file.metadata?.extension || 'pdf'}`)
+		fileNames.value = loadedEnvelopeFiles.map((file: SignDocumentFile) => `${file.name}.${file.metadata?.extension || 'pdf'}`)
 		await getCompatMethod('handleInitialStatePdfs')(urls)
 	} catch {
 		signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
@@ -325,7 +325,7 @@ async function fetchEnvelopeFiles(parentFileId: number | string) {
 function updateSigners() {
 	if (signStore.document.nodeType === 'envelope' && envelopeFiles.value.length > 0) {
 		const fileIndexById = new Map(
-			envelopeFiles.value.map((file, index) => [String(file.id), index]),
+			envelopeFiles.value.map((file: SignDocumentFile, index: number) => [String(file.id), index]),
 		)
 		const elements = aggregateVisibleElementsByFiles(envelopeFiles.value)
 			elements.forEach(element => {
@@ -351,7 +351,7 @@ function updateSigners() {
 		return
 	}
 
-	const currentSigner = signStore.document.signers?.find(signer => signer.me)
+	const currentSigner = signStore.document.signers?.find((signer: OpenApiSigner) => signer.me)
 	const visibleElements = getVisibleElementsFromDocument(signStore.document)
 	const elementsForSigner = currentSigner
 		? visibleElements.filter(element => idsMatch(element.signRequestId, currentSigner.signRequestId))
