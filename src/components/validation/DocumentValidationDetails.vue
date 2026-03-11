@@ -70,8 +70,8 @@ import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
 import type { components } from '../../types/openapi/openapi'
 
-type OpenApiValidateFile = components['schemas']['ValidateFile']
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiValidateFile = components['schemas']['ValidatedFile']
+type OpenApiSigner = components['schemas']['SignerDetail']
 
 type ValidationSigner = {
 	displayName?: OpenApiSigner['displayName']
