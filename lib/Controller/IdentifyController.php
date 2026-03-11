@@ -14,7 +14,6 @@ use OCA\Libresign\Collaboration\Collaborators\ContactPhonePlugin;
 use OCA\Libresign\Collaboration\Collaborators\ManualPhonePlugin;
 use OCA\Libresign\Collaboration\Collaborators\SignerPlugin;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Identify\ResultEnricher;
 use OCA\Libresign\Service\Identify\ResultFilter;
 use OCA\Libresign\Service\Identify\ResultFormatter;
@@ -29,7 +28,8 @@ use OCP\Collaboration\Collaborators\ISearch;
 use OCP\IRequest;
 
 /**
- * @psalm-import-type LibresignIdentifyAccount from ResponseDefinitions
+ * @psalm-import-type LibresignIdentifyAccount from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdentifyAccountsResponse from \OCA\Libresign\ResponseDefinitions
  */
 class IdentifyController extends AEnvironmentAwareController {
 	public function __construct(
@@ -54,7 +54,7 @@ class IdentifyController extends AEnvironmentAwareController {
 	 * @param string $method filter by method (email, account, sms, signal, telegram, whatsapp, xmpp)
 	 * @param int $page the number of page to return. Default: 1
 	 * @param int $limit Total of elements to return. Default: 25
-	 * @return DataResponse<Http::STATUS_OK, LibresignIdentifyAccount[], array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignIdentifyAccountsResponse, array{}>
 	 *
 	 * 200: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
@@ -89,6 +89,8 @@ class IdentifyController extends AEnvironmentAwareController {
 		$return = $this->resultFormatter->replaceShareTypeWithMethod($return);
 		$return = $this->resultEnricher->addEmailNotificationPreference($return);
 		$return = $this->resultFilter->excludeNotAllowed($return);
+		/** @var LibresignIdentifyAccountsResponse $return */
+		$return = array_values($return);
 
 		return new DataResponse($return);
 	}
