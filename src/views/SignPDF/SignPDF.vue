@@ -56,6 +56,7 @@ import {
 	getFileUrl,
 	getVisibleElementsFromDocument,
 	idsMatch,
+	isCurrentUserSigner,
 } from '../../services/visibleElementsService'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
@@ -87,7 +88,7 @@ type SignStore = {
 }
 
 type FilesStore = {
-	getAllFiles: (filter: { signer_uuid?: string }) => Promise<Record<string, SignDocument>>
+	getAllFiles: (filter: { signer_uuid?: string; details?: boolean }) => Promise<Record<string, SignDocument>>
 	addFile: (file: OpenApiFileDetail) => void
 	selectFile: (fileId: number) => void
 	getFile: () => { status?: SignDocumentStatus } | null
@@ -191,13 +192,14 @@ async function initSignExternal() {
 async function initSignInternal() {
 	const files = await filesStore.getAllFiles({
 		signer_uuid: getRouteUuid(),
+		details: true,
 	})
 	for (const key in files) {
 		const file = files[key]
 		if (!file) {
 			continue
 		}
-		const signer = file.signers?.find((row) => row.me)
+		const signer = file.signers?.find(isCurrentUserSigner)
 		if (signer) {
 			signStore.setFileToSign(file)
 			filesStore.selectFile(parseInt(key, 10))
@@ -282,7 +284,7 @@ async function loadEnvelopePdfs(parentFileId: number | string) {
 			return
 		}
 
-		const fileWithMe = loadedEnvelopeFiles.find(file => file.signers?.some(row => row.me))
+		const fileWithMe = loadedEnvelopeFiles.find(file => file.signers?.some(isCurrentUserSigner))
 		if (fileWithMe) {
 			filesStore.addFile(fileWithMe)
 		}
@@ -333,7 +335,7 @@ function updateSigners() {
 				}
 			const signers = getFileSigners(fileInfo)
 			const signer = signers.find(row => idsMatch(row.signRequestId, element.signRequestId))
-				|| signers.find(row => row.me)
+				|| signers.find(isCurrentUserSigner)
 			if (!signer) {
 				return
 			}
