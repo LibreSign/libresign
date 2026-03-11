@@ -3,44 +3,34 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-export interface Coordinates {
-	page?: number | string
-	left?: number | string
-	top?: number | string
-	width?: number | string
-	height?: number | string
+import type { components } from '../types/openapi/openapi'
+
+export type VisibleElement = components['schemas']['VisibleElement']
+export type Coordinates = VisibleElement['coordinates']
+type OpenApiFileListItem = components['schemas']['FileListItem']
+export type Signer = components['schemas']['Signer']
+export type EnvelopeChildSignerSummary = components['schemas']['EnvelopeChildSignerSummary']
+export type FileSigner = Signer | EnvelopeChildSignerSummary
+
+type NestedFileData = {
+	id?: OpenApiFileListItem['id']
+	name?: OpenApiFileListItem['name']
+	file?: string
+	signers?: FileSigner[]
 }
 
-export interface VisibleElement {
-	elementId?: number | string
-	fileId?: number | string
-	signRequestId?: number | string
-	type?: string
-	coordinates?: Coordinates
-	[key: string]: unknown
-}
-
-export interface Signer {
-	visibleElements?: VisibleElement[]
-	me?: boolean
-	signRequestId?: number | string
-	[key: string]: unknown
-}
-
-export interface FileData {
+export type FileData = {
 	id?: number | string
-	file?: unknown
-	files?: Array<{ file?: unknown; signers?: Signer[] }>
+	file?: string
+	files?: NestedFileData[]
 	visibleElements?: VisibleElement[]
-	signers?: Signer[]
-	[key: string]: unknown
+	signers?: FileSigner[]
 }
 
-export interface DocumentData {
+export type DocumentData = {
 	visibleElements?: VisibleElement[]
-	signers?: Signer[]
+	signers?: FileSigner[]
 	files?: FileData[]
-	[key: string]: unknown
 }
 
 export type VisibleElementsDocument = {
@@ -79,9 +69,9 @@ const deduplicateVisibleElements = (elements: VisibleElement[]): VisibleElement[
 			keyOf(element.fileId),
 			keyOf(element.signRequestId),
 			keyOf(element.type),
-			keyOf(element.coordinates?.page),
-			keyOf(element.coordinates?.left),
-			keyOf(element.coordinates?.top),
+			keyOf(element.coordinates.page),
+			keyOf(element.coordinates.left),
+			keyOf(element.coordinates.top),
 		].join('|')
 		if (seen.has(signature)) {
 			return
@@ -96,25 +86,36 @@ const collectSignerVisibleElements = (signers: unknown): VisibleElement[] => {
 	if (!Array.isArray(signers)) {
 		return []
 	}
-	return (signers as Signer[]).flatMap((signer) =>
-		Array.isArray(signer?.visibleElements) ? signer.visibleElements : [],
+	return signers.flatMap((signer) =>
+		typeof signer === 'object'
+		&& signer !== null
+		&& 'visibleElements' in signer
+		&& Array.isArray(signer.visibleElements)
+			? signer.visibleElements as VisibleElement[]
+			: [],
 	)
 }
 
 export const idsMatch = (left: unknown, right: unknown): boolean => keyOf(left) === keyOf(right)
 
+export const isCurrentUserSigner = (signer: FileSigner | null | undefined): signer is Signer =>
+	signer !== null
+	&& signer !== undefined
+	&& 'me' in signer
+	&& signer.me === true
+
 export const getFileUrl = (file: FileData | null | undefined): string | null =>
 	typeof file?.file === 'string'
 		? file.file
-		: typeof file?.files?.[0]?.file === 'string'
+		: Array.isArray(file?.files) && typeof file.files[0]?.file === 'string'
 			? file.files[0].file
 			: null
 
-export const getFileSigners = (file: FileData): Signer[] => {
-	if (Array.isArray(file?.signers) && file.signers.length > 0) {
+export const getFileSigners = (file: FileData): FileSigner[] => {
+	if (Array.isArray(file.signers) && file.signers.length > 0) {
 		return file.signers
 	}
-	if (Array.isArray(file?.files?.[0]?.signers)) {
+	if (Array.isArray(file.files) && Array.isArray(file.files[0]?.signers)) {
 		return file.files[0].signers
 	}
 	return []
