@@ -366,7 +366,7 @@ Feature: request-signature
       | name   | document                                        |
     And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
     And the response should have a status code 200
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "ocs.data.data.0.signers.0.signRequestId" from previous JSON response
     When sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
       | signRequestId | <ocs.data.data.0.signers.0.signRequestId> |
@@ -540,7 +540,7 @@ Feature: request-signature
       | name | document |
     And fetch field "(FILE_UUID)ocs.data.uuid" from previous JSON response
     And the response should have a status code 200
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And the response should be a JSON array with the following mandatory values
       | key                                            | value               |
       | (jq).ocs.data.data[0].name                     | document            |
@@ -556,7 +556,7 @@ Feature: request-signature
       | uuid | <FILE_UUID> |
       | signers | [{"identify":{"email":"signer1@domain.test"}}] |
     And the response should have a status code 200
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And the response should be a JSON array with the following mandatory values
       | key                                            | value               |
       | (jq).ocs.data.data[0].name                     | document            |

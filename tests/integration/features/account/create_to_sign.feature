@@ -51,7 +51,7 @@ Feature: account/create_to_sign
     And the response should have a status code 200
     # Verify that the new user can login and see the document
     When as user "signer1@domain.test"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                                        | value               |

@@ -21,7 +21,7 @@ Feature: TSA Integration - End-to-End Workflow
       | name  | TSA Document Test                                                  |
     Then the response should have a status code 200
     And as user "signer1"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should be a JSON array with the following mandatory values
       | key                        | value             |
       | (jq).ocs.data.data[0].name | TSA Document Test |
@@ -66,7 +66,7 @@ Feature: TSA Integration - End-to-End Workflow
       | signers | [{"identify": {"account": "signer1"}}]          |
       | name  | TSA Error Test                                  |
     And as user "signer1"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
       | method | clickToSign |
