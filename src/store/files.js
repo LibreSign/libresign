@@ -88,19 +88,37 @@ const _filesStore = defineStore('files', () => {
 	 * @param {FileRecord} file
 	 * @param {{ position?: 'start' | 'end' }} [options]
 	 */
-	async function addFile(file, { position = 'start' } = {}) {
+	async function addFile(file, { position = 'start', detailsLoaded } = {}) {
 		if (!file.id && !file.nodeId) {
 			return
 		}
 
 		const key = file.id ?? null
-		const fileData = file
+		const existingFile = files.value[key]
+		const resolvedDetailsLoaded = detailsLoaded
+			?? file.detailsLoaded
+			?? existingFile?.detailsLoaded
+			?? false
+		const fileData = existingFile?.detailsLoaded && !resolvedDetailsLoaded
+			? {
+				...existingFile,
+				...file,
+				signers: existingFile.signers,
+				visibleElements: existingFile.visibleElements,
+				settings: existingFile.settings,
+				files: existingFile.files,
+				detailsLoaded: true,
+			}
+			: {
+				...existingFile,
+				...file,
+				detailsLoaded: resolvedDetailsLoaded,
+			}
 
 		if (fileData.signers) {
 			addUniqueIdentifierToAllSigners(fileData.signers)
 		}
 
-		const existingFile = files.value[key]
 		if (existingFile?.settings) {
 			fileData.settings = { ...existingFile.settings, ...fileData.settings }
 		}
@@ -119,6 +137,9 @@ const _filesStore = defineStore('files', () => {
 	/** @param {number | string | null | undefined} [fileId] */
 	function selectFile(fileId) {
 		selectedFileId.value = fileId ?? 0
+		if (fileId) {
+			void fetchFileDetail({ fileId })
+		}
 		if (!fileId) {
 			const sidebarStore = useSidebarStore()
 			sidebarStore.hideSidebar()
@@ -202,16 +223,55 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	async function flushSelectedFile() {
-		const store = getStore()
-		const allFiles = await store.getAllFiles({
-			'fileIds[]': [selectedFileId.value],
-		})
-		for (const [key, file] of Object.entries(allFiles)) {
-			if (parseInt(key) === selectedFileId.value) {
-				store.addFile(file)
-				break
-			}
+		if (!selectedFileId.value) {
+			return
 		}
+		await fetchFileDetail({ fileId: selectedFileId.value, force: true })
+	}
+
+	/**
+	 * @param {{ fileId?: number | string | null, uuid?: string | null, force?: boolean }} [options]
+	 * @returns {Promise<FileRecord | null>}
+	 */
+	async function fetchFileDetail({ fileId = null, uuid = null, force = false } = {}) {
+		const store = getStore()
+		let targetFile = null
+
+		if (fileId) {
+			targetFile = files.value[fileId] || null
+		} else if (uuid) {
+			const targetId = store.getFileIdByUuid(uuid)
+			targetFile = targetId ? files.value[targetId] || null : null
+		}
+
+		if (!force && targetFile?.detailsLoaded) {
+			return targetFile
+		}
+
+		const targetUuid = uuid || targetFile?.uuid
+		const targetId = fileId || targetFile?.id
+		if (!targetUuid && !targetId) {
+			return null
+		}
+
+		const url = targetUuid
+			? generateOcsUrl('/apps/libresign/api/v1/file/validate/uuid/{uuid}', { uuid: targetUuid })
+			: generateOcsUrl('/apps/libresign/api/v1/file/validate/file_id/{fileId}', { fileId: targetId })
+
+		const response = await axios.get(url, {
+			params: {
+				showVisibleElements: true,
+				showMessages: false,
+				showValidateFile: false,
+			},
+		})
+		const fileData = response.data?.ocs?.data
+		if (!fileData) {
+			return null
+		}
+
+		await store.addFile(fileData, { detailsLoaded: true })
+		return files.value[fileData.id] || null
 	}
 
 	async function addFilesToEnvelope(envelopeUuid, formData, options = {}) {
@@ -305,6 +365,9 @@ const _filesStore = defineStore('files', () => {
 		if (selectedFileId.value <= 0) {
 			return false
 		}
+		if (typeof selectedFile?.signersCount === 'number') {
+			return selectedFile.signersCount > 0
+		}
 		if (!Object.hasOwn(selectedFile, 'signers')) {
 			return false
 		}
@@ -316,6 +379,12 @@ const _filesStore = defineStore('files', () => {
 
 	function isPartialSigned(file) {
 		const selectedFile = getFile(file)
+		if (Number(selectedFile?.status) === 2) {
+			return true
+		}
+		if (Number(selectedFile?.status) === 3) {
+			return false
+		}
 		if (!Object.hasOwn(selectedFile, 'signers')) {
 			return false
 		}
@@ -328,6 +397,9 @@ const _filesStore = defineStore('files', () => {
 
 	function isFullSigned(file) {
 		const selectedFile = getFile(file)
+		if (Number(selectedFile?.status) === 3) {
+			return true
+		}
 		if (!Object.hasOwn(selectedFile, 'signers')) {
 			return false
 		}
@@ -341,6 +413,9 @@ const _filesStore = defineStore('files', () => {
 
 	function canSign(file) {
 		const selectedFile = getFile(file)
+		if (typeof selectedFile?.canSign === 'boolean') {
+			return selectedFile.canSign
+		}
 		if (isOriginalFileDeleted(selectedFile)) {
 			return false
 		}
@@ -372,7 +447,8 @@ const _filesStore = defineStore('files', () => {
 
 	function canValidate(file) {
 		const selectedFile = getFile(file)
-		return isPartialSigned(selectedFile)
+		return [2, 3].includes(Number(selectedFile?.status))
+			|| isPartialSigned(selectedFile)
 			|| isFullSigned(selectedFile)
 	}
 
@@ -401,13 +477,12 @@ const _filesStore = defineStore('files', () => {
 				!Object.hasOwn(selectedFile, 'requested_by')
 				|| selectedFile.requested_by.userId === getCurrentUser()?.uid
 			)
-			&& !isPartialSigned(selectedFile)
-			&& !isFullSigned(selectedFile)
+			&& ![2, 3].includes(Number(selectedFile?.status))
 	}
 
 	function isDocMdpNoChangesAllowed(file) {
 		const selectedFile = getFile(file)
-		return Number(selectedFile?.docmdpLevel || 0) === 1 && selectedFile.signers && selectedFile.signers.length > 0
+		return Number(selectedFile?.docmdpLevel || 0) === 1 && Number(selectedFile?.signersCount || selectedFile?.signers?.length || 0) > 0
 	}
 
 	function isOriginalFileDeleted(file) {
@@ -425,9 +500,8 @@ const _filesStore = defineStore('files', () => {
 				!Object.hasOwn(selectedFile, 'requested_by')
 				|| selectedFile.requested_by.userId === getCurrentUser()?.uid
 			)
-			&& !isPartialSigned(selectedFile)
-			&& !isFullSigned(selectedFile)
-			&& selectedFile?.signers?.length > 0
+			&& ![2, 3].includes(Number(selectedFile?.status))
+			&& Number(selectedFile?.signersCount || selectedFile?.signers?.length || 0) > 0
 	}
 
 	function isTemporaryId(id) {
@@ -614,11 +688,12 @@ const _filesStore = defineStore('files', () => {
 
 	async function getAllFiles(filter) {
 		const store = getStore()
+		const requestDetails = filter?.details === true
 		if (loading.value || loadedAll.value) {
 			if (!filter) {
 				return files.value
 			}
-			if (!filter.force_fetch) {
+			if (!filter.force_fetch && !requestDetails) {
 				return Object.fromEntries(
 					Object.entries(files.value).filter(([, value]) => {
 						if (filter.signer_uuid) {
@@ -643,9 +718,13 @@ const _filesStore = defineStore('files', () => {
 
 		if (filter) {
 			for (const [key, value] of Object.entries(filter)) {
+				if (key === 'force_fetch' || key === 'details') {
+					continue
+				}
 				params.set(key, value)
 			}
 		}
+		params.set('details', requestDetails ? 'true' : 'false')
 		const filtersStore = useFiltersStore()
 		filtersStore.filterStatusArray.forEach(id => {
 			params.append('status[]', id)
@@ -674,7 +753,7 @@ const _filesStore = defineStore('files', () => {
 		paginationNextUrl.value = response.data.ocs.data.pagination.next
 		loadedAll.value = !paginationNextUrl.value
 		response.data.ocs.data.data.forEach((file) => {
-			store.addFile(file, { position: 'end' })
+			store.addFile(file, { position: 'end', detailsLoaded: requestDetails })
 		})
 
 		if (response.data.ocs.data.settings) {
@@ -844,6 +923,7 @@ const _filesStore = defineStore('files', () => {
 		selectFileByUuid,
 		getFile,
 		flushSelectedFile,
+		fetchFileDetail,
 		addFilesToEnvelope,
 		removeFilesFromEnvelope,
 		enableIdentifySigner,
