@@ -114,22 +114,32 @@ import {
 	getFileUrl,
 	getVisibleElementsFromDocument,
 	idsMatch,
-	type Signer as VisibleElementsSigner,
+	type Signer as VisibleElementsServiceSigner,
+	type EnvelopeChildSignerSummary,
 	type VisibleElement,
 } from '../../services/visibleElementsService'
+import type { components } from '../../types/openapi/openapi'
 import type {
-	FileRecord,
 	IdentifyMethodRecord,
 	LibresignCapabilities,
-	SignerRecord,
 } from '../../types/index'
 
-type FileSigner = VisibleElementsSigner & Omit<SignerRecord, 'visibleElements'> & {
+type OpenApiFolderSettings = components['schemas']['FolderSettings']
+type OpenApiNextcloudFile = components['schemas']['NextcloudFile']
+type OpenApiValidateFile = components['schemas']['ValidateFile']
+type OpenApiFileDetail = components['schemas']['FileDetail']
+type OpenApiFileListItem = components['schemas']['FileListItem']
+type OpenApiValidateMetadata = components['schemas']['ValidateMetadata']
+type OpenApiRequestDocument = OpenApiFileDetail | OpenApiNextcloudFile | OpenApiValidateFile
+
+type FileSigner = (VisibleElementsServiceSigner | EnvelopeChildSignerSummary) & {
 	visibleElements?: VisibleElement[]
 	identifyMethods?: IdentifyMethodRecord[]
+	identify?: string | number
+	me?: boolean
 }
 
-type VisibleElementPayload = VisibleElement & {
+type VisibleElementPayload = Omit<VisibleElement, 'coordinates' | 'elementId' | 'fileId' | 'signRequestId'> & {
 	type: 'signature'
 	elementId?: number | string
 	fileId?: number
@@ -143,28 +153,24 @@ type VisibleElementPayload = VisibleElement & {
 	}
 }
 
-type DocumentFile = FileData & FileRecord & {
+type DocumentFile = FileData & OpenApiFileListItem & {
 	id: number
 	name: string
-	metadata?: {
-		extension?: string
-		p?: number
-		d?: Array<{ h?: number }>
-	}
-	visibleElements?: VisibleElementPayload[] | null
+	metadata?: OpenApiValidateMetadata
+	visibleElements?: VisibleElement[] | null
 	signers?: FileSigner[]
 }
 
-type DocumentModel = Omit<DocumentData, 'files' | 'signers' | 'visibleElements'> & FileRecord & {
+type DocumentModel = Omit<OpenApiRequestDocument, 'files' | 'signers' | 'visibleElements'> & {
 	id?: number
 	uuid?: string
 	name: string
 	status: number | string
 	statusText: string
-	metadata?: { extension?: string }
-	settings?: NonNullable<FileRecord['settings']> & { signerFileUuid?: string }
+	metadata?: OpenApiValidateMetadata
+	settings?: OpenApiFolderSettings & { signerFileUuid?: string }
 	files?: DocumentFile[]
-	visibleElements?: VisibleElementPayload[]
+	visibleElements?: VisibleElement[]
 	signers?: FileSigner[]
 }
 
@@ -218,18 +224,18 @@ type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' |
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<{ message: string }>
 }
 
-const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElementPayload[] =>
+const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElement[] =>
 	elements.flatMap((element) => {
-		if (element.type !== 'signature' || !element.coordinates) {
+		if (element.type !== 'signature') {
 			return []
 		}
 
 		const page = Number(element.coordinates.page)
 		const left = Number(element.coordinates.left)
 		const top = Number(element.coordinates.top)
-		const normalizedFileId = typeof element.fileId === 'number'
-			? element.fileId
-			: Number(element.fileId)
+		const normalizedFileId = Number(element.fileId)
+		const normalizedSignRequestId = Number(element.signRequestId)
+		const normalizedElementId = Number(element.elementId)
 		const rawWidth = element.coordinates.width
 		const rawHeight = element.coordinates.height
 		const width = rawWidth === undefined ? undefined : Number(rawWidth)
@@ -239,7 +245,7 @@ const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElementPay
 			return []
 		}
 
-		if (!Number.isFinite(normalizedFileId)) {
+		if (!Number.isFinite(normalizedFileId) || !Number.isFinite(normalizedSignRequestId) || !Number.isFinite(normalizedElementId)) {
 			return []
 		}
 
@@ -249,9 +255,9 @@ const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElementPay
 
 		return [{
 			type: 'signature',
-			elementId: element.elementId,
+			elementId: normalizedElementId,
 			fileId: normalizedFileId,
-			signRequestId: element.signRequestId,
+			signRequestId: normalizedSignRequestId,
 			coordinates: {
 				page,
 				left,
@@ -259,7 +265,7 @@ const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElementPay
 				...(width !== undefined ? { width } : {}),
 				...(height !== undefined ? { height } : {}),
 			},
-		} satisfies VisibleElementPayload]
+		} satisfies VisibleElement]
 	})
 
 defineOptions({
@@ -388,6 +394,7 @@ async function fetchFiles() {
 	const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), {
 		params: {
 			parentFileId: document.value.id,
+			details: true,
 			force_fetch: true,
 		},
 	})
