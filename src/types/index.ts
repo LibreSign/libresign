@@ -6,7 +6,7 @@
 import type { components as ApiComponents } from './openapi/openapi'
 import type { components as AdminComponents } from './openapi/openapi-administration'
 
-export type SignatureFlowMode = ApiComponents['schemas']['NextcloudFile']['signatureFlow']
+export type SignatureFlowMode = ApiComponents['schemas']['DetailedFileResponse']['signatureFlow']
 export type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
 export type SignerIdentify = NonNullable<ApiComponents['schemas']['NewSigner']['identify']>
 export type IdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
@@ -15,14 +15,14 @@ export type VisibleElementRecord = ApiComponents['schemas']['VisibleElement']
 export type FileSettings = ApiComponents['schemas']['FolderSettings']
 export type IdentifyMethodSetting = AdminComponents['schemas']['IdentifyMethodSetting']
 export type ProgressPayload = ApiComponents['schemas']['ProgressPayload']
-export type FileDetailRecord = ApiComponents['schemas']['FileDetail']
-export type ValidationFileRecord = ApiComponents['schemas']['ValidateFile']
+export type FileDetailRecord = ApiComponents['schemas']['DetailedFile']
+export type ValidationFileRecord = ApiComponents['schemas']['ValidatedFile']
 export type SigningModeState = 'sync' | 'async'
 export type WorkerTypeState = 'local' | 'external'
 export type SignatureEngineId = 'JSignPdf' | 'PhpNative'
 export type CertificateEngineId = 'openssl' | 'cfssl' | 'none'
-type OpenApiSigner = ApiComponents['schemas']['Signer']
-type OpenApiNextcloudFile = ApiComponents['schemas']['NextcloudFile']
+type OpenApiSigner = ApiComponents['schemas']['SignerDetail']
+type OpenApiNextcloudFile = ApiComponents['schemas']['DetailedFileResponse']
 type OpenApiFileListItem = ApiComponents['schemas']['FileListItem']
 type OpenApiRequestedBy = NonNullable<OpenApiNextcloudFile['requested_by']>
 export type AdminDocMdpLevelOption = {
