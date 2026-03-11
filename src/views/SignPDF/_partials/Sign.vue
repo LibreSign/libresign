@@ -196,7 +196,7 @@ import { FILE_STATUS } from '../../../constants.js'
 import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner, type DocumentData, type FileData } from '../../../services/visibleElementsService'
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
-type OpenApiValidateFile = components['schemas']['ValidateFile']
+type OpenApiValidateFile = components['schemas']['ValidatedFile']
 type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
 	settings: OpenApiAccountMe['settings'] & {
 		phoneNumber: string
