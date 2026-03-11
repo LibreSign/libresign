@@ -283,7 +283,7 @@ type SignerModifications = {
 	revisionCount?: number
 }
 
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiSigner = components['schemas']['SignerDetail']
 
 type SignerModel = {
 	displayName?: OpenApiSigner['displayName']
