@@ -1,0 +1,45 @@
+--- a/src/AbstractRequester.php
++++ b/src/AbstractRequester.php
+@@ -126,7 +126,7 @@ abstract class AbstractRequester
+     /**
+      * @param array|null $query
+      * @return $this
+      */
+-    public function withQuery(array $query = null): self
++    public function withQuery(?array $query = null): self
+     {
+         $uri = $this->psr7Request->getUri();
+
+--- a/src/ApiTestCase.php
++++ b/src/ApiTestCase.php
+@@ -80,8 +80,8 @@ abstract class ApiTestCase extends TestCase
+         string $method,
+         string $path,
+         int $statusExpected = 200,
+         string|array|null $query = null,
+-        array|string $requestBody = null,
++        array|string|null $requestBody = null,
+         array $requestHeader = []
+     ): ResponseInterface {
+         $this->checkSchema();
+@@ -137,8 +137,8 @@ abstract class ApiTestCase extends TestCase
+ 
+         return $body;
+     }
+
+-    public function assertRequestException(AbstractRequester $request, string $exceptionClass, string $exceptionMessage = null, bool $matchQueryParams = true): Throwable
++    public function assertRequestException(AbstractRequester $request, string $exceptionClass, ?string $exceptionMessage = null, bool $matchQueryParams = true): Throwable
+     {
+         try {
+             $this->assertRequest($request, $matchQueryParams);
+--- a/src/Exception/BaseException.php
++++ b/src/Exception/BaseException.php
+@@ -9,7 +9,7 @@ class BaseException extends Exception
+ {
+     protected mixed $body;
+
+-    public function __construct($message = "", $body = [], $code = 0, Throwable $previous = null)
++    public function __construct($message = "", $body = [], $code = 0, ?Throwable $previous = null)
+     {
+         $this->body = $body;
+         if (!empty($body)) {
