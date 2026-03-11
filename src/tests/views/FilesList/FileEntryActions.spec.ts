@@ -30,6 +30,15 @@ const filesStoreMock = {
 	canDelete: vi.fn(() => true),
 	isOriginalFileDeleted: vi.fn(() => false),
 	selectFile: vi.fn(),
+	fetchFileDetail: vi.fn(async () => ({
+		id: 1,
+		uuid: 'file-uuid',
+		signUuid: 'sign-uuid',
+		name: 'contract.pdf',
+		nodeId: 17,
+		nodeType: 'file',
+		signers: [{ me: true, sign_uuid: 'sign-uuid' }],
+	})),
 	getAllFiles: vi.fn(async () => ({
 		1: { id: 1, uuid: 'file-uuid' },
 	})),
@@ -163,6 +172,7 @@ describe('FileEntryActions.vue', () => {
 		filesStoreMock.canDelete.mockReturnValue(true)
 		filesStoreMock.isOriginalFileDeleted.mockReturnValue(false)
 		filesStoreMock.selectFile.mockReset()
+		filesStoreMock.fetchFileDetail.mockClear()
 		filesStoreMock.getAllFiles.mockClear()
 		filesStoreMock.delete.mockReset()
 		filesStoreMock.rename.mockReset()
@@ -212,11 +222,15 @@ describe('FileEntryActions.vue', () => {
 		await wrapper.vm.onActionClick({ id: 'sign' })
 
 		expect(sidebarStoreMock.hideSidebar).toHaveBeenCalledTimes(1)
-		expect(filesStoreMock.getAllFiles).toHaveBeenCalledWith({
-			signer_uuid: 'sign-uuid',
-			force_fetch: true,
+		expect(filesStoreMock.fetchFileDetail).toHaveBeenCalledWith({
+			fileId: 1,
+			force: true,
 		})
-		expect(signStoreMock.setFileToSign).toHaveBeenCalledWith({ id: 1, uuid: 'file-uuid' })
+		expect(signStoreMock.setFileToSign).toHaveBeenCalledWith(expect.objectContaining({
+			id: 1,
+			uuid: 'file-uuid',
+			signUuid: 'sign-uuid',
+		}))
 		expect(routerPushMock).toHaveBeenCalledWith({
 			name: 'SignPDF',
 			params: { uuid: 'sign-uuid' },
