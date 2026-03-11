@@ -70,7 +70,7 @@ defineOptions({
 	name: 'Signer',
 })
 
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiSigner = components['schemas']['SignerDetail']
 
 type SignerListItem = {
 	displayName?: OpenApiSigner['displayName']
@@ -186,7 +186,7 @@ const identifyMethodsNames = computed(() => {
 	if (!signer.value?.identifyMethods) {
 		return []
 	}
-	return signer.value.identifyMethods.map(method => method.method)
+	return signer.value.identifyMethods.map((method: NonNullable<SignerListItem['identifyMethods']>[number]) => method.method)
 })
 
 const chipType = computed(() => {
