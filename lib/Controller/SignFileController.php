@@ -19,6 +19,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
@@ -36,6 +37,12 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
+
+/**
+ * @psalm-import-type LibresignMessageResponse from ResponseDefinitions
+ * @psalm-import-type LibresignSignActionErrorResponse from ResponseDefinitions
+ * @psalm-import-type LibresignSignActionResponse from ResponseDefinitions
+ */
 
 class SignFileController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
@@ -66,7 +73,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, code?: int, title?: string}>, redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -90,7 +97,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, code?: int, title?: string}>, redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -106,7 +113,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	}
 
 	/**
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, code?: int, title?: string}>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 */
 	public function sign(
 		string $method,
@@ -165,7 +172,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	/**
 	 * Execute asynchronous signing using background job
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, job: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>
 	 */
 	private function signAsync(
 		File $libreSignFile,
@@ -208,7 +215,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	/**
 	 * Execute synchronous signing immediately
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>
 	 */
 	private function signSync($libreSignFile, array $elements, array $metadata): DataResponse {
 		$this->signFileService
@@ -238,7 +245,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * Renew the signature method
 	 *
 	 * @param string $method Signature method
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -267,7 +274,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param 'account'|'email'|null $identifyMethod Identify signer method
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
 	 * @param string|null $identify Identify value, i.e. the signer email, account or phone number
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Error
@@ -293,7 +300,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param 'account'|'email'|null $identifyMethod Identify signer method
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
 	 * @param string|null $identify Identify value, i.e. the signer email, account or phone number
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Error
@@ -314,7 +321,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 
 	/**
 	 * @todo validate if can request code
-	 * @return DataResponse<Http::STATUS_OK|Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK|Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 */
 	private function getCode(SignRequest $signRequest): DataResponse {
 		try {
