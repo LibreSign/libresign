@@ -39,7 +39,7 @@ defineOptions({
 	inheritAttrs: false,
 })
 
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiSigner = components['schemas']['SignerDetail']
 
 type Signer = {
 	displayName?: OpenApiSigner['displayName']
