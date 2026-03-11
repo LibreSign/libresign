@@ -330,9 +330,9 @@ import type {
 	SignatureFlowValue,
 } from '../../types/index'
 
-type OpenApiSigner = components['schemas']['Signer']
-type OpenApiEnvelopeChildSignerSummary = components['schemas']['EnvelopeChildSignerSummary']
-type OpenApiNextcloudFile = components['schemas']['NextcloudFile']
+type OpenApiSigner = components['schemas']['SignerDetail']
+type OpenApiEnvelopeChildSignerSummary = components['schemas']['SignerSummary']
+type OpenApiNextcloudFile = components['schemas']['FileSummary']
 
 type RequestTabSigner = {
 	displayName?: OpenApiEnvelopeChildSignerSummary['displayName'] | OpenApiSigner['displayName']
@@ -525,7 +525,7 @@ function toIdentifySignerToEdit(signer: RequestTabSigner): IdentifySignerToEdit 
 		signRequestId: signer.signRequestId !== undefined ? String(signer.signRequestId) : undefined,
 		displayName: signer.displayName,
 		description: signer.description ?? undefined,
-		identifyMethods: signer.identifyMethods?.map(method => ({
+		identifyMethods: signer.identifyMethods?.map((method: IdentifyMethodRecord) => ({
 			method: method.method,
 			value: method.value ?? '',
 		})),
