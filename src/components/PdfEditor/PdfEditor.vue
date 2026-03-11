@@ -80,7 +80,16 @@ import {
 import SignerMenu from './SignerMenu.vue'
 import SignatureBox from './SignatureBox.vue'
 import { ensurePdfWorker } from '../../helpers/pdfWorker'
-import type { SignerRecord as SharedSignerRecord } from '../../types/index'
+import type { components } from '../../types/openapi/openapi'
+import type { VisibleElement } from '../../services/visibleElementsService'
+
+type OpenApiSigner = components['schemas']['Signer']
+
+type SignerIdentity = {
+	displayName?: OpenApiSigner['displayName']
+	email?: OpenApiSigner['email']
+	identifyMethods?: OpenApiSigner['identifyMethods']
+}
 
 type Coordinates = {
 	page: number
@@ -94,18 +103,24 @@ type Coordinates = {
 	ury?: number
 }
 
-type SignerRecord = SharedSignerRecord & {
-	element?: {
-		documentIndex?: number
-		signRequestId?: string | number
-		coordinates?: Coordinates
-		[key: string]: unknown
-	}
+type SignerPlacement = {
+	documentIndex?: number
+	coordinates?: Coordinates
+}
+
+type PdfEditorSigner = SignerIdentity & {
+	id?: string | number
+	uuid?: string | number
+	name?: string
+	signRequestId?: OpenApiSigner['signRequestId'] | string
+	status?: OpenApiSigner['status'] | number
+	visibleElements?: VisibleElement[]
+	element?: SignerPlacement
 }
 
 type PdfObject = PDFElementObject & {
 	id: string
-	signer?: SignerRecord | null
+	signer?: PdfEditorSigner | null
 }
 
 type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
@@ -143,7 +158,7 @@ const props = withDefaults(defineProps<{
 	files?: PdfInput[]
 	fileNames?: string[]
 	readOnly?: boolean
-	signers?: SignerRecord[]
+	signers?: PdfEditorSigner[]
 }>(), {
 	files: () => [],
 	fileNames: () => [],
@@ -239,14 +254,14 @@ function handleObjectClick(event: Record<string, unknown>) {
 	emit('pdf-editor:object-click', event)
 }
 
-function getSignerLabel(signer: SignerRecord | null | undefined) {
+function getSignerLabel(signer: PdfEditorSigner | null | undefined) {
 	if (!signer) {
 		return ''
 	}
 	return String(signer.displayName || signer.name || signer.email || signer.id || '')
 }
 
-function onSignerChange(object: PdfObject | null | undefined, signer: SignerRecord | null | undefined) {
+function onSignerChange(object: PdfObject | null | undefined, signer: PdfEditorSigner | null | undefined) {
 	if (!object || !signer || !pdfElements.value) {
 		return
 	}
@@ -265,9 +280,9 @@ function onSignerChange(object: PdfObject | null | undefined, signer: SignerReco
 	}
 
 	const currentElement = object.signer?.element ? { ...object.signer.element } : null
-	const nextSigner = structuredClone(toRaw(targetSigner)) as SignerRecord
+	const nextSigner = structuredClone(toRaw(targetSigner)) as PdfEditorSigner
 	if (currentElement) {
-		nextSigner.element = { ...currentElement, signRequestId: targetSigner.signRequestId }
+		nextSigner.element = { ...currentElement }
 	}
 	if (!nextSigner.displayName) {
 		const fallbackName = getSignerLabel(signer)
@@ -344,7 +359,7 @@ function scheduleSignerAddedCheck() {
 	pendingAddCheckTimer = setTimeout(checkSignerAdded, 0)
 }
 
-function startAddingSigner(signer: SignerRecord | null | undefined, size: { width?: number, height?: number }) {
+function startAddingSigner(signer: PdfEditorSigner | null | undefined, size: { width?: number, height?: number }) {
 	if (!pdfElements.value || !size?.width || !size?.height) {
 		return false
 	}
@@ -371,7 +386,7 @@ function cancelAdding() {
 	clearPendingAddCheck()
 }
 
-async function addSigner(signer: SignerRecord) {
+async function addSigner(signer: PdfEditorSigner) {
 	if (!pdfElements.value || !signer.element?.coordinates) {
 		return
 	}
