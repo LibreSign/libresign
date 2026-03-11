@@ -184,8 +184,8 @@ defineOptions({
 })
 
 type OpenApiFileListItem = components['schemas']['FileListItem']
-type OpenApiSigner = components['schemas']['Signer']
-type OpenApiValidateFile = components['schemas']['ValidateFile']
+type OpenApiSigner = components['schemas']['SignerDetail']
+type OpenApiValidateFile = components['schemas']['ValidatedFile']
 
 type EnvelopeFile = {
 	uuid?: OpenApiFileListItem['uuid']
