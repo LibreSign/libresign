@@ -8,8 +8,8 @@ import { ACTION_CODES } from '../helpers/ActionMapping.ts'
 interface SignStore {
 	errors: Array<{ code?: number; [key: string]: unknown }>
 	document?: {
-		signers?: Array<{ me?: boolean; signRequestId?: string | number }>
-		visibleElements?: Array<{ signRequestId?: string | number }>
+		signers?: Array<{ me?: boolean; signRequestId?: string | number }> | null
+		visibleElements?: Array<{ signRequestId?: string | number }> | null
 	}
 }
 
