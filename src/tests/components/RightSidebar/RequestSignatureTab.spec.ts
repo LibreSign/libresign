@@ -7,6 +7,7 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import axios from '@nextcloud/axios'
 import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
 let RequestSignatureTab: unknown
 import { FILE_STATUS } from '../../../constants.js'
@@ -56,7 +57,14 @@ vi.mock('@nextcloud/event-bus', () => ({
 }))
 
 vi.mock('@nextcloud/dialogs')
-vi.mock('@nextcloud/axios')
+vi.mock('@nextcloud/axios', () => ({
+	default: {
+		get: vi.fn(),
+		post: vi.fn(),
+		delete: vi.fn(),
+		patch: vi.fn(),
+	},
+}))
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path) => `/ocs${path}`),
 	generateUrl: (...args: Parameters<typeof generateUrlMock>) => generateUrlMock(...args),
@@ -72,7 +80,13 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	let filesStore: ReturnType<typeof useFilesStoreType>
 	const updateFile = async (patch: Record<string, unknown>) => {
 		const current = filesStore.files[1] || { id: 1 }
-		await filesStore.addFile({ ...current, ...patch, id: 1 })
+		const hasSigners = Object.prototype.hasOwnProperty.call(patch, 'signers')
+		await filesStore.addFile({
+			...current,
+			...patch,
+			id: 1,
+			detailsLoaded: hasSigners ? true : current.detailsLoaded,
+		})
 		await wrapper.vm.$nextTick()
 	}
 	const setVmState = async (patch: Record<string, unknown>) => {
@@ -88,6 +102,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	beforeEach(async () => {
 		setActivePinia(createPinia())
 		generateUrlMock.mockClear()
+		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>)
 		RequestSignatureTab = (await import('../../../components/RightSidebar/RequestSignatureTab.vue')).default
 		const { useFilesStore } = await import('../../../store/files.js')
 		filesStore = useFilesStore()
@@ -97,6 +112,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			name: 'test.pdf',
 			status: FILE_STATUS.DRAFT,
 			signers: [],
+			detailsLoaded: true,
 			nodeType: 'file',
 		})
 		filesStore.selectFile(1)
