@@ -67,8 +67,10 @@ import {
 	mdiHelpCircle,
 } from '@mdi/js'
 import { buildStatusMap } from '../../utils/fileStatus.js'
-import type { FileRecord, SignerRecord } from '../../types/index'
+import type { components } from '../../types/openapi/openapi'
 
+type OpenApiNextcloudFile = components['schemas']['NextcloudFile']
+type OpenApiSigner = components['schemas']['Signer']
 
 type ProgressFile = {
 	id: number
@@ -94,10 +96,17 @@ type ProgressState = {
 	files?: ProgressFile[]
 }
 
-type ValidationDocument = FileRecord & {
-	nodeType?: string
-	files?: Array<Pick<FileRecord, 'id' | 'name' | 'status'>>
-	signers?: Array<Pick<SignerRecord, 'signed'>>
+type ValidationDocument = {
+	id?: OpenApiNextcloudFile['id'] | string | number
+	nodeType?: OpenApiNextcloudFile['nodeType'] | string
+	files?: Array<{
+		id?: OpenApiNextcloudFile['id'] | string | number
+		name?: OpenApiNextcloudFile['name']
+		status?: OpenApiNextcloudFile['status'] | string | number
+	}>
+	signers?: Array<{
+		signed?: OpenApiSigner['signed'] | boolean | Array<unknown>
+	}>
 }
 
 type StatusMeta = {
