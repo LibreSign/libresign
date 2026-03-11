@@ -32,8 +32,17 @@ vi.mock('@nextcloud/files', () => ({
 		active: { params: { dir: '/' } },
 	})),
 }))
+vi.mock('@nextcloud/axios', () => ({
+	default: {
+		get: vi.fn().mockResolvedValue({ data: { ocs: { data: null } } }),
+		post: vi.fn(),
+		patch: vi.fn(),
+		delete: vi.fn(),
+	},
+}))
 vi.mock('@nextcloud/router', () => ({
 	generateRemoteUrl: vi.fn((path) => `https://example.com${path}`),
+	generateOcsUrl: vi.fn((path) => path),
 }))
 
 vi.mock('../../../components/RightSidebar/RequestSignatureTab.vue', () => ({
