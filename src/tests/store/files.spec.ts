@@ -11,6 +11,7 @@ import { emit } from '@nextcloud/event-bus'
 import { generateOCSResponse } from '../test-helpers'
 
 type AxiosMock = Mock & {
+	get: Mock
 	post: Mock
 	delete: Mock
 	patch: Mock
@@ -61,6 +62,7 @@ vi.mock('@nextcloud/logger', () => ({
 
 vi.mock('@nextcloud/axios', () => {
 	const axiosInstanceMock = Object.assign(vi.fn(), {
+		get: vi.fn(),
 		post: vi.fn(),
 		delete: vi.fn(),
 		patch: vi.fn(),
@@ -149,6 +151,7 @@ describe('files store - critical business rules', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
 		vi.clearAllMocks()
+		axiosMock.get.mockResolvedValue(generateOCSResponse({ payload: null }))
 	})
 
 	describe('RULE: removing selected file clears selection', () => {
@@ -369,6 +372,7 @@ describe('files store - critical business rules', () => {
 			store.canRequestSign = true
 			store.files[1] = {
 				id: 1,
+				status: 2,
 				signers: [
 					{ signed: ['signature'] },
 					{ signed: [] },
@@ -481,6 +485,7 @@ describe('files store - critical business rules', () => {
 			store.canRequestSign = true
 			store.files[1] = {
 				id: 1,
+				status: 2,
 				signers: [
 					{ signed: ['sig'] },
 					{ signed: [] },
@@ -631,13 +636,13 @@ describe('files store - critical business rules', () => {
 				email: 'updated@example.com',
 				signRequestId: 123,
 				identify: 123,
-				extraField: 'new',
+				description: 'new',
 			}
 			store.signerUpdate(updatedSigner)
 
 			expect(store.files[1].signers).toHaveLength(1)
 			expect(store.files[1].signers![0]!.email).toBe('updated@example.com')
-			expect(store.files[1].signers![0]!.extraField).toBe('new')
+			expect(store.files[1].signers![0]!.description).toBe('new')
 		})
 	})
 
@@ -953,13 +958,14 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 10
 			store.files[10] = { id: 10, name: 'old' }
 			const addFileSpy = vi.spyOn(store, 'addFile')
-			vi.spyOn(store, 'getAllFiles').mockResolvedValue({
-				10: { id: 10, name: 'new', signers: [] },
-			})
+				axiosMock.get.mockResolvedValue(generateOCSResponse({
+					payload: { id: 10, name: 'new', signers: [] },
+				}))
 
 			await store.flushSelectedFile()
 
-			expect(addFileSpy).toHaveBeenCalledWith({ id: 10, name: 'new', signers: [] })
+				expect(axiosMock.get).toHaveBeenCalledOnce()
+				expect(addFileSpy).toHaveBeenCalledWith({ id: 10, name: 'new', signers: [] }, { detailsLoaded: true })
 		})
 	})
 
