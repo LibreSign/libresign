@@ -19,6 +19,9 @@ use Psr\Log\LoggerInterface;
 
 /**
  * RFC 5280 compliant CRL management
+ *
+ * @psalm-import-type LibresignCrlCertificateStatusResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCrlListResponse from \OCA\Libresign\ResponseDefinitions
  */
 class CrlService {
 
@@ -180,6 +183,9 @@ class CrlService {
 		}
 	}
 
+	/**
+	 * @return LibresignCrlCertificateStatusResponse
+	 */
 	public function getCertificateStatusResponse(string $serialNumber): array {
 		$statusInfo = $this->getCertificateStatus($serialNumber);
 
@@ -277,7 +283,7 @@ class CrlService {
 	 * @param int|null $length Number of items per page, defaults to 100
 	 * @param array<string, mixed> $filter Filters to apply (status, engine, instance_id, owner, serial_number, revoked_by, generation)
 	 * @param array<string, string> $sort Sort fields and directions ['field' => 'ASC|DESC']
-	 * @return array{data: array<array<string, mixed>>, total: int, page: int, length: int}
+	 * @return LibresignCrlListResponse
 	 */
 	public function listCrlEntries(
 		?int $page = null,
@@ -290,7 +296,7 @@ class CrlService {
 
 		$result = $this->crlMapper->listWithPagination($page, $length, $filter, $sort);
 
-		$formattedData = array_map(function ($entity) {
+		$formattedData = array_values(array_map(function ($entity) {
 			return [
 				'id' => $entity->getId(),
 				'serial_number' => $entity->getSerialNumber(),
@@ -309,7 +315,7 @@ class CrlService {
 				'invalidity_date' => $entity->getInvalidityDate()?->format('Y-m-d H:i:s'),
 				'crl_number' => $entity->getCrlNumber(),
 			];
-		}, $result['data']);
+		}, $result['data']));
 
 		return [
 			'data' => $formattedData,
