@@ -47,6 +47,9 @@ const deduplicateVisibleElements = (elements: VisibleElement[]): VisibleElement[
 		if (!element || typeof element !== 'object') {
 			return
 		}
+		if (!element.coordinates || typeof element.coordinates !== 'object') {
+			return
+		}
 		const signature = [
 			keyOf(element.elementId),
 			keyOf(element.fileId),
