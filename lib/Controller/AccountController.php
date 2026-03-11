@@ -16,7 +16,6 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -38,9 +37,15 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignCertificatePfxData from ResponseDefinitions
- * @psalm-import-type LibresignFile from ResponseDefinitions
- * @psalm-import-type LibresignPagination from ResponseDefinitions
+ * @psalm-import-type LibresignCertificatePfxData from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignAccountMeResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignAccountSettingsUpdateResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignActionMessageResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignConfigValueResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCreateToSignResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignPagination from \OCA\Libresign\ResponseDefinitions
  */
 class AccountController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
@@ -70,7 +75,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param string $email email to the new account
 	 * @param string $password the password to then new account
 	 * @param string|null $signPassword The password to create certificate
-	 * @return DataResponse<Http::STATUS_OK, array{action: 2000|2500, description?: null|string, filename?: string, message: string, pdf?: array{url: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string,action: int}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignCreateToSignResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Validation page not accessible if unauthenticated
@@ -135,7 +140,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string $signPassword The password that will be used to encrypt the certificate file
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
 	 *
 	 * 200: Settings saved
 	 * 401: Failure to create PFX file
@@ -187,7 +192,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * Validates API access data and returns the authenticated user's data.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{account: array{uid: string, emailAddress: string, displayName: string},settings: array{canRequestSign: bool,hasSignatureFile: bool,phoneNumber: string}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignAccountMeResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid user or password
@@ -226,7 +231,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string|null $phone the phone number to be defined. If null will remove the phone number
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{data: array{userId: string, phone: string, message: string}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignAccountSettingsUpdateResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>
 	 *
 	 * 200: Settings saved
 	 * 404: Invalid data to update phone number
@@ -272,7 +277,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * Delete PFX file
 	 *
-	 * @return DataResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, LibresignMessageResponse, array{}>
 	 *
 	 * 202: Certificate deleted with success
 	 */
@@ -293,7 +298,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * Upload PFX file
 	 *
-	 * @return DataResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignMessageResponse, array{}>
 	 *
 	 * 202: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
@@ -333,7 +338,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param string $current Current password
 	 * @param string $new New password
 	 *
-	 * @return DataResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignMessageResponse, array{}>
 	 *
 	 * 202: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
@@ -366,7 +371,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string $password password of PFX file to decrypt the file and return his content
 	 *
-	 * @return DataResponse<Http::STATUS_ACCEPTED, LibresignCertificatePfxData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, LibresignCertificatePfxData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignMessageResponse, array{}>
 	 *
 	 * 202: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
@@ -396,7 +401,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string $key Config key
 	 * @param mixed $value Config value
-	 * @return DataResponse<Http::STATUS_OK, array{key: string, value: mixed}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignConfigValueResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignMessageResponse, array{}>
 	 *
 	 * 200: Config updated
 	 * 400: Error updating config
