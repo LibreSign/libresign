@@ -46,7 +46,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { mdiChevronDown } from '@mdi/js'
 import type { components } from '../../types/openapi/openapi'
 
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiSigner = components['schemas']['SignerDetail']
 
 type SignerIdentity = {
 	displayName?: OpenApiSigner['displayName']
