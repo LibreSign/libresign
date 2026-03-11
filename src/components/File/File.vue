@@ -30,7 +30,7 @@ import { mdiFile } from '@mdi/js'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-import type { FileRecord } from '../../types/index'
+import type { components } from '../../types/openapi/openapi'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 
@@ -38,7 +38,11 @@ defineOptions({
 	name: 'File',
 })
 
-type CurrentFileRecord = Pick<FileRecord, 'id' | 'nodeId'> & {
+type OpenApiNextcloudFile = components['schemas']['NextcloudFile']
+
+type CurrentFileRecord = {
+	id?: OpenApiNextcloudFile['id'] | string | number
+	nodeId?: OpenApiNextcloudFile['nodeId'] | string | number
 	name: string
 	status: number | string
 	statusText: string
