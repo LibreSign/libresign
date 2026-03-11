@@ -21,6 +21,10 @@ export type SigningModeState = 'sync' | 'async'
 export type WorkerTypeState = 'local' | 'external'
 export type SignatureEngineId = 'JSignPdf' | 'PhpNative'
 export type CertificateEngineId = 'openssl' | 'cfssl' | 'none'
+type OpenApiSigner = ApiComponents['schemas']['Signer']
+type OpenApiNextcloudFile = ApiComponents['schemas']['NextcloudFile']
+type OpenApiFileListItem = ApiComponents['schemas']['FileListItem']
+type OpenApiRequestedBy = NonNullable<OpenApiNextcloudFile['requested_by']>
 export type AdminDocMdpLevelOption = {
 	value: number
 	label: string
@@ -43,9 +47,6 @@ export type AdminInitialState = {
 	envelope_enabled: boolean
 }
 
-type NextcloudFileRecord = ApiComponents['schemas']['NextcloudFile']
-type FileListItem = ApiComponents['schemas']['FileListItem']
-
 type ValidateMetadata = ApiComponents['schemas']['ValidateMetadata']
 type ValidateMetadataDimension = NonNullable<ValidateMetadata['d']>[number]
 
@@ -55,70 +56,134 @@ type PartialValidateMetadata = Omit<Partial<ValidateMetadata>, 'd'> & {
 }
 type FileStateSettings = Partial<FileSettings> & {
 	path?: string
+	needIdentificationDocuments?: boolean
+	identificationDocumentsWaitingApproval?: boolean
+	isApprover?: boolean
 	signerFileUuid?: string
 	signatureMethods?: Record<string, unknown>
-	[key: string]: unknown
+	allowEdit?: boolean
+	requireAuth?: boolean
+	newSetting?: string
 }
-type VisibleElementState = Omit<Partial<VisibleElementRecord>, 'coordinates' | 'elementId' | 'fileId' | 'signRequestId'> & {
+type VisibleElementState = {
 	id?: number | string
-	elementId?: number | string
-	fileId?: number | string
-	signRequestId?: number | string
+	type?: VisibleElementRecord['type']
+	elementId?: VisibleElementRecord['elementId'] | number | string
+	fileId?: VisibleElementRecord['fileId'] | number | string
+	signRequestId?: VisibleElementRecord['signRequestId'] | number | string
 	coordinates?: Partial<VisibleElementRecord['coordinates']>
 }
-type FileRecordBase = Omit<Partial<NextcloudFileRecord>, 'docmdpLevel' | 'file' | 'files' | 'loading' | 'metadata' | 'nodeId' | 'requested_by' | 'settings' | 'signatureFlow' | 'signers' | 'status' | 'visibleElements'>
 
-export type SignerRecord = Omit<Partial<ApiComponents['schemas']['Signer']>, 'signed' | 'identifyMethods' | 'signRequestId'> & {
+export type SignerRecord = {
 	id?: string | number
 	uuid?: string | number
 	name?: string
+	description?: OpenApiSigner['description']
+	displayName?: OpenApiSigner['displayName']
+	email?: OpenApiSigner['email']
 	identify?: string | number | SignerIdentify
-	signRequestId?: string | number
+	signRequestId?: OpenApiSigner['signRequestId'] | string | number
 	signed?: unknown
+	status?: OpenApiSigner['status']
+	statusText?: string
+	me?: OpenApiSigner['me']
+	userId?: OpenApiSigner['userId']
+	request_sign_date?: OpenApiSigner['request_sign_date']
+	remote_address?: OpenApiSigner['remote_address']
+	user_agent?: OpenApiSigner['user_agent']
+	valid_from?: OpenApiSigner['valid_from']
+	valid_to?: OpenApiSigner['valid_to']
+	certificate_validation?: {
+		id?: number
+		message?: string
+		trustedBy?: string
+	}
+	crl_validation?: string
+	crl_revoked_at?: string
+	docmdp?: {
+		isCertifying?: boolean
+		label?: string
+		description?: string
+	}
+	docmdp_validation?: {
+		message?: string
+	}
+	modification_validation?: {
+		status?: number
+		message?: string
+	}
+	modifications?: {
+		modified?: boolean
+		revisionCount?: number
+	}
+	signature_validation?: {
+		id?: number
+		message?: string
+		trustedBy?: string
+	}
+	signatureTypeSN?: string
+	hash?: string
+	chain?: Record<string, unknown>[]
+	sign_uuid?: OpenApiSigner['sign_uuid']
 	acceptsEmailNotifications?: boolean
 	identifyMethods?: IdentifyMethodRecord[]
+	visibleElements?: VisibleElementState[]
+	signingOrder?: OpenApiSigner['signingOrder'] | number
 	signatureMethods?: Record<string, unknown>
-	[key: string]: unknown
 }
 
-export type FileReference = Omit<Partial<ApiComponents['schemas']['FileListItem']>, 'docmdpLevel' | 'file' | 'fileId' | 'files' | 'metadata' | 'nodeId' | 'settings' | 'signers' | 'status'> & {
-	fileId?: string | number
-	nodeId?: number | string | null
-	status?: number | string
-	docmdpLevel?: number | string
+export type FileReference = {
+	id?: OpenApiFileListItem['id']
+	uuid?: OpenApiFileListItem['uuid']
+	name?: OpenApiFileListItem['name']
+	created_at?: string | number
+	status?: OpenApiFileListItem['status'] | number | string
+	statusText?: string
+	fileId?: OpenApiFileListItem['fileId'] | string | number
+	nodeId?: OpenApiFileListItem['nodeId'] | number | string | null
+	nodeType?: string
+	docmdpLevel?: OpenApiFileListItem['docmdpLevel'] | number | string
 	file?: string | FileReference | null
-	files?: Array<Partial<FileListItem> | FileReference>
+	files?: FileReference[]
 	path?: string
 	url?: string
 	folderName?: string
 	separator?: string
-	setting?: string
 	metadata?: PartialValidateMetadata
 	signers?: SignerRecord[]
 	settings?: FileStateSettings
 	visibleElements?: VisibleElementState[] | null
 }
 
-export type FileRecord = FileRecordBase & {
-	nodeId?: number | string
-	nodeType?: NextcloudFileRecord['nodeType'] | string
-	status?: number | string
-	docmdpLevel?: number | string
+export type FileRecord = {
+	id?: OpenApiNextcloudFile['id']
+	uuid?: OpenApiNextcloudFile['uuid']
+	name?: OpenApiNextcloudFile['name']
+	created_at?: OpenApiNextcloudFile['created_at']
+	signUuid?: string
+	message?: string
+	nodeId?: OpenApiNextcloudFile['nodeId'] | number | string
+	nodeType?: OpenApiNextcloudFile['nodeType'] | string
+	status?: OpenApiNextcloudFile['status'] | number | string
+	statusText?: string
+	docmdpLevel?: OpenApiNextcloudFile['docmdpLevel'] | number | string
 	file?: string | FileReference | null
-	files?: Array<Partial<FileListItem> | FileReference>
+	files?: FileReference[]
 	loading?: string | boolean
 	metadata?: PartialValidateMetadata
 	settings?: FileStateSettings
 	signatureMethods?: Record<string, unknown>
 	requested_by?: {
-		userId?: string
-		displayName?: string | null
+		userId?: OpenApiRequestedBy['userId']
+		displayName?: OpenApiRequestedBy['displayName'] | null
 	}
 	signatureFlow?: SignatureFlowValue | null
 	signers?: SignerRecord[] | null
 	visibleElements?: VisibleElementState[] | null
 	signersCount?: number
 	filesCount?: number
+	canSign?: boolean
+	detailsLoaded?: boolean
 }
 
 export type SaveSignatureRequestPayload = {
