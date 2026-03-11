@@ -103,7 +103,10 @@ type SourceFile = {
 	name: string
 	nodeId?: number
 	nodeType?: string
+	status?: number
 	file?: string
+	signersCount?: number
+	signUuid?: string | null
 	signers?: SourceSigner[]
 }
 
@@ -160,9 +163,9 @@ function registerAction(action: MenuAction) {
 function visibleIf(action: Pick<MenuAction, 'id'>) {
 	let visible = false
 	if (action.id === 'request-signature') {
-		visible = (props.source?.signers?.length ?? 0) === 0
+		visible = (props.source?.signersCount ?? props.source?.signers?.length ?? 0) === 0
 	} else if (action.id === 'details') {
-		visible = (props.source?.signers?.length ?? 0) > 0
+		visible = (props.source?.signersCount ?? props.source?.signers?.length ?? 0) > 0
 	} else if (action.id === 'rename') {
 		visible = true
 	} else if (action.id === 'sign') {
@@ -185,18 +188,12 @@ async function onActionClick(action: Pick<MenuAction, 'id'>) {
 		filesStore.selectFile(props.source.id)
 		sidebarStore.activeRequestSignatureTab()
 	} else if (action.id === 'sign') {
-		const signUuid = (props.source.signers ?? [])
-			.reduce((accumulator, signer) => {
-				if (signer.me) {
-					return signer.sign_uuid ?? ''
-				}
-				return accumulator
-			}, '')
-		const files = await filesStore.getAllFiles({
-			signer_uuid: signUuid,
-			force_fetch: true,
-		})
-		signStore.setFileToSign(files[props.source.id])
+		const detailedFile = await filesStore.fetchFileDetail({ fileId: props.source.id, force: true })
+		const signUuid = detailedFile?.signUuid || props.source.signUuid || ''
+		if (!signUuid || !detailedFile) {
+			return
+		}
+		signStore.setFileToSign(detailedFile)
 		router.push({
 			name: 'SignPDF',
 			params: {
