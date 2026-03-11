@@ -970,7 +970,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 							{ signRequestId: 501, me: true },
 						],
 						visibleElements: [
-							{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature' },
+							{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 						],
 					},
 				],
@@ -1010,7 +1010,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			})
 
 			expect(wrapper.vm.elements).toEqual([
-				{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature' },
+				{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 			])
 		})
 
@@ -1029,7 +1029,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				],
 				files: [],
 				visibleElements: [
-					{ elementId: 201, signRequestId: 501, type: 'signature' },
+					{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 				],
 			})
 
@@ -1085,7 +1085,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 			// After signature is created, elements should include it
 			expect(wrapper.vm.elements).toEqual([
-				{ elementId: 201, signRequestId: 501, type: 'signature' },
+				{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 			])
 			expect(wrapper.vm.hasSignatures).toBe(true)
 			expect(wrapper.vm.needCreateSignature).toBe(false)
