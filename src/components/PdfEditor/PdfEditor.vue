@@ -83,7 +83,7 @@ import { ensurePdfWorker } from '../../helpers/pdfWorker'
 import type { components } from '../../types/openapi/openapi'
 import type { VisibleElement } from '../../services/visibleElementsService'
 
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiSigner = components['schemas']['SignerDetail']
 
 type SignerIdentity = {
 	displayName?: OpenApiSigner['displayName']
