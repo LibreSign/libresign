@@ -32,8 +32,8 @@ defineOptions({
 	name: 'AppFilesTab',
 })
 
-type OpenApiNextcloudFile = components['schemas']['NextcloudFile']
-type OpenApiSigner = components['schemas']['Signer']
+type OpenApiNextcloudFile = components['schemas']['FileSummary']
+type OpenApiSigner = components['schemas']['SignerSummary']
 
 type PendingEnvelope = {
 	id: number
