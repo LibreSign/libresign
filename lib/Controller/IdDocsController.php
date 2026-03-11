@@ -12,7 +12,6 @@ use Exception;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Http;
@@ -28,9 +27,13 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignIdDocs from ResponseDefinitions
- * @psalm-import-type LibresignPagination from ResponseDefinitions
- * @psalm-import-type LibresignFile from ResponseDefinitions
+ * @psalm-import-type LibresignFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdDocs from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdDocsApprovalListResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdDocsListResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdDocsUploadErrorResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignMessagesResponse from \OCA\Libresign\ResponseDefinitions
  */
 class IdDocsController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
@@ -50,7 +53,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 * Add identification documents to user profile
 	 *
 	 * @param LibresignIdDocs[] $files The list of files to add to profile
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{file: ?int, type: 'info'|'warning'|'danger', message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignIdDocsUploadErrorResponse, array{}>
 	 *
 	 * 200: Certificate saved with success
 	 * 401: No file provided or other problem with provided file
@@ -99,7 +102,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 * @param int $nodeId the nodeId of file to be delete
 	 * @param string|null $uuid Sign request UUID for unauthenticated access
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: string[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessagesResponse, array{}>
 	 *
 	 * 200: File deleted with success
 	 * 401: Failure to delete file from account
@@ -139,7 +142,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 * @param int|null $signRequestId Sign request ID to filter by
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
-	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignIdDocsListResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>
 	 *
 	 * 200: Certificate saved with success
 	 * 404: No file provided or other problem with provided file
@@ -190,7 +193,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 * @param int|null $length Total of elements to return
 	 * @param string|null $sortBy Sort field (e.g., 'owner', 'file_type', 'status')
 	 * @param string|null $sortOrder Sort order (ASC or DESC)
-	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignIdDocsApprovalListResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Account not found
