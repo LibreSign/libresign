@@ -139,6 +139,7 @@ describe('IdDocsValidation.vue', () => {
 			signers: [{
 				description: null,
 				displayName: 'Approver',
+				email: 'approver@example.com',
 				request_sign_date: '2026-03-06T10:00:00Z',
 				signed: '2026-03-06T12:00:00Z',
 				sign_date: '2026-03-06T12:00:00Z',
