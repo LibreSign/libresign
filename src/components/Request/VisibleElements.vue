@@ -126,9 +126,9 @@ import type {
 } from '../../types/index'
 
 type OpenApiFolderSettings = components['schemas']['FolderSettings']
-type OpenApiNextcloudFile = components['schemas']['NextcloudFile']
-type OpenApiValidateFile = components['schemas']['ValidateFile']
-type OpenApiFileDetail = components['schemas']['FileDetail']
+type OpenApiNextcloudFile = components['schemas']['DetailedFileResponse']
+type OpenApiValidateFile = components['schemas']['ValidatedFile']
+type OpenApiFileDetail = components['schemas']['DetailedFile']
 type OpenApiFileListItem = components['schemas']['FileListItem']
 type OpenApiValidateMetadata = components['schemas']['ValidateMetadata']
 type OpenApiRequestDocument = OpenApiFileDetail | OpenApiNextcloudFile | OpenApiValidateFile
@@ -632,10 +632,10 @@ function buildVisibleElements() {
 				return
 			}
 			const envIdentifyMethods = Array.isArray(object.signer.identifyMethods) ? object.signer.identifyMethods : []
-			const envIdMethods = envIdentifyMethods.map((method) => `${method.method}:${method.value}`).sort().join('|')
+			const envIdMethods = envIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
 			const candidate = fileInfo.signers.find((signer) => {
 				const childIdentifyMethods = Array.isArray(signer.identifyMethods) ? signer.identifyMethods : []
-				const childIdMethods = childIdentifyMethods.map((method) => `${method.method}:${method.value}`).sort().join('|')
+				const childIdMethods = childIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
 				return childIdMethods === envIdMethods
 			})
 			if (!candidate?.signRequestId) {
