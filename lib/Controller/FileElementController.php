@@ -23,6 +23,8 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignCoordinate from ResponseDefinitions
+ * @psalm-import-type LibresignErrorsResponse from ResponseDefinitions
+ * @psalm-import-type LibresignFileElementIdResponse from ResponseDefinitions
  */
 class FileElementController extends AEnvironmentAwareController {
 	public function __construct(
@@ -47,7 +49,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
 	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
-	 * @return DataResponse<Http::STATUS_OK, array{fileElementId: integer}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: list<array{message: string, title?: string}>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignFileElementIdResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignErrorsResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when create visible element
@@ -98,7 +100,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
 	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
-	 * @return DataResponse<Http::STATUS_OK, array{fileElementId: integer}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: list<array{message: string, title?: string}>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignFileElementIdResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignErrorsResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when patch visible element
@@ -117,7 +119,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 *
 	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param integer $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: list<array{message: string, title?: string}>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignErrorsResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when delete visible element or file not found
