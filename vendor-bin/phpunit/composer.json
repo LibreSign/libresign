@@ -1,7 +1,7 @@
 {
     "require-dev": {
         "donatj/mock-webserver": "^2.7",
-        "mikey179/vfsstream": "^1.6",
+        "mikey179/vfsstream": "dev-master",
         "byjg/swagger-test": "5.0.x-dev",
         "guzzlehttp/psr7": "^2.4",
         "symfony/yaml": "^5.4",
@@ -9,6 +9,14 @@
         "phpunit/phpunit": "10.5.x-dev"
     },
     "minimum-stability": "dev",
+    "scripts": {
+        "post-install-cmd": [
+            "(grep -q '?array $query = null' vendor/byjg/swagger-test/src/AbstractRequester.php && grep -q 'array|string|null $requestBody = null' vendor/byjg/swagger-test/src/ApiTestCase.php && grep -q '?string $exceptionMessage = null' vendor/byjg/swagger-test/src/ApiTestCase.php && grep -q '?Throwable $previous = null' vendor/byjg/swagger-test/src/Exception/BaseException.php) || patch -p1 -d vendor/byjg/swagger-test < ../../.patches/byjg-swagger-test-php84-implicit-nullable.diff"
+        ],
+        "post-update-cmd": [
+            "(grep -q '?array $query = null' vendor/byjg/swagger-test/src/AbstractRequester.php && grep -q 'array|string|null $requestBody = null' vendor/byjg/swagger-test/src/ApiTestCase.php && grep -q '?string $exceptionMessage = null' vendor/byjg/swagger-test/src/ApiTestCase.php && grep -q '?Throwable $previous = null' vendor/byjg/swagger-test/src/Exception/BaseException.php) || patch -p1 -d vendor/byjg/swagger-test < ../../.patches/byjg-swagger-test-php84-implicit-nullable.diff"
+        ]
+    },
     "config": {
         "platform": {
             "php": "8.1"
