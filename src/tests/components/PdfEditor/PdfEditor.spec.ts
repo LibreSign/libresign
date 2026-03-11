@@ -647,13 +647,14 @@ describe('PdfEditor Component - Business Rules', () => {
 			wrapper.vm.onSignerChange(object, newSigner)
 
 			expect(getPdfElements().updateObject).toHaveBeenCalledWith(
-				expect.anything(),
-				expect.anything(),
+				0,
+				'obj-1',
 				{
 					signer: expect.objectContaining({
+						signRequestId: 2,
 						element: expect.objectContaining({
 							elementId: 123,
-							signRequestId: 2, // updated
+							coordinates: { page: 1 },
 						}),
 					}),
 				},
