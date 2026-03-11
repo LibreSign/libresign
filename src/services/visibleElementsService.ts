@@ -8,8 +8,8 @@ import type { components } from '../types/openapi/openapi'
 export type VisibleElement = components['schemas']['VisibleElement']
 export type Coordinates = VisibleElement['coordinates']
 type OpenApiFileListItem = components['schemas']['FileListItem']
-export type Signer = components['schemas']['Signer']
-export type EnvelopeChildSignerSummary = components['schemas']['EnvelopeChildSignerSummary']
+export type Signer = components['schemas']['SignerDetail']
+export type EnvelopeChildSignerSummary = components['schemas']['SignerSummary']
 export type FileSigner = Signer | EnvelopeChildSignerSummary
 
 type NestedFileData = {
