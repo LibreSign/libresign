@@ -64,10 +64,23 @@ import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
-import type { IdentifyMethodSetting, SignerRecord, SignatureFlowMode } from '../../types/index'
+import type { components } from '../../types/openapi/openapi'
+import type { IdentifyMethodSetting, SignatureFlowMode } from '../../types/index'
 defineOptions({
 	name: 'Signer',
 })
+
+type OpenApiSigner = components['schemas']['Signer']
+
+type SignerListItem = {
+	displayName?: OpenApiSigner['displayName']
+	email?: OpenApiSigner['email']
+	status?: OpenApiSigner['status']
+	statusText?: string
+	signed?: unknown
+	identifyMethods?: OpenApiSigner['identifyMethods']
+	signingOrder?: OpenApiSigner['signingOrder'] | number
+}
 
 const props = withDefaults(defineProps<{
 	signerIndex: number
@@ -81,7 +94,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-	(event: 'select', signer: SignerRecord): void
+	(event: 'select', signer: SignerListItem): void
 }>()
 
 const filesStore = useFilesStore()
@@ -103,7 +116,7 @@ const signatureFlow = computed(() => {
 	return flow
 })
 
-const signer = computed<SignerRecord>(() => {
+const signer = computed<SignerListItem>(() => {
 	const file = filesStore.getFile()
 	return file?.signers?.[props.signerIndex] || {}
 })
