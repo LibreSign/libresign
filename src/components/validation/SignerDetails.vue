@@ -238,7 +238,7 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
-import type { SignerRecord } from '../../types/index'
+import type { components } from '../../types/openapi/openapi'
 import Moment from '@nextcloud/moment'
 import { computed, ref } from 'vue'
 
@@ -283,7 +283,14 @@ type SignerModifications = {
 	revisionCount?: number
 }
 
-type SignerModel = Omit<Pick<SignerRecord, 'signed' | 'displayName' | 'email' | 'name' | 'remote_address' | 'user_agent'>, 'signed'> & {
+type OpenApiSigner = components['schemas']['Signer']
+
+type SignerModel = {
+	displayName?: OpenApiSigner['displayName']
+	email?: OpenApiSigner['email']
+	name?: string
+	remote_address?: OpenApiSigner['remote_address']
+	user_agent?: OpenApiSigner['user_agent']
 	signed?: string | null
 	valid_to?: string
 	valid_from?: string
@@ -299,8 +306,7 @@ type SignerModel = Omit<Pick<SignerRecord, 'signed' | 'displayName' | 'email' | 
 	modifications?: SignerModifications
 	signatureTypeSN?: string
 	hash?: string
-		chain?: Record<string, any>[]
-	[key: string]: unknown
+	chain?: Record<string, unknown>[]
 }
 
 type CrlStatusMeta = {
