@@ -194,7 +194,7 @@ class ResultEnricherTest extends TestCase {
 		}
 
 		$list = [
-			['id' => $method === 'account' ? 'john' : 'test@example.com', 'method' => $method],
+			['identify' => $method === 'account' ? 'john' : 'test@example.com', 'method' => $method],
 		];
 
 		$result = $this->enricher->addEmailNotificationPreference($list);
@@ -226,7 +226,7 @@ class ResultEnricherTest extends TestCase {
 			->willReturn(null);
 
 		$list = [
-			['id' => 'john', 'method' => 'account'],
+			['identify' => 'john', 'method' => 'account'],
 		];
 
 		$result = $this->enricher->addEmailNotificationPreference($list);
@@ -244,7 +244,7 @@ class ResultEnricherTest extends TestCase {
 			->willReturn($user);
 
 		$list = [
-			['id' => 'john', 'method' => 'account'],
+			['identify' => 'john', 'method' => 'account'],
 		];
 
 		$result = $this->enricher->addEmailNotificationPreference($list);
