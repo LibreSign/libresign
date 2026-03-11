@@ -70,13 +70,19 @@ type OpenApiEnvelopeChildFile = components['schemas']['ValidatedChildFile']
 type OpenApiSigner = components['schemas']['SignerDetail']
 type SignError = { title?: string; message?: string }
 type SignDocumentStatus = OpenApiValidateFile['status'] | 5
-type SignDocumentFile = OpenApiEnvelopeChildFile | OpenApiFileDetail
+type SignDocumentFile = OpenApiEnvelopeChildFile
 type SignDocument = Omit<OpenApiValidateFile, 'status' | 'files'> & {
 	status: SignDocumentStatus
 	files?: SignDocumentFile[]
 }
 type ValidateFileResponse = operations['file-validate-uuid']['responses'][200]['content']['application/json']
-type FileListResponse = operations['file-list']['responses'][200]['content']['application/json']
+type EnvelopeFileListResponse = {
+	ocs: {
+		data: {
+			data?: SignDocumentFile[]
+		}
+	}
+}
 
 type SignStore = {
 	document: SignDocument
@@ -89,7 +95,7 @@ type SignStore = {
 
 type FilesStore = {
 	getAllFiles: (filter: { signer_uuid?: string; details?: boolean }) => Promise<Record<string, SignDocument>>
-	addFile: (file: OpenApiFileDetail) => void
+	addFile: (file: SignDocumentFile) => void
 	selectFile: (fileId: number) => void
 	getFile: () => { status?: SignDocumentStatus } | null
 }
@@ -139,10 +145,10 @@ const pdfEditor = ref<PdfEditorRef | null>(null)
 const mounted = ref(false)
 const pdfBlobs = ref<File[]>([])
 const fileNames = ref<string[]>([])
-const envelopeFiles = ref<OpenApiFileDetail[]>([])
+const envelopeFiles = ref<SignDocumentFile[]>([])
 const elementClickHandler = ref<EventListener | null>(null)
 const isMobile = typeof window !== 'undefined' && window.innerWidth <= 512
-const EMPTY_ENVELOPE_FILES: OpenApiFileDetail[] = []
+const EMPTY_ENVELOPE_FILES: SignDocumentFile[] = []
 const EMPTY_PDFS: string[] = []
 
 const pdfFileName = computed(() => {
@@ -305,7 +311,7 @@ async function loadEnvelopePdfs(parentFileId: number | string) {
 }
 
 async function fetchEnvelopeFiles(parentFileId: number | string) {
-	const cachedEnvelopeFiles = loadState<OpenApiFileDetail[]>('libresign', 'envelopeFiles', EMPTY_ENVELOPE_FILES)
+	const cachedEnvelopeFiles = loadState<SignDocumentFile[]>('libresign', 'envelopeFiles', EMPTY_ENVELOPE_FILES)
 	if (Array.isArray(cachedEnvelopeFiles) && cachedEnvelopeFiles.length > 0) {
 		return cachedEnvelopeFiles
 	}
@@ -318,7 +324,7 @@ async function fetchEnvelopeFiles(parentFileId: number | string) {
 		signer_uuid: getRouteUuid() || '',
 	})
 	const finalUrl = addIdDocApprovalParam(`${url}?${params.toString()}`) || `${url}?${params.toString()}`
-	const response = await axios.get<FileListResponse>(finalUrl)
+	const response = await axios.get<EnvelopeFileListResponse>(finalUrl)
 	return response.data.ocs.data.data ?? []
 }
 
