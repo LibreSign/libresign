@@ -162,13 +162,8 @@ import { openDocument } from '../../utils/viewer.js'
 import { useFilesStore } from '../../store/files.js'
 
 
-type Envelope = {
-	id?: number
-	uuid?: string
-	name?: string
-	status?: number
-	filesCount?: number
-}
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type Envelope = ReturnType<FilesStoreContract['getFile']>
 
 type EnvelopeFile = {
 	id: number
@@ -205,7 +200,7 @@ type UploadProgressEvent = {
 }
 
 type FilesStore = {
-	getFile: () => Envelope | null
+	getFile: FilesStoreContract['getFile']
 	removeFilesFromEnvelope: (fileIds: number[]) => Promise<RemoveFilesResult>
 	addFilesToEnvelope: (uuid: string, formData: FormData, options: { signal: AbortSignal; onUploadProgress: (event: UploadProgressEvent) => void }) => Promise<AddFilesResult>
 	rename: (uuid: string, newName: string) => Promise<boolean>
