@@ -11,18 +11,17 @@ import type { Pinia } from 'pinia'
 type SignersComponent = typeof import('../../../components/Signers/Signers.vue').default
 let Signers: SignersComponent
 import { useFilesStore } from '../../../store/files.js'
-import type { FileRecord, SignatureFlowValue } from '../../../types/index'
+import type { FileState } from '../../../types/index'
 
 type SignerRecord = {
-	id?: number
-	identify?: string
+	localKey: string
 	displayName?: string
 	signed?: boolean
 	signingOrder?: number
 	[key: string]: unknown
 }
 
-type SelectedFile = Pick<FileRecord, 'signers' | 'signatureFlow'>
+type SelectedFile = Pick<FileState, 'signers' | 'signatureFlow'>
 
 type FilesStoreMock = ReturnType<typeof useFilesStore> & {
 	selectedFile: SelectedFile
@@ -86,7 +85,7 @@ describe('Signers', () => {
 		setActivePinia(pinia)
 		filesStore = useFilesStore() as FilesStoreMock
 		filesStore.selectedFile = { signers: [] }
-		filesStore.getFile = vi.fn(() => (filesStore.selectedFile || { signers: [] }) as FileRecord)
+		filesStore.getFile = vi.fn(() => (filesStore.selectedFile || { signers: [] }) as FileState)
 		filesStore.canSave = vi.fn(() => true)
 		if (wrapper) {
 			wrapper.unmount()
@@ -99,15 +98,15 @@ describe('Signers', () => {
 		it('returns signers array from selected file', () => {
 			filesStore.selectedFile = {
 				signers: [
-					{ id: 1, displayName: 'Alice' },
-					{ id: 2, displayName: 'Bob' },
+					{ localKey: 'signer:1', displayName: 'Alice' },
+					{ localKey: 'signer:2', displayName: 'Bob' },
 				],
 			}
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.signers).toEqual([
-				{ id: 1, displayName: 'Alice' },
-				{ id: 2, displayName: 'Bob' },
+				{ localKey: 'signer:1', displayName: 'Alice' },
+				{ localKey: 'signer:2', displayName: 'Bob' },
 			])
 		})
 
@@ -122,22 +121,22 @@ describe('Signers', () => {
 	describe('RULE: sortableSigners getter and setter modify file signers', () => {
 		it('getter returns signers', () => {
 			filesStore.selectedFile = {
-				signers: [{ id: 1 }],
+				signers: [{ localKey: 'signer:1' }],
 			}
 			wrapper = createWrapper()
 
-			expect(wrapper.vm.sortableSigners).toEqual([{ id: 1 }])
+			expect(wrapper.vm.sortableSigners).toEqual([{ localKey: 'signer:1' }])
 		})
 
 		it('setter updates file signers', async () => {
 			filesStore.selectedFile = {
-				signers: [{ id: 1 }],
+				signers: [{ localKey: 'signer:1' }],
 			}
 			wrapper = createWrapper()
 
-			wrapper.vm.sortableSigners = [{ id: 2 }, { id: 3 }]
+			wrapper.vm.sortableSigners = [{ localKey: 'signer:2' }, { localKey: 'signer:3' }]
 
-			expect(filesStore.selectedFile.signers).toEqual([{ id: 2 }, { id: 3 }])
+			expect(filesStore.selectedFile.signers).toEqual([{ localKey: 'signer:2' }, { localKey: 'signer:3' }])
 		})
 	})
 
@@ -205,7 +204,7 @@ describe('Signers', () => {
 	describe('RULE: canReorder requires canSave and multiple signers', () => {
 		it('returns true when can save and has multiple signers', () => {
 			filesStore.selectedFile = {
-				signers: [{}, {}],
+				signers: [{ localKey: 'a' }, { localKey: 'b' }],
 			}
 			filesStore.canSave = vi.fn().mockReturnValue(true)
 			wrapper = createWrapper()
@@ -215,7 +214,7 @@ describe('Signers', () => {
 
 		it('returns false when cannot save', () => {
 			filesStore.selectedFile = {
-				signers: [{}, {}],
+				signers: [{ localKey: 'a' }, { localKey: 'b' }],
 			}
 			filesStore.canSave = vi.fn().mockReturnValue(false)
 			wrapper = createWrapper()
@@ -225,7 +224,7 @@ describe('Signers', () => {
 
 		it('returns false with single signer', () => {
 			filesStore.selectedFile = {
-				signers: [{}],
+				signers: [{ localKey: 'a' }],
 			}
 			filesStore.canSave = vi.fn().mockReturnValue(true)
 			wrapper = createWrapper()
@@ -363,13 +362,13 @@ describe('Signers', () => {
 		})
 	})
 
-	describe('RULE: signer.identify is the sole :key — no id/email fallback needed', () => {
-		it('renders one Signer stub per signer when all have identify set', () => {
+	describe('RULE: signer.localKey is the sole :key', () => {
+		it('renders one Signer stub per signer when all have localKey set', () => {
 			filesStore.selectedFile = {
 				signers: [
-					{ identify: 'abc-1', displayName: 'Alice' },
-					{ identify: 'abc-2', displayName: 'Bob' },
-					{ identify: 'abc-3', displayName: 'Carol' },
+					{ localKey: 'abc-1', displayName: 'Alice' },
+					{ localKey: 'abc-2', displayName: 'Bob' },
+					{ localKey: 'abc-3', displayName: 'Carol' },
 				],
 			}
 			wrapper = createWrapper()
@@ -378,12 +377,12 @@ describe('Signers', () => {
 			expect(signerStubs).toHaveLength(3)
 		})
 
-		it('renders one Signer stub per signer in ordered_numeric mode with identify', () => {
+		it('renders one Signer stub per signer in ordered_numeric mode with localKey', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'ordered_numeric',
 				signers: [
-					{ identify: 'x-10', signingOrder: 1 },
-					{ identify: 'x-20', signingOrder: 2 },
+					{ localKey: 'x-10', signingOrder: 1 },
+					{ localKey: 'x-20', signingOrder: 2 },
 				],
 			}
 			filesStore.canSave = vi.fn().mockReturnValue(true)
