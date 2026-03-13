@@ -72,24 +72,58 @@ describe('SignerSelect.vue', () => {
 			{ identify: 'custom@example.com', isNoUser: true, shareType: 4, displayName: 'Custom Icon', subname: 'custom@example.com', iconName: 'unknown' as unknown as 'account' },
 		])
 
-		expect(result[0].label).toBe('Alice Example')
+		expect(wrapper.vm.getOptionKey(result[0])).toBe('alice@example.com')
+		expect(result[0].displayName).toBe('Alice Example')
 		expect(result[0].subname).toBe('alice@example.com')
-		expect(result[1].label).toBe('Email User')
+		expect(result[1].displayName).toBe('Email User')
 		expect(result[0].iconName).toBe('account')
 		expect(result[1].iconName).toBe('email')
 		expect(result[2].iconName).toBeUndefined()
 	})
 
-	it('normalizeSignerOption keeps loose local signer state compatible', () => {
-		const wrapper = createWrapper({ method: 'email' })
+	it('normalizeSignerOption keeps signer payload on the OpenAPI shape', () => {
+		const wrapper = createWrapper()
 		const result = wrapper.vm.normalizeSignerOption({
 			identify: 'user@example.com',
+			isNoUser: true,
+			shareType: 4,
 			displayName: 'User Email',
+			subname: 'user@example.com',
 		})
 
-		expect(result.label).toBe('User Email')
-		expect(result.subname).toBe('')
+		expect(wrapper.vm.getOptionKey(result)).toBe('user@example.com')
+		expect(result.displayName).toBe('User Email')
+		expect(result.subname).toBe('user@example.com')
+		expect(result.shareType).toBe(4)
 		expect(result.iconName).toBeUndefined()
+	})
+
+	it('onSelectedSignerChange emits a plain OpenAPI signer object', () => {
+		const wrapper = createWrapper({ method: 'email' })
+		const selected = wrapper.vm.injectIcons([
+			{ identify: 'signer01@libresign.coop', isNoUser: true, shareType: 4, displayName: 'signer01@libresign.coop', subname: 'signer01@libresign.coop', method: 'email', iconName: 'email' },
+		])[0]
+
+		wrapper.vm.onSelectedSignerChange(selected)
+
+		expect(wrapper.emitted('update:signer')?.at(-1)?.[0]).toEqual({
+			identify: 'signer01@libresign.coop',
+			isNoUser: true,
+			shareType: 4,
+			displayName: 'signer01@libresign.coop',
+			subname: 'signer01@libresign.coop',
+			method: 'email',
+			iconName: 'email',
+		})
+	})
+
+	it('getOptionKey uses identify as the select identity', () => {
+		const wrapper = createWrapper({ method: 'email' })
+		const selected = wrapper.vm.injectIcons([
+			{ identify: 'manual@libresign.coop', isNoUser: true, shareType: 4, displayName: 'Manual', subname: 'manual@libresign.coop', method: 'email' },
+		])[0]
+
+		expect(wrapper.vm.getOptionKey(selected)).toBe('manual@libresign.coop')
 	})
 
 	it('injectIcons keeps backend icon keys as the contract', () => {
@@ -130,7 +164,7 @@ describe('SignerSelect.vue', () => {
 		expect(wrapper.vm.loading).toBe(false)
 		expect(wrapper.vm.haveError).toBe(false)
 		expect(wrapper.vm.options).toHaveLength(1)
-		expect(wrapper.vm.options[0].label).toBe('Carol')
+		expect(wrapper.vm.options[0].displayName).toBe('Carol')
 	})
 
 	it('ignores stale async response when a newer search was triggered', async () => {
@@ -169,18 +203,20 @@ describe('SignerSelect.vue', () => {
 		await firstCall
 
 		expect(wrapper.vm.options).toHaveLength(1)
-		expect(wrapper.vm.options[0].label).toBe('User 02')
+		expect(wrapper.vm.options[0].displayName).toBe('User 02')
 	})
 
 	it('clears stale options when method changes', () => {
 		const wrapper = createWrapper()
-		wrapper.vm.options = [{ identify: 'legacy@example.com', displayName: 'Legacy', subname: 'legacy@example.com', label: 'Legacy' }]
+		wrapper.vm.options = [{ identify: 'legacy@example.com', isNoUser: true, shareType: 4, displayName: 'Legacy', subname: 'legacy@example.com' }]
+		wrapper.vm.selectedSigner = wrapper.vm.options[0]
 		wrapper.vm.haveError = true
 		wrapper.vm.loading = true
 
 		wrapper.vm.handleMethodChange()
 
 		expect(wrapper.vm.options).toEqual([])
+		expect(wrapper.vm.selectedSigner).toBe(null)
 		expect(wrapper.vm.haveError).toBe(false)
 		expect(wrapper.vm.loading).toBe(false)
 	})
@@ -194,6 +230,7 @@ describe('SignerSelect.vue', () => {
 
 		const mapped = wrapper.vm.injectIcons([{ identify: 'admin', isNoUser: false, shareType: 0, displayName: 'Admin', subname: 'admin', iconName: 'account' }])[0]
 		const slotProps = { option: mapped }
+		expect(wrapper.vm.getOption(mapped)).toEqual(mapped)
 		expect(wrapper.vm.getOptionLabel(slotProps)).toBe('Admin')
 		expect(wrapper.vm.getOptionSubname(slotProps)).toBe('admin')
 		expect(wrapper.vm.getOptionIcon(slotProps)).toContain('<svg')
