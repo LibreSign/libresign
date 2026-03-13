@@ -71,7 +71,7 @@
 				height="100%"
 				:files="pdfFiles"
 				:file-names="pdfFileNames"
-				:signers="document.signers"
+				:signers="document.signers || []"
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:on-delete-signer="onDeleteSigner">
 			</PdfEditor>
@@ -80,13 +80,12 @@
 </template>
 
 <script setup lang="ts">
-import { t } from '@nextcloud/l10n'
-
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
@@ -228,6 +227,7 @@ const width = ref(getCapabilities().libresign.config['sign-elements']['full-sign
 const height = ref(getCapabilities().libresign.config['sign-elements']['full-signature-height'])
 const filePagesMap = ref<Record<number, FilePageInfo>>({})
 const elementsLoaded = ref(false)
+const fetchedFiles = ref<DocumentFile[]>([])
 
 const document = computed(() => filesStore.getFile())
 const status = computed(() => Number(document.value?.status ?? -1))
@@ -312,7 +312,7 @@ function buildFilePagesMap() {
 				id: file.id,
 				fileIndex: index,
 				startPage: currentPage,
-				fileName: file.name,
+				fileName: file.name ?? '',
 			}
 		}
 		currentPage += pageCount
@@ -323,6 +323,7 @@ function closeModal() {
 	modal.value = false
 	filesStore.loading = false
 	elementsLoaded.value = false
+	fetchedFiles.value = []
 	stopAddSigner()
 }
 
