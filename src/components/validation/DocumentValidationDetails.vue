@@ -68,65 +68,21 @@ import {
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
-import type { components } from '../../types/openapi/openapi'
-
-type OpenApiValidateFile = components['schemas']['ValidatedFile']
-type OpenApiSigner = components['schemas']['SignerDetail']
-
-type ValidationSigner = {
-	displayName?: OpenApiSigner['displayName']
-	email?: OpenApiSigner['email']
-	name?: string
-	signed?: string | null
-	valid_from?: string
-	valid_to?: string
-	remote_address?: OpenApiSigner['remote_address']
-	user_agent?: OpenApiSigner['user_agent']
-	certificate_validation?: {
-		id?: number
-		message?: string
-		trustedBy?: string
-	}
-	crl_validation?: string
-	crl_revoked_at?: string
-	docmdp?: {
-		isCertifying?: boolean
-		label?: string
-		description?: string
-	}
-	docmdp_validation?: {
-		message?: string
-	}
-	modification_validation?: {
-		status?: number
-		message?: string
-	}
-	modifications?: {
-		modified?: boolean
-		revisionCount?: number
-	}
-	signature_validation?: {
-		id?: number
-		message?: string
-		trustedBy?: string
-	}
-	signatureTypeSN?: string
-	hash?: string
-	chain?: Record<string, unknown>[]
-}
+import type { SignerDetailRecord } from '../../types/index'
 
 defineOptions({
 	name: 'DocumentValidationDetails',
 })
 
+type ValidationSigner = Partial<SignerDetailRecord>
 type ValidationDocument = {
-	uuid?: OpenApiValidateFile['uuid']
-	name?: OpenApiValidateFile['name']
-	nodeId?: OpenApiValidateFile['nodeId'] | number | string | null
-	status?: OpenApiValidateFile['status'] | string | number
+	uuid?: string
+	name?: string
+	nodeId?: number
 	totalPages?: number
-	size?: string | number
 	pdfVersion?: string
+	status?: string | number
+	size?: string | number
 	signers?: ValidationSigner[]
 }
 
