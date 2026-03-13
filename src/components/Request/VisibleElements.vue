@@ -85,20 +85,12 @@
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showSuccess, showError } from '@nextcloud/dialogs'
-import { subscribe, unsubscribe } from '@nextcloud/event-bus'
-import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
+import { subscribe, unsubscribe, type Event as NextcloudEvent, type EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import type { ComponentPublicInstance } from 'vue'
 import type { PDFElementObject } from '@libresign/pdf-elements'
-
-import NcButton from '@nextcloud/vue/components/NcButton'
-import NcChip from '@nextcloud/vue/components/NcChip'
-import NcModal from '@nextcloud/vue/components/NcModal'
-import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
-import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, type ComponentPublicInstance } from 'vue'
 
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
 import Signer from '../Signers/Signer.vue'
@@ -109,37 +101,24 @@ import {
 	aggregateVisibleElementsByFiles,
 	type DocumentData,
 	type FileData,
+	type FileSigner,
+	type VisibleElementsDocument,
+	type VisibleElementsFile,
+	type VisibleElementsSigner,
 	findFileById,
 	getFileSigners,
 	getFileUrl,
 	getVisibleElementsFromDocument,
 	idsMatch,
-	type Signer as VisibleElementsServiceSigner,
-	type EnvelopeChildSignerSummary,
 	type VisibleElement,
 } from '../../services/visibleElementsService'
-import type { components } from '../../types/openapi/openapi'
 import type {
 	IdentifyMethodRecord,
 	LibresignCapabilities,
+	VisibleElementRecord,
 } from '../../types/index'
 
-type OpenApiFolderSettings = components['schemas']['FolderSettings']
-type OpenApiNextcloudFile = components['schemas']['DetailedFileResponse']
-type OpenApiValidateFile = components['schemas']['ValidatedFile']
-type OpenApiFileDetail = components['schemas']['DetailedFile']
-type OpenApiFileListItem = components['schemas']['FileListItem']
-type OpenApiValidateMetadata = components['schemas']['ValidateMetadata']
-type OpenApiRequestDocument = OpenApiFileDetail | OpenApiNextcloudFile | OpenApiValidateFile
-
-type FileSigner = (VisibleElementsServiceSigner | EnvelopeChildSignerSummary) & {
-	visibleElements?: VisibleElement[]
-	identifyMethods?: IdentifyMethodRecord[]
-	identify?: string | number
-	me?: boolean
-}
-
-type VisibleElementPayload = Omit<VisibleElement, 'coordinates' | 'elementId' | 'fileId' | 'signRequestId'> & {
+type VisibleElementPayload = Omit<VisibleElementRecord, 'coordinates' | 'elementId' | 'fileId' | 'signRequestId'> & {
 	type: 'signature'
 	elementId?: number | string
 	fileId?: number
@@ -153,25 +132,16 @@ type VisibleElementPayload = Omit<VisibleElement, 'coordinates' | 'elementId' | 
 	}
 }
 
-type DocumentFile = FileData & OpenApiFileListItem & {
-	id: number
-	name: string
-	metadata?: OpenApiValidateMetadata
+type DocumentFile = VisibleElementsFile & {
+	id?: number
+	name?: string
 	visibleElements?: VisibleElement[] | null
-	signers?: FileSigner[]
+	signers?: VisibleElementsSigner[]
 }
 
-type DocumentModel = Omit<OpenApiRequestDocument, 'files' | 'signers' | 'visibleElements'> & {
-	id?: number
-	uuid?: string
-	name: string
-	status: number | string
-	statusText: string
-	metadata?: OpenApiValidateMetadata
-	settings?: OpenApiFolderSettings & { signerFileUuid?: string }
-	files?: DocumentFile[]
-	visibleElements?: VisibleElement[]
-	signers?: FileSigner[]
+type NormalizedDocument = Omit<VisibleElementsDocument, 'files' | 'signers'> & {
+	files: DocumentFile[]
+	signers: VisibleElementsSigner[]
 }
 
 type FilePageInfo = {
@@ -220,13 +190,92 @@ type PdfEditorRef = ComponentPublicInstance & {
 
 type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'saveOrUpdateSignatureRequest'> & {
 	loading: boolean
-	getFile: () => DocumentModel
+	getFile: ReturnType<typeof useFilesStore>['getFile']
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<{ message: string }>
+}
+
+function toRecord(value: unknown): Record<string, unknown> | null {
+	return typeof value === 'object' && value !== null ? value as Record<string, unknown> : null
+}
+
+function normalizeSigner(signer: unknown): VisibleElementsSigner | null {
+	const candidate = toRecord(signer)
+	if (!candidate) {
+		return null
+	}
+
+	return {
+		signRequestId: typeof candidate.signRequestId === 'number' || typeof candidate.signRequestId === 'string' ? candidate.signRequestId : undefined,
+		displayName: typeof candidate.displayName === 'string' ? candidate.displayName : undefined,
+		email: typeof candidate.email === 'string' ? candidate.email : undefined,
+		identify: typeof candidate.identify === 'string' || typeof candidate.identify === 'number' || (typeof candidate.identify === 'object' && candidate.identify !== null)
+			? candidate.identify as VisibleElementsSigner['identify']
+			: undefined,
+		identifyMethods: Array.isArray(candidate.identifyMethods)
+			? candidate.identifyMethods as IdentifyMethodRecord[]
+			: undefined,
+		localKey: typeof candidate.localKey === 'string' ? candidate.localKey : undefined,
+		me: typeof candidate.me === 'boolean' ? candidate.me : undefined,
+		visibleElements: Array.isArray(candidate.visibleElements)
+			? candidate.visibleElements as VisibleElement[]
+			: undefined,
+	}
+}
+
+function normalizeDocumentFile(file: unknown): DocumentFile | null {
+	const candidate = toRecord(file)
+	if (!candidate) {
+		return null
+	}
+
+	const id = typeof candidate.id === 'number' ? candidate.id : Number(candidate.id)
+	const name = typeof candidate.name === 'string' ? candidate.name : undefined
+	const nestedFiles = Array.isArray(candidate.files)
+		? candidate.files.map(normalizeDocumentFile).filter((row): row is DocumentFile => row !== null)
+		: undefined
+	const signers = Array.isArray(candidate.signers)
+		? candidate.signers.map(normalizeSigner).filter((row): row is VisibleElementsSigner => row !== null)
+		: undefined
+
+	return {
+		...(Number.isFinite(id) ? { id } : {}),
+		...(name !== undefined ? { name } : {}),
+		...('file' in candidate && (typeof candidate.file === 'string' || candidate.file === null || typeof candidate.file === 'object')
+			? { file: candidate.file as DocumentFile['file'] }
+			: {}),
+		...(nestedFiles !== undefined ? { files: nestedFiles } : {}),
+		...('metadata' in candidate ? { metadata: candidate.metadata as DocumentFile['metadata'] } : {}),
+		...(Array.isArray(candidate.visibleElements) ? { visibleElements: candidate.visibleElements as VisibleElement[] } : {}),
+		...(signers !== undefined ? { signers } : {}),
+	}
+}
+
+function normalizeDocument(file: ReturnType<FilesStore['getFile']>): NormalizedDocument {
+	return {
+		id: file?.id,
+		uuid: file?.uuid ?? null,
+		name: file?.name ?? '',
+		status: file?.status,
+		statusText: file?.statusText ?? '',
+		metadata: file?.metadata,
+		settings: file?.settings,
+		visibleElements: Array.isArray(file?.visibleElements) ? file.visibleElements : null,
+		signers: Array.isArray(file?.signers)
+			? file.signers.map(normalizeSigner).filter((row): row is VisibleElementsSigner => row !== null)
+			: [],
+		files: Array.isArray(file?.files)
+			? file.files.map(normalizeDocumentFile).filter((row): row is DocumentFile => row !== null)
+			: [],
+	}
 }
 
 const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElement[] =>
 	elements.flatMap((element) => {
 		if (element.type !== 'signature') {
+			return []
+		}
+
+		if (!element.coordinates) {
 			return []
 		}
 
@@ -291,10 +340,10 @@ const filePagesMap = ref<Record<number, FilePageInfo>>({})
 const elementsLoaded = ref(false)
 const fetchedFiles = ref<DocumentFile[]>([])
 
-const document = computed<DocumentModel>(() => filesStore.getFile() as DocumentModel)
-const documentFiles = computed<DocumentFile[]>(() => Array.isArray(document.value.files) ? document.value.files as DocumentFile[] : [])
-const sidebarSigners = computed(() => {
-	const signers = Array.isArray(document.value.signers) ? document.value.signers : []
+const document = computed<NormalizedDocument>(() => normalizeDocument(filesStore.getFile()))
+const documentFiles = computed<DocumentFile[]>(() => fetchedFiles.value.length > 0 ? fetchedFiles.value : document.value.files)
+const sidebarSigners = computed<Array<{ signer: VisibleElementsSigner; index: number }>>(() => {
+	const signers: VisibleElementsSigner[] = Array.isArray(document.value.signers) ? document.value.signers : []
 	return signers
 		.map((signer, index) => ({ signer, index }))
 		.filter(({ signer }) => !isSelectedSigner(signer))
@@ -305,7 +354,7 @@ const canSave = computed(() => ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FI
 const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && (document.value?.settings?.signerFileUuid ?? '').length > 0)
 const variantOfSaveButton = computed(() => canSave.value ? 'primary' : 'secondary')
 const variantOfSignButton = computed(() => canSave.value ? 'secondary' : 'primary')
-const statusLabel = computed(() => document.value.statusText)
+const statusLabel = computed(() => document.value.statusText || '')
 const pdfFiles = computed<PdfInput[]>(() => documentFiles.value.flatMap((file) => {
 	const fileUrl = getFileUrl(file)
 	return fileUrl ? [fileUrl] : []
@@ -356,7 +405,7 @@ function getOcsErrorMessage(error: unknown): string | null {
 	return typeof ocsData.message === 'string' ? ocsData.message : null
 }
 
-function isSelectedSigner(signer: FileSigner): boolean {
+function isSelectedSigner(signer: VisibleElementsSigner): boolean {
 	if (!signerSelected.value) {
 		return false
 	}
@@ -369,7 +418,9 @@ function isSelectedSigner(signer: FileSigner): boolean {
 		return idsMatch(signer.signRequestId, signerSelected.value.signRequestId)
 	}
 
-	return signer.identify === signerSelected.value.identify
+	const signerIdentify = 'identify' in signer ? signer.identify : undefined
+	const selectedIdentify = 'identify' in signerSelected.value ? signerSelected.value.identify : undefined
+	return signerIdentify === selectedIdentify
 }
 
 async function showModal() {
@@ -399,7 +450,13 @@ async function fetchFiles() {
 		},
 	})
 	const childFiles = response?.data?.ocs?.data?.data || []
-	document.value.files = Array.isArray(childFiles) ? childFiles as DocumentFile[] : []
+	fetchedFiles.value = Array.isArray(childFiles)
+		? childFiles.map(normalizeDocumentFile).filter((file): file is DocumentFile => file !== null)
+		: []
+	const currentFile = filesStore.getFile()
+	if (currentFile) {
+		currentFile.files = fetchedFiles.value
+	}
 
 	const allVisibleElements = aggregateVisibleElementsByFiles(documentFiles.value)
 	if (allVisibleElements.length > 0) {
