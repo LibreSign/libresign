@@ -64,23 +64,14 @@ import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
-import type { components } from '../../types/openapi/openapi'
 import type { IdentifyMethodSetting, SignatureFlowMode } from '../../types/index'
 defineOptions({
 	name: 'Signer',
 })
 
-type OpenApiSigner = components['schemas']['SignerDetail']
-
-type SignerListItem = {
-	displayName?: OpenApiSigner['displayName']
-	email?: OpenApiSigner['email']
-	status?: OpenApiSigner['status']
-	statusText?: string
-	signed?: unknown
-	identifyMethods?: OpenApiSigner['identifyMethods']
-	signingOrder?: OpenApiSigner['signingOrder'] | number
-}
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type SelectedFile = ReturnType<FilesStoreContract['getFile']>
+type SignerListItem = NonNullable<NonNullable<SelectedFile['signers']>[number]>
 
 const props = withDefaults(defineProps<{
 	signerIndex: number
