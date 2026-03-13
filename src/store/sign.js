@@ -68,7 +68,7 @@ export const useSignStore = defineStore('sign', () => {
 
 	const getSignatureMethodsForFile = (file) => {
 		const currentUserAsSigner = file.signers.find(row => row.me)
-		return currentUserAsSigner?.signatureMethods || file.settings?.signatureMethods || {}
+		return currentUserAsSigner?.signatureMethods || file.signatureMethods || file.settings?.signatureMethods || {}
 	}
 
 	const initFromState = async () => {
