@@ -11,18 +11,17 @@ import type { Pinia } from 'pinia'
 type SignersComponent = typeof import('../../../components/Signers/Signers.vue').default
 let Signers: SignersComponent
 import { useFilesStore } from '../../../store/files.js'
-import type { FileRecord, SignatureFlowValue } from '../../../types/index'
+import type { FileState } from '../../../types/index'
 
 type SignerRecord = {
-	id?: number
-	identify?: string
+	localKey: string
 	displayName?: string
 	signed?: boolean
 	signingOrder?: number
 	[key: string]: unknown
 }
 
-type SelectedFile = Pick<FileRecord, 'signers' | 'signatureFlow'>
+type SelectedFile = Pick<FileState, 'signers' | 'signatureFlow'>
 
 type FilesStoreMock = ReturnType<typeof useFilesStore> & {
 	selectedFile: SelectedFile
@@ -86,7 +85,7 @@ describe('Signers', () => {
 		setActivePinia(pinia)
 		filesStore = useFilesStore() as FilesStoreMock
 		filesStore.selectedFile = { signers: [] }
-		filesStore.getFile = vi.fn(() => (filesStore.selectedFile || { signers: [] }) as FileRecord)
+		filesStore.getFile = vi.fn(() => (filesStore.selectedFile || { signers: [] }) as FileState)
 		filesStore.canSave = vi.fn(() => true)
 		if (wrapper) {
 			wrapper.unmount()
