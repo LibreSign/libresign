@@ -238,7 +238,6 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
-import type { components } from '../../types/openapi/openapi'
 import Moment from '@nextcloud/moment'
 import { computed, ref } from 'vue'
 
@@ -283,19 +282,15 @@ type SignerModifications = {
 	revisionCount?: number
 }
 
-type OpenApiSigner = components['schemas']['SignerDetail']
-
 type SignerModel = {
-	displayName?: OpenApiSigner['displayName']
-	email?: OpenApiSigner['email']
+	displayName?: string
+	email?: string
 	name?: string
-	remote_address?: OpenApiSigner['remote_address']
-	user_agent?: OpenApiSigner['user_agent']
+	remote_address?: string
+	user_agent?: string
+	valid_from?: string | number
+	valid_to?: string | number
 	signed?: string | null
-	valid_to?: string
-	valid_from?: string
-	crl_validation?: string
-	crl_revoked_at?: string
 	signature_validation?: ValidationState
 	certificate_validation?: ValidationState
 	crl_validation?: string
