@@ -31,7 +31,104 @@ const _filesStore = defineStore('files', () => {
 	const loadedAll = ref(false)
 	const getStore = () => _filesStore()
 
+	const cloneVisibleElement = (element) => element && typeof element === 'object'
+		? {
+			...element,
+			coordinates: element.coordinates && typeof element.coordinates === 'object'
+				? { ...element.coordinates }
+				: element.coordinates,
+		}
+		: element
+
+	const cloneSigner = (signer) => signer && typeof signer === 'object'
+		? {
+			...signer,
+			identify: signer.identify && typeof signer.identify === 'object'
+				? { ...signer.identify }
+				: signer.identify,
+			identifyMethods: Array.isArray(signer.identifyMethods)
+				? signer.identifyMethods.map(method => ({ ...method }))
+				: signer.identifyMethods,
+			visibleElements: Array.isArray(signer.visibleElements)
+				? signer.visibleElements.map(cloneVisibleElement)
+				: signer.visibleElements,
+			signatureMethods: signer.signatureMethods && typeof signer.signatureMethods === 'object'
+				? { ...signer.signatureMethods }
+				: signer.signatureMethods,
+		}
+		: signer
+
+	const cloneFileReference = (file) => file && typeof file === 'object'
+		? {
+			...file,
+			metadata: file.metadata && typeof file.metadata === 'object' ? { ...file.metadata } : file.metadata,
+			settings: file.settings && typeof file.settings === 'object' ? { ...file.settings } : file.settings,
+			signers: Array.isArray(file.signers) ? file.signers.map(cloneSigner) : file.signers,
+			visibleElements: Array.isArray(file.visibleElements) ? file.visibleElements.map(cloneVisibleElement) : file.visibleElements,
+			files: Array.isArray(file.files) ? file.files.map(cloneFileReference) : file.files,
+		}
+		: file
+
+	const cloneEditableFile = (file) => file && typeof file === 'object'
+		? {
+			...file,
+			metadata: file.metadata && typeof file.metadata === 'object' ? { ...file.metadata } : file.metadata,
+			settings: file.settings && typeof file.settings === 'object' ? { ...file.settings } : file.settings,
+			signers: Array.isArray(file.signers) ? file.signers.map(cloneSigner) : file.signers,
+			visibleElements: Array.isArray(file.visibleElements) ? file.visibleElements.map(cloneVisibleElement) : file.visibleElements,
+			files: Array.isArray(file.files) ? file.files.map(cloneFileReference) : file.files,
+		}
+		: file
+
+	const syncPublicFile = (fileId) => {
+		if (!fileId) {
+			return null
+		}
+		const draft = requestDrafts.value[fileId]
+		if (draft) {
+			files.value[fileId] = draft
+			return draft
+		}
+		const apiFile = apiFiles.value[fileId]
+		if (apiFile) {
+			files.value[fileId] = apiFile
+			return apiFile
+		}
+		delete files.value[fileId]
+		return null
+	}
+
+	const clearRequestDraft = (fileId) => {
+		if (!fileId) {
+			return
+		}
+		if (!requestDrafts.value[fileId]) {
+			return
+		}
+		delete requestDrafts.value[fileId]
+		syncPublicFile(fileId)
+	}
+
+	const ensureRequestDraft = (fileId = selectedFileId.value) => {
+		if (!fileId) {
+			return null
+		}
+		if (requestDrafts.value[fileId]) {
+			return requestDrafts.value[fileId]
+		}
+		const source = files.value[fileId] || apiFiles.value[fileId]
+		if (!source) {
+			return null
+		}
+		const draft = cloneEditableFile(source)
+		requestDrafts.value[fileId] = draft
+		files.value[fileId] = draft
+		return draft
+	}
+
 	const resetState = () => {
+		apiFiles.value = {}
+		requestDrafts.value = {}
 		files.value = {}
 		selectedFileId.value = 0
 		identifyingSigner.value = false
@@ -51,6 +148,8 @@ const _filesStore = defineStore('files', () => {
 			selectFile()
 		}
 
+		delete apiFiles.value[fileId]
+		delete requestDrafts.value[fileId]
 		delete files.value[fileId]
 		const index = ordered.value.indexOf(fileId)
 		if (index > -1) {
@@ -85,7 +184,8 @@ const _filesStore = defineStore('files', () => {
 			fileData.settings = { ...existingFile.settings, ...fileData.settings }
 		}
 
-		files.value[key] = fileData
+		apiFiles.value[key] = fileData
+		syncPublicFile(key)
 
 		if (!ordered.value.includes(key)) {
 			if (position === 'start') {
@@ -177,6 +277,11 @@ const _filesStore = defineStore('files', () => {
 			return file
 		}
 		return files.value[selectedFileId.value] || emptyFile
+	}
+
+	/** @returns {EditableFileState | PublicFileState} */
+	function getEditableFile(fileId = selectedFileId.value) {
+		return ensureRequestDraft(fileId) || getFile()
 	}
 
 	async function flushSelectedFile() {
@@ -445,7 +550,8 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	function signerUpdate(signer) {
-		if (!selectedFileId.value || !files.value[selectedFileId.value]) {
+		const editableFile = ensureRequestDraft()
+		if (!selectedFileId.value || !editableFile) {
 			return
 		}
 		addIdentifierToSigner(signer)
@@ -463,19 +569,19 @@ const _filesStore = defineStore('files', () => {
 				break
 			}
 		}
-		if (!signer.signingOrder && getFile().signatureFlow === 'ordered_numeric') {
-			const maxOrder = getFile().signers.reduce((max, s) => Math.max(max, s.signingOrder || 0), 0)
+		if (!signer.signingOrder && editableFile.signatureFlow === 'ordered_numeric') {
+			const maxOrder = editableFile.signers.reduce((max, s) => Math.max(max, s.signingOrder || 0), 0)
 			signer.signingOrder = maxOrder + 1
 		}
-		getFile().signers.push(signer)
-		getFile().signersCount = getFile().signers.length
+		editableFile.signers.push(signer)
+		editableFile.signersCount = editableFile.signers.length
 		const selected = selectedFileId.value
 		selectFile(-1) // to force reactivity
 		selectFile(selected) // to force reactivity
 	}
 
 	async function deleteSigner(signer) {
-		const selectedFile = getFile()
+		const selectedFile = ensureRequestDraft() || getFile()
 
 		if (!isNaN(signer.signRequestId)) {
 			await axios.delete(generateOcsUrl('/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}', {
@@ -490,7 +596,7 @@ const _filesStore = defineStore('files', () => {
 		files.value[selectedFileId.value].signersCount = files.value[selectedFileId.value].signers.length
 
 		if (selectedFile.signatureFlow === 'ordered_numeric' && signer.signingOrder) {
-			files.value[selectedFileId.value].signers.forEach((s) => {
+			selectedFile.signers.forEach((s) => {
 				if (s.signingOrder && s.signingOrder > signer.signingOrder) {
 					s.signingOrder -= 1
 				}
@@ -640,6 +746,7 @@ const _filesStore = defineStore('files', () => {
 		const response = await axios.get(urlObj.toString())
 
 		if (!paginationNextUrl.value) {
+			apiFiles.value = {}
 			files.value = {}
 			ordered.value = []
 		}
@@ -745,6 +852,8 @@ const _filesStore = defineStore('files', () => {
 		}
 
 		if (selectedFile.nodeType === 'envelope' && typeof selectedFile.nodeId === 'string' && responseFile.nodeId !== selectedFile.nodeId) {
+			delete apiFiles.value[selectedFileId.value]
+			clearRequestDraft(selectedFileId.value)
 			delete files.value[selectedFileId.value]
 			const index = ordered.value.indexOf(selectedFileId.value)
 			if (index !== -1) {
@@ -753,8 +862,14 @@ const _filesStore = defineStore('files', () => {
 		}
 
 		const newFileKey = responseFile.id
+		clearRequestDraft(currentFileKey)
+		if (newFileKey !== currentFileKey) {
+			clearRequestDraft(newFileKey)
+		}
 		if (selectedFileId.value !== null && selectedFileId.value !== newFileKey) {
 			if (store.isTemporaryId(selectedFileId.value) && files.value[selectedFileId.value]) {
+				delete apiFiles.value[selectedFileId.value]
+				clearRequestDraft(selectedFileId.value)
 				delete files.value[selectedFileId.value]
 				const index = ordered.value.indexOf(selectedFileId.value)
 				if (index !== -1) {
@@ -811,6 +926,7 @@ const _filesStore = defineStore('files', () => {
 		getFileIdByUuid,
 		selectFileByUuid,
 		getFile,
+		getEditableFile,
 		flushSelectedFile,
 		addFilesToEnvelope,
 		removeFilesFromEnvelope,
