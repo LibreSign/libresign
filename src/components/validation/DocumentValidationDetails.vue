@@ -73,6 +73,7 @@ defineOptions({
 	name: 'DocumentValidationDetails',
 })
 
+type ValidationSigner = Partial<SignerDetailRecord>
 type ValidationDocument = {
 	name: string
 	status?: string | number
