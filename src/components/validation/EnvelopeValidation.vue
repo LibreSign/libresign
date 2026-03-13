@@ -203,6 +203,7 @@ type EnvelopeDocument = {
 	name?: string
 	status?: string | number
 	filesCount?: number
+	status?: string | number
 	files?: EnvelopeFile[]
 	signers?: EnvelopeSigner[]
 	signedDate?: string
