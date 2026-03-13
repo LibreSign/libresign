@@ -12,7 +12,7 @@ import SignTab from '../../../components/RightSidebar/SignTab.vue'
 import { useSignStore } from '../../../store/sign.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { FILE_STATUS } from '../../../constants.js'
-import type { FileState, SignerState } from '../../../types/index'
+import type { SignatureMethodsRecord } from '../../../types/index'
 import type { TranslationFunction } from '../../test-types'
 import type { MockedFunction } from 'vitest'
 
@@ -26,13 +26,18 @@ type SignDocument = {
 	id: number
 	name: string
 	description: string
-	status: string | number
+	status: number
 	statusText: string
 	url: string
 	nodeId: number
-	nodeType: NonNullable<FileState['nodeType']>
+	nodeType: 'file' | 'envelope'
 	uuid: string
-	signers: SignerState[]
+	signers: Array<{
+		me?: boolean
+		status?: number
+		sign_uuid?: string
+		signatureMethods?: SignatureMethodsRecord
+	}>
 	visibleElements: Array<Record<string, unknown>>
 	settings?: Record<string, unknown>
 	[key: string]: unknown
