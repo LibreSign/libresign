@@ -616,7 +616,7 @@ const debouncedTabChange = debounce((tabId: string) => {
 
 function onPreserveOrderChange(value: boolean) {
 	preserveOrder.value = value
-	const file = filesStore.getFile()
+	const file = filesStore.getEditableFile()
 
 	if (value) {
 		if (file?.signers) {
@@ -860,7 +860,7 @@ async function sign() {
 		return
 	}
 
-	const uuid = file.signUuid
+	const uuid = 'signUuid' in file ? file.signUuid : null
 	if (props.useModal) {
 		const absoluteUrl = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid })
 		const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
@@ -950,7 +950,7 @@ function startSigningProgressPolling() {
 			signingProgressStatusText.value = data.statusText
 			signingProgress.value = data.progress
 
-			const currentFile = filesStore.getFile()
+			const currentFile = filesStore.getEditableFile()
 			if (currentFile) {
 				currentFile.status = data.status
 				currentFile.statusText = data.statusText
