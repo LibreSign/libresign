@@ -80,7 +80,7 @@ const sortableSigners = computed<SignerRow[] | undefined>({
 		return signers.value
 	},
 	set(value) {
-		const file = filesStore.getFile() as FileWithSigners | undefined
+		const file = filesStore.getFile()
 		if (file) {
 			file.signers = value
 		}
@@ -107,7 +107,7 @@ function onDragEnd(evt: { oldIndex: number; newIndex: number }) {
 		return
 	}
 
-	const file = filesStore.getFile() as FileWithSigners | undefined
+	const file = filesStore.getFile()
 	file?.signers?.forEach((signer, index) => {
 		signer.signingOrder = index + 1
 	})
