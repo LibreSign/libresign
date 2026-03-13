@@ -576,7 +576,7 @@ describe('files store - critical business rules', () => {
 
 			await store.deleteSigner({ localKey: 'draft-2', signingOrder: 2 })
 
-			const remainingSigners = store.files[1].signers! as Array<{ identify: string; signingOrder: number }>
+			const remainingSigners = store.files[1].signers! as Array<{ localKey: string; signingOrder: number }>
 			expect(remainingSigners).toHaveLength(2)
 			const signer = remainingSigners.find((s: { localKey: string }) => s.localKey === 'draft-3')
 			expect(signer?.signingOrder).toBe(2)
@@ -635,7 +635,7 @@ describe('files store - critical business rules', () => {
 			const updatedSigner = {
 				email: 'updated@example.com',
 				signRequestId: 123,
-				identify: 123,
+				localKey: 'signer:123',
 				description: 'new',
 			}
 			store.signerUpdate(updatedSigner)
@@ -837,15 +837,15 @@ describe('files store - critical business rules', () => {
 			const store = useFilesStore()
 			await store.addFile({ id: 1, signers: [{ email: 'a@example.com', signRequestId: 42 }] })
 
-			expect(store.files[1].signers![0]!.identify).toBe(42)
+			expect(store.files[1].signers![0]!.localKey).toBe('signer:42')
 		})
 
 		it('generates localKey for new signers without signRequestId', async () => {
 			const store = useFilesStore()
 			await store.addFile({ id: 1, signers: [{ email: 'b@example.com' }] })
 
-			expect(store.files[1].signers![0]!.identify).toBeDefined()
-			expect(typeof store.files[1].signers![0]!.identify).toBe('string')
+			expect(store.files[1].signers![0]!.localKey).toBeDefined()
+			expect(typeof store.files[1].signers![0]!.localKey).toBe('string')
 		})
 
 		it('sets localKey on every signer in a multi-signer file', async () => {
@@ -1146,6 +1146,89 @@ describe('files store - critical business rules', () => {
 			expect(store.files[12]).toBeDefined()
 			expect(store.selectedFileId).toBe(12)
 			expect(store.ordered).toContain(12)
+		})
+
+		/**
+		 * Regression: POST /request-signature missing "file" parameter.
+		 *
+		 * When init.ts uploads a file and the WebDAV PROPFIND response is missing
+		 * the Nextcloud-specific fileid (because getDefaultPropfind() was not used),
+		 * AppFilesTab.update() receives fileInfo.id = '' and creates a temp object
+		 * { id: -0 = 0, nodeId: '' }. addFile() silently rejects this (both falsy),
+		 * selectedFileId stays 0, and getFile() returns the shared emptyFile reference.
+		 * The signer gets pushed into emptyFile.signers (mutation of shared state),
+		 * and saveOrUpdateSignatureRequest sends POST with signers but no "file".
+		 *
+		 * Correct path (after fix): init.ts uses getDefaultPropfind() → fileid is
+		 * populated → AppFilesTab creates a properly keyed temp file with a valid
+		 * negative id and a valid nodeId → saveOrUpdateSignatureRequest includes
+		 * file: { nodeId } in the request body.
+		 */
+		describe('RULE: file reference in request-signature payload (init.ts upload flow)', () => {
+			it('includes file.nodeId when file has a temporary negative id', async () => {
+				const store = useFilesStore()
+				// Simulate the state AppFilesTab creates when the LibreSign API has not
+				// yet indexed the file (fallback path in AppFilesTab.update):
+				// id is -nodeId (temporary), nodeId is the real Nextcloud file id.
+				const nodeId = 12345
+				const tempId = -nodeId
+				store.files[tempId] = {
+					id: tempId,
+					nodeId,
+					name: 'test.pdf',
+					signers: [{ email: 'signer@example.com', identify: 'signer@example.com' }],
+					signatureFlow: 'parallel',
+				}
+				store.selectedFileId = tempId
+
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: nodeId, nodeId, signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({})
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.file).toEqual({ nodeId })
+			})
+
+			it('includes file.fileId when file has a real positive LibreSign id', async () => {
+				const store = useFilesStore()
+				// Simulate the state when LibreSign already knows about the file
+				// (returned by getAllFiles after the /api/v1/file POST in init.ts).
+				store.files[7] = {
+					id: 7,
+					nodeId: 12345,
+					name: 'test.pdf',
+					signers: [{ email: 'signer@example.com', identify: 'signer@example.com' }],
+					signatureFlow: 'parallel',
+				}
+				store.selectedFileId = 7
+
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: 7, nodeId: 12345, signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({})
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.file).toEqual({ fileId: 7 })
+			})
+
+			it('does NOT mutate the shared emptyFile when no file is selected', () => {
+				const store = useFilesStore()
+				store.selectedFileId = 0  // nothing selected
+
+				const signer = { email: 'a@example.com', localKey: 'draft-signer:test' }
+				// If emptyFile were mutated, the signerUpdate below would persist
+				// across store instances and corrupt subsequent tests.
+				store.signerUpdate(signer)
+
+				// Create a fresh store — it must start with empty signers
+				const store2 = useFilesStore()
+				store2.selectedFileId = 0
+				const file2 = store2.getFile()
+				expect(file2.signers).toHaveLength(0)
+			})
 		})
 	})
 })
