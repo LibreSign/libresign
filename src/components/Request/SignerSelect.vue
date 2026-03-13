@@ -6,16 +6,18 @@
 	<div id="account-or-email">
 		<label for="account-or-email-input">{{ t('libresign', 'Search signer') }}</label>
 		<NcSelect ref="select"
-			v-model="selectedSigner"
+			:model-value="selectedSigner"
 			input-id="account-or-email-input"
 			class="account-or-email__input"
 			:loading="loading"
 			:filterable="false"
+			label="displayName"
+			:get-option-key="getOptionKey"
 			:aria-label-combobox="placeholder"
 			:placeholder="placeholder"
-			:user-select="true"
 			:options="options"
-			@search="asyncFind">
+			@search="asyncFind"
+			@update:modelValue="onSelectedSignerChange">
 			<template #option="slotProps">
 				<div class="account-or-email__option">
 					<NcAvatar :display-name="getOptionLabel(slotProps)"
@@ -78,38 +80,25 @@ const iconMap = {
 
 type IconKey = keyof typeof iconMap
 type IconName = NonNullable<IdentifyAccountRecord['iconName']>
+type OptionSlotProps = {
+	option: IdentifyAccountRecord
+}
+type OptionPayload = IdentifyAccountRecord | OptionSlotProps | undefined
 
 defineOptions({
 	name: 'SignerSelect',
 })
 
-type SignerOption = {
-	identify?: string
-	displayName?: string
-	subname?: string
-	label?: string
-	method?: string
-	iconName?: IconName
-	acceptsEmailNotifications?: boolean
-}
-
-type NormalizedSignerOption = SignerOption & {
-	identify: string
-	displayName: string
-	subname: string
-	label: string
-}
-
 const emit = defineEmits<{
-	(event: 'update:signer', signer: SignerOption | null): void
+	(event: 'update:signer', signer: IdentifyAccountRecord | null): void
 }>()
 
 const props = withDefaults(defineProps<{
-	signer?: Record<string, unknown>
+	signer?: IdentifyAccountRecord | null
 	method?: string
 	placeholder?: string
 }>(), {
-	signer: () => ({}),
+	signer: null,
 	method: 'all',
 	placeholder: t('libresign', 'Name'),
 })
@@ -117,8 +106,8 @@ const props = withDefaults(defineProps<{
 const select = ref<{ $el?: HTMLElement } | null>(null)
 const container = ref<HTMLElement | null>(null)
 const loading = ref(false)
-const options = ref<NormalizedSignerOption[]>([])
-const selectedSigner = ref<SignerOption | null>(null)
+const options = ref<IdentifyAccountRecord[]>([])
+const selectedSigner = ref<IdentifyAccountRecord | null>(null)
 const haveError = ref(false)
 const intersectionObserver = ref<IntersectionObserver | null>(null)
 const activeRequestId = ref(0)
@@ -127,6 +116,7 @@ const noResultText = computed(() => loading.value ? t('libresign', 'Searching â€
 
 function handleMethodChange() {
 	options.value = []
+	selectedSigner.value = null
 	haveError.value = false
 	loading.value = false
 }
@@ -135,35 +125,39 @@ watch(() => props.method, () => {
 	handleMethodChange()
 })
 
-watch(selectedSigner, (selected) => {
-	haveError.value = selected === null
-	emit('update:signer', selected)
-})
-
-function injectIcons(items: IdentifyAccountRecord[]): NormalizedSignerOption[] {
+function injectIcons(items: IdentifyAccountRecord[]): IdentifyAccountRecord[] {
 	return items.map((item) => {
+		const { iconName: _iconName, ...itemWithoutIconName } = item
 		const iconName = getIconName(item.iconName)
 		return {
-			identify: item.identify,
-			displayName: item.displayName,
-			subname: item.subname,
-			method: item.method,
-			acceptsEmailNotifications: item.acceptsEmailNotifications,
+			...itemWithoutIconName,
 			...(iconName ? { iconName } : {}),
-			label: item.displayName,
 		}
 	})
 }
 
-function normalizeSignerOption(item: SignerOption): SignerOption {
+function normalizeSignerOption(item: IdentifyAccountRecord): IdentifyAccountRecord {
 	const iconName = getIconName(item.iconName)
 	return {
-		...item,
+		identify: item.identify,
+		displayName: item.displayName,
+		subname: item.subname,
+		isNoUser: item.isNoUser,
+		shareType: item.shareType,
+		...(item.method ? { method: item.method } : {}),
+		...(item.acceptsEmailNotifications !== undefined ? { acceptsEmailNotifications: item.acceptsEmailNotifications } : {}),
 		...(iconName ? { iconName } : {}),
-		label: item.label ?? item.displayName ?? '',
-		displayName: item.displayName ?? '',
-		subname: item.subname ?? '',
 	}
+}
+
+function getOptionKey(option: IdentifyAccountRecord) {
+	return option.identify
+}
+
+function onSelectedSignerChange(selected: IdentifyAccountRecord | null) {
+	selectedSigner.value = selected
+	haveError.value = selected === null
+	emit('update:signer', selected)
 }
 
 function toIconKey(iconName?: string): IconKey | undefined {
@@ -179,31 +173,35 @@ function getIconName(iconName?: string): IconName | undefined {
 	return toIconKey(iconName) ? iconName as IconName : undefined
 }
 
-function getOption(slotProps?: { option?: SignerOption } | SignerOption) {
-	if ((slotProps as { option?: SignerOption })?.option) {
-		return (slotProps as { option: SignerOption }).option
-	}
-	if (slotProps && typeof slotProps === 'object') {
-		return slotProps as SignerOption
-	}
-	return {}
+function isOptionSlotProps(slotProps: OptionPayload): slotProps is OptionSlotProps {
+	return typeof slotProps === 'object' && slotProps !== null && 'option' in slotProps
 }
 
-function getOptionLabel(slotProps?: { option?: SignerOption } | SignerOption) {
-	const option = getOption(slotProps)
-	return option.displayName || option.label || option.identify || option.subname || ''
+function getOption(slotProps?: OptionPayload): IdentifyAccountRecord | undefined {
+	if (isOptionSlotProps(slotProps)) {
+		return slotProps.option
+	}
+	if (typeof slotProps === 'object' && slotProps !== null && 'identify' in slotProps) {
+		return slotProps as IdentifyAccountRecord
+	}
+	return undefined
 }
 
-function getOptionSubname(slotProps?: { option?: SignerOption } | SignerOption) {
+function getOptionLabel(slotProps?: OptionPayload) {
 	const option = getOption(slotProps)
-	if (!option.subname || option.subname === option.displayName) {
+	return option?.displayName || option?.identify || option?.subname || ''
+}
+
+function getOptionSubname(slotProps?: OptionPayload) {
+	const option = getOption(slotProps)
+	if (!option?.subname || option.subname === option.displayName) {
 		return ''
 	}
 	return option.subname
 }
 
-function getOptionIcon(slotProps?: { option?: SignerOption } | SignerOption) {
-	const iconKey = toIconKey(getOption(slotProps).iconName)
+function getOptionIcon(slotProps?: OptionPayload) {
+	const iconKey = toIconKey(getOption(slotProps)?.iconName)
 	return iconKey ? iconMap[iconKey] : ''
 }
 
@@ -270,8 +268,8 @@ function setupVisibilityObserver() {
 }
 
 onMounted(() => {
-	if (Object.keys(props.signer).length > 0) {
-		selectedSigner.value = normalizeSignerOption(props.signer as SignerOption)
+	if (props.signer) {
+		selectedSigner.value = normalizeSignerOption(props.signer)
 	}
 	setupVisibilityObserver()
 	focusInput()
@@ -291,6 +289,8 @@ defineExpose({
 	handleMethodChange,
 	injectIcons,
 	normalizeSignerOption,
+	onSelectedSignerChange,
+	getOptionKey,
 	getOption,
 	getOptionLabel,
 	getOptionSubname,
