@@ -576,7 +576,7 @@ describe('files store - critical business rules', () => {
 
 			await store.deleteSigner({ localKey: 'draft-2', signingOrder: 2 })
 
-			const remainingSigners = store.files[1].signers! as Array<{ identify: string; signingOrder: number }>
+			const remainingSigners = store.files[1].signers! as Array<{ localKey: string; signingOrder: number }>
 			expect(remainingSigners).toHaveLength(2)
 			const signer = remainingSigners.find((s: { localKey: string }) => s.localKey === 'draft-3')
 			expect(signer?.signingOrder).toBe(2)
@@ -635,7 +635,7 @@ describe('files store - critical business rules', () => {
 			const updatedSigner = {
 				email: 'updated@example.com',
 				signRequestId: 123,
-				identify: 123,
+				localKey: 'signer:123',
 				description: 'new',
 			}
 			store.signerUpdate(updatedSigner)
@@ -837,15 +837,15 @@ describe('files store - critical business rules', () => {
 			const store = useFilesStore()
 			await store.addFile({ id: 1, signers: [{ email: 'a@example.com', signRequestId: 42 }] })
 
-			expect(store.files[1].signers![0]!.identify).toBe(42)
+			expect(store.files[1].signers![0]!.localKey).toBe('signer:42')
 		})
 
 		it('generates localKey for new signers without signRequestId', async () => {
 			const store = useFilesStore()
 			await store.addFile({ id: 1, signers: [{ email: 'b@example.com' }] })
 
-			expect(store.files[1].signers![0]!.identify).toBeDefined()
-			expect(typeof store.files[1].signers![0]!.identify).toBe('string')
+			expect(store.files[1].signers![0]!.localKey).toBeDefined()
+			expect(typeof store.files[1].signers![0]!.localKey).toBe('string')
 		})
 
 		it('sets localKey on every signer in a multi-signer file', async () => {
