@@ -15,7 +15,7 @@
 			@load="backgroundFailed = false">
 		<NcIconSvgWrapper v-else v-once :path="mdiFile" :size="128" />
 		<div class="enDot">
-			<div :class="currentFile.statusText !== 'none' ? 'dot ' + statusToClass(currentFile.status) : '' " />
+			<div :class="currentFile.statusText !== 'none' ? 'dot ' + statusToClass(currentFile.status ?? 0) : '' " />
 			<span>{{ currentFile.statusText }}</span>
 		</div>
 		<h1>{{ currentFile.name }}</h1>
@@ -30,7 +30,6 @@ import { mdiFile } from '@mdi/js'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
-import type { components } from '../../types/openapi/openapi'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 
@@ -38,15 +37,8 @@ defineOptions({
 	name: 'File',
 })
 
-type OpenApiNextcloudFile = components['schemas']['FileSummary']
-
-type CurrentFileRecord = {
-	id?: OpenApiNextcloudFile['id'] | string | number
-	nodeId?: OpenApiNextcloudFile['nodeId'] | string | number
-	name: string
-	status: number | string
-	statusText: string
-}
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type SelectedFile = ReturnType<FilesStoreContract['getFile']>
 
 const filesStore = useFilesStore()
 const sidebarStore = useSidebarStore()
@@ -56,9 +48,11 @@ const gridMode = true
 const cropPreviews = true
 
 const currentFileId = computed(() => filesStore.selectedFileId)
-const currentFile = computed<CurrentFileRecord | null>(() => {
-	const files = filesStore.files as Record<number, CurrentFileRecord | undefined>
-	return files[currentFileId.value] ?? null
+const currentFile = computed<SelectedFile | null>(() => {
+	if (!currentFileId.value) {
+		return null
+	}
+	return filesStore.getFile() ?? null
 })
 const previewUrl = computed(() => {
 	if (backgroundFailed.value === true || !currentFile.value) {
