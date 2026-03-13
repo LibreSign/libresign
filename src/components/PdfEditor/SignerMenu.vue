@@ -44,27 +44,13 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { mdiChevronDown } from '@mdi/js'
-import type { components } from '../../types/openapi/openapi'
-
-type OpenApiSigner = components['schemas']['SignerDetail']
-
-type SignerIdentity = {
-	displayName?: OpenApiSigner['displayName']
-	email?: OpenApiSigner['email']
-}
+import type { FileSigner } from '../../services/visibleElementsService'
 
 defineOptions({
 	name: 'SignerMenu',
 })
 
-type SignerRecord = SignerIdentity & {
-	id?: string | number
-	uuid?: string | number
-	name?: string
-	signRequestId?: OpenApiSigner['signRequestId'] | string
-}
-
-type Signer = Pick<SignerRecord, 'signRequestId' | 'uuid' | 'id' | 'email' | 'name' | 'displayName'>
+type Signer = FileSigner
 
 const props = withDefaults(defineProps<{
 	signers?: Signer[]
@@ -89,11 +75,11 @@ function label(signer: Signer | null | undefined) {
 	if (!signer) {
 		return ''
 	}
-	return String(signer.displayName || signer.name || signer.email || signer.id || '')
+	return String(signer.displayName || signer.email || signer.signRequestId || '')
 }
 
 function signerKey(signer: Signer) {
-	return String(signer?.signRequestId || signer?.uuid || signer?.id || signer?.email || '')
+	return String(signer?.signRequestId || signer?.email || '')
 }
 
 function selectSigner(signer: Signer) {
