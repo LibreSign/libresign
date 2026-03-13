@@ -26,30 +26,24 @@ import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
 
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
-import type { components } from '../../types/openapi/openapi'
+import type {
+	FileListItemRecord,
+	FileStateSettings,
+} from '../../types/index'
 
 defineOptions({
 	name: 'AppFilesTab',
 })
 
-type OpenApiNextcloudFile = components['schemas']['FileSummary']
-type OpenApiSigner = components['schemas']['SignerSummary']
-
 type PendingEnvelope = {
 	id: number
-	uuid?: OpenApiNextcloudFile['uuid']
+	uuid?: string | null
 	name: string
-	nodeType?: OpenApiNextcloudFile['nodeType'] | string
-	files?: Array<{ fileId?: string | number }>
+	nodeType?: string
 	filesCount?: number
-	signers?: Array<{
-		displayName?: OpenApiSigner['displayName']
-		email?: OpenApiSigner['email']
-		signRequestId?: OpenApiSigner['signRequestId'] | string | number
-	}>
-	settings?: {
-		path?: string
-	}
+	files?: Array<Pick<FileListItemRecord, 'fileId'>>
+	signers?: Array<{ displayName?: string; email?: string; signRequestId?: number | string }>
+	settings?: Pick<FileStateSettings, 'path'>
 }
 
 type FileInfo = {
