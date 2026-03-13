@@ -21,21 +21,23 @@ import { useSidebarStore } from './sidebar.js'
 
 /** @typedef {import('../types/index').SignerIdentify} SignerIdentify */
 /** @typedef {import('../types/index').IdentifyMethodRecord} SignerMethodRecord */
-/** @typedef {import('../types/index').SignerRecord} SignerRecord */
+/** @typedef {import('../types/index').SignerState} SignerState */
 /** @typedef {import('../types/index').FileSettings} FileSettings */
-/** @typedef {import('../types/index').FileReference} FileReference */
-/** @typedef {import('../types/index').FileRecord} FileRecord */
-/** @typedef {import('../types/index').SaveSignatureRequestPayload} SaveSignatureRequestPayload */
+/** @typedef {import('../types/index').FileReferenceState} FileReferenceState */
+/** @typedef {import('../types/index').FileState} FileState */
+/** @typedef {import('../types/index').SaveSignatureRequestOptions} SaveSignatureRequestOptions */
 
 /**
- * @typedef {FileRecord | { success: false, message: string, error: unknown }} SaveSignatureRequestResponse
+ * @typedef {FileState | { success: false, message: string, error: unknown }} SaveSignatureRequestResponse
  */
 
-/** @type {FileRecord} */
+/** @type {FileState} */
 const emptyFile = { signers: [] }
 
+let draftSignerKeySequence = 0
+
 const _filesStore = defineStore('files', () => {
-	const files = ref(/** @type {Record<string | number, FileRecord>} */ ({}))
+	const files = ref(/** @type {Record<string | number, FileState>} */ ({}))
 	const selectedFileId = ref(0)
 	const identifyingSigner = ref(false)
 	const loading = ref(false)
@@ -85,7 +87,7 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	/**
-	 * @param {FileRecord} file
+	 * @param {FileState} file
 	 * @param {{ position?: 'start' | 'end' }} [options]
 	 */
 	async function addFile(file, { position = 'start', detailsLoaded } = {}) {
@@ -116,7 +118,7 @@ const _filesStore = defineStore('files', () => {
 			}
 
 		if (fileData.signers) {
-			addUniqueIdentifierToAllSigners(fileData.signers)
+			addLocalKeyToAllSigners(fileData.signers)
 		}
 
 		if (existingFile?.settings) {
@@ -214,7 +216,7 @@ const _filesStore = defineStore('files', () => {
 		return fileId
 	}
 
-	/** @param {FileRecord | null | undefined} [file] */
+	/** @param {FileState | null | undefined} [file] */
 	function getFile(file) {
 		if (typeof file === 'object' && file !== null) {
 			return file
@@ -231,7 +233,7 @@ const _filesStore = defineStore('files', () => {
 
 	/**
 	 * @param {{ fileId?: number | string | null, uuid?: string | null, force?: boolean }} [options]
-	 * @returns {Promise<FileRecord | null>}
+	 * @returns {Promise<FileState | null>}
 	 */
 	async function fetchFileDetail({ fileId = null, uuid = null, force = false } = {}) {
 		const store = getStore()
@@ -522,44 +524,43 @@ const _filesStore = defineStore('files', () => {
 		})
 	}
 
-	/** @param {SignerRecord[] | undefined | null} signers */
-	function addUniqueIdentifierToAllSigners(signers) {
+	function createDraftSignerLocalKey() {
+		draftSignerKeySequence += 1
+		return `draft-signer:${draftSignerKeySequence}`
+	}
+
+	/** @param {SignerState[] | undefined | null} signers */
+	function addLocalKeyToAllSigners(signers) {
 		if (signers === undefined) {
 			return
 		}
-		signers.map(signer => addIdentifierToSigner(signer))
+		signers.map(signer => addLocalKeyToSigner(signer))
 	}
 
-	/** @param {SignerRecord} signer */
-	function addIdentifierToSigner(signer) {
-		if (signer.identify) {
+	/** @param {SignerState} signer */
+	function addLocalKeyToSigner(signer) {
+		if (signer.localKey) {
 			return
 		}
-		// generate unique code to new signer to be possible delete or edit
-		if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
-			signer.identify = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(signer))))
+		if (signer.signRequestId !== undefined) {
+			signer.localKey = `signer:${signer.signRequestId}`
+			return
 		}
-		if (signer.signRequestId) {
-			signer.identify = signer.signRequestId
-		}
+		signer.localKey = createDraftSignerLocalKey()
 	}
 
-	/** @param {SignerRecord} signer */
+	/** @param {SignerState} signer */
 	function signerUpdate(signer) {
 		if (!selectedFileId.value || !files.value[selectedFileId.value]) {
 			return
 		}
-		addIdentifierToSigner(signer)
+		addLocalKeyToSigner(signer)
 		if (!getFile().signers?.length) {
 			getFile().signers = []
 		}
 		// Remove if already exists
 		for (let i = getFile().signers.length - 1; i >= 0; i--) {
-			if (getFile().signers[i].identify === signer.identify) {
-				getFile().signers.splice(i, 1)
-				break
-			}
-			if (getFile().signers[i].signRequestId === signer.identify) {
+			if (getFile().signers[i].localKey === signer.localKey) {
 				getFile().signers.splice(i, 1)
 				break
 			}
@@ -575,7 +576,7 @@ const _filesStore = defineStore('files', () => {
 		selectFile(selected) // to force reactivity
 	}
 
-	/** @param {SignerRecord} signer */
+	/** @param {SignerState} signer */
 	async function deleteSigner(signer) {
 		const selectedFile = getFile()
 
@@ -588,7 +589,7 @@ const _filesStore = defineStore('files', () => {
 		}
 
 		files.value[selectedFileId.value].signers = files.value[selectedFileId.value].signers
-			.filter((i) => i.identify !== signer.identify)
+			.filter((currentSigner) => currentSigner.localKey !== signer.localKey)
 		files.value[selectedFileId.value].signersCount = files.value[selectedFileId.value].signers.length
 
 		if (selectedFile.signatureFlow === 'ordered_numeric' && signer.signingOrder) {
@@ -783,7 +784,7 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	/**
-	 * @param {SaveSignatureRequestPayload} [payload]
+	 * @param {SaveSignatureRequestOptions} [payload]
 	 * @returns {Promise<SaveSignatureRequestResponse>}
 	 */
 	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, signatureFlow = null } = {}) {
@@ -882,7 +883,7 @@ const _filesStore = defineStore('files', () => {
 				position: 'end',
 				detailsLoaded: shouldKeepDetailedState,
 			})
-			store.addUniqueIdentifierToAllSigners(files.value[newFileKey].signers)
+			store.addLocalKeyToAllSigners(files.value[newFileKey].signers)
 			if (!ordered.value.includes(newFileKey)) {
 				ordered.value.push(newFileKey)
 			}
@@ -941,8 +942,8 @@ const _filesStore = defineStore('files', () => {
 		canSave,
 		isTemporaryId,
 		getSubtitle,
-		addUniqueIdentifierToAllSigners,
-		addIdentifierToSigner,
+		addLocalKeyToAllSigners,
+		addLocalKeyToSigner,
 		signerUpdate,
 		deleteSigner,
 		delete: deleteFile,
