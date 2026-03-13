@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount } from '@vue/test-utils'
@@ -66,6 +66,12 @@ type ActionHandler = {
 }
 
 type ProceedWithSigningLogic = (store: SignMethodsStore, actionHandler: ActionHandler) => void
+
+type SubmitSignatureCompatMethod = (this: Record<string, any>, payload?: {
+	method?: string
+	modalCode?: string
+	token?: string
+}) => Promise<void>
 
 const createSignDocument = (overrides: Partial<SignDocument> = {}): SignDocument => ({
 	id: 1,
@@ -166,6 +172,12 @@ describe('Sign.vue - signWithTokenCode', () => {
 	let signMethodsStore: SignMethodsStore
 	let signStore: SignStore
 	let submitSignatureSpy: MockedFunction<(payload: SubmitSignaturePayload) => Promise<unknown>>
+	let submitSignatureCompatMethod: SubmitSignatureCompatMethod
+
+	beforeAll(async () => {
+		const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+		submitSignatureCompatMethod = (SignComponent.default as any).methods.submitSignature
+	})
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
@@ -420,9 +432,6 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 	describe('Sign.vue - API error handling', () => {
 		it('keeps certificate validation errors in signStore and does not open certificate modal', async () => {
-			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
-			const submitSignature = (SignComponent.default as any).methods.submitSignature
-
 			const apiErrors = [{ message: 'Certificate has been revoked', code: 422 }]
 			const context = {
 				loading: false,
@@ -454,7 +463,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				},
 			}
 
-			await submitSignature.call(context, {
+			await submitSignatureCompatMethod.call(context, {
 				method: 'password',
 				token: '123456',
 			})
