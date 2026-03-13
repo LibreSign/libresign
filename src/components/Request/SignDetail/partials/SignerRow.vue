@@ -32,19 +32,17 @@ import Moment from '@nextcloud/moment'
 
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
-import type { components } from '../../../../types/openapi/openapi'
+import type { SignerDetailRecord } from '../../../../types/index'
 
 defineOptions({
 	name: 'SignerRow',
 	inheritAttrs: false,
 })
 
-type OpenApiSigner = components['schemas']['SignerDetail']
-
 type Signer = {
-	displayName?: OpenApiSigner['displayName']
-	email?: OpenApiSigner['email']
-	signed?: OpenApiSigner['signed'] | string | boolean | null
+	displayName?: SignerDetailRecord['displayName']
+	email?: SignerDetailRecord['email']
+	signed?: SignerDetailRecord['signed'] | string | boolean | null
 	element?: {
 		elementId?: number
 	}
