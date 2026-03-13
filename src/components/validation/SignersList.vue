@@ -44,21 +44,15 @@ import {
 	mdiClockOutline,
 } from '@mdi/js'
 import Moment from '@nextcloud/moment'
-import type { components } from '../../types/openapi/openapi'
 
 defineOptions({
 	name: 'SignersList',
 })
 
-type OpenApiSigner = components['schemas']['SignerDetail']
-
-type Signer = {
-	displayName?: OpenApiSigner['displayName']
-	email?: OpenApiSigner['email']
-	userId?: OpenApiSigner['userId']
-	signed?: OpenApiSigner['signed'] | string | null
-}
-type SignerListEntry = Omit<Signer, 'signed'> & {
+type SignerListEntry = {
+	displayName?: string
+	email?: string
+	userId?: string
 	signed?: string | null
 }
 
