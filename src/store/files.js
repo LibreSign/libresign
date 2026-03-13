@@ -877,10 +877,11 @@ const _filesStore = defineStore('files', () => {
 
 		if (selectedFile.id) {
 			const existingFile = files.value[newFileKey]
-			if (existingFile?.settings) {
-				responseFile.settings = { ...existingFile.settings, ...responseFile.settings }
-			}
-			files.value[newFileKey] = responseFile
+			const shouldKeepDetailedState = Boolean(existingFile?.detailsLoaded || selectedFile?.detailsLoaded)
+			await store.addFile(responseFile, {
+				position: 'end',
+				detailsLoaded: shouldKeepDetailedState,
+			})
 			store.addUniqueIdentifierToAllSigners(files.value[newFileKey].signers)
 			if (!ordered.value.includes(newFileKey)) {
 				ordered.value.push(newFileKey)
