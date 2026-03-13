@@ -177,48 +177,38 @@ import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
-import type { components } from '../../types/openapi/openapi'
+import type { SignerDetailRecord } from '../../types/index'
 
 defineOptions({
 	name: 'EnvelopeValidation',
 })
 
-type OpenApiFileListItem = components['schemas']['FileListItem']
-type OpenApiSigner = components['schemas']['SignerDetail']
-type OpenApiValidateFile = components['schemas']['ValidatedFile']
-
 type EnvelopeFile = {
-	uuid?: OpenApiFileListItem['uuid']
-	name?: OpenApiFileListItem['name']
-	nodeId?: OpenApiFileListItem['nodeId'] | number | string
-	status: OpenApiFileListItem['status'] | string | number
+	uuid?: string
+	name?: string
+	nodeId?: number
+	totalPages?: number
+	pdfVersion?: string
+	status?: string | number
+	size?: string | number
 	opened?: boolean
 	statusText?: string
-	totalPages?: number
-	size?: string | number
-	pdfVersion?: string
 	signers?: EnvelopeSigner[]
 }
 
-type EnvelopeSigner = {
-	displayName?: OpenApiSigner['displayName']
-	email?: OpenApiSigner['email']
-	userId?: OpenApiSigner['userId']
-	request_sign_date?: OpenApiSigner['request_sign_date']
-	remote_address?: OpenApiSigner['remote_address']
-	user_agent?: OpenApiSigner['user_agent']
+type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent'>> & {
 	opened?: boolean
-	signed?: string
+	signed?: string | null
 	documentsSignedCount?: number
 	totalDocuments?: number
 }
 
 type EnvelopeDocument = {
-	uuid?: OpenApiValidateFile['uuid']
-	name?: OpenApiValidateFile['name']
-	nodeId?: OpenApiValidateFile['nodeId'] | number | string
-	status?: OpenApiValidateFile['status'] | string | number
+	uuid?: string
+	name?: string
+	nodeId?: number
 	filesCount?: number
+	status?: string | number
 	files?: EnvelopeFile[]
 	signers?: EnvelopeSigner[]
 	signedDate?: string
