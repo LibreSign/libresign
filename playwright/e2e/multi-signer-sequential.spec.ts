@@ -3,10 +3,29 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
+
+async function addEmailSigner(
+	page: Page,
+	email: string,
+	name: string,
+) {
+	await page.getByRole('button', { name: 'Add signer' }).click()
+	const emailInput = page.getByPlaceholder('Email')
+	await emailInput.click()
+	await emailInput.pressSequentially(email, { delay: 50 })
+	const option = page.getByRole('option', { name: email })
+	await expect(option).toBeVisible({ timeout: 10_000 })
+	await option.click()
+	const signerNameInput = page.getByRole('textbox', { name: 'Signer name' })
+	await expect(signerNameInput).toBeVisible()
+	await signerNameInput.fill(name)
+	await page.getByRole('button', { name: 'Save' }).click()
+}
 
 test('request signatures from two signers in sequential order', async ({ page }) => {
 	await login(
@@ -42,20 +61,10 @@ test('request signatures from two signers in sequential order', async ({ page })
 	await page.getByRole('button', { name: 'Send' }).click()
 
 	// Add first signer — only email method is active, so the field appears directly (no tabs)
-	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByPlaceholder('Email').click()
-	await page.getByPlaceholder('Email').pressSequentially('signer01@libresign.coop', { delay: 50 })
-	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click()
-	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01')
-	await page.getByRole('button', { name: 'Save' }).click()
+	await addEmailSigner(page, 'signer01@libresign.coop', 'Signer 01')
 
 	// Add second signer
-	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByPlaceholder('Email').click()
-	await page.getByPlaceholder('Email').pressSequentially('signer02@libresign.coop', { delay: 50 })
-	await page.getByRole('option', { name: 'signer02@libresign.coop' }).click()
-	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 02')
-	await page.getByRole('button', { name: 'Save' }).click()
+	await addEmailSigner(page, 'signer02@libresign.coop', 'Signer 02')
 
 	// Enable sequential signing.
 	// The checkbox input is hidden by CSS; click the visible label text to toggle it.
