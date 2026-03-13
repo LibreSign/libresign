@@ -86,27 +86,14 @@ import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { useSignStore } from '../../../store/sign.js'
+import type { FileEntrySource } from '../../../composables/useFileEntry.js'
 
 defineOptions({
 	name: 'FileEntryActions',
 })
 
-type SourceSigner = {
-	me?: boolean
-	sign_uuid?: string
-}
-
-type SourceFile = {
-	id: number
-	uuid?: string
-	name: string
-	nodeId?: number
-	nodeType?: string
-	status?: number
-	file?: string
-	signersCount?: number
+type SourceFile = FileEntrySource & {
 	signUuid?: string | null
-	signers?: SourceSigner[]
 }
 
 type MenuAction = {
