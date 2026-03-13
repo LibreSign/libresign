@@ -5,7 +5,7 @@
 <template>
 	<div class="identifySigner">
 		<SignerSelect v-if="isNewSigner"
-			:signer="signer"
+			:signer="signer ?? undefined"
 			:placeholder="placeholder"
 			:method="method"
 			@update:signer="updateSigner" />
@@ -13,7 +13,7 @@
 			<template #icon>
 				<NcIconSvgWrapper :size="20" :svg="getMethodIcon()" />
 			</template>
-			<strong>{{ identifyMethodLabel }}:</strong> {{ signer.identify }}
+			<strong>{{ identifyMethodLabel }}:</strong> {{ identify }}
 		</NcNoteCard>
 
 		<NcNoteCard v-if="disabled" type="warning" class="disabled-warning">
@@ -84,6 +84,7 @@ import SignerSelect from './SignerSelect.vue'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { useFilesStore } from '../../store/files.js'
+import type { IdentifyAccountRecord } from '../../types'
 
 const iconMap = {
 	svgAccount,
@@ -127,13 +128,6 @@ type SignerToEdit = {
 	identifyMethods?: SignerMethodValue[]
 }
 
-type SelectedSigner = {
-	identify?: string
-	method?: string
-	displayName?: string
-	acceptsEmailNotifications?: boolean
-}
-
 type FilesStore = ReturnType<typeof useFilesStore>
 type StoredSigner = NonNullable<ReturnType<FilesStore['getFile']>['signers']>[number]
 
@@ -163,30 +157,32 @@ const displayName = ref('')
 const description = ref('')
 const enableCustomMessage = ref(false)
 const identify = ref('')
-const signer = ref<SelectedSigner>({})
+const signer = ref<IdentifyAccountRecord | null>(null)
+const identifyMethod = ref<IdentifyAccountRecord['method'] | undefined>()
+const acceptsEmailNotifications = ref<boolean | undefined>()
 
-const signerSelected = computed(() => !!signer.value?.identify)
+const signerSelected = computed(() => identify.value.length > 0)
 const isNewSigner = computed(() => !props.signerToEdit || Object.keys(props.signerToEdit).length === 0)
 const saveButtonText = computed(() => isNewSigner.value ? t('libresign', 'Save') : t('libresign', 'Update'))
 const identifyMethodLabel = computed(() => {
-	if (!signer.value?.method) {
+	if (!identifyMethod.value) {
 		return ''
 	}
-	const methodConfig = props.methods.find((item) => item.name === signer.value.method)
+	const methodConfig = props.methods.find((item) => item.name === identifyMethod.value)
 	if (!methodConfig?.friendly_name) {
 		return ''
 	}
 	return methodConfig.friendly_name
 })
 const showCustomMessage = computed(() => {
-	if (signer.value?.method === 'account') {
-		return signer.value?.acceptsEmailNotifications === true
+	if (identifyMethod.value === 'account') {
+		return acceptsEmailNotifications.value === true
 	}
-	return !!signer.value?.method
+	return !!identifyMethod.value
 })
 
 function getMethodIcon() {
-	const method = signer.value?.method
+	const method = identifyMethod.value
 	if (!method) {
 		return iconMap.svgAccount
 	}
@@ -194,10 +190,13 @@ function getMethodIcon() {
 	return iconMap[iconKey]
 }
 
-function updateSigner(nextSigner: SelectedSigner | null) {
-	signer.value = nextSigner ?? {}
+
+function updateSigner(nextSigner: IdentifyAccountRecord | null) {
+	signer.value = nextSigner
 	displayName.value = nextSigner?.displayName ?? ''
 	identify.value = nextSigner?.identify ?? ''
+	identifyMethod.value = nextSigner?.method
+	acceptsEmailNotifications.value = nextSigner?.acceptsEmailNotifications
 
 	if (nextSigner?.method === 'account' && nextSigner?.acceptsEmailNotifications === false) {
 		enableCustomMessage.value = false
@@ -206,7 +205,7 @@ function updateSigner(nextSigner: SelectedSigner | null) {
 }
 
 async function saveSigner() {
-	if (!signer.value?.method || !signer.value?.identify) {
+	if (!identifyMethod.value || !identify.value) {
 		return
 	}
 	const file = filesStore.getFile()
@@ -217,9 +216,9 @@ async function saveSigner() {
 		identify: identify.value,
 		identifyMethods: [
 			{
-				method: signer.value.method,
+					method: identifyMethod.value,
 				mandatory: 0,
-					value: signer.value.identify,
+					value: identify.value,
 			},
 		],
 	})
@@ -238,7 +237,9 @@ async function saveSigner() {
 	displayName.value = ''
 	description.value = ''
 	identify.value = ''
-	signer.value = {}
+	signer.value = null
+	identifyMethod.value = undefined
+	acceptsEmailNotifications.value = undefined
 	filesStore.disableIdentifySigner()
 }
 
@@ -269,11 +270,7 @@ onBeforeMount(() => {
 	identify.value = props.signerToEdit.identify ?? props.signerToEdit.signRequestId ?? ''
 	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
 		const method = props.signerToEdit.identifyMethods[0]
-		signer.value = {
-			identify: method.value,
-			method: method.method,
-			displayName: props.signerToEdit.displayName,
-		}
+		identifyMethod.value = method.method as IdentifyAccountRecord['method']
 	}
 })
 
@@ -288,6 +285,8 @@ defineExpose({
 	enableCustomMessage,
 	identify,
 	signer,
+	identifyMethod,
+	acceptsEmailNotifications,
 	signerSelected,
 	isNewSigner,
 	saveButtonText,
