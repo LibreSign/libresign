@@ -9,6 +9,7 @@ import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import IdentifySigner from '../../../components/Request/IdentifySigner.vue'
 import { useFilesStore } from '../../../store/files.js'
+import type { IdentifyAccountRecord } from '../../../types'
 
 vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn(),
@@ -39,13 +40,6 @@ type SignerToEdit = {
 	identifyMethods?: Array<{ method: string; value: string }>
 }
 
-type SelectedSigner = {
-	identify?: string
-	method?: string
-	displayName?: string
-	acceptsEmailNotifications?: boolean
-}
-
 type IdentifySignerVm = {
 	$props: {
 		disabled?: boolean
@@ -60,9 +54,11 @@ type IdentifySignerVm = {
 	description: string
 	enableCustomMessage: boolean
 	identify: string
-	signer: SelectedSigner
+	signer: IdentifyAccountRecord | null
+	identifyMethod?: IdentifyAccountRecord['method']
+	acceptsEmailNotifications?: boolean
 	identifyMethodLabel: string
-	updateSigner: (signer: SelectedSigner | null) => void
+	updateSigner: (signer: IdentifyAccountRecord | null) => void
 	saveSigner: () => Promise<void>
 	onNameChange: () => void
 	onToggleCustomMessage: (checked: boolean) => void
@@ -173,13 +169,13 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('signerSelected is true when signer has identify', () => {
-			wrapper.vm.signer = { identify: 'john@example.com', method: 'email' }
+			wrapper.vm.identify = 'john@example.com'
 
 			expect(wrapper.vm.signerSelected).toBe(true)
 		})
 
 		it('signerSelected is false when signer identify is empty', () => {
-			wrapper.vm.signer = { identify: '', method: 'email' }
+			wrapper.vm.identify = ''
 
 			expect(wrapper.vm.signerSelected).toBe(false)
 		})
@@ -201,14 +197,20 @@ describe('IdentifySigner rules', () => {
 
 	describe('custom message rules', () => {
 		it('hides custom message option when no method selected', () => {
-			wrapper.vm.signer = {}
+			wrapper.vm.identifyMethod = undefined
 
 			expect(wrapper.vm.showCustomMessage).toBe(false)
 		})
 
 		it('shows custom message for email method', () => {
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
 			wrapper.vm.signer = {
 				identify: 'john@example.com',
+				isNoUser: true,
+				shareType: 4,
+				subname: 'john@example.com',
+				displayName: 'John Doe',
 				method: 'email',
 			}
 
@@ -216,30 +218,24 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('shows custom message for SMS method', () => {
-			wrapper.vm.signer = {
-				identify: '5511999999999',
-				method: 'sms',
-			}
+			wrapper.vm.identifyMethod = 'sms'
+			wrapper.vm.identify = '5511999999999'
 
 			expect(wrapper.vm.showCustomMessage).toBe(true)
 		})
 
 		it('shows custom message for account method if accepts email', () => {
-			wrapper.vm.signer = {
-				identify: 'user@example.com',
-				method: 'account',
-				acceptsEmailNotifications: true,
-			}
+			wrapper.vm.identifyMethod = 'account'
+			wrapper.vm.identify = 'user@example.com'
+			wrapper.vm.acceptsEmailNotifications = true
 
 			expect(wrapper.vm.showCustomMessage).toBe(true)
 		})
 
 		it('hides custom message for account method if no email notifications', () => {
-			wrapper.vm.signer = {
-				identify: 'user@example.com',
-				method: 'account',
-				acceptsEmailNotifications: false,
-			}
+			wrapper.vm.identifyMethod = 'account'
+			wrapper.vm.identify = 'user@example.com'
+			wrapper.vm.acceptsEmailNotifications = false
 
 			expect(wrapper.vm.showCustomMessage).toBe(false)
 		})
@@ -281,9 +277,12 @@ describe('IdentifySigner rules', () => {
 		it('updates signer when new signer selected', () => {
 			const newSigner = {
 				identify: 'john@example.com',
+				isNoUser: true,
+				shareType: 4,
 				displayName: 'John Doe',
+				subname: 'john@example.com',
 				method: 'email',
-			}
+			} satisfies IdentifyAccountRecord
 
 			wrapper.vm.updateSigner(newSigner)
 
@@ -293,11 +292,18 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('clears signer when updateSigner called with null', () => {
-			wrapper.vm.signer = { identify: 'test@example.com' }
+			wrapper.vm.signer = {
+				identify: 'test@example.com',
+				isNoUser: true,
+				shareType: 4,
+				displayName: 'Test',
+				subname: 'test@example.com',
+			}
+			wrapper.vm.identify = 'test@example.com'
 
 			wrapper.vm.updateSigner(null)
 
-			expect(wrapper.vm.signer).toEqual({})
+			expect(wrapper.vm.signer).toBe(null)
 		})
 
 		it('disables custom message for account without email notifications', () => {
@@ -306,10 +312,13 @@ describe('IdentifySigner rules', () => {
 
 			const accountSigner = {
 				identify: 'user@nextcloud.com',
+				isNoUser: false,
+				shareType: 0,
 				method: 'account',
 				displayName: 'User',
+				subname: 'user@nextcloud.com',
 				acceptsEmailNotifications: false,
-			}
+			} satisfies IdentifyAccountRecord
 
 			wrapper.vm.updateSigner(accountSigner)
 
@@ -323,10 +332,13 @@ describe('IdentifySigner rules', () => {
 
 			const accountSigner = {
 				identify: 'user@nextcloud.com',
+				isNoUser: false,
+				shareType: 0,
 				method: 'account',
 				displayName: 'User',
+				subname: 'user@nextcloud.com',
 				acceptsEmailNotifications: true,
-			}
+			} satisfies IdentifyAccountRecord
 
 			wrapper.vm.updateSigner(accountSigner)
 
@@ -365,7 +377,8 @@ describe('IdentifySigner rules', () => {
 
 	describe('save signer', () => {
 		it('does not save when no method selected', async () => {
-			wrapper.vm.signer = { identify: '' }
+			wrapper.vm.identify = ''
+			wrapper.vm.identifyMethod = undefined
 
 			await wrapper.vm.saveSigner()
 
@@ -373,7 +386,8 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('does not save when no identify provided', async () => {
-			wrapper.vm.signer = { method: 'email' }
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = ''
 
 			await wrapper.vm.saveSigner()
 
@@ -384,7 +398,7 @@ describe('IdentifySigner rules', () => {
 			filesStore.getFile.mockReturnValueOnce({
 				signers: [{ identify: { email: 'existing@example.com' } }],
 			})
-			wrapper.vm.signer = { identify: 'john@example.com', method: 'email' }
+			wrapper.vm.identifyMethod = 'email'
 			wrapper.vm.displayName = 'John Doe'
 			wrapper.vm.description = ''
 			wrapper.vm.identify = 'john@example.com'
@@ -409,7 +423,8 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('trims description before saving', async () => {
-			wrapper.vm.signer = { identify: 'john@example.com', method: 'email' }
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
 			wrapper.vm.displayName = 'John'
 			wrapper.vm.description = '   test message   '
 
@@ -420,7 +435,8 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('omits description when empty after trim', async () => {
-			wrapper.vm.signer = { identify: 'john@example.com', method: 'email' }
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
 			wrapper.vm.displayName = 'John'
 			wrapper.vm.description = '   '
 
@@ -431,7 +447,8 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('saves signature request after updating signer', async () => {
-			wrapper.vm.signer = { identify: 'john@example.com', method: 'email' }
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
 			wrapper.vm.displayName = 'John'
 
 			await wrapper.vm.saveSigner()
@@ -440,21 +457,22 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('clears form after successful save', async () => {
-			wrapper.vm.signer = { identify: 'john@example.com', method: 'email' }
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
 			wrapper.vm.displayName = 'John Doe'
 			wrapper.vm.description = 'Message'
-			wrapper.vm.identify = 'john@example.com'
 
 			await wrapper.vm.saveSigner()
 
 			expect(wrapper.vm.displayName).toBe('')
 			expect(wrapper.vm.description).toBe('')
 			expect(wrapper.vm.identify).toBe('')
-			expect(wrapper.vm.signer).toEqual({})
+			expect(wrapper.vm.signer).toBe(null)
 		})
 
 		it('closes signer form after successful save', async () => {
-			wrapper.vm.signer = { identify: 'john@example.com', method: 'email' }
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
 			wrapper.vm.displayName = 'John'
 
 			await wrapper.vm.saveSigner()
@@ -468,7 +486,8 @@ describe('IdentifySigner rules', () => {
 				new Error('Network error')
 			)
 
-			wrapper.vm.signer = { identify: 'john@example.com', method: 'email' }
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
 			wrapper.vm.displayName = 'John'
 
 			await expect(wrapper.vm.saveSigner()).resolves.not.toThrow()
@@ -512,7 +531,7 @@ describe('IdentifySigner rules', () => {
 
 	describe('method icon resolution', () => {
 		it('returns account icon for unknown method', () => {
-			wrapper.vm.signer = { method: 'unknown' }
+			wrapper.vm.identifyMethod = 'unknown' as IdentifyAccountRecord['method']
 
 			const icon = wrapper.vm.getMethodIcon()
 
@@ -520,7 +539,7 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('returns account icon when no method', () => {
-			wrapper.vm.signer = {}
+			wrapper.vm.identifyMethod = undefined
 
 			const icon = wrapper.vm.getMethodIcon()
 
@@ -544,7 +563,7 @@ describe('IdentifySigner rules', () => {
 
 	describe('identify method label', () => {
 		it('returns friendly name for known method', () => {
-			wrapper.vm.signer = { method: 'email' }
+			wrapper.vm.identifyMethod = 'email'
 
 			const label = wrapper.vm.identifyMethodLabel
 
@@ -552,7 +571,7 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('returns empty string for unknown method', () => {
-			wrapper.vm.signer = { method: 'unknown_method' }
+			wrapper.vm.identifyMethod = 'unknown_method' as IdentifyAccountRecord['method']
 
 			const label = wrapper.vm.identifyMethodLabel
 
