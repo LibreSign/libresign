@@ -293,6 +293,8 @@ type SignerModel = {
 	crl_revoked_at?: string
 	signature_validation?: ValidationState
 	certificate_validation?: ValidationState
+	crl_validation?: string
+	crl_revoked_at?: string
 	docmdp?: SignerDocMdp
 	docmdp_validation?: { message?: string }
 	modification_validation?: SignerModificationValidation
@@ -436,9 +438,9 @@ function getCrlValidationIconClass(signer: SignerModel) {
 	return crlStatusMap[signer.crl_validation ?? '']?.class || 'icon-warning'
 }
 
-function dateFromSqlAnsi(date?: string | null) {
+function dateFromSqlAnsi(date?: string | number | null) {
 	if (!date) return ''
-	return Moment(date).format('LLL')
+	return Moment(String(date)).format('LLL')
 }
 
 function getCrlStatusText(signer: SignerModel) {
