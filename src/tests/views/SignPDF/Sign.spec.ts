@@ -35,7 +35,24 @@ type SignMethodsStore = ReturnType<typeof useSignMethodsStore> & {
 
 type SignStore = ReturnType<typeof useSignStore>
 
-type SignDocument = SignStore['document']
+type EnvelopeSigner = {
+	signRequestId?: number
+	me?: boolean
+	[key: string]: unknown
+}
+
+type EnvelopeFile = {
+	id?: number
+	name?: string
+	signers?: EnvelopeSigner[]
+	visibleElements?: Array<Record<string, unknown>>
+	[key: string]: unknown
+}
+
+type SignDocument = Omit<NonNullable<SignStore['document']>, 'signers' | 'files'> & {
+	signers?: EnvelopeSigner[]
+	files?: EnvelopeFile[]
+}
 
 type SubmitSignaturePayload = {
 	method: string
