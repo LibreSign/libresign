@@ -323,55 +323,24 @@ import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
 import type { components, operations } from '../../types/openapi/openapi'
 import type {
+	FileState,
 	IdentifyMethodRecord,
 	IdentifyMethodSetting as IdentifyMethodConfig,
 	LibresignCapabilities as RequestSignatureTabCapabilities,
+	SignerState,
 	SignatureFlowMode,
 	SignatureFlowValue,
 } from '../../types/index'
 
 type OpenApiSigner = components['schemas']['SignerDetail']
-type OpenApiEnvelopeChildSignerSummary = components['schemas']['SignerSummary']
-type OpenApiNextcloudFile = components['schemas']['FileSummary']
-
-type RequestTabSigner = {
-	displayName?: OpenApiEnvelopeChildSignerSummary['displayName'] | OpenApiSigner['displayName']
-	email?: OpenApiEnvelopeChildSignerSummary['email'] | OpenApiSigner['email']
-	description?: OpenApiSigner['description']
-	identify?: string | number | components['schemas']['NewSigner']['identify']
-	identifyMethods?: OpenApiSigner['identifyMethods']
-	me?: OpenApiSigner['me']
-	signRequestId?: OpenApiEnvelopeChildSignerSummary['signRequestId'] | OpenApiSigner['signRequestId'] | string | number
-	signed?: unknown
-	status?: OpenApiEnvelopeChildSignerSummary['status'] | OpenApiSigner['status']
-	statusText?: OpenApiEnvelopeChildSignerSummary['statusText']
-	signingOrder?: OpenApiSigner['signingOrder'] | number
-	acceptsEmailNotifications?: boolean
-	sign_uuid?: OpenApiSigner['sign_uuid']
-}
-
-type RequestTabFile = {
-	id?: OpenApiNextcloudFile['id'] | string | number
-	uuid?: OpenApiNextcloudFile['uuid']
-	name?: OpenApiNextcloudFile['name']
-	nodeId?: OpenApiNextcloudFile['nodeId'] | string | number
-	nodeType?: OpenApiNextcloudFile['nodeType'] | string
-	status?: OpenApiNextcloudFile['status'] | string | number
-	statusText?: string
-	signatureFlow?: OpenApiNextcloudFile['signatureFlow'] | SignatureFlowValue | null
-	signers?: RequestTabSigner[] | null
-	filesCount?: number
-	signersCount?: number
-	detailsLoaded?: boolean
-	file?: string | { url?: string } | null
-	signUuid?: string
-	message?: string
-}
+type RequestTabSigner = SignerState
+type RequestTabFile = FileState
 
 type LoadedDocumentState = RequestTabFile
 
 type IdentifySignerMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 type IdentifySignerToEdit = {
+	localKey?: string
 	identify?: string
 	signRequestId?: string
 	displayName?: string
@@ -519,9 +488,20 @@ function getSignerMethod(signer: { identifyMethods?: Array<Pick<IdentifyMethodRe
 	return signer.identifyMethods?.[0]?.method
 }
 
+function getEditableSignerIdentify(signer: RequestTabSigner): string | undefined {
+	if (typeof signer.identify === 'object' && signer.identify !== null) {
+		return signer.identify.email || signer.identify.account
+	}
+	if (typeof signer.identify === 'string') {
+		return signer.identify
+	}
+	return signer.identifyMethods?.[0]?.value || signer.email
+}
+
 function toIdentifySignerToEdit(signer: RequestTabSigner): IdentifySignerToEdit {
 	return {
-		identify: typeof signer.identify === 'string' ? signer.identify : undefined,
+		localKey: signer.localKey,
+		identify: getEditableSignerIdentify(signer),
 		signRequestId: signer.signRequestId !== undefined ? String(signer.signRequestId) : undefined,
 		displayName: signer.displayName,
 		description: signer.description ?? undefined,
@@ -906,7 +886,7 @@ function getValidationFileUuid() {
 		return file.uuid
 	}
 
-	const signer = file?.signers?.find((row: RequestTabSigner) => row.me) || file?.signers?.[0] || {}
+	const signer = file?.signers?.find((row: RequestTabSigner) => row.me) || file?.signers?.[0]
 	if (signer?.sign_uuid) {
 		return signer.sign_uuid
 	}
@@ -974,7 +954,8 @@ function updateSigningOrder(signer: RequestTabSigner, value: string) {
 		return
 	}
 
-	const currentIndex = file.signers?.findIndex((currentSigner: RequestTabSigner) => currentSigner.identify === signer.identify) ?? -1
+	const signerLocalKey = signer.localKey
+	const currentIndex = file.signers?.findIndex((currentSigner: RequestTabSigner) => currentSigner.localKey === signerLocalKey) ?? -1
 	if (currentIndex === -1) {
 		return
 	}
@@ -1001,7 +982,8 @@ function updateSigningOrder(signer: RequestTabSigner, value: string) {
 
 function confirmSigningOrder(signer: RequestTabSigner) {
 	const file = filesStore.getFile() as RequestTabFile
-	const currentIndex = file.signers?.findIndex((currentSigner: RequestTabSigner) => currentSigner.identify === signer.identify) ?? -1
+	const signerLocalKey = signer.localKey
+	const currentIndex = file.signers?.findIndex((currentSigner: RequestTabSigner) => currentSigner.localKey === signerLocalKey) ?? -1
 	if (currentIndex === -1) {
 		return
 	}
@@ -1206,7 +1188,7 @@ function openFile() {
 
 function startSigningProgressPolling() {
 	const file = filesStore.getFile()
-	if (!file?.id) {
+	if (typeof file?.id !== 'number') {
 		return
 	}
 
