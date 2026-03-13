@@ -926,20 +926,20 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		it('updates signer order and sorts', async () => {
 			await updateFile({
 				signers: [
-					{ email: 'signer1@example.com', signingOrder: 2, identify: 'signer1@example.com' },
-					{ email: 'signer2@example.com', signingOrder: 3, identify: 'signer2@example.com' },
+					{ email: 'signer1@example.com', signRequestId: 1, signingOrder: 2 },
+					{ email: 'signer2@example.com', signRequestId: 2, signingOrder: 3 },
 				],
 			})
 			const signer2 = filesStore.files[1]!.signers![1]!
 			wrapper.vm.updateSigningOrder(signer2, '1')
 			await wrapper.vm.$nextTick()
-			expect(filesStore.files[1]!.signers![0]!.identify).toBe('signer2@example.com')
+			expect(filesStore.files[1]!.signers![0]!.signRequestId).toBe(2)
 		})
 
 		it('ignores invalid order values', async () => {
 			await updateFile({
 				signers: [
-					{ email: 'signer1@example.com', signingOrder: 1, identify: 'signer1@example.com' },
+					{ email: 'signer1@example.com', signRequestId: 1, signingOrder: 1 },
 				],
 			})
 			const signer1 = filesStore.files[1]!.signers![0]!
@@ -951,10 +951,10 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		it('handles signer not found gracefully', async () => {
 			await updateFile({
 				signers: [
-					{ email: 'signer1@example.com', signingOrder: 1, identify: 'signer1@example.com' },
+					{ email: 'signer1@example.com', signRequestId: 1, signingOrder: 1 },
 				],
 			})
-			const fakeSigner = { identify: 'nonexistent@example.com' }
+			const fakeSigner = { localKey: 'signer:999' }
 			wrapper.vm.updateSigningOrder(fakeSigner, '2')
 			await wrapper.vm.$nextTick()
 			expect(filesStore.files[1].signers).toHaveLength(1)
