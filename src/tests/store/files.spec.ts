@@ -25,6 +25,7 @@ type TranslationParams = {
 type Signer = {
 	email: string
 	identify?: string | number
+	localKey?: string
 	signRequestId?: number
 }
 
@@ -565,19 +566,19 @@ describe('files store - critical business rules', () => {
 				id: 1,
 				signatureFlow: 'ordered_numeric',
 				signers: [
-					{ identify: 'id1', signingOrder: 1 },
-					{ identify: 'id2', signingOrder: 2 },
-					{ identify: 'id3', signingOrder: 3 },
+					{ localKey: 'draft-1', signingOrder: 1 },
+					{ localKey: 'draft-2', signingOrder: 2 },
+					{ localKey: 'draft-3', signingOrder: 3 },
 				],
 			}
 
 			axiosMock.delete.mockResolvedValue({})
 
-			await store.deleteSigner({ identify: 'id2', signingOrder: 2 })
+			await store.deleteSigner({ localKey: 'draft-2', signingOrder: 2 })
 
-			const remainingSigners = store.files[1].signers! as Array<{ identify: string; signingOrder: number }>
+			const remainingSigners = store.files[1].signers! as Array<{ localKey: string; signingOrder: number }>
 			expect(remainingSigners).toHaveLength(2)
-			const signer = remainingSigners.find((s: { identify: string }) => s.identify === 'id3')
+			const signer = remainingSigners.find((s: { localKey: string }) => s.localKey === 'draft-3')
 			expect(signer?.signingOrder).toBe(2)
 		})
 
@@ -589,14 +590,14 @@ describe('files store - critical business rules', () => {
 					signatureFlow: 'none',
 					signersCount: 2,
 					signers: [
-						{ identify: 'id1' },
-						{ identify: 'id2' },
+						{ localKey: 'draft-1' },
+						{ localKey: 'draft-2' },
 					],
 				}
 
 				axiosMock.delete.mockResolvedValue({})
 
-				await store.deleteSigner({ identify: 'id2' })
+				await store.deleteSigner({ localKey: 'draft-2' })
 
 				expect(store.files[1].signers).toHaveLength(1)
 				expect(store.files[1].signersCount).toBe(1)
@@ -609,8 +610,8 @@ describe('files store - critical business rules', () => {
 				id: 1,
 				signatureFlow: 'ordered_numeric',
 				signers: [
-					{ identify: 'id1', signingOrder: 1 },
-					{ identify: 'id2', signingOrder: 2 },
+					{ localKey: 'draft-1', signingOrder: 1 },
+					{ localKey: 'draft-2', signingOrder: 2 },
 				],
 			}
 
@@ -627,14 +628,14 @@ describe('files store - critical business rules', () => {
 			store.files[1] = {
 				id: 1,
 				signers: [
-					{ email: 'test@example.com', signRequestId: 123, identify: 123 },
+					{ email: 'test@example.com', signRequestId: 123, localKey: 'signer:123' },
 				],
 			}
 
 			const updatedSigner = {
 				email: 'updated@example.com',
 				signRequestId: 123,
-				identify: 123,
+				localKey: 'signer:123',
 				description: 'new',
 			}
 			store.signerUpdate(updatedSigner)
@@ -801,53 +802,53 @@ describe('files store - critical business rules', () => {
 		})
 	})
 
-	describe('RULE: adding unique identifiers to signers', () => {
-		it('generates unique identifier for new signer', () => {
+	describe('RULE: adding local signer keys', () => {
+		it('generates localKey for new signer', () => {
 			const store = useFilesStore()
 			const signer: Signer = { email: 'test@example.com' }
 
-			store.addIdentifierToSigner(signer)
+			store.addLocalKeyToSigner(signer)
 
-			expect(signer.identify).toBeDefined()
-			expect(typeof signer.identify).toBe('string')
+			expect(signer.localKey).toBeDefined()
+			expect(typeof signer.localKey).toBe('string')
 		})
 
-		it('uses signRequestId as identifier when available', () => {
+		it('uses signRequestId to build localKey when available', () => {
 			const store = useFilesStore()
 			const signer: Signer = { email: 'test@example.com', signRequestId: 456 }
 
-			store.addIdentifierToSigner(signer)
+			store.addLocalKeyToSigner(signer)
 
-			expect(signer.identify).toBe(456)
+			expect(signer.localKey).toBe('signer:456')
 		})
 
-		it('preserves existing identifier', () => {
+		it('preserves existing localKey', () => {
 			const store = useFilesStore()
-			const signer: Signer = { email: 'test@example.com', identify: 'existing-id' }
+			const signer: Signer = { email: 'test@example.com', localKey: 'existing-key' }
 
-			store.addIdentifierToSigner(signer)
+			store.addLocalKeyToSigner(signer)
 
-			expect(signer.identify).toBe('existing-id')
+			expect(signer.localKey).toBe('existing-key')
 		})
 	})
 
-	describe('RULE: addFile sets identify on all signers (contract used by Signers.vue :key)', () => {
-		it('sets identify from signRequestId when present', async () => {
+	describe('RULE: addFile sets localKey on all signers', () => {
+		it('sets localKey from signRequestId when present', async () => {
 			const store = useFilesStore()
 			await store.addFile({ id: 1, signers: [{ email: 'a@example.com', signRequestId: 42 }] })
 
-			expect(store.files[1].signers![0]!.identify).toBe(42)
+			expect(store.files[1].signers![0]!.localKey).toBe('signer:42')
 		})
 
-		it('generates identify for new signers without signRequestId', async () => {
+		it('generates localKey for new signers without signRequestId', async () => {
 			const store = useFilesStore()
 			await store.addFile({ id: 1, signers: [{ email: 'b@example.com' }] })
 
-			expect(store.files[1].signers![0]!.identify).toBeDefined()
-			expect(typeof store.files[1].signers![0]!.identify).toBe('string')
+			expect(store.files[1].signers![0]!.localKey).toBeDefined()
+			expect(typeof store.files[1].signers![0]!.localKey).toBe('string')
 		})
 
-		it('sets identify on every signer in a multi-signer file', async () => {
+		it('sets localKey on every signer in a multi-signer file', async () => {
 			const store = useFilesStore()
 			await store.addFile({
 				id: 2,
@@ -860,10 +861,10 @@ describe('files store - critical business rules', () => {
 
 			const signers = store.files[2].signers!
 			for (const signer of signers) {
-				expect(signer.identify).toBeDefined()
+				expect(signer.localKey).toBeDefined()
 			}
-			expect(signers[0].identify).toBe(10)
-			expect(signers[2].identify).toBe(20)
+			expect(signers[0].localKey).toBe('signer:10')
+			expect(signers[2].localKey).toBe('signer:20')
 		})
 	})
 
@@ -1217,7 +1218,7 @@ describe('files store - critical business rules', () => {
 				const store = useFilesStore()
 				store.selectedFileId = 0  // nothing selected
 
-				const signer = { email: 'a@example.com', identify: 'a@example.com' }
+				const signer = { email: 'a@example.com', localKey: 'draft-signer:test' }
 				// If emptyFile were mutated, the signerUpdate below would persist
 				// across store instances and corrupt subsequent tests.
 				store.signerUpdate(signer)
