@@ -107,19 +107,16 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
-import type { components } from '../../types/openapi/openapi'
+import type { IdentifyMethodRecord, SignerDetailRecord } from '../../types/index'
 defineOptions({
 	name: 'SigningOrderDiagram',
 })
 
-type OpenApiIdentifyMethod = components['schemas']['IdentifyMethod']
-type OpenApiSigner = components['schemas']['SignerDetail']
-
-type IdentifyMethod = Pick<OpenApiIdentifyMethod, 'method' | 'value'>
+type IdentifyMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 
 type Signer = {
-	displayName?: OpenApiSigner['displayName']
-	signingOrder?: OpenApiSigner['signingOrder'] | number
+	displayName?: SignerDetailRecord['displayName']
+	signingOrder?: SignerDetailRecord['signingOrder'] | number
 	identifyMethods?: IdentifyMethod[]
 	signed?: boolean
 	signDate?: number | null
@@ -136,7 +133,7 @@ const props = withDefaults(defineProps<{
 })
 
 const uniqueOrders = computed(() => {
-	const orders = props.signers.map((signer) => signer.signingOrder || 1)
+	const orders: number[] = props.signers.map((signer) => Number(signer.signingOrder || 1))
 	return [...new Set(orders)].sort((a, b) => a - b)
 })
 
