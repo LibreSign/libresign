@@ -80,41 +80,24 @@ import {
 import SignerMenu from './SignerMenu.vue'
 import SignatureBox from './SignatureBox.vue'
 import { ensurePdfWorker } from '../../helpers/pdfWorker'
-import type { components } from '../../types/openapi/openapi'
-import type { VisibleElement } from '../../services/visibleElementsService'
-
-type OpenApiSigner = components['schemas']['SignerDetail']
-
-type SignerIdentity = {
-	displayName?: OpenApiSigner['displayName']
-	email?: OpenApiSigner['email']
-	identifyMethods?: OpenApiSigner['identifyMethods']
-}
-
-type Coordinates = {
-	page: number
-	left?: number
-	top?: number
-	width?: number
-	height?: number
-	llx?: number
-	lly?: number
-	urx?: number
-	ury?: number
-}
+import type {
+	Coordinates,
+	FileSigner,
+	VisibleElement,
+} from '../../services/visibleElementsService'
+import type { SignerIdentify } from '../../types/index'
 
 type SignerPlacement = {
+	elementId?: VisibleElement['elementId']
+	type?: VisibleElement['type']
+	signRequestId?: VisibleElement['signRequestId']
 	documentIndex?: number
 	coordinates?: Coordinates
 }
 
-type PdfEditorSigner = SignerIdentity & {
-	id?: string | number
-	uuid?: string | number
-	name?: string
-	signRequestId?: OpenApiSigner['signRequestId'] | string
-	status?: OpenApiSigner['status'] | number
-	visibleElements?: VisibleElement[]
+type PdfEditorSigner = FileSigner & {
+	identify?: SignerIdentify | string | number
+	readOnly?: boolean
 	element?: SignerPlacement
 }
 
@@ -254,25 +237,25 @@ function handleObjectClick(event: Record<string, unknown>) {
 	emit('pdf-editor:object-click', event)
 }
 
-function getSignerLabel(signer: PdfEditorSigner | null | undefined) {
+function getSignerLabel(signer: FileSigner | null | undefined) {
 	if (!signer) {
 		return ''
 	}
-	return String(signer.displayName || signer.name || signer.email || signer.id || '')
+	return String(signer.displayName || signer.email || signer.signRequestId || '')
 }
 
-function onSignerChange(object: PdfObject | null | undefined, signer: PdfEditorSigner | null | undefined) {
+function onSignerChange(object: PdfObject | null | undefined, signer: FileSigner | null | undefined) {
 	if (!object || !signer || !pdfElements.value) {
 		return
 	}
 
-	const signerId = String(signer.signRequestId || signer.uuid || signer.id || signer.email || '')
+	const signerId = String(signer.signRequestId || signer.email || '')
 	if (!signerId) {
 		return
 	}
 
 	const targetSigner = (props.signers || []).find(entry => {
-		const candidateId = String(entry.signRequestId || entry.uuid || entry.id || entry.email || '')
+		const candidateId = String(entry.signRequestId || entry.email || '')
 		return candidateId === signerId
 	})
 	if (!targetSigner) {
@@ -390,15 +373,19 @@ async function addSigner(signer: PdfEditorSigner) {
 	if (!pdfElements.value || !signer.element?.coordinates) {
 		return
 	}
+	const coordinates = signer.element.coordinates
+	const pageNumber = Number(coordinates.page)
+	if (!Number.isFinite(pageNumber)) {
+		return
+	}
 
 	const docIndex = signer.element.documentIndex !== undefined
 		? signer.element.documentIndex
 		: pdfElements.value.selectedDocIndex || 0
 
-	const pageIndex = signer.element.coordinates.page - 1
+	const pageIndex = pageNumber - 1
 	await waitForPageRender(docIndex, pageIndex)
 
-	const coordinates = signer.element.coordinates || { page: 1 }
 	const pageHeight = pdfElements.value.getPageHeight?.(docIndex, pageIndex) || 0
 	const width = Number.isFinite(coordinates.width)
 		? coordinates.width as number
