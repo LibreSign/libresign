@@ -83,9 +83,9 @@ import { ensurePdfWorker } from '../../helpers/pdfWorker'
 import type {
 	Coordinates,
 	FileSigner,
+	VisibleElementsSigner,
 	VisibleElement,
 } from '../../services/visibleElementsService'
-import type { SignerIdentify } from '../../types/index'
 
 type SignerPlacement = {
 	elementId?: VisibleElement['elementId']
@@ -95,8 +95,8 @@ type SignerPlacement = {
 	coordinates?: Coordinates
 }
 
-type PdfEditorSigner = FileSigner & {
-	identify?: SignerIdentify | string | number
+type PdfEditorSigner = VisibleElementsSigner & {
+	visibleElements?: VisibleElement[]
 	readOnly?: boolean
 	element?: SignerPlacement
 }
