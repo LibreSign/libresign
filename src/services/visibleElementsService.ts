@@ -3,35 +3,75 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { components } from '../types/openapi/openapi'
+import type {
+	FileMetadataState,
+	FileStateSettings,
+	IdentifyMethodRecord,
+	SignerIdentify,
+	VisibleElementState,
+	VisibleElementRecord,
+} from '../types/index'
 
-export type VisibleElement = components['schemas']['VisibleElement']
+export type VisibleElement = VisibleElementRecord | VisibleElementState
 export type Coordinates = VisibleElement['coordinates']
-type OpenApiFileListItem = components['schemas']['FileListItem']
-export type Signer = components['schemas']['SignerDetail']
-export type EnvelopeChildSignerSummary = components['schemas']['SignerSummary']
-export type FileSigner = Signer | EnvelopeChildSignerSummary
 
-type NestedFileData = {
-	id?: OpenApiFileListItem['id']
-	name?: OpenApiFileListItem['name']
-	file?: string
-	signers?: FileSigner[]
+export type VisibleElementsSigner = {
+	signRequestId?: number | string
+	displayName?: string
+	email?: string
+	identify?: SignerIdentify | string | number
+	identifyMethods?: IdentifyMethodRecord[]
+	localKey?: string
+	me?: boolean
+	visibleElements?: VisibleElement[]
 }
 
-export type FileData = {
+export type EnvelopeChildSignerSummary = {
+	signRequestId?: number | string
+	displayName?: string
+	email?: string
+	identifyMethods?: IdentifyMethodRecord[]
+	visibleElements?: VisibleElement[]
+	localKey?: string
+}
+
+export type FileSigner = VisibleElementsSigner | EnvelopeChildSignerSummary
+
+export type VisibleElementsNestedFile = {
 	id?: number | string
-	file?: string
-	files?: NestedFileData[]
-	visibleElements?: VisibleElement[]
+	name?: string
+	file?: string | VisibleElementsNestedFile | null
+	metadata?: FileMetadataState
+	visibleElements?: VisibleElement[] | null
 	signers?: FileSigner[]
 }
 
-export type DocumentData = {
-	visibleElements?: VisibleElement[]
+export type VisibleElementsFile = {
+	id?: number | string
+	name?: string
+	file?: string | VisibleElementsNestedFile | null
+	metadata?: FileMetadataState
+	visibleElements?: VisibleElement[] | null
+	files?: VisibleElementsNestedFile[]
 	signers?: FileSigner[]
-	files?: FileData[]
 }
+
+export type VisibleElementsDocument = {
+	id?: number | string
+	uuid?: string | null
+	name?: string
+	status?: number | string
+	statusText?: string
+	metadata?: FileMetadataState
+	settings?: FileStateSettings
+	visibleElements?: VisibleElement[] | null
+	signers?: FileSigner[] | null
+	files?: VisibleElementsFile[]
+}
+
+export type Signer = VisibleElementsSigner
+export type FileData = VisibleElementsFile
+export type DocumentData = VisibleElementsDocument
 
 const keyOf = (value: unknown): string => {
 	if (value === null || value === undefined) {
