@@ -61,16 +61,17 @@ import {
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
-import type { components, operations } from '../../types/openapi/openapi'
-import type { FileDetailRecord, ValidationFileRecord } from '../../types/index'
+import type { operations } from '../../types/openapi/openapi'
+import type {
+	SignerDetailRecord,
+	ValidatedChildFileRecord,
+	ValidationFileRecord,
+} from '../../types/index'
 
 type OpenApiValidateFile = ValidationFileRecord
-type OpenApiFileDetail = FileDetailRecord
-type OpenApiEnvelopeChildFile = components['schemas']['ValidatedChildFile']
-type OpenApiSigner = components['schemas']['SignerDetail']
 type SignError = { title?: string; message?: string }
 type SignDocumentStatus = OpenApiValidateFile['status'] | 5
-type SignDocumentFile = OpenApiEnvelopeChildFile
+type SignDocumentFile = ValidatedChildFileRecord
 type SignDocument = Omit<OpenApiValidateFile, 'status' | 'files'> & {
 	status: SignDocumentStatus
 	files?: SignDocumentFile[]
@@ -357,7 +358,7 @@ function updateSigners() {
 		return
 	}
 
-	const currentSigner = signStore.document.signers?.find((signer: OpenApiSigner) => signer.me)
+	const currentSigner = signStore.document.signers?.find((signer: SignerDetailRecord) => signer.me)
 	const visibleElements = getVisibleElementsFromDocument(signStore.document)
 	const elementsForSigner = currentSigner
 		? visibleElements.filter(element => idsMatch(element.signRequestId, currentSigner.signRequestId))
