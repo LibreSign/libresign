@@ -220,7 +220,7 @@ describe('Validation.vue - Business Logic', () => {
 				NcRichText: true,
 				NcTextField: true,
 			},
-		}) as ValidationWrapper
+		}) as unknown as ValidationWrapper
 	})
 
 	afterEach(() => {
@@ -628,7 +628,7 @@ describe('Validation.vue - Business Logic', () => {
 					$route: { params: { uuid: UUID, isAsync: true }, query: {} },
 					$router: { ...mockRouter, replace: vi.fn() },
 				},
-			}) as ValidationWrapper
+			}) as unknown as ValidationWrapper
 			// $route.params.isAsync is true in the mock, BUT the fixed code no longer reads
 			// from params — it reads from history.state (which is empty here).
 			expect(localWrapper.vm.isAsyncSigning).toBe(false)
@@ -642,7 +642,7 @@ describe('Validation.vue - Business Logic', () => {
 					$route: { params: { uuid: UUID }, query: {} },
 					$router: { ...mockRouter, replace: vi.fn() },
 				},
-			}) as ValidationWrapper
+			}) as unknown as ValidationWrapper
 			expect(localWrapper.vm.isAsyncSigning).toBe(false)
 			expect(localWrapper.vm.shouldFireAsyncConfetti).toBe(false)
 		})
@@ -702,8 +702,8 @@ describe('Validation.vue - Business Logic', () => {
 					$route: { params: { isAfterSigned: true }, query: {} },
 					$router: mockRouter,
 				},
-			}) as ValidationWrapper
-			lw.vm.handleValidationSuccess({ status: 1, signers: [] })
+			}) as unknown as ValidationWrapper
+			lw.vm.handleValidationSuccess(createLoadedValidationDocument({ status: 1 }))
 			expect(mockAddConfetti).not.toHaveBeenCalled()
 			lw.unmount()
 		})
