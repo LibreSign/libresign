@@ -41,6 +41,23 @@ interface DocumentData {
 	[key: string]: unknown
 }
 
+export type VisibleElementsDocument = {
+	id?: number | string
+	uuid?: string | null
+	name?: string
+	status?: number | string
+	statusText?: string
+	metadata?: FileMetadataState
+	settings?: FileStateSettings
+	visibleElements?: VisibleElement[] | null
+	signers?: FileSigner[] | null
+	files?: VisibleElementsFile[]
+}
+
+export type Signer = VisibleElementsSigner
+export type FileData = VisibleElementsFile
+export type DocumentData = VisibleElementsDocument
+
 const keyOf = (value: unknown): string => {
 	if (value === null || value === undefined) {
 		return ''
