@@ -1093,6 +1093,39 @@ describe('files store - critical business rules', () => {
 			expect(store.files[1].signers![1]!.signingOrder).toBe(2)
 		})
 
+		it('preserves detailed selected file state after updating request signature', async () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				uuid: 'file-uuid',
+				name: 'contract.pdf',
+				detailsLoaded: true,
+				signatureFlow: 'parallel',
+				settings: { path: '/files/contract.pdf' },
+				visibleElements: [{ id: 77 }],
+				signers: [{ identify: 'signer01@libresign.coop', signRequestId: 10 }],
+			}
+			axiosMock.mockResolvedValue({
+				data: {
+					ocs: {
+						data: {
+							id: 1,
+							uuid: 'file-uuid',
+							signatureFlow: 'parallel',
+							signers: [{ identify: 'signer01@libresign.coop', signRequestId: 10 }],
+						},
+					},
+				},
+			})
+
+			await store.saveOrUpdateSignatureRequest({ status: 1 })
+
+			expect(store.files[1].detailsLoaded).toBe(true)
+			expect(store.files[1].settings).toEqual({ path: '/files/contract.pdf' })
+			expect(store.files[1].visibleElements).toEqual([{ id: 77 }])
+		})
+
 		it('replaces envelope nodeId when server returns new id', async () => {
 			const store = useFilesStore()
 			store.selectedFileId = 10
