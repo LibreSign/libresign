@@ -41,13 +41,23 @@ import draggable from 'vuedraggable'
 
 import Signer from './Signer.vue'
 import { useFilesStore } from '../../store/files.js'
-import type { FileState, SignerState } from '../../types/index'
+import type { SignatureFlowValue } from '../../types/index'
 
 defineOptions({
 	name: 'Signers',
 })
 
-type FileWithSigners = Pick<FileState, 'signers' | 'signatureFlow'>
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type SelectedFile = ReturnType<FilesStoreContract['getFile']>
+type SignerListItem = NonNullable<NonNullable<SelectedFile['signers']>[number]>
+
+function normalizeSignatureFlow(flow: SelectedFile['signatureFlow']): SignatureFlowValue | string | null | undefined {
+	if (typeof flow === 'number') {
+		const flowMap: Record<number, SignatureFlowValue> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		return flowMap[flow]
+	}
+	return flow
+}
 
 const props = withDefaults(defineProps<{
 	event?: string
@@ -61,12 +71,12 @@ const emit = defineEmits<{
 
 const filesStore = useFilesStore()
 
-const signers = computed<SignerState[] | undefined>(() => {
-	const file = filesStore.getFile() as FileWithSigners | undefined
+const signers = computed<SignerListItem[] | undefined>(() => {
+	const file = filesStore.getFile()
 	return file?.signers ?? undefined
 })
 
-const sortableSigners = computed<SignerState[] | undefined>({
+const sortableSigners = computed<SignerListItem[] | undefined>({
 	get() {
 		return signers.value
 	},
@@ -79,14 +89,7 @@ const sortableSigners = computed<SignerState[] | undefined>({
 })
 
 const isOrderedNumeric = computed(() => {
-	const file = filesStore.getFile() as FileWithSigners | undefined
-	let flow = file?.signatureFlow
-
-	if (typeof flow === 'number') {
-		const flowMap: Record<number, NonNullable<FileWithSigners['signatureFlow']>> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-		flow = flowMap[flow]
-	}
-
+	const flow = normalizeSignatureFlow(filesStore.getFile()?.signatureFlow)
 	return flow === 'ordered_numeric'
 })
 
