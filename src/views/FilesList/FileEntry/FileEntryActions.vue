@@ -86,6 +86,7 @@ import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { useSignStore } from '../../../store/sign.js'
+import type { FileEntrySource } from '../../../composables/useFileEntry.js'
 
 defineOptions({
 	name: 'FileEntryActions',
