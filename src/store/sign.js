@@ -16,8 +16,8 @@ import { useSignMethodsStore } from './signMethods.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 
-/** @typedef {import('../types/index').FileRecord} FileRecord */
-/** @typedef {import('../types/index').SignerRecord} SignerRecord */
+/** @typedef {import('../types/index').FileState} FileState */
+/** @typedef {import('../types/index').SignerState} SignerState */
 /** @typedef {import('../types/index').VisibleElementRecord} VisibleElementRecord */
 
 /**
@@ -28,7 +28,7 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * }} SignError
  */
 /**
- * @typedef {FileRecord & {
+ * @typedef {FileState & {
  * 	description?: string
  * 	url?: string
  * 	settings?: Record<string, unknown>
