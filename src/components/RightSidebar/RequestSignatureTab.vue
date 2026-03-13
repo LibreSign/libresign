@@ -323,20 +323,18 @@ import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
 import type { components, operations } from '../../types/openapi/openapi'
 import type {
-	FileState,
 	IdentifyMethodRecord,
 	IdentifyMethodSetting as IdentifyMethodConfig,
 	LibresignCapabilities as RequestSignatureTabCapabilities,
-	SignerState,
 	SignatureFlowMode,
 	SignatureFlowValue,
 } from '../../types/index'
 
-type OpenApiSigner = components['schemas']['SignerDetail']
-type RequestTabSigner = SignerState
-type RequestTabFile = FileState
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type EditableRequestFile = ReturnType<FilesStoreContract['getEditableFile']>
+type EditableRequestSigner = NonNullable<NonNullable<EditableRequestFile['signers']>[number]>
 
-type LoadedDocumentState = RequestTabFile
+type LoadedDocumentState = EditableRequestFile
 
 type IdentifySignerMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 type IdentifySignerToEdit = {
@@ -404,7 +402,7 @@ const documentData = ref<LoadedDocumentState>(loadState<LoadedDocumentState>('li
 const methods = ref<IdentifyMethodConfig[]>(loadState<IdentifyMethodConfig[]>('libresign', 'identify_methods', EMPTY_IDENTIFY_METHODS))
 const showConfirmRequest = ref(false)
 const showConfirmRequestSigner = ref(false)
-const selectedSigner = ref<RequestTabSigner | null>(null)
+const selectedSigner = ref<EditableRequestSigner | null>(null)
 const activeTab = ref('')
 const preserveOrder = ref(false)
 const showOrderDiagram = ref(false)
@@ -438,7 +436,7 @@ const isOrderedNumeric = computed(() => signatureFlow.value === 'ordered_numeric
 const hasSigners = computed(() => filesStore.hasSigners(filesStore.getFile()))
 const totalSigners = computed(() => Number(filesStore.getFile()?.signersCount || filesStore.getFile()?.signers?.length || 0))
 const isOriginalFileDeleted = computed(() => filesStore.isOriginalFileDeleted())
-const currentFile = computed<RequestTabFile | null>(() => (filesStore.getFile() as RequestTabFile | null) ?? null)
+const currentFile = computed<EditableRequestFile | null>(() => (filesStore.getFile() as EditableRequestFile | null) ?? null)
 const isCurrentFileDetailed = computed(() => currentFile.value?.detailsLoaded === true)
 const shouldLoadDetail = computed(() => totalSigners.value > 0)
 const showSigningOrderOptions = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && hasSigners.value && filesStore.canSave() && !isAdminFlowForced.value)
@@ -470,7 +468,7 @@ const signingProgressView = computed<SigningProgressView | null>(() => {
 })
 const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
 	const signers = filesStore.getFile()?.signers || []
-	return signers.map((signer: RequestTabSigner) => ({
+	return signers.map((signer: EditableRequestSigner) => ({
 		displayName: signer.displayName,
 		signed: isSignerSigned(signer),
 		signingOrder: signer.signingOrder,
@@ -488,7 +486,7 @@ function getSignerMethod(signer: { identifyMethods?: Array<Pick<IdentifyMethodRe
 	return signer.identifyMethods?.[0]?.method
 }
 
-function getEditableSignerIdentify(signer: RequestTabSigner): string | undefined {
+function getEditableSignerIdentify(signer: EditableRequestSigner): string | undefined {
 	if (typeof signer.identify === 'object' && signer.identify !== null) {
 		return signer.identify.email || signer.identify.account
 	}
@@ -498,7 +496,7 @@ function getEditableSignerIdentify(signer: RequestTabSigner): string | undefined
 	return signer.identifyMethods?.[0]?.value || signer.email
 }
 
-function toIdentifySignerToEdit(signer: RequestTabSigner): IdentifySignerToEdit {
+function toIdentifySignerToEdit(signer: EditableRequestSigner): IdentifySignerToEdit {
 	return {
 		localKey: signer.localKey,
 		identify: getEditableSignerIdentify(signer),
@@ -567,14 +565,14 @@ function showRequestError(error: unknown, fallbackMessage: string): void {
 	showError(fallbackMessage)
 }
 
-function isSignerSigned(signer: Partial<RequestTabSigner>) {
+function isSignerSigned(signer: Partial<EditableRequestSigner>) {
 	if (Array.isArray(signer?.signed)) {
 		return signer.signed.length > 0
 	}
 	return !!signer?.signed
 }
 
-const canEditSigningOrder = computed(() => (signer: Partial<RequestTabSigner>) => {
+const canEditSigningOrder = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
 		return false
 	}
@@ -582,14 +580,14 @@ const canEditSigningOrder = computed(() => (signer: Partial<RequestTabSigner>) =
 	return isOrderedNumeric.value && totalSigners.value >= minSigners && filesStore.canSave() && !isSignerSigned(signer)
 })
 
-const canDelete = computed(() => (signer: Partial<RequestTabSigner>) => {
+const canDelete = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
 		return false
 	}
 	return filesStore.canSave() && !isSignerSigned(signer)
 })
 
-function canSignerActInOrder(signer: Partial<RequestTabSigner>) {
+function canSignerActInOrder(signer: Partial<EditableRequestSigner>) {
 	const methodConfig = getMethodConfig(getSignerMethod(signer))
 	if (methodConfig && !methodConfig.enabled) {
 			return false
@@ -602,7 +600,7 @@ function canSignerActInOrder(signer: Partial<RequestTabSigner>) {
 	const file = filesStore.getFile()
 	const signerOrder = signer.signingOrder || 1
 	const signers = Array.isArray(file?.signers) ? file.signers : []
-	const hasPendingLowerOrder = signers.some((currentSigner: RequestTabSigner) => {
+	const hasPendingLowerOrder = signers.some((currentSigner: EditableRequestSigner) => {
 		const otherOrder = currentSigner.signingOrder || 1
 		return otherOrder < signerOrder && !isSignerSigned(currentSigner)
 	})
@@ -610,7 +608,7 @@ function canSignerActInOrder(signer: Partial<RequestTabSigner>) {
 	return !hasPendingLowerOrder
 }
 
-const canCustomizeMessage = computed(() => (signer: Partial<RequestTabSigner>) => {
+const canCustomizeMessage = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
 		return false
 	}
@@ -630,7 +628,7 @@ const canCustomizeMessage = computed(() => (signer: Partial<RequestTabSigner>) =
 	return !!method
 })
 
-const canRequestSignature = computed(() => (signer: Partial<RequestTabSigner>) => {
+const canRequestSignature = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
 		return false
 	}
@@ -647,7 +645,7 @@ const canRequestSignature = computed(() => (signer: Partial<RequestTabSigner>) =
 	return canSignerActInOrder(signer)
 })
 
-const canSendReminder = computed(() => (signer: Partial<RequestTabSigner>) => {
+const canSendReminder = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
 		return false
 	}
@@ -670,7 +668,7 @@ const hasSignersWithDisabledMethods = computed(() => {
 		return false
 	}
 
-	return file.signers.some((signer: RequestTabSigner) => {
+	return file.signers.some((signer: EditableRequestSigner) => {
 		if (isSignerSigned(signer)) {
 			return false
 		}
@@ -683,29 +681,29 @@ const hasSignersWithDisabledMethods = computed(() => {
 	})
 })
 
-function hasAnyDraftSigner(file: RequestTabFile | null | undefined) {
+function hasAnyDraftSigner(file: EditableRequestFile | null | undefined) {
 	const fileSigners = file?.signers
-	const signers: RequestTabSigner[] = Array.isArray(fileSigners) ? fileSigners : []
-	return signers.some((signer: RequestTabSigner) => signer.status === SIGN_REQUEST_STATUS.DRAFT)
+	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
+	return signers.some((signer: EditableRequestSigner) => signer.status === SIGN_REQUEST_STATUS.DRAFT)
 }
 
-function getCurrentSigningOrder(signersNotSigned: RequestTabSigner[]) {
+function getCurrentSigningOrder(signersNotSigned: EditableRequestSigner[]) {
 	return Math.min(...signersNotSigned.map(s => s.signingOrder || 1))
 }
 
-function hasOrderDraftSigners(file: RequestTabFile | null | undefined, order: number) {
+function hasOrderDraftSigners(file: EditableRequestFile | null | undefined, order: number) {
 	const fileSigners = file?.signers
-	const signers: RequestTabSigner[] = Array.isArray(fileSigners) ? fileSigners : []
-	return signers.some((signer: RequestTabSigner) => {
+	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
+	return signers.some((signer: EditableRequestSigner) => {
 		const signerOrder = signer.signingOrder || 1
 		return signerOrder === order && signer.status === SIGN_REQUEST_STATUS.DRAFT
 	})
 }
 
-function hasSequentialDraftSigners(file: RequestTabFile | null | undefined) {
+function hasSequentialDraftSigners(file: EditableRequestFile | null | undefined) {
 	const fileSigners = file?.signers
-	const signers: RequestTabSigner[] = Array.isArray(fileSigners) ? fileSigners : []
-	const signersNotSigned = signers.filter((signer: RequestTabSigner) => !isSignerSigned(signer))
+	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
+	const signersNotSigned = signers.filter((signer: EditableRequestSigner) => !isSignerSigned(signer))
 	if (signersNotSigned.length === 0) {
 		return false
 	}
@@ -715,7 +713,7 @@ function hasSequentialDraftSigners(file: RequestTabFile | null | undefined) {
 }
 
 const hasDraftSigners = computed(() => {
-	const file = filesStore.getFile() as RequestTabFile
+	const file = filesStore.getEditableFile()
 	if (!isCurrentFileDetailed.value || !file?.signers) {
 		return false
 	}
@@ -799,13 +797,13 @@ const debouncedTabChange = debounce((tabId: string) => {
 
 function onPreserveOrderChange(value: boolean) {
 	preserveOrder.value = value
-	const file = filesStore.getFile()
+	const file = filesStore.getEditableFile()
 
 	if (value) {
 		if (file?.signers) {
-			const orders = file.signers.map((signer: RequestTabSigner) => signer.signingOrder || 0)
+			const orders = file.signers.map((signer: EditableRequestSigner) => signer.signingOrder || 0)
 			const hasDuplicateOrders = orders.length !== new Set(orders).size
-			file.signers.forEach((signer: RequestTabSigner, index: number) => {
+			file.signers.forEach((signer: EditableRequestSigner, index: number) => {
 				if (!signer.signingOrder || hasDuplicateOrders) {
 					signer.signingOrder = index + 1
 				}
@@ -816,7 +814,7 @@ function onPreserveOrderChange(value: boolean) {
 		}
 	} else if (!isAdminFlowForced.value) {
 		if (file?.signers) {
-			file.signers.forEach((signer: RequestTabSigner) => {
+			file.signers.forEach((signer: EditableRequestSigner) => {
 				if (!isSignerSigned(signer)) {
 					signer.signingOrder = 1
 				}
@@ -886,7 +884,7 @@ function getValidationFileUuid() {
 		return file.uuid
 	}
 
-	const signer = file?.signers?.find((row: RequestTabSigner) => row.me) || file?.signers?.[0]
+	const signer = file?.signers?.find((row: EditableRequestSigner) => row.me) || file?.signers?.[0]
 	if (signer?.sign_uuid) {
 		return signer.sign_uuid
 	}
@@ -926,7 +924,7 @@ function addSigner() {
 	filesStore.enableIdentifySigner()
 }
 
-function editSigner(signer: RequestTabSigner) {
+function editSigner(signer: EditableRequestSigner) {
 	signerToEdit.value = toIdentifySignerToEdit(signer)
 	const signerMethod = getSignerMethod(signer)
 	if (signerMethod) {
@@ -935,7 +933,7 @@ function editSigner(signer: RequestTabSigner) {
 	filesStore.enableIdentifySigner()
 }
 
-function customizeMessage(signer: RequestTabSigner) {
+function customizeMessage(signer: EditableRequestSigner) {
 	signerToEdit.value = toIdentifySignerToEdit(signer)
 	filesStore.enableIdentifySigner()
 }
@@ -947,15 +945,15 @@ function onTabChange(tabId: string) {
 	}
 }
 
-function updateSigningOrder(signer: RequestTabSigner, value: string) {
+function updateSigningOrder(signer: EditableRequestSigner, value: string) {
 	const order = parseInt(value, 10)
-	const file = filesStore.getFile() as RequestTabFile
+	const file = filesStore.getEditableFile()
 	if (isNaN(order)) {
 		return
 	}
 
 	const signerLocalKey = signer.localKey
-	const currentIndex = file.signers?.findIndex((currentSigner: RequestTabSigner) => currentSigner.localKey === signerLocalKey) ?? -1
+	const currentIndex = file.signers?.findIndex((currentSigner: EditableRequestSigner) => currentSigner.localKey === signerLocalKey) ?? -1
 	if (currentIndex === -1) {
 		return
 	}
@@ -970,7 +968,7 @@ function updateSigningOrder(signer: RequestTabSigner, value: string) {
 	}
 
 	currentSigner.signingOrder = order
-	file.signers = [...file.signers].sort((left: RequestTabSigner, right: RequestTabSigner) => {
+	file.signers = [...file.signers].sort((left: EditableRequestSigner, right: EditableRequestSigner) => {
 		const orderLeft = left.signingOrder || 999
 		const orderRight = right.signingOrder || 999
 		if (orderLeft === orderRight) {
@@ -980,10 +978,10 @@ function updateSigningOrder(signer: RequestTabSigner, value: string) {
 	})
 }
 
-function confirmSigningOrder(signer: RequestTabSigner) {
-	const file = filesStore.getFile() as RequestTabFile
+function confirmSigningOrder(signer: EditableRequestSigner) {
+	const file = filesStore.getEditableFile()
 	const signerLocalKey = signer.localKey
-	const currentIndex = file.signers?.findIndex((currentSigner: RequestTabSigner) => currentSigner.localKey === signerLocalKey) ?? -1
+	const currentIndex = file.signers?.findIndex((currentSigner: EditableRequestSigner) => currentSigner.localKey === signerLocalKey) ?? -1
 	if (currentIndex === -1) {
 		return
 	}
@@ -1020,7 +1018,7 @@ function confirmSigningOrder(signer: RequestTabSigner) {
 		}
 	}
 
-	const sortedSigners = [...file.signers].sort((left: RequestTabSigner, right: RequestTabSigner) => {
+	const sortedSigners = [...file.signers].sort((left: EditableRequestSigner, right: EditableRequestSigner) => {
 		const orderLeft = left.signingOrder || 999
 		const orderRight = right.signingOrder || 999
 		return orderLeft - orderRight
@@ -1033,12 +1031,12 @@ function confirmSigningOrder(signer: RequestTabSigner) {
 	debouncedSave()
 }
 
-async function sendNotify(signer: RequestTabSigner) {
+async function sendNotify(signer: EditableRequestSigner) {
 	if (!signer.signRequestId) {
 		showError(t('libresign', 'Signer request not found'))
 		return
 	}
-	const file = filesStore.getFile() as RequestTabFile
+	const file = filesStore.getEditableFile()
 	if (!file?.id) {
 		showError(t('libresign', 'Document not found'))
 		return
@@ -1058,7 +1056,7 @@ async function sendNotify(signer: RequestTabSigner) {
 		})
 }
 
-async function requestSignatureForSigner(signer: RequestTabSigner) {
+async function requestSignatureForSigner(signer: EditableRequestSigner) {
 	selectedSigner.value = signer
 	showConfirmRequestSigner.value = true
 }
@@ -1075,8 +1073,8 @@ async function confirmRequestSigner() {
 			showError(t('libresign', 'Signer request not found'))
 			return
 		}
-		const file = filesStore.getFile() as RequestTabFile
-		const signers = (file.signers || []).map((signer: RequestTabSigner) => {
+		const file = filesStore.getEditableFile()
+		const signers = (file.signers || []).map((signer: EditableRequestSigner) => {
 			if (signer.signRequestId === selectedSignRequestId) {
 				return { ...signer, status: 1 }
 			}
@@ -1100,7 +1098,7 @@ async function sign() {
 		return
 	}
 
-	const uuid = file.signUuid
+	const uuid = 'signUuid' in file ? file.signUuid : null
 	if (props.useModal) {
 		const absoluteUrl = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid })
 		const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
@@ -1206,7 +1204,7 @@ function startSigningProgressPolling() {
 			signingProgressStatusText.value = data.statusText || ''
 			signingProgress.value = data.progress || null
 
-			const currentFile = filesStore.getFile()
+			const currentFile = filesStore.getEditableFile()
 			if (currentFile) {
 				currentFile.status = data.status
 				currentFile.statusText = data.statusText || currentFile.statusText
@@ -1238,7 +1236,7 @@ watch(() => filesStore.selectedFileId, (newFileId) => {
 }, { immediate: true })
 
 const handleEditSigner = ((event: NextcloudEvent) => {
-	editSigner((event as CustomEvent<RequestTabSigner>).detail)
+	editSigner((event as CustomEvent<EditableRequestSigner>).detail)
 }) as EventHandler<NextcloudEvent>
 
 watch(() => currentFile.value?.status, (newStatus) => {
