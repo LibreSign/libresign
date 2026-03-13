@@ -92,22 +92,8 @@ defineOptions({
 	name: 'FileEntryActions',
 })
 
-type SourceSigner = {
-	me?: boolean
-	sign_uuid?: string
-}
-
-type SourceFile = {
-	id: number
-	uuid?: string
-	name: string
-	nodeId?: number
-	nodeType?: string
-	status?: number
-	file?: string
-	signersCount?: number
+type SourceFile = FileEntrySource & {
 	signUuid?: string | null
-	signers?: SourceSigner[]
 }
 
 type MenuAction = {
