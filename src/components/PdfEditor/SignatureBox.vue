@@ -15,25 +15,13 @@
 import { t } from '@nextcloud/l10n'
 import { usernameToColor } from '@nextcloud/vue/functions/usernameToColor'
 import { computed } from 'vue'
-import type { components } from '../../types/openapi/openapi'
-
-type OpenApiSigner = components['schemas']['SignerDetail']
-
-type SignerIdentity = {
-	displayName?: OpenApiSigner['displayName']
-	email?: OpenApiSigner['email']
-}
+import type { FileSigner } from '../../services/visibleElementsService'
 
 defineOptions({
 	name: 'SignatureBox',
 })
 
-type SignerRecord = SignerIdentity & {
-	id?: string | number
-	name?: string
-}
-
-type Signer = Pick<SignerRecord, 'displayName' | 'name' | 'email' | 'id'> | null
+type Signer = FileSigner | null
 
 const props = withDefaults(defineProps<{
 	label?: string
@@ -48,7 +36,7 @@ const signatureBoxAriaLabel = computed(() => {
 })
 
 const boxStyle = computed(() => {
-	const seed = props.signer?.displayName || props.signer?.name || props.signer?.email || props.signer?.id || props.label
+	const seed = props.signer?.displayName || props.signer?.email || props.signer?.signRequestId || props.label
 
 	if (!seed) {
 		return {}
