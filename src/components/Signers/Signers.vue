@@ -5,7 +5,7 @@
 <template>
 	<draggable v-if="isOrderedNumeric && canReorder"
 		v-model="sortableSigners"
-		item-key="identify"
+		item-key="localKey"
 		tag="ul"
 		handle=".list-item"
 		class="signers-list"
@@ -25,7 +25,7 @@
 	</draggable>
 	<ul v-else>
 		<Signer v-for="(signer, index) in signers"
-			:key="signer.identify"
+			:key="signer.localKey"
 			:signer-index="index"
 			:event="event">
 			<template #actions="{closeActions}">
@@ -41,22 +41,13 @@ import draggable from 'vuedraggable'
 
 import Signer from './Signer.vue'
 import { useFilesStore } from '../../store/files.js'
+import type { FileState, SignerState } from '../../types/index'
 
 defineOptions({
 	name: 'Signers',
 })
 
-type SignerRow = {
-	identify?: string
-	signed?: unknown
-	signingOrder?: number
-	[key: string]: unknown
-}
-
-type FileWithSigners = {
-	signers?: SignerRow[]
-	signatureFlow?: string | number
-}
+type FileWithSigners = Pick<FileState, 'signers' | 'signatureFlow'>
 
 const props = withDefaults(defineProps<{
 	event?: string
@@ -70,12 +61,12 @@ const emit = defineEmits<{
 
 const filesStore = useFilesStore()
 
-const signers = computed<SignerRow[] | undefined>(() => {
+const signers = computed<SignerState[] | undefined>(() => {
 	const file = filesStore.getFile() as FileWithSigners | undefined
-	return file?.signers
+	return file?.signers ?? undefined
 })
 
-const sortableSigners = computed<SignerRow[] | undefined>({
+const sortableSigners = computed<SignerState[] | undefined>({
 	get() {
 		return signers.value
 	},
@@ -92,7 +83,7 @@ const isOrderedNumeric = computed(() => {
 	let flow = file?.signatureFlow
 
 	if (typeof flow === 'number') {
-		const flowMap: Record<number, string> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		const flowMap: Record<number, NonNullable<FileWithSigners['signatureFlow']>> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
 		flow = flowMap[flow]
 	}
 
