@@ -188,26 +188,26 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
-import type { components, operations } from '../../../types/openapi/openapi'
-import type { LibresignCapabilities } from '../../../types/index'
+import type { operations } from '../../../types/openapi/openapi'
+import type {
+	LibresignCapabilities,
+	SignatureMethodsRecord,
+	UserElementRecord,
+	VisibleElementRecord,
+} from '../../../types/index'
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import { FILE_STATUS } from '../../../constants.js'
 import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner, type DocumentData, type FileData } from '../../../services/visibleElementsService'
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
-type OpenApiValidateFile = components['schemas']['ValidatedFile']
 type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
 	settings: OpenApiAccountMe['settings'] & {
 		phoneNumber: string
 	}
 }
-type LibreSignSignatureMethods = components['schemas']['SignatureMethods']
-type LibreSignUserElement = components['schemas']['UserElement']
-type LibreSignValidateFile = Omit<OpenApiValidateFile, 'status'> & {
-	status: OpenApiValidateFile['status'] | 5
-}
-type LibreSignVisibleElement = components['schemas']['VisibleElement']
+type LibreSignUserElement = UserElementRecord
+type LibreSignVisibleElement = VisibleElementRecord
 type OcsResponseData<T> = {
 	ocs: {
 		data: T
@@ -310,18 +310,13 @@ type SignatureMethodSetting = {
 	hasConfirmCode?: boolean
 }
 
-type SignMethodKey = keyof LibreSignSignatureMethods | TokenMethodKey
+type SignMethodKey = keyof SignatureMethodsRecord | TokenMethodKey
 
 type SignMethodsSettings = Partial<Record<SignMethodKey, SignatureMethodSetting>>
 
 type SignatureProfile = LibreSignUserElement
 
-type SignDocument = LibreSignValidateFile & {
-	signRequestUuid?: string
-	sign_request_uuid?: string
-	signUuid?: string
-	sign_uuid?: string
-}
+type SignDocument = NonNullable<ReturnType<typeof useSignStore>['document']>
 
 type SignResult = {
 	status: 'signingInProgress' | 'signed' | 'unknown'
