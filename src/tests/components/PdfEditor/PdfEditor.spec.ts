@@ -10,13 +10,13 @@ import PdfEditor from '../../../components/PdfEditor/PdfEditor.vue'
 
 type SignerRecord = {
 	displayName?: string
-	name?: string
 	email?: string
-	id?: string | number
-	uuid?: string | number
 	signRequestId?: string | number
+	identify?: string | number
+	readOnly?: boolean
 	element?: {
 		documentIndex?: number
+		elementId?: string | number
 		signRequestId?: string | number
 		coordinates?: Record<string, number>
 		[key: string]: unknown
@@ -141,36 +141,25 @@ describe('PdfEditor Component - Business Rules', () => {
 		it('returns displayName when available', () => {
 			const signer = {
 				displayName: 'John Doe',
-				name: 'johndoe',
 				email: 'john@example.com',
-				id: 123,
+				signRequestId: 123,
 			}
 
 			expect(wrapper.vm.getSignerLabel(signer)).toBe('John Doe')
 		})
 
-		it('falls back to name when displayName not available', () => {
-			const signer = {
-				name: 'johndoe',
-				email: 'john@example.com',
-				id: 123,
-			}
-
-			expect(wrapper.vm.getSignerLabel(signer)).toBe('johndoe')
-		})
-
-		it('falls back to email when name not available', () => {
+		it('falls back to email when displayName not available', () => {
 			const signer = {
 				email: 'john@example.com',
-				id: 123,
+				signRequestId: 123,
 			}
 
 			expect(wrapper.vm.getSignerLabel(signer)).toBe('john@example.com')
 		})
 
-		it('falls back to id when email not available', () => {
+		it('falls back to signRequestId when email not available', () => {
 			const signer = {
-				id: 123,
+				signRequestId: 123,
 			}
 
 			expect(wrapper.vm.getSignerLabel(signer)).toBe('123')
