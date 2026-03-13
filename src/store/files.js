@@ -21,23 +21,165 @@ import { useSidebarStore } from './sidebar.js'
 
 /** @typedef {import('../types/index').SignerIdentify} SignerIdentify */
 /** @typedef {import('../types/index').IdentifyMethodRecord} SignerMethodRecord */
-/** @typedef {import('../types/index').SignerState} SignerState */
 /** @typedef {import('../types/index').FileSettings} FileSettings */
-/** @typedef {import('../types/index').FileReferenceState} FileReferenceState */
-/** @typedef {import('../types/index').FileState} FileState */
-/** @typedef {import('../types/index').SaveSignatureRequestOptions} SaveSignatureRequestOptions */
+/** @typedef {import('../types/index').FileListEntry} FileListEntry */
+/** @typedef {import('../types/index').FileListItemRecord} FileListItemRecord */
+/** @typedef {import('../types/index').FileMetadataState} FileMetadataState */
+/** @typedef {import('../types/index').FileStateSettings} FileStateSettings */
+/** @typedef {import('../types/index').FileValidationResponse} FileValidationResponse */
+/** @typedef {import('../types/index').FileValidationSigner} FileValidationSigner */
+/** @typedef {import('../types/index').RequestSignatureResponse} RequestSignatureResponse */
+/** @typedef {import('../types/index').RequestSignatureSignerPayload} RequestSignatureSignerPayload */
+/** @typedef {import('../types/index').RequestSignatureSignerResponse} RequestSignatureSignerResponse */
+/** @typedef {import('../types/index').RequestSignatureVisibleElementPayload} RequestSignatureVisibleElementPayload */
+/** @typedef {import('../types/index').RequestedByRecord} RequestedByRecord */
+/** @typedef {import('../types/index').SignatureFlowValue} SignatureFlowValue */
+/** @typedef {import('../types/index').VisibleElementRecord} VisibleElementRecord */
+/** @typedef {import('../types/index').VisibleElementState} VisibleElementState */
 
 /**
- * @typedef {FileState | { success: false, message: string, error: unknown }} SaveSignatureRequestResponse
+ * @typedef {{
+ * 	signRequestId?: number | string
+ * 	displayName?: string
+ * 	email?: string
+ * 	description?: string | null
+ * 	notify?: number
+ * 	status?: number
+ * 	statusText?: string
+ * 	signingOrder?: number
+ * 	localKey?: string
+ * 	acceptsEmailNotifications?: boolean
+ * 	identify?: SignerIdentify | string | number
+ * 	identifyMethods?: SignerMethodRecord[]
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[]
+ * 	me?: boolean
+ * 	signed?: string | null | boolean | unknown[]
+ * 	sign_uuid?: string | null
+ * }} EditableSignerState
  */
 
-/** @type {FileState} */
+/**
+ * @typedef {{
+ * 	id?: number | string
+ * 	fileId?: number
+ * 	uuid?: string | null
+ * 	created_at?: string
+ * 	nodeId?: number | string | null
+ * 	nodeType?: string
+ * 	name?: string
+ * 	docmdpLevel?: number | string
+ * 	signUuid?: string | null
+ * 	file?: string | EditableFileReferenceState | null
+ * 	files?: EditableFileReferenceState[]
+ * 	path?: string
+ * 	url?: string
+ * 	folderName?: string
+ * 	separator?: string
+ * 	metadata?: FileMetadataState
+ * 	signers?: EditableSignerState[]
+ * 	settings?: FileStateSettings
+ * 	totalPages?: number
+ * 	size?: number
+ * 	pdfVersion?: string
+ * 	mime?: string
+ * 	pages?: Array<Record<string, unknown>>
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[] | null
+ * 	status?: number | string
+ * 	statusText?: string
+ * }} EditableFileReferenceState
+ */
+
+/**
+ * @typedef {{
+ * 	id?: number | string
+ * 	uuid?: string | null
+ * 	name?: string
+ * 	created_at?: string
+ * 	message?: string
+ * 	nodeId?: number | string | null
+ * 	nodeType?: string
+ * 	docmdpLevel?: number | string
+ * 	status?: number | string
+ * 	statusText?: string
+ * 	signUuid?: string | null
+ * 	file?: string | EditableFileReferenceState | null
+ * 	files?: EditableFileReferenceState[]
+ * 	loading?: string | boolean
+ * 	metadata?: FileMetadataState
+ * 	settings?: FileStateSettings
+ * 	requested_by?: Partial<RequestedByRecord>
+ * 	signatureFlow?: SignatureFlowValue | null
+ * 	signers?: EditableSignerState[] | null
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[] | null
+ * 	url?: string
+ * 	mime?: string
+ * 	pages?: Array<Record<string, unknown>>
+ * 	totalPages?: number
+ * 	size?: number
+ * 	pdfVersion?: string
+ * 	signersCount?: number
+ * 	filesCount?: number
+ * 	canSign?: boolean
+ * 	detailsLoaded?: boolean
+ * }} ApiFileState
+ */
+
+/**
+ * @typedef {{
+ * 	id?: number | string
+ * 	fileId?: number
+ * 	uuid?: string | null
+ * 	name?: string
+ * 	message?: string
+ * 	docmdpLevel?: number | string
+ * 	status?: number | string
+ * 	statusText?: string
+ * 	nodeId?: number | string | null
+ * 	nodeType?: string
+ * 	signUuid?: string | null
+ * 	file?: string | EditableFileReferenceState | null
+ * 	files?: EditableFileReferenceState[]
+ * 	loading?: string | boolean
+ * 	metadata?: FileMetadataState
+ * 	settings?: FileStateSettings
+ * 	requested_by?: Partial<RequestedByRecord>
+ * 	signatureFlow?: SignatureFlowValue | null
+ * 	signers?: EditableSignerState[] | null
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[] | null
+ * 	signersCount?: number
+ * 	filesCount?: number
+ * 	canSign?: boolean
+ * 	detailsLoaded?: boolean
+ * }} EditableFileState
+ */
+
+/**
+ * @typedef {ApiFileState | EditableFileState} PublicFileState
+ */
+
+/**
+ * @typedef {{
+ * 	visibleElements?: RequestSignatureVisibleElementPayload[]
+ * 	signers?: EditableSignerState[] | null
+ * 	uuid?: string | null
+ * 	status?: number | null
+ * 	signatureFlow?: SignatureFlowValue | null
+ * }} SaveSignatureRequestOptions
+ */
+
+/**
+ * @typedef {PublicFileState | { success: false, message: string, error: unknown }} SaveSignatureRequestResponse
+ */
+
+/** @type {EditableFileState} */
 const emptyFile = { signers: [] }
 
 let draftSignerKeySequence = 0
 
 const _filesStore = defineStore('files', () => {
-	const files = ref(/** @type {Record<string | number, FileState>} */ ({}))
+	const apiFiles = ref(/** @type {Record<string | number, ApiFileState>} */ ({}))
+	const requestDrafts = ref(/** @type {Record<string | number, EditableFileState>} */ ({}))
+	const files = ref(/** @type {Record<string | number, PublicFileState>} */ ({}))
 	const selectedFileId = ref(0)
 	const identifyingSigner = ref(false)
 	const loading = ref(false)
@@ -186,7 +328,7 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	/**
-	 * @param {FileState} file
+	 * @param {PublicFileState} file
 	 * @param {{ position?: 'start' | 'end' }} [options]
 	 */
 	async function addFile(file, { position = 'start', detailsLoaded } = {}) {
@@ -195,7 +337,7 @@ const _filesStore = defineStore('files', () => {
 		}
 
 		const key = file.id ?? null
-		const existingFile = files.value[key]
+		const existingFile = apiFiles.value[key] || files.value[key]
 		const resolvedDetailsLoaded = detailsLoaded
 			?? file.detailsLoaded
 			?? existingFile?.detailsLoaded
@@ -316,7 +458,7 @@ const _filesStore = defineStore('files', () => {
 		return fileId
 	}
 
-	/** @param {FileState | null | undefined} [file] */
+	/** @param {PublicFileState | null | undefined} [file] */
 	function getFile(file) {
 		if (typeof file === 'object' && file !== null) {
 			return file
@@ -338,7 +480,7 @@ const _filesStore = defineStore('files', () => {
 
 	/**
 	 * @param {{ fileId?: number | string | null, uuid?: string | null, force?: boolean }} [options]
-	 * @returns {Promise<FileState | null>}
+	 * @returns {Promise<PublicFileState | null>}
 	 */
 	async function fetchFileDetail({ fileId = null, uuid = null, force = false } = {}) {
 		const store = getStore()
@@ -634,7 +776,7 @@ const _filesStore = defineStore('files', () => {
 		return `draft-signer:${draftSignerKeySequence}`
 	}
 
-	/** @param {SignerState[] | undefined | null} signers */
+	/** @param {EditableSignerState[] | undefined | null} signers */
 	function addLocalKeyToAllSigners(signers) {
 		if (signers === undefined) {
 			return
@@ -642,7 +784,7 @@ const _filesStore = defineStore('files', () => {
 		signers.map(signer => addLocalKeyToSigner(signer))
 	}
 
-	/** @param {SignerState} signer */
+	/** @param {EditableSignerState} signer */
 	function addLocalKeyToSigner(signer) {
 		if (signer.localKey) {
 			return
@@ -654,20 +796,20 @@ const _filesStore = defineStore('files', () => {
 		signer.localKey = createDraftSignerLocalKey()
 	}
 
-	/** @param {SignerState} signer */
+	/** @param {EditableSignerState} signer */
 	function signerUpdate(signer) {
 		const editableFile = ensureRequestDraft()
 		if (!selectedFileId.value || !editableFile) {
 			return
 		}
 		addLocalKeyToSigner(signer)
-		if (!getFile().signers?.length) {
-			getFile().signers = []
+		if (!editableFile.signers?.length) {
+			editableFile.signers = []
 		}
 		// Remove if already exists
-		for (let i = getFile().signers.length - 1; i >= 0; i--) {
-			if (getFile().signers[i].localKey === signer.localKey) {
-				getFile().signers.splice(i, 1)
+		for (let i = editableFile.signers.length - 1; i >= 0; i--) {
+			if (editableFile.signers[i].localKey === signer.localKey) {
+				editableFile.signers.splice(i, 1)
 				break
 			}
 		}
@@ -682,7 +824,7 @@ const _filesStore = defineStore('files', () => {
 		selectFile(selected) // to force reactivity
 	}
 
-	/** @param {SignerState} signer */
+	/** @param {EditableSignerState} signer */
 	async function deleteSigner(signer) {
 		const selectedFile = ensureRequestDraft() || getFile()
 
@@ -694,9 +836,9 @@ const _filesStore = defineStore('files', () => {
 			}))
 		}
 
-		files.value[selectedFileId.value].signers = files.value[selectedFileId.value].signers
+		selectedFile.signers = selectedFile.signers
 			.filter((currentSigner) => currentSigner.localKey !== signer.localKey)
-		files.value[selectedFileId.value].signersCount = files.value[selectedFileId.value].signers.length
+		selectedFile.signersCount = selectedFile.signers.length
 
 		if (selectedFile.signatureFlow === 'ordered_numeric' && signer.signingOrder) {
 			selectedFile.signers.forEach((s) => {
