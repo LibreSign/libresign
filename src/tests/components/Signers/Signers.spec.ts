@@ -11,21 +11,27 @@ import type { Pinia } from 'pinia'
 type SignersComponent = typeof import('../../../components/Signers/Signers.vue').default
 let Signers: SignersComponent
 import { useFilesStore } from '../../../store/files.js'
-import type { FileState } from '../../../types/index'
+import type { SignatureFlowValue } from '../../../types/index'
+
+type FilesStore = ReturnType<typeof useFilesStore>
+type StoreFile = FilesStore['getFile'] extends (...args: any[]) => infer TResult ? TResult : never
 
 type SignerRecord = {
-	localKey: string
+	localKey?: string
 	displayName?: string
-	signed?: boolean
+	signed?: string | null | boolean | unknown[]
 	signingOrder?: number
 	[key: string]: unknown
 }
 
-type SelectedFile = Pick<FileState, 'signers' | 'signatureFlow'>
+type SelectedFile = Partial<StoreFile> & {
+	signers?: SignerRecord[]
+	signatureFlow?: SignatureFlowValue | null
+}
 
-type FilesStoreMock = ReturnType<typeof useFilesStore> & {
+type FilesStoreMock = FilesStore & {
 	selectedFile: SelectedFile
-	getFile: ReturnType<typeof vi.fn<(file?: unknown) => SelectedFile>>
+	getFile: ReturnType<typeof vi.fn<(file?: unknown) => StoreFile>>
 	canSave: ReturnType<typeof vi.fn<() => boolean>>
 }
 
@@ -85,7 +91,7 @@ describe('Signers', () => {
 		setActivePinia(pinia)
 		filesStore = useFilesStore() as FilesStoreMock
 		filesStore.selectedFile = { signers: [] }
-		filesStore.getFile = vi.fn(() => (filesStore.selectedFile || { signers: [] }) as FileState)
+		filesStore.getFile = vi.fn(() => (filesStore.selectedFile || { signers: [] }) as StoreFile)
 		filesStore.canSave = vi.fn(() => true)
 		if (wrapper) {
 			wrapper.unmount()
