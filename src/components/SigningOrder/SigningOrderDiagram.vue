@@ -135,7 +135,7 @@ const props = withDefaults(defineProps<{
 })
 
 const uniqueOrders = computed(() => {
-	const orders = props.signers.map((signer) => signer.signingOrder || 1)
+	const orders: number[] = props.signers.map((signer) => Number(signer.signingOrder || 1))
 	return [...new Set(orders)].sort((a, b) => a - b)
 })
 
