@@ -16,9 +16,87 @@ import { useSignMethodsStore } from './signMethods.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 
-/** @typedef {import('../types/index').FileState} FileState */
-/** @typedef {import('../types/index').SignerState} SignerState */
-/** @typedef {import('../types/index').VisibleElementRecord} VisibleElementRecord */
+/** @typedef {import('../types/index').SignatureMethodsRecord} SignatureMethodsRecord */
+
+/**
+ * @typedef {{
+ * 	signRequestId?: number | string
+ * 	displayName?: string
+ * 	email?: string
+ * 	sign_uuid?: string | null
+ * 	me?: boolean
+ * 	status?: number
+ * 	signed?: string | null | boolean | unknown[]
+ * 	signatureMethods?: SignatureMethodsRecord
+ * }} SignDocumentSigner
+ */
+
+/**
+ * @typedef {{
+ * 	canSign?: boolean
+ * 	canRequestSign?: boolean
+ * 	signerFileUuid?: string | null
+ * 	phoneNumber?: string
+ * 	hasSignatureFile?: boolean
+ * 	isApprover?: boolean
+ * 	needIdentificationDocuments?: boolean
+ * 	identificationDocumentsWaitingApproval?: boolean
+ * 	signatureMethods?: SignatureMethodsRecord
+ * 	[key: string]: unknown
+ * }} SignDocumentSettings
+ */
+
+/**
+ * @typedef {{
+ * 	elementId?: number | string
+ * 	signRequestId?: number | string
+ * 	fileId?: number | string
+ * 	type?: string | null
+ * 	coordinates?: {
+ * 		page?: number | string
+ * 		left?: number | string
+ * 		top?: number | string
+ * 		width?: number | string
+ * 		height?: number | string
+ * 	}
+ * }} SignDocumentVisibleElement
+ */
+
+/**
+ * @typedef {{
+ * 	id?: number
+ * 	name?: string
+ * 	file?: string | Record<string, unknown> | null
+ * 	metadata?: Record<string, unknown> | null
+ * 	status?: number | string
+ * 	statusText?: string
+ * 	signers?: SignDocumentSigner[]
+ * 	visibleElements?: SignDocumentVisibleElement[]
+ * }} SignDocumentFile
+ */
+
+/**
+ * @typedef {{
+ * 	id?: number
+ * 	name?: string
+ * 	description?: string
+ * 	uuid?: string | null
+ * 	signUuid?: string | null
+ * 	sign_uuid?: string | null
+ * 	signRequestUuid?: string | null
+ * 	sign_request_uuid?: string | null
+ * 	nodeId?: number
+ * 	nodeType?: string
+ * 	status?: number | string
+ * 	statusText?: string
+ * 	url?: string
+ * 	signatureMethods?: SignatureMethodsRecord
+ * 	settings?: SignDocumentSettings
+ * 	files?: SignDocumentFile[]
+ * 	signers?: SignDocumentSigner[]
+ * 	visibleElements?: SignDocumentVisibleElement[]
+ * }} SignDocument
+ */
 
 /**
  * @typedef {{
@@ -27,14 +105,6 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * 	[key: string]: unknown
  * }} SignError
  */
-/**
- * @typedef {FileState & {
- * 	description?: string
- * 	url?: string
- * 	settings?: Record<string, unknown>
- * }} SignDocument
- */
-
 const defaultState = {
 	errors: /** @type {SignError[]} */ ([]),
 	document: /** @type {SignDocument} */ ({
@@ -87,7 +157,7 @@ export const useSignStore = defineStore('sign', () => {
 
 	const getSignatureMethodsForFile = (file) => {
 		const currentUserAsSigner = file.signers.find(row => row.me)
-		return currentUserAsSigner?.signatureMethods || file.settings?.signatureMethods || {}
+		return currentUserAsSigner?.signatureMethods || file.signatureMethods || file.settings?.signatureMethods || {}
 	}
 
 	const initFromState = async () => {
