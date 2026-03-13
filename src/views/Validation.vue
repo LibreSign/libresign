@@ -62,9 +62,9 @@
 					</NcDialog>
 				</div>
 			</div>
-			<div v-else class="infor-container">
+			<div v-else-if="validationDocument" class="infor-container">
 				<component :is="validationComponent"
-					:document="document"
+					:document="validationDocument"
 					:legal-information="legalInformation"
 					:document-valid-message="documentValidMessage"
 					:is-after-signed="isAfterSigned" />
@@ -79,7 +79,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
 	mdiAlertCircle,
 	mdiAlertCircleOutline,
@@ -124,35 +124,172 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 import logger from '../logger.js'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
+import type { ValidationViewChildFile, ValidationViewDocument, ValidationViewSigner } from '../types/index'
 
 defineOptions({
 	name: 'Validation',
 })
+
+type RouteState = {
+	name?: string
+	params?: Record<string, string | undefined>
+	query?: Record<string, string | undefined>
+}
+
+type RouterState = {
+	push: (location: unknown) => void
+	replace: (location: unknown) => void
+}
+
+type ToggleOpenState = Record<number, boolean>
+type ValidationStatus = ValidationViewDocument['status']
+type ValidationStatusInfo = {
+	id?: number
+	label?: string
+}
+type ValidationModificationInfo = {
+	status?: number
+	valid?: boolean
+}
+type ValidationDisplaySigner = ValidationViewSigner & {
+	signature_validation?: ValidationStatusInfo
+	certificate_validation?: ValidationStatusInfo
+	modification_validation?: ValidationModificationInfo
+	crl_validation?: string
+	docmdp?: unknown
+	modifications?: unknown
+	isLibreSignRootCA?: boolean
+	status?: string | number
+}
+type StatusPresentation = {
+	text: string
+	variant: string
+	icon: string
+}
+type ErrorMessageEntry = {
+	message?: string
+}
+type ValidationErrorResponse = {
+	status?: number
+	data?: {
+		ocs?: {
+			data?: {
+				errors?: ErrorMessageEntry[]
+			}
+		}
+	}
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null
+}
+
+function toNumber(value: unknown): number | null {
+	if (typeof value === 'number' && Number.isFinite(value)) {
+		return value
+	}
+	if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) {
+		return Number(value)
+	}
+	return null
+}
+
+function toValidationStatus(value: unknown): ValidationStatus | null {
+	const normalizedValue = toNumber(value)
+	if (normalizedValue === 0 || normalizedValue === 1 || normalizedValue === 2 || normalizedValue === 3 || normalizedValue === 4) {
+		return normalizedValue
+	}
+	return null
+}
+
+function normalizeValidationSigner(signer: unknown): ValidationViewSigner | null {
+	if (!isRecord(signer)) {
+		return null
+	}
+	return { ...signer } as ValidationViewSigner
+}
+
+function normalizeValidationChildFile(file: unknown): ValidationViewChildFile | null {
+	if (!isRecord(file)) {
+		return null
+	}
+	return { ...file } as ValidationViewChildFile
+}
+
+function normalizeValidationDocument(data: unknown): ValidationViewDocument | null {
+	if (!isRecord(data)) {
+		return null
+	}
+
+	const uuid = typeof data.uuid === 'string' ? data.uuid : null
+	const name = typeof data.name === 'string' ? data.name : null
+	const nodeId = toNumber(data.nodeId)
+	const status = toValidationStatus(data.status)
+	const files = Array.isArray(data.files)
+		? data.files
+			.map(normalizeValidationChildFile)
+			.filter((file): file is ValidationViewChildFile => file !== null)
+		: undefined
+	const signers = Array.isArray(data.signers)
+		? data.signers
+			.map(normalizeValidationSigner)
+			.filter((signer): signer is ValidationViewSigner => signer !== null)
+		: undefined
+	const nodeType = data.nodeType === 'envelope'
+		? 'envelope'
+		: data.nodeType === 'file'
+			? 'file'
+			: files && files.length > 0
+				? 'envelope'
+				: null
+
+	if (!uuid || !name || nodeId === null || status === null || nodeType === null) {
+		return null
+	}
+
+	return {
+		...(data as ValidationViewDocument),
+		uuid,
+		name,
+		nodeId,
+		status,
+		nodeType,
+		files,
+		signers,
+	}
+}
+
+function getValidationErrorMessage(response: ValidationErrorResponse | undefined, fallback: string): string {
+	if (response?.data?.ocs?.data?.errors?.length) {
+		return response.data.ocs.data.errors[0]?.message || fallback
+	}
+	return fallback
+}
 
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 const instance = getCurrentInstance()
 const EXPIRATION_WARNING_DAYS = 30
 
-const route = computed(() => instance?.proxy?.$route ?? { params: {}, query: {} })
-const router = computed(() => instance?.proxy?.$router ?? { push: () => {}, replace: () => {} })
+const route = computed<RouteState>(() => (instance?.proxy?.$route as RouteState | undefined) ?? { params: {}, query: {} })
+const router = computed<RouterState>(() => (instance?.proxy?.$router as RouterState | undefined) ?? { push: () => {}, replace: () => {} })
 
 const logo = ref(logoGray)
 const uuidToValidate = ref(route.value.params?.uuid ?? '')
 const hasInfo = ref(false)
 const loading = ref(false)
-const document = ref({})
+const document = ref<ValidationViewDocument | null>(null)
 const legalInformation = ref(loadState('libresign', 'legal_information', ''))
 const clickedValidate = ref(false)
 const getUUID = ref(false)
-const validationStatusOpenState = ref({})
-const extensionsOpenState = ref({})
-const tsaOpenState = ref({})
-const chainOpenState = ref({})
-const notificationsOpenState = ref({})
-const docMdpOpenState = ref({})
-const validationErrorMessage = ref(null)
-const documentValidMessage = ref(null)
+const validationStatusOpenState = ref<ToggleOpenState>({})
+const extensionsOpenState = ref<ToggleOpenState>({})
+const tsaOpenState = ref<ToggleOpenState>({})
+const chainOpenState = ref<ToggleOpenState>({})
+const notificationsOpenState = ref<ToggleOpenState>({})
+const docMdpOpenState = ref<ToggleOpenState>({})
+const validationErrorMessage = ref<string | null>(null)
+const documentValidMessage = ref<string | null>(null)
 const isAsyncSigning = ref(false)
 const shouldFireAsyncConfetti = ref(false)
 const isActiveView = ref(true)
@@ -176,6 +313,7 @@ const isEnvelope = computed(() => document.value?.nodeType === 'envelope'
 	|| (Array.isArray(document.value?.files) && document.value.files.length > 0))
 
 const validationComponent = computed(() => (isEnvelope.value ? EnvelopeValidation : FileValidation))
+const validationDocument = computed(() => document.value)
 
 const canValidate = computed(() => {
 	if (!uuidToValidate.value) {
@@ -193,8 +331,8 @@ const helperTextValidation = computed(() => {
 	return ''
 })
 
-const size = computed(() => formatFileSize(document.value.size))
-const documentStatus = computed(() => getStatusLabel(document.value.status))
+const size = computed(() => formatFileSize(document.value?.size ?? 0))
+const documentStatus = computed(() => getStatusLabel(document.value?.status))
 
 const validityStatusMap = computed(() => ({
 	unknown: { text: t('libresign', 'Unknown validity'), variant: 'tertiary', icon: mdiHelpCircle },
@@ -203,7 +341,7 @@ const validityStatusMap = computed(() => ({
 	valid: { text: t('libresign', 'Currently valid'), variant: 'success', icon: mdiCheckCircle },
 }))
 
-const crlStatusMap = computed(() => ({
+const crlStatusMap = computed<Record<string, StatusPresentation>>(() => ({
 	valid: { text: t('libresign', 'Not revoked'), variant: 'success', icon: mdiCheckCircle },
 	revoked: { text: t('libresign', 'Certificate revoked'), variant: 'error', icon: mdiCancel },
 	missing: { text: t('libresign', 'No CRL information'), variant: 'warning', icon: mdiAlertCircle },
@@ -213,7 +351,7 @@ const crlStatusMap = computed(() => ({
 	validation_error: { text: t('libresign', 'CRL validation error'), variant: 'tertiary', icon: mdiHelpCircle },
 }))
 
-async function upload(file) {
+async function upload(file: File) {
 	const formData = new FormData()
 	formData.append('file', file)
 	await axios.postForm(generateOcsUrl('/apps/libresign/api/v1/file/validate'), formData, {
@@ -225,10 +363,8 @@ async function upload(file) {
 			clickedValidate.value = true
 			handleValidationSuccess(data.ocs.data)
 		})
-		.catch(({ response }) => {
-			const errorMsg = response?.data?.ocs?.data?.errors?.length > 0
-				? response.data.ocs.data.errors[0].message
-				: t('libresign', 'Failed to validate document')
+		.catch((error: { response?: ValidationErrorResponse }) => {
+			const errorMsg = getValidationErrorMessage(error.response, t('libresign', 'Failed to validate document'))
 			setValidationError(errorMsg)
 		})
 }
@@ -240,7 +376,8 @@ async function uploadFile() {
 	input.type = 'file'
 
 	input.onchange = async (ev) => {
-		const file = ev.target.files[0]
+		const target = ev.target as HTMLInputElement | null
+		const file = target?.files?.[0]
 
 		if (file) {
 			await upload(file)
@@ -253,20 +390,20 @@ async function uploadFile() {
 	input.click()
 }
 
-function dateFromSqlAnsi(date) {
+function dateFromSqlAnsi(date: string) {
 	return Moment(Date.parse(date)).format('LL LTS')
 }
 
-function toggleDetail(signer) {
+function toggleDetail(signer: ValidationViewSigner) {
 	signer.opened = !signer.opened
 }
 
-function toggleFileDetail(file) {
+function toggleFileDetail(file: ValidationViewChildFile) {
 	file.opened = !file.opened
 }
 
-function getSignerStatus(status) {
-	const statusMap = {
+function getSignerStatus(status: string) {
+	const statusMap: Record<string, string> = {
 		pending: t('libresign', 'Pending'),
 		partial: t('libresign', 'Partial'),
 		complete: t('libresign', 'Complete'),
@@ -274,7 +411,7 @@ function getSignerStatus(status) {
 	return statusMap[status] || status
 }
 
-async function validate(id, { suppressLoading = false, forceRefresh = false } = {}) {
+async function validate(id: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
 	validationErrorMessage.value = null
 	documentValidMessage.value = null
 	if (id === document.value?.uuid && !forceRefresh) {
@@ -288,7 +425,7 @@ async function validate(id, { suppressLoading = false, forceRefresh = false } = 
 	getUUID.value = false
 }
 
-async function validateByUUID(uuid, { suppressLoading = false } = {}) {
+async function validateByUUID(uuid: string, { suppressLoading = false }: { suppressLoading?: boolean } = {}) {
 	if (!suppressLoading) {
 		loading.value = true
 	}
@@ -297,13 +434,12 @@ async function validateByUUID(uuid, { suppressLoading = false } = {}) {
 		.then(({ data }) => {
 			handleValidationSuccess(data.ocs.data)
 		})
-		.catch(({ response }) => {
+		.catch((error: { response?: ValidationErrorResponse }) => {
+			const response = error.response
 			if (response?.status === 404) {
 				setValidationError(t('libresign', 'Document not found'))
-			} else if (response?.data?.ocs?.data?.errors?.length > 0) {
-				setValidationError(response.data.ocs.data.errors[0].message)
 			} else {
-				setValidationError(t('libresign', 'Failed to validate document'))
+				setValidationError(getValidationErrorMessage(response, t('libresign', 'Failed to validate document')))
 			}
 		})
 	if (!suppressLoading) {
@@ -311,7 +447,7 @@ async function validateByUUID(uuid, { suppressLoading = false } = {}) {
 	}
 }
 
-async function validateByNodeID(nodeId, { suppressLoading = false } = {}) {
+async function validateByNodeID(nodeId: string, { suppressLoading = false }: { suppressLoading?: boolean } = {}) {
 	if (!suppressLoading) {
 		loading.value = true
 	}
@@ -320,13 +456,12 @@ async function validateByNodeID(nodeId, { suppressLoading = false } = {}) {
 		.then(({ data }) => {
 			handleValidationSuccess(data.ocs.data)
 		})
-		.catch(({ response }) => {
+		.catch((error: { response?: ValidationErrorResponse }) => {
+			const response = error.response
 			if (response?.status === 404) {
 				setValidationError(t('libresign', 'Document not found'))
-			} else if (response?.data?.ocs?.data?.errors?.length > 0) {
-				setValidationError(response.data.ocs.data.errors[0].message)
 			} else {
-				setValidationError(t('libresign', 'Failed to validate document'))
+				setValidationError(getValidationErrorMessage(response, t('libresign', 'Failed to validate document')))
 			}
 		})
 	if (!suppressLoading) {
@@ -334,11 +469,11 @@ async function validateByNodeID(nodeId, { suppressLoading = false } = {}) {
 	}
 }
 
-function getName(signer) {
+function getName(signer: ValidationDisplaySigner) {
 	return signer.displayName || signer.email || signer.signature_validation?.label || t('libresign', 'Unknown')
 }
 
-function getIconValidityPath(signer) {
+function getIconValidityPath(signer: ValidationDisplaySigner) {
 	if (signer.signature_validation?.id === 1) {
 		return mdiCheckboxMarkedCircle
 	}
@@ -346,6 +481,9 @@ function getIconValidityPath(signer) {
 }
 
 async function viewDocument() {
+	if (!document.value?.uuid || !document.value?.name || typeof document.value.nodeId !== 'number') {
+		return
+	}
 	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid })
 	await openDocument({
 		fileUrl,
@@ -358,9 +496,9 @@ function goBack() {
 	const urlParams = new URLSearchParams(window.location.search)
 	if (urlParams.has('path')) {
 		try {
-			const redirectPath = window.atob(urlParams.get('path'))
+			const redirectPath = window.atob(urlParams.get('path') ?? '')
 			if (redirectPath && redirectPath.startsWith('/apps')) {
-				window.location = generateUrl(redirectPath)
+				window.location.href = generateUrl(redirectPath)
 				return
 			}
 		} catch (error) {
@@ -368,12 +506,13 @@ function goBack() {
 		}
 	}
 	hasInfo.value = false
+	document.value = null
 	uuidToValidate.value = route.value.params?.uuid ?? ''
 	validationErrorMessage.value = null
 	documentValidMessage.value = null
 }
 
-function getValidityStatus(signer) {
+function getValidityStatus(signer: ValidationDisplaySigner) {
 	if (!signer.valid_to) {
 		return 'unknown'
 	}
@@ -395,7 +534,7 @@ function getValidityStatus(signer) {
 	return 'valid'
 }
 
-function getValidityStatusAtSigning(signer) {
+function getValidityStatusAtSigning(signer: ValidationDisplaySigner) {
 	if (!signer.signed || !signer.valid_from || !signer.valid_to) {
 		return 'unknown'
 	}
@@ -411,14 +550,17 @@ function getValidityStatusAtSigning(signer) {
 	return 'valid'
 }
 
-function getSignatureValidationMessage(signer) {
+function getSignatureValidationMessage(signer: ValidationDisplaySigner) {
+	if (!signer.signature_validation) {
+		return t('libresign', 'Signature: Unknown')
+	}
 	if (signer.signature_validation.id === 1) {
 		return t('libresign', 'Document integrity verified')
 	}
-	return t('libresign', 'Signature: {validationStatus}', { validationStatus: signer.signature_validation.label })
+	return t('libresign', 'Signature: {validationStatus}', { validationStatus: signer.signature_validation.label ?? t('libresign', 'Unknown') })
 }
 
-function getCertificateTrustMessage(signer) {
+function getCertificateTrustMessage(signer: ValidationDisplaySigner) {
 	if (!signer.certificate_validation) {
 		return t('libresign', 'Trust Chain: Unknown')
 	}
@@ -430,10 +572,13 @@ function getCertificateTrustMessage(signer) {
 		return t('libresign', 'Trust Chain: Trusted')
 	}
 
-	return t('libresign', 'Trust chain: {validationStatus}', { validationStatus: signer.certificate_validation.label })
+	return t('libresign', 'Trust chain: {validationStatus}', { validationStatus: signer.certificate_validation.label ?? t('libresign', 'Unknown') })
 }
 
-function getCrlValidationIconClass(signer) {
+function getCrlValidationIconClass(signer: ValidationDisplaySigner) {
+	if (!signer.crl_validation) {
+		return 'icon-default'
+	}
 	const variant = crlStatusMap.value[signer.crl_validation]?.variant
 	if (variant === 'success') return 'icon-success'
 	if (variant === 'error') return 'icon-error'
@@ -441,7 +586,7 @@ function getCrlValidationIconClass(signer) {
 	return 'icon-default'
 }
 
-function camelCaseToTitleCase(text) {
+function camelCaseToTitleCase(text: string) {
 	if (text.includes(' ')) {
 		return text.replace(/^./, str => str.toUpperCase())
 	}
@@ -453,7 +598,7 @@ function camelCaseToTitleCase(text) {
 		.trim()
 }
 
-function hasValidationIssues(signer) {
+function hasValidationIssues(signer: ValidationDisplaySigner) {
 	if (signer.signature_validation && signer.signature_validation.id !== 1) {
 		return true
 	}
@@ -473,11 +618,11 @@ function hasValidationIssues(signer) {
 	return false
 }
 
-function hasDocMdpInfo(signer) {
+function hasDocMdpInfo(signer: ValidationDisplaySigner) {
 	return signer.docmdp || signer.modifications || signer.modification_validation
 }
 
-function getModificationStatusIcon(signer) {
+function getModificationStatusIcon(signer: ValidationDisplaySigner) {
 	if (!signer.modification_validation) {
 		return null
 	}
@@ -490,7 +635,7 @@ function getModificationStatusIcon(signer) {
 	return mdiHelpCircle
 }
 
-function getModificationStatusClass(signer) {
+function getModificationStatusClass(signer: ValidationDisplaySigner) {
 	if (!signer.modification_validation) {
 		return ''
 	}
@@ -503,7 +648,7 @@ function getModificationStatusClass(signer) {
 	return ''
 }
 
-function formatTimestamp(timestamp) {
+function formatTimestamp(timestamp: number | null | undefined) {
 	return timestamp ? new Date(timestamp * 1000).toLocaleString() : ''
 }
 
@@ -512,18 +657,18 @@ function validateAndProceed() {
 	validate(uuidToValidate.value)
 }
 
-function toggleState(stateObject, index) {
+function toggleState(stateObject: ToggleOpenState, index: number) {
 	stateObject[index] = !stateObject[index]
 }
 
-function hasValidationStatus(signer) {
+function hasValidationStatus(signer: ValidationDisplaySigner) {
 	return signer.signature_validation
 		|| signer.certificate_validation
 		|| (signer.valid_from && signer.valid_to && signer.signed)
 		|| signer.crl_validation
 }
 
-function setValidationError(message, timeout = 5000) {
+function setValidationError(message: string, timeout = 5000) {
 	validationErrorMessage.value = message
 	if (timeout > 0) {
 		setTimeout(() => {
@@ -537,30 +682,35 @@ function openUuidDialog() {
 	getUUID.value = true
 }
 
-function handleValidationSuccess(data) {
+function handleValidationSuccess(data: unknown) {
 	if (!isActiveView.value) {
 		return
 	}
 	documentValidMessage.value = t('libresign', 'This document is valid')
-	if (!data?.nodeType && Array.isArray(data?.files) && data.files.length > 0) {
+	if (isRecord(data) && !data.nodeType && Array.isArray(data.files) && data.files.length > 0) {
 		data.nodeType = 'envelope'
+	}
+	const normalizedDocument = normalizeValidationDocument(data)
+	if (!normalizedDocument) {
+		setValidationError(t('libresign', 'Failed to validate document'))
+		return
 	}
 	const routeName = route.value?.name || ''
 	const shouldUpdateRoute = routeName === 'validation'
 		|| routeName === 'ValidationFile'
 		|| routeName === 'ValidationFileExternal'
 		|| routeName === 'ValidationFileShortUrl'
-	if (shouldUpdateRoute && data?.uuid && route.value.params?.uuid !== data.uuid) {
+	if (shouldUpdateRoute && route.value.params?.uuid !== normalizedDocument.uuid) {
 		router.value.replace({
 			name: route.value.name,
 			params: {
 				...route.value.params,
-				uuid: data.uuid,
+				uuid: normalizedDocument.uuid,
 			},
 			query: route.value.query,
 		})
 	}
-	document.value = data
+	document.value = normalizedDocument
 	document.value.signers?.forEach(signer => {
 		signer.opened = false
 	})
@@ -568,14 +718,15 @@ function handleValidationSuccess(data) {
 		file.opened = false
 	})
 	hasInfo.value = true
-	const isSignedStatus = status => Number(status) === FILE_STATUS.SIGNED
+	const isSignedStatus = (status: unknown) => Number(status) === FILE_STATUS.SIGNED
 	const isSignedDoc = isSignedStatus(document.value?.status)
 	const allFilesSigned = Array.isArray(document.value?.files)
 		&& document.value.files.length > 0
 		&& document.value.files.every(file => isSignedStatus(file.status))
 	const signerCompleted = isCurrentSignerSigned()
 	if ((isSignedDoc || allFilesSigned || signerCompleted) && (isAfterSigned.value || shouldFireAsyncConfetti.value)) {
-		if (getCapabilities()?.libresign?.config?.['show-confetti'] === true) {
+		const capabilities = getCapabilities() as { libresign?: { config?: Record<string, unknown> } } | undefined
+		if (capabilities?.libresign?.config?.['show-confetti'] === true) {
 			const jsConfetti = new JSConfetti()
 			jsConfetti.addConfetti()
 		}
@@ -595,7 +746,7 @@ async function refreshAfterAsyncSigning() {
 			return
 		}
 
-		const isSignedStatus = status => Number(status) === FILE_STATUS.SIGNED
+		const isSignedStatus = (status: unknown) => Number(status) === FILE_STATUS.SIGNED
 		const isSigned = isSignedStatus(document.value?.status)
 		const allFilesSigned = Array.isArray(document.value?.files)
 			&& document.value.files.length > 0
@@ -609,15 +760,16 @@ async function refreshAfterAsyncSigning() {
 	}
 }
 
-function handleSigningComplete(file) {
+function handleSigningComplete(file?: unknown) {
 	if (!isActiveView.value) {
 		return
 	}
 	isAsyncSigning.value = false
 	shouldFireAsyncConfetti.value = true
-	if (file) {
+	const normalizedFile = normalizeValidationDocument(file)
+	if (normalizedFile) {
 		loading.value = false
-		handleValidationSuccess(file)
+		handleValidationSuccess(normalizedFile)
 		return
 	}
 	loading.value = true
@@ -627,7 +779,7 @@ function handleSigningComplete(file) {
 		})
 }
 
-function handleSigningError(message) {
+function handleSigningError(message?: string) {
 	loading.value = false
 	const errorMessage = message || t('libresign', 'Signing failed. Please try again.')
 	setValidationError(errorMessage)
@@ -650,16 +802,16 @@ watch(() => route.value.params?.uuid, (uuid) => {
 	}
 })
 
-document.value = loadState('libresign', 'file_info', {})
+document.value = normalizeValidationDocument(loadState('libresign', 'file_info', {}))
 
 if (!uuidToValidate.value) {
-	document.value = {}
+	document.value = null
 	hasInfo.value = false
 } else {
 	hasInfo.value = !!document.value?.name
 
 	if (uuidToValidate.value !== document.value?.uuid) {
-		document.value = {}
+		document.value = null
 		hasInfo.value = false
 		void validate(uuidToValidate.value)
 	} else if (hasInfo.value && document.value.signers) {
@@ -699,6 +851,7 @@ defineExpose({
 	hasInfo,
 	loading,
 	document,
+	validationDocument,
 	legalInformation,
 	clickedValidate,
 	getUUID,
