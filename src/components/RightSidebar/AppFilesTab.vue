@@ -155,8 +155,7 @@ async function update(fileInfo: FileInfo) {
 
 	const fileId = await filesStore.selectFileByNodeId(fileInfo.id)
 	if (fileId) {
-		const file = filesStore.getFile()
-		const displayName = file?.name || fileInfo.name
+		const displayName = filesStore.getSelectedFileView()?.name || fileInfo.name
 
 		nextTick(() => {
 			const titleElement = document.querySelector('.app-sidebar-header__mainname')
