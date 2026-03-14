@@ -25,6 +25,8 @@ import { useSidebarStore } from './sidebar.js'
 /** @typedef {import('../types/index').FileListEntry} FileListEntry */
 /** @typedef {import('../types/index').FileListItemRecord} FileListItemRecord */
 /** @typedef {import('../types/index').FileMetadataState} FileMetadataState */
+/** @typedef {import('../types/index').FileStatus} FileStatus */
+/** @typedef {import('../types/index').FileStatusText} FileStatusText */
 /** @typedef {import('../types/index').FileStateSettings} FileStateSettings */
 /** @typedef {import('../types/index').FileValidationResponse} FileValidationResponse */
 /** @typedef {import('../types/index').FileValidationSigner} FileValidationSigner */
@@ -84,8 +86,8 @@ import { useSidebarStore } from './sidebar.js'
  * 	mime?: string
  * 	pages?: Array<Record<string, unknown>>
  * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[] | null
- * 	status?: number | string
- * 	statusText?: string
+ * 	status?: FileStatus
+ * 	statusText?: FileStatusText
  * }} EditableFileReferenceState
  */
 
@@ -99,8 +101,8 @@ import { useSidebarStore } from './sidebar.js'
  * 	nodeId?: number | string | null
  * 	nodeType?: string
  * 	docmdpLevel?: number | string
- * 	status?: number | string
- * 	statusText?: string
+ * 	status?: FileStatus
+ * 	statusText?: FileStatusText
  * 	signUuid?: string | null
  * 	file?: string | EditableFileReferenceState | null
  * 	files?: EditableFileReferenceState[]
@@ -132,8 +134,8 @@ import { useSidebarStore } from './sidebar.js'
  * 	name?: string
  * 	message?: string
  * 	docmdpLevel?: number | string
- * 	status?: number | string
- * 	statusText?: string
+ * 	status?: FileStatus
+ * 	statusText?: FileStatusText
  * 	nodeId?: number | string | null
  * 	nodeType?: string
  * 	signUuid?: string | null
