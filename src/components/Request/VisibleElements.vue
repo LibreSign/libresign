@@ -72,7 +72,7 @@
 				height="100%"
 				:files="pdfFiles"
 				:file-names="pdfFileNames"
-				:signers="document.signers || []"
+				:signers="pdfEditorSigners"
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:signer-added="handleSignerAdded"
 				@pdf-editor:on-delete-signer="handleDeleteSigner">
@@ -92,7 +92,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, type ComponentPublicInstance } from 'vue'
 
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
-import type { PdfEditorObject, PdfEditorSigner } from '../PdfEditor/pdfEditorModel'
+import type { PdfEditorSignerRecord } from '../PdfEditor/pdfEditorModel'
 import Signer from '../Signers/Signer.vue'
 
 import { FILE_STATUS } from '../../constants.js'
@@ -153,9 +153,18 @@ type FilePageInfo = {
 
 type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
 
-type PlacementSigner = PdfEditorSigner
+type PlacementSigner = PdfEditorSignerRecord
 
-type PdfObject = PdfEditorObject & {
+type PdfObject = {
+	id: string
+	type: string
+	x: number
+	y: number
+	width: number
+	height: number
+	signer?: PlacementSigner | null
+	visibleElement?: VisibleElementRecord | null
+	documentIndex?: number
 	pageNumber: number
 }
 
@@ -171,7 +180,7 @@ type PdfEditorRef = ComponentPublicInstance & {
 	$refs?: { pdfElements?: PdfElementsRef }
 	startAddingSigner?: (signer: PlacementSigner | null | undefined, size: { width?: number, height?: number }) => boolean
 	cancelAdding?: () => void
-	addSigner?: (signer: PlacementSigner) => Promise<void>
+	addSigner?: (signer: PlacementSigner, visibleElement: VisibleElementRecord, options?: { documentIndex?: number }) => Promise<void>
 }
 
 type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'saveOrUpdateSignatureRequest'> & {
@@ -188,7 +197,7 @@ function isIdentifyMethodRecord(value: unknown): value is IdentifyMethodRecord {
 		&& typeof candidate.mandatory === 'number'
 }
 
-function normalizeVisibleElement(element: unknown): VisibleElement | null {
+function normalizeVisibleElement(element: unknown): VisibleElementRecord | null {
 	const candidate = toRecord(element)
 	const coordinates = toRecord(candidate?.coordinates)
 	if (!candidate || !coordinates || candidate.type !== 'signature') {
@@ -227,14 +236,14 @@ function normalizeVisibleElement(element: unknown): VisibleElement | null {
 	}
 }
 
-function normalizeVisibleElementList(elements: unknown): VisibleElement[] | undefined {
+function normalizeVisibleElementList(elements: unknown): VisibleElementRecord[] | undefined {
 	if (!Array.isArray(elements)) {
 		return undefined
 	}
 
 	return elements
 		.map(normalizeVisibleElement)
-		.filter((element): element is VisibleElement => element !== null)
+		.filter((element): element is VisibleElementRecord => element !== null)
 }
 
 function normalizeFileReference(file: unknown): DocumentFile['file'] | undefined {
@@ -283,6 +292,19 @@ function normalizeSigner(signer: unknown): VisibleElementsSigner | null {
 		localKey: typeof candidate.localKey === 'string' ? candidate.localKey : undefined,
 		me: typeof candidate.me === 'boolean' ? candidate.me : undefined,
 		visibleElements: normalizeVisibleElementList(candidate.visibleElements),
+	}
+}
+
+function toPdfEditorSignerRecord(signer: VisibleElementsSigner | null | undefined): PlacementSigner | null {
+	if (!signer) {
+		return null
+	}
+
+	return {
+		...(Number.isFinite(Number(signer.signRequestId)) ? { signRequestId: Number(signer.signRequestId) } : {}),
+		displayName: signer.displayName ?? '',
+		email: signer.email ?? '',
+		...(Array.isArray(signer.identifyMethods) ? { identifyMethods: signer.identifyMethods } : {}),
 	}
 }
 
@@ -412,6 +434,9 @@ const sidebarSigners = computed<Array<{ signer: VisibleElementsSigner; index: nu
 		.map((signer, index) => ({ signer, index }))
 		.filter(({ signer }) => !isSelectedSigner(signer))
 })
+const pdfEditorSigners = computed<PlacementSigner[]>(() => document.value.signers
+	.map(toPdfEditorSignerRecord)
+	.filter((signer): signer is PlacementSigner => signer !== null))
 const status = computed(() => Number(document.value.status))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
 const canSave = computed(() => ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
@@ -583,23 +608,28 @@ async function updateSigners() {
 
 	const fileIndexById = new Map<string, number>(filesToProcess.map((file, index) => [String(file.id), index]))
 	const elements = getVisibleElementsFromDocument(document.value)
-	const elementsByDoc = new Map<number, Array<{ element: VisibleElement; signer: PlacementSigner }>>()
+	const elementsByDoc = new Map<number, Array<{ element: VisibleElementRecord; signer: PlacementSigner }>>()
 
 	elements.forEach((element) => {
-		const fileInfo = findFileById(filesToProcess, element.fileId)
+		const normalizedElement = normalizeVisibleElement(element)
+		if (!normalizedElement) {
+			return
+		}
+		const fileInfo = findFileById(filesToProcess, normalizedElement.fileId)
 		if (!fileInfo) {
 			return
 		}
-		const docIndex = fileIndexById.get(String(element.fileId))
+		const docIndex = fileIndexById.get(String(normalizedElement.fileId))
 		if (docIndex === undefined) {
 			return
 		}
-		const signer = getFileSigners(fileInfo).find((item) => idsMatch(item.signRequestId, element.signRequestId))
-		if (!signer) {
+		const signer = getFileSigners(fileInfo).find((item) => idsMatch(item.signRequestId, normalizedElement.signRequestId))
+		const signerRecord = toPdfEditorSignerRecord(signer)
+		if (!signerRecord) {
 			return
 		}
 		const items = elementsByDoc.get(docIndex) || []
-		items.push({ element, signer })
+		items.push({ element: normalizedElement, signer: signerRecord })
 		elementsByDoc.set(docIndex, items)
 	})
 
@@ -614,9 +644,7 @@ async function updateSigners() {
 		await nextTick()
 
 		items.forEach(({ element, signer }) => {
-			const object = structuredClone(signer)
-			object.element = { ...element, documentIndex: docIndex }
-			pdfEditorRef?.addSigner?.(object)
+			pdfEditorRef?.addSigner?.(signer, element, { documentIndex: docIndex })
 		})
 	}
 
@@ -644,10 +672,11 @@ function onSelectSigner(signer: PlacementSigner) {
 
 function handleSignerSelect(signer: unknown) {
 	const normalizedSigner = normalizeSigner(signer)
-	if (!normalizedSigner) {
+	const pdfEditorSigner = toPdfEditorSignerRecord(normalizedSigner)
+	if (!pdfEditorSigner) {
 		return
 	}
-	onSelectSigner(normalizedSigner)
+	onSelectSigner(pdfEditorSigner)
 }
 
 function handleSignerAdded() {
@@ -659,21 +688,22 @@ function stopAddSigner() {
 	signerSelected.value = null
 }
 
-async function onDeleteSigner(object: PdfObject) {
-	if (!object?.signer?.element?.elementId) {
+async function onDeleteSigner(visibleElement: VisibleElementRecord) {
+	if (!visibleElement?.elementId) {
 		return
 	}
 	await axios.delete(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}/{elementId}', {
 		uuid: document.value.uuid,
-		elementId: object.signer.element.elementId,
+		elementId: visibleElement.elementId,
 	}))
 }
 
 function handleDeleteSigner(object: unknown) {
-	if (!isPdfObject(object)) {
+	const visibleElement = normalizeVisibleElement(object)
+	if (!visibleElement) {
 		return
 	}
-	void onDeleteSigner(object)
+	void onDeleteSigner(visibleElement)
 }
 
 async function goToSign() {
@@ -749,7 +779,7 @@ function buildVisibleElements() {
 
 			const element: VisibleElementPayload = {
 				type: 'signature',
-				elementId: object.signer.element?.elementId,
+				elementId: object.visibleElement?.elementId,
 				coordinates,
 			}
 
