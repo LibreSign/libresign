@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
+import type { SignerSummaryRecord } from '../../../types/index'
 
 import {
 	buildPdfEditorSignerPayload,
@@ -16,39 +17,49 @@ import {
 	resolvePdfEditorSignerChange,
 } from '../../../components/PdfEditor/pdfEditorModel'
 
+const createSigner = (overrides: Partial<SignerSummaryRecord> = {}): SignerSummaryRecord => ({
+	signRequestId: 0,
+	displayName: '',
+	email: '',
+	signed: null,
+	status: 0,
+	statusText: '',
+	...overrides,
+})
+
 describe('pdfEditorModel', () => {
 	describe('RULE: signer identity is derived from a single stable key', () => {
 		it('prefers signRequestId over email', () => {
-			expect(getPdfEditorSignerId({ signRequestId: 15, email: 'fallback@example.com' })).toBe('15')
+			expect(getPdfEditorSignerId(createSigner({ signRequestId: 15, email: 'fallback@example.com' }))).toBe('15')
 		})
 
 		it('falls back to email when signRequestId is absent', () => {
-			expect(getPdfEditorSignerId({ email: 'fallback@example.com' })).toBe('fallback@example.com')
+			expect(getPdfEditorSignerId(createSigner({ signRequestId: undefined, email: 'fallback@example.com' }))).toBe('fallback@example.com')
 		})
 
 		it('returns empty string when signer has no identity', () => {
-			expect(getPdfEditorSignerId({})).toBe('')
+			expect(getPdfEditorSignerId(createSigner({ signRequestId: undefined }))).toBe('')
 		})
 	})
 
 	describe('RULE: signer labels come from a single presentation rule', () => {
 		it('prefers displayName', () => {
-			expect(getPdfEditorSignerLabel({ displayName: 'Ada', email: 'ada@example.com', signRequestId: 9 })).toBe('Ada')
+			expect(getPdfEditorSignerLabel(createSigner({ displayName: 'Ada', email: 'ada@example.com', signRequestId: 9 }))).toBe('Ada')
 		})
 
 		it('falls back to identity fields', () => {
-			expect(getPdfEditorSignerLabel({ email: 'ada@example.com' })).toBe('ada@example.com')
-			expect(getPdfEditorSignerLabel({ signRequestId: 9 })).toBe('9')
+			expect(getPdfEditorSignerLabel(createSigner({ signRequestId: undefined, email: 'ada@example.com' }))).toBe('ada@example.com')
+			expect(getPdfEditorSignerLabel(createSigner({ signRequestId: 9 }))).toBe('9')
 		})
 	})
 
 	describe('RULE: signer payload cloning never mutates caller input', () => {
 		it('ensures a detached signer payload exists', () => {
-			const source = { email: 'ada@example.com' }
+			const source = createSigner({ signRequestId: undefined, email: 'ada@example.com' })
 
 			const payload = buildPdfEditorSignerPayload(source)
 
-			expect(payload).toEqual({ email: 'ada@example.com' })
+			expect(payload).toEqual(source)
 			expect(payload).not.toBe(source)
 		})
 	})
@@ -72,13 +83,13 @@ describe('pdfEditorModel', () => {
 		it('returns the next signer and preserves current placement', () => {
 			const result = resolvePdfEditorSignerChange({
 				availableSigners: [
-					{ signRequestId: 1, displayName: 'One' },
-					{ signRequestId: 2, email: 'two@example.com' },
+					createSigner({ signRequestId: 1, displayName: 'One' }),
+					createSigner({ signRequestId: 2, email: 'two@example.com', displayName: '' }),
 				],
-				selectedSigner: { signRequestId: 2 },
+				selectedSigner: createSigner({ signRequestId: 2, displayName: '', email: '' }),
 				object: {
 					id: 'obj-1',
-					signer: { signRequestId: 1 },
+					signer: createSigner({ signRequestId: 1, displayName: '', email: '' }),
 					visibleElement: { type: 'signature', elementId: 99, signRequestId: 1, fileId: 7, coordinates: { page: 1, left: 10, top: 20 } },
 					documentIndex: 0,
 				},
@@ -91,14 +102,17 @@ describe('pdfEditorModel', () => {
 					signRequestId: 2,
 					email: 'two@example.com',
 					displayName: '2',
+					signed: null,
+					status: 0,
+					statusText: '',
 				},
 			})
 		})
 
 		it('returns null when no target signer can be resolved', () => {
 			const result = resolvePdfEditorSignerChange({
-				availableSigners: [{ signRequestId: 1, displayName: 'One' }],
-				selectedSigner: { signRequestId: 3 },
+				availableSigners: [createSigner({ signRequestId: 1, displayName: 'One' })],
+				selectedSigner: createSigner({ signRequestId: 3, displayName: '', email: '' }),
 				object: { id: 'obj-1' },
 				documents: [],
 			})
@@ -162,7 +176,7 @@ describe('pdfEditorModel', () => {
 
 	describe('RULE: object creation is deterministic except for id generation', () => {
 		it('builds a signature object from signer and placement', () => {
-			const signer = { email: 'ada@example.com' }
+			const signer = createSigner({ signRequestId: undefined, email: 'ada@example.com' })
 			const object = createPdfEditorObject({
 				signer,
 				visibleElement: { type: 'signature', elementId: 1, signRequestId: 2, fileId: 3, coordinates: { page: 1, left: 10, top: 20 } },
