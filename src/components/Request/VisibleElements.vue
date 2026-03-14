@@ -89,10 +89,10 @@ import { subscribe, unsubscribe, type Event as NextcloudEvent, type EventHandler
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
-import type { PDFElementObject } from '@libresign/pdf-elements'
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, type ComponentPublicInstance } from 'vue'
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
+import type { PdfEditorObject, PdfEditorPublicApi, PdfEditorSigner } from '../PdfEditor/types'
 import Signer from '../Signers/Signer.vue'
 
 import { FILE_STATUS } from '../../constants.js'
@@ -153,24 +153,10 @@ type FilePageInfo = {
 
 type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
 
-type PlacementElement = {
-	elementId?: string | number
-	documentIndex?: number
-	signRequestId?: string | number
-	[key: string]: unknown
-}
+type PlacementSigner = PdfEditorSigner
 
-type PlacementSigner = FileSigner & {
-	element?: PlacementElement
-}
-
-type PdfObject = PDFElementObject & {
-	signer?: PlacementSigner
+type PdfObject = PdfEditorObject & {
 	pageNumber: number
-	x: number
-	y: number
-	width: number
-	height: number
 }
 
 type PdfElementsRef = {
@@ -181,11 +167,8 @@ type PdfElementsRef = {
 	isAddingMode?: boolean
 }
 
-type PdfEditorRef = ComponentPublicInstance & {
+type PdfEditorRef = PdfEditorPublicApi & {
 	$refs?: { pdfElements?: PdfElementsRef }
-	startAddingSigner?: (signer: PlacementSigner, size: { width: number; height: number }) => boolean
-	cancelAdding?: () => void
-	addSigner?: (signer: PlacementSigner) => void
 }
 
 type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'saveOrUpdateSignatureRequest'> & {
