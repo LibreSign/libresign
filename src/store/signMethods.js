@@ -84,6 +84,15 @@ export const useSignMethodsStore = defineStore('signMethods', () => {
 		settings.value.password.hasSignatureFile = hasSignatureFile
 	}
 
+	const initializeHasSignatureFile = (hasSignatureFile) => {
+		if (Object.hasOwn(settings.value, 'password')
+			&& Object.hasOwn(settings.value.password, 'hasSignatureFile')) {
+			return
+		}
+
+		setHasSignatureFile(hasSignatureFile)
+	}
+
 	const needSignWithPassword = () => Object.hasOwn(settings.value, 'password')
 
 	const needCreatePassword = () => needSignWithPassword() && !hasSignatureFile()
@@ -120,6 +129,7 @@ export const useSignMethodsStore = defineStore('signMethods', () => {
 		setEmailToken,
 		hasSignatureFile,
 		setHasSignatureFile,
+		initializeHasSignatureFile,
 		needCreatePassword,
 		needSignWithPassword,
 		needEmailCode,
