@@ -12,21 +12,24 @@ type SignerRecord = {
 	displayName?: string
 	email?: string
 	signRequestId?: string | number
-	identify?: string | number
-	readOnly?: boolean
-	element?: {
-		documentIndex?: number
-		elementId?: string | number
-		signRequestId?: string | number
-		coordinates?: Record<string, number>
-		[key: string]: unknown
-	}
+	identifyMethods?: Array<Record<string, unknown>>
+	[key: string]: unknown
+}
+
+type VisibleElementRecord = {
+	elementId?: string | number
+	signRequestId?: string | number
+	fileId?: string | number
+	type: 'signature'
+	coordinates: Record<string, number>
 	[key: string]: unknown
 }
 
 type PdfObjectRecord = {
 	id: string
 	signer?: SignerRecord | null
+	visibleElement?: VisibleElementRecord | null
+	documentIndex?: number
 	[key: string]: unknown
 }
 
@@ -61,7 +64,7 @@ type PdfEditorVm = {
 	getSignerLabel: (signer: SignerRecord | null | undefined) => string
 	hasMultipleSigners: boolean
 	startAddingSigner: (signer: SignerRecord | null | undefined, size: { width?: number, height?: number }) => boolean
-	addSigner: (signer: SignerRecord) => Promise<void>
+	addSigner: (signer: SignerRecord, visibleElement: VisibleElementRecord, options?: { documentIndex?: number }) => Promise<void>
 	findObjectLocation: (pdfElements: PdfElementsMock | null | undefined, objectId: string) => { docIndex: number, pageIndex: number } | null
 	onSignerChange: (object: PdfObjectRecord | null | undefined, signer: SignerRecord | null | undefined) => void
 	endInit: (event: Record<string, unknown>) => Promise<void>
@@ -257,28 +260,6 @@ describe('PdfEditor Component - Business Rules', () => {
 					height: 100,
 					signer: expect.objectContaining({
 						email: 'test@example.com',
-						element: {},
-					}),
-				}),
-			)
-		})
-
-		it('preserves existing element data when adding', () => {
-			const signer = {
-				email: 'test@example.com',
-				element: { elementId: 123, signRequestId: 456 },
-			}
-			const size = { width: 200, height: 100 }
-
-			wrapper.vm.startAddingSigner(signer, size)
-
-			expect(getPdfElements().startAddingElement).toHaveBeenCalledWith(
-				expect.objectContaining({
-					signer: expect.objectContaining({
-						element: expect.objectContaining({
-							elementId: 123,
-							signRequestId: 456,
-						}),
 					}),
 				}),
 			)
@@ -298,20 +279,22 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('converts coordinates from left/top format', async () => {
-			const signer = {
-				element: {
-					documentIndex: 0,
-					coordinates: {
-						page: 1,
-						left: 100,
-						top: 200,
-						width: 300,
-						height: 150,
-					},
+			const signer = { signRequestId: 1 }
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: {
+					page: 1,
+					left: 100,
+					top: 200,
+					width: 300,
+					height: 150,
 				},
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer, visibleElement, { documentIndex: 0 })
 
 			expect(getPdfElements().addObjectToPage).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -326,20 +309,22 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('converts coordinates from llx/lly/urx/ury format to x/y', async () => {
-			const signer = {
-				element: {
-					documentIndex: 0,
-					coordinates: {
-						page: 1,
-						llx: 50,
-						lly: 100,
-						urx: 250,
-						ury: 300,
-					},
+			const signer = { signRequestId: 1 }
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: {
+					page: 1,
+					llx: 50,
+					lly: 100,
+					urx: 250,
+					ury: 300,
 				},
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer, visibleElement, { documentIndex: 0 })
 
 			const call = getPdfElements().addObjectToPage.mock.calls[0][0]
 
@@ -352,20 +337,22 @@ describe('PdfEditor Component - Business Rules', () => {
 			const pageHeight = 841.89
 			getPdfElements().getPageHeight.mockReturnValue(pageHeight)
 
-			const signer = {
-				element: {
-					documentIndex: 0,
-					coordinates: {
-						page: 1,
-						llx: 50,
-						lly: 100,
-						urx: 250,
-						ury: 700,
-					},
+			const signer = { signRequestId: 1 }
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: {
+					page: 1,
+					llx: 50,
+					lly: 100,
+					urx: 250,
+					ury: 700,
 				},
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer, visibleElement, { documentIndex: 0 })
 
 			const call = getPdfElements().addObjectToPage.mock.calls[0][0]
 
@@ -374,16 +361,18 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('uses default coordinates when missing', async () => {
-			const signer = {
-				element: {
-					documentIndex: 0,
-					coordinates: {
-						page: 1,
-					},
+			const signer = { signRequestId: 1 }
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: {
+					page: 1,
 				},
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer, visibleElement, { documentIndex: 0 })
 
 			expect(getPdfElements().addObjectToPage).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -402,20 +391,22 @@ describe('PdfEditor Component - Business Rules', () => {
 				{ pages: [Promise.resolve({}), Promise.resolve({}), Promise.resolve({}), Promise.resolve({}), Promise.resolve({})] },
 			]
 
-			const signer = {
-				element: {
-					documentIndex: 0,
-					coordinates: {
-						page: 5, // 1-indexed
-						left: 0,
-						top: 0,
-						width: 100,
-						height: 50,
-					},
+			const signer = { signRequestId: 1 }
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: {
+					page: 5,
+					left: 0,
+					top: 0,
+					width: 100,
+					height: 50,
 				},
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer, visibleElement, { documentIndex: 0 })
 
 			expect(getPdfElements().addObjectToPage).toHaveBeenCalledWith(
 				expect.anything(),
@@ -432,19 +423,22 @@ describe('PdfEditor Component - Business Rules', () => {
 				{ pages: [Promise.resolve({})] },
 			]
 
-			const signer = {
-				element: {
-					coordinates: {
-						page: 1,
-						left: 0,
-						top: 0,
-						width: 100,
-						height: 50,
-					},
+			const signer = { signRequestId: 1 }
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: {
+					page: 1,
+					left: 0,
+					top: 0,
+					width: 100,
+					height: 50,
 				},
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer, visibleElement)
 
 			expect(getPdfElements().addObjectToPage).toHaveBeenCalledWith(
 				expect.anything(),
@@ -454,14 +448,16 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('generates unique object ID', async () => {
-			const signer = {
-				element: {
-					documentIndex: 0,
-					coordinates: { page: 1 },
-				},
+			const signer = { signRequestId: 1 }
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: { page: 1 },
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer, visibleElement, { documentIndex: 0 })
 
 			const call = getPdfElements().addObjectToPage.mock.calls[0][0]
 
@@ -472,18 +468,22 @@ describe('PdfEditor Component - Business Rules', () => {
 			const signer = {
 				email: 'test@example.com',
 				displayName: 'Test User',
-				element: {
-					documentIndex: 0,
-					coordinates: { page: 1 },
-				},
+			}
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: { page: 1 },
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer, visibleElement, { documentIndex: 0 })
 
 			expect(wrapper.vm.$refs.pdfElements.addObjectToPage).toHaveBeenCalledWith(
 				expect.objectContaining({
 					type: 'signature',
 					signer,
+					visibleElement,
 				}),
 				expect.anything(),
 				expect.anything(),
@@ -604,7 +604,9 @@ describe('PdfEditor Component - Business Rules', () => {
 		it('updates object with new signer from signers list', () => {
 			const object = {
 				id: 'obj-1',
-				signer: { signRequestId: 1, element: { elementId: 123 } },
+				signer: { signRequestId: 1 },
+				visibleElement: { type: 'signature' as const, elementId: 123, signRequestId: 1, fileId: 10, coordinates: { page: 1, left: 10, top: 10 } },
+				documentIndex: 0,
 			}
 			const newSigner = { signRequestId: 2 }
 
@@ -623,13 +625,12 @@ describe('PdfEditor Component - Business Rules', () => {
 			)
 		})
 
-		it('preserves element data when changing signer', () => {
+		it('preserves visible element data when changing signer', () => {
 			const object = {
 				id: 'obj-1',
-				signer: {
-					signRequestId: 1,
-					element: { elementId: 123, coordinates: { page: 1 } },
-				},
+				signer: { signRequestId: 1 },
+				visibleElement: { type: 'signature' as const, elementId: 123, signRequestId: 1, fileId: 10, coordinates: { page: 1, left: 10, top: 10 } },
+				documentIndex: 0,
 			}
 			const newSigner = { signRequestId: 2 }
 
@@ -641,10 +642,6 @@ describe('PdfEditor Component - Business Rules', () => {
 				{
 					signer: expect.objectContaining({
 						signRequestId: 2,
-						element: expect.objectContaining({
-							elementId: 123,
-							coordinates: { page: 1 },
-						}),
 					}),
 				},
 			)
@@ -716,16 +713,17 @@ describe('PdfEditor Component - Business Rules', () => {
 
 	describe('RULE: event emissions', () => {
 		it('emits pdf-editor:on-delete-signer when deleting signature object', () => {
-			const object = { id: 'obj-1', signer: { email: 'test@example.com' } }
+			const visibleElement = { type: 'signature' as const, elementId: 10, signRequestId: 1, fileId: 3, coordinates: { page: 1, left: 0, top: 0 } }
+			const object = { id: 'obj-1', signer: { email: 'test@example.com' }, visibleElement }
 
 			wrapper.vm.handleDeleteObject({ object })
 
 			expect(wrapper.emitted('pdf-editor:on-delete-signer')).toBeTruthy()
-			expect(wrapper.emitted('pdf-editor:on-delete-signer')?.[0]?.[0]).toEqual(object)
+			expect(wrapper.emitted('pdf-editor:on-delete-signer')?.[0]?.[0]).toEqual(visibleElement)
 		})
 
-		it('does not emit delete event when object has no signer', () => {
-			const object = { id: 'obj-1' }
+		it('does not emit delete event when object has no visible element', () => {
+			const object = { id: 'obj-1', signer: { email: 'test@example.com' } }
 
 			wrapper.vm.handleDeleteObject({ object })
 
@@ -851,21 +849,22 @@ describe('PdfEditor Component - Business Rules', () => {
 				],
 			})
 
-			const signer = {
-				displayName: 'admin',
-				element: {
-					documentIndex: 1,
-					coordinates: {
-						page: 1,
-						left: 148,
-						top: 16,
-						width: 350,
-						height: 100,
-					},
+			const signer = { displayName: 'admin' }
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: {
+					page: 1,
+					left: 148,
+					top: 16,
+					width: 350,
+					height: 100,
 				},
 			}
 
-			const addPromise = wrapper.vm.addSigner(signer)
+			const addPromise = wrapper.vm.addSigner(signer, visibleElement, { documentIndex: 1 })
 
 			await wrapper.vm.$nextTick()
 			expect(getPdfElements().addObjectToPage).not.toHaveBeenCalled()
@@ -898,14 +897,16 @@ describe('PdfEditor Component - Business Rules', () => {
 				],
 			})
 
-			const signer = {
-				element: {
-					documentIndex: 1,
-					coordinates: { page: 1, left: 100, top: 50, width: 200, height: 80 },
-				},
+			const signer = { signRequestId: 1 }
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: { page: 1, left: 100, top: 50, width: 200, height: 80 },
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer, visibleElement, { documentIndex: 1 })
 
 			expect(getPdfElements().addObjectToPage).toHaveBeenCalledTimes(1)
 		})
@@ -913,14 +914,16 @@ describe('PdfEditor Component - Business Rules', () => {
 		it('does nothing when pdfElements is null', async () => {
 			wrapper.vm.pdfElements = null
 
-			const signer = {
-				element: {
-					documentIndex: 0,
-					coordinates: { page: 1 },
-				},
+			const signer = { signRequestId: 1 }
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: { page: 1 },
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner(signer, visibleElement, { documentIndex: 0 })
 		})
 	})
 
@@ -1001,21 +1004,21 @@ describe('PdfEditor Component - Business Rules', () => {
 
 		it('handles bottom-left origin PDF coordinates correctly', async () => {
 			// PDF uses bottom-left origin, web uses top-left
-			const pageHeight = 841.89
-			const signer = {
-				element: {
-					documentIndex: 0,
-					coordinates: {
-						page: 1,
-						lly: 100, // 100 points from bottom
-						ury: 200, // 200 points from bottom
-						llx: 50,
-						urx: 250,
-					},
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: {
+					page: 1,
+					lly: 100,
+					ury: 200,
+					llx: 50,
+					urx: 250,
 				},
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner({ signRequestId: 1 }, visibleElement, { documentIndex: 0 })
 
 			const call = getPdfElements().addObjectToPage.mock.calls[0][0]
 
@@ -1025,20 +1028,21 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 
 		it('ensures y coordinate never negative', async () => {
-			const signer = {
-				element: {
-					documentIndex: 0,
-					coordinates: {
-						page: 1,
-						ury: 900, // beyond page height
-						lly: 800,
-						llx: 0,
-						urx: 100,
-					},
+			const visibleElement = {
+				type: 'signature' as const,
+				elementId: 10,
+				signRequestId: 1,
+				fileId: 3,
+				coordinates: {
+					page: 1,
+					ury: 900,
+					lly: 800,
+					llx: 0,
+					urx: 100,
 				},
 			}
 
-			await wrapper.vm.addSigner(signer)
+			await wrapper.vm.addSigner({ signRequestId: 1 }, visibleElement, { documentIndex: 0 })
 
 			const call = getPdfElements().addObjectToPage.mock.calls[0][0]
 
