@@ -15,7 +15,7 @@
 import { t } from '@nextcloud/l10n'
 import { usernameToColor } from '@nextcloud/vue/functions/usernameToColor'
 import { computed } from 'vue'
-import type { PdfEditorSigner } from './types'
+import type { PdfEditorSigner } from './pdfEditorModel'
 
 defineOptions({
 	name: 'SignatureBox',
