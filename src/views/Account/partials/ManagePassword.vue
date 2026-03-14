@@ -93,7 +93,7 @@ type ManagePasswordConfig = {
 
 const signMethodsStore = useSignMethodsStore()
 const config = loadState<ManagePasswordConfig>('libresign', 'config', {})
-signMethodsStore.setHasSignatureFile(config.hasSignatureFile ?? false)
+signMethodsStore.initializeHasSignatureFile(config.hasSignatureFile ?? false)
 
 const certificateEngine = loadState<string>('libresign', 'certificate_engine', '')
 const mounted = ref(false)
