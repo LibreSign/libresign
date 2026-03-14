@@ -1040,6 +1040,66 @@ describe('Sign.vue - signWithTokenCode', () => {
 			])
 		})
 
+		it('normalizes string ids and drops incomplete visible elements', async () => {
+			setActivePinia(createPinia())
+
+			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const realSign = SignComponent.default
+			const { useSignStore } = await import('../../../store/sign.js')
+			const { useSignatureElementsStore } = await import('../../../store/signatureElements.js')
+
+			const signStore = useSignStore()
+			const signatureElementsStore = useSignatureElementsStore()
+
+			signStore.document = createSignDocument({
+				nodeType: 'file',
+				signers: [
+					{ signRequestId: 501, me: true },
+				],
+				visibleElements: [
+					{ elementId: '201', fileId: '1', signRequestId: '501', type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+					{ fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 99, top: 88, width: 20, height: 10 } },
+				],
+			})
+
+			signatureElementsStore.signs.signature = {
+				id: 1,
+				type: 'signature',
+				file: { url: '/sig.png', nodeId: 11623 },
+				starred: 0,
+				createdAt: '2024-01-01',
+			}
+
+			const wrapper = mount(realSign, {
+				global: {
+					stubs: {
+						NcButton: true,
+						NcDialog: true,
+						NcLoadingIcon: true,
+						TokenManager: true,
+						EmailManager: true,
+						UploadCertificate: true,
+						Documents: true,
+						Signatures: true,
+						Draw: true,
+						ManagePassword: true,
+						CreatePassword: true,
+						NcNoteCard: true,
+						NcPasswordField: true,
+						NcRichText: true,
+					},
+					mocks: {
+						$watch: vi.fn(),
+						$nextTick: vi.fn(),
+					},
+				},
+			})
+
+			expect(wrapper.vm.elements).toEqual([
+				{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+			])
+		})
+
 		it('updates elements when signature is created dynamically', async () => {
 			const { default: realSign } = await import('../../../views/SignPDF/_partials/Sign.vue')
 			const { useSignStore } = await import('../../../store/sign.js')
