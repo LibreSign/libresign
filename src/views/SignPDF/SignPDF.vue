@@ -47,7 +47,6 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import { computed, getCurrentInstance, nextTick, onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import PdfEditor from '../../components/PdfEditor/PdfEditor.vue'
-import type { PdfEditorSignerRecord } from '../../components/PdfEditor/pdfEditorModel'
 import TopBar from '../../components/TopBar/TopBar.vue'
 import { FILE_STATUS } from '../../constants.js'
 import {
@@ -147,7 +146,7 @@ type PdfFetchError = {
 
 type PdfEditorRef = {
 	$el?: HTMLElement
-	addSigner?: (signer: PdfEditorSignerRecord, visibleElement: VisibleElementRecord, options?: { documentIndex?: number }) => Promise<void>
+	addSigner?: (signer: SignerSummaryRecord | SignerDetailRecord, visibleElement: VisibleElementRecord, options?: { documentIndex?: number }) => Promise<void>
 }
 
 type RouteLike = {
@@ -190,11 +189,14 @@ function parsePdfFetchError(value: unknown): PdfFetchError {
 	}
 }
 
-function createReadonlySignerObject(signer: SignerDetailRecord | SignerSummaryRecord | Record<string, unknown>): PdfEditorSignerRecord {
+function createReadonlySignerObject(signer: SignerDetailRecord | SignerSummaryRecord | Record<string, unknown>): SignerSummaryRecord {
 	return {
-		...(typeof signer.signRequestId === 'number' ? { signRequestId: signer.signRequestId } : {}),
+		signRequestId: typeof signer.signRequestId === 'number' ? signer.signRequestId : 0,
 		displayName: typeof signer.displayName === 'string' ? signer.displayName : '',
 		email: typeof signer.email === 'string' ? signer.email : '',
+		signed: null,
+		status: 0,
+		statusText: '',
 		...(Array.isArray(signer.identifyMethods) ? { identifyMethods: signer.identifyMethods } : {}),
 	}
 }
