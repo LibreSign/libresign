@@ -85,17 +85,29 @@ import {
 	findPdfObjectLocation,
 	getPdfEditorSignerLabel,
 	resolvePdfEditorSignerChange,
+	type PdfDocument,
+	type PdfEditorObject,
+	type PdfEditorSigner,
+	type PdfPage,
 } from './pdfEditorModel'
 import { ensurePdfWorker } from '../../helpers/pdfWorker'
-import type {
-	EndInitPayload,
-	PdfDocument,
-	PdfEditorMeasurement,
-	PdfEditorObject,
-	PdfEditorSigner,
-	PdfElementsInstance,
-	PdfInput,
-} from './types'
+
+type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
+type PdfEditorMeasurement = Record<number, { width: number, height: number }>
+type EndInitPayload = Record<string, unknown>
+
+type PdfElementsInstance = {
+	startAddingElement: (payload: Record<string, unknown>) => void
+	updateObject: (docIndex: number, objectId: string, patch: Record<string, unknown>) => void
+	addObjectToPage: (object: PdfEditorObject, pageIndex: number, docIndex: number) => void
+	cancelAdding: () => void
+	adjustZoomToFit?: () => void
+	getPageHeight?: (docIndex: number, pageIndex: number) => number
+	isAddingMode?: boolean
+	pdfDocuments?: PdfDocument[]
+	selectedDocIndex?: number
+	autoFitZoom?: boolean
+}
 
 defineOptions({
 	name: 'PdfEditor',
