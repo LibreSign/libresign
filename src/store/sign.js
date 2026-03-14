@@ -228,6 +228,14 @@ export const useSignStore = defineStore('sign', () => {
 	const buildSignUrl = (signRequestUuid, options = {}) => {
 		const { documentId } = options
 		const isApprover = document.value?.settings?.isApprover
+		const documentUuid = typeof document.value?.uuid === 'string' && document.value.uuid.length > 0
+			? document.value.uuid
+			: null
+		const isApproverFileSigning = isApprover === true
+			&& typeof signRequestUuid === 'string'
+			&& signRequestUuid.length > 0
+			&& documentUuid !== null
+			&& signRequestUuid === documentUuid
 
 		let url
 		if (signRequestUuid) {
@@ -236,7 +244,7 @@ export const useSignStore = defineStore('sign', () => {
 			url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: documentId }) + '?async=true'
 		}
 
-		if (isApprover) {
+		if (isApproverFileSigning) {
 			url += '&idDocApproval=true'
 		}
 
