@@ -44,8 +44,7 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { mdiChevronDown } from '@mdi/js'
-import type { PdfEditorSigner } from './types'
-import { getPdfEditorSignerId, getPdfEditorSignerLabel } from './pdfEditorModel'
+import { getPdfEditorSignerId, getPdfEditorSignerLabel, type PdfEditorSigner } from './pdfEditorModel'
 
 defineOptions({
 	name: 'SignerMenu',
