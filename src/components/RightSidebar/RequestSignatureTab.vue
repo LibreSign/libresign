@@ -445,7 +445,7 @@ const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCur
 const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && totalSigners.value > 1)
 const currentUserDisplayName = computed(() => OC.getCurrentUser()?.displayName || '')
 const showDocMdpWarning = computed(() => filesStore.isDocMdpNoChangesAllowed() && !filesStore.canAddSigner())
-const fileName = computed(() => filesStore.getFile()?.name ?? '')
+const fileName = computed(() => filesStore.getSelectedFileView()?.name ?? '')
 const isEnvelope = computed(() => filesStore.getFile()?.nodeType === 'envelope')
 const envelopeFilesCount = computed(() => filesStore.getFile()?.filesCount || 0)
 const size = computed(() => window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal')
