@@ -98,22 +98,18 @@ import { FILE_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
 import {
 	aggregateVisibleElementsByFiles,
-	type DocumentData,
-	type FileData,
-	type FileSigner,
-	type VisibleElementsDocument,
-	type VisibleElementsFile,
-	type VisibleElementsSigner,
 	findFileById,
 	getFileSigners,
 	getFileUrl,
 	getVisibleElementsFromDocument,
 	idsMatch,
-	type VisibleElement,
 } from '../../services/visibleElementsService'
 import type {
+	FileMetadataState,
 	IdentifyMethodRecord,
 	LibresignCapabilities,
+	FileStateSettings,
+	SignerDetailRecord,
 	SignerSummaryRecord,
 	VisibleElementRecord,
 } from '../../types/index'
@@ -132,14 +128,32 @@ type VisibleElementPayload = Omit<VisibleElementRecord, 'coordinates' | 'element
 	}
 }
 
-type DocumentFile = VisibleElementsFile & {
+type VisibleElementsSigner = SignerSummaryRecord & {
+	identify?: unknown
+	localKey?: string
+	me?: boolean
+	visibleElements?: VisibleElementRecord[]
+}
+
+type DocumentFile = Parameters<typeof aggregateVisibleElementsByFiles>[0][number] & {
 	id?: number
 	name?: string
-	visibleElements?: VisibleElement[] | null
+	metadata?: FileMetadataState
+	file?: string | DocumentFile | null
+	files?: DocumentFile[]
+	visibleElements?: VisibleElementRecord[] | null
 	signers?: VisibleElementsSigner[]
 }
 
-type NormalizedDocument = Omit<VisibleElementsDocument, 'files' | 'signers'> & {
+type NormalizedDocument = Omit<Parameters<typeof getVisibleElementsFromDocument>[0], 'files' | 'signers'> & {
+	id?: number | string
+	uuid?: string | null
+	name?: string
+	status?: number | string
+	statusText?: string
+	metadata?: FileMetadataState
+	settings?: FileStateSettings
+	visibleElements?: VisibleElementRecord[] | null
 	files: DocumentFile[]
 	signers: VisibleElementsSigner[]
 }
@@ -280,9 +294,12 @@ function normalizeSigner(signer: unknown): VisibleElementsSigner | null {
 	}
 
 	return {
-		signRequestId: typeof candidate.signRequestId === 'number' || typeof candidate.signRequestId === 'string' ? candidate.signRequestId : undefined,
-		displayName: typeof candidate.displayName === 'string' ? candidate.displayName : undefined,
-		email: typeof candidate.email === 'string' ? candidate.email : undefined,
+		signRequestId: Number.isFinite(Number(candidate.signRequestId)) ? Number(candidate.signRequestId) : 0,
+		displayName: typeof candidate.displayName === 'string' ? candidate.displayName : '',
+		email: typeof candidate.email === 'string' ? candidate.email : '',
+		signed: null,
+		status: Number.isFinite(Number(candidate.status)) ? Number(candidate.status) : 0,
+		statusText: typeof candidate.statusText === 'string' ? candidate.statusText : '',
 		identify: typeof candidate.identify === 'string' || typeof candidate.identify === 'number' || (typeof candidate.identify === 'object' && candidate.identify !== null)
 			? candidate.identify
 			: undefined,
@@ -348,7 +365,7 @@ function normalizeDocument(file: ReturnType<FilesStore['getFile']>): NormalizedD
 		statusText: file?.statusText ?? '',
 		metadata: file?.metadata,
 		settings: file?.settings,
-		visibleElements: Array.isArray(file?.visibleElements) ? file.visibleElements : null,
+		visibleElements: normalizeVisibleElementList(file?.visibleElements) ?? null,
 		signers: Array.isArray(file?.signers)
 			? file.signers.map(normalizeSigner).filter((row): row is VisibleElementsSigner => row !== null)
 			: [],
@@ -358,7 +375,7 @@ function normalizeDocument(file: ReturnType<FilesStore['getFile']>): NormalizedD
 	}
 }
 
-const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElement[] =>
+const normalizeVisibleElements = (elements: VisibleElementRecord[]): VisibleElementRecord[] =>
 	elements.flatMap((element) => {
 		if (element.type !== 'signature') {
 			return []
@@ -403,7 +420,7 @@ const normalizeVisibleElements = (elements: VisibleElement[]): VisibleElement[] 
 				...(width !== undefined ? { width } : {}),
 				...(height !== undefined ? { height } : {}),
 			},
-		} satisfies VisibleElement]
+		} satisfies VisibleElementRecord]
 	})
 
 defineOptions({
@@ -547,7 +564,7 @@ async function fetchFiles() {
 		: []
 	const currentFile = filesStore.getFile()
 	if (currentFile) {
-		currentFile.files = fetchedFiles.value
+		currentFile.files = fetchedFiles.value as typeof currentFile.files
 	}
 
 	const allVisibleElements = aggregateVisibleElementsByFiles(documentFiles.value)
