@@ -5,9 +5,7 @@
 
 import type { PDFElementObject } from '@libresign/pdf-elements'
 
-import type { SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
-
-export type PdfEditorSignerRecord = Partial<Pick<SignerSummaryRecord, 'signRequestId' | 'displayName' | 'email' | 'identifyMethods'>>
+import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
 
 export type PdfObjectLocation = {
 	docIndex: number
@@ -28,7 +26,7 @@ const asFiniteNumber = (value: unknown): number | null => {
 	return Number.isFinite(normalized) ? normalized : null
 }
 
-export function getPdfEditorSignerId(signer: PdfEditorSignerRecord | null | undefined): string {
+export function getPdfEditorSignerId(signer: SignerSummaryRecord | SignerDetailRecord | null | undefined): string {
 	if (!signer) {
 		return ''
 	}
@@ -41,16 +39,16 @@ export function getPdfEditorSignerId(signer: PdfEditorSignerRecord | null | unde
 	return ''
 }
 
-export function getPdfEditorSignerLabel(signer: PdfEditorSignerRecord | null | undefined): string {
+export function getPdfEditorSignerLabel(signer: SignerSummaryRecord | SignerDetailRecord | null | undefined): string {
 	if (!signer) {
 		return ''
 	}
 	return String(signer.displayName || signer.email || signer.signRequestId || '')
 }
 
-export function buildPdfEditorSignerPayload(signer: PdfEditorSignerRecord | null | undefined): PdfEditorSignerRecord {
+export function buildPdfEditorSignerPayload(signer: SignerSummaryRecord | SignerDetailRecord | null | undefined): SignerSummaryRecord | SignerDetailRecord | null {
 	if (!signer) {
-		return {}
+		return null
 	}
 	return { ...signer }
 }
@@ -68,11 +66,11 @@ export function findPdfObjectLocation(documents: Array<{ allObjects?: Array<Arra
 }
 
 export function resolvePdfEditorSignerChange(options: {
-	availableSigners: PdfEditorSignerRecord[]
-	selectedSigner: PdfEditorSignerRecord | null | undefined
-	object: { id: string, signer?: PdfEditorSignerRecord | null, visibleElement?: VisibleElementRecord | null, documentIndex?: number } | null | undefined
+	availableSigners: Array<SignerSummaryRecord | SignerDetailRecord>
+	selectedSigner: SignerSummaryRecord | SignerDetailRecord | null | undefined
+	object: { id: string, signer?: SignerSummaryRecord | SignerDetailRecord | null, visibleElement?: VisibleElementRecord | null, documentIndex?: number } | null | undefined
 	documents?: Array<{ allObjects?: Array<Array<{ id: string }>> }>
-}): { docIndex: number, signer: PdfEditorSignerRecord } | null {
+}): { docIndex: number, signer: SignerSummaryRecord | SignerDetailRecord } | null {
 	const signerId = getPdfEditorSignerId(options.selectedSigner)
 	if (!options.object || !signerId) {
 		return null
@@ -84,6 +82,9 @@ export function resolvePdfEditorSignerChange(options: {
 	}
 
 	const nextSigner = buildPdfEditorSignerPayload(targetSigner)
+	if (!nextSigner) {
+		return null
+	}
 	if (!nextSigner.displayName) {
 		const fallbackName = getPdfEditorSignerLabel(options.selectedSigner)
 		if (fallbackName) {
@@ -176,14 +177,14 @@ export function createPdfEditorObject({
 	placement,
 	objectId = createPdfObjectId(),
 }: {
-	signer: PdfEditorSignerRecord
+	signer: SignerSummaryRecord | SignerDetailRecord
 	visibleElement?: VisibleElementRecord
 	documentIndex?: number
 	placement: PdfPlacement
 	objectId?: string
 }): PDFElementObject & {
 	id: string
-	signer: PdfEditorSignerRecord
+	signer: SignerSummaryRecord | SignerDetailRecord
 	visibleElement?: VisibleElementRecord
 	documentIndex?: number
 } {
