@@ -312,7 +312,7 @@ function normalizeSigner(signer: unknown): VisibleElementsSigner | null {
 	}
 }
 
-function toSignerSummaryRecord(signer: VisibleElementsSigner | null | undefined): PlacementSigner | null {
+function toSignerSummaryRecord(signer: VisibleElementsSigner | ReturnType<typeof getFileSigners>[number] | null | undefined): PlacementSigner | null {
 	if (!signer) {
 		return null
 	}
