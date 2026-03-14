@@ -57,15 +57,16 @@ import {
 	getVisibleElementsFromDocument,
 	idsMatch,
 	isCurrentUserSigner,
-	type DocumentData,
-	type FileData,
-	type VisibleElement,
 } from '../../services/visibleElementsService'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import type { operations } from '../../types/openapi/openapi'
 import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
+
+type VisibleElementsFileInput = Parameters<typeof getFileSigners>[0]
+type VisibleElementsDocumentInput = Parameters<typeof getVisibleElementsFromDocument>[0]
+type ServiceVisibleElement = VisibleElementRecord
 
 type SignError = { title?: string; message?: string }
 type SignDocumentStatus = number | string
@@ -84,15 +85,15 @@ type RawSignDocumentFile = {
 	name?: string
 	file?: string | Record<string, unknown> | null
 	metadata?: SignDocumentMetadata
-	signers?: FileData['signers']
-	visibleElements?: SignDocumentVisibleElement[] | VisibleElement[] | null
+	signers?: Array<SignerSummaryRecord | SignerDetailRecord>
+	visibleElements?: SignDocumentVisibleElement[] | ServiceVisibleElement[] | null
 }
-type SignDocumentFile = FileData & {
+type SignDocumentFile = VisibleElementsFileInput & {
 	id?: number
 	name?: string
 	file?: string | Record<string, unknown> | null
 	metadata?: SignDocumentMetadata
-	visibleElements?: VisibleElement[] | null
+	visibleElements?: ServiceVisibleElement[] | null
 }
 type SignDocument = {
 	id?: number | string
@@ -104,7 +105,7 @@ type SignDocument = {
 	url?: string
 	metadata?: SignDocumentMetadata
 	signers?: SignerDetailRecord[]
-	visibleElements?: VisibleElement[]
+	visibleElements?: ServiceVisibleElement[]
 	files?: RawSignDocumentFile[]
 }
 type ValidateFileResponse = operations['file-validate-uuid']['responses'][200]['content']['application/json']
@@ -201,7 +202,7 @@ function createReadonlySignerObject(signer: SignerDetailRecord | SignerSummaryRe
 	}
 }
 
-function normalizeVisibleElement(element: unknown): VisibleElement | null {
+function normalizeVisibleElement(element: unknown): ServiceVisibleElement | null {
 	const candidate = toRecord(element)
 	if (!candidate) {
 		return null
@@ -224,16 +225,19 @@ function normalizeVisibleElement(element: unknown): VisibleElement | null {
 		|| (top !== undefined && !Number.isFinite(top))
 		|| (width !== undefined && !Number.isFinite(width))
 		|| (height !== undefined && !Number.isFinite(height))
-		|| (elementId !== undefined && !Number.isFinite(elementId))
-		|| (signRequestId !== undefined && !Number.isFinite(signRequestId))
-		|| (fileId !== undefined && !Number.isFinite(fileId))) {
+		|| elementId === undefined
+		|| signRequestId === undefined
+		|| fileId === undefined
+		|| !Number.isFinite(elementId)
+		|| !Number.isFinite(signRequestId)
+		|| !Number.isFinite(fileId)) {
 		return null
 	}
 
 	return {
-		...(elementId !== undefined ? { elementId } : {}),
-		...(signRequestId !== undefined ? { signRequestId } : {}),
-		...(fileId !== undefined ? { fileId } : {}),
+		elementId,
+		signRequestId,
+		fileId,
 		type: candidate.type,
 		coordinates: {
 			...(page !== undefined ? { page } : {}),
@@ -256,12 +260,12 @@ function normalizeFile(file: RawSignDocumentFile | SignDocumentFile): SignDocume
 		visibleElements: Array.isArray(visibleElements)
 			? visibleElements
 				.map(normalizeVisibleElement)
-				.filter((element): element is VisibleElement => element !== null)
+				.filter((element): element is ServiceVisibleElement => element !== null)
 			: [],
 	}
 }
 
-function getVisibleElementsDocument(document: SignDocument): DocumentData {
+function getVisibleElementsDocument(document: SignDocument): VisibleElementsDocumentInput {
 	return {
 		id: document.id,
 		uuid: document.uuid,
