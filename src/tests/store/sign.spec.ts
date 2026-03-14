@@ -278,11 +278,24 @@ describe('useSignStore', () => {
 		it('appends idDocApproval param when user is approver', () => {
 			const store = useSignStore()
 			store.document = createDocument({
+				uuid: 'approver-file-uuid',
 				settings: { isApprover: true },
 			})
-			const url = store.buildSignUrl('some-uuid', { documentId: 1 })
+			const url = store.buildSignUrl('approver-file-uuid', { documentId: 1 })
 
 			expect(url).toContain('&idDocApproval=true')
+		})
+
+		it('does not append idDocApproval param for approver signing as regular signer', () => {
+			const store = useSignStore()
+			store.document = createDocument({
+				uuid: 'file-uuid',
+				settings: { isApprover: true },
+			})
+			const url = store.buildSignUrl('sign-request-uuid', { documentId: 1 })
+
+			expect(url).toContain('/sign/uuid/sign-request-uuid')
+			expect(url).not.toContain('idDocApproval')
 		})
 
 		it('does not append idDocApproval param when user is not approver', () => {
