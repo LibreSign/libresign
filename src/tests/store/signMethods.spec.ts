@@ -67,6 +67,16 @@ describe('signMethods store', () => {
 		expect(store.hasSignatureFile()).toBe(true)
 	})
 
+	it('initializes signature file flag only once', () => {
+		const store = useSignMethodsStore()
+
+		store.initializeHasSignatureFile(false)
+		expect(store.hasSignatureFile()).toBe(false)
+
+		store.initializeHasSignatureFile(true)
+		expect(store.hasSignatureFile()).toBe(false)
+	})
+
 	it('checks if certificate is needed', () => {
 		const store = useSignMethodsStore()
 		store.settings = {
