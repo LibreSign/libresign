@@ -194,6 +194,86 @@ type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' |
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<{ message: string }>
 }
 
+function isIdentifyMethodRecord(value: unknown): value is IdentifyMethodRecord {
+	const candidate = toRecord(value)
+	return candidate !== null
+		&& typeof candidate.method === 'string'
+		&& typeof candidate.value === 'string'
+		&& typeof candidate.mandatory === 'number'
+}
+
+function normalizeVisibleElement(element: unknown): VisibleElement | null {
+	const candidate = toRecord(element)
+	const coordinates = toRecord(candidate?.coordinates)
+	if (!candidate || !coordinates || candidate.type !== 'signature') {
+		return null
+	}
+
+	const page = Number(coordinates.page)
+	const left = Number(coordinates.left)
+	const top = Number(coordinates.top)
+	const fileId = Number(candidate.fileId)
+	const signRequestId = Number(candidate.signRequestId)
+	const elementId = Number(candidate.elementId)
+	const width = coordinates.width === undefined ? undefined : Number(coordinates.width)
+	const height = coordinates.height === undefined ? undefined : Number(coordinates.height)
+
+	if (![page, left, top, fileId, signRequestId, elementId].every(Number.isFinite)) {
+		return null
+	}
+
+	if ((width !== undefined && !Number.isFinite(width)) || (height !== undefined && !Number.isFinite(height))) {
+		return null
+	}
+
+	return {
+		type: 'signature',
+		elementId,
+		fileId,
+		signRequestId,
+		coordinates: {
+			page,
+			left,
+			top,
+			...(width !== undefined ? { width } : {}),
+			...(height !== undefined ? { height } : {}),
+		},
+	}
+}
+
+function normalizeVisibleElementList(elements: unknown): VisibleElement[] | undefined {
+	if (!Array.isArray(elements)) {
+		return undefined
+	}
+
+	return elements
+		.map(normalizeVisibleElement)
+		.filter((element): element is VisibleElement => element !== null)
+}
+
+function normalizeFileReference(file: unknown): DocumentFile['file'] | undefined {
+	if (typeof file === 'string' || file === null) {
+		return file
+	}
+
+	return normalizeDocumentFile(file)
+}
+
+function normalizeMetadata(metadata: unknown): DocumentFile['metadata'] | undefined {
+	const candidate = toRecord(metadata)
+	return candidate ? candidate : undefined
+}
+
+function isPdfObject(value: unknown): value is PdfObject {
+	const candidate = toRecord(value)
+	return candidate !== null
+		&& typeof candidate.pageNumber === 'number'
+		&& typeof candidate.x === 'number'
+		&& typeof candidate.y === 'number'
+		&& typeof candidate.width === 'number'
+		&& typeof candidate.height === 'number'
+}
+
 function toRecord(value: unknown): Record<string, unknown> | null {
 	return typeof value === 'object' && value !== null ? value as Record<string, unknown> : null
 }
@@ -209,16 +289,14 @@ function normalizeSigner(signer: unknown): VisibleElementsSigner | null {
 		displayName: typeof candidate.displayName === 'string' ? candidate.displayName : undefined,
 		email: typeof candidate.email === 'string' ? candidate.email : undefined,
 		identify: typeof candidate.identify === 'string' || typeof candidate.identify === 'number' || (typeof candidate.identify === 'object' && candidate.identify !== null)
-			? candidate.identify as VisibleElementsSigner['identify']
+			? candidate.identify
 			: undefined,
 		identifyMethods: Array.isArray(candidate.identifyMethods)
-			? candidate.identifyMethods as IdentifyMethodRecord[]
+			? candidate.identifyMethods.filter(isIdentifyMethodRecord)
 			: undefined,
 		localKey: typeof candidate.localKey === 'string' ? candidate.localKey : undefined,
 		me: typeof candidate.me === 'boolean' ? candidate.me : undefined,
-		visibleElements: Array.isArray(candidate.visibleElements)
-			? candidate.visibleElements as VisibleElement[]
-			: undefined,
+		visibleElements: normalizeVisibleElementList(candidate.visibleElements),
 	}
 }
 
@@ -240,12 +318,12 @@ function normalizeDocumentFile(file: unknown): DocumentFile | null {
 	return {
 		...(Number.isFinite(id) ? { id } : {}),
 		...(name !== undefined ? { name } : {}),
-		...('file' in candidate && (typeof candidate.file === 'string' || candidate.file === null || typeof candidate.file === 'object')
-			? { file: candidate.file as DocumentFile['file'] }
+		...('file' in candidate && normalizeFileReference(candidate.file) !== undefined
+			? { file: normalizeFileReference(candidate.file) }
 			: {}),
 		...(nestedFiles !== undefined ? { files: nestedFiles } : {}),
-		...('metadata' in candidate ? { metadata: candidate.metadata as DocumentFile['metadata'] } : {}),
-		...(Array.isArray(candidate.visibleElements) ? { visibleElements: candidate.visibleElements as VisibleElement[] } : {}),
+		...('metadata' in candidate && normalizeMetadata(candidate.metadata) !== undefined ? { metadata: normalizeMetadata(candidate.metadata) } : {}),
+		...(normalizeVisibleElementList(candidate.visibleElements) !== undefined ? { visibleElements: normalizeVisibleElementList(candidate.visibleElements) } : {}),
 		...(signers !== undefined ? { signers } : {}),
 	}
 }
@@ -579,7 +657,11 @@ function onSelectSigner(signer: PlacementSigner) {
 }
 
 function handleSignerSelect(signer: unknown) {
-	onSelectSigner(signer as PlacementSigner)
+	const normalizedSigner = normalizeSigner(signer)
+	if (!normalizedSigner) {
+		return
+	}
+	onSelectSigner(normalizedSigner)
 }
 
 function handleSignerAdded() {
@@ -602,7 +684,10 @@ async function onDeleteSigner(object: PdfObject) {
 }
 
 function handleDeleteSigner(object: unknown) {
-	void onDeleteSigner(object as PdfObject)
+	if (!isPdfObject(object)) {
+		return
+	}
+	void onDeleteSigner(object)
 }
 
 async function goToSign() {
@@ -635,9 +720,9 @@ async function save() {
 	}
 }
 
-const handleShowVisibleElements = (() => {
+const handleShowVisibleElements: EventHandler<NextcloudEvent> = () => {
 	void showModal()
-}) as EventHandler<NextcloudEvent>
+}
 
 function buildVisibleElements() {
 	const visibleElements: VisibleElementPayload[] = []
@@ -646,12 +731,13 @@ function buildVisibleElements() {
 	const numDocuments = currentFiles.length
 
 	for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
-		const objects = (pdfElements?.getAllObjects(docIndex) || []) as PdfObject[]
+		const objects = pdfElements?.getAllObjects(docIndex) || []
 		objects.forEach((object) => {
 			if (!object.signer) return
 
 			let globalPageNumber = object.pageNumber
-			for (const info of Object.values(filePagesMap.value) as FilePageInfo[]) {
+			const pageInfos = Object.keys(filePagesMap.value).map((page) => filePagesMap.value[Number(page)])
+			for (const info of pageInfos) {
 				if (info.fileIndex === docIndex) {
 					globalPageNumber = info.startPage + object.pageNumber - 1
 					break
