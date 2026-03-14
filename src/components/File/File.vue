@@ -15,7 +15,7 @@
 			@load="backgroundFailed = false">
 		<NcIconSvgWrapper v-else v-once :path="mdiFile" :size="128" />
 		<div class="enDot">
-			<div :class="currentFile.statusText !== 'none' && currentFile.status !== undefined ? 'dot ' + statusToClass(currentFile.status) : '' " />
+			<div :class="'dot ' + statusToClass(currentFile.status)" />
 			<span>{{ currentFile.statusText }}</span>
 		</div>
 		<h1>{{ currentFile.name }}</h1>
@@ -40,15 +40,10 @@ defineOptions({
 
 type FilesStoreContract = ReturnType<typeof useFilesStore>
 type SelectedFile = ReturnType<FilesStoreContract['getFile']>
-type CurrentFileState = Pick<NonNullable<SelectedFile>, 'id' | 'nodeId' | 'name' | 'statusText'> & {
-	status?: FileListEntry['status']
-}
 
-const FILE_STATUSES: FileListEntry['status'][] = [0, 1, 2, 3, 4]
-
-function normalizeFileStatus(status: unknown): FileListEntry['status'] | undefined {
-	const normalizedStatus = Number(status)
-	return FILE_STATUSES.find((value) => value === normalizedStatus)
+type CurrentFileState = Omit<NonNullable<SelectedFile>, 'status' | 'statusText'> & {
+	status: FileListEntry['status']
+	statusText: string
 }
 
 const filesStore = useFilesStore()
@@ -63,15 +58,7 @@ const currentFile = computed<CurrentFileState | null>(() => {
 	if (!currentFileId.value) {
 		return null
 	}
-	const selectedFile = filesStore.getFile()
-	if (!selectedFile) {
-		return null
-	}
-
-	return {
-		...selectedFile,
-		status: normalizeFileStatus(selectedFile.status),
-	}
+	return (filesStore.getFile() as CurrentFileState | null) ?? null
 })
 const previewUrl = computed(() => {
 	if (backgroundFailed.value === true || !currentFile.value) {
