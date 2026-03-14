@@ -57,23 +57,46 @@ import {
 	getVisibleElementsFromDocument,
 	idsMatch,
 	isCurrentUserSigner,
+	type DocumentData,
+	type FileData,
+	type VisibleElement,
 } from '../../services/visibleElementsService'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import type { operations } from '../../types/openapi/openapi'
-import type {
-	SignerDetailRecord,
-	ValidatedChildFileRecord,
-	ValidationFileRecord,
-} from '../../types/index'
+import type { SignerDetailRecord } from '../../types/index'
 
-type OpenApiValidateFile = ValidationFileRecord
 type SignError = { title?: string; message?: string }
-type SignDocumentStatus = OpenApiValidateFile['status'] | 5
-type SignDocumentFile = ValidatedChildFileRecord
-type SignDocument = Omit<OpenApiValidateFile, 'status' | 'files'> & {
-	status: SignDocumentStatus
+type SignDocumentStatus = number | string
+type SignDocumentVisibleElement = {
+	elementId?: number | string
+	signRequestId?: number | string
+	fileId?: number | string
+	type?: string | null
+	coordinates?: Record<string, unknown>
+}
+type SignDocumentMetadata = Record<string, unknown> & {
+	extension?: string
+}
+type SignDocumentFile = FileData & {
+	id?: number
+	name?: string
+	file?: string | Record<string, unknown> | null
+	metadata?: SignDocumentMetadata
+	visibleElements?: VisibleElement[] | null
+}
+type SignDocument = {
+	id?: number | string
+	name?: string
+	uuid?: string | null
+	nodeId?: number | string | null
+	nodeType?: string
+	status?: SignDocumentStatus
+	url?: string
+	metadata?: SignDocumentMetadata
+	signers?: SignerDetailRecord[]
+	visibleElements?: VisibleElement[]
 	files?: SignDocumentFile[]
 }
 type ValidateFileResponse = operations['file-validate-uuid']['responses'][200]['content']['application/json']
@@ -85,7 +108,7 @@ type EnvelopeFileListResponse = {
 	}
 }
 
-type SignStore = {
+type SignStore = Pick<ReturnType<typeof useSignStore>, 'document' | 'errors' | 'mounted' | 'initFromState' | 'setFileToSign' | 'queueAction'> & {
 	document: SignDocument
 	errors: SignError[]
 	mounted: boolean
@@ -94,14 +117,14 @@ type SignStore = {
 	queueAction: (action: string) => void
 }
 
-type FilesStore = {
+type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'getAllFiles' | 'addFile' | 'selectFile' | 'getFile'> & {
 	getAllFiles: (filter: { signer_uuid?: string; details?: boolean }) => Promise<Record<string, SignDocument>>
 	addFile: (file: SignDocumentFile) => void
 	selectFile: (fileId: number) => void
 	getFile: () => { status?: SignDocumentStatus } | null
 }
 
-type SidebarStore = {
+type SidebarStore = Pick<ReturnType<typeof useSidebarStore>, 'show' | 'activeTab' | 'toggleSidebar' | 'hideSidebar' | 'activeSignTab'> & {
 	show: boolean
 	activeTab: string
 	toggleSidebar: () => void
@@ -133,13 +156,110 @@ type RouterLike = {
 	}) => Promise<unknown> | unknown
 }
 
+function isRouteLike(value: unknown): value is RouteLike {
+	return typeof value === 'object' && value !== null && 'params' in value && 'query' in value
+}
+
+function isRouterLike(value: unknown): value is RouterLike {
+	return typeof value === 'object' && value !== null && 'push' in value && typeof value.push === 'function'
+}
+
+function isPdfEditorRef(value: unknown): value is PdfEditorRef {
+	return typeof value === 'object' && value !== null
+}
+
+function parsePdfFetchError(value: unknown): PdfFetchError {
+	if (typeof value !== 'object' || value === null || !('errors' in value) || !Array.isArray(value.errors)) {
+		return {}
+	}
+	return {
+		errors: value.errors.filter((error): error is SignError => typeof error === 'object' && error !== null),
+	}
+}
+
+function createReadonlySignerObject(signer: SignerDetailRecord | Record<string, unknown>, element: Record<string, unknown>) {
+	return {
+		...structuredClone(signer),
+		readOnly: true,
+		element,
+	}
+}
+
+function normalizeVisibleElement(element: SignDocumentVisibleElement): VisibleElement | null {
+	if (typeof element.type !== 'string' || !element.coordinates || typeof element.coordinates !== 'object') {
+		return null
+	}
+	const coordinates = element.coordinates
+	const page = coordinates.page === undefined ? undefined : Number(coordinates.page)
+	const left = coordinates.left === undefined ? undefined : Number(coordinates.left)
+	const top = coordinates.top === undefined ? undefined : Number(coordinates.top)
+	const width = coordinates.width === undefined ? undefined : Number(coordinates.width)
+	const height = coordinates.height === undefined ? undefined : Number(coordinates.height)
+	const elementId = element.elementId === undefined ? undefined : Number(element.elementId)
+	const signRequestId = element.signRequestId === undefined ? undefined : Number(element.signRequestId)
+	const fileId = element.fileId === undefined ? undefined : Number(element.fileId)
+
+	if ((page !== undefined && !Number.isFinite(page))
+		|| (left !== undefined && !Number.isFinite(left))
+		|| (top !== undefined && !Number.isFinite(top))
+		|| (width !== undefined && !Number.isFinite(width))
+		|| (height !== undefined && !Number.isFinite(height))
+		|| (elementId !== undefined && !Number.isFinite(elementId))
+		|| (signRequestId !== undefined && !Number.isFinite(signRequestId))
+		|| (fileId !== undefined && !Number.isFinite(fileId))) {
+		return null
+	}
+
+	return {
+		...(elementId !== undefined ? { elementId } : {}),
+		...(signRequestId !== undefined ? { signRequestId } : {}),
+		...(fileId !== undefined ? { fileId } : {}),
+		type: element.type,
+		coordinates: {
+			...(page !== undefined ? { page } : {}),
+			...(left !== undefined ? { left } : {}),
+			...(top !== undefined ? { top } : {}),
+			...(width !== undefined ? { width } : {}),
+			...(height !== undefined ? { height } : {}),
+		},
+	}
+}
+
+function normalizeFile(file: SignDocumentFile): SignDocumentFile {
+	const normalizedId = typeof file.id === 'number' ? file.id : Number(file.id)
+	return {
+		...file,
+		...(Number.isFinite(normalizedId) ? { id: normalizedId } : {}),
+		metadata: file.metadata && typeof file.metadata === 'object' ? { ...file.metadata } : undefined,
+		signers: Array.isArray(file.signers) ? file.signers : [],
+		visibleElements: Array.isArray(file.visibleElements)
+			? file.visibleElements
+				.map((element) => normalizeVisibleElement(element as SignDocumentVisibleElement))
+				.filter((element): element is VisibleElement => element !== null)
+			: [],
+	}
+}
+
+function getVisibleElementsDocument(document: SignDocument): DocumentData {
+	return {
+		id: document.id,
+		uuid: document.uuid,
+		name: document.name,
+		status: document.status,
+		metadata: document.metadata,
+		visibleElements: Array.isArray(document.visibleElements) ? document.visibleElements : [],
+		signers: Array.isArray(document.signers) ? document.signers : [],
+		files: Array.isArray(document.files) ? document.files.map(normalizeFile) : [],
+	}
+}
+
 defineOptions({
 	name: 'SignPDF',
 })
 
 const signStore = useSignStore() as unknown as SignStore
-const filesStore = useFilesStore() as unknown as FilesStore
-const sidebarStore = useSidebarStore() as unknown as SidebarStore
+const filesStore = useFilesStore() as FilesStore
+const sidebarStore = useSidebarStore() as SidebarStore
 const instance = getCurrentInstance()
 
 const pdfEditor = ref<PdfEditorRef | null>(null)
@@ -164,16 +284,21 @@ function getRouteUuid() {
 }
 
 function getRoute(): RouteLike {
-	return (instance?.proxy?.$route ?? { params: {}, query: {} }) as RouteLike
+	const route = instance?.proxy?.$route
+	return isRouteLike(route) ? route : { params: {}, query: {} }
 }
 
 function getRouter(): RouterLike | undefined {
-	return instance?.proxy?.$router as RouterLike | undefined
+	const router = instance?.proxy?.$router
+	return isRouterLike(router) ? router : undefined
 }
 
 function getPdfEditor() {
-	const instancePdfEditor = instance?.proxy?.$refs?.pdfEditor as PdfEditorRef | undefined
-	return instancePdfEditor || pdfEditor.value
+	const instancePdfEditor = instance?.proxy?.$refs?.pdfEditor
+	if (isPdfEditorRef(instancePdfEditor)) {
+		return instancePdfEditor
+	}
+	return pdfEditor.value
 }
 
 function isIdDocApproval() {
@@ -237,7 +362,7 @@ async function handleInitialStatePdfs(urls: string[]) {
 		const contentType = response.headers.get('Content-Type') ?? ''
 
 		if (contentType.includes('application/json')) {
-			const data = await response.json() as PdfFetchError
+			const data = parsePdfFetchError(await response.json())
 			sidebarStore.hideSidebar()
 			const firstErrorMessage = data.errors?.[0]?.message
 			if (firstErrorMessage && firstErrorMessage.length > 0) {
@@ -268,7 +393,7 @@ async function loadPdfsFromStore() {
 		return
 	}
 
-	const baseFileUrl = (doc.url ?? getFileUrl(doc.files?.[0]))
+	const baseFileUrl = (doc.url ?? getFileUrl(doc.files?.[0] ? normalizeFile(doc.files[0]) : null))
 		|| (doc.uuid ? generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: doc.uuid }) : null)
 	const fileUrl = addIdDocApprovalParam(baseFileUrl)
 	if (fileUrl) {
@@ -283,7 +408,7 @@ async function loadEnvelopePdfs(parentFileId: number | string) {
 		const loadedEnvelopeFiles = await getCompatMethod('fetchEnvelopeFiles')(parentFileId)
 		envelopeFiles.value = loadedEnvelopeFiles
 		if (signStore.document) {
-			signStore.document.files = loadedEnvelopeFiles
+			signStore.document.files = loadedEnvelopeFiles as typeof signStore.document.files
 		}
 
 		if (!loadedEnvelopeFiles.length) {
@@ -291,20 +416,20 @@ async function loadEnvelopePdfs(parentFileId: number | string) {
 			return
 		}
 
-		const fileWithMe = loadedEnvelopeFiles.find((file: SignDocumentFile) => file.signers?.some(isCurrentUserSigner))
+		const fileWithMe = loadedEnvelopeFiles.find((file) => file.signers?.some(isCurrentUserSigner))
 		if (fileWithMe) {
 			filesStore.addFile(fileWithMe)
 		}
 
 		const urls = loadedEnvelopeFiles
-			.map((file: SignDocumentFile) => getFileUrl(file))
+			.map((file) => getFileUrl(normalizeFile(file)))
 			.filter((url): url is string => Boolean(url))
 		if (!urls.length) {
 			signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
 			return
 		}
 
-		fileNames.value = loadedEnvelopeFiles.map((file: SignDocumentFile) => `${file.name}.${file.metadata?.extension || 'pdf'}`)
+		fileNames.value = loadedEnvelopeFiles.map((file) => `${file.name}.${file.metadata?.extension || 'pdf'}`)
 		await getCompatMethod('handleInitialStatePdfs')(urls)
 	} catch {
 		signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
@@ -326,17 +451,18 @@ async function fetchEnvelopeFiles(parentFileId: number | string) {
 	})
 	const finalUrl = addIdDocApprovalParam(`${url}?${params.toString()}`) || `${url}?${params.toString()}`
 	const response = await axios.get<EnvelopeFileListResponse>(finalUrl)
-	return response.data.ocs.data.data ?? []
+	return (response.data.ocs.data.data ?? []).map(normalizeFile)
 }
 
 function updateSigners() {
 	if (signStore.document.nodeType === 'envelope' && envelopeFiles.value.length > 0) {
+		const normalizedEnvelopeFiles = envelopeFiles.value.map(normalizeFile)
 		const fileIndexById = new Map(
 			envelopeFiles.value.map((file: SignDocumentFile, index: number) => [String(file.id), index]),
 		)
-		const elements = aggregateVisibleElementsByFiles(envelopeFiles.value)
+		const elements = aggregateVisibleElementsByFiles(normalizedEnvelopeFiles)
 			elements.forEach(element => {
-				const fileInfo = findFileById(envelopeFiles.value, element.fileId)
+				const fileInfo = findFileById(normalizedEnvelopeFiles, element.fileId)
 				if (!fileInfo) {
 					return
 				}
@@ -346,12 +472,10 @@ function updateSigners() {
 			if (!signer) {
 				return
 			}
-			const object = structuredClone(signer) as Record<string, unknown>
-			object.readOnly = true
-			object.element = {
+			const object = createReadonlySignerObject(signer, {
 				...element,
 				documentIndex: fileIndexById.get(String(element.fileId)) ?? 0,
-			}
+			})
 			getPdfEditor()?.addSigner?.(object)
 		})
 		signStore.mounted = true
@@ -359,15 +483,13 @@ function updateSigners() {
 	}
 
 	const currentSigner = signStore.document.signers?.find((signer: SignerDetailRecord) => signer.me)
-	const visibleElements = getVisibleElementsFromDocument(signStore.document)
+	const visibleElements = getVisibleElementsFromDocument(getVisibleElementsDocument(signStore.document))
 	const elementsForSigner = currentSigner
 		? visibleElements.filter(element => idsMatch(element.signRequestId, currentSigner.signRequestId))
 		: []
 	if (currentSigner && elementsForSigner.length > 0) {
 		elementsForSigner.forEach(element => {
-			const object = structuredClone(currentSigner) as Record<string, unknown>
-			object.readOnly = true
-			object.element = element
+			const object = createReadonlySignerObject(currentSigner, element)
 			getPdfEditor()?.addSigner?.(object)
 		})
 	}
@@ -410,7 +532,7 @@ function removeElementClickListener() {
 
 async function redirectIfSigningInProgress() {
 	const targetRoute = getRoute().path?.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile'
-	let targetUuid = null as string | null
+	let targetUuid: string | null = null
 
 	const file = filesStore.getFile()
 	if (file?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
