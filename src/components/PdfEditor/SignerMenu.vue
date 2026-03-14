@@ -44,13 +44,14 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { mdiChevronDown } from '@mdi/js'
-import type { FileSigner } from '../../services/visibleElementsService'
+import type { PdfEditorSigner } from './types'
+import { getPdfEditorSignerId, getPdfEditorSignerLabel } from './pdfEditorModel'
 
 defineOptions({
 	name: 'SignerMenu',
 })
 
-type Signer = FileSigner
+type Signer = PdfEditorSigner
 
 const props = withDefaults(defineProps<{
 	signers?: Signer[]
@@ -72,14 +73,11 @@ function label(signer: Signer | null | undefined) {
 	if (props.getSignerLabel) {
 		return props.getSignerLabel(signer)
 	}
-	if (!signer) {
-		return ''
-	}
-	return String(signer.displayName || signer.email || signer.signRequestId || '')
+	return getPdfEditorSignerLabel(signer)
 }
 
 function signerKey(signer: Signer) {
-	return String(signer?.signRequestId || signer?.email || '')
+	return getPdfEditorSignerId(signer)
 }
 
 function selectSigner(signer: Signer) {
