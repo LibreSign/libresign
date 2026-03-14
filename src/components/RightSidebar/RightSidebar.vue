@@ -57,7 +57,7 @@ const sidebarStore = useSidebarStore()
 const route = useRoute()
 const rightAppSidebar = ref<SidebarRef | null>(null)
 
-const fileName = computed(() => filesStore.getFile()?.name ?? '')
+const fileName = computed(() => filesStore.getSelectedFileView()?.name ?? '')
 const opened = computed(() => sidebarStore.isVisible)
 const subTitle = computed(() => {
 	if (!opened.value) {
