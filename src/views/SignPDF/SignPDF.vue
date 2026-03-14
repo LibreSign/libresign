@@ -356,7 +356,7 @@ async function initSignInternal() {
 		if (!file) {
 			continue
 		}
-		const signer = file.signers?.find(isCurrentUserSigner)
+		const signer = file.signers?.find((row) => row?.me === true)
 		if (signer) {
 			signStore.setFileToSign(file)
 			filesStore.selectFile(parseInt(key, 10))
@@ -477,7 +477,7 @@ async function fetchEnvelopeFiles(parentFileId: number | string): Promise<RawSig
 	})
 	const finalUrl = addIdDocApprovalParam(`${url}?${params.toString()}`) || `${url}?${params.toString()}`
 	const response = await axios.get<EnvelopeFileListResponse>(finalUrl)
-	return (response.data.ocs.data.data ?? []).map(normalizeFile)
+	return response.data.ocs.data.data ?? []
 }
 
 function updateSigners() {
