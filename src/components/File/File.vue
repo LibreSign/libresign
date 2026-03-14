@@ -15,7 +15,7 @@
 			@load="backgroundFailed = false">
 		<NcIconSvgWrapper v-else v-once :path="mdiFile" :size="128" />
 		<div class="enDot">
-			<div :class="currentFile.statusText !== 'none' ? 'dot ' + statusToClass(currentFile.status ?? 0) : '' " />
+			<div :class="currentFile.statusText !== 'none' && currentFile.status !== undefined ? 'dot ' + statusToClass(currentFile.status) : '' " />
 			<span>{{ currentFile.statusText }}</span>
 		</div>
 		<h1>{{ currentFile.name }}</h1>
