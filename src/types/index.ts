@@ -100,6 +100,7 @@ export type RequestSignatureSignerResponse = NonNullable<RequestSignatureRespons
 export type RequestSignatureVisibleElementPayload = NonNullable<RequestSignatureUpdatePayload['visibleElements']>[number]
 export type FileStatus = FileListEntry['status']
 export type FileStatusText = FileListEntry['statusText']
+export type SelectedFileView = Pick<FileListEntry, 'id' | 'nodeId' | 'name' | 'status' | 'statusText'>
 export type SigningModeState = 'sync' | 'async'
 export type WorkerTypeState = 'local' | 'external'
 export type SignatureEngineId = 'JSignPdf' | 'PhpNative'
