@@ -62,9 +62,16 @@
 					</NcDialog>
 				</div>
 			</div>
-			<div v-else-if="validationDocument" class="infor-container">
-				<component :is="validationComponent"
-					:document="validationDocument"
+			<div v-else-if="validationEnvelopeDocument || validationFileDocument" class="infor-container">
+				<EnvelopeValidation
+					v-if="validationEnvelopeDocument"
+					:document="validationEnvelopeDocument"
+					:legal-information="legalInformation"
+					:document-valid-message="documentValidMessage"
+					:is-after-signed="isAfterSigned" />
+				<FileValidation
+					v-else-if="validationFileDocument"
+					:document="validationFileDocument"
 					:legal-information="legalInformation"
 					:document-valid-message="documentValidMessage"
 					:is-after-signed="isAfterSigned" />
@@ -124,7 +131,13 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 import logger from '../logger.js'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
-import type { ValidationViewChildFile, ValidationViewDocument, ValidationViewSigner } from '../types/index'
+import type {
+	LoadedValidationEnvelopeDocument,
+	LoadedValidationFileDocument,
+	ValidationViewChildFile,
+	ValidationViewDocument,
+	ValidationViewSigner,
+} from '../types/index'
 
 defineOptions({
 	name: 'Validation',
@@ -266,6 +279,14 @@ function getValidationErrorMessage(response: ValidationErrorResponse | undefined
 	return fallback
 }
 
+function isLoadedValidationEnvelopeDocument(document: ValidationViewDocument | null): document is LoadedValidationEnvelopeDocument {
+	return document?.nodeType === 'envelope'
+}
+
+function isLoadedValidationFileDocument(document: ValidationViewDocument | null): document is LoadedValidationFileDocument {
+	return document?.nodeType === 'file'
+}
+
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 const instance = getCurrentInstance()
@@ -314,6 +335,8 @@ const isEnvelope = computed(() => document.value?.nodeType === 'envelope'
 
 const validationComponent = computed(() => (isEnvelope.value ? EnvelopeValidation : FileValidation))
 const validationDocument = computed(() => document.value)
+const validationEnvelopeDocument = computed<LoadedValidationEnvelopeDocument | null>(() => (isLoadedValidationEnvelopeDocument(document.value) ? document.value : null))
+const validationFileDocument = computed<LoadedValidationFileDocument | null>(() => (isLoadedValidationFileDocument(document.value) ? document.value : null))
 
 const canValidate = computed(() => {
 	if (!uuidToValidate.value) {
@@ -852,6 +875,8 @@ defineExpose({
 	loading,
 	document,
 	validationDocument,
+	validationEnvelopeDocument,
+	validationFileDocument,
 	legalInformation,
 	clickedValidate,
 	getUUID,
