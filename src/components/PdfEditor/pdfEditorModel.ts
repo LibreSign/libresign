@@ -5,43 +5,9 @@
 
 import type { PDFElementObject } from '@libresign/pdf-elements'
 
-import type { Coordinates, VisibleElement } from '../../services/visibleElementsService'
-import type { IdentifyMethodRecord } from '../../types/index'
+import type { SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
 
-export type PdfEditorSignerPlacement = {
-	elementId?: VisibleElement['elementId']
-	type?: VisibleElement['type']
-	signRequestId?: VisibleElement['signRequestId']
-	documentIndex?: number
-	coordinates?: Coordinates
-}
-
-export type PdfEditorSigner = {
-	signRequestId?: number | string
-	displayName?: string
-	email?: string
-	identifyMethods?: IdentifyMethodRecord[]
-	readOnly?: boolean
-	element?: PdfEditorSignerPlacement
-}
-
-export type PdfEditorObject = PDFElementObject & {
-	id: string
-	signer?: PdfEditorSigner | null
-}
-
-export type PdfPage = {
-	getViewport: (options: { scale: number }) => {
-		width: number
-		height: number
-	}
-}
-
-export type PdfDocument = {
-	numPages?: number
-	pages?: Array<Promise<PdfPage>>
-	allObjects?: PdfEditorObject[][]
-}
+export type PdfEditorSignerRecord = Partial<Pick<SignerSummaryRecord, 'signRequestId' | 'displayName' | 'email' | 'identifyMethods'>>
 
 export type PdfObjectLocation = {
 	docIndex: number
@@ -57,23 +23,16 @@ export type PdfPlacement = {
 	height: number
 }
 
-export type ResolveSignerChangeOptions = {
-	availableSigners: PdfEditorSigner[]
-	selectedSigner: PdfEditorSigner | null | undefined
-	object: PdfEditorObject | null | undefined
-	documents?: PdfDocument[]
-}
-
 const asFiniteNumber = (value: unknown): number | null => {
 	const normalized = typeof value === 'number' ? value : Number(value)
 	return Number.isFinite(normalized) ? normalized : null
 }
 
-export function getPdfEditorSignerId(signer: PdfEditorSigner | null | undefined): string {
+export function getPdfEditorSignerId(signer: PdfEditorSignerRecord | null | undefined): string {
 	if (!signer) {
 		return ''
 	}
-	if (signer.signRequestId !== undefined && signer.signRequestId !== null && signer.signRequestId !== '') {
+	if (signer.signRequestId !== undefined && signer.signRequestId !== null) {
 		return String(signer.signRequestId)
 	}
 	if (signer.email) {
@@ -82,31 +41,21 @@ export function getPdfEditorSignerId(signer: PdfEditorSigner | null | undefined)
 	return ''
 }
 
-export function getPdfEditorSignerLabel(signer: PdfEditorSigner | null | undefined): string {
+export function getPdfEditorSignerLabel(signer: PdfEditorSignerRecord | null | undefined): string {
 	if (!signer) {
 		return ''
 	}
 	return String(signer.displayName || signer.email || signer.signRequestId || '')
 }
 
-export function buildPdfEditorSignerPayload(signer: PdfEditorSigner | null | undefined): PdfEditorSigner {
+export function buildPdfEditorSignerPayload(signer: PdfEditorSignerRecord | null | undefined): PdfEditorSignerRecord {
 	if (!signer) {
-		return { element: {} }
+		return {}
 	}
-	return {
-		...signer,
-		element: signer.element
-			? {
-				...signer.element,
-				coordinates: signer.element.coordinates
-					? { ...signer.element.coordinates }
-					: signer.element.coordinates,
-			}
-			: {},
-	}
+	return { ...signer }
 }
 
-export function findPdfObjectLocation(documents: PdfDocument[] | null | undefined, objectId: string): PdfObjectLocation | null {
+export function findPdfObjectLocation(documents: Array<{ allObjects?: Array<Array<{ id: string }>> }> | null | undefined, objectId: string): PdfObjectLocation | null {
 	for (let docIndex = 0; docIndex < (documents || []).length; docIndex++) {
 		const pages = documents?.[docIndex]?.allObjects || []
 		for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
@@ -118,7 +67,12 @@ export function findPdfObjectLocation(documents: PdfDocument[] | null | undefine
 	return null
 }
 
-export function resolvePdfEditorSignerChange(options: ResolveSignerChangeOptions): { docIndex: number, signer: PdfEditorSigner } | null {
+export function resolvePdfEditorSignerChange(options: {
+	availableSigners: PdfEditorSignerRecord[]
+	selectedSigner: PdfEditorSignerRecord | null | undefined
+	object: { id: string, signer?: PdfEditorSignerRecord | null, visibleElement?: VisibleElementRecord | null, documentIndex?: number } | null | undefined
+	documents?: Array<{ allObjects?: Array<Array<{ id: string }>> }>
+}): { docIndex: number, signer: PdfEditorSignerRecord } | null {
 	const signerId = getPdfEditorSignerId(options.selectedSigner)
 	if (!options.object || !signerId) {
 		return null
@@ -130,14 +84,6 @@ export function resolvePdfEditorSignerChange(options: ResolveSignerChangeOptions
 	}
 
 	const nextSigner = buildPdfEditorSignerPayload(targetSigner)
-	if (options.object.signer?.element) {
-		nextSigner.element = {
-			...options.object.signer.element,
-			coordinates: options.object.signer.element.coordinates
-				? { ...options.object.signer.element.coordinates }
-				: options.object.signer.element.coordinates,
-		}
-	}
 	if (!nextSigner.displayName) {
 		const fallbackName = getPdfEditorSignerLabel(options.selectedSigner)
 		if (fallbackName) {
@@ -146,7 +92,7 @@ export function resolvePdfEditorSignerChange(options: ResolveSignerChangeOptions
 	}
 
 	const location = findPdfObjectLocation(options.documents, options.object.id)
-	const fallbackDocIndex = asFiniteNumber(options.object.signer?.element?.documentIndex)
+	const fallbackDocIndex = asFiniteNumber(options.object.documentIndex)
 	const docIndex = location?.docIndex ?? fallbackDocIndex
 	if (docIndex === undefined || docIndex === null) {
 		return null
@@ -159,15 +105,17 @@ export function resolvePdfEditorSignerChange(options: ResolveSignerChangeOptions
 }
 
 export function calculatePdfPlacement({
-	signer,
+	visibleElement,
+	documentIndex,
 	defaultDocIndex,
 	pageHeight,
 }: {
-	signer: PdfEditorSigner
+	visibleElement: VisibleElementRecord
+	documentIndex?: number
 	defaultDocIndex: number
 	pageHeight: number
 }): PdfPlacement | null {
-	const coordinates = signer.element?.coordinates
+	const coordinates = visibleElement.coordinates
 	if (!coordinates) {
 		return null
 	}
@@ -177,7 +125,7 @@ export function calculatePdfPlacement({
 		return null
 	}
 
-	const docIndex = asFiniteNumber(signer.element?.documentIndex) ?? defaultDocIndex
+	const docIndex = asFiniteNumber(documentIndex) ?? defaultDocIndex
 	const pageIndex = pageNumber - 1
 	const width = asFiniteNumber(coordinates.width)
 		?? (() => {
@@ -223,17 +171,28 @@ export function createPdfObjectId(): string {
 
 export function createPdfEditorObject({
 	signer,
+	visibleElement,
+	documentIndex,
 	placement,
 	objectId = createPdfObjectId(),
 }: {
-	signer: PdfEditorSigner
+	signer: PdfEditorSignerRecord
+	visibleElement?: VisibleElementRecord
+	documentIndex?: number
 	placement: PdfPlacement
 	objectId?: string
-}): PdfEditorObject {
+}): PDFElementObject & {
+	id: string
+	signer: PdfEditorSignerRecord
+	visibleElement?: VisibleElementRecord
+	documentIndex?: number
+} {
 	return {
 		id: objectId,
 		type: 'signature',
 		signer,
+		...(visibleElement ? { visibleElement } : {}),
+		...(documentIndex !== undefined ? { documentIndex } : {}),
 		x: placement.x,
 		y: placement.y,
 		width: placement.width,
