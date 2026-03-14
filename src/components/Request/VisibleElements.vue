@@ -92,7 +92,6 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, type ComponentPublicInstance } from 'vue'
 
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
-import type { PdfEditorSignerRecord } from '../PdfEditor/pdfEditorModel'
 import Signer from '../Signers/Signer.vue'
 
 import { FILE_STATUS } from '../../constants.js'
@@ -115,6 +114,7 @@ import {
 import type {
 	IdentifyMethodRecord,
 	LibresignCapabilities,
+	SignerSummaryRecord,
 	VisibleElementRecord,
 } from '../../types/index'
 
@@ -153,7 +153,7 @@ type FilePageInfo = {
 
 type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
 
-type PlacementSigner = PdfEditorSignerRecord
+type PlacementSigner = SignerSummaryRecord
 
 type PdfObject = {
 	id: string
@@ -295,15 +295,18 @@ function normalizeSigner(signer: unknown): VisibleElementsSigner | null {
 	}
 }
 
-function toPdfEditorSignerRecord(signer: VisibleElementsSigner | null | undefined): PlacementSigner | null {
+function toSignerSummaryRecord(signer: VisibleElementsSigner | null | undefined): PlacementSigner | null {
 	if (!signer) {
 		return null
 	}
 
 	return {
-		...(Number.isFinite(Number(signer.signRequestId)) ? { signRequestId: Number(signer.signRequestId) } : {}),
+		signRequestId: Number.isFinite(Number(signer.signRequestId)) ? Number(signer.signRequestId) : 0,
 		displayName: signer.displayName ?? '',
 		email: signer.email ?? '',
+		signed: null,
+		status: 0,
+		statusText: '',
 		...(Array.isArray(signer.identifyMethods) ? { identifyMethods: signer.identifyMethods } : {}),
 	}
 }
@@ -435,7 +438,7 @@ const sidebarSigners = computed<Array<{ signer: VisibleElementsSigner; index: nu
 		.filter(({ signer }) => !isSelectedSigner(signer))
 })
 const pdfEditorSigners = computed<PlacementSigner[]>(() => document.value.signers
-	.map(toPdfEditorSignerRecord)
+	.map(toSignerSummaryRecord)
 	.filter((signer): signer is PlacementSigner => signer !== null))
 const status = computed(() => Number(document.value.status))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
@@ -624,7 +627,7 @@ async function updateSigners() {
 			return
 		}
 		const signer = getFileSigners(fileInfo).find((item) => idsMatch(item.signRequestId, normalizedElement.signRequestId))
-		const signerRecord = toPdfEditorSignerRecord(signer)
+		const signerRecord = toSignerSummaryRecord(signer)
 		if (!signerRecord) {
 			return
 		}
@@ -672,7 +675,7 @@ function onSelectSigner(signer: PlacementSigner) {
 
 function handleSignerSelect(signer: unknown) {
 	const normalizedSigner = normalizeSigner(signer)
-	const pdfEditorSigner = toPdfEditorSignerRecord(normalizedSigner)
+	const pdfEditorSigner = toSignerSummaryRecord(normalizedSigner)
 	if (!pdfEditorSigner) {
 		return
 	}
