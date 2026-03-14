@@ -64,9 +64,8 @@
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import PDFElements from '@libresign/pdf-elements'
-import type { PDFElementObject, PDFElementsPublicApi } from '@libresign/pdf-elements'
 import '@libresign/pdf-elements/dist/index.css'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -79,59 +78,24 @@ import {
 
 import SignerMenu from './SignerMenu.vue'
 import SignatureBox from './SignatureBox.vue'
+import {
+	buildPdfEditorSignerPayload,
+	calculatePdfPlacement,
+	createPdfEditorObject,
+	findPdfObjectLocation,
+	getPdfEditorSignerLabel,
+	resolvePdfEditorSignerChange,
+} from './pdfEditorModel'
 import { ensurePdfWorker } from '../../helpers/pdfWorker'
 import type {
-	Coordinates,
-	FileSigner,
-	VisibleElementsSigner,
-	VisibleElement,
-} from '../../services/visibleElementsService'
-
-type SignerPlacement = {
-	elementId?: VisibleElement['elementId']
-	type?: VisibleElement['type']
-	signRequestId?: VisibleElement['signRequestId']
-	documentIndex?: number
-	coordinates?: Coordinates
-}
-
-type PdfEditorSigner = VisibleElementsSigner & {
-	visibleElements?: VisibleElement[]
-	readOnly?: boolean
-	element?: SignerPlacement
-}
-
-type PdfObject = PDFElementObject & {
-	id: string
-	signer?: PdfEditorSigner | null
-}
-
-type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
-
-type PdfPage = {
-	getViewport: (options: { scale: number }) => {
-		width: number
-		height: number
-	}
-}
-
-type PdfDocument = {
-	numPages?: number
-	pages?: Array<Promise<PdfPage>>
-	allObjects?: PdfObject[][]
-}
-
-type PdfElementsInstance = PDFElementsPublicApi & {
-	cancelAdding: () => void
-	adjustZoomToFit?: () => void
-	getPageHeight?: (docIndex: number, pageIndex: number) => number
-	isAddingMode?: boolean
-	pdfDocuments?: PdfDocument[]
-	selectedDocIndex?: number
-	autoFitZoom?: boolean
-}
-
-type EndInitPayload = Record<string, unknown>
+	EndInitPayload,
+	PdfDocument,
+	PdfEditorMeasurement,
+	PdfEditorObject,
+	PdfEditorSigner,
+	PdfElementsInstance,
+	PdfInput,
+} from './types'
 
 defineOptions({
 	name: 'PdfEditor',
@@ -151,7 +115,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
 	(event: 'pdf-editor:end-init', payload: EndInitPayload): void
-	(event: 'pdf-editor:on-delete-signer', payload: PdfObject): void
+	(event: 'pdf-editor:on-delete-signer', payload: PdfEditorObject): void
 	(event: 'pdf-editor:object-click', payload: Record<string, unknown>): void
 	(event: 'pdf-editor:signer-added'): void
 }>()
@@ -203,7 +167,7 @@ async function endInit(event: EndInitPayload) {
 }
 
 async function calculatePdfMeasurement() {
-	const measurement: Record<number, { width: number, height: number }> = {}
+	const measurement: PdfEditorMeasurement = {}
 	const firstDocument = pdfElements.value?.pdfDocuments?.[0]
 	if (!firstDocument?.pages?.length || !firstDocument.numPages) {
 		return measurement
@@ -223,11 +187,11 @@ async function calculatePdfMeasurement() {
 	return measurement
 }
 
-function onDeleteSigner(object: PdfObject) {
+function onDeleteSigner(object: PdfEditorObject) {
 	emit('pdf-editor:on-delete-signer', object)
 }
 
-function handleDeleteObject({ object }: { object?: PdfObject }) {
+function handleDeleteObject({ object }: { object?: PdfEditorObject }) {
 	if (object?.signer) {
 		onDeleteSigner(object)
 	}
@@ -237,67 +201,30 @@ function handleObjectClick(event: Record<string, unknown>) {
 	emit('pdf-editor:object-click', event)
 }
 
-function getSignerLabel(signer: FileSigner | null | undefined) {
-	if (!signer) {
-		return ''
-	}
-	return String(signer.displayName || signer.email || signer.signRequestId || '')
+function getSignerLabel(signer: PdfEditorSigner | null | undefined) {
+	return getPdfEditorSignerLabel(signer)
 }
 
-function onSignerChange(object: PdfObject | null | undefined, signer: FileSigner | null | undefined) {
+function onSignerChange(object: PdfEditorObject | null | undefined, signer: PdfEditorSigner | null | undefined) {
 	if (!object || !signer || !pdfElements.value) {
 		return
 	}
-
-	const signerId = String(signer.signRequestId || signer.email || '')
-	if (!signerId) {
-		return
-	}
-
-	const targetSigner = (props.signers || []).find(entry => {
-		const candidateId = String(entry.signRequestId || entry.email || '')
-		return candidateId === signerId
+	const resolved = resolvePdfEditorSignerChange({
+		availableSigners: props.signers || [],
+		selectedSigner: signer,
+		object,
+		documents: pdfElements.value.pdfDocuments,
 	})
-	if (!targetSigner) {
+	if (!resolved) {
 		return
 	}
 
-	const currentElement = object.signer?.element ? { ...object.signer.element } : null
-	const nextSigner = structuredClone(toRaw(targetSigner)) as PdfEditorSigner
-	if (currentElement) {
-		nextSigner.element = { ...currentElement }
-	}
-	if (!nextSigner.displayName) {
-		const fallbackName = getSignerLabel(signer)
-		if (fallbackName) {
-			nextSigner.displayName = String(fallbackName)
-		}
-	}
-
-	const location = findObjectLocation(pdfElements.value, object.id)
-	let docIndex = location?.docIndex
-	if (!Number.isFinite(docIndex)) {
-		docIndex = object.signer?.element?.documentIndex
-	}
-	if (!Number.isFinite(docIndex)) {
-		return
-	}
-
-	object.signer = nextSigner
-	pdfElements.value.updateObject(docIndex as number, object.id, { signer: nextSigner })
+	object.signer = resolved.signer
+	pdfElements.value.updateObject(resolved.docIndex, object.id, { signer: resolved.signer })
 }
 
 function findObjectLocation(pdfElementsInstance: PdfElementsInstance | null | undefined, objectId: string) {
-	const documents = pdfElementsInstance?.pdfDocuments || []
-	for (let docIndex = 0; docIndex < documents.length; docIndex++) {
-		const pages = documents[docIndex]?.allObjects || []
-		for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
-			if (pages[pageIndex]?.some(object => object.id === objectId)) {
-				return { docIndex, pageIndex }
-			}
-		}
-	}
-	return null
+	return findPdfObjectLocation(pdfElementsInstance?.pdfDocuments, objectId)
 }
 
 function getTotalObjectsCount() {
@@ -347,9 +274,7 @@ function startAddingSigner(signer: PdfEditorSigner | null | undefined, size: { w
 		return false
 	}
 
-	const signerPayload = signer
-		? { ...signer, element: signer.element ? { ...signer.element } : {} }
-		: { element: {} }
+	const signerPayload = buildPdfEditorSignerPayload(signer)
 
 	pdfElements.value.startAddingElement({
 		type: 'signature',
@@ -373,54 +298,33 @@ async function addSigner(signer: PdfEditorSigner) {
 	if (!pdfElements.value || !signer.element?.coordinates) {
 		return
 	}
-	const coordinates = signer.element.coordinates
-	const pageNumber = Number(coordinates.page)
-	if (!Number.isFinite(pageNumber)) {
-		return
-	}
 
 	const docIndex = signer.element.documentIndex !== undefined
 		? signer.element.documentIndex
 		: pdfElements.value.selectedDocIndex || 0
+	const previewPlacement = calculatePdfPlacement({
+		signer,
+		defaultDocIndex: docIndex,
+		pageHeight: 0,
+	})
+	if (!previewPlacement) {
+		return
+	}
 
-	const pageIndex = pageNumber - 1
+	const pageIndex = previewPlacement.pageIndex
 	await waitForPageRender(docIndex, pageIndex)
 
 	const pageHeight = pdfElements.value.getPageHeight?.(docIndex, pageIndex) || 0
-	const width = Number.isFinite(coordinates.width)
-		? coordinates.width as number
-		: Number.isFinite(coordinates.urx) && Number.isFinite(coordinates.llx)
-			? Math.abs((coordinates.urx as number) - (coordinates.llx as number))
-			: 0
-	const height = Number.isFinite(coordinates.height)
-		? coordinates.height as number
-		: Number.isFinite(coordinates.ury) && Number.isFinite(coordinates.lly)
-			? Math.abs((coordinates.ury as number) - (coordinates.lly as number))
-			: 0
-	const x = Number.isFinite(coordinates.left)
-		? coordinates.left as number
-		: Number.isFinite(coordinates.llx)
-			? coordinates.llx as number
-			: 0
-
-	let y = 0
-	if (Number.isFinite(coordinates.top)) {
-		y = coordinates.top as number
-	} else if (Number.isFinite(coordinates.ury) && pageHeight) {
-		y = Math.max(0, pageHeight - (coordinates.ury as number))
-	} else if (Number.isFinite(coordinates.lly) && pageHeight) {
-		y = Math.max(0, pageHeight - (coordinates.lly as number) - height)
-	}
-
-	const object: PdfObject = {
-		id: `obj-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-		type: 'signature',
+	const placement = calculatePdfPlacement({
 		signer,
-		width,
-		height,
-		x,
-		y,
+		defaultDocIndex: docIndex,
+		pageHeight,
+	})
+	if (!placement) {
+		return
 	}
+
+	const object = createPdfEditorObject({ signer, placement })
 
 	pdfElements.value.addObjectToPage(object, pageIndex, docIndex)
 }
