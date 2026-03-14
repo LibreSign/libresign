@@ -28,6 +28,7 @@ const filesStoreMock = {
 		},
 	} as Record<number, FileEntry>,
 	getFile: vi.fn((file?: FileEntry) => file ?? filesStoreMock.files[filesStoreMock.selectedFileId]),
+	getSelectedFileView: vi.fn(() => filesStoreMock.files[filesStoreMock.selectedFileId] ?? null),
 	selectFile: vi.fn(),
 }
 
@@ -83,6 +84,7 @@ describe('File.vue', () => {
 		}
 		filesStoreMock.selectFile.mockReset()
 		filesStoreMock.getFile.mockClear()
+		filesStoreMock.getSelectedFileView.mockClear()
 		sidebarStoreMock.activeRequestSignatureTab.mockReset()
 	})
 
