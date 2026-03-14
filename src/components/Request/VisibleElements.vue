@@ -89,10 +89,10 @@ import { subscribe, unsubscribe, type Event as NextcloudEvent, type EventHandler
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, type ComponentPublicInstance } from 'vue'
 
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
-import type { PdfEditorObject, PdfEditorPublicApi, PdfEditorSigner } from '../PdfEditor/types'
+import type { PdfEditorObject, PdfEditorSigner } from '../PdfEditor/pdfEditorModel'
 import Signer from '../Signers/Signer.vue'
 
 import { FILE_STATUS } from '../../constants.js'
@@ -167,8 +167,11 @@ type PdfElementsRef = {
 	isAddingMode?: boolean
 }
 
-type PdfEditorRef = PdfEditorPublicApi & {
+type PdfEditorRef = ComponentPublicInstance & {
 	$refs?: { pdfElements?: PdfElementsRef }
+	startAddingSigner?: (signer: PlacementSigner | null | undefined, size: { width?: number, height?: number }) => boolean
+	cancelAdding?: () => void
+	addSigner?: (signer: PlacementSigner) => Promise<void>
 }
 
 type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'saveOrUpdateSignatureRequest'> & {
@@ -715,7 +718,7 @@ function buildVisibleElements() {
 
 	for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
 		const objects = pdfElements?.getAllObjects(docIndex) || []
-		objects.forEach((object) => {
+		objects.forEach((object: PdfObject) => {
 			if (!object.signer) return
 
 			let globalPageNumber = object.pageNumber
