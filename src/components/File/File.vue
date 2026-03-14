@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { FileStatus, FileStatusText } from '../../types/index'
+import type { FileStatus } from '../../types/index'
 
 import { mdiFile } from '@mdi/js'
 
@@ -39,12 +39,7 @@ defineOptions({
 })
 
 type FilesStoreContract = ReturnType<typeof useFilesStore>
-type SelectedFile = ReturnType<FilesStoreContract['getFile']>
-
-type CurrentFileState = Omit<NonNullable<SelectedFile>, 'status' | 'statusText'> & {
-	status: FileStatus
-	statusText: FileStatusText
-}
+type CurrentFileState = NonNullable<ReturnType<FilesStoreContract['getSelectedFileView']>>
 
 const filesStore = useFilesStore()
 const sidebarStore = useSidebarStore()
@@ -58,7 +53,7 @@ const currentFile = computed<CurrentFileState | null>(() => {
 	if (!currentFileId.value) {
 		return null
 	}
-	return (filesStore.getFile() as CurrentFileState | null) ?? null
+	return filesStore.getSelectedFileView()
 })
 const previewUrl = computed(() => {
 	if (backgroundFailed.value === true || !currentFile.value) {
