@@ -340,9 +340,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}')]
 	public function sign(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);
-		$this->initialState->provideInitialState('config',
-			$this->accountService->getConfig($this->userSession->getUser())
-		);
+		$config = $this->accountService->getConfig($this->userSession->getUser());
 		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
 		$file = $this->fileService
 			->setFile($this->getFileEntity())
@@ -355,9 +353,9 @@ class PageController extends AEnvironmentPageAwareController {
 			->showSigners()
 			->showSettings()
 			->toArray();
-		$this->initialState->provideInitialState('config', [
+		$this->initialState->provideInitialState('config', array_merge($config, [
 			'identificationDocumentsFlow' => $file['settings']['needIdentificationDocuments'] ?? false,
-		]);
+		]));
 		$this->initialState->provideInitialState('id', $file['id']);
 		$this->initialState->provideInitialState('nodeId', $file['nodeId']);
 		$this->initialState->provideInitialState('needIdentificationDocuments', $file['settings']['needIdentificationDocuments'] ?? false);
