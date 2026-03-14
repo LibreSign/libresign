@@ -177,20 +177,17 @@ import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
-import type { SignerDetailRecord } from '../../types/index'
+import type {
+	LoadedValidationEnvelopeDocument,
+	SignerDetailRecord,
+	ValidationViewChildFile,
+} from '../../types/index'
 
 defineOptions({
 	name: 'EnvelopeValidation',
 })
 
-type EnvelopeFile = {
-	uuid?: string
-	name?: string
-	nodeId?: number
-	totalPages?: number
-	pdfVersion?: string
-	status?: string | number
-	size?: string | number
+type EnvelopeFile = Partial<ValidationViewChildFile> & {
 	opened?: boolean
 	statusText?: string
 	signers?: EnvelopeSigner[]
@@ -204,14 +201,16 @@ type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' |
 }
 
 type EnvelopeDocument = {
-	uuid?: string
-	name?: string
-	nodeId?: number
+	uuid: LoadedValidationEnvelopeDocument['uuid']
+	name: LoadedValidationEnvelopeDocument['name']
+	nodeId: LoadedValidationEnvelopeDocument['nodeId']
+	nodeType: LoadedValidationEnvelopeDocument['nodeType']
+	status: LoadedValidationEnvelopeDocument['status'] | string
 	filesCount?: number
-	status?: string | number
 	files?: EnvelopeFile[]
 	signers?: EnvelopeSigner[]
 	signedDate?: string
+	[key: string]: unknown
 }
 
 const props = withDefaults(defineProps<{
