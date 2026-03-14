@@ -5,13 +5,24 @@
 
 import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { SignerSummaryRecord } from '../../../types/index'
 
 import SignerMenu from '../../../components/PdfEditor/SignerMenu.vue'
 
 describe('SignerMenu.vue', () => {
+	const createSigner = (overrides: Partial<SignerSummaryRecord> = {}): SignerSummaryRecord => ({
+		signRequestId: 0,
+		displayName: '',
+		email: '',
+		signed: null,
+		status: 0,
+		statusText: '',
+		...overrides,
+	})
+
 	const signers = [
-		{ id: 1, displayName: 'Ada Lovelace' },
-		{ id: 2, email: 'grace@example.com' },
+		createSigner({ signRequestId: 1, displayName: 'Ada Lovelace', email: 'ada@example.com' }),
+		createSigner({ signRequestId: 2, email: 'grace@example.com', displayName: 'Grace' }),
 	]
 
 	function createWrapper(props = {}) {
@@ -64,7 +75,7 @@ describe('SignerMenu.vue', () => {
 
 	it('uses the provided label getter when available', () => {
 		const wrapper = createWrapper({
-			getSignerLabel: (signer: { id: number }) => `Signer #${signer.id}`,
+			getSignerLabel: (signer: { signRequestId: number }) => `Signer #${signer.signRequestId}`,
 		})
 
 		expect(wrapper.text()).toContain('Signer #1')
