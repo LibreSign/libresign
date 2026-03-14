@@ -9,6 +9,7 @@ import type { VueWrapper } from '@vue/test-utils'
 
 const loadStateMock = vi.fn()
 const hasSignatureFileMock = vi.fn()
+const initializeHasSignatureFileMock = vi.fn()
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: (...args: unknown[]) => loadStateMock(...args),
@@ -18,6 +19,7 @@ vi.mock('../../../../store/signMethods.js', () => ({
 	useSignMethodsStore: () => ({
 		hasSignatureFile: () => hasSignatureFileMock(),
 		setHasSignatureFile: vi.fn(),
+		initializeHasSignatureFile: (...args: unknown[]) => initializeHasSignatureFileMock(...args),
 		showModal: vi.fn(),
 	}),
 }))
@@ -59,6 +61,31 @@ describe('ManagePassword', () => {
 	beforeEach(() => {
 		loadStateMock.mockReset()
 		hasSignatureFileMock.mockReset()
+		initializeHasSignatureFileMock.mockReset()
+	})
+
+	it('initializes signature file state from config without forcing remount behavior', () => {
+		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
+			if (key === 'certificate_engine') return 'openssl'
+			if (key === 'config') return { hasSignatureFile: true }
+			return fallback
+		})
+		hasSignatureFileMock.mockReturnValue(true)
+
+		mount(ManagePassword, {
+			global: {
+				stubs: {
+					NcButton: { template: '<button><slot /><slot name="icon" /></button>' },
+					NcIconSvgWrapper: { name: 'NcIconSvgWrapper', props: ['path'], template: '<i class="icon" :data-path="path" />' },
+					CreatePassword: true,
+					ReadCertificate: true,
+					ResetPassword: true,
+					UploadCertificate: true,
+				},
+			},
+		})
+
+		expect(initializeHasSignatureFileMock).toHaveBeenCalledWith(true)
 	})
 
 	it('registers icon wrapper and exposes mdi icon paths used in template', async () => {
