@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { FileListEntry } from '../../types/index'
+import type { FileStatus, FileStatusText } from '../../types/index'
 
 import { mdiFile } from '@mdi/js'
 
@@ -42,8 +42,8 @@ type FilesStoreContract = ReturnType<typeof useFilesStore>
 type SelectedFile = ReturnType<FilesStoreContract['getFile']>
 
 type CurrentFileState = Omit<NonNullable<SelectedFile>, 'status' | 'statusText'> & {
-	status: FileListEntry['status']
-	statusText: string
+	status: FileStatus
+	statusText: FileStatusText
 }
 
 const filesStore = useFilesStore()
@@ -93,7 +93,7 @@ function openSidebar() {
 	sidebarStore.activeRequestSignatureTab()
 }
 
-function statusToClass(status: FileListEntry['status']) {
+function statusToClass(status: FileStatus) {
 	switch (status) {
 	case 0:
 		return 'no-signers'
