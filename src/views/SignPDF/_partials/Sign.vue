@@ -198,7 +198,11 @@ import type {
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import { FILE_STATUS } from '../../../constants.js'
-import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner, type DocumentData, type FileData, type VisibleElement } from '../../../services/visibleElementsService'
+import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner } from '../../../services/visibleElementsService'
+
+type VisibleElementsFileInput = Parameters<typeof getFileSigners>[0]
+type VisibleElementsDocumentInput = Parameters<typeof getVisibleElementsFromDocument>[0]
+type ServiceVisibleElement = VisibleElementRecord
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
 type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
@@ -383,30 +387,35 @@ function isSignSubmissionError(error: unknown): error is SignSubmissionError {
 	return typeof error === 'object' && error !== null
 }
 
-function normalizeSignVisibleElement(element: unknown): VisibleElement | null {
-	if (!element || typeof element !== 'object') {
+function normalizeSignVisibleElement(element: unknown): ServiceVisibleElement | null {
+	const candidate = typeof element === 'object' && element !== null ? element as Record<string, unknown> : null
+	if (!candidate) {
 		return null
 	}
-
-	const coordinates = 'coordinates' in element && element.coordinates && typeof element.coordinates === 'object'
-		? { ...element.coordinates }
-		: undefined
-	const type = 'type' in element && typeof element.type === 'string'
-		? element.type
-		: undefined
-
-	if (!type || !coordinates) {
+	const coordinates = typeof candidate.coordinates === 'object' && candidate.coordinates !== null
+		? candidate.coordinates as Record<string, unknown>
+		: null
+	const type = typeof candidate.type === 'string' ? candidate.type : null
+	const elementId = candidate.elementId === undefined ? undefined : Number(candidate.elementId)
+	const signRequestId = candidate.signRequestId === undefined ? undefined : Number(candidate.signRequestId)
+	const fileId = candidate.fileId === undefined ? undefined : Number(candidate.fileId)
+	if (!coordinates || !type || elementId === undefined || signRequestId === undefined || fileId === undefined) {
+		return null
+	}
+	if (![elementId, signRequestId, fileId].every(Number.isFinite)) {
 		return null
 	}
 
 	return {
-		...element,
+		elementId,
+		signRequestId,
+		fileId,
 		type,
 		coordinates,
 	}
 }
 
-function normalizeSignFile(file: SignDocumentFile): FileData {
+function normalizeSignFile(file: SignDocumentFile): VisibleElementsFileInput {
 	return {
 		...file,
 		metadata: file.metadata ?? undefined,
@@ -414,12 +423,12 @@ function normalizeSignFile(file: SignDocumentFile): FileData {
 		visibleElements: Array.isArray(file.visibleElements)
 			? file.visibleElements
 				.map(normalizeSignVisibleElement)
-				.filter((element): element is VisibleElement => element !== null)
+				.filter((element): element is ServiceVisibleElement => element !== null)
 			: [],
 	}
 }
 
-function getVisibleElementsDocument(document: SignDocument): DocumentData {
+function getVisibleElementsDocument(document: SignDocument): VisibleElementsDocumentInput {
 	return {
 		id: document.id,
 		uuid: document.uuid,
@@ -431,7 +440,7 @@ function getVisibleElementsDocument(document: SignDocument): DocumentData {
 		visibleElements: Array.isArray(document.visibleElements)
 			? document.visibleElements
 				.map(normalizeSignVisibleElement)
-				.filter((element): element is VisibleElement => element !== null)
+				.filter((element): element is ServiceVisibleElement => element !== null)
 			: [],
 		files: Array.isArray(document.files)
 			? document.files.map(normalizeSignFile)
@@ -470,7 +479,7 @@ let unwatchPendingAction: null | (() => void) = null
 let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
 const currentDocument = computed<SignDocument>(() => signStore.document)
-const visibleElementsDocument = computed<DocumentData>(() => getVisibleElementsDocument(currentDocument.value))
+const visibleElementsDocument = computed(() => getVisibleElementsDocument(currentDocument.value))
 
 const elements = computed(() => {
 	const document = currentDocument.value
