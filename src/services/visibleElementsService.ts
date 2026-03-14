@@ -4,12 +4,22 @@
  */
 
 import type {
+	IdentifyMethodRecord,
 	SignerDetailRecord,
 	SignerSummaryRecord,
 	VisibleElementRecord,
 } from '../types/index'
 
-type SignerLike = (SignerSummaryRecord | SignerDetailRecord) & {
+type SignerLike = {
+	signRequestId?: number | string
+	displayName?: string
+	email?: string
+	identifyMethods?: IdentifyMethodRecord[]
+	signed?: string | null | boolean | unknown[]
+	status?: number
+	statusText?: string
+	me?: boolean
+	localKey?: string
 	visibleElements?: VisibleElementRecord[] | null
 }
 
@@ -17,8 +27,9 @@ type NestedFileLike = {
 	id?: number | string
 	name?: string
 	file?: string | NestedFileLike | null
+	metadata?: unknown
 	visibleElements?: VisibleElementRecord[] | null
-	signers?: Array<SignerSummaryRecord | SignerDetailRecord> | null
+	signers?: SignerLike[] | null
 }
 
 type FileLike = NestedFileLike & {
@@ -89,7 +100,7 @@ const collectSignerVisibleElements = (signers: unknown): VisibleElementRecord[] 
 
 export const idsMatch = (left: unknown, right: unknown): boolean => keyOf(left) === keyOf(right)
 
-export const isCurrentUserSigner = (signer: SignerSummaryRecord | SignerDetailRecord | null | undefined): signer is SignerDetailRecord =>
+export const isCurrentUserSigner = (signer: SignerLike | null | undefined): signer is SignerLike & { me: true } =>
 	signer !== null
 	&& signer !== undefined
 	&& 'me' in signer
@@ -102,7 +113,7 @@ export const getFileUrl = (file: FileLike | null | undefined): string | null =>
 			? file.files[0].file
 			: null
 
-export const getFileSigners = (file: FileLike): Array<SignerSummaryRecord | SignerDetailRecord> => {
+export const getFileSigners = (file: FileLike): SignerLike[] => {
 	if (Array.isArray(file.signers) && file.signers.length > 0) {
 		return file.signers
 	}
