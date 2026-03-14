@@ -79,6 +79,14 @@ type SignDocumentVisibleElement = {
 type SignDocumentMetadata = Record<string, unknown> & {
 	extension?: string
 }
+type RawSignDocumentFile = {
+	id?: number | string
+	name?: string
+	file?: string | Record<string, unknown> | null
+	metadata?: SignDocumentMetadata
+	signers?: FileData['signers']
+	visibleElements?: SignDocumentVisibleElement[] | VisibleElement[] | null
+}
 type SignDocumentFile = FileData & {
 	id?: number
 	name?: string
@@ -97,13 +105,13 @@ type SignDocument = {
 	metadata?: SignDocumentMetadata
 	signers?: SignerDetailRecord[]
 	visibleElements?: VisibleElement[]
-	files?: SignDocumentFile[]
+	files?: RawSignDocumentFile[]
 }
 type ValidateFileResponse = operations['file-validate-uuid']['responses'][200]['content']['application/json']
 type EnvelopeFileListResponse = {
 	ocs: {
 		data: {
-			data?: SignDocumentFile[]
+			data?: RawSignDocumentFile[]
 		}
 	}
 }
@@ -168,6 +176,10 @@ function isPdfEditorRef(value: unknown): value is PdfEditorRef {
 	return typeof value === 'object' && value !== null
 }
 
+function toRecord(value: unknown): Record<string, unknown> | null {
+	return typeof value === 'object' && value !== null ? value as Record<string, unknown> : null
+}
+
 function parsePdfFetchError(value: unknown): PdfFetchError {
 	if (typeof value !== 'object' || value === null || !('errors' in value) || !Array.isArray(value.errors)) {
 		return {}
@@ -185,19 +197,23 @@ function createReadonlySignerObject(signer: SignerDetailRecord | Record<string, 
 	}
 }
 
-function normalizeVisibleElement(element: SignDocumentVisibleElement): VisibleElement | null {
-	if (typeof element.type !== 'string' || !element.coordinates || typeof element.coordinates !== 'object') {
+function normalizeVisibleElement(element: unknown): VisibleElement | null {
+	const candidate = toRecord(element)
+	if (!candidate) {
 		return null
 	}
-	const coordinates = element.coordinates
+	const coordinates = toRecord(candidate.coordinates)
+	if (typeof candidate.type !== 'string' || !coordinates) {
+		return null
+	}
 	const page = coordinates.page === undefined ? undefined : Number(coordinates.page)
 	const left = coordinates.left === undefined ? undefined : Number(coordinates.left)
 	const top = coordinates.top === undefined ? undefined : Number(coordinates.top)
 	const width = coordinates.width === undefined ? undefined : Number(coordinates.width)
 	const height = coordinates.height === undefined ? undefined : Number(coordinates.height)
-	const elementId = element.elementId === undefined ? undefined : Number(element.elementId)
-	const signRequestId = element.signRequestId === undefined ? undefined : Number(element.signRequestId)
-	const fileId = element.fileId === undefined ? undefined : Number(element.fileId)
+	const elementId = candidate.elementId === undefined ? undefined : Number(candidate.elementId)
+	const signRequestId = candidate.signRequestId === undefined ? undefined : Number(candidate.signRequestId)
+	const fileId = candidate.fileId === undefined ? undefined : Number(candidate.fileId)
 
 	if ((page !== undefined && !Number.isFinite(page))
 		|| (left !== undefined && !Number.isFinite(left))
@@ -214,7 +230,7 @@ function normalizeVisibleElement(element: SignDocumentVisibleElement): VisibleEl
 		...(elementId !== undefined ? { elementId } : {}),
 		...(signRequestId !== undefined ? { signRequestId } : {}),
 		...(fileId !== undefined ? { fileId } : {}),
-		type: element.type,
+		type: candidate.type,
 		coordinates: {
 			...(page !== undefined ? { page } : {}),
 			...(left !== undefined ? { left } : {}),
@@ -225,16 +241,17 @@ function normalizeVisibleElement(element: SignDocumentVisibleElement): VisibleEl
 	}
 }
 
-function normalizeFile(file: SignDocumentFile): SignDocumentFile {
+function normalizeFile(file: RawSignDocumentFile | SignDocumentFile): SignDocumentFile {
 	const normalizedId = typeof file.id === 'number' ? file.id : Number(file.id)
+	const { id: _ignoredId, metadata, signers, visibleElements, ...rest } = file
 	return {
-		...file,
+		...rest,
 		...(Number.isFinite(normalizedId) ? { id: normalizedId } : {}),
-		metadata: file.metadata && typeof file.metadata === 'object' ? { ...file.metadata } : undefined,
-		signers: Array.isArray(file.signers) ? file.signers : [],
-		visibleElements: Array.isArray(file.visibleElements)
-			? file.visibleElements
-				.map((element) => normalizeVisibleElement(element as SignDocumentVisibleElement))
+		metadata: metadata && typeof metadata === 'object' ? { ...metadata } : undefined,
+		signers: Array.isArray(signers) ? signers : [],
+		visibleElements: Array.isArray(visibleElements)
+			? visibleElements
+				.map(normalizeVisibleElement)
 				.filter((element): element is VisibleElement => element !== null)
 			: [],
 	}
@@ -269,7 +286,7 @@ const fileNames = ref<string[]>([])
 const envelopeFiles = ref<SignDocumentFile[]>([])
 const elementClickHandler = ref<EventListener | null>(null)
 const isMobile = typeof window !== 'undefined' && window.innerWidth <= 512
-const EMPTY_ENVELOPE_FILES: SignDocumentFile[] = []
+const EMPTY_ENVELOPE_FILES: RawSignDocumentFile[] = []
 const EMPTY_PDFS: string[] = []
 
 const pdfFileName = computed(() => {
@@ -405,39 +422,40 @@ async function loadPdfsFromStore() {
 
 async function loadEnvelopePdfs(parentFileId: number | string) {
 	try {
-		const loadedEnvelopeFiles = await getCompatMethod('fetchEnvelopeFiles')(parentFileId)
-		envelopeFiles.value = loadedEnvelopeFiles
+		const loadedEnvelopeFiles: RawSignDocumentFile[] = await getCompatMethod('fetchEnvelopeFiles')(parentFileId)
+		const normalizedEnvelopeFiles = loadedEnvelopeFiles.map(normalizeFile)
+		envelopeFiles.value = normalizedEnvelopeFiles
 		if (signStore.document) {
-			signStore.document.files = loadedEnvelopeFiles as typeof signStore.document.files
+			signStore.document.files = loadedEnvelopeFiles as unknown as typeof signStore.document.files
 		}
 
-		if (!loadedEnvelopeFiles.length) {
+		if (!normalizedEnvelopeFiles.length) {
 			signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
 			return
 		}
 
-		const fileWithMe = loadedEnvelopeFiles.find((file) => file.signers?.some(isCurrentUserSigner))
+		const fileWithMe = normalizedEnvelopeFiles.find((file) => file.signers?.some(isCurrentUserSigner))
 		if (fileWithMe) {
 			filesStore.addFile(fileWithMe)
 		}
 
-		const urls = loadedEnvelopeFiles
-			.map((file) => getFileUrl(normalizeFile(file)))
+		const urls = normalizedEnvelopeFiles
+			.map((file) => getFileUrl(file))
 			.filter((url): url is string => Boolean(url))
 		if (!urls.length) {
 			signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
 			return
 		}
 
-		fileNames.value = loadedEnvelopeFiles.map((file) => `${file.name}.${file.metadata?.extension || 'pdf'}`)
+		fileNames.value = normalizedEnvelopeFiles.map((file) => `${file.name}.${file.metadata?.extension || 'pdf'}`)
 		await getCompatMethod('handleInitialStatePdfs')(urls)
 	} catch {
 		signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
 	}
 }
 
-async function fetchEnvelopeFiles(parentFileId: number | string) {
-	const cachedEnvelopeFiles = loadState<SignDocumentFile[]>('libresign', 'envelopeFiles', EMPTY_ENVELOPE_FILES)
+async function fetchEnvelopeFiles(parentFileId: number | string): Promise<RawSignDocumentFile[]> {
+	const cachedEnvelopeFiles = loadState<RawSignDocumentFile[]>('libresign', 'envelopeFiles', EMPTY_ENVELOPE_FILES)
 	if (Array.isArray(cachedEnvelopeFiles) && cachedEnvelopeFiles.length > 0) {
 		return cachedEnvelopeFiles
 	}
