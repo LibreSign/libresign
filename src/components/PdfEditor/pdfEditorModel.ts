@@ -3,7 +3,45 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { PdfDocument, PdfEditorObject, PdfEditorSigner } from './types'
+import type { PDFElementObject } from '@libresign/pdf-elements'
+
+import type { Coordinates, VisibleElement } from '../../services/visibleElementsService'
+import type { IdentifyMethodRecord } from '../../types/index'
+
+export type PdfEditorSignerPlacement = {
+	elementId?: VisibleElement['elementId']
+	type?: VisibleElement['type']
+	signRequestId?: VisibleElement['signRequestId']
+	documentIndex?: number
+	coordinates?: Coordinates
+}
+
+export type PdfEditorSigner = {
+	signRequestId?: number | string
+	displayName?: string
+	email?: string
+	identifyMethods?: IdentifyMethodRecord[]
+	readOnly?: boolean
+	element?: PdfEditorSignerPlacement
+}
+
+export type PdfEditorObject = PDFElementObject & {
+	id: string
+	signer?: PdfEditorSigner | null
+}
+
+export type PdfPage = {
+	getViewport: (options: { scale: number }) => {
+		width: number
+		height: number
+	}
+}
+
+export type PdfDocument = {
+	numPages?: number
+	pages?: Array<Promise<PdfPage>>
+	allObjects?: PdfEditorObject[][]
+}
 
 export type PdfObjectLocation = {
 	docIndex: number
