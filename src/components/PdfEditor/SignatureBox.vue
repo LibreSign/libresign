@@ -15,13 +15,13 @@
 import { t } from '@nextcloud/l10n'
 import { usernameToColor } from '@nextcloud/vue/functions/usernameToColor'
 import { computed } from 'vue'
-import type { PdfEditorSigner } from './pdfEditorModel'
+import type { PdfEditorSignerRecord } from './pdfEditorModel'
 
 defineOptions({
 	name: 'SignatureBox',
 })
 
-type Signer = PdfEditorSigner | null
+type Signer = PdfEditorSignerRecord | null
 
 const props = withDefaults(defineProps<{
 	label?: string
