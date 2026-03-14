@@ -10,6 +10,7 @@ import RightSidebar from '../../../components/RightSidebar/RightSidebar.vue'
 
 const filesStoreMock = {
 	getFile: vi.fn(() => ({ name: 'agreement.pdf' })),
+	getSelectedFileView: vi.fn(() => ({ name: 'agreement.pdf' })),
 	getSubtitle: vi.fn(() => 'Alice, Bob'),
 }
 
@@ -68,6 +69,7 @@ vi.mock('../../../components/RightSidebar/SignTab.vue', () => ({
 describe('RightSidebar.vue', () => {
 	beforeEach(() => {
 		filesStoreMock.getFile.mockReturnValue({ name: 'agreement.pdf' })
+		filesStoreMock.getSelectedFileView.mockReturnValue({ name: 'agreement.pdf' })
 		filesStoreMock.getSubtitle.mockReturnValue('Alice, Bob')
 		sidebarStoreMock.activeTab = 'request-signature-tab'
 		sidebarStoreMock.isVisible = true
