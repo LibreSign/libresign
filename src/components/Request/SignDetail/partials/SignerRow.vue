@@ -39,20 +39,13 @@ defineOptions({
 	inheritAttrs: false,
 })
 
-type Signer = {
-	displayName?: SignerDetailRecord['displayName']
-	email?: SignerDetailRecord['email']
-	signed?: SignerDetailRecord['signed'] | string | boolean | null
-	element?: {
-		elementId?: number
-	}
-}
-
 const props = withDefaults(defineProps<{
-	signer: Signer
+	signer: SignerDetailRecord
+	elementId?: number
 	to?: Record<string, unknown>
 	event?: string
 }>(), {
+	elementId: undefined,
 	to: undefined,
 	event: '',
 })
@@ -77,9 +70,7 @@ const signDate = computed(() => (
 		: ''
 ))
 
-const element = computed(() => props.signer.element || {})
-
-const hasElement = computed(() => (element.value.elementId || 0) > 0)
+const hasElement = computed(() => (props.elementId || 0) > 0)
 
 function signerClickAction() {
 	emit(props.event, props.signer)
