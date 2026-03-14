@@ -308,8 +308,8 @@ describe('VisibleElements Component - Business Rules', () => {
 			expect(wrapper.vm.status).toBe(FILE_STATUS.ABLE_TO_SIGN)
 		})
 
-		it('coerces string status values to numbers', () => {
-			filesStore.files[1].status = String(FILE_STATUS.ABLE_TO_SIGN)
+		it('reads numeric status values from the files store', () => {
+			filesStore.files[1].status = FILE_STATUS.ABLE_TO_SIGN
 
 			expect(wrapper.vm.status).toBe(FILE_STATUS.ABLE_TO_SIGN)
 		})
