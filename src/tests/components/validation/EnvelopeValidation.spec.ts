@@ -33,11 +33,15 @@ type EnvelopeSigner = {
 }
 
 type EnvelopeDocument = {
+	uuid: string
 	name: string
-	status: string
+	nodeId: number
+	nodeType: 'envelope'
+	status: 0 | 1 | 2 | 3 | 4 | string
 	filesCount: number
 	files: EnvelopeFile[]
 	signers: EnvelopeSigner[]
+	[key: string]: unknown
 }
 
 type WrapperProps = Partial<{
@@ -122,20 +126,25 @@ describe('EnvelopeValidation', () => {
 	let wrapper: EnvelopeValidationWrapper | null
 
 	const createWrapper = (props: WrapperProps = {}): EnvelopeValidationWrapper => {
+		const { document: documentOverrides, ...restProps } = props
+		const baseDocument: EnvelopeDocument = {
+			uuid: '550e8400-e29b-41d4-a716-446655440000',
+			name: 'Test Envelope',
+			nodeId: 123,
+			nodeType: 'envelope',
+			status: '3',
+			filesCount: 2,
+			files: [],
+			signers: [],
+		}
+		const document = { ...baseDocument, ...(documentOverrides ?? {}) } as EnvelopeDocument
 		return mount(EnvelopeValidation, {
 			props: {
-				document: {
-					name: 'Test Envelope',
-					status: '3',
-					filesCount: 2,
-					files: [],
-					signers: [],
-					...props.document,
-				},
 				legalInformation: '',
 				documentValidMessage: null,
 				isAfterSigned: false,
-				...props,
+				...restProps,
+				document: document as any,
 			},
 			global: {
 				stubs: {
