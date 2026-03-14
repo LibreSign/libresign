@@ -12,6 +12,7 @@ import SignTab from '../../../components/RightSidebar/SignTab.vue'
 import { useSignStore } from '../../../store/sign.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { FILE_STATUS } from '../../../constants.js'
+import type { SignatureMethodsRecord } from '../../../types/index'
 import type { TranslationFunction } from '../../test-types'
 import type { MockedFunction } from 'vitest'
 
@@ -21,8 +22,66 @@ vi.mock('@nextcloud/initial-state', () => ({
 
 import { loadState } from '@nextcloud/initial-state'
 
+type SignDocument = {
+	id: number
+	name: string
+	description: string
+	status: number
+	statusText: string
+	url: string
+	nodeId: number
+	nodeType: 'file' | 'envelope'
+	uuid: string
+	signers: Array<{
+		me?: boolean
+		status?: number
+		sign_uuid?: string
+		signatureMethods?: SignatureMethodsRecord
+	}>
+	visibleElements: Array<Record<string, unknown>>
+	settings?: Record<string, unknown>
+	[key: string]: unknown
+}
+
+type SignTabVm = {
+	signEnabled: () => boolean
+	getSignRequestUuid: () => string | null
+	onSigned: (data: { signRequestUuid: string }) => Promise<void> | void
+	onSigningStarted: (data: { signRequestUuid: string }) => Promise<void> | void
+	showSidebar?: boolean
+	activeTab?: string
+	show?: boolean
+	canShow?: boolean
+	isVisible?: boolean
+	setActiveTab?: (id?: string | null) => void
+	hideSidebar?: () => void
+	toggleSidebar?: () => void
+	activeSignTab?: () => void
+	activeRequestSignatureTab?: () => void
+	handleRouteChange?: (routeName?: string) => void
+	signStore?: ReturnType<typeof useSignStore>
+	sidebarStore?: ReturnType<typeof useSidebarStore>
+}
+
+type SignTabWrapper = VueWrapper<SignTabVm>
+
+const createDocument = (overrides: Partial<SignDocument> = {}): SignDocument => ({
+	id: 1,
+	name: 'Contract.pdf',
+	description: 'Contract description',
+	status: FILE_STATUS.DRAFT,
+	statusText: 'Draft',
+	url: '/apps/libresign/f/1',
+	nodeId: 1,
+	nodeType: 'file',
+	uuid: 'document-uuid',
+	signers: [],
+	visibleElements: [],
+	...overrides,
+})
+
 describe('SignTab', () => {
-	let wrapper: VueWrapper<unknown> | null
+	let wrapper: SignTabWrapper | null
 	let signStore: ReturnType<typeof useSignStore>
 	let mockRouter: {
 		push: MockedFunction<(location: unknown) => Promise<unknown>>
@@ -30,7 +89,7 @@ describe('SignTab', () => {
 	}
 	let pinia: Pinia
 
-	const createWrapper = async (routePath = '/', mockPush = true) => {
+	const createWrapper = async (routePath = '/', mockPush = true): Promise<SignTabWrapper> => {
 		const t: TranslationFunction = (_app, text) => text
 		// Create a mock router that the component will use via $router
 		mockRouter = {
@@ -57,7 +116,7 @@ describe('SignTab', () => {
 					Sign: true,
 				},
 			},
-		})
+		}) as unknown as SignTabWrapper
 	}
 
 	beforeEach(() => {
@@ -73,28 +132,28 @@ describe('SignTab', () => {
 
 	describe('RULE: signEnabled checks if document status allows signing', () => {
 		it('returns true for ABLE_TO_SIGN status', async () => {
-			signStore.document = { status: FILE_STATUS.ABLE_TO_SIGN }
+			signStore.document = createDocument({ status: FILE_STATUS.ABLE_TO_SIGN })
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.signEnabled()).toBe(true)
 		})
 
 		it('returns true for PARTIAL_SIGNED status', async () => {
-			signStore.document = { status: FILE_STATUS.PARTIAL_SIGNED }
+			signStore.document = createDocument({ status: FILE_STATUS.PARTIAL_SIGNED })
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.signEnabled()).toBe(true)
 		})
 
 		it('returns false for other statuses', async () => {
-			signStore.document = { status: FILE_STATUS.SIGNED }
+			signStore.document = createDocument({ status: FILE_STATUS.SIGNED })
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.signEnabled()).toBe(false)
 		})
 
 		it('returns false for DRAFT status', async () => {
-			signStore.document = { status: FILE_STATUS.DRAFT }
+			signStore.document = createDocument({ status: FILE_STATUS.DRAFT })
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.signEnabled()).toBe(false)
@@ -103,71 +162,71 @@ describe('SignTab', () => {
 
 	describe('RULE: getSignRequestUuid uses fallback chain to find UUID', () => {
 		it('uses document signRequestUuid when available', async () => {
-			signStore.document = { signRequestUuid: 'doc-uuid' }
+			signStore.document = createDocument({ signRequestUuid: 'doc-uuid' })
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('doc-uuid')
 		})
 
 		it('falls back to sign_request_uuid', async () => {
-			signStore.document = { sign_request_uuid: 'doc-snake-uuid' }
+			signStore.document = createDocument({ sign_request_uuid: 'doc-snake-uuid' })
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('doc-snake-uuid')
 		})
 
 		it('falls back to signUuid', async () => {
-			signStore.document = { signUuid: 'sign-uuid' }
+			signStore.document = createDocument({ signUuid: 'sign-uuid' })
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('sign-uuid')
 		})
 
 		it('falls back to sign_uuid', async () => {
-			signStore.document = { sign_uuid: 'sign-snake-uuid' }
+			signStore.document = createDocument({ sign_uuid: 'sign-snake-uuid' })
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('sign-snake-uuid')
 		})
 
 		it('uses signer sign_uuid when document has none', async () => {
-			signStore.document = {
+			signStore.document = createDocument({
 				signers: [{ sign_uuid: 'signer-uuid' }],
-			}
+			})
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('signer-uuid')
 		})
 
 		it('prefers document UUID over signer UUID', async () => {
-			signStore.document = {
+			signStore.document = createDocument({
 				signRequestUuid: 'doc-uuid',
 				signers: [{ sign_uuid: 'signer-uuid' }],
-			}
+			})
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('doc-uuid')
 		})
 
 		it('uses me signer when available', async () => {
-			signStore.document = {
+			signStore.document = createDocument({
 				signers: [
 					{ sign_uuid: 'other-uuid' },
 					{ me: true, sign_uuid: 'my-uuid' },
 				],
-			}
+			})
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('my-uuid')
 		})
 
 		it('falls back to first signer when no me', async () => {
-			signStore.document = {
+			signStore.document = createDocument({
 				signers: [
 					{ sign_uuid: 'first-uuid' },
 					{ sign_uuid: 'second-uuid' },
 				],
-			}
+			})
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('first-uuid')
@@ -175,7 +234,7 @@ describe('SignTab', () => {
 
 		it('falls back to loadState when nothing else available', async () => {
 			vi.mocked(loadState).mockReturnValue('state-uuid')
-			signStore.document = {}
+			signStore.document = createDocument()
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('state-uuid')
@@ -184,7 +243,7 @@ describe('SignTab', () => {
 
 		it('returns null when all sources empty', async () => {
 			vi.mocked(loadState).mockReturnValue(null)
-			signStore.document = {}
+			signStore.document = createDocument()
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBeNull()
@@ -249,10 +308,10 @@ describe('SignTab', () => {
 
 	describe('RULE: mounted lifecycle triggers onSigningStarted for in-progress documents', () => {
 		it('calls onSigningStarted when status is SIGNING_IN_PROGRESS', async () => {
-			signStore.document = {
+			signStore.document = createDocument({
 				status: FILE_STATUS.SIGNING_IN_PROGRESS,
 				signRequestUuid: 'progress-uuid',
-			}
+			})
 			wrapper = await createWrapper('/', true)
 
 			// onSigningStarted should be called in mounted hook and push to router
@@ -264,10 +323,10 @@ describe('SignTab', () => {
 		})
 
 		it('does not call onSigningStarted for other statuses', async () => {
-			signStore.document = {
+			signStore.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signRequestUuid: 'able-uuid',
-			}
+			})
 			wrapper = await createWrapper('/', true)
 
 			// Should not push for non-SIGNING_IN_PROGRESS status
@@ -275,9 +334,9 @@ describe('SignTab', () => {
 		})
 
 		it('does not call when UUID not available', async () => {
-			signStore.document = {
+			signStore.document = createDocument({
 				status: FILE_STATUS.SIGNING_IN_PROGRESS,
-			}
+			})
 			vi.mocked(loadState).mockReturnValue(null)
 			wrapper = await createWrapper('/', true)
 

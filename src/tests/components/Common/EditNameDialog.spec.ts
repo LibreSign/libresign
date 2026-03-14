@@ -5,17 +5,54 @@
 
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import EditNameDialog from '../../../components/Common/EditNameDialog.vue'
 import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../../constants.js'
 
 describe('EditNameDialog.vue - Business Logic', () => {
 	type DialogButton = {
 		type?: string
+		variant?: string
 		disabled?: boolean
 		callback: () => void
 	}
 
-	let wrapper: ReturnType<typeof shallowMount>
+	type EditNameDialogVm = {
+		localName: string
+		localSuccessMessage: string
+		localErrorMessage: string
+		isNameValid: boolean
+		dialogButtons: DialogButton[]
+		ENVELOPE_NAME_MIN_LENGTH: number
+		ENVELOPE_NAME_MAX_LENGTH: number
+		handleSave: () => void
+		handleClose: () => void
+		showSuccess: (message: string) => void
+		showError: (message: string) => void
+		clearMessages: () => void
+		$nextTick: () => Promise<void>
+	}
+
+	type EditNameDialogWrapper = VueWrapper<any> & {
+		vm: EditNameDialogVm
+	}
+
+	let wrapper: EditNameDialogWrapper
+
+	const createWrapper = (name = 'Initial Name') => shallowMount(EditNameDialog, {
+		props: {
+			name,
+			title: 'Edit Name',
+			label: 'Name',
+			placeholder: 'Enter name',
+		},
+		stubs: {
+			NcButton: true,
+			NcDialog: true,
+			NcNoteCard: true,
+			NcTextField: true,
+		},
+	}) as EditNameDialogWrapper
 
 	const setLocalName = async (value: string) => {
 		wrapper.vm.localName = value
@@ -29,20 +66,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 	}
 
 	beforeEach(() => {
-		wrapper = shallowMount(EditNameDialog, {
-			props: {
-				name: 'Initial Name',
-				title: 'Edit Name',
-				label: 'Name',
-				placeholder: 'Enter name',
-			},
-			stubs: {
-				NcButton: true,
-				NcDialog: true,
-				NcNoteCard: true,
-				NcTextField: true,
-			},
-		})
+		wrapper = createWrapper()
 	})
 
 	describe('isNameValid computed property', () => {
@@ -88,7 +112,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 		it('disables Save button when name is invalid', async () => {
 			await setLocalName('')
 			const buttons = wrapper.vm.dialogButtons as DialogButton[]
-			const saveButton = buttons.find((btn) => btn.type === 'primary')
+			const saveButton = buttons.find((btn) => btn.variant === 'primary')
 			expect(saveButton).toBeDefined()
 			expect(saveButton!.disabled).toBe(true)
 		})
@@ -96,15 +120,14 @@ describe('EditNameDialog.vue - Business Logic', () => {
 		it('enables Save button when name is valid', async () => {
 			await setLocalName('Valid Name')
 			const buttons = wrapper.vm.dialogButtons as DialogButton[]
-			const saveButton = buttons.find((btn) => btn.type === 'primary')
+			const saveButton = buttons.find((btn) => btn.variant === 'primary')
 			expect(saveButton).toBeDefined()
 			expect(saveButton!.disabled).toBe(false)
 		})
 
 		it('has Cancel button that closes with null', () => {
 			const buttons = wrapper.vm.dialogButtons as DialogButton[]
-			// First button is Cancel (not primary)
-			const cancelButton = buttons.find((btn) => btn.type !== 'primary')
+			const cancelButton = buttons.find((btn) => btn.variant !== 'primary')
 			expect(cancelButton).toBeDefined()
 			cancelButton!.callback()
 			expect(wrapper.emitted('close')?.[0]).toEqual([null])
@@ -113,7 +136,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 		it('has Save button that emits the trimmed name when valid', async () => {
 			await setLocalName('  Valid Name  ')
 			const buttons = wrapper.vm.dialogButtons as DialogButton[]
-			const saveButton = buttons.find((btn) => btn.type === 'primary')
+			const saveButton = buttons.find((btn) => btn.variant === 'primary')
 			expect(saveButton).toBeDefined()
 			saveButton!.callback()
 			expect(wrapper.emitted('close')?.[0]).toEqual(['Valid Name'])
@@ -285,15 +308,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 
 	describe('integration scenarios', () => {
 		it('handles complete edit flow: open with name, edit, and save', async () => {
-			wrapper = shallowMount(EditNameDialog, {
-				props: { name: 'Original Name' },
-				stubs: {
-					NcButton: true,
-					NcDialog: true,
-					NcNoteCard: true,
-					NcTextField: true,
-				},
-			})
+			wrapper = createWrapper('Original Name')
 
 			expect(wrapper.vm.localName).toBe('Original Name')
 
@@ -305,15 +320,7 @@ describe('EditNameDialog.vue - Business Logic', () => {
 		})
 
 		it('handles cancel flow without changes', () => {
-			wrapper = shallowMount(EditNameDialog, {
-				props: { name: 'Original Name' },
-				stubs: {
-					NcButton: true,
-					NcDialog: true,
-					NcNoteCard: true,
-					NcTextField: true,
-				},
-			})
+			wrapper = createWrapper('Original Name')
 
 			wrapper.vm.handleClose()
 

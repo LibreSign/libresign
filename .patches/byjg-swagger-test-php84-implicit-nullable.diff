@@ -1,0 +1,132 @@
+--- a/src/AbstractRequester.php
++++ b/src/AbstractRequester.php
+@@ -126,7 +126,7 @@ abstract class AbstractRequester
+     /**
+      * @param array|null $query
+      * @return $this
+      */
+-    public function withQuery(array $query = null): self
++    public function withQuery(?array $query = null): self
+     {
+         $uri = $this->psr7Request->getUri();
+
+--- a/src/ApiTestCase.php
++++ b/src/ApiTestCase.php
+@@ -80,8 +80,8 @@ abstract class ApiTestCase extends TestCase
+         string $method,
+         string $path,
+         int $statusExpected = 200,
+         string|array|null $query = null,
+-        array|string $requestBody = null,
++        array|string|null $requestBody = null,
+         array $requestHeader = []
+     ): ResponseInterface {
+         $this->checkSchema();
+@@ -137,8 +137,8 @@ abstract class ApiTestCase extends TestCase
+
+         return $body;
+     }
+
+-    public function assertRequestException(AbstractRequester $request, string $exceptionClass, string $exceptionMessage = null, bool $matchQueryParams = true): Throwable
++    public function assertRequestException(AbstractRequester $request, string $exceptionClass, ?string $exceptionMessage = null, bool $matchQueryParams = true): Throwable
+     {
+         try {
+             $this->assertRequest($request, $matchQueryParams);
+--- a/src/Exception/BaseException.php
++++ b/src/Exception/BaseException.php
+@@ -9,7 +9,7 @@ class BaseException extends Exception
+ {
+     protected mixed $body;
+
+-    public function __construct($message = "", $body = [], $code = 0, Throwable $previous = null)
++    public function __construct($message = "", $body = [], $code = 0, ?Throwable $previous = null)
+     {
+         $this->body = $body;
+         if (!empty($body)) {
+
+--- a/src/Base/Body.php
++++ b/src/Base/Body.php
+@@ -328,6 +328,50 @@
+         return true;
+     }
+
++    protected function mergeAllOfSchemas(array $schemas): array
++    {
++        $mergedSchema = [];
++
++        foreach ($schemas as $schema) {
++            if (isset($schema['$ref'])) {
++                $schema = $this->schema->getDefinition($schema['$ref']);
++            }
++
++            $mergedSchema = $this->mergeSchemaDefinitions($mergedSchema, $schema);
++        }
++
++        return $mergedSchema;
++    }
++
++    protected function mergeSchemaDefinitions(array $base, array $append): array
++    {
++        foreach ($append as $key => $value) {
++            if (!array_key_exists($key, $base)) {
++                $base[$key] = $value;
++                continue;
++            }
++
++            if (($key === self::SWAGGER_REQUIRED || $key === 'enum') && is_array($base[$key]) && is_array($value)) {
++                $base[$key] = array_values(array_unique(array_merge($base[$key], $value), SORT_REGULAR));
++                continue;
++            }
++
++            if (is_array($base[$key]) && is_array($value) && $this->isAssociativeArray($base[$key]) && $this->isAssociativeArray($value)) {
++                $base[$key] = $this->mergeSchemaDefinitions($base[$key], $value);
++                continue;
++            }
++
++            $base[$key] = $value;
++        }
++
++        return $base;
++    }
++
++    protected function isAssociativeArray(array $value): bool
++    {
++        return array_keys($value) !== range(0, count($value) - 1);
++    }
++
+     /**
+      * @param string $name
+      * @param array $schemaArray
+@@ -362,27 +406,21 @@
+         }
+
+         if (isset($schemaArray['allOf'])) {
+-            $allOfSchemas = $schemaArray['allOf'];
+-            foreach ($allOfSchemas as &$schema) {
+-                if (isset($schema['$ref'])) {
+-                    $schema = $this->schema->getDefinition($schema['$ref']);
+-                }
+-            }
+-            unset($schema);
+-            $mergedSchema = array_merge_recursive(...$allOfSchemas);
+-            return $this->matchSchema($name, $mergedSchema, $body);
++            return $this->matchSchema($name, $this->mergeAllOfSchemas($schemaArray['allOf']), $body);
+         }
+
+-        if (isset($schemaArray['oneOf'])) {
++        if (isset($schemaArray['oneOf']) || isset($schemaArray['anyOf'])) {
++            $schemas = $schemaArray['oneOf'] ?? $schemaArray['anyOf'];
+             $matched = false;
+             $catchException = null;
+-            foreach ($schemaArray['oneOf'] as $schema) {
++            foreach ($schemas as $schema) {
+                 try {
+                     $matched = $matched || $this->matchSchema($name, $schema, $body);
+                 } catch (NotMatchedException $exception) {
+                     $catchException = $exception;
+                 }
+             }
++
+             if ($catchException !== null && $matched === false) {
+                 throw $catchException;
+             }

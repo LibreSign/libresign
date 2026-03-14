@@ -62,8 +62,9 @@ describe('PreviewSignature.vue', () => {
 	})
 
 	it('loads a binary image through axios and emits success', async () => {
+		const binaryImage = Uint8Array.from([1, 2, 3]).buffer
 		axiosMock.mockResolvedValue({
-			data: Uint8Array.from([1, 2, 3]),
+			data: binaryImage,
 			headers: { 'content-type': 'image/png' },
 		})
 		const wrapper = createWrapper({ src: '/signature.png', signRequestUuid: 'uuid-123' })
@@ -78,7 +79,7 @@ describe('PreviewSignature.vue', () => {
 				'libresign-sign-request-uuid': 'uuid-123',
 			},
 		})
-		expect(wrapper.vm.imageData.startsWith('data:image/png;base64,')).toBe(true)
+		expect(wrapper.vm.imageData).toBe('data:image/png;base64,AQID')
 		expect(wrapper.emitted('loaded')).toEqual([[true], [true]])
 	})
 
@@ -95,7 +96,7 @@ describe('PreviewSignature.vue', () => {
 
 	it('reloads the image when src changes', async () => {
 		axiosMock.mockResolvedValue({
-			data: Uint8Array.from([1, 2, 3]),
+			data: Uint8Array.from([1, 2, 3]).buffer,
 			headers: { 'content-type': 'image/png' },
 		})
 		const wrapper = createWrapper({ src: '/first.png' })

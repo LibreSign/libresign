@@ -11,6 +11,7 @@ import { emit } from '@nextcloud/event-bus'
 import { generateOCSResponse } from '../test-helpers'
 
 type AxiosMock = Mock & {
+	get: Mock
 	post: Mock
 	delete: Mock
 	patch: Mock
@@ -21,13 +22,23 @@ type TranslationParams = {
 	date?: string
 }
 
-type GlobalT = (app: string, msg: string, params?: TranslationParams) => string
-
 type Signer = {
 	email: string
 	identify?: string | number
+	localKey?: string
 	signRequestId?: number
 }
+
+vi.mock('@nextcloud/l10n', () => ({
+	t: vi.fn((_app: string, msg: string, params?: TranslationParams) => {
+		if (!params) {
+			return msg
+		}
+		const name = params.name ?? ''
+		const date = params.date ?? ''
+		return msg.replace('{name}', name).replace('{date}', date)
+	}),
+}))
 
 // Mock @nextcloud/logger to avoid import-time errors
 vi.mock('@nextcloud/logger', () => ({
@@ -51,6 +62,7 @@ vi.mock('@nextcloud/logger', () => ({
 
 vi.mock('@nextcloud/axios', () => {
 	const axiosInstanceMock = Object.assign(vi.fn(), {
+		get: vi.fn(),
 		post: vi.fn(),
 		delete: vi.fn(),
 		patch: vi.fn(),
@@ -139,15 +151,7 @@ describe('files store - critical business rules', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
 		vi.clearAllMocks()
-		const tMock: GlobalT = (app, msg, params) => {
-			if (!params) {
-				return msg
-			}
-			const name = params.name ?? ''
-			const date = params.date ?? ''
-			return msg.replace('{name}', name).replace('{date}', date)
-		}
-		;(globalThis as typeof globalThis & { t: GlobalT }).t = vi.fn(tMock)
+		axiosMock.get.mockResolvedValue(generateOCSResponse({ payload: null }))
 	})
 
 	describe('RULE: removing selected file clears selection', () => {
@@ -368,6 +372,7 @@ describe('files store - critical business rules', () => {
 			store.canRequestSign = true
 			store.files[1] = {
 				id: 1,
+				status: 2,
 				signers: [
 					{ signed: ['signature'] },
 					{ signed: [] },
@@ -480,6 +485,7 @@ describe('files store - critical business rules', () => {
 			store.canRequestSign = true
 			store.files[1] = {
 				id: 1,
+				status: 2,
 				signers: [
 					{ signed: ['sig'] },
 					{ signed: [] },
@@ -560,19 +566,19 @@ describe('files store - critical business rules', () => {
 				id: 1,
 				signatureFlow: 'ordered_numeric',
 				signers: [
-					{ identify: 'id1', signingOrder: 1 },
-					{ identify: 'id2', signingOrder: 2 },
-					{ identify: 'id3', signingOrder: 3 },
+					{ localKey: 'draft-1', signingOrder: 1 },
+					{ localKey: 'draft-2', signingOrder: 2 },
+					{ localKey: 'draft-3', signingOrder: 3 },
 				],
 			}
 
 			axiosMock.delete.mockResolvedValue({})
 
-			await store.deleteSigner({ identify: 'id2', signingOrder: 2 })
+			await store.deleteSigner({ localKey: 'draft-2', signingOrder: 2 })
 
-			const remainingSigners: Array<{ identify: string; signingOrder: number }> = store.files[1].signers
+			const remainingSigners = store.files[1].signers! as Array<{ localKey: string; signingOrder: number }>
 			expect(remainingSigners).toHaveLength(2)
-			const signer = remainingSigners.find((s: { identify: string }) => s.identify === 'id3')
+			const signer = remainingSigners.find((s: { localKey: string }) => s.localKey === 'draft-3')
 			expect(signer?.signingOrder).toBe(2)
 		})
 
@@ -584,14 +590,14 @@ describe('files store - critical business rules', () => {
 					signatureFlow: 'none',
 					signersCount: 2,
 					signers: [
-						{ identify: 'id1' },
-						{ identify: 'id2' },
+						{ localKey: 'draft-1' },
+						{ localKey: 'draft-2' },
 					],
 				}
 
 				axiosMock.delete.mockResolvedValue({})
 
-				await store.deleteSigner({ identify: 'id2' })
+				await store.deleteSigner({ localKey: 'draft-2' })
 
 				expect(store.files[1].signers).toHaveLength(1)
 				expect(store.files[1].signersCount).toBe(1)
@@ -604,15 +610,15 @@ describe('files store - critical business rules', () => {
 				id: 1,
 				signatureFlow: 'ordered_numeric',
 				signers: [
-					{ identify: 'id1', signingOrder: 1 },
-					{ identify: 'id2', signingOrder: 2 },
+					{ localKey: 'draft-1', signingOrder: 1 },
+					{ localKey: 'draft-2', signingOrder: 2 },
 				],
 			}
 
 			const newSigner = { email: 'new@example.com' }
 			store.signerUpdate(newSigner)
 
-			const addedSigner = store.files[1].signers.find((s: { email: string }) => s.email === 'new@example.com')
+			const addedSigner = store.files[1].signers!.find((s) => s.email === 'new@example.com')
 			expect(addedSigner?.signingOrder).toBe(3)
 		})
 
@@ -622,21 +628,21 @@ describe('files store - critical business rules', () => {
 			store.files[1] = {
 				id: 1,
 				signers: [
-					{ email: 'test@example.com', signRequestId: 123, identify: 123 },
+					{ email: 'test@example.com', signRequestId: 123, localKey: 'signer:123' },
 				],
 			}
 
 			const updatedSigner = {
 				email: 'updated@example.com',
 				signRequestId: 123,
-				identify: 123,
-				extraField: 'new',
+				localKey: 'signer:123',
+				description: 'new',
 			}
 			store.signerUpdate(updatedSigner)
 
 			expect(store.files[1].signers).toHaveLength(1)
-			expect(store.files[1].signers[0].email).toBe('updated@example.com')
-			expect(store.files[1].signers[0].extraField).toBe('new')
+			expect(store.files[1].signers![0]!.email).toBe('updated@example.com')
+			expect(store.files[1].signers![0]!.description).toBe('new')
 		})
 	})
 
@@ -796,53 +802,53 @@ describe('files store - critical business rules', () => {
 		})
 	})
 
-	describe('RULE: adding unique identifiers to signers', () => {
-		it('generates unique identifier for new signer', () => {
+	describe('RULE: adding local signer keys', () => {
+		it('generates localKey for new signer', () => {
 			const store = useFilesStore()
 			const signer: Signer = { email: 'test@example.com' }
 
-			store.addIdentifierToSigner(signer)
+			store.addLocalKeyToSigner(signer)
 
-			expect(signer.identify).toBeDefined()
-			expect(typeof signer.identify).toBe('string')
+			expect(signer.localKey).toBeDefined()
+			expect(typeof signer.localKey).toBe('string')
 		})
 
-		it('uses signRequestId as identifier when available', () => {
+		it('uses signRequestId to build localKey when available', () => {
 			const store = useFilesStore()
 			const signer: Signer = { email: 'test@example.com', signRequestId: 456 }
 
-			store.addIdentifierToSigner(signer)
+			store.addLocalKeyToSigner(signer)
 
-			expect(signer.identify).toBe(456)
+			expect(signer.localKey).toBe('signer:456')
 		})
 
-		it('preserves existing identifier', () => {
+		it('preserves existing localKey', () => {
 			const store = useFilesStore()
-			const signer: Signer = { email: 'test@example.com', identify: 'existing-id' }
+			const signer: Signer = { email: 'test@example.com', localKey: 'existing-key' }
 
-			store.addIdentifierToSigner(signer)
+			store.addLocalKeyToSigner(signer)
 
-			expect(signer.identify).toBe('existing-id')
+			expect(signer.localKey).toBe('existing-key')
 		})
 	})
 
-	describe('RULE: addFile sets identify on all signers (contract used by Signers.vue :key)', () => {
-		it('sets identify from signRequestId when present', async () => {
+	describe('RULE: addFile sets localKey on all signers', () => {
+		it('sets localKey from signRequestId when present', async () => {
 			const store = useFilesStore()
 			await store.addFile({ id: 1, signers: [{ email: 'a@example.com', signRequestId: 42 }] })
 
-			expect(store.files[1].signers[0].identify).toBe(42)
+			expect(store.files[1].signers![0]!.localKey).toBe('signer:42')
 		})
 
-		it('generates identify for new signers without signRequestId', async () => {
+		it('generates localKey for new signers without signRequestId', async () => {
 			const store = useFilesStore()
 			await store.addFile({ id: 1, signers: [{ email: 'b@example.com' }] })
 
-			expect(store.files[1].signers[0].identify).toBeDefined()
-			expect(typeof store.files[1].signers[0].identify).toBe('string')
+			expect(store.files[1].signers![0]!.localKey).toBeDefined()
+			expect(typeof store.files[1].signers![0]!.localKey).toBe('string')
 		})
 
-		it('sets identify on every signer in a multi-signer file', async () => {
+		it('sets localKey on every signer in a multi-signer file', async () => {
 			const store = useFilesStore()
 			await store.addFile({
 				id: 2,
@@ -853,12 +859,12 @@ describe('files store - critical business rules', () => {
 				],
 			})
 
-			const signers = store.files[2].signers
+			const signers = store.files[2].signers!
 			for (const signer of signers) {
-				expect(signer.identify).toBeDefined()
+				expect(signer.localKey).toBeDefined()
 			}
-			expect(signers[0].identify).toBe(10)
-			expect(signers[2].identify).toBe(20)
+			expect(signers[0].localKey).toBe('signer:10')
+			expect(signers[2].localKey).toBe('signer:20')
 		})
 	})
 
@@ -952,13 +958,14 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 10
 			store.files[10] = { id: 10, name: 'old' }
 			const addFileSpy = vi.spyOn(store, 'addFile')
-			vi.spyOn(store, 'getAllFiles').mockResolvedValue({
-				10: { id: 10, name: 'new', signers: [] },
-			})
+				axiosMock.get.mockResolvedValue(generateOCSResponse({
+					payload: { id: 10, name: 'new', signers: [] },
+				}))
 
 			await store.flushSelectedFile()
 
-			expect(addFileSpy).toHaveBeenCalledWith({ id: 10, name: 'new', signers: [] })
+				expect(axiosMock.get).toHaveBeenCalledOnce()
+				expect(addFileSpy).toHaveBeenCalledWith({ id: 10, name: 'new', signers: [] }, { detailsLoaded: true })
 		})
 	})
 
@@ -1082,8 +1089,41 @@ describe('files store - critical business rules', () => {
 
 			await store.saveOrUpdateSignatureRequest()
 
-			expect(store.files[1].signers[0].signingOrder).toBe(1)
-			expect(store.files[1].signers[1].signingOrder).toBe(2)
+			expect(store.files[1].signers![0]!.signingOrder).toBe(1)
+			expect(store.files[1].signers![1]!.signingOrder).toBe(2)
+		})
+
+		it('preserves detailed selected file state after updating request signature', async () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				uuid: 'file-uuid',
+				name: 'contract.pdf',
+				detailsLoaded: true,
+				signatureFlow: 'parallel',
+				settings: { path: '/files/contract.pdf' },
+				visibleElements: [{ id: 77 }],
+				signers: [{ identify: 'signer01@libresign.coop', signRequestId: 10 }],
+			}
+			axiosMock.mockResolvedValue({
+				data: {
+					ocs: {
+						data: {
+							id: 1,
+							uuid: 'file-uuid',
+							signatureFlow: 'parallel',
+							signers: [{ identify: 'signer01@libresign.coop', signRequestId: 10 }],
+						},
+					},
+				},
+			})
+
+			await store.saveOrUpdateSignatureRequest({ status: 1 })
+
+			expect(store.files[1].detailsLoaded).toBe(true)
+			expect(store.files[1].settings).toEqual({ path: '/files/contract.pdf' })
+			expect(store.files[1].visibleElements).toEqual([{ id: 77 }])
 		})
 
 		it('replaces envelope nodeId when server returns new id', async () => {
@@ -1178,7 +1218,7 @@ describe('files store - critical business rules', () => {
 				const store = useFilesStore()
 				store.selectedFileId = 0  // nothing selected
 
-				const signer = { email: 'a@example.com', identify: 'a@example.com' }
+				const signer = { email: 'a@example.com', localKey: 'draft-signer:test' }
 				// If emptyFile were mutated, the signerUpdate below would persist
 				// across store instances and corrupt subsequent tests.
 				store.signerUpdate(signer)
@@ -1188,6 +1228,37 @@ describe('files store - critical business rules', () => {
 				store2.selectedFileId = 0
 				const file2 = store2.getFile()
 				expect(file2.signers).toHaveLength(0)
+			})
+
+			it('returns a typed selected file view only for loaded files', () => {
+				const store = useFilesStore()
+				store.files[7] = {
+					id: 7,
+					nodeId: 12345,
+					name: 'test.pdf',
+					status: 3,
+					statusText: 'Signed',
+				}
+				store.selectedFileId = 7
+
+				expect(store.getSelectedFileView()).toEqual({
+					id: 7,
+					nodeId: 12345,
+					name: 'test.pdf',
+					status: 3,
+					statusText: 'Signed',
+				})
+			})
+
+			it('returns null when the selected draft is missing view fields', () => {
+				const store = useFilesStore()
+				store.files[7] = {
+					id: 7,
+					signers: [],
+				}
+				store.selectedFileId = 7
+
+				expect(store.getSelectedFileView()).toBeNull()
 			})
 		})
 	})

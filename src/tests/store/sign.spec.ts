@@ -8,6 +8,24 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useSignStore } from '../../store/sign.js'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
 
+type SignStore = ReturnType<typeof useSignStore>
+type SignDocument = NonNullable<SignStore['document']>
+
+const createDocument = (overrides: Partial<SignDocument> = {}): SignDocument => ({
+	id: 1,
+	name: 'test.pdf',
+	description: '',
+	status: FILE_STATUS.DRAFT,
+	statusText: 'Draft',
+	url: '/apps/libresign/f/1',
+	nodeId: 1,
+	nodeType: 'file',
+	uuid: 'uuid-1',
+	signers: [],
+	visibleElements: [],
+	...overrides,
+})
+
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path, params) => {
 		let url = `/ocs/v2.php/apps/libresign${path}`
@@ -108,46 +126,46 @@ describe('useSignStore', () => {
 	describe('ableToSign getter', () => {
 		it('returns false when document status is not ABLE_TO_SIGN or PARTIAL_SIGNED', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				status: FILE_STATUS.DRAFT,
 				signers: [{ me: true, status: 1 }],
-			}
+			})
 			expect(store.ableToSign).toBe(false)
 		})
 
 		it('returns false when there is no signer with me: true', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [{ me: false, status: 1 }],
-			}
+			})
 			expect(store.ableToSign).toBe(false)
 		})
 
 		it('returns false when signer status is not ABLE_TO_SIGN (status 1)', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [{ me: true, status: 0 }],
-			}
+			})
 			expect(store.ableToSign).toBe(false)
 		})
 
 		it('returns true when document status is ABLE_TO_SIGN and signer can sign', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [{ me: true, status: 1 }],
-			}
+			})
 			expect(store.ableToSign).toBe(true)
 		})
 
 		it('returns true when document status is PARTIAL_SIGNED and signer can sign', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				status: FILE_STATUS.PARTIAL_SIGNED,
 				signers: [{ me: true, status: 1 }],
-			}
+			})
 			expect(store.ableToSign).toBe(true)
 		})
 
@@ -159,34 +177,36 @@ describe('useSignStore', () => {
 
 		it('returns false when signers array is empty', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [],
-			}
+			})
 			expect(store.ableToSign).toBe(false)
 		})
 
 		it('returns true for approver without signer', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [],
 				settings: { isApprover: true },
-			}
+			})
 			expect(store.ableToSign).toBe(true)
 		})
 
 		it('returns false for approver when identification document is pending', async () => {
 			const { useIdentificationDocumentStore } = await import('../../store/identificationDocument.js')
-			const identificationDocumentStore = useIdentificationDocumentStore()
+			const identificationDocumentStore = useIdentificationDocumentStore() as unknown as {
+				isDocumentPending: ReturnType<typeof vi.fn<() => boolean>>
+			}
 			identificationDocumentStore.isDocumentPending.mockReturnValue(true)
 
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [],
 				settings: { isApprover: true },
-			}
+			})
 			expect(store.ableToSign).toBe(false)
 
 			identificationDocumentStore.isDocumentPending.mockReturnValue(false)
@@ -194,11 +214,11 @@ describe('useSignStore', () => {
 
 		it('returns false for approver when document status is DRAFT', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				status: FILE_STATUS.DRAFT,
 				signers: [],
 				settings: { isApprover: true },
-			}
+			})
 			expect(store.ableToSign).toBe(false)
 		})
 	})
@@ -257,19 +277,32 @@ describe('useSignStore', () => {
 
 		it('appends idDocApproval param when user is approver', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
+				uuid: 'approver-file-uuid',
 				settings: { isApprover: true },
-			}
-			const url = store.buildSignUrl('some-uuid', { documentId: 1 })
+			})
+			const url = store.buildSignUrl('approver-file-uuid', { documentId: 1 })
 
 			expect(url).toContain('&idDocApproval=true')
 		})
 
+		it('does not append idDocApproval param for approver signing as regular signer', () => {
+			const store = useSignStore()
+			store.document = createDocument({
+				uuid: 'file-uuid',
+				settings: { isApprover: true },
+			})
+			const url = store.buildSignUrl('sign-request-uuid', { documentId: 1 })
+
+			expect(url).toContain('/sign/uuid/sign-request-uuid')
+			expect(url).not.toContain('idDocApproval')
+		})
+
 		it('does not append idDocApproval param when user is not approver', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				settings: { isApprover: false },
-			}
+			})
 			const url = store.buildSignUrl('some-uuid', { documentId: 1 })
 
 			expect(url).not.toContain('idDocApproval')
@@ -378,29 +411,19 @@ describe('useSignStore', () => {
 			const store = useSignStore()
 			store.errors = [{ code: 'TEST_ERROR', message: 'Test' }]
 
-			store.setFileToSign({
-				id: 1,
-				name: 'test.pdf',
-				signers: [],
-				signatureMethods: {},
-			})
+			store.setFileToSign(createDocument({ signatureMethods: {} }))
 
 			expect(store.errors).toEqual([])
 		})
 
 		it('updates document reference', () => {
 			const store = useSignStore()
-			const file = {
-				id: 1,
-				name: 'test.pdf',
-				signers: [],
-				signatureMethods: {},
-			}
+			const file = createDocument({ signatureMethods: {} })
 
 			store.setFileToSign(file)
 
-			expect(store.document.id).toBe(1)
-			expect(store.document.name).toBe('test.pdf')
+			expect(store.document!.id).toBe(1)
+			expect(store.document!.name).toBe('test.pdf')
 		})
 
 		it('extracts signer methods for current user', async () => {
@@ -408,22 +431,43 @@ describe('useSignStore', () => {
 			const signMethodsStore = useSignMethodsStore()
 			const store = useSignStore()
 
-			const file = {
-				id: 1,
+			const file = createDocument({
 				signers: [{
 					me: true,
 					signatureMethods: {
-						emailToken: { needCode: true },
-						password: { hasSignatureFile: false },
+						emailToken: {
+							label: '',
+							identifyMethod: 'email',
+							needCode: true,
+							hasConfirmCode: false,
+							blurredEmail: '',
+							hashOfEmail: '',
+						},
+						password: {
+							label: '',
+							name: 'password',
+							hasSignatureFile: false,
+						},
 					},
 				}],
-			}
+			})
 
 			store.setFileToSign(file)
 
 			expect(signMethodsStore.settings).toEqual({
-				emailToken: { needCode: true },
-				password: { hasSignatureFile: false },
+				emailToken: {
+					label: '',
+					identifyMethod: 'email',
+					needCode: true,
+					hasConfirmCode: false,
+					blurredEmail: '',
+					hashOfEmail: '',
+				},
+				password: {
+					label: '',
+					name: 'password',
+					hasSignatureFile: false,
+				},
 			})
 		})
 
@@ -432,11 +476,7 @@ describe('useSignStore', () => {
 			const sidebarStore = useSidebarStore()
 			const store = useSignStore()
 
-			store.setFileToSign({
-				id: 1,
-				signers: [],
-				signatureMethods: {},
-			})
+			store.setFileToSign(createDocument({ signatureMethods: {} }))
 
 			expect(sidebarStore.activeSignTab).toHaveBeenCalled()
 		})
@@ -444,13 +484,9 @@ describe('useSignStore', () => {
 		it('handles file with no signer methods', () => {
 			const store = useSignStore()
 
-			store.setFileToSign({
-				id: 1,
-				name: 'test.pdf',
-				signers: [],
-			})
+			store.setFileToSign(createDocument())
 
-			expect(store.document.id).toBe(1)
+			expect(store.document!.id).toBe(1)
 		})
 
 		it('calls reset when file is null', () => {
@@ -475,11 +511,11 @@ describe('useSignStore', () => {
 	describe('reset', () => {
 		it('resets document to default state', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				id: 999,
 				name: 'some-file.pdf',
 				signers: [{ me: true }],
-			}
+			})
 
 			store.reset()
 
@@ -509,7 +545,7 @@ describe('useSignStore', () => {
 
 		it('restores all document fields to defaults', () => {
 			const store = useSignStore()
-			store.document = {
+			store.document = createDocument({
 				id: 1,
 				name: 'file.pdf',
 				description: 'desc',
@@ -520,8 +556,8 @@ describe('useSignStore', () => {
 				nodeType: 'file',
 				uuid: 'uuid-123',
 				signers: [{ me: true }],
-				visibleElements: [{ id: 1 }],
-			}
+				visibleElements: [{ elementId: 1 }],
+			})
 
 			store.reset()
 
@@ -650,8 +686,8 @@ describe('useSignStore', () => {
 
 			// Note: errors are cleared by setFileToSign() called within initFromState()
 			expect(store.errors).toHaveLength(0)
-			expect(store.document.id).toBe(100)
-			expect(store.document.name).toBe('test.pdf')
+			expect(store.document!.id).toBe(100)
+			expect(store.document!.name).toBe('test.pdf')
 		})
 
 		it('adds file to files store', async () => {

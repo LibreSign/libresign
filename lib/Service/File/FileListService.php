@@ -29,11 +29,13 @@ use OCP\IUserManager;
 
 /**
  * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
- * @psalm-import-type LibresignFileDetail from ResponseDefinitions
+ * @psalm-import-type LibresignFileSummary from ResponseDefinitions
+ * @psalm-import-type LibresignDetailedFile from ResponseDefinitions
+ * @psalm-import-type LibresignDetailedFileResponse from ResponseDefinitions
  * @psalm-import-type LibresignFileListItem from ResponseDefinitions
- * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
  * @psalm-import-type LibresignPagination from ResponseDefinitions
- * @psalm-import-type LibresignSigner from ResponseDefinitions
+ * @psalm-import-type LibresignSignerDetail from ResponseDefinitions
+ * @psalm-import-type LibresignSignerSummary from ResponseDefinitions
  */
 class FileListService {
 	public function __construct(
@@ -49,7 +51,7 @@ class FileListService {
 	}
 
 	/**
-	 * @return array{data: list<LibresignFileDetail>, pagination: LibresignPagination}
+	 * @return array{data: list<LibresignFileSummary|LibresignDetailedFile>, pagination: LibresignPagination}
 	 */
 	public function listAssociatedFilesOfSignFlow(
 		IUser $user,
@@ -57,6 +59,7 @@ class FileListService {
 		$length = null,
 		array $filter = [],
 		array $sort = [],
+		bool $details = false,
 	): array {
 		$page ??= 1;
 		$length ??= (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
@@ -71,14 +74,38 @@ class FileListService {
 
 		$signers = $this->signRequestMapper->getByMultipleFileId(array_map(fn (File $file) => $file->getId(), $return['data']));
 		$identifyMethods = $this->signRequestMapper->getIdentifyMethodsFromSigners($signers);
-		$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($signers);
-		$return['data'] = $this->associateAllAndFormat($user, $return['data'], $signers, $identifyMethods, $visibleElements);
+		if ($details) {
+			$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($signers);
+			$return['data'] = $this->associateAllAndFormat($user, $return['data'], $signers, $identifyMethods, $visibleElements);
+		} else {
+			$return['data'] = $this->associateAllAndFormatSummary($user, $return['data'], $signers, $identifyMethods);
+		}
 
 		$return['pagination']->setRouteName('ocs.libresign.File.list');
 		return [
 			'data' => $return['data'],
 			'pagination' => $return['pagination']->getPagination($page, $length, $filter),
 		];
+	}
+
+	/**
+	 * @param File[] $files
+	 * @param SignRequest[] $signers
+	 * @param array<int, array<string, Entity&IdentifyMethod>> $identifyMethods
+	 * @return list<LibresignFileSummary>
+	 */
+	private function associateAllAndFormatSummary(
+		IUser $user,
+		array $files,
+		array $signers,
+		array $identifyMethods,
+	): array {
+		$formattedFiles = [];
+		foreach ($files as $file) {
+			$fileSigners = array_filter($signers, fn ($signer) => $signer->getFileId() === $file->getId());
+			$formattedFiles[] = $this->formatSingleFileSummary($file, $fileSigners, $identifyMethods, $user);
+		}
+		return $formattedFiles;
 	}
 
 	public function formatSingleFile(IUser $user, File $file): array {
@@ -165,7 +192,7 @@ class FileListService {
 	 * @param SignRequest[] $signers
 	 * @param array<int, array<string, Entity&IdentifyMethod>> $identifyMethods
 	 * @param array<int, FileElement[]> $visibleElements
-	 * @return list<LibresignFileDetail>
+	 * @return list<LibresignDetailedFile>
 	 */
 	private function associateAllAndFormat(
 		IUser $user,
@@ -191,7 +218,7 @@ class FileListService {
 	 * @param array<int, array<string, Entity&IdentifyMethod>> $identifyMethods
 	 * @param array<int, FileElement[]> $visibleElements
 	 * @param IUser|null $user
-	 * @return LibresignFileDetail
+	 * @return LibresignDetailedFile
 	 */
 	private function formatSingleFileData(
 		File $fileEntity,
@@ -277,8 +304,73 @@ class FileListService {
 		}
 
 		ksort($file);
-		/** @var LibresignFileDetail */
+		/** @var LibresignDetailedFile */
 		return $file;
+	}
+
+	/**
+	 * @param SignRequest[] $signers
+	 * @param array<int, array<string, Entity&IdentifyMethod>> $identifyMethods
+	 * @return LibresignFileSummary
+	 */
+	private function formatSingleFileSummary(
+		File $fileEntity,
+		array $signers,
+		array $identifyMethods,
+		IUser $user,
+	): array {
+		$metadata = $fileEntity->getMetadata() ?? [];
+		$nodeType = $fileEntity->getNodeType();
+		$filesCount = $nodeType === 'envelope'
+			? max(0, (int)($metadata['filesCount'] ?? 0))
+			: 1;
+
+		$mySigners = array_values(array_filter($signers, fn (SignRequest $signer)
+			=> $this->isCurrentUserSigner($identifyMethods[$signer->getId()] ?? [], $user),
+		));
+		$pendingSigners = array_values(array_filter($signers, fn (SignRequest $signer) => $signer->getSigned() === null));
+		$isOrderedNumeric = SignatureFlow::fromNumeric($fileEntity->getSignatureFlow())->value === SignatureFlow::ORDERED_NUMERIC->value;
+		$minOrder = empty($pendingSigners)
+			? null
+			: min(array_map(fn (SignRequest $signer) => $signer->getSigningOrder() ?: 1, $pendingSigners));
+
+		$canSign = $fileEntity->getStatus() > 0
+			&& !empty($mySigners)
+			&& !empty($pendingSigners)
+			&& !array_filter($mySigners, fn (SignRequest $signer) => $signer->getSigned() !== null)
+			&& (!$isOrderedNumeric || array_filter($mySigners, fn (SignRequest $signer) => ($signer->getSigningOrder() ?: 1) === $minOrder));
+
+		$signUuid = null;
+		foreach ($mySigners as $signer) {
+			if ($signer->getUuid() !== '') {
+				$signUuid = $signer->getUuid();
+				break;
+			}
+		}
+
+		/** @var LibresignFileSummary */
+		return [
+			'id' => $fileEntity->getId(),
+			'nodeId' => $fileEntity->getNodeId(),
+			'uuid' => $fileEntity->getUuid(),
+			'name' => $fileEntity->getName(),
+			'status' => $fileEntity->getStatus(),
+			'statusText' => $this->fileMapper->getTextOfStatus($fileEntity->getStatus()),
+			'nodeType' => $nodeType,
+			'created_at' => $fileEntity->getCreatedAt()->setTimezone(new \DateTimeZone('UTC'))->format(DateTimeInterface::ATOM),
+			'signUuid' => $signUuid,
+			'metadata' => $metadata,
+			'docmdpLevel' => $fileEntity->getDocmdpLevel(),
+			'signatureFlow' => SignatureFlow::fromNumeric($fileEntity->getSignatureFlow())->value,
+			'signersCount' => count($signers),
+			'signers' => [],
+			'requested_by' => [
+				'userId' => $fileEntity->getUserId(),
+				'displayName' => $this->userManager->get($fileEntity->getUserId())?->getDisplayName(),
+			],
+			'filesCount' => $filesCount,
+			'canSign' => $canSign,
+		];
 	}
 
 	/**
@@ -289,7 +381,7 @@ class FileListService {
 	 * @param array<int, FileElement[]> $visibleElements
 	 * @param array $metadata
 	 * @param IUser $user
-	 * @return LibresignSigner
+	 * @return LibresignSignerDetail
 	 */
 	private function formatSignerData(
 		SignRequest $signer,
@@ -315,7 +407,7 @@ class FileListService {
 				return $carry;
 			}, false);
 		}
-		/** @var LibresignSigner */
+		/** @var LibresignSignerDetail */
 		$data = [
 			'email' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
 				if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
@@ -397,7 +489,7 @@ class FileListService {
 	): array {
 		$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
 		$resolvedDisplayName = $this->resolveSignerDisplayName($signer, $identifyMethodsOfSigner);
-		/** @var LibresignSigner */
+		/** @var LibresignSignerDetail */
 		$data = [
 			'email' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
 				if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
@@ -481,12 +573,27 @@ class FileListService {
 	}
 
 	/**
+	 * @param array<int|string, IdentifyMethod> $identifyMethodsOfSigner
+	 */
+	private function isCurrentUserSigner(array $identifyMethodsOfSigner, IUser $user): bool {
+		return array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
+			if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
+				return $user->getUID() === $identifyMethod->getIdentifierValue();
+			}
+			if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL && $user->getEMailAddress()) {
+				return $user->getEMailAddress() === $identifyMethod->getIdentifierValue();
+			}
+			return $carry;
+		}, false);
+	}
+
+	/**
 	 * Format file response with child files for envelopes.
 	 * Used by controllers to format main entity with its children.
 	 *
 	 * @param File $mainEntity
 	 * @param File[] $childFiles
-	 * @return LibresignNextcloudFile Complete formatted response with metadata, signers, and child files
+	 * @return LibresignDetailedFileResponse Complete formatted response with metadata, signers, and child files
 	 * @psalm-suppress MoreSpecificReturnType
 	 */
 	/**
@@ -495,7 +602,7 @@ class FileListService {
 	 * @param File $mainEntity
 	 * @param File[] $childFiles
 	 * @param IUser|null $user Optional user for formatting signers
-	 * @return LibresignNextcloudFile
+	 * @return LibresignDetailedFileResponse
 	 * @psalm-suppress MoreSpecificReturnType
 	 */
 	public function formatFileWithChildren(File $mainEntity, array $childFiles, ?IUser $user = null): array {
@@ -529,7 +636,7 @@ class FileListService {
 		$filesCount = is_numeric($rawFilesCount) ? (int)$rawFilesCount : count($childFiles);
 		$filesCount = max(0, $filesCount);
 
-		/** @var LibresignNextcloudFile */
+		/** @var LibresignDetailedFileResponse */
 		$response = [
 			'message' => $this->l10n->t('Success'),
 			'id' => $mainEntity->getId(),
@@ -767,6 +874,7 @@ class FileListService {
 					return $carry;
 				}, $signer->getDisplayName());
 
+				/** @var LibresignSignerSummary */
 				return [
 					'signRequestId' => $signer->getId(),
 					'displayName' => $displayName,

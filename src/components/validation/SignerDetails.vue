@@ -193,7 +193,7 @@
 					<NcIconSvgWrapper :path="mdiInformationOutline" />
 				</template>
 				<template #name>
-					{{ n('libresign', 'Document has %n revision', 'Document has %n revisions', signer.modifications.revisionCount) }}
+					{{ n('libresign', 'Document has %n revision', 'Document has %n revisions', signer.modifications.revisionCount ?? 0) }}
 				</template>
 			</NcListItem>
 		</div>
@@ -283,26 +283,25 @@ type SignerModifications = {
 }
 
 type SignerModel = {
-	signed?: string | null
 	displayName?: string
 	email?: string
 	name?: string
-	valid_to?: string
-	valid_from?: string
-	crl_validation?: string
-	crl_revoked_at?: string
+	remote_address?: string
+	user_agent?: string
+	valid_from?: string | number
+	valid_to?: string | number
+	signed?: string | null
 	signature_validation?: ValidationState
 	certificate_validation?: ValidationState
+	crl_validation?: string
+	crl_revoked_at?: string
 	docmdp?: SignerDocMdp
 	docmdp_validation?: { message?: string }
 	modification_validation?: SignerModificationValidation
 	modifications?: SignerModifications
 	signatureTypeSN?: string
 	hash?: string
-	remote_address?: string
-	user_agent?: string
-	chain?: unknown[]
-	[key: string]: unknown
+	chain?: Record<string, unknown>[]
 }
 
 type CrlStatusMeta = {
@@ -436,9 +435,9 @@ function getCrlValidationIconClass(signer: SignerModel) {
 	return crlStatusMap[signer.crl_validation ?? '']?.class || 'icon-warning'
 }
 
-function dateFromSqlAnsi(date?: string | null) {
+function dateFromSqlAnsi(date?: string | number | null) {
 	if (!date) return ''
-	return Moment(date).format('LLL')
+	return Moment(String(date)).format('LLL')
 }
 
 function getCrlStatusText(signer: SignerModel) {
@@ -466,7 +465,7 @@ function hasDocMdpInfo(signer: SignerModel) {
 }
 
 function getModificationStatusIcon(signer: SignerModel) {
-	if (!signer.modification_validation) return null
+	if (!signer.modification_validation) return undefined
 	const status = signer.modification_validation.status
 	if (status === MODIFICATION_UNMODIFIED || status === MODIFICATION_ALLOWED) {
 		return mdiCheckCircle

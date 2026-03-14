@@ -5,7 +5,9 @@
 
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import axios from '@nextcloud/axios'
 import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
 let RequestSignatureTab: unknown
 import { FILE_STATUS } from '../../../constants.js'
@@ -55,7 +57,14 @@ vi.mock('@nextcloud/event-bus', () => ({
 }))
 
 vi.mock('@nextcloud/dialogs')
-vi.mock('@nextcloud/axios')
+vi.mock('@nextcloud/axios', () => ({
+	default: {
+		get: vi.fn(),
+		post: vi.fn(),
+		delete: vi.fn(),
+		patch: vi.fn(),
+	},
+}))
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path) => `/ocs${path}`),
 	generateUrl: (...args: Parameters<typeof generateUrlMock>) => generateUrlMock(...args),
@@ -67,16 +76,22 @@ vi.mock('@libresign/pdf-elements', () => ({
 }))
 
 describe('RequestSignatureTab - Critical Business Rules', () => {
-	let wrapper: ReturnType<typeof shallowMount>
+	let wrapper: VueWrapper<any>
 	let filesStore: ReturnType<typeof useFilesStoreType>
 	const updateFile = async (patch: Record<string, unknown>) => {
 		const current = filesStore.files[1] || { id: 1 }
-		await filesStore.addFile({ ...current, ...patch, id: 1 })
+		const hasSigners = Object.prototype.hasOwnProperty.call(patch, 'signers')
+		await filesStore.addFile({
+			...current,
+			...patch,
+			id: 1,
+			detailsLoaded: hasSigners ? true : current.detailsLoaded,
+		})
 		await wrapper.vm.$nextTick()
 	}
 	const setVmState = async (patch: Record<string, unknown>) => {
 		Object.entries(patch).forEach(([key, value]) => {
-			;(wrapper.vm as Record<string, unknown>)[key] = value
+			;(wrapper.vm as unknown as Record<string, unknown>)[key] = value
 		})
 		await wrapper.vm.$nextTick()
 	}
@@ -87,6 +102,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	beforeEach(async () => {
 		setActivePinia(createPinia())
 		generateUrlMock.mockClear()
+		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>)
 		RequestSignatureTab = (await import('../../../components/RightSidebar/RequestSignatureTab.vue')).default
 		const { useFilesStore } = await import('../../../store/files.js')
 		filesStore = useFilesStore()
@@ -96,6 +112,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			name: 'test.pdf',
 			status: FILE_STATUS.DRAFT,
 			signers: [],
+			detailsLoaded: true,
 			nodeType: 'file',
 		})
 		filesStore.selectFile(1)
@@ -129,7 +146,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 					OrderNumericAscending: true,
 				},
 			},
-		})
+		}) as VueWrapper<any>
 	})
 
 	describe('RULE: showDocMdpWarning when DocMDP level prevents changes', () => {
@@ -405,30 +422,30 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('allows editing when flow is ordered_numeric', () => {
-			expect(wrapper.vm.canEditSigningOrder(wrapper.vm.filesStore.files[1].signers[0])).toBe(true)
+			expect(wrapper.vm.canEditSigningOrder(wrapper.vm.filesStore.files[1]!.signers[0]!)).toBe(true)
 		})
 
 		it('allows editing when flow is 2 (numeric)', async () => {
 			await updateFile({ signatureFlow: 2 })
 
-			expect(wrapper.vm.canEditSigningOrder(wrapper.vm.filesStore.files[1].signers[0])).toBe(true)
+			expect(wrapper.vm.canEditSigningOrder(wrapper.vm.filesStore.files[1]!.signers[0]!)).toBe(true)
 		})
 
 		it('blocks editing when signer has signed', async () => {
 			await updateFile({
 				signers: [
-					{ ...filesStore.files[1].signers[0], signed: ['signature'] },
-					filesStore.files[1].signers[1],
+					{ ...filesStore.files[1]!.signers![0]!, signed: ['signature'] },
+					filesStore.files[1]!.signers![1]!,
 				],
 			})
 
-			expect(wrapper.vm.canEditSigningOrder(wrapper.vm.filesStore.files[1].signers[0])).toBe(false)
+			expect(wrapper.vm.canEditSigningOrder(wrapper.vm.filesStore.files[1]!.signers[0]!)).toBe(false)
 		})
 
 		it('blocks editing when flow is parallel', async () => {
 			await updateFile({ signatureFlow: 'parallel' })
 
-			expect(wrapper.vm.canEditSigningOrder(wrapper.vm.filesStore.files[1].signers[0])).toBe(false)
+			expect(wrapper.vm.canEditSigningOrder(wrapper.vm.filesStore.files[1]!.signers[0]!)).toBe(false)
 		})
 	})
 
@@ -674,7 +691,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 					{ email: 'test2@example.com', signingOrder: 2, identifyMethods: [{ method: 'email' }] },
 				],
 			})
-			const signer2 = filesStore.files[1].signers[1]
+			const signer2 = filesStore.files[1]!.signers![1]!
 			expect(wrapper.vm.canSignerActInOrder(signer2)).toBe(true)
 		})
 
@@ -687,7 +704,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 					{ email: 'test2@example.com', signed: [], signingOrder: 2, identifyMethods: [{ method: 'email' }] },
 				],
 			})
-			const signer2 = filesStore.files[1].signers[1]
+			const signer2 = filesStore.files[1]!.signers![1]!
 			expect(wrapper.vm.canSignerActInOrder(signer2)).toBe(false)
 		})
 
@@ -700,7 +717,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 					{ email: 'test2@example.com', signed: [], signingOrder: 2, identifyMethods: [{ method: 'email' }] },
 				],
 			})
-			const signer2 = filesStore.files[1].signers[1]
+			const signer2 = filesStore.files[1]!.signers![1]!
 			expect(wrapper.vm.canSignerActInOrder(signer2)).toBe(true)
 		})
 
@@ -712,7 +729,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 					{ email: 'test1@example.com', identifyMethods: [{ method: 'sms' }] },
 				],
 			})
-			const signer = filesStore.files[1].signers[0]
+			const signer = filesStore.files[1]!.signers![0]!
 			expect(wrapper.vm.canSignerActInOrder(signer)).toBe(false)
 		})
 	})
@@ -830,8 +847,8 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			})
 			wrapper.vm.onPreserveOrderChange(true)
 			await wrapper.vm.$nextTick()
-			expect(filesStore.files[1].signers[0].signingOrder).toBe(1)
-			expect(filesStore.files[1].signers[1].signingOrder).toBe(2)
+			expect(filesStore.files[1]!.signers![0]!.signingOrder).toBe(1)
+			expect(filesStore.files[1]!.signers![1]!.signingOrder).toBe(2)
 		})
 
 		it('reassigns sequential orders when all signers share the same signingOrder', async () => {
@@ -847,8 +864,8 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			})
 			wrapper.vm.onPreserveOrderChange(true)
 			await wrapper.vm.$nextTick()
-			expect(filesStore.files[1].signers[0].signingOrder).toBe(1)
-			expect(filesStore.files[1].signers[1].signingOrder).toBe(2)
+			expect(filesStore.files[1]!.signers![0]!.signingOrder).toBe(1)
+			expect(filesStore.files[1]!.signers![1]!.signingOrder).toBe(2)
 		})
 
 		it('reverts to parallel when disabling', async () => {
@@ -909,35 +926,35 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		it('updates signer order and sorts', async () => {
 			await updateFile({
 				signers: [
-					{ email: 'signer1@example.com', signingOrder: 2, identify: 'signer1@example.com' },
-					{ email: 'signer2@example.com', signingOrder: 3, identify: 'signer2@example.com' },
+					{ email: 'signer1@example.com', signRequestId: 1, signingOrder: 2 },
+					{ email: 'signer2@example.com', signRequestId: 2, signingOrder: 3 },
 				],
 			})
-			const signer2 = filesStore.files[1].signers[1]
+			const signer2 = filesStore.files[1]!.signers![1]!
 			wrapper.vm.updateSigningOrder(signer2, '1')
 			await wrapper.vm.$nextTick()
-			expect(filesStore.files[1].signers[0].identify).toBe('signer2@example.com')
+			expect(filesStore.files[1]!.signers![0]!.signRequestId).toBe(2)
 		})
 
 		it('ignores invalid order values', async () => {
 			await updateFile({
 				signers: [
-					{ email: 'signer1@example.com', signingOrder: 1, identify: 'signer1@example.com' },
+					{ email: 'signer1@example.com', signRequestId: 1, signingOrder: 1 },
 				],
 			})
-			const signer1 = filesStore.files[1].signers[0]
+			const signer1 = filesStore.files[1]!.signers![0]!
 			wrapper.vm.updateSigningOrder(signer1, 'invalid')
 			await wrapper.vm.$nextTick()
-			expect(filesStore.files[1].signers[0].signingOrder).toBe(1)
+			expect(filesStore.files[1]!.signers![0]!.signingOrder).toBe(1)
 		})
 
 		it('handles signer not found gracefully', async () => {
 			await updateFile({
 				signers: [
-					{ email: 'signer1@example.com', signingOrder: 1, identify: 'signer1@example.com' },
+					{ email: 'signer1@example.com', signRequestId: 1, signingOrder: 1 },
 				],
 			})
-			const fakeSigner = { identify: 'nonexistent@example.com' }
+			const fakeSigner = { localKey: 'signer:999' }
 			wrapper.vm.updateSigningOrder(fakeSigner, '2')
 			await wrapper.vm.$nextTick()
 			expect(filesStore.files[1].signers).toHaveLength(1)

@@ -6,6 +6,10 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
+type EnvelopeVm = {
+	envelopeEnabled: boolean
+}
+
 const loadStateMock = vi.fn()
 
 vi.mock('@nextcloud/initial-state', () => ({
@@ -48,6 +52,6 @@ describe('Envelope', () => {
 			},
 		})
 
-		expect(wrapper.vm.envelopeEnabled).toBe(false)
+		expect((wrapper.vm as unknown as EnvelopeVm).envelopeEnabled).toBe(false)
 	})
 })

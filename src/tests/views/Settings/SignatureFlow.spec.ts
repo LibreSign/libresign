@@ -6,6 +6,16 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 
+type SignatureFlowOption = {
+	value: string
+}
+
+type SignatureFlowVm = {
+	enabled: boolean
+	selectedFlow?: SignatureFlowOption
+	onToggleChange: () => void
+}
+
 const loadStateMock = vi.fn()
 const generateOcsUrlMock = vi.fn((path: string) => path)
 const axiosPostMock = vi.fn((..._args: unknown[]) => Promise.resolve({ data: { ocs: { data: {} } } }))
@@ -71,9 +81,10 @@ describe('SignatureFlow', () => {
 				},
 			},
 		})
+		const vm = wrapper.vm as unknown as SignatureFlowVm
 
-		wrapper.vm.enabled = false
-		wrapper.vm.onToggleChange()
+		vm.enabled = false
+		vm.onToggleChange()
 		await flushPromises()
 
 		expect(axiosPostMock).toHaveBeenCalled()
@@ -98,15 +109,16 @@ describe('SignatureFlow', () => {
 				},
 			},
 		})
+		const vm = wrapper.vm as unknown as SignatureFlowVm
 		await flushPromises()
 
-		expect(wrapper.vm.selectedFlow?.value).toBe('ordered_numeric')
+		expect(vm.selectedFlow?.value).toBe('ordered_numeric')
 
 		const radioAndSwitchButtons = wrapper.findAll('.checkbox-radio-switch-stub')
 		await radioAndSwitchButtons[1].trigger('click')
 		await flushPromises()
 
-		expect(wrapper.vm.selectedFlow?.value).toBe('parallel')
+		expect(vm.selectedFlow?.value).toBe('parallel')
 		const lastCall = axiosPostMock.mock.calls[axiosPostMock.mock.calls.length - 1] as [string, { mode: string }]
 		expect(lastCall[1].mode).toBe('parallel')
 	})

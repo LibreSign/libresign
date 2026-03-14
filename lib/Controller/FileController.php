@@ -19,7 +19,6 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\File\SettingsLoader;
@@ -47,21 +46,20 @@ use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignFile from ResponseDefinitions
- * @psalm-import-type LibresignFileDetail from ResponseDefinitions
- * @psalm-import-type LibresignFolderSettings from ResponseDefinitions
- * @psalm-import-type LibresignNewFile from ResponseDefinitions
- * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
- * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
- * @psalm-import-type LibresignPagination from ResponseDefinitions
- * @psalm-import-type LibresignSettings from ResponseDefinitions
- * @psalm-import-type LibresignSigner from ResponseDefinitions
- * @psalm-import-type LibresignSigner from ResponseDefinitions
- * @psalm-import-type LibresignValidateFile from ResponseDefinitions
- * @psalm-import-type LibresignValidateMetadata from ResponseDefinitions
- * @psalm-import-type LibresignValidateMetadata from ResponseDefinitions
- * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
- * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
+ * @psalm-import-type LibresignFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignDetailedFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignDetailedFileResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignActionErrorResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignFileListResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignFileSummary from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignFolderSettings from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignNewFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignPagination from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignSettings from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignValidatedFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignValidateMetadata from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignVisibleElement from \OCA\Libresign\ResponseDefinitions
  */
 class FileController extends AEnvironmentAwareController {
 	public function __construct(
@@ -77,7 +75,7 @@ class FileController extends AEnvironmentAwareController {
 		private IPreview $preview,
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
-		private fileListService $fileListService,
+		private FileListService $fileListService,
 		private ValidateHelper $validateHelper,
 		private SettingsLoader $settingsLoader,
 		private IURLGenerator $urlGenerator,
@@ -93,7 +91,10 @@ class FileController extends AEnvironmentAwareController {
 	 * and `files` as a list of envelope child files.
 	 *
 	 * @param string $uuid The UUID of the LibreSign file
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: list<array{message: string, title?: string}>, messages?: array{type: string, message: string}[]}, array{}>
+	 * @param bool $showVisibleElements Whether to include visible elements in the response
+	 * @param bool $showMessages Whether to include validation messages in the response
+	 * @param bool $showValidateFile Whether to include the file payload in the response
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -104,8 +105,13 @@ class FileController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function validateUuid(string $uuid): DataResponse {
-		return $this->validate('Uuid', $uuid);
+	public function validateUuid(
+		string $uuid,
+		bool $showVisibleElements = true,
+		bool $showMessages = true,
+		bool $showValidateFile = true,
+	): DataResponse {
+		return $this->validate('Uuid', $uuid, $showVisibleElements, $showMessages, $showValidateFile);
 	}
 
 	/**
@@ -116,7 +122,10 @@ class FileController extends AEnvironmentAwareController {
 	 * and `files` as a list of envelope child files.
 	 *
 	 * @param int $fileId The identifier value of the LibreSign file
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: list<array{message: string, title?: string}>, messages?: array{type: string, message: string}[]}, array{}>
+	 * @param bool $showVisibleElements Whether to include visible elements in the response
+	 * @param bool $showMessages Whether to include validation messages in the response
+	 * @param bool $showValidateFile Whether to include the file payload in the response
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -127,8 +136,13 @@ class FileController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function validateFileId(int $fileId): DataResponse {
-		return $this->validate('FileId', $fileId);
+	public function validateFileId(
+		int $fileId,
+		bool $showVisibleElements = true,
+		bool $showMessages = true,
+		bool $showValidateFile = true,
+	): DataResponse {
+		return $this->validate('FileId', $fileId, $showVisibleElements, $showMessages, $showValidateFile);
 	}
 
 	/**
@@ -139,7 +153,7 @@ class FileController extends AEnvironmentAwareController {
 	 * When `nodeType` is `envelope`, the response includes `filesCount`
 	 * and `files` as a list of envelope child files.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, array{action: int, errors: list<array{message: string, title?: string}>, messages?: array{type: string, message: string}[], message?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -187,9 +201,15 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * @param string|null $type The type of identifier could be Uuid or FileId
 	 * @param string|int $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: list<array{message: string, title?: string}>, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 */
-	private function validate(?string $type = null, $identifier = null): DataResponse {
+	private function validate(
+		?string $type = null,
+		$identifier = null,
+		bool $showVisibleElements = true,
+		bool $showMessages = true,
+		bool $showValidateFile = true,
+	): DataResponse {
 		try {
 			$signRequest = null;
 			if ($type === 'Uuid' && !empty($identifier)) {
@@ -223,11 +243,11 @@ class FileController extends AEnvironmentAwareController {
 				->setMe($this->userSession->getUser())
 				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 				->setHost($this->request->getServerHost())
-				->showVisibleElements()
+				->showVisibleElements($showVisibleElements)
 				->showSigners()
 				->showSettings()
-				->showMessages()
-				->showValidateFile()
+				->showMessages($showMessages)
+				->showValidateFile($showValidateFile)
 				->toArray();
 			$statusCode = Http::STATUS_OK;
 		} catch (LibresignException $e) {
@@ -255,7 +275,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * @param string|null $signer_uuid Signer UUID
 	 * @param list<int>|null $fileIds The list of fileIds (database file IDs). It's the ids of LibreSign files
-	 * @param list<int>|null $nodeIds The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud
+	 * @param list<int>|null $nodeIds The list of nodeIds. It's the ids of files at Nextcloud
 	 * @param list<int>|null $status Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
@@ -264,7 +284,8 @@ class FileController extends AEnvironmentAwareController {
 	 * @param string|null $sortBy Name of the column to sort by
 	 * @param string|null $sortDirection Ascending or descending order
 	 * @param int|null $parentFileId Filter files by parent envelope file ID
-	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: list<LibresignFileDetail>, settings?: LibresignSettings}, array{}>
+	 * @param bool $details Whether to return the detailed payload instead of the lightweight summary payload
+	 * @return DataResponse<Http::STATUS_OK, LibresignFileListResponse, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -283,6 +304,7 @@ class FileController extends AEnvironmentAwareController {
 		?string $sortBy = null,
 		?string $sortDirection = null,
 		?int $parentFileId = null,
+		bool $details = false,
 	): DataResponse {
 		$filter = array_filter([
 			'signer_uuid' => $signer_uuid,
@@ -299,7 +321,7 @@ class FileController extends AEnvironmentAwareController {
 		];
 
 		$user = $this->userSession->getUser();
-		$return = $this->fileListService->listAssociatedFilesOfSignFlow($user, $page, $length, $filter, $sort);
+		$return = $this->fileListService->listAssociatedFilesOfSignFlow($user, $page, $length, $filter, $sort, $details);
 
 		if ($user) {
 			$return['settings'] = $this->settingsLoader->getUserIdentificationSettings($user);
@@ -489,7 +511,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
-	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Failed to save data
@@ -527,7 +549,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Files must be uploaded as multipart/form-data with field name 'files[]'.
 	 *
 	 * @param string $uuid The UUID of the envelope
-	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: Files added successfully
 	 * 400: Invalid request
@@ -708,7 +730,7 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>
 	 */
 	private function saveFiles(array $files, string $name, array $settings): DataResponse {
 		if (empty($files)) {
@@ -743,7 +765,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * @param integer $fileId LibreSign file ID
 	 * @param boolean $deleteFile Whether to delete the physical file from Nextcloud (default: true)
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 401: Failed

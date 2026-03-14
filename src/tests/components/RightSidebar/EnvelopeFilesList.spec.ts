@@ -6,13 +6,31 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import EnvelopeFilesList from '../../../components/RightSidebar/EnvelopeFilesList.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../../constants.js'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
 
+const interpolateText = (text: string, vars?: Record<string, unknown>) => {
+	if (!vars) {
+		return text
+	}
+
+	return text.replace(/{(\w+)}/g, (_match: string, key: string) => String(vars[key]))
+}
+
 vi.mock('@nextcloud/axios')
+vi.mock('@nextcloud/l10n', () => ({
+	t: vi.fn((_app, text, vars) => interpolateText(text, vars)),
+	n: vi.fn((_app, singular, plural, count) => (count === 1 ? singular : plural)),
+	translate: vi.fn((_app, text, vars) => interpolateText(text, vars)),
+	translatePlural: vi.fn((_app, singular, plural, count) => (count === 1 ? singular : plural)),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
+}))
 
 vi.mock('@nextcloud/capabilities')
 vi.mock('@nextcloud/router', () => ({
@@ -28,9 +46,63 @@ import { getCapabilities } from '@nextcloud/capabilities'
 
 type FilesStoreMock = ReturnType<typeof useFilesStore> & {
 	getFile: MockedFunction<(id: number) => unknown>
-	selectedFile: { id?: number; name?: string; status?: number } | null
+	selectedFile: { id?: number; uuid?: string; name?: string; status?: number; filesCount?: number } | null
 	removeFilesFromEnvelope?: MockedFunction<(...args: unknown[]) => Promise<unknown>>
 	rename?: MockedFunction<(...args: unknown[]) => Promise<boolean>>
+}
+
+type EnvelopeFileRecord = {
+	id: number
+	uuid?: string
+	name?: string
+	statusText?: string
+	nodeId?: number
+	[key: string]: unknown
+}
+
+type DeleteDialogConfig = {
+	title: string
+	message: string
+	action: null | (() => void | Promise<void>)
+}
+
+type EnvelopeFilesListVm = {
+	$nextTick: () => Promise<void>
+	envelope: FilesStoreMock['selectedFile']
+	canDelete: boolean
+	canAddFile: boolean
+	selectedCount: number
+	allSelected: boolean
+	errorMessage: string
+	successMessage: string
+	nameUpdateError: boolean
+	nameUpdateSuccess: boolean
+	nameHelperText: string
+	showDeleteDialog: boolean
+	deleteDialogConfig: DeleteDialogConfig
+	selectedFiles: number[]
+	files: EnvelopeFileRecord[]
+	totalFiles: number
+	uploadAbortController: { abort: () => void } | null
+	isTouchDevice: boolean
+	getMaxFileUploads: () => number
+	validateMaxFileUploads: (filesCount: number) => boolean
+	getPreviewUrl: (file: Partial<EnvelopeFileRecord>) => string | null
+	openFile: (file: EnvelopeFileRecord) => void
+	isSelected: (fileId: number) => boolean
+	toggleSelect: (fileId: number) => void
+	toggleSelectAll: () => void
+	confirmDeleteSelected: () => Promise<void>
+	onEnvelopeNameChange: (newName: string) => void
+	saveEnvelopeNameDebounced: (newName: string) => Promise<void>
+	onScroll: (event: { target: { scrollTop: number; scrollHeight: number; clientHeight: number } }) => void
+	cancelUpload: () => void
+	handleDelete: (file: EnvelopeFileRecord) => void
+	setData?: (values: Record<string, unknown>) => Promise<void>
+}
+
+type EnvelopeFilesListWrapper = VueWrapper<EnvelopeFilesListVm> & {
+	setData: (values: Record<string, unknown>) => Promise<void>
 }
 
 const t: TranslationFunction = (_app, text, vars) => {
@@ -44,7 +116,7 @@ const n: PluralTranslationFunction = (_app, singular, plural, count) => (count =
 
 describe('EnvelopeFilesList', () => {
 	const getCapabilitiesMock = getCapabilities as MockedFunction<typeof getCapabilities>
-	let wrapper: ReturnType<typeof mount> | null
+	let wrapper: EnvelopeFilesListWrapper | null
 	let filesStore: FilesStoreMock
 
 	const createWrapper = (props = {}) => {
@@ -72,13 +144,13 @@ describe('EnvelopeFilesList', () => {
 				FilePdfBox: true,
 				FilePlus: true,
 			},
-		})
+		}) as unknown as EnvelopeFilesListWrapper
 
 		;(localWrapper as typeof localWrapper & {
 			setData: (values: Record<string, unknown>) => Promise<void>
 		}).setData = async (values: Record<string, unknown>) => {
 			Object.entries(values).forEach(([key, value]) => {
-				;(localWrapper.vm as Record<string, unknown>)[key] = value
+				;(localWrapper.vm as unknown as Record<string, unknown>)[key] = value
 			})
 			await localWrapper.vm.$nextTick()
 		}
@@ -89,7 +161,7 @@ describe('EnvelopeFilesList', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
 		filesStore = useFilesStore() as FilesStoreMock
-		filesStore.getFile = vi.fn(() => filesStore.selectedFile)
+		filesStore.getFile = vi.fn(() => filesStore.selectedFile || { signers: [] })
 		if (wrapper) {
 			wrapper.unmount()
 			wrapper = null

@@ -29,11 +29,13 @@ use OCP\IRequest;
 use OCP\IUserSession;
 
 /**
- * @psalm-import-type LibresignValidateFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignValidatedFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignProgressPayload from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignProgressError from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignProgressResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignProgressFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignStatusMessageResponse from \OCA\Libresign\ResponseDefinitions
  */
 class FileProgressController extends AEnvironmentAwareController {
 	public function __construct(
@@ -57,7 +59,7 @@ class FileProgressController extends AEnvironmentAwareController {
 	 *
 	 * @param string $uuid Sign request UUID
 	 * @param int $timeout Maximum seconds to wait (default 30)
-	 * @return DataResponse<Http::STATUS_OK, LibresignProgressResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string, status: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignProgressResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignStatusMessageResponse, array{}>
 	 *
 	 * 200: Status and progress returned
 	 * 404: Sign request not found

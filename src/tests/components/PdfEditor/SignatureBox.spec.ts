@@ -5,8 +5,19 @@
 
 import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { SignerSummaryRecord } from '../../../types/index'
 
 import SignatureBox from '../../../components/PdfEditor/SignatureBox.vue'
+
+const createSigner = (overrides: Partial<SignerSummaryRecord> = {}): SignerSummaryRecord => ({
+	signRequestId: 0,
+	displayName: '',
+	email: '',
+	signed: null,
+	status: 0,
+	statusText: '',
+	...overrides,
+})
 
 const usernameToColorMock = vi.fn((_seed: string) => ({ r: 10, g: 20, b: 30 }))
 
@@ -47,9 +58,7 @@ describe('SignatureBox.vue', () => {
 		const wrapper = mount(SignatureBox, {
 			props: {
 				label: 'Fallback',
-				signer: {
-					displayName: 'Grace Hopper',
-				},
+				signer: createSigner({ displayName: 'Grace Hopper' }),
 			},
 		})
 

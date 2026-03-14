@@ -15,7 +15,7 @@
 			@load="backgroundFailed = false">
 		<NcIconSvgWrapper v-else v-once :path="mdiFile" :size="128" />
 		<div class="enDot">
-			<div :class="currentFile.statusText !== 'none' ? 'dot ' + statusToClass(currentFile.status) : '' " />
+			<div :class="'dot ' + statusToClass(currentFile.status)" />
 			<span>{{ currentFile.statusText }}</span>
 		</div>
 		<h1>{{ currentFile.name }}</h1>
@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import type { FileStatus } from '../../types/index'
 
 import { mdiFile } from '@mdi/js'
 
@@ -37,6 +38,9 @@ defineOptions({
 	name: 'File',
 })
 
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type CurrentFileState = NonNullable<ReturnType<FilesStoreContract['getSelectedFileView']>>
+
 const filesStore = useFilesStore()
 const sidebarStore = useSidebarStore()
 
@@ -45,7 +49,12 @@ const gridMode = true
 const cropPreviews = true
 
 const currentFileId = computed(() => filesStore.selectedFileId)
-const currentFile = computed(() => filesStore.files[currentFileId.value])
+const currentFile = computed<CurrentFileState | null>(() => {
+	if (!currentFileId.value) {
+		return null
+	}
+	return filesStore.getSelectedFileView()
+})
 const previewUrl = computed(() => {
 	if (backgroundFailed.value === true || !currentFile.value) {
 		return null
@@ -79,8 +88,8 @@ function openSidebar() {
 	sidebarStore.activeRequestSignatureTab()
 }
 
-function statusToClass(status: number | string) {
-	switch (Number(status)) {
+function statusToClass(status: FileStatus) {
+	switch (status) {
 	case 0:
 		return 'no-signers'
 	case 1:

@@ -18,6 +18,9 @@ use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
+/**
+ * @psalm-import-type LibresignHasRootCertResponse from \OCA\Libresign\ResponseDefinitions
+ */
 class SettingController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
@@ -31,7 +34,7 @@ class SettingController extends AEnvironmentAwareController {
 	 *
 	 * Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{hasRootCert: bool}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignHasRootCertResponse, array{}>
 	 *
 	 * 200: OK
 	 */

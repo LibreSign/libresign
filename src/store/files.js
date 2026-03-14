@@ -10,6 +10,7 @@ import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { emit, subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+import { t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -18,20 +19,277 @@ import { useFiltersStore } from './filters.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { useSidebarStore } from './sidebar.js'
 
+/** @typedef {import('../types/index').SignerIdentify} SignerIdentify */
+/** @typedef {import('../types/index').IdentifyMethodRecord} SignerMethodRecord */
+/** @typedef {import('../types/index').FileSettings} FileSettings */
+/** @typedef {import('../types/index').FileListEntry} FileListEntry */
+/** @typedef {import('../types/index').FileListItemRecord} FileListItemRecord */
+/** @typedef {import('../types/index').FileMetadataState} FileMetadataState */
+/** @typedef {import('../types/index').SelectedFileView} SelectedFileView */
+/** @typedef {import('../types/index').FileStatus} FileStatus */
+/** @typedef {import('../types/index').FileStatusText} FileStatusText */
+/** @typedef {import('../types/index').FileStateSettings} FileStateSettings */
+/** @typedef {import('../types/index').FileValidationResponse} FileValidationResponse */
+/** @typedef {import('../types/index').FileValidationSigner} FileValidationSigner */
+/** @typedef {import('../types/index').RequestSignatureResponse} RequestSignatureResponse */
+/** @typedef {import('../types/index').RequestSignatureSignerPayload} RequestSignatureSignerPayload */
+/** @typedef {import('../types/index').RequestSignatureSignerResponse} RequestSignatureSignerResponse */
+/** @typedef {import('../types/index').RequestSignatureVisibleElementPayload} RequestSignatureVisibleElementPayload */
+/** @typedef {import('../types/index').RequestedByRecord} RequestedByRecord */
+/** @typedef {import('../types/index').SignatureFlowValue} SignatureFlowValue */
+/** @typedef {import('../types/index').VisibleElementRecord} VisibleElementRecord */
+/** @typedef {import('../types/index').VisibleElementState} VisibleElementState */
+
+/**
+ * @typedef {{
+ * 	signRequestId?: number | string
+ * 	displayName?: string
+ * 	email?: string
+ * 	description?: string | null
+ * 	notify?: number
+ * 	status?: number
+ * 	statusText?: string
+ * 	signingOrder?: number
+ * 	localKey?: string
+ * 	acceptsEmailNotifications?: boolean
+ * 	identify?: SignerIdentify | string | number
+ * 	identifyMethods?: SignerMethodRecord[]
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[]
+ * 	me?: boolean
+ * 	signed?: string | null | boolean | unknown[]
+ * 	sign_uuid?: string | null
+ * }} EditableSignerState
+ */
+
+/**
+ * @typedef {{
+ * 	id?: number | string
+ * 	fileId?: number
+ * 	uuid?: string | null
+ * 	created_at?: string
+ * 	nodeId?: number | string | null
+ * 	nodeType?: string
+ * 	name?: string
+ * 	docmdpLevel?: number | string
+ * 	signUuid?: string | null
+ * 	file?: string | EditableFileReferenceState | null
+ * 	files?: EditableFileReferenceState[]
+ * 	path?: string
+ * 	url?: string
+ * 	folderName?: string
+ * 	separator?: string
+ * 	metadata?: FileMetadataState
+ * 	signers?: EditableSignerState[]
+ * 	settings?: FileStateSettings
+ * 	totalPages?: number
+ * 	size?: number
+ * 	pdfVersion?: string
+ * 	mime?: string
+ * 	pages?: Array<Record<string, unknown>>
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[] | null
+ * 	status?: FileStatus
+ * 	statusText?: FileStatusText
+ * }} EditableFileReferenceState
+ */
+
+/**
+ * @typedef {{
+ * 	id?: number | string
+ * 	uuid?: string | null
+ * 	name?: string
+ * 	created_at?: string
+ * 	message?: string
+ * 	nodeId?: number | string | null
+ * 	nodeType?: string
+ * 	docmdpLevel?: number | string
+ * 	status?: FileStatus
+ * 	statusText?: FileStatusText
+ * 	signUuid?: string | null
+ * 	file?: string | EditableFileReferenceState | null
+ * 	files?: EditableFileReferenceState[]
+ * 	loading?: string | boolean
+ * 	metadata?: FileMetadataState
+ * 	settings?: FileStateSettings
+ * 	requested_by?: Partial<RequestedByRecord>
+ * 	signatureFlow?: SignatureFlowValue | null
+ * 	signers?: EditableSignerState[] | null
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[] | null
+ * 	url?: string
+ * 	mime?: string
+ * 	pages?: Array<Record<string, unknown>>
+ * 	totalPages?: number
+ * 	size?: number
+ * 	pdfVersion?: string
+ * 	signersCount?: number
+ * 	filesCount?: number
+ * 	canSign?: boolean
+ * 	detailsLoaded?: boolean
+ * }} ApiFileState
+ */
+
+/**
+ * @typedef {{
+ * 	id?: number | string
+ * 	fileId?: number
+ * 	uuid?: string | null
+ * 	name?: string
+ * 	message?: string
+ * 	docmdpLevel?: number | string
+ * 	status?: FileStatus
+ * 	statusText?: FileStatusText
+ * 	nodeId?: number | string | null
+ * 	nodeType?: string
+ * 	signUuid?: string | null
+ * 	file?: string | EditableFileReferenceState | null
+ * 	files?: EditableFileReferenceState[]
+ * 	loading?: string | boolean
+ * 	metadata?: FileMetadataState
+ * 	settings?: FileStateSettings
+ * 	requested_by?: Partial<RequestedByRecord>
+ * 	signatureFlow?: SignatureFlowValue | null
+ * 	signers?: EditableSignerState[] | null
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[] | null
+ * 	signersCount?: number
+ * 	filesCount?: number
+ * 	canSign?: boolean
+ * 	detailsLoaded?: boolean
+ * }} EditableFileState
+ */
+
+/**
+ * @typedef {ApiFileState | EditableFileState} PublicFileState
+ */
+
+/**
+ * @typedef {{
+ * 	visibleElements?: RequestSignatureVisibleElementPayload[]
+ * 	signers?: EditableSignerState[] | null
+ * 	uuid?: string | null
+ * 	status?: number | null
+ * 	signatureFlow?: SignatureFlowValue | null
+ * }} SaveSignatureRequestOptions
+ */
+
+/**
+ * @typedef {PublicFileState | { success: false, message: string, error: unknown }} SaveSignatureRequestResponse
+ */
+
+/** @type {EditableFileState} */
 const emptyFile = { signers: [] }
 
+let draftSignerKeySequence = 0
+
 const _filesStore = defineStore('files', () => {
-	const files = ref({})
+	const apiFiles = ref(/** @type {Record<string | number, ApiFileState>} */ ({}))
+	const requestDrafts = ref(/** @type {Record<string | number, EditableFileState>} */ ({}))
+	const files = ref(/** @type {Record<string | number, PublicFileState>} */ ({}))
 	const selectedFileId = ref(0)
 	const identifyingSigner = ref(false)
 	const loading = ref(false)
 	const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
-	const ordered = ref([])
+	const ordered = ref(/** @type {number[]} */ ([]))
 	const paginationNextUrl = ref('')
 	const loadedAll = ref(false)
 	const getStore = () => _filesStore()
 
+	const cloneVisibleElement = (element) => element && typeof element === 'object'
+		? {
+			...element,
+			coordinates: element.coordinates && typeof element.coordinates === 'object'
+				? { ...element.coordinates }
+				: element.coordinates,
+		}
+		: element
+
+	const cloneSigner = (signer) => signer && typeof signer === 'object'
+		? {
+			...signer,
+			identify: signer.identify && typeof signer.identify === 'object'
+				? { ...signer.identify }
+				: signer.identify,
+			identifyMethods: Array.isArray(signer.identifyMethods)
+				? signer.identifyMethods.map(method => ({ ...method }))
+				: signer.identifyMethods,
+			visibleElements: Array.isArray(signer.visibleElements)
+				? signer.visibleElements.map(cloneVisibleElement)
+				: signer.visibleElements,
+			signatureMethods: signer.signatureMethods && typeof signer.signatureMethods === 'object'
+				? { ...signer.signatureMethods }
+				: signer.signatureMethods,
+		}
+		: signer
+
+	const cloneFileReference = (file) => file && typeof file === 'object'
+		? {
+			...file,
+			metadata: file.metadata && typeof file.metadata === 'object' ? { ...file.metadata } : file.metadata,
+			settings: file.settings && typeof file.settings === 'object' ? { ...file.settings } : file.settings,
+			signers: Array.isArray(file.signers) ? file.signers.map(cloneSigner) : file.signers,
+			visibleElements: Array.isArray(file.visibleElements) ? file.visibleElements.map(cloneVisibleElement) : file.visibleElements,
+			files: Array.isArray(file.files) ? file.files.map(cloneFileReference) : file.files,
+		}
+		: file
+
+	const cloneEditableFile = (file) => file && typeof file === 'object'
+		? {
+			...file,
+			metadata: file.metadata && typeof file.metadata === 'object' ? { ...file.metadata } : file.metadata,
+			settings: file.settings && typeof file.settings === 'object' ? { ...file.settings } : file.settings,
+			signers: Array.isArray(file.signers) ? file.signers.map(cloneSigner) : file.signers,
+			visibleElements: Array.isArray(file.visibleElements) ? file.visibleElements.map(cloneVisibleElement) : file.visibleElements,
+			files: Array.isArray(file.files) ? file.files.map(cloneFileReference) : file.files,
+		}
+		: file
+
+	const syncPublicFile = (fileId) => {
+		if (!fileId) {
+			return null
+		}
+		const draft = requestDrafts.value[fileId]
+		if (draft) {
+			files.value[fileId] = draft
+			return draft
+		}
+		const apiFile = apiFiles.value[fileId]
+		if (apiFile) {
+			files.value[fileId] = apiFile
+			return apiFile
+		}
+		delete files.value[fileId]
+		return null
+	}
+
+	const clearRequestDraft = (fileId) => {
+		if (!fileId) {
+			return
+		}
+		if (!requestDrafts.value[fileId]) {
+			return
+		}
+		delete requestDrafts.value[fileId]
+		syncPublicFile(fileId)
+	}
+
+	const ensureRequestDraft = (fileId = selectedFileId.value) => {
+		if (!fileId) {
+			return null
+		}
+		if (requestDrafts.value[fileId]) {
+			return requestDrafts.value[fileId]
+		}
+		const source = files.value[fileId] || apiFiles.value[fileId]
+		if (!source) {
+			return null
+		}
+		const draft = cloneEditableFile(source)
+		requestDrafts.value[fileId] = draft
+		files.value[fileId] = draft
+		return draft
+	}
+
 	const resetState = () => {
+		apiFiles.value = {}
+		requestDrafts.value = {}
 		files.value = {}
 		selectedFileId.value = 0
 		identifyingSigner.value = false
@@ -42,6 +300,7 @@ const _filesStore = defineStore('files', () => {
 		loadedAll.value = false
 	}
 
+	/** @param {number | string | null | undefined} fileId */
 	function removeFileById(fileId) {
 		if (!fileId) {
 			return
@@ -51,6 +310,8 @@ const _filesStore = defineStore('files', () => {
 			selectFile()
 		}
 
+		delete apiFiles.value[fileId]
+		delete requestDrafts.value[fileId]
 		delete files.value[fileId]
 		const index = ordered.value.indexOf(fileId)
 		if (index > -1) {
@@ -58,6 +319,7 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
+	/** @param {number | string} nodeId */
 	function removeFileByNodeId(nodeId) {
 		const store = getStore()
 		const fileId = store.getFileIdByNodeId(nodeId)
@@ -68,24 +330,47 @@ const _filesStore = defineStore('files', () => {
 		store.removeFileById(fileId)
 	}
 
-	async function addFile(file, { position = 'start' } = {}) {
+	/**
+	 * @param {PublicFileState} file
+	 * @param {{ position?: 'start' | 'end' }} [options]
+	 */
+	async function addFile(file, { position = 'start', detailsLoaded } = {}) {
 		if (!file.id && !file.nodeId) {
 			return
 		}
 
 		const key = file.id ?? null
-		const fileData = file
+		const existingFile = apiFiles.value[key] || files.value[key]
+		const resolvedDetailsLoaded = detailsLoaded
+			?? file.detailsLoaded
+			?? existingFile?.detailsLoaded
+			?? false
+		const fileData = existingFile?.detailsLoaded && !resolvedDetailsLoaded
+			? {
+				...existingFile,
+				...file,
+				signers: existingFile.signers,
+				visibleElements: existingFile.visibleElements,
+				settings: existingFile.settings,
+				files: existingFile.files,
+				detailsLoaded: true,
+			}
+			: {
+				...existingFile,
+				...file,
+				detailsLoaded: resolvedDetailsLoaded,
+			}
 
 		if (fileData.signers) {
-			addUniqueIdentifierToAllSigners(fileData.signers)
+			addLocalKeyToAllSigners(fileData.signers)
 		}
 
-		const existingFile = files.value[key]
 		if (existingFile?.settings) {
 			fileData.settings = { ...existingFile.settings, ...fileData.settings }
 		}
 
-		files.value[key] = fileData
+		apiFiles.value[key] = fileData
+		syncPublicFile(key)
 
 		if (!ordered.value.includes(key)) {
 			if (position === 'start') {
@@ -96,8 +381,12 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
+	/** @param {number | string | null | undefined} [fileId] */
 	function selectFile(fileId) {
 		selectedFileId.value = fileId ?? 0
+		if (fileId) {
+			void fetchFileDetail({ fileId })
+		}
 		if (!fileId) {
 			const sidebarStore = useSidebarStore()
 			sidebarStore.hideSidebar()
@@ -172,6 +461,7 @@ const _filesStore = defineStore('files', () => {
 		return fileId
 	}
 
+	/** @param {PublicFileState | null | undefined} [file] */
 	function getFile(file) {
 		if (typeof file === 'object' && file !== null) {
 			return file
@@ -179,17 +469,84 @@ const _filesStore = defineStore('files', () => {
 		return files.value[selectedFileId.value] || emptyFile
 	}
 
-	async function flushSelectedFile() {
-		const store = getStore()
-		const allFiles = await store.getAllFiles({
-			'fileIds[]': [selectedFileId.value],
-		})
-		for (const [key, file] of Object.entries(allFiles)) {
-			if (parseInt(key) === selectedFileId.value) {
-				store.addFile(file)
-				break
-			}
+	/** @param {number | string | null | undefined} [fileId] */
+	function getSelectedFileView(fileId = selectedFileId.value) {
+		if (!fileId) {
+			return null
 		}
+
+		const file = files.value[fileId] || apiFiles.value[fileId] || null
+		if (!file) {
+			return null
+		}
+		if (typeof file.id !== 'number' || typeof file.name !== 'string' || typeof file.status !== 'number' || typeof file.statusText !== 'string') {
+			return null
+		}
+
+		return {
+			id: file.id,
+			nodeId: typeof file.nodeId === 'number' ? file.nodeId : undefined,
+			name: file.name,
+			status: file.status,
+			statusText: file.statusText,
+		}
+	}
+
+	/** @returns {EditableFileState | PublicFileState} */
+	function getEditableFile(fileId = selectedFileId.value) {
+		return ensureRequestDraft(fileId) || getFile()
+	}
+
+	async function flushSelectedFile() {
+		if (!selectedFileId.value) {
+			return
+		}
+		await fetchFileDetail({ fileId: selectedFileId.value, force: true })
+	}
+
+	/**
+	 * @param {{ fileId?: number | string | null, uuid?: string | null, force?: boolean }} [options]
+	 * @returns {Promise<PublicFileState | null>}
+	 */
+	async function fetchFileDetail({ fileId = null, uuid = null, force = false } = {}) {
+		const store = getStore()
+		let targetFile = null
+
+		if (fileId) {
+			targetFile = files.value[fileId] || null
+		} else if (uuid) {
+			const targetId = store.getFileIdByUuid(uuid)
+			targetFile = targetId ? files.value[targetId] || null : null
+		}
+
+		if (!force && targetFile?.detailsLoaded) {
+			return targetFile
+		}
+
+		const targetUuid = uuid || targetFile?.uuid
+		const targetId = fileId || targetFile?.id
+		if (!targetUuid && !targetId) {
+			return null
+		}
+
+		const url = targetUuid
+			? generateOcsUrl('/apps/libresign/api/v1/file/validate/uuid/{uuid}', { uuid: targetUuid })
+			: generateOcsUrl('/apps/libresign/api/v1/file/validate/file_id/{fileId}', { fileId: targetId })
+
+		const response = await axios.get(url, {
+			params: {
+				showVisibleElements: true,
+				showMessages: false,
+				showValidateFile: false,
+			},
+		})
+		const fileData = response.data?.ocs?.data
+		if (!fileData) {
+			return null
+		}
+
+		await store.addFile(fileData, { detailsLoaded: true })
+		return files.value[fileData.id] || null
 	}
 
 	async function addFilesToEnvelope(envelopeUuid, formData, options = {}) {
@@ -223,11 +580,11 @@ const _filesStore = defineStore('files', () => {
 				if (error.code === 'ERR_CANCELED') {
 					return {
 						success: false,
-						message: 'Upload cancelled',
+						message: t('libresign', 'Upload cancelled'),
 						error,
 					}
 				}
-				const message = error.response?.data?.ocs?.data?.message || 'Failed to add files to envelope'
+				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to add files to envelope')
 				return {
 					success: false,
 					message,
@@ -253,13 +610,15 @@ const _filesStore = defineStore('files', () => {
 				const isSingle = fileIds.length === 1
 				return {
 					success: true,
-					message: isSingle ? 'File removed from envelope' : 'Files removed from envelope',
+					message: isSingle
+						? t('libresign', 'File removed from envelope')
+						: t('libresign', 'Files removed from envelope'),
 					removedCount: fileIds.length,
 					removedIds: fileIds,
 				}
 			})
 			.catch((error) => {
-				const message = error.response?.data?.ocs?.data?.message || 'Failed to remove file(s) from envelope'
+				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to remove file(s) from envelope')
 				return {
 					success: false,
 					message,
@@ -281,6 +640,9 @@ const _filesStore = defineStore('files', () => {
 		if (selectedFileId.value <= 0) {
 			return false
 		}
+		if (typeof selectedFile?.signersCount === 'number') {
+			return selectedFile.signersCount > 0
+		}
 		if (!Object.hasOwn(selectedFile, 'signers')) {
 			return false
 		}
@@ -292,6 +654,12 @@ const _filesStore = defineStore('files', () => {
 
 	function isPartialSigned(file) {
 		const selectedFile = getFile(file)
+		if (Number(selectedFile?.status) === 2) {
+			return true
+		}
+		if (Number(selectedFile?.status) === 3) {
+			return false
+		}
 		if (!Object.hasOwn(selectedFile, 'signers')) {
 			return false
 		}
@@ -304,6 +672,9 @@ const _filesStore = defineStore('files', () => {
 
 	function isFullSigned(file) {
 		const selectedFile = getFile(file)
+		if (Number(selectedFile?.status) === 3) {
+			return true
+		}
 		if (!Object.hasOwn(selectedFile, 'signers')) {
 			return false
 		}
@@ -317,6 +688,9 @@ const _filesStore = defineStore('files', () => {
 
 	function canSign(file) {
 		const selectedFile = getFile(file)
+		if (typeof selectedFile?.canSign === 'boolean') {
+			return selectedFile.canSign
+		}
 		if (isOriginalFileDeleted(selectedFile)) {
 			return false
 		}
@@ -348,7 +722,8 @@ const _filesStore = defineStore('files', () => {
 
 	function canValidate(file) {
 		const selectedFile = getFile(file)
-		return isPartialSigned(selectedFile)
+		return [2, 3].includes(Number(selectedFile?.status))
+			|| isPartialSigned(selectedFile)
 			|| isFullSigned(selectedFile)
 	}
 
@@ -377,13 +752,12 @@ const _filesStore = defineStore('files', () => {
 				!Object.hasOwn(selectedFile, 'requested_by')
 				|| selectedFile.requested_by.userId === getCurrentUser()?.uid
 			)
-			&& !isPartialSigned(selectedFile)
-			&& !isFullSigned(selectedFile)
+			&& ![2, 3].includes(Number(selectedFile?.status))
 	}
 
 	function isDocMdpNoChangesAllowed(file) {
 		const selectedFile = getFile(file)
-		return Number(selectedFile?.docmdpLevel || 0) === 1 && selectedFile.signers && selectedFile.signers.length > 0
+		return Number(selectedFile?.docmdpLevel || 0) === 1 && Number(selectedFile?.signersCount || selectedFile?.signers?.length || 0) > 0
 	}
 
 	function isOriginalFileDeleted(file) {
@@ -401,9 +775,8 @@ const _filesStore = defineStore('files', () => {
 				!Object.hasOwn(selectedFile, 'requested_by')
 				|| selectedFile.requested_by.userId === getCurrentUser()?.uid
 			)
-			&& !isPartialSigned(selectedFile)
-			&& !isFullSigned(selectedFile)
-			&& selectedFile?.signers?.length > 0
+			&& ![2, 3].includes(Number(selectedFile?.status))
+			&& Number(selectedFile?.signersCount || selectedFile?.signers?.length || 0) > 0
 	}
 
 	function isTemporaryId(id) {
@@ -424,58 +797,62 @@ const _filesStore = defineStore('files', () => {
 		})
 	}
 
-	function addUniqueIdentifierToAllSigners(signers) {
+	function createDraftSignerLocalKey() {
+		draftSignerKeySequence += 1
+		return `draft-signer:${draftSignerKeySequence}`
+	}
+
+	/** @param {EditableSignerState[] | undefined | null} signers */
+	function addLocalKeyToAllSigners(signers) {
 		if (signers === undefined) {
 			return
 		}
-		signers.map(signer => addIdentifierToSigner(signer))
+		signers.map(signer => addLocalKeyToSigner(signer))
 	}
 
-	function addIdentifierToSigner(signer) {
-		if (signer.identify) {
+	/** @param {EditableSignerState} signer */
+	function addLocalKeyToSigner(signer) {
+		if (signer.localKey) {
 			return
 		}
-		// generate unique code to new signer to be possible delete or edit
-		if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
-			signer.identify = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(signer))))
+		if (signer.signRequestId !== undefined) {
+			signer.localKey = `signer:${signer.signRequestId}`
+			return
 		}
-		if (signer.signRequestId) {
-			signer.identify = signer.signRequestId
-		}
+		signer.localKey = createDraftSignerLocalKey()
 	}
 
+	/** @param {EditableSignerState} signer */
 	function signerUpdate(signer) {
-		if (!selectedFileId.value || !files.value[selectedFileId.value]) {
+		const editableFile = ensureRequestDraft()
+		if (!selectedFileId.value || !editableFile) {
 			return
 		}
-		addIdentifierToSigner(signer)
-		if (!getFile().signers?.length) {
-			getFile().signers = []
+		addLocalKeyToSigner(signer)
+		if (!editableFile.signers?.length) {
+			editableFile.signers = []
 		}
 		// Remove if already exists
-		for (let i = getFile().signers.length - 1; i >= 0; i--) {
-			if (getFile().signers[i].identify === signer.identify) {
-				getFile().signers.splice(i, 1)
-				break
-			}
-			if (getFile().signers[i].signRequestId === signer.identify) {
-				getFile().signers.splice(i, 1)
+		for (let i = editableFile.signers.length - 1; i >= 0; i--) {
+			if (editableFile.signers[i].localKey === signer.localKey) {
+				editableFile.signers.splice(i, 1)
 				break
 			}
 		}
-		if (!signer.signingOrder && getFile().signatureFlow === 'ordered_numeric') {
-			const maxOrder = getFile().signers.reduce((max, s) => Math.max(max, s.signingOrder || 0), 0)
+		if (!signer.signingOrder && editableFile.signatureFlow === 'ordered_numeric') {
+			const maxOrder = editableFile.signers.reduce((max, s) => Math.max(max, s.signingOrder || 0), 0)
 			signer.signingOrder = maxOrder + 1
 		}
-		getFile().signers.push(signer)
-		getFile().signersCount = getFile().signers.length
+		editableFile.signers.push(signer)
+		editableFile.signersCount = editableFile.signers.length
 		const selected = selectedFileId.value
 		selectFile(-1) // to force reactivity
 		selectFile(selected) // to force reactivity
 	}
 
+	/** @param {EditableSignerState} signer */
 	async function deleteSigner(signer) {
-		const selectedFile = getFile()
+		const selectedFile = ensureRequestDraft() || getFile()
 
 		if (!isNaN(signer.signRequestId)) {
 			await axios.delete(generateOcsUrl('/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}', {
@@ -485,12 +862,12 @@ const _filesStore = defineStore('files', () => {
 			}))
 		}
 
-		files.value[selectedFileId.value].signers = files.value[selectedFileId.value].signers
-			.filter((i) => i.identify !== signer.identify)
-		files.value[selectedFileId.value].signersCount = files.value[selectedFileId.value].signers.length
+		selectedFile.signers = selectedFile.signers
+			.filter((currentSigner) => currentSigner.localKey !== signer.localKey)
+		selectedFile.signersCount = selectedFile.signers.length
 
 		if (selectedFile.signatureFlow === 'ordered_numeric' && signer.signingOrder) {
-			files.value[selectedFileId.value].signers.forEach((s) => {
+			selectedFile.signers.forEach((s) => {
 				if (s.signingOrder && s.signingOrder > signer.signingOrder) {
 					s.signingOrder -= 1
 				}
@@ -586,11 +963,12 @@ const _filesStore = defineStore('files', () => {
 
 	async function getAllFiles(filter) {
 		const store = getStore()
+		const requestDetails = filter?.details === true
 		if (loading.value || loadedAll.value) {
 			if (!filter) {
 				return files.value
 			}
-			if (!filter.force_fetch) {
+			if (!filter.force_fetch && !requestDetails) {
 				return Object.fromEntries(
 					Object.entries(files.value).filter(([, value]) => {
 						if (filter.signer_uuid) {
@@ -615,9 +993,13 @@ const _filesStore = defineStore('files', () => {
 
 		if (filter) {
 			for (const [key, value] of Object.entries(filter)) {
+				if (key === 'force_fetch' || key === 'details') {
+					continue
+				}
 				params.set(key, value)
 			}
 		}
+		params.set('details', requestDetails ? 'true' : 'false')
 		const filtersStore = useFiltersStore()
 		filtersStore.filterStatusArray.forEach(id => {
 			params.append('status[]', id)
@@ -640,13 +1022,14 @@ const _filesStore = defineStore('files', () => {
 		const response = await axios.get(urlObj.toString())
 
 		if (!paginationNextUrl.value) {
+			apiFiles.value = {}
 			files.value = {}
 			ordered.value = []
 		}
 		paginationNextUrl.value = response.data.ocs.data.pagination.next
 		loadedAll.value = !paginationNextUrl.value
 		response.data.ocs.data.data.forEach((file) => {
-			store.addFile(file, { position: 'end' })
+			store.addFile(file, { position: 'end', detailsLoaded: requestDetails })
 		})
 
 		if (response.data.ocs.data.settings) {
@@ -675,6 +1058,10 @@ const _filesStore = defineStore('files', () => {
 		return ordered.value.map(key => files.value[key])
 	}
 
+	/**
+	 * @param {SaveSignatureRequestOptions} [payload]
+	 * @returns {Promise<SaveSignatureRequestResponse>}
+	 */
 	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, signatureFlow = null } = {}) {
 		const store = getStore()
 		const currentFileKey = selectedFileId.value
@@ -718,7 +1105,7 @@ const _filesStore = defineStore('files', () => {
 
 		let response = await axios(config)
 			.catch((error) => {
-				const message = error.response?.data?.ocs?.data?.message || 'Failed to save or update signature request'
+				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to save or update signature request')
 				return {
 					success: false,
 					message,
@@ -745,6 +1132,8 @@ const _filesStore = defineStore('files', () => {
 		}
 
 		if (selectedFile.nodeType === 'envelope' && typeof selectedFile.nodeId === 'string' && responseFile.nodeId !== selectedFile.nodeId) {
+			delete apiFiles.value[selectedFileId.value]
+			clearRequestDraft(selectedFileId.value)
 			delete files.value[selectedFileId.value]
 			const index = ordered.value.indexOf(selectedFileId.value)
 			if (index !== -1) {
@@ -753,8 +1142,14 @@ const _filesStore = defineStore('files', () => {
 		}
 
 		const newFileKey = responseFile.id
+		clearRequestDraft(currentFileKey)
+		if (newFileKey !== currentFileKey) {
+			clearRequestDraft(newFileKey)
+		}
 		if (selectedFileId.value !== null && selectedFileId.value !== newFileKey) {
 			if (store.isTemporaryId(selectedFileId.value) && files.value[selectedFileId.value]) {
+				delete apiFiles.value[selectedFileId.value]
+				clearRequestDraft(selectedFileId.value)
 				delete files.value[selectedFileId.value]
 				const index = ordered.value.indexOf(selectedFileId.value)
 				if (index !== -1) {
@@ -766,11 +1161,12 @@ const _filesStore = defineStore('files', () => {
 
 		if (selectedFile.id) {
 			const existingFile = files.value[newFileKey]
-			if (existingFile?.settings) {
-				responseFile.settings = { ...existingFile.settings, ...responseFile.settings }
-			}
-			files.value[newFileKey] = responseFile
-			store.addUniqueIdentifierToAllSigners(files.value[newFileKey].signers)
+			const shouldKeepDetailedState = Boolean(existingFile?.detailsLoaded || selectedFile?.detailsLoaded)
+			await store.addFile(responseFile, {
+				position: 'end',
+				detailsLoaded: shouldKeepDetailedState,
+			})
+			store.addLocalKeyToAllSigners(files.value[newFileKey].signers)
 			if (!ordered.value.includes(newFileKey)) {
 				ordered.value.push(newFileKey)
 			}
@@ -811,7 +1207,10 @@ const _filesStore = defineStore('files', () => {
 		getFileIdByUuid,
 		selectFileByUuid,
 		getFile,
+		getSelectedFileView,
+		getEditableFile,
 		flushSelectedFile,
+		fetchFileDetail,
 		addFilesToEnvelope,
 		removeFilesFromEnvelope,
 		enableIdentifySigner,
@@ -828,8 +1227,8 @@ const _filesStore = defineStore('files', () => {
 		canSave,
 		isTemporaryId,
 		getSubtitle,
-		addUniqueIdentifierToAllSigners,
-		addIdentifierToSigner,
+		addLocalKeyToAllSigners,
+		addLocalKeyToSigner,
 		signerUpdate,
 		deleteSigner,
 		delete: deleteFile,

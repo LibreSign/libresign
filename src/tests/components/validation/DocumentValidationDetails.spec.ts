@@ -5,6 +5,7 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
 
 type DocumentValidationComponent = typeof import('../../../components/validation/DocumentValidationDetails.vue').default
@@ -25,7 +26,7 @@ type ValidationDocument = {
 type WrapperProps = Partial<{
 	document: Partial<ValidationDocument>
 	legalInformation: string
-	documentValidMessage: string | null
+	documentValidMessage: string
 	isAfterSigned: boolean
 }>
 
@@ -70,9 +71,9 @@ beforeAll(async () => {
 })
 
 describe('DocumentValidationDetails', () => {
-	let wrapper: ReturnType<typeof mount> | null
+	let wrapper: VueWrapper<any> | null
 
-	const createWrapper = (props: WrapperProps = {}) => {
+	const createWrapper = (props: WrapperProps = {}): VueWrapper<any> => {
 		return mount(DocumentValidationDetails, {
 			props: {
 				document: {
@@ -80,7 +81,7 @@ describe('DocumentValidationDetails', () => {
 					...props.document,
 				},
 				legalInformation: '',
-				documentValidMessage: null,
+				documentValidMessage: '',
 				isAfterSigned: false,
 				...props,
 			},
@@ -97,7 +98,7 @@ describe('DocumentValidationDetails', () => {
 					n,
 				},
 			},
-		})
+		}) as VueWrapper<any>
 	}
 
 	beforeEach(() => {
@@ -430,6 +431,7 @@ describe('DocumentValidationDetails', () => {
 				document: {
 					uuid: 'abc123',
 					name: 'file.pdf',
+					nodeId: 123,
 				},
 			})
 
@@ -443,6 +445,7 @@ describe('DocumentValidationDetails', () => {
 				document: {
 					uuid: 'id',
 					name: 'Important Document.pdf',
+					nodeId: 789,
 				},
 			})
 
@@ -453,6 +456,19 @@ describe('DocumentValidationDetails', () => {
 					filename: 'Important Document.pdf',
 				})
 			)
+		})
+
+		it('does not open viewer without required viewer data', async () => {
+			wrapper = createWrapper({
+				document: {
+					uuid: 'missing-node-id',
+					name: 'Missing nodeId.pdf',
+				},
+			})
+
+			await wrapper.vm.viewDocument()
+
+			expect(viewer.openDocument).not.toHaveBeenCalled()
 		})
 	})
 
@@ -643,7 +659,7 @@ describe('DocumentValidationDetails', () => {
 		it('defaults to null', () => {
 			wrapper = createWrapper()
 
-			expect(wrapper.props('documentValidMessage')).toBeNull()
+			expect(wrapper.props('documentValidMessage')).toBe('')
 		})
 	})
 })

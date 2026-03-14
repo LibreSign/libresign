@@ -67,8 +67,7 @@
 import { t } from '@nextcloud/l10n'
 import { computed, getCurrentInstance, onBeforeMount, reactive, ref, toRefs } from 'vue'
 
-// eslint-disable-next-line n/no-missing-import
-import md5 from 'crypto-js/md5'
+import md5 from 'blueimp-md5'
 
 
 import axios from '@nextcloud/axios'
@@ -87,21 +86,35 @@ import {
 	mdiChevronRight,
 } from '@mdi/js'
 
+type CreateAccountSettings = {
+	accountHash?: string
+}
+
+type RouteState = {
+	params: {
+		uuid?: string
+	}
+}
+
+type RouterState = {
+	resolve: (location: { name: string }) => { href: string }
+}
+
 defineOptions({
 	name: 'CreateAccount',
 })
 
 const instance = getCurrentInstance()
-const route = computed(() => instance?.proxy?.$route ?? { params: {} })
-const router = computed(() => instance?.proxy?.$router)
+const route = computed<RouteState>(() => (instance?.proxy?.$route as RouteState | undefined) ?? { params: {} })
+const router = computed<RouterState | undefined>(() => instance?.proxy?.$router as RouterState | undefined)
 
 const state = reactive({
 	loading: false,
 	email: '',
 	password: '',
 	passwordConfirm: '',
-	settings: loadState('libresign', 'settings'),
-	message: loadState('libresign', 'message'),
+	settings: loadState<CreateAccountSettings>('libresign', 'settings', {}),
+	message: loadState<string>('libresign', 'message', ''),
 	errorMessage: '',
 	enabledFeatures: [] as unknown[],
 })
@@ -207,7 +220,7 @@ const confirmPasswordError = computed(() => {
 	return ''
 })
 
-const isEqualEmail = computed(() => state.settings.accountHash === md5(email.value).toString())
+const isEqualEmail = computed(() => state.settings.accountHash === md5(email.value))
 
 const canSave = computed(() => {
 	return state.password.length > 0
@@ -229,10 +242,13 @@ async function createAccount() {
 	state.loading = true
 	try {
 		await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}'), {
-			uuid: route.value.params.uuid,
+			uuid: route.value.params.uuid ?? '',
 			email: state.email,
 			password: state.password,
 		})
+		if (!router.value) {
+			return
+		}
 		const url = router.value.resolve({ name: 'SignPDF' })
 		window.location.href = url.href
 	} catch (error: any) {

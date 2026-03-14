@@ -6,6 +6,11 @@
 /// <reference types="@nextcloud/typings" />
 
 declare global {
+	interface LibreSignAppConfigApi {
+		setValue: (app: string, key: string, value: string | number | boolean, options?: { success?: () => void; error?: () => void }) => void
+		deleteKey?: (app: string, key: string) => void
+	}
+
 	interface LibreSignGlobalNamespace {
 		fileInfo?: unknown
 		pendingEnvelope?: {
@@ -34,11 +39,16 @@ declare global {
 		// Nextcloud Globals
 		OC: Nextcloud.v29.OC
 		OCA: OCAGlobalNamespace
-		OCP: Nextcloud.v29.OCP
+		OCP: Nextcloud.v29.OCP & {
+			AppConfig: LibreSignAppConfigApi
+		}
 	}
 
 	const OC: Nextcloud.v29.OC
 	const OCA: OCAGlobalNamespace
+	const OCP: Nextcloud.v29.OCP & {
+		AppConfig: LibreSignAppConfigApi
+	}
 }
 
 export {}

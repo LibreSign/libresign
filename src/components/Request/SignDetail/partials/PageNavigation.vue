@@ -7,7 +7,7 @@
 		<button :disabled="!allowPrevious" class="primary" @click="previous">
 			{{ t('libresign', 'Previous') }}
 		</button>
-		<NcCounterBubble type="outlined">
+		<NcCounterBubble :count="actual" type="outlined">
 			{{ actual }}/{{ size }}
 		</NcCounterBubble>
 		<button :disabled="!allowNext" class="primary" @click="next">

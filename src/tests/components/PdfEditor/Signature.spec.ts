@@ -5,14 +5,31 @@
 
 import { beforeEach, describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 
 import Signature from '../../../components/PdfEditor/Signature.vue'
 
-describe('PdfEditor Signature.vue', () => {
-	let wrapper: ReturnType<typeof mount>
+type ContainerStyle = {
+	width: string
+	height: string
+	transform: string
+}
 
-	beforeEach(() => {
-		wrapper = mount(Signature, {
+type SignatureVm = {
+	handlePanStart: (event: MouseEvent | TouchEvent) => void
+	handlePanMove: (event: MouseEvent | TouchEvent) => void
+	handlePanEnd: (event: MouseEvent | TouchEvent) => void
+	containerStyle: ContainerStyle
+	$nextTick: () => Promise<void>
+}
+
+type SignatureWrapper = VueWrapper<SignatureVm>
+
+describe('PdfEditor Signature.vue', () => {
+	let wrapper: SignatureWrapper
+
+	function createWrapper(props: Record<string, unknown> = {}): SignatureWrapper {
+		return mount(Signature, {
 			props: {
 				displayName: 'Ada Lovelace',
 				width: 200,
@@ -22,28 +39,26 @@ describe('PdfEditor Signature.vue', () => {
 				originWidth: 200,
 				originHeight: 100,
 				pageScale: 1,
+				...props,
 			},
 			global: {
 				stubs: {
 					NcIconSvgWrapper: true,
 				},
 			},
-		})
+		}) as SignatureWrapper
+	}
+
+	beforeEach(() => {
+		wrapper = createWrapper()
 	})
 
 	it('emits the initial scaled size on mount', async () => {
-		const localWrapper = mount(Signature, {
-			props: {
-				width: 800,
-				height: 600,
-				originWidth: 800,
-				originHeight: 600,
-			},
-			global: {
-				stubs: {
-					NcIconSvgWrapper: true,
-				},
-			},
+		const localWrapper = createWrapper({
+			width: 800,
+			height: 600,
+			originWidth: 800,
+			originHeight: 600,
 		})
 
 		await localWrapper.vm.$nextTick()

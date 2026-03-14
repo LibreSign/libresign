@@ -16,24 +16,8 @@ export default defineConfig({
 				replacement: resolve(__dirname, './src/tests/mocks/vue-select.css'),
 			},
 			{
-				find: /^vue-select\/dist\/vue-select\.es\.js$/,
+				find: /^vue-select(?:\/dist\/vue-select(?:\.es(?:\.js)?)?)?$/,
 				replacement: resolve(__dirname, './src/tests/mocks/vue-select.js'),
-			},
-			{
-				find: /^vue-select\/dist\/vue-select\.es$/,
-				replacement: resolve(__dirname, './src/tests/mocks/vue-select.js'),
-			},
-			{
-				find: /^vue-select\/dist\/vue-select$/,
-				replacement: resolve(__dirname, './src/tests/mocks/vue-select.js'),
-			},
-			{
-				find: /^vue-select$/,
-				replacement: resolve(__dirname, './src/tests/mocks/vue-select.js'),
-			},
-			{
-				find: '@libresign/pdf-elements',
-				replacement: resolve(__dirname, './src/tests/mocks/pdf-elements'),
 			},
 			{
 				find: /^@\//,

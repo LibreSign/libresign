@@ -67,14 +67,23 @@ import {
 	mdiHelpCircle,
 } from '@mdi/js'
 import { buildStatusMap } from '../../utils/fileStatus.js'
+import type { components } from '../../types/openapi/openapi'
 
+type OpenApiNextcloudFile = components['schemas']['DetailedFileResponse']
+type OpenApiSigner = components['schemas']['SignerDetail']
 
 type ProgressFile = {
 	id: number
-	name?: string
-	status?: number
+	name: string
+	status: number
+	statusText?: string
 	error?: {
 		message?: string
+		code?: number
+		timestamp?: string
+		fileId?: number
+		signRequestId?: number
+		signRequestUuid?: string
 	} | null
 }
 
@@ -88,14 +97,15 @@ type ProgressState = {
 }
 
 type ValidationDocument = {
-	nodeType?: string
+	id?: OpenApiNextcloudFile['id'] | string | number
+	nodeType?: OpenApiNextcloudFile['nodeType'] | string
 	files?: Array<{
-		id: number
-		name: string
-		status: number
+		id?: OpenApiNextcloudFile['id'] | string | number
+		name?: OpenApiNextcloudFile['name']
+		status?: OpenApiNextcloudFile['status'] | string | number
 	}>
 	signers?: Array<{
-		signed?: boolean
+		signed?: OpenApiSigner['signed'] | boolean | Array<unknown>
 	}>
 }
 
@@ -134,7 +144,7 @@ const isPolling = ref(false)
 const pollingInterval = ref<ReturnType<typeof setTimeout> | null>(null)
 const progress = ref<ProgressState | null>(null)
 const generalErrorMessage = ref<string | null>(null)
-const statusMap = ref<Record<string, StatusMeta>>(buildStatusMap())
+const statusMap = ref<Record<string, StatusMeta>>(buildStatusMap() as unknown as Record<string, StatusMeta>)
 const pollTimeoutSeconds = ref(30)
 
 function getHeaderTitle() {
@@ -285,7 +295,13 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 		return null
 	}
 	if (doc.nodeType === 'envelope' || (Array.isArray(doc.files) && doc.files.length > 0)) {
-		const files = (doc.files ?? []).map(file => ({ id: file.id, name: file.name, status: file.status }))
+		const files = (doc.files ?? [])
+			.filter((file): file is typeof file & { id: number; name: string; status: number } => {
+				return typeof file.id === 'number'
+					&& typeof file.name === 'string'
+					&& typeof file.status === 'number'
+			})
+			.map(file => ({ id: file.id, name: file.name, status: file.status }))
 		const total = files.length
 		const signed = files.filter(file => file.status === 3).length
 		const inProgress = files.filter(file => file.status === 5).length

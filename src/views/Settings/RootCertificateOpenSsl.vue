@@ -109,6 +109,7 @@
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
@@ -146,10 +147,10 @@ defineOptions({
 })
 
 const configureCheckStore = useConfigureCheckStore()
-const OID = loadState('libresign', 'certificate_policies_oid', '')
-const CPS = loadState('libresign', 'certificate_policies_cps', '')
+const OID = String(loadState('libresign', 'certificate_policies_oid', ''))
+const CPS = String(loadState('libresign', 'certificate_policies_cps', ''))
 
-const isThisEngine = ref(loadState('libresign', 'certificate_engine', '') === 'openssl')
+const isThisEngine = ref(String(loadState('libresign', 'certificate_engine', '')) === 'openssl')
 const modal = ref(false)
 const certificate = ref<RootCertificatePayload>({
 	rootCert: {
@@ -180,8 +181,8 @@ const configureOk = computed(() => configureCheckStore.isConfigureOk('openssl'))
 const isCertificateGenerated = computed(() => !!certificate.value.generated)
 const loaded = computed(() => configureCheckStore.items.length > 0)
 
-function handleCertificatePolicyValid(isValid: boolean) {
-	certificatePolicyValid.value = isValid
+function handleCertificatePolicyValid(valid: boolean) {
+	certificatePolicyValid.value = valid
 }
 
 function updateNames(names: CertificateName[]) {
@@ -196,6 +197,14 @@ async function changeEngine(engine: string) {
 	isThisEngine.value = engine === 'openssl'
 	await loadRootCertificate()
 }
+
+const handleChangeEngine = ((event: NextcloudEvent) => {
+	void changeEngine(String(event as unknown as string))
+}) as EventHandler<NextcloudEvent>
+
+const handleUpdateNames = ((event: NextcloudEvent) => {
+	updateNames(event as unknown as CertificateName[])
+}) as EventHandler<NextcloudEvent>
 
 function showModal() {
 	modal.value = true
@@ -292,13 +301,13 @@ onMounted(() => {
 	description.value = t('libresign', 'To generate new signatures, you must first generate the root certificate.')
 	submitLabel.value = t('libresign', 'Generate root certificate')
 	void loadRootCertificate()
-	subscribe('libresign:certificate-engine:changed', changeEngine)
-	subscribe('libresign:update:certificateToSave', updateNames)
+	subscribe('libresign:certificate-engine:changed', handleChangeEngine)
+	subscribe('libresign:update:certificateToSave', handleUpdateNames)
 })
 
 onBeforeUnmount(() => {
-	unsubscribe('libresign:certificate-engine:changed')
-	unsubscribe('libresign:update:certificateToSave')
+	unsubscribe('libresign:certificate-engine:changed', handleChangeEngine)
+	unsubscribe('libresign:update:certificateToSave', handleUpdateNames)
 })
 
 defineExpose({

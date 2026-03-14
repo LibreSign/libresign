@@ -9,7 +9,7 @@
 			<div class="document-status">
 				<span class="document-status__label">{{ t('libresign', 'Status') }}</span>
 				<span class="document-status__dot" aria-hidden="true" />
-				<span class="document-status__text">{{ signStore.document.statusText }}</span>
+				<span class="document-status__text">{{ signStore.document?.statusText ?? '' }}</span>
 			</div>
 		</header>
 
@@ -45,6 +45,14 @@ defineOptions({
 	name: 'SignTab',
 })
 
+type SignTabSigner = {
+	me?: boolean
+	sign_uuid?: string | null
+}
+
+type SignStoreContract = ReturnType<typeof useSignStore>
+type SignTabDocument = NonNullable<SignStoreContract['document']>
+
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 
@@ -61,16 +69,19 @@ function getRoute() {
 }
 
 function signEnabled() {
-	return FILE_STATUS.ABLE_TO_SIGN === signStore.document.status
-		|| FILE_STATUS.PARTIAL_SIGNED === signStore.document.status
+	const document = signStore.document as SignTabDocument | undefined
+	return FILE_STATUS.ABLE_TO_SIGN === document?.status
+		|| FILE_STATUS.PARTIAL_SIGNED === document?.status
 }
 
 function getSignRequestUuid() {
-	const doc = signStore.document || {}
-	const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
-	const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
-	const fromSigner = signer.sign_uuid
-	return fromDoc || fromSigner || loadState('libresign', 'sign_request_uuid', null)
+	const doc = (signStore.document ?? {}) as SignTabDocument
+	const signer = doc.signers?.find(row => row.me) || doc.signers?.[0]
+	const fromDoc = [doc.signRequestUuid, doc.sign_request_uuid, doc.signUuid, doc.sign_uuid]
+		.find((value): value is string => typeof value === 'string' && value.length > 0)
+	const fromSigner = signer?.sign_uuid
+	const fromState = loadState<string | null>('libresign', 'sign_request_uuid', null)
+	return fromDoc || fromSigner || (typeof fromState === 'string' && fromState.length > 0 ? fromState : null)
 }
 
 function getValidationRouteName() {

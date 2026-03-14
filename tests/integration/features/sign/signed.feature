@@ -19,7 +19,7 @@ Feature: signed
       | name | Document Name |
     And the response should have a status code 200
     And as user "signer1"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should be a JSON array with the following mandatory values
       | key                        | value         |
       | (jq).ocs.data.data[0].name | Document Name |
@@ -35,7 +35,7 @@ Feature: signed
       | key                     | value       |
       | (jq).ocs.data.message   | File signed |
       | (jq).ocs.data.file.uuid | <FILE_UUID> |
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should be a JSON array with the following mandatory values
       | key  | value                                 |
       | (jq).ocs.data.data[0].name   | Document Name |
@@ -72,7 +72,7 @@ Feature: signed
       | name | Document Name |
     And the response should have a status code 200
     And as user "signer1"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should be a JSON array with the following mandatory values
       | key                        | value         |
       | (jq).ocs.data.data[0].name | Document Name |
@@ -137,7 +137,7 @@ Feature: signed
       | name | Document Name |
     And the response should have a status code 200
     And as user "signer1"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should be a JSON array with the following mandatory values
       | key                        | value         |
       | (jq).ocs.data.data[0].name | Document Name |

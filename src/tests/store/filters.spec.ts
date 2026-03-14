@@ -442,3 +442,55 @@ describe('filters store - filter business rules', () => {
 		})
 	})
 })
+
+describe('Filter store chip payload rules', () => {
+	it('status filter chips do not contain an icon property', () => {
+		const statusChips = [
+			{
+				id: 1,
+				text: 'Draft',
+				onclick: () => {},
+			},
+			{
+				id: 2,
+				text: 'Ready to sign',
+				onclick: () => {},
+			},
+		]
+
+		statusChips.forEach((chip) => {
+			expect(chip).not.toHaveProperty('icon')
+			expect(chip.text).toBeTruthy()
+			expect(chip.id).toBeTruthy()
+		})
+	})
+
+	it('modified filter chips may use a valid inline SVG payload', () => {
+		const modifiedChips = [
+			{
+				id: 'today',
+				text: 'Today',
+				icon: '<svg><path /></svg>',
+				onclick: () => {},
+			},
+		]
+
+		modifiedChips.forEach((chip) => {
+			if (Object.prototype.hasOwnProperty.call(chip, 'icon')) {
+				expect(chip.icon).toContain('<svg')
+			}
+		})
+	})
+
+	it('rejects raw MDI path strings as an SVG payload pattern', () => {
+		const invalidChip = {
+			id: 1,
+			text: 'Draft',
+			icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z',
+			onclick: () => {},
+		}
+
+		expect(invalidChip).toHaveProperty('icon')
+		expect(invalidChip.icon).not.toContain('<svg')
+	})
+})

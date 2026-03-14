@@ -80,22 +80,10 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import type { operations } from '../../types/openapi/openapi-administration'
 
-type SigningItem = {
-	id: number
-	name: string
-	signerDisplayName?: string
-	signerEmail?: string
-	updatedAt: number
-}
-
-type OcsResponse = {
-	data?: {
-		ocs?: {
-			data?: SigningItem[]
-		}
-	}
-}
+type ActiveSigningsResponse = operations['admin-get-active-signings']['responses'][200]['content']['application/json']
+type SigningItem = ActiveSigningsResponse['ocs']['data']['data'][number]
 
 defineOptions({
 	name: 'ActiveSignings',
@@ -112,12 +100,12 @@ const shouldRefresh = computed(() => autoRefresh.value)
 async function refresh() {
 	loading.value = true
 	try {
-		const response = await axios.get(
+		const response = await axios.get<ActiveSigningsResponse>(
 			generateOcsUrl('/apps/libresign/api/v1/admin/active-signings'),
-		) as OcsResponse
-		signings.value = response.data?.ocs?.data || []
+		)
+		signings.value = response.data.ocs.data.data
 		updateLastRefreshTime()
-	} catch (error) {
+	} catch (error: unknown) {
 		console.error('Failed to fetch active signings:', error)
 		signings.value = []
 	} finally {

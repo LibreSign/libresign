@@ -8,11 +8,11 @@ Feature: search
     And the response should be a JSON array with the following mandatory values
       | key                          | value                      |
       | (jq).ocs.data\|length        | 1                          |
-      | (jq).ocs.data[0].id          | search-signer1             |
+      | (jq).ocs.data[0].identify    | search-signer1             |
       | (jq).ocs.data[0].isNoUser    | false                      |
       | (jq).ocs.data[0].displayName | search-signer1-displayname |
       | (jq).ocs.data[0].subname     | search-signer1             |
-      | (jq).ocs.data[0].icon        | icon-user                  |
+      | (jq).ocs.data[0].iconName    | account                    |
       | (jq).ocs.data[0].method      | account                    |
 
   Scenario: Search account by multiple users
@@ -24,17 +24,17 @@ Feature: search
     And the response should be a JSON array with the following mandatory values
       | key                          | value                      |
       | (jq).ocs.data\|length        | 2                          |
-      | (jq).ocs.data[0].id          | search-signer1             |
+      | (jq).ocs.data[0].identify    | search-signer1             |
       | (jq).ocs.data[0].isNoUser    | false                      |
       | (jq).ocs.data[0].displayName | search-signer1-displayname |
       | (jq).ocs.data[0].subname     | search-signer1             |
-      | (jq).ocs.data[0].icon        | icon-user                  |
+      | (jq).ocs.data[0].iconName    | account                    |
       | (jq).ocs.data[0].method      | account                    |
-      | (jq).ocs.data[1].id          | search-signer2             |
+      | (jq).ocs.data[1].identify    | search-signer2             |
       | (jq).ocs.data[1].isNoUser    | false                      |
       | (jq).ocs.data[1].displayName | search-signer2-displayname |
       | (jq).ocs.data[1].subname     | search-signer2             |
-      | (jq).ocs.data[1].icon        | icon-user                  |
+      | (jq).ocs.data[1].iconName    | account                    |
       | (jq).ocs.data[1].method      | account                    |
 
 
@@ -50,11 +50,11 @@ Feature: search
     And the response should be a JSON array with the following mandatory values
       | key                          | value                       |
       | (jq).ocs.data\|length        | 1                           |
-      | (jq).ocs.data[0].id          | can-find-myself             |
+      | (jq).ocs.data[0].identify    | can-find-myself             |
       | (jq).ocs.data[0].isNoUser    | false                       |
       | (jq).ocs.data[0].displayName | can-find-myself-displayname |
       | (jq).ocs.data[0].subname     | my@email.tld                |
-      | (jq).ocs.data[0].icon        | icon-user                   |
+      | (jq).ocs.data[0].iconName    | account                     |
       | (jq).ocs.data[0].method      | account                     |
 
   Scenario: Search account by herself without permission to identify by account
@@ -83,11 +83,11 @@ Feature: search
     And the response should be a JSON array with the following mandatory values
       | key                          | value           |
       | (jq).ocs.data\|length        | 1               |
-      | (jq).ocs.data[0].id          | admin           |
+      | (jq).ocs.data[0].identify    | admin           |
       | (jq).ocs.data[0].isNoUser    | false           |
       | (jq).ocs.data[0].displayName | admin           |
       | (jq).ocs.data[0].subname     | admin@email.tld |
-      | (jq).ocs.data[0].icon        | icon-user       |
+      | (jq).ocs.data[0].iconName    | account         |
       | (jq).ocs.data[0].method      | account         |
 
   Scenario: Search account by herself without permission to identify by email
@@ -112,11 +112,11 @@ Feature: search
     And the response should be a JSON array with the following mandatory values
       | key                          | value           |
       | (jq).ocs.data\|length        | 1               |
-      | (jq).ocs.data[0].id          | admin@email.tld |
+      | (jq).ocs.data[0].identify    | admin@email.tld |
       | (jq).ocs.data[0].isNoUser    | true            |
       | (jq).ocs.data[0].displayName | admin           |
       | (jq).ocs.data[0].subname     | admin@email.tld |
-      | (jq).ocs.data[0].icon        | icon-mail       |
+      | (jq).ocs.data[0].iconName    | email           |
       | (jq).ocs.data[0].method      | email           |
 
   Scenario: Search account returns acceptsEmailNotifications true when user accepts email
@@ -132,7 +132,7 @@ Feature: search
     And the response should be a JSON array with the following mandatory values
       | key                                         | value                |
       | (jq).ocs.data\|length                       | 1                    |
-      | (jq).ocs.data[0].id                         | notification-enabled |
+      | (jq).ocs.data[0].identify                   | notification-enabled |
       | (jq).ocs.data[0].method                     | account              |
       | (jq).ocs.data[0].acceptsEmailNotifications  | true                 |
 
@@ -149,7 +149,7 @@ Feature: search
     And the response should be a JSON array with the following mandatory values
       | key                                         | value                 |
       | (jq).ocs.data\|length                       | 1                     |
-      | (jq).ocs.data[0].id                         | notification-disabled |
+      | (jq).ocs.data[0].identify                   | notification-disabled |
       | (jq).ocs.data[0].method                     | account               |
       | (jq).ocs.data[0].acceptsEmailNotifications  | false                 |
 
@@ -166,6 +166,6 @@ Feature: search
     And the response should be a JSON array with the following mandatory values
       | key                                         | value                    |
       | (jq).ocs.data\|length                       | 1                        |
-      | (jq).ocs.data[0].id                         | notification-global-off  |
+      | (jq).ocs.data[0].identify                   | notification-global-off  |
       | (jq).ocs.data[0].method                     | account                  |
       | (jq).ocs.data[0].acceptsEmailNotifications  | false                    |

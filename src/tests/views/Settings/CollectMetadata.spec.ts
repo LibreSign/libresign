@@ -80,6 +80,6 @@ describe('CollectMetadata.vue', () => {
 		const callbacks = vi.mocked(OCP.AppConfig.setValue).mock.calls[0][3]
 		callbacks?.success?.()
 
-		expect(emitMock).toHaveBeenCalledWith('collect-metadata:changed')
+		expect(emitMock).toHaveBeenCalledWith('collect-metadata:changed', undefined)
 	})
 })

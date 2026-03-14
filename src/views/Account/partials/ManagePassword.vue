@@ -87,10 +87,15 @@ const emit = defineEmits<{
 	(event: 'certificate:uploaded'): void
 }>()
 
-const signMethodsStore = useSignMethodsStore()
-signMethodsStore.setHasSignatureFile(loadState('libresign', 'config', {})?.hasSignatureFile ?? false)
+type ManagePasswordConfig = {
+	hasSignatureFile?: boolean
+}
 
-const certificateEngine = loadState('libresign', 'certificate_engine', '')
+const signMethodsStore = useSignMethodsStore()
+const config = loadState<ManagePasswordConfig>('libresign', 'config', {})
+signMethodsStore.initializeHasSignatureFile(config.hasSignatureFile ?? false)
+
+const certificateEngine = loadState<string>('libresign', 'certificate_engine', '')
 const mounted = ref(false)
 const uploadCertificate = ref<InstanceType<typeof UploadCertificate> | null>(null)
 

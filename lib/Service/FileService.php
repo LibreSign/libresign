@@ -49,9 +49,7 @@ use stdClass;
 use TypeError;
 
 /**
- * @psalm-import-type LibresignEnvelopeChildFile from ResponseDefinitions
- * @psalm-import-type LibresignValidateFile from ResponseDefinitions
- * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
+ * @psalm-import-type LibresignValidatedFile from ResponseDefinitions
  */
 class FileService {
 
@@ -138,9 +136,6 @@ class FileService {
 
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
 			return $data['file']['fileNode'];
-		}
-		if (isset($data['file']['fileId'])) {
-			return $this->folderService->getFileByNodeId($data['file']['fileId']);
 		}
 		if (isset($data['file']['path'])) {
 			return $this->folderService->getFileByPath($data['file']['path']);
@@ -588,8 +583,8 @@ class FileService {
 	}
 
 	/**
-	 * @return LibresignValidateFile
-	 * @psalm-return LibresignValidateFile
+	 * @return array
+	 * @psalm-return LibresignValidatedFile
 	 */
 	public function toArray(): array {
 		$this->loadLibreSignData();

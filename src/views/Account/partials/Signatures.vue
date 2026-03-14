@@ -34,14 +34,17 @@ import { t } from '@nextcloud/l10n'
 import { getCapabilities } from '@nextcloud/capabilities'
 
 import Signature from './Signature.vue'
+import type { LibresignCapabilities } from '../../../types/index'
 
 defineOptions({
 	name: 'Signatures',
 })
 
 function isSignaturesAvailable() {
-	return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
-		&& getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
+	const capabilities = getCapabilities() as LibresignCapabilities
+	const signElementsConfig = capabilities.libresign?.config['sign-elements']
+	return signElementsConfig?.['is-available'] === true
+		&& signElementsConfig['can-create-signature'] === true
 }
 
 defineExpose({

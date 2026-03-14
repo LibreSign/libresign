@@ -5,7 +5,36 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { mdiCheckCircle, mdiClockOutline, mdiCircleOutline } from '@mdi/js'
+
+type SigningOrderDiagramComponent = typeof import('../../../components/SigningOrder/SigningOrderDiagram.vue').default
+
+type DiagramSigner = {
+	id?: number
+	displayName?: string
+	identifyMethods?: Array<{ method?: string; value?: string }>
+	signingOrder?: number
+	signed?: boolean
+	signDate?: number | null
+	me?: { status?: number }
+	[key: string]: unknown
+}
+
+type SigningOrderDiagramVm = {
+	uniqueOrders: number[]
+	getSignersByOrder: (order: number) => DiagramSigner[]
+	getSignerDisplayName: (signer: DiagramSigner) => string
+	getSignerIdentify: (signer: DiagramSigner) => string | undefined
+	getIdentifyMethods: (signer: DiagramSigner) => Array<string | undefined>
+	getStatusLabel: (signer: DiagramSigner) => string
+	getStatusIconPath: (signer: DiagramSigner) => string
+	getChipType: (signer: DiagramSigner) => string
+	getStatusClass: (signer: DiagramSigner) => string
+	formatDate: (timestamp?: number | null) => string
+}
+
+type SigningOrderDiagramWrapper = VueWrapper<SigningOrderDiagramVm>
 
 // Mock @nextcloud packages before component imports
 vi.mock('@nextcloud/logger', () => ({
@@ -27,14 +56,22 @@ vi.mock('@nextcloud/logger', () => ({
 	})),
 }))
 
-let SigningOrderDiagram: unknown
+vi.mock('@nextcloud/capabilities', () => ({
+	getCapabilities: vi.fn(() => ({
+		core: {
+			files: {},
+		},
+	})),
+}))
+
+let SigningOrderDiagram: SigningOrderDiagramComponent
 
 beforeAll(async () => {
 	;({ default: SigningOrderDiagram } = await import('../../../components/SigningOrder/SigningOrderDiagram.vue'))
 })
 
 describe('SigningOrderDiagram', () => {
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props = {}): SigningOrderDiagramWrapper => {
 		return mount(SigningOrderDiagram, {
 			props: {
 				signers: [],
@@ -50,10 +87,10 @@ describe('SigningOrderDiagram', () => {
 			mocks: {
 				t: (_app: string, text: string) => text,
 			},
-		})
+		}) as unknown as SigningOrderDiagramWrapper
 	}
 
-	let wrapper: ReturnType<typeof createWrapper> | undefined
+	let wrapper: SigningOrderDiagramWrapper | undefined
 
 	beforeEach(() => {
 		if (wrapper) {

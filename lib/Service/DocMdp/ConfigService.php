@@ -14,6 +14,10 @@ use OCA\Libresign\Enum\DocMdpLevel;
 use OCP\IAppConfig;
 use OCP\IL10N;
 
+/**
+ * @psalm-import-type LibresignDocMdpConfig from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignDocMdpLevelOption from \OCA\Libresign\ResponseDefinitions
+ */
 class ConfigService {
 	private const CONFIG_KEY_LEVEL = 'docmdp_level';
 
@@ -47,6 +51,7 @@ class ConfigService {
 		$this->appConfig->setValueInt(Application::APP_ID, self::CONFIG_KEY_LEVEL, $level->value);
 	}
 
+	/** @return LibresignDocMdpConfig */
 	public function getConfig(): array {
 		return [
 			'enabled' => $this->isEnabled(),
@@ -55,6 +60,7 @@ class ConfigService {
 		];
 	}
 
+	/** @return list<LibresignDocMdpLevelOption> */
 	private function getAvailableLevels(): array {
 		return array_map(
 			fn (DocMdpLevel $level) => [

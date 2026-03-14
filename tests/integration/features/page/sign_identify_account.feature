@@ -19,7 +19,7 @@ Feature: page/sign_identify_account
     Then the response should be a JSON array with the following mandatory values
       | key | value                                                         |
       | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                                        | value         |
@@ -72,7 +72,7 @@ Feature: page/sign_identify_account
     Then the response should be a JSON array with the following mandatory values
       | key | value                                                         |
       | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                                        | value         |

@@ -15,7 +15,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="actionHandler.showModal('createSignature')">
+					@click="openModal('createSignature')">
 					{{ t('libresign', 'Define your signature.') }}
 				</NcButton>
 			</div>
@@ -26,7 +26,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="actionHandler.showModal('uploadCertificate')">
+					@click="openModal('uploadCertificate')">
 					{{ t('libresign', 'Upload certificate') }}
 				</NcButton>
 			</div>
@@ -37,7 +37,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="actionHandler.showModal('createPassword')">
+					@click="openModal('createPassword')">
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
 			</div>
@@ -146,7 +146,7 @@
 			@certificate:uploaded="onSignatureFileCreated" />
 		<ModalVerificationCode v-if="signMethodsStore.modal.token"
 			mode="token"
-			:phone-number="user?.account?.phoneNumber || ''"
+			:phone-number="user.settings.phoneNumber"
 			@change="signWithTokenCode"
 			@update:phone="val => emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('token')" />
@@ -188,21 +188,46 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
+import type { operations } from '../../../types/openapi/openapi'
+import type {
+	LibresignCapabilities,
+	SignatureMethodsRecord,
+	UserElementRecord,
+	VisibleElementRecord,
+} from '../../../types/index'
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import { FILE_STATUS } from '../../../constants.js'
-import { getFileSigners, getVisibleElementsFromDocument, idsMatch } from '../../../services/visibleElementsService'
+import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner } from '../../../services/visibleElementsService'
+
+type VisibleElementsFileInput = Parameters<typeof getFileSigners>[0]
+type VisibleElementsDocumentInput = Parameters<typeof getVisibleElementsFromDocument>[0]
+type ServiceVisibleElement = VisibleElementRecord
+
+type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
+type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
+	settings: OpenApiAccountMe['settings'] & {
+		phoneNumber: string
+	}
+}
+type LibreSignUserElement = UserElementRecord
+type LibreSignVisibleElement = VisibleElementRecord
+type OcsResponseData<T> = {
+	ocs: {
+		data: T
+	}
+}
 
 defineOptions({
 	name: 'Sign',
 	methods: {
 		// Backward-compatibility shim for legacy tests that invoke Options API methods directly.
-		async submitSignature(this: any, methodConfig: Record<string, any> = {}) {
+		async submitSignature(this: SubmitSignatureCompatContext, methodConfig: SignatureMethodConfig = {}) {
 			this.loading = true
 			this.signStore.clearSigningErrors()
 
 			try {
-				const payload: Record<string, any> = {
+				const payload: SubmitSignaturePayload = {
 					method: methodConfig.method,
 				}
 
@@ -212,14 +237,18 @@ defineOptions({
 
 				if (this.elements?.length > 0) {
 					if (this.canCreateSignature) {
-						payload.elements = this.elements.map((row: any) => ({
+						payload.elements = this.elements.flatMap((row) => typeof row.elementId === 'number'
+							? [{
 							documentElementId: row.elementId,
-							profileNodeId: this.signatureElementsStore.signs[row.type].file.nodeId,
-						}))
+							profileNodeId: row.type ? this.signatureElementsStore.signs[row.type]?.file.nodeId : undefined,
+							}]
+							: [])
 					} else {
-						payload.elements = this.elements.map((row: any) => ({
+						payload.elements = this.elements.flatMap((row) => typeof row.elementId === 'number'
+							? [{
 							documentElementId: row.elementId,
-						}))
+							}]
+							: [])
 					}
 				}
 
@@ -228,28 +257,29 @@ defineOptions({
 				})
 
 				if (result.status === 'signingInProgress') {
-					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method)
+					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 					this.$emit('signing-started', {
 						signRequestUuid: this.signRequestUuid,
 						async: true,
 					})
 				} else if (result.status === 'signed') {
-					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method)
+					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 					this.sidebarStore.hideSidebar()
 					this.$emit('signed', {
 						...result.data,
 						signRequestUuid: this.signRequestUuid,
 					})
 				}
-			} catch (error: any) {
-				if (error.type === 'missingCertification') {
+			} catch (error: unknown) {
+				const signError = typeof error === 'object' && error !== null ? error as SignSubmissionError : {}
+				if (signError.type === 'missingCertification') {
 					const modalCode = this.signMethodsStore.certificateEngine === 'none'
 						? 'uploadCertificate'
 						: 'createPassword'
 					this.actionHandler.showModal(modalCode)
 				}
 
-				this.signStore.setSigningErrors(error.errors || [])
+				this.signStore.setSigningErrors(signError.errors || [])
 			} finally {
 				this.loading = false
 			}
@@ -257,18 +287,172 @@ defineOptions({
 	},
 })
 
-type UserInfo = {
-	account: {
-		uid: string
-		displayName: string
-		phoneNumber?: string
-	}
-}
+type UserInfo = LibreSignAccountMe
 
 type SignatureMethodConfig = {
 	method?: string
 	modalCode?: string
 	token?: string
+}
+
+type SignError = {
+	title?: string
+	message: string
+	code?: number
+}
+
+type TokenMethodKey = 'smsToken' | 'whatsappToken' | 'signalToken' | 'telegramToken' | 'xmppToken'
+
+type SignatureMethodSetting = {
+	identifyMethod?: string
+	token?: string
+	needCode?: boolean
+	hasSignatureFile?: boolean
+	label?: string
+	hashOfIdentifier?: string
+	blurredEmail?: string
+	hasConfirmCode?: boolean
+}
+
+type SignMethodKey = keyof SignatureMethodsRecord | TokenMethodKey
+
+type SignMethodsSettings = Partial<Record<SignMethodKey, SignatureMethodSetting>>
+
+type SignatureProfile = LibreSignUserElement
+
+type SignDocument = NonNullable<ReturnType<typeof useSignStore>['document']>
+type SignDocumentFile = NonNullable<SignDocument['files']>[number]
+type SignDocumentSigner = NonNullable<SignDocument['signers']>[number]
+
+type SignResult = {
+	status: 'signingInProgress' | 'signed' | 'unknown'
+	data: Record<string, unknown>
+}
+
+type SubmitSignaturePayload = {
+	method?: string
+	token?: string
+	elements?: Array<{
+		documentElementId: number
+		profileNodeId?: number
+	}>
+}
+
+type SignSubmissionError = {
+	type?: string
+	errors?: SignError[]
+}
+
+type SignStoreContract = ReturnType<typeof useSignStore> & {
+	document: SignDocument
+	errors: SignError[]
+	submitSignature: (
+		payload: SubmitSignaturePayload,
+		signRequestUuid?: string,
+		options?: { documentId?: number },
+	) => Promise<SignResult>
+	setSigningErrors: (errors: SignError[]) => void
+}
+
+type SignMethodsStoreContract = ReturnType<typeof useSignMethodsStore> & {
+	settings: SignMethodsSettings
+	certificateEngine: string
+}
+
+type SignatureElementsStoreContract = ReturnType<typeof useSignatureElementsStore> & {
+	signs: Record<string, SignatureProfile>
+	signRequestUuid: string
+	success: string
+	error: string
+}
+
+type SidebarStoreContract = ReturnType<typeof useSidebarStore>
+
+type IdentificationDocumentStoreContract = ReturnType<typeof useIdentificationDocumentStore>
+
+type SubmitSignatureCompatContext = {
+	loading: boolean
+	signStore: SignStoreContract
+	canCreateSignature: boolean
+	elements: LibreSignVisibleElement[]
+	signatureElementsStore: SignatureElementsStoreContract
+	signRequestUuid: string
+	actionHandler: SignFlowHandler
+	sidebarStore: SidebarStoreContract
+	signMethodsStore: SignMethodsStoreContract
+	$emit: (event: string, payload: unknown) => void
+}
+
+function isSignSubmissionError(error: unknown): error is SignSubmissionError {
+	return typeof error === 'object' && error !== null
+}
+
+function normalizeSignVisibleElement(element: unknown): ServiceVisibleElement | null {
+	const candidate = typeof element === 'object' && element !== null ? element as Record<string, unknown> : null
+	if (!candidate) {
+		return null
+	}
+	const coordinates = typeof candidate.coordinates === 'object' && candidate.coordinates !== null
+		? candidate.coordinates as Record<string, unknown>
+		: null
+	const type = typeof candidate.type === 'string' ? candidate.type : null
+	const elementId = candidate.elementId === undefined ? undefined : Number(candidate.elementId)
+	const signRequestId = candidate.signRequestId === undefined ? undefined : Number(candidate.signRequestId)
+	const fileId = candidate.fileId === undefined ? undefined : Number(candidate.fileId)
+	if (!coordinates || !type || elementId === undefined || signRequestId === undefined || fileId === undefined) {
+		return null
+	}
+	if (![elementId, signRequestId, fileId].every(Number.isFinite)) {
+		return null
+	}
+
+	return {
+		elementId,
+		signRequestId,
+		fileId,
+		type,
+		coordinates,
+	}
+}
+
+function normalizeSignFile(file: SignDocumentFile): VisibleElementsFileInput {
+	return {
+		...file,
+		metadata: file.metadata ?? undefined,
+		signers: Array.isArray(file.signers) ? file.signers : [],
+		visibleElements: Array.isArray(file.visibleElements)
+			? file.visibleElements
+				.map(normalizeSignVisibleElement)
+				.filter((element): element is ServiceVisibleElement => element !== null)
+			: [],
+	}
+}
+
+function getVisibleElementsDocument(document: SignDocument): VisibleElementsDocumentInput {
+	return {
+		id: document.id,
+		uuid: document.uuid,
+		name: document.name,
+		status: document.status,
+		statusText: document.statusText,
+		settings: document.settings,
+		signers: Array.isArray(document.signers) ? document.signers : [],
+		visibleElements: Array.isArray(document.visibleElements)
+			? document.visibleElements
+				.map(normalizeSignVisibleElement)
+				.filter((element): element is ServiceVisibleElement => element !== null)
+			: [],
+		files: Array.isArray(document.files)
+			? document.files.map(normalizeSignFile)
+			: [],
+	}
+}
+
+function getSignatureMethodSetting(
+	settings: SignMethodsSettings,
+	method: SignMethodKey,
+): SignatureMethodSetting | undefined {
+	return settings[method]
 }
 
 const emit = defineEmits<{
@@ -277,15 +461,16 @@ const emit = defineEmits<{
 	(e: 'signed', payload: Record<string, unknown> & { signRequestUuid: string }): void
 }>()
 
-const signStore = useSignStore()
-const signMethodsStore = useSignMethodsStore()
-const signatureElementsStore = useSignatureElementsStore()
-const sidebarStore = useSidebarStore()
-const identificationDocumentStore = useIdentificationDocumentStore()
+const signStore = useSignStore() as SignStoreContract
+const signMethodsStore = useSignMethodsStore() as SignMethodsStoreContract
+const signatureElementsStore = useSignatureElementsStore() as SignatureElementsStoreContract
+const sidebarStore = useSidebarStore() as SidebarStoreContract
+const identificationDocumentStore = useIdentificationDocumentStore() as IdentificationDocumentStoreContract
 
 const loading = ref(true)
 const user = ref<UserInfo>({
-	account: { uid: '', displayName: '' },
+	account: { uid: '', emailAddress: '', displayName: '' },
+	settings: { canRequestSign: false, hasSignatureFile: false, phoneNumber: '' },
 })
 const signPassword = ref('')
 const showManagePassword = ref(false)
@@ -293,32 +478,38 @@ const isModal = window.self !== window.top
 let unwatchPendingAction: null | (() => void) = null
 let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
+const currentDocument = computed<SignDocument>(() => signStore.document)
+const visibleElementsDocument = computed(() => getVisibleElementsDocument(currentDocument.value))
 
 const elements = computed(() => {
-	const document = signStore.document || {}
-	const signer = document?.signers?.find((row: any) => row.me) || {}
+	const document = currentDocument.value
+	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
 
 	const signRequestIds = new Set<string>()
-	if (signer.signRequestId) {
+	if (signer?.signRequestId !== undefined) {
 		signRequestIds.add(String(signer.signRequestId))
 	}
 
 	if (Array.isArray(document?.files)) {
 		document.files
-			.flatMap((file: any) => getFileSigners(file))
-			.filter((row: any) => row.me && row.signRequestId)
-			.forEach((row: any) => signRequestIds.add(String(row.signRequestId)))
+			.map(normalizeSignFile)
+			.flatMap((file) => getFileSigners(file))
+			.filter((row) => isCurrentUserSigner(row) && row.signRequestId !== undefined)
+			.forEach((row) => signRequestIds.add(String(row.signRequestId)))
 	}
 
 	if (signRequestIds.size === 0) {
 		return []
 	}
 
-	return getVisibleElementsFromDocument(document)
-		.filter((row: any) => {
+	return getVisibleElementsFromDocument(visibleElementsDocument.value)
+		.filter((row) => {
 			// Access signatureElementsStore.signs[row.type] directly to ensure reactivity
+			if (!row.type || row.signRequestId === undefined) {
+				return false
+			}
 			const signatureData = signatureElementsStore.signs[row.type]
-			const hasSignature = signatureData && signatureData.createdAt && signatureData.createdAt.length > 0
+			const hasSignature = Boolean(signatureData?.createdAt)
 			return hasSignature && signRequestIds.has(String(row.signRequestId))
 		})
 })
@@ -328,26 +519,34 @@ const needCreateSignature = computed(() => {
 	if (!canCreateSignature.value || hasSignatures.value) {
 		return false
 	}
-	const document = signStore.document || {}
-	const signer = document?.signers?.find((row: any) => row.me) || {}
-	if (!signer.signRequestId) {
+	const document = currentDocument.value
+	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
+	if (signer?.signRequestId === undefined) {
 		return false
 	}
-	const visibleElements = document?.visibleElements || []
-	return visibleElements.some((row: any) => String(row.signRequestId) === String(signer.signRequestId))
+	const visibleElements = visibleElementsDocument.value.visibleElements || []
+	return visibleElements.some((row) => String(row.signRequestId) === String(signer.signRequestId))
 })
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
-const canCreateSignature = computed(() => getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true)
+const canCreateSignature = computed(() => {
+	const capabilities = getCapabilities() as LibresignCapabilities
+	return capabilities.libresign?.config['sign-elements']['can-create-signature'] === true
+})
 const ableToSign = computed(() => signStore.ableToSign)
 const signRequestUuid = computed(() => {
-	const doc = signStore.document || {}
-	const signer = doc.signers?.find((row: any) => row.me) || doc.signers?.[0] || {}
+	const doc = signStore.document
+	const signer = doc.signers?.find((row) => row.me) ?? doc.signers?.[0]
 	const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
-	const fromSigner = signer.sign_uuid
+	const fromSigner = signer?.sign_uuid
 	const isApprover = doc.settings?.isApprover
 	const fromFile = isApprover ? doc.uuid : null
-	return fromDoc || fromSigner || fromFile || loadState('libresign', 'sign_request_uuid', null)
+	return String(fromDoc || fromSigner || fromFile || loadState('libresign', 'sign_request_uuid', '') || '')
 })
+
+function openModal(modalCode: string) {
+	ensureServices()
+	actionHandler?.showModal(modalCode)
+}
 
 function initializeServices() {
 	requirementValidator = new SigningRequirementValidator(
@@ -368,7 +567,7 @@ function ensureServices() {
 async function loadUser() {
 	if (getCurrentUser()) {
 		try {
-			const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
+			const { data } = await axios.get<OcsResponseData<UserInfo>>(generateOcsUrl('/apps/libresign/api/v1/account/me'))
 			user.value = data.ocs.data
 		} catch {
 		}
@@ -424,7 +623,7 @@ async function signWithPassword() {
 }
 
 async function signWithTokenCode(token: string) {
-	const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
+	const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 	const activeMethod = tokenMethods.find((method) =>
 		Object.hasOwn(signMethodsStore.settings, method),
 	)
@@ -433,8 +632,14 @@ async function signWithTokenCode(token: string) {
 		throw new Error('No active token method found')
 	}
 
-	const signatureMethodData = signMethodsStore.settings[activeMethod]
+	const signatureMethodData = getSignatureMethodSetting(signMethodsStore.settings, activeMethod)
+	if (!signatureMethodData) {
+		throw new Error('No active token method settings found')
+	}
 	const identifyMethod = signatureMethodData.identifyMethod
+	if (!identifyMethod) {
+		throw new Error('No identify method found for active token method')
+	}
 
 	await submitSignature({
 		method: identifyMethod,
@@ -444,10 +649,14 @@ async function signWithTokenCode(token: string) {
 }
 
 async function signWithEmailToken() {
+	const identifyMethod = getSignatureMethodSetting(signMethodsStore.settings, 'emailToken')?.identifyMethod
+	if (!identifyMethod) {
+		throw new Error('No identify method found for email token')
+	}
 	await submitSignature({
-		method: signMethodsStore.settings.emailToken.identifyMethod,
+		method: identifyMethod,
 		modalCode: 'emailToken',
-		token: signMethodsStore.settings.emailToken.token,
+		token: signMethodsStore.settings.emailToken?.token,
 	})
 }
 
@@ -456,7 +665,7 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	signStore.clearSigningErrors()
 
 	try {
-		const payload: Record<string, any> = {
+		const payload: SubmitSignaturePayload = {
 			method: methodConfig.method,
 		}
 
@@ -466,14 +675,18 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 
 		if (elements.value.length > 0) {
 			if (canCreateSignature.value) {
-				payload.elements = elements.value.map((row: any) => ({
+				payload.elements = elements.value.flatMap((row) => typeof row.elementId === 'number'
+					? [{
 					documentElementId: row.elementId,
-					profileNodeId: signatureElementsStore.signs[row.type].file.nodeId,
-				}))
+					profileNodeId: row.type ? signatureElementsStore.signs[row.type]?.file.nodeId : undefined,
+					}]
+					: [])
 			} else {
-				payload.elements = elements.value.map((row: any) => ({
+				payload.elements = elements.value.flatMap((row) => typeof row.elementId === 'number'
+					? [{
 					documentElementId: row.elementId,
-				}))
+					}]
+					: [])
 			}
 		}
 
@@ -487,29 +700,30 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 
 		ensureServices()
 		if (result.status === 'signingInProgress') {
-			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method)
+			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 			emit('signing-started', {
 				signRequestUuid: signRequestUuid.value,
 				async: true,
 			})
 		} else if (result.status === 'signed') {
-			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method)
+			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 			sidebarStore.hideSidebar()
 			emit('signed', {
 				...result.data,
 				signRequestUuid: signRequestUuid.value,
 			})
 		}
-	} catch (error: any) {
+	} catch (error: unknown) {
+		const signError = isSignSubmissionError(error) ? error : {}
 		ensureServices()
-		if (error.type === 'missingCertification') {
+		if (signError.type === 'missingCertification') {
 			const modalCode = signMethodsStore.certificateEngine === 'none'
 				? 'uploadCertificate'
 				: 'createPassword'
 			actionHandler!.showModal(modalCode)
 		}
 
-		signStore.setSigningErrors(error.errors || [])
+		signStore.setSigningErrors(signError.errors || [])
 	} finally {
 		loading.value = false
 	}
@@ -525,7 +739,7 @@ function confirmSignDocument() {
 		canCreateSignature: canCreateSignature.value,
 	})
 
-	const result = actionHandler!.handleAction('sign', { unmetRequirement })
+	const result = actionHandler!.handleAction('sign', { unmetRequirement: unmetRequirement || undefined })
 
 	if (result === 'ready') {
 		proceedWithSigning()
@@ -553,7 +767,7 @@ function executeSigningAction(action: string) {
 		canCreateSignature: canCreateSignature.value,
 	})
 
-	const config = unmetRequirement ? { unmetRequirement } : {}
+	const config = unmetRequirement ? { unmetRequirement } : { unmetRequirement: undefined }
 	const result = actionHandler!.handleAction(action, config)
 
 	if (result === 'ready') {

@@ -68,20 +68,22 @@ import {
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
+import type { SignerDetailRecord, SignerSummaryRecord } from '../../types/index'
 
 defineOptions({
 	name: 'DocumentValidationDetails',
 })
 
+type ValidationSigner = Partial<SignerSummaryRecord | SignerDetailRecord>
 type ValidationDocument = {
-	name: string
-	status?: string | number
-	totalPages?: number
-	size?: string
-	pdfVersion?: string
 	uuid?: string
+	name?: string
 	nodeId?: number
-	signers?: Array<{ displayName?: string; email?: string }>
+	totalPages?: number
+	pdfVersion?: string
+	status?: string | number
+	size?: string | number
+	signers?: ValidationSigner[]
 }
 
 const props = withDefaults(defineProps<{
@@ -99,7 +101,7 @@ const { document } = toRefs(props)
 
 const size = computed(() => {
 	if (!document.value.size) return ''
-	const parsedSize = parseInt(document.value.size)
+	const parsedSize = parseInt(String(document.value.size), 10)
 	if (parsedSize < 1024) return parsedSize + ' B'
 	if (parsedSize < 1048576) return (parsedSize / 1024).toFixed(2) + ' KB'
 	return (parsedSize / 1048576).toFixed(2) + ' MB'
@@ -108,7 +110,10 @@ const size = computed(() => {
 const documentStatus = computed(() => getStatusLabel(document.value.status))
 
 async function viewDocument() {
-	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid as string })
+	if (!document.value.uuid || !document.value.name || typeof document.value.nodeId !== 'number') {
+		return
+	}
+	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid })
 	await openDocument({
 		fileUrl,
 		filename: document.value.name,

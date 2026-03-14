@@ -21,6 +21,10 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @psalm-import-type LibresignCrlCertificateStatusResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCrlErrorResponse from \OCA\Libresign\ResponseDefinitions
+ */
 class CrlController extends Controller {
 	public function __construct(
 		string $appName,
@@ -37,7 +41,7 @@ class CrlController extends Controller {
 	 * @param string $instanceId Instance identifier
 	 * @param int $generation Generation identifier
 	 * @param string $engineType Engine type identifier
-	 * @return DataDownloadResponse<Http::STATUS_OK, string, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string, message: string}, array{}>
+	 * @return DataDownloadResponse<Http::STATUS_OK, string, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignCrlErrorResponse, array{}>
 	 *
 	 * 200: CRL retrieved successfully in DER format
 	 * 500: Failed to generate CRL
@@ -69,7 +73,7 @@ class CrlController extends Controller {
 	 * Check certificate revocation status
 	 *
 	 * @param string $serialNumber Certificate serial number to check
-	 * @return DataResponse<Http::STATUS_OK, array{serial_number: string, status: string, checked_at: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string, message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignCrlCertificateStatusResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignCrlErrorResponse, array{}>
 	 *
 	 * 200: Certificate status retrieved successfully
 	 * 400: Invalid serial number format
