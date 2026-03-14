@@ -231,7 +231,7 @@ describe('AppFilesTab', () => {
 		it('detects envelope folder and loads files', async () => {
 			filesStore.getAllFiles = vi.fn()
 			filesStore.selectFileByNodeId = vi.fn().mockResolvedValue(10)
-			filesStore.getFile = vi.fn().mockReturnValue({ name: 'Envelope Name' })
+			filesStore.getSelectedFileView = vi.fn().mockReturnValue({ name: 'Envelope Name' })
 			wrapper = createWrapper()
 
 			await wrapper.vm.update({
@@ -249,7 +249,7 @@ describe('AppFilesTab', () => {
 
 		it('selects file by nodeId when found', async () => {
 			filesStore.selectFileByNodeId = vi.fn().mockResolvedValue(10)
-			filesStore.getFile = vi.fn().mockReturnValue({ name: 'Test File' })
+			filesStore.getSelectedFileView = vi.fn().mockReturnValue({ name: 'Test File' })
 			wrapper = createWrapper()
 
 			await wrapper.vm.update({
