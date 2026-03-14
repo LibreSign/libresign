@@ -47,6 +47,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import { computed, getCurrentInstance, nextTick, onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import PdfEditor from '../../components/PdfEditor/PdfEditor.vue'
+import type { PdfEditorPublicApi, PdfEditorSigner } from '../../components/PdfEditor/types'
 import TopBar from '../../components/TopBar/TopBar.vue'
 import { FILE_STATUS } from '../../constants.js'
 import {
@@ -144,9 +145,8 @@ type PdfFetchError = {
 	errors?: SignError[]
 }
 
-type PdfEditorRef = {
+type PdfEditorRef = PdfEditorPublicApi & {
 	$el?: HTMLElement
-	addSigner?: (signer: Record<string, unknown>) => void
 }
 
 type RouteLike = {
@@ -189,7 +189,7 @@ function parsePdfFetchError(value: unknown): PdfFetchError {
 	}
 }
 
-function createReadonlySignerObject(signer: SignerDetailRecord | Record<string, unknown>, element: Record<string, unknown>) {
+function createReadonlySignerObject(signer: SignerDetailRecord | Record<string, unknown>, element: Record<string, unknown>): PdfEditorSigner {
 	return {
 		...structuredClone(signer),
 		readOnly: true,
