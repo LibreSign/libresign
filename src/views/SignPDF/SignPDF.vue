@@ -47,7 +47,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import { computed, getCurrentInstance, nextTick, onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import PdfEditor from '../../components/PdfEditor/PdfEditor.vue'
-import type { PdfEditorSigner } from '../../components/PdfEditor/pdfEditorModel'
+import type { PdfEditorSignerRecord } from '../../components/PdfEditor/pdfEditorModel'
 import TopBar from '../../components/TopBar/TopBar.vue'
 import { FILE_STATUS } from '../../constants.js'
 import {
@@ -66,7 +66,7 @@ import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import type { operations } from '../../types/openapi/openapi'
-import type { SignerDetailRecord } from '../../types/index'
+import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
 
 type SignError = { title?: string; message?: string }
 type SignDocumentStatus = number | string
@@ -147,7 +147,7 @@ type PdfFetchError = {
 
 type PdfEditorRef = {
 	$el?: HTMLElement
-	addSigner?: (signer: PdfEditorSigner) => Promise<void>
+	addSigner?: (signer: PdfEditorSignerRecord, visibleElement: VisibleElementRecord, options?: { documentIndex?: number }) => Promise<void>
 }
 
 type RouteLike = {
@@ -190,11 +190,12 @@ function parsePdfFetchError(value: unknown): PdfFetchError {
 	}
 }
 
-function createReadonlySignerObject(signer: SignerDetailRecord | Record<string, unknown>, element: Record<string, unknown>): PdfEditorSigner {
+function createReadonlySignerObject(signer: SignerDetailRecord | SignerSummaryRecord | Record<string, unknown>): PdfEditorSignerRecord {
 	return {
-		...structuredClone(signer),
-		readOnly: true,
-		element,
+		...(typeof signer.signRequestId === 'number' ? { signRequestId: signer.signRequestId } : {}),
+		displayName: typeof signer.displayName === 'string' ? signer.displayName : '',
+		email: typeof signer.email === 'string' ? signer.email : '',
+		...(Array.isArray(signer.identifyMethods) ? { identifyMethods: signer.identifyMethods } : {}),
 	}
 }
 
@@ -491,11 +492,14 @@ function updateSigners() {
 			if (!signer) {
 				return
 			}
-			const object = createReadonlySignerObject(signer, {
-				...element,
+			const signerRecord = createReadonlySignerObject(signer)
+			const visibleElement = normalizeVisibleElement(element)
+			if (!visibleElement) {
+				return
+			}
+			getPdfEditor()?.addSigner?.(signerRecord, visibleElement, {
 				documentIndex: fileIndexById.get(String(element.fileId)) ?? 0,
 			})
-			getPdfEditor()?.addSigner?.(object)
 		})
 		signStore.mounted = true
 		return
@@ -508,8 +512,12 @@ function updateSigners() {
 		: []
 	if (currentSigner && elementsForSigner.length > 0) {
 		elementsForSigner.forEach(element => {
-			const object = createReadonlySignerObject(currentSigner, element)
-			getPdfEditor()?.addSigner?.(object)
+			const signerRecord = createReadonlySignerObject(currentSigner)
+			const visibleElement = normalizeVisibleElement(element)
+			if (!visibleElement) {
+				return
+			}
+			getPdfEditor()?.addSigner?.(signerRecord, visibleElement)
 		})
 	}
 	signStore.mounted = true
