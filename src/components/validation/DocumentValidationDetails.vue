@@ -68,13 +68,13 @@ import {
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
-import type { SignerDetailRecord } from '../../types/index'
+import type { SignerDetailRecord, SignerSummaryRecord } from '../../types/index'
 
 defineOptions({
 	name: 'DocumentValidationDetails',
 })
 
-type ValidationSigner = Partial<SignerDetailRecord>
+type ValidationSigner = Partial<SignerSummaryRecord | SignerDetailRecord>
 type ValidationDocument = {
 	uuid?: string
 	name?: string
