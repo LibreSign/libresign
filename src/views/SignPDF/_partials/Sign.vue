@@ -198,7 +198,7 @@ import type {
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import { FILE_STATUS } from '../../../constants.js'
-import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner, type DocumentData, type FileData } from '../../../services/visibleElementsService'
+import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner, type DocumentData, type FileData, type VisibleElement } from '../../../services/visibleElementsService'
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
 type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
@@ -267,7 +267,7 @@ defineOptions({
 					})
 				}
 			} catch (error: unknown) {
-				const signError = error as SignSubmissionError
+				const signError = typeof error === 'object' && error !== null ? error as SignSubmissionError : {}
 				if (signError.type === 'missingCertification') {
 					const modalCode = this.signMethodsStore.certificateEngine === 'none'
 						? 'uploadCertificate'
@@ -317,6 +317,8 @@ type SignMethodsSettings = Partial<Record<SignMethodKey, SignatureMethodSetting>
 type SignatureProfile = LibreSignUserElement
 
 type SignDocument = NonNullable<ReturnType<typeof useSignStore>['document']>
+type SignDocumentFile = NonNullable<SignDocument['files']>[number]
+type SignDocumentSigner = NonNullable<SignDocument['signers']>[number]
 
 type SignResult = {
 	status: 'signingInProgress' | 'signed' | 'unknown'
@@ -377,6 +379,73 @@ type SubmitSignatureCompatContext = {
 	$emit: (event: string, payload: unknown) => void
 }
 
+function isSignSubmissionError(error: unknown): error is SignSubmissionError {
+	return typeof error === 'object' && error !== null
+}
+
+function normalizeSignVisibleElement(element: unknown): VisibleElement | null {
+	if (!element || typeof element !== 'object') {
+		return null
+	}
+
+	const coordinates = 'coordinates' in element && element.coordinates && typeof element.coordinates === 'object'
+		? { ...element.coordinates }
+		: undefined
+	const type = 'type' in element && typeof element.type === 'string'
+		? element.type
+		: undefined
+
+	if (!type || !coordinates) {
+		return null
+	}
+
+	return {
+		...element,
+		type,
+		coordinates,
+	}
+}
+
+function normalizeSignFile(file: SignDocumentFile): FileData {
+	return {
+		...file,
+		metadata: file.metadata ?? undefined,
+		signers: Array.isArray(file.signers) ? file.signers : [],
+		visibleElements: Array.isArray(file.visibleElements)
+			? file.visibleElements
+				.map(normalizeSignVisibleElement)
+				.filter((element): element is VisibleElement => element !== null)
+			: [],
+	}
+}
+
+function getVisibleElementsDocument(document: SignDocument): DocumentData {
+	return {
+		id: document.id,
+		uuid: document.uuid,
+		name: document.name,
+		status: document.status,
+		statusText: document.statusText,
+		settings: document.settings,
+		signers: Array.isArray(document.signers) ? document.signers : [],
+		visibleElements: Array.isArray(document.visibleElements)
+			? document.visibleElements
+				.map(normalizeSignVisibleElement)
+				.filter((element): element is VisibleElement => element !== null)
+			: [],
+		files: Array.isArray(document.files)
+			? document.files.map(normalizeSignFile)
+			: [],
+	}
+}
+
+function getSignatureMethodSetting(
+	settings: SignMethodsSettings,
+	method: SignMethodKey,
+): SignatureMethodSetting | undefined {
+	return settings[method]
+}
+
 const emit = defineEmits<{
 	(e: 'update:phone', value: string): void
 	(e: 'signing-started', payload: { signRequestUuid: string; async: boolean }): void
@@ -400,10 +469,12 @@ const isModal = window.self !== window.top
 let unwatchPendingAction: null | (() => void) = null
 let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
+const currentDocument = computed<SignDocument>(() => signStore.document)
+const visibleElementsDocument = computed<DocumentData>(() => getVisibleElementsDocument(currentDocument.value))
 
 const elements = computed(() => {
-	const document = signStore.document
-	const signer = document?.signers?.find((row) => row.me)
+	const document = currentDocument.value
+	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
 
 	const signRequestIds = new Set<string>()
 	if (signer?.signRequestId !== undefined) {
@@ -412,7 +483,8 @@ const elements = computed(() => {
 
 	if (Array.isArray(document?.files)) {
 		document.files
-			.flatMap((file) => getFileSigners(file as FileData))
+			.map(normalizeSignFile)
+			.flatMap((file) => getFileSigners(file))
 			.filter((row) => isCurrentUserSigner(row) && row.signRequestId !== undefined)
 			.forEach((row) => signRequestIds.add(String(row.signRequestId)))
 	}
@@ -421,7 +493,7 @@ const elements = computed(() => {
 		return []
 	}
 
-	return getVisibleElementsFromDocument(document as DocumentData)
+	return getVisibleElementsFromDocument(visibleElementsDocument.value)
 		.filter((row) => {
 			// Access signatureElementsStore.signs[row.type] directly to ensure reactivity
 			if (!row.type || row.signRequestId === undefined) {
@@ -438,12 +510,12 @@ const needCreateSignature = computed(() => {
 	if (!canCreateSignature.value || hasSignatures.value) {
 		return false
 	}
-	const document = signStore.document
-	const signer = document?.signers?.find((row) => row.me)
+	const document = currentDocument.value
+	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
 	if (signer?.signRequestId === undefined) {
 		return false
 	}
-	const visibleElements = document?.visibleElements || []
+	const visibleElements = visibleElementsDocument.value.visibleElements || []
 	return visibleElements.some((row) => String(row.signRequestId) === String(signer.signRequestId))
 })
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
@@ -551,7 +623,7 @@ async function signWithTokenCode(token: string) {
 		throw new Error('No active token method found')
 	}
 
-	const signatureMethodData = signMethodsStore.settings[activeMethod] as SignatureMethodSetting | undefined
+	const signatureMethodData = getSignatureMethodSetting(signMethodsStore.settings, activeMethod)
 	if (!signatureMethodData) {
 		throw new Error('No active token method settings found')
 	}
@@ -568,7 +640,7 @@ async function signWithTokenCode(token: string) {
 }
 
 async function signWithEmailToken() {
-	const identifyMethod = signMethodsStore.settings.emailToken?.identifyMethod as string | undefined
+	const identifyMethod = getSignatureMethodSetting(signMethodsStore.settings, 'emailToken')?.identifyMethod
 	if (!identifyMethod) {
 		throw new Error('No identify method found for email token')
 	}
@@ -633,7 +705,7 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 			})
 		}
 	} catch (error: unknown) {
-		const signError = error as SignSubmissionError
+		const signError = isSignSubmissionError(error) ? error : {}
 		ensureServices()
 		if (signError.type === 'missingCertification') {
 			const modalCode = signMethodsStore.certificateEngine === 'none'
