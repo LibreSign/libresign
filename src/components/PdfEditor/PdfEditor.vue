@@ -85,10 +85,9 @@ import {
 	findPdfObjectLocation,
 	getPdfEditorSignerLabel,
 	resolvePdfEditorSignerChange,
-	type PdfEditorSignerRecord,
 } from './pdfEditorModel'
 import { ensurePdfWorker } from '../../helpers/pdfWorker'
-import type { VisibleElementRecord } from '../../types/index'
+import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
 
 type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
 type PdfEditorMeasurement = Record<number, { width: number, height: number }>
@@ -106,7 +105,7 @@ type PdfEditorObject = {
 	y: number
 	width: number
 	height: number
-	signer?: PdfEditorSignerRecord | null
+	signer?: SignerSummaryRecord | SignerDetailRecord | null
 	visibleElement?: VisibleElementRecord | null
 	documentIndex?: number
 }
@@ -137,7 +136,7 @@ const props = withDefaults(defineProps<{
 	files?: PdfInput[]
 	fileNames?: string[]
 	readOnly?: boolean
-	signers?: PdfEditorSignerRecord[]
+	signers?: Array<SignerSummaryRecord | SignerDetailRecord>
 }>(), {
 	files: () => [],
 	fileNames: () => [],
@@ -233,11 +232,11 @@ function handleObjectClick(event: Record<string, unknown>) {
 	emit('pdf-editor:object-click', event)
 }
 
-function getSignerLabel(signer: PdfEditorSignerRecord | null | undefined) {
+function getSignerLabel(signer: SignerSummaryRecord | SignerDetailRecord | null | undefined) {
 	return getPdfEditorSignerLabel(signer)
 }
 
-function onSignerChange(object: PdfEditorObject | null | undefined, signer: PdfEditorSignerRecord | null | undefined) {
+function onSignerChange(object: PdfEditorObject | null | undefined, signer: SignerSummaryRecord | SignerDetailRecord | null | undefined) {
 	if (!object || !signer || !pdfElements.value) {
 		return
 	}
@@ -301,12 +300,15 @@ function scheduleSignerAddedCheck() {
 	pendingAddCheckTimer = setTimeout(checkSignerAdded, 0)
 }
 
-function startAddingSigner(signer: PdfEditorSignerRecord | null | undefined, size: { width?: number, height?: number }) {
+function startAddingSigner(signer: SignerSummaryRecord | SignerDetailRecord | null | undefined, size: { width?: number, height?: number }) {
 	if (!pdfElements.value || !size?.width || !size?.height) {
 		return false
 	}
 
 	const signerPayload = buildPdfEditorSignerPayload(signer)
+	if (!signerPayload) {
+		return false
+	}
 
 	pdfElements.value.startAddingElement({
 		type: 'signature',
@@ -326,7 +328,7 @@ function cancelAdding() {
 	clearPendingAddCheck()
 }
 
-async function addSigner(signer: PdfEditorSignerRecord, visibleElement: VisibleElementRecord, options: { documentIndex?: number } = {}) {
+async function addSigner(signer: SignerSummaryRecord | SignerDetailRecord, visibleElement: VisibleElementRecord, options: { documentIndex?: number } = {}) {
 	if (!pdfElements.value || !visibleElement.coordinates) {
 		return
 	}
@@ -359,7 +361,7 @@ async function addSigner(signer: PdfEditorSignerRecord, visibleElement: VisibleE
 	}
 
 	const object = createPdfEditorObject({
-		signer: buildPdfEditorSignerPayload(signer),
+		signer,
 		visibleElement,
 		documentIndex: docIndex,
 		placement,
