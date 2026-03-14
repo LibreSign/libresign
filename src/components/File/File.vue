@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import type { FileListEntry } from '../../types/index'
 
 import { mdiFile } from '@mdi/js'
 
@@ -39,6 +40,16 @@ defineOptions({
 
 type FilesStoreContract = ReturnType<typeof useFilesStore>
 type SelectedFile = ReturnType<FilesStoreContract['getFile']>
+type CurrentFileState = Pick<NonNullable<SelectedFile>, 'id' | 'nodeId' | 'name' | 'statusText'> & {
+	status?: FileListEntry['status']
+}
+
+const FILE_STATUSES: FileListEntry['status'][] = [0, 1, 2, 3, 4]
+
+function normalizeFileStatus(status: unknown): FileListEntry['status'] | undefined {
+	const normalizedStatus = Number(status)
+	return FILE_STATUSES.find((value) => value === normalizedStatus)
+}
 
 const filesStore = useFilesStore()
 const sidebarStore = useSidebarStore()
@@ -48,11 +59,19 @@ const gridMode = true
 const cropPreviews = true
 
 const currentFileId = computed(() => filesStore.selectedFileId)
-const currentFile = computed<SelectedFile | null>(() => {
+const currentFile = computed<CurrentFileState | null>(() => {
 	if (!currentFileId.value) {
 		return null
 	}
-	return filesStore.getFile() ?? null
+	const selectedFile = filesStore.getFile()
+	if (!selectedFile) {
+		return null
+	}
+
+	return {
+		...selectedFile,
+		status: normalizeFileStatus(selectedFile.status),
+	}
 })
 const previewUrl = computed(() => {
 	if (backgroundFailed.value === true || !currentFile.value) {
@@ -87,8 +106,8 @@ function openSidebar() {
 	sidebarStore.activeRequestSignatureTab()
 }
 
-function statusToClass(status: number | string) {
-	switch (Number(status)) {
+function statusToClass(status: FileListEntry['status']) {
+	switch (status) {
 	case 0:
 		return 'no-signers'
 	case 1:
