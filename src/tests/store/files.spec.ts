@@ -1229,6 +1229,37 @@ describe('files store - critical business rules', () => {
 				const file2 = store2.getFile()
 				expect(file2.signers).toHaveLength(0)
 			})
+
+			it('returns a typed selected file view only for loaded files', () => {
+				const store = useFilesStore()
+				store.files[7] = {
+					id: 7,
+					nodeId: 12345,
+					name: 'test.pdf',
+					status: 3,
+					statusText: 'Signed',
+				}
+				store.selectedFileId = 7
+
+				expect(store.getSelectedFileView()).toEqual({
+					id: 7,
+					nodeId: 12345,
+					name: 'test.pdf',
+					status: 3,
+					statusText: 'Signed',
+				})
+			})
+
+			it('returns null when the selected draft is missing view fields', () => {
+				const store = useFilesStore()
+				store.files[7] = {
+					id: 7,
+					signers: [],
+				}
+				store.selectedFileId = 7
+
+				expect(store.getSelectedFileView()).toBeNull()
+			})
 		})
 	})
 })
