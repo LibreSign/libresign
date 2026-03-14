@@ -47,7 +47,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import { computed, getCurrentInstance, nextTick, onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import PdfEditor from '../../components/PdfEditor/PdfEditor.vue'
-import type { PdfEditorPublicApi, PdfEditorSigner } from '../../components/PdfEditor/types'
+import type { PdfEditorSigner } from '../../components/PdfEditor/pdfEditorModel'
 import TopBar from '../../components/TopBar/TopBar.vue'
 import { FILE_STATUS } from '../../constants.js'
 import {
@@ -145,8 +145,9 @@ type PdfFetchError = {
 	errors?: SignError[]
 }
 
-type PdfEditorRef = PdfEditorPublicApi & {
+type PdfEditorRef = {
 	$el?: HTMLElement
+	addSigner?: (signer: PdfEditorSigner) => Promise<void>
 }
 
 type RouteLike = {
