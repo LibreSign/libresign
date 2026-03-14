@@ -61,20 +61,7 @@ export type FileListItemRecord = ApiComponents['schemas']['FileListItem']
 export type SignerDetailRecord = ApiComponents['schemas']['SignerDetail']
 export type SignerSummaryRecord = ApiComponents['schemas']['SignerSummary']
 export type ValidatedChildFileRecord = ApiComponents['schemas']['ValidatedChildFile']
-export type ValidationViewSigner = SignerDetailRecord & {
-	opened?: boolean
-	me?: boolean
-	sign_uuid?: string | null
-	signUuid?: string | null
-}
-export type ValidationViewChildFile = ValidatedChildFileRecord & {
-	opened?: boolean
-}
-export type ValidationViewDocument = Omit<ValidationFileRecord, 'signers' | 'files'> & {
-	signers?: ValidationViewSigner[]
-	files?: ValidationViewChildFile[]
-}
-export type LoadedValidationDocument = ValidationViewDocument & Required<Pick<ValidationViewDocument, 'uuid' | 'name' | 'nodeId' | 'status' | 'nodeType'>>
+export type LoadedValidationDocument = ValidationFileRecord
 export type LoadedValidationFileDocument = LoadedValidationDocument & {
 	nodeType: 'file'
 }
