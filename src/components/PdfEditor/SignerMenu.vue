@@ -44,13 +44,14 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { mdiChevronDown } from '@mdi/js'
-import { getPdfEditorSignerId, getPdfEditorSignerLabel, type PdfEditorSignerRecord } from './pdfEditorModel'
+import { getPdfEditorSignerId, getPdfEditorSignerLabel } from './pdfEditorModel'
+import type { SignerDetailRecord, SignerSummaryRecord } from '../../types/index'
 
 defineOptions({
 	name: 'SignerMenu',
 })
 
-type Signer = PdfEditorSignerRecord
+type Signer = SignerSummaryRecord | SignerDetailRecord
 
 const props = withDefaults(defineProps<{
 	signers?: Signer[]
