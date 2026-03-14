@@ -9,6 +9,20 @@ import type { VueWrapper } from '@vue/test-utils'
 
 type FileValidationComponent = typeof import('../../../components/validation/FileValidation.vue').default
 type FileValidationWrapper = VueWrapper<any>
+type FileValidationDocument = {
+	uuid: string
+	name: string
+	nodeId: number
+	nodeType: 'file'
+	status: 0 | 1 | 2 | 3 | 4 | string
+	[key: string]: unknown
+}
+type WrapperProps = {
+	document?: Partial<FileValidationDocument>
+	legalInformation?: string
+	documentValidMessage?: string | null
+	isAfterSigned?: boolean
+}
 
 let FileValidation: FileValidationComponent
 vi.mock('@nextcloud/l10n', () => ({
@@ -30,21 +44,23 @@ beforeAll(async () => {
 describe('FileValidation', () => {
 	let wrapper!: FileValidationWrapper
 
-	const createWrapper = (props: Record<string, unknown> = {}) => {
-		const safeProps = props as {
-			document?: Record<string, unknown>
-			[key: string]: unknown
+	const createWrapper = (props: WrapperProps = {}) => {
+		const { document: documentOverrides, ...restProps } = props
+		const baseDocument: FileValidationDocument = {
+			uuid: '550e8400-e29b-41d4-a716-446655440000',
+			name: 'Test Document',
+			nodeId: 123,
+			nodeType: 'file',
+			status: 1,
 		}
+		const document = { ...baseDocument, ...(documentOverrides ?? {}) } as FileValidationDocument
 		return mount(FileValidation, {
 			props: {
-				document: {
-					name: 'Test Document',
-					...safeProps.document,
-				},
 				legalInformation: '',
 				documentValidMessage: '',
 				isAfterSigned: false,
-				...safeProps,
+				...restProps,
+				document,
 			},
 			global: {
 				stubs: {
