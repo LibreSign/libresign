@@ -134,9 +134,9 @@ import { useSidebarStore } from '../store/sidebar.js'
 import type {
 	LoadedValidationEnvelopeDocument,
 	LoadedValidationFileDocument,
-	ValidationViewChildFile,
-	ValidationViewDocument,
-	ValidationViewSigner,
+	SignerDetailRecord,
+	ValidatedChildFileRecord,
+	ValidationFileRecord,
 } from '../types/index'
 
 defineOptions({
@@ -155,7 +155,7 @@ type RouterState = {
 }
 
 type ToggleOpenState = Record<number, boolean>
-type ValidationStatus = ValidationViewDocument['status']
+type ValidationStatus = ValidationFileRecord['status']
 type ValidationStatusInfo = {
 	id?: number
 	label?: string
@@ -164,7 +164,7 @@ type ValidationModificationInfo = {
 	status?: number
 	valid?: boolean
 }
-type ValidationDisplaySigner = ValidationViewSigner & {
+type ValidationDisplaySigner = SignerDetailRecord & {
 	signature_validation?: ValidationStatusInfo
 	certificate_validation?: ValidationStatusInfo
 	modification_validation?: ValidationModificationInfo
@@ -215,21 +215,21 @@ function toValidationStatus(value: unknown): ValidationStatus | null {
 	return null
 }
 
-function normalizeValidationSigner(signer: unknown): ValidationViewSigner | null {
+function normalizeValidationSigner(signer: unknown): SignerDetailRecord | null {
 	if (!isRecord(signer)) {
 		return null
 	}
-	return { ...signer } as ValidationViewSigner
+	return { ...signer } as SignerDetailRecord
 }
 
-function normalizeValidationChildFile(file: unknown): ValidationViewChildFile | null {
+function normalizeValidationChildFile(file: unknown): ValidatedChildFileRecord | null {
 	if (!isRecord(file)) {
 		return null
 	}
-	return { ...file } as ValidationViewChildFile
+	return { ...file } as ValidatedChildFileRecord
 }
 
-function normalizeValidationDocument(data: unknown): ValidationViewDocument | null {
+function normalizeValidationDocument(data: unknown): ValidationFileRecord | null {
 	if (!isRecord(data)) {
 		return null
 	}
@@ -241,12 +241,12 @@ function normalizeValidationDocument(data: unknown): ValidationViewDocument | nu
 	const files = Array.isArray(data.files)
 		? data.files
 			.map(normalizeValidationChildFile)
-			.filter((file): file is ValidationViewChildFile => file !== null)
+			.filter((file): file is ValidatedChildFileRecord => file !== null)
 		: undefined
 	const signers = Array.isArray(data.signers)
 		? data.signers
 			.map(normalizeValidationSigner)
-			.filter((signer): signer is ValidationViewSigner => signer !== null)
+			.filter((signer): signer is SignerDetailRecord => signer !== null)
 		: undefined
 	const nodeType = data.nodeType === 'envelope'
 		? 'envelope'
@@ -261,7 +261,7 @@ function normalizeValidationDocument(data: unknown): ValidationViewDocument | nu
 	}
 
 	return {
-		...(data as ValidationViewDocument),
+		...(data as ValidationFileRecord),
 		uuid,
 		name,
 		nodeId,
@@ -279,11 +279,11 @@ function getValidationErrorMessage(response: ValidationErrorResponse | undefined
 	return fallback
 }
 
-function isLoadedValidationEnvelopeDocument(document: ValidationViewDocument | null): document is LoadedValidationEnvelopeDocument {
+function isLoadedValidationEnvelopeDocument(document: ValidationFileRecord | null): document is LoadedValidationEnvelopeDocument {
 	return document?.nodeType === 'envelope'
 }
 
-function isLoadedValidationFileDocument(document: ValidationViewDocument | null): document is LoadedValidationFileDocument {
+function isLoadedValidationFileDocument(document: ValidationFileRecord | null): document is LoadedValidationFileDocument {
 	return document?.nodeType === 'file'
 }
 
@@ -299,7 +299,7 @@ const logo = ref(logoGray)
 const uuidToValidate = ref(route.value.params?.uuid ?? '')
 const hasInfo = ref(false)
 const loading = ref(false)
-const document = ref<ValidationViewDocument | null>(null)
+const document = ref<ValidationFileRecord | null>(null)
 const legalInformation = ref(loadState('libresign', 'legal_information', ''))
 const clickedValidate = ref(false)
 const getUUID = ref(false)
@@ -415,14 +415,6 @@ async function uploadFile() {
 
 function dateFromSqlAnsi(date: string) {
 	return Moment(Date.parse(date)).format('LL LTS')
-}
-
-function toggleDetail(signer: ValidationViewSigner) {
-	signer.opened = !signer.opened
-}
-
-function toggleFileDetail(file: ValidationViewChildFile) {
-	file.opened = !file.opened
 }
 
 function getSignerStatus(status: string) {
@@ -734,12 +726,6 @@ function handleValidationSuccess(data: unknown) {
 		})
 	}
 	document.value = normalizedDocument
-	document.value.signers?.forEach(signer => {
-		signer.opened = false
-	})
-	document.value.files?.forEach(file => {
-		file.opened = false
-	})
 	hasInfo.value = true
 	const isSignedStatus = (status: unknown) => Number(status) === FILE_STATUS.SIGNED
 	const isSignedDoc = isSignedStatus(document.value?.status)
@@ -837,10 +823,6 @@ if (!uuidToValidate.value) {
 		document.value = null
 		hasInfo.value = false
 		void validate(uuidToValidate.value)
-	} else if (hasInfo.value && document.value.signers) {
-		document.value.signers.forEach(signer => {
-			signer.opened = false
-		})
 	} else if (uuidToValidate.value.length > 0) {
 		void validate(uuidToValidate.value)
 	}
@@ -905,8 +887,6 @@ defineExpose({
 	upload,
 	uploadFile,
 	dateFromSqlAnsi,
-	toggleDetail,
-	toggleFileDetail,
 	getSignerStatus,
 	validate,
 	validateByUUID,
