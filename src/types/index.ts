@@ -74,6 +74,13 @@ export type ValidationViewDocument = Omit<ValidationFileRecord, 'signers' | 'fil
 	signers?: ValidationViewSigner[]
 	files?: ValidationViewChildFile[]
 }
+export type LoadedValidationDocument = ValidationViewDocument & Required<Pick<ValidationViewDocument, 'uuid' | 'name' | 'nodeId' | 'status' | 'nodeType'>>
+export type LoadedValidationFileDocument = LoadedValidationDocument & {
+	nodeType: 'file'
+}
+export type LoadedValidationEnvelopeDocument = LoadedValidationDocument & {
+	nodeType: 'envelope'
+}
 export type SignatureMethodsRecord = ApiComponents['schemas']['SignatureMethods']
 export type UserElementRecord = ApiComponents['schemas']['UserElement']
 export type RequestSignerRecord = ApiComponents['schemas']['NewSigner']
