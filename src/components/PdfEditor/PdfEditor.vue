@@ -85,16 +85,36 @@ import {
 	findPdfObjectLocation,
 	getPdfEditorSignerLabel,
 	resolvePdfEditorSignerChange,
-	type PdfDocument,
-	type PdfEditorObject,
-	type PdfEditorSigner,
-	type PdfPage,
+	type PdfEditorSignerRecord,
 } from './pdfEditorModel'
 import { ensurePdfWorker } from '../../helpers/pdfWorker'
+import type { VisibleElementRecord } from '../../types/index'
 
 type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
 type PdfEditorMeasurement = Record<number, { width: number, height: number }>
 type EndInitPayload = Record<string, unknown>
+type PdfPage = {
+	getViewport: (options: { scale: number }) => {
+		width: number
+		height: number
+	}
+}
+type PdfEditorObject = {
+	id: string
+	type?: string
+	x: number
+	y: number
+	width: number
+	height: number
+	signer?: PdfEditorSignerRecord | null
+	visibleElement?: VisibleElementRecord | null
+	documentIndex?: number
+}
+type PdfDocument = {
+	numPages?: number
+	pages?: Array<Promise<PdfPage>>
+	allObjects?: PdfEditorObject[][]
+}
 
 type PdfElementsInstance = {
 	startAddingElement: (payload: Record<string, unknown>) => void
@@ -117,7 +137,7 @@ const props = withDefaults(defineProps<{
 	files?: PdfInput[]
 	fileNames?: string[]
 	readOnly?: boolean
-	signers?: PdfEditorSigner[]
+	signers?: PdfEditorSignerRecord[]
 }>(), {
 	files: () => [],
 	fileNames: () => [],
@@ -127,7 +147,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
 	(event: 'pdf-editor:end-init', payload: EndInitPayload): void
-	(event: 'pdf-editor:on-delete-signer', payload: PdfEditorObject): void
+	(event: 'pdf-editor:on-delete-signer', payload: VisibleElementRecord): void
 	(event: 'pdf-editor:object-click', payload: Record<string, unknown>): void
 	(event: 'pdf-editor:signer-added'): void
 }>()
@@ -199,13 +219,13 @@ async function calculatePdfMeasurement() {
 	return measurement
 }
 
-function onDeleteSigner(object: PdfEditorObject) {
-	emit('pdf-editor:on-delete-signer', object)
+function onDeleteSigner(visibleElement: VisibleElementRecord) {
+	emit('pdf-editor:on-delete-signer', visibleElement)
 }
 
 function handleDeleteObject({ object }: { object?: PdfEditorObject }) {
-	if (object?.signer) {
-		onDeleteSigner(object)
+	if (object?.visibleElement) {
+		onDeleteSigner(object.visibleElement)
 	}
 }
 
@@ -213,11 +233,11 @@ function handleObjectClick(event: Record<string, unknown>) {
 	emit('pdf-editor:object-click', event)
 }
 
-function getSignerLabel(signer: PdfEditorSigner | null | undefined) {
+function getSignerLabel(signer: PdfEditorSignerRecord | null | undefined) {
 	return getPdfEditorSignerLabel(signer)
 }
 
-function onSignerChange(object: PdfEditorObject | null | undefined, signer: PdfEditorSigner | null | undefined) {
+function onSignerChange(object: PdfEditorObject | null | undefined, signer: PdfEditorSignerRecord | null | undefined) {
 	if (!object || !signer || !pdfElements.value) {
 		return
 	}
@@ -281,7 +301,7 @@ function scheduleSignerAddedCheck() {
 	pendingAddCheckTimer = setTimeout(checkSignerAdded, 0)
 }
 
-function startAddingSigner(signer: PdfEditorSigner | null | undefined, size: { width?: number, height?: number }) {
+function startAddingSigner(signer: PdfEditorSignerRecord | null | undefined, size: { width?: number, height?: number }) {
 	if (!pdfElements.value || !size?.width || !size?.height) {
 		return false
 	}
@@ -306,16 +326,17 @@ function cancelAdding() {
 	clearPendingAddCheck()
 }
 
-async function addSigner(signer: PdfEditorSigner) {
-	if (!pdfElements.value || !signer.element?.coordinates) {
+async function addSigner(signer: PdfEditorSignerRecord, visibleElement: VisibleElementRecord, options: { documentIndex?: number } = {}) {
+	if (!pdfElements.value || !visibleElement.coordinates) {
 		return
 	}
 
-	const docIndex = signer.element.documentIndex !== undefined
-		? signer.element.documentIndex
+	const docIndex = options.documentIndex !== undefined
+		? options.documentIndex
 		: pdfElements.value.selectedDocIndex || 0
 	const previewPlacement = calculatePdfPlacement({
-		signer,
+		visibleElement,
+		documentIndex: options.documentIndex,
 		defaultDocIndex: docIndex,
 		pageHeight: 0,
 	})
@@ -328,7 +349,8 @@ async function addSigner(signer: PdfEditorSigner) {
 
 	const pageHeight = pdfElements.value.getPageHeight?.(docIndex, pageIndex) || 0
 	const placement = calculatePdfPlacement({
-		signer,
+		visibleElement,
+		documentIndex: options.documentIndex,
 		defaultDocIndex: docIndex,
 		pageHeight,
 	})
@@ -336,7 +358,12 @@ async function addSigner(signer: PdfEditorSigner) {
 		return
 	}
 
-	const object = createPdfEditorObject({ signer, placement })
+	const object = createPdfEditorObject({
+		signer: buildPdfEditorSignerPayload(signer),
+		visibleElement,
+		documentIndex: docIndex,
+		placement,
+	})
 
 	pdfElements.value.addObjectToPage(object, pageIndex, docIndex)
 }
