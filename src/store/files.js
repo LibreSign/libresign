@@ -25,6 +25,7 @@ import { useSidebarStore } from './sidebar.js'
 /** @typedef {import('../types/index').FileListEntry} FileListEntry */
 /** @typedef {import('../types/index').FileListItemRecord} FileListItemRecord */
 /** @typedef {import('../types/index').FileMetadataState} FileMetadataState */
+/** @typedef {import('../types/index').SelectedFileView} SelectedFileView */
 /** @typedef {import('../types/index').FileStatus} FileStatus */
 /** @typedef {import('../types/index').FileStatusText} FileStatusText */
 /** @typedef {import('../types/index').FileStateSettings} FileStateSettings */
@@ -466,6 +467,29 @@ const _filesStore = defineStore('files', () => {
 			return file
 		}
 		return files.value[selectedFileId.value] || emptyFile
+	}
+
+	/** @param {number | string | null | undefined} [fileId] */
+	function getSelectedFileView(fileId = selectedFileId.value) {
+		if (!fileId) {
+			return null
+		}
+
+		const file = files.value[fileId] || apiFiles.value[fileId] || null
+		if (!file) {
+			return null
+		}
+		if (typeof file.id !== 'number' || typeof file.name !== 'string' || typeof file.status !== 'number' || typeof file.statusText !== 'string') {
+			return null
+		}
+
+		return {
+			id: file.id,
+			nodeId: typeof file.nodeId === 'number' ? file.nodeId : undefined,
+			name: file.name,
+			status: file.status,
+			statusText: file.statusText,
+		}
 	}
 
 	/** @returns {EditableFileState | PublicFileState} */
@@ -1183,6 +1207,7 @@ const _filesStore = defineStore('files', () => {
 		getFileIdByUuid,
 		selectFileByUuid,
 		getFile,
+		getSelectedFileView,
 		getEditableFile,
 		flushSelectedFile,
 		fetchFileDetail,
