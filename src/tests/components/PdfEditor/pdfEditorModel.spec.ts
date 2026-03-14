@@ -43,28 +43,13 @@ describe('pdfEditorModel', () => {
 	})
 
 	describe('RULE: signer payload cloning never mutates caller input', () => {
-		it('ensures a detached element object exists', () => {
+		it('ensures a detached signer payload exists', () => {
 			const source = { email: 'ada@example.com' }
 
 			const payload = buildPdfEditorSignerPayload(source)
 
-			expect(payload).toEqual({ email: 'ada@example.com', element: {} })
+			expect(payload).toEqual({ email: 'ada@example.com' })
 			expect(payload).not.toBe(source)
-		})
-
-		it('preserves placement data by value', () => {
-			const source = {
-				email: 'ada@example.com',
-				element: {
-					elementId: 9,
-					coordinates: { page: 1, left: 10, top: 20 },
-				},
-			}
-
-			const payload = buildPdfEditorSignerPayload(source)
-
-			expect(payload.element).toEqual(source.element)
-			expect(payload.element).not.toBe(source.element)
 		})
 	})
 
@@ -93,10 +78,9 @@ describe('pdfEditorModel', () => {
 				selectedSigner: { signRequestId: 2 },
 				object: {
 					id: 'obj-1',
-					signer: {
-						signRequestId: 1,
-						element: { elementId: 99, coordinates: { page: 1, left: 10, top: 20 } },
-					},
+					signer: { signRequestId: 1 },
+					visibleElement: { type: 'signature', elementId: 99, signRequestId: 1, fileId: 7, coordinates: { page: 1, left: 10, top: 20 } },
+					documentIndex: 0,
 				},
 				documents: [{ allObjects: [[{ id: 'obj-1' }]] }],
 			})
@@ -107,7 +91,6 @@ describe('pdfEditorModel', () => {
 					signRequestId: 2,
 					email: 'two@example.com',
 					displayName: '2',
-					element: { elementId: 99, coordinates: { page: 1, left: 10, top: 20 } },
 				},
 			})
 		})
@@ -127,12 +110,14 @@ describe('pdfEditorModel', () => {
 	describe('RULE: placement calculation is isolated from component orchestration', () => {
 		it('uses left/top coordinates directly', () => {
 			const placement = calculatePdfPlacement({
-				signer: {
-					element: {
-						documentIndex: 1,
-						coordinates: { page: 2, left: 10, top: 20, width: 30, height: 40 },
-					},
+				visibleElement: {
+					type: 'signature',
+					elementId: 9,
+					signRequestId: 5,
+					fileId: 3,
+					coordinates: { page: 2, left: 10, top: 20, width: 30, height: 40 },
 				},
+				documentIndex: 1,
 				defaultDocIndex: 0,
 				pageHeight: 800,
 			})
@@ -149,10 +134,12 @@ describe('pdfEditorModel', () => {
 
 		it('converts PDF coordinate boxes into canvas placement', () => {
 			const placement = calculatePdfPlacement({
-				signer: {
-					element: {
-						coordinates: { page: 1, llx: 50, lly: 100, urx: 250, ury: 700 },
-					},
+				visibleElement: {
+					type: 'signature',
+					elementId: 9,
+					signRequestId: 5,
+					fileId: 3,
+					coordinates: { page: 1, llx: 50, lly: 100, urx: 250, ury: 700 },
 				},
 				defaultDocIndex: 0,
 				pageHeight: 841.89,
@@ -169,7 +156,7 @@ describe('pdfEditorModel', () => {
 		})
 
 		it('returns null when page number is invalid', () => {
-			expect(calculatePdfPlacement({ signer: { element: { coordinates: { left: 10, top: 10 } } }, defaultDocIndex: 0, pageHeight: 500 })).toBeNull()
+			expect(calculatePdfPlacement({ visibleElement: { type: 'signature', elementId: 1, signRequestId: 1, fileId: 1, coordinates: { left: 10, top: 10 } }, defaultDocIndex: 0, pageHeight: 500 })).toBeNull()
 		})
 	})
 
@@ -178,6 +165,8 @@ describe('pdfEditorModel', () => {
 			const signer = { email: 'ada@example.com' }
 			const object = createPdfEditorObject({
 				signer,
+				visibleElement: { type: 'signature', elementId: 1, signRequestId: 2, fileId: 3, coordinates: { page: 1, left: 10, top: 20 } },
+				documentIndex: 0,
 				placement: { docIndex: 0, pageIndex: 0, x: 10, y: 20, width: 30, height: 40 },
 				objectId: 'obj-fixed',
 			})
@@ -186,6 +175,8 @@ describe('pdfEditorModel', () => {
 				id: 'obj-fixed',
 				type: 'signature',
 				signer,
+				visibleElement: { type: 'signature', elementId: 1, signRequestId: 2, fileId: 3, coordinates: { page: 1, left: 10, top: 20 } },
+				documentIndex: 0,
 				x: 10,
 				y: 20,
 				width: 30,
