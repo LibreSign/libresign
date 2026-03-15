@@ -20,7 +20,7 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 
 /**
  * @typedef {{
- * 	signRequestId?: number | string
+ * 	signRequestId?: number
  * 	displayName?: string
  * 	email?: string
  * 	sign_uuid?: string | null
@@ -48,9 +48,9 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 
 /**
  * @typedef {{
- * 	elementId?: number | string
- * 	signRequestId?: number | string
- * 	fileId?: number | string
+ * 	elementId?: number
+ * 	signRequestId?: number
+ * 	fileId?: number
  * 	type?: string | null
  * 	coordinates?: {
  * 		page?: number | string
