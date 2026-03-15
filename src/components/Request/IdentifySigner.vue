@@ -121,7 +121,6 @@ type SignerMethodValue = {
 
 type SignerToEdit = {
 	identify?: string
-	signRequestId?: string
 	displayName?: string
 	description?: string
 	identifyMethods?: SignerMethodValue[]
@@ -280,7 +279,7 @@ onBeforeMount(() => {
 	displayName.value = props.signerToEdit.displayName ?? ''
 	description.value = props.signerToEdit.description ?? ''
 	enableCustomMessage.value = !!props.signerToEdit.description
-	identify.value = props.signerToEdit.identify ?? props.signerToEdit.signRequestId ?? ''
+	identify.value = props.signerToEdit.identify ?? ''
 	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
 		const method = props.signerToEdit.identifyMethods[0]
 		identifyMethod.value = method.method as IdentifyAccountRecord['method']
