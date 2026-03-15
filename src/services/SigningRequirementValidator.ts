@@ -8,8 +8,8 @@ import { ACTION_CODES } from '../helpers/ActionMapping.ts'
 interface SignStore {
 	errors: Array<{ code?: number; [key: string]: unknown }>
 	document?: {
-		signers?: Array<{ me?: boolean; signRequestId?: string | number }> | null
-		visibleElements?: Array<{ signRequestId?: string | number }> | null
+		signers?: Array<{ me?: boolean; signRequestId?: number }> | null
+		visibleElements?: Array<{ signRequestId?: number }> | null
 	}
 }
 
@@ -111,13 +111,13 @@ export class SigningRequirementValidator {
 		}
 
 		const signer = this.signStore.document?.signers?.find(row => row.me) || {}
-		const signRequestId = (signer as { signRequestId?: string | number }).signRequestId
+		const signRequestId = (signer as { signRequestId?: number }).signRequestId
 
 		if (!signRequestId) {
 			return false
 		}
 
 		const visibleElements = this.signStore.document?.visibleElements || []
-		return visibleElements.some(row => String(row.signRequestId) === String(signRequestId))
+		return visibleElements.some(row => row.signRequestId === signRequestId)
 	}
 }
