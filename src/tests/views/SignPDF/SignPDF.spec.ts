@@ -172,7 +172,7 @@ describe('SignPDF.vue', () => {
 					},
 				],
 				visibleElements: [
-					{ elementId: '201', fileId: '10', signRequestId: '501', type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+					{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 					{ fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 99, top: 88, width: 20, height: 10 } },
 				],
 			},
