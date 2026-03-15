@@ -42,7 +42,7 @@
 					</li>
 					<Signer v-for="({ signer, index }) in sidebarSigners"
 						:key="index"
-						:signer-index="index"
+						:signer="signer"
 						:require-request-permission="false"
 						:class="{ disabled: signerSelected }"
 						@select="handleSignerSelect">
