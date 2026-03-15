@@ -19,9 +19,9 @@
 					</div>
 				</div>
 				<div class="file-status">
-					<div :class="['status-badge', `status-${getStatusClass(file.status ?? 0)}`]">
-						<NcIconSvgWrapper :path="getStatusIcon(file.status ?? 0)" />
-						<span>{{ getStatusLabel(file.status ?? '') }}</span>
+					<div :class="['status-badge', `status-${getStatusClass(file.status)}`]">
+						<NcIconSvgWrapper :path="getStatusIcon(file.status)" />
+						<span>{{ getStatusLabel(file.status) }}</span>
 					</div>
 					<div v-if="file.signed" class="signed-date">
 						{{ formatDate(file.signed) }}
@@ -53,7 +53,7 @@ defineOptions({
 type FileEntry = {
 	id: number
 	name: string
-	status?: string | number
+	status: number
 	size: number
 	signed?: string
 }
@@ -79,7 +79,10 @@ async function loadFiles() {
 	try {
 		const fileRequests = fileIds.value.map((fileId) => axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/${fileId}`)))
 		const responses = await Promise.all(fileRequests)
-		files.value = responses.map((response) => response.data.ocs.data)
+		files.value = responses.map((response) => ({
+			...response.data.ocs.data,
+			status: Number(response.data.ocs.data.status),
+		}))
 		emit('files-updated', files.value)
 	} catch (error) {
 		console.error('[libresign][front] Failed to load files', error)
@@ -102,8 +105,8 @@ function stopUpdatePolling() {
 	}
 }
 
-function getStatusClass(status: string | number) {
-	const statusMap: Record<string | number, string> = {
+function getStatusClass(status: number) {
+	const statusMap: Record<number, string> = {
 		[FILE_STATUS.NOT_LIBRESIGN_FILE]: 'not-libresign',
 		[FILE_STATUS.DRAFT]: 'draft',
 		[FILE_STATUS.ABLE_TO_SIGN]: 'ready',
