@@ -21,6 +21,8 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\Entity;
+use OCP\Files\File as NodeFile;
+use OCP\Files\IRootFolder;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -47,6 +49,7 @@ class FileListService {
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private IUserManager $userManager,
+		private IRootFolder $root,
 	) {
 	}
 
@@ -248,6 +251,7 @@ class FileListService {
 			'displayName' => $this->userManager->get($file['userId'])?->getDisplayName(),
 		];
 		$file['created_at'] = $file['createdAt']->setTimezone(new \DateTimeZone('UTC'))->format(DateTimeInterface::ATOM);
+		$file['size'] = $this->getFileSize($fileEntity);
 
 		if ($file['nodeType'] === 'envelope') {
 			$file['filesCount'] = $file['metadata']['filesCount'] ?? 0;
@@ -683,9 +687,14 @@ class FileListService {
 				$childContext['signers'] ?? null,
 				$childContext['identifyMethods'] ?? null,
 			);
+			$response['size'] = array_sum(array_map(
+				static fn (array $file): int => (int)$file['size'],
+				$response['files'],
+			));
 		} else {
 			$response['filesCount'] = 1;
 			$response['files'] = $this->formatChildFilesResponse([$mainEntity], $signRequestEntities, $identifyMethods);
+			$response['size'] = (int)$response['files'][0]['size'];
 		}
 
 		/** @psalm-suppress LessSpecificReturnStatement */
@@ -856,6 +865,7 @@ class FileListService {
 		return array_values(array_map(function (File $file) use ($signersByFileId, $identifyMethods) {
 			$signers = $signersByFileId[$file->getId()] ?? [];
 			$metadata = $file->getMetadata() ?? [];
+			$size = $this->getFileSize($file);
 			$signersFormatted = array_map(function (SignRequest $signer) use ($identifyMethods) {
 				$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
 				$email = array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
@@ -902,8 +912,27 @@ class FileListService {
 				'signersCount' => count($signers),
 				'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]),
 				'metadata' => $metadata,
+				'size' => $size,
 				'signers' => $signersFormatted,
 			];
 		}, $files));
+	}
+
+	private function getFileSize(File $file): int {
+		$nodeId = $file->getSignedNodeId() ?: $file->getNodeId();
+		if ($nodeId === null || $file->getUserId() === '') {
+			return 0;
+		}
+
+		try {
+			$fileNode = $this->root->getUserFolder($file->getUserId())->getFirstNodeById($nodeId);
+			if ($fileNode instanceof NodeFile && method_exists($fileNode, 'getSize')) {
+				return $fileNode->getSize();
+			}
+		} catch (\Throwable) {
+			return 0;
+		}
+
+		return 0;
 	}
 }
