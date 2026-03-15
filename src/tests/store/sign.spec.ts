@@ -509,7 +509,7 @@ describe('useSignStore', () => {
 	})
 
 	describe('reset', () => {
-		it('resets document to default state', () => {
+		it('clears document when resetting', () => {
 			const store = useSignStore()
 			store.document = createDocument({
 				id: 999,
@@ -519,9 +519,7 @@ describe('useSignStore', () => {
 
 			store.reset()
 
-			expect(store.document.id).toBe(0)
-			expect(store.document.name).toBe('')
-			expect(store.document.signers).toEqual([])
+			expect(store.document).toBeUndefined()
 		})
 
 		it('clears errors when resetting', () => {
@@ -543,7 +541,7 @@ describe('useSignStore', () => {
 			expect(sidebarStore.setActiveTab).toHaveBeenCalled()
 		})
 
-		it('restores all document fields to defaults', () => {
+		it('removes the previous document reference entirely', () => {
 			const store = useSignStore()
 			store.document = createDocument({
 				id: 1,
@@ -561,11 +559,7 @@ describe('useSignStore', () => {
 
 			store.reset()
 
-			expect(store.document.id).toBe(0)
-			expect(store.document.description).toBe('')
-			expect(store.document.url).toBe('')
-			expect(store.document.nodeId).toBe(0)
-			expect(store.document.uuid).toBe('')
+			expect(store.document).toBeUndefined()
 		})
 	})
 
