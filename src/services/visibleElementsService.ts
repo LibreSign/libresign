@@ -11,7 +11,7 @@ import type {
 } from '../types/index'
 
 type SignerLike = {
-	signRequestId?: number | string
+	signRequestId?: number
 	displayName?: string
 	email?: string
 	identifyMethods?: IdentifyMethodRecord[]
