@@ -340,7 +340,6 @@ type IdentifySignerMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 type IdentifySignerToEdit = {
 	localKey?: string
 	identify?: string
-	signRequestId?: string
 	displayName?: string
 	description?: string
 	identifyMethods?: IdentifySignerMethod[]
@@ -500,7 +499,6 @@ function toIdentifySignerToEdit(signer: EditableRequestSigner): IdentifySignerTo
 	return {
 		localKey: signer.localKey,
 		identify: getEditableSignerIdentify(signer),
-		signRequestId: signer.signRequestId !== undefined ? String(signer.signRequestId) : undefined,
 		displayName: signer.displayName,
 		description: signer.description ?? undefined,
 		identifyMethods: signer.identifyMethods?.map((method: IdentifyMethodRecord) => ({
