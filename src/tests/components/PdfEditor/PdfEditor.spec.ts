@@ -11,15 +11,15 @@ import PdfEditor from '../../../components/PdfEditor/PdfEditor.vue'
 type SignerRecord = {
 	displayName?: string
 	email?: string
-	signRequestId?: string | number
+	signRequestId?: number
 	identifyMethods?: Array<Record<string, unknown>>
 	[key: string]: unknown
 }
 
 type VisibleElementRecord = {
-	elementId?: string | number
-	signRequestId?: string | number
-	fileId?: string | number
+	elementId?: number
+	signRequestId?: number
+	fileId?: number
 	type: 'signature'
 	coordinates: Record<string, number>
 	[key: string]: unknown
