@@ -23,10 +23,10 @@
 					:text="method"
 					:aria-label="t('libresign', 'Identification method: {method}', { method })"
 					:no-close="true" />
-				<NcChip :text="signer.statusText ?? ''"
+				<NcChip :text="signerStatusText"
 					:variant="chipType"
 					:icon-path="statusIconPath"
-					:aria-label="t('libresign', 'Signer status: {status}', { status: signer.statusText ?? '' })"
+					:aria-label="t('libresign', 'Signer status: {status}', { status: signerStatusText })"
 					:no-close="true"
 					class="signer-status-chip" />
 				<span v-if="disabledTooltip" class="sr-only">{{ disabledTooltip }}</span>
@@ -71,10 +71,17 @@ defineOptions({
 
 type FilesStoreContract = ReturnType<typeof useFilesStore>
 type SelectedFile = ReturnType<FilesStoreContract['getFile']>
-type SignerListItem = NonNullable<NonNullable<SelectedFile['signers']>[number]>
+type SignerViewModel = {
+	signed?: string | null | boolean | unknown[]
+	identifyMethods?: Array<{ method: string }>
+	status?: number
+	statusText: string
+	displayName?: string
+	signingOrder?: number
+}
 
 const props = withDefaults(defineProps<{
-	signerIndex: number
+	signer: SignerViewModel
 	event?: string
 	draggable?: boolean
 	requireRequestPermission?: boolean
@@ -85,7 +92,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-	(event: 'select', signer: SignerListItem): void
+	(event: 'select', signer: SignerViewModel): void
 }>()
 
 const filesStore = useFilesStore()
@@ -107,12 +114,10 @@ const signatureFlow = computed(() => {
 	return flow
 })
 
-const signer = computed<SignerListItem>(() => {
-	const file = filesStore.getFile()
-	return file?.signers?.[props.signerIndex] || {}
-})
+const signer = computed<SignerViewModel>(() => props.signer)
 
 const signerName = computed(() => signer.value.displayName || '')
+const signerStatusText = computed<string>(() => signer.value.statusText)
 
 const counterNumber = computed(() => {
 	const file = filesStore.getFile()
@@ -151,7 +156,7 @@ const disabledTooltip = computed(() => {
 })
 
 const signerClass = computed(() => ({
-	'signer-signed': signer.value.signed,
+	'signer-signed': Boolean(signer.value.signed),
 	'signer-method-disabled': isMethodDisabled.value,
 }))
 
@@ -169,7 +174,7 @@ const showDragHandle = computed(() => {
 	const totalSigners = file.signers.length
 	return signatureFlow.value === 'ordered_numeric'
 		&& totalSigners > 1
-		&& !signer.value.signed
+		&& !Boolean(signer.value.signed)
 		&& filesStore.canSave()
 })
 
@@ -177,7 +182,7 @@ const identifyMethodsNames = computed(() => {
 	if (!signer.value?.identifyMethods) {
 		return []
 	}
-	return signer.value.identifyMethods.map((method: NonNullable<SignerListItem['identifyMethods']>[number]) => method.method)
+	return signer.value.identifyMethods.map(method => method.method)
 })
 
 const chipType = computed(() => {
@@ -193,7 +198,7 @@ const chipType = computed(() => {
 })
 
 const signerLinkAriaLabel = computed(() => {
-	if (signer.value.signed) {
+	if (Boolean(signer.value.signed)) {
 		return t('libresign', 'Signer {name} (already signed)', { name: signerName.value })
 	}
 	return t('libresign', 'Edit signer {name}', { name: signerName.value })
@@ -218,7 +223,7 @@ function signerClickAction() {
 	if (filesStore.isOriginalFileDeleted()) {
 		return
 	}
-	if (signer.value.signed) {
+	if (Boolean(signer.value.signed)) {
 		return
 	}
 	if (isMethodDisabled.value) {
@@ -247,6 +252,7 @@ defineExpose({
 	disabledTooltip,
 	showDragHandle,
 	chipType,
+	signerStatusText,
 	statusIconPath,
 	signerClickAction,
 	closeActions,
