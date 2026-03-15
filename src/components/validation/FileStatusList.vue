@@ -23,8 +23,8 @@
 						<NcIconSvgWrapper :path="getStatusIcon(file.status)" />
 						<span>{{ getStatusLabel(file.status) }}</span>
 					</div>
-					<div v-if="file.signed" class="signed-date">
-						{{ formatDate(file.signed) }}
+					<div v-if="file.metadata?.status_changed_at" class="status-date">
+						{{ formatDate(file.metadata.status_changed_at) }}
 					</div>
 				</div>
 			</div>
@@ -44,23 +44,16 @@ import { onBeforeUnmount, onMounted, ref, watch, toRefs } from 'vue'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { FILE_STATUS } from '../../constants.js'
+import type { ValidationFileRecord } from '../../types'
 import { getStatusLabel, getStatusIcon } from '../../utils/fileStatus.js'
 
 defineOptions({
 	name: 'FileStatusList',
 })
 
-type FileEntry = {
-	id: number
-	name: string
-	status: number
-	size: number
-	signed?: string
-}
-
 const emit = defineEmits<{
-	(event: 'file-signed', file: FileEntry): void
-	(event: 'files-updated', files: FileEntry[]): void
+	(event: 'file-signed', file: ValidationFileRecord): void
+	(event: 'files-updated', files: ValidationFileRecord[]): void
 }>()
 
 const props = withDefaults(defineProps<{
@@ -72,17 +65,14 @@ const props = withDefaults(defineProps<{
 })
 
 const { fileIds, updateInterval } = toRefs(props)
-const files = ref<FileEntry[]>([])
+const files = ref<ValidationFileRecord[]>([])
 const updateTimer = ref<ReturnType<typeof setInterval> | null>(null)
 
 async function loadFiles() {
 	try {
-		const fileRequests = fileIds.value.map((fileId) => axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/${fileId}`)))
+		const fileRequests = fileIds.value.map((fileId) => axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${fileId}`)))
 		const responses = await Promise.all(fileRequests)
-		files.value = responses.map((response) => ({
-			...response.data.ocs.data,
-			status: Number(response.data.ocs.data.status),
-		}))
+		files.value = responses.map((response) => response.data.ocs.data)
 		emit('files-updated', files.value)
 	} catch (error) {
 		console.error('[libresign][front] Failed to load files', error)
@@ -291,7 +281,7 @@ defineExpose({
 			}
 		}
 
-		.signed-date {
+		.status-date {
 			font-size: 12px;
 			color: var(--color-text-lighter);
 			white-space: nowrap;
