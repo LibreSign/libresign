@@ -615,7 +615,7 @@ describe('files store - critical business rules', () => {
 				],
 			}
 
-			const newSigner = { email: 'new@example.com' }
+			const newSigner = { email: 'new@example.com', status: 0, statusText: 'Draft' }
 			store.signerUpdate(newSigner)
 
 			const addedSigner = store.files[1].signers!.find((s) => s.email === 'new@example.com')
@@ -636,6 +636,7 @@ describe('files store - critical business rules', () => {
 				email: 'updated@example.com',
 				signRequestId: 123,
 				localKey: 'signer:123',
+				statusText: 'Draft',
 				description: 'new',
 			}
 			store.signerUpdate(updatedSigner)
@@ -1218,7 +1219,7 @@ describe('files store - critical business rules', () => {
 				const store = useFilesStore()
 				store.selectedFileId = 0  // nothing selected
 
-				const signer = { email: 'a@example.com', localKey: 'draft-signer:test' }
+				const signer = { email: 'a@example.com', localKey: 'draft-signer:test', statusText: 'Draft' }
 				// If emptyFile were mutated, the signerUpdate below would persist
 				// across store instances and corrupt subsequent tests.
 				store.signerUpdate(signer)
