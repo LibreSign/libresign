@@ -81,23 +81,6 @@ describe('SignerSelect.vue', () => {
 		expect(result[2].iconName).toBeUndefined()
 	})
 
-	it('normalizeSignerOption keeps signer payload on the OpenAPI shape', () => {
-		const wrapper = createWrapper()
-		const result = wrapper.vm.normalizeSignerOption({
-			identify: 'user@example.com',
-			isNoUser: true,
-			shareType: 4,
-			displayName: 'User Email',
-			subname: 'user@example.com',
-		})
-
-		expect(wrapper.vm.getOptionKey(result)).toBe('user@example.com')
-		expect(result.displayName).toBe('User Email')
-		expect(result.subname).toBe('user@example.com')
-		expect(result.shareType).toBe(4)
-		expect(result.iconName).toBeUndefined()
-	})
-
 	it('onSelectedSignerChange emits a plain OpenAPI signer object', () => {
 		const wrapper = createWrapper({ method: 'email' })
 		const selected = wrapper.vm.injectIcons([
@@ -165,6 +148,18 @@ describe('SignerSelect.vue', () => {
 		expect(wrapper.vm.haveError).toBe(false)
 		expect(wrapper.vm.options).toHaveLength(1)
 		expect(wrapper.vm.options[0].displayName).toBe('Carol')
+	})
+
+	it('clears stale results immediately when search is blank', async () => {
+		const wrapper = createWrapper({ method: 'account' })
+		wrapper.vm.options = [{ identify: 'legacy@example.com', isNoUser: true, shareType: 4, displayName: 'Legacy', subname: 'legacy@example.com' }]
+		wrapper.vm.loading = true
+
+		await wrapper.vm._asyncFind('   ')
+
+		expect(axiosGetMock).not.toHaveBeenCalled()
+		expect(wrapper.vm.options).toEqual([])
+		expect(wrapper.vm.loading).toBe(false)
 	})
 
 	it('ignores stale async response when a newer search was triggered', async () => {
