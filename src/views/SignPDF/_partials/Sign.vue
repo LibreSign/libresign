@@ -485,17 +485,17 @@ const elements = computed(() => {
 	const document = currentDocument.value
 	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
 
-	const signRequestIds = new Set<string>()
+	const signRequestIds = new Set<number>()
 	if (signer?.signRequestId !== undefined) {
-		signRequestIds.add(String(signer.signRequestId))
+		signRequestIds.add(signer.signRequestId)
 	}
 
 	if (Array.isArray(document?.files)) {
 		document.files
 			.map(normalizeSignFile)
 			.flatMap((file) => getFileSigners(file))
-			.filter((row) => isCurrentUserSigner(row) && row.signRequestId !== undefined)
-			.forEach((row) => signRequestIds.add(String(row.signRequestId)))
+			.filter((row): row is ReturnType<typeof getFileSigners>[number] & { me: true; signRequestId: number } => isCurrentUserSigner(row) && row.signRequestId !== undefined)
+			.forEach((row) => signRequestIds.add(row.signRequestId))
 	}
 
 	if (signRequestIds.size === 0) {
@@ -510,7 +510,7 @@ const elements = computed(() => {
 			}
 			const signatureData = signatureElementsStore.signs[row.type]
 			const hasSignature = Boolean(signatureData?.createdAt)
-			return hasSignature && signRequestIds.has(String(row.signRequestId))
+			return hasSignature && signRequestIds.has(row.signRequestId)
 		})
 })
 
@@ -525,7 +525,7 @@ const needCreateSignature = computed(() => {
 		return false
 	}
 	const visibleElements = visibleElementsDocument.value.visibleElements || []
-	return visibleElements.some((row) => String(row.signRequestId) === String(signer.signRequestId))
+	return visibleElements.some((row) => row.signRequestId === signer.signRequestId)
 })
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const canCreateSignature = computed(() => {
