@@ -7,24 +7,14 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
+import type { LoadedValidationFileDocument } from '../../../types/index'
 
 type DocumentValidationComponent = typeof import('../../../components/validation/DocumentValidationDetails.vue').default
 type FileStatusModule = typeof import('../../../utils/fileStatus.js')
 type ViewerModule = typeof import('../../../utils/viewer.js')
 
-type ValidationDocument = {
-	name: string
-	status?: string
-	totalPages?: number
-	size?: string
-	pdfVersion?: string
-	uuid?: string
-	nodeId?: number
-	signers?: Array<{ displayName?: string; email?: string }>
-}
-
 type WrapperProps = Partial<{
-	document: Partial<ValidationDocument>
+	document: Record<string, unknown>
 	legalInformation: string
 	documentValidMessage: string
 	isAfterSigned: boolean
@@ -74,16 +64,20 @@ describe('DocumentValidationDetails', () => {
 	let wrapper: VueWrapper<any> | null
 
 	const createWrapper = (props: WrapperProps = {}): VueWrapper<any> => {
+		const { document: documentOverrides, ...restProps } = props
+		const document: Pick<LoadedValidationFileDocument, 'name' | 'size'> & Record<string, unknown> = {
+			name: 'Test Document',
+			size: 0,
+			...documentOverrides,
+		}
+
 		return mount(DocumentValidationDetails, {
 			props: {
-				document: {
-					name: 'Test Document',
-					...props.document,
-				},
 				legalInformation: '',
 				documentValidMessage: '',
 				isAfterSigned: false,
-				...props,
+				...restProps,
+				document: document as never,
 			},
 			global: {
 				stubs: {
@@ -147,7 +141,7 @@ describe('DocumentValidationDetails', () => {
 		it('shows status when present', () => {
 			wrapper = createWrapper({
 				document: {
-					status: '3',
+					status: 3,
 				},
 			})
 
@@ -166,18 +160,18 @@ describe('DocumentValidationDetails', () => {
 		it('displays status label from utility', () => {
 			wrapper = createWrapper({
 				document: {
-					status: '0',
+					status: 0,
 				},
 			})
 
 			expect(wrapper.vm.documentStatus).toBe('Draft')
-			expect(fileStatus.getStatusLabel).toHaveBeenCalledWith('0')
+			expect(fileStatus.getStatusLabel).toHaveBeenCalledWith(0)
 		})
 
 		it('handles different status values', () => {
 			wrapper = createWrapper({
 				document: {
-					status: '1',
+					status: 1,
 				},
 			})
 
@@ -232,7 +226,7 @@ describe('DocumentValidationDetails', () => {
 		it('displays size in B for bytes', () => {
 			wrapper = createWrapper({
 				document: {
-					size: '512',
+					size: 512,
 				},
 			})
 
@@ -242,7 +236,7 @@ describe('DocumentValidationDetails', () => {
 		it('converts to KB for larger files', () => {
 			wrapper = createWrapper({
 				document: {
-					size: '2048',
+					size: 2048,
 				},
 			})
 
@@ -252,7 +246,7 @@ describe('DocumentValidationDetails', () => {
 		it('converts to MB for large files', () => {
 			wrapper = createWrapper({
 				document: {
-					size: '5242880',
+					size: 5242880,
 				},
 			})
 
@@ -262,7 +256,7 @@ describe('DocumentValidationDetails', () => {
 		it('rounds KB to 2 decimals', () => {
 			wrapper = createWrapper({
 				document: {
-					size: '1536',
+					size: 1536,
 				},
 			})
 
@@ -273,7 +267,7 @@ describe('DocumentValidationDetails', () => {
 		it('rounds MB to 2 decimals', () => {
 			wrapper = createWrapper({
 				document: {
-					size: '5242880',
+					size: 5242880,
 				},
 			})
 
@@ -281,18 +275,20 @@ describe('DocumentValidationDetails', () => {
 			expect(size).toMatch(/\d+\.\d{2} MB/)
 		})
 
-		it('returns empty string when size missing', () => {
+		it('returns a formatted size string when size is provided', () => {
 			wrapper = createWrapper({
-				document: {},
+				document: {
+					size: 1024,
+				},
 			})
 
-			expect(wrapper.vm.size).toBe('')
+			expect(wrapper.vm.size).toBe('1.00 KB')
 		})
 
 		it('shows file size label when present', () => {
 			wrapper = createWrapper({
 				document: {
-					size: '1024',
+					size: 1024,
 				},
 			})
 
@@ -305,12 +301,14 @@ describe('DocumentValidationDetails', () => {
 			expect(listing).toContain('File size:')
 		})
 
-		it('hides file size when missing', () => {
+		it('shows file size when provided', () => {
 			wrapper = createWrapper({
-				document: {},
+				document: {
+					size: 1024,
+				},
 			})
 
-			expect(wrapper.vm.$el.textContent).not.toContain('File size:')
+			expect(wrapper.vm.$el.textContent).toContain('File size:')
 		})
 	})
 
@@ -544,9 +542,9 @@ describe('DocumentValidationDetails', () => {
 			wrapper = createWrapper({
 				document: {
 					name: 'Complete Document.pdf',
-					status: '3',
+					status: 3,
 					totalPages: 25,
-					size: '2048576',
+					size: 2048576,
 					pdfVersion: '1.7',
 					uuid: 'uuid-123',
 					nodeId: 789,
@@ -585,7 +583,7 @@ describe('DocumentValidationDetails', () => {
 		it('returns formatted status', () => {
 			wrapper = createWrapper({
 				document: {
-					status: '3',
+					status: 3,
 				},
 			})
 
@@ -595,7 +593,7 @@ describe('DocumentValidationDetails', () => {
 		it('calls getStatusLabel with correct status', () => {
 			wrapper = createWrapper({
 				document: {
-					status: '1',
+					status: 1,
 				},
 			})
 
