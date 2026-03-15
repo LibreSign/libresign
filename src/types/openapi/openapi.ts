@@ -1195,8 +1195,11 @@ export type components = {
                 [key: string]: Record<string, never>;
             };
             /** Format: int64 */
+            size: number;
+            /** Format: int64 */
             docmdpLevel: number;
-            signatureFlow: number | string;
+            /** @enum {string} */
+            signatureFlow: "none" | "parallel" | "ordered_numeric";
             visibleElements: components["schemas"]["VisibleElement"][];
             signers: components["schemas"]["SignerDetail"][];
             /** Format: int64 */
@@ -1278,6 +1281,8 @@ export type components = {
             signersCount: number;
             file: string;
             metadata: components["schemas"]["ValidateMetadata"];
+            /** Format: int64 */
+            size: number;
             signers: components["schemas"]["SignerSummary"][];
         };
         FileListResponse: {
@@ -1623,7 +1628,7 @@ export type components = {
             /** Format: int64 */
             totalPages?: number;
             /** Format: int64 */
-            size?: number;
+            size: number;
             pdfVersion?: string;
             signers: components["schemas"]["SignerSummary"][];
             file: string;
