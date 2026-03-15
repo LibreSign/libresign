@@ -15,7 +15,7 @@
 					</div>
 					<div class="file-details">
 						<div class="file-name">{{ file.name }}</div>
-						<div class="file-size">{{ formatFileSize(file.size ?? 0) }}</div>
+						<div class="file-size">{{ formatFileSize(file.size) }}</div>
 					</div>
 				</div>
 				<div class="file-status">
@@ -54,7 +54,7 @@ type FileEntry = {
 	id: number
 	name: string
 	status?: string | number
-	size?: number
+	size: number
 	signed?: string
 }
 
