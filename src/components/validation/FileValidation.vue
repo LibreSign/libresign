@@ -35,17 +35,8 @@ defineOptions({
 	name: 'FileValidation',
 })
 
-type FileValidationDocument = {
-	uuid: LoadedValidationFileDocument['uuid']
-	name: LoadedValidationFileDocument['name']
-	nodeId: LoadedValidationFileDocument['nodeId']
-	nodeType: LoadedValidationFileDocument['nodeType']
-	status: LoadedValidationFileDocument['status'] | string
-	[key: string]: unknown
-}
-
 defineProps<{
-	document: FileValidationDocument
+	document: LoadedValidationFileDocument
 	legalInformation?: string
 	documentValidMessage?: string | null
 	isAfterSigned?: boolean
