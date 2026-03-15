@@ -962,6 +962,20 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	})
 
 	describe('RULE: enabledMethods filter for modal', () => {
+		it('does not propagate legacy signRequestId into signerToEdit', async () => {
+			await updateFile({
+				signers: [
+					{ email: 'signer1@example.com', displayName: 'Signer 1', signRequestId: 42, identify: 'signer1@example.com', identifyMethods: [{ method: 'email', value: 'signer1@example.com' }] },
+				],
+			})
+
+			const signer = filesStore.files[1]!.signers![0]!
+			wrapper.vm.editSigner(signer)
+
+			expect(wrapper.vm.signerToEdit.identify).toBe('signer1@example.com')
+			expect('signRequestId' in wrapper.vm.signerToEdit).toBe(false)
+		})
+
 		it('shows all enabled methods when adding new signer', async () => {
 			await updateMethods([
 				{ name: 'email', enabled: true, friendly_name: 'Email' },
