@@ -232,8 +232,13 @@ describe('Sign.vue - signWithTokenCode', () => {
 						throw new Error('No active token method found')
 					}
 
+					const identifyMethod = this.signMethodsStore.settings[activeMethod]?.identifyMethod
+					if (!identifyMethod) {
+						throw new Error('No identify method found for active token method')
+					}
+
 					await this.submitSignature({
-						method: activeMethod,
+						method: identifyMethod,
 						token,
 					})
 				},
@@ -251,7 +256,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 	describe('signWithTokenCode', () => {
 		it('detects SMS token method', async () => {
 			signMethodsStore.settings = {
-				smsToken: { needCode: true },
+				smsToken: { needCode: true, identifyMethod: 'sms' },
 			}
 
 			const instance = {
@@ -262,14 +267,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('123456')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'smsToken',
+				method: 'sms',
 				token: '123456',
 			})
 		})
 
 		it('detects WhatsApp token method', async () => {
 			signMethodsStore.settings = {
-				whatsappToken: { needCode: true },
+				whatsappToken: { needCode: true, identifyMethod: 'whatsapp' },
 			}
 
 			const instance = {
@@ -280,14 +285,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('789012')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'whatsappToken',
+				method: 'whatsapp',
 				token: '789012',
 			})
 		})
 
 		it('successfully processes WhatsApp token signing', async () => {
 			signMethodsStore.settings = {
-				whatsappToken: { needCode: true },
+				whatsappToken: { needCode: true, identifyMethod: 'whatsapp' },
 			}
 
 			const instance = {
@@ -298,14 +303,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('654321')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'whatsappToken',
+				method: 'whatsapp',
 				token: '654321',
 			})
 		})
 
 		it('detects Signal token method', async () => {
 			signMethodsStore.settings = {
-				signalToken: { needCode: true },
+				signalToken: { needCode: true, identifyMethod: 'signal' },
 			}
 
 			const instance = {
@@ -316,14 +321,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('456789')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'signalToken',
+				method: 'signal',
 				token: '456789',
 			})
 		})
 
 		it('detects Telegram token method', async () => {
 			signMethodsStore.settings = {
-				telegramToken: { needCode: true },
+				telegramToken: { needCode: true, identifyMethod: 'telegram' },
 			}
 
 			const instance = {
@@ -334,14 +339,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('012345')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'telegramToken',
+				method: 'telegram',
 				token: '012345',
 			})
 		})
 
 		it('detects XMPP token method', async () => {
 			signMethodsStore.settings = {
-				xmppToken: { needCode: true },
+				xmppToken: { needCode: true, identifyMethod: 'xmpp' },
 			}
 
 			const instance = {
@@ -352,16 +357,16 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('678901')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'xmppToken',
+				method: 'xmpp',
 				token: '678901',
 			})
 		})
 
 		it('prefers first token method when multiple are present', async () => {
 			signMethodsStore.settings = {
-				smsToken: { needCode: true },
-				whatsappToken: { needCode: true },
-				signalToken: { needCode: true },
+				smsToken: { needCode: true, identifyMethod: 'sms' },
+				whatsappToken: { needCode: true, identifyMethod: 'whatsapp' },
+				signalToken: { needCode: true, identifyMethod: 'signal' },
 			}
 
 			const instance = {
@@ -372,7 +377,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('111111')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'smsToken',
+				method: 'sms',
 				token: '111111',
 			})
 		})
@@ -408,7 +413,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 		it('passes token correctly to submitSignature', async () => {
 			signMethodsStore.settings = {
-				smsToken: { needCode: true },
+				smsToken: { needCode: true, identifyMethod: 'sms' },
 			}
 
 			const instance = {
@@ -420,7 +425,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode(testToken)
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'smsToken',
+				method: 'sms',
 				token: testToken,
 			})
 		})
@@ -430,7 +435,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				clickToSign: {},
 				emailToken: { needCode: true },
 				password: { hasSignatureFile: true },
-				smsToken: { needCode: true },
+				smsToken: { needCode: true, identifyMethod: 'sms' },
 			}
 
 			const instance = {
@@ -441,9 +446,24 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('123456')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'smsToken',
+				method: 'sms',
 				token: '123456',
 			})
+		})
+
+		it('throws error when active token method has no identify method', async () => {
+			signMethodsStore.settings = {
+				smsToken: { needCode: true },
+			}
+
+			const instance = {
+				...Sign.data(),
+				...Sign.methods,
+			}
+
+			await expect(instance.signWithTokenCode('123456')).rejects.toThrow('No identify method found for active token method')
+
+			expect(submitSignatureSpy).not.toHaveBeenCalled()
 		})
 	})
 
@@ -614,8 +634,13 @@ describe('Sign.vue - signWithTokenCode', () => {
 							throw new Error('No active token method found')
 						}
 
+						const identifyMethod = this.signMethodsStore.settings[activeMethod]?.identifyMethod
+						if (!identifyMethod) {
+							throw new Error('No identify method found for active token method')
+						}
+
 						await this.submitSignature({
-							method: activeMethod,
+							method: identifyMethod,
 							token,
 						})
 					},
@@ -640,7 +665,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 		it('complete flow: click sign button -> token modal opens -> submit token', async () => {
 			signMethodsStore.settings = {
-				whatsappToken: { needCode: true },
+				whatsappToken: { needCode: true, identifyMethod: 'whatsapp' },
 			}
 
 			const instance = {
@@ -658,16 +683,16 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 			// Verify the submission happened
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'whatsappToken',
+				method: 'whatsapp',
 				token: '123456',
 			})
 		})
 
 		it('complete flow: click sign with multiple token methods enables first available', async () => {
 			signMethodsStore.settings = {
-				smsToken: { needCode: true },
-				whatsappToken: { needCode: true },
-				telegramToken: { needCode: true },
+				smsToken: { needCode: true, identifyMethod: 'sms' },
+				whatsappToken: { needCode: true, identifyMethod: 'whatsapp' },
+				telegramToken: { needCode: true, identifyMethod: 'telegram' },
 			}
 
 			const instance = {
@@ -684,7 +709,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 			// Verify the submission happened with SMS token
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'smsToken',
+				method: 'sms',
 				token: '999999',
 			})
 		})
@@ -883,6 +908,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 	describe('signWithTokenCode - REAL component integration test', () => {
 		it('INTEGRATION: extracts and sends correct identify method from signature methods data', async () => {
+			const { useSignStore } = await import('../../../store/sign.js')
 			const testCases = [
 				{
 					name: 'WhatsApp token',
@@ -912,6 +938,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				const realSign = SignComponent.default
 
 				const signMethodsStore = useSignMethodsStore()
+				const signStore = useSignStore()
 
 				// Set up signature method with identify method info
 				signMethodsStore.settings = {
@@ -922,7 +949,13 @@ describe('Sign.vue - signWithTokenCode', () => {
 					},
 				}
 
+				signStore.document = createSignDocument({
+					id: 99,
+					signRequestUuid: 'test-sign-request-uuid',
+				})
+
 				const submitSignatureMock = vi.fn().mockResolvedValue({ status: 'signed' })
+				signStore.submitSignature = submitSignatureMock as SignStore['submitSignature']
 
 				// Mount REAL component
 				const wrapper = mount(realSign, {
@@ -951,22 +984,20 @@ describe('Sign.vue - signWithTokenCode', () => {
 					props: {},
 				})
 
-				wrapper.vm.submitSignature = submitSignatureMock
-
 				// Call real signWithTokenCode method
 				await wrapper.vm.signWithTokenCode(testCase.token)
 
 				// VERIFY: Must send identify method, NOT signature method name
 				expect(submitSignatureMock).toHaveBeenCalledWith({
-					method: testCase.expectedIdentifyMethod, // 'whatsapp', 'sms', 'signal'
-					modalCode: 'token',
+					method: testCase.expectedIdentifyMethod,
 					token: testCase.token,
+				}, 'test-sign-request-uuid', {
+					documentId: 99,
 				})
 
 				// Double-check: Should NOT send the signature method key name
 				expect(submitSignatureMock).not.toHaveBeenCalledWith({
-					method: testCase.signatureMethodKey, // NOT 'whatsappToken', 'smsToken', etc
-					modalCode: 'token',
+					method: testCase.signatureMethodKey,
 					token: testCase.token,
 				})
 			}
@@ -1235,6 +1266,9 @@ describe('Sign.vue - signWithTokenCode', () => {
 			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
 			const realSign = SignComponent.default
 			const signMethodsStore = useSignMethodsStore()
+			const { useSignStore } = await import('../../../store/sign.js')
+			const signStore = useSignStore()
+			signStore.document = createSignDocument()
 			signMethodsStore.showModal('createSignature')
 
 			const wrapper = mount(realSign, {
