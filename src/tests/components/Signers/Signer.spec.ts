@@ -38,6 +38,7 @@ type FilesStoreMock = ReturnType<typeof useFilesStore> & {
 type SignerVm = {
 	signatureFlow: string
 	signer: FileSigner
+	signerStatusText: string
 	counterNumber: number
 	counterType?: string
 	isMethodDisabled: boolean
@@ -105,6 +106,7 @@ describe('Signer', () => {
 	let pinia: ReturnType<typeof createPinia>
 
 	const createWrapper = (props = {}): SignerWrapper => {
+		const { signerIndex = 0, ...restProps } = props as { signerIndex?: number }
 		const ncListItemStub = {
 			name: 'NcListItem',
 			template: '<div><slot /></div>',
@@ -112,10 +114,13 @@ describe('Signer', () => {
 
 		return mount(Signer, {
 			props: {
-				signerIndex: 0,
+				signer: {
+					statusText: '',
+					...filesStore.selectedFile.signers[signerIndex],
+				},
 				event: '',
 				draggable: false,
-				...props,
+				...restProps,
 			},
 			global: {
 				plugins: [pinia],
@@ -139,7 +144,7 @@ describe('Signer', () => {
 		filesStore.selectedFile = {
 			signatureFlow: 'parallel',
 			signers: [
-				{ signed: false, identifyMethods: [], status: 0, displayName: 'Test Signer' },
+				{ signed: false, identifyMethods: [], status: 0, statusText: 'Draft', displayName: 'Test Signer' },
 			],
 		}
 		filesStore.getFile = vi.fn(() => filesStore.selectedFile) as FilesStoreMock['getFile']
@@ -413,6 +418,15 @@ describe('Signer', () => {
 	})
 
 	describe('RULE: chipType returns variant based on signer status', () => {
+		it('exposes signerStatusText directly from signer contract', () => {
+			filesStore.selectedFile = {
+				signers: [{ statusText: 'Able to sign' }],
+			}
+			wrapper = createWrapper({ signer: filesStore.selectedFile.signers[0] })
+
+			expect(wrapper.vm.signerStatusText).toBe('Able to sign')
+		})
+
 		it('returns success for status 2 (SIGNED)', () => {
 			filesStore.selectedFile = {
 				signers: [{ status: 2 }],
