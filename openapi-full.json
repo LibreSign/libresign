@@ -770,6 +770,7 @@
                     "statusText",
                     "nodeType",
                     "metadata",
+                    "size",
                     "docmdpLevel",
                     "signatureFlow",
                     "visibleElements",
@@ -822,19 +823,21 @@
                             "type": "object"
                         }
                     },
+                    "size": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
                     "docmdpLevel": {
                         "type": "integer",
                         "format": "int64"
                     },
                     "signatureFlow": {
-                        "oneOf": [
-                            {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            {
-                                "type": "string"
-                            }
+                        "type": "string",
+                        "enum": [
+                            "none",
+                            "parallel",
+                            "ordered_numeric"
                         ]
                     },
                     "visibleElements": {
@@ -1209,6 +1212,7 @@
                     "signersCount",
                     "file",
                     "metadata",
+                    "size",
                     "signers"
                 ],
                 "properties": {
@@ -1251,6 +1255,11 @@
                     },
                     "metadata": {
                         "$ref": "#/components/schemas/ValidateMetadata"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "signers": {
                         "type": "array",
@@ -2633,6 +2642,7 @@
                     "status",
                     "statusText",
                     "nodeId",
+                    "size",
                     "signers",
                     "file",
                     "metadata"
