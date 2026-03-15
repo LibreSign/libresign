@@ -535,11 +535,11 @@ const canCreateSignature = computed(() => {
 const ableToSign = computed(() => signStore.ableToSign)
 const signRequestUuid = computed(() => {
 	const doc = signStore.document
-	const signer = doc.signers?.find((row) => row.me) ?? doc.signers?.[0]
-	const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
+	const signer = doc?.signers?.find((row) => row.me) ?? doc?.signers?.[0]
+	const fromDoc = doc?.signRequestUuid || doc?.sign_request_uuid || doc?.signUuid || doc?.sign_uuid
 	const fromSigner = signer?.sign_uuid
-	const isApprover = doc.settings?.isApprover
-	const fromFile = isApprover ? doc.uuid : null
+	const isApprover = doc?.settings?.isApprover
+	const fromFile = isApprover ? doc?.uuid : null
 	return String(fromDoc || fromSigner || fromFile || loadState('libresign', 'sign_request_uuid', '') || '')
 })
 
