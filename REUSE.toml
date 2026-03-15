@@ -58,6 +58,7 @@ path = [
     "tests/integration/features/**/*.feature",
     "tests/psalm-baseline.xml",
     "tsconfig.json",
+    "vendor-bin/**/patches.json",
     "vendor-bin/**/composer.json",
     "vendor-bin/**/composer.lock"
 ]
