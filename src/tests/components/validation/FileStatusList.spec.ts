@@ -18,7 +18,7 @@ type FileStatusResponse = {
 	id: number
 	name: string
 	status?: string | number
-	size?: number
+	size: number
 	signed?: string
 }
 
@@ -142,7 +142,7 @@ describe('FileStatusList', () => {
 		mockAxios.get.mockResolvedValue({
 			data: {
 				ocs: {
-					data: { id: 1, name: 'stub.pdf', status: FILE_STATUS.DRAFT },
+					data: { id: 1, name: 'stub.pdf', size: 0, status: FILE_STATUS.DRAFT },
 				},
 			},
 		})
@@ -170,7 +170,7 @@ describe('FileStatusList', () => {
 			mockAxios.get.mockResolvedValueOnce({
 				data: {
 					ocs: {
-						data: { id: 1, name: 'file1.pdf' },
+						data: { id: 1, name: 'file1.pdf', size: 0 },
 					},
 				},
 			})
@@ -210,28 +210,28 @@ describe('FileStatusList', () => {
 				.mockResolvedValueOnce({
 					data: {
 						ocs: {
-							data: { id: 1, name: 'file1.pdf' },
+							data: { id: 1, name: 'file1.pdf', size: 0 },
 						},
 					},
 				})
 				.mockResolvedValueOnce({
 					data: {
 						ocs: {
-							data: { id: 2, name: 'file2.pdf' },
+							data: { id: 2, name: 'file2.pdf', size: 0 },
 						},
 					},
 				})
 				.mockResolvedValueOnce({
 					data: {
 						ocs: {
-							data: { id: 1, name: 'file1.pdf' },
+							data: { id: 1, name: 'file1.pdf', size: 0 },
 						},
 					},
 				})
 				.mockResolvedValueOnce({
 					data: {
 						ocs: {
-							data: { id: 2, name: 'file2.pdf' },
+							data: { id: 2, name: 'file2.pdf', size: 0 },
 						},
 					},
 				})
@@ -246,7 +246,7 @@ describe('FileStatusList', () => {
 			mockAxios.get.mockResolvedValueOnce({
 				data: {
 					ocs: {
-						data: { id: 1, name: 'test.pdf' },
+						data: { id: 1, name: 'test.pdf', size: 0 },
 					},
 				},
 			})
@@ -390,7 +390,7 @@ describe('FileStatusList', () => {
 			wrapper = createWrapper({ fileIds: [1] })
 
 			mockAxios.get.mockResolvedValue({
-				data: { ocs: { data: { id: 1, name: 'test.pdf' } } },
+				data: { ocs: { data: { id: 1, name: 'test.pdf', size: 0 } } },
 			})
 
 			wrapper.vm.startUpdatePolling()
@@ -433,7 +433,7 @@ describe('FileStatusList', () => {
 			wrapper = localWrapper
 
 			mockAxios.get.mockResolvedValue({
-				data: { ocs: { data: { id: 1, name: 'test.pdf' } } },
+				data: { ocs: { data: { id: 1, name: 'test.pdf', size: 0 } } },
 			})
 
 			await localWrapper.setProps({ fileIds: [1] })
@@ -456,7 +456,7 @@ describe('FileStatusList', () => {
 			wrapper = localWrapper
 
 			mockAxios.get.mockResolvedValue({
-				data: { ocs: { data: { id: 2, name: 'file2.pdf' } } },
+				data: { ocs: { data: { id: 2, name: 'file2.pdf', size: 0 } } },
 			})
 
 			await localWrapper.setProps({ fileIds: [] })
@@ -469,7 +469,7 @@ describe('FileStatusList', () => {
 	describe('RULE: mounted lifecycle initializes data loading', () => {
 		it('loads files on mount when fileIds provided', async () => {
 			mockAxios.get.mockResolvedValue({
-				data: { ocs: { data: { id: 1, name: 'test.pdf' } } },
+				data: { ocs: { data: { id: 1, name: 'test.pdf', size: 0 } } },
 			})
 
 			wrapper = createWrapper({ fileIds: [1] })
@@ -536,6 +536,7 @@ describe('FileStatusList', () => {
 						data: {
 							id: 1,
 							name: 'signed.pdf',
+							size: 0,
 							signed: '2024-06-01T12:00:00',
 							status: FILE_STATUS.SIGNED,
 						},
@@ -556,6 +557,7 @@ describe('FileStatusList', () => {
 						data: {
 							id: 1,
 							name: 'unsigned.pdf',
+							size: 0,
 							status: FILE_STATUS.DRAFT,
 						},
 					},
@@ -573,16 +575,16 @@ describe('FileStatusList', () => {
 		it('renders all loaded files', async () => {
 			mockAxios.get
 				.mockResolvedValueOnce({
-					data: { ocs: { data: { id: 1, name: 'file1.pdf', status: '0' } } },
+					data: { ocs: { data: { id: 1, name: 'file1.pdf', size: 0, status: '0' } } },
 				})
 				.mockResolvedValueOnce({
-					data: { ocs: { data: { id: 2, name: 'file2.pdf', status: '3' } } },
+					data: { ocs: { data: { id: 2, name: 'file2.pdf', size: 0, status: '3' } } },
 				})
 				.mockResolvedValueOnce({
-					data: { ocs: { data: { id: 1, name: 'file1.pdf', status: '0' } } },
+					data: { ocs: { data: { id: 1, name: 'file1.pdf', size: 0, status: '0' } } },
 				})
 				.mockResolvedValueOnce({
-					data: { ocs: { data: { id: 2, name: 'file2.pdf', status: '3' } } },
+					data: { ocs: { data: { id: 2, name: 'file2.pdf', size: 0, status: '3' } } },
 				})
 
 			wrapper = createWrapper({ fileIds: [1, 2] })
