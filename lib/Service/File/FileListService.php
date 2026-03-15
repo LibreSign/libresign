@@ -927,7 +927,7 @@ class FileListService {
 		try {
 			$fileNode = $this->root->getUserFolder($file->getUserId())->getFirstNodeById($nodeId);
 			if ($fileNode instanceof NodeFile && method_exists($fileNode, 'getSize')) {
-				return $fileNode->getSize();
+				return max(0, (int)$fileNode->getSize());
 			}
 		} catch (\Throwable) {
 			return 0;
