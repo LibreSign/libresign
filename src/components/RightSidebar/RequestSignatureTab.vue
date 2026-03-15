@@ -313,6 +313,7 @@ import VisibleElements from '../Request/VisibleElements.vue'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
+import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
@@ -1074,7 +1075,11 @@ async function confirmRequestSigner() {
 		const file = filesStore.getEditableFile()
 		const signers = (file.signers || []).map((signer: EditableRequestSigner) => {
 			if (signer.signRequestId === selectedSignRequestId) {
-				return { ...signer, status: 1 }
+				return {
+					...signer,
+					status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+					statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.ABLE_TO_SIGN),
+				}
 			}
 			return signer
 		})
