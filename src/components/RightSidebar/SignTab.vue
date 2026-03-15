@@ -9,7 +9,7 @@
 			<div class="document-status">
 				<span class="document-status__label">{{ t('libresign', 'Status') }}</span>
 				<span class="document-status__dot" aria-hidden="true" />
-				<span class="document-status__text">{{ signStore.document?.statusText ?? '' }}</span>
+				<span class="document-status__text">{{ currentDocument.statusText }}</span>
 			</div>
 		</header>
 
@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
-import { getCurrentInstance, onMounted } from 'vue'
+import { computed, getCurrentInstance, onMounted } from 'vue'
 
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
 
@@ -45,16 +45,12 @@ defineOptions({
 	name: 'SignTab',
 })
 
-type SignTabSigner = {
-	me?: boolean
-	sign_uuid?: string | null
-}
-
 type SignStoreContract = ReturnType<typeof useSignStore>
 type SignTabDocument = NonNullable<SignStoreContract['document']>
 
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
+const currentDocument = computed<SignTabDocument>(() => signStore.document as SignTabDocument)
 
 const instance = getCurrentInstance()
 
@@ -69,13 +65,12 @@ function getRoute() {
 }
 
 function signEnabled() {
-	const document = signStore.document as SignTabDocument | undefined
-	return FILE_STATUS.ABLE_TO_SIGN === document?.status
-		|| FILE_STATUS.PARTIAL_SIGNED === document?.status
+	return FILE_STATUS.ABLE_TO_SIGN === currentDocument.value.status
+		|| FILE_STATUS.PARTIAL_SIGNED === currentDocument.value.status
 }
 
 function getSignRequestUuid() {
-	const doc = (signStore.document ?? {}) as SignTabDocument
+	const doc = currentDocument.value
 	const signer = doc.signers?.find(row => row.me) || doc.signers?.[0]
 	const fromDoc = [doc.signRequestUuid, doc.sign_request_uuid, doc.signUuid, doc.sign_uuid]
 		.find((value): value is string => typeof value === 'string' && value.length > 0)
@@ -106,7 +101,7 @@ function onSigningStarted(payload: { signRequestUuid: string }) {
 }
 
 onMounted(() => {
-	if (signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
+	if (currentDocument.value.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
 		const signRequestUuid = getSignRequestUuid()
 		if (signRequestUuid) {
 			onSigningStarted({ signRequestUuid })
