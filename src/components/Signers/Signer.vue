@@ -75,7 +75,7 @@ type SignerViewModel = {
 	signed?: string | null | boolean | unknown[]
 	identifyMethods?: Array<{ method: string }>
 	status?: number
-	statusText: string
+	statusText?: string
 	displayName?: string
 	signingOrder?: number
 }
@@ -117,7 +117,7 @@ const signatureFlow = computed(() => {
 const signer = computed<SignerViewModel>(() => props.signer)
 
 const signerName = computed(() => signer.value.displayName || '')
-const signerStatusText = computed<string>(() => signer.value.statusText)
+const signerStatusText = computed<string>(() => signer.value.statusText || '')
 
 const counterNumber = computed(() => {
 	const file = filesStore.getFile()
