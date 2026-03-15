@@ -11,6 +11,12 @@ import IdentifySigner from '../../../components/Request/IdentifySigner.vue'
 import { useFilesStore } from '../../../store/files.js'
 import type { IdentifyAccountRecord } from '../../../types'
 
+const signerSelectStub = {
+	name: 'SignerSelect',
+	props: ['placeholder', 'method'],
+	template: '<div class="signer-select-stub" />',
+}
+
 vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn(),
 }))
@@ -54,11 +60,12 @@ type IdentifySignerVm = {
 	description: string
 	enableCustomMessage: boolean
 	identify: string
-	signer: IdentifyAccountRecord | null
 	identifyMethod?: IdentifyAccountRecord['method']
 	acceptsEmailNotifications?: boolean
 	identifyMethodLabel: string
-	updateSigner: (signer: IdentifyAccountRecord | null) => void
+	resetNameValidation: () => void
+	resetSelectedSignerState: () => void
+	applySelectedSigner: (signer: IdentifyAccountRecord | null) => void
 	saveSigner: () => Promise<void>
 	onNameChange: () => void
 	onToggleCustomMessage: (checked: boolean) => void
@@ -124,7 +131,7 @@ describe('IdentifySigner rules', () => {
 				NcNoteCard: true,
 				NcTextArea: true,
 				NcTextField: true,
-				SignerSelect: true,
+				SignerSelect: signerSelectStub,
 			},
 			mocks: {
 				t: (_app: string, text: string) => text,
@@ -205,14 +212,6 @@ describe('IdentifySigner rules', () => {
 		it('shows custom message for email method', () => {
 			wrapper.vm.identifyMethod = 'email'
 			wrapper.vm.identify = 'john@example.com'
-			wrapper.vm.signer = {
-				identify: 'john@example.com',
-				isNoUser: true,
-				shareType: 4,
-				subname: 'john@example.com',
-				displayName: 'John Doe',
-				method: 'email',
-			}
 
 			expect(wrapper.vm.showCustomMessage).toBe(true)
 		})
@@ -284,26 +283,43 @@ describe('IdentifySigner rules', () => {
 				method: 'email',
 			} satisfies IdentifyAccountRecord
 
-			wrapper.vm.updateSigner(newSigner)
+			wrapper.vm.applySelectedSigner(newSigner)
 
-			expect(wrapper.vm.signer).toEqual(newSigner)
 			expect(wrapper.vm.identify).toBe('john@example.com')
 			expect(wrapper.vm.displayName).toBe('John Doe')
 		})
 
-		it('clears signer when updateSigner called with null', () => {
-			wrapper.vm.signer = {
-				identify: 'test@example.com',
+		it('clears selected signer state when selection is removed', () => {
+			wrapper.vm.displayName = 'Test'
+			wrapper.vm.description = 'Keep me'
+			wrapper.vm.enableCustomMessage = true
+			wrapper.vm.identify = 'test@example.com'
+			wrapper.vm.identifyMethod = 'email'
+
+			wrapper.vm.applySelectedSigner(null)
+
+			expect(wrapper.vm.displayName).toBe('')
+			expect(wrapper.vm.description).toBe('')
+			expect(wrapper.vm.enableCustomMessage).toBe(false)
+			expect(wrapper.vm.identify).toBe('')
+			expect(wrapper.vm.identifyMethod).toBeUndefined()
+		})
+
+		it('clears stale name validation when selecting a signer', () => {
+			wrapper.vm.displayName = 'Jo'
+			wrapper.vm.onNameChange()
+
+			wrapper.vm.applySelectedSigner({
+				identify: 'john@example.com',
 				isNoUser: true,
 				shareType: 4,
-				displayName: 'Test',
-				subname: 'test@example.com',
-			}
-			wrapper.vm.identify = 'test@example.com'
+				displayName: 'John Doe',
+				subname: 'john@example.com',
+				method: 'email',
+			})
 
-			wrapper.vm.updateSigner(null)
-
-			expect(wrapper.vm.signer).toBe(null)
+			expect(wrapper.vm.nameHaveError).toBe(false)
+			expect(wrapper.vm.nameHelperText).toBe('')
 		})
 
 		it('disables custom message for account without email notifications', () => {
@@ -320,7 +336,7 @@ describe('IdentifySigner rules', () => {
 				acceptsEmailNotifications: false,
 			} satisfies IdentifyAccountRecord
 
-			wrapper.vm.updateSigner(accountSigner)
+			wrapper.vm.applySelectedSigner(accountSigner)
 
 			expect(wrapper.vm.enableCustomMessage).toBe(false)
 			expect(wrapper.vm.description).toBe('')
@@ -340,7 +356,7 @@ describe('IdentifySigner rules', () => {
 				acceptsEmailNotifications: true,
 			} satisfies IdentifyAccountRecord
 
-			wrapper.vm.updateSigner(accountSigner)
+			wrapper.vm.applySelectedSigner(accountSigner)
 
 			expect(wrapper.vm.enableCustomMessage).toBe(true)
 			expect(wrapper.vm.description).toBe('Test message')
@@ -467,7 +483,7 @@ describe('IdentifySigner rules', () => {
 			expect(wrapper.vm.displayName).toBe('')
 			expect(wrapper.vm.description).toBe('')
 			expect(wrapper.vm.identify).toBe('')
-			expect(wrapper.vm.signer).toBe(null)
+			expect(wrapper.vm.identifyMethod).toBeUndefined()
 		})
 
 		it('closes signer form after successful save', async () => {
@@ -579,7 +595,7 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('returns empty string when no method selected', () => {
-			wrapper.vm.signer = {}
+			wrapper.vm.identifyMethod = undefined
 
 			const label = wrapper.vm.identifyMethodLabel
 
