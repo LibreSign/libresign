@@ -1040,7 +1040,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			])
 		})
 
-		it('normalizes string ids and drops incomplete visible elements', async () => {
+		it('keeps numeric ids and drops incomplete visible elements', async () => {
 			setActivePinia(createPinia())
 
 			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
@@ -1057,7 +1057,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 					{ signRequestId: 501, me: true },
 				],
 				visibleElements: [
-					{ elementId: '201', fileId: '1', signRequestId: '501', type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+					{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 					{ fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 99, top: 88, width: 20, height: 10 } },
 				],
 			})
