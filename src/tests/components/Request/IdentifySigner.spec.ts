@@ -529,6 +529,18 @@ describe('IdentifySigner rules', () => {
 			expect(wrapper.vm.description).toBe('Please review')
 		})
 
+		it('ignores legacy signRequestId fallback when identify is missing', () => {
+			wrapper = createWrapper({
+				signerToEdit: {
+					displayName: 'Legacy signer',
+					identifyMethods: [],
+					...( { signRequestId: 123 } as unknown as SignerToEdit ),
+				},
+			})
+
+			expect(wrapper.vm.identify).toBe('')
+		})
+
 		it('sets enableCustomMessage based on description', async () => {
 			const signer = {
 				displayName: 'Jane Doe',
