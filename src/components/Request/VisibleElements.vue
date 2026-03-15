@@ -103,10 +103,13 @@ import { useFilesStore } from '../../store/files.js'
 import {
 	aggregateVisibleElementsByFiles,
 	findFileById,
+	type DocumentLike,
+	type FileLike,
 	getFileSigners,
 	getFileUrl,
 	getVisibleElementsFromDocument,
 	idsMatch,
+	type SignerLike,
 } from '../../services/visibleElementsService'
 import type {
 	FileMetadataState,
@@ -114,33 +117,21 @@ import type {
 	LibresignCapabilities,
 	FileStateSettings,
 	RequestSignatureVisibleElementPayload,
-	SignerDetailRecord,
 	SignerSummaryRecord,
 	VisibleElementRecord,
 } from '../../types/index'
 
-type VisibleElementPayload = Omit<RequestSignatureVisibleElementPayload, 'coordinates' | 'elementId' | 'fileId' | 'signRequestId' | 'type'> & {
+type EditableVisibleElementPayload = Omit<RequestSignatureVisibleElementPayload, 'type' | 'elementId'> & {
 	type: 'signature'
-	elementId?: number
-	fileId?: number
-	signRequestId?: number
-	coordinates: {
-		page: number
-		width?: number
-		height?: number
-		left: number
-		top: number
-	}
+	elementId?: RequestSignatureVisibleElementPayload['elementId']
 }
 
-type VisibleElementsSigner = SignerSummaryRecord & {
+type VisibleElementsSigner = SignerLike & SignerSummaryRecord & {
 	identify?: unknown
-	localKey?: string
-	me?: boolean
 	visibleElements?: VisibleElementRecord[]
 }
 
-type DocumentFile = Parameters<typeof aggregateVisibleElementsByFiles>[0][number] & {
+type DocumentFile = Omit<FileLike, 'file' | 'files' | 'metadata' | 'signers' | 'visibleElements'> & {
 	id?: number
 	name?: string
 	metadata?: FileMetadataState
@@ -150,7 +141,7 @@ type DocumentFile = Parameters<typeof aggregateVisibleElementsByFiles>[0][number
 	signers?: VisibleElementsSigner[]
 }
 
-type NormalizedDocument = Omit<Parameters<typeof getVisibleElementsFromDocument>[0], 'files' | 'signers'> & {
+type NormalizedDocument = Omit<DocumentLike, 'metadata' | 'settings' | 'visibleElements' | 'files' | 'signers'> & {
 	id?: number | string
 	uuid?: string | null
 	name?: string
@@ -172,8 +163,6 @@ type FilePageInfo = {
 
 type PdfInput = string | Blob | ArrayBuffer | ArrayBufferView | Record<string, unknown>
 
-type PlacementSigner = SignerSummaryRecord
-
 type PdfObject = {
 	id: string
 	type: string
@@ -181,7 +170,7 @@ type PdfObject = {
 	y: number
 	width: number
 	height: number
-	signer?: PlacementSigner | null
+	signer?: SignerSummaryRecord | null
 	visibleElement?: VisibleElementRecord | null
 	documentIndex?: number
 	pageNumber: number
@@ -197,15 +186,15 @@ type PdfElementsRef = {
 
 type PdfEditorRef = ComponentPublicInstance & {
 	$refs?: { pdfElements?: PdfElementsRef }
-	startAddingSigner?: (signer: PlacementSigner | null | undefined, size: { width?: number, height?: number }) => boolean
+	startAddingSigner?: (signer: SignerSummaryRecord | null | undefined, size: { width?: number, height?: number }) => boolean
 	cancelAdding?: () => void
-	addSigner?: (signer: PlacementSigner, visibleElement: VisibleElementRecord, options?: { documentIndex?: number }) => Promise<void>
+	addSigner?: (signer: SignerSummaryRecord, visibleElement: VisibleElementRecord, options?: { documentIndex?: number }) => Promise<void>
 }
 
 type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'saveOrUpdateSignatureRequest'> & {
 	loading: boolean
 	getFile: ReturnType<typeof useFilesStore>['getFile']
-	saveOrUpdateSignatureRequest: (payload: { visibleElements: VisibleElementPayload[] }) => Promise<{ message: string }>
+	saveOrUpdateSignatureRequest: (payload: { visibleElements: EditableVisibleElementPayload[] }) => Promise<{ message: string }>
 }
 
 function isIdentifyMethodRecord(value: unknown): value is IdentifyMethodRecord {
@@ -317,7 +306,7 @@ function normalizeSigner(signer: unknown): VisibleElementsSigner | null {
 	}
 }
 
-function toSignerSummaryRecord(signer: VisibleElementsSigner | ReturnType<typeof getFileSigners>[number] | null | undefined): PlacementSigner | null {
+function toSignerSummaryRecord(signer: VisibleElementsSigner | ReturnType<typeof getFileSigners>[number] | null | undefined): SignerSummaryRecord | null {
 	if (!signer) {
 		return null
 	}
@@ -438,7 +427,7 @@ const pdfEditor = ref<PdfEditorRef | null>(null)
 const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
 const modal = ref(false)
 const loading = ref(false)
-const signerSelected = ref<PlacementSigner | null>(null)
+const signerSelected = ref<SignerSummaryRecord | null>(null)
 const capabilities = getCapabilities() as LibresignCapabilities
 const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
 	'is-available': false,
@@ -459,9 +448,9 @@ const sidebarSigners = computed<Array<{ signer: VisibleElementsSigner; index: nu
 		.map((signer, index) => ({ signer, index }))
 		.filter(({ signer }) => !isSelectedSigner(signer))
 })
-const pdfEditorSigners = computed<PlacementSigner[]>(() => document.value.signers
+const pdfEditorSigners = computed<SignerSummaryRecord[]>(() => document.value.signers
 	.map(toSignerSummaryRecord)
-	.filter((signer): signer is PlacementSigner => signer !== null))
+	.filter((signer): signer is SignerSummaryRecord => signer !== null))
 const status = computed(() => Number(document.value.status))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
 const canSave = computed(() => ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
@@ -633,7 +622,7 @@ async function updateSigners() {
 
 	const fileIndexById = new Map<string, number>(filesToProcess.map((file, index) => [String(file.id), index]))
 	const elements = getVisibleElementsFromDocument(document.value)
-	const elementsByDoc = new Map<number, Array<{ element: VisibleElementRecord; signer: PlacementSigner }>>()
+	const elementsByDoc = new Map<number, Array<{ element: VisibleElementRecord; signer: SignerSummaryRecord }>>()
 
 	elements.forEach((element) => {
 		const normalizedElement = normalizeVisibleElement(element)
@@ -677,7 +666,7 @@ async function updateSigners() {
 	filesStore.loading = false
 }
 
-function onSelectSigner(signer: PlacementSigner) {
+function onSelectSigner(signer: SignerSummaryRecord) {
 	const pdfEditorRef = getPdfEditor()
 	if (!pdfEditorRef) {
 		return
@@ -766,7 +755,7 @@ const handleShowVisibleElements: EventHandler<NextcloudEvent> = () => {
 }
 
 function buildVisibleElements() {
-	const visibleElements: VisibleElementPayload[] = []
+	const visibleElements: EditableVisibleElementPayload[] = []
 	const currentFiles = documentFiles.value
 	const pdfElements = getPdfElements()
 	const numDocuments = currentFiles.length
@@ -802,15 +791,8 @@ function buildVisibleElements() {
 				top: Math.floor(object.y),
 			}
 
-			const element: VisibleElementPayload = {
-				type: 'signature',
-				elementId: object.visibleElement?.elementId,
-				coordinates,
-			}
-
 			const targetFileId = pageInfo.id
-			element.fileId = targetFileId
-			element.coordinates.page = globalPageNumber - pageInfo.startPage + 1
+			const pageNumber = globalPageNumber - pageInfo.startPage + 1
 
 			const fileInfo = currentFiles.find((file) => file.id === targetFileId)
 			if (!fileInfo || !Array.isArray(fileInfo.signers)) {
@@ -827,9 +809,17 @@ function buildVisibleElements() {
 			if (!Number.isFinite(signRequestId)) {
 				return
 			}
-			element.signRequestId = signRequestId
 
-			visibleElements.push(element)
+			visibleElements.push({
+				type: 'signature',
+				fileId: targetFileId,
+				signRequestId,
+				...(object.visibleElement?.elementId !== undefined ? { elementId: object.visibleElement.elementId } : {}),
+				coordinates: {
+					...coordinates,
+					page: pageNumber,
+				},
+			})
 		})
 	}
 
