@@ -50,7 +50,7 @@
 </template>
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import {
 	mdiAlertCircle,
 } from '@mdi/js'
@@ -94,22 +94,18 @@ const emit = defineEmits<{
 }>()
 
 const props = withDefaults(defineProps<{
-	signer?: IdentifyAccountRecord | null
 	method?: string
 	placeholder?: string
 }>(), {
-	signer: null,
 	method: 'all',
 	placeholder: t('libresign', 'Name'),
 })
 
 const select = ref<{ $el?: HTMLElement } | null>(null)
-const container = ref<HTMLElement | null>(null)
 const loading = ref(false)
 const options = ref<IdentifyAccountRecord[]>([])
 const selectedSigner = ref<IdentifyAccountRecord | null>(null)
 const haveError = ref(false)
-const intersectionObserver = ref<IntersectionObserver | null>(null)
 const activeRequestId = ref(0)
 
 const noResultText = computed(() => loading.value ? t('libresign', 'Searching …') : t('libresign', 'No signers.'))
@@ -134,20 +130,6 @@ function injectIcons(items: IdentifyAccountRecord[]): IdentifyAccountRecord[] {
 			...(iconName ? { iconName } : {}),
 		}
 	})
-}
-
-function normalizeSignerOption(item: IdentifyAccountRecord): IdentifyAccountRecord {
-	const iconName = getIconName(item.iconName)
-	return {
-		identify: item.identify,
-		displayName: item.displayName,
-		subname: item.subname,
-		isNoUser: item.isNoUser,
-		shareType: item.shareType,
-		...(item.method ? { method: item.method } : {}),
-		...(item.acceptsEmailNotifications !== undefined ? { acceptsEmailNotifications: item.acceptsEmailNotifications } : {}),
-		...(iconName ? { iconName } : {}),
-	}
 }
 
 function getOptionKey(option: IdentifyAccountRecord) {
@@ -205,7 +187,7 @@ function getOptionIcon(slotProps?: OptionPayload) {
 	return iconKey ? iconMap[iconKey] : ''
 }
 
-async function _asyncFind(search: string, lookup = false) {
+async function _asyncFind(search: string) {
 	search = search.trim()
 	if (!search) {
 		options.value = []
@@ -226,7 +208,7 @@ async function _asyncFind(search: string, lookup = false) {
 			return
 		}
 		options.value = injectIcons(response.data.ocs.data as IdentifyAccountRecord[])
-	} catch (error) {
+	} catch {
 		if (requestId === activeRequestId.value) {
 			haveError.value = true
 		}
@@ -237,8 +219,8 @@ async function _asyncFind(search: string, lookup = false) {
 	}
 }
 
-const asyncFind = debounce((search: string, lookup = false) => {
-	_asyncFind(search, lookup)
+const asyncFind = debounce((search: string) => {
+	_asyncFind(search)
 }, 500)
 
 function focusInput() {
@@ -251,32 +233,8 @@ function focusInput() {
 	})
 }
 
-function setupVisibilityObserver() {
-	if (typeof IntersectionObserver === 'undefined' || !container.value) {
-		return
-	}
-	intersectionObserver.value = new IntersectionObserver((entries) => {
-		entries.forEach((entry) => {
-			if (entry.isIntersecting) {
-				focusInput()
-			}
-		})
-	}, {
-		threshold: 0.1,
-	})
-	intersectionObserver.value.observe(container.value)
-}
-
 onMounted(() => {
-	if (props.signer) {
-		selectedSigner.value = normalizeSignerOption(props.signer)
-	}
-	setupVisibilityObserver()
 	focusInput()
-})
-
-onBeforeUnmount(() => {
-	intersectionObserver.value?.disconnect()
 })
 
 defineExpose({
@@ -288,7 +246,6 @@ defineExpose({
 	noResultText,
 	handleMethodChange,
 	injectIcons,
-	normalizeSignerOption,
 	onSelectedSignerChange,
 	getOptionKey,
 	getOption,
@@ -298,7 +255,6 @@ defineExpose({
 	_asyncFind,
 	asyncFind,
 	focusInput,
-	setupVisibilityObserver,
 })
 </script>
 <style lang="scss" scoped>
