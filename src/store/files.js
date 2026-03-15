@@ -42,7 +42,7 @@ import { useSidebarStore } from './sidebar.js'
 
 /**
  * @typedef {{
- * 	signRequestId?: number | string
+ * 	signRequestId?: number
  * 	displayName?: string
  * 	email?: string
  * 	description?: string | null
