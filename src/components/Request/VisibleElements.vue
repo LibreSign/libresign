@@ -113,16 +113,17 @@ import type {
 	IdentifyMethodRecord,
 	LibresignCapabilities,
 	FileStateSettings,
+	RequestSignatureVisibleElementPayload,
 	SignerDetailRecord,
 	SignerSummaryRecord,
 	VisibleElementRecord,
 } from '../../types/index'
 
-type VisibleElementPayload = Omit<VisibleElementRecord, 'coordinates' | 'elementId' | 'fileId' | 'signRequestId'> & {
+type VisibleElementPayload = Omit<RequestSignatureVisibleElementPayload, 'coordinates' | 'elementId' | 'fileId' | 'signRequestId' | 'type'> & {
 	type: 'signature'
-	elementId?: number | string
+	elementId?: number
 	fileId?: number
-	signRequestId?: number | string
+	signRequestId?: number
 	coordinates: {
 		page: number
 		width?: number
@@ -822,10 +823,11 @@ function buildVisibleElements() {
 				const childIdMethods = childIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
 				return childIdMethods === envIdMethods
 			})
-			if (!candidate?.signRequestId) {
+			const signRequestId = Number(candidate?.signRequestId)
+			if (!Number.isFinite(signRequestId)) {
 				return
 			}
-			element.signRequestId = candidate.signRequestId
+			element.signRequestId = signRequestId
 
 			visibleElements.push(element)
 		})
