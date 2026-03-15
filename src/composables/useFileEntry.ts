@@ -26,8 +26,8 @@ export type FileEntrySource = {
 	nodeType?: string
 	created_at?: number | string | Date | null
 	metadata?: FileEntryMetadata
-	status?: number
-	statusText?: string
+	status: number
+	statusText: string
 	signers?: FileEntrySigner[]
 	signersCount?: number
 	nodeId?: number
