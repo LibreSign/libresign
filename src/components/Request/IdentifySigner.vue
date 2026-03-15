@@ -5,10 +5,9 @@
 <template>
 	<div class="identifySigner">
 		<SignerSelect v-if="isNewSigner"
-			:signer="signer ?? undefined"
 			:placeholder="placeholder"
 			:method="method"
-			@update:signer="updateSigner" />
+			@update:signer="applySelectedSigner" />
 		<NcNoteCard v-else type="info">
 			<template #icon>
 				<NcIconSvgWrapper :size="20" :svg="getMethodIcon()" />
@@ -157,7 +156,6 @@ const displayName = ref('')
 const description = ref('')
 const enableCustomMessage = ref(false)
 const identify = ref('')
-const signer = ref<IdentifyAccountRecord | null>(null)
 const identifyMethod = ref<IdentifyAccountRecord['method'] | undefined>()
 const acceptsEmailNotifications = ref<boolean | undefined>()
 
@@ -181,6 +179,21 @@ const showCustomMessage = computed(() => {
 	return !!identifyMethod.value
 })
 
+function resetNameValidation() {
+	nameHelperText.value = ''
+	nameHaveError.value = false
+}
+
+function resetSelectedSignerState() {
+	displayName.value = ''
+	description.value = ''
+	enableCustomMessage.value = false
+	identify.value = ''
+	identifyMethod.value = undefined
+	acceptsEmailNotifications.value = undefined
+	resetNameValidation()
+}
+
 function getMethodIcon() {
 	const method = identifyMethod.value
 	if (!method) {
@@ -191,12 +204,17 @@ function getMethodIcon() {
 }
 
 
-function updateSigner(nextSigner: IdentifyAccountRecord | null) {
-	signer.value = nextSigner
+function applySelectedSigner(nextSigner: IdentifyAccountRecord | null) {
+	if (!nextSigner) {
+		resetSelectedSignerState()
+		return
+	}
+
 	displayName.value = nextSigner?.displayName ?? ''
 	identify.value = nextSigner?.identify ?? ''
 	identifyMethod.value = nextSigner?.method
 	acceptsEmailNotifications.value = nextSigner?.acceptsEmailNotifications
+	resetNameValidation()
 
 	if (nextSigner?.method === 'account' && nextSigner?.acceptsEmailNotifications === false) {
 		enableCustomMessage.value = false
@@ -234,12 +252,7 @@ async function saveSigner() {
 		return
 	}
 
-	displayName.value = ''
-	description.value = ''
-	identify.value = ''
-	signer.value = null
-	identifyMethod.value = undefined
-	acceptsEmailNotifications.value = undefined
+	resetSelectedSignerState()
 	filesStore.disableIdentifySigner()
 }
 
@@ -284,7 +297,6 @@ defineExpose({
 	description,
 	enableCustomMessage,
 	identify,
-	signer,
 	identifyMethod,
 	acceptsEmailNotifications,
 	signerSelected,
@@ -293,7 +305,9 @@ defineExpose({
 	identifyMethodLabel,
 	showCustomMessage,
 	getMethodIcon,
-	updateSigner,
+	resetNameValidation,
+	resetSelectedSignerState,
+	applySelectedSigner,
 	saveSigner,
 	onNameChange,
 	onToggleCustomMessage,
