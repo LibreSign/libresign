@@ -10,7 +10,7 @@ import type {
 	VisibleElementRecord,
 } from '../types/index'
 
-type SignerLike = {
+export type SignerLike = {
 	signRequestId?: number
 	displayName?: string
 	email?: string
@@ -23,7 +23,7 @@ type SignerLike = {
 	visibleElements?: VisibleElementRecord[] | null
 }
 
-type NestedFileLike = {
+export type NestedFileLike = {
 	id?: number | string
 	name?: string
 	file?: string | NestedFileLike | null
@@ -32,11 +32,11 @@ type NestedFileLike = {
 	signers?: SignerLike[] | null
 }
 
-type FileLike = NestedFileLike & {
+export type FileLike = NestedFileLike & {
 	files?: NestedFileLike[] | null
 }
 
-type DocumentLike = {
+export type DocumentLike = {
 	id?: number | string
 	uuid?: string | null
 	name?: string
