@@ -153,6 +153,8 @@ describe('FileEntryActions.vue', () => {
 		name: 'contract.pdf',
 		nodeId: 17,
 		nodeType: 'file',
+		status: 1,
+		statusText: 'Pending',
 		signers: [{ me: true, sign_uuid: 'sign-uuid' }],
 	}
 
