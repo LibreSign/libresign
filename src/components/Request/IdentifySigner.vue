@@ -82,7 +82,9 @@ import SignerSelect from './SignerSelect.vue'
 
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
+import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
+import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
 import type { IdentifyAccountRecord } from '../../types'
 
 const iconMap = {
@@ -231,6 +233,8 @@ async function saveSigner() {
 		displayName: displayName.value,
 		description: description.value.trim() || undefined,
 		identify: identify.value,
+		status: SIGN_REQUEST_STATUS.DRAFT,
+		statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.DRAFT),
 		identifyMethods: [
 			{
 					method: identifyMethod.value,
