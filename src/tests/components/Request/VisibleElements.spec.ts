@@ -68,9 +68,9 @@ describe('VisibleElements Component - Business Rules', () => {
 	}
 
 	type VisibleElementRecord = {
-		elementId?: string | number
+		elementId?: number
 		fileId?: number
-		signRequestId?: number | string
+		signRequestId?: number
 		coordinates: {
 			page: number
 			width: number
@@ -950,7 +950,7 @@ describe('VisibleElements Component - Business Rules', () => {
 					signers: [
 						{
 							signRequestId: 603,
-							visibleElements: [{ type: 'signature', elementId: '185', fileId: 545, signRequestId: 603, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } }],
+							visibleElements: [{ type: 'signature', elementId: 185, fileId: 545, signRequestId: 603, coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } }],
 						},
 					],
 				},
@@ -961,7 +961,7 @@ describe('VisibleElements Component - Business Rules', () => {
 					signers: [
 						{
 							signRequestId: 604,
-							visibleElements: [{ type: 'signature', elementId: '186', fileId: 546, signRequestId: 604, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } }],
+							visibleElements: [{ type: 'signature', elementId: 186, fileId: 546, signRequestId: 604, coordinates: { page: 1, left: 15, top: 25, width: 35, height: 45 } }],
 						},
 					],
 				},
