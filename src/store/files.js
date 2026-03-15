@@ -48,7 +48,7 @@ import { useSidebarStore } from './sidebar.js'
  * 	description?: string | null
  * 	notify?: number
  * 	status?: number
- * 	statusText?: string
+ * 	statusText: string
  * 	signingOrder?: number
  * 	localKey?: string
  * 	acceptsEmailNotifications?: boolean
