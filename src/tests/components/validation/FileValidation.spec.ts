@@ -6,19 +6,12 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
+import type { LoadedValidationFileDocument } from '../../../types/index'
 
 type FileValidationComponent = typeof import('../../../components/validation/FileValidation.vue').default
 type FileValidationWrapper = VueWrapper<any>
-type FileValidationDocument = {
-	uuid: string
-	name: string
-	nodeId: number
-	nodeType: 'file'
-	status: 0 | 1 | 2 | 3 | 4 | string
-	[key: string]: unknown
-}
 type WrapperProps = {
-	document?: Partial<FileValidationDocument>
+	document?: Record<string, unknown>
 	legalInformation?: string
 	documentValidMessage?: string | null
 	isAfterSigned?: boolean
@@ -46,21 +39,33 @@ describe('FileValidation', () => {
 
 	const createWrapper = (props: WrapperProps = {}) => {
 		const { document: documentOverrides, ...restProps } = props
-		const baseDocument: FileValidationDocument = {
+		const baseDocument: LoadedValidationFileDocument = {
+			id: 1,
 			uuid: '550e8400-e29b-41d4-a716-446655440000',
 			name: 'Test Document',
+			statusText: 'Pending',
 			nodeId: 123,
 			nodeType: 'file',
+			signatureFlow: 0,
+			docmdpLevel: 0,
+			totalPages: 1,
 			status: 1,
+			size: 0,
+			pdfVersion: '1.7',
+			created_at: '2026-01-01 00:00:00',
+			requested_by: {
+				userId: 'requester',
+				displayName: 'Requester',
+			},
 		}
-		const document = { ...baseDocument, ...(documentOverrides ?? {}) } as FileValidationDocument
+		const document = { ...baseDocument, ...(documentOverrides ?? {}) }
 		return mount(FileValidation, {
 			props: {
 				legalInformation: '',
 				documentValidMessage: '',
 				isAfterSigned: false,
 				...restProps,
-				document,
+				document: document as never,
 			},
 			global: {
 				stubs: {
@@ -214,7 +219,7 @@ describe('FileValidation', () => {
 		it('passes document prop', () => {
 			const doc = {
 				name: 'Important.pdf',
-				status: '3',
+				status: 3,
 			}
 			wrapper = createWrapper({
 				document: doc,
@@ -313,7 +318,7 @@ describe('FileValidation', () => {
 			wrapper = createWrapper({
 				document: {
 					name: 'Doc.pdf',
-					status: '3',
+					status: 3,
 				},
 			})
 
@@ -325,7 +330,7 @@ describe('FileValidation', () => {
 				name: 'complex.pdf',
 				status: '3',
 				totalPages: 50,
-				size: '5242880',
+				size: 5242880,
 				pdfVersion: '1.7',
 				uuid: 'uuid-123',
 				signers: [
