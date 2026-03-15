@@ -428,6 +428,8 @@ describe('IdentifySigner rules', () => {
 						displayName: 'John Doe',
 						description: undefined,
 						identify: 'john@example.com',
+						status: 0,
+						statusText: 'Draft',
 						identifyMethods: [{
 							mandatory: 0,
 							method: 'email',
