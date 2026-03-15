@@ -23,7 +23,7 @@
 					{{ document.totalPages }}
 				</template>
 			</NcListItem>
-			<NcListItem v-if="document.size" class="extra" compact>
+			<NcListItem class="extra" compact>
 				<template #name>
 					<strong>{{ t('libresign', 'File size:') }}</strong>
 					{{ size }}
@@ -68,26 +68,17 @@ import {
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
-import type { SignerDetailRecord, SignerSummaryRecord } from '../../types/index'
+import type {
+	LoadedValidationFileDocument,
+	ValidatedChildFileRecord,
+} from '../../types/index'
 
 defineOptions({
 	name: 'DocumentValidationDetails',
 })
 
-type ValidationSigner = Partial<SignerSummaryRecord | SignerDetailRecord>
-type ValidationDocument = {
-	uuid?: string
-	name?: string
-	nodeId?: number
-	totalPages?: number
-	pdfVersion?: string
-	status?: string | number
-	size?: string | number
-	signers?: ValidationSigner[]
-}
-
 const props = withDefaults(defineProps<{
-	document: ValidationDocument
+	document: LoadedValidationFileDocument | ValidatedChildFileRecord
 	legalInformation?: string
 	documentValidMessage?: string
 	isAfterSigned?: boolean
@@ -100,11 +91,9 @@ const props = withDefaults(defineProps<{
 const { document } = toRefs(props)
 
 const size = computed(() => {
-	if (!document.value.size) return ''
-	const parsedSize = parseInt(String(document.value.size), 10)
-	if (parsedSize < 1024) return parsedSize + ' B'
-	if (parsedSize < 1048576) return (parsedSize / 1024).toFixed(2) + ' KB'
-	return (parsedSize / 1048576).toFixed(2) + ' MB'
+	if (document.value.size < 1024) return document.value.size + ' B'
+	if (document.value.size < 1048576) return (document.value.size / 1024).toFixed(2) + ' KB'
+	return (document.value.size / 1048576).toFixed(2) + ' MB'
 })
 
 const documentStatus = computed(() => getStatusLabel(document.value.status))
