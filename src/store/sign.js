@@ -107,26 +107,14 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  */
 const defaultState = {
 	errors: /** @type {SignError[]} */ ([]),
-	document: /** @type {SignDocument} */ ({
-		id: 0,
-		name: '',
-		description: '',
-		status: 0,
-		statusText: '',
-		url: '',
-		nodeId: 0,
-		nodeType: 'file',
-		uuid: '',
-		signers: [],
-		visibleElements: [],
-	}),
+	document: /** @type {SignDocument | undefined} */ (undefined),
 	mounted: false,
 	pendingAction: null,
 }
 
 export const useSignStore = defineStore('sign', () => {
 	const errors = ref([...defaultState.errors])
-	const document = ref(/** @type {SignDocument | undefined} */ ({ ...defaultState.document }))
+	const document = ref(/** @type {SignDocument | undefined} */ (defaultState.document))
 	const mounted = ref(defaultState.mounted)
 	const pendingAction = ref(defaultState.pendingAction)
 
