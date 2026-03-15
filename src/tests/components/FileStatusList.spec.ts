@@ -114,7 +114,10 @@ describe('FileStatusList.vue', () => {
 		const wrapper = createWrapper({ fileIds: [2, 1] })
 		await wrapper.vm.loadFiles()
 
-		expect(axiosGetMock).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/file/list', { timeout: 10000 })
+		expect(axiosGetMock).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/file/list', {
+			params: { details: true },
+			timeout: 10000,
+		})
 		expect(wrapper.vm.files.map((file: { id: number }) => file.id)).toEqual([2, 1])
 		expect(wrapper.emitted('files-updated')?.at(-1)?.[0]).toEqual(wrapper.vm.files)
 	})
@@ -159,5 +162,25 @@ describe('FileStatusList.vue', () => {
 		wrapper.vm.stopUpdatePolling()
 
 		expect(wrapper.vm.updatePollingInterval).toBeNull()
+	})
+
+	it('renders the file size from the detailed payload', async () => {
+		axiosGetMock.mockResolvedValueOnce({
+			data: {
+				ocs: {
+					data: {
+						data: [
+							{ id: 1, uuid: 'a', name: 'contract-a.pdf', size: 2048, status: 1 },
+						],
+					},
+				},
+			},
+		})
+
+		const wrapper = createWrapper({ fileIds: [1] })
+		await wrapper.vm.loadFiles()
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.find('.file-size').text()).toBe('2048B')
 	})
 })
