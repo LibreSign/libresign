@@ -71,9 +71,9 @@ type ServiceVisibleElement = VisibleElementRecord
 type SignError = { title?: string; message?: string }
 type SignDocumentStatus = number | string
 type SignDocumentVisibleElement = {
-	elementId?: number | string
-	signRequestId?: number | string
-	fileId?: number | string
+	elementId?: number
+	signRequestId?: number
+	fileId?: number
 	type?: string | null
 	coordinates?: Record<string, unknown>
 }
