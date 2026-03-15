@@ -376,7 +376,7 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeId: int,
  *     totalPages?: non-negative-int,
- *     size?: non-negative-int,
+ *     size: non-negative-int,
  *     pdfVersion?: string,
  *     signers: list<LibresignSignerSummary>,
  *     file: string,
@@ -484,6 +484,7 @@ namespace OCA\Libresign;
  *     signersCount: int,
  *     file: string,
  *     metadata: LibresignValidateMetadata,
+ *     size: non-negative-int,
  *     signers: list<LibresignSignerSummary>,
  * }
  * @psalm-type LibresignDetailedFile = array{
@@ -498,8 +499,9 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeType: string,
  *     metadata: array<string, mixed>,
+ *     size: non-negative-int,
  *     docmdpLevel: int,
- *     signatureFlow: int|string,
+ *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  *     visibleElements: LibresignVisibleElement[],
  *     signers: LibresignSignerDetail[],
  *     signersCount: int,
