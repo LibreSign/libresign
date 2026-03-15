@@ -123,6 +123,7 @@ describe('SignTab', () => {
 		pinia = createPinia()
 		setActivePinia(pinia)
 		signStore = useSignStore()
+		signStore.document = createDocument()
 		if (wrapper) {
 			wrapper.unmount()
 			wrapper = null
@@ -131,6 +132,13 @@ describe('SignTab', () => {
 	})
 
 	describe('RULE: signEnabled checks if document status allows signing', () => {
+		it('renders status from the document contract', async () => {
+			signStore.document = createDocument({ statusText: 'Draft' })
+			wrapper = await createWrapper()
+
+			expect(wrapper.find('.document-status').text()).toContain('Draft')
+		})
+
 		it('returns true for ABLE_TO_SIGN status', async () => {
 			signStore.document = createDocument({ status: FILE_STATUS.ABLE_TO_SIGN })
 			wrapper = await createWrapper()
