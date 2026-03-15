@@ -12,9 +12,9 @@
 		chosenClass="signer-dragging"
 		dragClass="signer-drag-ghost"
 		@end="onDragEnd">
-		<template #item="{ element: signer, index }">
+		<template #item="{ element: signer }">
 			<Signer
-				:signer-index="index"
+				:signer="signer"
 				:event="event"
 				:draggable="!signer.signed">
 				<template #actions="{closeActions}">
@@ -24,9 +24,9 @@
 		</template>
 	</draggable>
 	<ul v-else>
-		<Signer v-for="(signer, index) in signers"
+		<Signer v-for="signer in signers"
 			:key="signer.localKey"
-			:signer-index="index"
+			:signer="signer"
 			:event="event">
 			<template #actions="{closeActions}">
 				<slot name="actions" :signer="signer" :closeActions="closeActions" />
