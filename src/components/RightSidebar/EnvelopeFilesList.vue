@@ -172,7 +172,7 @@ type EnvelopeFile = {
 	name?: string
 	statusText?: string
 	nodeId?: number
-	size?: number
+	size: number
 	[key: string]: unknown
 }
 
