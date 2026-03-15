@@ -42,7 +42,7 @@ type PendingEnvelope = {
 	nodeType?: string
 	filesCount?: number
 	files?: Array<Pick<FileListItemRecord, 'fileId'>>
-	signers?: Array<{ displayName?: string; email?: string; signRequestId?: number | string }>
+	signers?: Array<{ displayName?: string; email?: string; signRequestId?: number }>
 	settings?: Pick<FileStateSettings, 'path'>
 }
 
