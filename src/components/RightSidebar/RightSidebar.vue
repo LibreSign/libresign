@@ -67,7 +67,7 @@ const subTitle = computed(() => {
 })
 
 const showRequestSignatureTab = computed(() => sidebarStore.activeTab === 'request-signature-tab')
-const showSign = computed(() => sidebarStore.activeTab === 'sign-tab')
+const showSign = computed(() => sidebarStore.activeTab === 'sign-tab' && signStore.document !== undefined)
 
 watch(() => sidebarStore.activeTab, (newValue) => {
 	if (rightAppSidebar.value?.$refs?.tabs) {
