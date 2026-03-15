@@ -55,6 +55,7 @@ class EnvelopeAssembler {
 				$fileData->mime = $fileNode->getMimeType();
 			}
 		}
+		$fileData->size ??= 0;
 
 		$fileData->signers = [];
 		$fileData->visibleElements = [];
