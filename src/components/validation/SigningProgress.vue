@@ -71,30 +71,8 @@ import type { components } from '../../types/openapi/openapi'
 
 type OpenApiNextcloudFile = components['schemas']['DetailedFileResponse']
 type OpenApiSigner = components['schemas']['SignerDetail']
-
-type ProgressFile = {
-	id: number
-	name: string
-	status: number
-	statusText?: string
-	error?: {
-		message?: string
-		code?: number
-		timestamp?: string
-		fileId?: number
-		signRequestId?: number
-		signRequestUuid?: string
-	} | null
-}
-
-type ProgressState = {
-	total?: number
-	signed?: number
-	pending?: number
-	inProgress?: number
-	errors?: number
-	files?: ProgressFile[]
-}
+type ProgressFile = components['schemas']['ProgressFile']
+type ProgressState = components['schemas']['ProgressPayload']
 
 type ValidationDocument = {
 	id?: OpenApiNextcloudFile['id'] | string | number
@@ -116,13 +94,11 @@ type StatusMeta = {
 }
 
 type PollResponse = {
-	status?: string
-	statusCode?: number | null
+	status?: components['schemas']['ProgressResponse']['status']
+	statusCode?: components['schemas']['ProgressResponse']['statusCode'] | null
 	progress?: ProgressState
-	error?: {
-		message?: string
-	}
-	file?: unknown
+	error?: components['schemas']['ProgressResponse']['error']
+	file?: components['schemas']['ProgressResponse']['file'] | unknown
 }
 
 defineOptions({
@@ -301,7 +277,12 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 					&& typeof file.name === 'string'
 					&& typeof file.status === 'number'
 			})
-			.map(file => ({ id: file.id, name: file.name, status: file.status }))
+			.map(file => ({
+				id: file.id,
+				name: file.name,
+				status: file.status,
+				statusText: getStatusMeta(file.status).label,
+			}))
 		const total = files.length
 		const signed = files.filter(file => file.status === 3).length
 		const inProgress = files.filter(file => file.status === 5).length
@@ -320,6 +301,7 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 		return {
 			total,
 			signed,
+			inProgress: 0,
 			pending: total - signed,
 		}
 	}
