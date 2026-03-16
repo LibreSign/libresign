@@ -42,18 +42,21 @@ namespace OCA\Libresign;
  *     envelopeFolderId?: int,
  * }
  * @psalm-type LibresignNewSigner = array{
- *     identify: array{
- *         email?: string,
- *         account?: string,
- *     },
+ *     identifyMethods: list<array{
+ *         method: string,
+ *         value: string,
+ *         mandatory: non-negative-int,
+ *     }>,
  *     displayName?: string,
  *     description?: string,
  *     notify?: non-negative-int,
  *     signingOrder?: non-negative-int,
+ *     status?: int,
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
  *     nodeId?: non-negative-int,
+ *     path?: string,
  *     url?: string,
  * }
  * @psalm-type LibresignIdDocs = array{
@@ -356,6 +359,7 @@ namespace OCA\Libresign;
  *     extension: string,
  *     p: int,
  *     d?: list<array{w: float, h: float}>,
+ *     original_file_deleted?: bool,
  *     pdfVersion?: string,
  *     status_changed_at?: string,
  * }
