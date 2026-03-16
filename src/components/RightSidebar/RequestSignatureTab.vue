@@ -131,7 +131,7 @@
 			v-if="showSigningProgress"
 			:status="signingProgressStatus ?? FILE_STATUS.SIGNING_IN_PROGRESS"
 			:status-text="signingProgressStatusText"
-			:progress="signingProgressView ?? undefined"
+			:progress="signingProgress ?? undefined"
 			:is-loading="hasLoading" />
 		<NcFormBox v-if="filesStore.canSign()" class="action-form-box">
 			<NcButton
@@ -345,15 +345,6 @@ type IdentifySignerToEdit = {
 	description?: string
 	identifyMethods?: IdentifySignerMethod[]
 }
-type SigningProgressView = {
-	total: number
-	signed: number
-	signers?: Array<{
-		id: string | number
-		displayName: string
-		signed: boolean
-	}>
-}
 type SigningOrderDiagramSigner = {
 	displayName?: string
 	signed?: boolean
@@ -451,21 +442,6 @@ const envelopeFilesCount = computed(() => filesStore.getFile()?.filesCount || 0)
 const size = computed(() => window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal')
 const modalTitle = computed(() => Object.keys(signerToEdit.value).length > 0 ? t('libresign', 'Edit signer') : t('libresign', 'Add new signer'))
 const showSigningProgress = computed(() => signingProgressStatus.value === FILE_STATUS.SIGNING_IN_PROGRESS)
-const signingProgressView = computed<SigningProgressView | null>(() => {
-	if (!signingProgress.value) {
-		return null
-	}
-
-	return {
-		total: signingProgress.value.total,
-		signed: signingProgress.value.signed,
-		signers: signingProgress.value.signers?.map(signer => ({
-			id: signer.id,
-			displayName: signer.displayName,
-			signed: signer.signed !== null,
-		})),
-	}
-})
 const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
 	const signers = filesStore.getFile()?.signers || []
 	return signers.map((signer: EditableRequestSigner) => ({
