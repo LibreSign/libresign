@@ -19,13 +19,11 @@ import { useFiltersStore } from './filters.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { useSidebarStore } from './sidebar.js'
 
-/** @typedef {import('../types/index').SignerIdentify} SignerIdentify */
 /** @typedef {import('../types/index').IdentifyMethodRecord} SignerMethodRecord */
 /** @typedef {import('../types/index').FileSettings} FileSettings */
 /** @typedef {import('../types/index').FileListEntry} FileListEntry */
 /** @typedef {import('../types/index').FileListItemRecord} FileListItemRecord */
 /** @typedef {import('../types/index').EditableFileSettingsDraft} EditableFileSettingsDraft */
-/** @typedef {import('../types/index').EditableValidationMetadataDraft} EditableValidationMetadataDraft */
 /** @typedef {import('../types/index').SelectedFileView} SelectedFileView */
 /** @typedef {import('../types/index').FileStatus} FileStatus */
 /** @typedef {import('../types/index').FileStatusText} FileStatusText */
@@ -37,8 +35,8 @@ import { useSidebarStore } from './sidebar.js'
 /** @typedef {import('../types/index').RequestSignatureVisibleElementPayload} RequestSignatureVisibleElementPayload */
 /** @typedef {import('../types/index').RequestedByRecord} RequestedByRecord */
 /** @typedef {import('../types/index').RuntimeFileSettingsRecord} RuntimeFileSettingsRecord */
-/** @typedef {import('../types/index').RuntimeValidationMetadataRecord} RuntimeValidationMetadataRecord */
 /** @typedef {import('../types/index').SignatureFlowValue} SignatureFlowValue */
+/** @typedef {import('../types/index').ValidationMetadataRecord} ValidationMetadataRecord */
 /** @typedef {import('../types/index').VisibleElementRecord} VisibleElementRecord */
 /** @typedef {import('../types/index').VisibleElementDraft} VisibleElementDraft */
 
@@ -54,7 +52,6 @@ import { useSidebarStore } from './sidebar.js'
  * 	signingOrder?: number
  * 	localKey?: string
  * 	acceptsEmailNotifications?: boolean
- * 	identify?: SignerIdentify | string | number
  * 	identifyMethods?: SignerMethodRecord[]
  * 	visibleElements?: (VisibleElementRecord | VisibleElementDraft)[]
  * 	me?: boolean
@@ -80,7 +77,7 @@ import { useSidebarStore } from './sidebar.js'
  * 	url?: string
  * 	folderName?: string
  * 	separator?: string
- * 	metadata?: EditableValidationMetadataDraft
+ * 	metadata?: Partial<ValidationMetadataRecord>
  * 	signers?: EditableSignerDraft[]
  * 	settings?: EditableFileSettingsDraft
  * 	totalPages?: number
@@ -110,7 +107,7 @@ import { useSidebarStore } from './sidebar.js'
  * 	file?: string | EditableFileReferenceDraft | null
  * 	files?: EditableFileReferenceDraft[]
  * 	loading?: string | boolean
- * 	metadata?: RuntimeValidationMetadataRecord
+ * 	metadata?: ValidationMetadataRecord
  * 	settings?: RuntimeFileSettingsRecord
  * 	requested_by?: Partial<RequestedByRecord>
  * 	signatureFlow?: SignatureFlowValue | null
@@ -145,7 +142,7 @@ import { useSidebarStore } from './sidebar.js'
  * 	file?: string | EditableFileReferenceDraft | null
  * 	files?: EditableFileReferenceDraft[]
  * 	loading?: string | boolean
- * 	metadata?: EditableValidationMetadataDraft
+ * 	metadata?: Partial<ValidationMetadataRecord>
  * 	settings?: EditableFileSettingsDraft
  * 	requested_by?: Partial<RequestedByRecord>
  * 	signatureFlow?: SignatureFlowValue | null
@@ -185,7 +182,7 @@ const _filesStore = defineStore('files', () => {
 	const apiFiles = ref(/** @type {Record<string | number, ApiFileRecord>} */ ({}))
 	const requestDrafts = ref(/** @type {Record<string | number, EditableFileDraft>} */ ({}))
 	const files = ref(/** @type {Record<string | number, PublicFileState>} */ ({}))
-	const selectedFileId = ref(0)
+	const selectedFileId = ref(/** @type {number} */ (0))
 	const identifyingSigner = ref(false)
 	const loading = ref(false)
 	const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
@@ -193,6 +190,15 @@ const _filesStore = defineStore('files', () => {
 	const paginationNextUrl = ref('')
 	const loadedAll = ref(false)
 	const getStore = () => _filesStore()
+
+	const cloneValidationMetadata = (metadata) => metadata && typeof metadata === 'object'
+		? {
+			...metadata,
+			d: Array.isArray(metadata.d)
+				? metadata.d.map(dimension => dimension && typeof dimension === 'object' ? { ...dimension } : dimension)
+				: metadata.d,
+		}
+		: metadata
 
 	const cloneVisibleElement = (element) => element && typeof element === 'object'
 		? {
@@ -206,9 +212,6 @@ const _filesStore = defineStore('files', () => {
 	const cloneSigner = (signer) => signer && typeof signer === 'object'
 		? {
 			...signer,
-			identify: signer.identify && typeof signer.identify === 'object'
-				? { ...signer.identify }
-				: signer.identify,
 			identifyMethods: Array.isArray(signer.identifyMethods)
 				? signer.identifyMethods.map(method => ({ ...method }))
 				: signer.identifyMethods,
@@ -224,7 +227,8 @@ const _filesStore = defineStore('files', () => {
 	const cloneFileReference = (file) => file && typeof file === 'object'
 		? {
 			...file,
-			metadata: file.metadata && typeof file.metadata === 'object' ? { ...file.metadata } : file.metadata,
+			file: file.file && typeof file.file === 'object' ? cloneFileReference(file.file) : file.file,
+			metadata: cloneValidationMetadata(file.metadata),
 			settings: file.settings && typeof file.settings === 'object' ? { ...file.settings } : file.settings,
 			signers: Array.isArray(file.signers) ? file.signers.map(cloneSigner) : file.signers,
 			visibleElements: Array.isArray(file.visibleElements) ? file.visibleElements.map(cloneVisibleElement) : file.visibleElements,
@@ -235,7 +239,8 @@ const _filesStore = defineStore('files', () => {
 	const cloneEditableFile = (file) => file && typeof file === 'object'
 		? {
 			...file,
-			metadata: file.metadata && typeof file.metadata === 'object' ? { ...file.metadata } : file.metadata,
+			file: file.file && typeof file.file === 'object' ? cloneFileReference(file.file) : file.file,
+			metadata: cloneValidationMetadata(file.metadata),
 			settings: file.settings && typeof file.settings === 'object' ? { ...file.settings } : file.settings,
 			signers: Array.isArray(file.signers) ? file.signers.map(cloneSigner) : file.signers,
 			visibleElements: Array.isArray(file.visibleElements) ? file.visibleElements.map(cloneVisibleElement) : file.visibleElements,
@@ -284,6 +289,7 @@ const _filesStore = defineStore('files', () => {
 			return null
 		}
 		const draft = cloneEditableFile(source)
+		addLocalKeysToFileTree(draft)
 		requestDrafts.value[fileId] = draft
 		files.value[fileId] = draft
 		return draft
@@ -302,7 +308,7 @@ const _filesStore = defineStore('files', () => {
 		loadedAll.value = false
 	}
 
-	/** @param {number | string | null | undefined} fileId */
+	/** @param {number | null | undefined} fileId */
 	function removeFileById(fileId) {
 		if (!fileId) {
 			return
@@ -321,7 +327,7 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
-	/** @param {number | string} nodeId */
+	/** @param {number} nodeId */
 	function removeFileByNodeId(nodeId) {
 		const store = getStore()
 		const fileId = store.getFileIdByNodeId(nodeId)
@@ -334,7 +340,7 @@ const _filesStore = defineStore('files', () => {
 
 	/**
 	 * @param {PublicFileState} file
-	 * @param {{ position?: 'start' | 'end' }} [options]
+	 * @param {{ position?: 'start' | 'end', detailsLoaded?: boolean }} [options]
 	 */
 	async function addFile(file, { position = 'start', detailsLoaded } = {}) {
 		if (!file.id && !file.nodeId) {
@@ -363,9 +369,7 @@ const _filesStore = defineStore('files', () => {
 				detailsLoaded: resolvedDetailsLoaded,
 			}
 
-		if (fileData.signers) {
-			addLocalKeyToAllSigners(fileData.signers)
-		}
+		addLocalKeysToFileTree(fileData)
 
 		if (existingFile?.settings) {
 			fileData.settings = { ...existingFile.settings, ...fileData.settings }
@@ -383,7 +387,7 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
-	/** @param {number | string | null | undefined} [fileId] */
+	/** @param {number | null | undefined} [fileId] */
 	function selectFile(fileId) {
 		selectedFileId.value = fileId ?? 0
 		if (fileId) {
@@ -471,7 +475,7 @@ const _filesStore = defineStore('files', () => {
 		return files.value[selectedFileId.value] || emptyFile
 	}
 
-	/** @param {number | string | null | undefined} [fileId] */
+	/** @param {number | null | undefined} [fileId] */
 	function getSelectedFileView(fileId = selectedFileId.value) {
 		if (!fileId) {
 			return null
@@ -494,9 +498,9 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
-	/** @returns {EditableFileDraft | PublicFileState} */
+	/** @returns {EditableFileDraft} */
 	function getEditableFile(fileId = selectedFileId.value) {
-		return ensureRequestDraft(fileId) || getFile()
+		return ensureRequestDraft(fileId) || cloneEditableFile(emptyFile)
 	}
 
 	async function flushSelectedFile() {
@@ -507,7 +511,7 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	/**
-	 * @param {{ fileId?: number | string | null, uuid?: string | null, force?: boolean }} [options]
+	 * @param {{ fileId?: number | null, uuid?: string | null, force?: boolean }} [options]
 	 * @returns {Promise<PublicFileState | null>}
 	 */
 	async function fetchFileDetail({ fileId = null, uuid = null, force = false } = {}) {
@@ -782,7 +786,7 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	function isTemporaryId(id) {
-		return id < 0 || (typeof id === 'string' && id.startsWith('envelope_'))
+		return typeof id === 'number' && id < 0
 	}
 
 	function getSubtitle() {
@@ -804,6 +808,22 @@ const _filesStore = defineStore('files', () => {
 		return `draft-signer:${draftSignerKeySequence}`
 	}
 
+	/** @param {EditableFileDraft | EditableFileReferenceDraft | ApiFileRecord | null | undefined} file */
+	function addLocalKeysToFileTree(file) {
+		if (!file || typeof file !== 'object') {
+			return
+		}
+		if (Array.isArray(file.signers)) {
+			addLocalKeyToAllSigners(file.signers)
+		}
+		if (Array.isArray(file.files)) {
+			file.files.forEach(addLocalKeysToFileTree)
+		}
+		if (file.file && typeof file.file === 'object') {
+			addLocalKeysToFileTree(file.file)
+		}
+	}
+
 	/** @param {EditableSignerDraft[] | undefined | null} signers */
 	function addLocalKeyToAllSigners(signers) {
 		if (signers === undefined) {
@@ -822,6 +842,102 @@ const _filesStore = defineStore('files', () => {
 			return
 		}
 		signer.localKey = createDraftSignerLocalKey()
+	}
+
+	/** @param {(VisibleElementRecord | VisibleElementDraft)[] | null | undefined} visibleElements */
+	function serializeVisibleElements(visibleElements) {
+		if (!Array.isArray(visibleElements)) {
+			return []
+		}
+		return visibleElements
+			.map((element) => {
+				if (!element || typeof element !== 'object') {
+					return null
+				}
+				const coordinates = element.coordinates && typeof element.coordinates === 'object'
+					? {
+						x: element.coordinates.x,
+						y: element.coordinates.y,
+						w: element.coordinates.w,
+						h: element.coordinates.h,
+					}
+					: undefined
+				return {
+					elementId: element.elementId,
+					signRequestId: element.signRequestId,
+					fileId: element.fileId,
+					type: element.type,
+					coordinates,
+				}
+			})
+			.filter((element) => element && element.coordinates && element.type)
+	}
+
+	/** @param {EditableSignerDraft[] | null | undefined} signers */
+	function serializeRequestSigners(signers) {
+		if (!Array.isArray(signers)) {
+			return []
+		}
+		return signers
+			.map((signer) => {
+				if (!signer || typeof signer !== 'object') {
+					return null
+				}
+				const identifyMethods = Array.isArray(signer.identifyMethods)
+					? signer.identifyMethods
+						.map((method) => {
+							if (!method || typeof method !== 'object') {
+								return null
+							}
+							return {
+								method: method.method,
+								value: method.value,
+								mandatory: method.mandatory,
+							}
+						})
+						.filter(Boolean)
+					: []
+				return {
+					...(identifyMethods?.length ? { identifyMethods } : {}),
+					...(typeof signer.displayName === 'string' ? { displayName: signer.displayName } : {}),
+					...(typeof signer.description === 'string' ? { description: signer.description } : {}),
+					...(typeof signer.notify === 'number' ? { notify: signer.notify } : {}),
+					...(typeof signer.signingOrder === 'number' ? { signingOrder: signer.signingOrder } : {}),
+					...(typeof signer.status === 'number' ? { status: signer.status } : {}),
+				}
+			})
+			.filter((signer) => signer && signer.identifyMethods?.length)
+	}
+
+	/** @param {EditableFileReferenceDraft | ApiFileRecord | EditableFileDraft | string | null | undefined} file */
+	function serializeRequestFile(file, { preferNodeId = false } = {}) {
+		if (typeof file === 'string') {
+			return { url: file }
+		}
+		if (!file || typeof file !== 'object') {
+			return null
+		}
+		if (typeof file.path === 'string' && file.path.length > 0) {
+			return { path: file.path }
+		}
+		if (preferNodeId && typeof file.nodeId === 'number' && file.nodeId > 0) {
+			return { nodeId: file.nodeId }
+		}
+		if (typeof file.fileId === 'number' && file.fileId > 0) {
+			return { fileId: file.fileId }
+		}
+		if (typeof file.id === 'number' && file.id > 0) {
+			if (!preferNodeId) {
+				return { fileId: file.id }
+			}
+		}
+		if (typeof file.nodeId === 'number' && file.nodeId > 0) {
+			return { nodeId: file.nodeId }
+		}
+		if (typeof file.url === 'string' && file.url.length > 0) {
+			return { url: file.url }
+		}
+		return null
 	}
 
 	/** @param {EditableSignerDraft} signer */
@@ -1068,6 +1184,8 @@ const _filesStore = defineStore('files', () => {
 		const store = getStore()
 		const currentFileKey = selectedFileId.value
 		const selectedFile = getFile()
+		const requestSigners = serializeRequestSigners(signers || selectedFile?.signers || [])
+		const requestVisibleElements = serializeVisibleElements(visibleElements)
 
 		let flowValue = signatureFlow || selectedFile.signatureFlow
 		if (typeof flowValue === 'number') {
@@ -1080,8 +1198,8 @@ const _filesStore = defineStore('files', () => {
 			method: uuid || selectedFile.id ? 'patch' : 'post',
 			data: {
 				name: selectedFile?.name,
-				signers: signers || selectedFile?.signers || [],
-				visibleElements,
+				signers: requestSigners,
+				visibleElements: requestVisibleElements,
 				status,
 				signatureFlow: flowValue,
 			},
@@ -1089,10 +1207,10 @@ const _filesStore = defineStore('files', () => {
 
 		if (uuid || selectedFile.uuid) {
 			config.data.uuid = uuid || selectedFile.uuid
-		} else if (selectedFile.id && selectedFile.id > 0) {
-			config.data.file = { fileId: selectedFile.id }
 		} else if (selectedFile.files) {
-			config.data.files = selectedFile.files
+			config.data.files = selectedFile.files.map(file => serializeRequestFile(file, { preferNodeId: true })).filter(Boolean)
+		} else if (selectedFile.id || selectedFile.nodeId || selectedFile.path || selectedFile.url) {
+			config.data.file = serializeRequestFile(selectedFile, { preferNodeId: true })
 		} else if (!isNaN(selectedFile.nodeId)) {
 			config.data.file = { nodeId: selectedFile.nodeId }
 		}
