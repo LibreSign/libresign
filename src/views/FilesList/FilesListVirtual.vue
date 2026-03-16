@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { t } from '@nextcloud/l10n'
+import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 
 import FileEntry from './FileEntry/FileEntry.vue'

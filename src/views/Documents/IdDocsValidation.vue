@@ -193,6 +193,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { FILE_STATUS } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
+import type { operations, components } from '../../types/openapi/openapi'
 
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -202,6 +203,8 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+
+type SortField = 'owner' | 'file_type' | 'status'
 type SortOrder = 'ASC' | 'DESC' | null
 
 type StatusOption = {
@@ -209,14 +212,38 @@ type StatusOption = {
 	label: string
 }
 
-type IdDocEntry = Record<string, any>
+type PersistedStatusFilter = StatusOption['value'] | null
+type IdDocEntry = components['schemas']['File']
+type IdDocsListQuery = NonNullable<operations['id_docs-list-to-approval']['parameters']['query']>
+type IdDocsListSuccess = operations['id_docs-list-to-approval']['responses'][200]['content']['application/json']
+type IdDocsListError = operations['id_docs-list-to-approval']['responses'][404]['content']['application/json']
+type IdDocsDeleteError = operations['id_docs-delete']['responses'][401]['content']['application/json']
+type UserConfigFilters = {
+	owner?: string
+	status?: PersistedStatusFilter
+}
+type UserConfigSort = {
+	sortBy?: SortField | null
+	sortOrder?: SortOrder
+}
+type UserConfigStore = {
+	id_docs_filters?: UserConfigFilters
+	id_docs_sort?: UserConfigSort
+	update: (key: 'id_docs_filters' | 'id_docs_sort', value: UserConfigFilters | UserConfigSort) => Promise<unknown> | unknown
+}
+
+const SORT_FIELDS: readonly SortField[] = ['owner', 'file_type', 'status']
+const STATUS_OPTIONS: StatusOption[] = [
+	{ value: 'signed', label: t('libresign', 'Signed') },
+	{ value: 'pending', label: t('libresign', 'Pending') },
+]
 
 defineOptions({
 	name: 'IdDocsValidation',
 })
 
 const router = useRouter()
-const userConfigStore = useUserConfigStore()
+const userConfigStore = useUserConfigStore() as UserConfigStore
 const scrollContainer = ref<HTMLElement | null>(null)
 const documentList = ref<IdDocEntry[]>([])
 const loading = ref(true)
@@ -225,16 +252,19 @@ const page = ref(1)
 const length = ref(50)
 const total = ref(0)
 const hasMore = ref(true)
-const sortBy = ref<string | null>(userConfigStore.id_docs_sort?.sortBy || null)
-const sortOrder = ref<SortOrder>(userConfigStore.id_docs_sort?.sortOrder || null)
+const storedSort = userConfigStore.id_docs_sort
+const initialSortBy = isSortField(storedSort?.sortBy)
+	? storedSort.sortBy
+	: null
+const initialSortOrder = isSortOrder(storedSort?.sortOrder)
+	? storedSort.sortOrder
+	: null
+const sortBy = ref<SortField | null>(initialSortBy)
+const sortOrder = ref<SortOrder>(initialSortOrder)
 const filters = reactive({
 	owner: userConfigStore.id_docs_filters?.owner || '',
-	status: userConfigStore.id_docs_filters?.status || null as StatusOption | null,
+	status: getStatusOption(userConfigStore.id_docs_filters?.status) as StatusOption | null,
 })
-const statusOptions: StatusOption[] = [
-	{ value: 'signed', label: t('libresign', 'Signed') },
-	{ value: 'pending', label: t('libresign', 'Pending') },
-]
 
 const hasActiveFilters = computed(() => !!(filters.owner || filters.status))
 const activeFilterCount = computed(() => {
@@ -249,21 +279,63 @@ const filteredDocuments = computed(() => {
 	if (filters.owner) {
 		const ownerLower = filters.owner.toLowerCase()
 		docs = docs.filter(doc => {
-			const displayName = doc.account?.displayName || doc.account?.userId || ''
+			const displayName = doc.account.displayName || doc.account.userId
 			return displayName.toLowerCase().includes(ownerLower)
 		})
 	}
 
 	if (filters.status?.value === 'signed') {
-		docs = docs.filter(doc => doc.file?.status === FILE_STATUS.SIGNED)
+		docs = docs.filter(doc => doc.file.status === FILE_STATUS.SIGNED)
 	} else if (filters.status?.value === 'pending') {
-		docs = docs.filter(doc => doc.file?.status !== FILE_STATUS.SIGNED)
+		docs = docs.filter(doc => doc.file.status !== FILE_STATUS.SIGNED)
 	}
 
 	return docs
 })
 
 let filterTimeout: ReturnType<typeof setTimeout> | undefined
+
+function isSortField(value: unknown): value is SortField {
+	return typeof value === 'string' && SORT_FIELDS.includes(value as SortField)
+}
+
+function isSortOrder(value: unknown): value is Exclude<SortOrder, null> {
+	return value === 'ASC' || value === 'DESC'
+}
+
+function getStatusOption(status: UserConfigFilters['status']): StatusOption | null {
+	if (!status) {
+		return null
+	}
+
+	return STATUS_OPTIONS.find(option => option.value === status) || null
+}
+
+function getErrorMessage(error: unknown): string | null {
+	if (typeof error !== 'object' || error === null || !('response' in error)) {
+		return null
+	}
+
+	const response = error.response
+	if (typeof response !== 'object' || response === null || !('data' in response)) {
+		return null
+	}
+
+	const data = response.data as IdDocsListError | IdDocsDeleteError | undefined
+	if (!data?.ocs?.data || typeof data.ocs.data !== 'object') {
+		return null
+	}
+
+	if ('message' in data.ocs.data && typeof data.ocs.data.message === 'string') {
+		return data.ocs.data.message
+	}
+
+	if ('messages' in data.ocs.data && Array.isArray(data.ocs.data.messages)) {
+		return data.ocs.data.messages[0] ?? null
+	}
+
+	return null
+}
 
 async function loadDocuments(append = false) {
 	if (!append) {
@@ -275,7 +347,7 @@ async function loadDocuments(append = false) {
 	}
 
 	try {
-		const params: Record<string, any> = {
+		const params: IdDocsListQuery = {
 			page: page.value,
 			length: length.value,
 		}
@@ -290,18 +362,19 @@ async function loadDocuments(append = false) {
 			{ params },
 		)
 
-		const data = response.data.ocs.data as { data: IdDocEntry[]; total?: number }
+		const data = (response.data as IdDocsListSuccess).ocs.data
+		const documents = data.data ?? []
 
 		if (append) {
-			documentList.value.push(...data.data)
+			documentList.value.push(...documents)
 		} else {
-			documentList.value = data.data
+			documentList.value = documents
 		}
 
-		total.value = data.total || data.data.length
+		total.value = data.pagination.total
 		hasMore.value = documentList.value.length < total.value
-	} catch (error: any) {
-		showError(error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to load documents'))
+	} catch (error: unknown) {
+		showError(getErrorMessage(error) || t('libresign', 'Failed to load documents'))
 	} finally {
 		loading.value = false
 		loadingMore.value = false
@@ -319,19 +392,14 @@ function onScroll(event: Event) {
 
 	if (scrollPosition >= scrollHeight * 0.8) {
 		page.value++
-		loadDocuments(true)
+		void loadDocuments(true)
 	}
 }
 
 function openApprove(doc: IdDocEntry) {
-	const uuid = doc.file?.uuid || doc.uuid
-	if (!uuid) {
-		showError(t('libresign', 'Document UUID not found'))
-		return
-	}
 	router.push({
 		name: 'IdDocsApprove',
-		params: { uuid },
+		params: { uuid: doc.file.uuid },
 		query: { idDocApproval: 'true' },
 	})
 }
@@ -340,13 +408,13 @@ async function deleteDocument(doc: IdDocEntry) {
 	try {
 		await axios.delete(generateOcsUrl('/apps/libresign/api/v1/id-docs/{nodeId}', { nodeId: doc.file.file.nodeId }))
 		await loadDocuments()
-	} catch (error: any) {
-		showError(error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to delete document'))
+	} catch (error: unknown) {
+		showError(getErrorMessage(error) || t('libresign', 'Failed to delete document'))
 	}
 }
 
 function openFile(doc: IdDocEntry) {
-	const fileUrl = doc.file?.file?.url
+	const fileUrl = doc.file.file.url
 
 	if (!fileUrl) {
 		showError(t('libresign', 'File not found'))
@@ -361,14 +429,9 @@ function openFile(doc: IdDocEntry) {
 }
 
 function openValidationURL(doc: IdDocEntry) {
-	const uuid = doc.file?.uuid || doc.uuid
-	if (!uuid) {
-		showError(t('libresign', 'Document UUID not found'))
-		return
-	}
 	router.push({
 		name: 'ValidationFile',
-		params: { uuid },
+		params: { uuid: doc.file.uuid },
 	})
 }
 
@@ -383,7 +446,7 @@ async function saveFilters() {
 	try {
 		await userConfigStore.update('id_docs_filters', {
 			owner: filters.owner,
-			status: filters.status,
+			status: filters.status?.value ?? null,
 		})
 	} catch (error) {
 		console.error('Failed to save filters:', error)
@@ -398,14 +461,14 @@ function clearFilters() {
 
 function setStatusFilter(status: StatusOption['value'], value: boolean) {
 	if (value) {
-		filters.status = statusOptions.find(option => option.value === status) || null
+		filters.status = STATUS_OPTIONS.find(option => option.value === status) || null
 	} else {
 		filters.status = null
 	}
 	onFilterChange()
 }
 
-function sortColumn(column: string) {
+function sortColumn(column: SortField) {
 	if (sortBy.value === column) {
 		if (sortOrder.value === 'DESC') {
 			sortOrder.value = 'ASC'
@@ -455,7 +518,7 @@ defineExpose({
 	sortBy,
 	sortOrder,
 	filters,
-	statusOptions,
+	statusOptions: STATUS_OPTIONS,
 	hasActiveFilters,
 	activeFilterCount,
 	filteredDocuments,

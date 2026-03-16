@@ -54,7 +54,8 @@ type Group = {
 }
 
 const approvalGroupState = loadState('libresign', 'approval_group', ['admin'])
-const identificationDocumentsFlowEnabled = ref(loadState('libresign', 'identification_documents', false) === true)
+const identificationDocumentsState = loadState<unknown>('libresign', 'identification_documents', false)
+const identificationDocumentsFlowEnabled = ref(identificationDocumentsState === true || identificationDocumentsState === '1')
 const approvalGroupIds = ref<string[]>(Array.isArray(approvalGroupState) ? approvalGroupState : ['admin'])
 const approvalGroups = ref<Array<Group | string>>([])
 const groups = ref<Group[]>([])
@@ -86,9 +87,11 @@ function saveApprovalGroups() {
 async function searchGroup(query: string) {
 	loadingGroups.value = true
 	await axios.get(generateOcsUrl('cloud/groups/details'), {
-		search: query,
-		limit: 20,
-		offset: 0,
+		params: {
+			search: query,
+			limit: 20,
+			offset: 0,
+		},
 	})
 		.then(({ data }) => {
 			groups.value = data.ocs.data.groups.sort((groupA: Group, groupB: Group) => groupA.displayname.localeCompare(groupB.displayname))

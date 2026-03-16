@@ -11,7 +11,6 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -36,7 +35,10 @@ use OCP\IUserSession;
 use OCP\Preview\IMimeIconProvider;
 
 /**
- * @psalm-import-type LibresignUserElement from ResponseDefinitions
+ * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignUserElement from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignUserElementsMessageResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignUserElementsResponse from \OCA\Libresign\ResponseDefinitions
  */
 class SignatureElementsController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
@@ -61,7 +63,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * Create signature element
 	 *
 	 * @param array<string, mixed> $elements Element object
-	 * @return DataResponse<Http::STATUS_OK, array{elements: LibresignUserElement[], message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserElementsMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Invalid data
@@ -110,7 +112,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	/**
 	 * Get signature elements
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{elements: LibresignUserElement[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserElementsResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -196,7 +198,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * Get signature element of signer
 	 *
 	 * @param int $nodeId Node id of a Nextcloud file
-	 * @return DataResponse<Http::STATUS_OK, LibresignUserElement, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserElement, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -227,7 +229,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * @param int $nodeId Node id of a Nextcloud file
 	 * @param string $type The type of signature element
 	 * @param array<string, mixed> $file Element object
-	 * @return DataResponse<Http::STATUS_OK, array{elements: LibresignUserElement[], message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserElementsMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Error
@@ -283,7 +285,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * Delete signature element
 	 *
 	 * @param int $nodeId Node id of a Nextcloud file
-	 * @return DataResponse<Http::STATUS_OK|Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK|Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Not found

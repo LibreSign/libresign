@@ -49,7 +49,7 @@
 				variant="tertiary"
 				@click="toggleGridView">
 				<template #icon>
-					<NcIconSvgWrapper v-if="userConfigStore.files_list_grid_view" :path="mdiFormatListBulletedSquare" />
+					<NcIconSvgWrapper v-if="isGridView" :path="mdiFormatListBulletedSquare" />
 					<NcIconSvgWrapper v-else :path="mdiViewGridOutline" />
 				</template>
 			</NcButton>
@@ -137,8 +137,9 @@ const loading = ref(true)
 
 const canRequestSign = computed(() => filesStore.canRequestSign)
 const viewIcon = computed(() => HomeSvg)
+const isGridView = computed(() => Boolean(userConfigStore.files_list_grid_view))
 const gridViewButtonLabel = computed(() => {
-	return userConfigStore.files_list_grid_view
+	return isGridView.value
 		? t('libresign', 'Switch to list view')
 		: t('libresign', 'Switch to grid view')
 })
@@ -151,11 +152,12 @@ function refresh() {
 }
 
 function toggleGridView() {
-	userConfigStore.update('files_list_grid_view', !userConfigStore.files_list_grid_view)
+	userConfigStore.update('files_list_grid_view', !isGridView.value)
 }
 
 function checkAndOpenFileFromUri() {
-	const uuid = route.value.query.uuid
+	const query = route.value.query as { uuid?: string | string[] }
+	const uuid = Array.isArray(query.uuid) ? query.uuid[0] : query.uuid
 	if (uuid) {
 		filesStore.selectFileByUuid(uuid).then((fileId) => {
 			if (fileId) {

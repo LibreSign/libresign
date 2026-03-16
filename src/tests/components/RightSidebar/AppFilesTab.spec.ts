@@ -17,6 +17,7 @@ vi.mock('@nextcloud/auth', () => ({
 vi.mock('@nextcloud/event-bus', () => ({
 	emit: vi.fn(),
 	subscribe: vi.fn(() => vi.fn()),
+	unsubscribe: vi.fn(),
 }))
 vi.mock('@nextcloud/files/dav', () => ({
 	getClient: vi.fn(() => ({
@@ -31,8 +32,17 @@ vi.mock('@nextcloud/files', () => ({
 		active: { params: { dir: '/' } },
 	})),
 }))
+vi.mock('@nextcloud/axios', () => ({
+	default: {
+		get: vi.fn().mockResolvedValue({ data: { ocs: { data: null } } }),
+		post: vi.fn(),
+		patch: vi.fn(),
+		delete: vi.fn(),
+	},
+}))
 vi.mock('@nextcloud/router', () => ({
 	generateRemoteUrl: vi.fn((path) => `https://example.com${path}`),
+	generateOcsUrl: vi.fn((path) => path),
 }))
 
 vi.mock('../../../components/RightSidebar/RequestSignatureTab.vue', () => ({
@@ -56,8 +66,37 @@ import { emit } from '@nextcloud/event-bus'
 import { getClient } from '@nextcloud/files/dav'
 import { getNavigation } from '@nextcloud/files'
 
+type TitleObserver = {
+	disconnect: () => void
+	_callback?: () => void
+}
+
+type FileInfo = {
+	id: number
+	type?: string
+	name?: string
+	path?: string
+	attributes?: Record<string, unknown>
+}
+
+type AppFilesTabVm = {
+	checkAndLoadPendingEnvelope: () => Promise<boolean>
+	updateSidebarTitle: (envelopeName?: string) => void
+	sidebarTitleObserver: TitleObserver | null
+	disconnectTitleObserver: () => void
+	update: (fileInfo: FileInfo) => Promise<void>
+	handleLibreSignFileChangeWithPath: (path: string, eventType: string) => Promise<void>
+	handleLibreSignFileChangeAtCurretntFolder: () => Promise<void>
+	handleLibreSignFileChange: (payload: { path?: string, nodeId?: number }, eventType: string) => Promise<void>
+	handleFilesNodeDeleted: (node: { fileid?: number | string, id?: number | string, fileId?: number | string, nodeId?: number | string }) => void
+	handleEnvelopeRenamed: (payload: { uuid?: string, name?: string }) => void
+	$nextTick: () => Promise<void>
+}
+
+type AppFilesTabWrapper = VueWrapper<AppFilesTabVm>
+
 describe('AppFilesTab', () => {
-	let wrapper: VueWrapper<unknown> | null
+	let wrapper: AppFilesTabWrapper | null
 	let filesStore: ReturnType<typeof useFilesStore>
 	let sidebarStore: ReturnType<typeof useSidebarStore>
 	const getClientMock = vi.mocked(getClient)
@@ -68,7 +107,7 @@ describe('AppFilesTab', () => {
 			stubs: {
 				RequestSignatureTab: true,
 			},
-		})
+		}) as unknown as AppFilesTabWrapper
 	}
 
 	beforeEach(() => {
@@ -192,7 +231,7 @@ describe('AppFilesTab', () => {
 		it('detects envelope folder and loads files', async () => {
 			filesStore.getAllFiles = vi.fn()
 			filesStore.selectFileByNodeId = vi.fn().mockResolvedValue(10)
-			filesStore.getFile = vi.fn().mockReturnValue({ name: 'Envelope Name' })
+			filesStore.getSelectedFileView = vi.fn().mockReturnValue({ name: 'Envelope Name' })
 			wrapper = createWrapper()
 
 			await wrapper.vm.update({
@@ -210,7 +249,7 @@ describe('AppFilesTab', () => {
 
 		it('selects file by nodeId when found', async () => {
 			filesStore.selectFileByNodeId = vi.fn().mockResolvedValue(10)
-			filesStore.getFile = vi.fn().mockReturnValue({ name: 'Test File' })
+			filesStore.getSelectedFileView = vi.fn().mockReturnValue({ name: 'Test File' })
 			wrapper = createWrapper()
 
 			await wrapper.vm.update({
@@ -238,7 +277,9 @@ describe('AppFilesTab', () => {
 				id: -456,
 				nodeId: 456,
 				name: 'new.pdf',
-				file: expect.stringContaining('new.pdf'),
+				file: {
+					url: expect.stringContaining('new.pdf'),
+				},
 				signers: [],
 			})
 			expect(filesStore.selectFile).toHaveBeenCalledWith(-456)

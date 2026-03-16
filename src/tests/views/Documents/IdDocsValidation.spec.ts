@@ -8,6 +8,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 
 import IdDocsValidation from '../../../views/Documents/IdDocsValidation.vue'
 import { FILE_STATUS } from '../../../constants.js'
+import type { components } from '../../../types/openapi/openapi'
 
 const axiosGetMock = vi.fn()
 const axiosDeleteMock = vi.fn()
@@ -109,8 +110,9 @@ vi.mock('@nextcloud/vue/components/NcIconSvgWrapper', () => ({
 }))
 
 describe('IdDocsValidation.vue', () => {
-	const signedDoc = {
-		uuid: 'doc-1',
+	type IdDocEntry = components['schemas']['File']
+
+	const signedDoc: IdDocEntry = {
 		account: {
 			userId: 'alice',
 			displayName: 'Alice',
@@ -118,22 +120,40 @@ describe('IdDocsValidation.vue', () => {
 		file_type: {
 			type: 'passport',
 			name: 'Passport',
+			description: null,
 		},
+		created_at: '2026-03-06T10:00:00Z',
 		file: {
 			uuid: 'file-1',
 			status: FILE_STATUS.SIGNED,
 			statusText: 'Signed',
 			name: 'alice-passport.pdf',
+			created_at: '2026-03-06T10:00:00Z',
 			file: {
+				type: 'application/pdf',
 				nodeId: 10,
+				signedNodeId: 10,
 				url: '/files/alice-passport.pdf',
 			},
-			signers: [{ uid: 'approver', displayName: 'Approver', sign_date: '2026-03-06T12:00:00Z' }],
+			callback: null,
+			signers: [{
+				description: null,
+				displayName: 'Approver',
+				email: 'approver@example.com',
+				request_sign_date: '2026-03-06T10:00:00Z',
+				signed: '2026-03-06T12:00:00Z',
+				sign_date: '2026-03-06T12:00:00Z',
+				me: false,
+				signRequestId: 1,
+				status: 2,
+				statusText: 'Signed',
+				visibleElements: [],
+				uid: 'approver',
+			}],
 		},
 	}
 
-	const pendingDoc = {
-		uuid: 'doc-2',
+	const pendingDoc: IdDocEntry = {
 		account: {
 			userId: 'bob',
 			displayName: 'Bob',
@@ -141,16 +161,22 @@ describe('IdDocsValidation.vue', () => {
 		file_type: {
 			type: 'driver-license',
 			name: 'Driver License',
+			description: null,
 		},
+		created_at: '2026-03-07T10:00:00Z',
 		file: {
 			uuid: 'file-2',
 			status: FILE_STATUS.ABLE_TO_SIGN,
 			statusText: 'Pending',
 			name: 'bob-license.pdf',
+			created_at: '2026-03-07T10:00:00Z',
 			file: {
+				type: 'application/pdf',
 				nodeId: 11,
+				signedNodeId: 11,
 				url: '/files/bob-license.pdf',
 			},
+			callback: null,
 			signers: [],
 		},
 	}
@@ -172,8 +198,15 @@ describe('IdDocsValidation.vue', () => {
 			data: {
 				ocs: {
 					data: {
+						pagination: {
+							total: 2,
+							current: null,
+							next: null,
+							prev: null,
+							last: null,
+							first: null,
+						},
 						data: [signedDoc, pendingDoc],
-						total: 2,
 					},
 				},
 			},
@@ -221,10 +254,7 @@ describe('IdDocsValidation.vue', () => {
 		expect(wrapper.vm.filteredDocuments).toEqual([pendingDoc])
 		expect(userConfigUpdateMock).toHaveBeenCalledWith('id_docs_filters', {
 			owner: 'bob',
-			status: {
-				value: 'pending',
-				label: 'Pending',
-			},
+			status: 'pending',
 		})
 
 		vi.useRealTimers()
@@ -267,9 +297,21 @@ describe('IdDocsValidation.vue', () => {
 	it('opens the file in the viewer and reports missing urls', async () => {
 		const wrapper = createWrapper()
 		await flushPromises()
+		const missingUrlDoc: IdDocEntry = {
+			...signedDoc,
+			file: {
+				...signedDoc.file,
+				name: 'missing.pdf',
+				file: {
+					...signedDoc.file.file,
+					nodeId: 12,
+					url: '',
+				},
+			},
+		}
 
 		wrapper.vm.openFile(signedDoc)
-		wrapper.vm.openFile({ file: { file: { nodeId: 12 }, name: 'missing.pdf' } })
+		wrapper.vm.openFile(missingUrlDoc)
 
 		expect(openDocumentMock).toHaveBeenCalledWith({
 			fileUrl: '/files/alice-passport.pdf',

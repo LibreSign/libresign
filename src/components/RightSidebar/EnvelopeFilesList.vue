@@ -160,15 +160,11 @@ import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useFilesStore } from '../../store/files.js'
+import type { LibresignCapabilities } from '../../types/index'
 
 
-type Envelope = {
-	id?: number
-	uuid?: string
-	name?: string
-	status?: number
-	filesCount?: number
-}
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type Envelope = ReturnType<FilesStoreContract['getFile']>
 
 type EnvelopeFile = {
 	id: number
@@ -176,7 +172,7 @@ type EnvelopeFile = {
 	name?: string
 	statusText?: string
 	nodeId?: number
-	size?: number
+	size: number
 	[key: string]: unknown
 }
 
@@ -205,7 +201,7 @@ type UploadProgressEvent = {
 }
 
 type FilesStore = {
-	getFile: () => Envelope | null
+	getFile: FilesStoreContract['getFile']
 	removeFilesFromEnvelope: (fileIds: number[]) => Promise<RemoveFilesResult>
 	addFilesToEnvelope: (uuid: string, formData: FormData, options: { signal: AbortSignal; onUploadProgress: (event: UploadProgressEvent) => void }) => Promise<AddFilesResult>
 	rename: (uuid: string, newName: string) => Promise<boolean>
@@ -267,14 +263,19 @@ const nameUpdateError = ref(false)
 const nameHelperText = ref('')
 const debounceTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
+function getLibresignConfig() {
+	const capabilities = getCapabilities() as LibresignCapabilities | undefined
+	return capabilities?.libresign?.config ?? null
+}
+
 const envelope = computed(() => filesStore.getFile())
 const canDelete = computed(() => envelope.value?.status === FILE_STATUS.DRAFT && files.value.length >= 1)
 const canAddFile = computed(() => {
 	if (!envelope.value || envelope.value.status !== FILE_STATUS.DRAFT) {
 		return false
 	}
-	const capabilities = getCapabilities()
-	return capabilities?.libresign?.config?.envelope?.['is-available'] === true
+	const config = getLibresignConfig()
+	return config?.envelope['is-available'] === true
 })
 const deleteDialogButtons = computed(() => [
 	{
@@ -285,7 +286,7 @@ const deleteDialogButtons = computed(() => [
 	},
 	{
 		label: t('libresign', 'Delete'),
-		type: 'error',
+		variant: 'error' as const,
 		callback: () => {
 			showDeleteDialog.value = false
 			deleteDialogConfig.value.action?.()
@@ -396,8 +397,9 @@ function showError(message: string) {
 }
 
 function getMaxFileUploads() {
-	const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
-	const max = Number.isFinite(capabilitiesMax) ? capabilitiesMax : 20
+	const config = getLibresignConfig()
+	const capabilitiesMax = config?.upload['max-file-uploads']
+	const max = typeof capabilitiesMax === 'number' && Number.isFinite(capabilitiesMax) ? capabilitiesMax : 20
 	return max > 0 ? Math.floor(max) : 20
 }
 
@@ -472,9 +474,9 @@ async function confirmDeleteSelected() {
 		files.value = files.value.filter(file => !fileIds.includes(file.id))
 		selectedFiles.value = []
 		totalFiles.value = Math.max(0, totalFiles.value - (result.removedCount || 0))
-		showSuccess(t('libresign', result.message))
+		showSuccess(result.message)
 	} else {
-		showError(t('libresign', result.message))
+		showError(result.message)
 	}
 
 	hasLoading.value = false
@@ -524,11 +526,11 @@ function addFileToEnvelope() {
 		})
 
 		if (result.success) {
-			showSuccess(t('libresign', result.message))
+			showSuccess(result.message)
 			files.value.push(...result.files)
 			totalFiles.value = result.filesCount
-		} else if (result.message !== 'Upload cancelled') {
-			showError(t('libresign', result.message))
+		} else if (result.message !== t('libresign', 'Upload cancelled')) {
+			showError(result.message)
 		}
 
 		hasLoading.value = false
@@ -542,7 +544,8 @@ function cancelUpload() {
 	uploadAbortController.value?.abort()
 }
 
-function onEnvelopeNameChange(newName: string) {
+function onEnvelopeNameChange(newName: string | number) {
+	const normalizedName = String(newName)
 	if (debounceTimer.value) {
 		clearTimeout(debounceTimer.value)
 	}
@@ -551,7 +554,7 @@ function onEnvelopeNameChange(newName: string) {
 	nameUpdateError.value = false
 	nameHelperText.value = ''
 
-	const trimmedName = newName.trim()
+	const trimmedName = normalizedName.trim()
 	if (trimmedName.length < ENVELOPE_NAME_MIN_LENGTH) {
 		nameUpdateError.value = true
 		nameHelperText.value = t('libresign', 'Name must be at least {min} characters', { min: ENVELOPE_NAME_MIN_LENGTH })
@@ -611,11 +614,11 @@ async function confirmDelete(file: EnvelopeFile) {
 	const result = await filesStore.removeFilesFromEnvelope([file.id])
 
 	if (result.success) {
-		showSuccess(t('libresign', result.message))
+		showSuccess(result.message)
 		files.value = files.value.filter(item => item.id !== file.id)
 		totalFiles.value = Math.max(0, totalFiles.value - (result.removedCount || 0))
 	} else {
-		showError(t('libresign', result.message))
+		showError(result.message)
 	}
 
 	hasLoading.value = false

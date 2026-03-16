@@ -151,6 +151,7 @@ import EditNameDialog from '../Common/EditNameDialog.vue'
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
+import type { LibresignCapabilities } from '../../types/index'
 import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 
 
@@ -183,7 +184,7 @@ type SidebarStore = {
 }
 
 type ActionsMenuStore = {
-	opened: boolean
+	opened: number | null
 }
 
 defineOptions({
@@ -220,9 +221,14 @@ const envelopeName = ref('')
 const showEnvelopeNameDialog = ref(false)
 const envelopeNameInput = ref('')
 
+function getLibresignConfig() {
+	const capabilities = getCapabilities() as LibresignCapabilities | undefined
+	return capabilities?.libresign?.config ?? null
+}
+
 const envelopeEnabled = computed(() => {
-	const capabilities = getCapabilities()
-	return capabilities?.libresign?.config?.envelope?.['is-available'] === true
+	const config = getLibresignConfig()
+	return config?.envelope['is-available'] === true
 })
 
 const canUploadFronUrl = computed(() => {
@@ -251,7 +257,6 @@ async function openFilePicker() {
 		.addButton({
 			label: t('libresign', 'Choose'),
 			callback: (nodes: FilePickerNode[]) => handleFileChoose(nodes),
-			type: 'primary',
 		})
 		.build()
 
@@ -263,8 +268,9 @@ async function openFilePicker() {
 }
 
 function getMaxFileUploads() {
-	const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
-	return Number.isFinite(capabilitiesMax) && capabilitiesMax > 0 ? Math.floor(capabilitiesMax) : 20
+	const config = getLibresignConfig()
+	const capabilitiesMax = config?.upload['max-file-uploads']
+	return typeof capabilitiesMax === 'number' && Number.isFinite(capabilitiesMax) && capabilitiesMax > 0 ? Math.floor(capabilitiesMax) : 20
 }
 
 function validateMaxFileUploads(filesCount: number) {
@@ -293,7 +299,7 @@ function closeEnvelopeNameDialog() {
 }
 
 function showModalUploadFromUrl() {
-	actionsMenuStore.opened = false
+	actionsMenuStore.opened = null
 	modalUploadFromUrl.value = true
 	openedMenu.value = false
 	loading.value = false
@@ -433,7 +439,7 @@ async function handleFileChoose(nodes: FilePickerNode[] = []) {
 
 	if (envelopeEnabled.value && paths.length > 1) {
 		pendingPaths.value = paths
-		const [dialogEnvelopeName] = await spawnDialog(
+		const dialogEnvelopeName = await spawnDialog(
 			EditNameDialog,
 			{
 				title: t('libresign', 'Envelope name'),

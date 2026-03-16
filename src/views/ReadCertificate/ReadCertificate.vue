@@ -59,14 +59,7 @@ defineOptions({
 
 type CertificateData = Record<string, unknown>
 
-type SignMethodsStore = {
-	modal: {
-		readCertificate: boolean
-	}
-	closeModal: (modalName: string) => void
-}
-
-const signMethodsStore = useSignMethodsStore() as SignMethodsStore
+const signMethodsStore = useSignMethodsStore()
 const hasLoading = ref(false)
 const password = ref('')
 const certificate = ref<CertificateData>({})

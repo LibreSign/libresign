@@ -56,7 +56,7 @@ vi.mock('../../helpers/pdfWorker', () => ({
 	ensurePdfWorker: vi.fn(() => ensurePdfWorkerMock()),
 }))
 
-vi.mock('@libresign/pdf-elements/src/components/PDFElements.vue', () => ({
+vi.mock('@libresign/pdf-elements', () => ({
 	default: {
 		name: 'PDFElements',
 		props: ['initialScale'],
@@ -123,7 +123,10 @@ describe('FooterTemplateEditor.vue', () => {
 	const createWrapper = () => mount(FooterTemplateEditor, {
 		global: {
 			directives: {
-				linkify: vi.fn(),
+				linkify: {
+					mounted: () => undefined,
+					updated: () => undefined,
+				},
 			},
 		},
 	})

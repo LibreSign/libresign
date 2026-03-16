@@ -6,6 +6,8 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
+import type { ValidationFileRecord } from '../../../types'
 
 type TranslationFn = (app: string, text: string) => string
 
@@ -13,17 +15,47 @@ type FileStatusListComponent = typeof import('../../../components/validation/Fil
 type FileStatusModule = typeof import('../../../utils/fileStatus.js')
 type FileStatusConstants = typeof import('../../../constants.js').FILE_STATUS
 
-type FileStatusResponse = {
-	id: number
-	name: string
-	status?: string | number
-	size?: number
-	signed?: string
+type FileStatusListVm = {
+	files: ValidationFileRecord[]
+	updateTimer: ReturnType<typeof setInterval> | null
+	$nextTick: () => Promise<void>
+	loadFiles: () => Promise<void>
+	getStatusClass: (status: number) => string
+	getStatusLabel: (status: number) => string
+	getStatusIcon: (status: number) => string
+	formatDate: (date: string | null) => string
+	startUpdatePolling: () => void
+	stopUpdatePolling: () => void
+	$emit: (event: string, ...args: unknown[]) => void
+}
+
+type FileStatusListWrapper = VueWrapper<any> & {
+	vm: FileStatusListVm
+	setProps: (props: { fileIds?: number[]; updateInterval?: number }) => Promise<void>
+	props: (key: 'fileIds' | 'updateInterval') => unknown
 }
 
 type AxiosMock = {
-	get: MockedFunction<(url: string) => Promise<{ data: { ocs: { data: FileStatusResponse } } }>>
+	get: MockedFunction<(url: string) => Promise<{ data: { ocs: { data: ValidationFileRecord } } }>>
 }
+
+const createValidationFile = (overrides: Partial<ValidationFileRecord> = {}): ValidationFileRecord => ({
+	id: 1,
+	uuid: 'file-uuid',
+	name: 'stub.pdf',
+	status: 0,
+	statusText: 'Draft',
+	nodeId: 1,
+	nodeType: 'file',
+	signatureFlow: 0,
+	docmdpLevel: 0,
+	totalPages: 1,
+	size: 0,
+	pdfVersion: '1.7',
+	created_at: '2024-01-01 00:00:00',
+	requested_by: { userId: 'user', displayName: 'User' },
+	...overrides,
+})
 
 let FileStatusList: FileStatusListComponent
 let fileStatus: FileStatusModule
@@ -54,7 +86,7 @@ vi.mock('@nextcloud/axios', () => ({
 }))
 
 vi.mock('../../../utils/fileStatus.js', () => ({
-	getStatusLabel: vi.fn((status: string | number) => {
+	getStatusLabel: vi.fn((status: number) => {
 		const labels: Record<string, string> = {
 			'0': 'Draft',
 			'1': 'Ready',
@@ -65,7 +97,7 @@ vi.mock('../../../utils/fileStatus.js', () => ({
 		}
 		return labels[String(status)] ?? 'Unknown'
 	}),
-	getStatusIcon: vi.fn((status: string | number) => 'mdiFileStatus'),
+	getStatusIcon: vi.fn((status: number) => 'mdiFileStatus'),
 }))
 
 vi.mock('../../../constants.js', () => ({
@@ -89,10 +121,10 @@ beforeAll(async () => {
 })
 
 describe('FileStatusList', () => {
-	let wrapper: ReturnType<typeof mount> | null
+	let wrapper: FileStatusListWrapper | null
 	let mockAxios: AxiosMock
 
-	const createWrapper = (props: { fileIds?: number[]; updateInterval?: number } = {}) => {
+	const createWrapper = (props: { fileIds?: number[]; updateInterval?: number } = {}): FileStatusListWrapper => {
 		return mount(FileStatusList, {
 			props: {
 				fileIds: [],
@@ -107,7 +139,7 @@ describe('FileStatusList', () => {
 					t: ((app: string, text: string) => text) as TranslationFn,
 				},
 			},
-		})
+		}) as FileStatusListWrapper
 	}
 
 	beforeEach(() => {
@@ -121,7 +153,7 @@ describe('FileStatusList', () => {
 		mockAxios.get.mockResolvedValue({
 			data: {
 				ocs: {
-					data: { id: 1, name: 'stub.pdf', status: FILE_STATUS.DRAFT },
+					data: createValidationFile(),
 				},
 			},
 		})
@@ -149,7 +181,7 @@ describe('FileStatusList', () => {
 			mockAxios.get.mockResolvedValueOnce({
 				data: {
 					ocs: {
-						data: { id: 1, name: 'file1.pdf' },
+						data: createValidationFile({ name: 'file1.pdf', status: FILE_STATUS.DRAFT }),
 					},
 				},
 			})
@@ -165,14 +197,14 @@ describe('FileStatusList', () => {
 				.mockResolvedValueOnce({
 					data: {
 						ocs: {
-							data: { id: 1, name: 'test.pdf', size: 1024, status: '3' },
+							data: createValidationFile({ name: 'test.pdf', size: 1024, status: FILE_STATUS.SIGNED, statusText: 'Signed' }),
 						},
 					},
 				})
 				.mockResolvedValueOnce({
 					data: {
 						ocs: {
-							data: { id: 1, name: 'test.pdf', size: 1024, status: '3' },
+							data: createValidationFile({ name: 'test.pdf', size: 1024, status: FILE_STATUS.SIGNED, statusText: 'Signed' }),
 						},
 					},
 				})
@@ -189,28 +221,28 @@ describe('FileStatusList', () => {
 				.mockResolvedValueOnce({
 					data: {
 						ocs: {
-							data: { id: 1, name: 'file1.pdf' },
+							data: createValidationFile({ id: 1, name: 'file1.pdf', status: FILE_STATUS.DRAFT }),
 						},
 					},
 				})
 				.mockResolvedValueOnce({
 					data: {
 						ocs: {
-							data: { id: 2, name: 'file2.pdf' },
+							data: createValidationFile({ id: 2, uuid: 'file-uuid-2', name: 'file2.pdf', status: FILE_STATUS.SIGNED, statusText: 'Signed', nodeId: 2 }),
 						},
 					},
 				})
 				.mockResolvedValueOnce({
 					data: {
 						ocs: {
-							data: { id: 1, name: 'file1.pdf' },
+							data: createValidationFile({ id: 1, name: 'file1.pdf', status: FILE_STATUS.DRAFT }),
 						},
 					},
 				})
 				.mockResolvedValueOnce({
 					data: {
 						ocs: {
-							data: { id: 2, name: 'file2.pdf' },
+							data: createValidationFile({ id: 2, uuid: 'file-uuid-2', name: 'file2.pdf', status: FILE_STATUS.SIGNED, statusText: 'Signed', nodeId: 2 }),
 						},
 					},
 				})
@@ -225,7 +257,7 @@ describe('FileStatusList', () => {
 			mockAxios.get.mockResolvedValueOnce({
 				data: {
 					ocs: {
-						data: { id: 1, name: 'test.pdf' },
+						data: createValidationFile({ name: 'test.pdf', status: FILE_STATUS.DRAFT }),
 					},
 				},
 			})
@@ -369,7 +401,7 @@ describe('FileStatusList', () => {
 			wrapper = createWrapper({ fileIds: [1] })
 
 			mockAxios.get.mockResolvedValue({
-				data: { ocs: { data: { id: 1, name: 'test.pdf' } } },
+				data: { ocs: { data: createValidationFile({ name: 'test.pdf', status: FILE_STATUS.DRAFT }) } },
 			})
 
 			wrapper.vm.startUpdatePolling()
@@ -412,7 +444,7 @@ describe('FileStatusList', () => {
 			wrapper = localWrapper
 
 			mockAxios.get.mockResolvedValue({
-				data: { ocs: { data: { id: 1, name: 'test.pdf' } } },
+				data: { ocs: { data: createValidationFile({ name: 'test.pdf', status: FILE_STATUS.DRAFT }) } },
 			})
 
 			await localWrapper.setProps({ fileIds: [1] })
@@ -435,7 +467,7 @@ describe('FileStatusList', () => {
 			wrapper = localWrapper
 
 			mockAxios.get.mockResolvedValue({
-				data: { ocs: { data: { id: 2, name: 'file2.pdf' } } },
+				data: { ocs: { data: createValidationFile({ id: 2, uuid: 'file-uuid-2', name: 'file2.pdf', status: FILE_STATUS.SIGNED, statusText: 'Signed', nodeId: 2 }) } },
 			})
 
 			await localWrapper.setProps({ fileIds: [] })
@@ -448,7 +480,7 @@ describe('FileStatusList', () => {
 	describe('RULE: mounted lifecycle initializes data loading', () => {
 		it('loads files on mount when fileIds provided', async () => {
 			mockAxios.get.mockResolvedValue({
-				data: { ocs: { data: { id: 1, name: 'test.pdf' } } },
+				data: { ocs: { data: createValidationFile({ name: 'test.pdf', status: FILE_STATUS.DRAFT }) } },
 			})
 
 			wrapper = createWrapper({ fileIds: [1] })
@@ -489,12 +521,7 @@ describe('FileStatusList', () => {
 			mockAxios.get.mockResolvedValue({
 				data: {
 					ocs: {
-						data: {
-							id: 1,
-							name: 'document.pdf',
-							size: 2048,
-							status: FILE_STATUS.SIGNED,
-						},
+						data: createValidationFile({ name: 'document.pdf', size: 2048, status: FILE_STATUS.SIGNED, statusText: 'Signed' }),
 					},
 				},
 			})
@@ -507,17 +534,18 @@ describe('FileStatusList', () => {
 		})
 	})
 
-	describe('RULE: signed date displays when available', () => {
-		it('shows formatted date when signed property exists', async () => {
+	describe('RULE: status changed date displays when available', () => {
+		it('shows formatted date when metadata status_changed_at exists', async () => {
 			mockAxios.get.mockResolvedValue({
 				data: {
 					ocs: {
-						data: {
-							id: 1,
+						data: createValidationFile({
+							uuid: 'signed-uuid',
 							name: 'signed.pdf',
-							signed: '2024-06-01T12:00:00',
 							status: FILE_STATUS.SIGNED,
-						},
+							statusText: 'Signed',
+							metadata: { extension: 'pdf', p: 1, status_changed_at: '2024-06-01T12:00:00' },
+						}),
 					},
 				},
 			})
@@ -525,18 +553,14 @@ describe('FileStatusList', () => {
 			wrapper = createWrapper({ fileIds: [1] })
 			await wrapper.vm.loadFiles()
 
-			expect(wrapper.vm.files[0].signed).toBe('2024-06-01T12:00:00')
+			expect(wrapper.vm.files[0].metadata?.status_changed_at).toBe('2024-06-01T12:00:00')
 		})
 
-		it('handles missing signed date', async () => {
+		it('handles missing status changed date', async () => {
 			mockAxios.get.mockResolvedValue({
 				data: {
 					ocs: {
-						data: {
-							id: 1,
-							name: 'unsigned.pdf',
-							status: FILE_STATUS.DRAFT,
-						},
+						data: createValidationFile({ uuid: 'unsigned-uuid', name: 'unsigned.pdf', status: FILE_STATUS.DRAFT, statusText: 'Draft' }),
 					},
 				},
 			})
@@ -544,7 +568,7 @@ describe('FileStatusList', () => {
 			wrapper = createWrapper({ fileIds: [1] })
 			await wrapper.vm.loadFiles()
 
-			expect(wrapper.vm.files[0].signed).toBeUndefined()
+			expect(wrapper.vm.files[0].metadata?.status_changed_at).toBeUndefined()
 		})
 	})
 
@@ -552,16 +576,16 @@ describe('FileStatusList', () => {
 		it('renders all loaded files', async () => {
 			mockAxios.get
 				.mockResolvedValueOnce({
-					data: { ocs: { data: { id: 1, name: 'file1.pdf', status: '0' } } },
+					data: { ocs: { data: createValidationFile({ id: 1, name: 'file1.pdf', status: FILE_STATUS.DRAFT }) } },
 				})
 				.mockResolvedValueOnce({
-					data: { ocs: { data: { id: 2, name: 'file2.pdf', status: '3' } } },
+					data: { ocs: { data: createValidationFile({ id: 2, uuid: 'file-uuid-2', name: 'file2.pdf', status: FILE_STATUS.SIGNED, statusText: 'Signed', nodeId: 2 }) } },
 				})
 				.mockResolvedValueOnce({
-					data: { ocs: { data: { id: 1, name: 'file1.pdf', status: '0' } } },
+					data: { ocs: { data: createValidationFile({ id: 1, name: 'file1.pdf', status: FILE_STATUS.DRAFT }) } },
 				})
 				.mockResolvedValueOnce({
-					data: { ocs: { data: { id: 2, name: 'file2.pdf', status: '3' } } },
+					data: { ocs: { data: createValidationFile({ id: 2, uuid: 'file-uuid-2', name: 'file2.pdf', status: FILE_STATUS.SIGNED, statusText: 'Signed', nodeId: 2 }) } },
 				})
 
 			wrapper = createWrapper({ fileIds: [1, 2] })

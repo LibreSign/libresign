@@ -17,7 +17,6 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
@@ -46,11 +45,25 @@ use OCP\ISession;
 use UnexpectedValueException;
 
 /**
- * @psalm-import-type LibresignEngineHandler from ResponseDefinitions
- * @psalm-import-type LibresignCetificateDataGenerated from ResponseDefinitions
- * @psalm-import-type LibresignConfigureCheck from ResponseDefinitions
- * @psalm-import-type LibresignRootCertificate from ResponseDefinitions
- * @psalm-import-type LibresignReminderSettings from ResponseDefinitions
+ * @psalm-import-type LibresignCetificateDataGenerated from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCertificateEngineConfigResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCertificatePolicyResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignConfigureCheck from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignConfigureChecksResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignEngineHandlerResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignErrorResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignErrorStatusResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignEngineHandler from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdentifyMethodSetting from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignSignatureTextSettingsResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignSignatureTemplateSettingsResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignSuccessStatusResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignFailureStatusResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignActiveSigningsResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignReminderSettings from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignRootCertificate from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignFooterTemplateResponse from \OCA\Libresign\ResponseDefinitions
  */
 class AdminController extends AEnvironmentAwareController {
 	private IEventSource $eventSource;
@@ -83,7 +96,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param array{commonName: string, names: array<string, array{value:string|array<string>}>} $rootCert fields of root certificate
 	 * @param string $cfsslUri URI of CFSSL API
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignEngineHandler}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandlerResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 401: Account not found
@@ -119,7 +132,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param array{commonName: string, names: array<string, array{value:string|array<string>}>} $rootCert fields of root certificate
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignEngineHandler}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandlerResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 401: Account not found
@@ -154,7 +167,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * Sets the certificate engine (openssl, cfssl, or none) and automatically configures identify_methods when needed
 	 *
 	 * @param string $engine The certificate engine to use (openssl, cfssl, or none)
-	 * @return DataResponse<Http::STATUS_OK, array{engine: string, identify_methods: array<array<string, mixed>>}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignCertificateEngineConfigResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Invalid engine
@@ -237,15 +250,15 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * Return the status of necessary configuration and tips to fix the problems.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignConfigureCheck[], array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignConfigureChecksResponse, array{}>
 	 *
 	 * 200: OK
 	 */
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/configure-check', requirements: ['apiVersion' => '(v1)'])]
 	public function configureCheck(): DataResponse {
-		/** @var LibresignConfigureCheck[] */
-		$configureCheckList = $this->configureCheckService->checkAll();
+		/** @var LibresignConfigureChecksResponse $configureCheckList */
+		$configureCheckList = array_values($this->configureCheckService->checkAll());
 		return new DataResponse(
 			$configureCheckList
 		);
@@ -323,7 +336,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Add custom background image
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSuccessStatusResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignFailureStatusResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Error
@@ -401,7 +414,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Reset the background image to be the default of LibreSign
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSuccessStatusResponse, array{}>
 	 *
 	 * 200: Image reseted to default
 	 */
@@ -418,7 +431,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Delete background image
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSuccessStatusResponse, array{}>
 	 *
 	 * 200: Deleted with success
 	 */
@@ -441,7 +454,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param float $signatureWidth Signature width
 	 * @param float $signatureHeight Signature height
 	 * @param string $renderMode Signature render mode
-	 * @return DataResponse<Http::STATUS_OK, array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: float, signatureHeight: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureTextSettingsResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request
@@ -487,7 +500,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param string $template Template to signature text
 	 * @param string $context Context for parsing the template
-	 * @return DataResponse<Http::STATUS_OK, array{template: string,parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: float, signatureHeight: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureTextSettingsResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request
@@ -514,7 +527,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Get signature settings
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{default_signature_text_template: string, signature_available_variables: array<string, string>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureTemplateSettingsResponse, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -536,7 +549,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param float $fontSize Font size of text
 	 * @param bool $isDarkTheme Color of text, white if is tark theme and black if not
 	 * @param string $align Align of text: left, center or right
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'inline; filename="signer-name.png"', Content-Type: 'image/png'}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'inline; filename="signer-name.png"', Content-Type: 'image/png'}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request
@@ -578,7 +591,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Update certificate policy of this instance
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{status: 'success', CPS: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignCertificatePolicyResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignFailureStatusResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Not found
@@ -647,7 +660,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * Update OID
 	 *
 	 * @param string $oid OID is a unique numeric identifier for certificate policies in digital certificates.
-	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSuccessStatusResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignFailureStatusResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Validation error
@@ -724,7 +737,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param string|null $tsa_auth_type Authentication type (none|basic), defaults to 'none'
 	 * @param string|null $tsa_username Username for basic authentication
 	 * @param string|null $tsa_password Password for basic authentication (stored as sensitive data)
-	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{status: 'error', message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSuccessStatusResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorStatusResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Validation error
@@ -810,7 +823,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * Delete all TSA configuration fields from the application settings.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSuccessStatusResponse, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -831,7 +844,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * Returns the current footer template if set, otherwise returns the default template.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{template: string, isDefault: bool, preview_width: int, preview_height: int}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignFooterTemplateResponse, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -853,7 +866,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param string $template The Twig template to save (empty to reset to default)
 	 * @param int $width Width of preview in points (default: 595 - A4 width)
 	 * @param int $height Height of preview in points (default: 50)
-	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request
@@ -881,7 +894,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param string $template Template to preview
 	 * @param int $width Width of preview in points (default: 595 - A4 width)
 	 * @param int $height Height of preview in points (default: 50)
-	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request
@@ -905,7 +918,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param string $mode Signing mode: "sync" or "async"
 	 * @param string|null $workerType Worker type when async: "local" or "external" (optional)
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: Settings saved
 	 * 400: Invalid parameters
@@ -952,7 +965,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param bool $enabled Whether to force a signature flow for all documents
 	 * @param string|null $mode Signature flow mode: 'parallel' or 'ordered_numeric' (only used when enabled is true)
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: Configuration saved successfully
 	 * 400: Invalid signature flow mode provided
@@ -1003,7 +1016,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param bool $enabled Whether to enable DocMDP restrictions
 	 * @param int $defaultLevel DocMDP level: 1 (no changes), 2 (fill forms), 3 (add annotations)
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: Configuration saved successfully
 	 * 400: Invalid DocMDP level provided
@@ -1038,7 +1051,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Get list of files currently being signed (status = SIGNING_IN_PROGRESS)
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{data: list<array{id: int, uuid: string, name: string, signerEmail: string, signerDisplayName: string, updatedAt: int}>}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignActiveSigningsResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: List of active signings
 	 */

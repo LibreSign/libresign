@@ -26,9 +26,10 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import { onMounted, ref, watch } from 'vue'
 
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import type { LibresignCapabilities } from '../../types/index'
 
 type AxiosImageResponse = {
-	data: ArrayBuffer | string
+	data: ArrayBuffer
 	headers: {
 		'content-type': string
 	}
@@ -61,8 +62,22 @@ const emit = defineEmits<{
 const loading = ref(true)
 const isLoaded = ref(false)
 const imageData = ref('')
-const width = ref(getCapabilities().libresign.config['sign-elements'].width)
-const height = ref(getCapabilities().libresign.config['sign-elements'].height)
+const capabilities = getCapabilities() as LibresignCapabilities
+const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
+	'signature-width': 0,
+	'signature-height': 0,
+}
+const width = ref(`${signElementsConfig['signature-width']}px`)
+const height = ref(`${signElementsConfig['signature-height']}px`)
+
+function arrayBufferToBase64(data: ArrayBuffer) {
+	const bytes = new Uint8Array(data)
+	let binary = ''
+	for (const byte of bytes) {
+		binary += String.fromCharCode(byte)
+	}
+	return btoa(binary)
+}
 
 async function loadImage() {
 	if (props.src.startsWith('data:')) {
@@ -83,8 +98,7 @@ async function loadImage() {
 
 	try {
 		const response = await axios(config) as AxiosImageResponse
-		const buffer = Buffer.from(response.data, 'binary').toString('base64')
-		imageData.value = `data:${response.headers['content-type']};base64,${buffer}`
+		imageData.value = `data:${response.headers['content-type']};base64,${arrayBufferToBase64(response.data)}`
 		onImageLoad(true)
 	} catch {
 		onImageLoad(false)
@@ -112,6 +126,7 @@ defineExpose({
 	imageData,
 	width,
 	height,
+	arrayBufferToBase64,
 	loadImage,
 	onImageLoad,
 })

@@ -128,6 +128,21 @@ describe('TextInput.vue - Text Signature Component', () => {
 		expect(wrapper.vm.isValid).toBe(true)
 	})
 
+	it('keeps save disabled for whitespace-only input', async () => {
+		const wrapper = mount(TextInput, {
+			global: {
+				mocks: {
+					t,
+				},
+			},
+		})
+
+		wrapper.vm.value = '   '
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.vm.isValid).toBe(false)
+	})
+
 	it('focuses input on mount', async () => {
 		const wrapper = mount(TextInput, {
 			global: {
@@ -154,7 +169,8 @@ describe('TextInput.vue - Text Signature Component', () => {
 		wrapper.vm.value = 'Test'
 		await wrapper.vm.$nextTick()
 
-		if (wrapper.vm.$refs.canvas && wrapper.vm.$refs.canvas.toDataURL) {
+		const canvas = wrapper.vm.$refs.canvas as HTMLCanvasElement | undefined
+		if (canvas?.toDataURL) {
 			wrapper.vm.stringToImage()
 			expect(wrapper.vm.imageData).toBeDefined()
 		}
@@ -186,11 +202,42 @@ describe('TextInput.vue - Text Signature Component', () => {
 		})
 
 		await wrapper.vm.$nextTick()
+		const contextStub = {
+			clearRect: vi.fn(),
+			fillText: vi.fn(),
+			measureText: vi.fn(() => ({ width: 100 })),
+			fillStyle: '',
+			font: '',
+			textAlign: 'center',
+			textBaseline: 'middle',
+		}
+		wrapper.vm.canvas = {
+			width: 700,
+			height: 200,
+			getContext: vi.fn(() => contextStub),
+			toDataURL: vi.fn(() => 'data:image/png;base64,testdata'),
+		} as unknown as HTMLCanvasElement
 		wrapper.vm.value = 'John Doe'
 		wrapper.vm.confirmSignature()
 		await wrapper.vm.$nextTick()
 		expect(wrapper.vm.modal).toBe(true)
 		expect(wrapper.find('.preview-signature-stub').exists()).toBe(true)
+	})
+
+	it('does not open confirmation modal for whitespace-only input', async () => {
+		const wrapper = mount(TextInput, {
+			global: {
+				mocks: {
+					t,
+				},
+			},
+		})
+
+		await wrapper.vm.$nextTick()
+		wrapper.vm.value = '   '
+		wrapper.vm.confirmSignature()
+
+		expect(wrapper.vm.modal).toBe(false)
 	})
 
 	it('handles modal state correctly', async () => {
@@ -240,8 +287,27 @@ describe('TextInput.vue - Text Signature Component', () => {
 
 		await wrapper.vm.$nextTick()
 		wrapper.vm.modal = true
+		wrapper.vm.imageData = 'data:image/png;base64,testdata'
 		wrapper.vm.saveSignature()
 		expect(wrapper.vm.modal).toBe(false)
+	})
+
+	it('does not emit save when image data is empty', async () => {
+		const wrapper = mount(TextInput, {
+			global: {
+				mocks: {
+					t,
+				},
+			},
+		})
+
+		await wrapper.vm.$nextTick()
+		wrapper.vm.modal = true
+		wrapper.vm.imageData = ''
+		wrapper.vm.saveSignature()
+
+		expect(wrapper.emitted('save')).toBeFalsy()
+		expect(wrapper.vm.modal).toBe(true)
 	})
 
 	it('cancels confirmation and closes modal', async () => {
@@ -332,7 +398,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 		expect(wrapper.vm.modal).toBe(false)
 	})
 
-	it('initializes image data as null', () => {
+	it('initializes image data as empty string', () => {
 		const wrapper = mount(TextInput, {
 			global: {
 				mocks: {
@@ -341,7 +407,7 @@ describe('TextInput.vue - Text Signature Component', () => {
 			},
 		})
 
-		expect(wrapper.vm.imageData).toBe(null)
+		expect(wrapper.vm.imageData).toBe('')
 	})
 
 	it('uses Dancing Script font for text rendering', async () => {
@@ -388,6 +454,21 @@ describe('TextInput.vue - Text Signature Component', () => {
 		})
 
 		await wrapper.vm.$nextTick()
+		const contextStub = {
+			clearRect: vi.fn(),
+			fillText: vi.fn(),
+			measureText: vi.fn(() => ({ width: 100 })),
+			fillStyle: '',
+			font: '',
+			textAlign: 'center',
+			textBaseline: 'middle',
+		}
+		wrapper.vm.canvas = {
+			width: 700,
+			height: 200,
+			getContext: vi.fn(() => contextStub),
+			toDataURL: vi.fn(() => 'data:image/png;base64,testdata'),
+		} as unknown as HTMLCanvasElement
 		wrapper.vm.value = '   John Doe   '
 		wrapper.vm.confirmSignature()
 

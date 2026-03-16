@@ -6,9 +6,56 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import ModalVerificationCode from '@/views/SignPDF/_partials/ModalVerificationCode.vue'
 import { useSignMethodsStore } from '@/store/signMethods.js'
 import { useSignStore } from '@/store/sign.js'
+
+type ModalVerificationCodeVm = {
+	dialogTitle: string
+	progressText: string
+	identityVerified: boolean
+	tokenRequested: boolean
+	token: string
+	loading: boolean
+	signMethodsStore: {
+		settings: {
+			emailToken?: {
+				hasConfirmCode?: boolean
+				hashOfEmail?: string
+				blurredEmail?: string
+			}
+		}
+	}
+	sendCode: () => void
+	requestNewCode: () => void
+	signDocument: () => void
+	$nextTick: () => Promise<void>
+}
+
+type ModalVerificationCodeWrapper = VueWrapper<any> & {
+	vm: ModalVerificationCodeVm
+}
+
+type SignMethodsStoreWithSettings = ReturnType<typeof useSignMethodsStore> & {
+	settings: {
+		emailToken?: {
+			hasConfirmCode?: boolean
+			hashOfEmail?: string
+			blurredEmail?: string
+		}
+		smsToken?: {
+			identifyMethod?: string
+		}
+	}
+}
+
+const ensureEmailToken = (store: SignMethodsStoreWithSettings) => {
+	if (!store.settings.emailToken) {
+		store.settings.emailToken = {}
+	}
+	return store.settings.emailToken
+}
 
 // Mock axios
 vi.mock('@nextcloud/axios', () => ({
@@ -34,8 +81,8 @@ vi.mock('@nextcloud/password-confirmation', () => ({
 }))
 
 describe('ModalVerificationCode (email mode)', () => {
-	let wrapper: ReturnType<typeof mount>
-	let signMethodsStore: ReturnType<typeof useSignMethodsStore>
+	let wrapper: ModalVerificationCodeWrapper
+	let signMethodsStore: SignMethodsStoreWithSettings
 
 	const stubs = {
 		NcDialog: { template: '<div><slot /></div>' },
@@ -58,12 +105,13 @@ describe('ModalVerificationCode (email mode)', () => {
 	const mountEmail = (extraProps = {}) => mount(ModalVerificationCode, {
 		props: { mode: 'email', ...extraProps },
 		global: { stubs },
-	})
+	}) as ModalVerificationCodeWrapper
 
 	beforeEach(() => {
 		setActivePinia(createPinia())
-		signMethodsStore = useSignMethodsStore()
+		signMethodsStore = useSignMethodsStore() as SignMethodsStoreWithSettings
 		signMethodsStore.modal.emailToken = true
+		ensureEmailToken(signMethodsStore)
 		signMethodsStore.settings.emailToken = {
 			hasConfirmCode: false,
 			hashOfEmail: '5d41402abc4b2a76b9719d911017c592',
@@ -104,7 +152,7 @@ describe('ModalVerificationCode (email mode)', () => {
 	})
 
 	it('shows contact on step 2', async () => {
-		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
 		const contactDisplay = wrapper.find('.contact-display')
@@ -123,7 +171,7 @@ describe('ModalVerificationCode (email mode)', () => {
 	})
 
 	it('shows correct state on step 2', async () => {
-		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mount(ModalVerificationCode, {
 			props: { mode: 'email' },
 			global: { stubs: stubsWithActions },
@@ -134,7 +182,7 @@ describe('ModalVerificationCode (email mode)', () => {
 	})
 
 	it('updates to step 3 when identityVerified is true', async () => {
-		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
 		wrapper.vm.identityVerified = true
@@ -144,7 +192,7 @@ describe('ModalVerificationCode (email mode)', () => {
 	})
 
 	it('shows verification success message on step 3', async () => {
-		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
 		wrapper.vm.identityVerified = true
@@ -157,7 +205,7 @@ describe('ModalVerificationCode (email mode)', () => {
 	})
 
 	it('shows correct dialog title on step 3', async () => {
-		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mount(ModalVerificationCode, {
 			props: { mode: 'email' },
 			global: { stubs: stubsWithActions },
@@ -170,7 +218,7 @@ describe('ModalVerificationCode (email mode)', () => {
 	})
 
 	it('sendCode sets identityVerified to true', async () => {
-		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
 		wrapper.vm.token = '123456'
@@ -189,7 +237,7 @@ describe('ModalVerificationCode (email mode)', () => {
 	})
 
 	it('signDocument sets loading=true, emits change with token and does NOT self-close', async () => {
-		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
 		wrapper.vm.token = '123456'
@@ -205,7 +253,7 @@ describe('ModalVerificationCode (email mode)', () => {
 	})
 
 	it('signStore.errors watcher resets loading when signing fails', async () => {
-		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
 		const signStore = useSignStore()
@@ -218,7 +266,7 @@ describe('ModalVerificationCode (email mode)', () => {
 	})
 
 	it('signStore.errors watcher does NOT reset loading when loading is already false', async () => {
-		signMethodsStore.settings.emailToken.hasConfirmCode = true
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
 		wrapper = mountEmail()
 
 		const signStore = useSignStore()
@@ -233,8 +281,8 @@ describe('ModalVerificationCode (email mode)', () => {
 })
 
 describe('ModalVerificationCode (token mode)', () => {
-	let wrapper: ReturnType<typeof mount>
-	let signMethodsStore: ReturnType<typeof useSignMethodsStore>
+	let wrapper: ModalVerificationCodeWrapper
+	let signMethodsStore: SignMethodsStoreWithSettings
 
 	const stubs = {
 		NcDialog: { template: '<div><slot /></div>' },
@@ -257,11 +305,11 @@ describe('ModalVerificationCode (token mode)', () => {
 	const mountToken = (extraProps = {}) => mount(ModalVerificationCode, {
 		props: { mode: 'token', phoneNumber: '', ...extraProps },
 		global: { stubs },
-	})
+	}) as ModalVerificationCodeWrapper
 
 	beforeEach(() => {
 		setActivePinia(createPinia())
-		signMethodsStore = useSignMethodsStore()
+		signMethodsStore = useSignMethodsStore() as SignMethodsStoreWithSettings
 		signMethodsStore.modal.token = true
 		signMethodsStore.settings.smsToken = {
 			identifyMethod: 'email',

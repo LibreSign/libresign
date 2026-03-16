@@ -6,6 +6,12 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
+type ConfettiVm = {
+	showConfetti: boolean
+	saveShowConfetti: () => void
+	$nextTick: () => Promise<void>
+}
+
 const loadStateMock = vi.fn()
 
 vi.mock('@nextcloud/initial-state', () => ({
@@ -45,7 +51,7 @@ describe('Confetti', () => {
 			},
 		})
 
-		expect(wrapper.vm.showConfetti).toBe(true)
+		expect((wrapper.vm as unknown as ConfettiVm).showConfetti).toBe(true)
 	})
 
 	it('reads show_confetti_after_signing from initial state', async () => {
@@ -63,7 +69,7 @@ describe('Confetti', () => {
 			},
 		})
 
-		expect(wrapper.vm.showConfetti).toBe(true)
+		expect((wrapper.vm as unknown as ConfettiVm).showConfetti).toBe(true)
 	})
 
 	it('calls OCP.AppConfig.setValue with "1" when enabled', async () => {
@@ -79,10 +85,11 @@ describe('Confetti', () => {
 				},
 			},
 		})
+		const vm = wrapper.vm as unknown as ConfettiVm
 
-		wrapper.vm.showConfetti = true
-		await wrapper.vm.$nextTick()
-		wrapper.vm.saveShowConfetti()
+		vm.showConfetti = true
+		await vm.$nextTick()
+		vm.saveShowConfetti()
 
 		expect(setValueMock).toHaveBeenCalledWith('libresign', 'show_confetti_after_signing', '1')
 	})
@@ -103,10 +110,11 @@ describe('Confetti', () => {
 				},
 			},
 		})
+		const vm = wrapper.vm as unknown as ConfettiVm
 
-		wrapper.vm.showConfetti = false
-		await wrapper.vm.$nextTick()
-		wrapper.vm.saveShowConfetti()
+		vm.showConfetti = false
+		await vm.$nextTick()
+		vm.saveShowConfetti()
 
 		expect(setValueMock).toHaveBeenCalledWith('libresign', 'show_confetti_after_signing', '0')
 	})

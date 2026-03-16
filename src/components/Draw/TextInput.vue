@@ -48,28 +48,34 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
+import type { LibresignCapabilities } from '../../types/index'
 
 defineOptions({
 	name: 'TextInput',
 })
 
 const emit = defineEmits<{
-	(event: 'save', imageData: string | null): void
+	(event: 'save', imageData: string): void
 	(event: 'close'): void
 }>()
 
-const capabilities = getCapabilities()
-const canvasWidth = capabilities.libresign.config['sign-elements']['signature-width']
-const canvasHeight = capabilities.libresign.config['sign-elements']['signature-height']
+const capabilities = getCapabilities() as LibresignCapabilities
+const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
+	'signature-width': 0,
+	'signature-height': 0,
+}
+const canvasWidth = signElementsConfig['signature-width']
+const canvasHeight = signElementsConfig['signature-height']
 const value = ref('')
 const modal = ref(false)
-const imageData = ref<string | null>(null)
+const imageData = ref('')
 const scale = ref(1)
 const canvasWrapper = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
 const input = ref<{ focus: () => void } | null>(null)
 
-const isValid = computed(() => !!value.value)
+const normalizedValue = computed(() => value.value.trim())
+const isValid = computed(() => normalizedValue.value.length > 0)
 
 watch(value, (newValue) => {
 	const currentCanvas = canvas.value
@@ -142,6 +148,9 @@ function applyCanvasSize() {
 }
 
 function saveSignature() {
+	if (!imageData.value) {
+		return
+	}
 	handleModal(false)
 	emit('save', imageData.value)
 }
@@ -162,7 +171,7 @@ function clearCanvas() {
 		return
 	}
 	context.clearRect(0, 0, canvasWidth, canvasHeight)
-	imageData.value = null
+	imageData.value = ''
 }
 
 function handleModal(status: boolean) {
@@ -182,6 +191,9 @@ function stringToImage() {
 }
 
 function confirmSignature() {
+	if (!isValid.value || !canvas.value) {
+		return
+	}
 	stringToImage()
 	handleModal(true)
 }
@@ -211,6 +223,7 @@ defineExpose({
 	cancelConfirm,
 	stringToImage,
 	confirmSignature,
+	normalizedValue,
 })
 </script>
 

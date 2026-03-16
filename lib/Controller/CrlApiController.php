@@ -18,6 +18,10 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
 
+/**
+ * @psalm-import-type LibresignCrlListResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCrlRevokeResponse from \OCA\Libresign\ResponseDefinitions
+ */
 class CrlApiController extends AEnvironmentAwareController {
 	public function __construct(
 		string $appName,
@@ -42,7 +46,7 @@ class CrlApiController extends AEnvironmentAwareController {
 	 * @param string|null $revokedBy Filter by who revoked the certificate
 	 * @param string|null $sortBy Sort field (e.g., 'revoked_at', 'issued_at', 'serial_number')
 	 * @param string|null $sortOrder Sort order (ASC or DESC)
-	 * @return DataResponse<Http::STATUS_OK, array{data: array<string, mixed>, total: int, page: int, length: int}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignCrlListResponse, array{}>
 	 *
 	 * 200: CRL entries retrieved successfully
 	 */
@@ -87,7 +91,7 @@ class CrlApiController extends AEnvironmentAwareController {
 	 * @param string $serialNumber Certificate serial number to revoke
 	 * @param int|null $reasonCode Revocation reason code (0-10, see RFC 5280)
 	 * @param string|null $reasonText Optional text describing the reason
-	 * @return DataResponse<Http::STATUS_OK, array{success: bool, message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{success: bool, message: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{success: bool, message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignCrlRevokeResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignCrlRevokeResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignCrlRevokeResponse, array{}>
 	 *
 	 * 200: Certificate revoked successfully
 	 * 400: Invalid parameters

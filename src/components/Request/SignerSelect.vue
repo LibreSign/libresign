@@ -6,16 +6,18 @@
 	<div id="account-or-email">
 		<label for="account-or-email-input">{{ t('libresign', 'Search signer') }}</label>
 		<NcSelect ref="select"
-			v-model="selectedSigner"
+			:model-value="selectedSigner"
 			input-id="account-or-email-input"
 			class="account-or-email__input"
 			:loading="loading"
 			:filterable="false"
+			label="displayName"
+			:get-option-key="getOptionKey"
 			:aria-label-combobox="placeholder"
 			:placeholder="placeholder"
-			:user-select="true"
 			:options="options"
-			@search="asyncFind">
+			@search="asyncFind"
+			@update:modelValue="onSelectedSignerChange">
 			<template #option="slotProps">
 				<div class="account-or-email__option">
 					<NcAvatar :display-name="getOptionLabel(slotProps)"
@@ -48,7 +50,7 @@
 </template>
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import {
 	mdiAlertCircle,
 } from '@mdi/js'
@@ -65,6 +67,7 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
+import type { IdentifyAccountRecord } from '../../types'
 const iconMap = {
 	svgAccount,
 	svgEmail,
@@ -75,55 +78,41 @@ const iconMap = {
 	svgXmpp,
 }
 
-const apiIconToKey = {
-	'icon-user': 'svgAccount',
-	'icon-mail': 'svgEmail',
-	'icon-sms': 'svgSms',
-	'icon-whatsapp': 'svgWhatsapp',
-	'icon-signal': 'svgSignal',
-	'icon-telegram': 'svgTelegram',
-	'icon-xmpp': 'svgXmpp',
+type IconKey = keyof typeof iconMap
+type IconName = NonNullable<IdentifyAccountRecord['iconName']>
+type OptionSlotProps = {
+	option: IdentifyAccountRecord
 }
+type OptionPayload = IdentifyAccountRecord | OptionSlotProps | undefined
+
 defineOptions({
 	name: 'SignerSelect',
 })
 
-type SignerOption = {
-	id?: string
-	displayName?: string
-	subname?: string
-	label?: string
-	icon?: string
-	iconSvg?: string
-}
-
 const emit = defineEmits<{
-	(event: 'update:signer', signer: SignerOption | null): void
+	(event: 'update:signer', signer: IdentifyAccountRecord | null): void
 }>()
 
 const props = withDefaults(defineProps<{
-	signer?: Record<string, unknown>
 	method?: string
 	placeholder?: string
 }>(), {
-	signer: () => ({}),
 	method: 'all',
 	placeholder: t('libresign', 'Name'),
 })
 
 const select = ref<{ $el?: HTMLElement } | null>(null)
-const container = ref<HTMLElement | null>(null)
 const loading = ref(false)
-const options = ref<SignerOption[]>([])
-const selectedSigner = ref<SignerOption | null>(null)
+const options = ref<IdentifyAccountRecord[]>([])
+const selectedSigner = ref<IdentifyAccountRecord | null>(null)
 const haveError = ref(false)
-const intersectionObserver = ref<IntersectionObserver | null>(null)
 const activeRequestId = ref(0)
 
 const noResultText = computed(() => loading.value ? t('libresign', 'Searching …') : t('libresign', 'No signers.'))
 
 function handleMethodChange() {
 	options.value = []
+	selectedSigner.value = null
 	haveError.value = false
 	loading.value = false
 }
@@ -132,55 +121,73 @@ watch(() => props.method, () => {
 	handleMethodChange()
 })
 
-watch(selectedSigner, (selected) => {
-	haveError.value = selected === null
-	emit('update:signer', selected)
-})
-
-function injectIcons(items: SignerOption[]) {
+function injectIcons(items: IdentifyAccountRecord[]): IdentifyAccountRecord[] {
 	return items.map((item) => {
-		const { iconSvg: _iconSvg, ...safeItem } = item
-		const iconFromApi = item.icon ? iconMap[apiIconToKey[item.icon as keyof typeof apiIconToKey]] : undefined
-		const iconFromSvgKey = item.iconSvg ? iconMap[item.iconSvg as keyof typeof iconMap] : undefined
-		const icon = iconFromApi || iconFromSvgKey
+		const { iconName: _iconName, ...itemWithoutIconName } = item
+		const iconName = getIconName(item.iconName)
 		return {
-			...safeItem,
-			...(icon ? { iconSvg: icon } : {}),
-			label: item.label ?? item.displayName ?? item.id ?? item.subname ?? '',
-			displayName: item.displayName ?? '',
-			subname: item.subname ?? '',
+			...itemWithoutIconName,
+			...(iconName ? { iconName } : {}),
 		}
 	})
 }
 
-function getOption(slotProps?: { option?: SignerOption } | SignerOption) {
-	if ((slotProps as { option?: SignerOption })?.option) {
-		return (slotProps as { option: SignerOption }).option
-	}
-	if (slotProps && typeof slotProps === 'object') {
-		return slotProps as SignerOption
-	}
-	return {}
+function getOptionKey(option: IdentifyAccountRecord) {
+	return option.identify
 }
 
-function getOptionLabel(slotProps?: { option?: SignerOption } | SignerOption) {
-	const option = getOption(slotProps)
-	return option.displayName || option.label || option.id || option.subname || ''
+function onSelectedSignerChange(selected: IdentifyAccountRecord | null) {
+	selectedSigner.value = selected
+	haveError.value = selected === null
+	emit('update:signer', selected)
 }
 
-function getOptionSubname(slotProps?: { option?: SignerOption } | SignerOption) {
+function toIconKey(iconName?: string): IconKey | undefined {
+	if (typeof iconName !== 'string' || iconName.length === 0) {
+		return undefined
+	}
+
+	const iconKey = `svg${iconName.charAt(0).toUpperCase()}${iconName.slice(1)}` as IconKey
+	return iconKey in iconMap ? iconKey : undefined
+}
+
+function getIconName(iconName?: string): IconName | undefined {
+	return toIconKey(iconName) ? iconName as IconName : undefined
+}
+
+function isOptionSlotProps(slotProps: OptionPayload): slotProps is OptionSlotProps {
+	return typeof slotProps === 'object' && slotProps !== null && 'option' in slotProps
+}
+
+function getOption(slotProps?: OptionPayload): IdentifyAccountRecord | undefined {
+	if (isOptionSlotProps(slotProps)) {
+		return slotProps.option
+	}
+	if (typeof slotProps === 'object' && slotProps !== null && 'identify' in slotProps) {
+		return slotProps as IdentifyAccountRecord
+	}
+	return undefined
+}
+
+function getOptionLabel(slotProps?: OptionPayload) {
 	const option = getOption(slotProps)
-	if (!option.subname || option.subname === option.displayName) {
+	return option?.displayName || option?.identify || option?.subname || ''
+}
+
+function getOptionSubname(slotProps?: OptionPayload) {
+	const option = getOption(slotProps)
+	if (!option?.subname || option.subname === option.displayName) {
 		return ''
 	}
 	return option.subname
 }
 
-function getOptionIcon(slotProps?: { option?: SignerOption } | SignerOption) {
-	return getOption(slotProps).iconSvg || ''
+function getOptionIcon(slotProps?: OptionPayload) {
+	const iconKey = toIconKey(getOption(slotProps)?.iconName)
+	return iconKey ? iconMap[iconKey] : ''
 }
 
-async function _asyncFind(search: string, lookup = false) {
+async function _asyncFind(search: string) {
 	search = search.trim()
 	if (!search) {
 		options.value = []
@@ -200,8 +207,8 @@ async function _asyncFind(search: string, lookup = false) {
 		if (requestId !== activeRequestId.value) {
 			return
 		}
-		options.value = injectIcons(response.data.ocs.data)
-	} catch (error) {
+		options.value = injectIcons(response.data.ocs.data as IdentifyAccountRecord[])
+	} catch {
 		if (requestId === activeRequestId.value) {
 			haveError.value = true
 		}
@@ -212,8 +219,8 @@ async function _asyncFind(search: string, lookup = false) {
 	}
 }
 
-const asyncFind = debounce((search: string, lookup = false) => {
-	_asyncFind(search, lookup)
+const asyncFind = debounce((search: string) => {
+	_asyncFind(search)
 }, 500)
 
 function focusInput() {
@@ -226,32 +233,8 @@ function focusInput() {
 	})
 }
 
-function setupVisibilityObserver() {
-	if (typeof IntersectionObserver === 'undefined' || !container.value) {
-		return
-	}
-	intersectionObserver.value = new IntersectionObserver((entries) => {
-		entries.forEach((entry) => {
-			if (entry.isIntersecting) {
-				focusInput()
-			}
-		})
-	}, {
-		threshold: 0.1,
-	})
-	intersectionObserver.value.observe(container.value)
-}
-
 onMounted(() => {
-	if (Object.keys(props.signer).length > 0) {
-		selectedSigner.value = props.signer as SignerOption
-	}
-	setupVisibilityObserver()
 	focusInput()
-})
-
-onBeforeUnmount(() => {
-	intersectionObserver.value?.disconnect()
 })
 
 defineExpose({
@@ -263,6 +246,8 @@ defineExpose({
 	noResultText,
 	handleMethodChange,
 	injectIcons,
+	onSelectedSignerChange,
+	getOptionKey,
 	getOption,
 	getOptionLabel,
 	getOptionSubname,
@@ -270,7 +255,6 @@ defineExpose({
 	_asyncFind,
 	asyncFind,
 	focusInput,
-	setupVisibilityObserver,
 })
 </script>
 <style lang="scss" scoped>

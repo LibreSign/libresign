@@ -47,20 +47,17 @@ type Source = {
 	id?: number
 }
 
-type UserConfigStore = {
-	files_list_grid_view: boolean
-}
-
 const props = defineProps<{
 	source: Source
 }>()
 
-const userConfigStore = useUserConfigStore() as UserConfigStore
+const userConfigStore = useUserConfigStore()
 const backgroundFailed = ref(false)
 const cropPreviews = false
 
 const isFavorite = computed(() => props.source?.attributes?.favorite === 1)
 const isEnvelope = computed(() => props.source?.nodeType === 'envelope')
+const isGridView = computed(() => Boolean(userConfigStore.files_list_grid_view))
 
 const previewUrl = computed(() => {
 	if (backgroundFailed.value === true) {
@@ -83,10 +80,10 @@ const previewUrl = computed(() => {
 	}
 
 	const url = new URL(nextPreviewUrl)
-	url.searchParams.set('x', userConfigStore.files_list_grid_view ? '128' : '32')
-	url.searchParams.set('y', userConfigStore.files_list_grid_view ? '128' : '32')
+	url.searchParams.set('x', isGridView.value ? '128' : '32')
+	url.searchParams.set('y', isGridView.value ? '128' : '32')
 	url.searchParams.set('mimeFallback', 'true')
-	url.searchParams.set('a', cropPreviews === true ? '0' : '1')
+	url.searchParams.set('a', cropPreviews ? '0' : '1')
 	return url
 })
 

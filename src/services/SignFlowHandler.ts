@@ -8,12 +8,10 @@ import { REQUIREMENT_TO_MODAL } from '../helpers/ActionMapping.ts'
 interface SignMethodsStore {
 	showModal(modalCode: string): void
 	closeModal(modalCode: string): void
-	[key: string]: unknown
 }
 
 interface SignFlowConfig {
 	unmetRequirement?: string
-	[key: string]: unknown
 }
 
 export class SignFlowHandler {

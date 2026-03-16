@@ -13,9 +13,13 @@ import { generateOcsUrl } from '@nextcloud/router'
 import logger from '../helpers/logger'
 import { getTimePresetRange } from '../utils/timePresets.js'
 
+/**
+ * @typedef {{ id?: string, [key: string]: unknown }} FilterChip
+ */
+
 export const useFiltersStore = defineStore('filter', () => {
 	const initialFilters = loadState('libresign', 'filters', {})
-	const chips = ref({})
+	const chips = ref(/** @type {Record<string, FilterChip[]>} */ ({}))
 	const filter_modified = ref(initialFilters.files_list_filter_modified ?? '')
 	const filter_status = ref(initialFilters.files_list_filter_status ?? '')
 

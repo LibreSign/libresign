@@ -5,6 +5,7 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
 
 type EnvelopeFile = {
@@ -13,24 +14,31 @@ type EnvelopeFile = {
 	name?: string
 	nodeId?: number
 	uuid?: string
-	opened?: boolean
-	statusText?: string
 	signed?: string | null
 }
 
 type EnvelopeSigner = {
-	signed?: boolean | string | null
-	opened?: boolean
+	signed?: string
 	displayName?: string
 	email?: string
+	userId?: string
+	request_sign_date?: string
+	remote_address?: string
+	user_agent?: string
+	documentsSignedCount?: number
+	totalDocuments?: number
 }
 
 type EnvelopeDocument = {
+	uuid: string
 	name: string
-	status: string
+	nodeId: number
+	nodeType: 'envelope'
+	status: 0 | 1 | 2 | 3 | 4 | string
 	filesCount: number
 	files: EnvelopeFile[]
 	signers: EnvelopeSigner[]
+	[key: string]: unknown
 }
 
 type WrapperProps = Partial<{
@@ -42,6 +50,27 @@ type WrapperProps = Partial<{
 
 type EnvelopeValidationComponent = typeof import('../../../components/validation/EnvelopeValidation.vue').default
 type ViewerModule = typeof import('../../../utils/viewer.js')
+
+type EnvelopeValidationVm = {
+	isTouchDevice: boolean
+	documentStatus: string
+	$nextTick: () => Promise<void>
+	toggleDetail: (signerIndex: number) => void
+	toggleFileDetail: (fileIndex: number) => void
+	isSignerOpen: (signerIndex: number) => boolean
+	isFileOpen: (fileIndex: number) => boolean
+	getFileStatusText: (file: Partial<EnvelopeFile>) => string
+	getName: (signer: Partial<EnvelopeSigner>) => string
+	getSignerProgressText: (signer: Partial<EnvelopeSigner>) => string
+	dateFromSqlAnsi: (date: string) => string
+	viewFile: (file: Partial<EnvelopeFile>) => void
+}
+
+type EnvelopeValidationWrapper = VueWrapper<any> & {
+	vm: EnvelopeValidationVm
+	setProps: (props: WrapperProps) => Promise<void>
+	props: (key: 'document' | 'legalInformation' | 'documentValidMessage' | 'isAfterSigned') => unknown
+}
 
 const t: TranslationFunction = (_app, text, vars) => {
 	if (vars) {
@@ -94,23 +123,28 @@ beforeAll(async () => {
 })
 
 describe('EnvelopeValidation', () => {
-	let wrapper: ReturnType<typeof mount> | null
+	let wrapper: EnvelopeValidationWrapper | null
 
-	const createWrapper = (props: WrapperProps = {}) => {
+	const createWrapper = (props: WrapperProps = {}): EnvelopeValidationWrapper => {
+		const { document: documentOverrides, ...restProps } = props
+		const baseDocument: EnvelopeDocument = {
+			uuid: '550e8400-e29b-41d4-a716-446655440000',
+			name: 'Test Envelope',
+			nodeId: 123,
+			nodeType: 'envelope',
+			status: '3',
+			filesCount: 2,
+			files: [],
+			signers: [],
+		}
+		const document = { ...baseDocument, ...(documentOverrides ?? {}) } as EnvelopeDocument
 		return mount(EnvelopeValidation, {
 			props: {
-				document: {
-					name: 'Test Envelope',
-					status: '3',
-					filesCount: 2,
-					files: [],
-					signers: [],
-					...props.document,
-				},
 				legalInformation: '',
 				documentValidMessage: null,
 				isAfterSigned: false,
-				...props,
+				...restProps,
+				document: document as any,
 			},
 			global: {
 				stubs: {
@@ -131,7 +165,7 @@ describe('EnvelopeValidation', () => {
 					n,
 				},
 			},
-		})
+		}) as EnvelopeValidationWrapper
 	}
 
 	beforeEach(() => {
@@ -142,8 +176,8 @@ describe('EnvelopeValidation', () => {
 		vi.clearAllMocks()
 	})
 
-	describe('RULE: initializeDocument sets opened property for files', () => {
-		it('initializes all files with opened false', async () => {
+	describe('RULE: local file UI state is isolated from API payload', () => {
+		it('starts every file collapsed without mutating file objects', async () => {
 			const files: EnvelopeFile[] = [
 				{ id: 1, status: '3' },
 				{ id: 2, status: '0' },
@@ -152,11 +186,13 @@ describe('EnvelopeValidation', () => {
 				document: { files },
 			})
 
-			expect(files[0].opened).toBe(false)
-			expect(files[1].opened).toBe(false)
+			expect(wrapper.vm.isFileOpen(0)).toBe(false)
+			expect(wrapper.vm.isFileOpen(1)).toBe(false)
+			expect('opened' in files[0]).toBe(false)
+			expect('opened' in files[1]).toBe(false)
 		})
 
-		it('sets statusText for each file', async () => {
+		it('derives file status text without mutating file objects', async () => {
 			const files: EnvelopeFile[] = [
 				{ id: 1, status: '3' },
 				{ id: 2, status: '1' },
@@ -165,14 +201,18 @@ describe('EnvelopeValidation', () => {
 				document: { files },
 			})
 
-			expect(files[0].statusText).toBe('Signed')
-			expect(files[1].statusText).toBe('Pending')
+			expect(wrapper.vm.getFileStatusText(files[0])).toBe('Signed')
+			expect(wrapper.vm.getFileStatusText(files[1])).toBe('Pending')
+			expect('statusText' in files[0]).toBe(false)
+			expect('statusText' in files[1]).toBe(false)
 		})
 
-		it('reinitializes on watched document change', async () => {
+		it('resets local file state when document prop changes', async () => {
 			wrapper = createWrapper({
 				document: { files: [{ id: 1, status: '3' }] },
 			})
+			wrapper.vm.toggleFileDetail(0)
+			expect(wrapper.vm.isFileOpen(0)).toBe(true)
 
 			await wrapper.setProps({
 				document: {
@@ -183,47 +223,37 @@ describe('EnvelopeValidation', () => {
 				},
 			})
 
-			expect(wrapper.props('document').files[0].opened).toBe(false)
+			expect(wrapper.vm.isFileOpen(0)).toBe(false)
 		})
 	})
 
 	describe('RULE: toggleDetail toggles signer details', () => {
-		it('toggles opened state from false to true', () => {
-			wrapper = createWrapper()
-			const signer = { signed: true, opened: false }
+		it('tracks signer open state locally', () => {
+			const signer: EnvelopeSigner = { signed: '2024-06-01' }
+			wrapper = createWrapper({
+				document: { signers: [signer] },
+			})
 
-			wrapper.vm.toggleDetail(signer)
+			expect(wrapper.vm.isSignerOpen(0)).toBe(false)
+			wrapper.vm.toggleDetail(0)
 
-			expect(signer.opened).toBe(true)
-		})
-
-		it('toggles opened state from true to false', () => {
-			wrapper = createWrapper()
-			const signer = { signed: true, opened: true }
-
-			wrapper.vm.toggleDetail(signer)
-
-			expect(signer.opened).toBe(false)
+			expect(wrapper.vm.isSignerOpen(0)).toBe(true)
+			expect('opened' in signer).toBe(false)
 		})
 	})
 
 	describe('RULE: toggleFileDetail toggles file details', () => {
-		it('toggles file opened from false to true', () => {
-			wrapper = createWrapper()
-			const file = { opened: false }
+		it('tracks file open state locally', () => {
+			const file: EnvelopeFile = { id: 1, status: '3' }
+			wrapper = createWrapper({
+				document: { files: [file] },
+			})
 
-			wrapper.vm.toggleFileDetail(file)
+			expect(wrapper.vm.isFileOpen(0)).toBe(false)
+			wrapper.vm.toggleFileDetail(0)
 
-			expect(file.opened).toBe(true)
-		})
-
-		it('toggles file opened from true to false', () => {
-			wrapper = createWrapper()
-			const file = { opened: true }
-
-			wrapper.vm.toggleFileDetail(file)
-
-			expect(file.opened).toBe(false)
+			expect(wrapper.vm.isFileOpen(0)).toBe(true)
+			expect('opened' in file).toBe(false)
 		})
 	})
 
@@ -329,7 +359,7 @@ describe('EnvelopeValidation', () => {
 			})
 		})
 
-		it('handles file without nodeId', () => {
+		it('does not open viewer without nodeId', () => {
 			wrapper = createWrapper()
 
 			wrapper.vm.viewFile({
@@ -337,7 +367,7 @@ describe('EnvelopeValidation', () => {
 				name: 'Document.pdf',
 			})
 
-			expect(viewer.openDocument).toHaveBeenCalled()
+			expect(viewer.openDocument).not.toHaveBeenCalled()
 		})
 	})
 
@@ -359,36 +389,38 @@ describe('EnvelopeValidation', () => {
 		})
 	})
 
-	describe('RULE: created lifecycle initializes document', () => {
-		it('calls initializeDocument on created', () => {
+	describe('RULE: created lifecycle initializes local UI state', () => {
+		it('starts file details collapsed on created', () => {
 			const files: EnvelopeFile[] = [{ id: 1, status: '3' }]
 			wrapper = createWrapper({
 				document: { files },
 			})
 
-			expect(files[0].opened).toBe(false)
+			expect(wrapper.vm.isFileOpen(0)).toBe(false)
 		})
 	})
 
-	describe('RULE: documentStatus and initializeDocument together manage file state', () => {
+	describe('RULE: documentStatus and local UI state together manage file state', () => {
 		it('maintains file state across multiple toggles', () => {
-			const file: EnvelopeFile = { id: 1, status: '3', opened: false }
+			const file: EnvelopeFile = { id: 1, status: '3' }
 			wrapper = createWrapper({
 				document: { files: [file] },
 			})
 
-			wrapper.vm.toggleFileDetail(file)
-			expect(file.opened).toBe(true)
+			wrapper.vm.toggleFileDetail(0)
+			expect(wrapper.vm.isFileOpen(0)).toBe(true)
 
-			wrapper.vm.toggleFileDetail(file)
-			expect(file.opened).toBe(false)
+			wrapper.vm.toggleFileDetail(0)
+			expect(wrapper.vm.isFileOpen(0)).toBe(false)
 		})
 
 		it('reinitializes files when document prop changes', async () => {
-			const oldFile: EnvelopeFile = { id: 1, status: '3', opened: true }
+			const oldFile: EnvelopeFile = { id: 1, status: '3' }
 			wrapper = createWrapper({
 				document: { files: [oldFile] },
 			})
+			wrapper.vm.toggleFileDetail(0)
+			expect(wrapper.vm.isFileOpen(0)).toBe(true)
 
 			const newFile: EnvelopeFile = { id: 2, status: '1' }
 			await wrapper.setProps({
@@ -400,31 +432,33 @@ describe('EnvelopeValidation', () => {
 				},
 			})
 
-			expect(newFile.opened).toBe(false)
+			expect(wrapper.vm.isFileOpen(0)).toBe(false)
+			expect('opened' in newFile).toBe(false)
 		})
 	})
 
-	describe('RULE: signer details show only when opened', () => {
-		it('shows signer details when opened true', async () => {
-			const signer: EnvelopeSigner = { opened: true, signed: '2024-06-01' }
+	describe('RULE: signer details show only when local state is open', () => {
+		it('shows signer details when toggled open', async () => {
+			const signer: EnvelopeSigner = { signed: '2024-06-01' }
 			wrapper = createWrapper({
 				document: { signers: [signer] },
 			})
+			wrapper.vm.toggleDetail(0)
 
 			await wrapper.vm.$nextTick()
 
-			expect(signer.opened).toBe(true)
+			expect(wrapper.vm.isSignerOpen(0)).toBe(true)
 		})
 
-		it('hides signer details when opened false', async () => {
-			const signer: EnvelopeSigner = { opened: false, signed: null }
+		it('starts with signer details closed', async () => {
+			const signer: EnvelopeSigner = {}
 			wrapper = createWrapper({
 				document: { signers: [signer] },
 			})
 
 			await wrapper.vm.$nextTick()
 
-			expect(signer.opened).toBe(false)
+			expect(wrapper.vm.isSignerOpen(0)).toBe(false)
 		})
 	})
 
@@ -436,7 +470,7 @@ describe('EnvelopeValidation', () => {
 		})
 
 		it('renders actions slot when not touch device and file has nodeId', async () => {
-			const file: EnvelopeFile = { id: 1, nodeId: 123, opened: false, status: '3', name: 'test.pdf', statusText: 'Signed' }
+			const file: EnvelopeFile = { id: 1, nodeId: 123, status: '3', name: 'test.pdf' }
 			wrapper = createWrapper({
 				document: { files: [file] },
 			})

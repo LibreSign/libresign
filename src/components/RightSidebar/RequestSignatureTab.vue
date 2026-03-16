@@ -13,6 +13,9 @@
 		<NcNoteCard v-if="hasSignersWithDisabledMethods" type="warning">
 			{{ t('libresign', 'Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures.') }}
 		</NcNoteCard>
+		<NcNoteCard v-if="shouldLoadDetail && isLoadingFileDetail" type="info">
+			{{ t('libresign', 'Loading signer details...') }}
+		</NcNoteCard>
 		<NcButton v-if="filesStore.canAddSigner() && !isOriginalFileDeleted"
 			:variant="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
@@ -35,7 +38,8 @@
 			</template>
 			{{ t('libresign', 'View signing order') }}
 		</NcButton>
-		<Signers :event="isOriginalFileDeleted ? '' : 'libresign:edit-signer'"
+		<Signers v-if="!shouldLoadDetail || isCurrentFileDetailed"
+			:event="isOriginalFileDeleted ? '' : 'libresign:edit-signer'"
 			@signing-order-changed="debouncedSave">
 			<template #actions="{signer, closeActions}">
 				<template v-if="!isOriginalFileDeleted">
@@ -125,9 +129,9 @@
 		</NcFormBox>
 		<SigningProgress
 			v-if="showSigningProgress"
-			:status="signingProgressStatus"
+			:status="signingProgressStatus ?? FILE_STATUS.SIGNING_IN_PROGRESS"
 			:status-text="signingProgressStatusText"
-			:progress="signingProgress"
+			:progress="signingProgress ?? undefined"
 			:is-loading="hasLoading" />
 		<NcFormBox v-if="filesStore.canSign()" class="action-form-box">
 			<NcButton
@@ -237,7 +241,7 @@
 			:name="t('libresign', 'Signing order diagram')"
 			size="large"
 			@closing="showOrderDiagram = false">
-			<SigningOrderDiagram :signers="filesStore.getFile()?.signers || []"
+			<SigningOrderDiagram :signers="signingOrderDiagramSigners"
 				:sender-name="currentUserDisplayName" />
 			<template #actions>
 				<NcButton @click="showOrderDiagram = false">
@@ -281,6 +285,7 @@ import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
+import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 
@@ -308,6 +313,7 @@ import VisibleElements from '../Request/VisibleElements.vue'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
+import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
@@ -316,6 +322,46 @@ import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
+import type { components, operations } from '../../types/openapi/openapi'
+import type {
+	IdentifyMethodRecord,
+	IdentifyMethodSetting as IdentifyMethodConfig,
+	LibresignCapabilities as RequestSignatureTabCapabilities,
+	SignatureFlowMode,
+	SignatureFlowValue,
+} from '../../types/index'
+
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type EditableRequestFile = ReturnType<FilesStoreContract['getEditableFile']>
+type EditableRequestSigner = NonNullable<NonNullable<EditableRequestFile['signers']>[number]>
+
+type LoadedDocumentState = EditableRequestFile
+
+type IdentifySignerMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
+type IdentifySignerToEdit = {
+	localKey?: string
+	displayName?: string
+	description?: string
+	identifyMethods?: IdentifySignerMethod[]
+}
+type SigningOrderDiagramSigner = {
+	displayName?: string
+	signed?: boolean
+	signingOrder?: number
+}
+type PollingStatusData = {
+	status: number
+	statusText?: string
+	progress?: components['schemas']['ProgressPayload']
+}
+type RequestSignatureErrorData = operations['request_signature-request']['responses'][422]['content']['application/json']['ocs']['data']
+type UpdateSignatureErrorData = operations['request_signature-update-sign']['responses'][422]['content']['application/json']['ocs']['data']
+type DeleteRequestSignatureErrorData =
+	| operations['request_signature-delete-one-request-signature-using-file-id']['responses'][401]['content']['application/json']['ocs']['data']
+	| operations['request_signature-delete-one-request-signature-using-file-id']['responses'][422]['content']['application/json']['ocs']['data']
+type NotifySignerErrorData = operations['notify-signer']['responses'][401]['content']['application/json']['ocs']['data']
+type NotifySignerSuccess = operations['notify-signer']['responses'][200]['content']['application/json']
+type OcsErrorData = RequestSignatureErrorData | UpdateSignatureErrorData | DeleteRequestSignatureErrorData | NotifySignerErrorData
 
 defineOptions({
 	name: 'RequestSignatureTab',
@@ -330,23 +376,29 @@ const props = withDefaults(defineProps<{
 const filesStore = useFilesStore()
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
-const userConfigStore = useUserConfigStore()
+const userConfigStore = useUserConfigStore() as ReturnType<typeof useUserConfigStore> & {
+	files_list_signer_identify_tab?: string
+}
 const { normalizeSigningOrders, recalculateSigningOrders } = useSigningOrder()
+const capabilities = getCapabilities() as RequestSignatureTabCapabilities
+const EMPTY_DOCUMENT_STATE: LoadedDocumentState = {}
+const EMPTY_IDENTIFY_METHODS: IdentifyMethodConfig[] = []
 
 const hasLoading = ref(false)
-const signerToEdit = ref<Record<string, any>>({})
+const isLoadingFileDetail = ref(false)
+const signerToEdit = ref<IdentifySignerToEdit>({})
 const modalSrc = ref('')
-const documentData = ref<Record<string, any>>(loadState('libresign', 'file_info', {}))
-const methods = ref<any[]>(loadState('libresign', 'identify_methods', []))
+const documentData = ref<LoadedDocumentState>(loadState<LoadedDocumentState>('libresign', 'file_info', EMPTY_DOCUMENT_STATE))
+const methods = ref<IdentifyMethodConfig[]>(loadState<IdentifyMethodConfig[]>('libresign', 'identify_methods', EMPTY_IDENTIFY_METHODS))
 const showConfirmRequest = ref(false)
 const showConfirmRequestSigner = ref(false)
-const selectedSigner = ref<any | null>(null)
+const selectedSigner = ref<EditableRequestSigner | null>(null)
 const activeTab = ref('')
 const preserveOrder = ref(false)
 const showOrderDiagram = ref(false)
 const showEnvelopeFilesDialog = ref(false)
-const adminSignatureFlow = ref(loadState('libresign', 'signature_flow', 'none'))
-const signingProgress = ref<number | null>(null)
+const adminSignatureFlow = ref<SignatureFlowMode>(loadState<SignatureFlowMode>('libresign', 'signature_flow', 'none'))
+const signingProgress = ref<components['schemas']['ProgressPayload'] | null>(null)
 const signingProgressStatus = ref<number | null>(null)
 const signingProgressStatusText = ref('')
 const stopPollingFunction = ref<null | (() => void)>(null)
@@ -372,29 +424,120 @@ const signatureFlow = computed(() => {
 const isAdminFlowForced = computed(() => adminSignatureFlow.value && adminSignatureFlow.value !== 'none')
 const isOrderedNumeric = computed(() => signatureFlow.value === 'ordered_numeric')
 const hasSigners = computed(() => filesStore.hasSigners(filesStore.getFile()))
-const totalSigners = computed(() => filesStore.getFile()?.signers?.length || 0)
+const totalSigners = computed(() => Number(filesStore.getFile()?.signersCount || filesStore.getFile()?.signers?.length || 0))
 const isOriginalFileDeleted = computed(() => filesStore.isOriginalFileDeleted())
-const showSigningOrderOptions = computed(() => !isOriginalFileDeleted.value && hasSigners.value && filesStore.canSave() && !isAdminFlowForced.value)
-const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && totalSigners.value > 1 && filesStore.canSave() && !isAdminFlowForced.value)
-const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isOrderedNumeric.value && totalSigners.value > 1 && hasSigners.value)
+const currentFile = computed<EditableRequestFile | null>(() => (filesStore.getFile() as EditableRequestFile | null) ?? null)
+const isCurrentFileDetailed = computed(() => currentFile.value?.detailsLoaded === true)
+const shouldLoadDetail = computed(() => totalSigners.value > 0)
+const showSigningOrderOptions = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && hasSigners.value && filesStore.canSave() && !isAdminFlowForced.value)
+const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && totalSigners.value > 1 && filesStore.canSave() && !isAdminFlowForced.value)
+const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && totalSigners.value > 1 && hasSigners.value)
 const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && totalSigners.value > 1)
 const currentUserDisplayName = computed(() => OC.getCurrentUser()?.displayName || '')
 const showDocMdpWarning = computed(() => filesStore.isDocMdpNoChangesAllowed() && !filesStore.canAddSigner())
-const fileName = computed(() => filesStore.getFile()?.name ?? '')
+const fileName = computed(() => filesStore.getSelectedFileView()?.name ?? '')
 const isEnvelope = computed(() => filesStore.getFile()?.nodeType === 'envelope')
 const envelopeFilesCount = computed(() => filesStore.getFile()?.filesCount || 0)
 const size = computed(() => window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal')
 const modalTitle = computed(() => Object.keys(signerToEdit.value).length > 0 ? t('libresign', 'Edit signer') : t('libresign', 'Add new signer'))
 const showSigningProgress = computed(() => signingProgressStatus.value === FILE_STATUS.SIGNING_IN_PROGRESS)
+const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
+	const signers = filesStore.getFile()?.signers || []
+	return signers.map((signer: EditableRequestSigner) => ({
+		displayName: signer.displayName,
+		signed: isSignerSigned(signer),
+		signingOrder: signer.signingOrder,
+	}))
+})
 
-function isSignerSigned(signer: any) {
+function normalizeSignatureFlow(flow: unknown): SignatureFlowValue | null {
+	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric' || flow === 0 || flow === 1 || flow === 2) {
+		return flow
+	}
+	return null
+}
+
+function getSignerMethod(signer: { identifyMethods?: Array<Pick<IdentifyMethodRecord, 'method'>> }): string | undefined {
+	return signer.identifyMethods?.[0]?.method
+}
+
+function toIdentifySignerToEdit(signer: EditableRequestSigner): IdentifySignerToEdit {
+	const identifyMethods = signer.identifyMethods?.map((method: IdentifyMethodRecord) => ({
+		method: method.method,
+		value: method.value ?? '',
+	}))
+
+	return {
+		localKey: signer.localKey,
+		displayName: signer.displayName,
+		description: signer.description ?? undefined,
+		...(identifyMethods?.length ? { identifyMethods } : {}),
+	}
+}
+
+function getMethodConfig(methodName: string | undefined): IdentifyMethodConfig | undefined {
+	if (!methodName) {
+		return undefined
+	}
+	return methods.value.find(method => method.name === methodName)
+}
+
+function getOcsErrorData(error: unknown): OcsErrorData | null {
+	if (typeof error !== 'object' || error === null || !('response' in error)) {
+		return null
+	}
+
+	const response = error.response
+	if (typeof response !== 'object' || response === null || !('data' in response)) {
+		return null
+	}
+
+	const data = response.data
+	if (typeof data !== 'object' || data === null || !('ocs' in data)) {
+		return null
+	}
+
+	const ocs = data.ocs
+	if (typeof ocs !== 'object' || ocs === null || !('data' in ocs)) {
+		return null
+	}
+
+	return ocs.data as OcsErrorData
+}
+
+function showRequestError(error: unknown, fallbackMessage: string): void {
+	const data = getOcsErrorData(error)
+	if (!data) {
+		showError(fallbackMessage)
+		return
+	}
+
+	if ('message' in data && typeof data.message === 'string' && data.message.length > 0) {
+		showError(data.message)
+		return
+	}
+
+	if ('messages' in data && Array.isArray(data.messages) && data.messages.length > 0) {
+		data.messages.forEach(currentMessage => showError(currentMessage.message))
+		return
+	}
+
+	if ('errors' in data && Array.isArray(data.errors) && data.errors.length > 0) {
+		data.errors.forEach(currentError => showError(currentError.message))
+		return
+	}
+
+	showError(fallbackMessage)
+}
+
+function isSignerSigned(signer: Partial<EditableRequestSigner>) {
 	if (Array.isArray(signer?.signed)) {
 		return signer.signed.length > 0
 	}
 	return !!signer?.signed
 }
 
-const canEditSigningOrder = computed(() => (signer: any) => {
+const canEditSigningOrder = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
 		return false
 	}
@@ -402,20 +545,17 @@ const canEditSigningOrder = computed(() => (signer: any) => {
 	return isOrderedNumeric.value && totalSigners.value >= minSigners && filesStore.canSave() && !isSignerSigned(signer)
 })
 
-const canDelete = computed(() => (signer: any) => {
+const canDelete = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
 		return false
 	}
 	return filesStore.canSave() && !isSignerSigned(signer)
 })
 
-function canSignerActInOrder(signer: any) {
-	const method = signer.identifyMethods?.[0]?.method
-	if (method) {
-		const methodConfig = methods.value.find(m => m.name === method)
-		if (!methodConfig?.enabled) {
+function canSignerActInOrder(signer: Partial<EditableRequestSigner>) {
+	const methodConfig = getMethodConfig(getSignerMethod(signer))
+	if (methodConfig && !methodConfig.enabled) {
 			return false
-		}
 	}
 
 	if (!isOrderedNumeric.value) {
@@ -425,7 +565,7 @@ function canSignerActInOrder(signer: any) {
 	const file = filesStore.getFile()
 	const signerOrder = signer.signingOrder || 1
 	const signers = Array.isArray(file?.signers) ? file.signers : []
-	const hasPendingLowerOrder = signers.some((currentSigner: any) => {
+	const hasPendingLowerOrder = signers.some((currentSigner: EditableRequestSigner) => {
 		const otherOrder = currentSigner.signingOrder || 1
 		return otherOrder < signerOrder && !isSignerSigned(currentSigner)
 	})
@@ -433,7 +573,7 @@ function canSignerActInOrder(signer: any) {
 	return !hasPendingLowerOrder
 }
 
-const canCustomizeMessage = computed(() => (signer: any) => {
+const canCustomizeMessage = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
 		return false
 	}
@@ -441,7 +581,7 @@ const canCustomizeMessage = computed(() => (signer: any) => {
 		return false
 	}
 
-	const method = signer.identifyMethods?.[0]?.method
+	const method = getSignerMethod(signer)
 	if (method === 'account' && !signer.acceptsEmailNotifications) {
 		return false
 	}
@@ -453,7 +593,7 @@ const canCustomizeMessage = computed(() => (signer: any) => {
 	return !!method
 })
 
-const canRequestSignature = computed(() => (signer: any) => {
+const canRequestSignature = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
 		return false
 	}
@@ -470,7 +610,7 @@ const canRequestSignature = computed(() => (signer: any) => {
 	return canSignerActInOrder(signer)
 })
 
-const canSendReminder = computed(() => (signer: any) => {
+const canSendReminder = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
 		return false
 	}
@@ -493,39 +633,42 @@ const hasSignersWithDisabledMethods = computed(() => {
 		return false
 	}
 
-	return file.signers.some((signer: any) => {
+	return file.signers.some((signer: EditableRequestSigner) => {
 		if (isSignerSigned(signer)) {
 			return false
 		}
-		const method = signer.identifyMethods?.[0]?.method
+		const method = getSignerMethod(signer)
 		if (!method) {
 			return false
 		}
-		const methodConfig = methods.value.find(m => m.name === method)
+		const methodConfig = getMethodConfig(method)
 		return !methodConfig?.enabled
 	})
 })
 
-function hasAnyDraftSigner(file: any) {
-	const signers = Array.isArray(file?.signers) ? file.signers : []
-	return signers.some((signer: any) => signer.status === SIGN_REQUEST_STATUS.DRAFT)
+function hasAnyDraftSigner(file: EditableRequestFile | null | undefined) {
+	const fileSigners = file?.signers
+	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
+	return signers.some((signer: EditableRequestSigner) => signer.status === SIGN_REQUEST_STATUS.DRAFT)
 }
 
-function getCurrentSigningOrder(signersNotSigned: any[]) {
+function getCurrentSigningOrder(signersNotSigned: EditableRequestSigner[]) {
 	return Math.min(...signersNotSigned.map(s => s.signingOrder || 1))
 }
 
-function hasOrderDraftSigners(file: any, order: number) {
-	const signers = Array.isArray(file?.signers) ? file.signers : []
-	return signers.some((signer: any) => {
+function hasOrderDraftSigners(file: EditableRequestFile | null | undefined, order: number) {
+	const fileSigners = file?.signers
+	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
+	return signers.some((signer: EditableRequestSigner) => {
 		const signerOrder = signer.signingOrder || 1
 		return signerOrder === order && signer.status === SIGN_REQUEST_STATUS.DRAFT
 	})
 }
 
-function hasSequentialDraftSigners(file: any) {
-	const signers = Array.isArray(file?.signers) ? file.signers : []
-	const signersNotSigned = signers.filter((signer: any) => !isSignerSigned(signer))
+function hasSequentialDraftSigners(file: EditableRequestFile | null | undefined) {
+	const fileSigners = file?.signers
+	const signers: EditableRequestSigner[] = Array.isArray(fileSigners) ? fileSigners : []
+	const signersNotSigned = signers.filter((signer: EditableRequestSigner) => !isSignerSigned(signer))
 	if (signersNotSigned.length === 0) {
 		return false
 	}
@@ -535,8 +678,8 @@ function hasSequentialDraftSigners(file: any) {
 }
 
 const hasDraftSigners = computed(() => {
-	const file = filesStore.getFile()
-	if (!file?.signers) {
+	const file = filesStore.getEditableFile()
+	if (!isCurrentFileDetailed.value || !file?.signers) {
 		return false
 	}
 
@@ -544,6 +687,9 @@ const hasDraftSigners = computed(() => {
 })
 
 const showSaveButton = computed(() => {
+	if (shouldLoadDetail.value && !isCurrentFileDetailed.value) {
+		return false
+	}
 	if (isOriginalFileDeleted.value || !filesStore.canSave() || !isSignElementsAvailable()) {
 		return false
 	}
@@ -558,6 +704,9 @@ const showSaveButton = computed(() => {
 })
 
 const showRequestButton = computed(() => {
+	if (shouldLoadDetail.value && !isCurrentFileDetailed.value) {
+		return false
+	}
 	if (isOriginalFileDeleted.value || !filesStore.canSave() || hasSignersWithDisabledMethods.value) {
 		return false
 	}
@@ -566,8 +715,8 @@ const showRequestButton = computed(() => {
 
 const enabledMethods = computed(() => {
 	if (Object.keys(signerToEdit.value).length > 0 && signerToEdit.value.identifyMethods?.length) {
-		const signerMethod = signerToEdit.value.identifyMethods[0].method
-		const signerMethodConfig = methods.value.find(m => m.name === signerMethod)
+		const signerMethod = getSignerMethod(signerToEdit.value)
+		const signerMethodConfig = getMethodConfig(signerMethod)
 		if (signerMethodConfig) {
 			return [signerMethodConfig]
 		}
@@ -577,8 +726,8 @@ const enabledMethods = computed(() => {
 
 const isSignerMethodDisabled = computed(() => {
 	if (Object.keys(signerToEdit.value).length > 0 && signerToEdit.value.identifyMethods?.length) {
-		const signerMethod = signerToEdit.value.identifyMethods[0].method
-		const methodConfig = methods.value.find(m => m.name === signerMethod)
+		const signerMethod = getSignerMethod(signerToEdit.value)
+		const methodConfig = getMethodConfig(signerMethod)
 		return !methodConfig?.enabled
 	}
 	return false
@@ -586,8 +735,8 @@ const isSignerMethodDisabled = computed(() => {
 
 const disabledMethodName = computed(() => {
 	if (isSignerMethodDisabled.value && signerToEdit.value.identifyMethods?.length) {
-		const signerMethod = signerToEdit.value.identifyMethods[0].method
-		const methodConfig = methods.value.find(m => m.name === signerMethod)
+		const signerMethod = getSignerMethod(signerToEdit.value)
+		const methodConfig = getMethodConfig(signerMethod)
 		return methodConfig?.friendly_name || signerMethod
 	}
 	return ''
@@ -597,16 +746,13 @@ const debouncedSave = debounce(async () => {
 	try {
 		const file = filesStore.getFile()
 		const signers = isOrderedNumeric.value ? file?.signers : null
+		const signatureFlow = normalizeSignatureFlow(file?.signatureFlow)
 		await filesStore.saveOrUpdateSignatureRequest({
 			signers,
-			signatureFlow: file?.signatureFlow,
+			signatureFlow,
 		})
-	} catch (error: any) {
-		if (error.response?.data?.ocs?.data?.message) {
-			showError(error.response.data.ocs.data.message)
-		} else if (error.response?.data?.ocs?.data?.errors) {
-			error.response.data.ocs.data.errors.forEach((currentError: any) => showError(currentError.message))
-		}
+	} catch (error: unknown) {
+		showRequestError(error, t('libresign', 'Failed to save signature request'))
 	}
 }, 1000)
 
@@ -616,13 +762,13 @@ const debouncedTabChange = debounce((tabId: string) => {
 
 function onPreserveOrderChange(value: boolean) {
 	preserveOrder.value = value
-	const file = filesStore.getFile()
+	const file = filesStore.getEditableFile()
 
 	if (value) {
 		if (file?.signers) {
-			const orders = file.signers.map((signer: any) => signer.signingOrder || 0)
+			const orders = file.signers.map((signer: EditableRequestSigner) => signer.signingOrder || 0)
 			const hasDuplicateOrders = orders.length !== new Set(orders).size
-			file.signers.forEach((signer: any, index: number) => {
+			file.signers.forEach((signer: EditableRequestSigner, index: number) => {
 				if (!signer.signingOrder || hasDuplicateOrders) {
 					signer.signingOrder = index + 1
 				}
@@ -633,7 +779,7 @@ function onPreserveOrderChange(value: boolean) {
 		}
 	} else if (!isAdminFlowForced.value) {
 		if (file?.signers) {
-			file.signers.forEach((signer: any) => {
+			file.signers.forEach((signer: EditableRequestSigner) => {
 				if (!isSignerSigned(signer)) {
 					signer.signingOrder = 1
 				}
@@ -655,7 +801,24 @@ function syncPreserveOrderWithFile() {
 	}
 
 	const flow = file.signatureFlow
-	preserveOrder.value = (flow === 'ordered_numeric' || flow === 2) && !isAdminFlowForced.value
+	const normalizedFlow = normalizeSignatureFlow(flow)
+	preserveOrder.value = (normalizedFlow === 'ordered_numeric' || normalizedFlow === 2) && !isAdminFlowForced.value
+}
+
+async function ensureCurrentFileDetail(force = false) {
+	const file = currentFile.value
+	if (typeof file?.id !== 'number' || (!force && (!shouldLoadDetail.value || isCurrentFileDetailed.value))) {
+		return
+	}
+
+	isLoadingFileDetail.value = true
+	try {
+		await filesStore.fetchFileDetail({ fileId: file.id, force })
+	} catch (error: unknown) {
+		showRequestError(error, t('libresign', 'Failed to load signer details'))
+	} finally {
+		isLoadingFileDetail.value = false
+	}
 }
 
 function getSvgIcon(name: string) {
@@ -672,7 +835,7 @@ function getSvgIcon(name: string) {
 }
 
 function isSignElementsAvailable() {
-	return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
+	return capabilities.libresign?.config['sign-elements']['is-available'] === true
 }
 
 function closeModal() {
@@ -686,12 +849,12 @@ function getValidationFileUuid() {
 		return file.uuid
 	}
 
-	const signer = file?.signers?.find((row: any) => row.me) || file?.signers?.[0] || {}
+	const signer = file?.signers?.find((row: EditableRequestSigner) => row.me) || file?.signers?.[0]
 	if (signer?.sign_uuid) {
 		return signer.sign_uuid
 	}
 
-	const loadedUuid = loadState('libresign', 'sign_request_uuid', null)
+	const loadedUuid = loadState<string | null>('libresign', 'sign_request_uuid', null)
 	if (loadedUuid) {
 		return loadedUuid
 	}
@@ -726,17 +889,17 @@ function addSigner() {
 	filesStore.enableIdentifySigner()
 }
 
-function editSigner(signer: any) {
-	signerToEdit.value = signer
-	if (signer.identifyMethods?.length) {
-		const signerMethod = signer.identifyMethods[0].method
+function editSigner(signer: EditableRequestSigner) {
+	signerToEdit.value = toIdentifySignerToEdit(signer)
+	const signerMethod = getSignerMethod(signer)
+	if (signerMethod) {
 		activeTab.value = `tab-${signerMethod}`
 	}
 	filesStore.enableIdentifySigner()
 }
 
-function customizeMessage(signer: any) {
-	signerToEdit.value = signer
+function customizeMessage(signer: EditableRequestSigner) {
+	signerToEdit.value = toIdentifySignerToEdit(signer)
 	filesStore.enableIdentifySigner()
 }
 
@@ -747,20 +910,30 @@ function onTabChange(tabId: string) {
 	}
 }
 
-function updateSigningOrder(signer: any, value: string) {
+function updateSigningOrder(signer: EditableRequestSigner, value: string) {
 	const order = parseInt(value, 10)
-	const file = filesStore.getFile()
+	const file = filesStore.getEditableFile()
 	if (isNaN(order)) {
 		return
 	}
 
-	const currentIndex = file.signers.findIndex((currentSigner: any) => currentSigner.identify === signer.identify)
+	const signerLocalKey = signer.localKey
+	const currentIndex = file.signers?.findIndex((currentSigner: EditableRequestSigner) => currentSigner.localKey === signerLocalKey) ?? -1
 	if (currentIndex === -1) {
 		return
 	}
 
-	file.signers[currentIndex].signingOrder = order
-	file.signers = [...file.signers].sort((left: any, right: any) => {
+	if (!file.signers) {
+		return
+	}
+
+	const currentSigner = file.signers[currentIndex]
+	if (!currentSigner) {
+		return
+	}
+
+	currentSigner.signingOrder = order
+	file.signers = [...file.signers].sort((left: EditableRequestSigner, right: EditableRequestSigner) => {
 		const orderLeft = left.signingOrder || 999
 		const orderRight = right.signingOrder || 999
 		if (orderLeft === orderRight) {
@@ -770,57 +943,85 @@ function updateSigningOrder(signer: any, value: string) {
 	})
 }
 
-function confirmSigningOrder(signer: any) {
-	const file = filesStore.getFile()
-	const currentIndex = file.signers.findIndex((currentSigner: any) => currentSigner.identify === signer.identify)
+function confirmSigningOrder(signer: EditableRequestSigner) {
+	const file = filesStore.getEditableFile()
+	const signerLocalKey = signer.localKey
+	const currentIndex = file.signers?.findIndex((currentSigner: EditableRequestSigner) => currentSigner.localKey === signerLocalKey) ?? -1
 	if (currentIndex === -1) {
 		return
 	}
+	if (!file.signers) {
+		return
+	}
 
-	const order = file.signers[currentIndex].signingOrder
+	const currentSigner = file.signers[currentIndex]
+	if (!currentSigner) {
+		return
+	}
+
+	const order = currentSigner.signingOrder
 	const oldOrder = signer.signingOrder
+	if (order === undefined || oldOrder === undefined) {
+		return
+	}
 
 	for (let index = 0; index < file.signers.length; index++) {
 		if (index === currentIndex) continue
-		const currentItemOrder = file.signers[index].signingOrder
+		const currentItem = file.signers[index]
+		const currentItemOrder = currentItem?.signingOrder
+		if (!currentItem || currentItemOrder === undefined) {
+			continue
+		}
 		if (order < oldOrder) {
 			if (currentItemOrder >= order && currentItemOrder < oldOrder) {
-				file.signers[index].signingOrder = currentItemOrder + 1
+				currentItem.signingOrder = currentItemOrder + 1
 			}
 		} else if (order > oldOrder) {
 			if (currentItemOrder > oldOrder && currentItemOrder <= order) {
-				file.signers[index].signingOrder = currentItemOrder - 1
+				currentItem.signingOrder = currentItemOrder - 1
 			}
 		}
 	}
 
-	const sortedSigners = [...file.signers].sort((left: any, right: any) => {
+	const sortedSigners = [...file.signers].sort((left: EditableRequestSigner, right: EditableRequestSigner) => {
 		const orderLeft = left.signingOrder || 999
 		const orderRight = right.signingOrder || 999
 		return orderLeft - orderRight
 	})
 
-	normalizeSigningOrders(sortedSigners)
+	if (sortedSigners.every(currentSigner => typeof currentSigner.signingOrder === 'number')) {
+		normalizeSigningOrders(sortedSigners as Array<{ signingOrder: number }>)
+	}
 	file.signers = sortedSigners
 	debouncedSave()
 }
 
-async function sendNotify(signer: any) {
+async function sendNotify(signer: EditableRequestSigner) {
+	if (!signer.signRequestId) {
+		showError(t('libresign', 'Signer request not found'))
+		return
+	}
+	const file = filesStore.getEditableFile()
+	if (!file?.id) {
+		showError(t('libresign', 'Document not found'))
+		return
+	}
+
 	const body = {
-		fileId: filesStore.getFile().id,
+		fileId: file.id,
 		signRequestId: signer.signRequestId,
 	}
 
 	await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signer'), body)
-		.then(({ data }) => {
+		.then(({ data }: { data: NotifySignerSuccess }) => {
 			showSuccess(t('libresign', data.ocs.data.message))
 		})
-		.catch(({ response }) => {
-			showError(response.data.ocs.data.message)
+		.catch((error: unknown) => {
+			showRequestError(error, t('libresign', 'Failed to send reminder'))
 		})
 }
 
-async function requestSignatureForSigner(signer: any) {
+async function requestSignatureForSigner(signer: EditableRequestSigner) {
 	selectedSigner.value = signer
 	showConfirmRequestSigner.value = true
 }
@@ -832,35 +1033,41 @@ async function confirmRequestSigner() {
 
 	hasLoading.value = true
 	try {
-		const file = filesStore.getFile()
-		const signers = file.signers.map((signer: any) => {
-			if (signer.signRequestId === selectedSigner.value.signRequestId) {
-				return { ...signer, status: 1 }
+		const selectedSignRequestId = selectedSigner.value.signRequestId
+		if (!selectedSignRequestId) {
+			showError(t('libresign', 'Signer request not found'))
+			return
+		}
+		const file = filesStore.getEditableFile()
+		const signers = (file.signers || []).map((signer: EditableRequestSigner) => {
+			if (signer.signRequestId === selectedSignRequestId) {
+				return {
+					...signer,
+					status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+					statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.ABLE_TO_SIGN),
+				}
 			}
 			return signer
 		})
-		await filesStore.saveOrUpdateSignatureRequest({ signers, status: 1 })
+		await filesStore.saveOrUpdateSignatureRequest({ signers: signers as never, status: 1 })
 		showSuccess(t('libresign', 'Signature requested'))
 		showConfirmRequestSigner.value = false
 		selectedSigner.value = null
-	} catch (error: any) {
-		if (error.response?.data?.ocs?.data?.message) {
-			showError(error.response.data.ocs.data.message)
-		} else if (error.response?.data?.ocs?.data?.errors) {
-			error.response.data.ocs.data.errors.forEach((currentError: any) => showError(currentError.message))
-		}
+	} catch (error: unknown) {
+		showRequestError(error, t('libresign', 'Failed to request signature'))
 	}
 	hasLoading.value = false
 }
 
 async function sign() {
+	await ensureCurrentFileDetail()
 	const file = filesStore.getFile()
 	if (file?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
 		validationFile()
 		return
 	}
 
-	const uuid = file.signUuid
+	const uuid = 'signUuid' in file ? file.signUuid : null
 	if (props.useModal) {
 		const absoluteUrl = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid })
 		const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
@@ -872,16 +1079,13 @@ async function sign() {
 }
 
 async function save() {
+	await ensureCurrentFileDetail()
 	hasLoading.value = true
 	try {
 		await filesStore.saveOrUpdateSignatureRequest({})
-		emit('libresign:show-visible-elements')
-	} catch (error: any) {
-		if (error.response?.data?.ocs?.data?.message) {
-			showError(error.response.data.ocs.data.message)
-		} else if (error.response?.data?.ocs?.data?.errors) {
-			error.response.data.ocs.data.errors.forEach((currentError: any) => showError(currentError.message))
-		}
+		emit('libresign:show-visible-elements', new CustomEvent('libresign:show-visible-elements'))
+	} catch (error: unknown) {
+		showRequestError(error, t('libresign', 'Failed to save signature request'))
 	}
 	hasLoading.value = false
 }
@@ -891,17 +1095,14 @@ async function request() {
 }
 
 async function confirmRequest() {
+	await ensureCurrentFileDetail()
 	hasLoading.value = true
 	try {
 		const response = await filesStore.saveOrUpdateSignatureRequest({ status: 1 })
-		showSuccess(t('libresign', response.message))
+		showSuccess(t('libresign', response.message || 'Signature requested'))
 		showConfirmRequest.value = false
-	} catch (error: any) {
-		if (error.response?.data?.ocs?.data?.message) {
-			showError(error.response.data.ocs.data.message)
-		} else if (error.response?.data?.ocs?.data?.errors) {
-			error.response.data.ocs.data.errors.forEach((currentError: any) => showError(currentError.message))
-		}
+	} catch (error: unknown) {
+		showRequestError(error, t('libresign', 'Failed to request signatures'))
 	}
 	hasLoading.value = false
 }
@@ -910,18 +1111,38 @@ async function openManageFiles() {
 	hasLoading.value = true
 	const response = await filesStore.saveOrUpdateSignatureRequest({})
 	hasLoading.value = false
-	if (response?.success === false && response?.message) {
+	if (response && 'success' in response && response.success === false && response.message) {
 		showError(response.message)
 		return
 	}
 	showEnvelopeFilesDialog.value = true
 }
 
+function getCurrentFileUrl(file: { file?: string | { url?: string } | null, uuid?: string | null } | null | undefined): string | null {
+	if (typeof file?.file === 'string') {
+		return file.file
+	}
+
+	if (file?.file && typeof file.file === 'object' && typeof file.file.url === 'string') {
+		return file.file.url
+	}
+
+	if (file?.uuid) {
+		return generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
+	}
+
+	return null
+}
+
 function openFile() {
 	const file = filesStore.getFile()
-	const fileUrl = documentData.value?.files?.[0]?.file || (file?.uuid ? generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid }) : null)
+	const fileUrl = getCurrentFileUrl(file)
 	if (!fileUrl) {
 		showError(t('libresign', 'Document URL not found'))
+		return
+	}
+	if (typeof file?.name !== 'string' || typeof file?.nodeId !== 'number') {
+		showError(t('libresign', 'Document not found'))
 		return
 	}
 
@@ -934,30 +1155,32 @@ function openFile() {
 
 function startSigningProgressPolling() {
 	const file = filesStore.getFile()
-	if (!file?.id) {
+	if (typeof file?.id !== 'number') {
 		return
 	}
 
-	signingProgressStatus.value = file.status
+	signingProgressStatus.value = file.status === undefined || file.status === null
+		? null
+		: Number(file.status)
 	signingProgressStatusText.value = file.statusText || ''
 	signingProgress.value = null
 
 	stopPollingFunction.value = startLongPolling(
 		file.id,
-		file.status,
-		(data: any) => {
+		Number(file.status ?? 0),
+		(data: PollingStatusData) => {
 			signingProgressStatus.value = data.status
-			signingProgressStatusText.value = data.statusText
-			signingProgress.value = data.progress
+			signingProgressStatusText.value = data.statusText || ''
+			signingProgress.value = data.progress || null
 
-			const currentFile = filesStore.getFile()
+			const currentFile = filesStore.getEditableFile()
 			if (currentFile) {
 				currentFile.status = data.status
-				currentFile.statusText = data.statusText
+				currentFile.statusText = data.statusText || currentFile.statusText
 			}
 		},
 		() => !filesStore.getFile() || filesStore.getFile().id !== file.id,
-		(error: any) => {
+		(error: unknown) => {
 			console.error('Error during signing progress polling:', error)
 			showError(t('libresign', 'Error monitoring signing progress'))
 		},
@@ -977,10 +1200,15 @@ function stopSigningProgressPolling() {
 watch(() => filesStore.selectedFileId, (newFileId) => {
 	if (newFileId) {
 		syncPreserveOrderWithFile()
+		void ensureCurrentFileDetail()
 	}
 }, { immediate: true })
 
-watch(() => filesStore.currentFile?.status, (newStatus) => {
+const handleEditSigner = ((event: NextcloudEvent) => {
+	editSigner((event as CustomEvent<EditableRequestSigner>).detail)
+}) as EventHandler<NextcloudEvent>
+
+watch(() => currentFile.value?.status, (newStatus) => {
 	if (newStatus === FILE_STATUS.SIGNING_IN_PROGRESS) {
 		startSigningProgressPolling()
 	} else if (stopPollingFunction.value) {
@@ -989,14 +1217,15 @@ watch(() => filesStore.currentFile?.status, (newStatus) => {
 })
 
 onMounted(() => {
-	subscribe('libresign:edit-signer', editSigner)
+	subscribe('libresign:edit-signer', handleEditSigner)
 	filesStore.disableIdentifySigner()
 	activeTab.value = userConfigStore.files_list_signer_identify_tab || ''
 	syncPreserveOrderWithFile()
+	void ensureCurrentFileDetail()
 })
 
 onBeforeUnmount(() => {
-	unsubscribe('libresign:edit-signer')
+	unsubscribe('libresign:edit-signer', handleEditSigner)
 	if (stopPollingFunction.value) {
 		stopSigningProgressPolling()
 	}

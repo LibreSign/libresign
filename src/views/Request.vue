@@ -12,7 +12,7 @@
 				</p>
 			</header>
 			<div class="content-request">
-				<File v-show="filesStore.selectedFileId > 0"
+				<File v-show="!!filesStore.selectedFileId"
 					status="0"
 					status-text="none" />
 				<ReqestPicker v-if="!sidebarStore.isVisible"

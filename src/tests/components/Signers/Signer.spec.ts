@@ -6,6 +6,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { mdiCheckCircle, mdiClockOutline, mdiCircleOutline } from '@mdi/js'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
@@ -15,8 +16,9 @@ type SignerComponent = typeof import('../../../components/Signers/Signer.vue').d
 
 type FileSigner = {
 	signed?: boolean
-	identifyMethods?: unknown[]
+	identifyMethods?: Array<{ method: string }>
 	status?: number
+	statusText?: string
 	displayName?: string
 	signingOrder?: number
 }
@@ -28,10 +30,28 @@ type SelectedFile = {
 
 type FilesStoreMock = ReturnType<typeof useFilesStore> & {
 	selectedFile: SelectedFile
-	getFile: MockedFunction<() => SelectedFile>
+	getFile: MockedFunction<(file?: unknown) => SelectedFile>
 	canSave: MockedFunction<() => boolean>
 	isOriginalFileDeleted: MockedFunction<() => boolean>
 }
+
+type SignerVm = {
+	signatureFlow: string
+	signer: FileSigner
+	signerStatusText: string
+	counterNumber: number
+	counterType?: string
+	isMethodDisabled: boolean
+	disabledTooltip: string
+	showDragHandle: boolean
+	chipType: string
+	statusIconPath: string
+	signerClickAction: () => void
+	closeActions: () => void
+	filesStore: FilesStoreMock
+}
+
+type SignerWrapper = VueWrapper<SignerVm>
 
 const { t, n } = vi.hoisted(() => {
 	const t: TranslationFunction = (_app, text, vars) => {
@@ -81,11 +101,12 @@ beforeAll(async () => {
 })
 
 describe('Signer', () => {
-	let wrapper: ReturnType<typeof mount> | null
+	let wrapper: SignerWrapper | null
 	let filesStore: FilesStoreMock
 	let pinia: ReturnType<typeof createPinia>
 
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props = {}): SignerWrapper => {
+		const { signerIndex = 0, ...restProps } = props as { signerIndex?: number }
 		const ncListItemStub = {
 			name: 'NcListItem',
 			template: '<div><slot /></div>',
@@ -93,10 +114,13 @@ describe('Signer', () => {
 
 		return mount(Signer, {
 			props: {
-				signerIndex: 0,
+				signer: {
+					statusText: '',
+					...filesStore.selectedFile.signers[signerIndex],
+				},
 				event: '',
 				draggable: false,
-				...props,
+				...restProps,
 			},
 			global: {
 				plugins: [pinia],
@@ -110,7 +134,7 @@ describe('Signer', () => {
 					DragVertical: true,
 				},
 			},
-		})
+		}) as unknown as SignerWrapper
 	}
 
 	beforeEach(() => {
@@ -120,10 +144,10 @@ describe('Signer', () => {
 		filesStore.selectedFile = {
 			signatureFlow: 'parallel',
 			signers: [
-				{ signed: false, identifyMethods: [], status: 0, displayName: 'Test Signer' },
+				{ signed: false, identifyMethods: [], status: 0, statusText: 'Draft', displayName: 'Test Signer' },
 			],
 		}
-		filesStore.getFile = () => filesStore.selectedFile
+		filesStore.getFile = vi.fn(() => filesStore.selectedFile) as FilesStoreMock['getFile']
 		filesStore.canSave = vi.fn(() => true)
 		filesStore.isOriginalFileDeleted = vi.fn(() => false)
 		if (wrapper) {
@@ -394,6 +418,15 @@ describe('Signer', () => {
 	})
 
 	describe('RULE: chipType returns variant based on signer status', () => {
+		it('exposes signerStatusText directly from signer contract', () => {
+			filesStore.selectedFile = {
+				signers: [{ statusText: 'Able to sign' }],
+			}
+			wrapper = createWrapper({ signer: filesStore.selectedFile.signers[0] })
+
+			expect(wrapper.vm.signerStatusText).toBe('Able to sign')
+		})
+
 		it('returns success for status 2 (SIGNED)', () => {
 			filesStore.selectedFile = {
 				signers: [{ status: 2 }],
@@ -473,6 +506,7 @@ describe('Signer', () => {
 			wrapper.vm.signerClickAction()
 
 			expect(emit).toHaveBeenCalledWith('signer:clicked', wrapper.vm.signer)
+			expect(wrapper.emitted('select')).toEqual([[wrapper.vm.signer]])
 		})
 
 		it('does not emit when no event prop', () => {
@@ -485,6 +519,7 @@ describe('Signer', () => {
 			wrapper.vm.signerClickAction()
 
 			expect(emit).not.toHaveBeenCalled()
+			expect(wrapper.emitted('select')).toEqual([[wrapper.vm.signer]])
 		})
 
 		it('does not emit when signer already signed', () => {
@@ -497,6 +532,22 @@ describe('Signer', () => {
 			wrapper.vm.signerClickAction()
 
 			expect(emit).not.toHaveBeenCalled()
+			expect(wrapper.emitted('select')).toBeUndefined()
+		})
+
+		it('does not treat unknown methods as disabled', () => {
+			filesStore.selectedFile = {
+				signers: [
+					{ signed: false, identifyMethods: [{ method: 'account' }] },
+				],
+			}
+			filesStore.isOriginalFileDeleted = vi.fn().mockReturnValue(false)
+			wrapper = createWrapper({ signerIndex: 0, event: '' })
+
+			wrapper.vm.signerClickAction()
+
+			expect(wrapper.vm.isMethodDisabled).toBe(false)
+			expect(wrapper.emitted('select')).toEqual([[wrapper.vm.signer]])
 		})
 
 		it('does not emit when method disabled', () => {
@@ -511,6 +562,7 @@ describe('Signer', () => {
 			wrapper.vm.signerClickAction()
 
 			expect(emit).not.toHaveBeenCalled()
+			expect(wrapper.emitted('select')).toBeUndefined()
 		})
 
 		it('does not emit when file deleted', () => {
@@ -523,6 +575,7 @@ describe('Signer', () => {
 			wrapper.vm.signerClickAction()
 
 			expect(emit).not.toHaveBeenCalled()
+			expect(wrapper.emitted('select')).toBeUndefined()
 		})
 	})
 

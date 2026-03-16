@@ -1,4 +1,4 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -6,7 +6,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
-import FileEntryCheckbox from '../../../views/FilesList/FileEntry/FileEntryCheckbox.vue'
+import FileEntryCheckbox from '../../../../views/FilesList/FileEntry/FileEntryCheckbox.vue'
 
 const filesStoreMock = {
 	ordered: [1, 2, 3, 4],
@@ -43,23 +43,60 @@ vi.mock('@nextcloud/l10n', () => ({
 	isRTL: vi.fn(() => false),
 }))
 
-vi.mock('../../../logger.js', () => ({
+vi.mock('../../../../logger.js', () => ({
 	default: {
 		debug: vi.fn(),
 	},
 }))
 
-vi.mock('../../../store/files.js', () => ({
+vi.mock('../../../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStoreMock),
 }))
 
-vi.mock('../../../store/keyboard.js', () => ({
+vi.mock('../../../../store/keyboard.js', () => ({
 	useKeyboardStore: vi.fn(() => keyboardStoreMock),
 }))
 
-vi.mock('../../../store/selection.js', () => ({
+vi.mock('../../../../store/selection.js', () => ({
 	useSelectionStore: vi.fn(() => selectionStoreMock),
 }))
+
+const NcCheckboxRadioSwitchStub = {
+	name: 'NcCheckboxRadioSwitch',
+	props: {
+		modelValue: {
+			type: Boolean,
+			default: false,
+		},
+		ariaLabel: String,
+	},
+	emits: ['update:modelValue'],
+	template: '<input type="checkbox" :checked="modelValue" :aria-label="ariaLabel" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+}
+
+const NcLoadingIconStub = {
+	name: 'NcLoadingIcon',
+	props: ['name'],
+	template: '<span class="loading-icon" />',
+}
+
+function createWrapper(overrides: Record<string, unknown> = {}) {
+	return mount(FileEntryCheckbox, {
+		props: {
+			source: {
+				id: 3,
+				basename: 'contract.pdf',
+			},
+			...overrides,
+		},
+		global: {
+			stubs: {
+				NcLoadingIcon: NcLoadingIconStub,
+				NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
+			},
+		},
+	})
+}
 
 describe('FileEntryCheckbox.vue', () => {
 	beforeEach(() => {
@@ -72,23 +109,6 @@ describe('FileEntryCheckbox.vue', () => {
 		selectionStoreMock.setLastIndex.mockReset()
 		selectionStoreMock.reset.mockReset()
 	})
-
-	function createWrapper() {
-		return mount(FileEntryCheckbox, {
-			props: {
-				source: {
-					id: 3,
-					basename: 'contract.pdf',
-				},
-			},
-			global: {
-				stubs: {
-					NcLoadingIcon: true,
-					NcCheckboxRadioSwitch: true,
-				},
-			},
-		})
-	}
 
 	it('computes aria label from the source basename', () => {
 		const wrapper = createWrapper()
@@ -123,5 +143,46 @@ describe('FileEntryCheckbox.vue', () => {
 		wrapper.vm.resetSelection()
 
 		expect(selectionStoreMock.reset).toHaveBeenCalledTimes(1)
+	})
+
+	describe('Vue 3 checkbox bindings', () => {
+		it('renders an unchecked checkbox when the file is not selected', () => {
+			const wrapper = createWrapper()
+			const checkbox = wrapper.find('input[type="checkbox"]')
+
+			expect(checkbox.exists()).toBe(true)
+			expect((checkbox.element as HTMLInputElement).checked).toBe(false)
+		})
+
+		it('passes modelValue to NcCheckboxRadioSwitch', () => {
+			const wrapper = createWrapper()
+			const stub = wrapper.findComponent(NcCheckboxRadioSwitchStub)
+
+			expect(stub.props('modelValue')).toBe(false)
+		})
+
+		it('handles update:modelValue emitted by the checkbox stub', async () => {
+			const wrapper = createWrapper()
+			const stub = wrapper.findComponent(NcCheckboxRadioSwitchStub)
+
+			await stub.vm.$emit('update:modelValue', true)
+
+			expect(selectionStoreMock.set).toHaveBeenCalledWith([3])
+			expect(selectionStoreMock.setLastIndex).toHaveBeenCalledWith(2)
+		})
+
+		it('shows the loading icon instead of the checkbox while loading', () => {
+			const wrapper = createWrapper({ isLoading: true })
+
+			expect(wrapper.find('.loading-icon').exists()).toBe(true)
+			expect(wrapper.findComponent(NcCheckboxRadioSwitchStub).exists()).toBe(false)
+		})
+
+		it('shows the checkbox when loading is false', () => {
+			const wrapper = createWrapper({ isLoading: false })
+
+			expect(wrapper.find('.loading-icon').exists()).toBe(false)
+			expect(wrapper.findComponent(NcCheckboxRadioSwitchStub).exists()).toBe(true)
+		})
 	})
 })

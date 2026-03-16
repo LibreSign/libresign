@@ -22,17 +22,18 @@ import { ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import type { AdminInitialState } from '../../types'
 
 defineOptions({
 	name: 'EnvelopeSettings',
 })
 
-const envelopeEnabled = ref(loadState('libresign', 'envelope_enabled', true) === true)
+const envelopeEnabled = ref(loadState<AdminInitialState['envelope_enabled']>('libresign', 'envelope_enabled', true))
 
 function saveEnvelopeEnabled() {
 	OCP.AppConfig.setValue('libresign', 'envelope_enabled', envelopeEnabled.value ? '1' : '0', {
 		success: () => {
-			emit('envelope:changed')
+			emit('envelope:changed', new CustomEvent('envelope:changed'))
 		},
 	})
 }

@@ -79,8 +79,8 @@ class ValidateHelper {
 
 	public function validateNewFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user = null): void {
 		$this->validateFile($data, $type, $user);
-		if (!empty($data['file']['fileId'])) {
-			$this->validateNotRequestedSign((int)$data['file']['fileId']);
+		if (!empty($data['file']['nodeId'])) {
+			$this->validateNotRequestedSign((int)$data['file']['nodeId']);
 		} elseif (!empty($data['file']['path'])) {
 			$userFolder = $this->root->getUserFolder($user?->getUID() ?? $data['userManager']->getUID());
 			try {
@@ -122,17 +122,6 @@ class ValidateHelper {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
 				throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, a Base64 string or a fileID.', [$this->getTypeOfFile($type)]));
 			}
-		} elseif (!empty($data['file']['fileId'])) {
-			if (!is_numeric($data['file']['fileId'])) {
-				throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
-			}
-			if (!is_a($user, IUser::class)) {
-				if (!is_a($data['userManager'], IUser::class)) {
-					throw new LibresignException($this->l10n->t('User not found.'));
-				}
-			}
-			$this->validateIfNodeIdExists((int)$data['file']['fileId'], $data['userManager']->getUID(), $type);
-			$this->validateMimeTypeAcceptedByNodeId((int)$data['file']['fileId'], $data['userManager']->getUID(), $type);
 		} elseif (!empty($data['file']['nodeId'])) {
 			if (!is_numeric($data['file']['nodeId'])) {
 				throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
@@ -144,6 +133,11 @@ class ValidateHelper {
 			}
 			$this->validateIfNodeIdExists((int)$data['file']['nodeId'], $data['userManager']->getUID(), $type);
 			$this->validateMimeTypeAcceptedByNodeId((int)$data['file']['nodeId'], $data['userManager']->getUID(), $type);
+		} elseif (!empty($data['file']['fileId']) && $type === self::TYPE_VISIBLE_ELEMENT_PDF) {
+			if (!is_numeric($data['file']['fileId'])) {
+				throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
+			}
+			$this->validateLibreSignFileId((int)$data['file']['fileId']);
 		} elseif (!empty($data['file']['base64'])) {
 			$this->validateBase64($data['file']['base64'], $type);
 		} elseif (!empty($data['file']['path'])) {
@@ -612,7 +606,7 @@ class ValidateHelper {
 	}
 
 	private function validateSignerIdentifyMethods(array $signer): void {
-		$normalizedMethods = $this->normalizeIdentifyMethods($signer);
+		$normalizedMethods = $this->normalizeSignerIdentifyMethods($signer);
 
 		foreach ($normalizedMethods as $method) {
 			$this->validateIdentifyMethodForRequest($method['name'], $method['value']);
@@ -620,32 +614,48 @@ class ValidateHelper {
 	}
 
 	/**
-	 * @todo unify the key to be only 'identify' or only 'identifyMethods'
+	 * @return list<array{name: string, value: string}>
 	 */
-	private function normalizeIdentifyMethods(array $signer): array {
-		$key = array_key_exists('identifyMethods', $signer) ? 'identifyMethods' : 'identify';
-
-		if (empty($signer[$key]) || !is_array($signer[$key])) {
+	public function normalizeSignerIdentifyMethods(array $signer): array {
+		if (empty($signer['identifyMethods']) || !is_array($signer['identifyMethods'])) {
 			throw new LibresignException('No identify methods for signer');
 		}
 
 		$normalizedMethods = [];
 
-		foreach ($signer[$key] as $name => $data) {
-			$normalizedMethods[] = $this->normalizeIdentifyMethodEntry($key, $name, $data);
+		foreach ($signer['identifyMethods'] as $data) {
+			$normalizedMethods[] = $this->normalizeIdentifyMethodsStructure($data);
 		}
 		return $normalizedMethods;
 	}
 
 	/**
-	 * Extracted from normalizeIdentifyMethods to reduce cyclomatic complexity.
+	 * @param list<array<string, mixed>> $signers
+	 * @return list<array<string, mixed>>
 	 */
-	private function normalizeIdentifyMethodEntry(string $key, $name, $data): array {
-		if ($key === 'identifyMethods') {
-			return $this->normalizeIdentifyMethodsStructure($data);
-		} else {
-			return $this->normalizeIdentifyStructure($name, $data);
+	public function normalizeRequestSigners(array $signers): array {
+		$normalizedSigners = [];
+
+		foreach ($signers as $signer) {
+			if (!is_array($signer)) {
+				throw new LibresignException($this->l10n->t('No signers'));
+			}
+
+			$normalizedMethods = array_map(
+				fn (array $method): array => [
+					'method' => $method['name'],
+					'value' => $method['value'],
+				],
+				$this->normalizeSignerIdentifyMethods($signer),
+			);
+
+			$normalizedSigners[] = [
+				...$signer,
+				'identifyMethods' => $normalizedMethods,
+			];
 		}
+
+		return $normalizedSigners;
 	}
 
 	private function normalizeIdentifyMethodsStructure(mixed $data): array {
@@ -656,13 +666,6 @@ class ValidateHelper {
 		return [
 			'name' => $data['method'],
 			'value' => $data['value'],
-		];
-	}
-
-	private function normalizeIdentifyStructure(string $name, mixed $value): array {
-		return [
-			'name' => $name,
-			'value' => $value,
 		];
 	}
 

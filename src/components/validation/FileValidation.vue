@@ -29,20 +29,16 @@ import { t } from '@nextcloud/l10n'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import { mdiInformationSlabCircle } from '@mdi/js'
+import type { LoadedValidationFileDocument } from '../../types/index'
 
 defineOptions({
 	name: 'FileValidation',
 })
 
-type ValidationDocument = {
-	name?: string
-	[key: string]: unknown
-}
-
 defineProps<{
-	document: ValidationDocument
+	document: LoadedValidationFileDocument
 	legalInformation?: string
-	documentValidMessage?: string
+	documentValidMessage?: string | null
 	isAfterSigned?: boolean
 }>()
 </script>

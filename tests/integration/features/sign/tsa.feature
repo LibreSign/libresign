@@ -17,11 +17,11 @@ Feature: TSA Integration - End-to-End Workflow
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file  | {"url":"<BASE_URL>/apps/libresign/develop/pdf"}                    |
-      | signers | [{"displayName": "TSA Signer","identify": {"account": "signer1"}}] |
+      | signers | [{"displayName": "TSA Signer","identifyMethods": [{"method": "account", "value": "signer1"}]}] |
       | name  | TSA Document Test                                                  |
     Then the response should have a status code 200
     And as user "signer1"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     Then the response should be a JSON array with the following mandatory values
       | key                        | value             |
       | (jq).ocs.data.data[0].name | TSA Document Test |
@@ -63,10 +63,10 @@ Feature: TSA Integration - End-to-End Workflow
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file  | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | signers | [{"identify": {"account": "signer1"}}]          |
+      | signers | [{"identifyMethods": [{"method": "account", "value": "signer1"}]}] |
       | name  | TSA Error Test                                  |
     And as user "signer1"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
       | method | clickToSign |

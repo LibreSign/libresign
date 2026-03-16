@@ -11,7 +11,7 @@
 			:force-name="true"
 			variant="tertiary"
 			v-model:open="openedMenu"
-			@close="openedMenu = null"
+			@close="openedMenu = false"
 			@closed="onMenuClosed">
 			<!-- Default actions list-->
 			<NcActionButton v-for="action in visibleMenu"
@@ -86,24 +86,14 @@ import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { useSignStore } from '../../../store/sign.js'
+import type { FileEntrySource } from '../../../composables/useFileEntry.js'
 
 defineOptions({
 	name: 'FileEntryActions',
 })
 
-type SourceSigner = {
-	me?: boolean
-	sign_uuid?: string
-}
-
-type SourceFile = {
-	id: number
-	uuid: string
-	name: string
-	nodeId?: number
-	nodeType?: string
-	file?: string
-	signers?: SourceSigner[]
+type SourceFile = FileEntrySource & {
+	signUuid?: string | null
 }
 
 type MenuAction = {
@@ -159,9 +149,9 @@ function registerAction(action: MenuAction) {
 function visibleIf(action: Pick<MenuAction, 'id'>) {
 	let visible = false
 	if (action.id === 'request-signature') {
-		visible = (props.source?.signers?.length ?? 0) === 0
+		visible = (props.source?.signersCount ?? props.source?.signers?.length ?? 0) === 0
 	} else if (action.id === 'details') {
-		visible = (props.source?.signers?.length ?? 0) > 0
+		visible = (props.source?.signersCount ?? props.source?.signers?.length ?? 0) > 0
 	} else if (action.id === 'rename') {
 		visible = true
 	} else if (action.id === 'sign') {
@@ -178,24 +168,18 @@ function visibleIf(action: Pick<MenuAction, 'id'>) {
 }
 
 async function onActionClick(action: Pick<MenuAction, 'id'>) {
-	openedMenu.value = null
+	openedMenu.value = false
 	sidebarStore.hideSidebar()
 	if (action.id === 'details' || action.id === 'request-signature') {
 		filesStore.selectFile(props.source.id)
 		sidebarStore.activeRequestSignatureTab()
 	} else if (action.id === 'sign') {
-		const signUuid = (props.source.signers ?? [])
-			.reduce((accumulator, signer) => {
-				if (signer.me) {
-					return signer.sign_uuid ?? ''
-				}
-				return accumulator
-			}, '')
-		const files = await filesStore.getAllFiles({
-			signer_uuid: signUuid,
-			force_fetch: true,
-		})
-		signStore.setFileToSign(files[props.source.id])
+		const detailedFile = await filesStore.fetchFileDetail({ fileId: props.source.id, force: true })
+		const signUuid = detailedFile?.signUuid || props.source.signUuid || ''
+		if (!signUuid || !detailedFile) {
+			return
+		}
+		signStore.setFileToSign(detailedFile)
 		router.push({
 			name: 'SignPDF',
 			params: {
@@ -205,6 +189,9 @@ async function onActionClick(action: Pick<MenuAction, 'id'>) {
 		filesStore.selectFile(props.source.id)
 		sidebarStore.activeRequestSignatureTab()
 	} else if (action.id === 'validate') {
+		if (!props.source.uuid) {
+			return
+		}
 		router.push({
 			name: 'ValidationFile',
 			params: {
@@ -233,17 +220,20 @@ function openFile() {
 	openDocument({
 		fileUrl,
 		filename: props.source.name,
-		nodeId: props.source.nodeId,
+		nodeId: props.source.nodeId ?? 0,
 	})
 }
 
 function doRename(newName: string) {
+	if (!props.source.uuid) {
+		return Promise.resolve()
+	}
 	return filesStore.rename(props.source.uuid, newName)
 }
 
 function onMenuClosed() {
 	if (actionsMenuStore.opened === null) {
-		const root = rootElement.value?.closest('.app-content')
+		const root = rootElement.value?.closest('.app-content') as HTMLElement | null
 		if (root) {
 			root.style.removeProperty('--mouse-pos-x')
 			root.style.removeProperty('--mouse-pos-y')

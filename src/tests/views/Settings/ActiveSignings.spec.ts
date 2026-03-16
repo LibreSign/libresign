@@ -69,7 +69,9 @@ describe('ActiveSignings.vue', () => {
 		vi.mocked(axios.get).mockResolvedValue({
 			data: {
 				ocs: {
-					data: [{ id: 7, name: 'Contract.pdf', signerEmail: 'signer@example.com', updatedAt: 123 }],
+					data: {
+						data: [{ id: 7, uuid: 'uuid-7', name: 'Contract.pdf', signerDisplayName: '', signerEmail: 'signer@example.com', updatedAt: 123 }],
+					},
 				},
 			},
 		})
@@ -82,7 +84,7 @@ describe('ActiveSignings.vue', () => {
 	})
 
 	it('starts and stops auto refresh with the toggle', async () => {
-		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: [] } } })
+		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: { data: [] } } } })
 		const wrapper = createWrapper()
 		await flushPromises()
 
@@ -93,7 +95,7 @@ describe('ActiveSignings.vue', () => {
 	})
 
 	it('formats the file URL consistently', async () => {
-		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: [] } } })
+		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: { data: [] } } } })
 		const wrapper = createWrapper()
 		await flushPromises()
 
