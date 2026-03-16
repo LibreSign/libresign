@@ -12,7 +12,7 @@ Feature: validate
     And user "signer1" exists
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | signers | [{"identify":{"account":"signer1"}}] |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
       | name | Document Name |
     Then the response should have a status code 200
     And as user "signer1"
@@ -54,7 +54,7 @@ Feature: validate
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | signers | [{"identify":{"account":"admin"}}] |
+      | signers | [{"identifyMethods":[{"method":"account","value":"admin"}]}] |
       | name | document |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
