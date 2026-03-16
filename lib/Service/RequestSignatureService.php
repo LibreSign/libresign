@@ -449,6 +449,7 @@ class RequestSignatureService {
 	}
 
 	private function deleteIdentifyMethodIfNotExits(array $signers, FileEntity $file): void {
+		$normalizedSigners = $this->validateHelper->normalizeRequestSigners($signers);
 		$signRequests = $this->signRequestMapper->getByFileId($file->getId());
 		foreach ($signRequests as $key => $signRequest) {
 			$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequest->getId());
@@ -458,8 +459,7 @@ class RequestSignatureService {
 			}
 			foreach ($identifyMethods as $methodName => $list) {
 				foreach ($list as $method) {
-					$exists[$key]['identify'][$methodName] = $method->getEntity()->getIdentifierValue();
-					if (!$this->identifyMethodExists($signers, $method)) {
+					if (!$this->identifyMethodExists($normalizedSigners, $method)) {
 						$this->unassociateToUser($file->getId(), $signRequest->getId());
 						continue 3;
 					}
@@ -470,23 +470,12 @@ class RequestSignatureService {
 
 	private function identifyMethodExists(array $signers, IIdentifyMethod $identifyMethod): bool {
 		foreach ($signers as $signer) {
-			if (!empty($signer['identifyMethods'])) {
-				foreach ($signer['identifyMethods'] as $data) {
-					if ($identifyMethod->getEntity()->getIdentifierKey() !== $data['method']) {
-						continue;
-					}
-					if ($identifyMethod->getEntity()->getIdentifierValue() === $data['value']) {
-						return true;
-					}
+			foreach (($signer['identifyMethods'] ?? []) as $data) {
+				if ($identifyMethod->getEntity()->getIdentifierKey() !== $data['method']) {
+					continue;
 				}
-			} else {
-				foreach ($signer['identify'] as $method => $value) {
-					if ($identifyMethod->getEntity()->getIdentifierKey() !== $method) {
-						continue;
-					}
-					if ($identifyMethod->getEntity()->getIdentifierValue() === $value) {
-						return true;
-					}
+				if ($identifyMethod->getEntity()->getIdentifierValue() === $data['value']) {
+					return true;
 				}
 			}
 		}
@@ -501,36 +490,24 @@ class RequestSignatureService {
 	private function associateToSigners(array $data, FileEntity $file): array {
 		$return = [];
 		if (!empty($data['signers'])) {
-			$this->deleteIdentifyMethodIfNotExits($data['signers'], $file);
+			$normalizedSigners = $this->validateHelper->normalizeRequestSigners($data['signers']);
+			$this->deleteIdentifyMethodIfNotExits($normalizedSigners, $file);
 			$this->identifyMethod->clearCache();
 
 			$this->sequentialSigningService->resetOrderCounter();
 			$fileStatus = $data['status'] ?? null;
 
-			foreach ($data['signers'] as $signer) {
+			foreach ($normalizedSigners as $signer) {
 				$userProvidedOrder = isset($signer['signingOrder']) ? (int)$signer['signingOrder'] : null;
 				$signingOrder = $this->sequentialSigningService->determineSigningOrder($userProvidedOrder);
 				$signerStatus = $signer['status'] ?? null;
 				$shouldNotify = !isset($signer['notify']) || $signer['notify'] !== 0;
 
-				if (isset($signer['identifyMethods'])) {
-					foreach ($signer['identifyMethods'] as $identifyMethod) {
-						$return[] = $this->signRequestService->createOrUpdateSignRequest(
-							identifyMethods: [
-								$identifyMethod['method'] => $identifyMethod['value'],
-							],
-							displayName: $signer['displayName'] ?? '',
-							description: $signer['description'] ?? '',
-							notify: $shouldNotify,
-							fileId: $file->getId(),
-							signingOrder: $signingOrder,
-							fileStatus: $fileStatus,
-							signerStatus: $signerStatus,
-						);
-					}
-				} else {
+				foreach ($signer['identifyMethods'] as $identifyMethod) {
 					$return[] = $this->signRequestService->createOrUpdateSignRequest(
-						identifyMethods: $signer['identify'],
+						identifyMethods: [
+							$identifyMethod['method'] => $identifyMethod['value'],
+						],
 						displayName: $signer['displayName'] ?? '',
 						description: $signer['description'] ?? '',
 						notify: $shouldNotify,
@@ -598,11 +575,9 @@ class RequestSignatureService {
 		}
 
 		$this->validateHelper->validateIdentifySigners($data);
+		$normalizedSigners = $this->validateHelper->normalizeRequestSigners($data['signers']);
 
-		foreach ($data['signers'] as $signer) {
-			if (!array_key_exists('identify', $signer)) {
-				throw new \Exception('Identify key not found');
-			}
+		foreach ($normalizedSigners as $signer) {
 			$this->identifyMethod->setAllEntityData($signer);
 		}
 	}
