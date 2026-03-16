@@ -5,6 +5,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
 
 import DownloadBinaries from '../../../views/Settings/DownloadBinaries.vue'
 
@@ -12,22 +13,8 @@ const generateOcsUrlMock = vi.fn((path: string) => path)
 const useConfigureCheckStoreMock = vi.fn()
 const listenMock = vi.fn()
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string, params?: Record<string, string>) => {
-		if (!params) {
-			return text
-		}
-
-		return Object.entries(params).reduce((message, [key, value]) => {
-			return message.replace(`{${key}}`, value)
-		}, text)
-	}),
-	translate: vi.fn((_app: string, text: string) => text),
-	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-	isRTL: vi.fn(() => false),
+vi.mock('@nextcloud/l10n', () => createL10nMock({
+	t: (_app: string, text: string, params?: Record<string, string>) => interpolateL10n(text, params),
 }))
 
 vi.mock('@nextcloud/router', () => ({
