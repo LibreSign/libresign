@@ -154,7 +154,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles(format('apps/{0}/package-lock.json', env.APP_NAME)) }}
@@ -163,7 +163,7 @@ jobs:
 
       - name: Cache LibreSign binary payloads
         id: libresign-binaries-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .cache/libresign-binaries
           key: ${{ runner.os }}-libresign-binaries-${{ hashFiles(format('apps/{0}/appinfo/install-*.json', env.APP_NAME), format('apps/{0}/lib/Service/Install/InstallService.php', env.APP_NAME)) }}
