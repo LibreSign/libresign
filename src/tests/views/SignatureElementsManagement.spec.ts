@@ -17,12 +17,6 @@ vi.mock('@nextcloud/initial-state', () => ({
 	loadState: (...args: unknown[]) => loadStateMock(...args),
 }))
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-	translate: vi.fn((_app: string, text: string) => text),
-	isRTL: vi.fn(() => false),
-}))
-
 describe('DefaultPageError.vue - Error Aggregation Rules', () => {
 	beforeEach(() => {
 		loadStateMock.mockReset()

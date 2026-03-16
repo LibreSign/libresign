@@ -11,11 +11,6 @@ import { createTestingPinia } from '@pinia/testing'
 import FileListFilterChips from '../../../../views/FilesList/FileListFilter/FileListFilterChips.vue'
 import { useFiltersStore } from '../../../../store/filters.js'
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-	isRTL: vi.fn(() => false),
-}))
-
 vi.mock('@nextcloud/logger', () => ({
 	getLogger: vi.fn(() => ({
 		error: vi.fn(),

@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount, flushPromises } from '@vue/test-utils'
 
 type LegalInformationVm = {
@@ -12,15 +13,7 @@ type LegalInformationVm = {
 
 let LegalInformation: unknown
 
-vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((_app: string, text: string) => text),
-	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	t: vi.fn((_app: string, text: string) => text),
-	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-	isRTL: vi.fn(() => false),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {

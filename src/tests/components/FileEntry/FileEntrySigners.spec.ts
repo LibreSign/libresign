@@ -27,11 +27,6 @@ type FileEntrySignersWrapper = VueWrapper<any> & {
 
 let FileEntrySigners: any
 
-vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((_app: string, text: string) => text),
-	isRTL: vi.fn(() => false),
-}))
-
 beforeAll(async () => {
 	;({ default: FileEntrySigners } = await import('../../../views/FilesList/FileEntry/FileEntrySigners.vue'))
 })

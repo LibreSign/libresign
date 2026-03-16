@@ -10,13 +10,6 @@ vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app: string, key: string, defaultValue: unknown) => defaultValue),
 }))
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-	isRTL: vi.fn(() => false),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-}))
-
 vi.mock('@nextcloud/vue/components/NcEmptyContent', () => ({
 	default: {
 		name: 'NcEmptyContent',

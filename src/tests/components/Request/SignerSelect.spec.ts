@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import SignerSelect from '../../../components/Request/SignerSelect.vue'
 
@@ -31,15 +32,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path: string) => path),
 }))
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-	translate: vi.fn((_app: string, text: string) => text),
-	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	isRTL: vi.fn(() => false),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 describe('SignerSelect.vue', () => {
 	beforeEach(() => {
