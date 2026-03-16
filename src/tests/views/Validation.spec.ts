@@ -4,6 +4,7 @@
  */
 
 import { afterEach, describe, expect, it, beforeEach, vi } from 'vitest'
+import { createL10nMock, interpolateL10n } from '../testHelpers/l10n.js'
 import { shallowMount } from '@vue/test-utils'
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -97,36 +98,19 @@ vi.mock('@nextcloud/logger', () => ({
 	})),
 }))
 
-vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((app: string, text: string, vars?: Record<string, string>) => {
-		if (vars) {
-			return text.replace(/{(\w+)}/g, (_m: string, key: string) => vars[key as keyof typeof vars] || key)
-		}
-		return text
-	}),
-	translatePlural: vi.fn((app: string, singular: string, plural: string, count: number, vars?: Record<string, string>) => {
+vi.mock('@nextcloud/l10n', () => createL10nMock({
+	t: (app: string, text: string, vars?: Record<string, string>) => {
+		return interpolateL10n(text, vars)
+	},
+	n: (_app: string, singular: string, plural: string, count: number, vars?: Record<string, string>) => {
 		const template = count === 1 ? singular : plural
-		if (vars) {
-			return template.replace(/{(\w+)}/g, (_m: string, key: string) => vars[key as keyof typeof vars] || key)
-		}
-		return template
-	}),
-	t: vi.fn((app: string, text: string, vars?: Record<string, string>) => {
-		if (vars) {
-			return text.replace(/{(\w+)}/g, (_m: string, key: string) => vars[key as keyof typeof vars] || key)
-		}
-		return text
-	}),
-	n: vi.fn((app: string, singular: string, plural: string, count: number, vars?: Record<string, string>) => {
+		return interpolateL10n(template, { count, ...(vars ?? {}) })
+	},
+	translate: (app: string, text: string, vars?: Record<string, string>) => interpolateL10n(text, vars),
+	translatePlural: (_app: string, singular: string, plural: string, count: number, vars?: Record<string, string>) => {
 		const template = count === 1 ? singular : plural
-		if (vars) {
-			return template.replace(/{(\w+)}/g, (_m: string, key: string) => vars[key as keyof typeof vars] || key)
-		}
-		return template
-	}),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-	isRTL: vi.fn(() => false),
+		return interpolateL10n(template, { count, ...(vars ?? {}) })
+	},
 }))
 
 // Mock router
