@@ -188,3 +188,75 @@ describe('FileListFilterStatus.vue', () => {
 		expect(filtersStore.onFilterUpdateChipsAndSave).toHaveBeenCalled()
 	})
 })
+
+describe('FileListFilterStatus chip payload shape', () => {
+	it('chips created by the status preset do not carry an icon property', () => {
+		const fileStatus = [
+			{ id: 1, label: 'Draft' },
+			{ id: 2, label: 'Ready to sign' },
+		]
+
+		const chips = []
+		for (const id of [1, 2]) {
+			const status = fileStatus.find((item) => item.id === id)
+			if (!status) {
+				continue
+			}
+
+			chips.push({
+				id: status.id,
+				text: status.label,
+				onclick: () => {},
+			})
+		}
+
+		chips.forEach((chip) => {
+			expect(chip).not.toHaveProperty('icon')
+			expect(chip.text).toBeTruthy()
+		})
+	})
+
+	it('chips created by the marked filter do not carry an icon property', () => {
+		const fileStatus = [
+			{ id: 1, label: 'Draft' },
+			{ id: 3, label: 'Partially signed' },
+		]
+
+		const chips = []
+		for (const id of [1, 3]) {
+			const status = fileStatus.find((item) => item.id === id)
+			if (!status) {
+				continue
+			}
+
+			chips.push({
+				id: status.id,
+				text: status.label,
+				onclick: () => {},
+			})
+		}
+
+		expect(chips.length).toBeGreaterThan(0)
+		chips.forEach((chip) => {
+			expect(chip).not.toHaveProperty('icon')
+		})
+	})
+
+	it('keeps plain chip payloads free from raw SVG path data', () => {
+		const chip = {
+			id: 1,
+			text: 'Draft',
+			onclick: () => {},
+		}
+
+		const badChip = {
+			id: 1,
+			text: 'Draft',
+			icon: 'M12 2C6.48...',
+			onclick: () => {},
+		}
+
+		expect(chip).not.toHaveProperty('icon')
+		expect(badChip).toHaveProperty('icon')
+	})
+})

@@ -7,6 +7,30 @@ import { loadState } from '@nextcloud/initial-state'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+/**
+ * @typedef {{
+ * 	needCode?: boolean
+ * 	blurredEmail?: string
+ * 	hasConfirmCode?: boolean
+ * 	token?: string
+ * 	hasSignatureFile?: boolean
+ * 	[key: string]: unknown
+ * }} SignMethodSettings
+ */
+
+/**
+ * @typedef {Record<string, SignMethodSettings | undefined> & {
+ * 	emailToken?: SignMethodSettings
+ * 	password?: SignMethodSettings
+ * 	clickToSign?: SignMethodSettings
+ * 	smsToken?: SignMethodSettings
+ * 	whatsappToken?: SignMethodSettings
+ * 	signalToken?: SignMethodSettings
+ * 	telegramToken?: SignMethodSettings
+ * 	xmppToken?: SignMethodSettings
+ * }} SignMethodsSettings
+ */
+
 export const useSignMethodsStore = defineStore('signMethods', () => {
 	const modal = ref({
 		emailToken: false,
@@ -17,8 +41,10 @@ export const useSignMethodsStore = defineStore('signMethods', () => {
 		password: false,
 		token: false, // Generic token modal for all token-based methods
 		uploadCertificate: false,
+		readCertificate: false,
+		resetPassword: false,
 	})
-	const settings = ref({})
+	const settings = ref(/** @type {SignMethodsSettings} */ ({}))
 	const certificateEngine = ref(loadState('libresign', 'certificate_engine', ''))
 
 	const closeModal = (modalCode) => {
@@ -58,6 +84,15 @@ export const useSignMethodsStore = defineStore('signMethods', () => {
 		settings.value.password.hasSignatureFile = hasSignatureFile
 	}
 
+	const initializeHasSignatureFile = (hasSignatureFile) => {
+		if (Object.hasOwn(settings.value, 'password')
+			&& Object.hasOwn(settings.value.password, 'hasSignatureFile')) {
+			return
+		}
+
+		setHasSignatureFile(hasSignatureFile)
+	}
+
 	const needSignWithPassword = () => Object.hasOwn(settings.value, 'password')
 
 	const needCreatePassword = () => needSignWithPassword() && !hasSignatureFile()
@@ -94,6 +129,7 @@ export const useSignMethodsStore = defineStore('signMethods', () => {
 		setEmailToken,
 		hasSignatureFile,
 		setHasSignatureFile,
+		initializeHasSignatureFile,
 		needCreatePassword,
 		needSignWithPassword,
 		needEmailCode,

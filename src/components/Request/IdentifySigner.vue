@@ -5,15 +5,14 @@
 <template>
 	<div class="identifySigner">
 		<SignerSelect v-if="isNewSigner"
-			:signer="signer"
 			:placeholder="placeholder"
 			:method="method"
-			@update:signer="updateSigner" />
+			@update:signer="applySelectedSigner" />
 		<NcNoteCard v-else type="info">
 			<template #icon>
 				<NcIconSvgWrapper :size="20" :svg="getMethodIcon()" />
 			</template>
-			<strong>{{ identifyMethodLabel }}:</strong> {{ signer.id }}
+			<strong>{{ identifyMethodLabel }}:</strong> {{ identify }}
 		</NcNoteCard>
 
 		<NcNoteCard v-if="disabled" type="warning" class="disabled-warning">
@@ -83,7 +82,10 @@ import SignerSelect from './SignerSelect.vue'
 
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
+import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
+import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
+import type { IdentifyAccountRecord } from '../../types'
 
 const iconMap = {
 	svgAccount,
@@ -93,6 +95,16 @@ const iconMap = {
 	svgTelegram,
 	svgWhatsapp,
 	svgXmpp,
+}
+
+const methodIconMap: Record<string, keyof typeof iconMap> = {
+	account: 'svgAccount',
+	email: 'svgEmail',
+	signal: 'svgSignal',
+	sms: 'svgSms',
+	telegram: 'svgTelegram',
+	whatsapp: 'svgWhatsapp',
+	xmpp: 'svgXmpp',
 }
 
 defineOptions({
@@ -110,19 +122,13 @@ type SignerMethodValue = {
 }
 
 type SignerToEdit = {
-	identify?: string
-	signRequestId?: string
 	displayName?: string
 	description?: string
 	identifyMethods?: SignerMethodValue[]
 }
 
-type SelectedSigner = {
-	id?: string
-	method?: string
-	displayName?: string
-	acceptsEmailNotifications?: boolean
-}
+type FilesStore = ReturnType<typeof useFilesStore>
+type StoredSigner = NonNullable<ReturnType<FilesStore['getFile']>['signers']>[number]
 
 const props = withDefaults(defineProps<{
 	signerToEdit?: SignerToEdit
@@ -132,7 +138,6 @@ const props = withDefaults(defineProps<{
 	disabled?: boolean
 }>(), {
 	signerToEdit: () => ({
-		identify: '',
 		displayName: '',
 		identifyMethods: [],
 	}),
@@ -144,47 +149,71 @@ const props = withDefaults(defineProps<{
 
 const filesStore = useFilesStore()
 
-const id = ref<string | null>(null)
 const nameHelperText = ref('')
 const nameHaveError = ref(false)
 const displayName = ref('')
 const description = ref('')
 const enableCustomMessage = ref(false)
 const identify = ref('')
-const signer = ref<SelectedSigner>({})
+const identifyMethod = ref<IdentifyAccountRecord['method'] | undefined>()
+const acceptsEmailNotifications = ref<boolean | undefined>()
 
-const signerSelected = computed(() => !!signer.value?.id)
+const signerSelected = computed(() => identify.value.length > 0)
 const isNewSigner = computed(() => !props.signerToEdit || Object.keys(props.signerToEdit).length === 0)
 const saveButtonText = computed(() => isNewSigner.value ? t('libresign', 'Save') : t('libresign', 'Update'))
 const identifyMethodLabel = computed(() => {
-	if (!signer.value?.method) {
+	if (!identifyMethod.value) {
 		return ''
 	}
-	const methodConfig = props.methods.find((item) => item.name === signer.value.method)
+	const methodConfig = props.methods.find((item) => item.name === identifyMethod.value)
 	if (!methodConfig?.friendly_name) {
 		return ''
 	}
 	return methodConfig.friendly_name
 })
 const showCustomMessage = computed(() => {
-	if (signer.value?.method === 'account') {
-		return signer.value?.acceptsEmailNotifications === true
+	if (identifyMethod.value === 'account') {
+		return acceptsEmailNotifications.value === true
 	}
-	return !!signer.value?.method
+	return !!identifyMethod.value
 })
 
+function resetNameValidation() {
+	nameHelperText.value = ''
+	nameHaveError.value = false
+}
+
+function resetSelectedSignerState() {
+	displayName.value = ''
+	description.value = ''
+	enableCustomMessage.value = false
+	identify.value = ''
+	identifyMethod.value = undefined
+	acceptsEmailNotifications.value = undefined
+	resetNameValidation()
+}
+
 function getMethodIcon() {
-	const method = signer.value?.method
+	const method = identifyMethod.value
 	if (!method) {
 		return iconMap.svgAccount
 	}
-	return iconMap[`svg${method.charAt(0).toUpperCase() + method.slice(1)}`] || iconMap.svgAccount
+	const iconKey = methodIconMap[method] || 'svgAccount'
+	return iconMap[iconKey]
 }
 
-function updateSigner(nextSigner: SelectedSigner | null) {
-	signer.value = nextSigner ?? {}
+
+function applySelectedSigner(nextSigner: IdentifyAccountRecord | null) {
+	if (!nextSigner) {
+		resetSelectedSignerState()
+		return
+	}
+
 	displayName.value = nextSigner?.displayName ?? ''
-	identify.value = nextSigner?.id ?? ''
+	identify.value = nextSigner?.identify ?? ''
+	identifyMethod.value = nextSigner?.method
+	acceptsEmailNotifications.value = nextSigner?.acceptsEmailNotifications
+	resetNameValidation()
 
 	if (nextSigner?.method === 'account' && nextSigner?.acceptsEmailNotifications === false) {
 		enableCustomMessage.value = false
@@ -192,28 +221,38 @@ function updateSigner(nextSigner: SelectedSigner | null) {
 	}
 }
 
+function getSignerToEditIdentify(signerToEdit: SignerToEdit | undefined): string {
+	if (!signerToEdit) {
+		return ''
+	}
+	return signerToEdit.identifyMethods?.[0]?.value ?? ''
+}
+
 async function saveSigner() {
-	if (!signer.value?.method || !signer.value?.id) {
+	if (!identifyMethod.value || !identify.value) {
 		return
 	}
 	const file = filesStore.getFile()
-	const signers = Array.isArray(file?.signers) ? [...file.signers] : []
+	const signers: StoredSigner[] = Array.isArray(file?.signers) ? [...file.signers] : []
 	signers.push({
 		displayName: displayName.value,
 		description: description.value.trim() || undefined,
-		identify: identify.value,
+		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
+		status: SIGN_REQUEST_STATUS.DRAFT,
+		statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.DRAFT),
 		identifyMethods: [
 			{
-				method: signer.value.method,
-				value: signer.value.id,
+					method: identifyMethod.value,
+				mandatory: 0,
+					value: identify.value,
 			},
 		],
 	})
 
 	try {
 		const response = await filesStore.saveOrUpdateSignatureRequest({ signers })
-		if (response?.success === false) {
-			showError(response.message)
+		if ('success' in response && response.success === false) {
+			showError(response.message ?? t('libresign', 'Failed to save or update signature request'))
 			return
 		}
 	} catch {
@@ -221,10 +260,7 @@ async function saveSigner() {
 		return
 	}
 
-	displayName.value = ''
-	description.value = ''
-	identify.value = ''
-	signer.value = {}
+	resetSelectedSignerState()
 	filesStore.disableIdentifySigner()
 }
 
@@ -252,14 +288,10 @@ onBeforeMount(() => {
 	displayName.value = props.signerToEdit.displayName ?? ''
 	description.value = props.signerToEdit.description ?? ''
 	enableCustomMessage.value = !!props.signerToEdit.description
-	identify.value = props.signerToEdit.identify ?? props.signerToEdit.signRequestId ?? ''
+	identify.value = getSignerToEditIdentify(props.signerToEdit)
 	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
 		const method = props.signerToEdit.identifyMethods[0]
-		signer.value = {
-			id: method.value,
-			method: method.method,
-			displayName: props.signerToEdit.displayName,
-		}
+		identifyMethod.value = method.method as IdentifyAccountRecord['method']
 	}
 })
 
@@ -267,21 +299,23 @@ defineExpose({
 	props,
 	t,
 	filesStore,
-	id,
 	nameHelperText,
 	nameHaveError,
 	displayName,
 	description,
 	enableCustomMessage,
 	identify,
-	signer,
+	identifyMethod,
+	acceptsEmailNotifications,
 	signerSelected,
 	isNewSigner,
 	saveButtonText,
 	identifyMethodLabel,
 	showCustomMessage,
 	getMethodIcon,
-	updateSigner,
+	resetNameValidation,
+	resetSelectedSignerState,
+	applySelectedSigner,
 	saveSigner,
 	onNameChange,
 	onToggleCustomMessage,

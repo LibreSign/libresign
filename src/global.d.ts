@@ -21,13 +21,18 @@ declare global {
 		open(path: string): Promise<void>
 		close?(): void
 		setActiveTab(id: string): void
-		registerTab?(tab: unknown): boolean
+		registerTab?: (tab: OCAFilesSidebarTab) => void
 		Tab?: new (options: Partial<OCAFilesSidebarTab>) => OCAFilesSidebarTab
 	}
 
 	interface OCAFilesNamespace {
 		Sidebar: OCAFilesSidebar
 		[key: string]: unknown
+	}
+
+	interface LibreSignAppConfigApi {
+		setValue: (app: string, key: string, value: string | number | boolean, options?: { success?: () => void; error?: () => void }) => void
+		deleteKey?: (app: string, key: string) => void
 	}
 
 	interface LibreSignGlobalNamespace {
@@ -59,11 +64,16 @@ declare global {
 		// Nextcloud Globals
 		OC: Nextcloud.v29.OC
 		OCA: OCAGlobalNamespace
-		OCP: Nextcloud.v29.OCP
+		OCP: Nextcloud.v29.OCP & {
+			AppConfig: LibreSignAppConfigApi
+		}
 	}
 
 	const OC: Nextcloud.v29.OC
 	const OCA: OCAGlobalNamespace
+	const OCP: Nextcloud.v29.OCP & {
+		AppConfig: LibreSignAppConfigApi
+	}
 }
 
 export {}

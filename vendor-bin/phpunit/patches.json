@@ -1,0 +1,10 @@
+{
+    "patches": {
+        "byjg/swagger-test": [
+            {
+                "description": "Fix PHP 8.4 implicit nullable signatures",
+                "url": "../../.patches/byjg-swagger-test-php84-implicit-nullable.diff"
+            }
+        ]
+    }
+}

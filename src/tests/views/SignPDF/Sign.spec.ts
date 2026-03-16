@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount } from '@vue/test-utils'
@@ -26,6 +26,7 @@ type SignMethodSettings = {
 type SignMethodsSettings = Partial<Record<TokenMethodKey, SignMethodSettings>> & {
 	emailToken?: SignMethodSettings
 	password?: SignMethodSettings
+	clickToSign?: SignMethodSettings
 }
 
 type SignMethodsStore = ReturnType<typeof useSignMethodsStore> & {
@@ -33,6 +34,25 @@ type SignMethodsStore = ReturnType<typeof useSignMethodsStore> & {
 }
 
 type SignStore = ReturnType<typeof useSignStore>
+
+type EnvelopeSigner = {
+	signRequestId?: number
+	me?: boolean
+	[key: string]: unknown
+}
+
+type EnvelopeFile = {
+	id?: number
+	name?: string
+	signers?: EnvelopeSigner[]
+	visibleElements?: Array<Record<string, unknown>>
+	[key: string]: unknown
+}
+
+type SignDocument = Omit<NonNullable<SignStore['document']>, 'signers' | 'files'> & {
+	signers?: EnvelopeSigner[]
+	files?: EnvelopeFile[]
+}
 
 type SubmitSignaturePayload = {
 	method: string
@@ -63,6 +83,27 @@ type ActionHandler = {
 }
 
 type ProceedWithSigningLogic = (store: SignMethodsStore, actionHandler: ActionHandler) => void
+
+type SubmitSignatureCompatMethod = (this: Record<string, any>, payload?: {
+	method?: string
+	modalCode?: string
+	token?: string
+}) => Promise<void>
+
+const createSignDocument = (overrides: Partial<SignDocument> = {}): SignDocument => ({
+	id: 1,
+	name: 'Test file',
+	description: '',
+	status: '',
+	statusText: '',
+	url: '/apps/libresign/p/pdf/test-file',
+	nodeId: 1,
+	nodeType: 'file',
+	uuid: 'test-file-uuid',
+	signers: [],
+	visibleElements: [],
+	...overrides,
+})
 
 // Global mock for axios - prevents unhandled rejections during component mounting
 vi.mock('@nextcloud/axios', () => {
@@ -148,6 +189,12 @@ describe('Sign.vue - signWithTokenCode', () => {
 	let signMethodsStore: SignMethodsStore
 	let signStore: SignStore
 	let submitSignatureSpy: MockedFunction<(payload: SubmitSignaturePayload) => Promise<unknown>>
+	let submitSignatureCompatMethod: SubmitSignatureCompatMethod
+
+	beforeAll(async () => {
+		const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+		submitSignatureCompatMethod = (SignComponent.default as any).methods.submitSignature
+	})
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
@@ -185,8 +232,13 @@ describe('Sign.vue - signWithTokenCode', () => {
 						throw new Error('No active token method found')
 					}
 
+					const identifyMethod = this.signMethodsStore.settings[activeMethod]?.identifyMethod
+					if (!identifyMethod) {
+						throw new Error('No identify method found for active token method')
+					}
+
 					await this.submitSignature({
-						method: activeMethod,
+						method: identifyMethod,
 						token,
 					})
 				},
@@ -204,7 +256,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 	describe('signWithTokenCode', () => {
 		it('detects SMS token method', async () => {
 			signMethodsStore.settings = {
-				smsToken: { needCode: true },
+				smsToken: { needCode: true, identifyMethod: 'sms' },
 			}
 
 			const instance = {
@@ -215,14 +267,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('123456')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'smsToken',
+				method: 'sms',
 				token: '123456',
 			})
 		})
 
 		it('detects WhatsApp token method', async () => {
 			signMethodsStore.settings = {
-				whatsappToken: { needCode: true },
+				whatsappToken: { needCode: true, identifyMethod: 'whatsapp' },
 			}
 
 			const instance = {
@@ -233,14 +285,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('789012')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'whatsappToken',
+				method: 'whatsapp',
 				token: '789012',
 			})
 		})
 
 		it('successfully processes WhatsApp token signing', async () => {
 			signMethodsStore.settings = {
-				whatsappToken: { needCode: true },
+				whatsappToken: { needCode: true, identifyMethod: 'whatsapp' },
 			}
 
 			const instance = {
@@ -251,14 +303,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('654321')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'whatsappToken',
+				method: 'whatsapp',
 				token: '654321',
 			})
 		})
 
 		it('detects Signal token method', async () => {
 			signMethodsStore.settings = {
-				signalToken: { needCode: true },
+				signalToken: { needCode: true, identifyMethod: 'signal' },
 			}
 
 			const instance = {
@@ -269,14 +321,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('456789')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'signalToken',
+				method: 'signal',
 				token: '456789',
 			})
 		})
 
 		it('detects Telegram token method', async () => {
 			signMethodsStore.settings = {
-				telegramToken: { needCode: true },
+				telegramToken: { needCode: true, identifyMethod: 'telegram' },
 			}
 
 			const instance = {
@@ -287,14 +339,14 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('012345')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'telegramToken',
+				method: 'telegram',
 				token: '012345',
 			})
 		})
 
 		it('detects XMPP token method', async () => {
 			signMethodsStore.settings = {
-				xmppToken: { needCode: true },
+				xmppToken: { needCode: true, identifyMethod: 'xmpp' },
 			}
 
 			const instance = {
@@ -305,16 +357,16 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('678901')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'xmppToken',
+				method: 'xmpp',
 				token: '678901',
 			})
 		})
 
 		it('prefers first token method when multiple are present', async () => {
 			signMethodsStore.settings = {
-				smsToken: { needCode: true },
-				whatsappToken: { needCode: true },
-				signalToken: { needCode: true },
+				smsToken: { needCode: true, identifyMethod: 'sms' },
+				whatsappToken: { needCode: true, identifyMethod: 'whatsapp' },
+				signalToken: { needCode: true, identifyMethod: 'signal' },
 			}
 
 			const instance = {
@@ -325,7 +377,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('111111')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'smsToken',
+				method: 'sms',
 				token: '111111',
 			})
 		})
@@ -361,7 +413,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 		it('passes token correctly to submitSignature', async () => {
 			signMethodsStore.settings = {
-				smsToken: { needCode: true },
+				smsToken: { needCode: true, identifyMethod: 'sms' },
 			}
 
 			const instance = {
@@ -373,7 +425,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode(testToken)
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'smsToken',
+				method: 'sms',
 				token: testToken,
 			})
 		})
@@ -383,7 +435,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				clickToSign: {},
 				emailToken: { needCode: true },
 				password: { hasSignatureFile: true },
-				smsToken: { needCode: true },
+				smsToken: { needCode: true, identifyMethod: 'sms' },
 			}
 
 			const instance = {
@@ -394,17 +446,29 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await instance.signWithTokenCode('123456')
 
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'smsToken',
+				method: 'sms',
 				token: '123456',
 			})
+		})
+
+		it('throws error when active token method has no identify method', async () => {
+			signMethodsStore.settings = {
+				smsToken: { needCode: true },
+			}
+
+			const instance = {
+				...Sign.data(),
+				...Sign.methods,
+			}
+
+			await expect(instance.signWithTokenCode('123456')).rejects.toThrow('No identify method found for active token method')
+
+			expect(submitSignatureSpy).not.toHaveBeenCalled()
 		})
 	})
 
 	describe('Sign.vue - API error handling', () => {
 		it('keeps certificate validation errors in signStore and does not open certificate modal', async () => {
-			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
-			const submitSignature = (SignComponent.default as any).methods.submitSignature
-
 			const apiErrors = [{ message: 'Certificate has been revoked', code: 422 }]
 			const context = {
 				loading: false,
@@ -436,7 +500,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				},
 			}
 
-			await submitSignature.call(context, {
+			await submitSignatureCompatMethod.call(context, {
 				method: 'password',
 				token: '123456',
 			})
@@ -570,8 +634,13 @@ describe('Sign.vue - signWithTokenCode', () => {
 							throw new Error('No active token method found')
 						}
 
+						const identifyMethod = this.signMethodsStore.settings[activeMethod]?.identifyMethod
+						if (!identifyMethod) {
+							throw new Error('No identify method found for active token method')
+						}
+
 						await this.submitSignature({
-							method: activeMethod,
+							method: identifyMethod,
 							token,
 						})
 					},
@@ -596,7 +665,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 		it('complete flow: click sign button -> token modal opens -> submit token', async () => {
 			signMethodsStore.settings = {
-				whatsappToken: { needCode: true },
+				whatsappToken: { needCode: true, identifyMethod: 'whatsapp' },
 			}
 
 			const instance = {
@@ -614,16 +683,16 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 			// Verify the submission happened
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'whatsappToken',
+				method: 'whatsapp',
 				token: '123456',
 			})
 		})
 
 		it('complete flow: click sign with multiple token methods enables first available', async () => {
 			signMethodsStore.settings = {
-				smsToken: { needCode: true },
-				whatsappToken: { needCode: true },
-				telegramToken: { needCode: true },
+				smsToken: { needCode: true, identifyMethod: 'sms' },
+				whatsappToken: { needCode: true, identifyMethod: 'whatsapp' },
+				telegramToken: { needCode: true, identifyMethod: 'telegram' },
 			}
 
 			const instance = {
@@ -640,7 +709,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 			// Verify the submission happened with SMS token
 			expect(submitSignatureSpy).toHaveBeenCalledWith({
-				method: 'smsToken',
+				method: 'sms',
 				token: '999999',
 			})
 		})
@@ -689,6 +758,9 @@ describe('Sign.vue - signWithTokenCode', () => {
 						// Extract the identify method from the signature method
 						const signatureMethodData = this.signMethodsStore.settings[activeMethod]
 						const identifyMethod = signatureMethodData?.identifyMethod
+						if (!identifyMethod) {
+							throw new Error('No identify method found for active token method')
+						}
 
 						await this.submitSignature({
 							method: identifyMethod,
@@ -836,6 +908,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 	describe('signWithTokenCode - REAL component integration test', () => {
 		it('INTEGRATION: extracts and sends correct identify method from signature methods data', async () => {
+			const { useSignStore } = await import('../../../store/sign.js')
 			const testCases = [
 				{
 					name: 'WhatsApp token',
@@ -865,6 +938,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				const realSign = SignComponent.default
 
 				const signMethodsStore = useSignMethodsStore()
+				const signStore = useSignStore()
 
 				// Set up signature method with identify method info
 				signMethodsStore.settings = {
@@ -875,7 +949,13 @@ describe('Sign.vue - signWithTokenCode', () => {
 					},
 				}
 
+				signStore.document = createSignDocument({
+					id: 99,
+					signRequestUuid: 'test-sign-request-uuid',
+				})
+
 				const submitSignatureMock = vi.fn().mockResolvedValue({ status: 'signed' })
+				signStore.submitSignature = submitSignatureMock as SignStore['submitSignature']
 
 				// Mount REAL component
 				const wrapper = mount(realSign, {
@@ -904,22 +984,20 @@ describe('Sign.vue - signWithTokenCode', () => {
 					props: {},
 				})
 
-				wrapper.vm.submitSignature = submitSignatureMock
-
 				// Call real signWithTokenCode method
 				await wrapper.vm.signWithTokenCode(testCase.token)
 
 				// VERIFY: Must send identify method, NOT signature method name
 				expect(submitSignatureMock).toHaveBeenCalledWith({
-					method: testCase.expectedIdentifyMethod, // 'whatsapp', 'sms', 'signal'
-					modalCode: 'token',
+					method: testCase.expectedIdentifyMethod,
 					token: testCase.token,
+				}, 'test-sign-request-uuid', {
+					documentId: 99,
 				})
 
 				// Double-check: Should NOT send the signature method key name
 				expect(submitSignatureMock).not.toHaveBeenCalledWith({
-					method: testCase.signatureMethodKey, // NOT 'whatsappToken', 'smsToken', etc
-					modalCode: 'token',
+					method: testCase.signatureMethodKey,
 					token: testCase.token,
 				})
 			}
@@ -938,22 +1016,22 @@ describe('Sign.vue - signWithTokenCode', () => {
 			const signStore = useSignStore()
 			const signatureElementsStore = useSignatureElementsStore()
 
-			signStore.document = {
-				id: 1,
+			signStore.document = createSignDocument({
 				nodeType: 'envelope',
 				signers: [],
 				files: [
 					{
 						id: 10,
+						name: 'child-file',
 						signers: [
 							{ signRequestId: 501, me: true },
 						],
 						visibleElements: [
-							{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature' },
+							{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 						],
 					},
 				],
-			}
+			})
 
 			signatureElementsStore.signs.signature = {
 				id: 1,
@@ -989,7 +1067,67 @@ describe('Sign.vue - signWithTokenCode', () => {
 			})
 
 			expect(wrapper.vm.elements).toEqual([
-				{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature' },
+				{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+			])
+		})
+
+		it('keeps numeric ids and drops incomplete visible elements', async () => {
+			setActivePinia(createPinia())
+
+			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const realSign = SignComponent.default
+			const { useSignStore } = await import('../../../store/sign.js')
+			const { useSignatureElementsStore } = await import('../../../store/signatureElements.js')
+
+			const signStore = useSignStore()
+			const signatureElementsStore = useSignatureElementsStore()
+
+			signStore.document = createSignDocument({
+				nodeType: 'file',
+				signers: [
+					{ signRequestId: 501, me: true },
+				],
+				visibleElements: [
+					{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+					{ fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 99, top: 88, width: 20, height: 10 } },
+				],
+			})
+
+			signatureElementsStore.signs.signature = {
+				id: 1,
+				type: 'signature',
+				file: { url: '/sig.png', nodeId: 11623 },
+				starred: 0,
+				createdAt: '2024-01-01',
+			}
+
+			const wrapper = mount(realSign, {
+				global: {
+					stubs: {
+						NcButton: true,
+						NcDialog: true,
+						NcLoadingIcon: true,
+						TokenManager: true,
+						EmailManager: true,
+						UploadCertificate: true,
+						Documents: true,
+						Signatures: true,
+						Draw: true,
+						ManagePassword: true,
+						CreatePassword: true,
+						NcNoteCard: true,
+						NcPasswordField: true,
+						NcRichText: true,
+					},
+					mocks: {
+						$watch: vi.fn(),
+						$nextTick: vi.fn(),
+					},
+				},
+			})
+
+			expect(wrapper.vm.elements).toEqual([
+				{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 			])
 		})
 
@@ -1001,17 +1139,16 @@ describe('Sign.vue - signWithTokenCode', () => {
 			const signStore = useSignStore()
 			const signatureElementsStore = useSignatureElementsStore()
 
-			signStore.document = {
-				id: 1,
+			signStore.document = createSignDocument({
 				nodeType: 'envelope',
 				signers: [
 					{ signRequestId: 501, me: true },
 				],
 				files: [],
 				visibleElements: [
-					{ elementId: 201, signRequestId: 501, type: 'signature' },
+					{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 				],
-			}
+			})
 
 			// Initially, no signature exists
 			signatureElementsStore.signs.signature = {
@@ -1065,7 +1202,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 			// After signature is created, elements should include it
 			expect(wrapper.vm.elements).toEqual([
-				{ elementId: 201, signRequestId: 501, type: 'signature' },
+				{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 			])
 			expect(wrapper.vm.hasSignatures).toBe(true)
 			expect(wrapper.vm.needCreateSignature).toBe(false)
@@ -1081,14 +1218,13 @@ describe('Sign.vue - signWithTokenCode', () => {
 			const signStore = useSignStore()
 
 			// Signer has signRequestId but NO placed visibleElements (typical clickToSign)
-			signStore.document = {
-				id: 1,
+			signStore.document = createSignDocument({
 				nodeType: 'file',
 				signers: [
 					{ signRequestId: 501, me: true },
 				],
 				visibleElements: [],
-			}
+			})
 
 			const wrapper = mount(realSign, {
 				global: {
@@ -1130,6 +1266,9 @@ describe('Sign.vue - signWithTokenCode', () => {
 			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
 			const realSign = SignComponent.default
 			const signMethodsStore = useSignMethodsStore()
+			const { useSignStore } = await import('../../../store/sign.js')
+			const signStore = useSignStore()
+			signStore.document = createSignDocument()
 			signMethodsStore.showModal('createSignature')
 
 			const wrapper = mount(realSign, {

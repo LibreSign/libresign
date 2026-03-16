@@ -5,7 +5,19 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-let FileValidation: unknown
+import type { VueWrapper } from '@vue/test-utils'
+import type { LoadedValidationFileDocument } from '../../../types/index'
+
+type FileValidationComponent = typeof import('../../../components/validation/FileValidation.vue').default
+type FileValidationWrapper = VueWrapper<any>
+type WrapperProps = {
+	document?: Record<string, unknown>
+	legalInformation?: string
+	documentValidMessage?: string | null
+	isAfterSigned?: boolean
+}
+
+let FileValidation: FileValidationComponent
 vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((_app: string, text: string) => text),
 	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
@@ -23,23 +35,37 @@ beforeAll(async () => {
 
 
 describe('FileValidation', () => {
-	let wrapper!: ReturnType<typeof createWrapper>
+	let wrapper!: FileValidationWrapper
 
-	const createWrapper = (props: Record<string, unknown> = {}) => {
-		const safeProps = props as {
-			document?: Record<string, unknown>
-			[key: string]: unknown
+	const createWrapper = (props: WrapperProps = {}) => {
+		const { document: documentOverrides, ...restProps } = props
+		const baseDocument: LoadedValidationFileDocument = {
+			id: 1,
+			uuid: '550e8400-e29b-41d4-a716-446655440000',
+			name: 'Test Document',
+			statusText: 'Pending',
+			nodeId: 123,
+			nodeType: 'file',
+			signatureFlow: 0,
+			docmdpLevel: 0,
+			totalPages: 1,
+			status: 1,
+			size: 0,
+			pdfVersion: '1.7',
+			created_at: '2026-01-01 00:00:00',
+			requested_by: {
+				userId: 'requester',
+				displayName: 'Requester',
+			},
 		}
-		return mount(FileValidation as never, {
+		const document = { ...baseDocument, ...(documentOverrides ?? {}) }
+		return mount(FileValidation, {
 			props: {
-				document: {
-					name: 'Test Document',
-					...safeProps.document,
-				},
 				legalInformation: '',
 				documentValidMessage: '',
 				isAfterSigned: false,
-				...safeProps,
+				...restProps,
+				document: document as never,
 			},
 			global: {
 				stubs: {
@@ -55,7 +81,7 @@ describe('FileValidation', () => {
 					t: (_app: string, text: string) => text,
 				},
 			},
-		})
+		}) as unknown as FileValidationWrapper
 	}
 
 	beforeEach(() => {
@@ -193,7 +219,7 @@ describe('FileValidation', () => {
 		it('passes document prop', () => {
 			const doc = {
 				name: 'Important.pdf',
-				status: '3',
+				status: 3,
 			}
 			wrapper = createWrapper({
 				document: doc,
@@ -292,7 +318,7 @@ describe('FileValidation', () => {
 			wrapper = createWrapper({
 				document: {
 					name: 'Doc.pdf',
-					status: '3',
+					status: 3,
 				},
 			})
 
@@ -304,7 +330,7 @@ describe('FileValidation', () => {
 				name: 'complex.pdf',
 				status: '3',
 				totalPages: 50,
-				size: '5242880',
+				size: 5242880,
 				pdfVersion: '1.7',
 				uuid: 'uuid-123',
 				signers: [

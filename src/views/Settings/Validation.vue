@@ -99,6 +99,9 @@ const urlInput = ref<HTMLInputElement | null>(null)
 const footerTemplateEditor = ref<FooterTemplateEditorInstance | null>(null)
 
 function parseBooleanSetting(value: string | boolean | number | undefined) {
+	if (value === undefined) {
+		return false
+	}
 	return ['true', true, '1', 1].includes(value)
 }
 

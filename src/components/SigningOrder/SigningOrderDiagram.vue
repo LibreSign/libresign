@@ -107,19 +107,17 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import type { IdentifyMethodRecord, SignerDetailRecord } from '../../types/index'
 defineOptions({
 	name: 'SigningOrderDiagram',
 })
 
-type IdentifyMethod = {
-	method?: string
-	value?: string
-}
+type IdentifyMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 
 type Signer = {
-	displayName?: string
+	displayName?: SignerDetailRecord['displayName']
+	signingOrder?: SignerDetailRecord['signingOrder'] | number
 	identifyMethods?: IdentifyMethod[]
-	signingOrder?: number
 	signed?: boolean
 	signDate?: number | null
 	me?: {
@@ -135,7 +133,7 @@ const props = withDefaults(defineProps<{
 })
 
 const uniqueOrders = computed(() => {
-	const orders = props.signers.map((signer) => signer.signingOrder || 1)
+	const orders: number[] = props.signers.map((signer) => Number(signer.signingOrder || 1))
 	return [...new Set(orders)].sort((a, b) => a - b)
 })
 

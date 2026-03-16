@@ -109,7 +109,7 @@ function goToSign() {
 		return
 	}
 	const route = router.resolve({ name: 'SignPDF' })
-	window.location = route.href as unknown as Location
+	window.location.href = route.href
 }
 
 defineExpose({

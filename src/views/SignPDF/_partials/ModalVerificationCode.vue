@@ -159,7 +159,7 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { validateEmail } from '../../../utils/validators.js'
 
-const sanitizePhoneNumber = val => {
+const sanitizePhoneNumber = (val: string) => {
 	val = val.replace(/\D/g, '')
 	return `+${val}`
 }
@@ -173,9 +173,16 @@ type EmailTokenSettings = {
 	hashOfEmail?: string
 	blurredEmail?: string
 	identifyMethod?: string
+	token?: string
 }
 
-type SignMethodsSettings = Record<string, { identifyMethod?: string } | undefined> & {
+type SignMethodSetting = {
+	identifyMethod?: string
+	needCode?: boolean
+	token?: string
+}
+
+type SignMethodsSettings = Record<string, SignMethodSetting | undefined> & {
 	emailToken?: EmailTokenSettings
 }
 
@@ -406,7 +413,7 @@ async function requestCode() {
 			const method = activeTokenMethod.value.charAt(0).toUpperCase() + activeTokenMethod.value.slice(1)
 			showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
 		} else {
-			showError(msg)
+			showError(msg || t('libresign', 'Unable to send verification code.'))
 		}
 	} finally {
 		loading.value = false

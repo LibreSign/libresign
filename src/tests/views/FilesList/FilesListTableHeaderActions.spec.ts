@@ -136,6 +136,7 @@ describe('FilesListTableHeaderActions.vue', () => {
 		const action = {
 			id: 'archive',
 			displayName: vi.fn(() => 'Archive'),
+			iconSvgInline: vi.fn(() => '<svg />'),
 			execBatch: vi.fn(async () => [true, true]),
 		}
 
@@ -153,6 +154,7 @@ describe('FilesListTableHeaderActions.vue', () => {
 		const action = {
 			id: 'archive',
 			displayName: vi.fn(() => 'Archive'),
+			iconSvgInline: vi.fn(() => '<svg />'),
 			execBatch: vi.fn(async () => [false, true]),
 		}
 

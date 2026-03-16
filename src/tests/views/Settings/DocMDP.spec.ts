@@ -6,6 +6,18 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 
+type DocMDPLevel = {
+	value: number
+	label: string
+	description: string
+}
+
+type DocMDPVm = {
+	enabled: boolean
+	selectedLevel?: DocMDPLevel
+	onEnabledChange: () => void
+}
+
 const loadStateMock = vi.fn()
 const generateOcsUrlMock = vi.fn((path: string) => path)
 const axiosPostMock = vi.fn((..._args: unknown[]) => Promise.resolve({ data: { ocs: { data: {} } } }))
@@ -80,10 +92,11 @@ describe('DocMDP', () => {
 				},
 			},
 		})
+		const vm = wrapper.vm as unknown as DocMDPVm
 		await flushPromises()
 
-		expect(wrapper.vm.enabled).toBe(false)
-		expect(wrapper.vm.selectedLevel?.value).toBe(2)
+		expect(vm.enabled).toBe(false)
+		expect(vm.selectedLevel?.value).toBe(2)
 	})
 
 	it('respects backend default config when storage is empty', async () => {
@@ -113,10 +126,11 @@ describe('DocMDP', () => {
 				},
 			},
 		})
+		const vm = wrapper.vm as unknown as DocMDPVm
 		await flushPromises()
 
-		expect(wrapper.vm.enabled).toBe(true)
-		expect(wrapper.vm.selectedLevel?.value).toBe(2)
+		expect(vm.enabled).toBe(true)
+		expect(vm.selectedLevel?.value).toBe(2)
 	})
 
 	it('changes selected level and persists selected radio value', async () => {
@@ -146,13 +160,14 @@ describe('DocMDP', () => {
 				},
 			},
 		})
+		const vm = wrapper.vm as unknown as DocMDPVm
 		await flushPromises()
 
 		const radioAndSwitchButtons = wrapper.findAll('.checkbox-radio-switch-stub')
 		await radioAndSwitchButtons[3].trigger('click')
 		await flushPromises()
 
-		expect(wrapper.vm.selectedLevel?.value).toBe(3)
+		expect(vm.selectedLevel?.value).toBe(3)
 		expect(axiosPostMock).toHaveBeenCalled()
 		const lastCall = axiosPostMock.mock.calls[axiosPostMock.mock.calls.length - 1] as [string, { enabled: boolean, defaultLevel: number }]
 		expect(lastCall[1].defaultLevel).toBe(3)
@@ -185,11 +200,12 @@ describe('DocMDP', () => {
 				},
 			},
 		})
+		const vm = wrapper.vm as unknown as DocMDPVm
 		await flushPromises()
 
-		expect(wrapper.vm.selectedLevel?.value).toBe(2)
-		wrapper.vm.enabled = true
-		wrapper.vm.onEnabledChange()
+		expect(vm.selectedLevel?.value).toBe(2)
+		vm.enabled = true
+		vm.onEnabledChange()
 		await flushPromises()
 
 		const lastCall = axiosPostMock.mock.calls[axiosPostMock.mock.calls.length - 1] as [string, { enabled: boolean, defaultLevel: number }]

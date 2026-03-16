@@ -32,26 +32,20 @@ import Moment from '@nextcloud/moment'
 
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
+import type { SignerDetailRecord } from '../../../../types/index'
 
 defineOptions({
 	name: 'SignerRow',
 	inheritAttrs: false,
 })
 
-type Signer = {
-	displayName?: string
-	email?: string
-	signed?: string | boolean
-	element?: {
-		elementId?: number
-	}
-}
-
 const props = withDefaults(defineProps<{
-	signer: Signer
+	signer: SignerDetailRecord
+	elementId?: number
 	to?: Record<string, unknown>
 	event?: string
 }>(), {
+	elementId: undefined,
 	to: undefined,
 	event: '',
 })
@@ -76,9 +70,7 @@ const signDate = computed(() => (
 		: ''
 ))
 
-const element = computed(() => props.signer.element || {})
-
-const hasElement = computed(() => (element.value.elementId || 0) > 0)
+const hasElement = computed(() => (props.elementId || 0) > 0)
 
 function signerClickAction() {
 	emit(props.event, props.signer)

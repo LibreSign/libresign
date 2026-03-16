@@ -10,6 +10,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\NotifyService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -19,6 +20,11 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
+
+/**
+ * @psalm-import-type LibresignDangerMessagesResponse from ResponseDefinitions
+ * @psalm-import-type LibresignMessageResponse from ResponseDefinitions
+ */
 
 class NotifyController extends AEnvironmentAwareController {
 	public function __construct(
@@ -35,7 +41,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 *
 	 * @param integer $fileId The identifier value of LibreSign file
 	 * @param array{email: string}[] $signers Signers data
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{type: 'danger', message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignDangerMessagesResponse, array{}>
 	 *
 	 * 200: OK
 	 * 401: Unauthorized
@@ -69,7 +75,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 *
 	 * @param integer $fileId The identifier value of LibreSign file
 	 * @param integer $signRequestId The sign request id
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{type: 'danger', message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignDangerMessagesResponse, array{}>
 	 *
 	 * 200: OK
 	 * 401: Unauthorized

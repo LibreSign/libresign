@@ -34,19 +34,21 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import '@nextcloud/password-confirmation/style.css'
 
+const HASH_ALGORITHMS = ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'] as const
+
+type HashAlgorithm = typeof HASH_ALGORITHMS[number]
+
 type OcsConfigResponse = {
-	data?: {
-		ocs?: {
-			data?: {
-				data?: string
-			}
+	ocs: {
+		data: {
+			data?: string
 		}
 	}
 }
 
 type OcpGlobal = {
 	AppConfig: {
-		setValue: (app: string, key: string, value: string) => void
+		setValue: (app: string, key: string, value: HashAlgorithm) => void
 	}
 }
 
@@ -54,24 +56,28 @@ defineOptions({
 	name: 'SignatureHashAlgorithm',
 })
 
-const selected = ref<string | string[]>('')
-const hashes = ref(['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'])
+const selected = ref<HashAlgorithm | ''>('')
+const hashes = ref<HashAlgorithm[]>([...HASH_ALGORITHMS])
 const loading = ref(false)
 const idKey = ref(0)
+
+function isHashAlgorithm(value: unknown): value is HashAlgorithm {
+	return HASH_ALGORITHMS.includes(value as HashAlgorithm)
+}
 
 async function getData() {
 	loading.value = true
 	const response = await axios.get(
 		generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/signature_hash_algorithm'),
-	) as OcsConfigResponse
-	const value = response.data?.ocs?.data?.data
-	selected.value = hashes.value.includes(value || '') ? (value as string) : 'SHA256'
+	) as { data: OcsConfigResponse }
+	const value = response.data.ocs.data.data
+	selected.value = isHashAlgorithm(value) ? value : 'SHA256'
 	loading.value = false
 }
 
 async function saveSignatureHash() {
 	await confirmPassword()
-	const normalizedSelected = hashes.value.includes(String(selected.value)) ? String(selected.value) : 'SHA256'
+	const normalizedSelected: HashAlgorithm = isHashAlgorithm(selected.value) ? selected.value : 'SHA256'
 	;(globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP.AppConfig.setValue('libresign', 'signature_hash_algorithm', normalizedSelected)
 	idKey.value += 1
 }

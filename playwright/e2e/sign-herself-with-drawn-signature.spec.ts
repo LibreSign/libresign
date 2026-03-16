@@ -4,8 +4,13 @@
  */
 
 import { expect, test } from '@playwright/test'
+import type { Locator } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+
+function getVisiblePdfOverlay(dialog: Locator) {
+	return dialog.locator('.overlay:visible').first()
+}
 
 test('sign herself with drawn signature', async ({ page }) => {
 	await login(
@@ -49,10 +54,18 @@ test('sign herself with drawn signature', async ({ page }) => {
 
 	await page.getByRole('button', { name: 'Save' }).click();
 	await page.getByRole('button', { name: 'Setup signature positions' }).click();
-	await expect(page.getByLabel('Page 1 of 1.')).toBeVisible();
-	await page.getByLabel('Signature positions').getByRole('link', { name: 'Edit signer Admin Name' }).click();
+	const signaturePositionsDialog = page.getByLabel('Signature positions')
+	const pageOverlay = getVisiblePdfOverlay(signaturePositionsDialog)
+	const addInstruction = signaturePositionsDialog.getByText('Click on the place you want to add.')
+	const cancelPlacementButton = signaturePositionsDialog.getByRole('button', { name: 'Cancel' })
+	const editSignerLink = signaturePositionsDialog.getByRole('link', { name: 'Edit signer Admin Name' })
+	await expect(signaturePositionsDialog).toBeVisible()
+	await expect(pageOverlay).toBeVisible()
+	await editSignerLink.click();
 
-	await expect(page.getByText('Click on the place you want to add.')).toBeVisible();
+	await expect(addInstruction).toBeVisible();
+	await expect(cancelPlacementButton).toBeVisible();
+	await expect(editSignerLink).toBeHidden();
 
 	// Placing a signature element on the PDF canvas requires three steps:
 	// 1. hover() triggers handleMouseMove, which sets previewVisible=true inside a
@@ -61,12 +74,15 @@ test('sign herself with drawn signature', async ({ page }) => {
 	//    (bound to mouseup on document) returns early because previewVisible is still false.
 	// 3. click() fires mouseup on the document, which triggers finishAdding() and places
 	//    the element at the current preview position.
-	const overlay = page.getByLabel('Page 1 of 1. Press Enter or Space to place the signature here.')
+	const overlay = getVisiblePdfOverlay(signaturePositionsDialog)
 	await overlay.hover()
-	await page.getByLabel('Signature positions').locator('.preview-element').first().waitFor({ state: 'visible' })
+	await signaturePositionsDialog.locator('.preview-element').first().waitFor({ state: 'visible' })
 	await overlay.click()
+	await expect(addInstruction).toBeHidden()
+	await expect(cancelPlacementButton).toBeHidden()
+	await expect(editSignerLink).toBeVisible()
 	await expect(
-		page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' })
+		signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' })
 	).toBeVisible()
 
 	await page.getByRole('button', { name: 'Save' }).click();

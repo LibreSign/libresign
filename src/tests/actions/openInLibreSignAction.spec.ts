@@ -109,6 +109,7 @@ describe('openInLibreSignAction rules', () => {
 	let loadState: { mockReturnValue: (value: unknown) => unknown }
 	let getCapabilities: { mockReturnValue: (value: unknown) => unknown }
 	type PendingEnvelopeForTest = NonNullable<LibreSignGlobalNamespace['pendingEnvelope']> & {
+		id: number
 		nodeType: string
 		files: Array<{ fileId?: number | string }>
 		filesCount: number

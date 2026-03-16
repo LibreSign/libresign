@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<form @submit="e => e.preventDefault()">
+	<form @submit="onFormSubmit">
 		<input v-model="value"
 			class="input__input"
 			:placeholder="placeholder"
@@ -43,6 +43,10 @@ function clearInput() {
 	value.value = ''
 }
 
+function onFormSubmit(event: SubmitEvent) {
+	event.preventDefault()
+}
+
 function onSubmit() {
 	emit('submit', value.value)
 }
@@ -50,6 +54,7 @@ function onSubmit() {
 defineExpose({
 	value,
 	clearInput,
+	onFormSubmit,
 	onSubmit,
 })
 </script>

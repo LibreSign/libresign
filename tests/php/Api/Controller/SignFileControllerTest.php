@@ -82,9 +82,11 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'signers' => [
 				[
-					'identify' => [
-						'account' => 'username',
-					],
+					'identifyMethods' => [[
+						'method' => 'account',
+						'mandatory' => 0,
+						'value' => 'username',
+					]],
 				],
 			],
 			'userManager' => $user,
@@ -126,9 +128,11 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'signers' => [
 				[
-					'identify' => [
-						'email' => 'person@test.coop',
-					],
+					'identifyMethods' => [[
+						'method' => 'email',
+						'mandatory' => 0,
+						'value' => 'person@test.coop',
+					]],
 				],
 			],
 			'userManager' => $user,
@@ -170,9 +174,11 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'signers' => [
 				[
-					'identify' => [
-						'email' => 'person@test.coop',
-					],
+					'identifyMethods' => [[
+						'method' => 'email',
+						'mandatory' => 0,
+						'value' => 'person@test.coop',
+					]],
 				],
 			],
 			'userManager' => $user,
@@ -207,9 +213,11 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'signers' => [
 				[
-					'identify' => [
-						'email' => 'person@test.coop',
-					],
+					'identifyMethods' => [[
+						'method' => 'email',
+						'mandatory' => 0,
+						'value' => 'person@test.coop',
+					]],
 				],
 			],
 			'userManager' => $user,
@@ -263,9 +271,11 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'signers' => [
 				[
-					'identify' => [
-						'email' => 'person@test.coop',
-					],
+					'identifyMethods' => [[
+						'method' => 'email',
+						'mandatory' => 0,
+						'value' => 'person@test.coop',
+					]],
 				],
 			],
 			'userManager' => $user,
@@ -311,9 +321,11 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'signers' => [
 				[
-					'identify' => [
-						'email' => 'person@test.coop',
-					],
+					'identifyMethods' => [[
+						'method' => 'email',
+						'mandatory' => 0,
+						'value' => 'person@test.coop',
+					]],
 				],
 			],
 			'userManager' => $user,

@@ -5,8 +5,31 @@
 
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 
-let FileEntryStatus: unknown
+type StatusSigner = {
+	id?: number
+	displayName?: string
+}
+
+type FileEntryStatusProps = {
+	statusText?: string
+	status?: number
+	signers?: StatusSigner[]
+	signersCount?: number
+}
+
+type FileEntryStatusVm = {
+	statusToVariant: (status: number) => string
+	$nextTick: () => Promise<void>
+}
+
+type FileEntryStatusWrapper = VueWrapper<any> & {
+	vm: FileEntryStatusVm
+	setProps: (props: Record<string, unknown>) => Promise<void>
+}
+
+let FileEntryStatus: any
 
 vi.mock('@nextcloud/l10n', () => ({
 	translate: vi.fn((_app: string, text: string) => text),
@@ -27,7 +50,7 @@ beforeAll(async () => {
 })
 
 describe('FileEntryStatus', () => {
-	const createWrapper = (props = {}) => {
+	const createWrapper = (props: FileEntryStatusProps = {}) => {
 		return mount(FileEntryStatus, {
 			props: {
 				statusText: 'Draft',
@@ -38,7 +61,7 @@ describe('FileEntryStatus', () => {
 			stubs: {
 				NcIconSvgWrapper: true,
 			},
-		})
+		}) as FileEntryStatusWrapper
 	}
 
 	describe('RULE: Status 0 always displays as draft, regardless of signers', () => {

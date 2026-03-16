@@ -80,6 +80,7 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
+import type { LibresignCapabilities } from '../../types/index'
 
 defineOptions({
 	name: 'Editor',
@@ -95,12 +96,16 @@ type ColorPickerRef = {
 
 const emit = defineEmits<{
 	(event: 'close'): void
-	(event: 'save', value: string | null): void
+	(event: 'save', value: string): void
 }>()
 
-const capabilities = getCapabilities()
-const canvasWidth = capabilities.libresign.config['sign-elements']['signature-width']
-const canvasHeight = capabilities.libresign.config['sign-elements']['signature-height']
+const capabilities = getCapabilities() as LibresignCapabilities
+const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
+	'signature-width': 0,
+	'signature-height': 0,
+}
+const canvasWidth = signElementsConfig['signature-width']
+const canvasHeight = signElementsConfig['signature-height']
 const color = ref('#000000')
 const customPalette = [
 	'#000000',
@@ -108,7 +113,7 @@ const customPalette = [
 	'#0000ff',
 	'#008000',
 ]
-const imageData = ref<string | null>(null)
+const imageData = ref('')
 const modal = ref(false)
 const mounted = ref(false)
 const canSave = ref(false)
@@ -157,13 +162,17 @@ function updateColor() {
 function clear() {
 	canvas.value?.signaturePad?.clear()
 	canSave.value = false
+	imageData.value = ''
 }
 
 function createDataImage() {
-	imageData.value = canvas.value?.signaturePad?.toDataURL('image/png') || null
+	imageData.value = canvas.value?.signaturePad?.toDataURL('image/png') || ''
 }
 
 function confirmationDraw() {
+	if (!canSave.value) {
+		return
+	}
 	createDataImage()
 	handleModal(true)
 }
@@ -177,6 +186,9 @@ function close() {
 }
 
 function saveSignature() {
+	if (!imageData.value) {
+		return
+	}
 	handleModal(false)
 	emit('save', imageData.value)
 }
@@ -198,7 +210,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	mounted.value = false
 	canvas.value?.signaturePad?.clear()
-	imageData.value = null
+	imageData.value = ''
 })
 
 defineExpose({

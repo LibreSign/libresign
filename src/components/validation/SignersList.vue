@@ -49,7 +49,7 @@ defineOptions({
 	name: 'SignersList',
 })
 
-type Signer = {
+type SignerListEntry = {
 	displayName?: string
 	email?: string
 	userId?: string
@@ -57,7 +57,7 @@ type Signer = {
 }
 
 const props = withDefaults(defineProps<{
-	signers: Signer[]
+	signers: SignerListEntry[]
 	compact?: boolean
 }>(), {
 	compact: false,

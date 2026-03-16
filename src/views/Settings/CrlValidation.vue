@@ -35,6 +35,7 @@ import { computed, ref } from 'vue'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import type { AdminInitialState } from '../../types'
 
 type OcpGlobal = {
 	AppConfig: {
@@ -46,8 +47,8 @@ defineOptions({
 	name: 'CrlValidation',
 })
 
-const enabled = ref(loadState('libresign', 'crl_external_validation_enabled', true))
-const ldapExtensionAvailable = ref(loadState('libresign', 'ldap_extension_available', true))
+const enabled = ref(loadState<AdminInitialState['crl_external_validation_enabled']>('libresign', 'crl_external_validation_enabled', true))
+const ldapExtensionAvailable = ref(loadState<AdminInitialState['ldap_extension_available']>('libresign', 'ldap_extension_available', true))
 
 const sectionTitle = computed(() => {
 	return t('libresign', 'Certificate Revocation (CRL)')

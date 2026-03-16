@@ -27,6 +27,8 @@ const filesStoreMock = {
 			statusText: 'Signed',
 		},
 	} as Record<number, FileEntry>,
+	getFile: vi.fn((file?: FileEntry) => file ?? filesStoreMock.files[filesStoreMock.selectedFileId]),
+	getSelectedFileView: vi.fn(() => filesStoreMock.files[filesStoreMock.selectedFileId] ?? null),
 	selectFile: vi.fn(),
 }
 
@@ -36,6 +38,9 @@ const sidebarStoreMock = {
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn((_app: string, text: string) => text),
+	getLanguage: vi.fn(() => 'en'),
+	getLocale: vi.fn(() => 'en'),
+	isRTL: vi.fn(() => false),
 }))
 
 vi.mock('@nextcloud/router', () => ({
@@ -78,6 +83,8 @@ describe('File.vue', () => {
 			},
 		}
 		filesStoreMock.selectFile.mockReset()
+		filesStoreMock.getFile.mockClear()
+		filesStoreMock.getSelectedFileView.mockClear()
 		sidebarStoreMock.activeRequestSignatureTab.mockReset()
 	})
 
@@ -125,5 +132,11 @@ describe('File.vue', () => {
 		expect(wrapper.vm.statusToClass(2)).toBe('pending')
 		expect(wrapper.vm.statusToClass(3)).toBe('signed')
 		expect(wrapper.vm.statusToClass(999)).toBe('')
+	})
+
+	it('renders the status dot class based on numeric status', () => {
+		const wrapper = createWrapper()
+
+		expect(wrapper.find('.enDot .dot').classes()).toContain('signed')
 	})
 })

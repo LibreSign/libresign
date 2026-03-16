@@ -222,9 +222,26 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		})
 
 		await wrapper.vm.$nextTick()
+		wrapper.vm.canSave = true
 		wrapper.vm.confirmationDraw()
 		expect(wrapper.vm.modal).toBe(true)
 		expect(wrapper.vm.imageData).toBeDefined()
+	})
+
+	it('does not open confirmation dialog when canvas is empty', async () => {
+		const wrapper = mount(Editor, {
+			global: {
+				mocks: {
+					t,
+				},
+			},
+		})
+
+		await wrapper.vm.$nextTick()
+		wrapper.vm.canSave = false
+		wrapper.vm.confirmationDraw()
+
+		expect(wrapper.vm.modal).toBe(false)
 	})
 
 	it('handles modal state correctly', async () => {
@@ -288,8 +305,27 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 
 		await wrapper.vm.$nextTick()
 		wrapper.vm.modal = true
+		wrapper.vm.imageData = 'data:image/png;base64,testdata'
 		wrapper.vm.saveSignature()
 		expect(wrapper.vm.modal).toBe(false)
+	})
+
+	it('does not emit save when image data is empty', async () => {
+		const wrapper = mount(Editor, {
+			global: {
+				mocks: {
+					t,
+				},
+			},
+		})
+
+		await wrapper.vm.$nextTick()
+		wrapper.vm.imageData = ''
+		wrapper.vm.modal = true
+		wrapper.vm.saveSignature()
+
+		expect(wrapper.emitted('save')).toBeFalsy()
+		expect(wrapper.vm.modal).toBe(true)
 	})
 
 	it('sets mounted flag to true after mount', async () => {
@@ -344,7 +380,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		})
 
 		await wrapper.vm.$nextTick()
-		const canvas = wrapper.vm.$refs.canvas
+		const canvas = wrapper.vm.$refs.canvas as HTMLCanvasElement
 		expect(canvas.width).toBeGreaterThan(0)
 		expect(canvas.height).toBeGreaterThan(0)
 	})
@@ -368,7 +404,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		}
 	})
 
-	it('initializes image data as null', () => {
+	it('initializes image data as empty string', () => {
 		const wrapper = mount(Editor, {
 			global: {
 				mocks: {
@@ -377,7 +413,7 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 			},
 		})
 
-		expect(wrapper.vm.imageData).toBe(null)
+		expect(wrapper.vm.imageData).toBe('')
 	})
 
 	it('initializes modal as false', () => {

@@ -10,6 +10,7 @@ import RightSidebar from '../../../components/RightSidebar/RightSidebar.vue'
 
 const filesStoreMock = {
 	getFile: vi.fn(() => ({ name: 'agreement.pdf' })),
+	getSelectedFileView: vi.fn(() => ({ name: 'agreement.pdf' })),
 	getSubtitle: vi.fn(() => 'Alice, Bob'),
 }
 
@@ -21,7 +22,9 @@ const sidebarStoreMock = {
 	handleRouteChange: vi.fn(),
 }
 
-const signStoreMock = {}
+const signStoreMock = {
+	document: undefined as undefined | { statusText: string },
+}
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: vi.fn((_app: string, text: string) => text),
@@ -68,9 +71,11 @@ vi.mock('../../../components/RightSidebar/SignTab.vue', () => ({
 describe('RightSidebar.vue', () => {
 	beforeEach(() => {
 		filesStoreMock.getFile.mockReturnValue({ name: 'agreement.pdf' })
+		filesStoreMock.getSelectedFileView.mockReturnValue({ name: 'agreement.pdf' })
 		filesStoreMock.getSubtitle.mockReturnValue('Alice, Bob')
 		sidebarStoreMock.activeTab = 'request-signature-tab'
 		sidebarStoreMock.isVisible = true
+		signStoreMock.document = { statusText: 'Draft' }
 		sidebarStoreMock.setActiveTab.mockReset()
 		sidebarStoreMock.hideSidebar.mockReset()
 		sidebarStoreMock.handleRouteChange.mockReset()
@@ -110,6 +115,14 @@ describe('RightSidebar.vue', () => {
 
 		expect(wrapper.find('.sign-tab').exists()).toBe(true)
 		expect(wrapper.find('.request-signature-tab').exists()).toBe(false)
+	})
+
+	it('does not render the sign tab without an active document', () => {
+		sidebarStoreMock.activeTab = 'sign-tab'
+		signStoreMock.document = undefined
+		const wrapper = createWrapper()
+
+		expect(wrapper.find('.sign-tab').exists()).toBe(false)
 	})
 
 	it('forwards active tab updates and close events to the sidebar store', async () => {

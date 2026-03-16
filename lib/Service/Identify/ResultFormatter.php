@@ -15,6 +15,19 @@ use OCA\Libresign\Collaboration\Collaborators\SignerPlugin;
 use OCP\Share\IShare;
 
 class ResultFormatter {
+	private function getIconName(string $method): ?string {
+		return match ($method) {
+			'account',
+			'email',
+			'signal',
+			'sms',
+			'telegram',
+			'whatsapp',
+			'xmpp' => $method,
+			default => null,
+		};
+	}
+
 	public function formatForNcSelect(array $list): array {
 		$formattedList = [];
 		foreach ($list as $key => $item) {
@@ -28,7 +41,7 @@ class ResultFormatter {
 			}
 
 			$formattedList[$key] = [
-				'id' => $item['value']['shareWith'],
+				'identify' => $item['value']['shareWith'],
 				'isNoUser' => $isNoUser,
 				'displayName' => $item['label'],
 				'subname' => $item['shareWithDisplayNameUnique'] ?? '',
@@ -36,10 +49,10 @@ class ResultFormatter {
 
 			if ($shareType === IShare::TYPE_EMAIL) {
 				$formattedList[$key]['method'] = 'email';
-				$formattedList[$key]['icon'] = 'icon-mail';
+				$formattedList[$key]['iconName'] = $this->getIconName('email');
 			} elseif ($shareType === IShare::TYPE_USER) {
 				$formattedList[$key]['method'] = 'account';
-				$formattedList[$key]['icon'] = 'icon-user';
+				$formattedList[$key]['iconName'] = $this->getIconName('account');
 			} elseif (in_array($shareType, [
 				SignerPlugin::TYPE_SIGNER,
 				AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE,
@@ -48,14 +61,9 @@ class ResultFormatter {
 			], true)) {
 				$method = $item['method'] ?? '';
 				$formattedList[$key]['method'] = $method;
-
-				if ($method === 'email') {
-					$formattedList[$key]['icon'] = 'icon-mail';
-				} elseif ($method === 'account') {
-					$formattedList[$key]['icon'] = 'icon-user';
-				} else {
-					$formattedList[$key]['iconSvg'] = 'svg' . ucfirst($method);
-					$formattedList[$key]['iconName'] = $method;
+				$iconName = $this->getIconName($method);
+				if ($iconName !== null) {
+					$formattedList[$key]['iconName'] = $iconName;
 				}
 			}
 		}

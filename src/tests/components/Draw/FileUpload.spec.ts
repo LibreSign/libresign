@@ -194,14 +194,38 @@ describe('FileUpload.vue - Uploaded signature flow', () => {
 		expect(wrapper.emitted('save')).toEqual([['data:image/png;base64,signed']])
 	})
 
+	it('does not emit save when there is no cropped image', () => {
+		const wrapper = mountComponent()
+
+		wrapper.vm.modal = true
+		wrapper.vm.imageData = ''
+		wrapper.vm.saveSignature()
+
+		expect(wrapper.emitted('save')).toBeFalsy()
+		expect(wrapper.vm.modal).toBe(true)
+	})
+
 	it('opens and closes the confirmation dialog through actions', () => {
 		const wrapper = mountComponent()
+		wrapper.vm.image = 'data:image/png;base64,selected'
+		wrapper.vm.imageData = 'data:image/png;base64,cropped'
 
 		wrapper.vm.confirmSave()
 		expect(wrapper.vm.modal).toBe(true)
 
 		wrapper.vm.cancel()
 		expect(wrapper.vm.modal).toBe(false)
+	})
+
+	it('does not open confirmation dialog without cropped image data', () => {
+		const wrapper = mountComponent()
+
+		wrapper.vm.image = 'data:image/png;base64,selected'
+		wrapper.vm.imageData = ''
+		wrapper.vm.confirmSave()
+
+		expect(wrapper.vm.modal).toBe(false)
+		expect(wrapper.vm.canSave).toBe(false)
 	})
 
 	it('emits close when the cancel action is requested', () => {

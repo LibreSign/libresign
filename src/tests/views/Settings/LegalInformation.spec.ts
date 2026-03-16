@@ -6,6 +6,10 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
+type LegalInformationVm = {
+	legalInformation: string
+}
+
 let LegalInformation: unknown
 
 vi.mock('@nextcloud/l10n', () => ({
@@ -41,6 +45,7 @@ beforeAll(async () => {
 
 describe('LegalInformation', () => {
 	let wrapper!: ReturnType<typeof createWrapper>
+	const vm = () => wrapper.vm as unknown as LegalInformationVm
 
 	const createWrapper = () => {
 		return mount(LegalInformation as never, {
@@ -120,7 +125,7 @@ describe('LegalInformation', () => {
 			wrapper = createWrapper()
 			await flushPromises()
 
-			expect(wrapper.vm.legalInformation).toBe('Mock legal information from state')
+			expect(vm().legalInformation).toBe('Mock legal information from state')
 		})
 
 		it('passes legal information to MarkdownEditor', async () => {
@@ -182,14 +187,14 @@ describe('LegalInformation', () => {
 			await editor.vm.$emit('update:modelValue', 'New content')
 			await flushPromises()
 
-			expect(wrapper.vm.legalInformation).toBe('New content')
+			expect(vm().legalInformation).toBe('New content')
 		})
 
 		it('saves with OCP.AppConfig.setValue when content changes', async () => {
 			wrapper = createWrapper()
 			await flushPromises()
 
-			wrapper.vm.legalInformation = 'Direct update'
+			vm().legalInformation = 'Direct update'
 			await flushPromises()
 
 			const editor = wrapper.findComponent({ name: 'MarkdownEditor' })
@@ -201,7 +206,7 @@ describe('LegalInformation', () => {
 	describe('RULE: Preview renders when legal information exists', () => {
 		it('shows preview when legal information is not empty', async () => {
 			wrapper = createWrapper()
-			wrapper.vm.legalInformation = 'Some legal information'
+			vm().legalInformation = 'Some legal information'
 			await flushPromises()
 
 			const preview = wrapper.find('.legal-information-preview')
@@ -210,7 +215,7 @@ describe('LegalInformation', () => {
 
 		it('hides preview when legal information is empty', async () => {
 			wrapper = createWrapper()
-			wrapper.vm.legalInformation = ''
+			vm().legalInformation = ''
 			await flushPromises()
 
 			const preview = wrapper.find('.legal-information-preview')
@@ -219,7 +224,7 @@ describe('LegalInformation', () => {
 
 		it('renders preview title', async () => {
 			wrapper = createWrapper()
-			wrapper.vm.legalInformation = 'Some content'
+			vm().legalInformation = 'Some content'
 			await flushPromises()
 
 			const previewTitle = wrapper.find('.legal-information-preview strong')
@@ -228,7 +233,7 @@ describe('LegalInformation', () => {
 
 		it('renders NcRichText in preview with markdown enabled', async () => {
 			wrapper = createWrapper()
-			wrapper.vm.legalInformation = 'Legal text with **markdown**'
+			vm().legalInformation = 'Legal text with **markdown**'
 			await flushPromises()
 
 			const richText = wrapper.findComponent({ name: 'NcRichText' })
@@ -241,7 +246,7 @@ describe('LegalInformation', () => {
 			wrapper = createWrapper()
 			await flushPromises()
 
-			wrapper.vm.legalInformation = 'Updated legal content'
+			vm().legalInformation = 'Updated legal content'
 			await flushPromises()
 
 			const richText = wrapper.findComponent({ name: 'NcRichText' })
@@ -259,7 +264,7 @@ describe('LegalInformation', () => {
 
 		it('applies correct CSS classes to preview wrapper when shown', async () => {
 			wrapper = createWrapper()
-			wrapper.vm.legalInformation = 'Some content'
+			vm().legalInformation = 'Some content'
 			await flushPromises()
 
 			const previewWrapper = wrapper.find('.legal-information-preview')
@@ -273,7 +278,7 @@ describe('LegalInformation', () => {
 	describe('RULE: Empty initial state is handled correctly', () => {
 		it('renders component even with empty legal information', async () => {
 			wrapper = createWrapper()
-			wrapper.vm.legalInformation = ''
+			vm().legalInformation = ''
 			await flushPromises()
 
 			expect(wrapper.findComponent({ name: 'MarkdownEditor' }).exists()).toBe(true)
@@ -281,7 +286,7 @@ describe('LegalInformation', () => {
 
 		it('does not show preview when content is empty', async () => {
 			wrapper = createWrapper()
-			wrapper.vm.legalInformation = ''
+			vm().legalInformation = ''
 			await flushPromises()
 
 			const preview = wrapper.find('.legal-information-preview')
@@ -292,7 +297,7 @@ describe('LegalInformation', () => {
 	describe('RULE: Markdown content is properly handled', () => {
 		it('passes markdown content to preview', async () => {
 			wrapper = createWrapper()
-			wrapper.vm.legalInformation = '**Bold text** and _italic_'
+			vm().legalInformation = '**Bold text** and _italic_'
 			await flushPromises()
 
 			const richText = wrapper.findComponent({ name: 'NcRichText' })
@@ -301,7 +306,7 @@ describe('LegalInformation', () => {
 
 		it('displays markdown formatting in preview', async () => {
 			wrapper = createWrapper()
-			wrapper.vm.legalInformation = 'Legal info with **markdown** formatting'
+			vm().legalInformation = 'Legal info with **markdown** formatting'
 			await flushPromises()
 
 			const previewContent = wrapper.find('.legal-information-preview-content')

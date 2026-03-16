@@ -15,17 +15,13 @@
 import { t } from '@nextcloud/l10n'
 import { usernameToColor } from '@nextcloud/vue/functions/usernameToColor'
 import { computed } from 'vue'
+import type { SignerDetailRecord, SignerSummaryRecord } from '../../types/index'
 
 defineOptions({
 	name: 'SignatureBox',
 })
 
-type Signer = {
-	displayName?: string
-	name?: string
-	email?: string
-	id?: string
-} | null
+type Signer = SignerSummaryRecord | SignerDetailRecord | null
 
 const props = withDefaults(defineProps<{
 	label?: string
@@ -40,8 +36,7 @@ const signatureBoxAriaLabel = computed(() => {
 })
 
 const boxStyle = computed(() => {
-	const signer = props.signer || {}
-	const seed = signer.displayName || signer.name || signer.email || signer.id || props.label
+	const seed = props.signer?.displayName || props.signer?.email || props.signer?.signRequestId || props.label
 
 	if (!seed) {
 		return {}

@@ -64,8 +64,24 @@ vi.mock('../../store/sign.js', async () => {
 })
 
 describe('SignPDF.vue', () => {
+	const createSignDocument = (overrides = {}) => ({
+		id: 1,
+		name: 'Envelope',
+		description: '',
+		status: '',
+		statusText: '',
+		url: '/apps/libresign/p/pdf/uuid-123',
+		nodeId: 1,
+		nodeType: 'file' as const,
+		uuid: 'uuid-123',
+		signers: [],
+		visibleElements: [],
+		...overrides,
+	})
+
 	beforeEach(() => {
 		setActivePinia(createPinia())
+		vi.clearAllMocks()
 	})
 
 	it('attaches envelope files to signStore document', async () => {
@@ -74,11 +90,10 @@ describe('SignPDF.vue', () => {
 		const { useSignStore } = await import('../../../store/sign.js')
 		const signStore = useSignStore()
 
-		signStore.document = {
-			id: 1,
+		signStore.document = createSignDocument({
 			nodeType: 'envelope',
 			files: [],
-		}
+		})
 
 		const wrapper = mount(SignPDF, {
 			global: {
@@ -114,6 +129,89 @@ describe('SignPDF.vue', () => {
 
 		await wrapper.vm.loadEnvelopePdfs(1)
 
-		expect(signStore.document.files).toEqual(envelopeFiles)
+		expect(signStore.document!.files).toEqual(envelopeFiles)
+	})
+
+	it('normalizes envelope visible elements when loading child files', async () => {
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { loadState } = await import('@nextcloud/initial-state')
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+
+		signStore.document = createSignDocument({
+			nodeType: 'envelope',
+			files: [],
+		})
+
+		const wrapper = mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					PdfEditor: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
+				},
+			},
+		})
+
+		const envelopeFiles = [
+			{
+				id: '10',
+				name: 'file1',
+				file: '/file1.pdf',
+				metadata: { extension: 'pdf' },
+				signers: [
+					{
+						signRequestId: 501,
+						displayName: 'Ada',
+						email: 'ada@example.com',
+						me: true,
+					},
+				],
+				visibleElements: [
+					{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+					{ fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 99, top: 88, width: 20, height: 10 } },
+				],
+			},
+		]
+
+		vi.mocked(loadState).mockImplementation((app, key, defaultValue) => {
+			if (key === 'envelopeFiles') {
+				return envelopeFiles
+			}
+			return defaultValue
+		})
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+			headers: {
+				get: vi.fn(() => 'application/pdf'),
+			},
+			blob: vi.fn(async () => new Blob(['pdf'], { type: 'application/pdf' })),
+		}))
+
+		await wrapper.vm.loadEnvelopePdfs(1)
+
+		expect(wrapper.vm.envelopeFiles).toEqual([
+			{
+				id: 10,
+				name: 'file1',
+				file: '/file1.pdf',
+				metadata: { extension: 'pdf' },
+				signers: [
+					{
+						signRequestId: 501,
+						displayName: 'Ada',
+						email: 'ada@example.com',
+							localKey: 'signer:501',
+						me: true,
+					},
+				],
+				visibleElements: [
+					{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+				],
+			},
+		])
 	})
 })

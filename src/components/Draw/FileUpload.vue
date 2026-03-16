@@ -75,7 +75,7 @@
 			</p>
 
 			<div class="action-buttons">
-				<NcButton variant="primary" @click="confirmSave">
+				<NcButton variant="primary" :disabled="!canSave" @click="confirmSave">
 					{{ t('libresign', 'Save') }}
 				</NcButton>
 				<NcButton @click="close">
@@ -121,6 +121,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import 'vue-advanced-cropper/dist/style.css'
+import type { LibresignCapabilities } from '../../types/index'
 
 type CropperResult = {
 	canvas?: {
@@ -158,8 +159,11 @@ const emit = defineEmits<{
 	(event: 'close'): void
 }>()
 
-const capabilities = getCapabilities()
-const signElementsConfig = capabilities?.libresign?.config?.['sign-elements'] || {}
+const capabilities = getCapabilities() as LibresignCapabilities
+const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
+	'signature-width': 0,
+	'signature-height': 0,
+}
 
 const file = ref<HTMLInputElement | null>(null)
 const cropper = ref<CropperInstance | null>(null)
@@ -175,10 +179,11 @@ const zoomLevel = ref(1)
 const zoomMin = 0.1
 const zoomMax = 8
 const zoomStep = 0.1
-const stencilBaseWidth = Number(signElementsConfig['signature-width'] || 0)
-const stencilBaseHeight = Number(signElementsConfig['signature-height'] || 0)
+const stencilBaseWidth = signElementsConfig['signature-width']
+const stencilBaseHeight = signElementsConfig['signature-height']
 
 const hasImage = computed(() => !!image.value)
+const canSave = computed(() => hasImage.value && imageData.value.length > 0)
 
 const zoomPercentValue = computed({
 	get: () => Math.round(zoomLevel.value * 100),
@@ -344,11 +349,17 @@ function change(result?: CropperResult) {
 }
 
 function saveSignature() {
+	if (!imageData.value) {
+		return
+	}
 	modal.value = false
 	emit('save', imageData.value)
 }
 
 function confirmSave() {
+	if (!canSave.value) {
+		return
+	}
 	modal.value = true
 }
 
@@ -388,6 +399,7 @@ watch(hasImage, value => {
 	containerWidth.value = 0
 	zoomLevel.value = 1
 	pendingFitCenter.value = false
+	imageData.value = ''
 })
 
 defineExpose({
@@ -411,6 +423,7 @@ defineExpose({
 	stencilBaseWidth,
 	stencilBaseHeight,
 	hasImage,
+	canSave,
 	zoomPercentValue,
 	stencilAspectRatio,
 	stencilProps,

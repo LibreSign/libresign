@@ -285,7 +285,7 @@ describe('SignatureStamp.vue', () => {
 			target: {
 				files: [new File(['png'], 'signature.png', { type: 'image/png' })],
 			},
-		}
+		} as unknown as Event
 
 		await wrapper.vm.onChangeBackground(event)
 		await flushPromises()
@@ -298,8 +298,10 @@ describe('SignatureStamp.vue', () => {
 		await flushPromises()
 
 		expect(axiosDeleteMock).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/admin/signature-background', {
-			setting: undefined,
-			value: 'backgroundColor',
+			data: {
+				setting: undefined,
+				value: 'backgroundColor',
+			},
 		})
 		expect(wrapper.vm.backgroundType).toBe('deleted')
 		expect(wrapper.vm.backgroundUrl).toBe('')

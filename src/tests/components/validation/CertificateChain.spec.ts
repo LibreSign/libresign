@@ -5,7 +5,34 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-let CertificateChain: unknown
+import type { VueWrapper } from '@vue/test-utils'
+
+type CertificateChainComponent = typeof import('../../../components/validation/CertificateChain.vue').default
+
+type CertificateRecord = {
+	subject?: { CN?: string }
+	issuer?: { CN?: string }
+	name?: string
+	displayName?: string
+	serialNumber?: string
+	serialNumberHex?: string
+	validFrom_time_t?: number
+	validTo_time_t?: number
+	[key: string]: unknown
+}
+
+type CertificateChainVm = {
+	chainOpen: boolean
+	$nextTick: () => Promise<void>
+	formatTimestamp: (timestamp?: number | null) => string
+	getToggleAriaLabel: () => string
+	getCertItemLabel: (certIndex: number) => string
+	getCertRoleLabel: (certIndex: number) => string
+}
+
+type CertificateChainWrapper = VueWrapper<CertificateChainVm>
+
+let CertificateChain: CertificateChainComponent
 
 
 vi.mock('@nextcloud/l10n', () => ({
@@ -31,12 +58,12 @@ beforeAll(async () => {
 })
 
 describe('CertificateChain', () => {
-	let wrapper!: ReturnType<typeof createWrapper>
+	let wrapper!: CertificateChainWrapper
 
-	const createWrapper = (props = {}) => {
-		return mount(CertificateChain as never, {
+	const createWrapper = (props: Partial<{ chain: CertificateRecord[] }> = {}): CertificateChainWrapper => {
+		return mount(CertificateChain, {
 			props: {
-				chain: [],
+				chain: [] as CertificateRecord[],
 				...props,
 			},
 			global: {
@@ -49,7 +76,7 @@ describe('CertificateChain', () => {
 					t: (_app: string, text: string) => text,
 				},
 			},
-		})
+		}) as unknown as CertificateChainWrapper
 	}
 
 	beforeEach(() => {

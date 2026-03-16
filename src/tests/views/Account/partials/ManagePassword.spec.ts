@@ -5,9 +5,11 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 
 const loadStateMock = vi.fn()
 const hasSignatureFileMock = vi.fn()
+const initializeHasSignatureFileMock = vi.fn()
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: (...args: unknown[]) => loadStateMock(...args),
@@ -17,6 +19,7 @@ vi.mock('../../../../store/signMethods.js', () => ({
 	useSignMethodsStore: () => ({
 		hasSignatureFile: () => hasSignatureFileMock(),
 		setHasSignatureFile: vi.fn(),
+		initializeHasSignatureFile: (...args: unknown[]) => initializeHasSignatureFileMock(...args),
 		showModal: vi.fn(),
 	}),
 }))
@@ -31,7 +34,24 @@ vi.mock('@nextcloud/l10n', () => ({
 	getLocale: vi.fn(() => 'en'),
 }))
 
-let ManagePassword: unknown
+type ManagePasswordComponent = typeof import('../../../../views/Account/partials/ManagePassword.vue').default
+
+type ManagePasswordVm = {
+	$nextTick: () => Promise<void>
+	uploadCertificate?: { triggerUpload: () => void }
+	triggerUploadCertificate: () => void
+	mdiCloudUpload: string
+	mdiLockOpenCheck: string
+	mdiDelete: string
+	mdiCertificate: string
+	mdiFileReplace: string
+}
+
+type ManagePasswordWrapper = VueWrapper<any> & {
+	vm: ManagePasswordVm
+}
+
+let ManagePassword: ManagePasswordComponent
 
 beforeAll(async () => {
 	;({ default: ManagePassword } = await import('../../../../views/Account/partials/ManagePassword.vue'))
@@ -41,6 +61,31 @@ describe('ManagePassword', () => {
 	beforeEach(() => {
 		loadStateMock.mockReset()
 		hasSignatureFileMock.mockReset()
+		initializeHasSignatureFileMock.mockReset()
+	})
+
+	it('initializes signature file state from config without forcing remount behavior', () => {
+		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
+			if (key === 'certificate_engine') return 'openssl'
+			if (key === 'config') return { hasSignatureFile: true }
+			return fallback
+		})
+		hasSignatureFileMock.mockReturnValue(true)
+
+		mount(ManagePassword, {
+			global: {
+				stubs: {
+					NcButton: { template: '<button><slot /><slot name="icon" /></button>' },
+					NcIconSvgWrapper: { name: 'NcIconSvgWrapper', props: ['path'], template: '<i class="icon" :data-path="path" />' },
+					CreatePassword: true,
+					ReadCertificate: true,
+					ResetPassword: true,
+					UploadCertificate: true,
+				},
+			},
+		})
+
+		expect(initializeHasSignatureFileMock).toHaveBeenCalledWith(true)
 	})
 
 	it('registers icon wrapper and exposes mdi icon paths used in template', async () => {
@@ -51,7 +96,7 @@ describe('ManagePassword', () => {
 		})
 		hasSignatureFileMock.mockReturnValue(true)
 
-		const wrapper = mount(ManagePassword as never, {
+		const wrapper = mount(ManagePassword, {
 			global: {
 				stubs: {
 					NcButton: { template: '<button><slot /><slot name="icon" /></button>' },
@@ -62,9 +107,9 @@ describe('ManagePassword', () => {
 					UploadCertificate: { name: 'UploadCertificate', template: '<div />' },
 				},
 			},
-		})
+		}) as ManagePasswordWrapper
 
-		await (wrapper.vm as { $nextTick: () => Promise<void> }).$nextTick()
+		await wrapper.vm.$nextTick()
 
 		expect(wrapper.findAll('.icon')).toHaveLength(4)
 		expect(wrapper.vm.mdiCloudUpload).toBeTruthy()
@@ -84,7 +129,7 @@ describe('ManagePassword', () => {
 		})
 		hasSignatureFileMock.mockReturnValue(true)
 
-		const wrapper = mount(ManagePassword as never, {
+		const wrapper = mount(ManagePassword, {
 			global: {
 				stubs: {
 					NcButton: { template: '<button><slot /><slot name="icon" /></button>' },
@@ -95,10 +140,10 @@ describe('ManagePassword', () => {
 					UploadCertificate: true,
 				},
 			},
-		})
+		}) as ManagePasswordWrapper
 
 		const triggerUpload = vi.fn()
-		;(wrapper.vm as { uploadCertificate?: { triggerUpload: () => void }, triggerUploadCertificate: () => void }).uploadCertificate = { triggerUpload }
+		wrapper.vm.uploadCertificate = { triggerUpload }
 		wrapper.vm.triggerUploadCertificate()
 
 		expect(triggerUpload).toHaveBeenCalledTimes(1)
