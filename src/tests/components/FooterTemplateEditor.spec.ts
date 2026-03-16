@@ -23,10 +23,6 @@ vi.mock('debounce', () => ({
 	default: vi.fn((fn: (...args: unknown[]) => unknown) => fn),
 }))
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-}))
-
 vi.mock('@nextcloud/axios', () => ({
 	default: {
 		get: vi.fn((...args: unknown[]) => axiosGetMock(...args)),
