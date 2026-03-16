@@ -42,7 +42,6 @@ type IdentifyMethodConfig = {
 type SignerToEdit = {
 	displayName?: string
 	description?: string
-	identify?: string
 	identifyMethods?: Array<{ method: string; value: string }>
 }
 
@@ -160,7 +159,6 @@ describe('IdentifySigner rules', () => {
 		it('treats signerToEdit as existing signer when populated', async () => {
 			const signer = {
 				displayName: 'John Doe',
-				identify: 'john@example.com',
 				identifyMethods: [{ method: 'email', value: 'john@example.com' }],
 			}
 
@@ -412,7 +410,7 @@ describe('IdentifySigner rules', () => {
 
 		it('sends signer list to save request', async () => {
 			filesStore.getFile.mockReturnValueOnce({
-				signers: [{ identify: { email: 'existing@example.com' } }],
+				signers: [{ identifyMethods: [{ method: 'email', value: 'existing@example.com', mandatory: 0 }] }],
 			})
 			wrapper.vm.identifyMethod = 'email'
 			wrapper.vm.displayName = 'John Doe'
@@ -423,11 +421,11 @@ describe('IdentifySigner rules', () => {
 
 			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalledWith({
 				signers: [
-					{ identify: { email: 'existing@example.com' } },
+					{ identifyMethods: [{ method: 'email', value: 'existing@example.com', mandatory: 0 }] },
 					{
 						displayName: 'John Doe',
 						description: undefined,
-						identify: 'john@example.com',
+						email: 'john@example.com',
 						status: 0,
 						statusText: 'Draft',
 						identifyMethods: [{
@@ -518,7 +516,6 @@ describe('IdentifySigner rules', () => {
 			const signer = {
 				displayName: 'Jane Doe',
 				description: 'Please review',
-				identify: 'jane@example.com',
 				identifyMethods: [{ method: 'email', value: 'jane@example.com' }],
 			}
 
@@ -529,12 +526,13 @@ describe('IdentifySigner rules', () => {
 
 			expect(wrapper.vm.displayName).toBe('Jane Doe')
 			expect(wrapper.vm.description).toBe('Please review')
+			expect(wrapper.vm.identify).toBe('jane@example.com')
 		})
 
 		it('ignores legacy signRequestId fallback when identify is missing', () => {
 			wrapper = createWrapper({
 				signerToEdit: {
-					displayName: 'Legacy signer',
+					displayName: 'Signer without methods',
 					identifyMethods: [],
 					...( { signRequestId: 123 } as unknown as SignerToEdit ),
 				},
