@@ -5,6 +5,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
 
 import CertificateContent from '../../../views/ReadCertificate/CertificateContent.vue'
 
@@ -23,13 +24,8 @@ type CertificateData = {
 
 const selectCustonOptionMock = vi.fn()
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string, params?: Record<string, string | number>) => {
-		if (!params) {
-			return text
-		}
-		return text.replace('{number}', String(params.number ?? ''))
-	}),
+vi.mock('@nextcloud/l10n', () => createL10nMock({
+	t: (_app: string, text: string, params?: Record<string, string | number>) => interpolateL10n(text, params),
 }))
 
 vi.mock('../../../helpers/certification', () => ({
