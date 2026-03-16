@@ -22,11 +22,6 @@ vi.mock('debounce', () => ({
 	default: vi.fn((fn: (...args: unknown[]) => unknown) => fn),
 }))
 
-vi.mock('@nextcloud/l10n', () => ({
-	isRTL: vi.fn(() => false),
-	t: vi.fn((_app: string, text: string) => text),
-}))
-
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: vi.fn(() => ({ displayName: 'Jane Doe' })),
 }))
