@@ -103,7 +103,7 @@ jobs:
           filename: apps/${{ env.APP_NAME }}/appinfo/info.xml
 
       - name: Set up php ${{ steps.php_versions.outputs.php-min }}
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
         with:
           php-version: ${{ steps.php_versions.outputs.php-min }}
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, sqlite, pdo_sqlite, xmlreader, xmlwriter, zip, zlib
