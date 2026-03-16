@@ -5,6 +5,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
+import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
 
 import FilesListTableHeaderActions from '../../../views/FilesList/FilesListTableHeaderActions.vue'
 
@@ -27,8 +28,8 @@ const selectionStoreMock = {
 	set: vi.fn(),
 }
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string, params?: Record<string, string>) => text.replace('{displayName}', params?.displayName ?? '')),
+vi.mock('@nextcloud/l10n', () => createL10nMock({
+	t: (_app: string, text: string, params?: Record<string, string>) => interpolateL10n(text, params),
 }))
 
 vi.mock('@nextcloud/dialogs', () => ({
