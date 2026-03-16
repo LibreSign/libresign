@@ -1252,6 +1252,9 @@
                         "format": "int64",
                         "minimum": 0
                     },
+                    "path": {
+                        "type": "string"
+                    },
                     "url": {
                         "type": "string"
                     }
@@ -1260,17 +1263,30 @@
             "NewSigner": {
                 "type": "object",
                 "required": [
-                    "identify"
+                    "identifyMethods"
                 ],
                 "properties": {
-                    "identify": {
-                        "type": "object",
-                        "properties": {
-                            "email": {
-                                "type": "string"
-                            },
-                            "account": {
-                                "type": "string"
+                    "identifyMethods": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "method",
+                                "value",
+                                "mandatory"
+                            ],
+                            "properties": {
+                                "method": {
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "type": "string"
+                                },
+                                "mandatory": {
+                                    "type": "integer",
+                                    "format": "int64",
+                                    "minimum": 0
+                                }
                             }
                         }
                     },
@@ -1289,6 +1305,10 @@
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
@@ -2012,6 +2032,9 @@
                                 }
                             }
                         }
+                    },
+                    "original_file_deleted": {
+                        "type": "boolean"
                     },
                     "pdfVersion": {
                         "type": "string"
@@ -7425,7 +7448,7 @@
                                     "signers": {
                                         "type": "array",
                                         "default": [],
-                                        "description": "Collection of signers who must sign the document. Each signer can have: identify, displayName, description, notify, signingOrder",
+                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status",
                                         "items": {
                                             "$ref": "#/components/schemas/NewSigner"
                                         }
@@ -7443,12 +7466,12 @@
                                     "file": {
                                         "$ref": "#/components/schemas/NewFile",
                                         "default": [],
-                                        "description": "File object."
+                                        "description": "File object. Supports nodeId, url, base64 or path."
                                     },
                                     "files": {
                                         "type": "array",
                                         "default": [],
-                                        "description": "Multiple files to create an envelope (optional, use either file or files)",
+                                        "description": "Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.",
                                         "items": {
                                             "$ref": "#/components/schemas/NewFile"
                                         }
@@ -7595,7 +7618,7 @@
                                         "type": "array",
                                         "nullable": true,
                                         "default": [],
-                                        "description": "Collection of signers who must sign the document",
+                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format.",
                                         "items": {
                                             "$ref": "#/components/schemas/NewSigner"
                                         }
@@ -7616,7 +7639,7 @@
                                     "file": {
                                         "nullable": true,
                                         "default": [],
-                                        "description": "File object.",
+                                        "description": "File object. Supports nodeId, url, base64 or path when creating a new request.",
                                         "anyOf": [
                                             {
                                                 "$ref": "#/components/schemas/NewFile"
@@ -7651,7 +7674,7 @@
                                     "files": {
                                         "type": "array",
                                         "default": [],
-                                        "description": "Multiple files to create an envelope (optional, use either file or files)",
+                                        "description": "Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.",
                                         "items": {
                                             "$ref": "#/components/schemas/NewFile"
                                         }
