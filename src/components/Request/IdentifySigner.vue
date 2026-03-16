@@ -122,7 +122,6 @@ type SignerMethodValue = {
 }
 
 type SignerToEdit = {
-	identify?: string
 	displayName?: string
 	description?: string
 	identifyMethods?: SignerMethodValue[]
@@ -139,7 +138,6 @@ const props = withDefaults(defineProps<{
 	disabled?: boolean
 }>(), {
 	signerToEdit: () => ({
-		identify: '',
 		displayName: '',
 		identifyMethods: [],
 	}),
@@ -223,6 +221,13 @@ function applySelectedSigner(nextSigner: IdentifyAccountRecord | null) {
 	}
 }
 
+function getSignerToEditIdentify(signerToEdit: SignerToEdit | undefined): string {
+	if (!signerToEdit) {
+		return ''
+	}
+	return signerToEdit.identifyMethods?.[0]?.value ?? ''
+}
+
 async function saveSigner() {
 	if (!identifyMethod.value || !identify.value) {
 		return
@@ -232,7 +237,7 @@ async function saveSigner() {
 	signers.push({
 		displayName: displayName.value,
 		description: description.value.trim() || undefined,
-		identify: identify.value,
+		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
 		status: SIGN_REQUEST_STATUS.DRAFT,
 		statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.DRAFT),
 		identifyMethods: [
@@ -283,7 +288,7 @@ onBeforeMount(() => {
 	displayName.value = props.signerToEdit.displayName ?? ''
 	description.value = props.signerToEdit.description ?? ''
 	enableCustomMessage.value = !!props.signerToEdit.description
-	identify.value = props.signerToEdit.identify ?? ''
+	identify.value = getSignerToEditIdentify(props.signerToEdit)
 	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
 		const method = props.signerToEdit.identifyMethods[0]
 		identifyMethod.value = method.method as IdentifyAccountRecord['method']
