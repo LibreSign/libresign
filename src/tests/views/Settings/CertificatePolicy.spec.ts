@@ -4,8 +4,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { flushPromises, mount } from '@vue/test-utils'
 import { createL10nMock } from '../../testHelpers/l10n.js'
+import { flushPromises, mount } from '@vue/test-utils'
 
 import axios from '@nextcloud/axios'
 import CertificatePolicy from '../../../views/Settings/CertificatePolicy.vue'
