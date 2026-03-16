@@ -9,6 +9,7 @@ import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import type { TranslationFunction } from '../../test-types'
 import type { components } from '../../../types/openapi/openapi'
+import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
 
 type SigningProgressComponent = typeof import('../../../components/validation/SigningProgress.vue').default
 type StatusMeta = {
@@ -64,21 +65,9 @@ vi.mock('@nextcloud/axios', () => ({
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((url: string) => url),
 }))
-vi.mock('@nextcloud/l10n', () => {
-	const translate = (_app: string, text: string, vars?: Record<string, unknown>) => {
-		if (vars) {
-			return text.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))
-		}
-		return text
-	}
-
-	return {
-		t: vi.fn(translate),
-		translate: vi.fn(translate),
-		translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-		isRTL: vi.fn(() => false),
-	}
-})
+vi.mock('@nextcloud/l10n', () => createL10nMock({
+	t: (_app: string, text: string, vars?: Record<string, unknown>) => interpolateL10n(text, vars),
+}))
 vi.mock('../../../utils/fileStatus.js', () => ({
 	buildStatusMap: vi.fn(() => ({
 		'0': { label: 'Draft' },
