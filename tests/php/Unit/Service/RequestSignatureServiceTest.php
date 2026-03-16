@@ -13,9 +13,11 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -299,21 +301,265 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'signers' => [
-				['identify' => ['email' => 'jhondoe@test.coop']]
+				['identifyMethods' => [['method' => 'email', 'value' => 'jhondoe@test.coop']]]
 			],
 			'userManager' => $this->user
 		]);
 		$this->assertNull($actual);
 	}
 
-	public function testValidateSignersAllowsValidSignerPayload(): void {
+	public function testValidateSignersAllowsIdentifyMethodsPayload(): void {
+		$service = $this->getService();
+		$service->validateSigners([
+			'signers' => [
+				[
+					'identifyMethods' => [
+						['method' => 'email', 'value' => 'test@example.com'],
+					],
+				],
+			],
+		]);
+		$this->addToAssertionCount(1);
+	}
+
+	public function testValidateSignersRejectsLegacyIdentifyPayload(): void {
+		$this->expectExceptionMessage('No identify methods for signer');
+		$this->validateHelper
+			->method('validateIdentifySigners')
+			->willThrowException(new LibresignException('No identify methods for signer'));
+
 		$service = $this->getService();
 		$service->validateSigners([
 			'signers' => [
 				['identify' => ['email' => 'test@example.com']],
 			],
 		]);
-		$this->addToAssertionCount(1);
+	}
+
+	public function testAssociateToSignersCreatesSignRequestsUsingIdentifyMethods(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+
+		$data = [
+			'status' => 9,
+			'signers' => [[
+				'displayName' => 'John Doe',
+				'description' => 'Needs review',
+				'notify' => 0,
+				'status' => 4,
+				'signingOrder' => 3,
+				'identifyMethods' => [
+					['method' => 'email', 'value' => 'john@example.com'],
+					['method' => 'account', 'value' => 'john'],
+				],
+			]],
+		];
+
+		$this->validateHelper
+			->method('normalizeRequestSigners')
+			->willReturnCallback(static fn (array $signers): array => $signers);
+
+		$this->signRequestMapper
+			->method('getByFileId')
+			->with(77)
+			->willReturn([]);
+
+		$this->identifyMethodService
+			->expects($this->once())
+			->method('clearCache');
+
+		$this->sequentialSigningService
+			->expects($this->once())
+			->method('resetOrderCounter');
+
+		$this->sequentialSigningService
+			->expects($this->once())
+			->method('determineSigningOrder')
+			->with(3)
+			->willReturn(3);
+
+		$expectedCalls = [
+			[['email' => 'john@example.com'], 'John Doe', 'Needs review', false, 77, 3, 9, 4],
+			[['account' => 'john'], 'John Doe', 'Needs review', false, 77, 3, 9, 4],
+		];
+
+		$this->signRequestService
+			->expects($this->exactly(2))
+			->method('createOrUpdateSignRequest')
+			->willReturnCallback(function (
+				array $identifyMethods,
+				string $displayName,
+				string $description,
+				bool $notify,
+				int $fileId,
+				int $signingOrder,
+				?int $fileStatus,
+				?int $signerStatus,
+			) use (&$expectedCalls): SignRequest {
+				$expectedCall = array_shift($expectedCalls);
+				$this->assertNotNull($expectedCall);
+				[$expectedIdentifyMethods, $expectedDisplayName, $expectedDescription, $expectedNotify, $expectedFileId, $expectedSigningOrder, $expectedFileStatus, $expectedSignerStatus] = $expectedCall;
+				$this->assertSame($expectedIdentifyMethods, $identifyMethods);
+				$this->assertSame($expectedDisplayName, $displayName);
+				$this->assertSame($expectedDescription, $description);
+				$this->assertSame($expectedNotify, $notify);
+				$this->assertSame($expectedFileId, $fileId);
+				$this->assertSame($expectedSigningOrder, $signingOrder);
+				$this->assertSame($expectedFileStatus, $fileStatus);
+				$this->assertSame($expectedSignerStatus, $signerStatus);
+
+				return new SignRequest();
+			});
+
+		$actual = self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
+
+		$this->assertCount(2, $actual);
+		$this->assertSame([], $expectedCalls);
+	}
+
+	public function testDeleteIdentifyMethodIfNotExitsKeepsMatchingIdentifyMethods(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(501);
+
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierKey('email');
+		$entity->setIdentifierValue('john@example.com');
+
+		$identifyMethod = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$identifyMethod->method('getEntity')->willReturn($entity);
+
+		$this->validateHelper
+			->expects($this->once())
+			->method('normalizeRequestSigners')
+			->with([['identifyMethods' => [['method' => 'email', 'value' => 'john@example.com']]]])
+			->willReturn([['identifyMethods' => [['method' => 'email', 'value' => 'john@example.com']]]]);
+
+		$this->signRequestMapper
+			->expects($this->once())
+			->method('getByFileId')
+			->with(77)
+			->willReturn([$signRequest]);
+
+		$this->identifyMethodService
+			->expects($this->once())
+			->method('getIdentifyMethodsFromSignRequestId')
+			->with(501)
+			->willReturn(['email' => [$identifyMethod]]);
+
+		$service = $this->getMockBuilder(RequestSignatureService::class)
+			->setConstructorArgs([
+				$this->fileService,
+				$this->l10n,
+				$this->identifyMethodService,
+				$this->signRequestMapper,
+				$this->userManager,
+				$this->fileMapper,
+				$this->identifyMethodMapper,
+				$this->pdfMetadataExtractor,
+				$this->fileElementService,
+				$this->fileElementMapper,
+				$this->folderService,
+				$this->mimeTypeDetector,
+				$this->validateHelper,
+				$this->client,
+				$this->docMdpHandler,
+				$this->loggerInterface,
+				$this->sequentialSigningService,
+				$this->appConfig,
+				$this->eventDispatcher,
+				$this->fileStatusService,
+				$this->docMdpConfigService,
+				$this->envelopeService,
+				$this->envelopeFileRelocator,
+				$this->uploadHelper,
+				$this->signRequestService,
+			])
+			->onlyMethods(['unassociateToUser'])
+			->getMock();
+
+		$service->expects($this->never())
+			->method('unassociateToUser');
+
+		self::invokePrivate($service, 'deleteIdentifyMethodIfNotExits', [
+			[['identifyMethods' => [['method' => 'email', 'value' => 'john@example.com']]]],
+			$file,
+		]);
+	}
+
+	public function testDeleteIdentifyMethodIfNotExitsRemovesMissingIdentifyMethods(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(501);
+
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierKey('email');
+		$entity->setIdentifierValue('old@example.com');
+
+		$identifyMethod = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$identifyMethod->method('getEntity')->willReturn($entity);
+
+		$this->validateHelper
+			->expects($this->once())
+			->method('normalizeRequestSigners')
+			->with([['identifyMethods' => [['method' => 'email', 'value' => 'john@example.com']]]])
+			->willReturn([['identifyMethods' => [['method' => 'email', 'value' => 'john@example.com']]]]);
+
+		$this->signRequestMapper
+			->expects($this->once())
+			->method('getByFileId')
+			->with(77)
+			->willReturn([$signRequest]);
+
+		$this->identifyMethodService
+			->expects($this->once())
+			->method('getIdentifyMethodsFromSignRequestId')
+			->with(501)
+			->willReturn(['email' => [$identifyMethod]]);
+
+		$service = $this->getMockBuilder(RequestSignatureService::class)
+			->setConstructorArgs([
+				$this->fileService,
+				$this->l10n,
+				$this->identifyMethodService,
+				$this->signRequestMapper,
+				$this->userManager,
+				$this->fileMapper,
+				$this->identifyMethodMapper,
+				$this->pdfMetadataExtractor,
+				$this->fileElementService,
+				$this->fileElementMapper,
+				$this->folderService,
+				$this->mimeTypeDetector,
+				$this->validateHelper,
+				$this->client,
+				$this->docMdpHandler,
+				$this->loggerInterface,
+				$this->sequentialSigningService,
+				$this->appConfig,
+				$this->eventDispatcher,
+				$this->fileStatusService,
+				$this->docMdpConfigService,
+				$this->envelopeService,
+				$this->envelopeFileRelocator,
+				$this->uploadHelper,
+				$this->signRequestService,
+			])
+			->onlyMethods(['unassociateToUser'])
+			->getMock();
+
+		$service->expects($this->once())
+			->method('unassociateToUser')
+			->with(77, 501);
+
+		self::invokePrivate($service, 'deleteIdentifyMethodIfNotExits', [
+			[['identifyMethods' => [['method' => 'email', 'value' => 'john@example.com']]]],
+			$file,
+		]);
 	}
 
 	/**
