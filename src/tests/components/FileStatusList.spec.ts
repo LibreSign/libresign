@@ -5,15 +5,13 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createL10nMock } from '../testHelpers/l10n.js'
 
 import FileStatusList from '../../components/FileStatusList.vue'
 
 const axiosGetMock = vi.fn()
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/files', () => ({
 	formatFileSize: vi.fn((size: number) => `${size}B`),
