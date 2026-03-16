@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div v-if="currentFileId > 0 && currentFile" class="content-file" @click="openSidebar">
+	<div v-if="currentFileId && currentFile" class="content-file" @click="openSidebar">
 		<img v-if="previewUrl && backgroundFailed !== true"
 			ref="previewImg"
 			alt=""
