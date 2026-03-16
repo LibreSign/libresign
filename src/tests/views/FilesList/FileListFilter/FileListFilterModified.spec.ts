@@ -4,10 +4,10 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import { setActivePinia } from 'pinia'
 import { createTestingPinia } from '@pinia/testing'
-import { createL10nMock } from '../../../testHelpers/l10n.js'
 
 import FileListFilterModified from '../../../../views/FilesList/FileListFilter/FileListFilterModified.vue'
 import { useFiltersStore } from '../../../../store/filters.js'
