@@ -332,6 +332,7 @@ const isAfterSigned = computed(() => history.state?.isAfterSigned ?? shouldFireA
 
 const isEnvelope = computed(() => document.value?.nodeType === 'envelope'
 	|| (Array.isArray(document.value?.files) && document.value.files.length > 0))
+const validationComponent = computed(() => (isEnvelope.value ? EnvelopeValidation : FileValidation))
 const validationDocument = computed(() => document.value)
 const validationEnvelopeDocument = computed<LoadedValidationEnvelopeDocument | null>(() => (isLoadedValidationEnvelopeDocument(document.value) ? document.value : null))
 const validationFileDocument = computed<LoadedValidationFileDocument | null>(() => (isLoadedValidationFileDocument(document.value) ? document.value : null))
@@ -879,6 +880,7 @@ defineExpose({
 	signRequestUuidForProgress,
 	isAfterSigned,
 	isEnvelope,
+	validationComponent,
 	canValidate,
 	helperTextValidation,
 	size,
