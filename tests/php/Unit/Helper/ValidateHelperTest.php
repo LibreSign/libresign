@@ -127,7 +127,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$data = [
 			'uuid' => 'uuid-123',
 			'signers' => [
-				['identify' => ['account' => 'user@example.com']],
+				['identifyMethods' => [['method' => 'account', 'value' => 'user@example.com']]],
 			],
 		];
 
@@ -155,7 +155,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$data = [
 			'signers' => [
-				['identify' => ['account' => 'user@example.com']],
+				['identifyMethods' => [['method' => 'account', 'value' => 'user@example.com']]],
 			],
 		];
 
@@ -1094,7 +1094,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$data = [
 			'signers' => [
-				['identify' => ['account' => 'user@example.com']]
+				['identifyMethods' => [['method' => 'account', 'value' => 'user@example.com']]]
 			]
 		];
 
@@ -1102,6 +1102,30 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$result = $validateHelper->validateIdentifySigners($data);
 
 		$this->assertNull($result);
+	}
+
+	public function testNormalizeRequestSignersReturnsCanonicalIdentifyMethods(): void {
+		$validateHelper = $this->getValidateHelper();
+
+		$actual = $validateHelper->normalizeRequestSigners([[
+			'displayName' => 'John Doe',
+			'description' => 'Needs review',
+			'notify' => 0,
+			'identifyMethods' => [
+				['method' => 'email', 'value' => 'john@example.com', 'mandatory' => 0],
+				['method' => 'account', 'value' => 'john', 'mandatory' => 1],
+			],
+		]]);
+
+		$this->assertSame([[
+			'displayName' => 'John Doe',
+			'description' => 'Needs review',
+			'notify' => 0,
+			'identifyMethods' => [
+				['method' => 'email', 'value' => 'john@example.com'],
+				['method' => 'account', 'value' => 'john'],
+			],
+		]], $actual);
 	}
 
 	#[DataProvider('providerValidateIdentifySigners')]
@@ -1134,31 +1158,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function providerValidateIdentifySigners(): array {
 		return [
-			'valid data with identify structure single method' => [
-				[
-					'signers' => [
-						[
-							'identify' => [
-								'account' => 'user@example.com'
-							]
-						]
-					]
-				],
-				false, // should not throw
-			],
-			'valid data with identify structure multiple methods' => [
-				[
-					'signers' => [
-						[
-							'identify' => [
-								'account' => 'user@example.com',
-								'email' => 'user@example.com'
-							]
-						]
-					]
-				],
-				false, // should not throw
-			],
 			'valid data with identifyMethods structure single method' => [
 				[
 					'signers' => [
@@ -1178,23 +1177,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							'identifyMethods' => [
 								['method' => 'account', 'value' => 'user@example.com'],
 								['method' => 'email', 'value' => 'user@example.com']
-							]
-						]
-					]
-				],
-				false, // should not throw
-			],
-			'mixed structures in same data' => [
-				[
-					'signers' => [
-						[
-							'identify' => [
-								'account' => 'user1@example.com'
-							]
-						],
-						[
-							'identifyMethods' => [
-								['method' => 'email', 'value' => 'user2@example.com']
 							]
 						]
 					]
@@ -1236,11 +1218,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				true, // should throw
 				'No identify methods for signer'
 			],
-			'signer with empty identify' => [
-				['signers' => [['identify' => []]]],
-				true, // should throw
-				'No identify methods for signer'
-			],
 			'signer with empty identifyMethods' => [
 				['signers' => [['identifyMethods' => []]]],
 				true, // should throw
@@ -1277,8 +1254,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'signers' => [
 						[
 							'displayName' => 'Valid Display Name',
-							'identify' => [
-								'account' => 'user@example.com'
+							'identifyMethods' => [
+								['method' => 'account', 'value' => 'user@example.com']
 							]
 						]
 					]
@@ -1290,8 +1267,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'signers' => [
 						[
 							'displayName' => str_repeat('A', 64),
-							'identify' => [
-								'account' => 'user@example.com'
+							'identifyMethods' => [
+								['method' => 'account', 'value' => 'user@example.com']
 							]
 						]
 					]
@@ -1303,8 +1280,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'signers' => [
 						[
 							'displayName' => str_repeat('A', 65),
-							'identify' => [
-								'account' => 'user@example.com'
+							'identifyMethods' => [
+								['method' => 'account', 'value' => 'user@example.com']
 							]
 						]
 					]
@@ -1317,8 +1294,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'signers' => [
 						[
 							'displayName' => str_repeat('B', 100),
-							'identify' => [
-								'account' => 'user@example.com'
+							'identifyMethods' => [
+								['method' => 'account', 'value' => 'user@example.com']
 							]
 						]
 					]
