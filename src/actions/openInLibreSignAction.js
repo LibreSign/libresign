@@ -91,9 +91,10 @@ export const action = {
 		const rawDir = nodes[0].dirname ?? nodes[0].path.substring(0, nodes[0].path.lastIndexOf('/'))
 		const normalizedDir = (rawDir && rawDir !== '/') ? rawDir.replace(/\/+$/, '') : ''
 		const envelopePath = normalizedDir ? `${normalizedDir}/${envelopeName}` : `/${envelopeName}`
+		const temporaryEnvelopeId = -Date.now()
 
 		window.OCA.Libresign.pendingEnvelope = {
-			id: `envelope_${Date.now()}`,
+			id: temporaryEnvelopeId,
 			nodeType: 'envelope',
 			name: envelopeName,
 			settings: {
