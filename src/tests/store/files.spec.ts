@@ -4,12 +4,12 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock, interpolateL10n } from '../testHelpers/l10n.js'
 import type { Mock } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
 import { generateOCSResponse } from '../test-helpers'
-import { createL10nMock, interpolateL10n } from '../testHelpers/l10n.js'
 
 type AxiosMock = Mock & {
 	get: Mock
