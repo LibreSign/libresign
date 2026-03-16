@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
+import LeftSidebar from '../../../components/LeftSidebar/LeftSidebar.vue'
 
 const loadStateMock = vi.fn()
 const getCurrentUserMock = vi.fn()
@@ -27,12 +28,6 @@ vi.mock('../../../store/files.js', () => ({
 	}),
 }))
 
-let LeftSidebar: unknown
-
-beforeAll(async () => {
-	;({ default: LeftSidebar } = await import('../../../components/LeftSidebar/LeftSidebar.vue'))
-})
-
 describe('LeftSidebar', () => {
 	beforeEach(() => {
 		loadStateMock.mockReset()
@@ -53,7 +48,7 @@ describe('LeftSidebar', () => {
 		})
 		getCurrentUserMock.mockReturnValue({ isAdmin: true })
 
-		const wrapper = mount(LeftSidebar as never, {
+		const wrapper = mount(LeftSidebar, {
 			global: {
 				stubs: {
 					NcAppNavigation: {
