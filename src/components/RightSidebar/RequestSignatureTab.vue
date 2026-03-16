@@ -340,7 +340,6 @@ type LoadedDocumentState = EditableRequestFile
 type IdentifySignerMethod = Pick<IdentifyMethodRecord, 'method' | 'value'>
 type IdentifySignerToEdit = {
 	localKey?: string
-	identify?: string
 	displayName?: string
 	description?: string
 	identifyMethods?: IdentifySignerMethod[]
@@ -462,26 +461,17 @@ function getSignerMethod(signer: { identifyMethods?: Array<Pick<IdentifyMethodRe
 	return signer.identifyMethods?.[0]?.method
 }
 
-function getEditableSignerIdentify(signer: EditableRequestSigner): string | undefined {
-	if (typeof signer.identify === 'object' && signer.identify !== null) {
-		return signer.identify.email || signer.identify.account
-	}
-	if (typeof signer.identify === 'string') {
-		return signer.identify
-	}
-	return signer.identifyMethods?.[0]?.value || signer.email
-}
-
 function toIdentifySignerToEdit(signer: EditableRequestSigner): IdentifySignerToEdit {
+	const identifyMethods = signer.identifyMethods?.map((method: IdentifyMethodRecord) => ({
+		method: method.method,
+		value: method.value ?? '',
+	}))
+
 	return {
 		localKey: signer.localKey,
-		identify: getEditableSignerIdentify(signer),
 		displayName: signer.displayName,
 		description: signer.description ?? undefined,
-		identifyMethods: signer.identifyMethods?.map((method: IdentifyMethodRecord) => ({
-			method: method.method,
-			value: method.value ?? '',
-		})),
+		...(identifyMethods?.length ? { identifyMethods } : {}),
 	}
 }
 
@@ -817,7 +807,7 @@ function syncPreserveOrderWithFile() {
 
 async function ensureCurrentFileDetail(force = false) {
 	const file = currentFile.value
-	if (!file?.id || (!force && (!shouldLoadDetail.value || isCurrentFileDetailed.value))) {
+	if (typeof file?.id !== 'number' || (!force && (!shouldLoadDetail.value || isCurrentFileDetailed.value))) {
 		return
 	}
 
