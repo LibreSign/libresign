@@ -606,7 +606,7 @@ class ValidateHelper {
 	}
 
 	private function validateSignerIdentifyMethods(array $signer): void {
-		$normalizedMethods = $this->normalizeIdentifyMethods($signer);
+		$normalizedMethods = $this->normalizeSignerIdentifyMethods($signer);
 
 		foreach ($normalizedMethods as $method) {
 			$this->validateIdentifyMethodForRequest($method['name'], $method['value']);
@@ -614,32 +614,48 @@ class ValidateHelper {
 	}
 
 	/**
-	 * @todo unify the key to be only 'identify' or only 'identifyMethods'
+	 * @return list<array{name: string, value: string}>
 	 */
-	private function normalizeIdentifyMethods(array $signer): array {
-		$key = array_key_exists('identifyMethods', $signer) ? 'identifyMethods' : 'identify';
-
-		if (empty($signer[$key]) || !is_array($signer[$key])) {
+	public function normalizeSignerIdentifyMethods(array $signer): array {
+		if (empty($signer['identifyMethods']) || !is_array($signer['identifyMethods'])) {
 			throw new LibresignException('No identify methods for signer');
 		}
 
 		$normalizedMethods = [];
 
-		foreach ($signer[$key] as $name => $data) {
-			$normalizedMethods[] = $this->normalizeIdentifyMethodEntry($key, $name, $data);
+		foreach ($signer['identifyMethods'] as $data) {
+			$normalizedMethods[] = $this->normalizeIdentifyMethodsStructure($data);
 		}
 		return $normalizedMethods;
 	}
 
 	/**
-	 * Extracted from normalizeIdentifyMethods to reduce cyclomatic complexity.
+	 * @param list<array<string, mixed>> $signers
+	 * @return list<array<string, mixed>>
 	 */
-	private function normalizeIdentifyMethodEntry(string $key, $name, $data): array {
-		if ($key === 'identifyMethods') {
-			return $this->normalizeIdentifyMethodsStructure($data);
-		} else {
-			return $this->normalizeIdentifyStructure($name, $data);
+	public function normalizeRequestSigners(array $signers): array {
+		$normalizedSigners = [];
+
+		foreach ($signers as $signer) {
+			if (!is_array($signer)) {
+				throw new LibresignException($this->l10n->t('No signers'));
+			}
+
+			$normalizedMethods = array_map(
+				fn (array $method): array => [
+					'method' => $method['name'],
+					'value' => $method['value'],
+				],
+				$this->normalizeSignerIdentifyMethods($signer),
+			);
+
+			$normalizedSigners[] = [
+				...$signer,
+				'identifyMethods' => $normalizedMethods,
+			];
 		}
+
+		return $normalizedSigners;
 	}
 
 	private function normalizeIdentifyMethodsStructure(mixed $data): array {
@@ -650,13 +666,6 @@ class ValidateHelper {
 		return [
 			'name' => $data['method'],
 			'value' => $data['value'],
-		];
-	}
-
-	private function normalizeIdentifyStructure(string $name, mixed $value): array {
-		return [
-			'name' => $name,
-			'value' => $value,
 		];
 	}
 
