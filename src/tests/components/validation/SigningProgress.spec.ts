@@ -4,12 +4,12 @@
  */
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import type { TranslationFunction } from '../../test-types'
 import type { components } from '../../../types/openapi/openapi'
-import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
 
 type SigningProgressComponent = typeof import('../../../components/validation/SigningProgress.vue').default
 type StatusMeta = {
