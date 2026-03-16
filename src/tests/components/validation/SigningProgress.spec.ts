@@ -8,6 +8,7 @@ import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import type { TranslationFunction } from '../../test-types'
+import type { components } from '../../../types/openapi/openapi'
 
 type SigningProgressComponent = typeof import('../../../components/validation/SigningProgress.vue').default
 type StatusMeta = {
@@ -16,20 +17,8 @@ type StatusMeta = {
 	[key: string]: unknown
 }
 
-type ProgressFile = {
-	id: number
-	name?: string
-	status?: number
-	error?: { message?: string } | null
-}
-
-type ProgressState = {
-	signed?: number
-	inProgress?: number
-	pending?: number
-	total?: number
-	files: ProgressFile[]
-}
+type ProgressFile = components['schemas']['ProgressFile']
+type ProgressState = components['schemas']['ProgressPayload']
 
 type SigningProgressVm = {
 	progress: ProgressState | null
@@ -95,6 +84,7 @@ vi.mock('../../../utils/fileStatus.js', () => ({
 		'0': { label: 'Draft' },
 		'1': { label: 'Ready to sign' },
 		'3': { label: 'Signed' },
+		'5': { label: 'Signing' },
 	})),
 }))
 
@@ -155,7 +145,7 @@ describe('SigningProgress', () => {
 				pending: 1,
 				total: 2,
 				files: [
-					{ id: 1, name: 'file1.pdf', error: { message: 'Error' } },
+					{ id: 1, name: 'file1.pdf', status: 0, statusText: 'Draft', error: { message: 'Error' } },
 				],
 			}
 			await wrapper.vm.$nextTick()
@@ -181,7 +171,7 @@ describe('SigningProgress', () => {
 				pending: 1,
 				total: 2,
 				files: [
-					{ id: 1, name: 'file1.pdf', error: { message: 'Error' } },
+					{ id: 1, name: 'file1.pdf', status: 0, statusText: 'Draft', error: { message: 'Error' } },
 				],
 			}
 			await wrapper.vm.$nextTick()
@@ -251,8 +241,8 @@ describe('SigningProgress', () => {
 				pending: 0,
 				total: 2,
 				files: [
-					{ id: 1, error: null },
-					{ id: 2, error: null },
+					{ id: 1, name: 'file1.pdf', status: 3, statusText: 'Signed', error: undefined },
+					{ id: 2, name: 'file2.pdf', status: 3, statusText: 'Signed', error: undefined },
 				],
 			}
 
@@ -269,8 +259,8 @@ describe('SigningProgress', () => {
 				pending: 0,
 				total: 2,
 				files: [
-					{ id: 1, error: { message: 'Error 1' } },
-					{ id: 2, error: { message: 'Error 2' } },
+					{ id: 1, name: 'file1.pdf', status: 0, statusText: 'Draft', error: { message: 'Error 1' } },
+					{ id: 2, name: 'file2.pdf', status: 0, statusText: 'Draft', error: { message: 'Error 2' } },
 				],
 			}
 
@@ -282,9 +272,13 @@ describe('SigningProgress', () => {
 		it('collects file errors', () => {
 			wrapper = createWrapper()
 			wrapper.vm.progress = {
+				total: 2,
+				signed: 0,
+				inProgress: 0,
+				pending: 2,
 				files: [
-					{ id: 1, name: 'file1.pdf', error: { message: 'Error 1' } },
-					{ id: 2, name: 'file2.pdf', error: null },
+					{ id: 1, name: 'file1.pdf', status: 0, statusText: 'Draft', error: { message: 'Error 1' } },
+					{ id: 2, name: 'file2.pdf', status: 0, statusText: 'Draft', error: undefined },
 				],
 			}
 
@@ -302,7 +296,7 @@ describe('SigningProgress', () => {
 				'3': { label: 'Signed', icon: 'check' },
 			}
 
-			const meta = wrapper.vm.getFileStatusMeta({ status: 3 })
+			const meta = wrapper.vm.getFileStatusMeta({ id: 1, name: 'file.pdf', status: 3, statusText: 'Signed' })
 
 			expect(meta.label).toBe('Signed')
 			expect(meta.icon).toBeTruthy()
@@ -312,7 +306,10 @@ describe('SigningProgress', () => {
 			wrapper = createWrapper()
 
 			const meta = wrapper.vm.getFileStatusMeta({
+				id: 1,
+				name: 'file.pdf',
 				status: 0,
+				statusText: 'Draft',
 				error: { message: 'Error' },
 			})
 
@@ -367,8 +364,12 @@ describe('SigningProgress', () => {
 			wrapper = createWrapper()
 			wrapper.vm.isPolling = true
 			wrapper.vm.progress = {
+				total: 1,
+				signed: 0,
+				inProgress: 0,
+				pending: 1,
 				files: [
-					{ id: 1, error: { message: 'Error' } },
+					{ id: 1, name: 'file.pdf', status: 0, statusText: 'Draft', error: { message: 'Error' } },
 				],
 			}
 
@@ -439,6 +440,49 @@ describe('SigningProgress', () => {
 			await wrapper.setProps({ signRequestUuid: 'test-uuid-123' })
 
 			expect(wrapper.vm.isPolling).toBe(false)
+		})
+	})
+
+	describe('RULE: buildProgressFromValidation returns OpenAPI-compatible progress payloads', () => {
+		it('builds file progress with required status text for envelope validation data', () => {
+			wrapper = createWrapper()
+
+			const progress = wrapper.vm.buildProgressFromValidation({
+				nodeType: 'envelope',
+				files: [
+					{ id: 1, name: 'contract.pdf', status: 5 },
+					{ id: 2, name: 'signed.pdf', status: 3 },
+				],
+			})
+
+			expect(progress).toEqual({
+				total: 2,
+				signed: 1,
+				inProgress: 1,
+				pending: 0,
+				files: [
+					{ id: 1, name: 'contract.pdf', status: 5, statusText: 'Signing' },
+					{ id: 2, name: 'signed.pdf', status: 3, statusText: 'Signed' },
+				],
+			})
+		})
+
+		it('builds signer progress with explicit inProgress field', () => {
+			wrapper = createWrapper()
+
+			const progress = wrapper.vm.buildProgressFromValidation({
+				signers: [
+					{ signed: true },
+					{ signed: false },
+				],
+			})
+
+			expect(progress).toEqual({
+				total: 2,
+				signed: 1,
+				inProgress: 0,
+				pending: 1,
+			})
 		})
 	})
 })
