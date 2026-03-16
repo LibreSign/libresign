@@ -4,8 +4,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
 import { createL10nMock } from '../../testHelpers/l10n.js'
+import { mount } from '@vue/test-utils'
 
 import File from '../../../components/File/File.vue'
 
