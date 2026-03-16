@@ -197,12 +197,12 @@ import type {
 } from '../../../types/index'
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
+import {
+	normalizeDocumentForVisibleElements,
+	normalizeFileForVisibleElements,
+} from '../../../services/signingDocumentAdapter'
 import { FILE_STATUS } from '../../../constants.js'
 import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner } from '../../../services/visibleElementsService'
-
-type VisibleElementsFileInput = Parameters<typeof getFileSigners>[0]
-type VisibleElementsDocumentInput = Parameters<typeof getVisibleElementsFromDocument>[0]
-type ServiceVisibleElement = VisibleElementRecord
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
 type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
@@ -387,67 +387,6 @@ function isSignSubmissionError(error: unknown): error is SignSubmissionError {
 	return typeof error === 'object' && error !== null
 }
 
-function normalizeSignVisibleElement(element: unknown): ServiceVisibleElement | null {
-	const candidate = typeof element === 'object' && element !== null ? element as Record<string, unknown> : null
-	if (!candidate) {
-		return null
-	}
-	const coordinates = typeof candidate.coordinates === 'object' && candidate.coordinates !== null
-		? candidate.coordinates as Record<string, unknown>
-		: null
-	const type = typeof candidate.type === 'string' ? candidate.type : null
-	const elementId = candidate.elementId === undefined ? undefined : Number(candidate.elementId)
-	const signRequestId = candidate.signRequestId === undefined ? undefined : Number(candidate.signRequestId)
-	const fileId = candidate.fileId === undefined ? undefined : Number(candidate.fileId)
-	if (!coordinates || !type || elementId === undefined || signRequestId === undefined || fileId === undefined) {
-		return null
-	}
-	if (![elementId, signRequestId, fileId].every(Number.isFinite)) {
-		return null
-	}
-
-	return {
-		elementId,
-		signRequestId,
-		fileId,
-		type,
-		coordinates,
-	}
-}
-
-function normalizeSignFile(file: SignDocumentFile): VisibleElementsFileInput {
-	return {
-		...file,
-		metadata: file.metadata ?? undefined,
-		signers: Array.isArray(file.signers) ? file.signers : [],
-		visibleElements: Array.isArray(file.visibleElements)
-			? file.visibleElements
-				.map(normalizeSignVisibleElement)
-				.filter((element): element is ServiceVisibleElement => element !== null)
-			: [],
-	}
-}
-
-function getVisibleElementsDocument(document: SignDocument): VisibleElementsDocumentInput {
-	return {
-		id: document.id,
-		uuid: document.uuid,
-		name: document.name,
-		status: document.status,
-		statusText: document.statusText,
-		settings: document.settings,
-		signers: Array.isArray(document.signers) ? document.signers : [],
-		visibleElements: Array.isArray(document.visibleElements)
-			? document.visibleElements
-				.map(normalizeSignVisibleElement)
-				.filter((element): element is ServiceVisibleElement => element !== null)
-			: [],
-		files: Array.isArray(document.files)
-			? document.files.map(normalizeSignFile)
-			: [],
-	}
-}
-
 function getSignatureMethodSetting(
 	settings: SignMethodsSettings,
 	method: SignMethodKey,
@@ -479,7 +418,7 @@ let unwatchPendingAction: null | (() => void) = null
 let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
 const currentDocument = computed<SignDocument>(() => signStore.document)
-const visibleElementsDocument = computed(() => getVisibleElementsDocument(currentDocument.value))
+const visibleElementsDocument = computed(() => normalizeDocumentForVisibleElements(currentDocument.value))
 
 const elements = computed(() => {
 	const document = currentDocument.value
@@ -492,7 +431,7 @@ const elements = computed(() => {
 
 	if (Array.isArray(document?.files)) {
 		document.files
-			.map(normalizeSignFile)
+			.map(normalizeFileForVisibleElements)
 			.flatMap((file) => getFileSigners(file))
 			.filter((row): row is ReturnType<typeof getFileSigners>[number] & { me: true; signRequestId: number } => isCurrentUserSigner(row) && row.signRequestId !== undefined)
 			.forEach((row) => signRequestIds.add(row.signRequestId))
