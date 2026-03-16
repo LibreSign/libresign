@@ -17,10 +17,43 @@
  *   }))
  */
 
-// Setup global translation functions
 import { vi } from 'vitest'
 
-global.t = vi.fn().mockImplementation((app, text) => text)
-global.n = vi.fn().mockImplementation((app, singular, plural, count) =>
-	count === 1 ? singular : plural
-)
+global.appName = 'libresign'
+
+global.OC = {
+	requestToken: 'test-request-token',
+	coreApps: ['core'],
+	config: {
+		modRewriteWorking: true,
+	},
+	dialogs: {},
+	isUserAdmin() {
+		return true
+	},
+	getLanguage() {
+		return 'en'
+	},
+	getLocale() {
+		return 'en'
+	},
+	MimeType: {
+		getIconUrl: vi.fn(),
+	},
+	PERMISSION_NONE: 0,
+	PERMISSION_READ: 1,
+	PERMISSION_UPDATE: 2,
+	PERMISSION_CREATE: 4,
+	PERMISSION_DELETE: 8,
+	PERMISSION_SHARE: 16,
+	PERMISSION_ALL: 31,
+}
+
+global.OCA = global.OCA ?? {}
+global.OCP = global.OCP ?? {
+	Accessibility: {
+		disableKeyboardShortcuts: () => false,
+	},
+}
+
+global.window._oc_webroot = '/'
