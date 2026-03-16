@@ -970,14 +970,15 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		it('does not propagate legacy signRequestId into signerToEdit', async () => {
 			await updateFile({
 				signers: [
-					{ email: 'signer1@example.com', displayName: 'Signer 1', signRequestId: 42, identify: 'signer1@example.com', identifyMethods: [{ method: 'email', value: 'signer1@example.com' }] },
+					{ email: 'signer1@example.com', displayName: 'Signer 1', signRequestId: 42, identifyMethods: [{ method: 'email', value: 'signer1@example.com' }] },
 				],
 			})
 
 			const signer = filesStore.files[1]!.signers![0]!
 			wrapper.vm.editSigner(signer)
 
-			expect(wrapper.vm.signerToEdit.identify).toBe('signer1@example.com')
+			expect(wrapper.vm.signerToEdit.identify).toBeUndefined()
+			expect(wrapper.vm.signerToEdit.identifyMethods).toEqual([{ method: 'email', value: 'signer1@example.com' }])
 			expect('signRequestId' in wrapper.vm.signerToEdit).toBe(false)
 		})
 
@@ -1000,7 +1001,6 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			])
 			await setVmState({
 				signerToEdit: {
-					identify: 'test@example.com',
 					identifyMethods: [{ method: 'sms' }],
 				},
 			})
@@ -1012,7 +1012,6 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await updateMethods([{ name: 'sms', enabled: false }])
 			await setVmState({
 				signerToEdit: {
-					identify: 'test@example.com',
 					identifyMethods: [{ method: 'sms' }],
 				},
 			})
