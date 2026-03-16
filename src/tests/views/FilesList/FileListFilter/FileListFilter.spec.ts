@@ -10,11 +10,6 @@ import { createTestingPinia } from '@pinia/testing'
 
 import FileListFilter from '../../../../views/FilesList/FileListFilter/FileListFilter.vue'
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-	isRTL: vi.fn(() => false),
-}))
-
 vi.mock('@nextcloud/logger', () => ({
 	getLogger: vi.fn(() => ({
 		error: vi.fn(),
