@@ -4,8 +4,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { flushPromises, mount } from '@vue/test-utils'
 import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
+import { flushPromises, mount } from '@vue/test-utils'
 
 import FilesListTableHeaderActions from '../../../views/FilesList/FilesListTableHeaderActions.vue'
 
