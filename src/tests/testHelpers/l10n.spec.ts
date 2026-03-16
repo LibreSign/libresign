@@ -4,8 +4,10 @@
  */
 
 import { describe, expect, it } from 'vitest'
+
 import { createL10nMock, interpolateL10n } from './l10n.js'
 
+type TranslationParams = Record<string, unknown>
 
 describe('l10n test helper', () => {
 	it('interpolates placeholders without dropping unknown tokens', () => {
@@ -26,7 +28,7 @@ describe('l10n test helper', () => {
 
 	it('allows overriding only the behavior a spec cares about', () => {
 		const mock = createL10nMock({
-			t: (_app, message, params) => `${interpolateL10n(message, params)}!`,
+			t: (_app: string, message: string, params?: TranslationParams) => `${interpolateL10n(message, params)}!`,
 		})
 
 		expect(mock.t('libresign', 'Signed by {name}', { name: 'Jane' })).toBe('Signed by Jane!')
