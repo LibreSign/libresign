@@ -1,8 +1,9 @@
 {
     "require-dev": {
         "donatj/mock-webserver": "^2.7",
-        "mikey179/vfsstream": "^1.6",
+        "mikey179/vfsstream": "dev-master",
         "byjg/swagger-test": "5.0.x-dev",
+        "cweagans/composer-patches": "^2.0",
         "guzzlehttp/psr7": "^2.4",
         "symfony/yaml": "7.4.x-dev",
         "smalot/pdfparser": "dev-master",
@@ -10,8 +11,14 @@
     },
     "minimum-stability": "dev",
     "config": {
+        "allow-plugins": {
+            "cweagans/composer-patches": true
+        },
         "platform": {
             "php": "8.2"
         }
+    },
+    "extra": {
+        "patches-file": "patches.json"
     }
 }

@@ -8,6 +8,22 @@ import { mount } from '@vue/test-utils'
 
 import CertificateCustonOptions from '../../../views/Settings/CertificateCustonOptions.vue'
 
+type CertificateOption = {
+	id: string
+	value: string | string[]
+	error?: boolean
+}
+
+type CertificateCustonOptionsVm = InstanceType<typeof CertificateCustonOptions> & {
+	certificateList: CertificateOption[]
+	customNamesOptions: Array<{ id: string }>
+	onOptionalAttributeSelect: (selected: { id: string }) => Promise<void>
+	addArrayEntry: (id: string) => void
+	removeArrayEntry: (id: string, index: number) => void
+	validate: (id: string) => void
+	removeOptionalAttribute: (id: string) => Promise<void>
+}
+
 const emitMock = vi.fn()
 
 vi.mock('@nextcloud/event-bus', () => ({
@@ -34,7 +50,7 @@ describe('CertificateCustonOptions.vue', () => {
 		emitMock.mockReset()
 	})
 
-	function createWrapper(names: Array<Record<string, unknown>> = []) {
+	function createWrapper(names: CertificateOption[] = []) {
 		return mount(CertificateCustonOptions, {
 			props: { names },
 			global: {
@@ -55,19 +71,21 @@ describe('CertificateCustonOptions.vue', () => {
 
 	it('initializes certificateList from names and filters already selected options', () => {
 		const wrapper = createWrapper([{ id: 'O', value: 'LibreSign' }])
+		const vm = wrapper.vm as CertificateCustonOptionsVm
 
-		expect(wrapper.vm.certificateList).toEqual([{ id: 'O', value: 'LibreSign' }])
-		expect(wrapper.vm.customNamesOptions.map((option: { id: string }) => option.id)).not.toContain('O')
-		expect(wrapper.vm.customNamesOptions.map((option: { id: string }) => option.id)).not.toContain('CN')
-		expect(wrapper.vm.customNamesOptions.map((option: { id: string }) => option.id)).toContain('OU')
+		expect(vm.certificateList).toEqual([{ id: 'O', value: 'LibreSign' }])
+		expect(vm.customNamesOptions.map((option) => option.id)).not.toContain('O')
+		expect(vm.customNamesOptions.map((option) => option.id)).not.toContain('CN')
+		expect(vm.customNamesOptions.map((option) => option.id)).toContain('OU')
 	})
 
 	it('adds OU as an array-backed option', async () => {
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as CertificateCustonOptionsVm
 
-		await wrapper.vm.onOptionalAttributeSelect({ id: 'OU' })
+		await vm.onOptionalAttributeSelect({ id: 'OU' })
 
-		expect(wrapper.vm.certificateList).toEqual([
+		expect(vm.certificateList).toEqual([
 			expect.objectContaining({
 				id: 'OU',
 				value: [''],
@@ -77,13 +95,14 @@ describe('CertificateCustonOptions.vue', () => {
 
 	it('emits updated list when validating and editing OU array entries', async () => {
 		const wrapper = createWrapper([{ id: 'OU', value: ['Security'] }])
+		const vm = wrapper.vm as CertificateCustonOptionsVm
 
-		await wrapper.vm.addArrayEntry('OU')
+		await vm.addArrayEntry('OU')
 		expect(emitMock).toHaveBeenLastCalledWith('libresign:update:certificateToSave', [
 			{ id: 'OU', value: ['Security', ''] },
 		])
 
-		await wrapper.vm.removeArrayEntry('OU', 1)
+		await vm.removeArrayEntry('OU', 1)
 		expect(emitMock).toHaveBeenLastCalledWith('libresign:update:certificateToSave', [
 			{ id: 'OU', value: ['Security'] },
 		])
@@ -91,10 +110,11 @@ describe('CertificateCustonOptions.vue', () => {
 
 	it('marks invalid values and emits sanitized payload on validate', async () => {
 		const wrapper = createWrapper([{ id: 'C', value: 'B' }])
+		const vm = wrapper.vm as CertificateCustonOptionsVm
 
-		await wrapper.vm.validate('C')
+		await vm.validate('C')
 
-		expect(wrapper.vm.certificateList[0].error).toBe(true)
+		expect(vm.certificateList[0].error).toBe(true)
 		expect(emitMock).toHaveBeenLastCalledWith('libresign:update:certificateToSave', [
 			{ id: 'C', value: 'B' },
 		])
@@ -105,10 +125,11 @@ describe('CertificateCustonOptions.vue', () => {
 			{ id: 'O', value: 'LibreSign' },
 			{ id: 'OU', value: ['Security'] },
 		])
+		const vm = wrapper.vm as CertificateCustonOptionsVm
 
-		await wrapper.vm.removeOptionalAttribute('O')
+		await vm.removeOptionalAttribute('O')
 
-		expect(wrapper.vm.certificateList).toEqual([
+		expect(vm.certificateList).toEqual([
 			{ id: 'OU', value: ['Security'] },
 		])
 	})

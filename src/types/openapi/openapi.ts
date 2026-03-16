@@ -1043,6 +1043,41 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        AccountMeResponse: {
+            account: {
+                uid: string;
+                emailAddress: string;
+                displayName: string;
+            };
+            settings: {
+                canRequestSign: boolean;
+                hasSignatureFile: boolean;
+                phoneNumber: string;
+            };
+        };
+        AccountSettingsUpdateResponse: {
+            data: {
+                userId: string;
+                phone: string;
+                message: string;
+            };
+        };
+        ActionErrorResponse: {
+            /** Format: int64 */
+            action: number;
+            errors: components["schemas"]["ErrorItem"][];
+            messages?: components["schemas"]["InfoMessage"][];
+            message?: string;
+        };
+        ActionErrorWithCode: components["schemas"]["ErrorItem"] & {
+            /** Format: int64 */
+            code?: number;
+        };
+        ActionMessageResponse: {
+            /** Format: int64 */
+            action: number;
+            message: string;
+        };
         Capabilities: {
             features: string[];
             config: {
@@ -1081,6 +1116,10 @@ export type components = {
                 to: string;
             };
         };
+        ConfigValueResponse: {
+            key: string;
+            value: Record<string, never>;
+        };
         Coordinate: {
             /** Format: int64 */
             page?: number;
@@ -1101,35 +1140,91 @@ export type components = {
             /** Format: int64 */
             height?: number;
         };
-        EnvelopeChildFile: {
+        CreateToSignPdfReference: {
+            url: string;
+        };
+        CreateToSignResponse: {
+            /**
+             * Format: int64
+             * @enum {integer}
+             */
+            action: 2000 | 2500;
+            message: string;
+            description?: string | null;
+            filename?: string;
+            pdf?: components["schemas"]["CreateToSignPdfReference"];
+        };
+        CrlCertificateStatusResponse: {
+            serial_number: string;
+            /** @enum {string} */
+            status: "valid" | "revoked" | "expired" | "unknown";
+            checked_at: string;
+            /** Format: int64 */
+            reason_code?: number | null;
+            revoked_at?: string;
+            valid_to?: string;
+        };
+        CrlErrorResponse: {
+            error: string;
+            message: string;
+        };
+        DangerMessage: {
+            /** @enum {string} */
+            type: "danger";
+            message: string;
+        };
+        DangerMessagesResponse: {
+            messages: components["schemas"]["DangerMessage"][];
+        };
+        DetailedFile: {
+            created_at: string;
+            files: components["schemas"]["FileListItem"][];
+            /** Format: int64 */
+            filesCount: number;
             /** Format: int64 */
             id: number;
+            /** Format: int64 */
+            nodeId: number;
             uuid: string;
             name: string;
             /** Format: int64 */
             status: number;
             statusText: string;
+            nodeType: string;
+            metadata: {
+                [key: string]: Record<string, never>;
+            };
             /** Format: int64 */
-            nodeId: number;
+            size: number;
             /** Format: int64 */
-            totalPages?: number;
+            docmdpLevel: number;
+            /** @enum {string} */
+            signatureFlow: "none" | "parallel" | "ordered_numeric";
+            visibleElements: components["schemas"]["VisibleElement"][];
+            signers: components["schemas"]["SignerDetail"][];
             /** Format: int64 */
-            size?: number;
-            pdfVersion?: string;
-            signers: components["schemas"]["EnvelopeChildSignerSummary"][];
-            file: string;
-            metadata: components["schemas"]["ValidateMetadata"];
+            signersCount: number;
+            requested_by: components["schemas"]["RequestedBy"];
         };
-        EnvelopeChildSignerSummary: {
-            /** Format: int64 */
-            signRequestId: number;
-            displayName: string;
-            email: string;
-            identifyMethods?: components["schemas"]["IdentifyMethod"][];
-            signed: string | null;
-            /** Format: int64 */
-            status: number;
-            statusText: string;
+        DetailedFileResponse: components["schemas"]["DetailedFile"] & {
+            message: string;
+            name: string;
+            /** @enum {string} */
+            nodeType: "file" | "envelope";
+            signUuid?: string | null;
+            metadata: components["schemas"]["ValidateMetadata"];
+            /** @enum {string} */
+            signatureFlow: "none" | "parallel" | "ordered_numeric";
+        };
+        ErrorItem: {
+            message: string;
+            title?: string;
+        };
+        ErrorResponse: {
+            error: string;
+        };
+        ErrorsResponse: {
+            errors: components["schemas"]["ErrorItem"][];
         };
         File: {
             account: {
@@ -1161,38 +1256,12 @@ export type components = {
                 };
                 callback: string | null;
                 uuid: string;
-                signers: components["schemas"]["Signer"][];
+                signers: components["schemas"]["SignerDetail"][];
             };
         };
-        FileDetail: {
-            created_at: string;
-            files: components["schemas"]["FileListItem"][];
+        FileElementIdResponse: {
             /** Format: int64 */
-            filesCount: number;
-            /** Format: int64 */
-            id: number;
-            metadata: {
-                [key: string]: Record<string, never>;
-            };
-            name: string;
-            /** Format: int64 */
-            nodeId: number;
-            nodeType: string;
-            requested_by: {
-                userId: string;
-                displayName: string | null;
-            };
-            /** Format: int64 */
-            docmdpLevel: number;
-            signatureFlow: number | string;
-            signers: components["schemas"]["Signer"][];
-            /** Format: int64 */
-            status: number;
-            statusText: string;
-            /** Format: int64 */
-            signersCount: number;
-            uuid: string;
-            visibleElements: components["schemas"]["VisibleElement"][];
+            fileElementId: number;
         };
         FileListItem: {
             /** Format: int64 */
@@ -1212,7 +1281,44 @@ export type components = {
             signersCount: number;
             file: string;
             metadata: components["schemas"]["ValidateMetadata"];
-            signers: components["schemas"]["EnvelopeChildSignerSummary"][];
+            /** Format: int64 */
+            size: number;
+            signers: components["schemas"]["SignerSummary"][];
+        };
+        FileListResponse: {
+            pagination: components["schemas"]["Pagination"];
+            data: (components["schemas"]["FileSummary"] | components["schemas"]["DetailedFile"])[];
+            settings?: components["schemas"]["Settings"];
+        };
+        FileSummary: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            nodeId: number | null;
+            uuid: string;
+            name: string;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+            /** @enum {string} */
+            nodeType: "file" | "envelope";
+            created_at: string;
+            signUuid?: string | null;
+            metadata: components["schemas"]["ValidateMetadata"];
+            /** Format: int64 */
+            docmdpLevel: number;
+            /** @enum {string} */
+            signatureFlow: "none" | "parallel" | "ordered_numeric";
+            /** Format: int64 */
+            signersCount: number;
+            signers: unknown[];
+            requested_by: components["schemas"]["RequestedBy"];
+            /** Format: int64 */
+            filesCount: number;
+            canSign: boolean;
+        };
+        FileUuidReference: {
+            uuid: string;
         };
         FolderSettings: {
             folderName?: string;
@@ -1229,9 +1335,23 @@ export type components = {
             name?: string;
             type?: string;
         };
-        IdentifyAccount: {
+        IdDocsApprovalListResponse: {
+            pagination: components["schemas"]["Pagination"];
+            data: components["schemas"]["File"][] | null;
+        };
+        IdDocsListResponse: {
+            pagination: components["schemas"]["Pagination"];
+            data: components["schemas"]["File"][];
+        };
+        IdDocsUploadErrorResponse: {
             /** Format: int64 */
-            id: number;
+            file: number | null;
+            /** @enum {string|null} */
+            type: "info" | "warning" | "danger" | null;
+            message: string;
+        };
+        IdentifyAccount: {
+            identify: string;
             isNoUser: boolean;
             displayName: string;
             subname: string;
@@ -1241,64 +1361,51 @@ export type components = {
              */
             shareType: 0 | 4;
             /** @enum {string} */
-            icon?: "icon-mail" | "icon-user";
+            method?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
+            /** @enum {string} */
+            iconName?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
             acceptsEmailNotifications?: boolean;
         };
+        IdentifyAccountsResponse: components["schemas"]["IdentifyAccount"][];
         IdentifyMethod: {
             method: string;
             value: string;
             /** Format: int64 */
             mandatory: number;
         };
+        InfoMessage: {
+            /** @enum {string} */
+            type: "info";
+            message: string;
+        };
+        MessageResponse: {
+            message: string;
+        };
+        MessagesResponse: {
+            messages: string[];
+        };
         NewFile: {
             base64?: string;
             /** Format: int64 */
-            fileId?: number;
+            nodeId?: number;
+            path?: string;
             url?: string;
         };
         NewSigner: {
-            identify: {
-                email?: string;
-                account?: string;
-            };
+            identifyMethods: {
+                method: string;
+                value: string;
+                /** Format: int64 */
+                mandatory: number;
+            }[];
             displayName?: string;
             description?: string;
             /** Format: int64 */
             notify?: number;
             /** Format: int64 */
             signingOrder?: number;
-        };
-        NextcloudFile: {
-            message: string;
-            name: string;
             /** Format: int64 */
-            id: number;
-            /** Format: int64 */
-            nodeId: number;
-            uuid: string;
-            /** Format: int64 */
-            status: number;
-            statusText: string;
-            /** @enum {string} */
-            nodeType: "file" | "envelope";
-            created_at: string;
-            signUuid?: string | null;
-            metadata: components["schemas"]["ValidateMetadata"];
-            /** Format: int64 */
-            docmdpLevel: number;
-            /** @enum {string} */
-            signatureFlow: "none" | "parallel" | "ordered_numeric";
-            visibleElements: components["schemas"]["VisibleElement"][];
-            signers: components["schemas"]["Signer"][];
-            /** Format: int64 */
-            signersCount: number;
-            requested_by: {
-                userId: string;
-                displayName: string;
-            };
-            /** Format: int64 */
-            filesCount: number;
-            files: components["schemas"]["FileListItem"][];
+            status?: number;
         };
         Notify: {
             date: string;
@@ -1353,14 +1460,7 @@ export type components = {
             /** Format: int64 */
             errors?: number;
             files?: components["schemas"]["ProgressFile"][];
-            signers?: {
-                /** Format: int64 */
-                id: number;
-                displayName: string;
-                signed: string | null;
-                /** Format: int64 */
-                status: number;
-            }[];
+            signers?: components["schemas"]["ProgressSigner"][];
         };
         ProgressResponse: {
             status: string;
@@ -1370,11 +1470,23 @@ export type components = {
             /** Format: int64 */
             fileId: number;
             progress: components["schemas"]["ProgressPayload"];
-            file?: components["schemas"]["ValidateFile"];
+            file?: components["schemas"]["ValidatedFile"];
             error?: components["schemas"]["ProgressError"];
+        };
+        ProgressSigner: {
+            /** Format: int64 */
+            id: number;
+            displayName: string;
+            signed: string | null;
+            /** Format: int64 */
+            status: number;
         };
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
+        };
+        RequestedBy: {
+            userId: string;
+            displayName: string | null;
         };
         Settings: {
             canSign: boolean;
@@ -1385,6 +1497,19 @@ export type components = {
             isApprover?: boolean;
             needIdentificationDocuments: boolean;
             identificationDocumentsWaitingApproval: boolean;
+        };
+        SignActionErrorResponse: {
+            /** Format: int64 */
+            action: number;
+            errors: components["schemas"]["ActionErrorWithCode"][];
+            redirect?: string;
+        };
+        SignActionResponse: {
+            /** Format: int64 */
+            action: number;
+            message?: string;
+            file?: components["schemas"]["FileUuidReference"];
+            job?: components["schemas"]["SigningJob"];
         };
         SignatureMethod: {
             enabled: boolean;
@@ -1410,40 +1535,53 @@ export type components = {
             emailToken?: components["schemas"]["SignatureMethodEmailToken"];
             password?: components["schemas"]["SignatureMethodPassword"];
         };
-        Signer: {
+        SignerDetail: components["schemas"]["SignerSummary"] & {
             description: string | null;
-            displayName: string;
             subject?: string;
             request_sign_date: string;
             /** Format: int64 */
             valid_from?: number;
             /** Format: int64 */
             valid_to?: number;
-            email?: string;
             remote_address?: string;
             user_agent?: string;
             notify?: components["schemas"]["Notify"][];
             userId?: string;
-            signed: string | null;
             sign_date?: string | null;
             sign_uuid?: string;
             hash_algorithm?: string;
             me: boolean;
-            /** Format: int64 */
-            signRequestId: number;
             /**
              * Format: int64
              * @enum {integer}
              */
             status: 0 | 1 | 2;
-            statusText: string;
             /** Format: int64 */
             signingOrder?: number;
-            identifyMethods?: components["schemas"]["IdentifyMethod"][];
             visibleElements: components["schemas"]["VisibleElement"][];
             signatureMethods?: components["schemas"]["SignatureMethods"];
             uid?: string;
             metadata?: Record<string, never>;
+        };
+        SignerSummary: {
+            /** Format: int64 */
+            signRequestId: number;
+            displayName: string;
+            email: string;
+            identifyMethods?: components["schemas"]["IdentifyMethod"][];
+            signed: string | null;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+        };
+        SigningJob: {
+            /** @enum {string} */
+            status: "SIGNING_IN_PROGRESS";
+            file: components["schemas"]["FileUuidReference"];
+        };
+        StatusMessageResponse: {
+            message: string;
+            status: string;
         };
         UserElement: {
             /** Format: int64 */
@@ -1462,7 +1600,47 @@ export type components = {
             starred: 0 | 1;
             createdAt: string;
         };
-        ValidateFile: {
+        UserElementsMessageResponse: {
+            elements: components["schemas"]["UserElement"][];
+            message: string;
+        };
+        UserElementsResponse: {
+            elements: components["schemas"]["UserElement"][];
+        };
+        ValidateMetadata: {
+            extension: string;
+            /** Format: int64 */
+            p: number;
+            d?: {
+                /** Format: double */
+                w: number;
+                /** Format: double */
+                h: number;
+            }[];
+            original_file_deleted?: boolean;
+            pdfVersion?: string;
+            status_changed_at?: string;
+        };
+        ValidatedChildFile: {
+            /** Format: int64 */
+            id: number;
+            uuid: string;
+            name: string;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+            /** Format: int64 */
+            nodeId: number;
+            /** Format: int64 */
+            totalPages?: number;
+            /** Format: int64 */
+            size: number;
+            pdfVersion?: string;
+            signers: components["schemas"]["SignerSummary"][];
+            file: string;
+            metadata: components["schemas"]["ValidateMetadata"];
+        };
+        ValidatedFile: {
             /** Format: int64 */
             id: number;
             uuid: string;
@@ -1483,56 +1661,38 @@ export type components = {
             docmdpLevel: number;
             /** Format: int64 */
             filesCount?: number;
-            files?: components["schemas"]["EnvelopeChildFile"][];
+            files?: components["schemas"]["ValidatedChildFile"][];
             /** Format: int64 */
             totalPages: number;
             /** Format: int64 */
             size: number;
             pdfVersion: string;
             created_at: string;
-            requested_by: {
-                userId: string;
-                displayName: string;
-            };
+            requested_by: components["schemas"]["RequestedBy"];
             file?: string;
             url?: string;
             signUuid?: string | null;
             mime?: string;
-            pages?: {
-                /** Format: int64 */
-                number: number;
-                url: string;
-                resolution: {
-                    /** Format: double */
-                    w: number;
-                    /** Format: double */
-                    h: number;
-                };
-            }[];
+            pages?: components["schemas"]["ValidationPage"][];
             metadata?: components["schemas"]["ValidateMetadata"];
-            signers?: components["schemas"]["Signer"][];
+            signers?: components["schemas"]["SignerDetail"][];
             /** Format: int64 */
             signersCount?: number;
             settings?: components["schemas"]["Settings"];
-            messages?: {
-                /** @enum {string} */
-                type: "info";
-                message: string;
-            }[];
+            messages?: components["schemas"]["InfoMessage"][];
             visibleElements?: components["schemas"]["VisibleElement"][];
         };
-        ValidateMetadata: {
-            extension: string;
+        ValidationPage: {
             /** Format: int64 */
-            p: number;
-            d?: {
-                /** Format: double */
-                w: number;
-                /** Format: double */
-                h: number;
-            }[];
-            pdfVersion?: string;
-            status_changed_at?: string;
+            number: number;
+            url: string;
+            resolution: components["schemas"]["ValidationPageResolution"];
+        };
+        ValidationPageResolution: {
+            /** Format: double */
+            w: number;
+            /** Format: double */
+            h: number;
         };
         VisibleElement: {
             /** Format: int64 */
@@ -1614,10 +1774,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        error: string;
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["CrlErrorResponse"];
                 };
             };
         };
@@ -1640,11 +1797,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        serial_number: string;
-                        status: string;
-                        checked_at: string;
-                    };
+                    "application/json": components["schemas"]["CrlCertificateStatusResponse"];
                 };
             };
             /** @description Invalid serial number format */
@@ -1653,10 +1806,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        error: string;
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["CrlErrorResponse"];
                 };
             };
         };
@@ -2064,19 +2214,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /**
-                                 * Format: int64
-                                 * @enum {integer}
-                                 */
-                                action: 2000 | 2500;
-                                description?: string | null;
-                                filename?: string;
-                                message: string;
-                                pdf?: {
-                                    url: string;
-                                };
-                            };
+                            data: components["schemas"]["CreateToSignResponse"];
                         };
                     };
                 };
@@ -2090,11 +2228,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                                /** Format: int64 */
-                                action: number;
-                            };
+                            data: components["schemas"]["ActionMessageResponse"];
                         };
                     };
                 };
@@ -2145,9 +2279,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -2177,17 +2309,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                account: {
-                                    uid: string;
-                                    emailAddress: string;
-                                    displayName: string;
-                                };
-                                settings: {
-                                    canRequestSign: boolean;
-                                    hasSignatureFile: boolean;
-                                };
-                            };
+                            data: components["schemas"]["AccountMeResponse"];
                         };
                     };
                 };
@@ -2201,9 +2323,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -2240,13 +2360,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                data: {
-                                    userId: string;
-                                    phone: string;
-                                    message: string;
-                                };
-                            };
+                            data: components["schemas"]["AccountSettingsUpdateResponse"];
                         };
                     };
                 };
@@ -2260,9 +2374,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -2292,9 +2404,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -2308,9 +2418,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -2340,9 +2448,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -2381,9 +2487,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -2397,9 +2501,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -2450,9 +2552,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -2484,10 +2584,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                key: string;
-                                value: Record<string, never>;
-                            };
+                            data: components["schemas"]["ConfigValueResponse"];
                         };
                     };
                 };
@@ -2501,9 +2598,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -2564,9 +2659,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -2575,7 +2668,14 @@ export interface operations {
     };
     "file-validate-uuid": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Whether to include visible elements in the response */
+                showVisibleElements?: 0 | 1;
+                /** @description Whether to include validation messages in the response */
+                showMessages?: 0 | 1;
+                /** @description Whether to include the file payload in the response */
+                showValidateFile?: 0 | 1;
+            };
             header: {
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
@@ -2598,7 +2698,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ValidateFile"];
+                            data: components["schemas"]["ValidatedFile"];
                         };
                     };
                 };
@@ -2612,18 +2712,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                errors: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                                messages?: {
-                                    type: string;
-                                    message: string;
-                                }[];
-                            };
+                            data: components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -2632,7 +2721,14 @@ export interface operations {
     };
     "file-validate-file-id": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Whether to include visible elements in the response */
+                showVisibleElements?: 0 | 1;
+                /** @description Whether to include validation messages in the response */
+                showMessages?: 0 | 1;
+                /** @description Whether to include the file payload in the response */
+                showValidateFile?: 0 | 1;
+            };
             header: {
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
@@ -2655,7 +2751,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ValidateFile"];
+                            data: components["schemas"]["ValidatedFile"];
                         };
                     };
                 };
@@ -2669,18 +2765,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                errors: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                                messages?: {
-                                    type: string;
-                                    message: string;
-                                }[];
-                            };
+                            data: components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -2710,7 +2795,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ValidateFile"];
+                            data: components["schemas"]["ValidatedFile"];
                         };
                     };
                 };
@@ -2724,19 +2809,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                errors: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                                messages?: {
-                                    type: string;
-                                    message: string;
-                                }[];
-                                message?: string;
-                            };
+                            data: components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -2750,19 +2823,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                errors: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                                messages?: {
-                                    type: string;
-                                    message: string;
-                                }[];
-                                message?: string;
-                            };
+                            data: components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -2780,7 +2841,7 @@ export interface operations {
                 signer_uuid?: string | null;
                 /** @description The list of fileIds (database file IDs). It's the ids of LibreSign files */
                 "fileIds[]"?: number[] | null;
-                /** @description The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud */
+                /** @description The list of nodeIds. It's the ids of files at Nextcloud */
                 "nodeIds[]"?: number[] | null;
                 /** @description Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted. */
                 "status[]"?: number[] | null;
@@ -2794,6 +2855,8 @@ export interface operations {
                 sortDirection?: string | null;
                 /** @description Filter files by parent envelope file ID */
                 parentFileId?: number | null;
+                /** @description Whether to return the detailed payload instead of the lightweight summary payload */
+                details?: 0 | 1;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -2815,11 +2878,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                pagination: components["schemas"]["Pagination"];
-                                data: components["schemas"]["FileDetail"][];
-                                settings?: components["schemas"]["Settings"];
-                            };
+                            data: components["schemas"]["FileListResponse"];
                         };
                     };
                 };
@@ -3054,7 +3113,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["NextcloudFile"];
+                            data: components["schemas"]["DetailedFileResponse"];
                         };
                     };
                 };
@@ -3068,9 +3127,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -3102,7 +3159,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["NextcloudFile"];
+                            data: components["schemas"]["DetailedFileResponse"];
                         };
                     };
                 };
@@ -3116,9 +3173,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -3132,9 +3187,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -3148,9 +3201,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -3185,9 +3236,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -3201,9 +3250,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -3217,14 +3264,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                errors: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                            };
+                            data: components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -3260,7 +3300,7 @@ export interface operations {
                     elementId?: number | null;
                     /**
                      * Format: int64
-                     * @description File ID when using node identifier instead of UUID
+                     * @description LibreSign file ID that owns the visible element
                      */
                     fileId?: number | null;
                     /**
@@ -3291,10 +3331,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                fileElementId: number;
-                            };
+                            data: components["schemas"]["FileElementIdResponse"];
                         };
                     };
                 };
@@ -3308,12 +3345,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                errors: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                            };
+                            data: components["schemas"]["ErrorsResponse"];
                         };
                     };
                 };
@@ -3361,12 +3393,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                errors: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                            };
+                            data: components["schemas"]["ErrorsResponse"];
                         };
                     };
                 };
@@ -3399,7 +3426,7 @@ export interface operations {
                     signRequestId: number;
                     /**
                      * Format: int64
-                     * @description File ID when using node identifier instead of UUID
+                     * @description LibreSign file ID that owns the visible element
                      */
                     fileId?: number | null;
                     /**
@@ -3430,10 +3457,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                fileElementId: number;
-                            };
+                            data: components["schemas"]["FileElementIdResponse"];
                         };
                     };
                 };
@@ -3447,12 +3471,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                errors: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                            };
+                            data: components["schemas"]["ErrorsResponse"];
                         };
                     };
                 };
@@ -3501,10 +3520,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                                status: string;
-                            };
+                            data: components["schemas"]["StatusMessageResponse"];
                         };
                     };
                 };
@@ -3543,10 +3559,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                pagination: components["schemas"]["Pagination"];
-                                data: components["schemas"]["File"][];
-                            };
+                            data: components["schemas"]["IdDocsListResponse"];
                         };
                     };
                 };
@@ -3560,9 +3573,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -3613,13 +3624,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                file: number | null;
-                                /** @enum {string} */
-                                type: "info" | "warning" | "danger";
-                                message: string;
-                            };
+                            data: components["schemas"]["IdDocsUploadErrorResponse"];
                         };
                     };
                 };
@@ -3668,9 +3673,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                messages: string[];
-                            };
+                            data: components["schemas"]["MessagesResponse"];
                         };
                     };
                 };
@@ -3713,10 +3716,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                pagination: components["schemas"]["Pagination"];
-                                data: components["schemas"]["File"][] | null;
-                            };
+                            data: components["schemas"]["IdDocsApprovalListResponse"];
                         };
                     };
                 };
@@ -3730,9 +3730,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -3771,7 +3769,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["IdentifyAccount"][];
+                            data: components["schemas"]["IdentifyAccountsResponse"];
                         };
                     };
                 };
@@ -3815,9 +3813,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -3831,13 +3827,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                messages: {
-                                    /** @enum {string} */
-                                    type: "danger";
-                                    message: string;
-                                }[];
-                            };
+                            data: components["schemas"]["DangerMessagesResponse"];
                         };
                     };
                 };
@@ -3882,9 +3872,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -3898,13 +3886,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                messages: {
-                                    /** @enum {string} */
-                                    type: "danger";
-                                    message: string;
-                                }[];
-                            };
+                            data: components["schemas"]["DangerMessagesResponse"];
                         };
                     };
                 };
@@ -3966,7 +3948,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of signers who must sign the document. Each signer can have: identify, displayName, description, notify, signingOrder
+                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][];
@@ -3981,12 +3963,12 @@ export interface operations {
                      */
                     settings?: components["schemas"]["FolderSettings"];
                     /**
-                     * @description File object.
+                     * @description File object. Supports nodeId, url, base64 or path.
                      * @default []
                      */
                     file?: components["schemas"]["NewFile"];
                     /**
-                     * @description Multiple files to create an envelope (optional, use either file or files)
+                     * @description Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
                      * @default []
                      */
                     files?: components["schemas"]["NewFile"][];
@@ -4013,7 +3995,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["NextcloudFile"];
+                            data: components["schemas"]["DetailedFileResponse"];
                         };
                     };
                 };
@@ -4027,15 +4009,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message?: string;
-                                /** Format: int64 */
-                                action?: number;
-                                errors?: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                            };
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -4058,7 +4032,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of signers who must sign the document
+                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format.
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][] | null;
@@ -4067,7 +4041,7 @@ export interface operations {
                     /** @description Visible elements on document */
                     visibleElements?: components["schemas"]["VisibleElement"][] | null;
                     /**
-                     * @description File object.
+                     * @description File object. Supports nodeId, url, base64 or path when creating a new request.
                      * @default []
                      */
                     file?: (components["schemas"]["NewFile"] | unknown[]) | null;
@@ -4086,7 +4060,7 @@ export interface operations {
                      */
                     settings?: components["schemas"]["FolderSettings"];
                     /**
-                     * @description Multiple files to create an envelope (optional, use either file or files)
+                     * @description Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
                      * @default []
                      */
                     files?: components["schemas"]["NewFile"][];
@@ -4103,7 +4077,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["NextcloudFile"];
+                            data: components["schemas"]["DetailedFileResponse"];
                         };
                     };
                 };
@@ -4117,15 +4091,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message?: string;
-                                /** Format: int64 */
-                                action?: number;
-                                errors?: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                            };
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -4159,9 +4125,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4175,9 +4139,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4191,14 +4153,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                errors: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                            };
+                            data: components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -4259,21 +4214,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                message?: string;
-                                file?: {
-                                    uuid: string;
-                                };
-                                job?: {
-                                    /** @enum {string} */
-                                    status: "SIGNING_IN_PROGRESS";
-                                    file: {
-                                        uuid: string;
-                                    };
-                                };
-                            };
+                            data: components["schemas"]["SignActionResponse"];
                         };
                     };
                 };
@@ -4287,17 +4228,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                errors: {
-                                    message: string;
-                                    /** Format: int64 */
-                                    code?: number;
-                                    title?: string;
-                                }[];
-                                redirect?: string;
-                            };
+                            data: components["schemas"]["SignActionErrorResponse"];
                         };
                     };
                 };
@@ -4313,7 +4244,7 @@ export interface operations {
             };
             path: {
                 apiVersion: "v1";
-                /** @description Node id of a Nextcloud file */
+                /** @description LibreSign file ID */
                 fileId: number;
             };
             cookie?: never;
@@ -4329,9 +4260,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4345,9 +4274,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4361,14 +4288,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                errors: {
-                                    message: string;
-                                    title?: string;
-                                }[];
-                            };
+                            data: components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -4429,21 +4349,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                message?: string;
-                                file?: {
-                                    uuid: string;
-                                };
-                                job?: {
-                                    /** @enum {string} */
-                                    status: "SIGNING_IN_PROGRESS";
-                                    file: {
-                                        uuid: string;
-                                    };
-                                };
-                            };
+                            data: components["schemas"]["SignActionResponse"];
                         };
                     };
                 };
@@ -4457,17 +4363,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                errors: {
-                                    message: string;
-                                    /** Format: int64 */
-                                    code?: number;
-                                    title?: string;
-                                }[];
-                                redirect?: string;
-                            };
+                            data: components["schemas"]["SignActionErrorResponse"];
                         };
                     };
                 };
@@ -4500,9 +4396,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4548,9 +4442,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4564,9 +4456,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4612,9 +4502,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4628,9 +4516,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4660,9 +4546,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                elements: components["schemas"]["UserElement"][];
-                            };
+                            data: components["schemas"]["UserElementsResponse"];
                         };
                     };
                 };
@@ -4676,9 +4560,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4717,10 +4599,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                elements: components["schemas"]["UserElement"][];
-                                message: string;
-                            };
+                            data: components["schemas"]["UserElementsMessageResponse"];
                         };
                     };
                 };
@@ -4734,9 +4613,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4823,9 +4700,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4857,9 +4732,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4873,9 +4746,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -4924,10 +4795,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                elements: components["schemas"]["UserElement"][];
-                                message: string;
-                            };
+                            data: components["schemas"]["UserElementsMessageResponse"];
                         };
                     };
                 };
@@ -4941,9 +4809,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };

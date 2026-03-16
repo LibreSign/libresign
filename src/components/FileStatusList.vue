@@ -66,7 +66,7 @@ type FileEntry = {
 	uuid?: string
 	name: string
 	status?: string | number
-	size?: number
+	size: number
 	signedAt?: string
 }
 
@@ -97,7 +97,10 @@ async function loadFiles() {
 	try {
 		const { data } = await axios.get(
 			generateOcsUrl('/apps/libresign/api/v1/file/list'),
-			{ timeout: 10000 },
+			{
+				params: { details: true },
+				timeout: 10000,
+			},
 		)
 
 		const fileList = data.ocs?.data?.data ?? []

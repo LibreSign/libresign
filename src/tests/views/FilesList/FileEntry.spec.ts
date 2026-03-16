@@ -10,18 +10,36 @@ import FileEntry from '../../../views/FilesList/FileEntry/FileEntry.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
+import type { FileEntrySource } from '../../../composables/useFileEntry.js'
 import type { TranslationFunction } from '../../test-types'
 
-type FileEntrySource = {
-	id: number
-	name: string
-	status: number
-	statusText: string
-	signers: unknown[]
-	created_at: number
-	metadata?: {
-		extension?: string
-	}
+vi.mock('@nextcloud/axios', () => ({
+	default: {
+		get: vi.fn().mockResolvedValue({ data: { ocs: { data: null } } }),
+		post: vi.fn(),
+		patch: vi.fn(),
+		delete: vi.fn(),
+	},
+}))
+
+vi.mock('@nextcloud/router', () => ({
+	generateOcsUrl: vi.fn((path: string) => path),
+	generateUrl: vi.fn((path: string) => path),
+}))
+
+type FileEntryVm = InstanceType<typeof FileEntry> & {
+	actions: {
+		doRename: (newName: string) => Promise<void>
+	} | null
+	isRenaming: boolean
+	renamingSaving: boolean
+	name: unknown
+	onRename: (newName: string) => Promise<void>
+	onStartRename: () => void
+	onFileRenaming: (nextIsRenaming: boolean) => void
+	filesStore: ReturnType<typeof useFilesStore>
+	actionsMenuStore: ReturnType<typeof useActionsMenuStore>
+	openDetailsIfAvailable: (event?: Event) => void
 }
 
 const t: TranslationFunction = (_app, text) => text
@@ -102,6 +120,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 		status: 1,
 		statusText: 'Ready',
 		signers: [],
+		signersCount: 0,
 		created_at: Date.now(),
 		metadata: {
 			extension: 'pdf',
@@ -138,66 +157,74 @@ describe('FileEntry.vue - Individual File Entry', () => {
 
 	it('initializes renaming state as false', () => {
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 
-		expect(wrapper.vm.isRenaming).toBe(false)
+		expect(vm.isRenaming).toBe(false)
 	})
 
 	it('initializes renaming saving state as false', () => {
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 
-		expect(wrapper.vm.renamingSaving).toBe(false)
+		expect(vm.renamingSaving).toBe(false)
 	})
 
 	it('renames file on rename event', async () => {
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 
 		await wrapper.vm.$nextTick()
-		await wrapper.vm.onRename('newname.pdf')
-		expect(wrapper.vm.renamingSaving).toBe(false)
+		await vm.onRename('newname.pdf')
+		expect(vm.renamingSaving).toBe(false)
 	})
 
 	it('clears renaming saving flag after rename', async () => {
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 
 		await wrapper.vm.$nextTick()
-		wrapper.vm.renamingSaving = true
-		await wrapper.vm.onRename('newname.pdf')
-		expect(wrapper.vm.renamingSaving).toBe(false)
+		vm.renamingSaving = true
+		await vm.onRename('newname.pdf')
+		expect(vm.renamingSaving).toBe(false)
 	})
 
 	it('starts rename on file', async () => {
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 
 		await wrapper.vm.$nextTick()
-		wrapper.vm.onStartRename()
-		expect(wrapper.vm.name).toBeDefined()
+		vm.onStartRename()
+		expect(vm.name).toBeDefined()
 	})
 
 	it('tracks file renaming state', async () => {
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 
 		await wrapper.vm.$nextTick()
-		expect(wrapper.vm.isRenaming).toBe(false)
-		wrapper.vm.onFileRenaming(true)
-		expect(wrapper.vm.isRenaming).toBe(true)
-		wrapper.vm.onFileRenaming(false)
-		expect(wrapper.vm.isRenaming).toBe(false)
+		expect(vm.isRenaming).toBe(false)
+		vm.onFileRenaming(true)
+		expect(vm.isRenaming).toBe(true)
+		vm.onFileRenaming(false)
+		expect(vm.isRenaming).toBe(false)
 	})
 
 	it('uses files store for file operations', async () => {
 		const store = useFilesStore()
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 
 		await wrapper.vm.$nextTick()
-		expect(wrapper.vm.filesStore).toBe(store)
+		expect(vm.filesStore).toBe(store)
 	})
 
 	it('uses actions menu store for menu state', async () => {
 		const store = useActionsMenuStore()
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 
 		await wrapper.vm.$nextTick()
-		expect(wrapper.vm.actionsMenuStore).toBe(store)
+		expect(vm.actionsMenuStore).toBe(store)
 	})
 
 	it('renders file entry checkbox', async () => {
@@ -263,9 +290,10 @@ describe('FileEntry.vue - Individual File Entry', () => {
 
 	it('passes source to child components', async () => {
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 
 		await wrapper.vm.$nextTick()
-		expect(wrapper.vm.filesStore).toBeDefined()
+		expect(vm.filesStore).toBeDefined()
 	})
 
 	it('shows success message after rename', async () => {
@@ -282,12 +310,13 @@ describe('FileEntry.vue - Individual File Entry', () => {
 		const selectFileSpy = vi.spyOn(useFilesStore(), 'selectFile')
 		const activeRequestSignatureTabSpy = vi.spyOn(sidebarStore, 'activeRequestSignatureTab')
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 		const event = {
 			preventDefault: vi.fn(),
 			stopPropagation: vi.fn(),
 		} as unknown as Event
 
-		wrapper.vm.openDetailsIfAvailable(event)
+		vm.openDetailsIfAvailable(event)
 
 		expect(selectFileSpy).toHaveBeenCalledWith(1)
 		expect(activeRequestSignatureTabSpy).toHaveBeenCalled()
@@ -295,13 +324,15 @@ describe('FileEntry.vue - Individual File Entry', () => {
 
 	it('restores file name on rename failure', async () => {
 		const wrapper = createWrapper()
+		const vm = wrapper.vm as FileEntryVm
 
 		await wrapper.vm.$nextTick()
-		vi.spyOn(wrapper.vm.actions, 'doRename').mockRejectedValueOnce(new Error('Rename failed'))
+		expect(vm.actions).not.toBeNull()
+		vi.spyOn(vm.actions!, 'doRename').mockRejectedValueOnce(new Error('Rename failed'))
 		try {
-			await wrapper.vm.onRename('newname.pdf')
+			await vm.onRename('newname.pdf')
 		} catch (e) {}
-		expect(wrapper.vm.renamingSaving).toBe(false)
+		expect(vm.renamingSaving).toBe(false)
 	})
 
 	it('handles right click on row', async () => {

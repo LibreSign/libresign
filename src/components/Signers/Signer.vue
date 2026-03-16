@@ -23,10 +23,10 @@
 					:text="method"
 					:aria-label="t('libresign', 'Identification method: {method}', { method })"
 					:no-close="true" />
-				<NcChip :text="signer.statusText"
+				<NcChip :text="signerStatusText"
 					:variant="chipType"
 					:icon-path="statusIconPath"
-					:aria-label="t('libresign', 'Signer status: {status}', { status: signer.statusText })"
+					:aria-label="t('libresign', 'Signer status: {status}', { status: signerStatusText })"
 					:no-close="true"
 					class="signer-status-chip" />
 				<span v-if="disabledTooltip" class="sr-only">{{ disabledTooltip }}</span>
@@ -56,7 +56,7 @@ import {
 	mdiClockOutline,
 	mdiDragVertical,
 } from '@mdi/js'
-import { emit } from '@nextcloud/event-bus'
+import { emit as emitEventBus } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
@@ -64,53 +64,60 @@ import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
+import type { IdentifyMethodSetting, SignatureFlowMode } from '../../types/index'
 defineOptions({
 	name: 'Signer',
 })
 
-type SignerMethod = {
-	method: string
-}
-
-type SignerRow = {
-	signed?: boolean
-	identifyMethods?: SignerMethod[]
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type SelectedFile = ReturnType<FilesStoreContract['getFile']>
+type SignerViewModel = {
+	signed?: string | null | boolean | unknown[]
+	identifyMethods?: Array<{ method: string }>
 	status?: number
+	statusText?: string
 	displayName?: string
 	signingOrder?: number
 }
 
 const props = withDefaults(defineProps<{
-	signerIndex: number
+	signer: SignerViewModel
 	event?: string
 	draggable?: boolean
+	requireRequestPermission?: boolean
 }>(), {
 	event: '',
 	draggable: false,
+	requireRequestPermission: true,
 })
+
+const emit = defineEmits<{
+	(event: 'select', signer: SignerViewModel): void
+}>()
 
 const filesStore = useFilesStore()
 const listItem = ref<any | null>(null)
 
 const canRequestSign = loadState('libresign', 'can_request_sign', false)
-const methods = loadState('libresign', 'identify_methods', []) as Array<{ name: string; enabled: boolean; friendly_name?: string }>
+const methods = loadState<IdentifyMethodSetting[]>('libresign', 'identify_methods', [])
 
 const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
-	let flow = file?.signatureFlow ?? 'parallel'
-	if (typeof flow === 'number') {
-		const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-		flow = flowMap[flow] || 'parallel'
+	const rawFlow = file?.signatureFlow
+	let flow: SignatureFlowMode = 'parallel'
+	if (typeof rawFlow === 'number') {
+		const flowMap: Record<number, SignatureFlowMode> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		flow = flowMap[rawFlow] || 'parallel'
+	} else if (rawFlow === 'none' || rawFlow === 'parallel' || rawFlow === 'ordered_numeric') {
+		flow = rawFlow
 	}
 	return flow
 })
 
-const signer = computed<SignerRow>(() => {
-	const file = filesStore.getFile()
-	return file?.signers?.[props.signerIndex] || {}
-})
+const signer = computed<SignerViewModel>(() => props.signer)
 
 const signerName = computed(() => signer.value.displayName || '')
+const signerStatusText = computed<string>(() => signer.value.statusText || '')
 
 const counterNumber = computed(() => {
 	const file = filesStore.getFile()
@@ -129,7 +136,7 @@ const isMethodDisabled = computed(() => {
 	}
 	const signerMethod = signer.value.identifyMethods[0].method
 	const methodConfig = methods.find(m => m.name === signerMethod)
-	return !methodConfig?.enabled
+	return methodConfig ? !methodConfig.enabled : false
 })
 
 const disabledMethodLabel = computed(() => {
@@ -149,7 +156,7 @@ const disabledTooltip = computed(() => {
 })
 
 const signerClass = computed(() => ({
-	'signer-signed': signer.value.signed,
+	'signer-signed': Boolean(signer.value.signed),
 	'signer-method-disabled': isMethodDisabled.value,
 }))
 
@@ -167,7 +174,7 @@ const showDragHandle = computed(() => {
 	const totalSigners = file.signers.length
 	return signatureFlow.value === 'ordered_numeric'
 		&& totalSigners > 1
-		&& !signer.value.signed
+		&& !Boolean(signer.value.signed)
 		&& filesStore.canSave()
 })
 
@@ -191,7 +198,7 @@ const chipType = computed(() => {
 })
 
 const signerLinkAriaLabel = computed(() => {
-	if (signer.value.signed) {
+	if (Boolean(signer.value.signed)) {
 		return t('libresign', 'Signer {name} (already signed)', { name: signerName.value })
 	}
 	return t('libresign', 'Edit signer {name}', { name: signerName.value })
@@ -210,22 +217,22 @@ const statusIconPath = computed(() => {
 })
 
 function signerClickAction() {
-	if (!canRequestSign) {
+	if (props.requireRequestPermission && !canRequestSign) {
 		return
 	}
 	if (filesStore.isOriginalFileDeleted()) {
 		return
 	}
-	if (props.event.length === 0) {
-		return
-	}
-	if (signer.value.signed) {
+	if (Boolean(signer.value.signed)) {
 		return
 	}
 	if (isMethodDisabled.value) {
 		return
 	}
-	emit(props.event, signer.value)
+	emit('select', signer.value)
+	if (props.event.length > 0) {
+		emitEventBus(props.event, signer.value)
+	}
 }
 
 function closeActions() {
@@ -245,6 +252,7 @@ defineExpose({
 	disabledTooltip,
 	showDragHandle,
 	chipType,
+	signerStatusText,
 	statusIconPath,
 	signerClickAction,
 	closeActions,

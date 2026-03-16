@@ -31,7 +31,8 @@ defineOptions({
 
 type Source = {
 	id: number | string
-	basename: string
+	basename?: string
+	name?: string
 }
 
 type FilesStore = {
@@ -74,7 +75,7 @@ const index = computed(() => {
 })
 
 const ariaLabel = computed(() => {
-	return t('libresign', 'Toggle selection for file "{displayName}"', { displayName: props.source.basename })
+	return t('libresign', 'Toggle selection for file "{displayName}"', { displayName: props.source.basename ?? props.source.name ?? '' })
 })
 
 const loadingLabel = computed(() => t('libresign', 'File is loading'))

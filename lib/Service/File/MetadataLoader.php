@@ -56,6 +56,7 @@ class MetadataLoader {
 			$this->logger->warning('Failed to load file metadata: ' . $e->getMessage());
 		}
 
+		$fileData->size ??= 0;
 		$fileData->totalPages ??= 0;
 		$fileData->pdfVersion ??= '';
 	}

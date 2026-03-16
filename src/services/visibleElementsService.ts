@@ -3,42 +3,50 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-interface Coordinates {
-	page?: number | string
-	left?: number | string
-	top?: number | string
-}
+import type {
+	IdentifyMethodRecord,
+	SignerDetailRecord,
+	SignerSummaryRecord,
+	VisibleElementRecord,
+} from '../types/index'
 
-interface VisibleElement {
-	elementId?: number | string
-	fileId?: number | string
-	signRequestId?: number | string
-	type?: string
-	coordinates?: Coordinates
-	[key: string]: unknown
-}
-
-interface Signer {
-	visibleElements?: VisibleElement[]
+export type SignerLike = {
+	signRequestId?: number
+	displayName?: string
+	email?: string
+	identifyMethods?: IdentifyMethodRecord[]
+	signed?: string | null | boolean | unknown[]
+	status?: number
+	statusText?: string
 	me?: boolean
-	signRequestId?: number | string
-	[key: string]: unknown
+	localKey?: string
+	visibleElements?: VisibleElementRecord[] | null
 }
 
-interface FileData {
+export type NestedFileLike = {
 	id?: number | string
-	file?: string
-	files?: Array<{ file?: string; signers?: Signer[] }>
-	visibleElements?: VisibleElement[]
-	signers?: Signer[]
-	[key: string]: unknown
+	name?: string
+	file?: string | NestedFileLike | null
+	metadata?: unknown
+	visibleElements?: VisibleElementRecord[] | null
+	signers?: SignerLike[] | null
 }
 
-interface DocumentData {
-	visibleElements?: VisibleElement[]
-	signers?: Signer[]
-	files?: FileData[]
-	[key: string]: unknown
+export type FileLike = NestedFileLike & {
+	files?: NestedFileLike[] | null
+}
+
+export type DocumentLike = {
+	id?: number | string
+	uuid?: string | null
+	name?: string
+	status?: number | string
+	statusText?: string
+	metadata?: unknown
+	settings?: unknown
+	visibleElements?: VisibleElementRecord[] | null
+	signers?: SignerLike[] | null
+	files?: FileLike[] | null
 }
 
 const keyOf = (value: unknown): string => {
@@ -48,11 +56,14 @@ const keyOf = (value: unknown): string => {
 	return String(value)
 }
 
-const deduplicateVisibleElements = (elements: VisibleElement[]): VisibleElement[] => {
+const deduplicateVisibleElements = (elements: VisibleElementRecord[]): VisibleElementRecord[] => {
 	const seen = new Set<string>()
-	const unique: VisibleElement[] = []
+	const unique: VisibleElementRecord[] = []
 	elements.forEach((element) => {
 		if (!element || typeof element !== 'object') {
+			return
+		}
+		if (!element.coordinates || typeof element.coordinates !== 'object') {
 			return
 		}
 		const signature = [
@@ -60,9 +71,9 @@ const deduplicateVisibleElements = (elements: VisibleElement[]): VisibleElement[
 			keyOf(element.fileId),
 			keyOf(element.signRequestId),
 			keyOf(element.type),
-			keyOf(element.coordinates?.page),
-			keyOf(element.coordinates?.left),
-			keyOf(element.coordinates?.top),
+			keyOf(element.coordinates.page),
+			keyOf(element.coordinates.left),
+			keyOf(element.coordinates.top),
 		].join('|')
 		if (seen.has(signature)) {
 			return
@@ -73,31 +84,46 @@ const deduplicateVisibleElements = (elements: VisibleElement[]): VisibleElement[
 	return unique
 }
 
-const collectSignerVisibleElements = (signers: unknown): VisibleElement[] => {
+const collectSignerVisibleElements = (signers: unknown): VisibleElementRecord[] => {
 	if (!Array.isArray(signers)) {
 		return []
 	}
-	return (signers as Signer[]).flatMap((signer) =>
-		Array.isArray(signer?.visibleElements) ? signer.visibleElements : [],
+	return signers.flatMap((signer) =>
+		typeof signer === 'object'
+		&& signer !== null
+		&& 'visibleElements' in signer
+		&& Array.isArray(signer.visibleElements)
+			? signer.visibleElements as VisibleElementRecord[]
+			: [],
 	)
 }
 
 export const idsMatch = (left: unknown, right: unknown): boolean => keyOf(left) === keyOf(right)
 
-export const getFileUrl = (file: FileData | null | undefined): string | null =>
-	file?.file || file?.files?.[0]?.file || null
+export const isCurrentUserSigner = (signer: SignerLike | null | undefined): signer is SignerLike & { me: true } =>
+	signer !== null
+	&& signer !== undefined
+	&& 'me' in signer
+	&& signer.me === true
 
-export const getFileSigners = (file: FileData): Signer[] => {
-	if (Array.isArray(file?.signers) && file.signers.length > 0) {
+export const getFileUrl = (file: FileLike | null | undefined): string | null =>
+	typeof file?.file === 'string'
+		? file.file
+		: Array.isArray(file?.files) && typeof file.files[0]?.file === 'string'
+			? file.files[0].file
+			: null
+
+export const getFileSigners = (file: FileLike): SignerLike[] => {
+	if (Array.isArray(file.signers) && file.signers.length > 0) {
 		return file.signers
 	}
-	if (Array.isArray(file?.files?.[0]?.signers)) {
+	if (Array.isArray(file.files) && Array.isArray(file.files[0]?.signers)) {
 		return file.files[0].signers
 	}
 	return []
 }
 
-export const getVisibleElementsFromDocument = (document: DocumentData): VisibleElement[] => {
+export const getVisibleElementsFromDocument = (document: DocumentLike): VisibleElementRecord[] => {
 	const topLevel = Array.isArray(document?.visibleElements) ? document.visibleElements : []
 	const signers = Array.isArray(document?.signers) ? document.signers : []
 	const nested = collectSignerVisibleElements(signers)
@@ -105,13 +131,13 @@ export const getVisibleElementsFromDocument = (document: DocumentData): VisibleE
 	return deduplicateVisibleElements([...topLevel, ...nested, ...files])
 }
 
-export const getVisibleElementsFromFile = (file: FileData): VisibleElement[] => {
+export const getVisibleElementsFromFile = (file: FileLike): VisibleElementRecord[] => {
 	const topLevel = Array.isArray(file?.visibleElements) ? file.visibleElements : []
 	const nested = collectSignerVisibleElements(getFileSigners(file))
 	return deduplicateVisibleElements([...topLevel, ...nested])
 }
 
-export const aggregateVisibleElementsByFiles = (files: FileData[]): VisibleElement[] => {
+export const aggregateVisibleElementsByFiles = (files: FileLike[]): VisibleElementRecord[] => {
 	if (!Array.isArray(files) || files.length === 0) {
 		return []
 	}
@@ -119,7 +145,7 @@ export const aggregateVisibleElementsByFiles = (files: FileData[]): VisibleEleme
 	return deduplicateVisibleElements(all)
 }
 
-export const findFileById = (files: FileData[], fileId: unknown): FileData | null => {
+export const findFileById = (files: FileLike[], fileId: unknown): FileLike | null => {
 	if (!Array.isArray(files)) {
 		return null
 	}

@@ -85,6 +85,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSavingIndicatorIcon from '@nextcloud/vue/components/NcSavingIndicatorIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import type { AdminInitialState } from '../../types'
 
 type SaveConfigError = {
 	response?: {
@@ -131,13 +132,13 @@ function showSavedIndicator() {
 
 function loadConfig() {
 	try {
-		const mode = loadState('libresign', 'signing_mode', 'sync')
+		const mode = loadState<AdminInitialState['signing_mode']>('libresign', 'signing_mode', 'sync')
 		asyncEnabled.value = mode === 'async'
 
-		const workerType = loadState('libresign', 'worker_type', 'local')
+		const workerType = loadState<AdminInitialState['worker_type']>('libresign', 'worker_type', 'local')
 		externalWorkerEnabled.value = workerType === 'external'
 
-		const parallelWorkers = loadState('libresign', 'parallel_workers', '4')
+		const parallelWorkers = loadState<AdminInitialState['parallel_workers']>('libresign', 'parallel_workers', '4')
 		parallelWorkersCount.value = String(parallelWorkers)
 		lastSavedParallelWorkers.value = parallelWorkersCount.value
 	} catch (error) {

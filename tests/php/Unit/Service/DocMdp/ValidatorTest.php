@@ -87,7 +87,7 @@ final class ValidatorTest extends TestCase {
 				DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED,
 				'hash',
 				[
-					['identify' => ['email' => 'one@example.com']],
+					['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
 				],
 				true,
 			],
@@ -95,8 +95,8 @@ final class ValidatorTest extends TestCase {
 				DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED,
 				'',
 				[
-					['identify' => ['email' => 'one@example.com']],
-					['identify' => ['email' => 'two@example.com']],
+					['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
+					['identifyMethods' => [['method' => 'email', 'value' => 'two@example.com']]],
 				],
 				true,
 			],
@@ -104,7 +104,7 @@ final class ValidatorTest extends TestCase {
 				DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED,
 				'',
 				[
-					['identify' => ['email' => 'one@example.com']],
+					['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
 				],
 				false,
 			],
@@ -112,8 +112,8 @@ final class ValidatorTest extends TestCase {
 				DocMdpLevel::CERTIFIED_FORM_FILLING,
 				'hash',
 				[
-					['identify' => ['email' => 'one@example.com']],
-					['identify' => ['email' => 'two@example.com']],
+					['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
+					['identifyMethods' => [['method' => 'email', 'value' => 'two@example.com']]],
 				],
 				false,
 			],
@@ -121,8 +121,8 @@ final class ValidatorTest extends TestCase {
 				DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS,
 				'hash',
 				[
-					['identify' => ['email' => 'one@example.com']],
-					['identify' => ['email' => 'two@example.com']],
+					['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
+					['identifyMethods' => [['method' => 'email', 'value' => 'two@example.com']]],
 				],
 				false,
 			],
@@ -154,8 +154,8 @@ final class ValidatorTest extends TestCase {
 
 		$validator->validateSignersCount([
 			'signers' => [
-				['identify' => ['email' => 'one@example.com']],
-				['identify' => ['email' => 'two@example.com']],
+				['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
+				['identifyMethods' => [['method' => 'email', 'value' => 'two@example.com']]],
 			],
 		]);
 	}
@@ -179,8 +179,8 @@ final class ValidatorTest extends TestCase {
 		$validator->validateSignersCount([
 			'uuid' => 'uuid-1',
 			'signers' => [
-				['identify' => ['email' => 'one@example.com']],
-				['identify' => ['email' => 'two@example.com']],
+				['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
+				['identifyMethods' => [['method' => 'email', 'value' => 'two@example.com']]],
 			],
 		]);
 	}

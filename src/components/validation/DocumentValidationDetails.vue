@@ -23,7 +23,7 @@
 					{{ document.totalPages }}
 				</template>
 			</NcListItem>
-			<NcListItem v-if="document.size" class="extra" compact>
+			<NcListItem class="extra" compact>
 				<template #name>
 					<strong>{{ t('libresign', 'File size:') }}</strong>
 					{{ size }}
@@ -68,24 +68,17 @@ import {
 import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
+import type {
+	LoadedValidationFileDocument,
+	ValidatedChildFileRecord,
+} from '../../types/index'
 
 defineOptions({
 	name: 'DocumentValidationDetails',
 })
 
-type ValidationDocument = {
-	name: string
-	status?: string | number
-	totalPages?: number
-	size?: string
-	pdfVersion?: string
-	uuid?: string
-	nodeId?: number
-	signers?: Array<{ displayName?: string; email?: string }>
-}
-
 const props = withDefaults(defineProps<{
-	document: ValidationDocument
+	document: LoadedValidationFileDocument | ValidatedChildFileRecord
 	legalInformation?: string
 	documentValidMessage?: string
 	isAfterSigned?: boolean
@@ -98,17 +91,18 @@ const props = withDefaults(defineProps<{
 const { document } = toRefs(props)
 
 const size = computed(() => {
-	if (!document.value.size) return ''
-	const parsedSize = parseInt(document.value.size)
-	if (parsedSize < 1024) return parsedSize + ' B'
-	if (parsedSize < 1048576) return (parsedSize / 1024).toFixed(2) + ' KB'
-	return (parsedSize / 1048576).toFixed(2) + ' MB'
+	if (document.value.size < 1024) return document.value.size + ' B'
+	if (document.value.size < 1048576) return (document.value.size / 1024).toFixed(2) + ' KB'
+	return (document.value.size / 1048576).toFixed(2) + ' MB'
 })
 
 const documentStatus = computed(() => getStatusLabel(document.value.status))
 
 async function viewDocument() {
-	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid as string })
+	if (!document.value.uuid || !document.value.name || typeof document.value.nodeId !== 'number') {
+		return
+	}
+	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: document.value.uuid })
 	await openDocument({
 		fileUrl,
 		filename: document.value.name,

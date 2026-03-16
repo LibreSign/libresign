@@ -352,9 +352,18 @@ const page = ref(1)
 const length = ref(50)
 const total = ref(0)
 const hasMore = ref(true)
+const statusOptions: SelectOption[] = [
+	{ value: 'issued', label: t('libresign', 'Issued') },
+	{ value: 'revoked', label: t('libresign', 'Revoked') },
+	{ value: 'expired', label: t('libresign', 'Expired') },
+]
+const initialStatus = userConfigStore.crl_filters?.status
+const initialStatusOption = typeof initialStatus === 'string'
+	? statusOptions.find(option => option.value === initialStatus) || null
+	: null
 const filters = reactive({
 	serialNumber: userConfigStore.crl_filters?.serialNumber || '',
-	status: userConfigStore.crl_filters?.status || null,
+	status: initialStatusOption as SelectOption | null,
 	owner: userConfigStore.crl_filters?.owner || '',
 })
 const sortBy = ref<string | null>(userConfigStore.crl_sort?.sortBy || 'revoked_at')
@@ -371,11 +380,6 @@ const revokeDialog = reactive({
 	reasonText: '',
 	loading: false,
 })
-const statusOptions: SelectOption[] = [
-	{ value: 'issued', label: t('libresign', 'Issued') },
-	{ value: 'revoked', label: t('libresign', 'Revoked') },
-	{ value: 'expired', label: t('libresign', 'Expired') },
-]
 const reasonCodes: Record<number, string> = {
 	0: t('libresign', 'Unspecified'),
 	1: t('libresign', 'Key Compromise'),
@@ -478,7 +482,7 @@ async function saveFilters() {
 	try {
 		await userConfigStore.update('crl_filters', {
 			serialNumber: filters.serialNumber,
-			status: filters.status,
+			status: filters.status?.value || null,
 			owner: filters.owner,
 		})
 	} catch (error) {

@@ -18,6 +18,14 @@ let Settings: SettingsComponent
 let auth: AuthModule
 let getCurrentUserMock: MockedFunction<typeof import('@nextcloud/auth').getCurrentUser>
 
+type SettingsVm = {
+	getAdminRoute: () => string
+	isAdmin: boolean
+}
+
+type SettingsWrapper = VueWrapper<SettingsVm>
+type NavigationItemWrapper = VueWrapper<any>
+
 
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: vi.fn(() => ({
@@ -44,9 +52,9 @@ beforeAll(async () => {
 })
 
 describe('Settings', () => {
-	let wrapper: ReturnType<typeof mount> | null
+	let wrapper: SettingsWrapper | null
 
-	const expectItem = (item: VueWrapper<unknown> | undefined) => {
+	const expectItem = (item: NavigationItemWrapper | undefined) => {
 		expect(item).toBeDefined()
 		if (!item) {
 			throw new Error('Expected navigation item to be defined')
@@ -54,7 +62,7 @@ describe('Settings', () => {
 		return item
 	}
 
-	const findItemByName = (items: Array<VueWrapper<unknown>>, name: string) => {
+	const findItemByName = (items: NavigationItemWrapper[], name: string) => {
 		return items.find((item) => {
 			const propName = item.props('name') as string | undefined
 			if (!propName) {
@@ -71,9 +79,9 @@ describe('Settings', () => {
 		return wrapper
 	}
 
-	const getItems = () => getWrapper().findAllComponents({ name: 'NcAppNavigationItem' })
+	const getItems = () => getWrapper().findAllComponents({ name: 'NcAppNavigationItem' }) as NavigationItemWrapper[]
 
-	const expectItemAt = (items: Array<VueWrapper<unknown>>, index: number) => {
+	const expectItemAt = (items: NavigationItemWrapper[], index: number) => {
 		const item = items.at(index)
 		expect(item).toBeDefined()
 		if (!item) {
@@ -82,7 +90,7 @@ describe('Settings', () => {
 		return item
 	}
 
-	const createWrapper = (isAdmin = false) => {
+	const createWrapper = (isAdmin = false): SettingsWrapper => {
 		const user = { isAdmin } as ReturnType<typeof auth.getCurrentUser>
 		getCurrentUserMock.mockReturnValue(user)
 
@@ -102,7 +110,7 @@ describe('Settings', () => {
 					t,
 				},
 			},
-		})
+		}) as unknown as SettingsWrapper
 	}
 
 	beforeEach(() => {
@@ -259,7 +267,7 @@ describe('Settings', () => {
 	})
 
 	describe('RULE: unauthenticated users (signing via email link) do not crash the component', () => {
-		const createUnauthenticatedWrapper = () => {
+		const createUnauthenticatedWrapper = (): SettingsWrapper => {
 			getCurrentUserMock.mockReturnValue(null)
 
 			return mount(Settings, {
@@ -276,7 +284,7 @@ describe('Settings', () => {
 					},
 					mocks: { t },
 				},
-			})
+			}) as unknown as SettingsWrapper
 		}
 
 		it('mounts without throwing when getCurrentUser returns null', () => {

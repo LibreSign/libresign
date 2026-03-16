@@ -33,11 +33,18 @@ describe('SignerRow.vue', () => {
 		const wrapper = mount(SignerRow, {
 			props: {
 				signer: {
+					signRequestId: 10,
 					displayName: 'John Doe',
 					email: 'john@example.com',
-					signed: false,
-					element: { elementId: 10 },
+					description: null,
+					request_sign_date: '2026-01-01',
+					signed: null,
+					status: 1,
+					statusText: 'Able to sign',
+					me: false,
+					visibleElements: [],
 				},
+				elementId: 10,
 			},
 			slots: {
 				actions: '<button class="slot-action">Act</button>',

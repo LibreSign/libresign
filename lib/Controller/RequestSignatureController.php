@@ -13,7 +13,6 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\RequestSignatureService;
@@ -27,15 +26,15 @@ use OCP\IRequest;
 use OCP\IUserSession;
 
 /**
- * @psalm-import-type LibresignNewFile from ResponseDefinitions
- * @psalm-import-type LibresignNewSigner from ResponseDefinitions
- * @psalm-import-type LibresignValidateFile from ResponseDefinitions
- * @psalm-import-type LibresignFileDetail from ResponseDefinitions
- * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
- * @psalm-import-type LibresignFolderSettings from ResponseDefinitions
- * @psalm-import-type LibresignSettings from ResponseDefinitions
- * @psalm-import-type LibresignSigner from ResponseDefinitions
- * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
+ * @psalm-import-type LibresignNewFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignNewSigner from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignDetailedFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignDetailedFileResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignActionErrorResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignFolderSettings from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignSettings from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignVisibleElement from \OCA\Libresign\ResponseDefinitions
  */
 class RequestSignatureController extends AEnvironmentAwareController {
 	public function __construct(
@@ -61,15 +60,15 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * the returned `data` includes `filesCount` and `files` as a list of
 	 * envelope child files.
 	 *
-	 * @param LibresignNewSigner[] $signers Collection of signers who must sign the document. Each signer can have: identify, displayName, description, notify, signingOrder
+	 * @param LibresignNewSigner[] $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
-	 * @param LibresignNewFile $file File object.
-	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
+	 * @param LibresignNewFile $file File object. Supports nodeId, url, base64 or path.
+	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
-	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
@@ -129,16 +128,16 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * It is necessary to inform the UUID of the file and a list of signers.
 	 *
-	 * @param LibresignNewSigner[]|null $signers Collection of signers who must sign the document
+	 * @param LibresignNewSigner[]|null $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format.
 	 * @param string|null $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
-	 * @param LibresignNewFile|array<empty>|null $file File object.
+	 * @param LibresignNewFile|array<empty>|null $file File object. Supports nodeId, url, base64 or path when creating a new request.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
 	 * @param string|null $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
-	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
-	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
+	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
@@ -213,7 +212,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * Internal method to handle signature request creation logic
 	 * Used by both request() and updateSign() when creating new requests
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>
 	 * @throws LibresignException
 	 */
 	private function createSignatureRequest(
@@ -276,7 +275,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * @param integer $fileId LibreSign file ID
 	 * @param integer $signRequestId The sign request id
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 401: Failed
@@ -318,8 +317,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * You can only request exclusion as any sign
 	 *
-	 * @param integer $fileId Node id of a Nextcloud file
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>}, array{}>
+	 * @param integer $fileId LibreSign file ID
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 401: Failed

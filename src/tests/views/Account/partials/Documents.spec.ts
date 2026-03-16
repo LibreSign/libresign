@@ -5,6 +5,7 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 
 const loadStateMock = vi.fn()
 const getCurrentUserMock = vi.fn()
@@ -45,7 +46,19 @@ vi.mock('@nextcloud/l10n', () => ({
 	getLocale: vi.fn(() => 'en'),
 }))
 
-let Documents: unknown
+type DocumentsComponent = typeof import('../../../../views/Account/partials/Documents.vue').default
+
+type DocumentsVm = {
+	mdiFolder: string
+	mdiUpload: string
+	mdiDelete: string
+}
+
+type DocumentsWrapper = VueWrapper<any> & {
+	vm: DocumentsVm
+}
+
+let Documents: DocumentsComponent
 
 beforeAll(async () => {
 	;({ default: Documents } = await import('../../../../views/Account/partials/Documents.vue'))
@@ -65,7 +78,7 @@ describe('Documents', () => {
 		})
 		getCurrentUserMock.mockReturnValue({ uid: 'user' })
 
-		const wrapper = mount(Documents as never, {
+		const wrapper = mount(Documents, {
 			global: {
 				stubs: {
 					NcButton: { template: '<button><slot /><slot name="icon" /></button>' },
@@ -74,7 +87,7 @@ describe('Documents', () => {
 					NcIconSvgWrapper: { name: 'NcIconSvgWrapper', props: ['path'], template: '<i class="icon" :data-path="path" />' },
 				},
 			},
-		})
+		}) as DocumentsWrapper
 		await flushPromises()
 
 		expect(wrapper.findAll('.icon')).toHaveLength(2)

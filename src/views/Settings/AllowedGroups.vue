@@ -90,9 +90,11 @@ async function saveGroups(value: Array<GroupRow | string>) {
 async function searchGroup(query: string) {
 	loadingGroups.value = true
 	await axios.get(generateOcsUrl('cloud/groups/details'), {
-		search: query,
-		limit: 20,
-		offset: 0,
+		params: {
+			search: query,
+			limit: 20,
+			offset: 0,
+		},
 	})
 		.then(({ data }) => {
 			groups.value = data.ocs.data.groups.sort((a: GroupRow, b: GroupRow) => a.displayname.localeCompare(b.displayname))

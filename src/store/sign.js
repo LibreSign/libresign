@@ -6,9 +6,9 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 
 import { useFilesStore } from './files.js'
 import { useSidebarStore } from './sidebar.js'
@@ -16,28 +16,105 @@ import { useSignMethodsStore } from './signMethods.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 
+/** @typedef {import('../types/index').SignatureMethodsRecord} SignatureMethodsRecord */
+
+/**
+ * @typedef {{
+ * 	signRequestId?: number
+ * 	displayName?: string
+ * 	email?: string
+ * 	sign_uuid?: string | null
+ * 	me?: boolean
+ * 	status?: number
+ * 	signed?: string | null | boolean | unknown[]
+ * 	signatureMethods?: SignatureMethodsRecord
+ * }} SignDocumentSigner
+ */
+
+/**
+ * @typedef {{
+ * 	canSign?: boolean
+ * 	canRequestSign?: boolean
+ * 	signerFileUuid?: string | null
+ * 	phoneNumber?: string
+ * 	hasSignatureFile?: boolean
+ * 	isApprover?: boolean
+ * 	needIdentificationDocuments?: boolean
+ * 	identificationDocumentsWaitingApproval?: boolean
+ * 	signatureMethods?: SignatureMethodsRecord
+ * 	[key: string]: unknown
+ * }} SignDocumentSettings
+ */
+
+/**
+ * @typedef {{
+ * 	elementId?: number
+ * 	signRequestId?: number
+ * 	fileId?: number
+ * 	type?: string | null
+ * 	coordinates?: {
+ * 		page?: number | string
+ * 		left?: number | string
+ * 		top?: number | string
+ * 		width?: number | string
+ * 		height?: number | string
+ * 	}
+ * }} SignDocumentVisibleElement
+ */
+
+/**
+ * @typedef {{
+ * 	id?: number
+ * 	name?: string
+ * 	file?: string | Record<string, unknown> | null
+ * 	metadata?: Record<string, unknown> | null
+ * 	status?: number | string
+ * 	statusText?: string
+ * 	signers?: SignDocumentSigner[]
+ * 	visibleElements?: SignDocumentVisibleElement[]
+ * }} SignDocumentFile
+ */
+
+/**
+ * @typedef {{
+ * 	id?: number
+ * 	name?: string
+ * 	description?: string
+ * 	uuid?: string | null
+ * 	signUuid?: string | null
+ * 	sign_uuid?: string | null
+ * 	signRequestUuid?: string | null
+ * 	sign_request_uuid?: string | null
+ * 	nodeId?: number
+ * 	nodeType?: string
+ * 	status?: number | string
+ * 	statusText?: string
+ * 	url?: string
+ * 	signatureMethods?: SignatureMethodsRecord
+ * 	settings?: SignDocumentSettings
+ * 	files?: SignDocumentFile[]
+ * 	signers?: SignDocumentSigner[]
+ * 	visibleElements?: SignDocumentVisibleElement[]
+ * }} SignDocument
+ */
+
+/**
+ * @typedef {{
+ * 	message?: string
+ * 	code?: number | string
+ * 	[key: string]: unknown
+ * }} SignError
+ */
 const defaultState = {
-	errors: [],
-	document: {
-		id: 0,
-		name: '',
-		description: '',
-		status: '',
-		statusText: '',
-		url: '',
-		nodeId: 0,
-		nodeType: 'file',
-		uuid: '',
-		signers: [],
-		visibleElements: [],
-	},
+	errors: /** @type {SignError[]} */ ([]),
+	document: /** @type {SignDocument | undefined} */ (undefined),
 	mounted: false,
 	pendingAction: null,
 }
 
 export const useSignStore = defineStore('sign', () => {
 	const errors = ref([...defaultState.errors])
-	const document = ref({ ...defaultState.document })
+	const document = ref(/** @type {SignDocument | undefined} */ (defaultState.document))
 	const mounted = ref(defaultState.mounted)
 	const pendingAction = ref(defaultState.pendingAction)
 
@@ -68,7 +145,7 @@ export const useSignStore = defineStore('sign', () => {
 
 	const getSignatureMethodsForFile = (file) => {
 		const currentUserAsSigner = file.signers.find(row => row.me)
-		return currentUserAsSigner?.signatureMethods || file.settings?.signatureMethods || {}
+		return currentUserAsSigner?.signatureMethods || file.signatureMethods || file.settings?.signatureMethods || {}
 	}
 
 	const initFromState = async () => {
@@ -78,10 +155,10 @@ export const useSignStore = defineStore('sign', () => {
 			id: loadState('libresign', 'id', 0),
 			name: loadState('libresign', 'filename', ''),
 			description: loadState('libresign', 'description', ''),
-			status: loadState('libresign', 'status', ''),
+			status: loadState('libresign', 'status', 0),
 			statusText: loadState('libresign', 'statusText', ''),
 			nodeId: loadState('libresign', 'nodeId', 0),
-			nodeType: loadState('libresign', 'nodeType', ''),
+			nodeType: loadState('libresign', 'nodeType', 'file'),
 			uuid: loadState('libresign', 'uuid', null),
 			signers: loadState('libresign', 'signers', []),
 			visibleElements: loadState('libresign', 'visibleElements', []),
@@ -139,6 +216,14 @@ export const useSignStore = defineStore('sign', () => {
 	const buildSignUrl = (signRequestUuid, options = {}) => {
 		const { documentId } = options
 		const isApprover = document.value?.settings?.isApprover
+		const documentUuid = typeof document.value?.uuid === 'string' && document.value.uuid.length > 0
+			? document.value.uuid
+			: null
+		const isApproverFileSigning = isApprover === true
+			&& typeof signRequestUuid === 'string'
+			&& signRequestUuid.length > 0
+			&& documentUuid !== null
+			&& signRequestUuid === documentUuid
 
 		let url
 		if (signRequestUuid) {
@@ -147,7 +232,7 @@ export const useSignStore = defineStore('sign', () => {
 			url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: documentId }) + '?async=true'
 		}
 
-		if (isApprover) {
+		if (isApproverFileSigning) {
 			url += '&idDocApproval=true'
 		}
 

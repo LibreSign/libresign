@@ -7,8 +7,7 @@
 		<NcActions ref="actionsMenu"
 			container="#app-content-vue"
 			:disabled="!!loading || areFilesLoading"
-			:force-name="true"
-			:menu-name="null">
+			:force-name="true">
 			<NcActionButton v-for="action in enabledMenuActions"
 				:key="action.id"
 				:aria-label="action.displayName(selectionStore.selected) + ' ' + t('libresign', '(selected)') /** TRANSLATORS: Selected like 'selected files' */"

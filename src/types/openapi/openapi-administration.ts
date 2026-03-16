@@ -489,6 +489,19 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        ActiveSigningItem: {
+            /** Format: int64 */
+            id: number;
+            uuid: string;
+            name: string;
+            signerEmail: string;
+            signerDisplayName: string;
+            /** Format: int64 */
+            updatedAt: number;
+        };
+        ActiveSigningsResponse: {
+            data: components["schemas"]["ActiveSigningItem"][];
+        };
         Capabilities: {
             features: string[];
             config: {
@@ -515,6 +528,15 @@ export type components = {
             };
             version: string;
         };
+        CertificateEngineConfigResponse: {
+            engine: string;
+            identify_methods: components["schemas"]["IdentifyMethodSetting"][];
+        };
+        CertificatePolicyResponse: {
+            /** @enum {string} */
+            status: "success";
+            CPS: string;
+        };
         CetificateDataGenerated: components["schemas"]["EngineHandler"] & {
             generated: boolean;
         };
@@ -525,11 +547,84 @@ export type components = {
             status: "error" | "success";
             tip: string;
         };
+        ConfigureChecksResponse: components["schemas"]["ConfigureCheck"][];
+        CrlListItem: {
+            /** Format: int64 */
+            id: number;
+            serial_number: string;
+            owner: string;
+            status: string;
+            certificate_type: string;
+            engine: string;
+            instance_id: string | null;
+            /** Format: int64 */
+            generation: number | null;
+            issued_at: string | null;
+            valid_to: string | null;
+            revoked_at: string | null;
+            /** Format: int64 */
+            reason_code: number | null;
+            comment: string | null;
+            revoked_by: string | null;
+            invalidity_date: string | null;
+            /** Format: int64 */
+            crl_number: number | null;
+        };
+        CrlListResponse: {
+            data: components["schemas"]["CrlListItem"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            length: number;
+        };
+        CrlRevokeResponse: {
+            success: boolean;
+            message: string;
+        };
         EngineHandler: {
             configPath: string;
             cfsslUri?: string;
             policySection: components["schemas"]["PolicySection"][];
             rootCert: components["schemas"]["RootCertificate"];
+        };
+        EngineHandlerResponse: {
+            data: components["schemas"]["EngineHandler"];
+        };
+        ErrorResponse: {
+            error: string;
+        };
+        ErrorStatusResponse: {
+            /** @enum {string} */
+            status: "error";
+            message: string;
+        };
+        FailureStatusResponse: {
+            /** @enum {string} */
+            status: "failure";
+            message: string;
+        };
+        FooterTemplateResponse: {
+            template: string;
+            isDefault: boolean;
+            /** Format: int64 */
+            preview_width: number;
+            /** Format: int64 */
+            preview_height: number;
+        };
+        HasRootCertResponse: {
+            hasRootCert: boolean;
+        };
+        IdentifyMethodSetting: {
+            name: string;
+            friendly_name: string;
+            enabled: boolean;
+            mandatory: boolean;
+            signatureMethods?: components["schemas"]["SignatureMethods"];
+        };
+        MessageResponse: {
+            message: string;
         };
         OCSMeta: {
             status: string;
@@ -562,6 +657,53 @@ export type components = {
         RootCertificateName: {
             id: string;
             value: string;
+        };
+        SignatureMethod: {
+            enabled: boolean;
+            label: string;
+            name: string;
+        };
+        SignatureMethodEmailToken: {
+            label: string;
+            /** @enum {string} */
+            identifyMethod: "email" | "account";
+            needCode: boolean;
+            hasConfirmCode: boolean;
+            blurredEmail: string;
+            hashOfEmail: string;
+        };
+        SignatureMethodPassword: {
+            label: string;
+            name: string;
+            hasSignatureFile: boolean;
+        };
+        SignatureMethods: {
+            clickToSign?: components["schemas"]["SignatureMethod"];
+            emailToken?: components["schemas"]["SignatureMethodEmailToken"];
+            password?: components["schemas"]["SignatureMethodPassword"];
+        };
+        SignatureTemplateSettingsResponse: {
+            default_signature_text_template: string;
+            signature_available_variables: {
+                [key: string]: string;
+            };
+        };
+        SignatureTextSettingsResponse: {
+            template: string;
+            parsed: string;
+            /** Format: double */
+            templateFontSize: number;
+            /** Format: double */
+            signatureFontSize: number;
+            /** Format: double */
+            signatureWidth: number;
+            /** Format: double */
+            signatureHeight: number;
+            renderMode: string;
+        };
+        SuccessStatusResponse: {
+            /** @enum {string} */
+            status: "success";
         };
     };
     responses: never;
@@ -619,9 +761,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                data: components["schemas"]["EngineHandler"];
-                            };
+                            data: components["schemas"]["EngineHandlerResponse"];
                         };
                     };
                 };
@@ -635,9 +775,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -686,9 +824,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                data: components["schemas"]["EngineHandler"];
-                            };
+                            data: components["schemas"]["EngineHandlerResponse"];
                         };
                     };
                 };
@@ -702,9 +838,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -741,12 +875,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                engine: string;
-                                identify_methods: {
-                                    [key: string]: Record<string, never>;
-                                }[];
-                            };
+                            data: components["schemas"]["CertificateEngineConfigResponse"];
                         };
                     };
                 };
@@ -760,9 +889,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -822,7 +949,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ConfigureCheck"][];
+                            data: components["schemas"]["ConfigureChecksResponse"];
                         };
                     };
                 };
@@ -907,10 +1034,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "success";
-                            };
+                            data: components["schemas"]["SuccessStatusResponse"];
                         };
                     };
                 };
@@ -924,11 +1048,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "failure";
-                                message: string;
-                            };
+                            data: components["schemas"]["FailureStatusResponse"];
                         };
                     };
                 };
@@ -958,10 +1078,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "success";
-                            };
+                            data: components["schemas"]["SuccessStatusResponse"];
                         };
                     };
                 };
@@ -991,10 +1108,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "success";
-                            };
+                            data: components["schemas"]["SuccessStatusResponse"];
                         };
                     };
                 };
@@ -1029,19 +1143,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                template: string;
-                                parsed: string;
-                                /** Format: double */
-                                templateFontSize: number;
-                                /** Format: double */
-                                signatureFontSize: number;
-                                /** Format: double */
-                                signatureWidth: number;
-                                /** Format: double */
-                                signatureHeight: number;
-                                renderMode: string;
-                            };
+                            data: components["schemas"]["SignatureTextSettingsResponse"];
                         };
                     };
                 };
@@ -1055,9 +1157,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1123,19 +1223,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                template: string;
-                                parsed: string;
-                                /** Format: double */
-                                templateFontSize: number;
-                                /** Format: double */
-                                signatureFontSize: number;
-                                /** Format: double */
-                                signatureWidth: number;
-                                /** Format: double */
-                                signatureHeight: number;
-                                renderMode: string;
-                            };
+                            data: components["schemas"]["SignatureTextSettingsResponse"];
                         };
                     };
                 };
@@ -1149,9 +1237,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1181,12 +1267,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                default_signature_text_template: string;
-                                signature_available_variables: {
-                                    [key: string]: string;
-                                };
-                            };
+                            data: components["schemas"]["SignatureTemplateSettingsResponse"];
                         };
                     };
                 };
@@ -1239,9 +1320,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1271,11 +1350,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "success";
-                                CPS: string;
-                            };
+                            data: components["schemas"]["CertificatePolicyResponse"];
                         };
                     };
                 };
@@ -1289,11 +1364,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "failure";
-                                message: string;
-                            };
+                            data: components["schemas"]["FailureStatusResponse"];
                         };
                     };
                 };
@@ -1360,10 +1431,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "success";
-                            };
+                            data: components["schemas"]["SuccessStatusResponse"];
                         };
                     };
                 };
@@ -1377,11 +1445,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "failure";
-                                message: string;
-                            };
+                            data: components["schemas"]["FailureStatusResponse"];
                         };
                     };
                 };
@@ -1508,10 +1572,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "success";
-                            };
+                            data: components["schemas"]["SuccessStatusResponse"];
                         };
                     };
                 };
@@ -1525,11 +1586,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "error";
-                                message: string;
-                            };
+                            data: components["schemas"]["ErrorStatusResponse"];
                         };
                     };
                 };
@@ -1559,10 +1616,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** @enum {string} */
-                                status: "success";
-                            };
+                            data: components["schemas"]["SuccessStatusResponse"];
                         };
                     };
                 };
@@ -1592,14 +1646,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                template: string;
-                                isDefault: boolean;
-                                /** Format: int64 */
-                                preview_width: number;
-                                /** Format: int64 */
-                                preview_height: number;
-                            };
+                            data: components["schemas"]["FooterTemplateResponse"];
                         };
                     };
                 };
@@ -1660,9 +1707,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1701,9 +1746,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -1717,9 +1760,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1733,9 +1774,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1774,9 +1813,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -1790,9 +1827,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1806,9 +1841,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1851,9 +1884,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -1867,9 +1898,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1883,9 +1912,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1915,18 +1942,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                data: {
-                                    /** Format: int64 */
-                                    id: number;
-                                    uuid: string;
-                                    name: string;
-                                    signerEmail: string;
-                                    signerDisplayName: string;
-                                    /** Format: int64 */
-                                    updatedAt: number;
-                                }[];
-                            };
+                            data: components["schemas"]["ActiveSigningsResponse"];
                         };
                     };
                 };
@@ -1939,9 +1955,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                error: string;
-                            };
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -1994,17 +2008,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                data: {
-                                    [key: string]: Record<string, never>;
-                                };
-                                /** Format: int64 */
-                                total: number;
-                                /** Format: int64 */
-                                page: number;
-                                /** Format: int64 */
-                                length: number;
-                            };
+                            data: components["schemas"]["CrlListResponse"];
                         };
                     };
                 };
@@ -2048,10 +2052,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                success: boolean;
-                                message: string;
-                            };
+                            data: components["schemas"]["CrlRevokeResponse"];
                         };
                     };
                 };
@@ -2065,10 +2066,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                success: boolean;
-                                message: string;
-                            };
+                            data: components["schemas"]["CrlRevokeResponse"];
                         };
                     };
                 };
@@ -2082,10 +2080,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                success: boolean;
-                                message: string;
-                            };
+                            data: components["schemas"]["CrlRevokeResponse"];
                         };
                     };
                 };
@@ -2115,9 +2110,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                hasRootCert: boolean;
-                            };
+                            data: components["schemas"]["HasRootCertResponse"];
                         };
                     };
                 };

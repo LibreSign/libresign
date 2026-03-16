@@ -87,11 +87,10 @@ jobs:
 
       - name: Check openapi*.json and typescript changes
         run: |
-          bash -c "[[ ! \"`git status --porcelain `\" ]] || (echo 'Please run \"composer run openapi\" and commit the openapi*.json files and (if applicable) src/types/openapi/openapi*.ts, see the section \"Show changes on failure\" for details' && exit 1)"
+          git diff --quiet -- openapi*.json src/types/openapi/openapi*.ts || (echo 'Please run "composer run openapi" and commit the openapi*.json files and (if applicable) src/types/openapi/openapi*.ts, see the section "Show changes on failure" for details' && exit 1)
 
       - name: Show changes on failure
         if: failure()
         run: |
-          git status
-          git --no-pager diff
+          git --no-pager diff -- openapi*.json src/types/openapi/openapi*.ts
           exit 1 # make it red to grab attention

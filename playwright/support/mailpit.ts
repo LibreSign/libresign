@@ -4,6 +4,7 @@
  */
 
 import { MailpitClient } from 'mailpit-api'
+import { existsSync } from 'node:fs'
 
 export type { MailpitClient }
 
@@ -11,7 +12,10 @@ type Message = Awaited<ReturnType<MailpitClient['getMessageSummary']>>
 
 /** Creates a MailpitClient using MAILPIT_URL (default: http://localhost:8025). */
 export function createMailpitClient(): MailpitClient {
-	return new MailpitClient(process.env.MAILPIT_URL ?? 'http://localhost:8025')
+	const defaultUrl = existsSync('/.dockerenv')
+		? 'http://mailpit:8025'
+		: 'http://localhost:8025'
+	return new MailpitClient(process.env.MAILPIT_URL ?? defaultUrl)
 }
 
 /** Fetches the latest email sent to `toAddress`, optionally filtered by `subject`. */

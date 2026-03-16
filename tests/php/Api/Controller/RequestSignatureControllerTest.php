@@ -65,9 +65,11 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 				],
 				'signers' => [
 					[
-						'identify' => [
-							'email' => 'user@test.coop',
-						],
+						'identifyMethods' => [[
+							'method' => 'email',
+							'mandatory' => 0,
+							'value' => 'user@test.coop',
+						]],
 					],
 				],
 			]);
@@ -118,9 +120,11 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'signers' => [
 				[
-					'identify' => [
-						'email' => 'person@test.coop',
-					],
+					'identifyMethods' => [[
+						'method' => 'email',
+						'mandatory' => 0,
+						'value' => 'person@test.coop',
+					]],
 				],
 			],
 			'userManager' => $user,
@@ -137,9 +141,11 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 				'uuid' => $file->getUuid(),
 				'signers' => [
 					[
-						'identify' => [
-							'email' => 'user@test.coop',
-						],
+						'identifyMethods' => [[
+							'method' => 'email',
+							'mandatory' => 0,
+							'value' => 'user@test.coop',
+						]],
 					],
 				],
 			]);

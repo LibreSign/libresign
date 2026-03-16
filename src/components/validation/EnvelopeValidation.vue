@@ -58,12 +58,12 @@
 			</p>
 			<ul class="documents-list">
 				<li v-for="(file, fileIndex) in document.files" :key="fileIndex" class="document-item">
-					<NcListItem :name="file.name" :active="file.opened" @click="toggleFileDetail(file)">
+					<NcListItem :name="file.name" :active="isFileOpen(fileIndex)" @click="toggleFileDetail(fileIndex)">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiFilePdfBox" :size="44" />
 						</template>
 						<template #subname>
-							<strong>{{ t('libresign', 'Status:') }}</strong> {{ file.statusText }}
+							<strong>{{ t('libresign', 'Status:') }}</strong> {{ getFileStatusText(file) }}
 						</template>
 						<template v-if="!isTouchDevice && file.nodeId" #actions>
 							<NcActionButton @click.stop="viewFile(file)">
@@ -79,15 +79,15 @@
 									<NcIconSvgWrapper :path="mdiEye" :size="20" />
 								</template>
 							</NcButton>
-							<NcButton variant="tertiary" :aria-label="file.opened ? t('libresign', 'Hide details') : t('libresign', 'Show details')" @click.stop="toggleFileDetail(file)">
+							<NcButton variant="tertiary" :aria-label="isFileOpen(fileIndex) ? t('libresign', 'Hide details') : t('libresign', 'Show details')" @click.stop="toggleFileDetail(fileIndex)">
 								<template #icon>
-									<NcIconSvgWrapper v-if="file.opened" :path="mdiChevronUp" :size="20" />
+									<NcIconSvgWrapper v-if="isFileOpen(fileIndex)" :path="mdiChevronUp" :size="20" />
 									<NcIconSvgWrapper v-else :path="mdiChevronDown" :size="20" />
 								</template>
 							</NcButton>
 						</template>
 					</NcListItem>
-					<div v-if="file.opened" class="file-signers">
+					<div v-if="isFileOpen(fileIndex)" class="file-signers">
 						<DocumentValidationDetails
 							:document="file"
 						/>
@@ -107,7 +107,7 @@
 			</p>
 			<ul class="signers-list">
 				<li v-for="(signer, signerIndex) in document.signers" :key="signerIndex">
-					<NcListItem :name="getName(signer)" :active="signer.opened" @click="toggleDetail(signer)">
+					<NcListItem :name="getName(signer)" :active="isSignerOpen(signerIndex)" @click="toggleDetail(signerIndex)">
 						<template #icon>
 							<NcAvatar disable-menu :is-no-user="!signer.userId" :size="44" :user="signer.userId ? signer.userId : getName(signer)" :display-name="getName(signer)" />
 						</template>
@@ -117,15 +117,15 @@
 								</span>
 						</template>
 						<template #extra-actions>
-							<NcButton variant="tertiary" :aria-label="signer.opened ? t('libresign', 'Hide details') : t('libresign', 'Show details')" @click.stop="toggleDetail(signer)">
+							<NcButton variant="tertiary" :aria-label="isSignerOpen(signerIndex) ? t('libresign', 'Hide details') : t('libresign', 'Show details')" @click.stop="toggleDetail(signerIndex)">
 								<template #icon>
-									<NcIconSvgWrapper v-if="signer.opened" :path="mdiChevronUp" :size="20" />
+									<NcIconSvgWrapper v-if="isSignerOpen(signerIndex)" :path="mdiChevronUp" :size="20" />
 									<NcIconSvgWrapper v-else :path="mdiChevronDown" :size="20" />
 								</template>
 							</NcButton>
 						</template>
 					</NcListItem>
-					<div v-if="signer.opened" class="signer-details">
+					<div v-if="isSignerOpen(signerIndex)" class="signer-details">
 						<NcListItem v-if="signer.request_sign_date" class="detail-item" compact>
 							<template #name>
 								<strong>{{ t('libresign', 'Requested on:') }}</strong>
@@ -161,7 +161,7 @@
 <script setup lang="ts">
 import { n, t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import {
 	mdiAccountMultiple,
@@ -177,33 +177,24 @@ import { getStatusLabel } from '../../utils/fileStatus.js'
 import { openDocument } from '../../utils/viewer.js'
 import { useIsTouchDevice } from '../../composables/useIsTouchDevice.js'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
+import type {
+	LoadedValidationEnvelopeDocument,
+	SignerDetailRecord,
+} from '../../types/index'
 
 defineOptions({
 	name: 'EnvelopeValidation',
 })
 
-type EnvelopeFile = {
-	status: string | number
-	opened?: boolean
-	statusText?: string
-	uuid?: string
-	name?: string
-	nodeId?: number
-}
+type EnvelopeFile = NonNullable<LoadedValidationEnvelopeDocument['files']>[number]
 
-type EnvelopeSigner = {
-	opened?: boolean
-	displayName?: string
-	email?: string
+type EnvelopeSigner = Partial<Pick<SignerDetailRecord, 'displayName' | 'email' | 'userId' | 'request_sign_date' | 'remote_address' | 'user_agent'>> & {
+	signed?: string | null
 	documentsSignedCount?: number
 	totalDocuments?: number
 }
 
-type EnvelopeDocument = {
-	name?: string
-	status?: string | number
-	filesCount?: number
-	files?: EnvelopeFile[]
+type EnvelopeDocument = LoadedValidationEnvelopeDocument & {
 	signers?: EnvelopeSigner[]
 	signedDate?: string
 }
@@ -220,26 +211,38 @@ const props = withDefaults(defineProps<{
 })
 
 const { isTouchDevice } = useIsTouchDevice()
+const fileOpenState = ref<Record<number, boolean>>({})
+const signerOpenState = ref<Record<number, boolean>>({})
 
 const documentStatus = computed(() => getStatusLabel(props.document.status))
 
-function initializeDocument(doc: EnvelopeDocument) {
-	doc.files?.forEach((file) => {
-		file.opened = false
-		file.statusText = getStatusLabel(file.status)
-	})
+function resetDisclosureState() {
+	fileOpenState.value = {}
+	signerOpenState.value = {}
 }
 
 function dateFromSqlAnsi(date: string) {
 	return Moment(Date.parse(date)).format('LL LTS')
 }
 
-function toggleDetail(signer: EnvelopeSigner) {
-	signer.opened = !signer.opened
+function isSignerOpen(signerIndex: number) {
+	return !!signerOpenState.value[signerIndex]
 }
 
-function toggleFileDetail(file: EnvelopeFile) {
-	file.opened = !file.opened
+function toggleDetail(signerIndex: number) {
+	signerOpenState.value[signerIndex] = !isSignerOpen(signerIndex)
+}
+
+function isFileOpen(fileIndex: number) {
+	return !!fileOpenState.value[fileIndex]
+}
+
+function toggleFileDetail(fileIndex: number) {
+	fileOpenState.value[fileIndex] = !isFileOpen(fileIndex)
+}
+
+function getFileStatusText(file: EnvelopeFile) {
+	return getStatusLabel(file.status)
 }
 
 function getName(signer: EnvelopeSigner) {
@@ -253,6 +256,9 @@ function getSignerProgressText(signer: EnvelopeSigner) {
 }
 
 function viewFile(file: EnvelopeFile) {
+	if (!file.uuid || !file.name || typeof file.nodeId !== 'number') {
+		return
+	}
 	const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
 	openDocument({
 		fileUrl,
@@ -261,14 +267,16 @@ function viewFile(file: EnvelopeFile) {
 	})
 }
 
-watch(() => props.document, (newDoc) => {
-	initializeDocument(newDoc)
+watch(() => props.document, () => {
+	resetDisclosureState()
 }, { immediate: true })
 
 defineExpose({
 	isTouchDevice,
 	documentStatus,
-	initializeDocument,
+	isSignerOpen,
+	isFileOpen,
+	getFileStatusText,
 	dateFromSqlAnsi,
 	toggleDetail,
 	toggleFileDetail,
