@@ -46,7 +46,6 @@ type ApiOcsResponseData<TOperation, TStatusCode extends keyof ApiOperationRespon
 
 export type SignatureFlowMode = ApiComponents['schemas']['DetailedFileResponse']['signatureFlow']
 export type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
-export type SignerIdentify = NonNullable<ApiComponents['schemas']['NewSigner']['identify']>
 export type NewFilePayload = ApiComponents['schemas']['NewFile']
 export type IdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
 export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']
@@ -113,17 +112,6 @@ export type AdminInitialState = {
 	crl_external_validation_enabled: boolean
 	ldap_extension_available: boolean
 	envelope_enabled: boolean
-}
-
-type ValidateMetadataDimension = NonNullable<ValidationMetadataRecord['d']>[number]
-
-export type RuntimeValidationMetadataRecord = Omit<ValidationMetadataRecord, 'd'> & {
-	d?: ValidateMetadataDimension[]
-	original_file_deleted?: boolean
-}
-
-export type EditableValidationMetadataDraft = Omit<Partial<RuntimeValidationMetadataRecord>, 'd'> & {
-	d?: Array<Partial<ValidateMetadataDimension>>
 }
 
 export type RuntimeFileSettingsRecord = FileSettings & Partial<SettingsRecord>
