@@ -6,12 +6,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getTimePresetRange, getTimePresets } from '../../utils/timePresets.js'
-
-vi.mock('@nextcloud/l10n', () => ({
-	t: (_app: string, text: string) => text,
-	isRTL: vi.fn(() => false),
-}))
-
 describe('getTimePresets', () => {
 	describe('business rule: should return all 5 presets with correct structure', () => {
 		it('returns exactly 5 presets', () => {
