@@ -27,8 +27,8 @@ import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import type {
+	EditableFileSettingsDraft,
 	FileListItemRecord,
-	FileStateSettings,
 } from '../../types/index'
 
 defineOptions({
@@ -43,7 +43,7 @@ type PendingEnvelope = {
 	filesCount?: number
 	files?: Array<Pick<FileListItemRecord, 'fileId'>>
 	signers?: Array<{ displayName?: string; email?: string; signRequestId?: number }>
-	settings?: Pick<FileStateSettings, 'path'>
+	settings?: Pick<EditableFileSettingsDraft, 'path'>
 }
 
 type FileInfo = {
