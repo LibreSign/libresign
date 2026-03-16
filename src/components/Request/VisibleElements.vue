@@ -103,55 +103,31 @@ import { useFilesStore } from '../../store/files.js'
 import {
 	aggregateVisibleElementsByFiles,
 	findFileById,
-	type DocumentLike,
-	type FileLike,
 	getFileSigners,
 	getFileUrl,
 	getVisibleElementsFromDocument,
 	idsMatch,
+	type DocumentLike,
+	type FileLike,
 	type SignerLike,
 } from '../../services/visibleElementsService'
 import type {
-	EditableFileSettingsDraft,
-	EditableValidationMetadataDraft,
 	IdentifyMethodRecord,
 	LibresignCapabilities,
 	RequestSignatureVisibleElementPayload,
 	SignerSummaryRecord,
+	ValidationMetadataRecord,
 	VisibleElementRecord,
 } from '../../types/index'
+
+type FilesStoreContract = ReturnType<typeof useFilesStore>
+type EditableRequestFile = ReturnType<FilesStoreContract['getEditableFile']>
+type EditableRequestChildFile = NonNullable<NonNullable<EditableRequestFile['files']>[number]>
+type EditableRequestSigner = NonNullable<NonNullable<EditableRequestFile['signers']>[number]>
 
 type EditableVisibleElementPayload = Omit<RequestSignatureVisibleElementPayload, 'type' | 'elementId'> & {
 	type: 'signature'
 	elementId?: RequestSignatureVisibleElementPayload['elementId']
-}
-
-type VisibleElementsSigner = SignerLike & SignerSummaryRecord & {
-	identify?: unknown
-	visibleElements?: VisibleElementRecord[]
-}
-
-type DocumentFile = Omit<FileLike, 'file' | 'files' | 'metadata' | 'signers' | 'visibleElements'> & {
-	id?: number
-	name?: string
-	metadata?: EditableValidationMetadataDraft
-	file?: string | DocumentFile | null
-	files?: DocumentFile[]
-	visibleElements?: VisibleElementRecord[] | null
-	signers?: VisibleElementsSigner[]
-}
-
-type NormalizedDocument = Omit<DocumentLike, 'metadata' | 'settings' | 'visibleElements' | 'files' | 'signers'> & {
-	id?: number | string
-	uuid?: string | null
-	name?: string
-	status?: number | string
-	statusText?: string
-	metadata?: EditableValidationMetadataDraft
-	settings?: EditableFileSettingsDraft
-	visibleElements?: VisibleElementRecord[] | null
-	files: DocumentFile[]
-	signers: VisibleElementsSigner[]
 }
 
 type FilePageInfo = {
@@ -191,9 +167,10 @@ type PdfEditorRef = ComponentPublicInstance & {
 	addSigner?: (signer: SignerSummaryRecord, visibleElement: VisibleElementRecord, options?: { documentIndex?: number }) => Promise<void>
 }
 
-type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'saveOrUpdateSignatureRequest'> & {
+type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'loading' | 'getFile' | 'getEditableFile' | 'saveOrUpdateSignatureRequest'> & {
 	loading: boolean
 	getFile: ReturnType<typeof useFilesStore>['getFile']
+	getEditableFile: ReturnType<typeof useFilesStore>['getEditableFile']
 	saveOrUpdateSignatureRequest: (payload: { visibleElements: EditableVisibleElementPayload[] }) => Promise<{ message: string }>
 }
 
@@ -254,19 +231,6 @@ function normalizeVisibleElementList(elements: unknown): VisibleElementRecord[] 
 		.filter((element): element is VisibleElementRecord => element !== null)
 }
 
-function normalizeFileReference(file: unknown): DocumentFile['file'] | undefined {
-	if (typeof file === 'string' || file === null) {
-		return file
-	}
-
-	return normalizeDocumentFile(file)
-}
-
-function normalizeMetadata(metadata: unknown): DocumentFile['metadata'] | undefined {
-	const candidate = toRecord(metadata)
-	return candidate ? candidate : undefined
-}
-
 function isPdfObject(value: unknown): value is PdfObject {
 	const candidate = toRecord(value)
 	return candidate !== null
@@ -281,7 +245,12 @@ function toRecord(value: unknown): Record<string, unknown> | null {
 	return typeof value === 'object' && value !== null ? value as Record<string, unknown> : null
 }
 
-function normalizeSigner(signer: unknown): VisibleElementsSigner | null {
+function normalizeMetadata(metadata: unknown): Partial<ValidationMetadataRecord> | undefined {
+	const candidate = toRecord(metadata)
+	return candidate ? candidate as Partial<ValidationMetadataRecord> : undefined
+}
+
+function normalizeEditableRequestSigner(signer: unknown): EditableRequestSigner | null {
 	const candidate = toRecord(signer)
 	if (!candidate) {
 		return null
@@ -294,9 +263,6 @@ function normalizeSigner(signer: unknown): VisibleElementsSigner | null {
 		signed: null,
 		status: Number.isFinite(Number(candidate.status)) ? Number(candidate.status) : 0,
 		statusText: typeof candidate.statusText === 'string' ? candidate.statusText : '',
-		identify: typeof candidate.identify === 'string' || typeof candidate.identify === 'number' || (typeof candidate.identify === 'object' && candidate.identify !== null)
-			? candidate.identify
-			: undefined,
 		identifyMethods: Array.isArray(candidate.identifyMethods)
 			? candidate.identifyMethods.filter(isIdentifyMethodRecord)
 			: undefined,
@@ -306,7 +272,27 @@ function normalizeSigner(signer: unknown): VisibleElementsSigner | null {
 	}
 }
 
-function toSignerSummaryRecord(signer: VisibleElementsSigner | ReturnType<typeof getFileSigners>[number] | null | undefined): SignerSummaryRecord | null {
+function toVisibleElementsSigner(signer: unknown): SignerLike | null {
+	const normalizedSigner = normalizeEditableRequestSigner(signer)
+	if (!normalizedSigner) {
+		return null
+	}
+
+	return {
+		signRequestId: normalizedSigner.signRequestId,
+		displayName: normalizedSigner.displayName,
+		email: normalizedSigner.email,
+		identifyMethods: normalizedSigner.identifyMethods,
+		signed: normalizedSigner.signed,
+		status: normalizedSigner.status,
+		statusText: normalizedSigner.statusText,
+		me: normalizedSigner.me,
+		localKey: normalizedSigner.localKey,
+		visibleElements: normalizeVisibleElementList(normalizedSigner.visibleElements) ?? null,
+	}
+}
+
+function toSignerSummaryRecord(signer: SignerLike | EditableRequestSigner | ReturnType<typeof getFileSigners>[number] | null | undefined): SignerSummaryRecord | null {
 	if (!signer) {
 		return null
 	}
@@ -322,7 +308,7 @@ function toSignerSummaryRecord(signer: VisibleElementsSigner | ReturnType<typeof
 	}
 }
 
-function normalizeDocumentFile(file: unknown): DocumentFile | null {
+function normalizeEditableRequestFile(file: unknown): EditableRequestChildFile | null {
 	const candidate = toRecord(file)
 	if (!candidate) {
 		return null
@@ -331,40 +317,65 @@ function normalizeDocumentFile(file: unknown): DocumentFile | null {
 	const id = typeof candidate.id === 'number' ? candidate.id : Number(candidate.id)
 	const name = typeof candidate.name === 'string' ? candidate.name : undefined
 	const nestedFiles = Array.isArray(candidate.files)
-		? candidate.files.map(normalizeDocumentFile).filter((row): row is DocumentFile => row !== null)
+		? candidate.files.map(normalizeEditableRequestFile).filter((row): row is EditableRequestChildFile => row !== null)
 		: undefined
 	const signers = Array.isArray(candidate.signers)
-		? candidate.signers.map(normalizeSigner).filter((row): row is VisibleElementsSigner => row !== null)
+		? candidate.signers.map(normalizeEditableRequestSigner).filter((row): row is EditableRequestSigner => row !== null)
+		: undefined
+	const fileReference = typeof candidate.file === 'string' || candidate.file === null
+		? candidate.file
 		: undefined
 
 	return {
 		...(Number.isFinite(id) ? { id } : {}),
 		...(name !== undefined ? { name } : {}),
-		...('file' in candidate && normalizeFileReference(candidate.file) !== undefined
-			? { file: normalizeFileReference(candidate.file) }
-			: {}),
+		...(fileReference !== undefined ? { file: fileReference } : {}),
 		...(nestedFiles !== undefined ? { files: nestedFiles } : {}),
-		...('metadata' in candidate && normalizeMetadata(candidate.metadata) !== undefined ? { metadata: normalizeMetadata(candidate.metadata) } : {}),
+		...(normalizeMetadata(candidate.metadata) !== undefined ? { metadata: normalizeMetadata(candidate.metadata) } : {}),
 		...(normalizeVisibleElementList(candidate.visibleElements) !== undefined ? { visibleElements: normalizeVisibleElementList(candidate.visibleElements) } : {}),
 		...(signers !== undefined ? { signers } : {}),
 	}
 }
 
-function normalizeDocument(file: ReturnType<FilesStore['getFile']>): NormalizedDocument {
+function toVisibleElementsFile(file: EditableRequestChildFile): FileLike {
+	const nestedFiles = Array.isArray(file.files)
+		? file.files.map((nestedFile) => toVisibleElementsFile(nestedFile as EditableRequestChildFile))
+		: undefined
+	const signers = Array.isArray(file.signers)
+		? file.signers.map(toVisibleElementsSigner).filter((row): row is SignerLike => row !== null)
+		: undefined
+	const fileReference = typeof file.file === 'string' || file.file === null
+		? file.file
+		: file.file
+			? toVisibleElementsFile(file.file as EditableRequestChildFile)
+			: undefined
+
 	return {
-		id: file?.id,
-		uuid: file?.uuid ?? null,
-		name: file?.name ?? '',
-		status: file?.status,
-		statusText: file?.statusText ?? '',
-		metadata: file?.metadata,
-		settings: file?.settings,
-		visibleElements: normalizeVisibleElementList(file?.visibleElements) ?? null,
-		signers: Array.isArray(file?.signers)
-			? file.signers.map(normalizeSigner).filter((row): row is VisibleElementsSigner => row !== null)
+		id: file.id,
+		name: file.name,
+		...(fileReference !== undefined ? { file: fileReference } : {}),
+		...(normalizeMetadata(file.metadata) !== undefined ? { metadata: normalizeMetadata(file.metadata) } : {}),
+		...(normalizeVisibleElementList(file.visibleElements) !== undefined ? { visibleElements: normalizeVisibleElementList(file.visibleElements) } : {}),
+		...(signers !== undefined ? { signers } : {}),
+		...(nestedFiles !== undefined ? { files: nestedFiles } : {}),
+	}
+}
+
+function toVisibleElementsDocument(document: EditableRequestFile): DocumentLike {
+	return {
+		id: document.id,
+		uuid: document.uuid,
+		name: document.name,
+		status: document.status,
+		statusText: document.statusText,
+		metadata: normalizeMetadata(document.metadata),
+		settings: document.settings,
+		visibleElements: normalizeVisibleElementList(document.visibleElements) ?? null,
+		signers: Array.isArray(document.signers)
+			? document.signers.map(toVisibleElementsSigner).filter((row): row is SignerLike => row !== null)
 			: [],
-		files: Array.isArray(file?.files)
-			? file.files.map(normalizeDocumentFile).filter((row): row is DocumentFile => row !== null)
+		files: Array.isArray(document.files)
+			? document.files.map((file) => toVisibleElementsFile(file as EditableRequestChildFile))
 			: [],
 	}
 }
@@ -438,17 +449,19 @@ const width = ref(signElementsConfig['full-signature-width'])
 const height = ref(signElementsConfig['full-signature-height'])
 const filePagesMap = ref<Record<number, FilePageInfo>>({})
 const elementsLoaded = ref(false)
-const fetchedFiles = ref<DocumentFile[]>([])
+const fetchedFiles = ref<EditableRequestChildFile[]>([])
 
-const document = computed<NormalizedDocument>(() => normalizeDocument(filesStore.getFile()))
-const documentFiles = computed<DocumentFile[]>(() => fetchedFiles.value.length > 0 ? fetchedFiles.value : document.value.files)
-const sidebarSigners = computed<Array<{ signer: VisibleElementsSigner; index: number }>>(() => {
-	const signers: VisibleElementsSigner[] = Array.isArray(document.value.signers) ? document.value.signers : []
+const document = computed<EditableRequestFile>(() => filesStore.getEditableFile())
+const documentFiles = computed<EditableRequestChildFile[]>(() => fetchedFiles.value.length > 0 ? fetchedFiles.value : (Array.isArray(document.value.files) ? document.value.files : []))
+const visibleElementsDocument = computed<DocumentLike>(() => toVisibleElementsDocument(document.value))
+const visibleElementsFiles = computed<FileLike[]>(() => documentFiles.value.map(toVisibleElementsFile))
+const sidebarSigners = computed<Array<{ signer: EditableRequestSigner; index: number }>>(() => {
+	const signers: EditableRequestSigner[] = Array.isArray(document.value.signers) ? document.value.signers : []
 	return signers
 		.map((signer, index) => ({ signer, index }))
 		.filter(({ signer }) => !isSelectedSigner(signer))
 })
-const pdfEditorSigners = computed<SignerSummaryRecord[]>(() => document.value.signers
+const pdfEditorSigners = computed<SignerSummaryRecord[]>(() => (Array.isArray(document.value.signers) ? document.value.signers : [])
 	.map(toSignerSummaryRecord)
 	.filter((signer): signer is SignerSummaryRecord => signer !== null))
 const status = computed(() => Number(document.value.status))
@@ -458,7 +471,7 @@ const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && (doc
 const variantOfSaveButton = computed(() => canSave.value ? 'primary' : 'secondary')
 const variantOfSignButton = computed(() => canSave.value ? 'secondary' : 'primary')
 const statusLabel = computed(() => document.value.statusText || '')
-const pdfFiles = computed<PdfInput[]>(() => documentFiles.value.flatMap((file) => {
+const pdfFiles = computed<PdfInput[]>(() => visibleElementsFiles.value.flatMap((file) => {
 	const fileUrl = getFileUrl(file)
 	return fileUrl ? [fileUrl] : []
 }))
@@ -508,7 +521,7 @@ function getOcsErrorMessage(error: unknown): string | null {
 	return typeof ocsData.message === 'string' ? ocsData.message : null
 }
 
-function isSelectedSigner(signer: VisibleElementsSigner): boolean {
+function isSelectedSigner(signer: EditableRequestSigner): boolean {
 	if (!signerSelected.value) {
 		return false
 	}
@@ -521,9 +534,13 @@ function isSelectedSigner(signer: VisibleElementsSigner): boolean {
 		return idsMatch(signer.signRequestId, signerSelected.value.signRequestId)
 	}
 
-	const signerIdentify = 'identify' in signer ? signer.identify : undefined
-	const selectedIdentify = 'identify' in signerSelected.value ? signerSelected.value.identify : undefined
-	return signerIdentify === selectedIdentify
+	const signerIdentifyMethods = Array.isArray(signer.identifyMethods)
+		? signer.identifyMethods.map((method) => `${method.method}:${method.value}`).sort().join('|')
+		: ''
+	const selectedIdentifyMethods = Array.isArray(signerSelected.value.identifyMethods)
+		? signerSelected.value.identifyMethods.map((method) => `${method.method}:${method.value}`).sort().join('|')
+		: ''
+	return signerIdentifyMethods.length > 0 && signerIdentifyMethods === selectedIdentifyMethods
 }
 
 async function showModal() {
@@ -554,20 +571,20 @@ async function fetchFiles() {
 	})
 	const childFiles = response?.data?.ocs?.data?.data || []
 	fetchedFiles.value = Array.isArray(childFiles)
-		? childFiles.map(normalizeDocumentFile).filter((file): file is DocumentFile => file !== null)
+		? childFiles.map(normalizeEditableRequestFile).filter((file): file is EditableRequestChildFile => file !== null)
 		: []
-	const currentFile = filesStore.getFile()
+	const currentFile = filesStore.getEditableFile()
 	if (currentFile) {
 		currentFile.files = fetchedFiles.value as typeof currentFile.files
 	}
 
-	const allVisibleElements = aggregateVisibleElementsByFiles(documentFiles.value)
+	const allVisibleElements = aggregateVisibleElementsByFiles(visibleElementsFiles.value)
 	if (allVisibleElements.length > 0) {
 		document.value.visibleElements = normalizeVisibleElements(allVisibleElements)
 		return
 	}
 
-	const nestedDocumentElements = getVisibleElementsFromDocument(document.value)
+	const nestedDocumentElements = getVisibleElementsFromDocument(visibleElementsDocument.value)
 	if (nestedDocumentElements.length > 0) {
 		document.value.visibleElements = normalizeVisibleElements(nestedDocumentElements)
 	}
@@ -621,7 +638,7 @@ async function updateSigners() {
 	const pdfEditorRef = getPdfEditor()
 
 	const fileIndexById = new Map<string, number>(filesToProcess.map((file, index) => [String(file.id), index]))
-	const elements = getVisibleElementsFromDocument(document.value)
+	const elements = getVisibleElementsFromDocument(visibleElementsDocument.value)
 	const elementsByDoc = new Map<number, Array<{ element: VisibleElementRecord; signer: SignerSummaryRecord }>>()
 
 	elements.forEach((element) => {
@@ -629,7 +646,7 @@ async function updateSigners() {
 		if (!normalizedElement) {
 			return
 		}
-		const fileInfo = findFileById(filesToProcess, normalizedElement.fileId)
+		const fileInfo = findFileById(visibleElementsFiles.value, normalizedElement.fileId)
 		if (!fileInfo) {
 			return
 		}
@@ -685,7 +702,7 @@ function onSelectSigner(signer: SignerSummaryRecord) {
 }
 
 function handleSignerSelect(signer: unknown) {
-	const normalizedSigner = normalizeSigner(signer)
+	const normalizedSigner = normalizeEditableRequestSigner(signer)
 	const pdfEditorSigner = toSignerSummaryRecord(normalizedSigner)
 	if (!pdfEditorSigner) {
 		return
