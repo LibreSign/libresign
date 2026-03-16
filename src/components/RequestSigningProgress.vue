@@ -34,15 +34,15 @@
 				<ul class="signing-progress__files-list">
 					<li
 						v-for="file in progress.files"
-						:key="file.uuid"
+						:key="file.id"
 						class="signing-progress__file-item">
 						<div class="signing-progress__file-status">
-							<div v-if="file.isSigned" class="icon-checkmark" />
+							<div v-if="isProgressFileSigned(file)" class="icon-checkmark" />
 							<div v-else class="icon-loading-small" />
 						</div>
 						<span class="signing-progress__file-name">{{ file.name }}</span>
 						<span class="signing-progress__file-progress">
-							{{ file.signedCount }}/{{ file.totalSigners }}
+							{{ file.statusText }}
 						</span>
 					</li>
 				</ul>
@@ -58,7 +58,7 @@
 						:key="signer.id"
 						class="signing-progress__signer-item">
 						<div class="signing-progress__signer-status">
-							<div v-if="signer.signed" class="icon-checkmark" />
+							<div v-if="isProgressSignerSigned(signer)" class="icon-checkmark" />
 							<div v-else class="icon-close" />
 						</div>
 						<span class="signing-progress__signer-name">{{ signer.displayName }}</span>
@@ -73,6 +73,7 @@
 import { t } from '@nextcloud/l10n'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { computed } from 'vue'
+import type { components } from '../types/openapi/openapi'
 
 import { FILE_STATUS } from '../constants.js'
 import { getStatusIcon } from '../utils/fileStatus.js'
@@ -81,22 +82,9 @@ defineOptions({
 	name: 'RequestSigningProgress',
 })
 
-type SigningProgress = {
-	total: number
-	signed: number
-	files?: Array<{
-		uuid: string
-		name: string
-		signedCount: number
-		totalSigners: number
-		isSigned: boolean
-	}>
-	signers?: Array<{
-		id: string | number
-		displayName: string
-		signed: boolean
-	}>
-}
+type SigningProgress = components['schemas']['ProgressPayload']
+type ProgressFile = components['schemas']['ProgressFile']
+type ProgressSigner = components['schemas']['ProgressSigner']
 
 const props = withDefaults(defineProps<{
 	status: number
@@ -113,6 +101,14 @@ const isInProgress = computed(() => props.status === FILE_STATUS.SIGNING_IN_PROG
 
 const statusIconPath = computed(() => getStatusIcon(props.status) || '')
 
+function isProgressFileSigned(file: ProgressFile): boolean {
+	return file.status === FILE_STATUS.SIGNED
+}
+
+function isProgressSignerSigned(signer: ProgressSigner): boolean {
+	return signer.signed !== null
+}
+
 const progressPercentage = computed(() => {
 	if (!props.progress || props.progress.total === 0) {
 		return 0
@@ -123,6 +119,8 @@ const progressPercentage = computed(() => {
 defineExpose({
 	isInProgress,
 	statusIconPath,
+	isProgressFileSigned,
+	isProgressSignerSigned,
 	progressPercentage,
 })
 </script>
