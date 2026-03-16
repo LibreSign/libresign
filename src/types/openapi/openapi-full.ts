@@ -1992,19 +1992,24 @@ export type components = {
             base64?: string;
             /** Format: int64 */
             nodeId?: number;
+            path?: string;
             url?: string;
         };
         NewSigner: {
-            identify: {
-                email?: string;
-                account?: string;
-            };
+            identifyMethods: {
+                method: string;
+                value: string;
+                /** Format: int64 */
+                mandatory: number;
+            }[];
             displayName?: string;
             description?: string;
             /** Format: int64 */
             notify?: number;
             /** Format: int64 */
             signingOrder?: number;
+            /** Format: int64 */
+            status?: number;
         };
         Notify: {
             date: string;
@@ -2261,6 +2266,7 @@ export type components = {
                 /** Format: double */
                 h: number;
             }[];
+            original_file_deleted?: boolean;
             pdfVersion?: string;
             status_changed_at?: string;
         };
@@ -4591,7 +4597,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of signers who must sign the document. Each signer can have: identify, displayName, description, notify, signingOrder
+                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][];
@@ -4606,12 +4612,12 @@ export interface operations {
                      */
                     settings?: components["schemas"]["FolderSettings"];
                     /**
-                     * @description File object.
+                     * @description File object. Supports nodeId, url, base64 or path.
                      * @default []
                      */
                     file?: components["schemas"]["NewFile"];
                     /**
-                     * @description Multiple files to create an envelope (optional, use either file or files)
+                     * @description Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
                      * @default []
                      */
                     files?: components["schemas"]["NewFile"][];
@@ -4675,7 +4681,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of signers who must sign the document
+                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format.
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][] | null;
@@ -4684,7 +4690,7 @@ export interface operations {
                     /** @description Visible elements on document */
                     visibleElements?: components["schemas"]["VisibleElement"][] | null;
                     /**
-                     * @description File object.
+                     * @description File object. Supports nodeId, url, base64 or path when creating a new request.
                      * @default []
                      */
                     file?: (components["schemas"]["NewFile"] | unknown[]) | null;
@@ -4703,7 +4709,7 @@ export interface operations {
                      */
                     settings?: components["schemas"]["FolderSettings"];
                     /**
-                     * @description Multiple files to create an envelope (optional, use either file or files)
+                     * @description Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
                      * @default []
                      */
                     files?: components["schemas"]["NewFile"][];
