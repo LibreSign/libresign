@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createL10nMock } from '../../testHelpers/l10n.js'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
@@ -11,9 +11,8 @@ import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { mdiCheckCircle, mdiClockOutline, mdiCircleOutline } from '@mdi/js'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
+import Signer from '../../../components/Signers/Signer.vue'
 import { useFilesStore } from '../../../store/files.js'
-
-type SignerComponent = typeof import('../../../components/Signers/Signer.vue').default
 
 type FileSigner = {
 	signed?: boolean
@@ -67,8 +66,6 @@ const { t, n } = vi.hoisted(() => {
 	return { t, n }
 })
 
-let Signer: SignerComponent
-
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
 		if (key === 'can_request_sign') return true
@@ -88,10 +85,6 @@ vi.mock('@nextcloud/event-bus', () => ({
 vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 import { emit } from '@nextcloud/event-bus'
-
-beforeAll(async () => {
-	;({ default: Signer } = await import('../../../components/Signers/Signer.vue'))
-})
 
 describe('Signer', () => {
 	let wrapper: SignerWrapper | null
