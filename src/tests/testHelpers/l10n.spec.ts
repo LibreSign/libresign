@@ -4,8 +4,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-
 import { createL10nMock, interpolateL10n } from './l10n.js'
+
 
 describe('l10n test helper', () => {
 	it('interpolates placeholders without dropping unknown tokens', () => {
