@@ -60,11 +60,11 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * the returned `data` includes `filesCount` and `files` as a list of
 	 * envelope child files.
 	 *
-	 * @param LibresignNewSigner[] $signers Collection of signers who must sign the document. Each signer can have: identify, displayName, description, notify, signingOrder
+	 * @param LibresignNewSigner[] $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
-	 * @param LibresignNewFile $file File object.
-	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
+	 * @param LibresignNewFile $file File object. Supports nodeId, url, base64 or path.
+	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
@@ -128,15 +128,15 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * It is necessary to inform the UUID of the file and a list of signers.
 	 *
-	 * @param LibresignNewSigner[]|null $signers Collection of signers who must sign the document
+	 * @param LibresignNewSigner[]|null $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format.
 	 * @param string|null $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
-	 * @param LibresignNewFile|array<empty>|null $file File object.
+	 * @param LibresignNewFile|array<empty>|null $file File object. Supports nodeId, url, base64 or path when creating a new request.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
 	 * @param string|null $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
-	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
+	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
 	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
