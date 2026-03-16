@@ -5,6 +5,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 
 import FilesListVirtual from '../../../views/FilesList/FilesListVirtual.vue'
 
@@ -16,13 +17,7 @@ const userConfigStoreMock = {
 	files_list_grid_view: false,
 }
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-	n: vi.fn((_app: string, singular: string, plural: string, count: number, params?: Record<string, number>) => {
-		const template = count === 1 ? singular : plural
-		return template.replace('{count}', String(params?.count ?? count))
-	}),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('../../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStoreMock),
