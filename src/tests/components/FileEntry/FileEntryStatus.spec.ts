@@ -31,11 +31,6 @@ type FileEntryStatusWrapper = VueWrapper<any> & {
 
 let FileEntryStatus: any
 
-vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((_app: string, text: string) => text),
-	isRTL: vi.fn(() => false),
-}))
-
 vi.mock('vue-select', () => ({
 	default: {
 		name: 'VSelect',
