@@ -24,11 +24,11 @@ import { useSidebarStore } from './sidebar.js'
 /** @typedef {import('../types/index').FileSettings} FileSettings */
 /** @typedef {import('../types/index').FileListEntry} FileListEntry */
 /** @typedef {import('../types/index').FileListItemRecord} FileListItemRecord */
-/** @typedef {import('../types/index').FileMetadataState} FileMetadataState */
+/** @typedef {import('../types/index').EditableFileSettingsDraft} EditableFileSettingsDraft */
+/** @typedef {import('../types/index').EditableValidationMetadataDraft} EditableValidationMetadataDraft */
 /** @typedef {import('../types/index').SelectedFileView} SelectedFileView */
 /** @typedef {import('../types/index').FileStatus} FileStatus */
 /** @typedef {import('../types/index').FileStatusText} FileStatusText */
-/** @typedef {import('../types/index').FileStateSettings} FileStateSettings */
 /** @typedef {import('../types/index').FileValidationResponse} FileValidationResponse */
 /** @typedef {import('../types/index').FileValidationSigner} FileValidationSigner */
 /** @typedef {import('../types/index').RequestSignatureResponse} RequestSignatureResponse */
@@ -36,9 +36,11 @@ import { useSidebarStore } from './sidebar.js'
 /** @typedef {import('../types/index').RequestSignatureSignerResponse} RequestSignatureSignerResponse */
 /** @typedef {import('../types/index').RequestSignatureVisibleElementPayload} RequestSignatureVisibleElementPayload */
 /** @typedef {import('../types/index').RequestedByRecord} RequestedByRecord */
+/** @typedef {import('../types/index').RuntimeFileSettingsRecord} RuntimeFileSettingsRecord */
+/** @typedef {import('../types/index').RuntimeValidationMetadataRecord} RuntimeValidationMetadataRecord */
 /** @typedef {import('../types/index').SignatureFlowValue} SignatureFlowValue */
 /** @typedef {import('../types/index').VisibleElementRecord} VisibleElementRecord */
-/** @typedef {import('../types/index').VisibleElementState} VisibleElementState */
+/** @typedef {import('../types/index').VisibleElementDraft} VisibleElementDraft */
 
 /**
  * @typedef {{
@@ -54,11 +56,11 @@ import { useSidebarStore } from './sidebar.js'
  * 	acceptsEmailNotifications?: boolean
  * 	identify?: SignerIdentify | string | number
  * 	identifyMethods?: SignerMethodRecord[]
- * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[]
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementDraft)[]
  * 	me?: boolean
  * 	signed?: string | null | boolean | unknown[]
  * 	sign_uuid?: string | null
- * }} EditableSignerState
+ * }} EditableSignerDraft
  */
 
 /**
@@ -72,24 +74,24 @@ import { useSidebarStore } from './sidebar.js'
  * 	name?: string
  * 	docmdpLevel?: number | string
  * 	signUuid?: string | null
- * 	file?: string | EditableFileReferenceState | null
- * 	files?: EditableFileReferenceState[]
+ * 	file?: string | EditableFileReferenceDraft | null
+ * 	files?: EditableFileReferenceDraft[]
  * 	path?: string
  * 	url?: string
  * 	folderName?: string
  * 	separator?: string
- * 	metadata?: FileMetadataState
- * 	signers?: EditableSignerState[]
- * 	settings?: FileStateSettings
+ * 	metadata?: EditableValidationMetadataDraft
+ * 	signers?: EditableSignerDraft[]
+ * 	settings?: EditableFileSettingsDraft
  * 	totalPages?: number
  * 	size?: number
  * 	pdfVersion?: string
  * 	mime?: string
  * 	pages?: Array<Record<string, unknown>>
- * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[] | null
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementDraft)[] | null
  * 	status?: FileStatus
  * 	statusText?: FileStatusText
- * }} EditableFileReferenceState
+ * }} EditableFileReferenceDraft
  */
 
 /**
@@ -105,15 +107,15 @@ import { useSidebarStore } from './sidebar.js'
  * 	status?: FileStatus
  * 	statusText?: FileStatusText
  * 	signUuid?: string | null
- * 	file?: string | EditableFileReferenceState | null
- * 	files?: EditableFileReferenceState[]
+ * 	file?: string | EditableFileReferenceDraft | null
+ * 	files?: EditableFileReferenceDraft[]
  * 	loading?: string | boolean
- * 	metadata?: FileMetadataState
- * 	settings?: FileStateSettings
+ * 	metadata?: RuntimeValidationMetadataRecord
+ * 	settings?: RuntimeFileSettingsRecord
  * 	requested_by?: Partial<RequestedByRecord>
  * 	signatureFlow?: SignatureFlowValue | null
- * 	signers?: EditableSignerState[] | null
- * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[] | null
+ * 	signers?: EditableSignerDraft[] | null
+ * 	visibleElements?: VisibleElementRecord[] | null
  * 	url?: string
  * 	mime?: string
  * 	pages?: Array<Record<string, unknown>>
@@ -124,7 +126,7 @@ import { useSidebarStore } from './sidebar.js'
  * 	filesCount?: number
  * 	canSign?: boolean
  * 	detailsLoaded?: boolean
- * }} ApiFileState
+ * }} ApiFileRecord
  */
 
 /**
@@ -140,30 +142,30 @@ import { useSidebarStore } from './sidebar.js'
  * 	nodeId?: number | string | null
  * 	nodeType?: string
  * 	signUuid?: string | null
- * 	file?: string | EditableFileReferenceState | null
- * 	files?: EditableFileReferenceState[]
+ * 	file?: string | EditableFileReferenceDraft | null
+ * 	files?: EditableFileReferenceDraft[]
  * 	loading?: string | boolean
- * 	metadata?: FileMetadataState
- * 	settings?: FileStateSettings
+ * 	metadata?: EditableValidationMetadataDraft
+ * 	settings?: EditableFileSettingsDraft
  * 	requested_by?: Partial<RequestedByRecord>
  * 	signatureFlow?: SignatureFlowValue | null
- * 	signers?: EditableSignerState[] | null
- * 	visibleElements?: (VisibleElementRecord | VisibleElementState)[] | null
+ * 	signers?: EditableSignerDraft[] | null
+ * 	visibleElements?: (VisibleElementRecord | VisibleElementDraft)[] | null
  * 	signersCount?: number
  * 	filesCount?: number
  * 	canSign?: boolean
  * 	detailsLoaded?: boolean
- * }} EditableFileState
+ * }} EditableFileDraft
  */
 
 /**
- * @typedef {ApiFileState | EditableFileState} PublicFileState
+ * @typedef {ApiFileRecord | EditableFileDraft} PublicFileState
  */
 
 /**
  * @typedef {{
  * 	visibleElements?: RequestSignatureVisibleElementPayload[]
- * 	signers?: EditableSignerState[] | null
+ * 	signers?: EditableSignerDraft[] | null
  * 	uuid?: string | null
  * 	status?: number | null
  * 	signatureFlow?: SignatureFlowValue | null
@@ -174,14 +176,14 @@ import { useSidebarStore } from './sidebar.js'
  * @typedef {PublicFileState | { success: false, message: string, error: unknown }} SaveSignatureRequestResponse
  */
 
-/** @type {EditableFileState} */
+/** @type {EditableFileDraft} */
 const emptyFile = { signers: [] }
 
 let draftSignerKeySequence = 0
 
 const _filesStore = defineStore('files', () => {
-	const apiFiles = ref(/** @type {Record<string | number, ApiFileState>} */ ({}))
-	const requestDrafts = ref(/** @type {Record<string | number, EditableFileState>} */ ({}))
+	const apiFiles = ref(/** @type {Record<string | number, ApiFileRecord>} */ ({}))
+	const requestDrafts = ref(/** @type {Record<string | number, EditableFileDraft>} */ ({}))
 	const files = ref(/** @type {Record<string | number, PublicFileState>} */ ({}))
 	const selectedFileId = ref(0)
 	const identifyingSigner = ref(false)
@@ -492,7 +494,7 @@ const _filesStore = defineStore('files', () => {
 		}
 	}
 
-	/** @returns {EditableFileState | PublicFileState} */
+	/** @returns {EditableFileDraft | PublicFileState} */
 	function getEditableFile(fileId = selectedFileId.value) {
 		return ensureRequestDraft(fileId) || getFile()
 	}
@@ -802,7 +804,7 @@ const _filesStore = defineStore('files', () => {
 		return `draft-signer:${draftSignerKeySequence}`
 	}
 
-	/** @param {EditableSignerState[] | undefined | null} signers */
+	/** @param {EditableSignerDraft[] | undefined | null} signers */
 	function addLocalKeyToAllSigners(signers) {
 		if (signers === undefined) {
 			return
@@ -810,7 +812,7 @@ const _filesStore = defineStore('files', () => {
 		signers.map(signer => addLocalKeyToSigner(signer))
 	}
 
-	/** @param {EditableSignerState} signer */
+	/** @param {EditableSignerDraft} signer */
 	function addLocalKeyToSigner(signer) {
 		if (signer.localKey) {
 			return
@@ -822,7 +824,7 @@ const _filesStore = defineStore('files', () => {
 		signer.localKey = createDraftSignerLocalKey()
 	}
 
-	/** @param {EditableSignerState} signer */
+	/** @param {EditableSignerDraft} signer */
 	function signerUpdate(signer) {
 		const editableFile = ensureRequestDraft()
 		if (!selectedFileId.value || !editableFile) {
@@ -850,7 +852,7 @@ const _filesStore = defineStore('files', () => {
 		selectFile(selected) // to force reactivity
 	}
 
-	/** @param {EditableSignerState} signer */
+	/** @param {EditableSignerDraft} signer */
 	async function deleteSigner(signer) {
 		const selectedFile = ensureRequestDraft() || getFile()
 
