@@ -4,9 +4,9 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../testHelpers/l10n.js'
 import { mount, flushPromises } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
-import { createL10nMock } from '../testHelpers/l10n.js'
 
 type MarkdownEditorProps = {
 	modelValue?: string
