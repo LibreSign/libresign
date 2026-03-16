@@ -8,6 +8,7 @@ import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import type { ValidationFileRecord } from '../../../types'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 
 type TranslationFn = (app: string, text: string) => string
 
@@ -65,12 +66,7 @@ let axios: AxiosMock
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((url) => url.replace(/{id}/, 'fileId')),
 }))
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((app: string, text: string) => text),
-	translate: vi.fn((app: string, text: string) => text),
-	translatePlural: vi.fn((app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	isRTL: vi.fn(() => false),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 vi.mock('@nextcloud/files', () => ({
 	formatFileSize: vi.fn((size) => `${size}B`),
 }))
