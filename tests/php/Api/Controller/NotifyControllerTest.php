@@ -53,9 +53,11 @@ final class NotifyControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'signers' => [
 				[
-					'identify' => [
-						'email' => 'person@test.coop',
-					],
+					'identifyMethods' => [[
+						'method' => 'email',
+						'mandatory' => 0,
+						'value' => 'person@test.coop',
+					]],
 				],
 			],
 			'userManager' => $user,
