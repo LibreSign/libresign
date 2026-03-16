@@ -338,6 +338,86 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		];
 	}
 
+	public function testSetAllEntityDataUsesIdentifyMethodsOnly(): void {
+		$emailEntity = new IdentifyMethod();
+		$emailMethod = $this->createMock(IIdentifyMethod::class);
+		$emailMethod->method('getEntity')->willReturn($emailEntity);
+		$emailMethod->expects($this->exactly(2))->method('validateToRequest');
+
+		$service = $this->getMockBuilder(IdentifyMethodService::class)
+			->setConstructorArgs([
+				$this->identifyMethodMapper,
+				$this->l10n,
+				$this->userManager,
+				$this->account,
+				$this->email,
+				$this->signal,
+				$this->sms,
+				$this->telegram,
+				$this->whatsapp,
+				$this->xmpp,
+				$this->subjectAlternativeNameService,
+			])
+			->onlyMethods(['getInstanceOfIdentifyMethod'])
+			->getMock();
+
+		$expectedCalls = [
+			['email', 'user@example.com'],
+			['account', 'john'],
+		];
+
+		$service->expects($this->exactly(2))
+			->method('getInstanceOfIdentifyMethod')
+			->willReturnCallback(function (string $method, string $value) use ($emailMethod, &$expectedCalls): IIdentifyMethod {
+				$expectedCall = array_shift($expectedCalls);
+				$this->assertNotNull($expectedCall);
+				[$expectedMethod, $expectedValue] = $expectedCall;
+				$this->assertSame($expectedMethod, $method);
+				$this->assertSame($expectedValue, $value);
+				return $emailMethod;
+			});
+
+		$service->setAllEntityData([
+			'identifyMethods' => [
+				['method' => 'email', 'value' => 'user@example.com'],
+				['method' => 'account', 'value' => 'john'],
+			],
+		]);
+
+		$this->assertSame([], $expectedCalls);
+	}
+
+	public function testSetAllEntityDataSkipsMalformedIdentifyMethods(): void {
+		$service = $this->getMockBuilder(IdentifyMethodService::class)
+			->setConstructorArgs([
+				$this->identifyMethodMapper,
+				$this->l10n,
+				$this->userManager,
+				$this->account,
+				$this->email,
+				$this->signal,
+				$this->sms,
+				$this->telegram,
+				$this->whatsapp,
+				$this->xmpp,
+				$this->subjectAlternativeNameService,
+			])
+			->onlyMethods(['getInstanceOfIdentifyMethod'])
+			->getMock();
+
+		$service->expects($this->never())
+			->method('getInstanceOfIdentifyMethod');
+
+		$service->setAllEntityData([
+			'identifyMethods' => [
+				['method' => 'email'],
+				['value' => 'user@example.com'],
+				'not-an-array',
+			],
+		]);
+		$this->addToAssertionCount(1);
+	}
+
 	private function buildMatrix(array $methodsData): array {
 		$matrix = [];
 
