@@ -24,7 +24,7 @@ type TranslationParams = {
 
 type Signer = {
 	email: string
-	identify?: string | number
+	identifyMethods?: Array<{ method: string; value: string; mandatory: number }>
 	localKey?: string
 	signRequestId?: number
 }
@@ -654,10 +654,10 @@ describe('files store - critical business rules', () => {
 			expect(store.isTemporaryId(-999)).toBe(true)
 		})
 
-		it('identifies envelope_ prefix as temporary ID', () => {
+		it('does not identify strings as temporary IDs', () => {
 			const store = useFilesStore()
-			expect(store.isTemporaryId('envelope_123')).toBe(true)
-			expect(store.isTemporaryId('envelope_abc')).toBe(true)
+			expect(store.isTemporaryId('envelope_123')).toBe(false)
+			expect(store.isTemporaryId('envelope_abc')).toBe(false)
 		})
 
 		it('does not identify positive numbers as temporary', () => {
@@ -867,6 +867,29 @@ describe('files store - critical business rules', () => {
 			expect(signers[0].localKey).toBe('signer:10')
 			expect(signers[2].localKey).toBe('signer:20')
 		})
+
+		it('hydrates nested child signers and deep-clones metadata in editable draft', async () => {
+			const store = useFilesStore()
+			const sourceFile = {
+				id: 1,
+				signers: [{ email: 'parent@example.com', signRequestId: 10 }],
+				files: [{
+					id: 2,
+					metadata: { d: [{ w: 100, h: 200 }] },
+					signers: [{ email: 'child@example.com', signRequestId: 20 }],
+				}],
+			}
+			await store.addFile(sourceFile, { detailsLoaded: true })
+
+			store.selectedFileId = 1
+			const draft = store.getEditableFile()
+
+			expect(draft.files?.[0]?.signers?.[0]?.localKey).toBe('signer:20')
+			if (draft.files?.[0]?.metadata?.d?.[0]) {
+				draft.files[0].metadata.d[0].w = 300
+			}
+			expect(sourceFile.files[0].metadata.d[0].w).toBe(100)
+		})
 	})
 
 	describe('RULE: file lookup by nodeId', () => {
@@ -1035,7 +1058,12 @@ describe('files store - critical business rules', () => {
 					id: 1,
 					name: 'contract.pdf',
 					signatureFlow: 'parallel',
-					signers: [{ email: 'signer@example.com' }],
+					signers: [{
+						email: 'signer@example.com',
+						identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 0 }],
+						localKey: 'draft-signer:1',
+						statusText: 'Draft',
+					}],
 				}
 				axiosMock.mockResolvedValue({
 					data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
@@ -1044,7 +1072,45 @@ describe('files store - critical business rules', () => {
 				await store.saveOrUpdateSignatureRequest({ status: 1 })
 
 				const config = axiosMock.mock.calls[0][0]
-				expect(config.data.signers).toEqual([{ email: 'signer@example.com' }])
+				expect(config.data.signers).toEqual([{
+					identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 0 }],
+				}])
+			})
+
+			it('removes UI-only signer fields and preserves backend-facing fields', async () => {
+				const store = useFilesStore()
+				store.selectedFileId = 1
+				store.files[1] = {
+					id: 1,
+					name: 'contract.pdf',
+					signatureFlow: 'parallel',
+					signers: [{
+						identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 1 }],
+						displayName: 'Signer',
+						description: 'Needs review',
+						notify: 0,
+						status: 1,
+						localKey: 'draft-signer:1',
+						statusText: 'Draft',
+						me: true,
+						signed: ['sig'],
+						visibleElements: [{ elementId: 10 }],
+					}],
+				}
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({ status: 1 })
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.signers).toEqual([{
+					identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 1 }],
+					displayName: 'Signer',
+					description: 'Needs review',
+					notify: 0,
+					status: 1,
+				}])
 			})
 
 		it('maps numeric signatureFlow to ordered_numeric', async () => {
@@ -1052,6 +1118,7 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
+				nodeId: 99,
 				name: 'contract.pdf',
 				signatureFlow: 2,
 				signers: [],
@@ -1065,7 +1132,7 @@ describe('files store - critical business rules', () => {
 
 			const config = axiosMock.mock.calls[0][0]
 			expect(config.data.signatureFlow).toBe('ordered_numeric')
-			expect(config.data.file.fileId).toBe(1)
+			expect(config.data.file.nodeId).toBe(99)
 			expect(config.data.file.settings).toEqual({ path: '/files/contract.pdf' })
 		})
 
@@ -1105,7 +1172,7 @@ describe('files store - critical business rules', () => {
 				signatureFlow: 'parallel',
 				settings: { path: '/files/contract.pdf' },
 				visibleElements: [{ id: 77 }],
-				signers: [{ identify: 'signer01@libresign.coop', signRequestId: 10 }],
+				signers: [{ identifyMethods: [{ method: 'email', value: 'signer01@libresign.coop', mandatory: 0 }], signRequestId: 10 }],
 			}
 			axiosMock.mockResolvedValue({
 				data: {
@@ -1114,7 +1181,7 @@ describe('files store - critical business rules', () => {
 							id: 1,
 							uuid: 'file-uuid',
 							signatureFlow: 'parallel',
-							signers: [{ identify: 'signer01@libresign.coop', signRequestId: 10 }],
+							signers: [{ identifyMethods: [{ method: 'email', value: 'signer01@libresign.coop', mandatory: 0 }], signRequestId: 10 }],
 						},
 					},
 				},
@@ -1177,7 +1244,7 @@ describe('files store - critical business rules', () => {
 					id: tempId,
 					nodeId,
 					name: 'test.pdf',
-					signers: [{ email: 'signer@example.com', identify: 'signer@example.com' }],
+					signers: [{ email: 'signer@example.com', identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 0 }] }],
 					signatureFlow: 'parallel',
 				}
 				store.selectedFileId = tempId
@@ -1192,7 +1259,30 @@ describe('files store - critical business rules', () => {
 				expect(config.data.file).toEqual({ nodeId })
 			})
 
-			it('includes file.fileId when file has a real positive LibreSign id', async () => {
+			it('serializes envelope files with nodeId-based references for creation flows', async () => {
+				const store = useFilesStore()
+				store.selectedFileId = -1
+				store.files[-1] = {
+					id: -1,
+					name: 'Envelope',
+					files: [
+						{ id: 7, nodeId: 12345, name: 'first.pdf', signers: [{ email: 'ignored@example.com' }] },
+						{ id: -22, nodeId: 22, name: 'second.pdf', metadata: { d: [{ w: 100, h: 200 }] } },
+					],
+					signers: [{ email: 'signer@example.com' }],
+					signatureFlow: 'parallel',
+				}
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: 12, nodeId: 'real-node', signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({})
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.files).toEqual([{ nodeId: 12345 }, { nodeId: 22 }])
+			})
+
+			it('includes file.nodeId when a known file is turned into a new request', async () => {
 				const store = useFilesStore()
 				// Simulate the state when LibreSign already knows about the file
 				// (returned by getAllFiles after the /api/v1/file POST in init.ts).
@@ -1200,7 +1290,7 @@ describe('files store - critical business rules', () => {
 					id: 7,
 					nodeId: 12345,
 					name: 'test.pdf',
-					signers: [{ email: 'signer@example.com', identify: 'signer@example.com' }],
+					signers: [{ email: 'signer@example.com', identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 0 }] }],
 					signatureFlow: 'parallel',
 				}
 				store.selectedFileId = 7
@@ -1212,7 +1302,7 @@ describe('files store - critical business rules', () => {
 				await store.saveOrUpdateSignatureRequest({})
 
 				const config = axiosMock.mock.calls[0][0]
-				expect(config.data.file).toEqual({ fileId: 7 })
+				expect(config.data.file).toEqual({ nodeId: 12345 })
 			})
 
 			it('does NOT mutate the shared emptyFile when no file is selected', () => {
