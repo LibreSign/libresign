@@ -431,9 +431,9 @@ describe('VisibleElements Component - Business Rules', () => {
 					id: 10,
 					metadata: {
 						d: [
-							{ h: 841.89 },
-							{ h: 600.0 },
-							{ h: 792.0 },
+							{ w: 595.28, h: 841.89 },
+							{ w: 600.0, h: 600.0 },
+							{ w: 612.0, h: 792.0 },
 						],
 					},
 				},
@@ -446,7 +446,7 @@ describe('VisibleElements Component - Business Rules', () => {
 
 		it('returns undefined for non-existent file', () => {
 			filesStore.files[1].files = [
-				{ id: 10, metadata: { d: [{ h: 841.89 }] } },
+				{ id: 10, metadata: { d: [{ w: 595.28, h: 841.89 }] } },
 			]
 
 			expect(wrapper.vm.getPageHeightForFile(999, 1)).toBeUndefined()
@@ -454,7 +454,7 @@ describe('VisibleElements Component - Business Rules', () => {
 
 		it('returns undefined for non-existent page', () => {
 			filesStore.files[1].files = [
-				{ id: 10, metadata: { d: [{ h: 841.89 }] } },
+				{ id: 10, metadata: { d: [{ w: 595.28, h: 841.89 }] } },
 			]
 
 			expect(wrapper.vm.getPageHeightForFile(10, 5)).toBeUndefined()
@@ -728,7 +728,7 @@ describe('VisibleElements Component - Business Rules', () => {
 				{
 					id: 10,
 					name: 'doc1',
-					metadata: { p: 2, d: [{ h: 100 }, { h: 100 }] },
+					metadata: { p: 2, d: [{ w: 80, h: 100 }, { w: 80, h: 100 }] },
 					signers: [
 						{ signRequestId: 101, identifyMethods: [{ method: 'email', value: 'a', mandatory: 0 }] },
 					],
@@ -736,7 +736,7 @@ describe('VisibleElements Component - Business Rules', () => {
 				{
 					id: 20,
 					name: 'doc2',
-					metadata: { p: 1, d: [{ h: 200 }] },
+					metadata: { p: 1, d: [{ w: 160, h: 200 }] },
 					signers: [
 						{ signRequestId: 202, identifyMethods: [{ method: 'email', value: 'b', mandatory: 0 }] },
 					],
