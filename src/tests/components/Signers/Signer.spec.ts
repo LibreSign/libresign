@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
@@ -84,15 +85,7 @@ vi.mock('@nextcloud/event-bus', () => ({
 	unsubscribe: vi.fn(),
 }))
 
-vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn(t),
-	translatePlural: vi.fn(n),
-	t: vi.fn(t),
-	n: vi.fn(n),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-	isRTL: vi.fn(() => false),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 import { emit } from '@nextcloud/event-bus'
 
