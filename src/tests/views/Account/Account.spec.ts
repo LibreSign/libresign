@@ -5,18 +5,11 @@
 
 import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 
 import Account from '../../../views/Account/Account.vue'
 
-vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((_app: string, text: string) => text),
-	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	t: vi.fn((_app: string, text: string) => text),
-	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-	isRTL: vi.fn(() => false),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: vi.fn(() => ({
