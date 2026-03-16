@@ -3,13 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import type { Pinia } from 'pinia'
-type SignersComponent = typeof import('../../../components/Signers/Signers.vue').default
-let Signers: SignersComponent
+import Signers from '../../../components/Signers/Signers.vue'
 import { useFilesStore } from '../../../store/files.js'
 import type { SignatureFlowValue } from '../../../types/index'
 
@@ -48,10 +47,6 @@ type SignersWrapper = VueWrapper<SignersVm>
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn(),
 }))
-
-beforeAll(async () => {
-	;({ default: Signers } = await import('../../../components/Signers/Signers.vue'))
-})
 
 
 describe('Signers', () => {

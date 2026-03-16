@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
-let RequestSignatureTab: unknown
-let useFilesStore: typeof import('../../../store/files.js').useFilesStore
+import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatureTab.vue'
+import { useFilesStore } from '../../../store/files.js'
 import { FILE_STATUS } from '../../../constants.js'
 
 const { generateUrlMock } = vi.hoisted(() => ({
@@ -79,11 +79,6 @@ vi.mock('@libresign/pdf-elements', () => ({
 describe('RequestSignatureTab - Critical Business Rules', () => {
 	let wrapper: VueWrapper<any>
 	let filesStore: ReturnType<typeof useFilesStoreType>
-
-	beforeAll(async () => {
-		RequestSignatureTab = (await import('../../../components/RightSidebar/RequestSignatureTab.vue')).default
-		;({ useFilesStore } = await import('../../../store/files.js'))
-	})
 
 	const updateFile = async (patch: Record<string, unknown>) => {
 		const current = filesStore.files[1] || { id: 1 }
