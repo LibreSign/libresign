@@ -157,8 +157,11 @@ class IdentifyMethodService {
 	}
 
 	public function setAllEntityData(array $user): void {
-		foreach ($user['identify'] as $method => $identifyValue) {
-			$this->setEntityData($method, $identifyValue);
+		foreach (($user['identifyMethods'] ?? []) as $identifyMethod) {
+			if (!is_array($identifyMethod) || !isset($identifyMethod['method'], $identifyMethod['value'])) {
+				continue;
+			}
+			$this->setEntityData($identifyMethod['method'], $identifyMethod['value']);
 		}
 	}
 
