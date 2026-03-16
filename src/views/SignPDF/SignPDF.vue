@@ -58,14 +58,17 @@ import {
 	idsMatch,
 	isCurrentUserSigner,
 } from '../../services/visibleElementsService'
+import {
+	normalizeDocumentForVisibleElements,
+	normalizeFileForVisibleElements,
+	normalizeVisibleElementRecord,
+} from '../../services/signingDocumentAdapter'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import type { operations } from '../../types/openapi/openapi'
 import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
 
-type VisibleElementsFileInput = Parameters<typeof getFileSigners>[0]
-type VisibleElementsDocumentInput = Parameters<typeof getVisibleElementsFromDocument>[0]
 type ServiceVisibleElement = VisibleElementRecord
 
 type SignError = { title?: string; message?: string }
@@ -88,7 +91,7 @@ type RawSignDocumentFile = {
 	signers?: Array<SignerSummaryRecord | SignerDetailRecord>
 	visibleElements?: SignDocumentVisibleElement[] | ServiceVisibleElement[] | null
 }
-type SignDocumentFile = VisibleElementsFileInput & {
+type SignDocumentFile = ReturnType<typeof normalizeFileForVisibleElements> & {
 	id?: number
 	name?: string
 	file?: string | Record<string, unknown> | null
@@ -199,82 +202,6 @@ function createReadonlySignerObject(signer: SignerDetailRecord | SignerSummaryRe
 		status: 0,
 		statusText: '',
 		...(Array.isArray(signer.identifyMethods) ? { identifyMethods: signer.identifyMethods } : {}),
-	}
-}
-
-function normalizeVisibleElement(element: unknown): ServiceVisibleElement | null {
-	const candidate = toRecord(element)
-	if (!candidate) {
-		return null
-	}
-	const coordinates = toRecord(candidate.coordinates)
-	if (typeof candidate.type !== 'string' || !coordinates) {
-		return null
-	}
-	const page = coordinates.page === undefined ? undefined : Number(coordinates.page)
-	const left = coordinates.left === undefined ? undefined : Number(coordinates.left)
-	const top = coordinates.top === undefined ? undefined : Number(coordinates.top)
-	const width = coordinates.width === undefined ? undefined : Number(coordinates.width)
-	const height = coordinates.height === undefined ? undefined : Number(coordinates.height)
-	const elementId = candidate.elementId === undefined ? undefined : Number(candidate.elementId)
-	const signRequestId = candidate.signRequestId === undefined ? undefined : Number(candidate.signRequestId)
-	const fileId = candidate.fileId === undefined ? undefined : Number(candidate.fileId)
-
-	if ((page !== undefined && !Number.isFinite(page))
-		|| (left !== undefined && !Number.isFinite(left))
-		|| (top !== undefined && !Number.isFinite(top))
-		|| (width !== undefined && !Number.isFinite(width))
-		|| (height !== undefined && !Number.isFinite(height))
-		|| elementId === undefined
-		|| signRequestId === undefined
-		|| fileId === undefined
-		|| !Number.isFinite(elementId)
-		|| !Number.isFinite(signRequestId)
-		|| !Number.isFinite(fileId)) {
-		return null
-	}
-
-	return {
-		elementId,
-		signRequestId,
-		fileId,
-		type: candidate.type,
-		coordinates: {
-			...(page !== undefined ? { page } : {}),
-			...(left !== undefined ? { left } : {}),
-			...(top !== undefined ? { top } : {}),
-			...(width !== undefined ? { width } : {}),
-			...(height !== undefined ? { height } : {}),
-		},
-	}
-}
-
-function normalizeFile(file: RawSignDocumentFile | SignDocumentFile): SignDocumentFile {
-	const normalizedId = typeof file.id === 'number' ? file.id : Number(file.id)
-	const { id: _ignoredId, metadata, signers, visibleElements, ...rest } = file
-	return {
-		...rest,
-		...(Number.isFinite(normalizedId) ? { id: normalizedId } : {}),
-		metadata: metadata && typeof metadata === 'object' ? { ...metadata } : undefined,
-		signers: Array.isArray(signers) ? signers : [],
-		visibleElements: Array.isArray(visibleElements)
-			? visibleElements
-				.map(normalizeVisibleElement)
-				.filter((element): element is ServiceVisibleElement => element !== null)
-			: [],
-	}
-}
-
-function getVisibleElementsDocument(document: SignDocument): VisibleElementsDocumentInput {
-	return {
-		id: document.id,
-		uuid: document.uuid,
-		name: document.name,
-		status: document.status,
-		metadata: document.metadata,
-		visibleElements: Array.isArray(document.visibleElements) ? document.visibleElements : [],
-		signers: Array.isArray(document.signers) ? document.signers : [],
-		files: Array.isArray(document.files) ? document.files.map(normalizeFile) : [],
 	}
 }
 
@@ -418,7 +345,7 @@ async function loadPdfsFromStore() {
 		return
 	}
 
-	const baseFileUrl = (doc.url ?? getFileUrl(doc.files?.[0] ? normalizeFile(doc.files[0]) : null))
+	const baseFileUrl = (doc.url ?? getFileUrl(doc.files?.[0] ? normalizeFileForVisibleElements(doc.files[0]) : null))
 		|| (doc.uuid ? generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: doc.uuid }) : null)
 	const fileUrl = addIdDocApprovalParam(baseFileUrl)
 	if (fileUrl) {
@@ -431,7 +358,7 @@ async function loadPdfsFromStore() {
 async function loadEnvelopePdfs(parentFileId: number | string) {
 	try {
 		const loadedEnvelopeFiles: RawSignDocumentFile[] = await getCompatMethod('fetchEnvelopeFiles')(parentFileId)
-		const normalizedEnvelopeFiles = loadedEnvelopeFiles.map(normalizeFile)
+		const normalizedEnvelopeFiles = loadedEnvelopeFiles.map(normalizeFileForVisibleElements)
 		envelopeFiles.value = normalizedEnvelopeFiles
 		if (signStore.document) {
 			signStore.document.files = loadedEnvelopeFiles as unknown as typeof signStore.document.files
@@ -455,7 +382,7 @@ async function loadEnvelopePdfs(parentFileId: number | string) {
 			return
 		}
 
-		fileNames.value = normalizedEnvelopeFiles.map((file) => `${file.name}.${file.metadata?.extension || 'pdf'}`)
+		fileNames.value = normalizedEnvelopeFiles.map((file) => `${file.name}.${(file.metadata as SignDocumentMetadata | undefined)?.extension || 'pdf'}`)
 		await getCompatMethod('handleInitialStatePdfs')(urls)
 	} catch {
 		signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
@@ -482,7 +409,7 @@ async function fetchEnvelopeFiles(parentFileId: number | string): Promise<RawSig
 
 function updateSigners() {
 	if (signStore.document.nodeType === 'envelope' && envelopeFiles.value.length > 0) {
-		const normalizedEnvelopeFiles = envelopeFiles.value.map(normalizeFile)
+		const normalizedEnvelopeFiles = envelopeFiles.value.map(normalizeFileForVisibleElements)
 		const fileIndexById = new Map(
 			envelopeFiles.value.map((file: SignDocumentFile, index: number) => [String(file.id), index]),
 		)
@@ -499,7 +426,7 @@ function updateSigners() {
 				return
 			}
 			const signerRecord = createReadonlySignerObject(signer)
-			const visibleElement = normalizeVisibleElement(element)
+			const visibleElement = normalizeVisibleElementRecord(element)
 			if (!visibleElement) {
 				return
 			}
@@ -512,14 +439,14 @@ function updateSigners() {
 	}
 
 	const currentSigner = signStore.document.signers?.find((signer: SignerDetailRecord) => signer.me)
-	const visibleElements = getVisibleElementsFromDocument(getVisibleElementsDocument(signStore.document))
+	const visibleElements = getVisibleElementsFromDocument(normalizeDocumentForVisibleElements(signStore.document))
 	const elementsForSigner = currentSigner
 		? visibleElements.filter(element => idsMatch(element.signRequestId, currentSigner.signRequestId))
 		: []
 	if (currentSigner && elementsForSigner.length > 0) {
 		elementsForSigner.forEach(element => {
 			const signerRecord = createReadonlySignerObject(currentSigner)
-			const visibleElement = normalizeVisibleElement(element)
+			const visibleElement = normalizeVisibleElementRecord(element)
 			if (!visibleElement) {
 				return
 			}
