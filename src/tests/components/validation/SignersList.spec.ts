@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount, VueWrapper } from '@vue/test-utils'
 
 type Signer = {
@@ -28,15 +29,7 @@ type SignersListWrapper = VueWrapper<any> & {
 let SignersList: unknown
 
 
-vi.mock('@nextcloud/l10n', () => ({
-	translate: vi.fn((_app, text) => text),
-	translatePlural: vi.fn((_app, singular, plural, count) => (count === 1 ? singular : plural)),
-	t: vi.fn((_app, text) => text),
-	n: vi.fn((_app, singular, plural, count) => (count === 1 ? singular : plural)),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-	isRTL: vi.fn(() => false),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/moment', () => ({
 	default: vi.fn((date) => ({

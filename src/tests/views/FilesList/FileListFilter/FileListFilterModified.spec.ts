@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import { setActivePinia } from 'pinia'
 import { createTestingPinia } from '@pinia/testing'
@@ -11,18 +12,7 @@ import { createTestingPinia } from '@pinia/testing'
 import FileListFilterModified from '../../../../views/FilesList/FileListFilter/FileListFilterModified.vue'
 import { useFiltersStore } from '../../../../store/filters.js'
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string, vars?: Record<string, unknown>) => {
-		if (vars) {
-			return Object.entries(vars).reduce(
-				(acc, [key, val]) => acc.replace(`{${key}}`, String(val)),
-				text
-			)
-		}
-		return text
-	}),
-	isRTL: vi.fn(() => false),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/logger', () => ({
 	getLogger: vi.fn(() => ({

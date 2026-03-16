@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import File from '../../../components/File/File.vue'
@@ -36,12 +37,7 @@ const sidebarStoreMock = {
 	activeRequestSignatureTab: vi.fn(),
 }
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-	isRTL: vi.fn(() => false),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path: string, params?: Record<string, string | number>) => {

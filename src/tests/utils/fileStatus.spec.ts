@@ -13,12 +13,6 @@ import {
 	getStatusIcon,
 } from '../../utils/fileStatus.js'
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: (_app: string, text: string) => text,
-	translate: (_app: string, text: string) => text,
-	isRTL: vi.fn(() => false),
-}))
-
 describe('fileStatus utils', () => {
 	it('returns a known label for a known status', () => {
 		expect(getStatusLabel(FILE_STATUS.SIGNED)).toBe('Signed')
