@@ -1,0 +1,17 @@
+{
+    "_hash": "5a88407ec5158d064356441e5d800e88b384f6d6529c946100302717a2f7a83d",
+    "patches": {
+        "byjg/swagger-test": [
+            {
+                "package": "byjg/swagger-test",
+                "description": "Fix PHP 8.4 implicit nullable signatures",
+                "url": "../../.patches/byjg-swagger-test-php84-implicit-nullable.diff",
+                "sha256": "d7072a13d0e7772c19bcf0f47f22f511591fff746c29c79a1b6c3503af915e2b",
+                "depth": 1,
+                "extra": {
+                    "provenance": "patches-file:patches.json"
+                }
+            }
+        ]
+    }
+}
