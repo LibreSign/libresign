@@ -4,8 +4,8 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
 import { createL10nMock } from '../../../../testHelpers/l10n.js'
+import { mount } from '@vue/test-utils'
 
 import PageNavigation from '../../../../../components/Request/SignDetail/partials/PageNavigation.vue'
 
