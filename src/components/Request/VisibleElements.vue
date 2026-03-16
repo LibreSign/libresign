@@ -112,10 +112,10 @@ import {
 	type SignerLike,
 } from '../../services/visibleElementsService'
 import type {
-	FileMetadataState,
+	EditableFileSettingsDraft,
+	EditableValidationMetadataDraft,
 	IdentifyMethodRecord,
 	LibresignCapabilities,
-	FileStateSettings,
 	RequestSignatureVisibleElementPayload,
 	SignerSummaryRecord,
 	VisibleElementRecord,
@@ -134,7 +134,7 @@ type VisibleElementsSigner = SignerLike & SignerSummaryRecord & {
 type DocumentFile = Omit<FileLike, 'file' | 'files' | 'metadata' | 'signers' | 'visibleElements'> & {
 	id?: number
 	name?: string
-	metadata?: FileMetadataState
+	metadata?: EditableValidationMetadataDraft
 	file?: string | DocumentFile | null
 	files?: DocumentFile[]
 	visibleElements?: VisibleElementRecord[] | null
@@ -147,8 +147,8 @@ type NormalizedDocument = Omit<DocumentLike, 'metadata' | 'settings' | 'visibleE
 	name?: string
 	status?: number | string
 	statusText?: string
-	metadata?: FileMetadataState
-	settings?: FileStateSettings
+	metadata?: EditableValidationMetadataDraft
+	settings?: EditableFileSettingsDraft
 	visibleElements?: VisibleElementRecord[] | null
 	files: DocumentFile[]
 	signers: VisibleElementsSigner[]
