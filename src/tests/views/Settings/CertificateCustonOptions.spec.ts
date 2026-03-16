@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import CertificateCustonOptions from '../../../views/Settings/CertificateCustonOptions.vue'
@@ -30,19 +31,17 @@ vi.mock('@nextcloud/event-bus', () => ({
 	emit: (...args: unknown[]) => emitMock(...args),
 }))
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string, vars?: Record<string, string | number>) => {
-		if (!vars) {
-			return text
-		}
-		return Object.entries(vars).reduce((message, [key, value]) => message.replace(`{${key}}`, String(value)), text)
-	}),
-	translate: vi.fn((_app: string, text: string) => text),
-	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	isRTL: vi.fn(() => false),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
+vi.mock('@nextcloud/l10n', () => createL10nMock({
+	t: (_app: string, text: string, vars?: Record<string, string | number>) => interpolateL10n(text, vars),
+	n: (_app: string, singular: string, plural: string, count: number, vars?: Record<string, string | number>) => {
+		const template = count === 1 ? singular : plural
+		return interpolateL10n(template, { count, ...(vars ?? {}) })
+	},
+	translate: (_app: string, text: string, vars?: Record<string, string | number>) => interpolateL10n(text, vars),
+	translatePlural: (_app: string, singular: string, plural: string, count: number, vars?: Record<string, string | number>) => {
+		const template = count === 1 ? singular : plural
+		return interpolateL10n(template, { count, ...(vars ?? {}) })
+	},
 }))
 
 describe('CertificateCustonOptions.vue', () => {

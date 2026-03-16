@@ -7,10 +7,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import FileUpload from '../../../components/Draw/FileUpload.vue'
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-}))
-
 vi.mock('@nextcloud/capabilities', () => ({
 	getCapabilities: vi.fn(() => ({
 		libresign: {

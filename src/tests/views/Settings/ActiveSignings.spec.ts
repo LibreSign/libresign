@@ -4,6 +4,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
 import { flushPromises, mount } from '@vue/test-utils'
 import axios from '@nextcloud/axios'
 
@@ -15,19 +16,8 @@ vi.mock('@nextcloud/axios', () => ({
 	},
 }))
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string, vars?: Record<string, string>) => {
-		if (vars) {
-			return text.replace(/{(\w+)}/g, (_m: string, key: string) => vars[key] || key)
-		}
-		return text
-	}),
-	translate: vi.fn((_app: string, text: string) => text),
-	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-	isRTL: vi.fn(() => false),
+vi.mock('@nextcloud/l10n', () => createL10nMock({
+	t: (_app: string, text: string, vars?: Record<string, string>) => interpolateL10n(text, vars),
 }))
 
 vi.mock('@nextcloud/router', () => ({

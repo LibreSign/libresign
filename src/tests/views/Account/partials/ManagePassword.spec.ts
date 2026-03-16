@@ -4,6 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createL10nMock } from '../../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 
@@ -24,15 +25,7 @@ vi.mock('../../../../store/signMethods.js', () => ({
 	}),
 }))
 
-vi.mock('@nextcloud/l10n', () => ({
-	t: vi.fn((_app: string, text: string) => text),
-	translate: vi.fn((_app: string, text: string) => text),
-	translatePlural: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	n: vi.fn((_app: string, singular: string, plural: string, count: number) => (count === 1 ? singular : plural)),
-	isRTL: vi.fn(() => false),
-	getLanguage: vi.fn(() => 'en'),
-	getLocale: vi.fn(() => 'en'),
-}))
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 type ManagePasswordComponent = typeof import('../../../../views/Account/partials/ManagePassword.vue').default
 
