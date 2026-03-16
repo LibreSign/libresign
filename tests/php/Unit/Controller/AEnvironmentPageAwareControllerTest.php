@@ -76,9 +76,11 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 			'name' => 'test',
 			'signers' => [
 				[
-					'identify' => [
-						'account' => 'username',
-					],
+					'identifyMethods' => [[
+						'method' => 'account',
+						'mandatory' => 0,
+						'value' => 'username',
+					]],
 				],
 			],
 			'userManager' => $user,
