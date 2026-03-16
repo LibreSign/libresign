@@ -117,19 +117,25 @@ export type AdminInitialState = {
 
 type ValidateMetadataDimension = NonNullable<ValidationMetadataRecord['d']>[number]
 
-export type FileMetadataState = Omit<Partial<ValidationMetadataRecord>, 'd'> & {
-	d?: Array<Partial<ValidateMetadataDimension>>
+export type RuntimeValidationMetadataRecord = Omit<ValidationMetadataRecord, 'd'> & {
+	d?: ValidateMetadataDimension[]
 	original_file_deleted?: boolean
 }
 
-export type FileStateSettings = Partial<FileSettings> & Partial<SettingsRecord> & {
+export type EditableValidationMetadataDraft = Omit<Partial<RuntimeValidationMetadataRecord>, 'd'> & {
+	d?: Array<Partial<ValidateMetadataDimension>>
+}
+
+export type RuntimeFileSettingsRecord = FileSettings & Partial<SettingsRecord>
+
+export type EditableFileSettingsDraft = Partial<RuntimeFileSettingsRecord> & {
 	path?: string
 	allowEdit?: boolean
 	requireAuth?: boolean
 	newSetting?: string
 }
 
-export type VisibleElementState = Partial<Omit<VisibleElementRecord, 'coordinates'>> & {
+export type VisibleElementDraft = Partial<Omit<VisibleElementRecord, 'coordinates'>> & {
 	id?: number | string
 	coordinates?: Partial<VisibleElementRecord['coordinates']>
 }
