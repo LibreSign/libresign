@@ -21,6 +21,7 @@ declare global {
 		open(path: string): Promise<void>
 		close?(): void
 		setActiveTab(id: string): void
+		registerTab?: (tab: OCAFilesSidebarTab) => void
 		Tab?: new (options: Partial<OCAFilesSidebarTab>) => OCAFilesSidebarTab
 	}
 
