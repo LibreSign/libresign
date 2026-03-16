@@ -4,8 +4,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { shallowMount } from '@vue/test-utils'
 import { createL10nMock } from '../testHelpers/l10n.js'
+import { shallowMount } from '@vue/test-utils'
 import ResetPassword from '../../views/ResetPassword.vue'
 
 const {
