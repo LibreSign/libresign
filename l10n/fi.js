@@ -315,7 +315,6 @@ OC.L10N.register(
     "Page not found" : "Sivua ei löytynyt",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Valitettavasti pyytämääsi sivua ei ole olemassa, se on poistettu, siirretty tai se ei ole väliaikaisesti käytettävissä.",
     "Failed to load documents" : "Asiakirjojen lataaminen epäonnistui",
-    "Document UUID not found" : "Asiakirjan UUID:tä ei löytynyt",
     "Failed to delete document" : "Asiakirjan poistaminen epäonnistui",
     "Approved by" : "Hyväksynyt",
     "Renamed \"{oldName}\" to \"{newName}\"" : "Kohteen \"{oldName}\" uudeksi nimeksi asetettiin \"{newName}\"",

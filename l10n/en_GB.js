@@ -609,7 +609,6 @@ OC.L10N.register(
     "Page not found" : "Page not found",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.",
     "Failed to load documents" : "Failed to load documents",
-    "Document UUID not found" : "Document UUID not found",
     "Failed to delete document" : "Failed to delete document",
     "No documents to validate" : "No documents to validate",
     "Approved by" : "Approved by",

@@ -607,7 +607,6 @@
     "Page not found" : "Page non trouvée",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Désolé, la page que vous cherchez n'existe plus, a été supprimée, déplacée ou est temporairement indisponible.",
     "Failed to load documents" : "Échec du chargement des documents",
-    "Document UUID not found" : "UUID du document introuvable",
     "Failed to delete document" : "Échec de la suppression du document",
     "No documents to validate" : "Aucun document à vérifier",
     "Approved by" : "Approuvé par",
