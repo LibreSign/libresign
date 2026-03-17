@@ -18,6 +18,22 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 12.4.0 - 2026-03-17
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Advance the Vue 3 and TypeScript migration across signature flows, the files list and shared frontend infrastructure [#7165](https://github.com/LibreSign/libresign/pull/7165) [#7168](https://github.com/LibreSign/libresign/pull/7168) [#7172](https://github.com/LibreSign/libresign/pull/7172) [#7200](https://github.com/LibreSign/libresign/pull/7200) [#7250](https://github.com/LibreSign/libresign/pull/7250)
+- Improve Playwright feedback, frontend test coverage and l10n mocking stability [#7194](https://github.com/LibreSign/libresign/pull/7194) [#7211](https://github.com/LibreSign/libresign/pull/7211) [#7271](https://github.com/LibreSign/libresign/pull/7271) [#7281](https://github.com/LibreSign/libresign/pull/7281)
+- Update translations
+- Bump dependencies [#7263](https://github.com/LibreSign/libresign/pull/7263) [#7285](https://github.com/LibreSign/libresign/pull/7285) [#7287](https://github.com/LibreSign/libresign/pull/7287)
+
+### Fixes
+- fix: restore signing flow after 12.3.x [#7176](https://github.com/LibreSign/libresign/pull/7176)
+- fix(files): keep files list and validation state synchronized after signing [#7293](https://github.com/LibreSign/libresign/pull/7293)
+
 ## 12.3.3 - 2026-03-06
 
 ### Fixes
