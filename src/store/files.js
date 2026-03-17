@@ -18,6 +18,7 @@ import { useFilesSortingStore } from './filesSorting.js'
 import { useFiltersStore } from './filters.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { useSidebarStore } from './sidebar.js'
+import { FILE_STATUS } from '../constants.js'
 
 /** @typedef {import('../types/index').IdentifyMethodRecord} SignerMethodRecord */
 /** @typedef {import('../types/index').FileSettings} FileSettings */
@@ -248,6 +249,13 @@ const _filesStore = defineStore('files', () => {
 		}
 		: file
 
+	const shouldDiscardDraftForServerState = (file) => {
+		const status = Number(file?.status)
+		return status === FILE_STATUS.PARTIAL_SIGNED
+			|| status === FILE_STATUS.SIGNED
+			|| status === FILE_STATUS.SIGNING_IN_PROGRESS
+	}
+
 	const syncPublicFile = (fileId) => {
 		if (!fileId) {
 			return null
@@ -348,6 +356,9 @@ const _filesStore = defineStore('files', () => {
 		}
 
 		const key = file.id ?? null
+		if (shouldDiscardDraftForServerState(file)) {
+			clearRequestDraft(key)
+		}
 		const existingFile = apiFiles.value[key] || files.value[key]
 		const resolvedDetailsLoaded = detailsLoaded
 			?? file.detailsLoaded
