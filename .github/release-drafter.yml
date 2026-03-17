@@ -89,10 +89,7 @@ autolabeler:
     title:
       - '/^\[stable\d+\]\s+feat:/i'
       - '/^feat:/i'
-      - '/vue3 phase/i'
-      - '/migration to vue3/i'
-      - '/script setup ts/i'
-      - '/typescript/i'
+      - '/\b(migrate|migration)\b/i'
   - label: 'patch'
     title:
       - '/^\[stable\d+\]\s+fix:/i'
