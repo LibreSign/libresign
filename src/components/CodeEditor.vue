@@ -103,7 +103,7 @@ defineExpose({
 		color: var(--color-main-text);
 	}
 
-	:deep(.cm-editor) {
+	.cm-editor {
 		height: auto;
 		min-height: 80px;
 		font-family: 'Courier New', Courier, monospace;
