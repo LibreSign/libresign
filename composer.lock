@@ -170,7 +170,45 @@
                     "SignerPHP\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "SignerPHP\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "tests": [
+                    "vendor/bin/pest --configuration phpunit.xml tests"
+                ],
+                "tests:coverage": [
+                    "vendor/bin/pest --configuration phpunit.xml tests --coverage --min=98.1"
+                ],
+                "pint:fix": [
+                    "vendor/bin/pint"
+                ],
+                "pint:check": [
+                    "vendor/bin/pint --test"
+                ],
+                "security:audit": [
+                    "composer audit --no-interaction"
+                ],
+                "psalm": [
+                    "vendor/bin/psalm --no-progress"
+                ],
+                "deptrac": [
+                    "vendor/bin/deptrac analyse --no-progress"
+                ],
+                "infection": [
+                    "vendor/bin/infection --threads=max --min-msi=65 --min-covered-msi=70"
+                ],
+                "quality:all": [
+                    "@pint:check",
+                    "@security:audit",
+                    "@tests:coverage",
+                    "@psalm",
+                    "@deptrac",
+                    "@infection"
+                ]
+            },
             "license": [
                 "MIT"
             ],
