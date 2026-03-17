@@ -129,6 +129,7 @@ import { openDocument } from '../utils/viewer.js'
 import { getStatusLabel } from '../utils/fileStatus.js'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 import logger from '../logger.js'
+import { useFilesStore } from '../store/files.js'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
 import type {
@@ -289,6 +290,7 @@ function isLoadedValidationFileDocument(document: ValidationFileRecord | null): 
 
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
+const filesStore = useFilesStore()
 const instance = getCurrentInstance()
 const EXPIRATION_WARNING_DAYS = 30
 
@@ -697,6 +699,57 @@ function setValidationError(message: string, timeout = 5000) {
 	}
 }
 
+function getTrackedFileId(file: ValidationFileRecord | ValidatedChildFileRecord): number | null {
+	const fileId = toNumber(file.id)
+	if (fileId !== null && Object.hasOwn(filesStore.files, fileId)) {
+		return fileId
+	}
+
+	if (typeof file.uuid === 'string' && file.uuid.length > 0) {
+		const trackedByUuid = toNumber(filesStore.getFileIdByUuid(file.uuid))
+		if (trackedByUuid !== null) {
+			return trackedByUuid
+		}
+	}
+
+	const nodeId = toNumber(file.nodeId)
+	if (nodeId !== null) {
+		const trackedByNodeId = toNumber(filesStore.getFileIdByNodeId(nodeId))
+		if (trackedByNodeId !== null) {
+			return trackedByNodeId
+		}
+	}
+
+	return null
+}
+
+function syncValidatedDocumentToFilesStore(validationDocument: ValidationFileRecord) {
+	const pendingFiles: Array<ValidationFileRecord | ValidatedChildFileRecord> = [validationDocument]
+
+	while (pendingFiles.length > 0) {
+		const currentFile = pendingFiles.shift()
+		if (!currentFile) {
+			continue
+		}
+
+		const trackedFileId = getTrackedFileId(currentFile)
+		if (trackedFileId !== null) {
+			const storeFilePayload = {
+				...currentFile,
+				id: trackedFileId,
+			} as Parameters<typeof filesStore.addFile>[0]
+			void filesStore.addFile(storeFilePayload, { detailsLoaded: true })
+		}
+
+		const nestedFiles = 'files' in currentFile && Array.isArray(currentFile.files)
+			? currentFile.files
+			: []
+		if (nestedFiles.length > 0) {
+			pendingFiles.push(...nestedFiles.filter((file): file is ValidatedChildFileRecord => isRecord(file)))
+		}
+	}
+}
+
 function openUuidDialog() {
 	validationErrorMessage.value = null
 	getUUID.value = true
@@ -738,6 +791,9 @@ function handleValidationSuccess(data: unknown) {
 		&& document.value.files.length > 0
 		&& document.value.files.every(file => isSignedStatus(file.status))
 	const signerCompleted = isCurrentSignerSigned()
+	if (isSignedDoc || allFilesSigned || signerCompleted) {
+		syncValidatedDocumentToFilesStore(normalizedDocument)
+	}
 	if ((isSignedDoc || allFilesSigned || signerCompleted) && (isAfterSigned.value || shouldFireAsyncConfetti.value)) {
 		const capabilities = getCapabilities() as { libresign?: { config?: Record<string, unknown> } } | undefined
 		if (capabilities?.libresign?.config?.['show-confetti'] === true) {
