@@ -583,7 +583,6 @@ OC.L10N.register(
     "Page not found" : "Stránka nenalezena",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Je nám líto, ale stránka kterou hledáte neexistuje, byla odebrána, přesunuta nebo je dočasně nedostupná.",
     "Failed to load documents" : "Nepodařilo se načíst dokumenty",
-    "Document UUID not found" : "Neopakující se identifikátor dokumentu nenalezen",
     "Failed to delete document" : "Nepodařilo se smazat dokument",
     "No documents to validate" : "Žádný dokument k ověření",
     "Approved by" : "Schválil(a)",
