@@ -4,7 +4,6 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import LeftSidebar from '../../../components/LeftSidebar/LeftSidebar.vue'
 
@@ -20,7 +19,10 @@ vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: () => getCurrentUserMock(),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', async () => {
+	const { createL10nMock } = await import('../../testHelpers/l10n.js')
+	return createL10nMock()
+})
 
 vi.mock('../../../store/files.js', () => ({
 	useFilesStore: () => ({
