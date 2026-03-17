@@ -327,7 +327,7 @@ defineExpose({
 		border-bottom: 1px solid var(--color-border);
 	}
 
-	:deep(.cm-editor) {
+	.cm-editor {
 		height: auto;
 		min-height: var(--markdown-editor-min-height, 80px);
 		font-family: 'Courier New', Courier, monospace;
