@@ -609,7 +609,6 @@ OC.L10N.register(
     "Page not found" : "Sayfa bulunamadı",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Ne yazık ki aradığınız sayfa bulunamadı. Silinmiş, taşınmış ya da geçici olarak kullanılamıyor olabilir.",
     "Failed to load documents" : "Belgeler yüklenemedi",
-    "Document UUID not found" : "Belge UUID değeri bulunamadı",
     "Failed to delete document" : "Belge silinemedi",
     "No documents to validate" : "Doğrulanacak bir belge yok",
     "Approved by" : "Onaylayan",

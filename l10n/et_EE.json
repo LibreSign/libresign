@@ -456,7 +456,6 @@
     "Reason Description (optional)" : "Põhjuse kirjeldus (pole kohustuslik)",
     "Page not found" : "Lehekülge ei leitud",
     "Failed to load documents" : "Dokumentide laadimine ei õnnestunud",
-    "Document UUID not found" : "Dokumendi tunnust (UUIS) ei leidu",
     "Failed to delete document" : "Dokumendi kustutamine ei õnnestunud",
     "No documents to validate" : "Pole ühtegi kinnitatavat dokumenti",
     "Approved by" : "Heakskiitja nimi",

@@ -470,7 +470,6 @@ OC.L10N.register(
     "Page not found" : "بەت تېپىلمىدى",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "كەچۈرۈڭ ، سىز ئىزدەۋاتقان بەت مەۋجۇت ئەمەس ، ئۆچۈرۈلدى ، يۆتكەلدى ياكى ۋاقىتلىق ئىشلەتكىلى بولمايدۇ.",
     "Failed to load documents" : "ھۆججەتلەرنى يۈكلەش مەغلۇپ بولدى",
-    "Document UUID not found" : "UUID ھۆججىتى تېپىلمىدى",
     "Failed to delete document" : "ھۆججەتنى ئۆچۈرۈش مەغلۇپ بولدى",
     "No documents to validate" : "دەلىللەيدىغان ھۆججەت يوق",
     "Approved by" : "تەستىقلىدى",

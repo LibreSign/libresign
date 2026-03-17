@@ -609,7 +609,6 @@ OC.L10N.register(
     "Page not found" : "Ní bhfuarthas an leathanach",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Ár leithscéal ach níl an leathanach atá á lorg agat ann, tá sé bainte, bogtha nó níl sé ar fáil go sealadach.",
     "Failed to load documents" : "Theip ar dhoiciméid a luchtú",
-    "Document UUID not found" : "Níor aimsíodh UUID an doiciméid",
     "Failed to delete document" : "Theip ar an doiciméad a scriosadh",
     "No documents to validate" : "Gan aon doiciméid le bailíochtú",
     "Approved by" : "Ceadaithe ag",

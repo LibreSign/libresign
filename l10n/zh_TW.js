@@ -609,7 +609,6 @@ OC.L10N.register(
     "Page not found" : "找不到頁面",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "抱歉，但您正在尋找的頁面並不存在，可能已被移除、移動或暫時無法使用。",
     "Failed to load documents" : "載入文件失敗",
-    "Document UUID not found" : "找不到文件 UUID",
     "Failed to delete document" : "刪除文件失敗",
     "No documents to validate" : "無文件可供驗證",
     "Approved by" : "核准由",
