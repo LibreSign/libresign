@@ -207,6 +207,32 @@ describe('files store - critical business rules', () => {
 				newSetting: 'value',
 			})
 		})
+
+		it('discards stale request draft when server returns signed status', async () => {
+			const store = useFilesStore()
+			store.files[123] = {
+				id: 123,
+				status: 1,
+				name: 'contract.pdf',
+				signers: [{ me: true, signed: [] }],
+			}
+			store.selectedFileId = 123
+
+			const editableFile = store.getEditableFile()
+			editableFile.status = 1
+			editableFile.statusText = 'Ready to sign'
+
+			await store.addFile({
+				id: 123,
+				status: 3,
+				statusText: 'Signed',
+				name: 'contract.pdf',
+				signers: [{ me: true, signed: '2026-03-17 10:00:00' }],
+			})
+
+			expect(store.files[123].status).toBe(3)
+			expect(store.files[123].statusText).toBe('Signed')
+		})
 	})
 
 	describe('RULE: envelope filesCount reflects file operations', () => {
