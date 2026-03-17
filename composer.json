@@ -58,15 +58,9 @@
 			"OCA\\Libresign\\Tests\\Fixtures\\": "tests/php/fixtures/"
 		}
 	},
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "https://github.com/vitormattos/pdf-signer-php"
-		}
-	],
 	"require": {
 		"cweagans/composer-patches": "^2.0",
-		"jeidison/signer-php": "dev-feat/visible-signature-appearance",
+		"jeidison/signer-php": "^1.0",
 		"phpseclib/phpseclib": "^3.0"
 	}
 }
