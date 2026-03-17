@@ -158,6 +158,18 @@ vi.mock('../../store/sidebar.js', () => ({
 	})),
 }))
 
+vi.mock('../../store/files.js', () => {
+	const filesStore = {
+		files: {},
+		addFile: vi.fn(),
+		getFileIdByUuid: vi.fn(() => null),
+		getFileIdByNodeId: vi.fn(() => null),
+	}
+	return {
+		useFilesStore: vi.fn(() => filesStore),
+	}
+})
+
 // Mock utils
 vi.mock('../../utils/viewer.js', () => ({
 	openDocument: vi.fn(),
@@ -177,10 +189,16 @@ describe('Validation.vue - Business Logic', () => {
 		await wrapper.vm.$nextTick()
 	}
 
-	beforeEach(() => {
+	beforeEach(async () => {
+		vi.clearAllMocks()
 		history.replaceState({}, '')
 		mockAddConfetti = vi.fn()
 		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: {} } } })
+		const { useFilesStore } = await import('../../store/files.js')
+		const filesStore = useFilesStore()
+		filesStore.files = {}
+		vi.mocked(filesStore.getFileIdByUuid).mockReturnValue(null)
+		vi.mocked(filesStore.getFileIdByNodeId).mockReturnValue(null)
 		// Must use `function` syntax so vitest accepts it as a valid constructor mock
 		vi.mocked(JSConfetti).mockImplementation(function() {
 			return { addConfetti: mockAddConfetti }
@@ -727,6 +745,63 @@ describe('Validation.vue - Business Logic', () => {
 			history.pushState({ isAfterSigned: true }, '')
 			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({ status: SIGNED_STATUS }))
 			expect(mockAddConfetti).not.toHaveBeenCalled()
+		})
+
+		it('syncs a tracked signed document into files store', async () => {
+			const { useFilesStore } = await import('../../store/files.js')
+			const filesStore = useFilesStore()
+			vi.mocked(filesStore.getFileIdByUuid).mockReturnValue(100)
+
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({ status: SIGNED_STATUS }))
+
+			expect(filesStore.addFile).toHaveBeenCalledWith(expect.objectContaining({
+				id: 100,
+				uuid: '550e8400-e29b-41d4-a716-446655440000',
+				status: SIGNED_STATUS,
+			}), { detailsLoaded: true })
+		})
+
+		it('syncs tracked envelope children when all files are signed', async () => {
+			const { useFilesStore } = await import('../../store/files.js')
+			const filesStore = useFilesStore()
+			vi.mocked(filesStore.getFileIdByUuid).mockImplementation((uuid: string) => {
+				if (uuid === '550e8400-e29b-41d4-a716-446655440000') {
+					return 100
+				}
+				return null
+			})
+			vi.mocked(filesStore.getFileIdByNodeId).mockImplementation((nodeId: number) => {
+				if (nodeId === 201) {
+					return 201
+				}
+				if (nodeId === 202) {
+					return 202
+				}
+				return null
+			})
+
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({
+				nodeType: 'envelope',
+				status: 0,
+				files: [
+					{ id: 201, uuid: 'child-1', nodeId: 201, name: 'child-1.pdf', status: SIGNED_STATUS },
+					{ id: 202, uuid: 'child-2', nodeId: 202, name: 'child-2.pdf', status: SIGNED_STATUS },
+				],
+			}))
+
+			expect(filesStore.addFile).toHaveBeenCalledTimes(3)
+			expect(filesStore.addFile).toHaveBeenNthCalledWith(1, expect.objectContaining({ id: 100 }), { detailsLoaded: true })
+			expect(filesStore.addFile).toHaveBeenNthCalledWith(2, expect.objectContaining({ id: 201, status: SIGNED_STATUS }), { detailsLoaded: true })
+			expect(filesStore.addFile).toHaveBeenNthCalledWith(3, expect.objectContaining({ id: 202, status: SIGNED_STATUS }), { detailsLoaded: true })
+		})
+
+		it('does not sync untracked documents into files store', async () => {
+			const { useFilesStore } = await import('../../store/files.js')
+			const filesStore = useFilesStore()
+
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({ status: SIGNED_STATUS }))
+
+			expect(filesStore.addFile).not.toHaveBeenCalled()
 		})
 	})
 
