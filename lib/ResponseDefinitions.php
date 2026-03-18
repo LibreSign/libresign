@@ -354,11 +354,19 @@ namespace OCA\Libresign;
  *
  * Validation and progress contracts
  *
+ * @psalm-type LibresignPolicySnapshotEntry = array{
+ *     effectiveValue: string,
+ *     sourceScope: string,
+ * }
+ * @psalm-type LibresignValidatePolicySnapshot = array{
+ *     signature_flow?: LibresignPolicySnapshotEntry,
+ * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,
  *     p: int,
  *     d?: list<array{w: float, h: float}>,
  *     original_file_deleted?: bool,
+ *     policy_snapshot?: LibresignValidatePolicySnapshot,
  *     pdfVersion?: string,
  *     status_changed_at?: string,
  * }
