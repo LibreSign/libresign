@@ -61,4 +61,40 @@ class PolicyService {
 
 		return $this->resolver->resolveMany($definitions, $context);
 	}
+
+	public function saveSystem(string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
+		$context = $this->contextFactory->forCurrentUser();
+		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $value === null
+			? $definition->normalizeValue($definition->defaultSystemValue())
+			: $definition->normalizeValue($value);
+
+		$definition->validateValue($normalizedValue, $context);
+		$this->source->saveSystemPolicy($definition->key(), $normalizedValue);
+
+		return $this->resolver->resolve($definition, $context);
+	}
+
+	public function saveUserPreference(string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
+		$context = $this->contextFactory->forCurrentUser();
+		$definition = $this->registry->get($policyKey);
+		$resolved = $this->resolver->resolve($definition, $context);
+		if (!$resolved->canSaveAsUserDefault()) {
+			throw new \InvalidArgumentException('Saving a user preference is not allowed for ' . $definition->key());
+		}
+
+		$normalizedValue = $definition->normalizeValue($value);
+		$definition->validateValue($normalizedValue, $context);
+		$this->source->saveUserPreference($definition->key(), $context, $normalizedValue);
+
+		return $this->resolver->resolve($definition, $context);
+	}
+
+	public function clearUserPreference(string|\BackedEnum $policyKey): ResolvedPolicy {
+		$context = $this->contextFactory->forCurrentUser();
+		$definition = $this->registry->get($policyKey);
+		$this->source->clearUserPreference($definition->key(), $context);
+
+		return $this->resolver->resolve($definition, $context);
+	}
 }
