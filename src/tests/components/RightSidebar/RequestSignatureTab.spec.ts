@@ -37,6 +37,20 @@ vi.mock('@nextcloud/initial-state', () => ({
 			}
 		}
 		if (key === 'can_request_sign') return true
+		if (key === 'signature_flow_policy') {
+			return {
+				policyKey: 'signature_flow',
+				effectiveValue: 'none',
+				sourceScope: 'system',
+				visible: true,
+				editableByCurrentActor: true,
+				allowedValues: ['none', 'parallel', 'ordered_numeric'],
+				canSaveAsUserDefault: true,
+				canUseAsRequestOverride: true,
+				preferenceWasCleared: false,
+				blockedBy: null,
+			}
+		}
 		return defaultValue
 	}),
 }))
@@ -624,7 +638,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 	})
 
-	describe('RULE: signatureFlow calculation with admin override', () => {
+	describe('RULE: signatureFlow calculation with effective policy bootstrap', () => {
 		it('returns ordered_numeric when file flow is 2', async () => {
 			await updateFile({ signatureFlow: 2 })
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
@@ -640,37 +654,58 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.signatureFlow).toBe('none')
 		})
 
-		it('uses admin flow when file flow is none', async () => {
-			await setVmState({ adminSignatureFlow: 'ordered_numeric' })
+		it('uses effective policy when file flow is none', async () => {
+			await setVmState({
+				signatureFlowPolicy: {
+					...wrapper.vm.signatureFlowPolicy,
+					effectiveValue: 'ordered_numeric',
+				},
+			})
 			await updateFile({ signatureFlow: 'none' })
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
 		})
 
-		it('defaults to parallel when both file and admin are none', async () => {
-			await setVmState({ adminSignatureFlow: 'none' })
+		it('defaults to parallel when both file and policy are none', async () => {
+			await setVmState({
+				signatureFlowPolicy: {
+					...wrapper.vm.signatureFlowPolicy,
+					effectiveValue: 'none',
+				},
+			})
 			await updateFile({ signatureFlow: 'none' })
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
 	})
 
 	describe('RULE: isAdminFlowForced detection', () => {
-		it('returns true when admin flow set to ordered_numeric', async () => {
-			await setVmState({ adminSignatureFlow: 'ordered_numeric' })
+		it('returns true when policy blocks request overrides', async () => {
+			await setVmState({
+				signatureFlowPolicy: {
+					...wrapper.vm.signatureFlowPolicy,
+					canUseAsRequestOverride: false,
+				},
+			})
 			expect(wrapper.vm.isAdminFlowForced).toBe(true)
 		})
 
-		it('returns true when admin flow set to parallel', async () => {
-			await setVmState({ adminSignatureFlow: 'parallel' })
-			expect(wrapper.vm.isAdminFlowForced).toBe(true)
-		})
-
-		it('returns false when admin flow is none', async () => {
-			await setVmState({ adminSignatureFlow: 'none' })
+		it('returns false when policy allows request overrides', async () => {
+			await setVmState({
+				signatureFlowPolicy: {
+					...wrapper.vm.signatureFlowPolicy,
+					canUseAsRequestOverride: true,
+				},
+			})
 			expect(wrapper.vm.isAdminFlowForced).toBe(false)
 		})
 
-		it('hides preserve order switch when admin forces flow', async () => {
-			await setVmState({ adminSignatureFlow: 'ordered_numeric' })
+		it('hides preserve order switch when policy forces flow', async () => {
+			await setVmState({
+				signatureFlowPolicy: {
+					...wrapper.vm.signatureFlowPolicy,
+					canUseAsRequestOverride: false,
+					effectiveValue: 'ordered_numeric',
+				},
+			})
 			await updateFile({
 				signers: [
 					{ email: 'test1@example.com' },
@@ -869,7 +904,13 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('reverts to parallel when disabling', async () => {
-			await setVmState({ adminSignatureFlow: 'none' })
+			await setVmState({
+				signatureFlowPolicy: {
+					...wrapper.vm.signatureFlowPolicy,
+					effectiveValue: 'none',
+					canUseAsRequestOverride: true,
+				},
+			})
 			await updateFile({
 				signatureFlow: 'ordered_numeric',
 				signers: [
@@ -882,7 +923,13 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('preserves admin flow when disabling user preference', async () => {
-			await setVmState({ adminSignatureFlow: 'ordered_numeric' })
+			await setVmState({
+				signatureFlowPolicy: {
+					...wrapper.vm.signatureFlowPolicy,
+					effectiveValue: 'ordered_numeric',
+					canUseAsRequestOverride: false,
+				},
+			})
 			await updateFile({
 				signatureFlow: 'ordered_numeric',
 				signers: [
@@ -915,7 +962,13 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('disables preserve order when admin forces flow', async () => {
-			await setVmState({ adminSignatureFlow: 'ordered_numeric' })
+			await setVmState({
+				signatureFlowPolicy: {
+					...wrapper.vm.signatureFlowPolicy,
+					effectiveValue: 'ordered_numeric',
+					canUseAsRequestOverride: false,
+				},
+			})
 			await updateFile({ signatureFlow: 'ordered_numeric' })
 			wrapper.vm.syncPreserveOrderWithFile()
 			expect(wrapper.vm.preserveOrder).toBe(false)
