@@ -6,28 +6,38 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Policy;
+namespace OCA\Libresign\Tests\Unit\Service\Policy\Runtime;
 
 use OCA\Libresign\Db\PermissionSet;
 use OCA\Libresign\Db\PermissionSetBinding;
 use OCA\Libresign\Db\PermissionSetBindingMapper;
 use OCA\Libresign\Db\PermissionSetMapper;
-use OCA\Libresign\Service\Policy\PolicyContext;
-use OCA\Libresign\Service\Policy\SignatureFlowPolicySource;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
+use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCP\AppFramework\Services\IAppConfig;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 
-final class SignatureFlowPolicySourceTest extends TestCase {
+final class PolicySourceTest extends TestCase {
 	private IAppConfig&MockObject $appConfig;
 	private PermissionSetMapper&MockObject $permissionSetMapper;
 	private PermissionSetBindingMapper&MockObject $bindingMapper;
+	private PolicyRegistry $registry;
 
 	protected function setUp(): void {
 		parent::setUp();
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->permissionSetMapper = $this->createMock(PermissionSetMapper::class);
 		$this->bindingMapper = $this->createMock(PermissionSetBindingMapper::class);
+		$container = $this->createMock(ContainerInterface::class);
+		$container
+			->method('get')
+			->with(SignatureFlowPolicy::class)
+			->willReturn(new SignatureFlowPolicy());
+		$this->registry = new PolicyRegistry($container);
 	}
 
 	public function testLoadSystemPolicyReturnsForcedLayerWhenAppConfigIsSet(): void {
@@ -47,7 +57,7 @@ final class SignatureFlowPolicySourceTest extends TestCase {
 		$this->assertSame(['ordered_numeric'], $layer->getAllowedValues());
 	}
 
-	public function testLoadSystemPolicyReturnsInheritableLayerWhenAppConfigIsNone(): void {
+	public function testLoadSystemPolicyReturnsInheritableLayerWhenAppConfigMatchesDefault(): void {
 		$this->appConfig
 			->expects($this->once())
 			->method('getAppValueString')
@@ -70,6 +80,7 @@ final class SignatureFlowPolicySourceTest extends TestCase {
 		$binding->setTargetId('finance');
 
 		$permissionSet = new PermissionSet();
+		$permissionSet->setId(77);
 		$permissionSet->setPolicyJson([
 			'signature_flow' => [
 				'defaultValue' => 'ordered_numeric',
@@ -81,15 +92,15 @@ final class SignatureFlowPolicySourceTest extends TestCase {
 
 		$this->bindingMapper
 			->expects($this->once())
-			->method('getByTarget')
-			->with('group', 'finance')
-			->willReturn($binding);
+			->method('findByTargets')
+			->with('group', ['finance'])
+			->willReturn([$binding]);
 
 		$this->permissionSetMapper
 			->expects($this->once())
-			->method('getById')
-			->with(77)
-			->willReturn($permissionSet);
+			->method('findByIds')
+			->with([77])
+			->willReturn([$permissionSet]);
 
 		$context = PolicyContext::fromUserId('john')
 			->setGroups(['finance'])
@@ -142,11 +153,12 @@ final class SignatureFlowPolicySourceTest extends TestCase {
 		$this->assertSame('ordered_numeric', $layer->getValue());
 	}
 
-	private function getSource(): SignatureFlowPolicySource {
-		return new SignatureFlowPolicySource(
+	private function getSource(): PolicySource {
+		return new PolicySource(
 			$this->appConfig,
 			$this->permissionSetMapper,
 			$this->bindingMapper,
+			$this->registry,
 		);
 	}
 }
