@@ -17,7 +17,6 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
@@ -64,10 +63,17 @@ class TemplateLoader implements IEventListener {
 	}
 
 	protected function getInitialStatePayload(): array {
+		$resolvedPolicies = [];
+		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
+			$resolvedPolicies[$policyKey] = $resolvedPolicy->toArray();
+		}
+
 		return [
 			'certificate_ok' => $this->certificateEngineFactory->getEngine()->isSetupOk(),
 			'identify_methods' => $this->identifyMethodService->getIdentifyMethodsSettings(),
-			'signature_flow_policy' => $this->policyService->resolve(SignatureFlowPolicy::KEY)->toArray(),
+			'effective_policies' => [
+				'policies' => $resolvedPolicies,
+			],
 			'docmdp_config' => $this->docMdpConfigService->getConfig(),
 			'can_request_sign' => $this->canRequestSign(),
 		];
