@@ -6,9 +6,9 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Policy;
+namespace OCA\Libresign\Tests\Unit\Service\Policy\Model;
 
-use OCA\Libresign\Service\Policy\PolicyLayer;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use PHPUnit\Framework\TestCase;
 
 final class PolicyLayerTest extends TestCase {
