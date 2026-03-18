@@ -23,7 +23,8 @@ use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\SignatureFlowPolicyService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -59,7 +60,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private AccountService $accountService,
 		protected SignFileService $signFileService,
 		protected RequestSignatureService $requestSignatureService,
-		private SignatureFlowPolicyService $signatureFlowPolicyService,
+		private PolicyService $policyService,
 		private SignerElementsService $signerElementsService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
@@ -108,7 +109,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
-		$this->initialState->provideInitialState('signature_flow_policy', $this->signatureFlowPolicyService->resolveForUser($this->userSession->getUser())->toArray());
+		$this->initialState->provideInitialState('signature_flow_policy', $this->policyService->resolve(SignatureFlowPolicy::KEY)->toArray());
 		$this->initialState->provideInitialState('docmdp_config', $this->docMdpConfigService->getConfig());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information'));
 

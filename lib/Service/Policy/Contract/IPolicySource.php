@@ -6,9 +6,12 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Policy;
+namespace OCA\Libresign\Service\Policy\Contract;
 
-interface PolicySourceInterface {
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+
+interface IPolicySource {
 	public function loadSystemPolicy(string $policyKey): ?PolicyLayer;
 
 	/** @return list<PolicyLayer> */
