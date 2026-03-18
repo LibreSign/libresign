@@ -24,6 +24,7 @@ use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\ReminderService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -83,6 +84,7 @@ class AdminController extends AEnvironmentAwareController {
 		private ReminderService $reminderService,
 		private FooterService $footerService,
 		private DocMdpConfigService $docMdpConfigService,
+		private PolicyService $policyService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileMapper $fileMapper,
 	) {
@@ -974,36 +976,21 @@ class AdminController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-flow/config', requirements: ['apiVersion' => '(v1)'])]
 	public function setSignatureFlowConfig(bool $enabled, ?string $mode = null): DataResponse {
 		try {
-			if (!$enabled) {
-				$this->appConfig->deleteKey(Application::APP_ID, 'signature_flow');
-				return new DataResponse([
-					'message' => $this->l10n->t('Settings saved'),
-				]);
-			}
-
-			if ($mode === null) {
+			if ($enabled && $mode === null) {
 				return new DataResponse([
 					'error' => $this->l10n->t('Mode is required when signature flow is enabled.'),
 				], Http::STATUS_BAD_REQUEST);
 			}
 
-			try {
-				$signatureFlow = \OCA\Libresign\Enum\SignatureFlow::from($mode);
-			} catch (\ValueError) {
-				return new DataResponse([
-					'error' => $this->l10n->t('Invalid signature flow mode. Use "parallel" or "ordered_numeric".'),
-				], Http::STATUS_BAD_REQUEST);
-			}
-
-			$this->appConfig->setValueString(
-				Application::APP_ID,
-				'signature_flow',
-				$signatureFlow->value
-			);
+			$this->policyService->saveSystem('signature_flow', $enabled ? $mode : null);
 
 			return new DataResponse([
 				'message' => $this->l10n->t('Settings saved'),
 			]);
+		} catch (\InvalidArgumentException) {
+			return new DataResponse([
+				'error' => $this->l10n->t('Invalid signature flow mode. Use "parallel" or "ordered_numeric".'),
+			], Http::STATUS_BAD_REQUEST);
 		} catch (\Exception $e) {
 			return new DataResponse([
 				'error' => $e->getMessage(),
