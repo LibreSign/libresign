@@ -6,29 +6,24 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Policy;
+namespace OCA\Libresign\Service\Policy\Runtime;
 
-final class DefaultPolicyResolver implements PolicyResolverInterface {
-	/** @var array<string, PolicyDefinitionInterface> */
-	private array $definitions = [];
+use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
+use OCA\Libresign\Service\Policy\Contract\IPolicyResolver;
+use OCA\Libresign\Service\Policy\Contract\IPolicySource;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 
-	/** @param iterable<PolicyDefinitionInterface> $definitions */
+final class DefaultPolicyResolver implements IPolicyResolver {
 	public function __construct(
-		private PolicySourceInterface $source,
-		iterable $definitions,
+		private IPolicySource $source,
 	) {
-		foreach ($definitions as $definition) {
-			$this->definitions[$definition->key()] = $definition;
-		}
 	}
 
 	#[\Override]
-	public function resolve(string $policyKey, PolicyContext $context): ResolvedPolicy {
-		$definition = $this->definitions[$policyKey] ?? null;
-		if ($definition === null) {
-			throw new \InvalidArgumentException(sprintf('Unknown policy key: %s', $policyKey));
-		}
-
+	public function resolve(IPolicyDefinition $definition, PolicyContext $context): ResolvedPolicy {
+		$policyKey = $definition->key();
 		$resolved = (new ResolvedPolicy())
 			->setPolicyKey($policyKey)
 			->setAllowedValues($definition->allowedValues($context));
@@ -48,6 +43,7 @@ final class DefaultPolicyResolver implements PolicyResolverInterface {
 				$definition,
 				$resolved,
 				$systemLayer,
+				$context,
 				$currentValue,
 				$currentSourceScope,
 				true,
@@ -60,6 +56,7 @@ final class DefaultPolicyResolver implements PolicyResolverInterface {
 				$definition,
 				$resolved,
 				$layer,
+				$context,
 				$currentValue,
 				$currentSourceScope,
 				$canOverrideBelow,
@@ -69,9 +66,9 @@ final class DefaultPolicyResolver implements PolicyResolverInterface {
 
 		$userPreference = $this->source->loadUserPreference($policyKey, $context);
 		if ($userPreference !== null) {
-			if ($this->canApplyLowerLayer($definition, $resolved, $userPreference, $canOverrideBelow, $visible)) {
+			if ($this->canApplyLowerLayer($definition, $resolved, $userPreference, $canOverrideBelow, $visible, $context)) {
 				$currentValue = $definition->normalizeValue($userPreference->getValue());
-				$definition->validateValue($currentValue);
+				$definition->validateValue($currentValue, $context);
 				$currentSourceScope = $userPreference->getScope();
 			} else {
 				$this->source->clearUserPreference($policyKey, $context);
@@ -82,9 +79,9 @@ final class DefaultPolicyResolver implements PolicyResolverInterface {
 
 		$requestOverride = $this->source->loadRequestOverride($policyKey, $context);
 		if ($requestOverride !== null) {
-			if ($this->canApplyLowerLayer($definition, $resolved, $requestOverride, $canOverrideBelow, $visible)) {
+			if ($this->canApplyLowerLayer($definition, $resolved, $requestOverride, $canOverrideBelow, $visible, $context)) {
 				$currentValue = $definition->normalizeValue($requestOverride->getValue());
-				$definition->validateValue($currentValue);
+				$definition->validateValue($currentValue, $context);
 				$currentSourceScope = $requestOverride->getScope();
 			} elseif ($currentBlockedBy === null) {
 				$currentBlockedBy = $currentSourceScope;
@@ -104,18 +101,24 @@ final class DefaultPolicyResolver implements PolicyResolverInterface {
 	}
 
 	#[\Override]
-	public function resolveMany(array $policyKeys, PolicyContext $context): array {
+	/** @param list<IPolicyDefinition> $definitions */
+	public function resolveMany(array $definitions, PolicyContext $context): array {
 		$resolved = [];
-		foreach ($policyKeys as $policyKey) {
-			$resolved[$policyKey] = $this->resolve($policyKey, $context);
+		foreach ($definitions as $definition) {
+			if (!$definition instanceof IPolicyDefinition) {
+				continue;
+			}
+
+			$resolved[$definition->key()] = $this->resolve($definition, $context);
 		}
 		return $resolved;
 	}
 
 	private function applyLayer(
-		PolicyDefinitionInterface $definition,
+		IPolicyDefinition $definition,
 		ResolvedPolicy $resolved,
 		PolicyLayer $layer,
+		PolicyContext $context,
 		mixed $currentValue,
 		string $currentSourceScope,
 		bool $canOverrideBelow,
@@ -126,7 +129,7 @@ final class DefaultPolicyResolver implements PolicyResolverInterface {
 
 		if ($layer->getValue() !== null && ($currentSourceScope === 'system' || $canOverrideBelow)) {
 			$currentValue = $definition->normalizeValue($layer->getValue());
-			$definition->validateValue($currentValue);
+			$definition->validateValue($currentValue, $context);
 			$currentSourceScope = $layer->getScope();
 		}
 
@@ -136,11 +139,12 @@ final class DefaultPolicyResolver implements PolicyResolverInterface {
 	}
 
 	private function canApplyLowerLayer(
-		PolicyDefinitionInterface $definition,
+		IPolicyDefinition $definition,
 		ResolvedPolicy $resolved,
 		PolicyLayer $layer,
 		bool $canOverrideBelow,
 		bool $visible,
+		PolicyContext $context,
 	): bool {
 		if (!$visible || !$canOverrideBelow || $layer->getValue() === null) {
 			return false;
@@ -152,7 +156,7 @@ final class DefaultPolicyResolver implements PolicyResolverInterface {
 			return false;
 		}
 
-		$definition->validateValue($value);
+		$definition->validateValue($value, $context);
 		return true;
 	}
 
