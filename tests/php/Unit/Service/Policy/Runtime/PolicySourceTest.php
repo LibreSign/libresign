@@ -131,6 +131,16 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('parallel', $layer->getValue());
 	}
 
+	public function testSaveUserPreferenceNormalizesAndPersistsUserConfigValue(): void {
+		$this->appConfig
+			->expects($this->once())
+			->method('setUserValue')
+			->with('john', 'policy.signature_flow', 'ordered_numeric');
+
+		$source = $this->getSource();
+		$source->saveUserPreference('signature_flow', PolicyContext::fromUserId('john'), 2);
+	}
+
 	public function testClearUserPreferenceDeletesUserConfig(): void {
 		$this->appConfig
 			->expects($this->once())
@@ -139,6 +149,26 @@ final class PolicySourceTest extends TestCase {
 
 		$source = $this->getSource();
 		$source->clearUserPreference('signature_flow', PolicyContext::fromUserId('john'));
+	}
+
+	public function testSaveSystemPolicyDeletesAppConfigWhenValueMatchesDefault(): void {
+		$this->appConfig
+			->expects($this->once())
+			->method('deleteAppValue')
+			->with('signature_flow');
+
+		$source = $this->getSource();
+		$source->saveSystemPolicy('signature_flow', 'none');
+	}
+
+	public function testSaveSystemPolicyNormalizesAndPersistsAppConfigValue(): void {
+		$this->appConfig
+			->expects($this->once())
+			->method('setAppValueString')
+			->with('signature_flow', 'ordered_numeric');
+
+		$source = $this->getSource();
+		$source->saveSystemPolicy('signature_flow', 2);
 	}
 
 	public function testLoadRequestOverrideReturnsLayerFromContext(): void {
