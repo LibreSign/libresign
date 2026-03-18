@@ -354,6 +354,22 @@ namespace OCA\Libresign;
  *
  * Validation and progress contracts
  *
+ * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string
+ * @psalm-type LibresignEffectivePolicyState = array{
+ *     policyKey: string,
+ *     effectiveValue: LibresignEffectivePolicyValue,
+ *     sourceScope: string,
+ *     visible: bool,
+ *     editableByCurrentActor: bool,
+ *     allowedValues: list<LibresignEffectivePolicyValue>,
+ *     canSaveAsUserDefault: bool,
+ *     canUseAsRequestOverride: bool,
+ *     preferenceWasCleared: bool,
+ *     blockedBy: ?string,
+ * }
+ * @psalm-type LibresignEffectivePoliciesResponse = array{
+ *     policies: array<string, LibresignEffectivePolicyState>,
+ * }
  * @psalm-type LibresignPolicySnapshotEntry = array{
  *     effectiveValue: string,
  *     sourceScope: string,
