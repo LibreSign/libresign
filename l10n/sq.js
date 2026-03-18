@@ -63,6 +63,7 @@ OC.L10N.register(
     "File" : "Skedar ",
     "Details" : "Detajet",
     "Certificate" : "Çertifikata",
+    "Document" : "Dokument",
     "Change password" : "Ndrysho fjalëkalimin",
     "Signature" : "Nënshkrimi",
     "Profile picture" : "Foto profili",
@@ -104,6 +105,8 @@ OC.L10N.register(
     "Username" : "Emri i përdoruesit",
     "Optional" : "Jo i detyrueshëm",
     "Complete" : "I Perfunduar",
+    "Hello {name}" : "Tungjatjeta {name}",
+    "_{count} file_::_{count} files_" : ["{count} kartelë","{count} skedar"],
     "Today" : "Sot"
 },
 "nplurals=2; plural=(n != 1);");

@@ -56,6 +56,8 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Օգտանուն",
     "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
+    "Hello {name}" : "Բարև {name}",
+    "_{count} file_::_{count} files_" : ["{count} ֆայլ","{count} ֆայլ"],
     "Today" : "Այսօր"
 },
 "nplurals=2; plural=(n != 1);");

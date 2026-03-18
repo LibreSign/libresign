@@ -82,6 +82,7 @@ OC.L10N.register(
     "File" : "Ficheiro",
     "Details" : "Detalhes",
     "Certificate" : "Certificado",
+    "Document" : "Documento",
     "Upload file" : "Enviar ficheiro",
     "Delete file" : "Apagar ficheiro",
     "Signature" : "Assinatura",
@@ -142,6 +143,8 @@ OC.L10N.register(
     "Optional" : "Opcional ",
     "Email verification" : "Verificação de e-mail",
     "Forgot password?" : "Senha esquecida?",
+    "Hello {name}" : "Olá {name}",
+    "_{count} file_::_{count} files_" : ["{count} ficheiro","{count} ficheiros","{count} ficheiros"],
     "Today" : "Hoje",
     "Last 7 days" : "Últimos 7 dias",
     "Last 30 days" : "Últimos 30 dias"

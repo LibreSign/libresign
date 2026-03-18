@@ -92,6 +92,8 @@
     "Username" : "მომხმარებლის სახელი",
     "Optional" : "არასავალდებულო",
     "Complete" : "დასრულებულია",
+    "Hello {name}" : "გამარჯობა {name}",
+    "_{count} file_::_{count} files_" : ["{count} ფაილი","{count} ფაილი"],
     "Today" : "დღეს"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

@@ -35,6 +35,7 @@ OC.L10N.register(
     "No date" : "No date",
     "Error" : "Error",
     "Details" : "Detalios",
+    "Document" : "Documento",
     "Profile picture" : "Pictura de profilo",
     "Create account" : "Crear conto",
     "Password" : "Contrasigno",
@@ -58,6 +59,7 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Nomine de usator",
     "Optional" : "Optional",
+    "_{count} file_::_{count} files_" : ["{count} file","{count} files"],
     "Today" : "Hodie"
 },
 "nplurals=2; plural=(n != 1);");

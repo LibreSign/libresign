@@ -108,6 +108,7 @@ OC.L10N.register(
     "File" : "Fichier",
     "Details" : "Detalhs",
     "Certificate" : "Certificat",
+    "Document" : "Document",
     "Delete file" : "Suprimir fichièr",
     "Signature" : "Signatura",
     "Profile picture" : "Imatge de perfil",
@@ -153,6 +154,8 @@ OC.L10N.register(
     "Forgot password?" : "Senhal oblidat ?",
     "This document is valid" : "Aqueste document es valid",
     "Return" : "Tornar",
+    "Hello {name}" : "Adiu {name}",
+    "_{count} file_::_{count} files_" : ["{count} fichièr","{count} fichièrs"],
     "Today" : "Uèi"
 },
 "nplurals=2; plural=(n > 1);");

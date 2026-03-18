@@ -51,6 +51,7 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "Korisničko ime",
+    "_{count} file_::_{count} files_" : ["{count} datoteka","{count} datoteke","{count} datoteke"],
     "Today" : "Danas"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

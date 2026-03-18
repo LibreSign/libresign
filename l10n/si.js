@@ -50,6 +50,8 @@ OC.L10N.register(
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
     "No" : "නැහැ",
+    "Hello {name}" : "ආයුබෝවන් {name}",
+    "_{count} file_::_{count} files_" : ["ගොනු {count}","ගොනු {count}"],
     "Today" : "අද"
 },
 "nplurals=2; plural=(n != 1);");

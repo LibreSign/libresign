@@ -49,6 +49,7 @@
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "ব্যবহারকারী",
+    "Hello {name}" : "হ্যালো {name}",
     "Today" : "আজ"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
