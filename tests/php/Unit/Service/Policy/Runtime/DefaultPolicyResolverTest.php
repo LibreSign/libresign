@@ -149,6 +149,12 @@ final class InMemoryPolicySource implements IPolicySource {
 		return $this->requestOverride;
 	}
 
+	public function saveSystemPolicy(string $policyKey, mixed $value): void {
+	}
+
+	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void {
+	}
+
 	public function clearUserPreference(string $policyKey, PolicyContext $context): void {
 		$this->userPreferenceCleared = true;
 	}
