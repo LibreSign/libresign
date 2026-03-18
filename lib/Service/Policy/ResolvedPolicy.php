@@ -112,4 +112,20 @@ final class ResolvedPolicy {
 	public function getBlockedBy(): ?string {
 		return $this->blockedBy;
 	}
+
+	/** @return array<string, mixed> */
+	public function toArray(): array {
+		return [
+			'policyKey' => $this->getPolicyKey(),
+			'effectiveValue' => $this->getEffectiveValue(),
+			'sourceScope' => $this->getSourceScope(),
+			'visible' => $this->isVisible(),
+			'editableByCurrentActor' => $this->isEditableByCurrentActor(),
+			'allowedValues' => $this->getAllowedValues(),
+			'canSaveAsUserDefault' => $this->canSaveAsUserDefault(),
+			'canUseAsRequestOverride' => $this->canUseAsRequestOverride(),
+			'preferenceWasCleared' => $this->wasPreferenceCleared(),
+			'blockedBy' => $this->getBlockedBy(),
+		];
+	}
 }
