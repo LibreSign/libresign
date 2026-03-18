@@ -6,6 +6,7 @@
 import type { components as ApiComponents } from './openapi/openapi'
 import type { operations as ApiOperations } from './openapi/openapi'
 import type { components as AdminComponents } from './openapi/openapi-administration'
+import type { operations as AdminOperations } from './openapi/openapi-administration'
 
 type ApiJsonBody<TRequestBody> = TRequestBody extends {
 	content: {
@@ -50,6 +51,10 @@ export type EffectivePolicyValue = ApiComponents['schemas']['EffectivePolicyValu
 export type EffectivePolicyState = ApiComponents['schemas']['EffectivePolicyState']
 export type EffectivePoliciesResponse = ApiOcsResponseData<ApiOperations['policy-effective'], 200>
 export type EffectivePoliciesState = EffectivePoliciesResponse['policies']
+export type SystemPolicyWritePayload = ApiRequestJsonBody<AdminOperations['policy-set-system']>
+export type SystemPolicyWriteResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 200>
+export type SystemPolicyWriteErrorResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 400>
+	| ApiOcsResponseData<AdminOperations['policy-set-system'], 500>
 export type NewFilePayload = ApiComponents['schemas']['NewFile']
 export type IdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
 export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']
