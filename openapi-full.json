@@ -951,6 +951,90 @@
                     }
                 }
             },
+            "EffectivePoliciesResponse": {
+                "type": "object",
+                "required": [
+                    "policies"
+                ],
+                "properties": {
+                    "policies": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/EffectivePolicyState"
+                        }
+                    }
+                }
+            },
+            "EffectivePolicyState": {
+                "type": "object",
+                "required": [
+                    "policyKey",
+                    "effectiveValue",
+                    "sourceScope",
+                    "visible",
+                    "editableByCurrentActor",
+                    "allowedValues",
+                    "canSaveAsUserDefault",
+                    "canUseAsRequestOverride",
+                    "preferenceWasCleared",
+                    "blockedBy"
+                ],
+                "properties": {
+                    "policyKey": {
+                        "type": "string"
+                    },
+                    "effectiveValue": {
+                        "$ref": "#/components/schemas/EffectivePolicyValue"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    },
+                    "visible": {
+                        "type": "boolean"
+                    },
+                    "editableByCurrentActor": {
+                        "type": "boolean"
+                    },
+                    "allowedValues": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EffectivePolicyValue"
+                        }
+                    },
+                    "canSaveAsUserDefault": {
+                        "type": "boolean"
+                    },
+                    "canUseAsRequestOverride": {
+                        "type": "boolean"
+                    },
+                    "preferenceWasCleared": {
+                        "type": "boolean"
+                    },
+                    "blockedBy": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
+            "EffectivePolicyValue": {
+                "nullable": true,
+                "anyOf": [
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    {
+                        "type": "string"
+                    }
+                ]
+            },
             "EngineHandler": {
                 "type": "object",
                 "required": [
@@ -8049,6 +8133,79 @@
                                                 },
                                                 "data": {
                                                     "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/effective": {
+            "get": {
+                "operationId": "policy-effective",
+                "summary": "Effective policies bootstrap",
+                "tags": [
+                    "policy"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/EffectivePoliciesResponse"
                                                 }
                                             }
                                         }
