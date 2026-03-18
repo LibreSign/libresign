@@ -19,7 +19,6 @@ use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
@@ -73,10 +72,10 @@ final class TemplateLoaderTest extends TestCase {
 			->willReturn($user);
 
 		$this->policyService
-			->method('resolve')
-			->with(SignatureFlowPolicy::KEY)
-			->willReturn(
-				(new ResolvedPolicy())
+			->method('resolveKnownPolicies')
+			->willReturn([
+				'signature_flow'
+				=> (new ResolvedPolicy())
 					->setPolicyKey('signature_flow')
 					->setEffectiveValue('parallel')
 					->setSourceScope('group')
@@ -85,7 +84,7 @@ final class TemplateLoaderTest extends TestCase {
 					->setAllowedValues(['parallel', 'ordered_numeric'])
 					->setCanSaveAsUserDefault(true)
 					->setCanUseAsRequestOverride(true)
-			);
+			]);
 
 		$docMdpConfig = [
 			'enabled' => true,
@@ -102,17 +101,21 @@ final class TemplateLoaderTest extends TestCase {
 		$this->assertSame([
 			'certificate_ok' => true,
 			'identify_methods' => [],
-			'signature_flow_policy' => [
-				'policyKey' => 'signature_flow',
-				'effectiveValue' => 'parallel',
-				'sourceScope' => 'group',
-				'visible' => true,
-				'editableByCurrentActor' => true,
-				'allowedValues' => ['parallel', 'ordered_numeric'],
-				'canSaveAsUserDefault' => true,
-				'canUseAsRequestOverride' => true,
-				'preferenceWasCleared' => false,
-				'blockedBy' => null,
+			'effective_policies' => [
+				'policies' => [
+					'signature_flow' => [
+						'policyKey' => 'signature_flow',
+						'effectiveValue' => 'parallel',
+						'sourceScope' => 'group',
+						'visible' => true,
+						'editableByCurrentActor' => true,
+						'allowedValues' => ['parallel', 'ordered_numeric'],
+						'canSaveAsUserDefault' => true,
+						'canUseAsRequestOverride' => true,
+						'preferenceWasCleared' => false,
+						'blockedBy' => null,
+					],
+				],
 			],
 			'docmdp_config' => $docMdpConfig,
 			'can_request_sign' => true,
@@ -140,10 +143,10 @@ final class TemplateLoaderTest extends TestCase {
 			->willReturn($user);
 
 		$this->policyService
-			->method('resolve')
-			->with(SignatureFlowPolicy::KEY)
-			->willReturn(
-				(new ResolvedPolicy())
+			->method('resolveKnownPolicies')
+			->willReturn([
+				'signature_flow'
+				=> (new ResolvedPolicy())
 					->setPolicyKey('signature_flow')
 					->setEffectiveValue('none')
 					->setSourceScope('system')
@@ -152,7 +155,7 @@ final class TemplateLoaderTest extends TestCase {
 					->setAllowedValues(['none', 'parallel', 'ordered_numeric'])
 					->setCanSaveAsUserDefault(true)
 					->setCanUseAsRequestOverride(true)
-			);
+			]);
 
 		$this->docMdpConfigService
 			->method('getConfig')
