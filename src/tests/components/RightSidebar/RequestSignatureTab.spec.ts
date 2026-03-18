@@ -4,11 +4,12 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { shallowMount } from '@vue/test-utils'
+import { flushPromises, shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
+import { usePoliciesStore } from '../../../store/policies'
 import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatureTab.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { FILE_STATUS } from '../../../constants.js'
@@ -37,18 +38,22 @@ vi.mock('@nextcloud/initial-state', () => ({
 			}
 		}
 		if (key === 'can_request_sign') return true
-		if (key === 'signature_flow_policy') {
+		if (key === 'effective_policies') {
 			return {
-				policyKey: 'signature_flow',
-				effectiveValue: 'none',
-				sourceScope: 'system',
-				visible: true,
-				editableByCurrentActor: true,
-				allowedValues: ['none', 'parallel', 'ordered_numeric'],
-				canSaveAsUserDefault: true,
-				canUseAsRequestOverride: true,
-				preferenceWasCleared: false,
-				blockedBy: null,
+				policies: {
+					signature_flow: {
+						policyKey: 'signature_flow',
+						effectiveValue: 'none',
+						sourceScope: 'system',
+						visible: true,
+						editableByCurrentActor: true,
+						allowedValues: ['none', 'parallel', 'ordered_numeric'],
+						canSaveAsUserDefault: true,
+						canUseAsRequestOverride: true,
+						preferenceWasCleared: false,
+						blockedBy: null,
+					},
+				},
 			}
 		}
 		return defaultValue
@@ -94,6 +99,34 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	let wrapper: VueWrapper<any>
 	let filesStore: ReturnType<typeof useFilesStoreType>
 
+	const createEffectivePoliciesResponse = (policyOverrides: Record<string, unknown> = {}) => ({
+		data: {
+			ocs: {
+				data: {
+					policies: {
+						signature_flow: {
+							policyKey: 'signature_flow',
+							effectiveValue: 'none',
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							allowedValues: ['none', 'parallel', 'ordered_numeric'],
+							canSaveAsUserDefault: true,
+							canUseAsRequestOverride: true,
+							preferenceWasCleared: false,
+							blockedBy: null,
+							...policyOverrides,
+						},
+					},
+				},
+			},
+		},
+	})
+
+	const createSignatureFlowPolicy = (policyOverrides: Record<string, unknown> = {}) => {
+		return createEffectivePoliciesResponse(policyOverrides).data.ocs.data.policies.signature_flow
+	}
+
 	const updateFile = async (patch: Record<string, unknown>) => {
 		const current = filesStore.files[1] || { id: 1 }
 		const hasSigners = Object.prototype.hasOwnProperty.call(patch, 'signers')
@@ -114,11 +147,24 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	const updateMethods = async (methods: unknown[]) => {
 		await setVmState({ methods })
 	}
+	const updatePolicies = async (policyOverrides: Record<string, unknown>) => {
+		const policiesStore = usePoliciesStore()
+		policiesStore.setPolicies({
+			signature_flow: createSignatureFlowPolicy(policyOverrides),
+		})
+		await wrapper.vm.$nextTick()
+	}
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
 		generateUrlMock.mockClear()
-		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>)
+		vi.mocked(axios.get).mockImplementation(async (url: string) => {
+			if (url.includes('/apps/libresign/api/v1/policies/effective')) {
+				return createEffectivePoliciesResponse() as Awaited<ReturnType<typeof axios.get>>
+			}
+
+			return { data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>
+		})
 		filesStore = useFilesStore()
 
 		await filesStore.addFile({
@@ -161,6 +207,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 				},
 			},
 		}) as VueWrapper<any>
+		await flushPromises()
 	})
 
 	describe('RULE: showDocMdpWarning when DocMDP level prevents changes', () => {
@@ -639,6 +686,58 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	})
 
 	describe('RULE: signatureFlow calculation with effective policy bootstrap', () => {
+		it('refreshes policy state from effective policies endpoint on mount', async () => {
+			wrapper.unmount()
+			vi.mocked(axios.get).mockImplementation(async (url: string) => {
+				if (url.includes('/apps/libresign/api/v1/policies/effective')) {
+					return createEffectivePoliciesResponse({
+						effectiveValue: 'ordered_numeric',
+						sourceScope: 'group',
+						canUseAsRequestOverride: false,
+						blockedBy: 'group',
+					}) as Awaited<ReturnType<typeof axios.get>>
+				}
+
+				return { data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>
+			})
+
+			wrapper = shallowMount(RequestSignatureTab, {
+				mocks: {
+					t: (_app: string, text: string) => text,
+				},
+				global: {
+					stubs: {
+						EnvelopeFilesList: { name: 'EnvelopeFilesList', template: '<div><slot /></div>' },
+						NcButton: true,
+						NcCheckboxRadioSwitch: true,
+						NcNoteCard: true,
+						NcActionInput: true,
+						NcActionButton: true,
+						NcFormBox: true,
+						NcLoadingIcon: true,
+						Signers: true,
+						SigningProgress: true,
+						AccountPlus: true,
+						ChartGantt: true,
+						FileMultiple: true,
+						Send: true,
+						Delete: true,
+						Bell: true,
+						Draw: true,
+						Pencil: true,
+						MessageText: true,
+						OrderNumericAscending: true,
+					},
+				},
+			}) as VueWrapper<any>
+
+			await flushPromises()
+
+			expect(wrapper.vm.signatureFlowPolicy.effectiveValue).toBe('ordered_numeric')
+			expect(wrapper.vm.signatureFlowPolicy.sourceScope).toBe('group')
+			expect(wrapper.vm.signatureFlowPolicy.canUseAsRequestOverride).toBe(false)
+		})
+
 		it('returns ordered_numeric when file flow is 2', async () => {
 			await updateFile({ signatureFlow: 2 })
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
@@ -655,23 +754,13 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('uses effective policy when file flow is none', async () => {
-			await setVmState({
-				signatureFlowPolicy: {
-					...wrapper.vm.signatureFlowPolicy,
-					effectiveValue: 'ordered_numeric',
-				},
-			})
+			await updatePolicies({ effectiveValue: 'ordered_numeric' })
 			await updateFile({ signatureFlow: 'none' })
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
 		})
 
 		it('defaults to parallel when both file and policy are none', async () => {
-			await setVmState({
-				signatureFlowPolicy: {
-					...wrapper.vm.signatureFlowPolicy,
-					effectiveValue: 'none',
-				},
-			})
+			await updatePolicies({ effectiveValue: 'none' })
 			await updateFile({ signatureFlow: 'none' })
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
@@ -679,32 +768,19 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 	describe('RULE: isAdminFlowForced detection', () => {
 		it('returns true when policy blocks request overrides', async () => {
-			await setVmState({
-				signatureFlowPolicy: {
-					...wrapper.vm.signatureFlowPolicy,
-					canUseAsRequestOverride: false,
-				},
-			})
+			await updatePolicies({ canUseAsRequestOverride: false })
 			expect(wrapper.vm.isAdminFlowForced).toBe(true)
 		})
 
 		it('returns false when policy allows request overrides', async () => {
-			await setVmState({
-				signatureFlowPolicy: {
-					...wrapper.vm.signatureFlowPolicy,
-					canUseAsRequestOverride: true,
-				},
-			})
+			await updatePolicies({ canUseAsRequestOverride: true })
 			expect(wrapper.vm.isAdminFlowForced).toBe(false)
 		})
 
 		it('hides preserve order switch when policy forces flow', async () => {
-			await setVmState({
-				signatureFlowPolicy: {
-					...wrapper.vm.signatureFlowPolicy,
-					canUseAsRequestOverride: false,
-					effectiveValue: 'ordered_numeric',
-				},
+			await updatePolicies({
+				canUseAsRequestOverride: false,
+				effectiveValue: 'ordered_numeric',
 			})
 			await updateFile({
 				signers: [
@@ -904,12 +980,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('reverts to parallel when disabling', async () => {
-			await setVmState({
-				signatureFlowPolicy: {
-					...wrapper.vm.signatureFlowPolicy,
-					effectiveValue: 'none',
-					canUseAsRequestOverride: true,
-				},
+			await updatePolicies({
+				effectiveValue: 'none',
+				canUseAsRequestOverride: true,
 			})
 			await updateFile({
 				signatureFlow: 'ordered_numeric',
@@ -923,12 +996,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('preserves admin flow when disabling user preference', async () => {
-			await setVmState({
-				signatureFlowPolicy: {
-					...wrapper.vm.signatureFlowPolicy,
-					effectiveValue: 'ordered_numeric',
-					canUseAsRequestOverride: false,
-				},
+			await updatePolicies({
+				effectiveValue: 'ordered_numeric',
+				canUseAsRequestOverride: false,
 			})
 			await updateFile({
 				signatureFlow: 'ordered_numeric',
@@ -962,12 +1032,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('disables preserve order when admin forces flow', async () => {
-			await setVmState({
-				signatureFlowPolicy: {
-					...wrapper.vm.signatureFlowPolicy,
-					effectiveValue: 'ordered_numeric',
-					canUseAsRequestOverride: false,
-				},
+			await updatePolicies({
+				effectiveValue: 'ordered_numeric',
+				canUseAsRequestOverride: false,
 			})
 			await updateFile({ signatureFlow: 'ordered_numeric' })
 			wrapper.vm.syncPreserveOrderWithFile()
