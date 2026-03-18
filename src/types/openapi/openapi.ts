@@ -1426,6 +1426,10 @@ export type components = {
             last: string | null;
             first: string | null;
         };
+        PolicySnapshotEntry: {
+            effectiveValue: string;
+            sourceScope: string;
+        };
         ProgressError: {
             message: string;
             /** Format: int64 */
@@ -1615,8 +1619,12 @@ export type components = {
                 h: number;
             }[];
             original_file_deleted?: boolean;
+            policy_snapshot?: components["schemas"]["ValidatePolicySnapshot"];
             pdfVersion?: string;
             status_changed_at?: string;
+        };
+        ValidatePolicySnapshot: {
+            signature_flow?: components["schemas"]["PolicySnapshotEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
