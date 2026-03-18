@@ -40,4 +40,27 @@ class PermissionSetMapper extends CachedQBMapper {
 		$this->cacheEntity($entity);
 		return $entity;
 	}
+
+	/**
+	 * @param list<int> $ids
+	 * @return list<PermissionSet>
+	 */
+	public function findByIds(array $ids): array {
+		if ($ids === []) {
+			return [];
+		}
+
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->in('id', $qb->createNamedParameter($ids, IQueryBuilder::PARAM_INT_ARRAY)));
+
+		/** @var list<PermissionSet> */
+		$entities = $this->findEntities($qb);
+		foreach ($entities as $entity) {
+			$this->cacheEntity($entity);
+		}
+
+		return $entities;
+	}
 }
