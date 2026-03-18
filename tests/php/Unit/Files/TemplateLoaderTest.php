@@ -15,8 +15,9 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\SignatureFlowPolicyService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
@@ -33,7 +34,7 @@ final class TemplateLoaderTest extends TestCase {
 	private ValidateHelper&MockObject $validateHelper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
-	private SignatureFlowPolicyService&MockObject $signatureFlowPolicyService;
+	private PolicyService&MockObject $policyService;
 	private IAppManager&MockObject $appManager;
 	private ConfigService&MockObject $docMdpConfigService;
 
@@ -45,7 +46,7 @@ final class TemplateLoaderTest extends TestCase {
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$this->signatureFlowPolicyService = $this->createMock(SignatureFlowPolicyService::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->appManager = $this->createMock(IAppManager::class);
 		$this->docMdpConfigService = $this->createMock(ConfigService::class);
 	}
@@ -69,9 +70,9 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getUser')
 			->willReturn($user);
 
-		$this->signatureFlowPolicyService
-			->method('resolveForUser')
-			->with($user)
+		$this->policyService
+			->method('resolve')
+			->with(SignatureFlowPolicy::KEY)
 			->willReturn(
 				(new ResolvedPolicy())
 					->setPolicyKey('signature_flow')
@@ -136,9 +137,9 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getUser')
 			->willReturn($user);
 
-		$this->signatureFlowPolicyService
-			->method('resolveForUser')
-			->with($user)
+		$this->policyService
+			->method('resolve')
+			->with(SignatureFlowPolicy::KEY)
 			->willReturn(
 				(new ResolvedPolicy())
 					->setPolicyKey('signature_flow')
@@ -170,7 +171,7 @@ final class TemplateLoaderTest extends TestCase {
 			$this->validateHelper,
 			$this->identifyMethodService,
 			$this->certificateEngineFactory,
-			$this->signatureFlowPolicyService,
+			$this->policyService,
 			$this->appManager,
 			$this->docMdpConfigService,
 		);
