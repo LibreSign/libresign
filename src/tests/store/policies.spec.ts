@@ -10,6 +10,9 @@ import axios from '@nextcloud/axios'
 vi.mock('@nextcloud/axios', () => ({
 	default: {
 		get: vi.fn(),
+		post: vi.fn(),
+		put: vi.fn(),
+		delete: vi.fn(),
 	},
 }))
 
@@ -88,5 +91,72 @@ describe('policies store', () => {
 
 		expect(store.getPolicy('signature_flow')?.effectiveValue).toBe('ordered_numeric')
 		expect(store.getPolicy('signature_flow')?.canUseAsRequestOverride).toBe(false)
+	})
+
+	it('saves a system policy through the generic endpoint', async () => {
+		vi.mocked(axios.post).mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'signature_flow',
+							effectiveValue: 'ordered_numeric',
+							allowedValues: ['none', 'parallel', 'ordered_numeric'],
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: true,
+							canUseAsRequestOverride: false,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
+				},
+			},
+		})
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		const policy = await store.saveSystemPolicy('signature_flow', 'ordered_numeric')
+
+		expect(axios.post).toHaveBeenCalledWith(
+			'/ocs/v2.php/apps/libresign/api/v1/policies/system/signature_flow',
+			{ value: 'ordered_numeric' },
+		)
+		expect(policy?.effectiveValue).toBe('ordered_numeric')
+		expect(store.getPolicy('signature_flow')?.sourceScope).toBe('system')
+	})
+
+	it('saves a user preference through the generic endpoint', async () => {
+		vi.mocked(axios.put).mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'signature_flow',
+							effectiveValue: 'parallel',
+							allowedValues: ['parallel', 'ordered_numeric'],
+							sourceScope: 'user',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: true,
+							canUseAsRequestOverride: true,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
+				},
+			},
+		})
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		const policy = await store.saveUserPreference('signature_flow', 'parallel')
+
+		expect(axios.put).toHaveBeenCalledWith(
+			'/ocs/v2.php/apps/libresign/api/v1/policies/user/signature_flow',
+			{ value: 'parallel' },
+		)
+		expect(policy?.sourceScope).toBe('user')
 	})
 })
