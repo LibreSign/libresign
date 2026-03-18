@@ -52,4 +52,31 @@ final class ResolvedPolicyTest extends TestCase {
 		$this->assertTrue($policy->wasPreferenceCleared());
 		$this->assertSame('system', $policy->getBlockedBy());
 	}
+
+	public function testToArrayExportsFrontendPayload(): void {
+		$policy = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('parallel')
+			->setSourceScope('group')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues(['parallel', 'ordered_numeric'])
+			->setCanSaveAsUserDefault(true)
+			->setCanUseAsRequestOverride(false)
+			->setPreferenceWasCleared(true)
+			->setBlockedBy('group');
+
+		$this->assertSame([
+			'policyKey' => 'signature_flow',
+			'effectiveValue' => 'parallel',
+			'sourceScope' => 'group',
+			'visible' => true,
+			'editableByCurrentActor' => true,
+			'allowedValues' => ['parallel', 'ordered_numeric'],
+			'canSaveAsUserDefault' => true,
+			'canUseAsRequestOverride' => false,
+			'preferenceWasCleared' => true,
+			'blockedBy' => 'group',
+		], $policy->toArray());
+	}
 }
