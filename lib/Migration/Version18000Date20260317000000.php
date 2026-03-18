@@ -23,44 +23,46 @@ class Version18000Date20260317000000 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
-		if (!$schema->hasTable('libresign_permission_set')) {
-			$table = $schema->createTable('libresign_permission_set');
-			$table->addColumn('id', Types::INTEGER, [
+		if ($schema->hasTable('libresign_permission_set')) {
+			$permissionSetTable = $schema->getTable('libresign_permission_set');
+		} else {
+			$permissionSetTable = $schema->createTable('libresign_permission_set');
+			$permissionSetTable->addColumn('id', Types::INTEGER, [
 				'autoincrement' => true,
 				'notnull' => true,
 				'unsigned' => true,
 			]);
-			$table->addColumn('name', Types::STRING, [
+			$permissionSetTable->addColumn('name', Types::STRING, [
 				'notnull' => true,
 				'length' => 255,
 			]);
-			$table->addColumn('description', Types::TEXT, [
+			$permissionSetTable->addColumn('description', Types::TEXT, [
 				'notnull' => false,
 			]);
-			$table->addColumn('scope_type', Types::STRING, [
+			$permissionSetTable->addColumn('scope_type', Types::STRING, [
 				'notnull' => true,
 				'length' => 64,
 			]);
-			$table->addColumn('enabled', Types::SMALLINT, [
+			$permissionSetTable->addColumn('enabled', Types::SMALLINT, [
 				'notnull' => true,
 				'default' => 1,
 			]);
-			$table->addColumn('priority', Types::SMALLINT, [
+			$permissionSetTable->addColumn('priority', Types::SMALLINT, [
 				'notnull' => true,
 				'default' => 0,
 			]);
-			$table->addColumn('policy_json', Types::TEXT, [
+			$permissionSetTable->addColumn('policy_json', Types::TEXT, [
 				'notnull' => true,
 				'default' => '{}',
 			]);
-			$table->addColumn('created_at', Types::DATETIME, [
+			$permissionSetTable->addColumn('created_at', Types::DATETIME, [
 				'notnull' => true,
 			]);
-			$table->addColumn('updated_at', Types::DATETIME, [
+			$permissionSetTable->addColumn('updated_at', Types::DATETIME, [
 				'notnull' => true,
 			]);
-			$table->setPrimaryKey(['id']);
-			$table->addIndex(['scope_type'], 'ls_perm_set_scope_idx');
+			$permissionSetTable->setPrimaryKey(['id']);
+			$permissionSetTable->addIndex(['scope_type'], 'ls_perm_set_scope_idx');
 		}
 
 		if (!$schema->hasTable('libresign_permission_set_binding')) {
@@ -88,7 +90,7 @@ class Version18000Date20260317000000 extends SimpleMigrationStep {
 			$table->setPrimaryKey(['id']);
 			$table->addIndex(['permission_set_id'], 'ls_perm_bind_set_idx');
 			$table->addUniqueIndex(['target_type', 'target_id'], 'ls_perm_bind_target_uidx');
-			$table->addForeignKeyConstraint('libresign_permission_set', ['permission_set_id'], ['id'], [
+			$table->addForeignKeyConstraint($permissionSetTable, ['permission_set_id'], ['id'], [
 				'onDelete' => 'CASCADE',
 			]);
 		}
