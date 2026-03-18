@@ -367,9 +367,16 @@ namespace OCA\Libresign;
  *     preferenceWasCleared: bool,
  *     blockedBy: ?string,
  * }
+ * @psalm-type LibresignEffectivePolicyResponse = array{
+ *     policy: LibresignEffectivePolicyState,
+ * }
  * @psalm-type LibresignEffectivePoliciesResponse = array{
  *     policies: array<string, LibresignEffectivePolicyState>,
  * }
+ * @psalm-type LibresignSystemPolicyWriteRequest = array{
+ *     value: LibresignEffectivePolicyValue,
+ * }
+ * @psalm-type LibresignSystemPolicyWriteResponse = LibresignMessageResponse&LibresignEffectivePolicyResponse
  * @psalm-type LibresignPolicySnapshotEntry = array{
  *     effectiveValue: string,
  *     sourceScope: string,
