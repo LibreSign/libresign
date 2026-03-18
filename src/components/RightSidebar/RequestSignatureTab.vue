@@ -328,6 +328,7 @@ import type {
 	IdentifyMethodSetting as IdentifyMethodConfig,
 	LibresignCapabilities as RequestSignatureTabCapabilities,
 	SignatureFlowMode,
+	SignatureFlowPolicyState,
 	SignatureFlowValue,
 } from '../../types/index'
 
@@ -397,7 +398,19 @@ const activeTab = ref('')
 const preserveOrder = ref(false)
 const showOrderDiagram = ref(false)
 const showEnvelopeFilesDialog = ref(false)
-const adminSignatureFlow = ref<SignatureFlowMode>(loadState<SignatureFlowMode>('libresign', 'signature_flow', 'none'))
+const DEFAULT_SIGNATURE_FLOW_POLICY: SignatureFlowPolicyState = {
+	policyKey: 'signature_flow',
+	effectiveValue: 'none',
+	sourceScope: 'system',
+	visible: true,
+	editableByCurrentActor: true,
+	allowedValues: ['none', 'parallel', 'ordered_numeric'],
+	canSaveAsUserDefault: true,
+	canUseAsRequestOverride: true,
+	preferenceWasCleared: false,
+	blockedBy: null,
+}
+const signatureFlowPolicy = ref<SignatureFlowPolicyState>(loadState<SignatureFlowPolicyState>('libresign', 'signature_flow_policy', DEFAULT_SIGNATURE_FLOW_POLICY))
 const signingProgress = ref<components['schemas']['ProgressPayload'] | null>(null)
 const signingProgressStatus = ref<number | null>(null)
 const signingProgressStatusText = ref('')
@@ -415,13 +428,14 @@ const signatureFlow = computed(() => {
 	if (flow && flow !== 'none') {
 		return flow
 	}
-	if (adminSignatureFlow.value && adminSignatureFlow.value !== 'none') {
-		return adminSignatureFlow.value
+	const resolvedFlow = normalizeSignatureFlow(signatureFlowPolicy.value.effectiveValue)
+	if (resolvedFlow && resolvedFlow !== 'none') {
+		return resolvedFlow
 	}
 	return 'parallel'
 })
 
-const isAdminFlowForced = computed(() => adminSignatureFlow.value && adminSignatureFlow.value !== 'none')
+const isAdminFlowForced = computed(() => !signatureFlowPolicy.value.canUseAsRequestOverride)
 const isOrderedNumeric = computed(() => signatureFlow.value === 'ordered_numeric')
 const hasSigners = computed(() => filesStore.hasSigners(filesStore.getFile()))
 const totalSigners = computed(() => Number(filesStore.getFile()?.signersCount || filesStore.getFile()?.signers?.length || 0))
@@ -1244,7 +1258,7 @@ defineExpose({
 	preserveOrder,
 	showOrderDiagram,
 	showEnvelopeFilesDialog,
-	adminSignatureFlow,
+	signatureFlowPolicy,
 	debouncedSave,
 	debouncedTabChange,
 	signingProgress,
