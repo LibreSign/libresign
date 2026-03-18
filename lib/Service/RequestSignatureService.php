@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -27,6 +26,7 @@ use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\Policy\SignatureFlowPolicyService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
@@ -67,6 +67,7 @@ class RequestSignatureService {
 		protected EnvelopeFileRelocator $envelopeFileRelocator,
 		protected FileUploadHelper $uploadHelper,
 		protected SignRequestService $signRequestService,
+		protected SignatureFlowPolicyService $signatureFlowPolicyService,
 	) {
 	}
 
@@ -381,37 +382,34 @@ class RequestSignatureService {
 	}
 
 	private function updateSignatureFlowIfAllowed(FileEntity $file, array $data): void {
-		$adminFlow = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::NONE->value);
-		$adminForcedConfig = $adminFlow !== SignatureFlow::NONE->value;
+		$resolvedPolicy = $this->signatureFlowPolicyService->resolveForUserId(
+			$file->getUserId(),
+			$this->getSignatureFlowRequestOverrides($data),
+		);
+		$newFlow = SignatureFlow::from((string)$resolvedPolicy->getEffectiveValue());
 
-		if ($adminForcedConfig) {
-			$adminFlowEnum = SignatureFlow::from($adminFlow);
-			if ($file->getSignatureFlowEnum() !== $adminFlowEnum) {
-				$file->setSignatureFlowEnum($adminFlowEnum);
-				$this->fileService->update($file);
-			}
-			return;
-		}
-
-		if (isset($data['signatureFlow']) && !empty($data['signatureFlow'])) {
-			$newFlow = SignatureFlow::from($data['signatureFlow']);
-			if ($file->getSignatureFlowEnum() !== $newFlow) {
-				$file->setSignatureFlowEnum($newFlow);
-				$this->fileService->update($file);
-			}
+		if ($file->getSignatureFlowEnum() !== $newFlow) {
+			$file->setSignatureFlowEnum($newFlow);
+			$this->fileService->update($file);
 		}
 	}
 
 	private function setSignatureFlow(FileEntity $file, array $data): void {
-		$adminFlow = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::NONE->value);
+		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
+		$resolvedPolicy = $this->signatureFlowPolicyService->resolveForUser(
+			$user,
+			$this->getSignatureFlowRequestOverrides($data),
+		);
+		$file->setSignatureFlowEnum(SignatureFlow::from((string)$resolvedPolicy->getEffectiveValue()));
+	}
 
-		if (isset($data['signatureFlow']) && !empty($data['signatureFlow'])) {
-			$file->setSignatureFlowEnum(SignatureFlow::from($data['signatureFlow']));
-		} elseif ($adminFlow !== SignatureFlow::NONE->value) {
-			$file->setSignatureFlowEnum(SignatureFlow::from($adminFlow));
-		} else {
-			$file->setSignatureFlowEnum(SignatureFlow::NONE);
+	/** @return array<string, string> */
+	private function getSignatureFlowRequestOverrides(array $data): array {
+		if (!isset($data['signatureFlow']) || empty($data['signatureFlow'])) {
+			return [];
 		}
+
+		return ['signature_flow' => (string)$data['signatureFlow']];
 	}
 
 	private function setDocMdpLevelFromGlobalConfig(FileEntity $file): void {
