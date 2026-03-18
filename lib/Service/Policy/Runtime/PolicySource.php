@@ -136,6 +136,32 @@ class PolicySource implements IPolicySource {
 	}
 
 	#[\Override]
+	public function saveSystemPolicy(string $policyKey, mixed $value): void {
+		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $definition->normalizeValue($value);
+		$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
+
+		if ($normalizedValue === $defaultValue) {
+			$this->appConfig->deleteAppValue($definition->getAppConfigKey());
+			return;
+		}
+
+		$this->appConfig->setAppValueString($definition->getAppConfigKey(), (string)$normalizedValue);
+	}
+
+	#[\Override]
+	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			throw new \InvalidArgumentException('A signed-in user is required to save a policy preference.');
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $definition->normalizeValue($value);
+		$this->appConfig->setUserValue($userId, $definition->getUserPreferenceKey(), (string)$normalizedValue);
+	}
+
+	#[\Override]
 	public function clearUserPreference(string $policyKey, PolicyContext $context): void {
 		$userId = $context->getUserId();
 		if ($userId === null || $userId === '') {
