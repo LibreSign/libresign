@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy;
 
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -48,5 +49,16 @@ class PolicyService {
 			$this->registry->get($policyKey),
 			$this->contextFactory->forUser($user, $requestOverrides, $activeContext),
 		);
+	}
+
+	/** @return array<string, ResolvedPolicy> */
+	public function resolveKnownPolicies(array $requestOverrides = [], ?array $activeContext = null): array {
+		$context = $this->contextFactory->forCurrentUser($requestOverrides, $activeContext);
+		$definitions = [];
+		foreach (array_keys(PolicyProviders::BY_KEY) as $policyKey) {
+			$definitions[] = $this->registry->get($policyKey);
+		}
+
+		return $this->resolver->resolveMany($definitions, $context);
 	}
 }
