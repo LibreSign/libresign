@@ -869,6 +869,24 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save a user policy preference */
+        put: operations["policy-set-user-preference"];
+        post?: never;
+        /** Clear a user policy preference */
+        delete: operations["policy-clear-user-preference"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/request-signature": {
         parameters: {
             query?: never;
@@ -1236,6 +1254,9 @@ export type components = {
             policies: {
                 [key: string]: components["schemas"]["EffectivePolicyState"];
             };
+        };
+        EffectivePolicyResponse: {
+            policy: components["schemas"]["EffectivePolicyState"];
         };
         EffectivePolicyState: {
             policyKey: string;
@@ -1620,6 +1641,7 @@ export type components = {
             message: string;
             status: string;
         };
+        SystemPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["EffectivePolicyResponse"];
         UserElement: {
             /** Format: int64 */
             id: number;
@@ -3996,6 +4018,119 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["EffectivePoliciesResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-user-preference": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to persist for the current user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Policy value to persist as the current user's default. */
+                    value?: (boolean | number | string) | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SystemPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-clear-user-preference": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to clear for the current user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SystemPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
