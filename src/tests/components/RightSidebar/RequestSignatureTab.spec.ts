@@ -81,6 +81,7 @@ vi.mock('@nextcloud/axios', () => ({
 	default: {
 		get: vi.fn(),
 		post: vi.fn(),
+		put: vi.fn(),
 		delete: vi.fn(),
 		patch: vi.fn(),
 	},
@@ -1003,6 +1004,43 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await wrapper.vm.$nextTick()
 			expect(filesStore.files[1].signatureFlow).toBe('ordered_numeric')
 		})
+
+			it('persists user preference when remember choice is enabled', async () => {
+				vi.mocked(axios.put).mockResolvedValue({
+					data: {
+						ocs: {
+							data: {
+								policy: createSignatureFlowPolicy({
+									effectiveValue: 'ordered_numeric',
+									sourceScope: 'user',
+									canSaveAsUserDefault: true,
+									canUseAsRequestOverride: true,
+								}),
+							},
+						},
+					},
+				})
+				await updatePolicies({
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+				})
+				await updateFile({
+					signatureFlow: 'parallel',
+					signers: [
+						{ email: 'signer1@example.com', signed: [] },
+						{ email: 'signer2@example.com', signed: [] },
+					],
+				})
+
+				wrapper.vm.rememberSignatureFlow = true
+				wrapper.vm.onPreserveOrderChange(true)
+				await flushPromises()
+
+				expect(axios.put).toHaveBeenCalledWith(
+					'/ocs/apps/libresign/api/v1/policies/user/signature_flow',
+					{ value: 'ordered_numeric' },
+				)
+			})
 
 		it('assigns sequential orders when enabling', async () => {
 			await updateFile({
