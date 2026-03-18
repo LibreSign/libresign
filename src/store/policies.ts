@@ -12,8 +12,11 @@ import { generateOcsUrl } from '@nextcloud/router'
 
 import type {
 	EffectivePolicyState,
+	EffectivePolicyValue,
 	EffectivePoliciesResponse,
 	EffectivePoliciesState,
+	SystemPolicyWritePayload,
+	SystemPolicyWriteResponse,
 } from '../types/index'
 
 function isEffectivePolicyState(value: unknown): value is EffectivePolicyState {
@@ -62,6 +65,64 @@ const _policiesStore = defineStore('policies', () => {
 		}
 	}
 
+	const saveSystemPolicy = async (policyKey: string, value: EffectivePolicyValue): Promise<EffectivePolicyState | null> => {
+		const payload: SystemPolicyWritePayload = { value }
+		const response = await axios.post<{ ocs?: { data?: SystemPolicyWriteResponse } }>(
+			generateOcsUrl(`/apps/libresign/api/v1/policies/system/${policyKey}`),
+			payload,
+		)
+
+		const savedPolicy = response.data?.ocs?.data?.policy
+		if (!isEffectivePolicyState(savedPolicy)) {
+			return null
+		}
+
+		policies.value = {
+			...policies.value,
+			[policyKey]: savedPolicy,
+		}
+
+		return savedPolicy
+	}
+
+	const saveUserPreference = async (policyKey: string, value: EffectivePolicyValue): Promise<EffectivePolicyState | null> => {
+		const payload: SystemPolicyWritePayload = { value }
+		const response = await axios.put<{ ocs?: { data?: SystemPolicyWriteResponse } }>(
+			generateOcsUrl(`/apps/libresign/api/v1/policies/user/${policyKey}`),
+			payload,
+		)
+
+		const savedPolicy = response.data?.ocs?.data?.policy
+		if (!isEffectivePolicyState(savedPolicy)) {
+			return null
+		}
+
+		policies.value = {
+			...policies.value,
+			[policyKey]: savedPolicy,
+		}
+
+		return savedPolicy
+	}
+
+	const clearUserPreference = async (policyKey: string): Promise<EffectivePolicyState | null> => {
+		const response = await axios.delete<{ ocs?: { data?: SystemPolicyWriteResponse } }>(
+			generateOcsUrl(`/apps/libresign/api/v1/policies/user/${policyKey}`),
+		)
+
+		const savedPolicy = response.data?.ocs?.data?.policy
+		if (!isEffectivePolicyState(savedPolicy)) {
+			return null
+		}
+
+		policies.value = {
+			...policies.value,
+			[policyKey]: savedPolicy,
+		}
+
+		return savedPolicy
+	}
+
 	const getPolicy = (policyKey: string): EffectivePolicyState | null => {
 		const policy = policies.value[policyKey]
 		if (!policy) {
@@ -83,6 +144,9 @@ const _policiesStore = defineStore('policies', () => {
 		policies: computed(() => policies.value),
 		setPolicies,
 		fetchEffectivePolicies,
+		saveSystemPolicy,
+		saveUserPreference,
+		clearUserPreference,
 		getPolicy,
 		getEffectiveValue,
 		canUseRequestOverride,
