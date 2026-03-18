@@ -46,6 +46,18 @@ type ApiOcsResponseData<TOperation, TStatusCode extends keyof ApiOperationRespon
 
 export type SignatureFlowMode = ApiComponents['schemas']['DetailedFileResponse']['signatureFlow']
 export type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
+export type SignatureFlowPolicyState = {
+	policyKey: 'signature_flow'
+	effectiveValue: SignatureFlowMode | null
+	sourceScope: string
+	visible: boolean
+	editableByCurrentActor: boolean
+	allowedValues: SignatureFlowMode[]
+	canSaveAsUserDefault: boolean
+	canUseAsRequestOverride: boolean
+	preferenceWasCleared: boolean
+	blockedBy: string | null
+}
 export type NewFilePayload = ApiComponents['schemas']['NewFile']
 export type IdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
 export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']
