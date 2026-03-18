@@ -6,23 +6,20 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Policy;
+namespace OCA\Libresign\Tests\Unit\Service\Policy\Runtime;
 
-use OCA\Libresign\Service\Policy\DefaultPolicyResolver;
-use OCA\Libresign\Service\Policy\PolicyContext;
-use OCA\Libresign\Service\Policy\PolicyDefinitionInterface;
-use OCA\Libresign\Service\Policy\PolicyLayer;
-use OCA\Libresign\Service\Policy\PolicySourceInterface;
+use OCA\Libresign\Service\Policy\Contract\IPolicySource;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use PHPUnit\Framework\TestCase;
 
 final class DefaultPolicyResolverTest extends TestCase {
 	public function testResolveUsesDefinitionDefaultWhenNoLayersExist(): void {
-		$resolver = new DefaultPolicyResolver(
-			new InMemoryPolicySource(),
-			[new TestPolicyDefinition()]
-		);
+		$resolver = new DefaultPolicyResolver(new InMemoryPolicySource());
 
-		$resolved = $resolver->resolve('signature_flow', new PolicyContext());
+		$resolved = $resolver->resolve($this->getDefinition(), new PolicyContext());
 
 		$this->assertSame('none', $resolved->getEffectiveValue());
 		$this->assertSame('system', $resolved->getSourceScope());
@@ -46,8 +43,8 @@ final class DefaultPolicyResolverTest extends TestCase {
 				->setAllowedValues(['parallel', 'ordered_numeric']),
 		];
 
-		$resolver = new DefaultPolicyResolver($source, [new TestPolicyDefinition()]);
-		$resolved = $resolver->resolve('signature_flow', PolicyContext::fromUserId('john'));
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($this->getDefinition(), PolicyContext::fromUserId('john'));
 
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame('group', $resolved->getSourceScope());
@@ -75,8 +72,8 @@ final class DefaultPolicyResolverTest extends TestCase {
 			->setScope('user')
 			->setValue('ordered_numeric');
 
-		$resolver = new DefaultPolicyResolver($source, [new TestPolicyDefinition()]);
-		$resolved = $resolver->resolve('signature_flow', PolicyContext::fromUserId('john'));
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($this->getDefinition(), PolicyContext::fromUserId('john'));
 
 		$this->assertSame('parallel', $resolved->getEffectiveValue());
 		$this->assertSame('group', $resolved->getSourceScope());
@@ -106,17 +103,25 @@ final class DefaultPolicyResolverTest extends TestCase {
 			->setScope('request')
 			->setValue('ordered_numeric');
 
-		$resolver = new DefaultPolicyResolver($source, [new TestPolicyDefinition()]);
-		$resolved = $resolver->resolve('signature_flow', PolicyContext::fromUserId('john'));
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($this->getDefinition(), PolicyContext::fromUserId('john'));
 
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame('request', $resolved->getSourceScope());
 		$this->assertTrue($resolved->canUseAsRequestOverride());
 		$this->assertNull($resolved->getBlockedBy());
 	}
+
+	private function getDefinition(): PolicySpec {
+		return new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+		);
+	}
 }
 
-final class InMemoryPolicySource implements PolicySourceInterface {
+final class InMemoryPolicySource implements IPolicySource {
 	public ?PolicyLayer $systemLayer = null;
 	/** @var list<PolicyLayer> */
 	public array $groupLayers = [];
@@ -146,29 +151,5 @@ final class InMemoryPolicySource implements PolicySourceInterface {
 
 	public function clearUserPreference(string $policyKey, PolicyContext $context): void {
 		$this->userPreferenceCleared = true;
-	}
-}
-
-final class TestPolicyDefinition implements PolicyDefinitionInterface {
-	public function key(): string {
-		return 'signature_flow';
-	}
-
-	public function normalizeValue(mixed $rawValue): mixed {
-		return $rawValue;
-	}
-
-	public function validateValue(mixed $value): void {
-		if (!in_array($value, $this->allowedValues(new PolicyContext()), true)) {
-			throw new \InvalidArgumentException('Invalid value');
-		}
-	}
-
-	public function allowedValues(PolicyContext $context): array {
-		return ['none', 'parallel', 'ordered_numeric'];
-	}
-
-	public function defaultSystemValue(): mixed {
-		return 'none';
 	}
 }

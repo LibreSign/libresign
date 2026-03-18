@@ -31,8 +31,9 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\SignatureFlowPolicyService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
@@ -80,7 +81,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private EnvelopeFileRelocator&MockObject $envelopeFileRelocator;
 	private FileUploadHelper&MockObject $uploadHelper;
 	private SignRequestService&MockObject $signRequestService;
-	private SignatureFlowPolicyService&MockObject $signatureFlowPolicyService;
+	private PolicyService&MockObject $policyService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -115,7 +116,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->envelopeFileRelocator = $this->createMock(EnvelopeFileRelocator::class);
 		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
-		$this->signatureFlowPolicyService = $this->createMock(SignatureFlowPolicyService::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 	}
 
 	private function getService(array $methods = []): RequestSignatureService|MockObject {
@@ -147,7 +148,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->envelopeFileRelocator,
 					$this->uploadHelper,
 					$this->signRequestService,
-					$this->signatureFlowPolicyService,
+					$this->policyService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -179,7 +180,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->envelopeFileRelocator,
 			$this->uploadHelper,
 			$this->signRequestService,
-			$this->signatureFlowPolicyService,
+			$this->policyService,
 		);
 	}
 
@@ -484,7 +485,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->envelopeFileRelocator,
 				$this->uploadHelper,
 				$this->signRequestService,
-				$this->signatureFlowPolicyService,
+				$this->policyService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -557,7 +558,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->envelopeFileRelocator,
 				$this->uploadHelper,
 				$this->signRequestService,
-				$this->signatureFlowPolicyService,
+				$this->policyService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -845,10 +846,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 	public function testSetSignatureFlowPrefersPayloadOverGlobalConfig(): void {
 		$file = new \OCA\Libresign\Db\File();
-		$this->signatureFlowPolicyService
+		$this->policyService
 			->expects($this->once())
 			->method('resolveForUser')
-			->with(null, ['signature_flow' => SignatureFlow::PARALLEL->value])
+			->with(SignatureFlowPolicy::KEY, null, [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value])
 			->willReturn($this->createResolvedPolicy(SignatureFlow::PARALLEL->value));
 
 		self::invokePrivate($this->getService(), 'setSignatureFlow', [
@@ -861,10 +862,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 	public function testSetSignatureFlowUsesGlobalConfigWhenPayloadMissing(): void {
 		$file = new \OCA\Libresign\Db\File();
-		$this->signatureFlowPolicyService
+		$this->policyService
 			->expects($this->once())
 			->method('resolveForUser')
-			->with(null, [])
+			->with(SignatureFlowPolicy::KEY, null, [])
 			->willReturn($this->createResolvedPolicy(SignatureFlow::ORDERED_NUMERIC->value));
 
 		self::invokePrivate($this->getService(), 'setSignatureFlow', [
@@ -877,10 +878,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 	public function testSetSignatureFlowDefaultsToNoneWithoutPayloadOrGlobalConfig(): void {
 		$file = new \OCA\Libresign\Db\File();
-		$this->signatureFlowPolicyService
+		$this->policyService
 			->expects($this->once())
 			->method('resolveForUser')
-			->with(null, [])
+			->with(SignatureFlowPolicy::KEY, null, [])
 			->willReturn($this->createResolvedPolicy(SignatureFlow::NONE->value));
 
 		self::invokePrivate($this->getService(), 'setSignatureFlow', [
@@ -891,14 +892,63 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame(SignatureFlow::NONE, $file->getSignatureFlowEnum());
 	}
 
+	public function testSetSignatureFlowThrowsWhenRequestOverrideIsBlocked(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(SignatureFlowPolicy::KEY, null, [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value])
+			->willReturn($this->createResolvedPolicy(
+				SignatureFlow::ORDERED_NUMERIC->value,
+				sourceScope: 'group',
+				canUseAsRequestOverride: false,
+				blockedBy: 'group',
+			));
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+
+		self::invokePrivate($this->getService(), 'setSignatureFlow', [
+			$file,
+			['signatureFlow' => SignatureFlow::PARALLEL->value],
+		]);
+	}
+
+	public function testSetSignatureFlowStoresResolvedPolicySnapshotInMetadata(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(SignatureFlowPolicy::KEY, null, [])
+			->willReturn($this->createResolvedPolicy(
+				SignatureFlow::ORDERED_NUMERIC->value,
+				sourceScope: 'group',
+			));
+
+		self::invokePrivate($this->getService(), 'setSignatureFlow', [
+			$file,
+			[],
+		]);
+
+		$this->assertSame(SignatureFlow::ORDERED_NUMERIC, $file->getSignatureFlowEnum());
+		$this->assertSame([
+			'policy_snapshot' => [
+				'signature_flow' => [
+					'effectiveValue' => SignatureFlow::ORDERED_NUMERIC->value,
+					'sourceScope' => 'group',
+				],
+			],
+		], $file->getMetadata());
+	}
+
 	public function testUpdateSignatureFlowIfAllowedForcesGlobalConfigOverFileValue(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('john');
 		$file->setSignatureFlowEnum(SignatureFlow::PARALLEL);
-		$this->signatureFlowPolicyService
+		$this->policyService
 			->expects($this->once())
 			->method('resolveForUserId')
-			->with('john', ['signature_flow' => SignatureFlow::PARALLEL->value])
+			->with(SignatureFlowPolicy::KEY, 'john', [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value])
 			->willReturn($this->createResolvedPolicy(SignatureFlow::ORDERED_NUMERIC->value));
 
 		$this->fileService
@@ -918,10 +968,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('john');
 		$file->setSignatureFlowEnum(SignatureFlow::NONE);
-		$this->signatureFlowPolicyService
+		$this->policyService
 			->expects($this->once())
 			->method('resolveForUserId')
-			->with('john', ['signature_flow' => SignatureFlow::PARALLEL->value])
+			->with(SignatureFlowPolicy::KEY, 'john', [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value])
 			->willReturn($this->createResolvedPolicy(SignatureFlow::PARALLEL->value));
 
 		$this->fileService
@@ -937,14 +987,42 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame(SignatureFlow::PARALLEL, $file->getSignatureFlowEnum());
 	}
 
+	public function testUpdateSignatureFlowIfAllowedThrowsWhenRequestOverrideIsBlocked(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('john');
+		$file->setSignatureFlowEnum(SignatureFlow::NONE);
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(SignatureFlowPolicy::KEY, 'john', [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value])
+			->willReturn($this->createResolvedPolicy(
+				SignatureFlow::ORDERED_NUMERIC->value,
+				sourceScope: 'group',
+				canUseAsRequestOverride: false,
+				blockedBy: 'group',
+			));
+
+		$this->fileService
+			->expects($this->never())
+			->method('update');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+
+		self::invokePrivate($this->getService(), 'updateSignatureFlowIfAllowed', [
+			$file,
+			['signatureFlow' => SignatureFlow::PARALLEL->value],
+		]);
+	}
+
 	public function testUpdateSignatureFlowIfAllowedKeepsCurrentValueWithoutPayloadOrForcedGlobal(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('john');
 		$file->setSignatureFlowEnum(SignatureFlow::PARALLEL);
-		$this->signatureFlowPolicyService
+		$this->policyService
 			->expects($this->once())
 			->method('resolveForUserId')
-			->with('john', [])
+			->with(SignatureFlowPolicy::KEY, 'john', [])
 			->willReturn($this->createResolvedPolicy(SignatureFlow::PARALLEL->value));
 
 		$this->fileService
@@ -959,10 +1037,17 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame(SignatureFlow::PARALLEL, $file->getSignatureFlowEnum());
 	}
 
-	private function createResolvedPolicy(string $effectiveValue): ResolvedPolicy {
+	private function createResolvedPolicy(
+		string $effectiveValue,
+		string $sourceScope = 'system',
+		bool $canUseAsRequestOverride = true,
+		?string $blockedBy = null,
+	): ResolvedPolicy {
 		return (new ResolvedPolicy())
 			->setPolicyKey('signature_flow')
 			->setEffectiveValue($effectiveValue)
-			->setSourceScope('system');
+			->setSourceScope($sourceScope)
+			->setCanUseAsRequestOverride($canUseAsRequestOverride)
+			->setBlockedBy($blockedBy);
 	}
 }
