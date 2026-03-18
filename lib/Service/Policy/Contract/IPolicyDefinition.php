@@ -6,14 +6,20 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Policy;
+namespace OCA\Libresign\Service\Policy\Contract;
 
-interface PolicyDefinitionInterface {
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+
+interface IPolicyDefinition {
 	public function key(): string;
+
+	public function getAppConfigKey(): string;
+
+	public function getUserPreferenceKey(): string;
 
 	public function normalizeValue(mixed $rawValue): mixed;
 
-	public function validateValue(mixed $value): void;
+	public function validateValue(mixed $value, PolicyContext $context): void;
 
 	/** @return list<mixed> */
 	public function allowedValues(PolicyContext $context): array;
