@@ -22,10 +22,10 @@ describe('showStatusInlineAction', () => {
 		displayName: () => string
 		inline: () => boolean
 		order: number
-		title: (context: { nodes: FileNode[] }) => string
-		iconSvgInline: (context: { nodes: FileNode[] }) => string
-		exec: (context: { nodes: FileNode[] }) => Promise<null> | null
-		enabled: (context: { nodes: FileNode[] }) => boolean
+		title: (nodes: FileNode[]) => string
+		iconSvgInline: (nodes: FileNode[]) => string
+		exec: (node: FileNode) => Promise<null> | null
+		enabled: (nodes: FileNode[]) => boolean
 	}
 
 	let action: FileAction
@@ -112,103 +112,89 @@ describe('showStatusInlineAction', () => {
 
 	describe('title', () => {
 		it('returns empty string when no nodes', () => {
-			const result = action.title({ nodes: [] })
+			const result = action.title([])
 			expect(result).toBe('')
 		})
 
 		it('returns status label for signed node', () => {
-			const result = action.title({
-				nodes: [{
-					fileid: 123,
-					attributes: {
-						'libresign-signed-node-id': 123,
-						'libresign-signature-status': 3,
-					},
-				}],
-			})
+			const result = action.title([{
+				fileid: 123,
+				attributes: {
+					'libresign-signed-node-id': 123,
+					'libresign-signature-status': 3,
+				},
+			}])
 			expect(result).toBe('Status 3')
 		})
 
 		it('returns status label when no signed node id', () => {
-			const result = action.title({
-				nodes: [{
-					fileid: 123,
-					attributes: {
-						'libresign-signature-status': 2,
-					},
-				}],
-			})
+			const result = action.title([{
+				fileid: 123,
+				attributes: {
+					'libresign-signature-status': 2,
+				},
+			}])
 			expect(result).toBe('Status 2')
 		})
 
 		it('returns "original file" for draft with different signed node id', () => {
-			const result = action.title({
-				nodes: [{
-					fileid: 123,
-					attributes: {
-						'libresign-signed-node-id': 456,
-						'libresign-signature-status': 0,
-					},
-				}],
-			})
+			const result = action.title([{
+				fileid: 123,
+				attributes: {
+					'libresign-signed-node-id': 456,
+					'libresign-signature-status': 0,
+				},
+			}])
 			expect(result).toBe('original file')
 		})
 
 		it('uses id fallback when fileid is unavailable', () => {
-			const result = action.title({
-				nodes: [{
-					id: 456,
-					attributes: {
-						'libresign-signed-node-id': 456,
-						'libresign-signature-status': 3,
-					},
-				}],
-			})
+			const result = action.title([{
+				id: 456,
+				attributes: {
+					'libresign-signed-node-id': 456,
+					'libresign-signature-status': 3,
+				},
+			}])
 			expect(result).toBe('Status 3')
 		})
 	})
 
 	describe('iconSvgInline', () => {
 		it('returns empty string when no nodes', () => {
-			const result = action.iconSvgInline({ nodes: [] })
+			const result = action.iconSvgInline([])
 			expect(result).toBe('')
 		})
 
 		it('returns status svg for signed node', () => {
-			const result = action.iconSvgInline({
-				nodes: [{
-					fileid: 123,
-					attributes: {
-						'libresign-signed-node-id': 123,
-						'libresign-signature-status': 3,
-					},
-				}],
-			})
+			const result = action.iconSvgInline([{
+				fileid: 123,
+				attributes: {
+					'libresign-signed-node-id': 123,
+					'libresign-signature-status': 3,
+				},
+			}])
 			expect(result).toBe('<svg>3</svg>')
 		})
 
 		it('returns status svg when no signed node id', () => {
-			const result = action.iconSvgInline({
-				nodes: [{
-					fileid: 123,
-					attributes: {
-						'libresign-signature-status': 2,
-					},
-				}],
-			})
+			const result = action.iconSvgInline([{
+				fileid: 123,
+				attributes: {
+					'libresign-signature-status': 2,
+				},
+			}])
 			expect(result).toBe('<svg>2</svg>')
 		})
 
 		it('returns draft svg for original file with different signed node id', () => {
-			const result = action.iconSvgInline({
-				nodes: [{
-					fileid: 123,
-					attributes: {
-						'libresign-signed-node-id': 456,
-						'libresign-signature-status': 0,
-					},
-				}],
-			})
+			const result = action.iconSvgInline([{
+				fileid: 123,
+				attributes: {
+					'libresign-signed-node-id': 456,
+					'libresign-signature-status': 0,
+				},
+			}])
 			expect(result).toBe('<svg>0</svg>')
 		})
 	})
@@ -222,7 +208,7 @@ describe('showStatusInlineAction', () => {
 			mockGetSidebar.mockReturnValue(mockSidebar)
 
 			const node = { fileid: 123, name: 'test.pdf' }
-			const result = await action.exec({ nodes: [node] })
+			const result = await action.exec(node)
 
 			expect(mockSidebar.open).toHaveBeenCalledWith(node, 'libresign')
 			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
@@ -234,15 +220,13 @@ describe('showStatusInlineAction', () => {
 		it('returns false when certificate is not ok', () => {
 			mockLoadState.mockReturnValue(false)
 
-			const result = action.enabled({
-				nodes: [{
-					fileid: 1,
-					mime: 'application/pdf',
-					attributes: {
-						'libresign-signature-status': 3,
-					},
-				}],
-			})
+			const result = action.enabled([{
+				fileid: 1,
+				mime: 'application/pdf',
+				attributes: {
+					'libresign-signature-status': 3,
+				},
+			}])
 
 			expect(result).toBe(false)
 		})
@@ -250,13 +234,11 @@ describe('showStatusInlineAction', () => {
 		it('returns false when nodes do not have status', () => {
 			mockLoadState.mockReturnValue(true)
 
-			const result = action.enabled({
-				nodes: [{
-					fileid: 1,
-					mime: 'application/pdf',
-					attributes: {},
-				}],
-			})
+			const result = action.enabled([{
+				fileid: 1,
+				mime: 'application/pdf',
+				attributes: {},
+			}])
 
 			expect(result).toBe(false)
 		})
@@ -264,15 +246,13 @@ describe('showStatusInlineAction', () => {
 		it('returns true for PDF with status', () => {
 			mockLoadState.mockReturnValue(true)
 
-			const result = action.enabled({
-				nodes: [{
-					fileid: 1,
-					mime: 'application/pdf',
-					attributes: {
-						'libresign-signature-status': 3,
-					},
-				}],
-			})
+			const result = action.enabled([{
+				fileid: 1,
+				mime: 'application/pdf',
+				attributes: {
+					'libresign-signature-status': 3,
+				},
+			}])
 
 			expect(result).toBe(true)
 		})
@@ -280,15 +260,13 @@ describe('showStatusInlineAction', () => {
 		it('returns true for PDF when only mimetype is available', () => {
 			mockLoadState.mockReturnValue(true)
 
-			const result = action.enabled({
-				nodes: [{
-					fileid: 1,
-					mimetype: 'application/pdf',
-					attributes: {
-						'libresign-signature-status': 3,
-					},
-				}],
-			})
+			const result = action.enabled([{
+				fileid: 1,
+				mimetype: 'application/pdf',
+				attributes: {
+					'libresign-signature-status': 3,
+				},
+			}])
 
 			expect(result).toBe(true)
 		})
@@ -296,15 +274,13 @@ describe('showStatusInlineAction', () => {
 		it('returns true for folder with status', () => {
 			mockLoadState.mockReturnValue(true)
 
-			const result = action.enabled({
-				nodes: [{
-					fileid: 1,
-					type: 'folder',
-					attributes: {
-						'libresign-signature-status': 2,
-					},
-				}],
-			})
+			const result = action.enabled([{
+				fileid: 1,
+				type: 'folder',
+				attributes: {
+					'libresign-signature-status': 2,
+				},
+			}])
 
 			expect(result).toBe(true)
 		})
@@ -312,16 +288,14 @@ describe('showStatusInlineAction', () => {
 		it('returns false for non-PDF/non-folder', () => {
 			mockLoadState.mockReturnValue(true)
 
-			const result = action.enabled({
-				nodes: [{
-					fileid: 1,
-					mime: 'text/plain',
-					type: 'file',
-					attributes: {
-						'libresign-signature-status': 3,
-					},
-				}],
-			})
+			const result = action.enabled([{
+				fileid: 1,
+				mime: 'text/plain',
+				type: 'file',
+				attributes: {
+					'libresign-signature-status': 3,
+				},
+			}])
 
 			expect(result).toBe(false)
 		})
@@ -329,24 +303,22 @@ describe('showStatusInlineAction', () => {
 		it('returns true for multiple PDFs with status', () => {
 			mockLoadState.mockReturnValue(true)
 
-			const result = action.enabled({
-				nodes: [
-					{
-						fileid: 1,
-						mime: 'application/pdf',
-						attributes: {
-							'libresign-signature-status': 3,
-						},
+			const result = action.enabled([
+				{
+					fileid: 1,
+					mime: 'application/pdf',
+					attributes: {
+						'libresign-signature-status': 3,
 					},
-					{
-						fileid: 2,
-						mime: 'application/pdf',
-						attributes: {
-							'libresign-signature-status': 2,
-						},
+				},
+				{
+					fileid: 2,
+					mime: 'application/pdf',
+					attributes: {
+						'libresign-signature-status': 2,
 					},
-				],
-			})
+				},
+			])
 
 			expect(result).toBe(true)
 		})
@@ -358,4 +330,3 @@ describe('showStatusInlineAction', () => {
 		})
 	})
 })
-
