@@ -77,6 +77,7 @@ OC.L10N.register(
     "File" : "Fișier",
     "Details" : "Detalii",
     "Certificate" : "Certificat",
+    "Document" : "Document",
     "Upload file" : "Încarcă fișier",
     "Delete certificate" : "Șterge certificatul",
     "Signature" : "Semnătură",
@@ -132,6 +133,8 @@ OC.L10N.register(
     "Username" : "Nume utilizator",
     "Optional" : "Opțional",
     "Email verification" : "Verificare email",
+    "Hello {name}" : "Salut {name}",
+    "_{count} file_::_{count} files_" : ["{count} fișier","{count} fișiere","{count} fișiere"],
     "Today" : "Azi",
     "Last 7 days" : "Ultimele 7 zile",
     "Last 30 days" : "Ultimele 30 de zile"

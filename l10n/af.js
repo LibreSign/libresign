@@ -78,6 +78,8 @@ OC.L10N.register(
     "Reset to default" : "Herstel na verstek",
     "Username" : "Gebruikernaam",
     "Optional" : "Opsioneel",
-    "Forgot password?" : "Wagwoord vergeet?"
+    "Forgot password?" : "Wagwoord vergeet?",
+    "Hello {name}" : "Hallo {name}",
+    "_{count} file_::_{count} files_" : ["{count} lêer","{count} lêers"]
 },
 "nplurals=2; plural=(n != 1);");

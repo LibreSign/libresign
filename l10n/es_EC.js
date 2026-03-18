@@ -198,6 +198,7 @@ OC.L10N.register(
     "Certificate" : "Certificado",
     "Not sent yet" : "No enviado aún",
     "Not defined yet" : "Aún no definido",
+    "Document" : "Documento",
     "Impossible to get file entry" : "Imposible obtener la entrada del archivo",
     "File was sent." : "Archivo enviado.",
     "File was deleted." : "Archivo eliminado.",
@@ -323,6 +324,8 @@ OC.L10N.register(
     "Return" : "Regresar",
     "Open in LibreSign" : "Abrir en LibreSign",
     "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}",
+    "Hello {name}" : "Hola {name}",
+    "_{count} file_::_{count} files_" : ["{count} archivo","{count} archivos","{count} archivos"],
     "Today" : "Hoy",
     "Last 7 days" : "Últimos 7 días"
 },

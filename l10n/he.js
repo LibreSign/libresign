@@ -77,6 +77,7 @@ OC.L10N.register(
     "File" : "קובץ",
     "Details" : "פרטים",
     "Certificate" : "אישור",
+    "Document" : "מסמך",
     "Upload file" : "העלאת קובץ",
     "Delete file" : "מחיקת קובץ",
     "Change password" : "שינוי ססמה",
@@ -129,6 +130,8 @@ OC.L10N.register(
     "Optional" : "אופציונלי",
     "Contact information" : "פרטי קשר",
     "Forgot password?" : "שכחת ססמה?",
+    "Hello {name}" : "שלום {name}",
+    "_{count} file_::_{count} files_" : ["קובץ אחד","שני קבצים","{count} קבצים"],
     "Today" : "היום"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

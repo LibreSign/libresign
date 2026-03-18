@@ -65,6 +65,8 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "İstifadəçi adı",
+    "Hello {name}" : "Salam {name}",
+    "_{count} file_::_{count} files_" : ["{count} fayllar","{count} fayllar"],
     "Today" : "Bu gün"
 },
 "nplurals=2; plural=(n != 1);");

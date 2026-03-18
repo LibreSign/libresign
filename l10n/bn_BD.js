@@ -51,6 +51,7 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "ব্যবহারকারী",
+    "Hello {name}" : "হ্যালো {name}",
     "Today" : "আজ"
 },
 "nplurals=2; plural=(n != 1);");

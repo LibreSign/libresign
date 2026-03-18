@@ -65,6 +65,7 @@ OC.L10N.register(
     "File" : "ไฟล์",
     "Details" : "รายละเอียด",
     "Certificate" : "ใบรับรอง",
+    "Document" : "เอกสาร",
     "Upload file" : "อัปโหลดไฟล์",
     "Delete file" : "ลบไฟล์",
     "Signature" : "ลายเซ็น",
@@ -101,6 +102,8 @@ OC.L10N.register(
     "Username" : "ชื่อผู้ใช้",
     "Optional" : "ไม่จำเป็น",
     "Email verification" : "การยืนยันอีเมล",
+    "Hello {name}" : "สวัสดี {name}",
+    "_{count} file_::_{count} files_" : ["{count} ไฟล์"],
     "Today" : "วันนี้",
     "Last 7 days" : "ภายใน 7 วัน",
     "Last 30 days" : "ภายใน 30 วัน"

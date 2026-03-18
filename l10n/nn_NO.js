@@ -70,6 +70,8 @@ OC.L10N.register(
     "No" : "Nei",
     "Username" : "Brukarnamn",
     "Optional" : "Valfritt",
+    "Hello {name}" : "Hallo {name}",
+    "_{count} file_::_{count} files_" : ["{count} fil","{count} filer"],
     "Today" : "I dag"
 },
 "nplurals=2; plural=(n != 1);");

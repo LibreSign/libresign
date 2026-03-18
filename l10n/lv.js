@@ -78,6 +78,7 @@ OC.L10N.register(
     "File" : "Datne",
     "Details" : "Informācija",
     "Certificate" : "Sertifikāts",
+    "Document" : "Dokuments",
     "Delete file" : "Izdzēst datni",
     "Signature" : "Paraksts",
     "Profile picture" : "Profila attēls",
@@ -131,6 +132,8 @@ OC.L10N.register(
     "Complete" : "Pabeigta",
     "Open in LibreSign" : "Atvērt LibreSign",
     "Requested by {name}, at {date}" : "Pieprasīja {name} {date}",
+    "Hello {name}" : "Sveiciens, {name}",
+    "_{count} file_::_{count} files_" : ["{count} datņu","{count} datne","{count} datnes"],
     "Today" : "Šodien"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");
