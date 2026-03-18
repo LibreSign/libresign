@@ -101,6 +101,8 @@
     "Optional" : "Opcional",
     "Forgot password?" : "¿Olvidaste tu contraseña?",
     "Complete" : "Terminar",
+    "Hello {name}" : "Hola {name}",
+    "_{count} file_::_{count} files_" : ["{count} archivo","{count} archivos","{count} archivos"],
     "Today" : "Hoy"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

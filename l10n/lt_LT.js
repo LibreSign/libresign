@@ -145,6 +145,7 @@ OC.L10N.register(
     "Certificate" : "Liudijimas",
     "Not sent yet" : "Kol kas neišsiųsta",
     "Not defined yet" : "Kol kas neapibrėžta",
+    "Document" : "Dokumentas",
     "File was sent." : "Failas buvo išsiųstas.",
     "File was deleted." : "Failas buvo ištrintas.",
     "Upload file" : "Įkelti failą",
@@ -229,6 +230,8 @@ OC.L10N.register(
     "Unable to sign." : "Nepavyko pasirašyti.",
     "Forgot password?" : "Pamiršote slaptažodį?",
     "Complete" : "Baigti",
+    "Hello {name}" : "Sveiki, {name},",
+    "_{count} file_::_{count} files_" : ["{count} failas","{count} failai","{count} failų","{count} failas"],
     "Today" : "Šiandien",
     "Last 7 days" : "Paskutinės 7 dienos",
     "Last 30 days" : "Paskutinės 30 dienų"

@@ -88,6 +88,8 @@
     "Remove background" : "Fonni olib tashlash",
     "Username" : "Foydalanuvchi nomi",
     "Forgot password?" : "Parolni unutdingizmi?",
+    "Hello {name}" : "Salom {name}",
+    "_{count} file_::_{count} files_" : ["{count} fayllari"],
     "Today" : "Today",
     "Last 7 days" : "Oxirgi 7 kun",
     "Last 30 days" : "Oxirgi 30 kun"

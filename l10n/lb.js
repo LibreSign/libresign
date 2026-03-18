@@ -55,6 +55,7 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Benotzernumm",
     "Optional" : "Fräiwëlleg",
+    "_{count} file_::_{count} files_" : ["¦{count} Datei","¦{count} Dateien"],
     "Today" : "Haut"
 },
 "nplurals=2; plural=(n != 1);");

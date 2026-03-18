@@ -69,6 +69,7 @@
     "Username" : "Enw defnyddiwr",
     "Optional" : "Dewisol",
     "Forgot password?" : "Anghofio cyfrinair?",
+    "Hello {name}" : "Helo {name}",
     "Today" : "Heddiw"
 },"pluralForm" :"nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;"
 }

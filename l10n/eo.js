@@ -113,6 +113,8 @@ OC.L10N.register(
     "Optional" : "Malnepra",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
     "Complete" : "Plenumita",
+    "Hello {name}" : "Saluton {name}",
+    "_{count} file_::_{count} files_" : ["{count} dosiero","{count} dosieroj"],
     "Today" : "Hodiaŭ",
     "Last 7 days" : "Lastaj 7 tagoj",
     "Last 30 days" : "Lastaj 30 tagoj"

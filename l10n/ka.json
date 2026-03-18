@@ -130,6 +130,8 @@
     "Email verification" : "Email verification",
     "Forgot password?" : "Forgot password?",
     "Complete" : "Complete",
+    "Hello {name}" : "Hello {name}",
+    "_{count} file_::_{count} files_" : ["{count} file","{count} files"],
     "Today" : "დღეს",
     "Last 7 days" : "Last 7 days",
     "Last 30 days" : "Last 30 days"
