@@ -15,6 +15,7 @@ use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -41,6 +42,7 @@ class Admin implements ISettings {
 		private SignatureBackgroundService $signatureBackgroundService,
 		private FooterService $footerService,
 		private DocMdpConfigService $docMdpConfigService,
+		private PolicyService $policyService,
 	) {
 	}
 	#[\Override]
@@ -87,7 +89,13 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('tsa_username', $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', ''));
 		$this->initialState->provideInitialState('tsa_password', $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', self::PASSWORD_PLACEHOLDER));
 		$this->initialState->provideInitialState('docmdp_config', $this->docMdpConfigService->getConfig());
-		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value));
+		$resolvedPolicies = [];
+		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
+			$resolvedPolicies[$policyKey] = $resolvedPolicy->toArray();
+		}
+		$this->initialState->provideInitialState('effective_policies', [
+			'policies' => $resolvedPolicies,
+		]);
 		$this->initialState->provideInitialState('signing_mode', $this->getSigningModeInitialState());
 		$this->initialState->provideInitialState('worker_type', $this->getWorkerTypeInitialState());
 		$this->initialState->provideInitialState('identification_documents', $this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false));
