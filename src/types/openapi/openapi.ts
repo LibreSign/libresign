@@ -852,6 +852,23 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/effective": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Effective policies bootstrap */
+        get: operations["policy-effective"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/request-signature": {
         parameters: {
             query?: never;
@@ -1216,6 +1233,24 @@ export type components = {
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
         };
+        EffectivePoliciesResponse: {
+            policies: {
+                [key: string]: components["schemas"]["EffectivePolicyState"];
+            };
+        };
+        EffectivePolicyState: {
+            policyKey: string;
+            effectiveValue: components["schemas"]["EffectivePolicyValue"];
+            sourceScope: string;
+            visible: boolean;
+            editableByCurrentActor: boolean;
+            allowedValues: components["schemas"]["EffectivePolicyValue"][];
+            canSaveAsUserDefault: boolean;
+            canUseAsRequestOverride: boolean;
+            preferenceWasCleared: boolean;
+            blockedBy: string | null;
+        };
+        EffectivePolicyValue: (boolean | number | string) | null;
         ErrorItem: {
             message: string;
             title?: string;
@@ -3934,6 +3969,36 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: Record<string, never>;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-effective": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["EffectivePoliciesResponse"];
                         };
                     };
                 };
