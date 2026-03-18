@@ -16,7 +16,8 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\SignatureFlowPolicyService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
@@ -37,7 +38,7 @@ class TemplateLoader implements IEventListener {
 		private ValidateHelper $validateHelper,
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineFactory $certificateEngineFactory,
-		private SignatureFlowPolicyService $signatureFlowPolicyService,
+		private PolicyService $policyService,
 		private IAppManager $appManager,
 		private ConfigService $docMdpConfigService,
 	) {
@@ -66,7 +67,7 @@ class TemplateLoader implements IEventListener {
 		return [
 			'certificate_ok' => $this->certificateEngineFactory->getEngine()->isSetupOk(),
 			'identify_methods' => $this->identifyMethodService->getIdentifyMethodsSettings(),
-			'signature_flow_policy' => $this->signatureFlowPolicyService->resolveForUser($this->userSession->getUser())->toArray(),
+			'signature_flow_policy' => $this->policyService->resolve(SignatureFlowPolicy::KEY)->toArray(),
 			'docmdp_config' => $this->docMdpConfigService->getConfig(),
 			'can_request_sign' => $this->canRequestSign(),
 		];
