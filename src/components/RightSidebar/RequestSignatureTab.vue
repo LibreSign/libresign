@@ -318,6 +318,7 @@ import { getSigningRouteUuid, getValidationRouteUuid } from '../../utils/signReq
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
+import { usePoliciesStore } from '../../store/policies'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
@@ -328,8 +329,6 @@ import type {
 	IdentifyMethodRecord,
 	IdentifyMethodSetting as IdentifyMethodConfig,
 	LibresignCapabilities as RequestSignatureTabCapabilities,
-	SignatureFlowMode,
-	SignatureFlowPolicyState,
 	SignatureFlowValue,
 } from '../../types/index'
 
@@ -376,6 +375,7 @@ const props = withDefaults(defineProps<{
 })
 
 const filesStore = useFilesStore()
+const policiesStore = usePoliciesStore()
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 const userConfigStore = useUserConfigStore() as ReturnType<typeof useUserConfigStore> & {
@@ -399,23 +399,12 @@ const activeTab = ref('')
 const preserveOrder = ref(false)
 const showOrderDiagram = ref(false)
 const showEnvelopeFilesDialog = ref(false)
-const DEFAULT_SIGNATURE_FLOW_POLICY: SignatureFlowPolicyState = {
-	policyKey: 'signature_flow',
-	effectiveValue: 'none',
-	sourceScope: 'system',
-	visible: true,
-	editableByCurrentActor: true,
-	allowedValues: ['none', 'parallel', 'ordered_numeric'],
-	canSaveAsUserDefault: true,
-	canUseAsRequestOverride: true,
-	preferenceWasCleared: false,
-	blockedBy: null,
-}
-const signatureFlowPolicy = ref<SignatureFlowPolicyState>(loadState<SignatureFlowPolicyState>('libresign', 'signature_flow_policy', DEFAULT_SIGNATURE_FLOW_POLICY))
 const signingProgress = ref<components['schemas']['ProgressPayload'] | null>(null)
 const signingProgressStatus = ref<number | null>(null)
 const signingProgressStatusText = ref('')
 const stopPollingFunction = ref<null | (() => void)>(null)
+
+const signatureFlowPolicy = computed(() => policiesStore.getPolicy('signature_flow'))
 
 const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
@@ -429,14 +418,14 @@ const signatureFlow = computed(() => {
 	if (flow && flow !== 'none') {
 		return flow
 	}
-	const resolvedFlow = normalizeSignatureFlow(signatureFlowPolicy.value.effectiveValue)
+	const resolvedFlow = normalizeSignatureFlow(signatureFlowPolicy.value?.effectiveValue)
 	if (resolvedFlow && resolvedFlow !== 'none') {
 		return resolvedFlow
 	}
 	return 'parallel'
 })
 
-const isAdminFlowForced = computed(() => !signatureFlowPolicy.value.canUseAsRequestOverride)
+const isAdminFlowForced = computed(() => !policiesStore.canUseRequestOverride('signature_flow'))
 const isOrderedNumeric = computed(() => signatureFlow.value === 'ordered_numeric')
 const hasSigners = computed(() => filesStore.hasSigners(filesStore.getFile()))
 const totalSigners = computed(() => Number(filesStore.getFile()?.signersCount || filesStore.getFile()?.signers?.length || 0))
@@ -1225,6 +1214,7 @@ onMounted(() => {
 	subscribe('libresign:edit-signer', handleEditSigner)
 	filesStore.disableIdentifySigner()
 	activeTab.value = userConfigStore.files_list_signer_identify_tab || ''
+	void policiesStore.fetchEffectivePolicies()
 	syncPreserveOrderWithFile()
 	void ensureCurrentFileDetail()
 })
