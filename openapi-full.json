@@ -1870,6 +1870,21 @@
                     }
                 }
             },
+            "PolicySnapshotEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "type": "string"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
             "ProgressError": {
                 "type": "object",
                 "required": [
@@ -2648,11 +2663,22 @@
                     "original_file_deleted": {
                         "type": "boolean"
                     },
+                    "policy_snapshot": {
+                        "$ref": "#/components/schemas/ValidatePolicySnapshot"
+                    },
                     "pdfVersion": {
                         "type": "string"
                     },
                     "status_changed_at": {
                         "type": "string"
+                    }
+                }
+            },
+            "ValidatePolicySnapshot": {
+                "type": "object",
+                "properties": {
+                    "signature_flow": {
+                        "$ref": "#/components/schemas/PolicySnapshotEntry"
                     }
                 }
             },
