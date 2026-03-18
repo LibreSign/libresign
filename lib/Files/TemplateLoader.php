@@ -16,11 +16,11 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\SignatureFlowPolicyService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
 use OCP\Util;
@@ -37,7 +37,7 @@ class TemplateLoader implements IEventListener {
 		private ValidateHelper $validateHelper,
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineFactory $certificateEngineFactory,
-		private IAppConfig $appConfig,
+		private SignatureFlowPolicyService $signatureFlowPolicyService,
 		private IAppManager $appManager,
 		private ConfigService $docMdpConfigService,
 	) {
@@ -65,18 +65,10 @@ class TemplateLoader implements IEventListener {
 		return [
 			'certificate_ok' => $this->certificateEngineFactory->getEngine()->isSetupOk(),
 			'identify_methods' => $this->identifyMethodService->getIdentifyMethodsSettings(),
-			'signature_flow' => $this->getSignatureFlow(),
+			'signature_flow_policy' => $this->signatureFlowPolicyService->resolveForUser($this->userSession->getUser())->toArray(),
 			'docmdp_config' => $this->docMdpConfigService->getConfig(),
 			'can_request_sign' => $this->canRequestSign(),
 		];
-	}
-
-	private function getSignatureFlow(): string {
-		return $this->appConfig->getValueString(
-			Application::APP_ID,
-			'signature_flow',
-			\OCA\Libresign\Enum\SignatureFlow::NONE->value
-		);
 	}
 
 	private function canRequestSign(): bool {
