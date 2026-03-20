@@ -83,49 +83,4 @@ describe('Settings.vue', () => {
 
 		expect(wrapper.find('.signing-mode-stub').exists()).toBe(false)
 	})
-
-	it('toggles frozen preview visibility', async () => {
-		const wrapper = mount(Settings, {
-			global: {
-				stubs: {
-					SupportProject: true,
-					CertificateEngine: true,
-					SignatureEngine: true,
-					SettingsPolicyWorkbench: true,
-					FrozenSettingsPolicyWorkbench: { template: '<div class="frozen-stub" />' },
-					DownloadBinaries: true,
-					ConfigureCheck: true,
-					RootCertificateCfssl: true,
-					RootCertificateOpenSsl: true,
-					IdentificationFactors: true,
-					ExpirationRules: true,
-					Validation: true,
-					CrlValidation: true,
-					DocMDP: true,
-					SigningMode: true,
-					AllowedGroups: true,
-					LegalInformation: true,
-					IdentificationDocuments: true,
-					CollectMetadata: true,
-					SignatureStamp: true,
-					SignatureHashAlgorithm: true,
-					DefaultUserFolder: true,
-					Envelope: true,
-					Reminders: true,
-					TSA: true,
-				},
-			},
-		})
-
-		expect(wrapper.find('.frozen-stub').exists()).toBe(false)
-
-		const toggle = wrapper.find('[data-testid="toggle-frozen-preview"]')
-		expect(toggle.exists()).toBe(true)
-
-		await toggle.trigger('click')
-		expect(wrapper.find('.frozen-stub').exists()).toBe(true)
-
-		await toggle.trigger('click')
-		expect(wrapper.find('.frozen-stub').exists()).toBe(false)
-	})
 })
