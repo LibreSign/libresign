@@ -71,7 +71,7 @@ class PermissionSet extends Entity {
 	/**
 	 * @return array<string, mixed>
 	 */
-	public function getPolicyJson(): array {
+	public function getDecodedPolicyJson(): array {
 		$decoded = json_decode($this->policyJson, true);
 		return is_array($decoded) ? $decoded : [];
 	}
