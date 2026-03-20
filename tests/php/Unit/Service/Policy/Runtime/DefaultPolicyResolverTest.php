@@ -112,6 +112,35 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertNull($resolved->getBlockedBy());
 	}
 
+	public function testResolveIgnoresCircleLayersInCurrentPhase(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('parallel')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true),
+		];
+		$source->circleLayers = [
+			(new PolicyLayer())
+				->setScope('circle')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($this->getDefinition(), PolicyContext::fromUserId('john'));
+
+		$this->assertSame('parallel', $resolved->getEffectiveValue());
+		$this->assertFalse($source->circlePoliciesLoaded);
+	}
+
 	private function getDefinition(): PolicySpec {
 		return new PolicySpec(
 			key: 'signature_flow',
@@ -125,9 +154,12 @@ final class InMemoryPolicySource implements IPolicySource {
 	public ?PolicyLayer $systemLayer = null;
 	/** @var list<PolicyLayer> */
 	public array $groupLayers = [];
+	/** @var list<PolicyLayer> */
+	public array $circleLayers = [];
 	public ?PolicyLayer $userPreference = null;
 	public ?PolicyLayer $requestOverride = null;
 	public bool $userPreferenceCleared = false;
+	public bool $circlePoliciesLoaded = false;
 
 	public function loadSystemPolicy(string $policyKey): ?PolicyLayer {
 		return $this->systemLayer;
@@ -142,7 +174,8 @@ final class InMemoryPolicySource implements IPolicySource {
 	}
 
 	public function loadCirclePolicies(string $policyKey, PolicyContext $context): array {
-		return [];
+		$this->circlePoliciesLoaded = true;
+		return $this->circleLayers;
 	}
 
 	public function loadUserPreference(string $policyKey, PolicyContext $context): ?PolicyLayer {
