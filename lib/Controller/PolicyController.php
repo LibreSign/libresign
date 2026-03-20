@@ -16,8 +16,11 @@ use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\Group\ISubAdmin;
+use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUserSession;
 
 /**
  * @psalm-import-type LibresignErrorResponse from \OCA\Libresign\ResponseDefinitions
@@ -33,6 +36,9 @@ final class PolicyController extends AEnvironmentAwareController {
 		IRequest $request,
 		private IL10N $l10n,
 		private PolicyService $policyService,
+		private IUserSession $userSession,
+		private IGroupManager $groupManager,
+		private ISubAdmin $subAdmin,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -69,12 +75,18 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * @param string $groupId Group identifier that receives the policy binding.
 	 * @param string $policyKey Policy identifier to read for the selected group.
-	 * @return DataResponse<Http::STATUS_OK, LibresignGroupPolicyResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignGroupPolicyResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 403: Forbidden
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function getGroup(string $groupId, string $policyKey): DataResponse {
+		if (!$this->canManageGroupPolicy($groupId)) {
+			return $this->forbiddenGroupPolicyResponse();
+		}
+
 		$policy = $this->policyService->getGroupPolicy($policyKey, $groupId);
 
 		/** @var LibresignGroupPolicyResponse $data */
@@ -132,14 +144,20 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * @param string $policyKey Policy identifier to persist at the group layer.
 	 * @param null|bool|int|float|string $value Policy value to persist for the group.
 	 * @param bool $allowChildOverride Whether users and requests below this group may override the group default.
-	 * @return DataResponse<Http::STATUS_OK, LibresignGroupPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignGroupPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Invalid policy value
+	 * 403: Forbidden
 	 * 500: Internal server error
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function setGroup(string $groupId, string $policyKey, null|bool|int|float|string $value = null, bool $allowChildOverride = false): DataResponse {
+		if (!$this->canManageGroupPolicy($groupId)) {
+			return $this->forbiddenGroupPolicyResponse();
+		}
+
 		try {
 			$policy = $this->policyService->saveGroupPolicy($policyKey, $groupId, $value, $allowChildOverride);
 			/** @var LibresignGroupPolicyWriteResponse $data */
@@ -171,13 +189,19 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * @param string $groupId Group identifier that receives the policy binding.
 	 * @param string $policyKey Policy identifier to clear for the selected group.
-	 * @return DataResponse<Http::STATUS_OK, LibresignGroupPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignGroupPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 403: Forbidden
 	 * 500: Internal server error
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function clearGroup(string $groupId, string $policyKey): DataResponse {
+		if (!$this->canManageGroupPolicy($groupId)) {
+			return $this->forbiddenGroupPolicyResponse();
+		}
+
 		try {
 			$policy = $this->policyService->clearGroupPolicy($policyKey, $groupId);
 			/** @var LibresignGroupPolicyWriteResponse $data */
@@ -350,5 +374,33 @@ final class PolicyController extends AEnvironmentAwareController {
 			'visibleToChild' => $policy?->isVisibleToChild() ?? true,
 			'allowedValues' => $policy?->getAllowedValues() ?? [],
 		];
+	}
+
+	private function canManageGroupPolicy(string $groupId): bool {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return false;
+		}
+
+		if ($this->groupManager->isAdmin($user->getUID())) {
+			return true;
+		}
+
+		$group = $this->groupManager->get($groupId);
+		if ($group === null) {
+			return false;
+		}
+
+		return $this->subAdmin->isSubAdminOfGroup($user, $group);
+	}
+
+	/** @return DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}> */
+	private function forbiddenGroupPolicyResponse(): DataResponse {
+		/** @var LibresignErrorResponse $data */
+		$data = [
+			'error' => $this->l10n->t('Not allowed to manage this group policy'),
+		];
+
+		return new DataResponse($data, Http::STATUS_FORBIDDEN);
 	}
 }
