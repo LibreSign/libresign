@@ -1302,9 +1302,9 @@ onBeforeUnmount(() => {
 
 	&__inline-note-actions {
 		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: flex-start;
 		gap: 0.75rem;
 
 		p {
