@@ -3,25 +3,30 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 import { computed, reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 
-import SignatureFlow from '../SignatureFlow.vue'
+import SignatureFlowScalarRuleEditor from './settings/signature-flow/SignatureFlowScalarRuleEditor.vue'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyValue } from '../../../types/index'
+import logger from '../../../logger.js'
+
+type PolicyScope = 'system' | 'group' | 'user'
 
 interface PolicyRuleRecord {
 	id: string
-	scope: 'system' | 'group' | 'user'
+	scope: PolicyScope
 	targetId: string | null
 	allowChildOverride: boolean
 	value: EffectivePolicyValue
 }
 
 interface PolicyEditorDraft {
-	scope: 'system' | 'group' | 'user'
+	scope: PolicyScope
 	ruleId: string | null
-	targetId: string | null
+	targetIds: string[]
 	value: EffectivePolicyValue
 	allowChildOverride: boolean
 }
@@ -49,8 +54,37 @@ interface PolicySettingSummary {
 
 interface PolicyTargetOption {
 	id: string
-	label: string
-	groupId?: string
+	displayName: string
+	subname?: string
+	user?: string
+	isNoUser?: boolean
+}
+
+interface GroupDetailsResponse {
+	ocs?: {
+		data?: {
+			groups?: Array<{
+				id: string
+				displayname?: string
+				usercount?: number
+			}>
+		}
+	}
+}
+
+interface UserDetailsRecord {
+	id: string
+	displayname?: string
+	'display-name'?: string
+	email?: string
+}
+
+interface UserDetailsResponse {
+	ocs?: {
+		data?: {
+			users?: Record<string, UserDetailsRecord>
+		}
+	}
 }
 
 const realDefinitions = {
@@ -58,11 +92,11 @@ const realDefinitions = {
 		key: 'signature_flow',
 		title: t('libresign', 'Signing order'),
 		description: t('libresign', 'Define whether signers work in parallel or in a sequential order.'),
-		menuHint: t('libresign', 'Control the overall signature flow model for documents.'),
-		editor: SignatureFlow,
-		createEmptyValue: () => ({ flow: 'parallel' } as unknown as EffectivePolicyValue),
+		menuHint: t('libresign', 'Define the default signing flow and where overrides are allowed.'),
+		editor: SignatureFlowScalarRuleEditor,
+		createEmptyValue: () => 'parallel' as EffectivePolicyValue,
 		summarizeValue: (value: EffectivePolicyValue) => {
-			const flowValue = (value as any)?.flow
+			const flowValue = resolveSignatureFlowMode(value)
 			switch (flowValue) {
 			case 'parallel':
 				return t('libresign', 'Simultaneous (Parallel)')
@@ -77,8 +111,30 @@ const realDefinitions = {
 		formatAllowOverride: (allowChildOverride: boolean) =>
 			allowChildOverride
 				? t('libresign', 'Lower layers may override this rule')
-				: t('libresign', 'Lower layers must inherit this rule'),
+				: t('libresign', 'Lower layers must inherit this value'),
 	},
+}
+
+function resolveSignatureFlowMode(value: EffectivePolicyValue): string | null {
+	if (typeof value === 'string') {
+		return value
+	}
+
+	if (value && typeof value === 'object' && 'flow' in (value as Record<string, unknown>)) {
+		const candidate = (value as { flow?: unknown }).flow
+		return typeof candidate === 'string' ? candidate : null
+	}
+
+	return null
+}
+
+function inferSystemAllowOverride(policy: { allowedValues?: unknown[] } | null): boolean {
+	if (!policy || !Array.isArray(policy.allowedValues)) {
+		return true
+	}
+
+	// When lower layers are locked, backend narrows allowedValues to a single value.
+	return policy.allowedValues.length !== 1
 }
 
 export function createRealPolicyWorkbenchState() {
@@ -88,26 +144,19 @@ export function createRealPolicyWorkbenchState() {
 	const editorDraft = ref<PolicyEditorDraft | null>(null)
 	const editorMode = ref<'create' | 'edit' | null>(null)
 	const highlightedRuleId = ref<string | null>(null)
+	const duplicateMessage = ref<string | null>(null)
+	const nextRuleNumber = ref(1)
 
-	// Mock groups and users for now (will be fetched from API later)
-	const groups = ref<PolicyTargetOption[]>([
-		{ id: 'finance', label: t('libresign', 'Finance') },
-		{ id: 'legal', label: t('libresign', 'Legal') },
-		{ id: 'sales', label: t('libresign', 'Sales') },
-	])
+	const groupRules = ref<PolicyRuleRecord[]>([])
+	const userRules = ref<PolicyRuleRecord[]>([])
 
-	const users = ref<PolicyTargetOption[]>([
-		{ id: 'user1', label: t('libresign', 'User 1'), groupId: 'finance' },
-		{ id: 'user2', label: t('libresign', 'User 2'), groupId: 'finance' },
-		{ id: 'user3', label: t('libresign', 'User 3'), groupId: 'legal' },
-		{ id: 'user4', label: t('libresign', 'User 4'), groupId: 'sales' },
-	])
+	const groups = ref<PolicyTargetOption[]>([])
+	const users = ref<PolicyTargetOption[]>([])
+	const loadingTargets = ref(false)
 
 	const visibleSettingSummaries = computed<PolicySettingSummary[]>(() => {
 		return Object.values(realDefinitions).map((definition) => {
 			const policy = policiesStore.getPolicy(definition.key)
-			const groupCount = 1 // Placeholder
-			const userCount = 0  // Placeholder
 
 			return {
 				key: definition.key,
@@ -115,8 +164,8 @@ export function createRealPolicyWorkbenchState() {
 				description: definition.description,
 				menuHint: definition.menuHint,
 				defaultSummary: policy?.effectiveValue ? definition.summarizeValue(policy.effectiveValue) : t('libresign', 'Not configured'),
-				groupCount,
-				userCount,
+				groupCount: groupRules.value.length,
+				userCount: userRules.value.length,
 			}
 		})
 	})
@@ -139,24 +188,25 @@ export function createRealPolicyWorkbenchState() {
 			return null
 		}
 
+		// A baseline "none" value means there is no explicit global rule persisted.
+		if (activeDefinition.value.key === 'signature_flow') {
+			const mode = resolveSignatureFlowMode(policy.effectiveValue)
+			if (mode === 'none') {
+				return null
+			}
+		}
+
 		return {
 			id: 'system-default',
 			scope: 'system',
 			targetId: null,
-			allowChildOverride: true,
+			allowChildOverride: inferSystemAllowOverride(policy),
 			value: policy.effectiveValue,
 		}
 	})
 
-	const visibleGroupRules = computed<PolicyRuleRecord[]>(() => {
-		// Placeholder for now
-		return []
-	})
-
-	const visibleUserRules = computed<PolicyRuleRecord[]>(() => {
-		// Placeholder for now
-		return []
-	})
+	const visibleGroupRules = computed<PolicyRuleRecord[]>(() => groupRules.value)
+	const visibleUserRules = computed<PolicyRuleRecord[]>(() => userRules.value)
 
 	const availableTargets = computed<PolicyTargetOption[]>(() => {
 		if (!editorDraft.value) {
@@ -175,12 +225,18 @@ export function createRealPolicyWorkbenchState() {
 	})
 
 	const draftTargetLabel = computed(() => {
-		if (!editorDraft.value?.targetId) {
+		if (!editorDraft.value || editorDraft.value.targetIds.length === 0) {
 			return null
 		}
 
-		const target = availableTargets.value.find(t => t.id === editorDraft.value?.targetId)
-		return target?.label || null
+		const labels = editorDraft.value.targetIds
+			.map((targetId) => availableTargets.value.find((target) => target.id === targetId)?.displayName ?? targetId)
+
+		if (labels.length === 1) {
+			return labels[0]
+		}
+
+		return t('libresign', '{count} targets selected', { count: String(labels.length) })
 	})
 
 	const canSaveDraft = computed(() => {
@@ -188,44 +244,156 @@ export function createRealPolicyWorkbenchState() {
 			return false
 		}
 
-		if (editorDraft.value.scope !== 'system' && !editorDraft.value.targetId) {
+		if (editorDraft.value.scope !== 'system' && editorDraft.value.targetIds.length === 0) {
 			return false
 		}
 
 		return true
 	})
 
-	const duplicateMessage = ref<string | null>(null)
-
 	function openSetting(key: string) {
 		activeSettingKey.value = key
+	}
+
+	function mergeSelectedTargets(scope: 'group' | 'user', fetchedTargets: PolicyTargetOption[]) {
+		const existingTargets = scope === 'group' ? groups.value : users.value
+		const selectedIds = editorDraft.value?.scope === scope ? editorDraft.value.targetIds : []
+		const selectedTargets = existingTargets.filter((target) => {
+			return selectedIds.includes(target.id) && !fetchedTargets.some((option) => option.id === target.id)
+		})
+
+		return [...selectedTargets, ...fetchedTargets]
+	}
+
+	async function fetchGroups(query = ''): Promise<PolicyTargetOption[]> {
+		const { data } = await axios.get<GroupDetailsResponse>(generateOcsUrl('cloud/groups/details'), {
+			params: {
+				search: query,
+				limit: 20,
+				offset: 0,
+			},
+		})
+
+		return (data.ocs?.data?.groups ?? [])
+			.map((group) => ({
+				id: group.id,
+				displayName: group.displayname || group.id,
+				subname: typeof group.usercount === 'number'
+					? t('libresign', '{count} members', { count: String(group.usercount) })
+					: undefined,
+				isNoUser: true,
+			}))
+			.sort((left, right) => left.displayName.localeCompare(right.displayName))
+	}
+
+	async function fetchUsers(query = ''): Promise<PolicyTargetOption[]> {
+		const { data } = await axios.get<UserDetailsResponse>(generateOcsUrl('cloud/users/details'), {
+			params: {
+				search: query,
+				limit: 20,
+				offset: 0,
+			},
+		})
+
+		return Object.values(data.ocs?.data?.users ?? {})
+			.map((user) => ({
+				id: user.id,
+				displayName: user['display-name'] || user.displayname || user.id,
+				subname: user.email,
+				user: user.id,
+			}))
+			.sort((left, right) => left.displayName.localeCompare(right.displayName))
+	}
+
+	async function loadTargets(scope: 'group' | 'user', query = '') {
+		loadingTargets.value = true
+		try {
+			if (scope === 'group') {
+				groups.value = mergeSelectedTargets('group', await fetchGroups(query))
+				return
+			}
+
+			users.value = mergeSelectedTargets('user', await fetchUsers(query))
+		} catch (error) {
+			logger.debug('Could not load policy workbench targets', {
+				error,
+				scope,
+				query,
+			})
+		} finally {
+			loadingTargets.value = false
+		}
+	}
+
+	function searchAvailableTargets(query: string) {
+		const scope = editorDraft.value?.scope
+		if (scope !== 'group' && scope !== 'user') {
+			return
+		}
+
+		void loadTargets(scope, query)
 	}
 
 	function closeSetting() {
 		activeSettingKey.value = null
 		editorDraft.value = null
 		editorMode.value = null
+		duplicateMessage.value = null
 	}
 
-	function startEditor({ scope, ruleId }: { scope: 'system' | 'group' | 'user', ruleId?: string }) {
+	function resolveTargetLabel(scope: 'group' | 'user', targetId: string): string {
+		const targets = scope === 'group' ? groups.value : users.value
+		return targets.find((target) => target.id === targetId)?.displayName || targetId
+	}
+
+	function findRuleById(scope: PolicyScope, ruleId: string): PolicyRuleRecord | null {
+		if (scope === 'group') {
+			return groupRules.value.find((rule) => rule.id === ruleId) ?? null
+		}
+
+		if (scope === 'user') {
+			return userRules.value.find((rule) => rule.id === ruleId) ?? null
+		}
+
+		return inheritedSystemRule.value?.id === ruleId ? inheritedSystemRule.value : null
+	}
+
+	function startEditor({ scope, ruleId }: { scope: PolicyScope, ruleId?: string }) {
 		if (!activeDefinition.value) {
 			return
 		}
 
 		const isEdit = !!ruleId
 		editorMode.value = isEdit ? 'edit' : 'create'
+		duplicateMessage.value = null
 
 		let value: EffectivePolicyValue = activeDefinition.value.createEmptyValue()
-		if (isEdit && scope === 'system' && inheritedSystemRule.value) {
-			value = inheritedSystemRule.value.value
+		let targetIds: string[] = []
+		let allowChildOverride = true
+
+		if (isEdit && ruleId) {
+			const rule = findRuleById(scope, ruleId)
+			if (rule) {
+				value = rule.value
+				allowChildOverride = rule.allowChildOverride
+				targetIds = rule.targetId ? [rule.targetId] : []
+			}
+		} else if (scope === 'group') {
+			targetIds = []
+		} else if (scope === 'user') {
+			targetIds = []
 		}
 
 		editorDraft.value = {
 			scope,
 			ruleId: ruleId || null,
-			targetId: null,
+			targetIds,
 			value,
-			allowChildOverride: true,
+			allowChildOverride,
+		}
+
+		if (scope === 'group' || scope === 'user') {
+			void loadTargets(scope)
 		}
 	}
 
@@ -241,10 +409,16 @@ export function createRealPolicyWorkbenchState() {
 		}
 	}
 
-	function updateDraftTarget(targetId: string | null) {
-		if (editorDraft.value) {
-			editorDraft.value.targetId = targetId
+	function updateDraftTargets(targetIds: string[]) {
+		if (!editorDraft.value) {
+			return
 		}
+
+		editorDraft.value.targetIds = Array.from(new Set(targetIds.filter(Boolean)))
+	}
+
+	function updateDraftTarget(targetId: string | null) {
+		updateDraftTargets(targetId ? [targetId] : [])
 	}
 
 	function updateDraftAllowOverride(allowChildOverride: boolean) {
@@ -253,23 +427,63 @@ export function createRealPolicyWorkbenchState() {
 		}
 	}
 
+	function upsertRule(ruleList: PolicyRuleRecord[], scope: 'group' | 'user', targetId: string, value: EffectivePolicyValue, allowChildOverride: boolean) {
+		const existingRule = ruleList.find((rule) => rule.targetId === targetId)
+		if (existingRule) {
+			existingRule.value = value
+			existingRule.allowChildOverride = allowChildOverride
+			highlightedRuleId.value = existingRule.id
+			return
+		}
+
+		const id = `${scope}-${targetId}-${String(nextRuleNumber.value)}`
+		nextRuleNumber.value += 1
+
+		ruleList.push({
+			id,
+			scope,
+			targetId,
+			allowChildOverride,
+			value,
+		})
+
+		highlightedRuleId.value = id
+	}
+
 	async function saveDraft() {
 		if (!editorDraft.value || !activeDefinition.value) {
 			return
 		}
 
-		const { scope, value, allowChildOverride, targetId } = editorDraft.value
+		const { scope, value, allowChildOverride, targetIds } = editorDraft.value
+			const policyKey = activeDefinition.value.key
 
 		try {
 			if (scope === 'system') {
-				await policiesStore.saveSystemPolicy(activeDefinition.value.key, value)
-			} else if (scope === 'group' && targetId) {
-				await policiesStore.saveGroupPolicy(
-					targetId,
-					activeDefinition.value.key,
-					value,
-					allowChildOverride,
-				)
+				await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
+				cancelEditor()
+				return
+			}
+
+			if (scope === 'group') {
+				await Promise.all(targetIds.map((targetId) => {
+					return policiesStore.saveGroupPolicy(targetId, policyKey, value, allowChildOverride)
+				}))
+
+				for (const targetId of targetIds) {
+					upsertRule(groupRules.value, 'group', targetId, value, allowChildOverride)
+				}
+
+				cancelEditor()
+				return
+			}
+
+			await Promise.all(targetIds.map((targetId) => {
+				return policiesStore.saveUserPolicyForUser(targetId, policyKey, value)
+			}))
+
+			for (const targetId of targetIds) {
+				upsertRule(userRules.value, 'user', targetId, value, true)
 			}
 
 			cancelEditor()
@@ -278,18 +492,58 @@ export function createRealPolicyWorkbenchState() {
 		}
 	}
 
-	function removeRule(ruleId: string) {
+	async function removeRule(ruleId: string) {
 		if (!activeDefinition.value) {
 			return
 		}
 
-		// Placeholder for now
-		console.log('Remove rule:', ruleId)
-	}
+		const policyKey = activeDefinition.value.key
+		const inheritedSystemRuleId = inheritedSystemRule.value?.id
+		const isEditingMode = editorMode.value === 'edit'
 
-	function resolveTargetLabel(scope: 'group' | 'user', targetId: string): string {
-		const targets = scope === 'group' ? groups.value : users.value
-		return targets.find(t => t.id === targetId)?.label || targetId
+		const shouldCloseSystemEditor = isEditingMode && editorDraft.value?.scope === 'system'
+		const shouldCloseGroupEditor = isEditingMode
+			&& editorDraft.value?.scope === 'group'
+			&& editorDraft.value.ruleId === ruleId
+		const shouldCloseUserEditor = isEditingMode
+			&& editorDraft.value?.scope === 'user'
+			&& editorDraft.value.ruleId === ruleId
+
+		if (ruleId === 'system-default' || (inheritedSystemRuleId !== null && ruleId === inheritedSystemRuleId)) {
+			await policiesStore.saveSystemPolicy(policyKey, null as unknown as EffectivePolicyValue)
+			highlightedRuleId.value = null
+			if (shouldCloseSystemEditor) {
+				cancelEditor()
+			}
+			return
+		}
+
+		const groupIndex = groupRules.value.findIndex((rule) => rule.id === ruleId)
+		if (groupIndex >= 0) {
+			const targetId = groupRules.value[groupIndex]?.targetId
+			if (targetId) {
+				await policiesStore.clearGroupPolicy(targetId, policyKey)
+			}
+			groupRules.value.splice(groupIndex, 1)
+			highlightedRuleId.value = null
+			if (shouldCloseGroupEditor) {
+				cancelEditor()
+			}
+			return
+		}
+
+		const userIndex = userRules.value.findIndex((rule) => rule.id === ruleId)
+		if (userIndex >= 0) {
+			const targetId = userRules.value[userIndex]?.targetId
+			if (targetId) {
+				await policiesStore.clearUserPolicyForUser(targetId, policyKey)
+			}
+			userRules.value.splice(userIndex, 1)
+			highlightedRuleId.value = null
+			if (shouldCloseUserEditor) {
+				cancelEditor()
+			}
+		}
 	}
 
 	return reactive({
@@ -303,6 +557,7 @@ export function createRealPolicyWorkbenchState() {
 		highlightedRuleId: highlightedRuleId as any,
 		viewMode: viewMode as any,
 		availableTargets,
+		loadingTargets,
 		draftTargetLabel,
 		duplicateMessage: duplicateMessage as any,
 		canSaveDraft,
@@ -312,7 +567,9 @@ export function createRealPolicyWorkbenchState() {
 		cancelEditor,
 		updateDraftValue,
 		updateDraftTarget,
+		updateDraftTargets,
 		updateDraftAllowOverride,
+		searchAvailableTargets,
 		saveDraft,
 		removeRule,
 		resolveTargetLabel,
