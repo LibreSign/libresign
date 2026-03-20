@@ -13,7 +13,7 @@ vi.mock('../../../store/policies', () => ({
 	usePoliciesStore: () => ({
 		getPolicy: (key: string) => {
 			if (key === 'signature_flow') {
-				return { effectiveValue: { flow: 'ordered_numeric' } }
+				return { effectiveValue: 'ordered_numeric' }
 			}
 			return null
 		},
@@ -38,7 +38,7 @@ describe('RealPolicyWorkbench.vue', () => {
 					NcNoteCard: { template: '<div class="note-card"><slot /></div>' },
 					NcDialog: { template: '<div class="dialog"><slot /></div>' },
 					NcCheckboxRadioSwitch: { template: '<input type="checkbox" @change="$emit(\'update:modelValue\', $event.target.checked)" />' },
-					NcSelect: { template: '<select @change="$emit(\'update:modelValue\', { id: $event.target.value })"><option>Choose</option></select>' },
+					NcSelectUsers: { template: '<div class="nc-select-users-stub" />' },
 					PolicyRuleCard: { template: '<div class="rule-card"><slot /></div>' },
 					SignatureFlow: { template: '<div class="signature-flow-stub" />' },
 				},
@@ -60,15 +60,15 @@ describe('RealPolicyWorkbench.vue', () => {
 		// Validate signing order is displayed
 		expect(text).toContain('Signing order')
 		expect(text).toContain('Define whether signers work in parallel or in a sequential order')
-		expect(text).toContain('Control the overall signature flow model for documents')
+		expect(text).toContain('Define the default signing flow and where overrides are allowed')
 
 		// Validate default value is shown
 		expect(text).toContain('Sequential')
-		expect(text).toContain('Default:')
+		expect(text).toContain('Global default:')
 
 		// Validate counts shown
-		expect(text).toContain('Group rules: 1')
-		expect(text).toContain('User rules: 0')
+		expect(text).toContain('Group overrides: 0')
+		expect(text).toContain('User overrides: 0')
 
 		// Validate POC settings are NOT present
 		expect(text).not.toContain('Confetti')
