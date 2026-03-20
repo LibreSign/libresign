@@ -45,12 +45,20 @@ type ApiRequestJsonBody<TOperation> = ApiJsonBody<ApiOperationRequestBody<TOpera
 type ApiOcsResponseData<TOperation, TStatusCode extends keyof ApiOperationResponses<TOperation>>
 	= ApiOcsJsonData<ApiOperationResponses<TOperation>[TStatusCode]>
 
+type ApiRecordValue<TRecord> = TRecord extends Record<string, infer TValue>
+	? TValue
+	: never
+
 export type SignatureFlowMode = ApiComponents['schemas']['DetailedFileResponse']['signatureFlow']
 export type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
-export type EffectivePolicyValue = ApiComponents['schemas']['EffectivePolicyValue']
-export type EffectivePolicyState = ApiComponents['schemas']['EffectivePolicyState']
 export type EffectivePoliciesResponse = ApiOcsResponseData<ApiOperations['policy-effective'], 200>
 export type EffectivePoliciesState = EffectivePoliciesResponse['policies']
+export type EffectivePolicyState = ApiRecordValue<EffectivePoliciesState>
+export type EffectivePolicyValue = Exclude<ApiRequestJsonBody<AdminOperations['policy-set-system']>['value'], undefined>
+export type GroupPolicyResponse = ApiOcsResponseData<AdminOperations['policy-get-group'], 200>
+export type GroupPolicyState = GroupPolicyResponse['policy']
+export type GroupPolicyWritePayload = ApiRequestJsonBody<AdminOperations['policy-set-group']>
+export type GroupPolicyWriteResponse = ApiOcsResponseData<AdminOperations['policy-set-group'], 200>
 export type SystemPolicyWritePayload = ApiRequestJsonBody<AdminOperations['policy-set-system']>
 export type SystemPolicyWriteResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 200>
 export type SystemPolicyWriteErrorResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 400>
