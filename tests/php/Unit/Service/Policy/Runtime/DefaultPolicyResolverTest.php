@@ -137,6 +137,10 @@ final class InMemoryPolicySource implements IPolicySource {
 		return $this->groupLayers;
 	}
 
+	public function loadGroupPolicyConfig(string $policyKey, string $groupId): ?PolicyLayer {
+		return $this->groupLayers[0] ?? null;
+	}
+
 	public function loadCirclePolicies(string $policyKey, PolicyContext $context): array {
 		return [];
 	}
@@ -149,10 +153,16 @@ final class InMemoryPolicySource implements IPolicySource {
 		return $this->requestOverride;
 	}
 
-	public function saveSystemPolicy(string $policyKey, mixed $value): void {
+	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void {
+	}
+
+	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride): void {
 	}
 
 	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void {
+	}
+
+	public function clearGroupPolicy(string $policyKey, string $groupId): void {
 	}
 
 	public function clearUserPreference(string $policyKey, PolicyContext $context): void {
