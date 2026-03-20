@@ -15,6 +15,7 @@ use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 
 class PolicySource implements IPolicySource {
@@ -30,21 +31,29 @@ class PolicySource implements IPolicySource {
 	public function loadSystemPolicy(string $policyKey): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
 		$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
-		$value = $this->appConfig->getAppValueString($definition->getAppConfigKey(), (string)$defaultValue);
-		$value = $definition->normalizeValue($value);
+		$storedValue = $this->appConfig->getAppValueString($definition->getAppConfigKey(), '');
+		$hasExplicitSystemValue = $storedValue !== '';
+		$value = $hasExplicitSystemValue
+			? $definition->normalizeValue($storedValue)
+			: $defaultValue;
 
 		$layer = (new PolicyLayer())
 			->setScope('system')
 			->setValue($value)
 			->setVisibleToChild(true);
 
-		if ($value === $defaultValue) {
+		if (!$hasExplicitSystemValue || $value === $defaultValue) {
 			return $layer->setAllowChildOverride(true);
 		}
 
+		$allowChildOverride = $this->appConfig->getAppValueString(
+			$this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey()),
+			'0',
+		) === '1';
+
 		return $layer
-			->setAllowChildOverride(false)
-			->setAllowedValues([$value]);
+			->setAllowChildOverride($allowChildOverride)
+			->setAllowedValues($allowChildOverride ? [] : [$value]);
 	}
 
 	#[\Override]
@@ -136,17 +145,107 @@ class PolicySource implements IPolicySource {
 	}
 
 	#[\Override]
-	public function saveSystemPolicy(string $policyKey, mixed $value): void {
+	public function loadGroupPolicyConfig(string $policyKey, string $groupId): ?PolicyLayer {
+		$permissionSet = $this->findPermissionSetByGroupId($groupId);
+		if (!$permissionSet instanceof PermissionSet) {
+			return null;
+		}
+
+		$policyConfig = $permissionSet->getPolicyJson()[$policyKey] ?? null;
+		if (!is_array($policyConfig)) {
+			return null;
+		}
+
+		return $this->createGroupPolicyLayer($policyConfig);
+	}
+
+	#[\Override]
+	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void {
 		$definition = $this->registry->get($policyKey);
 		$normalizedValue = $definition->normalizeValue($value);
 		$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
+		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey());
 
 		if ($normalizedValue === $defaultValue) {
 			$this->appConfig->deleteAppValue($definition->getAppConfigKey());
+			$this->appConfig->deleteAppValue($allowOverrideConfigKey);
 			return;
 		}
 
 		$this->appConfig->setAppValueString($definition->getAppConfigKey(), (string)$normalizedValue);
+		$this->appConfig->setAppValueString($allowOverrideConfigKey, $allowChildOverride ? '1' : '0');
+	}
+
+	private function getSystemAllowOverrideConfigKey(string $policyConfigKey): string {
+		return $policyConfigKey . '.allow_child_override';
+	}
+
+	#[\Override]
+	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride): void {
+		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $definition->normalizeValue($value);
+		$permissionSet = $this->findPermissionSetByGroupId($groupId);
+		$now = new \DateTime('now', new \DateTimeZone('UTC'));
+
+		if (!$permissionSet instanceof PermissionSet) {
+			$permissionSet = new PermissionSet();
+			$permissionSet->setName('group:' . $groupId);
+			$permissionSet->setScopeType('group');
+			$permissionSet->setCreatedAt($now);
+		}
+
+		$policyJson = $permissionSet->getPolicyJson();
+		$policyJson[$policyKey] = [
+			'defaultValue' => $normalizedValue,
+			'allowChildOverride' => $allowChildOverride,
+			'visibleToChild' => true,
+			'allowedValues' => $allowChildOverride ? [] : [$normalizedValue],
+		];
+
+		$permissionSet->setPolicyJson($policyJson);
+		$permissionSet->setUpdatedAt($now);
+
+		if ($permissionSet->getId() > 0) {
+			$this->permissionSetMapper->update($permissionSet);
+			return;
+		}
+
+		/** @var PermissionSet $permissionSet */
+		$permissionSet = $this->permissionSetMapper->insert($permissionSet);
+
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId($permissionSet->getId());
+		$binding->setTargetType('group');
+		$binding->setTargetId($groupId);
+		$binding->setCreatedAt($now);
+
+		$this->bindingMapper->insert($binding);
+	}
+
+	#[\Override]
+	public function clearGroupPolicy(string $policyKey, string $groupId): void {
+		$binding = $this->findBindingByGroupId($groupId);
+		if (!$binding instanceof PermissionSetBinding) {
+			return;
+		}
+
+		$permissionSet = $this->findPermissionSetByBinding($binding);
+		if (!$permissionSet instanceof PermissionSet) {
+			return;
+		}
+
+		$policyJson = $permissionSet->getPolicyJson();
+		unset($policyJson[$policyKey]);
+
+		if ($policyJson === []) {
+			$this->bindingMapper->delete($binding);
+			$this->permissionSetMapper->delete($permissionSet);
+			return;
+		}
+
+		$permissionSet->setPolicyJson($policyJson);
+		$permissionSet->setUpdatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
+		$this->permissionSetMapper->update($permissionSet);
 	}
 
 	#[\Override]
@@ -180,5 +279,40 @@ class PolicySource implements IPolicySource {
 		}
 
 		return $context->getGroups();
+	}
+
+	/** @param array<string, mixed> $policyConfig */
+	private function createGroupPolicyLayer(array $policyConfig): PolicyLayer {
+		return (new PolicyLayer())
+			->setScope('group')
+			->setValue($policyConfig['defaultValue'] ?? null)
+			->setAllowChildOverride((bool)($policyConfig['allowChildOverride'] ?? false))
+			->setVisibleToChild((bool)($policyConfig['visibleToChild'] ?? true))
+			->setAllowedValues(is_array($policyConfig['allowedValues'] ?? null) ? $policyConfig['allowedValues'] : []);
+	}
+
+	private function findBindingByGroupId(string $groupId): ?PermissionSetBinding {
+		try {
+			return $this->bindingMapper->getByTarget('group', $groupId);
+		} catch (DoesNotExistException) {
+			return null;
+		}
+	}
+
+	private function findPermissionSetByBinding(PermissionSetBinding $binding): ?PermissionSet {
+		try {
+			return $this->permissionSetMapper->getById($binding->getPermissionSetId());
+		} catch (DoesNotExistException) {
+			return null;
+		}
+	}
+
+	private function findPermissionSetByGroupId(string $groupId): ?PermissionSet {
+		$binding = $this->findBindingByGroupId($groupId);
+		if (!$binding instanceof PermissionSetBinding) {
+			return null;
+		}
+
+		return $this->findPermissionSetByBinding($binding);
 	}
 }
