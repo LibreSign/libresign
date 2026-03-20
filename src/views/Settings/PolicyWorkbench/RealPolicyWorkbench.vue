@@ -6,14 +6,14 @@
 <template>
 	<NcSettingsSection
 		:name="t('libresign', 'Policy configuration')"
-		:description="t('libresign', 'Manage signing policies with support for global defaults, group overrides, and user preferences.')">
+		:description="t('libresign', 'Manage policy settings with global defaults, group overrides, and user overrides.')">
 
 		<div class="policy-workbench__catalog-toolbar">
 			<div class="policy-workbench__catalog-search">
 				<NcTextField
 					:model-value="settingsFilter"
-					:label="t('libresign', 'Find setting')"
-					:placeholder="t('libresign', 'Search by name, summary or hint')"
+					:label="t('libresign', 'Search settings')"
+					:placeholder="t('libresign', 'Search by setting name, summary, or hint')"
 					@keydown.esc.prevent="clearSettingsFilter"
 					@update:modelValue="onSettingsFilterChange" />
 				<div class="policy-workbench__catalog-foot">
@@ -36,7 +36,7 @@
 				</div>
 			</div>
 
-			<div class="policy-workbench__catalog-view-switch" role="group" :aria-label="t('libresign', 'Choose settings view mode')">
+			<div class="policy-workbench__catalog-view-switch" role="group" :aria-label="t('libresign', 'Select settings layout')">
 				<NcButton
 					:aria-label="catalogViewButtonLabel"
 					:title="catalogViewButtonLabel"
@@ -68,8 +68,8 @@
 						<h3 v-html="highlightText(summary.title)"></h3>
 						<p v-html="highlightText(summary.description)"></p>
 					</div>
-					<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Manage this setting')" @click.stop="state.openSetting(summary.key)">
-						{{ t('libresign', 'Manage') }}
+					<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Open setting policy')" @click.stop="state.openSetting(summary.key)">
+						{{ t('libresign', 'Open policy') }}
 					</NcButton>
 				</div>
 
@@ -83,15 +83,15 @@
 
 				<ul class="policy-workbench__setting-stats">
 					<li>
-						<strong>{{ t('libresign', 'Default') }}:</strong>
+						<strong>{{ t('libresign', 'Global default') }}:</strong>
 						<span :title="summary.defaultSummary" v-html="highlightText(summary.defaultSummary)"></span>
 					</li>
 					<li>
-						<strong>{{ t('libresign', 'Group rules') }}:</strong>
+						<strong>{{ t('libresign', 'Group overrides') }}:</strong>
 						{{ summary.groupCount }}
 					</li>
 					<li>
-						<strong>{{ t('libresign', 'User rules') }}:</strong>
+						<strong>{{ t('libresign', 'User overrides') }}:</strong>
 						{{ summary.userCount }}
 					</li>
 				</ul>
@@ -120,22 +120,22 @@
 
 				<div class="policy-workbench__settings-row-stats">
 					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--default" :title="summary.defaultSummary">
-						<strong>{{ t('libresign', 'Default') }}:</strong>
+						<strong>{{ t('libresign', 'Global default') }}:</strong>
 						<span v-html="highlightText(summary.defaultSummary)"></span>
 					</span>
-					<span class="policy-workbench__settings-row-stat"><strong>{{ t('libresign', 'Group') }}:</strong> {{ summary.groupCount }}</span>
-					<span class="policy-workbench__settings-row-stat"><strong>{{ t('libresign', 'User') }}:</strong> {{ summary.userCount }}</span>
+					<span class="policy-workbench__settings-row-stat"><strong>{{ t('libresign', 'Group overrides') }}:</strong> {{ summary.groupCount }}</span>
+					<span class="policy-workbench__settings-row-stat"><strong>{{ t('libresign', 'User overrides') }}:</strong> {{ summary.userCount }}</span>
 				</div>
 
-				<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Manage this setting')" @click.stop="state.openSetting(summary.key)">
-					{{ t('libresign', 'Manage') }}
+				<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Open setting policy')" @click.stop="state.openSetting(summary.key)">
+					{{ t('libresign', 'Open policy') }}
 				</NcButton>
 			</article>
 		</div>
 
 		<NcNoteCard v-if="filteredSettingSummaries.length === 0" type="info">
 			<div class="policy-workbench__empty-state">
-				<p>{{ t('libresign', 'No settings matched this search. Try fewer words or clear the filter.') }}</p>
+				<p>{{ t('libresign', 'No settings match this search. Try fewer keywords or clear the filter.') }}</p>
 				<div class="policy-workbench__empty-state-actions">
 					<NcButton variant="secondary" :aria-label="t('libresign', 'Clear settings filter')" :disabled="!hasActiveFilter" @click="clearSettingsFilter">
 						{{ t('libresign', 'Clear filter') }}
@@ -157,7 +157,7 @@
 				<header class="policy-workbench__dialog-header">
 					<div>
 						<p class="policy-workbench__eyebrow">
-							{{ state.viewMode === 'system-admin' ? t('libresign', 'Global admin workspace') : t('libresign', 'Group admin workspace') }}
+							{{ state.viewMode === 'system-admin' ? t('libresign', 'System admin workspace') : t('libresign', 'Group admin workspace') }}
 						</p>
 						<h2>{{ state.activeDefinition.title }}</h2>
 						<p>{{ state.activeDefinition.description }}</p>
@@ -166,33 +166,26 @@
 						<NcButton
 							v-if="state.viewMode === 'system-admin'"
 							variant="secondary"
-							:aria-label="t('libresign', 'Edit or create default rule')"
-							@click="state.startEditor({ scope: 'system' })">
-							{{ state.inheritedSystemRule ? t('libresign', 'Edit default rule') : t('libresign', 'Create default rule') }}
-						</NcButton>
-						<NcButton
-							v-if="state.viewMode === 'system-admin' && state.inheritedSystemRule"
-							variant="error"
-							:aria-label="t('libresign', 'Reset default rule')"
-							@click="promptRuleRemoval(state.inheritedSystemRule.id, 'system', t('libresign', 'Default configuration'))">
-							{{ t('libresign', 'Reset default rule') }}
-						</NcButton>
-						<NcButton
-							v-if="state.viewMode === 'system-admin'"
-							variant="secondary"
-							:aria-label="t('libresign', 'Add group rule')"
+							:aria-label="t('libresign', 'New group override')"
 							@click="state.startEditor({ scope: 'group' })">
-							{{ t('libresign', 'Add group rule') }}
+							{{ t('libresign', 'New group override') }}
 						</NcButton>
-						<NcButton variant="primary" :aria-label="t('libresign', 'Add user rule')" @click="state.startEditor({ scope: 'user' })">
-							{{ t('libresign', 'Add user rule') }}
+						<NcButton variant="primary" :aria-label="t('libresign', 'New user override')" @click="state.startEditor({ scope: 'user' })">
+							{{ t('libresign', 'New user override') }}
 						</NcButton>
 					</div>
 				</header>
 
+				<p
+					v-if="removalFeedback"
+					class="policy-workbench__removal-feedback"
+					aria-live="polite">
+					{{ removalFeedback }}
+				</p>
+
 				<div class="policy-workbench__workspace">
 					<div class="policy-workbench__rules-column">
-						<section class="policy-workbench__group">
+						<section class="policy-workbench__group" role="region" :aria-label="state.viewMode === 'system-admin' ? t('libresign', 'Global default rules') : t('libresign', 'Inherited global default')">
 							<div class="policy-workbench__group-header">
 								<h3>{{ state.viewMode === 'system-admin' ? t('libresign', 'Global default') : t('libresign', 'Inherited global default') }}</h3>
 								<p>
@@ -204,29 +197,38 @@
 
 							<PolicyRuleCard
 								v-if="state.inheritedSystemRule"
-								eyebrow="System"
-								:title="t('libresign', 'Default configuration')"
+								:eyebrow="t('libresign', 'System')"
+								:title="t('libresign', 'Global default rule')"
 								:summary="summarizeRuleValue(state.inheritedSystemRule.value)"
-								:description="t('libresign', 'Used whenever no group or user rule matches.')"
+								:description="t('libresign', 'Applied when no group or user override matches.')"
 								:badges="systemRuleBadges"
 								:highlighted="state.highlightedRuleId === state.inheritedSystemRule.id"
 								:show-edit-action="true"
 								:show-remove-action="state.viewMode === 'system-admin'"
-								:edit-label="t('libresign', 'Edit default')"
-								:remove-label="t('libresign', 'Reset default')"
+								:edit-label="t('libresign', 'Edit global default')"
+								:remove-label="t('libresign', 'Reset global default')"
 								@edit="state.startEditor({ scope: 'system', ruleId: state.inheritedSystemRule.id })"
-								@remove="promptRuleRemoval(state.inheritedSystemRule.id, 'system', t('libresign', 'Default configuration'))" />
+								@remove="promptRuleRemoval(state.inheritedSystemRule.id, 'system', t('libresign', 'Global default rule'))" />
 
 							<NcNoteCard v-else type="info">
-								{{ t('libresign', 'No global default exists yet for this setting.') }}
+								<div class="policy-workbench__inline-note-actions">
+									<p>{{ t('libresign', 'No global default rule is set for this setting.') }}</p>
+									<NcButton
+										v-if="state.viewMode === 'system-admin'"
+										variant="secondary"
+										:aria-label="t('libresign', 'Create global default rule')"
+										@click="state.startEditor({ scope: 'system' })">
+										{{ t('libresign', 'Create global default rule') }}
+									</NcButton>
+								</div>
 							</NcNoteCard>
 						</section>
 
-						<section class="policy-workbench__group">
+						<section class="policy-workbench__group" role="region" :aria-label="t('libresign', 'Group overrides')">
 							<div class="policy-workbench__group-header">
-								<h3>{{ t('libresign', 'Group rules') }}</h3>
+								<h3>{{ t('libresign', 'Group overrides') }}</h3>
 								<p>
-									{{ t('libresign', 'These rules override the default for specific groups.') }}
+									{{ t('libresign', 'These overrides replace the global default for selected groups.') }}
 								</p>
 							</div>
 
@@ -234,28 +236,37 @@
 								<PolicyRuleCard
 									v-for="rule in state.visibleGroupRules"
 									:key="rule.id"
-									eyebrow="Group"
+									:eyebrow="t('libresign', 'Group')"
 									:title="state.resolveTargetLabel('group', rule.targetId || '')"
 									:summary="summarizeRuleValue(rule.value)"
-									:description="t('libresign', 'Overrides the inherited rule for this group.')"
+									:description="t('libresign', 'Replaces inherited behavior for this group.')"
 									:badges="groupRuleBadges(rule.allowChildOverride)"
 									:highlighted="state.highlightedRuleId === rule.id"
-									:edit-label="t('libresign', 'Edit group rule')"
-									:remove-label="t('libresign', 'Delete group rule')"
+									:edit-label="t('libresign', 'Edit group override')"
+									:remove-label="t('libresign', 'Delete group override')"
 									@edit="state.startEditor({ scope: 'group', ruleId: rule.id })"
 									@remove="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))" />
 							</div>
 
 							<NcNoteCard v-else type="info">
-								{{ t('libresign', 'No group rules exist yet for this setting.') }}
+								<div class="policy-workbench__inline-note-actions">
+									<p>{{ t('libresign', 'No group overrides are set for this setting.') }}</p>
+									<NcButton
+										v-if="state.viewMode === 'system-admin'"
+										variant="secondary"
+										:aria-label="t('libresign', 'New group override')"
+										@click="state.startEditor({ scope: 'group' })">
+										{{ t('libresign', 'New group override') }}
+									</NcButton>
+								</div>
 							</NcNoteCard>
 						</section>
 
-						<section class="policy-workbench__group">
+						<section class="policy-workbench__group" role="region" :aria-label="t('libresign', 'User overrides')">
 							<div class="policy-workbench__group-header">
-								<h3>{{ t('libresign', 'User rules') }}</h3>
+								<h3>{{ t('libresign', 'User overrides') }}</h3>
 								<p>
-									{{ t('libresign', 'Use these only when an individual needs a different behavior from the group or system default.') }}
+									{{ t('libresign', 'Use these only when one signer needs behavior different from inherited defaults.') }}
 								</p>
 							</div>
 
@@ -263,20 +274,28 @@
 								<PolicyRuleCard
 									v-for="rule in state.visibleUserRules"
 									:key="rule.id"
-									eyebrow="User"
+									:eyebrow="t('libresign', 'User')"
 									:title="state.resolveTargetLabel('user', rule.targetId || '')"
 									:summary="summarizeRuleValue(rule.value)"
-									:description="t('libresign', 'Applies only to this user.')"
+									:description="t('libresign', 'Applies only to this signer.')"
 									:badges="[t('libresign', 'Final override')]"
 									:highlighted="state.highlightedRuleId === rule.id"
-									:edit-label="t('libresign', 'Edit user rule')"
-									:remove-label="t('libresign', 'Delete user rule')"
+									:edit-label="t('libresign', 'Edit user override')"
+									:remove-label="t('libresign', 'Delete user override')"
 									@edit="state.startEditor({ scope: 'user', ruleId: rule.id })"
 									@remove="promptRuleRemoval(rule.id, 'user', state.resolveTargetLabel('user', rule.targetId || ''))" />
 							</div>
 
 							<NcNoteCard v-else type="info">
-								{{ t('libresign', 'No user rules exist yet for this setting.') }}
+								<div class="policy-workbench__inline-note-actions">
+									<p>{{ t('libresign', 'No user overrides are set for this setting.') }}</p>
+									<NcButton
+										variant="secondary"
+										:aria-label="t('libresign', 'New user override')"
+										@click="state.startEditor({ scope: 'user' })">
+										{{ t('libresign', 'New user override') }}
+									</NcButton>
+								</div>
 							</NcNoteCard>
 						</section>
 					</div>
@@ -294,14 +313,18 @@
 
 								<div v-if="state.editorDraft.scope !== 'system'" class="policy-workbench__field">
 									<label class="policy-workbench__label">
-										{{ state.editorDraft.scope === 'group' ? t('libresign', 'Target group') : t('libresign', 'Target user') }}
+										{{ state.editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users') }}
 									</label>
-									<NcSelect
-										:model-value="selectedTargetOption"
-										label="label"
+									<NcSelectUsers
+										:model-value="selectedTargetOptions"
 										:options="state.availableTargets"
-										:clearable="false"
+										:aria-label="state.editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users')"
+										:placeholder="state.editorDraft.scope === 'group' ? t('libresign', 'Search groups') : t('libresign', 'Search users')"
+										:loading="state.loadingTargets"
+										:multiple="true"
+										:keep-open="true"
 										:disabled="saveStatus === 'saving'"
+										@search="state.searchAvailableTargets"
 										@update:modelValue="onTargetChange" />
 								</div>
 
@@ -326,7 +349,7 @@
 								</NcNoteCard>
 
 								<div class="policy-workbench__editor-actions">
-									<NcButton variant="primary" :aria-label="state.editorMode === 'edit' ? t('libresign', 'Save rule changes') : t('libresign', 'Create rule')" :disabled="!state.canSaveDraft || saveStatus === 'saving'" @click="handleSaveDraft()">
+									<NcButton variant="primary" :aria-label="state.editorMode === 'edit' ? t('libresign', 'Save policy rule changes') : t('libresign', 'Create policy rule')" :disabled="!state.canSaveDraft || saveStatus === 'saving'" @click="handleSaveDraft()">
 										{{ state.editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
 									</NcButton>
 									<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel editing')" :disabled="saveStatus === 'saving'" @click="state.cancelEditor()">
@@ -334,7 +357,7 @@
 									</NcButton>
 								</div>
 								<p v-if="saveStatus !== 'idle'" class="policy-workbench__save-feedback" aria-live="polite">
-									{{ saveStatus === 'saving' ? t('libresign', 'Saving...') : t('libresign', 'Saved') }}
+									{{ saveStatus === 'saving' ? t('libresign', 'Saving...') : t('libresign', 'Changes saved') }}
 								</p>
 							</div>
 
@@ -346,15 +369,15 @@
 
 						<section v-else-if="state.editorDraft && shouldUseEditorModal" class="policy-workbench__editor-mobile-hint">
 							<p class="policy-workbench__eyebrow">{{ t('libresign', 'Editing surface') }}</p>
-							<h3>{{ t('libresign', 'Editor opened in modal') }}</h3>
+							<h3>{{ t('libresign', 'Editor opened in full-screen modal') }}</h3>
 							<p>
-								{{ t('libresign', 'On small screens, editing opens in a focused modal to avoid a cramped form and preserve context.') }}
+								{{ t('libresign', 'On smaller screens, editing opens in a focused full-screen modal to keep forms readable.') }}
 							</p>
 							<NcButton
 								variant="secondary"
 								:aria-label="t('libresign', 'Cancel editing')"
 								@click="state.cancelEditor()">
-								{{ t('libresign', 'Cancel editing') }}
+								{{ t('libresign', 'Cancel') }}
 							</NcButton>
 						</section>
 
@@ -389,14 +412,18 @@
 
 						<div v-if="state.editorDraft.scope !== 'system'" class="policy-workbench__field">
 							<label class="policy-workbench__label">
-								{{ state.editorDraft.scope === 'group' ? t('libresign', 'Target group') : t('libresign', 'Target user') }}
+								{{ state.editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users') }}
 							</label>
-							<NcSelect
-								:model-value="selectedTargetOption"
-								label="label"
+							<NcSelectUsers
+								:model-value="selectedTargetOptions"
 								:options="state.availableTargets"
-								:clearable="false"
+								:aria-label="state.editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users')"
+								:placeholder="state.editorDraft.scope === 'group' ? t('libresign', 'Search groups') : t('libresign', 'Search users')"
+								:loading="state.loadingTargets"
+								:multiple="true"
+								:keep-open="true"
 								:disabled="saveStatus === 'saving'"
+								@search="state.searchAvailableTargets"
 								@update:modelValue="onTargetChange" />
 						</div>
 
@@ -421,7 +448,7 @@
 						</NcNoteCard>
 
 						<div class="policy-workbench__editor-actions policy-workbench__editor-actions--sticky-mobile">
-							<NcButton variant="primary" :aria-label="state.editorMode === 'edit' ? t('libresign', 'Save rule changes') : t('libresign', 'Create rule')" :disabled="!state.canSaveDraft || saveStatus === 'saving'" @click="handleSaveDraft()">
+							<NcButton variant="primary" :aria-label="state.editorMode === 'edit' ? t('libresign', 'Save policy rule changes') : t('libresign', 'Create policy rule')" :disabled="!state.canSaveDraft || saveStatus === 'saving'" @click="handleSaveDraft()">
 								{{ state.editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
 							</NcButton>
 							<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel editing')" :disabled="saveStatus === 'saving'" @click="state.cancelEditor()">
@@ -429,7 +456,7 @@
 							</NcButton>
 						</div>
 						<p v-if="saveStatus !== 'idle'" class="policy-workbench__save-feedback" aria-live="polite">
-							{{ saveStatus === 'saving' ? t('libresign', 'Saving...') : t('libresign', 'Saved') }}
+							{{ saveStatus === 'saving' ? t('libresign', 'Saving...') : t('libresign', 'Changes saved') }}
 						</p>
 					</div>
 
@@ -444,22 +471,11 @@
 		<NcDialog
 			v-if="pendingRemoval"
 			:name="t('libresign', 'Confirm rule removal')"
-			:can-close="true"
-			@closing="cancelRuleRemoval">
-			<div class="policy-workbench__confirm-dialog">
-				<p>{{ t('libresign', 'You are about to remove this rule:') }}</p>
-				<p class="policy-workbench__confirm-target">{{ pendingRemoval.targetLabel }}</p>
-				<p class="policy-workbench__confirm-help">{{ pendingRemoval.help }}</p>
-				<div class="policy-workbench__confirm-actions">
-					<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel removal')" @click="cancelRuleRemoval">
-						{{ t('libresign', 'Cancel') }}
-					</NcButton>
-					<NcButton variant="error" :aria-label="t('libresign', 'Confirm removal')" @click="confirmRuleRemoval">
-						{{ t('libresign', 'Remove rule') }}
-					</NcButton>
-				</div>
-			</div>
-		</NcDialog>
+			:message="pendingRemovalMessage"
+			:buttons="removalDialogButtons"
+			size="normal"
+			:can-close="!isRemovingRule"
+			@closing="cancelRuleRemoval" />
 	</NcSettingsSection>
 </template>
 
@@ -476,7 +492,7 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
-import NcSelect from '@nextcloud/vue/components/NcSelect'
+import NcSelectUsers from '@nextcloud/vue/components/NcSelectUsers'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
@@ -495,7 +511,10 @@ const isSmallViewport = ref(false)
 const catalogLayout = ref<'cards' | 'compact'>('cards')
 const saveStatus = ref<'idle' | 'saving' | 'saved'>('idle')
 const saveFeedbackTimeout = ref<number | null>(null)
-const pendingRemoval = ref<{ ruleId: string, targetLabel: string, help: string } | null>(null)
+const pendingRemoval = ref<{ ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string, help: string } | null>(null)
+const isRemovingRule = ref(false)
+const removalFeedback = ref<string | null>(null)
+const removalFeedbackTimeout = ref<number | null>(null)
 const lastPress = ref<{ surface: 'cards' | 'list', key: string, x: number, y: number } | null>(null)
 const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at: number } | null>(null)
 
@@ -521,15 +540,15 @@ const hasActiveFilter = computed(() => settingsFilter.value.trim().length > 0)
 const catalogViewButtonLabel = computed(() => {
 	return effectiveCatalogLayout.value === 'cards'
 		? t('libresign', 'Switch to compact view')
-		: t('libresign', 'Switch to cards view')
+		: t('libresign', 'Switch to card view')
 })
 
-const selectedTargetOption = computed(() => {
+const selectedTargetOptions = computed(() => {
 	if (!state.editorDraft) {
-		return null
+		return []
 	}
 
-	return state.availableTargets.find(option => option.id === state.editorDraft?.targetId) ?? null
+	return state.availableTargets.filter((option) => state.editorDraft?.targetIds.includes(option.id))
 })
 
 const systemRuleBadges = computed(() => {
@@ -548,10 +567,10 @@ const editorTitle = computed(() => {
 	}
 
 	if (state.editorDraft.scope === 'system') {
-		return t('libresign', 'Default rule')
+		return t('libresign', 'Global default rule')
 	}
 
-	return state.draftTargetLabel || t('libresign', 'Select target')
+	return state.draftTargetLabel || t('libresign', 'Select one or more targets')
 })
 
 const editorHelp = computed(() => {
@@ -560,14 +579,44 @@ const editorHelp = computed(() => {
 	}
 
 	if (state.editorDraft.scope === 'system') {
-		return t('libresign', 'This rule becomes the baseline inherited by groups and users unless another rule overrides it.')
+		return t('libresign', 'This rule becomes the baseline inherited by groups and users unless another override is set.')
 	}
 
 	if (state.editorDraft.scope === 'group') {
-		return t('libresign', 'A group rule overrides the default and can still allow lower layers to diverge.')
+		return t('libresign', 'A group override replaces the global default and can still allow lower layers to diverge.')
 	}
 
-	return t('libresign', 'A user rule is the most specific layer and wins over inherited defaults.')
+	return t('libresign', 'A user override is the most specific layer and takes priority over inherited defaults.')
+})
+
+const pendingRemovalMessage = computed(() => {
+	if (!pendingRemoval.value) {
+		return ''
+	}
+
+	return t('libresign', 'You are about to remove the rule for {target}. {help}', {
+		target: pendingRemoval.value.targetLabel,
+		help: pendingRemoval.value.help,
+	})
+})
+
+const removalDialogButtons = computed(() => {
+	return [
+		{
+			label: t('libresign', 'Cancel'),
+			variant: 'secondary' as const,
+			disabled: isRemovingRule.value,
+			callback: () => cancelRuleRemoval(),
+		},
+		{
+			label: isRemovingRule.value ? t('libresign', 'Removing rule...') : t('libresign', 'Remove rule'),
+			variant: 'error' as const,
+			disabled: isRemovingRule.value,
+			callback: () => {
+				void confirmRuleRemoval()
+			},
+		},
+	]
 })
 
 function groupRuleBadges(allowChildOverride: boolean) {
@@ -579,8 +628,13 @@ function groupRuleBadges(allowChildOverride: boolean) {
 	return allowOverrideBadge ? [allowOverrideBadge] : []
 }
 
-function onTargetChange(option: { id: string } | null) {
-	state.updateDraftTarget(option?.id ?? null)
+function onTargetChange(option: { id: string } | Array<{ id: string }> | null) {
+	if (Array.isArray(option)) {
+		state.updateDraftTargets(option.map(({ id }) => id))
+		return
+	}
+
+	state.updateDraftTargets(option?.id ? [option.id] : [])
 }
 
 function summarizeRuleValue(value: unknown) {
@@ -712,7 +766,7 @@ function resolveSettingOrigin(groupCount: number, userCount: number) {
 		return t('libresign', 'Group overrides active')
 	}
 
-	return t('libresign', 'Inherited default only')
+	return t('libresign', 'Using global default only')
 }
 
 function toggleCatalogLayout() {
@@ -750,25 +804,46 @@ async function handleSaveDraft() {
 
 function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string) {
 	const help = scope === 'system'
-		? t('libresign', 'Removing this rule will restore inherited behavior for all groups and users.')
+		? t('libresign', 'Removing this rule will make all groups and users inherit the platform default.')
 		: scope === 'group'
-			? t('libresign', 'Removing this rule will restore the global default for this group.')
+			? t('libresign', 'Removing this rule will restore inherited behavior from the global default for this group.')
 			: t('libresign', 'Removing this rule will restore inherited behavior for this user.')
 
-	pendingRemoval.value = { ruleId, targetLabel, help }
+	pendingRemoval.value = { ruleId, scope, targetLabel, help }
 }
 
 function cancelRuleRemoval() {
 	pendingRemoval.value = null
 }
 
-function confirmRuleRemoval() {
+async function confirmRuleRemoval() {
 	if (!pendingRemoval.value) {
 		return
 	}
 
-	state.removeRule(pendingRemoval.value.ruleId)
-	pendingRemoval.value = null
+	isRemovingRule.value = true
+	try {
+		const scope = pendingRemoval.value.scope
+		await state.removeRule(pendingRemoval.value.ruleId)
+		removalFeedback.value = scope === 'system'
+			? t('libresign', 'Global default reset. Inherited behavior is now active.')
+			: scope === 'group'
+				? t('libresign', 'Group override removed. Inherited behavior from the global default is now active.')
+				: t('libresign', 'User override removed. Inherited behavior is now active.')
+
+		if (removalFeedbackTimeout.value !== null) {
+			window.clearTimeout(removalFeedbackTimeout.value)
+		}
+
+		removalFeedbackTimeout.value = window.setTimeout(() => {
+			removalFeedback.value = null
+			removalFeedbackTimeout.value = null
+		}, 2200)
+
+		pendingRemoval.value = null
+	} finally {
+		isRemovingRule.value = false
+	}
 }
 
 onMounted(async () => {
@@ -781,6 +856,10 @@ onBeforeUnmount(() => {
 	window.removeEventListener('resize', updateViewportMode)
 	if (saveFeedbackTimeout.value !== null) {
 		window.clearTimeout(saveFeedbackTimeout.value)
+	}
+
+	if (removalFeedbackTimeout.value !== null) {
+		window.clearTimeout(removalFeedbackTimeout.value)
 	}
 })
 </script>
@@ -1221,6 +1300,22 @@ onBeforeUnmount(() => {
 		gap: 0.45rem;
 	}
 
+	&__inline-note-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+
+		p {
+			margin: 0;
+		}
+
+		:deep(.button-vue) {
+			max-width: 100%;
+		}
+	}
+
 	&__setting-surface {
 		display: flex;
 		flex-direction: column;
@@ -1284,39 +1379,6 @@ onBeforeUnmount(() => {
 		animation: policy-workbench-spin 0.8s linear infinite;
 	}
 
-	&__confirm-dialog {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		width: min(540px, calc(100vw - 2rem));
-		max-width: 100%;
-		box-sizing: border-box;
-
-		p {
-			margin: 0;
-		}
-	}
-
-	&__confirm-target {
-		font-weight: 700;
-	}
-
-	&__confirm-help {
-		color: var(--color-text-maxcontrast);
-	}
-
-	&__confirm-actions {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 0.6rem;
-		align-items: stretch;
-
-		:deep(.button-vue) {
-			width: 100%;
-			justify-content: center;
-		}
-	}
-
 	:deep(mark) {
 		background: color-mix(in srgb, var(--color-warning) 35%, transparent);
 		color: inherit;
@@ -1377,6 +1439,15 @@ onBeforeUnmount(() => {
 			flex-direction: column;
 		}
 
+		&__removal-feedback {
+			margin: 0 0 0.8rem;
+			padding: 0.65rem 0.8rem;
+			border: 1px solid color-mix(in srgb, var(--color-success) 36%, transparent);
+			border-radius: 10px;
+			background: color-mix(in srgb, var(--color-success) 12%, var(--color-main-background));
+			color: var(--color-main-text);
+		}
+
 		&__settings-row {
 			grid-template-columns: 1fr;
 			align-items: stretch;
@@ -1407,7 +1478,10 @@ onBeforeUnmount(() => {
 			}
 		}
 
-		&__confirm-actions {
+		&__inline-note-actions {
+			align-items: stretch;
+			justify-content: flex-start;
+
 			:deep(.button-vue) {
 				width: 100%;
 				justify-content: center;
@@ -1478,9 +1552,6 @@ onBeforeUnmount(() => {
 			grid-template-columns: 1fr;
 		}
 
-		&__confirm-actions {
-			grid-template-columns: 1fr;
-		}
 	}
 }
 </style>
