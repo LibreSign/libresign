@@ -204,6 +204,7 @@ class AccountService {
 		$info['crl_filters'] = $this->getUserConfigCrlFilters($user);
 		$info['crl_sort'] = $this->getUserConfigCrlSort($user);
 		$info['files_list_grid_view'] = $this->getUserConfigByKey('files_list_grid_view', $user) === '1';
+		$info['policy_workbench_catalog_compact_view'] = $this->getUserConfigByKey('policy_workbench_catalog_compact_view', $user) === '1';
 		$info['files_list_signer_identify_tab'] = $this->getUserConfigByKey('files_list_signer_identify_tab', $user);
 		$info['files_list_sorting_mode'] = $this->getUserConfigByKey('files_list_sorting_mode', $user) ?: 'name';
 		$info['files_list_sorting_direction'] = $this->getUserConfigByKey('files_list_sorting_direction', $user) ?: 'asc';
