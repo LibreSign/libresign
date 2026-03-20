@@ -64,5 +64,5 @@ Feature: admin/policies
     When sending "delete" to ocs "/apps/libresign/api/v1/policies/group/admin/signature_flow"
     Then the response should have a status code 200
 
-    When sending "delete" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
     Then the response should have a status code 200
