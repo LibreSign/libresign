@@ -48,11 +48,11 @@ final class PolicySourceTest extends TestCase {
 			->method('getAppValueString')
 			->willReturnCallback(static function (string $key, string $default) use (&$calls): string {
 				$calls += 1;
-				if ($key === 'signature_flow' && $default === '') {
+				if ($key === 'policy.signature_flow.system' && $default === '') {
 					return 'ordered_numeric';
 				}
 
-				if ($key === 'signature_flow.allow_child_override' && $default === '0') {
+				if ($key === 'policy.signature_flow.system.allow_child_override' && $default === '0') {
 					return '0';
 				}
 
@@ -74,7 +74,7 @@ final class PolicySourceTest extends TestCase {
 		$this->appConfig
 			->expects($this->once())
 			->method('getAppValueString')
-			->with('signature_flow', '')
+			->with('policy.signature_flow.system', '')
 			->willReturn('');
 
 		$source = $this->getSource();
@@ -177,7 +177,7 @@ final class PolicySourceTest extends TestCase {
 		$source = $this->getSource();
 		$source->saveSystemPolicy('signature_flow', 'none');
 
-		$this->assertSame(['signature_flow', 'signature_flow.allow_child_override'], $deletedKeys);
+		$this->assertSame(['policy.signature_flow.system', 'policy.signature_flow.system.allow_child_override'], $deletedKeys);
 	}
 
 	public function testSaveSystemPolicyNormalizesAndPersistsAppConfigValue(): void {
@@ -194,8 +194,8 @@ final class PolicySourceTest extends TestCase {
 		$source->saveSystemPolicy('signature_flow', 2, true);
 
 		$this->assertSame([
-			'signature_flow' => 'ordered_numeric',
-			'signature_flow.allow_child_override' => '1',
+			'policy.signature_flow.system' => 'ordered_numeric',
+			'policy.signature_flow.system.allow_child_override' => '1',
 		], $savedValues);
 	}
 
@@ -206,11 +206,11 @@ final class PolicySourceTest extends TestCase {
 			->method('getAppValueString')
 			->willReturnCallback(static function (string $key, string $default) use (&$calls): string {
 				$calls += 1;
-				if ($key === 'signature_flow' && $default === '') {
+				if ($key === 'policy.signature_flow.system' && $default === '') {
 					return 'ordered_numeric';
 				}
 
-				if ($key === 'signature_flow.allow_child_override' && $default === '0') {
+				if ($key === 'policy.signature_flow.system.allow_child_override' && $default === '0') {
 					return '1';
 				}
 
