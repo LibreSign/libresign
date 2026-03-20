@@ -14,6 +14,7 @@ use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Settings\Admin;
@@ -35,6 +36,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	private FooterService&MockObject $footerService;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
+	private PolicyService&MockObject $policyService;
 	#[\Override]
 	public function setUp(): void {
 		$this->initialState = $this->createMock(IInitialState::class);
@@ -46,6 +48,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
 		$this->footerService = $this->createMock(FooterService::class);
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->admin = new Admin(
 			$this->initialState,
 			$this->identifyMethodService,
@@ -56,6 +59,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signatureBackgroundService,
 			$this->footerService,
 			$this->docMdpConfigService,
+			$this->policyService,
 		);
 	}
 
