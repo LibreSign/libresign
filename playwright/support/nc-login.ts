@@ -25,6 +25,12 @@ export async function login(
 	user: string,
 	password: string,
 ): Promise<void> {
+	// Ensure a previous authenticated session does not leak across persona switches.
+	await request.get('./logout', {
+		failOnStatusCode: false,
+		maxRedirects: 0,
+	}).catch(() => {})
+
 	const tokenResponse = await request.get('./csrftoken', {
 		failOnStatusCode: true,
 	})
