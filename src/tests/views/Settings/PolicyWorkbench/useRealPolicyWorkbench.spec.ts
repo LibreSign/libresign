@@ -24,6 +24,7 @@ vi.mock('@nextcloud/router', () => ({
 
 const saveSystemPolicy = vi.fn()
 const saveGroupPolicy = vi.fn()
+const fetchGroupPolicy = vi.fn()
 const saveUserPolicyForUser = vi.fn()
 const clearGroupPolicy = vi.fn()
 const clearUserPolicyForUser = vi.fn()
@@ -33,6 +34,7 @@ vi.mock('../../../../store/policies', () => ({
 	usePoliciesStore: () => ({
 		saveSystemPolicy,
 		saveGroupPolicy,
+		fetchGroupPolicy,
 		saveUserPolicyForUser,
 		clearGroupPolicy,
 		clearUserPolicyForUser,
@@ -47,11 +49,13 @@ describe('useRealPolicyWorkbench', () => {
 		axiosGet.mockReset()
 		saveSystemPolicy.mockReset()
 		saveGroupPolicy.mockReset()
+		fetchGroupPolicy.mockReset()
 		saveUserPolicyForUser.mockReset()
 		clearGroupPolicy.mockReset()
 		clearUserPolicyForUser.mockReset()
 		getPolicy.mockReset()
 		getPolicy.mockReturnValue({ effectiveValue: 'parallel' })
+		fetchGroupPolicy.mockResolvedValue(null)
 		axiosGet.mockImplementation((url: string) => {
 			if (url === 'cloud/groups/details') {
 				return Promise.resolve({
@@ -84,6 +88,40 @@ describe('useRealPolicyWorkbench', () => {
 			}
 
 			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+	})
+
+	it('hydrates persisted group rules when opening a setting', async () => {
+		fetchGroupPolicy.mockImplementation(async (groupId: string) => {
+			if (groupId !== 'finance') {
+				return null
+			}
+
+			return {
+				policyKey: 'signature_flow',
+				scope: 'group',
+				targetId: 'finance',
+				value: 'ordered_numeric',
+				allowChildOverride: false,
+				visibleToChild: true,
+				allowedValues: ['ordered_numeric'],
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		await vi.waitFor(() => {
+			expect(fetchGroupPolicy).toHaveBeenCalledWith('finance', 'signature_flow')
+			expect(state.visibleGroupRules).toHaveLength(1)
+		})
+
+		expect(fetchGroupPolicy).toHaveBeenCalledWith('finance', 'signature_flow')
+		expect(state.visibleGroupRules).toHaveLength(1)
+		expect(state.visibleGroupRules[0]).toMatchObject({
+			targetId: 'finance',
+			value: 'ordered_numeric',
+			allowChildOverride: false,
 		})
 	})
 
