@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\PolicyController;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\AppFramework\Http;
@@ -98,7 +99,7 @@ final class PolicyControllerTest extends TestCase {
 		$this->policyService
 			->expects($this->once())
 			->method('saveSystem')
-			->with('signature_flow', 'ordered_numeric')
+			->with('signature_flow', 'ordered_numeric', false)
 			->willReturn($resolvedPolicy);
 
 		$response = $this->controller->setSystem('signature_flow', 'ordered_numeric');
@@ -121,6 +122,36 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
+	public function testSetSystemForwardsAllowChildOverrideWhenProvided(): void {
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('ordered_numeric')
+			->setSourceScope('system')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues([])
+			->setCanSaveAsUserDefault(true)
+			->setCanUseAsRequestOverride(true)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with('signature_flow', 'ordered_numeric', true)
+			->willReturn($resolvedPolicy);
+
+		$response = $this->controller->setSystem('signature_flow', 'ordered_numeric', true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
 	public function testSetSystemReturnsBadRequestWhenPolicyValueIsInvalid(): void {
 		$this->l10n
 			->expects($this->once())
@@ -131,7 +162,7 @@ final class PolicyControllerTest extends TestCase {
 		$this->policyService
 			->expects($this->once())
 			->method('saveSystem')
-			->with('signature_flow', 'banana')
+			->with('signature_flow', 'banana', false)
 			->willThrowException(new \InvalidArgumentException('Invalid value for signature_flow'));
 
 		$response = $this->controller->setSystem('signature_flow', 'banana');
@@ -171,5 +202,90 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('user', $response->getData()['policy']['sourceScope']);
+	}
+
+	public function testGetGroupReturnsStoredGroupPolicy(): void {
+		$this->policyService
+			->expects($this->once())
+			->method('getGroupPolicy')
+			->with('signature_flow', 'finance')
+			->willReturn((new PolicyLayer())
+				->setScope('group')
+				->setValue('parallel')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$response = $this->controller->getGroup('finance', 'signature_flow');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame([
+			'policy' => [
+				'policyKey' => 'signature_flow',
+				'scope' => 'group',
+				'targetId' => 'finance',
+				'value' => 'parallel',
+				'allowChildOverride' => true,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+			],
+		], $response->getData());
+	}
+
+	public function testSetGroupReturnsSavedGroupPolicy(): void {
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with('signature_flow', 'finance', 'ordered_numeric', false)
+			->willReturn((new PolicyLayer())
+				->setScope('group')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues(['ordered_numeric']));
+
+		$response = $this->controller->setGroup('finance', 'signature_flow', 'ordered_numeric', false);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('group', $response->getData()['policy']['scope']);
+		$this->assertSame('finance', $response->getData()['policy']['targetId']);
+	}
+
+	public function testSetUserPolicyForTargetUserReturnsSavedResolvedPolicy(): void {
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('ordered_numeric')
+			->setSourceScope('user')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues(['none', 'parallel', 'ordered_numeric'])
+			->setCanSaveAsUserDefault(true)
+			->setCanUseAsRequestOverride(true)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveUserPreferenceForUserId')
+			->with('signature_flow', 'user1', 'ordered_numeric')
+			->willReturn($resolvedPolicy);
+
+		$response = $this->controller->setUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('user', $response->getData()['policy']['sourceScope']);
+		$this->assertSame('ordered_numeric', $response->getData()['policy']['effectiveValue']);
 	}
 }
