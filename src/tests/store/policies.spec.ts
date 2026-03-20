@@ -127,6 +127,38 @@ describe('policies store', () => {
 		expect(store.getPolicy('signature_flow')?.sourceScope).toBe('system')
 	})
 
+	it('saves system allowChildOverride when provided', async () => {
+		vi.mocked(axios.post).mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'signature_flow',
+							effectiveValue: 'ordered_numeric',
+							allowedValues: [],
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: true,
+							canUseAsRequestOverride: true,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
+				},
+			},
+		})
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		await store.saveSystemPolicy('signature_flow', 'ordered_numeric', true)
+
+		expect(axios.post).toHaveBeenCalledWith(
+			'/ocs/v2.php/apps/libresign/api/v1/policies/system/signature_flow',
+			{ value: 'ordered_numeric', allowChildOverride: true },
+		)
+	})
+
 	it('saves a user preference through the generic endpoint', async () => {
 		vi.mocked(axios.put).mockResolvedValue({
 			data: {
@@ -158,5 +190,127 @@ describe('policies store', () => {
 			{ value: 'parallel' },
 		)
 		expect(policy?.sourceScope).toBe('user')
+	})
+
+	it('loads a group policy through the generic endpoint', async () => {
+		vi.mocked(axios.get).mockResolvedValueOnce({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'signature_flow',
+							scope: 'group',
+							targetId: 'finance',
+							value: 'parallel',
+							allowChildOverride: true,
+							visibleToChild: true,
+							allowedValues: [],
+						},
+					},
+				},
+			},
+		})
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		const policy = await store.fetchGroupPolicy('finance', 'signature_flow')
+
+		expect(axios.get).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/policies/group/finance/signature_flow')
+		expect(policy?.targetId).toBe('finance')
+		expect(policy?.value).toBe('parallel')
+	})
+
+	it('saves a group policy through the generic endpoint', async () => {
+		vi.mocked(axios.put).mockResolvedValueOnce({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'signature_flow',
+							scope: 'group',
+							targetId: 'finance',
+							value: 'ordered_numeric',
+							allowChildOverride: false,
+							visibleToChild: true,
+							allowedValues: ['ordered_numeric'],
+						},
+					},
+				},
+			},
+		})
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		const policy = await store.saveGroupPolicy('finance', 'signature_flow', 'ordered_numeric', false)
+
+		expect(axios.put).toHaveBeenCalledWith(
+			'/ocs/v2.php/apps/libresign/api/v1/policies/group/finance/signature_flow',
+			{ value: 'ordered_numeric', allowChildOverride: false },
+		)
+		expect(policy?.value).toBe('ordered_numeric')
+		expect(policy?.allowChildOverride).toBe(false)
+	})
+
+	it('saves a user policy for a target user through the admin endpoint', async () => {
+		vi.mocked(axios.put).mockResolvedValueOnce({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'signature_flow',
+							effectiveValue: 'ordered_numeric',
+							allowedValues: ['none', 'parallel', 'ordered_numeric'],
+							sourceScope: 'user',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: true,
+							canUseAsRequestOverride: true,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
+				},
+			},
+		})
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		const policy = await store.saveUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric')
+
+		expect(axios.put).toHaveBeenCalledWith(
+			'/ocs/v2.php/apps/libresign/api/v1/policies/user/user1/signature_flow',
+			{ value: 'ordered_numeric' },
+		)
+		expect(policy?.sourceScope).toBe('user')
+	})
+
+	it('clears a user policy for a target user through the admin endpoint', async () => {
+		vi.mocked(axios.delete).mockResolvedValueOnce({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'signature_flow',
+							effectiveValue: 'parallel',
+							allowedValues: ['none', 'parallel', 'ordered_numeric'],
+							sourceScope: 'group',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: true,
+							canUseAsRequestOverride: true,
+							preferenceWasCleared: true,
+							blockedBy: null,
+						},
+					},
+				},
+			},
+		})
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		const policy = await store.clearUserPolicyForUser('user1', 'signature_flow')
+
+		expect(axios.delete).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/policies/user/user1/signature_flow')
+		expect(policy?.preferenceWasCleared).toBe(true)
 	})
 })
