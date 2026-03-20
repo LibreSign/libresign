@@ -24,7 +24,13 @@ interface IPolicySource {
 
 	public function loadRequestOverride(string $policyKey, PolicyContext $context): ?PolicyLayer;
 
-	public function saveSystemPolicy(string $policyKey, mixed $value): void;
+	public function loadGroupPolicyConfig(string $policyKey, string $groupId): ?PolicyLayer;
+
+	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void;
+
+	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride): void;
+
+	public function clearGroupPolicy(string $policyKey, string $groupId): void;
 
 	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void;
 
