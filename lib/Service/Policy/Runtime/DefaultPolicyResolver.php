@@ -30,7 +30,6 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 
 		$systemLayer = $this->source->loadSystemPolicy($policyKey);
 		$groupLayers = $this->source->loadGroupPolicies($policyKey, $context);
-		$circleLayers = $this->source->loadCirclePolicies($policyKey, $context);
 
 		$currentValue = $definition->defaultSystemValue();
 		$currentSourceScope = 'system';
@@ -51,7 +50,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			);
 		}
 
-		foreach (array_merge($groupLayers, $circleLayers) as $layer) {
+		foreach ($groupLayers as $layer) {
 			[$currentValue, $currentSourceScope, $canOverrideBelow, $visible] = $this->applyLayer(
 				$definition,
 				$resolved,
