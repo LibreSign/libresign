@@ -59,3 +59,10 @@ Feature: admin/policies
     And the response should be a JSON array with the following mandatory values
       | key                                                      | value           |
       | (jq).ocs.data.policies.signature_flow.effectiveValue    | ordered_numeric |
+
+    Given as user "admin"
+    When sending "delete" to ocs "/apps/libresign/api/v1/policies/group/admin/signature_flow"
+    Then the response should have a status code 200
+
+    When sending "delete" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+    Then the response should have a status code 200
