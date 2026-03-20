@@ -123,8 +123,8 @@
 						<strong>{{ t('libresign', 'Global default') }}:</strong>
 						<span v-html="highlightText(summary.defaultSummary)"></span>
 					</span>
-					<span class="policy-workbench__settings-row-stat"><strong>{{ t('libresign', 'Group overrides') }}:</strong> {{ summary.groupCount }}</span>
-					<span class="policy-workbench__settings-row-stat"><strong>{{ t('libresign', 'User overrides') }}:</strong> {{ summary.userCount }}</span>
+					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ t('libresign', 'Group overrides') }}:</strong> {{ summary.groupCount }}</span>
+					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ t('libresign', 'User overrides') }}:</strong> {{ summary.userCount }}</span>
 				</div>
 
 				<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Open setting policy')" @click.stop="state.openSetting(summary.key)">
@@ -498,6 +498,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import PolicyRuleCard from './PolicyRuleCard.vue'
 import { usePoliciesStore } from '../../../store/policies'
+import { useUserConfigStore } from '../../../store/userconfig.js'
 import { createRealPolicyWorkbenchState } from './useRealPolicyWorkbench'
 
 defineOptions({
@@ -505,6 +506,7 @@ defineOptions({
 })
 
 const policiesStore = usePoliciesStore()
+const userConfigStore = useUserConfigStore()
 const state = reactive(createRealPolicyWorkbenchState())
 const settingsFilter = ref('')
 const isSmallViewport = ref(false)
@@ -520,6 +522,7 @@ const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at:
 
 const DRAG_OPEN_THRESHOLD_PX = 6
 const SELECTION_GUARD_WINDOW_MS = 400
+const CATALOG_LAYOUT_CONFIG_KEY = 'policy_workbench_catalog_compact_view'
 
 const filteredSettingSummaries = computed(() => {
 	const normalized = settingsFilter.value.trim().toLowerCase()
@@ -775,7 +778,9 @@ function toggleCatalogLayout() {
 		return
 	}
 
-	catalogLayout.value = effectiveCatalogLayout.value === 'cards' ? 'compact' : 'cards'
+	const nextLayout = effectiveCatalogLayout.value === 'cards' ? 'compact' : 'cards'
+	catalogLayout.value = nextLayout
+	void userConfigStore.update(CATALOG_LAYOUT_CONFIG_KEY, nextLayout === 'compact')
 }
 
 function updateViewportMode() {
@@ -848,6 +853,7 @@ async function confirmRuleRemoval() {
 
 onMounted(async () => {
 	updateViewportMode()
+	catalogLayout.value = userConfigStore.policy_workbench_catalog_compact_view ? 'compact' : 'cards'
 	window.addEventListener('resize', updateViewportMode, { passive: true })
 	await policiesStore.fetchEffectivePolicies()
 })
@@ -937,7 +943,7 @@ onBeforeUnmount(() => {
 
 	&__settings-row {
 		display: grid;
-		grid-template-columns: minmax(240px, 1.2fr) minmax(290px, 1fr) auto;
+		grid-template-columns: minmax(220px, 1.2fr) minmax(0, 1fr) auto;
 		gap: 1rem;
 		align-items: center;
 		padding: 0.9rem 1rem;
@@ -997,9 +1003,10 @@ onBeforeUnmount(() => {
 	}
 
 	&__settings-row-stats {
-		display: grid;
-		grid-template-columns: minmax(0, 1.8fr) auto auto;
-		gap: 0.65rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem 0.8rem;
+		align-items: baseline;
 		font-size: 0.9rem;
 		color: var(--color-text-maxcontrast);
 		min-width: 0;
@@ -1007,12 +1014,14 @@ onBeforeUnmount(() => {
 
 	&__settings-row-stat {
 		min-width: 0;
-		white-space: nowrap;
+		white-space: normal;
+		overflow-wrap: anywhere;
 
 		&--default {
 			display: flex;
 			align-items: baseline;
 			gap: 0.25rem;
+			flex: 1 1 260px;
 			min-width: 0;
 
 			strong {
@@ -1027,6 +1036,11 @@ onBeforeUnmount(() => {
 				overflow: hidden;
 				text-overflow: ellipsis;
 			}
+		}
+
+		&--count {
+			white-space: nowrap;
+			flex: 0 0 auto;
 		}
 	}
 
