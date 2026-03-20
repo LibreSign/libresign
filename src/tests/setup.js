@@ -56,6 +56,13 @@ vi.mock('@nextcloud/vue/components/NcSelect', () => ({
 	},
 }))
 
+vi.mock('@nextcloud/vue/components/NcSelectUsers', () => ({
+	default: {
+		name: 'NcSelectUsers',
+		template: '<div></div>',
+	},
+}))
+
 
 vi.mock('@nextcloud/vue/components/NcRichText', () => ({
 	default: {
