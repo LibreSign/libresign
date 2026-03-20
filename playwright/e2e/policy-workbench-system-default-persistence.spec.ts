@@ -161,7 +161,25 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 }
 
 async function clickSectionAction(section: Locator, actionLabel: string | RegExp) {
-	await section.getByRole('button', { name: actionLabel }).first().click()
+	let lastError: unknown
+
+	for (let attempt = 0; attempt < 5; attempt++) {
+		const button = section.getByRole('button', { name: actionLabel }).first()
+
+		try {
+			await button.waitFor({ state: 'visible', timeout: 2000 })
+			await button.scrollIntoViewIfNeeded().catch(() => {})
+			await button.click({ timeout: 2000 })
+			return
+		} catch (error) {
+			lastError = error
+			await new Promise((resolve) => setTimeout(resolve, 250))
+		}
+	}
+
+	throw lastError instanceof Error
+		? lastError
+		: new Error(`Failed to click section action matching "${String(actionLabel)}"`)
 }
 
 async function removeRuleWithConfirmation(page: Page, dialog: Locator, section: Locator, actionLabel: string | RegExp) {
@@ -194,6 +212,11 @@ async function removeAllRulesByAction(
 
 		await removeRuleWithConfirmation(page, dialog, section, actionLabel)
 		await waitForEditorIdle(dialog)
+		await expect.poll(async () => {
+			return section.getByRole('button', { name: actionLabel }).count()
+		}, {
+			timeout: 5000,
+		}).toBeLessThan(currentCount)
 	}
 
 	throw new Error(`Failed to remove all rules for action "${actionLabel}" after multiple attempts`)
