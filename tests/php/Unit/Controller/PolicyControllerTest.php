@@ -13,8 +13,13 @@ use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\AppFramework\Http;
+use OCP\Group\ISubAdmin;
+use OCP\IGroup;
+use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUser;
+use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -22,17 +27,34 @@ final class PolicyControllerTest extends TestCase {
 	private IRequest&MockObject $request;
 	private IL10N&MockObject $l10n;
 	private PolicyService&MockObject $policyService;
+	private IUserSession&MockObject $userSession;
+	private IGroupManager&MockObject $groupManager;
+	private ISubAdmin&MockObject $subAdmin;
+	private IUser&MockObject $currentUser;
 	private PolicyController $controller;
 
 	protected function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->policyService = $this->createMock(PolicyService::class);
+		$this->userSession = $this->createMock(IUserSession::class);
+		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->subAdmin = $this->createMock(ISubAdmin::class);
+		$this->currentUser = $this->createMock(IUser::class);
+		$this->currentUser
+			->method('getUID')
+			->willReturn('admin');
+		$this->userSession
+			->method('getUser')
+			->willReturn($this->currentUser);
 
 		$this->controller = new PolicyController(
 			$this->request,
 			$this->l10n,
 			$this->policyService,
+			$this->userSession,
+			$this->groupManager,
+			$this->subAdmin,
 		);
 	}
 
@@ -205,6 +227,11 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testGetGroupReturnsStoredGroupPolicy(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
 		$this->policyService
 			->expects($this->once())
 			->method('getGroupPolicy')
@@ -233,6 +260,11 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testSetGroupReturnsSavedGroupPolicy(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
 		$this->l10n
 			->expects($this->once())
 			->method('t')
@@ -255,6 +287,60 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('group', $response->getData()['policy']['scope']);
 		$this->assertSame('finance', $response->getData()['policy']['targetId']);
+	}
+
+	public function testGetGroupReturnsForbiddenWhenUserCannotManageTargetGroup(): void {
+		$this->userSession
+			->method('getUser')
+			->willReturn(null);
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Not allowed to manage this group policy')
+			->willReturn('Not allowed to manage this group policy');
+
+		$response = $this->controller->getGroup('finance', 'signature_flow');
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Not allowed to manage this group policy',
+		], $response->getData());
+	}
+
+	public function testSetGroupAllowsSubAdminOfTargetGroup(): void {
+		$group = $this->createMock(IGroup::class);
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(false);
+		$this->groupManager
+			->method('get')
+			->with('finance')
+			->willReturn($group);
+		$this->subAdmin
+			->method('isSubAdminOfGroup')
+			->with($this->currentUser, $group)
+			->willReturn(true);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+		$this->policyService
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with('signature_flow', 'finance', 'parallel', true)
+			->willReturn((new PolicyLayer())
+				->setScope('group')
+				->setValue('parallel')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues(['parallel', 'ordered_numeric']));
+
+		$response = $this->controller->setGroup('finance', 'signature_flow', 'parallel', true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
 	public function testSetUserPolicyForTargetUserReturnsSavedResolvedPolicy(): void {
