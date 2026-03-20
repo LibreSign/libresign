@@ -35,6 +35,12 @@ final class PolicyControllerTest extends TestCase {
 
 	protected function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
+		$this->request
+			->method('getParam')
+			->willReturnCallback(static fn (string $key, mixed $default = null): mixed => $default);
+		$this->request
+			->method('getParams')
+			->willReturn([]);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->userSession = $this->createMock(IUserSession::class);
@@ -289,6 +295,103 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame('finance', $response->getData()['policy']['targetId']);
 	}
 
+	public function testSetGroupReadsBodyParamsFromRequest(): void {
+		$request = $this->createMock(IRequest::class);
+		$request
+			->method('getParam')
+			->willReturnCallback(static fn (string $key, mixed $default = null): mixed => $default);
+		$request
+			->method('getParams')
+			->willReturn([
+				'value' => 'ordered_numeric',
+				'allowChildOverride' => false,
+			]);
+		$controller = new PolicyController(
+			$request,
+			$this->l10n,
+			$this->policyService,
+			$this->userSession,
+			$this->groupManager,
+			$this->subAdmin,
+		);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with('signature_flow', 'finance', 'ordered_numeric', false)
+			->willReturn((new PolicyLayer())
+				->setScope('group')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues(['ordered_numeric']));
+
+		$response = $controller->setGroup('finance', 'signature_flow');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('ordered_numeric', $response->getData()['policy']['value']);
+		$this->assertFalse($response->getData()['policy']['allowChildOverride']);
+	}
+
+	public function testSetGroupIgnoresStringAllowChildOverrideFromRequest(): void {
+		$request = $this->createMock(IRequest::class);
+		$request
+			->method('getParam')
+			->willReturnCallback(static fn (string $key, mixed $default = null): mixed => $default);
+		$request
+			->method('getParams')
+			->willReturn([
+				'value' => 'ordered_numeric',
+				'allowChildOverride' => 'true',
+			]);
+		$controller = new PolicyController(
+			$request,
+			$this->l10n,
+			$this->policyService,
+			$this->userSession,
+			$this->groupManager,
+			$this->subAdmin,
+		);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with('signature_flow', 'finance', 'ordered_numeric', false)
+			->willReturn((new PolicyLayer())
+				->setScope('group')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues(['ordered_numeric']));
+
+		$response = $controller->setGroup('finance', 'signature_flow');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertFalse($response->getData()['policy']['allowChildOverride']);
+	}
+
 	public function testGetGroupReturnsForbiddenWhenUserCannotManageTargetGroup(): void {
 		$this->userSession
 			->method('getUser')
@@ -373,5 +476,54 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('user', $response->getData()['policy']['sourceScope']);
 		$this->assertSame('ordered_numeric', $response->getData()['policy']['effectiveValue']);
+	}
+
+	public function testSetUserPreferenceReadsBodyParamsFromRequest(): void {
+		$request = $this->createMock(IRequest::class);
+		$request
+			->method('getParam')
+			->willReturnCallback(static fn (string $key, mixed $default = null): mixed => $default);
+		$request
+			->method('getParams')
+			->willReturn([
+				'value' => 'parallel',
+			]);
+		$controller = new PolicyController(
+			$request,
+			$this->l10n,
+			$this->policyService,
+			$this->userSession,
+			$this->groupManager,
+			$this->subAdmin,
+		);
+
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('parallel')
+			->setSourceScope('user')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues(['parallel', 'ordered_numeric'])
+			->setCanSaveAsUserDefault(true)
+			->setCanUseAsRequestOverride(true)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveUserPreference')
+			->with('signature_flow', 'parallel')
+			->willReturn($resolvedPolicy);
+
+		$response = $controller->setUserPreference('signature_flow');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('parallel', $response->getData()['policy']['effectiveValue']);
 	}
 }
