@@ -1,0 +1,101 @@
+<!--
+  - SPDX-FileCopyrightText: 2026 LibreCode coop and LibreCode contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
+<template>
+	<div class="signature-flow-scalar-editor">
+		<NcCheckboxRadioSwitch
+			type="switch"
+			:model-value="isEnabled"
+			@update:modelValue="onEnabledChange">
+			<span>{{ t('libresign', 'Set global default signing order') }}</span>
+		</NcCheckboxRadioSwitch>
+
+		<div v-if="isEnabled" class="signature-flow-scalar-editor__options">
+			<NcCheckboxRadioSwitch
+				v-for="flow in flows"
+				:key="flow.value"
+				type="radio"
+				:model-value="normalizedValue === flow.value"
+				name="signature-flow-scalar-editor"
+				@update:modelValue="onFlowChange(flow.value)">
+				<div class="signature-flow-scalar-editor__copy">
+					<strong>{{ flow.label }}</strong>
+					<p>{{ flow.description }}</p>
+				</div>
+			</NcCheckboxRadioSwitch>
+		</div>
+	</div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { t } from '@nextcloud/l10n'
+
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import type { EffectivePolicyValue, SignatureFlowMode } from '../../../../../types/index'
+
+defineOptions({
+	name: 'SignatureFlowScalarRuleEditor',
+})
+
+const props = defineProps<{
+	modelValue: EffectivePolicyValue
+}>()
+
+const emit = defineEmits<{
+	'update:modelValue': [value: EffectivePolicyValue]
+}>()
+
+const flows: Array<{ value: SignatureFlowMode, label: string, description: string }> = [
+	{
+		value: 'parallel',
+		label: t('libresign', 'Simultaneous (Parallel)'),
+		description: t('libresign', 'All signers receive the document at the same time and can sign in any order.'),
+	},
+	{
+		value: 'ordered_numeric',
+		label: t('libresign', 'Sequential'),
+		description: t('libresign', 'Signers are organized by signing order number. Only those with the lowest pending order number can sign.'),
+	},
+]
+
+const normalizedValue = computed<SignatureFlowMode | 'none'>(() => {
+	const value = props.modelValue
+	if (value === 'parallel' || value === 'ordered_numeric' || value === 'none') {
+		return value
+	}
+
+	return 'parallel'
+})
+
+const isEnabled = computed(() => normalizedValue.value !== 'none')
+
+function onEnabledChange(enabled: boolean) {
+	emit('update:modelValue', enabled ? 'parallel' : 'none')
+}
+
+function onFlowChange(flow: SignatureFlowMode) {
+	emit('update:modelValue', flow)
+}
+</script>
+
+<style scoped lang="scss">
+.signature-flow-scalar-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+
+	&__options {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	&__copy p {
+		margin: 0.35rem 0 0;
+		color: var(--color-text-maxcontrast);
+	}
+}
+</style>
