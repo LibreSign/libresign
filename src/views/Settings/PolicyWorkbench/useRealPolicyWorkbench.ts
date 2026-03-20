@@ -153,6 +153,7 @@ export function createRealPolicyWorkbenchState() {
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
 	const loadingTargets = ref(false)
+	const hydrateGroupRulesRequestId = ref(0)
 
 	const visibleSettingSummaries = computed<PolicySettingSummary[]>(() => {
 		return Object.values(realDefinitions).map((definition) => {
@@ -251,8 +252,49 @@ export function createRealPolicyWorkbenchState() {
 		return true
 	})
 
+	async function hydratePersistedGroupRules(policyKey: string) {
+		const currentRequestId = hydrateGroupRulesRequestId.value + 1
+		hydrateGroupRulesRequestId.value = currentRequestId
+
+		await loadTargets('group')
+
+		const hydratedRules: PolicyRuleRecord[] = []
+		for (const group of groups.value) {
+			try {
+				const persistedPolicy = await policiesStore.fetchGroupPolicy(group.id, policyKey)
+				if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
+					continue
+				}
+
+				hydratedRules.push({
+					id: `group-${group.id}-persisted`,
+					scope: 'group',
+					targetId: group.id,
+					allowChildOverride: persistedPolicy.allowChildOverride,
+					value: persistedPolicy.value,
+				})
+			} catch (error) {
+				logger.debug('Could not load persisted group policy for target', {
+					error,
+					policyKey,
+					groupId: group.id,
+				})
+			}
+		}
+
+		if (currentRequestId !== hydrateGroupRulesRequestId.value || activeSettingKey.value !== policyKey) {
+			return
+		}
+
+		groupRules.value = hydratedRules
+		nextRuleNumber.value = hydratedRules.length + 1
+	}
+
 	function openSetting(key: string) {
 		activeSettingKey.value = key
+		groupRules.value = []
+		userRules.value = []
+		void hydratePersistedGroupRules(key)
 	}
 
 	function mergeSelectedTargets(scope: 'group' | 'user', fetchedTargets: PolicyTargetOption[]) {
@@ -362,6 +404,9 @@ export function createRealPolicyWorkbenchState() {
 		if (!activeDefinition.value) {
 			return
 		}
+
+		// Cancel any in-flight hydration result to avoid stale overwrite while editing.
+		hydrateGroupRulesRequestId.value += 1
 
 		const isEdit = !!ruleId
 		editorMode.value = isEdit ? 'edit' : 'create'
