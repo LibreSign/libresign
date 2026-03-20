@@ -111,6 +111,9 @@ final class PolicyController extends AEnvironmentAwareController {
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/policies/system/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function setSystem(string $policyKey, null|bool|int|float|string $value = null, bool $allowChildOverride = false): DataResponse {
+		$value = $this->readScalarParam('value', $value);
+		$allowChildOverride = $this->readBoolParam('allowChildOverride', $allowChildOverride);
+
 		try {
 			$policy = $this->policyService->saveSystem($policyKey, $value, $allowChildOverride);
 			/** @var LibresignSystemPolicyWriteResponse $data */
@@ -157,6 +160,9 @@ final class PolicyController extends AEnvironmentAwareController {
 		if (!$this->canManageGroupPolicy($groupId)) {
 			return $this->forbiddenGroupPolicyResponse();
 		}
+
+		$value = $this->readScalarParam('value', $value);
+		$allowChildOverride = $this->readBoolParam('allowChildOverride', $allowChildOverride);
 
 		try {
 			$policy = $this->policyService->saveGroupPolicy($policyKey, $groupId, $value, $allowChildOverride);
@@ -235,6 +241,8 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/user/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function setUserPreference(string $policyKey, null|bool|int|float|string $value = null): DataResponse {
+		$value = $this->readScalarParam('value', $value);
+
 		try {
 			$policy = $this->policyService->saveUserPreference($policyKey, $value);
 			/** @var LibresignSystemPolicyWriteResponse $data */
@@ -275,6 +283,8 @@ final class PolicyController extends AEnvironmentAwareController {
 	 */
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function setUserPolicyForUser(string $userId, string $policyKey, null|bool|int|float|string $value = null): DataResponse {
+		$value = $this->readScalarParam('value', $value);
+
 		try {
 			$policy = $this->policyService->saveUserPreferenceForUserId($policyKey, $userId, $value);
 			/** @var LibresignSystemPolicyWriteResponse $data */
@@ -392,6 +402,20 @@ final class PolicyController extends AEnvironmentAwareController {
 		}
 
 		return $this->subAdmin->isSubAdminOfGroup($user, $group);
+	}
+
+	private function readScalarParam(string $key, null|bool|int|float|string $default): null|bool|int|float|string {
+		$value = $this->request->getParams()[$key] ?? $default;
+		if (!is_scalar($value) && $value !== null) {
+			return $default;
+		}
+
+		return $value;
+	}
+
+	private function readBoolParam(string $key, bool $default): bool {
+		$value = $this->request->getParams()[$key] ?? $default;
+		return is_bool($value) ? $value : $default;
 	}
 
 	/** @return DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}> */
