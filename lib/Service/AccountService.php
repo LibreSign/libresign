@@ -36,6 +36,7 @@ use OCP\Files\File;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
+use OCP\Group\ISubAdmin;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
@@ -73,6 +74,7 @@ class AccountService {
 		private IURLGenerator $urlGenerator,
 		private Pkcs12Handler $pkcs12Handler,
 		private IGroupManager $groupManager,
+		private ISubAdmin $subAdmin,
 		private IdDocsService $idDocsService,
 		private SignerElementsService $signerElementsService,
 		private UserElementMapper $userElementMapper,
@@ -208,7 +210,8 @@ class AccountService {
 		$info['files_list_sorting_mode'] = $this->getUserConfigByKey('files_list_sorting_mode', $user) ?: 'name';
 		$info['files_list_sorting_direction'] = $this->getUserConfigByKey('files_list_sorting_direction', $user) ?: 'asc';
 		$info['policy_workbench_catalog_compact_view'] = $this->getUserConfigByKey('policy_workbench_catalog_compact_view', $user) === '1';
-		$info['can_manage_group_policies'] = $user !== null && $this->groupManager->isAdmin($user->getUID());
+		$info['can_manage_group_policies'] = $user !== null
+			&& ($this->groupManager->isAdmin($user->getUID()) || $this->subAdmin->isSubAdmin($user));
 
 		return array_filter($info, static fn (mixed $value): bool => $value !== null && $value !== '');
 	}
