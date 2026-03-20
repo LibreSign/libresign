@@ -188,4 +188,92 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertSame('parallel', $resolved->getEffectiveValue());
 		$this->assertSame('group', $resolved->getSourceScope());
 	}
+
+	public function testSaveUserPreferenceForUserIdPersistsForTargetUser(): void {
+		$targetUser = $this->createMock(IUser::class);
+		$targetUser->method('getUID')->willReturn('user1');
+
+		$this->userManager
+			->expects($this->once())
+			->method('get')
+			->with('user1')
+			->willReturn($targetUser);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($targetUser)
+			->willReturn(['finance']);
+
+		$this->source
+			->expects($this->once())
+			->method('saveUserPreference')
+			->with(
+				SignatureFlowPolicy::KEY,
+				$this->callback(static function ($context): bool {
+					return $context->getUserId() === 'user1';
+				}),
+				'ordered_numeric',
+			);
+
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue('parallel')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true));
+
+		$this->source->method('loadGroupPolicies')->willReturn([]);
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source
+			->method('loadUserPreference')
+			->willReturn((new PolicyLayer())
+				->setScope('user')
+				->setValue('ordered_numeric'));
+		$this->source->method('loadRequestOverride')->willReturn(null);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+		);
+
+		$resolved = $service->saveUserPreferenceForUserId(SignatureFlowPolicy::KEY, 'user1', 'ordered_numeric');
+
+		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
+		$this->assertSame('user', $resolved->getSourceScope());
+	}
+
+	public function testSaveSystemPersistsAllowChildOverrideWhenEnabled(): void {
+		$this->source
+			->expects($this->once())
+			->method('saveSystemPolicy')
+			->with(SignatureFlowPolicy::KEY, 'ordered_numeric', true);
+
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$this->source->method('loadGroupPolicies')->willReturn([]);
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source->method('loadUserPreference')->willReturn(null);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+		);
+
+		$resolved = $service->saveSystem(SignatureFlowPolicy::KEY, 'ordered_numeric', true);
+
+		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
+		$this->assertSame('system', $resolved->getSourceScope());
+	}
 }
