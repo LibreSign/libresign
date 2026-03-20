@@ -91,7 +91,7 @@ class PolicySource implements IPolicySource {
 				continue;
 			}
 
-			$policyConfig = $permissionSet->getPolicyJson()[$policyKey] ?? null;
+			$policyConfig = $permissionSet->getDecodedPolicyJson()[$policyKey] ?? null;
 			if (!is_array($policyConfig)) {
 				continue;
 			}
@@ -151,7 +151,7 @@ class PolicySource implements IPolicySource {
 			return null;
 		}
 
-		$policyConfig = $permissionSet->getPolicyJson()[$policyKey] ?? null;
+		$policyConfig = $permissionSet->getDecodedPolicyJson()[$policyKey] ?? null;
 		if (!is_array($policyConfig)) {
 			return null;
 		}
@@ -194,7 +194,7 @@ class PolicySource implements IPolicySource {
 			$permissionSet->setCreatedAt($now);
 		}
 
-		$policyJson = $permissionSet->getPolicyJson();
+		$policyJson = $permissionSet->getDecodedPolicyJson();
 		$policyJson[$policyKey] = [
 			'defaultValue' => $normalizedValue,
 			'allowChildOverride' => $allowChildOverride,
@@ -234,7 +234,7 @@ class PolicySource implements IPolicySource {
 			return;
 		}
 
-		$policyJson = $permissionSet->getPolicyJson();
+		$policyJson = $permissionSet->getDecodedPolicyJson();
 		unset($policyJson[$policyKey]);
 
 		if ($policyJson === []) {
