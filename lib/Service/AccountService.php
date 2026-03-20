@@ -208,6 +208,7 @@ class AccountService {
 		$info['files_list_sorting_mode'] = $this->getUserConfigByKey('files_list_sorting_mode', $user) ?: 'name';
 		$info['files_list_sorting_direction'] = $this->getUserConfigByKey('files_list_sorting_direction', $user) ?: 'asc';
 		$info['policy_workbench_catalog_compact_view'] = $this->getUserConfigByKey('policy_workbench_catalog_compact_view', $user) === '1';
+		$info['can_manage_group_policies'] = $user !== null && $this->groupManager->isAdmin($user->getUID());
 
 		return array_filter($info, static fn (mixed $value): bool => $value !== null && $value !== '');
 	}
