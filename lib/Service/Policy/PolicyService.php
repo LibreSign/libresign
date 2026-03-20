@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy;
 
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
@@ -62,7 +63,7 @@ class PolicyService {
 		return $this->resolver->resolveMany($definitions, $context);
 	}
 
-	public function saveSystem(string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
+	public function saveSystem(string|\BackedEnum $policyKey, mixed $value, bool $allowChildOverride = false): ResolvedPolicy {
 		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
 		$normalizedValue = $value === null
@@ -70,9 +71,36 @@ class PolicyService {
 			: $definition->normalizeValue($value);
 
 		$definition->validateValue($normalizedValue, $context);
-		$this->source->saveSystemPolicy($definition->key(), $normalizedValue);
+		$this->source->saveSystemPolicy($definition->key(), $normalizedValue, $allowChildOverride);
 
 		return $this->resolver->resolve($definition, $context);
+	}
+
+	public function getGroupPolicy(string|\BackedEnum $policyKey, string $groupId): ?PolicyLayer {
+		$definition = $this->registry->get($policyKey);
+		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
+	}
+
+	public function saveGroupPolicy(string|\BackedEnum $policyKey, string $groupId, mixed $value, bool $allowChildOverride): PolicyLayer {
+		$definition = $this->registry->get($policyKey);
+		$context = $this->contextFactory->forCurrentUser();
+		$normalizedValue = $definition->normalizeValue($value);
+		$definition->validateValue($normalizedValue, $context);
+		$this->source->saveGroupPolicy($definition->key(), $groupId, $normalizedValue, $allowChildOverride);
+
+		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId)
+			?? (new PolicyLayer())
+				->setScope('group')
+				->setVisibleToChild(true)
+				->setAllowChildOverride(true)
+				->setAllowedValues([]);
+	}
+
+	public function clearGroupPolicy(string|\BackedEnum $policyKey, string $groupId): ?PolicyLayer {
+		$definition = $this->registry->get($policyKey);
+		$this->source->clearGroupPolicy($definition->key(), $groupId);
+
+		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
 	}
 
 	public function saveUserPreference(string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
@@ -92,6 +120,29 @@ class PolicyService {
 
 	public function clearUserPreference(string|\BackedEnum $policyKey): ResolvedPolicy {
 		$context = $this->contextFactory->forCurrentUser();
+		$definition = $this->registry->get($policyKey);
+		$this->source->clearUserPreference($definition->key(), $context);
+
+		return $this->resolver->resolve($definition, $context);
+	}
+
+	public function saveUserPreferenceForUserId(string|\BackedEnum $policyKey, string $userId, mixed $value): ResolvedPolicy {
+		$context = $this->contextFactory->forUserId($userId);
+		$definition = $this->registry->get($policyKey);
+		$resolved = $this->resolver->resolve($definition, $context);
+		if (!$resolved->canSaveAsUserDefault()) {
+			throw new \InvalidArgumentException('Saving a user preference is not allowed for ' . $definition->key());
+		}
+
+		$normalizedValue = $definition->normalizeValue($value);
+		$definition->validateValue($normalizedValue, $context);
+		$this->source->saveUserPreference($definition->key(), $context, $normalizedValue);
+
+		return $this->resolver->resolve($definition, $context);
+	}
+
+	public function clearUserPreferenceForUserId(string|\BackedEnum $policyKey, string $userId): ResolvedPolicy {
+		$context = $this->contextFactory->forUserId($userId);
 		$definition = $this->registry->get($policyKey);
 		$this->source->clearUserPreference($definition->key(), $context);
 
