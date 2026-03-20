@@ -16,7 +16,7 @@ final class PermissionSetTest extends TestCase {
 		$permissionSet = new PermissionSet();
 
 		$this->assertTrue($permissionSet->isEnabled());
-		$this->assertSame([], $permissionSet->getPolicyJson());
+		$this->assertSame([], $permissionSet->getDecodedPolicyJson());
 	}
 
 	public function testSetEnabledStoresBooleanAsFlag(): void {
@@ -52,7 +52,8 @@ final class PermissionSetTest extends TestCase {
 
 		$permissionSet->setPolicyJson($policyJson);
 
-		$this->assertSame($policyJson, $permissionSet->getPolicyJson());
+		$this->assertSame($policyJson, $permissionSet->getDecodedPolicyJson());
+		$this->assertSame(json_encode($policyJson, JSON_THROW_ON_ERROR), $permissionSet->getPolicyJson());
 	}
 
 	public function testPolicyJsonIsDecodedWhenHydratingFromDatabaseRow(): void {
@@ -73,6 +74,22 @@ final class PermissionSetTest extends TestCase {
 				'defaultValue' => 'parallel',
 				'allowChildOverride' => true,
 			],
-		], $permissionSet->getPolicyJson());
+		], $permissionSet->getDecodedPolicyJson());
+	}
+
+	public function testPolicyJsonFallsBackToEmptyArrayWhenLegacyValueIsInvalid(): void {
+		$permissionSet = PermissionSet::fromRow([
+			'id' => 8,
+			'name' => 'finance',
+			'description' => null,
+			'scope_type' => 'organization',
+			'enabled' => 1,
+			'priority' => 10,
+			'policy_json' => 'Array',
+			'created_at' => '2026-03-17 10:00:00',
+			'updated_at' => '2026-03-17 11:00:00',
+		]);
+
+		$this->assertSame([], $permissionSet->getDecodedPolicyJson());
 	}
 }
