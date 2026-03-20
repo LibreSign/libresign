@@ -8019,7 +8019,7 @@
                                     "signatureFlow": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration"
+                                        "description": "Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses the effective policy resolution."
                                     }
                                 }
                             }
@@ -8178,7 +8178,7 @@
                                     "signatureFlow": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration"
+                                        "description": "Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses the effective policy resolution."
                                     },
                                     "name": {
                                         "type": "string",
