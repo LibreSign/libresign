@@ -17,6 +17,7 @@ use function is_int;
 
 final class SignatureFlowPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'signature_flow';
+	public const SYSTEM_APP_CONFIG_KEY = 'policy.signature_flow.system';
 
 	#[\Override]
 	public function keys(): array {
@@ -47,6 +48,7 @@ final class SignatureFlowPolicy implements IPolicyDefinitionProvider {
 
 					return $rawValue;
 				},
+				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
 		};
