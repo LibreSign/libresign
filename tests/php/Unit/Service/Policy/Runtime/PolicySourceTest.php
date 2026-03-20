@@ -285,7 +285,7 @@ final class PolicySourceTest extends TestCase {
 						'visibleToChild' => true,
 						'allowedValues' => ['ordered_numeric'],
 					],
-				], $permissionSet->getPolicyJson());
+				], $permissionSet->getDecodedPolicyJson());
 				return true;
 			}))
 			->willReturnCallback(static function (PermissionSet $permissionSet): PermissionSet {
