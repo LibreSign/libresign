@@ -18,6 +18,21 @@ type OcsResponse<T = unknown> = {
 	}
 }
 
+function toStringList(data: unknown): string[] {
+	if (Array.isArray(data)) {
+		return data.filter((item): item is string => typeof item === 'string')
+	}
+
+	if (data && typeof data === 'object') {
+		const nested = data as { groups?: unknown[] }
+		if (Array.isArray(nested.groups)) {
+			return nested.groups.filter((item): item is string => typeof item === 'string')
+		}
+	}
+
+	return []
+}
+
 async function ocsRequest(
 	request: APIRequestContext,
 	method: 'GET' | 'POST' | 'PUT' | 'DELETE',
@@ -44,10 +59,6 @@ async function ocsRequest(
 			: body !== undefined ? { form: body } : {}),
 		failOnStatusCode: false,
 	})
-
-	if (!response.ok() && response.status() !== 404) {
-		throw new Error(`OCS request failed: ${method} ${path} → ${response.status()} ${await response.text()}`)
-	}
 
 	const text = await response.text()
 	if (!text) {
@@ -90,6 +101,95 @@ export async function deleteUser(
 	userId: string,
 ): Promise<void> {
 	await ocsRequest(request, 'DELETE', `/cloud/users/${userId}`)
+}
+
+// ---------------------------------------------------------------------------
+// Groups and delegated administration
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates a group if it does not exist.
+ */
+export async function ensureGroupExists(
+	request: APIRequestContext,
+	groupId: string,
+): Promise<void> {
+	const check = await ocsRequest(request, 'GET', `/cloud/groups?search=${encodeURIComponent(groupId)}`)
+	const groups = toStringList(check.ocs.data)
+	if (groups.includes(groupId)) {
+		return
+	}
+
+	const create = await ocsRequest(request, 'POST', '/cloud/groups', undefined, undefined, {
+		groupid: groupId,
+	})
+	if (create.ocs.meta.statuscode !== 200 && create.ocs.meta.statuscode !== 102) {
+		throw new Error(`Failed to create group "${groupId}": ${create.ocs.meta.message}`)
+	}
+}
+
+/**
+ * Adds a user to a group.
+ */
+export async function ensureUserInGroup(
+	request: APIRequestContext,
+	userId: string,
+	groupId: string,
+): Promise<void> {
+	const groupsResponse = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/groups`)
+	const groups = toStringList(groupsResponse.ocs.data)
+	if (groups.includes(groupId)) {
+		return
+	}
+
+	const add = await ocsRequest(
+		request,
+		'POST',
+		`/cloud/users/${encodeURIComponent(userId)}/groups`,
+		undefined,
+		undefined,
+		{ groupid: groupId },
+	)
+	if (add.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to add user "${userId}" to group "${groupId}": ${add.ocs.meta.message}`)
+	}
+
+	const verify = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/groups`)
+	if (!toStringList(verify.ocs.data).includes(groupId)) {
+		throw new Error(`User "${userId}" is not in group "${groupId}" after assignment.`)
+	}
+}
+
+/**
+ * Grants subadmin rights for a specific group.
+ */
+export async function ensureSubadminOfGroup(
+	request: APIRequestContext,
+	userId: string,
+	groupId: string,
+): Promise<void> {
+	const subadmins = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/subadmins`)
+	const groups = toStringList(subadmins.ocs.data)
+	if (groups.includes(groupId)) {
+		return
+	}
+
+	const grant = await ocsRequest(
+		request,
+		'POST',
+		`/cloud/users/${encodeURIComponent(userId)}/subadmins`,
+		undefined,
+		undefined,
+		{ groupid: groupId },
+	)
+	if (grant.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to grant subadmin for user "${userId}" in group "${groupId}": ${grant.ocs.meta.message}`)
+	}
+
+	const verify = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/subadmins`)
+	if (!toStringList(verify.ocs.data).includes(groupId)) {
+		throw new Error(`User "${userId}" was not granted subadmin rights for group "${groupId}".`)
+	}
 }
 
 // ---------------------------------------------------------------------------
