@@ -152,28 +152,14 @@
 			:name="state.activeDefinition.title"
 			size="full"
 			:can-close="true"
-			@closing="state.closeSetting()">
+			@closing="requestCloseSetting()">
 			<div class="policy-workbench__dialog">
 				<header class="policy-workbench__dialog-header">
-					<div>
-						<p class="policy-workbench__eyebrow">
-							{{ state.viewMode === 'system-admin' ? t('libresign', 'System admin workspace') : t('libresign', 'Group admin workspace') }}
-						</p>
-						<h2>{{ state.activeDefinition.title }}</h2>
-						<p>{{ state.activeDefinition.description }}</p>
-					</div>
-					<div class="policy-workbench__dialog-actions">
-						<NcButton
-							v-if="state.viewMode === 'system-admin'"
-							variant="secondary"
-							:aria-label="t('libresign', 'New group override')"
-							@click="state.startEditor({ scope: 'group' })">
-							{{ t('libresign', 'New group override') }}
-						</NcButton>
-						<NcButton variant="primary" :aria-label="t('libresign', 'New user override')" @click="state.startEditor({ scope: 'user' })">
-							{{ t('libresign', 'New user override') }}
-						</NcButton>
-					</div>
+					<p class="policy-workbench__eyebrow">
+						{{ state.viewMode === 'system-admin' ? t('libresign', 'System admin workspace') : t('libresign', 'Group admin workspace') }}
+					</p>
+					<h2>{{ state.activeDefinition.title }}</h2>
+					<p>{{ state.activeDefinition.description }}</p>
 				</header>
 
 				<p
@@ -183,124 +169,160 @@
 					{{ removalFeedback }}
 				</p>
 
-				<div class="policy-workbench__workspace">
-					<div class="policy-workbench__rules-column">
-						<section class="policy-workbench__group" role="region" :aria-label="state.viewMode === 'system-admin' ? t('libresign', 'Global default rules') : t('libresign', 'Inherited global default')">
-							<div class="policy-workbench__group-header">
-								<h3>{{ state.viewMode === 'system-admin' ? t('libresign', 'Global default') : t('libresign', 'Inherited global default') }}</h3>
-								<p>
-									{{ state.viewMode === 'system-admin'
-										? t('libresign', 'This rule is the baseline for the whole instance.')
-										: t('libresign', 'Group admins can see the inherited default but do not edit it from this view.') }}
-								</p>
-							</div>
+				<!-- Ultra-compact summary line: Using X: Value · Y groups · Z users [How it works] -->
+				<div v-if="state.summary" class="policy-workbench__summary-line" :aria-label="t('libresign', 'Current policy state')">
+					<span>{{ t('libresign', 'Using {source}: {value}', { source: state.summary.baseSource, value: state.summary.currentBaseValue }) }}</span>
+					<span class="policy-workbench__summary-divider">·</span>
+					<span>{{ state.summary.activeGroupExceptions }} {{ t('libresign', 'group exception', 'group exceptions', state.summary.activeGroupExceptions) }}</span>
+					<span class="policy-workbench__summary-divider">·</span>
+					<span>{{ state.summary.activeUserExceptions }} {{ t('libresign', 'user exception', 'user exceptions', state.summary.activeUserExceptions) }}</span>
+					<button
+						v-if="!showPrecedenceExplanation"
+						type="button"
+						class="policy-workbench__learn-link"
+						:aria-label="t('libresign', 'Learn how inheritance works')"
+						@click="showPrecedenceExplanation = true">
+						{{ t('libresign', 'How it works') }}
+					</button>
+				</div>
 
-							<PolicyRuleCard
-								v-if="state.inheritedSystemRule"
-								:eyebrow="t('libresign', 'System')"
-								:title="t('libresign', 'Global default rule')"
-								:summary="summarizeRuleValue(state.inheritedSystemRule.value)"
-								:description="t('libresign', 'Applied when no group or user override matches.')"
-								:badges="systemRuleBadges"
-								:highlighted="state.highlightedRuleId === state.inheritedSystemRule.id"
-								:show-edit-action="true"
-								:show-remove-action="state.viewMode === 'system-admin'"
-								:edit-label="t('libresign', 'Edit global default')"
-								:remove-label="t('libresign', 'Reset global default')"
-								@edit="state.startEditor({ scope: 'system', ruleId: state.inheritedSystemRule.id })"
-								@remove="promptRuleRemoval(state.inheritedSystemRule.id, 'system', t('libresign', 'Global default rule'))" />
+				<!-- Collapsed help: How inheritance works -->
+				<section v-if="showPrecedenceExplanation" class="policy-workbench__inheritance-help">
+					<ul>
+						<li>{{ t('libresign', 'User rule overrides group rule') }}</li>
+						<li>{{ t('libresign', 'Group rule overrides global default') }}</li>
+						<li>{{ t('libresign', 'Global default overrides system default') }}</li>
+						<li>{{ t('libresign', 'System default is used if no global default exists') }}</li>
+					</ul>
+					<button
+						type="button"
+						class="policy-workbench__help-close"
+						@click="showPrecedenceExplanation = false">
+						{{ t('libresign', 'Close') }}
+					</button>
+				</section>
 
-							<NcNoteCard v-else type="info">
-								<div class="policy-workbench__inline-note-actions">
-									<p>{{ t('libresign', 'No global default rule is set for this setting.') }}</p>
-									<NcButton
-										v-if="state.viewMode === 'system-admin'"
-										variant="secondary"
-										:aria-label="t('libresign', 'Create global default rule')"
-										@click="state.startEditor({ scope: 'system' })">
-										{{ t('libresign', 'Create global default rule') }}
-									</NcButton>
-								</div>
-							</NcNoteCard>
-						</section>
+				<div class="policy-workbench__content">
+					<!-- Default for this instance section -->
+					<section class="policy-workbench__section" role="region" :aria-label="t('libresign', 'Default for this instance')">
+						<h3 class="policy-workbench__section-title">{{ t('libresign', 'Default for this instance') }}</h3>
+						<p class="policy-workbench__default-value">{{ state.summary?.currentBaseValue || '—' }}</p>
+						<p class="policy-workbench__default-reason">
+							{{ state.hasGlobalDefault
+								? t('libresign', 'This instance has a configured global default.')
+								: t('libresign', 'This instance is using the system default because no global default is configured.') }}
+						</p>
 
-						<section class="policy-workbench__group" role="region" :aria-label="t('libresign', 'Group overrides')">
-							<div class="policy-workbench__group-header">
-								<h3>{{ t('libresign', 'Group overrides') }}</h3>
-								<p>
-									{{ t('libresign', 'These overrides replace the global default for selected groups.') }}
-								</p>
-							</div>
+						<!-- Edit or create global default -->
+						<div v-if="state.inheritedSystemRule && state.hasGlobalDefault" class="policy-workbench__default-actions">
+							<NcButton
+								v-if="state.viewMode === 'system-admin'"
+								variant="primary"
+								size="small"
+								:aria-label="t('libresign', 'Edit global default')"
+								@click="state.startEditor({ scope: 'system', ruleId: state.inheritedSystemRule.id })">
+								{{ t('libresign', 'Edit') }}
+							</NcButton>
+							<NcButton
+								v-if="state.viewMode === 'system-admin'"
+								variant="secondary"
+								size="small"
+								:aria-label="t('libresign', 'Remove global default')"
+								@click="promptRuleRemoval(state.inheritedSystemRule.id, 'system', t('libresign', 'Global default rule'))">
+								{{ t('libresign', 'Remove') }}
+							</NcButton>
+						</div>
 
-							<div v-if="state.visibleGroupRules.length > 0" class="policy-workbench__stack">
+						<NcButton
+							v-else-if="state.viewMode === 'system-admin'"
+							variant="primary"
+							size="small"
+							:aria-label="t('libresign', 'Create global default')"
+							@click="state.startEditor({ scope: 'system' })">
+							{{ t('libresign', 'Create global default') }}
+						</NcButton>
+					</section>
+
+					<!-- Exceptions section -->
+					<section class="policy-workbench__section" role="region" :aria-label="t('libresign', 'Exceptions')">
+						<h3 class="policy-workbench__section-title">{{ t('libresign', 'Exceptions') }}</h3>
+
+						<!-- Groups subsection -->
+						<div class="policy-workbench__subsection">
+							<h4 class="policy-workbench__subsection-title">{{ t('libresign', 'Groups') }}</h4>
+
+							<div v-if="state.visibleGroupRules.length > 0" class="policy-workbench__exception-list">
 								<PolicyRuleCard
 									v-for="rule in state.visibleGroupRules"
 									:key="rule.id"
 									:eyebrow="t('libresign', 'Group')"
 									:title="state.resolveTargetLabel('group', rule.targetId || '')"
 									:summary="summarizeRuleValue(rule.value)"
-									:description="t('libresign', 'Replaces inherited behavior for this group.')"
+									:description="rule.allowChildOverride ? t('libresign', 'Users can override') : t('libresign', 'Users must inherit')"
 									:badges="groupRuleBadges(rule.allowChildOverride)"
 									:highlighted="state.highlightedRuleId === rule.id"
-									:edit-label="t('libresign', 'Edit group override')"
-									:remove-label="t('libresign', 'Delete group override')"
+									:edit-label="t('libresign', 'Edit')"
+									:remove-label="t('libresign', 'Remove')"
 									@edit="state.startEditor({ scope: 'group', ruleId: rule.id })"
 									@remove="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))" />
 							</div>
 
-							<NcNoteCard v-else type="info">
-								<div class="policy-workbench__inline-note-actions">
-									<p>{{ t('libresign', 'No group overrides are set for this setting.') }}</p>
-									<NcButton
-										v-if="state.viewMode === 'system-admin'"
-										variant="secondary"
-										:aria-label="t('libresign', 'New group override')"
-										@click="state.startEditor({ scope: 'group' })">
-										{{ t('libresign', 'New group override') }}
-									</NcButton>
-								</div>
-							</NcNoteCard>
-						</section>
+							<p v-else class="policy-workbench__empty-subsection">{{ t('libresign', 'No group exceptions.') }}</p>
 
-						<section class="policy-workbench__group" role="region" :aria-label="t('libresign', 'User overrides')">
-							<div class="policy-workbench__group-header">
-								<h3>{{ t('libresign', 'User overrides') }}</h3>
-								<p>
-									{{ t('libresign', 'Use these only when one signer needs behavior different from inherited defaults.') }}
-								</p>
-							</div>
+							<NcButton
+								v-if="state.viewMode === 'system-admin'"
+								variant="secondary"
+								size="small"
+								:aria-label="t('libresign', 'New group exception')"
+								:disabled="!!state.createGroupOverrideDisabledReason"
+								@click="state.startEditor({ scope: 'group' })">
+								{{ t('libresign', '+ Add group exception') }}
+							</NcButton>
+						</div>
 
-							<div v-if="state.visibleUserRules.length > 0" class="policy-workbench__stack">
+						<!-- Users subsection -->
+						<div class="policy-workbench__subsection">
+							<h4 class="policy-workbench__subsection-title">{{ t('libresign', 'Users') }}</h4>
+
+							<div v-if="state.visibleUserRules.length > 0" class="policy-workbench__exception-list">
 								<PolicyRuleCard
 									v-for="rule in state.visibleUserRules"
 									:key="rule.id"
 									:eyebrow="t('libresign', 'User')"
 									:title="state.resolveTargetLabel('user', rule.targetId || '')"
 									:summary="summarizeRuleValue(rule.value)"
-									:description="t('libresign', 'Applies only to this signer.')"
-									:badges="[t('libresign', 'Final override')]"
+									:description="t('libresign', 'Individual override')"
+									:badges="[t('libresign', 'Final')]"
 									:highlighted="state.highlightedRuleId === rule.id"
-									:edit-label="t('libresign', 'Edit user override')"
-									:remove-label="t('libresign', 'Delete user override')"
+									:edit-label="t('libresign', 'Edit')"
+									:remove-label="t('libresign', 'Remove')"
 									@edit="state.startEditor({ scope: 'user', ruleId: rule.id })"
 									@remove="promptRuleRemoval(rule.id, 'user', state.resolveTargetLabel('user', rule.targetId || ''))" />
 							</div>
 
-							<NcNoteCard v-else type="info">
-								<div class="policy-workbench__inline-note-actions">
-									<p>{{ t('libresign', 'No user overrides are set for this setting.') }}</p>
-									<NcButton
-										variant="secondary"
-										:aria-label="t('libresign', 'New user override')"
-										@click="state.startEditor({ scope: 'user' })">
-										{{ t('libresign', 'New user override') }}
-									</NcButton>
-								</div>
-							</NcNoteCard>
-						</section>
-					</div>
+							<p v-else class="policy-workbench__empty-subsection">
+								{{ t('libresign', 'No user exceptions are set.') }}
+							</p>
 
-					<div class="policy-workbench__editor-column">
+							<!-- Show blocking reason only if there are no user exceptions and they're blocked -->
+							<p v-if="!state.visibleUserRules.length && state.createUserOverrideDisabledReason" class="policy-workbench__blocker-reason">
+								{{ state.createUserOverrideDisabledReason }}
+							</p>
+
+							<NcButton
+								v-if="!state.createUserOverrideDisabledReason"
+								variant="secondary"
+								size="small"
+								:aria-label="t('libresign', 'New user exception')"
+								@click="state.startEditor({ scope: 'user' })">
+								{{ t('libresign', '+ Add user exception') }}
+							</NcButton>
+						</div>
+					</section>
+				</div>
+
+				<!-- Editor panel side-by-side (desktop) -->
+				<div v-if="state.editorDraft && !shouldUseEditorModal" class="policy-workbench__editor-aside">
 						<section v-if="state.editorDraft && !shouldUseEditorModal" class="policy-workbench__editor-panel">
 							<div class="policy-workbench__editor-panel-content" :class="{ 'policy-workbench__editor-panel-content--saving': saveStatus === 'saving' }">
 								<div class="policy-workbench__editor-header">
@@ -352,53 +374,36 @@
 									<NcButton variant="primary" :aria-label="state.editorMode === 'edit' ? t('libresign', 'Save policy rule changes') : t('libresign', 'Create policy rule')" :disabled="!state.canSaveDraft || saveStatus === 'saving'" @click="handleSaveDraft()">
 										{{ state.editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
 									</NcButton>
-									<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel editing')" :disabled="saveStatus === 'saving'" @click="state.cancelEditor()">
+									<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel editing')" :disabled="saveStatus === 'saving'" @click="requestCancelEditor()">
 										{{ t('libresign', 'Cancel') }}
 									</NcButton>
 								</div>
 								<p v-if="saveStatus !== 'idle'" class="policy-workbench__save-feedback" aria-live="polite">
 									{{ saveStatus === 'saving' ? t('libresign', 'Saving...') : t('libresign', 'Changes saved') }}
 								</p>
-							</div>
 
-							<div v-if="saveStatus === 'saving'" class="policy-workbench__saving-overlay" aria-live="polite" aria-busy="true">
-								<div class="policy-workbench__saving-spinner" aria-hidden="true"></div>
-								<p>{{ t('libresign', 'Saving...') }}</p>
+								<div v-if="saveStatus === 'saving'" class="policy-workbench__saving-overlay" aria-live="polite" aria-busy="true">
+									<div class="policy-workbench__saving-spinner" aria-hidden="true"></div>
+									<p>{{ t('libresign', 'Saving...') }}</p>
+								</div>
 							</div>
 						</section>
 
 						<section v-else-if="state.editorDraft && shouldUseEditorModal" class="policy-workbench__editor-mobile-hint">
-							<p class="policy-workbench__eyebrow">{{ t('libresign', 'Editing surface') }}</p>
-							<h3>{{ t('libresign', 'Editor opened in full-screen modal') }}</h3>
+							<p class="policy-workbench__eyebrow">{{ t('libresign', 'Editing') }}</p>
+							<h3>{{ t('libresign', 'Editor open in modal') }}</h3>
 							<p>
-								{{ t('libresign', 'On smaller screens, editing opens in a focused full-screen modal to keep forms readable.') }}
-							</p>
-							<NcButton
-								variant="secondary"
-								:aria-label="t('libresign', 'Cancel editing')"
-								@click="state.cancelEditor()">
-								{{ t('libresign', 'Cancel') }}
-							</NcButton>
-						</section>
-
-						<section v-else class="policy-workbench__editor-empty">
-							<p class="policy-workbench__eyebrow">{{ t('libresign', 'Editing surface') }}</p>
-							<h3>{{ t('libresign', 'Choose an action to start editing') }}</h3>
-							<p>
-								{{ t('libresign', 'Click a card above or use the buttons to create or edit policy rules.') }}
+								{{ t('libresign', 'Your form is displayed in the overlay.') }}
 							</p>
 						</section>
 					</div>
 				</div>
-			</div>
-		</NcDialog>
 
-		<NcDialog
 			v-if="state.editorDraft && shouldUseEditorModal"
 			:name="editorTitle || t('libresign', 'Rule editor')"
 			size="full"
 			:can-close="true"
-			@closing="state.cancelEditor()">
+			@closing="requestCancelEditor()">
 			<div class="policy-workbench__editor-modal-body">
 				<section class="policy-workbench__editor-panel">
 					<div class="policy-workbench__editor-panel-content" :class="{ 'policy-workbench__editor-panel-content--saving': saveStatus === 'saving' }">
@@ -451,7 +456,7 @@
 							<NcButton variant="primary" :aria-label="state.editorMode === 'edit' ? t('libresign', 'Save policy rule changes') : t('libresign', 'Create policy rule')" :disabled="!state.canSaveDraft || saveStatus === 'saving'" @click="handleSaveDraft()">
 								{{ state.editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
 							</NcButton>
-							<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel editing')" :disabled="saveStatus === 'saving'" @click="state.cancelEditor()">
+							<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel editing')" :disabled="saveStatus === 'saving'" @click="requestCancelEditor()">
 								{{ t('libresign', 'Cancel') }}
 							</NcButton>
 						</div>
@@ -519,6 +524,7 @@ const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)
 const lastPress = ref<{ surface: 'cards' | 'list', key: string, x: number, y: number } | null>(null)
 const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at: number } | null>(null)
+const showPrecedenceExplanation = ref(false)
 
 const DRAG_OPEN_THRESHOLD_PX = 6
 const SELECTION_GUARD_WINDOW_MS = 400
@@ -552,6 +558,18 @@ const selectedTargetOptions = computed(() => {
 	}
 
 	return state.availableTargets.filter((option) => state.editorDraft?.targetIds.includes(option.id))
+})
+
+const resolutionModeLabel = computed(() => {
+	if (state.policyResolutionMode === 'merge') {
+		return t('libresign', 'Merged values from multiple groups')
+	}
+
+	if (state.policyResolutionMode === 'conflict_requires_selection') {
+		return t('libresign', 'Conflict may require explicit user selection')
+	}
+
+	return t('libresign', 'Single value by precedence')
 })
 
 const systemRuleBadges = computed(() => {
@@ -612,7 +630,7 @@ const removalDialogButtons = computed(() => {
 			callback: () => cancelRuleRemoval(),
 		},
 		{
-			label: isRemovingRule.value ? t('libresign', 'Removing rule...') : t('libresign', 'Remove rule'),
+			label: isRemovingRule.value ? t('libresign', 'Removing exception...') : t('libresign', 'Remove exception'),
 			variant: 'error' as const,
 			disabled: isRemovingRule.value,
 			callback: () => {
@@ -809,7 +827,7 @@ async function handleSaveDraft() {
 
 function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string) {
 	const help = scope === 'system'
-		? t('libresign', 'Removing this rule will make all groups and users inherit the platform default.')
+		? t('libresign', 'Removing this global default makes the instance use the system default again.')
 		: scope === 'group'
 			? t('libresign', 'Removing this rule will restore inherited behavior from the global default for this group.')
 			: t('libresign', 'Removing this rule will restore inherited behavior for this user.')
@@ -831,10 +849,10 @@ async function confirmRuleRemoval() {
 		const scope = pendingRemoval.value.scope
 		await state.removeRule(pendingRemoval.value.ruleId)
 		removalFeedback.value = scope === 'system'
-			? t('libresign', 'Global default reset. Inherited behavior is now active.')
+			? t('libresign', 'Global default removed. The instance now uses the system default.')
 			: scope === 'group'
-				? t('libresign', 'Group override removed. Inherited behavior from the global default is now active.')
-				: t('libresign', 'User override removed. Inherited behavior is now active.')
+				? t('libresign', 'Group exception removed. Inherited behavior from the global default is now active.')
+				: t('libresign', 'User exception removed. Inherited behavior is now active.')
 
 		if (removalFeedbackTimeout.value !== null) {
 			window.clearTimeout(removalFeedbackTimeout.value)
@@ -849,6 +867,30 @@ async function confirmRuleRemoval() {
 	} finally {
 		isRemovingRule.value = false
 	}
+}
+
+function requestCancelEditor() {
+	if (saveStatus.value === 'saving') {
+		return
+	}
+
+	if (state.isDraftDirty && !window.confirm(t('libresign', 'Discard unsaved changes?'))) {
+		return
+	}
+
+	state.cancelEditor()
+}
+
+function requestCloseSetting() {
+	if (saveStatus.value === 'saving' || isRemovingRule.value) {
+		return
+	}
+
+	if (state.isDraftDirty && !window.confirm(t('libresign', 'Discard unsaved changes?'))) {
+		return
+	}
+
+	state.closeSetting()
 }
 
 onMounted(async () => {
@@ -1258,25 +1300,53 @@ onBeforeUnmount(() => {
 		}
 	}
 
-	&__editor-empty {
-		p,
-		h3 {
-			margin: 0;
+	// Editor aside panel (desktop)
+	&__editor-aside {
+		display: none;
+	}
+
+	@media (min-width: 961px) {
+		&__editor-aside {
+			display: flex;
+			flex-direction: column;
+			gap: 0.75rem;
+			position: sticky;
+			top: 0;
+			max-height: 90vh;
+			overflow-y: auto;
+			padding-left: 1rem;
+			border-left: 1px solid color-mix(in srgb, var(--color-border-maxcontrast) 50%, transparent);
 		}
 
-		p:last-of-type {
-			margin-top: 0.25rem;
-			color: var(--color-text-maxcontrast);
+		&__editor-mobile-hint {
+			display: none;
 		}
 	}
 
-	&__editor-modal-body {
-		width: min(860px, 100%);
-		margin: 0 auto;
+	&__editor-panel {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
 	}
 
-	&__group-header,
+	&__editor-panel-content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		position: relative;
+
+		&--saving {
+			opacity: 0.6;
+			pointer-events: none;
+		}
+	}
+
 	&__editor-header {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+
 		h3,
 		p {
 			margin: 0;
@@ -1300,6 +1370,318 @@ onBeforeUnmount(() => {
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
 		color: var(--color-text-maxcontrast);
+	}
+
+	// New compact summary line
+	&__summary-line {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		flex-wrap: wrap;
+		padding: 0.65rem 0;
+		font-size: 0.88rem;
+		color: var(--color-text-maxcontrast);
+
+		strong {
+			color: var(--color-main-text);
+			font-weight: 600;
+		}
+	}
+
+	&__summary-divider {
+		opacity: 0.5;
+	}
+
+	&__learn-link {
+		background: none;
+		border: none;
+		color: var(--color-primary-element);
+		cursor: pointer;
+		font-size: 0.88rem;
+		padding: 0;
+		text-decoration: underline;
+
+		&:hover {
+			opacity: 0.8;
+		}
+
+		&:focus {
+			outline: 2px solid var(--color-primary-element);
+			outline-offset: 2px;
+		}
+	}
+
+	&__summary-learn-link {
+		margin-left: auto;
+		white-space: nowrap;
+		:deep(.button-vue__text) {
+			font-size: 0.88rem;
+		}
+	}
+
+	// Collapsible inheritance help section
+	&__inheritance-help {
+		padding: 0.9rem;
+		border-radius: 12px;
+		border: 1px solid color-mix(in srgb, var(--color-primary-element) 18%, var(--color-border-maxcontrast));
+		background: color-mix(in srgb, var(--color-primary-element) 8%, var(--color-main-background));
+		margin-bottom: 0.5rem;
+
+		ul {
+			margin: 0;
+			padding-left: 1.2rem;
+			display: flex;
+			flex-direction: column;
+			gap: 0.3rem;
+			font-size: 0.86rem;
+			color: var(--color-text-maxcontrast);
+
+			li {
+				line-height: 1.4;
+			}
+		}
+	}
+
+	&__help-close {
+		background: none;
+		border: none;
+		color: var(--color-primary-element);
+		cursor: pointer;
+		font-size: 0.84rem;
+		padding: 0.4rem 0;
+		text-decoration: underline;
+		margin-top: 0.5rem;
+
+		&:hover {
+			opacity: 0.8;
+		}
+
+		&:focus {
+			outline: 2px solid var(--color-primary-element);
+			outline-offset: 2px;
+		}
+	}
+
+	// Single-column content wrapper
+	&__content {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	// Main sections (Default for this instance, Exceptions)
+	&__section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	&__section-title {
+		margin: 0;
+		font-size: 0.92rem;
+		font-weight: 600;
+		color: var(--color-main-text);
+	}
+
+	// Nested subsections (Groups, Users under Exceptions)
+	&__subsection {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+
+	&__subsection-title {
+		margin: 0;
+		margin-top: 0.5rem;
+		font-size: 0.84rem;
+		font-weight: 600;
+		color: var(--color-text-maxcontrast);
+		text-transform: uppercase;
+		letter-spacing: 0.02em;
+	}
+
+	// Default for instance section styling
+	&__default-value {
+		margin: 0;
+		font-size: 1.2rem;
+		font-weight: 700;
+		color: var(--color-main-text);
+		line-height: 1.3;
+	}
+
+	&__default-reason {
+		margin: 0;
+		font-size: 0.88rem;
+		color: var(--color-text-maxcontrast);
+		line-height: 1.5;
+	}
+
+	&__default-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+
+		:deep(.button-vue) {
+			max-width: 100%;
+		}
+	}
+
+	// Exception list styling
+	&__exception-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+	}
+
+	// Empty state for subsections
+	&__empty-subsection {
+		margin: 0;
+		font-size: 0.88rem;
+		color: var(--color-text-maxcontrast);
+		font-style: italic;
+	}
+
+	// Inline blocker reason message
+	&__blocker-reason {
+		margin: 0.5rem 0 0;
+		padding: 0.6rem 0.75rem;
+		border-radius: 9px;
+		border: 1px solid color-mix(in srgb, var(--color-warning) 36%, transparent);
+		background: color-mix(in srgb, var(--color-warning) 14%, var(--color-main-background));
+		font-size: 0.85rem;
+		line-height: 1.4;
+		color: var(--color-text-maxcontrast);
+	}
+
+	// Collapsible precedence explanation
+	&__precedence-explanation {
+		padding: 0.9rem;
+		border-radius: 12px;
+		border: 1px solid color-mix(in srgb, var(--color-primary-element) 18%, var(--color-border-maxcontrast));
+		background: color-mix(in srgb, var(--color-primary-element) 8%, var(--color-main-background));
+		margin-bottom: 0.5rem;
+	}
+
+	&__precedence-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.6rem;
+
+		h3 {
+			margin: 0;
+			font-size: 0.92rem;
+		}
+
+		:deep(.button-vue) {
+			flex-shrink: 0;
+		}
+	}
+
+	&__precedence-list {
+		margin: 0;
+		padding-left: 1.2rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		font-size: 0.86rem;
+		color: var(--color-text-maxcontrast);
+
+		li {
+			line-height: 1.4;
+		}
+	}
+
+	// Base rule section
+	&__base-rule-info {
+		padding: 0.8rem;
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--color-background-dark) 8%, var(--color-main-background));
+		margin-bottom: 0.6rem;
+	}
+
+	&__base-rule-current {
+		p {
+			margin: 0;
+		}
+
+		p:not(:last-child) {
+			margin-bottom: 0.2rem;
+		}
+	}
+
+	&__base-rule-label {
+		font-size: 0.78rem;
+		color: var(--color-text-maxcontrast);
+		text-transform: uppercase;
+		letter-spacing: 0.02em;
+	}
+
+	&__base-rule-value {
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: var(--color-main-text);
+	}
+
+	&__base-rule-source {
+		font-size: 0.8rem;
+		color: var(--color-text-maxcontrast);
+	}
+
+	&__base-rule-no-global {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+
+		p {
+			margin: 0;
+			font-size: 0.88rem;
+		}
+
+		:deep(.button-vue) {
+			max-width: 100%;
+		}
+	}
+
+	&__base-rule-fallback {
+		padding: 0.55rem;
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--color-primary-element) 6%, var(--color-main-background));
+		border-left: 2px solid color-mix(in srgb, var(--color-primary-element) 24%, transparent);
+	}
+
+	&__base-rule-label--small {
+		font-size: 0.76rem;
+		color: var(--color-text-maxcontrast);
+		margin: 0;
+		text-transform: uppercase;
+		letter-spacing: 0.02em;
+	}
+
+	&__base-rule-value--small {
+		font-size: 0.88rem;
+		font-weight: 600;
+		color: var(--color-main-text);
+		margin: 0.15rem 0 0;
+	}
+
+	&__table-like {
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+	}
+
+	&__section-blocker {
+		padding: 0.6rem 0.75rem;
+		border-radius: 9px;
+		border: 1px solid color-mix(in srgb, var(--color-warning) 36%, transparent);
+		background: color-mix(in srgb, var(--color-warning) 14%, var(--color-main-background));
+		font-size: 0.85rem;
+		line-height: 1.4;
+
+		p {
+			margin: 0;
+		}
 	}
 
 	&__stack {
@@ -1362,6 +1744,16 @@ onBeforeUnmount(() => {
 		font-size: 0.84rem;
 		font-weight: 600;
 		color: color-mix(in srgb, var(--color-primary-element-text) 78%, var(--color-success));
+	}
+
+	&__removal-feedback {
+		margin: 0;
+		padding: 0.65rem 0.8rem;
+		border: 1px solid color-mix(in srgb, var(--color-success) 36%, transparent);
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--color-success) 12%, var(--color-main-background));
+		color: var(--color-main-text);
+		font-size: 0.88rem;
 	}
 
 	&__saving-overlay {
@@ -1453,13 +1845,23 @@ onBeforeUnmount(() => {
 			flex-direction: column;
 		}
 
+		&__summary-line {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.3rem;
+		}
+
+		&__summary-learn-link {
+			margin-left: 0;
+			margin-top: 0.35rem;
+		}
+
+		&__precedence-explanation {
+			margin-bottom: 0.75rem;
+		}
+
 		&__removal-feedback {
-			margin: 0 0 0.8rem;
-			padding: 0.65rem 0.8rem;
-			border: 1px solid color-mix(in srgb, var(--color-success) 36%, transparent);
-			border-radius: 10px;
-			background: color-mix(in srgb, var(--color-success) 12%, var(--color-main-background));
-			color: var(--color-main-text);
+			margin: 0 0 0.2rem;
 		}
 
 		&__settings-row {
@@ -1475,12 +1877,11 @@ onBeforeUnmount(() => {
 		&__dialog {
 			width: 100%;
 			min-height: auto;
-			gap: 1rem;
+			gap: 0.85rem;
 		}
 
 		&__editor-panel,
-		&__editor-mobile-hint,
-		&__editor-empty {
+		&__editor-mobile-hint {
 			position: static;
 		}
 
@@ -1512,9 +1913,12 @@ onBeforeUnmount(() => {
 		&__group,
 		&__editor-panel,
 		&__editor-mobile-hint,
-		&__editor-empty,
 		&__setting-tile {
 			padding: 1rem;
+		}
+
+		&__base-rule-info {
+			margin-bottom: 0.5rem;
 		}
 	}
 }
@@ -1534,7 +1938,7 @@ onBeforeUnmount(() => {
 		}
 
 		&__dialog {
-			gap: 0.75rem;
+			gap: 0.6rem;
 		}
 
 		&__setting-stats {
@@ -1566,6 +1970,14 @@ onBeforeUnmount(() => {
 			grid-template-columns: 1fr;
 		}
 
+		&__summary-line {
+			font-size: 0.82rem;
+			gap: 0.3rem;
+		}
+
+		&__precedence-list {
+			font-size: 0.8rem;
+		}
 	}
 }
 </style>
