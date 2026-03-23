@@ -243,80 +243,151 @@
 						</NcButton>
 					</section>
 
-					<!-- Exceptions section -->
 					<section class="policy-workbench__section" role="region" :aria-label="t('libresign', 'Exceptions')">
 						<h3 class="policy-workbench__section-title">{{ t('libresign', 'Exceptions') }}</h3>
 
-						<!-- Groups subsection -->
-						<div class="policy-workbench__subsection">
-							<h4 class="policy-workbench__subsection-title">{{ t('libresign', 'Groups') }}</h4>
-
-							<div v-if="state.visibleGroupRules.length > 0" class="policy-workbench__exception-list">
-								<PolicyRuleCard
-									v-for="rule in state.visibleGroupRules"
-									:key="rule.id"
-									:eyebrow="t('libresign', 'Group')"
-									:title="state.resolveTargetLabel('group', rule.targetId || '')"
-									:summary="summarizeRuleValue(rule.value)"
-									:description="rule.allowChildOverride ? t('libresign', 'Users can override') : t('libresign', 'Users must inherit')"
-									:badges="groupRuleBadges(rule.allowChildOverride)"
-									:highlighted="state.highlightedRuleId === rule.id"
-									:edit-label="t('libresign', 'Edit')"
-									:remove-label="t('libresign', 'Remove')"
-									@edit="state.startEditor({ scope: 'group', ruleId: rule.id })"
-									@remove="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))" />
-							</div>
-
-							<p v-else class="policy-workbench__empty-subsection">{{ t('libresign', 'No group exceptions.') }}</p>
-
-							<NcButton
-								v-if="state.viewMode === 'system-admin'"
-								variant="secondary"
-								size="small"
-								:aria-label="t('libresign', 'New group exception')"
-								:disabled="!!state.createGroupOverrideDisabledReason"
-								@click="state.startEditor({ scope: 'group' })">
-								{{ t('libresign', '+ Add group exception') }}
-							</NcButton>
+						<div class="policy-workbench__tabs" role="tablist" :aria-label="t('libresign', 'Exception type')">
+							<button
+								type="button"
+								role="tab"
+								:aria-selected="activeExceptionTab === 'group'"
+								:class="['policy-workbench__tab', { 'policy-workbench__tab--active': activeExceptionTab === 'group' }]"
+								@click="setExceptionTab('group')">
+								{{ t('libresign', 'Group exceptions ({count})', { count: String(state.visibleGroupRules.length) }) }}
+							</button>
+							<button
+								type="button"
+								role="tab"
+								:aria-selected="activeExceptionTab === 'user'"
+								:class="['policy-workbench__tab', { 'policy-workbench__tab--active': activeExceptionTab === 'user' }]"
+								@click="setExceptionTab('user')">
+								{{ t('libresign', 'User exceptions ({count})', { count: String(state.visibleUserRules.length) }) }}
+							</button>
 						</div>
 
-						<!-- Users subsection -->
-						<div class="policy-workbench__subsection">
-							<h4 class="policy-workbench__subsection-title">{{ t('libresign', 'Users') }}</h4>
-
-							<div v-if="state.visibleUserRules.length > 0" class="policy-workbench__exception-list">
-								<PolicyRuleCard
-									v-for="rule in state.visibleUserRules"
-									:key="rule.id"
-									:eyebrow="t('libresign', 'User')"
-									:title="state.resolveTargetLabel('user', rule.targetId || '')"
-									:summary="summarizeRuleValue(rule.value)"
-									:description="t('libresign', 'Individual override')"
-									:badges="[t('libresign', 'Final')]"
-									:highlighted="state.highlightedRuleId === rule.id"
-									:edit-label="t('libresign', 'Edit')"
-									:remove-label="t('libresign', 'Remove')"
-									@edit="state.startEditor({ scope: 'user', ruleId: rule.id })"
-									@remove="promptRuleRemoval(rule.id, 'user', state.resolveTargetLabel('user', rule.targetId || ''))" />
+						<div v-if="activeExceptionTab === 'group'" class="policy-workbench__table-section">
+							<div class="policy-workbench__table-toolbar">
+								<NcTextField
+									:model-value="groupExceptionSearch"
+									:label="t('libresign', 'Search group exceptions')"
+									:placeholder="t('libresign', 'Search by group or value')"
+									@update:modelValue="onGroupSearchChange" />
+								<label class="policy-workbench__table-filter">
+									<span>{{ t('libresign', 'Override') }}</span>
+									<select :value="groupOverrideFilter" @change="onGroupOverrideFilterChange">
+										<option value="all">{{ t('libresign', 'All') }}</option>
+										<option value="allowed">{{ t('libresign', 'Users may override') }}</option>
+										<option value="blocked">{{ t('libresign', 'Users must inherit') }}</option>
+									</select>
+								</label>
+								<NcButton
+									v-if="state.viewMode === 'system-admin'"
+									variant="secondary"
+									size="small"
+									:disabled="!!state.createGroupOverrideDisabledReason"
+									@click="state.startEditor({ scope: 'group' })">
+									{{ t('libresign', 'Add group exception') }}
+								</NcButton>
 							</div>
 
-							<p v-else class="policy-workbench__empty-subsection">
-								{{ t('libresign', 'No user exceptions are set.') }}
+							<p v-if="state.createGroupOverrideDisabledReason" class="policy-workbench__table-note">
+								{{ state.createGroupOverrideDisabledReason }}
 							</p>
 
-							<!-- Show blocking reason only if there are no user exceptions and they're blocked -->
-							<p v-if="!state.visibleUserRules.length && state.createUserOverrideDisabledReason" class="policy-workbench__blocker-reason">
-								{{ state.createUserOverrideDisabledReason }}
+							<div class="policy-workbench__table-scroll">
+								<table class="policy-workbench__table">
+									<thead>
+										<tr>
+											<th>{{ t('libresign', 'Group') }}</th>
+											<th>{{ t('libresign', 'Value') }}</th>
+											<th>{{ t('libresign', 'User exceptions below') }}</th>
+											<th>{{ t('libresign', 'Actions') }}</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr v-for="rule in pagedGroupExceptions" :key="rule.id">
+											<td>{{ state.resolveTargetLabel('group', rule.targetId || '') }}</td>
+											<td>{{ summarizeRuleValue(rule.value) }}</td>
+											<td>{{ rule.allowChildOverride ? t('libresign', 'Allowed') : t('libresign', 'Blocked') }}</td>
+											<td class="policy-workbench__table-actions">
+												<button type="button" @click="state.startEditor({ scope: 'group', ruleId: rule.id })">{{ t('libresign', 'Edit') }}</button>
+												<button type="button" @click="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))">{{ t('libresign', 'Remove') }}</button>
+											</td>
+										</tr>
+										<tr v-if="pagedGroupExceptions.length === 0">
+											<td colspan="4" class="policy-workbench__table-empty">{{ t('libresign', 'No group exceptions match the current filters.') }}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<div v-if="groupPageCount > 1" class="policy-workbench__pagination">
+								<NcButton variant="tertiary" size="small" :disabled="groupPage <= 1" @click="groupPage -= 1">{{ t('libresign', 'Previous') }}</NcButton>
+								<span>{{ t('libresign', 'Page {current} of {total}', { current: String(groupPage), total: String(groupPageCount) }) }}</span>
+								<NcButton variant="tertiary" size="small" :disabled="groupPage >= groupPageCount" @click="groupPage += 1">{{ t('libresign', 'Next') }}</NcButton>
+							</div>
+						</div>
+
+						<div v-else class="policy-workbench__table-section">
+							<div class="policy-workbench__table-toolbar">
+								<NcTextField
+									:model-value="userExceptionSearch"
+									:label="t('libresign', 'Search user exceptions')"
+									:placeholder="t('libresign', 'Search by user or value')"
+									@update:modelValue="onUserSearchChange" />
+								<label class="policy-workbench__table-filter">
+									<span>{{ t('libresign', 'Value') }}</span>
+									<select :value="userValueFilter" @change="onUserValueFilterChange">
+										<option value="all">{{ t('libresign', 'All') }}</option>
+										<option value="parallel">{{ t('libresign', 'Simultaneous (Parallel)') }}</option>
+										<option value="ordered_numeric">{{ t('libresign', 'Sequential') }}</option>
+									</select>
+								</label>
+								<NcButton
+									v-if="!state.createUserOverrideDisabledReason"
+									variant="secondary"
+									size="small"
+									@click="state.startEditor({ scope: 'user' })">
+									{{ t('libresign', 'Add user exception') }}
+								</NcButton>
+							</div>
+
+							<p v-if="state.createUserOverrideDisabledReason" class="policy-workbench__table-note">
+								{{ t('libresign', 'Some users may be ineligible for user exceptions based on group inheritance rules.') }}
 							</p>
 
-							<NcButton
-								v-if="!state.createUserOverrideDisabledReason"
-								variant="secondary"
-								size="small"
-								:aria-label="t('libresign', 'New user exception')"
-								@click="state.startEditor({ scope: 'user' })">
-								{{ t('libresign', '+ Add user exception') }}
-							</NcButton>
+							<div class="policy-workbench__table-scroll">
+								<table class="policy-workbench__table">
+									<thead>
+										<tr>
+											<th>{{ t('libresign', 'User') }}</th>
+											<th>{{ t('libresign', 'Value') }}</th>
+											<th>{{ t('libresign', 'Type') }}</th>
+											<th>{{ t('libresign', 'Actions') }}</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr v-for="rule in pagedUserExceptions" :key="rule.id">
+											<td>{{ state.resolveTargetLabel('user', rule.targetId || '') }}</td>
+											<td>{{ summarizeRuleValue(rule.value) }}</td>
+											<td>{{ t('libresign', 'Final') }}</td>
+											<td class="policy-workbench__table-actions">
+												<button type="button" @click="state.startEditor({ scope: 'user', ruleId: rule.id })">{{ t('libresign', 'Edit') }}</button>
+												<button type="button" @click="promptRuleRemoval(rule.id, 'user', state.resolveTargetLabel('user', rule.targetId || ''))">{{ t('libresign', 'Remove') }}</button>
+											</td>
+										</tr>
+										<tr v-if="pagedUserExceptions.length === 0">
+											<td colspan="4" class="policy-workbench__table-empty">{{ t('libresign', 'No user exceptions match the current filters.') }}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<div v-if="userPageCount > 1" class="policy-workbench__pagination">
+								<NcButton variant="tertiary" size="small" :disabled="userPage <= 1" @click="userPage -= 1">{{ t('libresign', 'Previous') }}</NcButton>
+								<span>{{ t('libresign', 'Page {current} of {total}', { current: String(userPage), total: String(userPageCount) }) }}</span>
+								<NcButton variant="tertiary" size="small" :disabled="userPage >= userPageCount" @click="userPage += 1">{{ t('libresign', 'Next') }}</NcButton>
+							</div>
 						</div>
 					</section>
 				</div>
@@ -504,7 +575,6 @@ import NcSelectUsers from '@nextcloud/vue/components/NcSelectUsers'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-import PolicyRuleCard from './PolicyRuleCard.vue'
 import { usePoliciesStore } from '../../../store/policies'
 import { useUserConfigStore } from '../../../store/userconfig.js'
 import { createRealPolicyWorkbenchState } from './useRealPolicyWorkbench'
@@ -528,6 +598,14 @@ const removalFeedbackTimeout = ref<number | null>(null)
 const lastPress = ref<{ surface: 'cards' | 'list', key: string, x: number, y: number } | null>(null)
 const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at: number } | null>(null)
 const showPrecedenceExplanation = ref(false)
+const activeExceptionTab = ref<'group' | 'user'>('group')
+const groupExceptionSearch = ref('')
+const userExceptionSearch = ref('')
+const groupOverrideFilter = ref<'all' | 'allowed' | 'blocked'>('all')
+const userValueFilter = ref<'all' | 'parallel' | 'ordered_numeric'>('all')
+const groupPage = ref(1)
+const userPage = ref(1)
+const EXCEPTIONS_PAGE_SIZE = 20
 
 const DRAG_OPEN_THRESHOLD_PX = 6
 const SELECTION_GUARD_WINDOW_MS = 400
@@ -561,6 +639,70 @@ const selectedTargetOptions = computed(() => {
 	}
 
 	return state.availableTargets.filter((option) => state.editorDraft?.targetIds.includes(option.id))
+})
+
+const filteredGroupExceptions = computed(() => {
+	const normalized = groupExceptionSearch.value.trim().toLowerCase()
+
+	return state.visibleGroupRules.filter((rule) => {
+		if (groupOverrideFilter.value === 'allowed' && !rule.allowChildOverride) {
+			return false
+		}
+
+		if (groupOverrideFilter.value === 'blocked' && rule.allowChildOverride) {
+			return false
+		}
+
+		if (!normalized) {
+			return true
+		}
+
+		const label = state.resolveTargetLabel('group', rule.targetId || '').toLowerCase()
+		const value = summarizeRuleValue(rule.value).toLowerCase()
+		return label.includes(normalized) || value.includes(normalized)
+	})
+})
+
+const filteredUserExceptions = computed(() => {
+	const normalized = userExceptionSearch.value.trim().toLowerCase()
+
+	return state.visibleUserRules.filter((rule) => {
+		if (userValueFilter.value !== 'all') {
+			const mode = typeof rule.value === 'string' ? rule.value : ''
+			if (mode !== userValueFilter.value) {
+				return false
+			}
+		}
+
+		if (!normalized) {
+			return true
+		}
+
+		const label = state.resolveTargetLabel('user', rule.targetId || '').toLowerCase()
+		const value = summarizeRuleValue(rule.value).toLowerCase()
+		return label.includes(normalized) || value.includes(normalized)
+	})
+})
+
+const groupPageCount = computed(() => Math.max(1, Math.ceil(filteredGroupExceptions.value.length / EXCEPTIONS_PAGE_SIZE)))
+const userPageCount = computed(() => Math.max(1, Math.ceil(filteredUserExceptions.value.length / EXCEPTIONS_PAGE_SIZE)))
+
+const pagedGroupExceptions = computed(() => {
+	if (groupPage.value > groupPageCount.value) {
+		groupPage.value = groupPageCount.value
+	}
+
+	const start = (groupPage.value - 1) * EXCEPTIONS_PAGE_SIZE
+	return filteredGroupExceptions.value.slice(start, start + EXCEPTIONS_PAGE_SIZE)
+})
+
+const pagedUserExceptions = computed(() => {
+	if (userPage.value > userPageCount.value) {
+		userPage.value = userPageCount.value
+	}
+
+	const start = (userPage.value - 1) * EXCEPTIONS_PAGE_SIZE
+	return filteredUserExceptions.value.slice(start, start + EXCEPTIONS_PAGE_SIZE)
 })
 
 const resolutionModeLabel = computed(() => {
@@ -643,15 +785,6 @@ const removalDialogButtons = computed(() => {
 	]
 })
 
-function groupRuleBadges(allowChildOverride: boolean) {
-	if (!state.activeDefinition) {
-		return []
-	}
-
-	const allowOverrideBadge = state.activeDefinition.formatAllowOverride(allowChildOverride)
-	return allowOverrideBadge ? [allowOverrideBadge] : []
-}
-
 function onTargetChange(option: { id: string } | Array<{ id: string }> | null) {
 	if (Array.isArray(option)) {
 		state.updateDraftTargets(option.map(({ id }) => id))
@@ -667,6 +800,32 @@ function summarizeRuleValue(value: unknown) {
 	}
 
 	return state.activeDefinition.summarizeValue(value as never)
+}
+
+function setExceptionTab(tab: 'group' | 'user') {
+	activeExceptionTab.value = tab
+}
+
+function onGroupSearchChange(value: string | number) {
+	groupExceptionSearch.value = String(value ?? '')
+	groupPage.value = 1
+}
+
+function onUserSearchChange(value: string | number) {
+	userExceptionSearch.value = String(value ?? '')
+	userPage.value = 1
+}
+
+function onGroupOverrideFilterChange(event: Event) {
+	const next = (event.target as HTMLSelectElement).value as 'all' | 'allowed' | 'blocked'
+	groupOverrideFilter.value = next
+	groupPage.value = 1
+}
+
+function onUserValueFilterChange(event: Event) {
+	const next = (event.target as HTMLSelectElement).value as 'all' | 'parallel' | 'ordered_numeric'
+	userValueFilter.value = next
+	userPage.value = 1
 }
 
 function onSettingsFilterChange(value: string | number) {
@@ -1536,6 +1695,129 @@ onBeforeUnmount(() => {
 		gap: 0.65rem;
 	}
 
+	&__tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	&__tab {
+		appearance: none;
+		border: 1px solid var(--color-border-maxcontrast);
+		background: var(--color-main-background);
+		color: var(--color-main-text);
+		padding: 0.45rem 0.75rem;
+		border-radius: 999px;
+		font-size: 0.84rem;
+		cursor: pointer;
+
+		&--active {
+			border-color: var(--color-primary-element);
+			background: color-mix(in srgb, var(--color-primary-element) 12%, var(--color-main-background));
+			font-weight: 600;
+		}
+	}
+
+	&__table-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	&__table-toolbar {
+		display: grid;
+		grid-template-columns: minmax(220px, 1fr) auto auto;
+		gap: 0.65rem;
+		align-items: end;
+	}
+
+	&__table-filter {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		font-size: 0.8rem;
+		color: var(--color-text-maxcontrast);
+
+		select {
+			height: 36px;
+			border-radius: 8px;
+			border: 1px solid var(--color-border-maxcontrast);
+			background: var(--color-main-background);
+			padding: 0 0.6rem;
+			min-width: 180px;
+		}
+	}
+
+	&__table-scroll {
+		overflow-x: auto;
+		border: 1px solid var(--color-border);
+		border-radius: 10px;
+	}
+
+	&__table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.88rem;
+
+		th,
+		td {
+			text-align: left;
+			padding: 0.6rem 0.75rem;
+			border-bottom: 1px solid var(--color-border);
+			vertical-align: middle;
+		}
+
+		th {
+			font-size: 0.8rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.02em;
+			color: var(--color-text-maxcontrast);
+			background: color-mix(in srgb, var(--color-main-background) 92%, var(--color-background-dark));
+		}
+
+		tr:last-child td {
+			border-bottom: none;
+		}
+	}
+
+	&__table-actions {
+		white-space: nowrap;
+
+		button {
+			appearance: none;
+			border: none;
+			background: none;
+			padding: 0;
+			margin-right: 0.6rem;
+			font-size: 0.84rem;
+			cursor: pointer;
+			color: var(--color-primary-element);
+			text-decoration: underline;
+		}
+	}
+
+	&__table-empty {
+		text-align: center;
+		color: var(--color-text-maxcontrast);
+		font-style: italic;
+	}
+
+	&__table-note {
+		margin: 0;
+		font-size: 0.84rem;
+		color: var(--color-text-maxcontrast);
+	}
+
+	&__pagination {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 0.65rem;
+		font-size: 0.84rem;
+		color: var(--color-text-maxcontrast);
+	}
+
 	// Empty state for subsections
 	&__empty-subsection {
 		margin: 0;
@@ -1852,6 +2134,19 @@ onBeforeUnmount(() => {
 			flex-direction: column;
 			align-items: flex-start;
 			gap: 0.3rem;
+		}
+
+		&__table-toolbar {
+			grid-template-columns: 1fr;
+		}
+
+		&__table-filter select {
+			min-width: 0;
+			width: 100%;
+		}
+
+		&__pagination {
+			justify-content: flex-start;
 		}
 
 		&__summary-learn-link {
