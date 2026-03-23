@@ -50,17 +50,30 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			);
 		}
 
-		foreach ($groupLayers as $layer) {
-			[$currentValue, $currentSourceScope, $canOverrideBelow, $visible] = $this->applyLayer(
+		if ($definition->resolutionMode() === 'value_choice') {
+			[$currentValue, $currentSourceScope, $canOverrideBelow, $visible] = $this->applyValueChoiceGroupLayers(
 				$definition,
 				$resolved,
-				$layer,
+				$groupLayers,
 				$context,
 				$currentValue,
 				$currentSourceScope,
 				$canOverrideBelow,
 				$visible,
 			);
+		} else {
+			foreach ($groupLayers as $layer) {
+				[$currentValue, $currentSourceScope, $canOverrideBelow, $visible] = $this->applyLayer(
+					$definition,
+					$resolved,
+					$layer,
+					$context,
+					$currentValue,
+					$currentSourceScope,
+					$canOverrideBelow,
+					$visible,
+				);
+			}
 		}
 
 		$userPreference = $this->source->loadUserPreference($policyKey, $context);
@@ -99,6 +112,62 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		return $resolved;
 	}
 
+	/**
+	 * @param list<PolicyLayer> $layers
+	 * @return array{0: mixed, 1: string, 2: bool, 3: bool}
+	 */
+	private function applyValueChoiceGroupLayers(
+		IPolicyDefinition $definition,
+		ResolvedPolicy $resolved,
+		array $layers,
+		PolicyContext $context,
+		mixed $currentValue,
+		string $currentSourceScope,
+		bool $canOverrideBelow,
+		bool $visible,
+	): array {
+		if ($layers === [] || !$visible || !$canOverrideBelow) {
+			return [$currentValue, $currentSourceScope, $canOverrideBelow, $visible];
+		}
+
+		$upstreamAllowedValues = $resolved->getAllowedValues();
+		$combinedChoices = [];
+		$groupDefaultValues = [];
+		$hasVisibleLayer = false;
+
+		foreach ($layers as $layer) {
+			if (!$layer->isVisibleToChild()) {
+				continue;
+			}
+
+			$hasVisibleLayer = true;
+			$layerChoices = $this->resolveValueChoiceLayerChoices($definition, $layer, $upstreamAllowedValues, $context);
+			$combinedChoices = $this->mergeUnionAllowedValues(
+				$definition->allowedValues($context),
+				$combinedChoices,
+				$layerChoices,
+			);
+
+			$normalizedDefault = $definition->normalizeValue($layer->getValue());
+			if ($layer->getValue() !== null && in_array($normalizedDefault, $combinedChoices, true) && !in_array($normalizedDefault, $groupDefaultValues, true)) {
+				$groupDefaultValues[] = $normalizedDefault;
+			}
+		}
+
+		if (!$hasVisibleLayer || $combinedChoices === []) {
+			return [$currentValue, $currentSourceScope, false, $visible && $hasVisibleLayer];
+		}
+
+		$resolved->setAllowedValues($combinedChoices);
+
+		return [
+			$this->pickValueChoiceDefault($definition, $currentValue, $combinedChoices, $groupDefaultValues, $context),
+			'group',
+			count($combinedChoices) > 1,
+			true,
+		];
+	}
+
 	#[\Override]
 	/** @param list<IPolicyDefinition> $definitions */
 	public function resolveMany(array $definitions, PolicyContext $context): array {
@@ -126,13 +195,13 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		$visible = $visible && $layer->isVisibleToChild();
 		$resolved->setAllowedValues($this->mergeAllowedValues($resolved->getAllowedValues(), $layer->getAllowedValues()));
 
-		if ($layer->getValue() !== null && ($currentSourceScope === 'system' || $canOverrideBelow)) {
+		if ($layer->getValue() !== null && $canOverrideBelow) {
 			$currentValue = $definition->normalizeValue($layer->getValue());
 			$definition->validateValue($currentValue, $context);
 			$currentSourceScope = $layer->getScope();
 		}
 
-		$canOverrideBelow = $layer->isAllowChildOverride();
+		$canOverrideBelow = $canOverrideBelow && $layer->isAllowChildOverride();
 
 		return [$currentValue, $currentSourceScope, $canOverrideBelow, $visible];
 	}
@@ -173,5 +242,91 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		}
 
 		return array_values(array_intersect($currentAllowedValues, $layerAllowedValues));
+	}
+
+	/**
+	 * @param list<mixed> $upstreamAllowedValues
+	 * @return list<mixed>
+	 */
+	private function resolveValueChoiceLayerChoices(
+		IPolicyDefinition $definition,
+		PolicyLayer $layer,
+		array $upstreamAllowedValues,
+		PolicyContext $context,
+	): array {
+		if ($layer->isAllowChildOverride()) {
+			$choices = $layer->getAllowedValues() === []
+				? $upstreamAllowedValues
+				: array_values(array_intersect($upstreamAllowedValues, $layer->getAllowedValues()));
+
+			$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
+			return array_values(array_filter(
+				$choices,
+				static fn (mixed $choice): bool => $choice !== $defaultValue,
+			));
+		}
+
+		if ($layer->getValue() === null) {
+			return [];
+		}
+
+		$value = $definition->normalizeValue($layer->getValue());
+		if ($upstreamAllowedValues !== [] && !in_array($value, $upstreamAllowedValues, true)) {
+			return [];
+		}
+
+		$definition->validateValue($value, $context);
+		return [$value];
+	}
+
+	/**
+	 * @param list<mixed> $canonicalOrder
+	 * @param list<mixed> $currentValues
+	 * @param list<mixed> $newValues
+	 * @return list<mixed>
+	 */
+	private function mergeUnionAllowedValues(array $canonicalOrder, array $currentValues, array $newValues): array {
+		$merged = [];
+		foreach ($canonicalOrder as $candidate) {
+			if ((in_array($candidate, $currentValues, true) || in_array($candidate, $newValues, true)) && !in_array($candidate, $merged, true)) {
+				$merged[] = $candidate;
+			}
+		}
+
+		foreach ([$currentValues, $newValues] as $values) {
+			foreach ($values as $candidate) {
+				if (!in_array($candidate, $merged, true)) {
+					$merged[] = $candidate;
+				}
+			}
+		}
+
+		return $merged;
+	}
+
+	/**
+	 * @param list<mixed> $allowedValues
+	 * @param list<mixed> $groupDefaultValues
+	 */
+	private function pickValueChoiceDefault(
+		IPolicyDefinition $definition,
+		mixed $currentValue,
+		array $allowedValues,
+		array $groupDefaultValues,
+		PolicyContext $context,
+	): mixed {
+		$normalizedCurrentValue = $definition->normalizeValue($currentValue);
+		$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
+
+		if (count($groupDefaultValues) === 1 && in_array($groupDefaultValues[0], $allowedValues, true)) {
+			return $groupDefaultValues[0];
+		}
+
+		if ($normalizedCurrentValue !== $defaultValue && in_array($normalizedCurrentValue, $allowedValues, true)) {
+			return $normalizedCurrentValue;
+		}
+
+		$orderedAllowedValues = $this->mergeUnionAllowedValues($definition->allowedValues($context), [], $allowedValues);
+		return $orderedAllowedValues[0] ?? $normalizedCurrentValue;
 	}
 }
