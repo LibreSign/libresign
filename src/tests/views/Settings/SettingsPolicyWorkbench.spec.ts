@@ -74,5 +74,6 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).not.toContain('Confetti')
 		expect(text).not.toContain('Identification factors')
 	})
+
 })
 
