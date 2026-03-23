@@ -193,21 +193,21 @@
 								{{ t('libresign', 'How it works') }}
 							</NcButton>
 						</div>
+
+						<section v-show="showPrecedenceExplanation" class="policy-workbench__precedence-explanation" :aria-hidden="showPrecedenceExplanation ? 'false' : 'true'">
+							<div class="policy-workbench__precedence-header">
+								<h3>{{ t('libresign', 'Inheritance order') }}</h3>
+								<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="18" />
+							</div>
+							<ul class="policy-workbench__precedence-list">
+								<li>{{ t('libresign', 'User rule overrides group rule') }}</li>
+								<li>{{ t('libresign', 'Group rule overrides global default') }}</li>
+								<li>{{ t('libresign', 'Global default overrides system default') }}</li>
+								<li>{{ t('libresign', 'System default is used if no global default exists') }}</li>
+							</ul>
+						</section>
 					</NcNoteCard>
 				</div>
-
-				<section v-show="showPrecedenceExplanation" class="policy-workbench__precedence-explanation" :aria-hidden="showPrecedenceExplanation ? 'false' : 'true'">
-					<div class="policy-workbench__precedence-header">
-						<h3>{{ t('libresign', 'Inheritance order') }}</h3>
-						<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="18" />
-					</div>
-					<ul class="policy-workbench__precedence-list">
-						<li>{{ t('libresign', 'User rule overrides group rule') }}</li>
-						<li>{{ t('libresign', 'Group rule overrides global default') }}</li>
-						<li>{{ t('libresign', 'Global default overrides system default') }}</li>
-						<li>{{ t('libresign', 'System default is used if no global default exists') }}</li>
-					</ul>
-				</section>
 
 				<div class="policy-workbench__content">
 					<!-- Default for this instance section -->
@@ -1986,11 +1986,11 @@ onBeforeUnmount(() => {
 
 	// Collapsible precedence explanation
 	&__precedence-explanation {
+		margin-top: 0.65rem;
 		padding: 0.9rem;
 		border-radius: 12px;
-		border: 1px solid color-mix(in srgb, var(--color-primary-element) 18%, var(--color-border-maxcontrast));
-		background: color-mix(in srgb, var(--color-primary-element) 8%, var(--color-main-background));
-		margin-bottom: 0.5rem;
+		border: 1px solid color-mix(in srgb, var(--color-primary-element) 22%, var(--color-border-maxcontrast));
+		background: color-mix(in srgb, var(--color-main-background) 72%, white);
 	}
 
 	&__precedence-header {
@@ -2301,7 +2301,7 @@ onBeforeUnmount(() => {
 		}
 
 		&__precedence-explanation {
-			margin-bottom: 0.75rem;
+			margin-top: 0.6rem;
 		}
 
 		&__removal-feedback {
