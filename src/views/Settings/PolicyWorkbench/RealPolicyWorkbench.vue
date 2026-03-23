@@ -169,7 +169,10 @@
 				<!-- Ultra-compact summary line: Using X: Value · Y groups · Z users [How it works] -->
 				<div v-if="state.summary" class="policy-workbench__summary-line" :aria-label="t('libresign', 'Current policy state')">
 					<p class="policy-workbench__summary-primary">
-						{{ t('libresign', 'Using {source}: {value}', { source: state.summary.baseSource, value: state.summary.currentBaseValue }) }}
+						{{ t('libresign', 'Current value: {value}', { value: state.summary.currentBaseValue }) }}
+					</p>
+					<p class="policy-workbench__summary-source">
+						{{ t('libresign', 'Source: {source}', { source: state.summary.baseSource }) }}
 					</p>
 					<p class="policy-workbench__summary-secondary">
 						<span>{{ state.summary.activeGroupExceptions }} {{ t('libresign', 'group exception', 'group exceptions', state.summary.activeGroupExceptions) }}</span>
@@ -182,7 +185,7 @@
 						class="policy-workbench__learn-link"
 						:aria-label="t('libresign', 'Learn how inheritance works')"
 						@click="showPrecedenceExplanation = true">
-						{{ t('libresign', 'How it works') }}
+						{{ t('libresign', '? How it works') }}
 					</button>
 				</div>
 
@@ -210,7 +213,7 @@
 						<p class="policy-workbench__default-reason">
 							{{ state.hasGlobalDefault
 								? t('libresign', 'This instance has a configured global default.')
-								: t('libresign', 'This instance is using the system default because no global default is configured.') }}
+								: t('libresign', 'Using system default because no global default is configured.') }}
 						</p>
 
 						<!-- Edit or create global default -->
@@ -237,9 +240,9 @@
 							v-else-if="state.viewMode === 'system-admin'"
 							variant="primary"
 							size="small"
-							:aria-label="t('libresign', 'Create global default')"
+							:aria-label="t('libresign', 'Set global default')"
 							@click="state.startEditor({ scope: 'system' })">
-							{{ t('libresign', 'Create global default') }}
+							{{ t('libresign', 'Set global default') }}
 						</NcButton>
 					</section>
 
@@ -306,7 +309,11 @@
 										<tr v-for="rule in pagedGroupExceptions" :key="rule.id">
 											<td>{{ state.resolveTargetLabel('group', rule.targetId || '') }}</td>
 											<td>{{ summarizeRuleValue(rule.value) }}</td>
-											<td>{{ rule.allowChildOverride ? t('libresign', 'Yes') : t('libresign', 'No') }}</td>
+											<td>
+												<span :class="['policy-workbench__row-badge', rule.allowChildOverride ? 'policy-workbench__row-badge--ok' : 'policy-workbench__row-badge--muted']">
+													{{ rule.allowChildOverride ? t('libresign', 'Can override') : t('libresign', 'Must inherit') }}
+												</span>
+											</td>
 											<td class="policy-workbench__table-actions">
 												<button type="button" @click="state.startEditor({ scope: 'group', ruleId: rule.id })">{{ t('libresign', 'Edit') }}</button>
 												<button type="button" @click="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))">{{ t('libresign', 'Remove') }}</button>
@@ -350,6 +357,11 @@
 										{{ t('libresign', 'Add user exception') }}
 									</NcButton>
 								</div>
+							</div>
+
+							<div v-if="state.visibleUserRules.length === 0 && !userExceptionSearch && userValueFilter === 'all'" class="policy-workbench__table-empty-state">
+								<p>{{ t('libresign', 'No user exceptions are configured.') }}</p>
+								<p>{{ t('libresign', 'User exceptions can be created unless a group rule requires inheritance.') }}</p>
 							</div>
 
 							<p v-if="state.createUserOverrideDisabledReason" class="policy-workbench__table-note">
@@ -1552,9 +1564,16 @@ onBeforeUnmount(() => {
 
 	&__summary-primary {
 		margin: 0;
-		font-size: 0.98rem;
-		font-weight: 600;
+		font-size: 1.02rem;
+		font-weight: 700;
 		line-height: 1.35;
+	}
+
+	&__summary-source {
+		margin: 0;
+		font-size: 0.88rem;
+		font-weight: 500;
+		color: var(--color-main-text);
 	}
 
 	&__summary-secondary {
@@ -1573,9 +1592,10 @@ onBeforeUnmount(() => {
 	&__learn-link {
 		background: none;
 		border: none;
-		color: var(--color-primary-element);
+		color: var(--color-text-maxcontrast);
 		cursor: pointer;
-		font-size: 0.84rem;
+		font-size: 0.8rem;
+		font-weight: 500;
 		padding: 0;
 		text-decoration: underline;
 
@@ -1751,12 +1771,13 @@ onBeforeUnmount(() => {
 		display: grid;
 		grid-template-columns: minmax(220px, 1fr) auto auto;
 		gap: 0.65rem;
-		align-items: end;
+		align-items: center;
 	}
 
 	&__table-toolbar-action {
 		display: flex;
 		justify-content: flex-end;
+		align-items: center;
 	}
 
 	&__table-filter {
@@ -1839,6 +1860,41 @@ onBeforeUnmount(() => {
 		margin: 0;
 		font-size: 0.84rem;
 		color: var(--color-text-maxcontrast);
+	}
+
+	&__table-empty-state {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+
+		p {
+			margin: 0;
+			font-size: 0.86rem;
+			color: var(--color-main-text);
+		}
+
+		p:last-child {
+			color: var(--color-text-maxcontrast);
+		}
+	}
+
+	&__row-badge {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.14rem 0.45rem;
+		border-radius: 999px;
+		font-size: 0.78rem;
+		font-weight: 600;
+
+		&--ok {
+			color: color-mix(in srgb, var(--color-success) 88%, var(--color-main-text));
+			background: color-mix(in srgb, var(--color-success) 14%, transparent);
+		}
+
+		&--muted {
+			color: var(--color-main-text);
+			background: color-mix(in srgb, var(--color-border-maxcontrast) 16%, transparent);
+		}
 	}
 
 	&__pagination {
