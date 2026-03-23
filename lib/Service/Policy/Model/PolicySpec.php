@@ -15,6 +15,9 @@ use function in_array;
 use function sprintf;
 
 final class PolicySpec implements IPolicyDefinition {
+	public const RESOLUTION_MODE_RESOLVED = 'resolved';
+	public const RESOLUTION_MODE_VALUE_CHOICE = 'value_choice';
+
 	/** @var list<mixed>|Closure(PolicyContext): list<mixed> */
 	private array|Closure $allowedValuesResolver;
 	/** @var Closure(mixed): mixed|null */
@@ -35,6 +38,7 @@ final class PolicySpec implements IPolicyDefinition {
 		?Closure $validator = null,
 		private ?string $appConfigKey = null,
 		private ?string $userPreferenceKey = null,
+		private string $resolutionMode = self::RESOLUTION_MODE_RESOLVED,
 	) {
 		$this->allowedValuesResolver = $allowedValues;
 		$this->normalizer = $normalizer;
@@ -44,6 +48,11 @@ final class PolicySpec implements IPolicyDefinition {
 	#[\Override]
 	public function key(): string {
 		return $this->key;
+	}
+
+	#[\Override]
+	public function resolutionMode(): string {
+		return $this->resolutionMode;
 	}
 
 	#[\Override]
