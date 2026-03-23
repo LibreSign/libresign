@@ -10,10 +10,29 @@ import { t } from '@nextcloud/l10n'
 
 import SignatureFlowScalarRuleEditor from './settings/signature-flow/SignatureFlowScalarRuleEditor.vue'
 import { usePoliciesStore } from '../../../store/policies'
-import type { EffectivePolicyValue } from '../../../types/index'
+import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
 import logger from '../../../logger.js'
 
 type PolicyScope = 'system' | 'group' | 'user'
+type PolicyResolutionMode = 'precedence' | 'merge' | 'conflict_requires_selection'
+
+interface PolicyImpactPreview {
+	groupCount?: number
+	userCount?: number
+	activeChildRules?: number
+	blockedChildRules?: number
+}
+
+interface PolicyStickySummary {
+	currentBaseValue: string
+	baseSource: string
+	configurableLayers: string
+	platformFallback: string
+	resolutionMode: PolicyResolutionMode
+	activeGroupExceptions: number
+	activeUserExceptions: number
+	activeBlockCount: number
+}
 
 interface PolicyRuleRecord {
 	id: string
@@ -137,6 +156,42 @@ function inferSystemAllowOverride(policy: { allowedValues?: unknown[] } | null):
 	return policy.allowedValues.length !== 1
 }
 
+function isModeSet(value: string | null): boolean {
+	return !!value && value !== 'none'
+}
+
+function getPolicyResolutionMode(policyKey: string): PolicyResolutionMode {
+	if (policyKey === 'signature_flow') {
+		return 'precedence'
+	}
+
+	return 'precedence'
+}
+
+function getSignatureFlowFallbackSystemDefault(policy: EffectivePolicyState | null): EffectivePolicyValue {
+	const mode = resolveSignatureFlowMode(policy?.effectiveValue ?? null)
+	if (policy?.sourceScope === 'system' && isModeSet(mode)) {
+		return policy.effectiveValue
+	}
+
+	// TODO(policy-resolution): Replace this fallback when backend exposes explicit systemDefault per policy.
+	return 'parallel'
+}
+
+function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
+	if (!draft) {
+		return ''
+	}
+
+	return JSON.stringify({
+		scope: draft.scope,
+		ruleId: draft.ruleId,
+		targetIds: [...draft.targetIds].sort(),
+		value: draft.value,
+		allowChildOverride: draft.allowChildOverride,
+	})
+}
+
 export function createRealPolicyWorkbenchState() {
 	const policiesStore = usePoliciesStore()
 	const viewMode = ref<'system-admin' | 'group-admin'>('system-admin')
@@ -154,6 +209,7 @@ export function createRealPolicyWorkbenchState() {
 	const users = ref<PolicyTargetOption[]>([])
 	const loadingTargets = ref(false)
 	const hydrateGroupRulesRequestId = ref(0)
+	const editorInitialSnapshot = ref('')
 
 	const visibleSettingSummaries = computed<PolicySettingSummary[]>(() => {
 		return Object.values(realDefinitions).map((definition) => {
@@ -179,12 +235,20 @@ export function createRealPolicyWorkbenchState() {
 		return realDefinitions[activeSettingKey.value as keyof typeof realDefinitions] || null
 	})
 
+	const activePolicyState = computed(() => {
+		if (!activeDefinition.value) {
+			return null
+		}
+
+		return policiesStore.getPolicy(activeDefinition.value.key)
+	})
+
 	const inheritedSystemRule = computed<PolicyRuleRecord | null>(() => {
 		if (!activeDefinition.value) {
 			return null
 		}
 
-		const policy = policiesStore.getPolicy(activeDefinition.value.key)
+		const policy = activePolicyState.value
 		if (!policy?.effectiveValue) {
 			return null
 		}
@@ -204,6 +268,121 @@ export function createRealPolicyWorkbenchState() {
 			allowChildOverride: inferSystemAllowOverride(policy),
 			value: policy.effectiveValue,
 		}
+	})
+
+	const policyResolutionMode = computed<PolicyResolutionMode>(() => {
+		if (!activeDefinition.value) {
+			return 'precedence'
+		}
+
+		return getPolicyResolutionMode(activeDefinition.value.key)
+	})
+
+	const systemDefaultRule = computed<PolicyRuleRecord | null>(() => {
+		if (!activeDefinition.value) {
+			return null
+		}
+
+		const policy = activePolicyState.value
+		const fallbackValue = activeDefinition.value.key === 'signature_flow'
+			? getSignatureFlowFallbackSystemDefault(policy)
+			: policy?.effectiveValue
+
+		if (fallbackValue === null || fallbackValue === undefined) {
+			return null
+		}
+
+		return {
+			id: 'policy-system-default',
+			scope: 'system',
+			targetId: null,
+			allowChildOverride: true,
+			value: fallbackValue,
+		}
+	})
+
+	const hasGlobalDefault = computed(() => {
+		const policy = activePolicyState.value
+		if (!policy) {
+			return false
+		}
+
+		if (policy.sourceScope === 'system') {
+			return false
+		}
+
+		return inheritedSystemRule.value !== null
+	})
+
+	const effectiveSource = computed(() => {
+		const sourceScope = activePolicyState.value?.sourceScope
+		if (sourceScope === 'system') {
+			return 'system'
+		}
+
+		if (sourceScope === 'group' || sourceScope === 'user') {
+			return sourceScope
+		}
+
+		return hasGlobalDefault.value ? 'global' : 'system'
+	})
+
+	const summary = computed<PolicyStickySummary | null>(() => {
+		if (!activeDefinition.value) {
+			return null
+		}
+
+		const fallbackLabel = systemDefaultRule.value
+			? activeDefinition.value.summarizeValue(systemDefaultRule.value.value)
+			: t('libresign', 'Not configured')
+		const currentBaseValue = inheritedSystemRule.value
+			? activeDefinition.value.summarizeValue(inheritedSystemRule.value.value)
+			: fallbackLabel
+
+		const activeGroupExceptions = groupRules.value.length
+		const activeUserExceptions = userRules.value.length
+		const activeBlockCount = [
+			inheritedSystemRule.value?.allowChildOverride === false ? 1 : 0,
+			...groupRules.value.map((rule) => rule.allowChildOverride ? 0 : 1),
+		].reduce((sum, count) => sum + count, 0)
+
+		const baseSource = hasGlobalDefault.value
+			? t('libresign', 'Global default')
+			: t('libresign', 'System default')
+
+		return {
+			currentBaseValue,
+			baseSource,
+			configurableLayers: t('libresign', 'Global > Group > User'),
+			platformFallback: fallbackLabel,
+			resolutionMode: policyResolutionMode.value,
+			activeGroupExceptions,
+			activeUserExceptions,
+			activeBlockCount,
+		}
+	})
+
+	const createGroupOverrideDisabledReason = computed(() => {
+		if (!inheritedSystemRule.value?.allowChildOverride) {
+			return t('libresign', 'Blocked by the global default, which requires inheritance for lower layers.')
+		}
+
+		return null
+	})
+
+	const createUserOverrideDisabledReason = computed(() => {
+		if (!inheritedSystemRule.value?.allowChildOverride) {
+			return t('libresign', 'Blocked by a higher-level rule that does not allow user exceptions.')
+		}
+
+		const blockingGroup = groupRules.value.find((rule) => !rule.allowChildOverride)
+		if (blockingGroup?.targetId) {
+			return t('libresign', 'Blocked by the {group} group rule, which requires inheritance for users.', {
+				group: resolveTargetLabel('group', blockingGroup.targetId),
+			})
+		}
+
+		return null
 	})
 
 	const visibleGroupRules = computed<PolicyRuleRecord[]>(() => groupRules.value)
@@ -240,6 +419,14 @@ export function createRealPolicyWorkbenchState() {
 		return t('libresign', '{count} targets selected', { count: String(labels.length) })
 	})
 
+	const isDraftDirty = computed(() => {
+		if (!editorDraft.value) {
+			return false
+		}
+
+		return toDraftSnapshot(editorDraft.value) !== editorInitialSnapshot.value
+	})
+
 	const canSaveDraft = computed(() => {
 		if (!editorDraft.value) {
 			return false
@@ -249,7 +436,13 @@ export function createRealPolicyWorkbenchState() {
 			return false
 		}
 
-		return true
+		if (isDraftDirty.value) {
+			return true
+		}
+
+		return editorDraft.value.scope === 'system'
+			&& editorMode.value === 'create'
+			&& !hasGlobalDefault.value
 	})
 
 	async function hydratePersistedGroupRules(policyKey: string) {
@@ -405,6 +598,16 @@ export function createRealPolicyWorkbenchState() {
 			return
 		}
 
+		if (!ruleId && scope === 'group' && createGroupOverrideDisabledReason.value) {
+			duplicateMessage.value = createGroupOverrideDisabledReason.value
+			return
+		}
+
+		if (!ruleId && scope === 'user' && createUserOverrideDisabledReason.value) {
+			duplicateMessage.value = createUserOverrideDisabledReason.value
+			return
+		}
+
 		// Cancel any in-flight hydration result to avoid stale overwrite while editing.
 		hydrateGroupRulesRequestId.value += 1
 
@@ -436,6 +639,7 @@ export function createRealPolicyWorkbenchState() {
 			value,
 			allowChildOverride,
 		}
+		editorInitialSnapshot.value = toDraftSnapshot(editorDraft.value)
 
 		if (scope === 'group' || scope === 'user') {
 			void loadTargets(scope)
@@ -446,6 +650,7 @@ export function createRealPolicyWorkbenchState() {
 		editorDraft.value = null
 		editorMode.value = null
 		duplicateMessage.value = null
+		editorInitialSnapshot.value = ''
 	}
 
 	function updateDraftValue(value: EffectivePolicyValue) {
@@ -596,8 +801,15 @@ export function createRealPolicyWorkbenchState() {
 		editorDraft,
 		editorMode: editorMode as any,
 		inheritedSystemRule,
+		systemDefaultRule,
+		hasGlobalDefault,
+		effectiveSource,
+		policyResolutionMode,
+		summary,
 		visibleGroupRules,
 		visibleUserRules,
+		createGroupOverrideDisabledReason,
+		createUserOverrideDisabledReason,
 		visibleSettingSummaries,
 		highlightedRuleId: highlightedRuleId as any,
 		viewMode: viewMode as any,
@@ -606,6 +818,7 @@ export function createRealPolicyWorkbenchState() {
 		draftTargetLabel,
 		duplicateMessage: duplicateMessage as any,
 		canSaveDraft,
+		isDraftDirty,
 		openSetting,
 		closeSetting,
 		startEditor,
