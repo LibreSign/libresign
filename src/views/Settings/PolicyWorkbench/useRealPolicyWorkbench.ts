@@ -711,6 +711,7 @@ export function createRealPolicyWorkbenchState() {
 		try {
 			if (scope === 'system') {
 				await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
+				await policiesStore.fetchEffectivePolicies()
 				cancelEditor()
 				return
 			}
@@ -724,6 +725,7 @@ export function createRealPolicyWorkbenchState() {
 					upsertRule(groupRules.value, 'group', targetId, value, allowChildOverride)
 				}
 
+				await policiesStore.fetchEffectivePolicies()
 				cancelEditor()
 				return
 			}
@@ -736,6 +738,7 @@ export function createRealPolicyWorkbenchState() {
 				upsertRule(userRules.value, 'user', targetId, value, true)
 			}
 
+			await policiesStore.fetchEffectivePolicies()
 			cancelEditor()
 		} catch (error) {
 			console.error('Failed to save policy:', error)
@@ -762,6 +765,7 @@ export function createRealPolicyWorkbenchState() {
 		if (ruleId === 'system-default' || (inheritedSystemRuleId !== null && ruleId === inheritedSystemRuleId)) {
 			await policiesStore.saveSystemPolicy(policyKey, null as unknown as EffectivePolicyValue)
 			highlightedRuleId.value = null
+			await policiesStore.fetchEffectivePolicies()
 			if (shouldCloseSystemEditor) {
 				cancelEditor()
 			}
@@ -776,6 +780,7 @@ export function createRealPolicyWorkbenchState() {
 			}
 			groupRules.value.splice(groupIndex, 1)
 			highlightedRuleId.value = null
+			await policiesStore.fetchEffectivePolicies()
 			if (shouldCloseGroupEditor) {
 				cancelEditor()
 			}
@@ -790,6 +795,7 @@ export function createRealPolicyWorkbenchState() {
 			}
 			userRules.value.splice(userIndex, 1)
 			highlightedRuleId.value = null
+			await policiesStore.fetchEffectivePolicies()
 			if (shouldCloseUserEditor) {
 				cancelEditor()
 			}
