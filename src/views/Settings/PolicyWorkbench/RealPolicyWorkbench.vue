@@ -154,278 +154,132 @@
 			:can-close="true"
 			@closing="requestCloseSetting()">
 			<div class="policy-workbench__dialog">
-				<header class="policy-workbench__dialog-header">
-					<h2>{{ state.activeDefinition.title }}</h2>
-					<p class="policy-workbench__dialog-description">{{ state.activeDefinition.description }}</p>
-				</header>
+				<div class="policy-workbench__main">
+					<header class="policy-workbench__dialog-header">
+						<h2>{{ state.activeDefinition.title }}</h2>
+						<p class="policy-workbench__dialog-description">{{ state.activeDefinition.description }}</p>
+					</header>
 
-				<p
-					v-if="removalFeedback"
-					class="policy-workbench__removal-feedback"
-					aria-live="polite">
-					{{ removalFeedback }}
-				</p>
+					<p
+						v-if="removalFeedback"
+						class="policy-workbench__removal-feedback"
+						aria-live="polite">
+						{{ removalFeedback }}
+					</p>
 
-				<div v-if="state.summary" class="policy-workbench__summary-header">
-					<div class="policy-workbench__summary-top">
-						<h2 class="policy-workbench__summary-value">{{ state.summary.currentBaseValue }}</h2>
-						<div class="policy-workbench__summary-meta">
-							<span class="policy-workbench__summary-source">{{ state.summary.baseSource }}</span>
-							<span class="policy-workbench__summary-counts">
-								{{ state.summary.activeGroupExceptions }} {{ t('libresign', 'group exception', 'group exceptions', state.summary.activeGroupExceptions) }}
-								· {{ state.summary.activeUserExceptions }} {{ t('libresign', 'user exception', 'user exceptions', state.summary.activeUserExceptions) }}
-							</span>
+					<div v-if="state.summary" class="policy-workbench__summary-line policy-workbench__summary-line--crud">
+						<span class="policy-workbench__summary-caption">{{ t('libresign', 'Effective baseline') }}</span>
+						<strong>{{ state.summary.currentBaseValue }}</strong>
+						<span class="policy-workbench__value-source">
+							{{ state.hasGlobalDefault ? t('libresign', 'Custom default') : t('libresign', 'System default') }}
+						</span>
+					</div>
+
+					<div class="policy-workbench__table-toolbar-row policy-workbench__table-toolbar-row--crud">
+						<NcTextField
+							:model-value="crudSearch"
+							:label="t('libresign', 'Search rules')"
+							:placeholder="t('libresign', 'Search by scope, target, or value')"
+							@update:modelValue="onCrudSearchChange" />
+						<div class="policy-workbench__filter-inline">
+							<label class="policy-workbench__filter-option">
+								<input type="radio" name="crudScope" :checked="crudScopeFilter === 'all'" @change="setCrudScopeFilter('all', true)" />
+								<span>{{ t('libresign', 'All scopes') }}</span>
+							</label>
+							<label class="policy-workbench__filter-option">
+								<input type="radio" name="crudScope" :checked="crudScopeFilter === 'system'" @change="setCrudScopeFilter('system', true)" />
+								<span>{{ t('libresign', 'Instance') }}</span>
+							</label>
+							<label class="policy-workbench__filter-option">
+								<input type="radio" name="crudScope" :checked="crudScopeFilter === 'group'" @change="setCrudScopeFilter('group', true)" />
+								<span>{{ t('libresign', 'Group') }}</span>
+							</label>
+							<label class="policy-workbench__filter-option">
+								<input type="radio" name="crudScope" :checked="crudScopeFilter === 'user'" @change="setCrudScopeFilter('user', true)" />
+								<span>{{ t('libresign', 'User') }}</span>
+							</label>
 						</div>
-					</div>
-					<button
-						type="button"
-						class="policy-workbench__help-toggle"
-						:aria-label="t('libresign', 'Learn how inheritance works')"
-						:aria-expanded="showPrecedenceExplanation ? 'true' : 'false'"
-						@click="showPrecedenceExplanation = !showPrecedenceExplanation">
-						{{ showPrecedenceExplanation ? t('libresign', 'Hide') : t('libresign', 'How inheritance works') }}
-					</button>
-
-					<div v-show="showPrecedenceExplanation" class="policy-workbench__inheritance-note" :aria-hidden="showPrecedenceExplanation ? 'false' : 'true'">
-						<ul>
-							<li>{{ t('libresign', 'User rule overrides group rule') }}</li>
-							<li>{{ t('libresign', 'Group rule overrides global default') }}</li>
-							<li>{{ t('libresign', 'Global default overrides system default') }}</li>
-							<li>{{ t('libresign', 'System default is used if no global default exists') }}</li>
-						</ul>
-					</div>
-				</div>
-
-				<div class="policy-workbench__content">
-					<!-- Default for this instance section -->
-					<section class="policy-workbench__section" role="region" :aria-label="t('libresign', 'Default for this instance')">
-						<h3 class="policy-workbench__section-title">{{ t('libresign', 'Default for this instance') }}</h3>
-						<p class="policy-workbench__default-reason">
-							{{ state.hasGlobalDefault
-								? t('libresign', 'Configured global default set.')
-								: t('libresign', 'Using system default.') }}
-						</p>
-
-						<!-- Edit or create global default -->
-						<div v-if="state.inheritedSystemRule && state.hasGlobalDefault" class="policy-workbench__default-actions">
-							<NcButton
-								v-if="state.viewMode === 'system-admin'"
-								variant="primary"
-								size="small"
-								:aria-label="t('libresign', 'Edit global default')"
-								@click="state.startEditor({ scope: 'system', ruleId: state.inheritedSystemRule.id })">
-								{{ t('libresign', 'Edit') }}
-							</NcButton>
-							<NcButton
-								v-if="state.viewMode === 'system-admin'"
-								variant="secondary"
-								size="small"
-								:aria-label="t('libresign', 'Remove global default')"
-								@click="promptRuleRemoval(state.inheritedSystemRule.id, 'system', t('libresign', 'Global default rule'))">
-								{{ t('libresign', 'Remove') }}
+						<div v-if="state.viewMode === 'system-admin'" class="policy-workbench__crud-create">
+							<div class="policy-workbench__filter-inline">
+								<label class="policy-workbench__filter-option">
+									<input type="radio" name="newCrudScope" :checked="newRuleScope === 'system'" @change="setNewRuleScope('system', true)" />
+									<span>{{ t('libresign', 'Instance') }}</span>
+								</label>
+								<label class="policy-workbench__filter-option">
+									<input type="radio" name="newCrudScope" :checked="newRuleScope === 'group'" @change="setNewRuleScope('group', true)" />
+									<span>{{ t('libresign', 'Group') }}</span>
+								</label>
+								<label class="policy-workbench__filter-option">
+									<input type="radio" name="newCrudScope" :checked="newRuleScope === 'user'" @change="setNewRuleScope('user', true)" />
+									<span>{{ t('libresign', 'User') }}</span>
+								</label>
+							</div>
+							<NcButton variant="primary" size="small" @click="startCreateRule()">
+								{{ t('libresign', 'Create rule') }}
 							</NcButton>
 						</div>
+					</div>
 
-						<NcButton
-							v-else-if="state.viewMode === 'system-admin'"
-							variant="primary"
-							size="small"
-							:aria-label="t('libresign', 'Set global default')"
-							@click="state.startEditor({ scope: 'system' })">
-							{{ t('libresign', 'Set global default') }}
-						</NcButton>
-					</section>
+					<p v-if="state.createUserOverrideDisabledReason" class="policy-workbench__table-note">
+						{{ t('libresign', 'Some users may not allow user overrides because their group rule requires inheritance.') }}
+					</p>
 
-					<section class="policy-workbench__section" role="region" :aria-label="t('libresign', 'Exceptions')">
-						<h3 class="policy-workbench__section-title">{{ t('libresign', 'Exceptions') }}</h3>
+					<div class="policy-workbench__table-scroll">
+						<table class="policy-workbench__table">
+							<thead>
+								<tr>
+									<th>{{ t('libresign', 'Scope') }}</th>
+									<th>{{ t('libresign', 'Target') }}</th>
+									<th>{{ t('libresign', 'Value') }}</th>
+									<th>{{ t('libresign', 'Inheritance') }}</th>
+									<th>{{ t('libresign', 'Actions') }}</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="row in pagedCrudRows" :key="row.key">
+									<td>{{ crudScopeLabel(row.scope) }}</td>
+									<td>{{ row.targetLabel }}</td>
+									<td>{{ row.valueLabel }}</td>
+									<td class="policy-workbench__status">
+										<small :class="{ 'policy-workbench__status--inherit': row.inheritanceLabel === t('libresign', 'Must inherit') }">
+											{{ row.inheritanceLabel }}
+										</small>
+									</td>
+									<td class="policy-workbench__table-actions">
+										<template v-if="row.ruleId">
+											<NcActions :force-name="true" :inline="2">
+												<NcActionButton @click="state.startEditor({ scope: row.scope, ruleId: row.ruleId })">
+													<template #icon>
+														<NcIconSvgWrapper :path="mdiPencil" :size="16" />
+													</template>
+													{{ t('libresign', 'Edit') }}
+												</NcActionButton>
+												<NcActionButton v-if="row.canRemove" @click="promptRuleRemoval(row.ruleId, row.scope, row.targetLabel)">
+													<template #icon>
+														<NcIconSvgWrapper :path="mdiDelete" :size="16" />
+													</template>
+													{{ t('libresign', 'Remove') }}
+												</NcActionButton>
+											</NcActions>
+										</template>
+										<NcButton v-else-if="row.scope === 'system' && state.viewMode === 'system-admin'" variant="secondary" size="small" @click="state.startEditor({ scope: 'system' })">
+											{{ t('libresign', 'Set default') }}
+										</NcButton>
+										<span v-else class="policy-workbench__table-note">{{ t('libresign', 'Read only') }}</span>
+									</td>
+								</tr>
+								<tr v-if="pagedCrudRows.length === 0">
+									<td colspan="5" class="policy-workbench__table-empty">{{ t('libresign', 'No rules match the current filters.') }}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 
-						<div class="policy-workbench__tabs" role="tablist" :aria-label="t('libresign', 'Exception type')">
-							<button
-								role="tab"
-								:aria-selected="activeExceptionTab === 'group'"
-								:class="['policy-workbench__tab-link', { 'policy-workbench__tab-link--active': activeExceptionTab === 'group' }]"
-								@click="setExceptionTab('group')">
-								{{ t('libresign', 'Groups') }} ({{ state.visibleGroupRules.length }})
-							</button>
-							<button
-								role="tab"
-								:aria-selected="activeExceptionTab === 'user'"
-								:class="['policy-workbench__tab-link', { 'policy-workbench__tab-link--active': activeExceptionTab === 'user' }]"
-								@click="setExceptionTab('user')">
-								{{ t('libresign', 'Users') }} ({{ state.visibleUserRules.length }})
-							</button>
-						</div>
-
-						<div v-if="activeExceptionTab === 'group'" class="policy-workbench__table-section">
-							<h4 class="policy-workbench__table-heading">{{ t('libresign', 'Group exceptions') }}</h4>
-							<div class="policy-workbench__table-toolbar">
-								<NcTextField
-									:model-value="groupExceptionSearch"
-									:label="t('libresign', 'Search group exceptions')"
-									:placeholder="t('libresign', 'Search by group or value')"
-									@update:modelValue="onGroupSearchChange" />
-								<div class="policy-workbench__filter-inline">
-									<label class="policy-workbench__filter-option">
-										<input type="radio" name="groupOverride" :checked="groupOverrideFilter === 'all'" @change="setGroupOverrideFilter('all', true)" />
-										<span>{{ t('libresign', 'All') }}</span>
-									</label>
-									<label class="policy-workbench__filter-option">
-										<input type="radio" name="groupOverride" :checked="groupOverrideFilter === 'allowed'" @change="setGroupOverrideFilter('allowed', true)" />
-										<span>{{ t('libresign', 'Can override') }}</span>
-									</label>
-									<label class="policy-workbench__filter-option">
-										<input type="radio" name="groupOverride" :checked="groupOverrideFilter === 'blocked'" @change="setGroupOverrideFilter('blocked', true)" />
-										<span>{{ t('libresign', 'Must inherit') }}</span>
-									</label>
-								</div>
-								<div class="policy-workbench__table-toolbar-action">
-									<NcButton
-										v-if="state.viewMode === 'system-admin'"
-										variant="secondary"
-										size="small"
-										@click="state.startEditor({ scope: 'group' })">
-										{{ t('libresign', 'Add group exception') }}
-									</NcButton>
-								</div>
-							</div>
-
-							<div class="policy-workbench__table-scroll">
-								<table class="policy-workbench__table">
-									<thead>
-										<tr>
-											<th>{{ t('libresign', 'Group') }}</th>
-											<th>{{ t('libresign', 'Value') }}</th>
-											<th>{{ t('libresign', 'Users') }}</th>
-											<th>{{ t('libresign', 'Actions') }}</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr v-for="rule in pagedGroupExceptions" :key="rule.id">
-											<td>{{ state.resolveTargetLabel('group', rule.targetId || '') }}</td>
-											<td>{{ summarizeRuleValue(rule.value) }}</td>
-											<td class="policy-workbench__status">
-												<small :class="{ 'policy-workbench__status--inherit': !rule.allowChildOverride }">
-													{{ rule.allowChildOverride ? t('libresign', 'Override') : t('libresign', 'Inherit') }}
-												</small>
-											</td>
-											<td class="policy-workbench__table-actions">
-												<NcActions :force-name="true" :inline="2">
-													<NcActionButton @click="state.startEditor({ scope: 'group', ruleId: rule.id })">
-														<template #icon>
-															<NcIconSvgWrapper :path="mdiPencil" :size="16" />
-														</template>
-														{{ t('libresign', 'Edit') }}
-													</NcActionButton>
-													<NcActionButton @click="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))">
-														<template #icon>
-															<NcIconSvgWrapper :path="mdiDelete" :size="16" />
-														</template>
-														{{ t('libresign', 'Remove') }}
-													</NcActionButton>
-												</NcActions>
-											</td>
-										</tr>
-										<tr v-if="pagedGroupExceptions.length === 0">
-											<td colspan="4" class="policy-workbench__table-empty">{{ t('libresign', 'No group exceptions match the current filters.') }}</td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-
-							<div v-if="groupPageCount > 1" class="policy-workbench__pagination">
-								<NcButton variant="tertiary" size="small" :disabled="groupPage <= 1" @click="groupPage -= 1">{{ t('libresign', 'Previous') }}</NcButton>
-								<span>{{ t('libresign', 'Page {current} of {total}', { current: String(groupPage), total: String(groupPageCount) }) }}</span>
-								<NcButton variant="tertiary" size="small" :disabled="groupPage >= groupPageCount" @click="groupPage += 1">{{ t('libresign', 'Next') }}</NcButton>
-							</div>
-						</div>
-
-						<div v-else class="policy-workbench__table-section">
-							<h4 class="policy-workbench__table-heading">{{ t('libresign', 'User exceptions') }}</h4>
-							<div class="policy-workbench__table-toolbar">
-								<NcTextField
-									:model-value="userExceptionSearch"
-									:label="t('libresign', 'Search user exceptions')"
-									:placeholder="t('libresign', 'Search by user or value')"
-									@update:modelValue="onUserSearchChange" />
-								<div class="policy-workbench__filter-inline">
-									<label class="policy-workbench__filter-option">
-										<input type="radio" name="userValue" :checked="userValueFilter === 'all'" @change="setUserValueFilter('all', true)" />
-										<span>{{ t('libresign', 'All') }}</span>
-									</label>
-									<label class="policy-workbench__filter-option">
-										<input type="radio" name="userValue" :checked="userValueFilter === 'parallel'" @change="setUserValueFilter('parallel', true)" />
-										<span>{{ t('libresign', 'Parallel') }}</span>
-									</label>
-									<label class="policy-workbench__filter-option">
-										<input type="radio" name="userValue" :checked="userValueFilter === 'ordered_numeric'" @change="setUserValueFilter('ordered_numeric', true)" />
-										<span>{{ t('libresign', 'Sequential') }}</span>
-									</label>
-								</div>
-								<div class="policy-workbench__table-toolbar-action">
-									<NcButton
-										variant="secondary"
-										size="small"
-										@click="state.startEditor({ scope: 'user' })">
-										{{ t('libresign', 'Add user exception') }}
-									</NcButton>
-								</div>
-							</div>
-
-							<NcEmptyContent
-								v-if="state.visibleUserRules.length === 0 && !userExceptionSearch && userValueFilter === 'all'"
-								:name="t('libresign', 'No user exceptions are configured.')"
-								:description="t('libresign', 'User exceptions can be created unless a group rule requires inheritance.')" />
-
-							<p v-if="state.createUserOverrideDisabledReason" class="policy-workbench__table-note">
-								{{ t('libresign', 'Some users may not allow user exceptions because their group rule requires inheritance.') }}
-							</p>
-
-							<div class="policy-workbench__table-scroll">
-								<table class="policy-workbench__table">
-									<thead>
-										<tr>
-											<th>{{ t('libresign', 'User') }}</th>
-											<th>{{ t('libresign', 'Value') }}</th>
-											<th>{{ t('libresign', 'Type') }}</th>
-											<th>{{ t('libresign', 'Actions') }}</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr v-for="rule in pagedUserExceptions" :key="rule.id">
-											<td>{{ state.resolveTargetLabel('user', rule.targetId || '') }}</td>
-											<td>{{ summarizeRuleValue(rule.value) }}</td>
-											<td>{{ t('libresign', 'Final') }}</td>
-											<td class="policy-workbench__table-actions">
-												<NcActions :force-name="true" :inline="2">
-													<NcActionButton @click="state.startEditor({ scope: 'user', ruleId: rule.id })">
-														<template #icon>
-															<NcIconSvgWrapper :path="mdiPencil" :size="16" />
-														</template>
-														{{ t('libresign', 'Edit') }}
-													</NcActionButton>
-													<NcActionButton @click="promptRuleRemoval(rule.id, 'user', state.resolveTargetLabel('user', rule.targetId || ''))">
-														<template #icon>
-															<NcIconSvgWrapper :path="mdiDelete" :size="16" />
-														</template>
-														{{ t('libresign', 'Remove') }}
-													</NcActionButton>
-												</NcActions>
-											</td>
-										</tr>
-										<tr v-if="pagedUserExceptions.length === 0">
-											<td colspan="4" class="policy-workbench__table-empty">{{ t('libresign', 'No user exceptions match the current filters.') }}</td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-
-							<div v-if="userPageCount > 1" class="policy-workbench__pagination">
-								<NcButton variant="tertiary" size="small" :disabled="userPage <= 1" @click="userPage -= 1">{{ t('libresign', 'Previous') }}</NcButton>
-								<span>{{ t('libresign', 'Page {current} of {total}', { current: String(userPage), total: String(userPageCount) }) }}</span>
-								<NcButton variant="tertiary" size="small" :disabled="userPage >= userPageCount" @click="userPage += 1">{{ t('libresign', 'Next') }}</NcButton>
-							</div>
-						</div>
-					</section>
+					<div v-if="crudPageCount > 1" class="policy-workbench__pagination">
+						<NcButton variant="tertiary" size="small" :disabled="crudPage <= 1" @click="crudPage -= 1">{{ t('libresign', 'Previous') }}</NcButton>
+						<span>{{ t('libresign', 'Page {current} of {total}', { current: String(crudPage), total: String(crudPageCount) }) }}</span>
+						<NcButton variant="tertiary" size="small" :disabled="crudPage >= crudPageCount" @click="crudPage += 1">{{ t('libresign', 'Next') }}</NcButton>
+					</div>
 				</div>
 
 				<!-- Editor panel side-by-side (desktop) -->
@@ -596,12 +450,8 @@
 
 <script setup lang="ts">
 import {
-	mdiChevronDown,
-	mdiChevronUp,
 	mdiDelete,
-	mdiFilter,
 	mdiFormatListBulletedSquare,
-	mdiHelpCircleOutline,
 	mdiPencil,
 	mdiViewGridOutline,
 } from '@mdi/js'
@@ -613,7 +463,6 @@ import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
-import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSelectUsers from '@nextcloud/vue/components/NcSelectUsers'
@@ -642,15 +491,11 @@ const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)
 const lastPress = ref<{ surface: 'cards' | 'list', key: string, x: number, y: number } | null>(null)
 const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at: number } | null>(null)
-const showPrecedenceExplanation = ref(false)
-const activeExceptionTab = ref<'group' | 'user'>('group')
-const groupExceptionSearch = ref('')
-const userExceptionSearch = ref('')
-const groupOverrideFilter = ref<'all' | 'allowed' | 'blocked'>('all')
-const userValueFilter = ref<'all' | 'parallel' | 'ordered_numeric'>('all')
-const groupPage = ref(1)
-const userPage = ref(1)
-const EXCEPTIONS_PAGE_SIZE = 20
+const crudSearch = ref('')
+const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
+const newRuleScope = ref<'system' | 'group' | 'user'>('group')
+const crudPage = ref(1)
+const CRUD_PAGE_SIZE = 20
 
 const DRAG_OPEN_THRESHOLD_PX = 6
 const SELECTION_GUARD_WINDOW_MS = 400
@@ -686,15 +531,58 @@ const selectedTargetOptions = computed(() => {
 	return state.availableTargets.filter((option) => state.editorDraft?.targetIds.includes(option.id))
 })
 
-const filteredGroupExceptions = computed(() => {
-	const normalized = groupExceptionSearch.value.trim().toLowerCase()
+type CrudScope = 'system' | 'group' | 'user'
+type CrudRow = {
+	key: string,
+	ruleId: string | null,
+	scope: CrudScope,
+	targetLabel: string,
+	valueLabel: string,
+	inheritanceLabel: string,
+	canRemove: boolean,
+}
 
-	return state.visibleGroupRules.filter((rule) => {
-		if (groupOverrideFilter.value === 'allowed' && !rule.allowChildOverride) {
-			return false
-		}
+const filteredCrudRows = computed<CrudRow[]>(() => {
+	const rows: CrudRow[] = []
+	const systemRule = state.inheritedSystemRule
+	rows.push({
+		key: systemRule?.id ?? 'system-default',
+		ruleId: systemRule?.id ?? null,
+		scope: 'system',
+		targetLabel: t('libresign', 'Instance default'),
+		valueLabel: state.summary?.currentBaseValue ?? t('libresign', 'Not configured'),
+		inheritanceLabel: systemRule?.allowChildOverride === false ? t('libresign', 'Must inherit') : t('libresign', 'Can override'),
+		canRemove: Boolean(systemRule?.id && state.hasGlobalDefault),
+	})
 
-		if (groupOverrideFilter.value === 'blocked' && rule.allowChildOverride) {
+	for (const rule of state.visibleGroupRules) {
+		rows.push({
+			key: rule.id,
+			ruleId: rule.id,
+			scope: 'group',
+			targetLabel: state.resolveTargetLabel('group', rule.targetId || ''),
+			valueLabel: summarizeRuleValue(rule.value),
+			inheritanceLabel: rule.allowChildOverride ? t('libresign', 'Can override') : t('libresign', 'Must inherit'),
+			canRemove: true,
+		})
+	}
+
+	for (const rule of state.visibleUserRules) {
+		rows.push({
+			key: rule.id,
+			ruleId: rule.id,
+			scope: 'user',
+			targetLabel: state.resolveTargetLabel('user', rule.targetId || ''),
+			valueLabel: summarizeRuleValue(rule.value),
+			inheritanceLabel: t('libresign', 'Final'),
+			canRemove: true,
+		})
+	}
+
+	const normalized = crudSearch.value.trim().toLowerCase()
+
+	return rows.filter((row) => {
+		if (crudScopeFilter.value !== 'all' && row.scope !== crudScopeFilter.value) {
 			return false
 		}
 
@@ -702,74 +590,20 @@ const filteredGroupExceptions = computed(() => {
 			return true
 		}
 
-		const label = state.resolveTargetLabel('group', rule.targetId || '').toLowerCase()
-		const value = summarizeRuleValue(rule.value).toLowerCase()
-		return label.includes(normalized) || value.includes(normalized)
+		const scope = crudScopeLabel(row.scope).toLowerCase()
+		return [scope, row.targetLabel.toLowerCase(), row.valueLabel.toLowerCase(), row.inheritanceLabel.toLowerCase()]
+			.some((value) => value.includes(normalized))
 	})
 })
 
-const filteredUserExceptions = computed(() => {
-	const normalized = userExceptionSearch.value.trim().toLowerCase()
-
-	return state.visibleUserRules.filter((rule) => {
-		if (userValueFilter.value !== 'all') {
-			const mode = typeof rule.value === 'string' ? rule.value : ''
-			if (mode !== userValueFilter.value) {
-				return false
-			}
-		}
-
-		if (!normalized) {
-			return true
-		}
-
-		const label = state.resolveTargetLabel('user', rule.targetId || '').toLowerCase()
-		const value = summarizeRuleValue(rule.value).toLowerCase()
-		return label.includes(normalized) || value.includes(normalized)
-	})
-})
-
-const groupPageCount = computed(() => Math.max(1, Math.ceil(filteredGroupExceptions.value.length / EXCEPTIONS_PAGE_SIZE)))
-const userPageCount = computed(() => Math.max(1, Math.ceil(filteredUserExceptions.value.length / EXCEPTIONS_PAGE_SIZE)))
-
-const pagedGroupExceptions = computed(() => {
-	if (groupPage.value > groupPageCount.value) {
-		groupPage.value = groupPageCount.value
+const crudPageCount = computed(() => Math.max(1, Math.ceil(filteredCrudRows.value.length / CRUD_PAGE_SIZE)))
+const pagedCrudRows = computed(() => {
+	if (crudPage.value > crudPageCount.value) {
+		crudPage.value = crudPageCount.value
 	}
 
-	const start = (groupPage.value - 1) * EXCEPTIONS_PAGE_SIZE
-	return filteredGroupExceptions.value.slice(start, start + EXCEPTIONS_PAGE_SIZE)
-})
-
-const pagedUserExceptions = computed(() => {
-	if (userPage.value > userPageCount.value) {
-		userPage.value = userPageCount.value
-	}
-
-	const start = (userPage.value - 1) * EXCEPTIONS_PAGE_SIZE
-	return filteredUserExceptions.value.slice(start, start + EXCEPTIONS_PAGE_SIZE)
-})
-
-const resolutionModeLabel = computed(() => {
-	if (state.policyResolutionMode === 'merge') {
-		return t('libresign', 'Merged values from multiple groups')
-	}
-
-	if (state.policyResolutionMode === 'conflict_requires_selection') {
-		return t('libresign', 'Conflict may require explicit user selection')
-	}
-
-	return t('libresign', 'Single value by precedence')
-})
-
-const systemRuleBadges = computed(() => {
-	if (!state.inheritedSystemRule || !state.activeDefinition) {
-		return []
-	}
-
-	const allowOverrideBadge = state.activeDefinition.formatAllowOverride(state.inheritedSystemRule.allowChildOverride)
-
-	return allowOverrideBadge ? [allowOverrideBadge] : []
+	const start = (crudPage.value - 1) * CRUD_PAGE_SIZE
+	return filteredCrudRows.value.slice(start, start + CRUD_PAGE_SIZE)
 })
 
 const editorTitle = computed(() => {
@@ -847,36 +681,42 @@ function summarizeRuleValue(value: unknown) {
 	return state.activeDefinition.summarizeValue(value as never)
 }
 
-function setExceptionTab(tab: 'group' | 'user') {
-	activeExceptionTab.value = tab
+function crudScopeLabel(scope: CrudScope) {
+	if (scope === 'system') {
+		return t('libresign', 'Instance')
+	}
+
+	if (scope === 'group') {
+		return t('libresign', 'Group')
+	}
+
+	return t('libresign', 'User')
 }
 
-function onGroupSearchChange(value: string | number) {
-	groupExceptionSearch.value = String(value ?? '')
-	groupPage.value = 1
+function onCrudSearchChange(value: string | number) {
+	crudSearch.value = String(value ?? '')
+	crudPage.value = 1
 }
 
-function onUserSearchChange(value: string | number) {
-	userExceptionSearch.value = String(value ?? '')
-	userPage.value = 1
-}
-
-function setGroupOverrideFilter(value: 'all' | 'allowed' | 'blocked', selected: boolean) {
+function setCrudScopeFilter(value: 'all' | 'system' | 'group' | 'user', selected: boolean) {
 	if (!selected) {
 		return
 	}
 
-	groupOverrideFilter.value = value
-	groupPage.value = 1
+	crudScopeFilter.value = value
+	crudPage.value = 1
 }
 
-function setUserValueFilter(value: 'all' | 'parallel' | 'ordered_numeric', selected: boolean) {
+function setNewRuleScope(value: 'system' | 'group' | 'user', selected: boolean) {
 	if (!selected) {
 		return
 	}
 
-	userValueFilter.value = value
-	userPage.value = 1
+	newRuleScope.value = value
+}
+
+function startCreateRule() {
+	state.startEditor({ scope: newRuleScope.value })
 }
 
 function onSettingsFilterChange(value: string | number) {
@@ -1417,7 +1257,7 @@ onBeforeUnmount(() => {
 		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
-		gap: 1.25rem;
+		gap: 0;
 	}
 
 	&__dialog-header {
@@ -1451,6 +1291,111 @@ onBeforeUnmount(() => {
 			max-width: 100%;
 		}
 	}
+
+	&__main {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	&__tier {
+		padding: 1.25rem 0;
+		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+
+		&:last-child {
+			border-bottom: none;
+		}
+	}
+
+	&__tier-head {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		margin-bottom: 0.75rem;
+
+		:deep(.button-vue) {
+			flex-shrink: 0;
+		}
+	}
+
+	&__tier-info {
+		flex: 1;
+		min-width: 0;
+	}
+
+	&__tier-title {
+		margin: 0;
+		font-size: 0.95rem;
+		font-weight: 600;
+	}
+
+	&__tier-desc {
+		margin: 0.25rem 0 0;
+		font-size: 0.85rem;
+		color: var(--color-text-maxcontrast);
+		max-width: 72ch;
+	}
+
+	&__tier-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-shrink: 0;
+	}
+
+	&__tier-value {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 0.5rem;
+	}
+
+	&__current-value {
+		font-size: 1.1rem;
+		font-weight: 700;
+		color: var(--color-main-text);
+	}
+
+	&__value-source {
+		font-size: 0.82rem;
+		color: var(--color-text-maxcontrast);
+		padding: 0.1rem 0.45rem;
+		border-radius: 9px;
+		background: color-mix(in srgb, var(--color-background-dark) 60%, transparent);
+	}
+
+	&__tier-empty {
+		margin: 0.5rem 0 0;
+		font-size: 0.88rem;
+		color: var(--color-text-maxcontrast);
+		font-style: italic;
+	}
+
+	&__table-toolbar-row {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		flex-wrap: wrap;
+		margin-bottom: 0.75rem;
+
+		&--crud {
+			align-items: flex-end;
+			justify-content: space-between;
+
+			:deep(.text-field) {
+				flex: 1 1 280px;
+			}
+		}
+	}
+
+	&__crud-create {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.45rem;
+	}
+
 
 	&__workspace {
 		display: grid;
@@ -1525,15 +1470,29 @@ onBeforeUnmount(() => {
 	}
 
 	@media (min-width: 961px) {
+		&__dialog {
+			flex-direction: row;
+			align-items: flex-start;
+		}
+
+		&__main {
+			flex: 1;
+			min-width: 0;
+			overflow-y: auto;
+			max-height: calc(min(820px, 100vh - 7rem) - 2rem);
+		}
+
 		&__editor-aside {
 			display: flex;
 			flex-direction: column;
 			gap: 0.75rem;
 			position: sticky;
 			top: 0;
+			width: 380px;
+			flex-shrink: 0;
 			max-height: 90vh;
 			overflow-y: auto;
-			padding-left: 1rem;
+			padding-left: 1.5rem;
 			border-left: 1px solid color-mix(in srgb, var(--color-border-maxcontrast) 50%, transparent);
 		}
 
@@ -1599,6 +1558,17 @@ onBeforeUnmount(() => {
 		gap: 0.35rem;
 		padding: 0.25rem 0;
 		color: var(--color-main-text);
+
+		&--crud {
+			margin: 0.5rem 0 0.75rem;
+		}
+	}
+
+	&__summary-caption {
+		font-size: 0.82rem;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+		color: var(--color-text-maxcontrast);
 	}
 
 	&__summary-wrap {
@@ -2339,7 +2309,31 @@ onBeforeUnmount(() => {
 		&__dialog {
 			width: 100%;
 			min-height: auto;
-			gap: 0.85rem;
+			gap: 0;
+		}
+
+		&__tier {
+			padding: 1rem 0;
+		}
+
+		&__tier-head {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0.65rem;
+		}
+
+		&__table-toolbar-row {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		&__crud-create {
+			align-items: stretch;
+
+			:deep(.button-vue) {
+				width: 100%;
+				justify-content: center;
+			}
 		}
 
 		&__editor-panel,
