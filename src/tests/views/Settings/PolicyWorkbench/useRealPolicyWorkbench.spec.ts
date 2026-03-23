@@ -29,6 +29,7 @@ const saveUserPolicyForUser = vi.fn()
 const clearGroupPolicy = vi.fn()
 const clearUserPolicyForUser = vi.fn()
 const getPolicy = vi.fn()
+const fetchEffectivePolicies = vi.fn()
 
 vi.mock('../../../../store/policies', () => ({
 	usePoliciesStore: () => ({
@@ -39,6 +40,7 @@ vi.mock('../../../../store/policies', () => ({
 		clearGroupPolicy,
 		clearUserPolicyForUser,
 		getPolicy,
+		fetchEffectivePolicies,
 	}),
 }))
 
@@ -54,8 +56,10 @@ describe('useRealPolicyWorkbench', () => {
 		clearGroupPolicy.mockReset()
 		clearUserPolicyForUser.mockReset()
 		getPolicy.mockReset()
+		fetchEffectivePolicies.mockReset()
 		getPolicy.mockReturnValue({ effectiveValue: 'parallel' })
 		fetchGroupPolicy.mockResolvedValue(null)
+		fetchEffectivePolicies.mockResolvedValue(undefined)
 		axiosGet.mockImplementation((url: string) => {
 			if (url === 'cloud/groups/details') {
 				return Promise.resolve({
