@@ -312,4 +312,56 @@ describe('useRealPolicyWorkbench', () => {
 		state.startEditor({ scope: 'system', ruleId: 'system-default' })
 		expect(state.editorDraft?.allowChildOverride).toBe(false)
 	})
+
+	it('builds sticky summary metadata with precedence mode and fallback', () => {
+		getPolicy.mockReturnValue({
+			effectiveValue: 'ordered_numeric',
+			sourceScope: 'group',
+			allowedValues: ['parallel', 'ordered_numeric'],
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.policyResolutionMode).toBe('precedence')
+		expect(state.summary).not.toBeNull()
+		expect(state.summary?.currentBaseValue).toBe('Sequential')
+		expect(state.summary?.platformFallback).toBe('Simultaneous (Parallel)')
+		expect(state.summary?.baseSource).toBe('Global default')
+	})
+
+	it('exposes disabled reason for user exceptions when parent override blocks lower layers', async () => {
+		getPolicy.mockReturnValue({ effectiveValue: 'parallel', sourceScope: 'global' })
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'group' })
+		state.updateDraftTargets(['finance'])
+		state.updateDraftAllowOverride(false)
+		await state.saveDraft()
+
+		expect(state.createUserOverrideDisabledReason).toContain('Blocked by the Finance group rule')
+	})
+
+	it('requires dirty draft changes before save is enabled in edit mode', async () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'group' })
+		state.updateDraftTargets(['finance'])
+		await state.saveDraft()
+
+		const groupRuleId = state.visibleGroupRules[0]?.id
+		expect(groupRuleId).toBeTruthy()
+		if (!groupRuleId) {
+			throw new Error('Expected created group rule')
+		}
+
+		state.startEditor({ scope: 'group', ruleId: groupRuleId })
+		expect(state.isDraftDirty).toBe(false)
+		expect(state.canSaveDraft).toBe(false)
+
+		state.updateDraftAllowOverride(false)
+		expect(state.isDraftDirty).toBe(true)
+		expect(state.canSaveDraft).toBe(true)
+	})
 })
