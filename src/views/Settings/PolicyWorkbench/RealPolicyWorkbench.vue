@@ -399,7 +399,10 @@
 					</div>
 				</div>
 
-			v-if="state.editorDraft && shouldUseEditorModal"
+			</NcDialog>
+
+			<NcDialog
+				v-if="state.editorDraft && shouldUseEditorModal"
 			:name="editorTitle || t('libresign', 'Rule editor')"
 			size="full"
 			:can-close="true"
@@ -415,7 +418,7 @@
 							<p>{{ editorHelp }}</p>
 						</div>
 
-						<div v-if="state.editorDraft.scope !== 'system'" class="policy-workbench__field">
+						<div v-if="state.editorDraft && state.editorDraft.scope !== 'system'" class="policy-workbench__field">
 							<label class="policy-workbench__label">
 								{{ state.editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users') }}
 							</label>
@@ -440,7 +443,7 @@
 						</div>
 
 						<NcCheckboxRadioSwitch
-							v-if="state.editorDraft.scope !== 'user'"
+							v-if="state.editorDraft && state.editorDraft.scope !== 'user'"
 							type="switch"
 							:model-value="state.editorDraft.allowChildOverride"
 							:disabled="saveStatus === 'saving'"
