@@ -166,27 +166,30 @@
 					{{ removalFeedback }}
 				</p>
 
-				<!-- Ultra-compact summary line: Using X: Value · Y groups · Z users [How it works] -->
-				<div v-if="state.summary" class="policy-workbench__summary-line" :aria-label="t('libresign', 'Current policy state')">
-					<p class="policy-workbench__summary-primary">
-						{{ t('libresign', 'Current value: {value}', { value: state.summary.currentBaseValue }) }}
-					</p>
-					<p class="policy-workbench__summary-source">
-						{{ t('libresign', 'Source: {source}', { source: state.summary.baseSource }) }}
-					</p>
-					<p class="policy-workbench__summary-secondary">
-						<span>{{ state.summary.activeGroupExceptions }} {{ t('libresign', 'group exception', 'group exceptions', state.summary.activeGroupExceptions) }}</span>
-						<span class="policy-workbench__summary-divider">·</span>
-						<span>{{ state.summary.activeUserExceptions }} {{ t('libresign', 'user exception', 'user exceptions', state.summary.activeUserExceptions) }}</span>
-					</p>
-					<button
-						v-if="!showPrecedenceExplanation"
-						type="button"
-						class="policy-workbench__learn-link"
-						:aria-label="t('libresign', 'Learn how inheritance works')"
-						@click="showPrecedenceExplanation = true">
-						{{ t('libresign', '? How it works') }}
-					</button>
+				<div v-if="state.summary" class="policy-workbench__summary-wrap" :aria-label="t('libresign', 'Current policy state')">
+					<NcNoteCard type="info">
+						<div class="policy-workbench__summary-line">
+							<p class="policy-workbench__summary-primary">
+								{{ t('libresign', 'Current value: {value}', { value: state.summary.currentBaseValue }) }}
+							</p>
+							<p class="policy-workbench__summary-source">
+								{{ t('libresign', 'Source: {source}', { source: state.summary.baseSource }) }}
+							</p>
+							<p class="policy-workbench__summary-secondary">
+								<span>{{ state.summary.activeGroupExceptions }} {{ t('libresign', 'group exception', 'group exceptions', state.summary.activeGroupExceptions) }}</span>
+								<span class="policy-workbench__summary-divider">·</span>
+								<span>{{ state.summary.activeUserExceptions }} {{ t('libresign', 'user exception', 'user exceptions', state.summary.activeUserExceptions) }}</span>
+							</p>
+							<button
+								v-if="!showPrecedenceExplanation"
+								type="button"
+								class="policy-workbench__learn-link"
+								:aria-label="t('libresign', 'Learn how inheritance works')"
+								@click="showPrecedenceExplanation = true">
+								{{ t('libresign', '? How it works') }}
+							</button>
+						</div>
+					</NcNoteCard>
 				</div>
 
 				<!-- Collapsed help: How inheritance works -->
@@ -250,22 +253,22 @@
 						<h3 class="policy-workbench__section-title">{{ t('libresign', 'Exceptions') }}</h3>
 
 						<div class="policy-workbench__tabs" role="tablist" :aria-label="t('libresign', 'Exception type')">
-							<button
-								type="button"
+							<NcButton
 								role="tab"
+								variant="tertiary"
 								:aria-selected="activeExceptionTab === 'group'"
 								:class="['policy-workbench__tab', { 'policy-workbench__tab--active': activeExceptionTab === 'group' }]"
 								@click="setExceptionTab('group')">
 								{{ t('libresign', 'Group exceptions ({count})', { count: String(state.visibleGroupRules.length) }) }}
-							</button>
-							<button
-								type="button"
+							</NcButton>
+							<NcButton
 								role="tab"
+								variant="tertiary"
 								:aria-selected="activeExceptionTab === 'user'"
 								:class="['policy-workbench__tab', { 'policy-workbench__tab--active': activeExceptionTab === 'user' }]"
 								@click="setExceptionTab('user')">
 								{{ t('libresign', 'User exceptions ({count})', { count: String(state.visibleUserRules.length) }) }}
-							</button>
+							</NcButton>
 						</div>
 
 						<div v-if="activeExceptionTab === 'group'" class="policy-workbench__table-section">
@@ -276,14 +279,23 @@
 									:label="t('libresign', 'Search group exceptions')"
 									:placeholder="t('libresign', 'Search by group or value')"
 									@update:modelValue="onGroupSearchChange" />
-								<label class="policy-workbench__table-filter">
+								<div class="policy-workbench__table-filter">
 									<span>{{ t('libresign', 'Users can override') }}</span>
-									<select :value="groupOverrideFilter" @change="onGroupOverrideFilterChange">
-										<option value="all">{{ t('libresign', 'All') }}</option>
-										<option value="allowed">{{ t('libresign', 'Users may override') }}</option>
-										<option value="blocked">{{ t('libresign', 'Users must inherit') }}</option>
-									</select>
-								</label>
+									<NcActions :aria-label="t('libresign', 'Users can override filter')">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiFilter" :size="18" />
+										</template>
+										<NcActionButton type="radio" :model-value="groupOverrideFilter === 'all'" @update:modelValue="setGroupOverrideFilter('all', $event)">
+											{{ t('libresign', 'All') }}
+										</NcActionButton>
+										<NcActionButton type="radio" :model-value="groupOverrideFilter === 'allowed'" @update:modelValue="setGroupOverrideFilter('allowed', $event)">
+											{{ t('libresign', 'Users may override') }}
+										</NcActionButton>
+										<NcActionButton type="radio" :model-value="groupOverrideFilter === 'blocked'" @update:modelValue="setGroupOverrideFilter('blocked', $event)">
+											{{ t('libresign', 'Users must inherit') }}
+										</NcActionButton>
+									</NcActions>
+								</div>
 								<div class="policy-workbench__table-toolbar-action">
 									<NcButton
 										v-if="state.viewMode === 'system-admin'"
@@ -315,8 +327,10 @@
 												</span>
 											</td>
 											<td class="policy-workbench__table-actions">
-												<button type="button" @click="state.startEditor({ scope: 'group', ruleId: rule.id })">{{ t('libresign', 'Edit') }}</button>
-												<button type="button" @click="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))">{{ t('libresign', 'Remove') }}</button>
+												<NcActions :force-name="true" :inline="2">
+													<NcActionButton @click="state.startEditor({ scope: 'group', ruleId: rule.id })">{{ t('libresign', 'Edit') }}</NcActionButton>
+													<NcActionButton @click="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))">{{ t('libresign', 'Remove') }}</NcActionButton>
+												</NcActions>
 											</td>
 										</tr>
 										<tr v-if="pagedGroupExceptions.length === 0">
@@ -341,14 +355,23 @@
 									:label="t('libresign', 'Search user exceptions')"
 									:placeholder="t('libresign', 'Search by user or value')"
 									@update:modelValue="onUserSearchChange" />
-								<label class="policy-workbench__table-filter">
+								<div class="policy-workbench__table-filter">
 									<span>{{ t('libresign', 'Value') }}</span>
-									<select :value="userValueFilter" @change="onUserValueFilterChange">
-										<option value="all">{{ t('libresign', 'All') }}</option>
-										<option value="parallel">{{ t('libresign', 'Simultaneous (Parallel)') }}</option>
-										<option value="ordered_numeric">{{ t('libresign', 'Sequential') }}</option>
-									</select>
-								</label>
+									<NcActions :aria-label="t('libresign', 'User value filter')">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiFilter" :size="18" />
+										</template>
+										<NcActionButton type="radio" :model-value="userValueFilter === 'all'" @update:modelValue="setUserValueFilter('all', $event)">
+											{{ t('libresign', 'All') }}
+										</NcActionButton>
+										<NcActionButton type="radio" :model-value="userValueFilter === 'parallel'" @update:modelValue="setUserValueFilter('parallel', $event)">
+											{{ t('libresign', 'Simultaneous (Parallel)') }}
+										</NcActionButton>
+										<NcActionButton type="radio" :model-value="userValueFilter === 'ordered_numeric'" @update:modelValue="setUserValueFilter('ordered_numeric', $event)">
+											{{ t('libresign', 'Sequential') }}
+										</NcActionButton>
+									</NcActions>
+								</div>
 								<div class="policy-workbench__table-toolbar-action">
 									<NcButton
 										variant="secondary"
@@ -359,10 +382,10 @@
 								</div>
 							</div>
 
-							<div v-if="state.visibleUserRules.length === 0 && !userExceptionSearch && userValueFilter === 'all'" class="policy-workbench__table-empty-state">
-								<p>{{ t('libresign', 'No user exceptions are configured.') }}</p>
-								<p>{{ t('libresign', 'User exceptions can be created unless a group rule requires inheritance.') }}</p>
-							</div>
+							<NcEmptyContent
+								v-if="state.visibleUserRules.length === 0 && !userExceptionSearch && userValueFilter === 'all'"
+								:name="t('libresign', 'No user exceptions are configured.')"
+								:description="t('libresign', 'User exceptions can be created unless a group rule requires inheritance.')" />
 
 							<p v-if="state.createUserOverrideDisabledReason" class="policy-workbench__table-note">
 								{{ t('libresign', 'Some users may not allow user exceptions because their group rule requires inheritance.') }}
@@ -384,8 +407,10 @@
 											<td>{{ summarizeRuleValue(rule.value) }}</td>
 											<td>{{ t('libresign', 'Final') }}</td>
 											<td class="policy-workbench__table-actions">
-												<button type="button" @click="state.startEditor({ scope: 'user', ruleId: rule.id })">{{ t('libresign', 'Edit') }}</button>
-												<button type="button" @click="promptRuleRemoval(rule.id, 'user', state.resolveTargetLabel('user', rule.targetId || ''))">{{ t('libresign', 'Remove') }}</button>
+												<NcActions :force-name="true" :inline="2">
+													<NcActionButton @click="state.startEditor({ scope: 'user', ruleId: rule.id })">{{ t('libresign', 'Edit') }}</NcActionButton>
+													<NcActionButton @click="promptRuleRemoval(rule.id, 'user', state.resolveTargetLabel('user', rule.targetId || ''))">{{ t('libresign', 'Remove') }}</NcActionButton>
+												</NcActions>
 											</td>
 										</tr>
 										<tr v-if="pagedUserExceptions.length === 0">
@@ -572,15 +597,19 @@
 
 <script setup lang="ts">
 import {
+	mdiFilter,
 	mdiFormatListBulletedSquare,
 	mdiViewGridOutline,
 } from '@mdi/js'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSelectUsers from '@nextcloud/vue/components/NcSelectUsers'
@@ -828,15 +857,21 @@ function onUserSearchChange(value: string | number) {
 	userPage.value = 1
 }
 
-function onGroupOverrideFilterChange(event: Event) {
-	const next = (event.target as HTMLSelectElement).value as 'all' | 'allowed' | 'blocked'
-	groupOverrideFilter.value = next
+function setGroupOverrideFilter(value: 'all' | 'allowed' | 'blocked', selected: boolean) {
+	if (!selected) {
+		return
+	}
+
+	groupOverrideFilter.value = value
 	groupPage.value = 1
 }
 
-function onUserValueFilterChange(event: Event) {
-	const next = (event.target as HTMLSelectElement).value as 'all' | 'parallel' | 'ordered_numeric'
-	userValueFilter.value = next
+function setUserValueFilter(value: 'all' | 'parallel' | 'ordered_numeric', selected: boolean) {
+	if (!selected) {
+		return
+	}
+
+	userValueFilter.value = value
 	userPage.value = 1
 }
 
@@ -1558,8 +1593,14 @@ onBeforeUnmount(() => {
 		align-items: flex-start;
 		flex-direction: column;
 		gap: 0.35rem;
-		padding: 0.65rem 0;
+		padding: 0.25rem 0;
 		color: var(--color-main-text);
+	}
+
+	&__summary-wrap {
+		:deep(.notecard) {
+			margin: 0;
+		}
 	}
 
 	&__summary-primary {
@@ -1738,19 +1779,18 @@ onBeforeUnmount(() => {
 	}
 
 	&__tab {
-		appearance: none;
-		border: 1px solid var(--color-border-maxcontrast);
-		background: var(--color-main-background);
-		color: var(--color-main-text);
-		padding: 0.45rem 0.75rem;
-		border-radius: 999px;
-		font-size: 0.84rem;
-		cursor: pointer;
+		:deep(.button-vue) {
+			border-radius: 999px;
+			font-size: 0.84rem;
+			border: 1px solid var(--color-border-maxcontrast);
+		}
 
 		&--active {
-			border-color: var(--color-primary-element);
-			background: color-mix(in srgb, var(--color-primary-element) 12%, var(--color-main-background));
-			font-weight: 600;
+			:deep(.button-vue) {
+				border-color: var(--color-primary-element);
+				background: color-mix(in srgb, var(--color-primary-element) 12%, var(--color-main-background));
+				font-weight: 600;
+			}
 		}
 	}
 
@@ -1787,13 +1827,9 @@ onBeforeUnmount(() => {
 		font-size: 0.8rem;
 		color: var(--color-text-maxcontrast);
 
-		select {
-			height: 36px;
-			border-radius: 8px;
-			border: 1px solid var(--color-border-maxcontrast);
-			background: var(--color-main-background);
-			padding: 0 0.6rem;
+		:deep(.button-vue) {
 			min-width: 180px;
+			justify-content: flex-start;
 		}
 	}
 
@@ -1837,16 +1873,12 @@ onBeforeUnmount(() => {
 	&__table-actions {
 		white-space: nowrap;
 
-		button {
-			appearance: none;
-			border: none;
-			background: none;
-			padding: 0;
-			margin-right: 0.45rem;
+		:deep(.actions) {
+			justify-content: flex-start;
+		}
+
+		:deep(.action-item) {
 			font-size: 0.84rem;
-			cursor: pointer;
-			color: var(--color-primary-element);
-			text-decoration: underline;
 		}
 	}
 
@@ -2226,9 +2258,11 @@ onBeforeUnmount(() => {
 			grid-template-columns: 1fr;
 		}
 
-		&__table-filter select {
-			min-width: 0;
-			width: 100%;
+		&__table-filter {
+			:deep(.button-vue) {
+				min-width: 0;
+				width: 100%;
+			}
 		}
 
 		&__pagination {
