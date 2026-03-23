@@ -13,6 +13,8 @@ use OCA\Libresign\Service\Policy\Model\PolicyContext;
 interface IPolicyDefinition {
 	public function key(): string;
 
+	public function resolutionMode(): string;
+
 	public function getAppConfigKey(): string;
 
 	public function getUserPreferenceKey(): string;
