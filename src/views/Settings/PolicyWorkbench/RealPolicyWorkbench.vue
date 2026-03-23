@@ -180,32 +180,33 @@
 								<span class="policy-workbench__summary-divider">·</span>
 								<span>{{ state.summary.activeUserExceptions }} {{ t('libresign', 'user exception', 'user exceptions', state.summary.activeUserExceptions) }}</span>
 							</p>
-							<button
-								v-if="!showPrecedenceExplanation"
-								type="button"
-								class="policy-workbench__learn-link"
+							<NcButton
+								variant="tertiary"
+								size="small"
+								class="policy-workbench__summary-learn-link"
 								:aria-label="t('libresign', 'Learn how inheritance works')"
-								@click="showPrecedenceExplanation = true">
-								{{ t('libresign', '? How it works') }}
-							</button>
+								:aria-expanded="showPrecedenceExplanation ? 'true' : 'false'"
+								@click="showPrecedenceExplanation = !showPrecedenceExplanation">
+								<template #icon>
+									<NcIconSvgWrapper :path="showPrecedenceExplanation ? mdiChevronUp : mdiChevronDown" :size="16" />
+								</template>
+								{{ t('libresign', 'How it works') }}
+							</NcButton>
 						</div>
 					</NcNoteCard>
 				</div>
 
-				<!-- Collapsed help: How inheritance works -->
-				<section v-if="showPrecedenceExplanation" class="policy-workbench__inheritance-help">
-					<ul>
+				<section v-show="showPrecedenceExplanation" class="policy-workbench__precedence-explanation" :aria-hidden="showPrecedenceExplanation ? 'false' : 'true'">
+					<div class="policy-workbench__precedence-header">
+						<h3>{{ t('libresign', 'Inheritance order') }}</h3>
+						<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="18" />
+					</div>
+					<ul class="policy-workbench__precedence-list">
 						<li>{{ t('libresign', 'User rule overrides group rule') }}</li>
 						<li>{{ t('libresign', 'Group rule overrides global default') }}</li>
 						<li>{{ t('libresign', 'Global default overrides system default') }}</li>
 						<li>{{ t('libresign', 'System default is used if no global default exists') }}</li>
 					</ul>
-					<button
-						type="button"
-						class="policy-workbench__help-close"
-						@click="showPrecedenceExplanation = false">
-						{{ t('libresign', 'Close') }}
-					</button>
 				</section>
 
 				<div class="policy-workbench__content">
@@ -328,8 +329,18 @@
 											</td>
 											<td class="policy-workbench__table-actions">
 												<NcActions :force-name="true" :inline="2">
-													<NcActionButton @click="state.startEditor({ scope: 'group', ruleId: rule.id })">{{ t('libresign', 'Edit') }}</NcActionButton>
-													<NcActionButton @click="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))">{{ t('libresign', 'Remove') }}</NcActionButton>
+													<NcActionButton @click="state.startEditor({ scope: 'group', ruleId: rule.id })">
+														<template #icon>
+															<NcIconSvgWrapper :path="mdiPencil" :size="16" />
+														</template>
+														{{ t('libresign', 'Edit') }}
+													</NcActionButton>
+													<NcActionButton @click="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))">
+														<template #icon>
+															<NcIconSvgWrapper :path="mdiDelete" :size="16" />
+														</template>
+														{{ t('libresign', 'Remove') }}
+													</NcActionButton>
 												</NcActions>
 											</td>
 										</tr>
@@ -408,8 +419,18 @@
 											<td>{{ t('libresign', 'Final') }}</td>
 											<td class="policy-workbench__table-actions">
 												<NcActions :force-name="true" :inline="2">
-													<NcActionButton @click="state.startEditor({ scope: 'user', ruleId: rule.id })">{{ t('libresign', 'Edit') }}</NcActionButton>
-													<NcActionButton @click="promptRuleRemoval(rule.id, 'user', state.resolveTargetLabel('user', rule.targetId || ''))">{{ t('libresign', 'Remove') }}</NcActionButton>
+													<NcActionButton @click="state.startEditor({ scope: 'user', ruleId: rule.id })">
+														<template #icon>
+															<NcIconSvgWrapper :path="mdiPencil" :size="16" />
+														</template>
+														{{ t('libresign', 'Edit') }}
+													</NcActionButton>
+													<NcActionButton @click="promptRuleRemoval(rule.id, 'user', state.resolveTargetLabel('user', rule.targetId || ''))">
+														<template #icon>
+															<NcIconSvgWrapper :path="mdiDelete" :size="16" />
+														</template>
+														{{ t('libresign', 'Remove') }}
+													</NcActionButton>
 												</NcActions>
 											</td>
 										</tr>
@@ -597,8 +618,13 @@
 
 <script setup lang="ts">
 import {
+	mdiChevronDown,
+	mdiChevronUp,
+	mdiDelete,
 	mdiFilter,
 	mdiFormatListBulletedSquare,
+	mdiHelpCircleOutline,
+	mdiPencil,
 	mdiViewGridOutline,
 } from '@mdi/js'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
