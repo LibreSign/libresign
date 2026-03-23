@@ -49,6 +49,7 @@ final class SignatureFlowPolicy implements IPolicyDefinitionProvider {
 					return $rawValue;
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				resolutionMode: PolicySpec::RESOLUTION_MODE_VALUE_CHOICE,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
 		};
