@@ -155,11 +155,8 @@
 			@closing="requestCloseSetting()">
 			<div class="policy-workbench__dialog">
 				<header class="policy-workbench__dialog-header">
-					<p class="policy-workbench__eyebrow">
-						{{ state.viewMode === 'system-admin' ? t('libresign', 'System admin workspace') : t('libresign', 'Group admin workspace') }}
-					</p>
 					<h2>{{ state.activeDefinition.title }}</h2>
-					<p>{{ state.activeDefinition.description }}</p>
+					<p class="policy-workbench__dialog-description">{{ state.activeDefinition.description }}</p>
 				</header>
 
 				<p
@@ -171,11 +168,14 @@
 
 				<!-- Ultra-compact summary line: Using X: Value · Y groups · Z users [How it works] -->
 				<div v-if="state.summary" class="policy-workbench__summary-line" :aria-label="t('libresign', 'Current policy state')">
-					<span>{{ t('libresign', 'Using {source}: {value}', { source: state.summary.baseSource, value: state.summary.currentBaseValue }) }}</span>
-					<span class="policy-workbench__summary-divider">·</span>
-					<span>{{ state.summary.activeGroupExceptions }} {{ t('libresign', 'group exception', 'group exceptions', state.summary.activeGroupExceptions) }}</span>
-					<span class="policy-workbench__summary-divider">·</span>
-					<span>{{ state.summary.activeUserExceptions }} {{ t('libresign', 'user exception', 'user exceptions', state.summary.activeUserExceptions) }}</span>
+					<p class="policy-workbench__summary-primary">
+						{{ t('libresign', 'Using {source}: {value}', { source: state.summary.baseSource, value: state.summary.currentBaseValue }) }}
+					</p>
+					<p class="policy-workbench__summary-secondary">
+						<span>{{ state.summary.activeGroupExceptions }} {{ t('libresign', 'group exception', 'group exceptions', state.summary.activeGroupExceptions) }}</span>
+						<span class="policy-workbench__summary-divider">·</span>
+						<span>{{ state.summary.activeUserExceptions }} {{ t('libresign', 'user exception', 'user exceptions', state.summary.activeUserExceptions) }}</span>
+					</p>
 					<button
 						v-if="!showPrecedenceExplanation"
 						type="button"
@@ -266,6 +266,7 @@
 						</div>
 
 						<div v-if="activeExceptionTab === 'group'" class="policy-workbench__table-section">
+							<h4 class="policy-workbench__table-heading">{{ t('libresign', 'Group exceptions') }}</h4>
 							<div class="policy-workbench__table-toolbar">
 								<NcTextField
 									:model-value="groupExceptionSearch"
@@ -273,26 +274,23 @@
 									:placeholder="t('libresign', 'Search by group or value')"
 									@update:modelValue="onGroupSearchChange" />
 								<label class="policy-workbench__table-filter">
-									<span>{{ t('libresign', 'Override') }}</span>
+									<span>{{ t('libresign', 'Users can override') }}</span>
 									<select :value="groupOverrideFilter" @change="onGroupOverrideFilterChange">
 										<option value="all">{{ t('libresign', 'All') }}</option>
 										<option value="allowed">{{ t('libresign', 'Users may override') }}</option>
 										<option value="blocked">{{ t('libresign', 'Users must inherit') }}</option>
 									</select>
 								</label>
-								<NcButton
-									v-if="state.viewMode === 'system-admin'"
-									variant="secondary"
-									size="small"
-									:disabled="!!state.createGroupOverrideDisabledReason"
-									@click="state.startEditor({ scope: 'group' })">
-									{{ t('libresign', 'Add group exception') }}
-								</NcButton>
+								<div class="policy-workbench__table-toolbar-action">
+									<NcButton
+										v-if="state.viewMode === 'system-admin'"
+										variant="secondary"
+										size="small"
+										@click="state.startEditor({ scope: 'group' })">
+										{{ t('libresign', 'Add group exception') }}
+									</NcButton>
+								</div>
 							</div>
-
-							<p v-if="state.createGroupOverrideDisabledReason" class="policy-workbench__table-note">
-								{{ state.createGroupOverrideDisabledReason }}
-							</p>
 
 							<div class="policy-workbench__table-scroll">
 								<table class="policy-workbench__table">
@@ -300,7 +298,7 @@
 										<tr>
 											<th>{{ t('libresign', 'Group') }}</th>
 											<th>{{ t('libresign', 'Value') }}</th>
-											<th>{{ t('libresign', 'User exceptions below') }}</th>
+											<th>{{ t('libresign', 'Users can override') }}</th>
 											<th>{{ t('libresign', 'Actions') }}</th>
 										</tr>
 									</thead>
@@ -308,7 +306,7 @@
 										<tr v-for="rule in pagedGroupExceptions" :key="rule.id">
 											<td>{{ state.resolveTargetLabel('group', rule.targetId || '') }}</td>
 											<td>{{ summarizeRuleValue(rule.value) }}</td>
-											<td>{{ rule.allowChildOverride ? t('libresign', 'Allowed') : t('libresign', 'Blocked') }}</td>
+											<td>{{ rule.allowChildOverride ? t('libresign', 'Yes') : t('libresign', 'No') }}</td>
 											<td class="policy-workbench__table-actions">
 												<button type="button" @click="state.startEditor({ scope: 'group', ruleId: rule.id })">{{ t('libresign', 'Edit') }}</button>
 												<button type="button" @click="promptRuleRemoval(rule.id, 'group', state.resolveTargetLabel('group', rule.targetId || ''))">{{ t('libresign', 'Remove') }}</button>
@@ -329,6 +327,7 @@
 						</div>
 
 						<div v-else class="policy-workbench__table-section">
+							<h4 class="policy-workbench__table-heading">{{ t('libresign', 'User exceptions') }}</h4>
 							<div class="policy-workbench__table-toolbar">
 								<NcTextField
 									:model-value="userExceptionSearch"
@@ -343,17 +342,18 @@
 										<option value="ordered_numeric">{{ t('libresign', 'Sequential') }}</option>
 									</select>
 								</label>
-								<NcButton
-									v-if="!state.createUserOverrideDisabledReason"
-									variant="secondary"
-									size="small"
-									@click="state.startEditor({ scope: 'user' })">
-									{{ t('libresign', 'Add user exception') }}
-								</NcButton>
+								<div class="policy-workbench__table-toolbar-action">
+									<NcButton
+										variant="secondary"
+										size="small"
+										@click="state.startEditor({ scope: 'user' })">
+										{{ t('libresign', 'Add user exception') }}
+									</NcButton>
+								</div>
 							</div>
 
 							<p v-if="state.createUserOverrideDisabledReason" class="policy-workbench__table-note">
-								{{ t('libresign', 'Some users may be ineligible for user exceptions based on group inheritance rules.') }}
+								{{ t('libresign', 'Some users may not allow user exceptions because their group rule requires inheritance.') }}
 							</p>
 
 							<div class="policy-workbench__table-scroll">
@@ -1371,7 +1371,8 @@ onBeforeUnmount(() => {
 
 	&__dialog-header {
 		display: flex;
-		justify-content: space-between;
+		justify-content: flex-start;
+		flex-direction: column;
 		gap: 1rem;
 		align-items: flex-start;
 
@@ -1383,6 +1384,11 @@ onBeforeUnmount(() => {
 		h2 {
 			word-break: break-word;
 		}
+	}
+
+	&__dialog-description {
+		max-width: 72ch;
+		color: var(--color-text-maxcontrast);
 	}
 
 	&__dialog-actions {
@@ -1537,17 +1543,27 @@ onBeforeUnmount(() => {
 	// New compact summary line
 	&__summary-line {
 		display: flex;
-		align-items: center;
-		gap: 0.45rem;
-		flex-wrap: wrap;
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 0.35rem;
 		padding: 0.65rem 0;
+		color: var(--color-main-text);
+	}
+
+	&__summary-primary {
+		margin: 0;
+		font-size: 0.98rem;
+		font-weight: 600;
+		line-height: 1.35;
+	}
+
+	&__summary-secondary {
+		margin: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
 		font-size: 0.88rem;
 		color: var(--color-text-maxcontrast);
-
-		strong {
-			color: var(--color-main-text);
-			font-weight: 600;
-		}
 	}
 
 	&__summary-divider {
@@ -1559,7 +1575,7 @@ onBeforeUnmount(() => {
 		border: none;
 		color: var(--color-primary-element);
 		cursor: pointer;
-		font-size: 0.88rem;
+		font-size: 0.84rem;
 		padding: 0;
 		text-decoration: underline;
 
@@ -1724,11 +1740,23 @@ onBeforeUnmount(() => {
 		gap: 0.75rem;
 	}
 
+	&__table-heading {
+		margin: 0;
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: var(--color-main-text);
+	}
+
 	&__table-toolbar {
 		display: grid;
 		grid-template-columns: minmax(220px, 1fr) auto auto;
 		gap: 0.65rem;
 		align-items: end;
+	}
+
+	&__table-toolbar-action {
+		display: flex;
+		justify-content: flex-end;
 	}
 
 	&__table-filter {
@@ -1750,8 +1778,8 @@ onBeforeUnmount(() => {
 
 	&__table-scroll {
 		overflow-x: auto;
-		border: 1px solid var(--color-border);
-		border-radius: 10px;
+		border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+		border-radius: 8px;
 	}
 
 	&__table {
@@ -1762,7 +1790,7 @@ onBeforeUnmount(() => {
 		th,
 		td {
 			text-align: left;
-			padding: 0.6rem 0.75rem;
+			padding: 0.48rem 0.65rem;
 			border-bottom: 1px solid var(--color-border);
 			vertical-align: middle;
 		}
@@ -1779,6 +1807,10 @@ onBeforeUnmount(() => {
 		tr:last-child td {
 			border-bottom: none;
 		}
+
+		tbody tr:hover td {
+			background: color-mix(in srgb, var(--color-main-background) 90%, var(--color-background-dark));
+		}
 	}
 
 	&__table-actions {
@@ -1789,7 +1821,7 @@ onBeforeUnmount(() => {
 			border: none;
 			background: none;
 			padding: 0;
-			margin-right: 0.6rem;
+			margin-right: 0.45rem;
 			font-size: 0.84rem;
 			cursor: pointer;
 			color: var(--color-primary-element);
@@ -2131,9 +2163,7 @@ onBeforeUnmount(() => {
 		}
 
 		&__summary-line {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 0.3rem;
+			gap: 0.25rem;
 		}
 
 		&__table-toolbar {
