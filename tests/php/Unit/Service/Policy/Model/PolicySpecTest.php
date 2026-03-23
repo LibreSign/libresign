@@ -20,8 +20,20 @@ final class PolicySpecTest extends TestCase {
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
 		);
 
+		$this->assertSame(PolicySpec::RESOLUTION_MODE_RESOLVED, $spec->resolutionMode());
 		$this->assertSame('signature_flow', $spec->getAppConfigKey());
 		$this->assertSame('policy.signature_flow', $spec->getUserPreferenceKey());
+	}
+
+	public function testResolutionModeMayBeConfiguredPerPolicy(): void {
+		$spec = new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			resolutionMode: PolicySpec::RESOLUTION_MODE_VALUE_CHOICE,
+		);
+
+		$this->assertSame(PolicySpec::RESOLUTION_MODE_VALUE_CHOICE, $spec->resolutionMode());
 	}
 
 	public function testNormalizerAndValidatorAreApplied(): void {
