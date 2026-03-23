@@ -112,6 +112,95 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertNull($resolved->getBlockedBy());
 	}
 
+	public function testResolveValueChoiceUnionsConflictingGroupValues(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues(['ordered_numeric']),
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('parallel')
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues(['parallel']),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($this->getValueChoiceDefinition(), PolicyContext::fromUserId('john'));
+
+		$this->assertSame('parallel', $resolved->getEffectiveValue());
+		$this->assertSame('group', $resolved->getSourceScope());
+		$this->assertSame(['parallel', 'ordered_numeric'], $resolved->getAllowedValues());
+		$this->assertTrue($resolved->isEditableByCurrentActor());
+		$this->assertTrue($resolved->canSaveAsUserDefault());
+		$this->assertTrue($resolved->canUseAsRequestOverride());
+	}
+
+	public function testResolveValueChoiceLetsCustomizableGroupBroadenFixedGroupChoice(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues(['ordered_numeric']),
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($this->getValueChoiceDefinition(), PolicyContext::fromUserId('john'));
+
+		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
+		$this->assertSame(['parallel', 'ordered_numeric'], $resolved->getAllowedValues());
+		$this->assertTrue($resolved->canUseAsRequestOverride());
+	}
+
+	public function testResolveDoesNotApplyGroupValueWhenSystemBlocksOverride(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('ordered_numeric')
+			->setAllowChildOverride(false)
+			->setVisibleToChild(true)
+			->setAllowedValues(['ordered_numeric']);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('parallel')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues(['parallel', 'ordered_numeric']),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($this->getDefinition(), PolicyContext::fromUserId('john'));
+
+		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
+		$this->assertSame('system', $resolved->getSourceScope());
+		$this->assertSame(['ordered_numeric'], $resolved->getAllowedValues());
+		$this->assertFalse($resolved->canUseAsRequestOverride());
+	}
+
 	public function testResolveIgnoresCircleLayersInCurrentPhase(): void {
 		$source = new InMemoryPolicySource();
 		$source->systemLayer = (new PolicyLayer())
@@ -146,6 +235,15 @@ final class DefaultPolicyResolverTest extends TestCase {
 			key: 'signature_flow',
 			defaultSystemValue: 'none',
 			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+		);
+	}
+
+	private function getValueChoiceDefinition(): PolicySpec {
+		return new PolicySpec(
+			key: 'signature_flow',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+			resolutionMode: PolicySpec::RESOLUTION_MODE_VALUE_CHOICE,
 		);
 	}
 }
