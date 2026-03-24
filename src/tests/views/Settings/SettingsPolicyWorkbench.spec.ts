@@ -40,6 +40,8 @@ function mountWorkbench() {
 				NcIconSvgWrapper: { template: '' },
 				NcNoteCard: { template: '<div class="note-card"><slot /></div>' },
 				NcDialog: { template: '<div class="dialog"><slot /></div>' },
+				NcPopover: { template: '<div class="nc-popover-stub"><slot name="trigger" /><slot /></div>' },
+				NcChip: { template: '<button class="nc-chip-stub">{{ text }}</button>', props: ['text'] },
 				NcCheckboxRadioSwitch: { template: '<input type="checkbox" @change="$emit(\'update:modelValue\', $event.target.checked)" />' },
 				NcSelectUsers: { template: '<div class="nc-select-users-stub" />' },
 				NcActions: { template: '<div><slot /></div>' },
@@ -102,8 +104,8 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		const text = wrapper.text()
 
-		// Validate scope controls are explicitly labeled as table filter
-		expect(text).toContain('Filter table by scope')
+		// Validate scope filter follows Files-like filter entrypoint
+		expect(text).toContain('Filters')
 
 		// Validate search/filter UI exists
 		expect(wrapper.find('input[type="text"]').exists()).toBe(true)
