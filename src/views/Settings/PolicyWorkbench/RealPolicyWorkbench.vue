@@ -200,9 +200,14 @@
 							</label>
 						</div>
 						<div v-if="state.viewMode === 'system-admin'" class="policy-workbench__crud-create">
-							<p class="policy-workbench__table-note policy-workbench__table-note--compact">
-								{{ t('libresign', 'Select the scope filter to choose where the next rule will be created.') }}
-							</p>
+							<label class="policy-workbench__create-inline">
+								<span>{{ t('libresign', 'Create in') }}</span>
+								<select class="policy-workbench__create-select" :value="newRuleScope" @change="setNewRuleScope(($event.target as HTMLSelectElement).value as 'system' | 'group' | 'user', true)">
+									<option value="system">{{ t('libresign', 'Instance') }}</option>
+									<option value="group">{{ t('libresign', 'Group') }}</option>
+									<option value="user">{{ t('libresign', 'User') }}</option>
+								</select>
+							</label>
 							<NcButton variant="primary" size="small" :disabled="isCreateRuleDisabled" :title="createRuleDisabledReason || undefined" @click="startCreateRule()">
 								{{ t('libresign', 'Create rule') }}
 							</NcButton>
@@ -263,7 +268,7 @@
 												</NcActionButton>
 											</NcActions>
 										</template>
-										<span class="policy-workbench__table-note">{{ t('libresign', 'Read only') }}</span>
+										<span v-else class="policy-workbench__table-note">{{ t('libresign', 'Read only') }}</span>
 									</td>
 								</tr>
 								<tr v-if="pagedCrudRows.length === 0">
@@ -401,6 +406,7 @@ const lastPress = ref<{ surface: 'cards' | 'list', key: string, x: number, y: nu
 const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at: number } | null>(null)
 const crudSearch = ref('')
 const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
+const newRuleScope = ref<'system' | 'group' | 'user'>('group')
 const crudPage = ref(1)
 const CRUD_PAGE_SIZE = 20
 
@@ -544,15 +550,11 @@ const editorHelp = computed(() => {
 })
 
 const createRuleDisabledReason = computed(() => {
-	if (crudScopeFilter.value === 'all') {
-		return t('libresign', 'Select Instance, Group, or User in the scope filter before creating a rule.')
-	}
-
-	if (crudScopeFilter.value === 'group') {
+	if (newRuleScope.value === 'group') {
 		return state.createGroupOverrideDisabledReason || ''
 	}
 
-	if (crudScopeFilter.value === 'user') {
+	if (newRuleScope.value === 'user') {
 		return state.createUserOverrideDisabledReason || ''
 	}
 
@@ -649,16 +651,20 @@ function setCrudScopeFilter(value: 'all' | 'system' | 'group' | 'user', selected
 	crudPage.value = 1
 }
 
+function setNewRuleScope(value: 'system' | 'group' | 'user', selected: boolean) {
+	if (!selected) {
+		return
+	}
+
+	newRuleScope.value = value
+}
+
 function startCreateRule() {
 	if (isCreateRuleDisabled.value) {
 		return
 	}
 
-	if (crudScopeFilter.value === 'all') {
-		return
-	}
-
-	state.startEditor({ scope: crudScopeFilter.value })
+	state.startEditor({ scope: newRuleScope.value })
 }
 
 function onSettingsFilterChange(value: string | number) {
@@ -1892,6 +1898,24 @@ onBeforeUnmount(() => {
 		&--align-right {
 			text-align: right;
 		}
+	}
+
+	&__create-inline {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		font-size: 0.84rem;
+		color: var(--color-text-maxcontrast);
+	}
+
+	&__create-select {
+		height: 2rem;
+		min-width: 8.5rem;
+		padding: 0 0.5rem;
+		border: 1px solid color-mix(in srgb, var(--color-border-maxcontrast) 68%, transparent);
+		border-radius: 8px;
+		background: var(--color-main-background);
+		color: var(--color-main-text);
 	}
 
 	&__table-empty-state {
