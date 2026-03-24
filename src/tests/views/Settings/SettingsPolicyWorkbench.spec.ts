@@ -94,10 +94,16 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.text()).not.toContain('Instance default')
 	})
 
-	it('shows signing order with sophisticated visual interface: filter, toggle, counts, and scopes', () => {
+	it('shows signing order with sophisticated visual interface: filter, toggle, counts, and scopes', async () => {
 		const wrapper = mountWorkbench()
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
 
 		const text = wrapper.text()
+
+		// Validate scope controls are explicitly labeled as table filter
+		expect(text).toContain('Filter table by scope')
 
 		// Validate search/filter UI exists
 		expect(wrapper.find('input[type="text"]').exists()).toBe(true)
