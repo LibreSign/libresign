@@ -135,6 +135,18 @@ const realDefinitions = {
 }
 
 function resolveSignatureFlowMode(value: EffectivePolicyValue): string | null {
+	if (value === 0) {
+		return 'none'
+	}
+
+	if (value === 1) {
+		return 'parallel'
+	}
+
+	if (value === 2) {
+		return 'ordered_numeric'
+	}
+
 	if (typeof value === 'string') {
 		return value
 	}
@@ -145,6 +157,15 @@ function resolveSignatureFlowMode(value: EffectivePolicyValue): string | null {
 	}
 
 	return null
+}
+
+function normalizeDraftValueForPolicy(policyKey: string, value: EffectivePolicyValue): EffectivePolicyValue {
+	if (policyKey !== 'signature_flow') {
+		return value
+	}
+
+	const mode = resolveSignatureFlowMode(value)
+	return mode ?? 'parallel'
 }
 
 function inferSystemAllowOverride(policy: { allowedValues?: unknown[] } | null): boolean {
@@ -622,7 +643,7 @@ export function createRealPolicyWorkbenchState() {
 		if (isEdit && ruleId) {
 			const rule = findRuleById(scope, ruleId)
 			if (rule) {
-				value = rule.value
+				value = normalizeDraftValueForPolicy(activeDefinition.value.key, rule.value)
 				allowChildOverride = rule.allowChildOverride
 				targetIds = rule.targetId ? [rule.targetId] : []
 			}
