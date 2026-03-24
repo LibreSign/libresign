@@ -61,15 +61,16 @@ describe('RealPolicyWorkbench.vue', () => {
 		})
 	})
 
-	it('requires selecting a specific scope before allowing create rule', async () => {
+	it('shows a dedicated create scope selector independent from the filter', async () => {
 		const wrapper = mountWorkbench()
 
 		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
-		expect(wrapper.text()).toContain('Select Instance, Group, or User in the scope filter before creating a rule')
-		expect(wrapper.text()).toContain('Select the scope filter to choose where the next rule will be created')
+		expect(wrapper.text()).toContain('Create in')
+		expect(wrapper.text()).toContain('Create rule')
+		expect(wrapper.text()).not.toContain('Select Instance, Group, or User in the scope filter before creating a rule')
 	})
 
 	it('shows callout when there is no persisted global default rule', async () => {
