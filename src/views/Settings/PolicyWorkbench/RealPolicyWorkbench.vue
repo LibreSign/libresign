@@ -200,15 +200,7 @@
 							</label>
 						</div>
 						<div v-if="state.viewMode === 'system-admin'" class="policy-workbench__crud-create">
-							<label class="policy-workbench__create-inline">
-								<span>{{ t('libresign', 'Create in') }}</span>
-								<select class="policy-workbench__create-select" :value="newRuleScope" @change="setNewRuleScope(($event.target as HTMLSelectElement).value as 'system' | 'group' | 'user', true)">
-									<option value="system">{{ t('libresign', 'Instance') }}</option>
-									<option value="group">{{ t('libresign', 'Group') }}</option>
-									<option value="user">{{ t('libresign', 'User') }}</option>
-								</select>
-							</label>
-							<NcButton variant="primary" size="small" :disabled="isCreateRuleDisabled" :title="createRuleDisabledReason || undefined" @click="startCreateRule()">
+							<NcButton variant="primary" size="small" :disabled="!hasCreatableScope" :title="createRuleDisabledReason || undefined" @click="requestCreateRule()">
 								{{ t('libresign', 'Create rule') }}
 							</NcButton>
 							<p v-if="createRuleDisabledReason" class="policy-workbench__table-note policy-workbench__table-note--align-right">
@@ -342,6 +334,32 @@
 		</NcDialog>
 
 		<NcDialog
+			v-if="showCreateScopeDialog"
+			:name="t('libresign', 'What do you want to create?')"
+			size="normal"
+			:can-close="true"
+			@closing="cancelCreateScopeDialog">
+			<div class="policy-workbench__create-scope-dialog">
+				<p>{{ t('libresign', 'Choose the level where the new rule should be created.') }}</p>
+				<div class="policy-workbench__create-scope-actions">
+					<NcButton variant="secondary" :disabled="scopeCreateDisabledReason('system').length > 0" @click="startCreateRuleForScope('system')">
+						{{ t('libresign', 'Instance') }}
+					</NcButton>
+					<NcButton variant="secondary" :disabled="scopeCreateDisabledReason('group').length > 0" @click="startCreateRuleForScope('group')">
+						{{ t('libresign', 'Group') }}
+					</NcButton>
+					<NcButton variant="secondary" :disabled="scopeCreateDisabledReason('user').length > 0" @click="startCreateRuleForScope('user')">
+						{{ t('libresign', 'User') }}
+					</NcButton>
+				</div>
+				<ul class="policy-workbench__create-scope-notes">
+					<li v-if="scopeCreateDisabledReason('group')">{{ t('libresign', 'Group') }}: {{ scopeCreateDisabledReason('group') }}</li>
+					<li v-if="scopeCreateDisabledReason('user')">{{ t('libresign', 'User') }}: {{ scopeCreateDisabledReason('user') }}</li>
+				</ul>
+			</div>
+		</NcDialog>
+
+		<NcDialog
 			v-if="pendingDiscardAction"
 			:name="t('libresign', 'Discard unsaved changes?')"
 			:message="t('libresign', 'You have unsaved changes in this editor. If you continue, your changes will be lost.')"
@@ -399,6 +417,7 @@ const saveStatus = ref<'idle' | 'saving' | 'saved'>('idle')
 const saveFeedbackTimeout = ref<number | null>(null)
 const pendingRemoval = ref<{ ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string, help: string } | null>(null)
 const pendingDiscardAction = ref<'cancel-editor' | 'close-setting' | null>(null)
+const showCreateScopeDialog = ref(false)
 const isRemovingRule = ref(false)
 const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)
@@ -406,7 +425,6 @@ const lastPress = ref<{ surface: 'cards' | 'list', key: string, x: number, y: nu
 const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at: number } | null>(null)
 const crudSearch = ref('')
 const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
-const newRuleScope = ref<'system' | 'group' | 'user'>('group')
 const crudPage = ref(1)
 const CRUD_PAGE_SIZE = 20
 
@@ -549,19 +567,30 @@ const editorHelp = computed(() => {
 	return t('libresign', 'A user override is the most specific layer and takes priority over inherited defaults.')
 })
 
-const createRuleDisabledReason = computed(() => {
-	if (newRuleScope.value === 'group') {
+function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
+	if (scope === 'group') {
 		return state.createGroupOverrideDisabledReason || ''
 	}
 
-	if (newRuleScope.value === 'user') {
+	if (scope === 'user') {
 		return state.createUserOverrideDisabledReason || ''
 	}
 
 	return ''
+}
+
+const hasCreatableScope = computed(() => {
+	return ['system', 'group', 'user']
+		.some((scope) => scopeCreateDisabledReason(scope as 'system' | 'group' | 'user').length === 0)
 })
 
-const isCreateRuleDisabled = computed(() => createRuleDisabledReason.value.length > 0)
+const createRuleDisabledReason = computed(() => {
+	if (!hasCreatableScope.value) {
+		return t('libresign', 'A higher-level rule is blocking new exceptions in all scopes.')
+	}
+
+	return ''
+})
 
 const pendingRemovalMessage = computed(() => {
 	if (!pendingRemoval.value) {
@@ -651,20 +680,25 @@ function setCrudScopeFilter(value: 'all' | 'system' | 'group' | 'user', selected
 	crudPage.value = 1
 }
 
-function setNewRuleScope(value: 'system' | 'group' | 'user', selected: boolean) {
-	if (!selected) {
+function requestCreateRule() {
+	if (!hasCreatableScope.value) {
 		return
 	}
 
-	newRuleScope.value = value
+	showCreateScopeDialog.value = true
 }
 
-function startCreateRule() {
-	if (isCreateRuleDisabled.value) {
+function cancelCreateScopeDialog() {
+	showCreateScopeDialog.value = false
+}
+
+function startCreateRuleForScope(scope: 'system' | 'group' | 'user') {
+	if (scopeCreateDisabledReason(scope).length > 0) {
 		return
 	}
 
-	state.startEditor({ scope: newRuleScope.value })
+	showCreateScopeDialog.value = false
+	state.startEditor({ scope })
 }
 
 function onSettingsFilterChange(value: string | number) {
@@ -932,6 +966,7 @@ onBeforeUnmount(() => {
 	}
 
 	pendingDiscardAction.value = null
+	showCreateScopeDialog.value = false
 })
 </script>
 
@@ -1900,22 +1935,31 @@ onBeforeUnmount(() => {
 		}
 	}
 
-	&__create-inline {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.45rem;
-		font-size: 0.84rem;
-		color: var(--color-text-maxcontrast);
+	&__create-scope-dialog {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+
+		p {
+			margin: 0;
+		}
 	}
 
-	&__create-select {
-		height: 2rem;
-		min-width: 8.5rem;
-		padding: 0 0.5rem;
-		border: 1px solid color-mix(in srgb, var(--color-border-maxcontrast) 68%, transparent);
-		border-radius: 8px;
-		background: var(--color-main-background);
-		color: var(--color-main-text);
+	&__create-scope-actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	&__create-scope-notes {
+		margin: 0;
+		padding-inline-start: 1.1rem;
+		font-size: 0.84rem;
+		color: var(--color-text-maxcontrast);
+
+		li {
+			margin: 0;
+		}
 	}
 
 	&__table-empty-state {
