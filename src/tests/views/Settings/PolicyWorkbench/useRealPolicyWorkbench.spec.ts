@@ -302,6 +302,20 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.inheritedSystemRule).toBeNull()
 	})
 
+	it('normalizes numeric system value when opening editor in edit mode', () => {
+		getPolicy.mockReturnValue({
+			effectiveValue: 2,
+			allowedValues: ['parallel', 'ordered_numeric'],
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'system', ruleId: 'system-default' })
+
+		expect(state.editorMode).toBe('edit')
+		expect(state.editorDraft?.value).toBe('ordered_numeric')
+	})
+
 	it('hydrates system rule override toggle from backend allowed values', () => {
 		getPolicy.mockReturnValue({
 			effectiveValue: 'parallel',
