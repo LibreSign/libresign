@@ -168,8 +168,8 @@
 					</p>
 
 					<div v-if="state.summary" class="policy-workbench__summary-line policy-workbench__summary-line--crud">
-						<span class="policy-workbench__summary-caption">{{ t('libresign', 'Effective baseline') }}</span>
-						<strong>{{ state.summary.currentBaseValue }}</strong>
+						<span class="policy-workbench__summary-caption">{{ t('libresign', 'Default:') }}</span>
+						<strong class="policy-workbench__summary-value-compact">{{ state.summary.currentBaseValue }}</strong>
 						<span class="policy-workbench__value-source">
 							{{ state.hasGlobalDefault ? t('libresign', 'Custom default') : t('libresign', 'System default') }}
 						</span>
@@ -181,42 +181,50 @@
 							:label="t('libresign', 'Search rules')"
 							:placeholder="t('libresign', 'Search by scope, target, or value')"
 							@update:modelValue="onCrudSearchChange" />
-						<NcPopover :boundary="popoverBoundary">
-							<template #trigger>
-								<NcButton :aria-label="t('libresign', 'Filters')" :pressed="crudScopeFilter !== 'all'" variant="tertiary">
-									<template #icon>
-										<NcIconSvgWrapper :path="mdiFilterVariant" />
-									</template>
-									{{ t('libresign', 'Filters') }}
-								</NcButton>
-							</template>
-							<template #default>
-								<div class="policy-workbench__crud-filter-popover">
-									<p class="policy-workbench__crud-filter-title">{{ t('libresign', 'Scope') }}</p>
-									<div class="policy-workbench__crud-filter-options">
-										<label class="policy-workbench__filter-option">
-											<input type="radio" name="crudScope" :checked="crudScopeFilter === 'all'" @change="setCrudScopeFilter('all', true)" />
-											<span>{{ t('libresign', 'All scopes') }}</span>
-										</label>
-										<label class="policy-workbench__filter-option">
-											<input type="radio" name="crudScope" :checked="crudScopeFilter === 'system'" @change="setCrudScopeFilter('system', true)" />
-											<span>{{ t('libresign', 'Instance') }}</span>
-										</label>
-										<label class="policy-workbench__filter-option">
-											<input type="radio" name="crudScope" :checked="crudScopeFilter === 'group'" @change="setCrudScopeFilter('group', true)" />
-											<span>{{ t('libresign', 'Group') }}</span>
-										</label>
-										<label class="policy-workbench__filter-option">
-											<input type="radio" name="crudScope" :checked="crudScopeFilter === 'user'" @change="setCrudScopeFilter('user', true)" />
-											<span>{{ t('libresign', 'User') }}</span>
-										</label>
-									</div>
-									<NcButton v-if="crudScopeFilter !== 'all'" variant="tertiary" @click="setCrudScopeFilter('all', true)">
-										{{ t('libresign', 'Clear filter') }}
+
+						<div class="policy-workbench__crud-controls">
+							<NcPopover :boundary="popoverBoundary">
+								<template #trigger>
+									<NcButton :aria-label="t('libresign', 'Filters')" :pressed="crudScopeFilter !== 'all'" variant="tertiary">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiFilterVariant" />
+										</template>
+										{{ t('libresign', 'Filters') }}
 									</NcButton>
-								</div>
-							</template>
-						</NcPopover>
+								</template>
+								<template #default>
+									<div class="policy-workbench__crud-filter-popover">
+										<p class="policy-workbench__crud-filter-title">{{ t('libresign', 'Scope') }}</p>
+										<div class="policy-workbench__crud-filter-options">
+											<label class="policy-workbench__filter-option">
+												<input type="radio" name="crudScope" :checked="crudScopeFilter === 'all'" @change="setCrudScopeFilter('all', true)" />
+												<span>{{ t('libresign', 'All scopes') }}</span>
+											</label>
+											<label class="policy-workbench__filter-option">
+												<input type="radio" name="crudScope" :checked="crudScopeFilter === 'system'" @change="setCrudScopeFilter('system', true)" />
+												<span>{{ t('libresign', 'Instance') }}</span>
+											</label>
+											<label class="policy-workbench__filter-option">
+												<input type="radio" name="crudScope" :checked="crudScopeFilter === 'group'" @change="setCrudScopeFilter('group', true)" />
+												<span>{{ t('libresign', 'Group') }}</span>
+											</label>
+											<label class="policy-workbench__filter-option">
+												<input type="radio" name="crudScope" :checked="crudScopeFilter === 'user'" @change="setCrudScopeFilter('user', true)" />
+												<span>{{ t('libresign', 'User') }}</span>
+											</label>
+										</div>
+										<NcButton v-if="crudScopeFilter !== 'all'" variant="tertiary" @click="setCrudScopeFilter('all', true)">
+											{{ t('libresign', 'Clear filter') }}
+										</NcButton>
+									</div>
+								</template>
+							</NcPopover>
+
+							<div v-if="activeScopeFilterChip" class="policy-workbench__crud-filter-chips">
+								<NcChip :aria-label-close="t('libresign', 'Remove filter')" :text="activeScopeFilterChip" @close="setCrudScopeFilter('all', true)" />
+							</div>
+						</div>
+
 						<div v-if="state.viewMode === 'system-admin'" class="policy-workbench__crud-create">
 							<NcButton variant="primary" size="small" :disabled="!hasCreatableScope" :title="createRuleDisabledReason || undefined" @click="requestCreateRule()">
 								{{ t('libresign', 'Create rule') }}
@@ -227,11 +235,7 @@
 						</div>
 					</div>
 
-					<div v-if="activeScopeFilterChip" class="policy-workbench__crud-filter-chips">
-						<NcChip :aria-label-close="t('libresign', 'Remove filter')" :text="activeScopeFilterChip" @close="setCrudScopeFilter('all', true)" />
-					</div>
-
-					<p v-if="state.createUserOverrideDisabledReason" class="policy-workbench__table-note">
+					<p v-if="state.createUserOverrideDisabledReason && crudScopeFilter === 'user'" class="policy-workbench__table-note">
 						{{ t('libresign', 'Some users may not allow user overrides because their group rule requires inheritance.') }}
 					</p>
 
@@ -1089,7 +1093,6 @@ onBeforeUnmount(() => {
 	&__crud-filter-chips {
 		display: flex;
 		align-items: center;
-		margin-top: 0.5rem;
 	}
 
 	&__settings-grid {
@@ -1455,12 +1458,20 @@ onBeforeUnmount(() => {
 
 		&--crud {
 			align-items: flex-end;
-			justify-content: space-between;
+			gap: 0.85rem;
 
 			:deep(.text-field) {
-				flex: 1 1 280px;
+				flex: 1 1 320px;
+				min-width: min(100%, 320px);
 			}
 		}
+	}
+
+	&__crud-controls {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex: 0 1 auto;
 	}
 
 	&__crud-create {
@@ -1468,6 +1479,7 @@ onBeforeUnmount(() => {
 		flex-direction: column;
 		align-items: flex-end;
 		gap: 0.45rem;
+		margin-left: auto;
 	}
 
 
@@ -1541,6 +1553,32 @@ onBeforeUnmount(() => {
 	// Editor aside panel (desktop)
 	&__editor-aside {
 		display: none;
+	}
+
+	@media (max-width: 720px) {
+		&__table-toolbar-row--crud {
+			align-items: stretch;
+		}
+
+		&__crud-controls {
+			width: 100%;
+			justify-content: flex-start;
+		}
+
+		&__crud-create {
+			margin-left: 0;
+			align-items: stretch;
+			width: 100%;
+
+			:deep(.button-vue) {
+				width: 100%;
+				justify-content: center;
+			}
+		}
+
+		&__table-note--align-right {
+			text-align: left;
+		}
 	}
 
 	@media (min-width: 961px) {
@@ -1627,22 +1665,27 @@ onBeforeUnmount(() => {
 	// New compact summary line
 	&__summary-line {
 		display: flex;
-		align-items: flex-start;
-		flex-direction: column;
-		gap: 0.35rem;
-		padding: 0.25rem 0;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+		padding: 0.15rem 0;
 		color: var(--color-main-text);
 
 		&--crud {
-			margin: 0.5rem 0 0.75rem;
+			margin: 0.35rem 0 0.6rem;
 		}
 	}
 
 	&__summary-caption {
-		font-size: 0.82rem;
-		text-transform: uppercase;
-		letter-spacing: 0.03em;
+		font-size: 0.86rem;
+		font-weight: 600;
 		color: var(--color-text-maxcontrast);
+	}
+
+	&__summary-value-compact {
+		font-size: 1rem;
+		font-weight: 700;
+		line-height: 1.2;
 	}
 
 	&__summary-wrap {
