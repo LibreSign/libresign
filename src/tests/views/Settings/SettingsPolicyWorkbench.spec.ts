@@ -117,14 +117,16 @@ describe('RealPolicyWorkbench.vue', () => {
 		// Validate toggle button exists for card/list view
 		expect(wrapper.find('.policy-workbench__catalog-view-button').exists()).toBe(true)
 
-		// Validate signing order is displayed
+		// Validate signing order is displayed with compact header copy
 		expect(text).toContain('Signing order')
 		expect(text).toContain('Define whether signers work in parallel or in a sequential order')
-		expect(text).toContain('Define the default signing flow and where overrides are allowed')
 
-		// Validate default value is shown
+		// Validate default value is shown in concise baseline summary
 		expect(text).toContain('Sequential')
-		expect(text).toContain('Global default:')
+		expect(text).toContain('Default:')
+
+		// Validate noisy inheritance warning is not shown by default
+		expect(text).not.toContain('Some users may not allow user overrides because their group rule requires inheritance.')
 
 		// Validate counts shown
 		expect(text).toContain('Group overrides: 0')
