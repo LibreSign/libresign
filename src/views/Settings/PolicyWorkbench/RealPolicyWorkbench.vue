@@ -181,23 +181,26 @@
 							:label="t('libresign', 'Search rules')"
 							:placeholder="t('libresign', 'Search by scope, target, or value')"
 							@update:modelValue="onCrudSearchChange" />
-						<div class="policy-workbench__filter-inline">
-							<label class="policy-workbench__filter-option">
-								<input type="radio" name="crudScope" :checked="crudScopeFilter === 'all'" @change="setCrudScopeFilter('all', true)" />
-								<span>{{ t('libresign', 'All scopes') }}</span>
-							</label>
-							<label class="policy-workbench__filter-option">
-								<input type="radio" name="crudScope" :checked="crudScopeFilter === 'system'" @change="setCrudScopeFilter('system', true)" />
-								<span>{{ t('libresign', 'Instance') }}</span>
-							</label>
-							<label class="policy-workbench__filter-option">
-								<input type="radio" name="crudScope" :checked="crudScopeFilter === 'group'" @change="setCrudScopeFilter('group', true)" />
-								<span>{{ t('libresign', 'Group') }}</span>
-							</label>
-							<label class="policy-workbench__filter-option">
-								<input type="radio" name="crudScope" :checked="crudScopeFilter === 'user'" @change="setCrudScopeFilter('user', true)" />
-								<span>{{ t('libresign', 'User') }}</span>
-							</label>
+						<div class="policy-workbench__scope-filter">
+							<p class="policy-workbench__scope-filter-label">{{ t('libresign', 'Filter table by scope') }}</p>
+							<div class="policy-workbench__filter-inline">
+								<label class="policy-workbench__filter-option">
+									<input type="radio" name="crudScope" :checked="crudScopeFilter === 'all'" @change="setCrudScopeFilter('all', true)" />
+									<span>{{ t('libresign', 'All scopes') }}</span>
+								</label>
+								<label class="policy-workbench__filter-option">
+									<input type="radio" name="crudScope" :checked="crudScopeFilter === 'system'" @change="setCrudScopeFilter('system', true)" />
+									<span>{{ t('libresign', 'Instance') }}</span>
+								</label>
+								<label class="policy-workbench__filter-option">
+									<input type="radio" name="crudScope" :checked="crudScopeFilter === 'group'" @change="setCrudScopeFilter('group', true)" />
+									<span>{{ t('libresign', 'Group') }}</span>
+								</label>
+								<label class="policy-workbench__filter-option">
+									<input type="radio" name="crudScope" :checked="crudScopeFilter === 'user'" @change="setCrudScopeFilter('user', true)" />
+									<span>{{ t('libresign', 'User') }}</span>
+								</label>
+							</div>
 						</div>
 						<div v-if="state.viewMode === 'system-admin'" class="policy-workbench__crud-create">
 							<NcButton variant="primary" size="small" :disabled="!hasCreatableScope" :title="createRuleDisabledReason || undefined" @click="requestCreateRule()">
@@ -1024,6 +1027,21 @@ onBeforeUnmount(() => {
 	&__catalog-meta {
 		margin: 0;
 		font-size: 0.86rem;
+		color: var(--color-text-maxcontrast);
+	}
+
+	&__scope-filter {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	&__scope-filter-label {
+		margin: 0;
+		font-size: 0.78rem;
+		font-weight: 600;
+		letter-spacing: 0.01em;
+		text-transform: uppercase;
 		color: var(--color-text-maxcontrast);
 	}
 
