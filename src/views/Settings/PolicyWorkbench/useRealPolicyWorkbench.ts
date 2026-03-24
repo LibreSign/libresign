@@ -384,7 +384,7 @@ export function createRealPolicyWorkbenchState() {
 	})
 
 	const createGroupOverrideDisabledReason = computed(() => {
-		if (!inheritedSystemRule.value?.allowChildOverride) {
+		if (inheritedSystemRule.value?.allowChildOverride === false) {
 			return t('libresign', 'Blocked by the global default, which requires inheritance for lower layers.')
 		}
 
@@ -392,7 +392,7 @@ export function createRealPolicyWorkbenchState() {
 	})
 
 	const createUserOverrideDisabledReason = computed(() => {
-		if (!inheritedSystemRule.value?.allowChildOverride) {
+		if (inheritedSystemRule.value?.allowChildOverride === false) {
 			return t('libresign', 'Blocked by a higher-level rule that does not allow user exceptions.')
 		}
 
