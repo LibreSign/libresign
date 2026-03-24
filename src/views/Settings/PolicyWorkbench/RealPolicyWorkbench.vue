@@ -200,20 +200,9 @@
 							</label>
 						</div>
 						<div v-if="state.viewMode === 'system-admin'" class="policy-workbench__crud-create">
-							<div class="policy-workbench__filter-inline">
-								<label class="policy-workbench__filter-option">
-									<input type="radio" name="newCrudScope" :checked="newRuleScope === 'system'" @change="setNewRuleScope('system', true)" />
-									<span>{{ t('libresign', 'Instance') }}</span>
-								</label>
-								<label class="policy-workbench__filter-option">
-									<input type="radio" name="newCrudScope" :checked="newRuleScope === 'group'" @change="setNewRuleScope('group', true)" />
-									<span>{{ t('libresign', 'Group') }}</span>
-								</label>
-								<label class="policy-workbench__filter-option">
-									<input type="radio" name="newCrudScope" :checked="newRuleScope === 'user'" @change="setNewRuleScope('user', true)" />
-									<span>{{ t('libresign', 'User') }}</span>
-								</label>
-							</div>
+							<p class="policy-workbench__table-note policy-workbench__table-note--compact">
+								{{ t('libresign', 'Select the scope filter to choose where the next rule will be created.') }}
+							</p>
 							<NcButton variant="primary" size="small" :disabled="isCreateRuleDisabled" :title="createRuleDisabledReason || undefined" @click="startCreateRule()">
 								{{ t('libresign', 'Create rule') }}
 							</NcButton>
@@ -226,6 +215,15 @@
 					<p v-if="state.createUserOverrideDisabledReason" class="policy-workbench__table-note">
 						{{ t('libresign', 'Some users may not allow user overrides because their group rule requires inheritance.') }}
 					</p>
+
+					<NcNoteCard v-if="!state.inheritedSystemRule && state.viewMode === 'system-admin'" type="info">
+						<div class="policy-workbench__empty-state policy-workbench__empty-state--compact">
+							<p>{{ t('libresign', 'No global default rule is defined yet. The instance is currently using the platform fallback.') }}</p>
+							<NcButton variant="secondary" size="small" @click="state.startEditor({ scope: 'system' })">
+								{{ t('libresign', 'Set global default') }}
+							</NcButton>
+						</div>
+					</NcNoteCard>
 
 					<div class="policy-workbench__table-scroll">
 						<table class="policy-workbench__table">
@@ -265,10 +263,7 @@
 												</NcActionButton>
 											</NcActions>
 										</template>
-										<NcButton v-else-if="row.scope === 'system' && state.viewMode === 'system-admin'" variant="secondary" size="small" @click="state.startEditor({ scope: 'system' })">
-											{{ t('libresign', 'Set default') }}
-										</NcButton>
-										<span v-else class="policy-workbench__table-note">{{ t('libresign', 'Read only') }}</span>
+										<span class="policy-workbench__table-note">{{ t('libresign', 'Read only') }}</span>
 									</td>
 								</tr>
 								<tr v-if="pagedCrudRows.length === 0">
@@ -287,79 +282,25 @@
 
 				<!-- Editor panel side-by-side (desktop) -->
 				<div v-if="state.editorDraft && !shouldUseEditorModal" class="policy-workbench__editor-aside">
-						<section v-if="state.editorDraft && !shouldUseEditorModal" class="policy-workbench__editor-panel">
-							<div class="policy-workbench__editor-panel-content" :class="{ 'policy-workbench__editor-panel-content--saving': saveStatus === 'saving' }">
-								<div class="policy-workbench__editor-header">
-									<p class="policy-workbench__eyebrow">
-										{{ state.editorMode === 'edit' ? t('libresign', 'Edit rule') : t('libresign', 'Create rule') }}
-									</p>
-									<h3>{{ editorTitle }}</h3>
-									<p>{{ editorHelp }}</p>
-								</div>
-
-								<div v-if="state.editorDraft.scope !== 'system'" class="policy-workbench__field">
-									<label class="policy-workbench__label">
-										{{ state.editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users') }}
-									</label>
-									<NcSelectUsers
-										:model-value="selectedTargetOptions"
-										:options="state.availableTargets"
-										:aria-label="state.editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users')"
-										:placeholder="state.editorDraft.scope === 'group' ? t('libresign', 'Search groups') : t('libresign', 'Search users')"
-										:loading="state.loadingTargets"
-										:multiple="true"
-										:keep-open="true"
-										:disabled="saveStatus === 'saving'"
-										@search="state.searchAvailableTargets"
-										@update:modelValue="onTargetChange" />
-								</div>
-
-								<div v-if="activeEditor" class="policy-workbench__setting-surface">
-									<component
-										:is="activeEditor"
-										:model-value="state.editorDraft.value"
-										@update:modelValue="state.updateDraftValue" />
-								</div>
-
-								<NcCheckboxRadioSwitch
-									v-if="state.editorDraft.scope !== 'user'"
-									type="switch"
-									:model-value="state.editorDraft.allowChildOverride"
-									:disabled="saveStatus === 'saving'"
-									@update:modelValue="state.updateDraftAllowOverride">
-									<span>{{ t('libresign', 'Allow lower layers to override this rule') }}</span>
-								</NcCheckboxRadioSwitch>
-
-								<NcNoteCard v-if="state.duplicateMessage" type="error">
-									{{ state.duplicateMessage }}
-								</NcNoteCard>
-
-								<div class="policy-workbench__editor-actions">
-									<NcButton variant="primary" :aria-label="state.editorMode === 'edit' ? t('libresign', 'Save policy rule changes') : t('libresign', 'Create policy rule')" :disabled="!state.canSaveDraft || saveStatus === 'saving'" @click="handleSaveDraft()">
-										{{ state.editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
-									</NcButton>
-									<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel editing')" :disabled="saveStatus === 'saving'" @click="requestCancelEditor()">
-										{{ t('libresign', 'Cancel') }}
-									</NcButton>
-								</div>
-								<p v-if="saveStatus !== 'idle'" class="policy-workbench__save-feedback" aria-live="polite">
-									{{ saveStatus === 'saving' ? t('libresign', 'Saving...') : t('libresign', 'Changes saved') }}
-								</p>
-
-								<div v-if="saveStatus === 'saving'" class="policy-workbench__saving-overlay" aria-live="polite" aria-busy="true">
-									<div class="policy-workbench__saving-spinner" aria-hidden="true"></div>
-									<p>{{ t('libresign', 'Saving...') }}</p>
-								</div>
-							</div>
-						</section>
-
-						<section v-else-if="state.editorDraft && shouldUseEditorModal" class="policy-workbench__editor-mobile-hint">
-							<p class="policy-workbench__eyebrow">{{ t('libresign', 'Editing') }}</p>
-							<h3>{{ t('libresign', 'Editor open in modal') }}</h3>
-							<p>
-								{{ t('libresign', 'Your form is displayed in the overlay.') }}
-							</p>
-						</section>
+					<PolicyRuleEditorPanel
+						v-if="state.editorDraft"
+						:editor-draft="state.editorDraft"
+						:editor-mode="state.editorMode"
+						:editor-title="editorTitle"
+						:editor-help="editorHelp"
+						:active-editor="activeEditor"
+						:selected-target-options="selectedTargetOptions"
+						:available-targets="state.availableTargets"
+						:loading-targets="state.loadingTargets"
+						:duplicate-message="state.duplicateMessage"
+						:can-save-draft="state.canSaveDraft"
+						:save-status="saveStatus"
+						@search-targets="state.searchAvailableTargets"
+						@update-targets="onTargetChange"
+						@update-value="state.updateDraftValue"
+						@update-allow-override="state.updateDraftAllowOverride"
+						@save="handleSaveDraft()"
+						@cancel="requestCancelEditor()" />
 					</div>
 				</div>
 
@@ -372,73 +313,37 @@
 			:can-close="true"
 			@closing="requestCancelEditor()">
 			<div class="policy-workbench__editor-modal-body">
-				<section class="policy-workbench__editor-panel">
-					<div class="policy-workbench__editor-panel-content" :class="{ 'policy-workbench__editor-panel-content--saving': saveStatus === 'saving' }">
-						<div class="policy-workbench__editor-header">
-							<p class="policy-workbench__eyebrow">
-								{{ state.editorMode === 'edit' ? t('libresign', 'Edit rule') : t('libresign', 'Create rule') }}
-							</p>
-							<h3>{{ editorTitle }}</h3>
-							<p>{{ editorHelp }}</p>
-						</div>
-
-						<div v-if="state.editorDraft && state.editorDraft.scope !== 'system'" class="policy-workbench__field">
-							<label class="policy-workbench__label">
-								{{ state.editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users') }}
-							</label>
-							<NcSelectUsers
-								:model-value="selectedTargetOptions"
-								:options="state.availableTargets"
-								:aria-label="state.editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users')"
-								:placeholder="state.editorDraft.scope === 'group' ? t('libresign', 'Search groups') : t('libresign', 'Search users')"
-								:loading="state.loadingTargets"
-								:multiple="true"
-								:keep-open="true"
-								:disabled="saveStatus === 'saving'"
-								@search="state.searchAvailableTargets"
-								@update:modelValue="onTargetChange" />
-						</div>
-
-						<div v-if="activeEditor" class="policy-workbench__setting-surface">
-							<component
-								:is="activeEditor"
-								:model-value="state.editorDraft.value"
-								@update:modelValue="state.updateDraftValue" />
-						</div>
-
-						<NcCheckboxRadioSwitch
-							v-if="state.editorDraft && state.editorDraft.scope !== 'user'"
-							type="switch"
-							:model-value="state.editorDraft.allowChildOverride"
-							:disabled="saveStatus === 'saving'"
-							@update:modelValue="state.updateDraftAllowOverride">
-							<span>{{ t('libresign', 'Allow lower layers to override this rule') }}</span>
-						</NcCheckboxRadioSwitch>
-
-						<NcNoteCard v-if="state.duplicateMessage" type="error">
-							{{ state.duplicateMessage }}
-						</NcNoteCard>
-
-						<div class="policy-workbench__editor-actions policy-workbench__editor-actions--sticky-mobile">
-							<NcButton variant="primary" :aria-label="state.editorMode === 'edit' ? t('libresign', 'Save policy rule changes') : t('libresign', 'Create policy rule')" :disabled="!state.canSaveDraft || saveStatus === 'saving'" @click="handleSaveDraft()">
-								{{ state.editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
-							</NcButton>
-							<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel editing')" :disabled="saveStatus === 'saving'" @click="requestCancelEditor()">
-								{{ t('libresign', 'Cancel') }}
-							</NcButton>
-						</div>
-						<p v-if="saveStatus !== 'idle'" class="policy-workbench__save-feedback" aria-live="polite">
-							{{ saveStatus === 'saving' ? t('libresign', 'Saving...') : t('libresign', 'Changes saved') }}
-						</p>
-					</div>
-
-					<div v-if="saveStatus === 'saving'" class="policy-workbench__saving-overlay" aria-live="polite" aria-busy="true">
-						<div class="policy-workbench__saving-spinner" aria-hidden="true"></div>
-						<p>{{ t('libresign', 'Saving...') }}</p>
-					</div>
-				</section>
+				<PolicyRuleEditorPanel
+					v-if="state.editorDraft"
+					:editor-draft="state.editorDraft"
+					:editor-mode="state.editorMode"
+					:editor-title="editorTitle"
+					:editor-help="editorHelp"
+					:active-editor="activeEditor"
+					:selected-target-options="selectedTargetOptions"
+					:available-targets="state.availableTargets"
+					:loading-targets="state.loadingTargets"
+					:duplicate-message="state.duplicateMessage"
+					:can-save-draft="state.canSaveDraft"
+					:save-status="saveStatus"
+					:sticky-actions="true"
+					@search-targets="state.searchAvailableTargets"
+					@update-targets="onTargetChange"
+					@update-value="state.updateDraftValue"
+					@update-allow-override="state.updateDraftAllowOverride"
+					@save="handleSaveDraft()"
+					@cancel="requestCancelEditor()" />
 			</div>
 		</NcDialog>
+
+		<NcDialog
+			v-if="pendingDiscardAction"
+			:name="t('libresign', 'Discard unsaved changes?')"
+			:message="t('libresign', 'You have unsaved changes in this editor. If you continue, your changes will be lost.')"
+			:buttons="discardDialogButtons"
+			size="normal"
+			:can-close="true"
+			@closing="cancelDiscardDialog" />
 
 		<NcDialog
 			v-if="pendingRemoval"
@@ -464,16 +369,15 @@ import { t } from '@nextcloud/l10n'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
-import NcSelectUsers from '@nextcloud/vue/components/NcSelectUsers'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import { usePoliciesStore } from '../../../store/policies'
 import { useUserConfigStore } from '../../../store/userconfig.js'
+import PolicyRuleEditorPanel from './PolicyRuleEditorPanel.vue'
 import { createRealPolicyWorkbenchState } from './useRealPolicyWorkbench'
 
 defineOptions({
@@ -489,6 +393,7 @@ const catalogLayout = ref<'cards' | 'compact'>('cards')
 const saveStatus = ref<'idle' | 'saving' | 'saved'>('idle')
 const saveFeedbackTimeout = ref<number | null>(null)
 const pendingRemoval = ref<{ ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string, help: string } | null>(null)
+const pendingDiscardAction = ref<'cancel-editor' | 'close-setting' | null>(null)
 const isRemovingRule = ref(false)
 const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)
@@ -496,7 +401,6 @@ const lastPress = ref<{ surface: 'cards' | 'list', key: string, x: number, y: nu
 const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at: number } | null>(null)
 const crudSearch = ref('')
 const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
-const newRuleScope = ref<'system' | 'group' | 'user'>('group')
 const crudPage = ref(1)
 const CRUD_PAGE_SIZE = 20
 
@@ -548,15 +452,17 @@ type CrudRow = {
 const filteredCrudRows = computed<CrudRow[]>(() => {
 	const rows: CrudRow[] = []
 	const systemRule = state.inheritedSystemRule
-	rows.push({
-		key: systemRule?.id ?? 'system-default',
-		ruleId: systemRule?.id ?? null,
-		scope: 'system',
-		targetLabel: t('libresign', 'Instance default'),
-		valueLabel: state.summary?.currentBaseValue ?? t('libresign', 'Not configured'),
-		inheritanceLabel: systemRule?.allowChildOverride === false ? t('libresign', 'Must inherit') : t('libresign', 'Can override'),
-		canRemove: Boolean(systemRule?.id && state.hasGlobalDefault),
-	})
+	if (systemRule) {
+		rows.push({
+			key: systemRule.id,
+			ruleId: systemRule.id,
+			scope: 'system',
+			targetLabel: t('libresign', 'Instance default'),
+			valueLabel: state.summary?.currentBaseValue ?? t('libresign', 'Not configured'),
+			inheritanceLabel: systemRule.allowChildOverride === false ? t('libresign', 'Must inherit') : t('libresign', 'Can override'),
+			canRemove: Boolean(systemRule.id && state.hasGlobalDefault),
+		})
+	}
 
 	for (const rule of state.visibleGroupRules) {
 		rows.push({
@@ -638,11 +544,15 @@ const editorHelp = computed(() => {
 })
 
 const createRuleDisabledReason = computed(() => {
-	if (newRuleScope.value === 'group') {
+	if (crudScopeFilter.value === 'all') {
+		return t('libresign', 'Select Instance, Group, or User in the scope filter before creating a rule.')
+	}
+
+	if (crudScopeFilter.value === 'group') {
 		return state.createGroupOverrideDisabledReason || ''
 	}
 
-	if (newRuleScope.value === 'user') {
+	if (crudScopeFilter.value === 'user') {
 		return state.createUserOverrideDisabledReason || ''
 	}
 
@@ -660,6 +570,21 @@ const pendingRemovalMessage = computed(() => {
 		target: pendingRemoval.value.targetLabel,
 		help: pendingRemoval.value.help,
 	})
+})
+
+const discardDialogButtons = computed(() => {
+	return [
+		{
+			label: t('libresign', 'Keep editing'),
+			variant: 'secondary' as const,
+			callback: () => cancelDiscardDialog(),
+		},
+		{
+			label: t('libresign', 'Discard changes'),
+			variant: 'error' as const,
+			callback: () => confirmDiscardDialog(),
+		},
+	]
 })
 
 const removalDialogButtons = computed(() => {
@@ -724,20 +649,16 @@ function setCrudScopeFilter(value: 'all' | 'system' | 'group' | 'user', selected
 	crudPage.value = 1
 }
 
-function setNewRuleScope(value: 'system' | 'group' | 'user', selected: boolean) {
-	if (!selected) {
-		return
-	}
-
-	newRuleScope.value = value
-}
-
 function startCreateRule() {
 	if (isCreateRuleDisabled.value) {
 		return
 	}
 
-	state.startEditor({ scope: newRuleScope.value })
+	if (crudScopeFilter.value === 'all') {
+		return
+	}
+
+	state.startEditor({ scope: crudScopeFilter.value })
 }
 
 function onSettingsFilterChange(value: string | number) {
@@ -913,6 +834,24 @@ function cancelRuleRemoval() {
 	pendingRemoval.value = null
 }
 
+function cancelDiscardDialog() {
+	pendingDiscardAction.value = null
+}
+
+function confirmDiscardDialog() {
+	const action = pendingDiscardAction.value
+	pendingDiscardAction.value = null
+
+	if (action === 'cancel-editor') {
+		state.cancelEditor()
+		return
+	}
+
+	if (action === 'close-setting') {
+		state.closeSetting()
+	}
+}
+
 async function confirmRuleRemoval() {
 	if (!pendingRemoval.value) {
 		return
@@ -948,7 +887,8 @@ function requestCancelEditor() {
 		return
 	}
 
-	if (state.isDraftDirty && !window.confirm(t('libresign', 'Discard unsaved changes?'))) {
+	if (state.isDraftDirty) {
+		pendingDiscardAction.value = 'cancel-editor'
 		return
 	}
 
@@ -960,7 +900,8 @@ function requestCloseSetting() {
 		return
 	}
 
-	if (state.isDraftDirty && !window.confirm(t('libresign', 'Discard unsaved changes?'))) {
+	if (state.isDraftDirty) {
+		pendingDiscardAction.value = 'close-setting'
 		return
 	}
 
@@ -983,6 +924,8 @@ onBeforeUnmount(() => {
 	if (removalFeedbackTimeout.value !== null) {
 		window.clearTimeout(removalFeedbackTimeout.value)
 	}
+
+	pendingDiscardAction.value = null
 })
 </script>
 
@@ -1263,6 +1206,10 @@ onBeforeUnmount(() => {
 
 		p {
 			margin: 0;
+		}
+
+		&--compact {
+			gap: 0.5rem;
 		}
 	}
 
@@ -1937,6 +1884,10 @@ onBeforeUnmount(() => {
 		margin: 0;
 		font-size: 0.84rem;
 		color: var(--color-text-maxcontrast);
+
+		&--compact {
+			max-width: 26ch;
+		}
 
 		&--align-right {
 			text-align: right;
