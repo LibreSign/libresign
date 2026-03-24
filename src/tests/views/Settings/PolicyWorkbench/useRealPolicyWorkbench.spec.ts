@@ -361,6 +361,40 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.createUserOverrideDisabledReason).toContain('Blocked by the Finance group rule')
 	})
 
+	it('allows creating group rule when no system rule is set', () => {
+		getPolicy.mockReturnValue({ effectiveValue: null })
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.inheritedSystemRule).toBeNull()
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+	})
+
+	it('blocks creating group rule only when system rule explicitly disallows child override', () => {
+		// Single allowedValues → backend signals allowChildOverride = false
+		getPolicy.mockReturnValue({
+			effectiveValue: 'parallel',
+			allowedValues: ['parallel'],
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.inheritedSystemRule?.allowChildOverride).toBe(false)
+		expect(state.createGroupOverrideDisabledReason).not.toBeNull()
+	})
+
+	it('allows creating user rule when no system rule is set', () => {
+		getPolicy.mockReturnValue({ effectiveValue: null })
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.inheritedSystemRule).toBeNull()
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+	})
+
 	it('requires dirty draft changes before save is enabled in edit mode', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
