@@ -214,9 +214,12 @@
 									<span>{{ t('libresign', 'User') }}</span>
 								</label>
 							</div>
-							<NcButton variant="primary" size="small" @click="startCreateRule()">
+							<NcButton variant="primary" size="small" :disabled="isCreateRuleDisabled" :title="createRuleDisabledReason || undefined" @click="startCreateRule()">
 								{{ t('libresign', 'Create rule') }}
 							</NcButton>
+							<p v-if="createRuleDisabledReason" class="policy-workbench__table-note policy-workbench__table-note--align-right">
+								{{ createRuleDisabledReason }}
+							</p>
 						</div>
 					</div>
 
@@ -634,6 +637,20 @@ const editorHelp = computed(() => {
 	return t('libresign', 'A user override is the most specific layer and takes priority over inherited defaults.')
 })
 
+const createRuleDisabledReason = computed(() => {
+	if (newRuleScope.value === 'group') {
+		return state.createGroupOverrideDisabledReason || ''
+	}
+
+	if (newRuleScope.value === 'user') {
+		return state.createUserOverrideDisabledReason || ''
+	}
+
+	return ''
+})
+
+const isCreateRuleDisabled = computed(() => createRuleDisabledReason.value.length > 0)
+
 const pendingRemovalMessage = computed(() => {
 	if (!pendingRemoval.value) {
 		return ''
@@ -716,6 +733,10 @@ function setNewRuleScope(value: 'system' | 'group' | 'user', selected: boolean) 
 }
 
 function startCreateRule() {
+	if (isCreateRuleDisabled.value) {
+		return
+	}
+
 	state.startEditor({ scope: newRuleScope.value })
 }
 
@@ -1916,6 +1937,10 @@ onBeforeUnmount(() => {
 		margin: 0;
 		font-size: 0.84rem;
 		color: var(--color-text-maxcontrast);
+
+		&--align-right {
+			text-align: right;
+		}
 	}
 
 	&__table-empty-state {
