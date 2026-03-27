@@ -478,6 +478,27 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame('ordered_numeric', $response->getData()['policy']['effectiveValue']);
 	}
 
+	public function testSetUserPolicyForTargetUserReturnsBadRequestWhenServiceBlocksSave(): void {
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Saving a user preference is not allowed for signature_flow')
+			->willReturn('Saving a user preference is not allowed for signature_flow');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveUserPreferenceForUserId')
+			->with('signature_flow', 'user1', 'ordered_numeric')
+			->willThrowException(new \InvalidArgumentException('Saving a user preference is not allowed for signature_flow'));
+
+		$response = $this->controller->setUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric');
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Saving a user preference is not allowed for signature_flow',
+		], $response->getData());
+	}
+
 	public function testSetUserPreferenceReadsBodyParamsFromRequest(): void {
 		$request = $this->createMock(IRequest::class);
 		$request
