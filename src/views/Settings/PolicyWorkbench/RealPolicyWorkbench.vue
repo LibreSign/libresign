@@ -1439,6 +1439,21 @@ onBeforeUnmount(() => {
 				align-items: center;
 				gap: 0.25rem;
 			}
+
+			:deep(.app-navigation-search__actions--hidden) {
+				margin-inline-start: 0;
+			}
+
+			:deep(.app-navigation-search__actions.hidden-visually) {
+				position: static;
+				width: auto;
+				height: auto;
+				margin: 0;
+				overflow: visible;
+				clip: auto;
+				clip-path: none;
+				white-space: normal;
+			}
 		}
 	}
 
