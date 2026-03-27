@@ -130,7 +130,7 @@ class PolicyService {
 		$context = $this->contextFactory->forUserId($userId);
 		$definition = $this->registry->get($policyKey);
 		$resolved = $this->resolver->resolve($definition, $context);
-		if (!$resolved->canSaveAsUserDefault()) {
+		if (!$resolved->canSaveAsUserDefault() && !$this->contextFactory->isCurrentActorSystemAdmin()) {
 			throw new \InvalidArgumentException('Saving a user preference is not allowed for ' . $definition->key());
 		}
 
