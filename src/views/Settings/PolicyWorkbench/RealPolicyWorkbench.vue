@@ -199,23 +199,23 @@
 										{{ t('libresign', 'User') }}
 									</NcActionButton>
 								</NcActions>
-
-								<NcButton
-									v-if="state.viewMode === 'system-admin'"
-									variant="tertiary"
-									size="small"
-									:disabled="!hasCreatableScope"
-									:title="createRuleDisabledReason || undefined"
-									:aria-label="t('libresign', 'Create rule')"
-									class="policy-workbench__crud-create-button"
-									@click="requestCreateRule()">
-									<template #icon>
-										<NcIconSvgWrapper :path="mdiPlus" :size="20" />
-									</template>
-									{{ t('libresign', 'Create rule') }}
-								</NcButton>
 							</template>
 						</NcAppNavigationSearch>
+
+						<NcButton
+							v-if="state.viewMode === 'system-admin'"
+							variant="primary"
+							size="small"
+							:disabled="!hasCreatableScope"
+							:title="createRuleDisabledReason || undefined"
+							:aria-label="t('libresign', 'Create rule')"
+							class="policy-workbench__crud-create-cta"
+							@click="requestCreateRule()">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiPlus" :size="20" />
+							</template>
+							{{ t('libresign', 'Create rule') }}
+						</NcButton>
 
 						<div v-if="activeScopeFilterChip" class="policy-workbench__crud-filter-chips">
 							<NcChip :aria-label-close="t('libresign', 'Remove filter')" :text="activeScopeFilterChip" @close="setCrudScopeFilter('all', true)" />
@@ -1434,7 +1434,7 @@ onBeforeUnmount(() => {
 			gap: 0.85rem;
 
 			:deep(.app-navigation-search) {
-				flex: 1 1 420px;
+				flex: 1 1 360px;
 				min-width: min(100%, 420px);
 			}
 
@@ -1461,9 +1461,10 @@ onBeforeUnmount(() => {
 		}
 	}
 
-	&__crud-create-button {
+	&__crud-create-cta {
 		:deep(.button-vue) {
 			white-space: nowrap;
+			font-weight: 600;
 		}
 	}
 
@@ -1543,6 +1544,15 @@ onBeforeUnmount(() => {
 	@media (max-width: 720px) {
 		&__table-toolbar-row--crud {
 			align-items: stretch;
+		}
+
+		&__crud-create-cta {
+			width: 100%;
+
+			:deep(.button-vue) {
+				width: 100%;
+				justify-content: center;
+			}
 		}
 
 		&__crud-filter-chips {
