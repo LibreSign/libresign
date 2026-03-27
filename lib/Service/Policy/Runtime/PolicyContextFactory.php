@@ -27,6 +27,15 @@ final class PolicyContextFactory {
 		return $this->forUser($this->userSession->getUser(), $requestOverrides, $activeContext);
 	}
 
+	public function isCurrentActorSystemAdmin(): bool {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return false;
+		}
+
+		return $this->groupManager->isAdmin($user->getUID());
+	}
+
 	/** @param array<string, mixed> $requestOverrides */
 	public function forUser(?IUser $user, array $requestOverrides = [], ?array $activeContext = null): PolicyContext {
 		return $this->build($user?->getUID(), $user, $requestOverrides, $activeContext);
