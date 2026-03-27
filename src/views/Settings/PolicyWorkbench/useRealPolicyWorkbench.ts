@@ -4,6 +4,8 @@
  */
 
 import axios from '@nextcloud/axios'
+import { getCurrentUser } from '@nextcloud/auth'
+import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import { computed, reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
@@ -215,7 +217,14 @@ function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
 
 export function createRealPolicyWorkbenchState() {
 	const policiesStore = usePoliciesStore()
-	const viewMode = ref<'system-admin' | 'group-admin'>('system-admin')
+	const currentUser = getCurrentUser()
+	const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
+	const initialViewMode: 'system-admin' | 'group-admin' = currentUser?.isAdmin
+		? 'system-admin'
+		: config.can_manage_group_policies
+			? 'group-admin'
+			: 'system-admin'
+	const viewMode = ref<'system-admin' | 'group-admin'>(initialViewMode)
 	const activeSettingKey = ref<string | null>(null)
 	const editorDraft = ref<PolicyEditorDraft | null>(null)
 	const editorMode = ref<'create' | 'edit' | null>(null)
@@ -392,6 +401,10 @@ export function createRealPolicyWorkbenchState() {
 	})
 
 	const createUserOverrideDisabledReason = computed(() => {
+		if (viewMode.value === 'system-admin') {
+			return null
+		}
+
 		if (inheritedSystemRule.value?.allowChildOverride === false) {
 			return t('libresign', 'Blocked by a higher-level rule that does not allow user exceptions.')
 		}
@@ -588,6 +601,10 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		void loadTargets(scope, query)
+	}
+
+	function setViewMode(mode: 'system-admin' | 'group-admin') {
+		viewMode.value = mode
 	}
 
 	function closeSetting() {
@@ -855,6 +872,7 @@ export function createRealPolicyWorkbenchState() {
 		updateDraftTargets,
 		updateDraftAllowOverride,
 		searchAvailableTargets,
+		setViewMode,
 		saveDraft,
 		removeRule,
 		resolveTargetLabel,
