@@ -8,6 +8,26 @@ import { createL10nMock } from '../../../testHelpers/l10n.js'
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
 
+const { currentUserState } = vi.hoisted(() => ({
+	currentUserState: {
+		isAdmin: true,
+	},
+}))
+
+vi.mock('@nextcloud/auth', () => ({
+	getCurrentUser: vi.fn(() => currentUserState),
+}))
+
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: vi.fn((_app, key: string, defaultValue: unknown) => {
+		if (key === 'config') {
+			return { can_manage_group_policies: true }
+		}
+
+		return defaultValue
+	}),
+}))
+
 const { axiosGet } = vi.hoisted(() => ({
 	axiosGet: vi.fn(),
 }))
@@ -48,6 +68,7 @@ import { createRealPolicyWorkbenchState } from '../../../../views/Settings/Polic
 
 describe('useRealPolicyWorkbench', () => {
 	beforeEach(() => {
+		currentUserState.isAdmin = true
 		axiosGet.mockReset()
 		saveSystemPolicy.mockReset()
 		saveGroupPolicy.mockReset()
@@ -348,7 +369,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.summary?.baseSource).toBe('Global default')
 	})
 
-	it('exposes disabled reason for user exceptions when parent override blocks lower layers', async () => {
+	it('allows system-admin to create user exceptions even when a group blocks inheritance', async () => {
 		getPolicy.mockReturnValue({ effectiveValue: 'parallel', sourceScope: 'global' })
 
 		const state = createRealPolicyWorkbenchState()
@@ -358,7 +379,28 @@ describe('useRealPolicyWorkbench', () => {
 		state.updateDraftAllowOverride(false)
 		await state.saveDraft()
 
+		expect(state.viewMode).toBe('system-admin')
+		expect(state.createUserOverrideDisabledReason).toBeNull()
+
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft?.scope).toBe('user')
+	})
+
+	it('blocks user exceptions for group-admin when a group rule disables inheritance', async () => {
+		getPolicy.mockReturnValue({ effectiveValue: 'parallel', sourceScope: 'global' })
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'group' })
+		state.updateDraftTargets(['finance'])
+		state.updateDraftAllowOverride(false)
+		await state.saveDraft()
+
 		expect(state.createUserOverrideDisabledReason).toContain('Blocked by the Finance group rule')
+
+		state.startEditor({ scope: 'user' })
+		expect(state.editorDraft).toBeNull()
 	})
 
 	it('allows creating group rule when no system rule is set', () => {
