@@ -365,13 +365,17 @@
 					<NcButton variant="secondary" :disabled="scopeCreateDisabledReason('group').length > 0" @click="startCreateRuleForScope('group')">
 						{{ t('libresign', 'Group') }}
 					</NcButton>
-					<NcButton variant="secondary" :disabled="scopeCreateDisabledReason('user').length > 0" @click="startCreateRuleForScope('user')">
+					<NcButton
+						v-if="state.viewMode === 'system-admin' || !scopeCreateDisabledReason('user')"
+						variant="secondary"
+						:disabled="scopeCreateDisabledReason('user').length > 0"
+						@click="startCreateRuleForScope('user')">
 						{{ t('libresign', 'User') }}
 					</NcButton>
 				</div>
 				<ul class="policy-workbench__create-scope-notes">
 					<li v-if="scopeCreateDisabledReason('group')">{{ t('libresign', 'Group') }}: {{ scopeCreateDisabledReason('group') }}</li>
-					<li v-if="scopeCreateDisabledReason('user')">{{ t('libresign', 'User') }}: {{ scopeCreateDisabledReason('user') }}</li>
+					<li v-if="scopeCreateDisabledReason('user') && state.viewMode === 'system-admin'">{{ t('libresign', 'User') }}: {{ scopeCreateDisabledReason('user') }}</li>
 				</ul>
 			</div>
 		</NcDialog>
