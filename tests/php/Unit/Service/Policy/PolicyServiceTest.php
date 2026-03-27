@@ -245,6 +245,147 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertSame('user', $resolved->getSourceScope());
 	}
 
+	public function testSaveUserPreferenceForUserIdAllowsSystemAdminBypassWhenGroupBlocksUsers(): void {
+		$targetUser = $this->createMock(IUser::class);
+		$targetUser->method('getUID')->willReturn('user1');
+
+		$actor = $this->createMock(IUser::class);
+		$actor->method('getUID')->willReturn('admin');
+		$this->userSession
+			->method('getUser')
+			->willReturn($actor);
+
+		$this->userManager
+			->expects($this->once())
+			->method('get')
+			->with('user1')
+			->willReturn($targetUser);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($targetUser)
+			->willReturn(['finance']);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->source
+			->expects($this->once())
+			->method('saveUserPreference')
+			->with(
+				SignatureFlowPolicy::KEY,
+				$this->callback(static function ($context): bool {
+					return $context->getUserId() === 'user1';
+				}),
+				'ordered_numeric',
+			);
+
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue('none')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true));
+
+		$this->source
+			->method('loadGroupPolicies')
+			->willReturn([(new PolicyLayer())
+				->setScope('group')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues(['ordered_numeric'])]);
+
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source
+			->method('loadUserPreference')
+			->willReturn((new PolicyLayer())
+				->setScope('user')
+				->setValue('ordered_numeric'));
+		$this->source->method('loadRequestOverride')->willReturn(null);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+		);
+
+		$resolved = $service->saveUserPreferenceForUserId(SignatureFlowPolicy::KEY, 'user1', 'ordered_numeric');
+
+		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
+		$this->assertSame('group', $resolved->getSourceScope());
+	}
+
+	public function testSaveUserPreferenceForUserIdBlocksNonAdminWhenGroupDisallowsUserOverrides(): void {
+		$targetUser = $this->createMock(IUser::class);
+		$targetUser->method('getUID')->willReturn('user1');
+
+		$actor = $this->createMock(IUser::class);
+		$actor->method('getUID')->willReturn('manager');
+		$this->userSession
+			->method('getUser')
+			->willReturn($actor);
+
+		$this->userManager
+			->expects($this->once())
+			->method('get')
+			->with('user1')
+			->willReturn($targetUser);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($targetUser)
+			->willReturn(['finance']);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('isAdmin')
+			->with('manager')
+			->willReturn(false);
+
+		$this->source
+			->expects($this->never())
+			->method('saveUserPreference');
+
+		$this->source
+			->method('loadSystemPolicy')
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue('none')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true));
+
+		$this->source
+			->method('loadGroupPolicies')
+			->willReturn([(new PolicyLayer())
+				->setScope('group')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues(['ordered_numeric'])]);
+
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source->method('loadUserPreference')->willReturn(null);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Saving a user preference is not allowed for signature_flow');
+
+		$service->saveUserPreferenceForUserId(SignatureFlowPolicy::KEY, 'user1', 'ordered_numeric');
+	}
+
 	public function testSaveSystemPersistsAllowChildOverrideWhenEnabled(): void {
 		$this->source
 			->expects($this->once())
