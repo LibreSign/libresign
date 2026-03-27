@@ -176,64 +176,55 @@
 					</div>
 
 					<div class="policy-workbench__table-toolbar-row policy-workbench__table-toolbar-row--crud">
-						<NcTextField
+						<NcAppNavigationSearch
 							:model-value="crudSearch"
 							:label="t('libresign', 'Search rules')"
 							:placeholder="t('libresign', 'Search by scope, target, or value')"
-							@update:modelValue="onCrudSearchChange" />
+							@update:modelValue="onCrudSearchChange">
+							<template #actions>
+								<NcActions :aria-label="t('libresign', 'Filter rules by scope')">
+									<template #icon>
+										<NcIconSvgWrapper :path="mdiFilterVariant" :size="20" />
+									</template>
+									<NcActionButton @click="setCrudScopeFilter('all', true)">
+										{{ t('libresign', 'All scopes') }}
+									</NcActionButton>
+									<NcActionButton @click="setCrudScopeFilter('system', true)">
+										{{ t('libresign', 'Instance') }}
+									</NcActionButton>
+									<NcActionButton @click="setCrudScopeFilter('group', true)">
+										{{ t('libresign', 'Group') }}
+									</NcActionButton>
+									<NcActionButton @click="setCrudScopeFilter('user', true)">
+										{{ t('libresign', 'User') }}
+									</NcActionButton>
+								</NcActions>
 
-						<div class="policy-workbench__crud-controls">
-							<NcPopover :boundary="popoverBoundary">
-								<template #trigger>
-									<NcButton :aria-label="t('libresign', 'Filters')" :pressed="crudScopeFilter !== 'all'" variant="tertiary">
-										<template #icon>
-											<NcIconSvgWrapper :path="mdiFilterVariant" />
-										</template>
-										{{ t('libresign', 'Filters') }}
-									</NcButton>
-								</template>
-								<template #default>
-									<div class="policy-workbench__crud-filter-popover">
-										<p class="policy-workbench__crud-filter-title">{{ t('libresign', 'Scope') }}</p>
-										<div class="policy-workbench__crud-filter-options">
-											<label class="policy-workbench__filter-option">
-												<input type="radio" name="crudScope" :checked="crudScopeFilter === 'all'" @change="setCrudScopeFilter('all', true)" />
-												<span>{{ t('libresign', 'All scopes') }}</span>
-											</label>
-											<label class="policy-workbench__filter-option">
-												<input type="radio" name="crudScope" :checked="crudScopeFilter === 'system'" @change="setCrudScopeFilter('system', true)" />
-												<span>{{ t('libresign', 'Instance') }}</span>
-											</label>
-											<label class="policy-workbench__filter-option">
-												<input type="radio" name="crudScope" :checked="crudScopeFilter === 'group'" @change="setCrudScopeFilter('group', true)" />
-												<span>{{ t('libresign', 'Group') }}</span>
-											</label>
-											<label class="policy-workbench__filter-option">
-												<input type="radio" name="crudScope" :checked="crudScopeFilter === 'user'" @change="setCrudScopeFilter('user', true)" />
-												<span>{{ t('libresign', 'User') }}</span>
-											</label>
-										</div>
-										<NcButton v-if="crudScopeFilter !== 'all'" variant="tertiary" @click="setCrudScopeFilter('all', true)">
-											{{ t('libresign', 'Clear filter') }}
-										</NcButton>
-									</div>
-								</template>
-							</NcPopover>
+								<NcButton
+									v-if="state.viewMode === 'system-admin'"
+									variant="tertiary"
+									size="small"
+									:disabled="!hasCreatableScope"
+									:title="createRuleDisabledReason || undefined"
+									:aria-label="t('libresign', 'Create rule')"
+									class="policy-workbench__crud-create-button"
+									@click="requestCreateRule()">
+									<template #icon>
+										<NcIconSvgWrapper :path="mdiPlus" :size="20" />
+									</template>
+									{{ t('libresign', 'Create rule') }}
+								</NcButton>
+							</template>
+						</NcAppNavigationSearch>
 
-							<div v-if="activeScopeFilterChip" class="policy-workbench__crud-filter-chips">
-								<NcChip :aria-label-close="t('libresign', 'Remove filter')" :text="activeScopeFilterChip" @close="setCrudScopeFilter('all', true)" />
-							</div>
-						</div>
-
-						<div v-if="state.viewMode === 'system-admin'" class="policy-workbench__crud-create">
-							<NcButton variant="primary" size="small" :disabled="!hasCreatableScope" :title="createRuleDisabledReason || undefined" @click="requestCreateRule()">
-								{{ t('libresign', 'Create rule') }}
-							</NcButton>
-							<p v-if="createRuleDisabledReason" class="policy-workbench__table-note policy-workbench__table-note--align-right">
-								{{ createRuleDisabledReason }}
-							</p>
+						<div v-if="activeScopeFilterChip" class="policy-workbench__crud-filter-chips">
+							<NcChip :aria-label-close="t('libresign', 'Remove filter')" :text="activeScopeFilterChip" @close="setCrudScopeFilter('all', true)" />
 						</div>
 					</div>
+
+					<p v-if="createRuleDisabledReason && state.viewMode === 'system-admin'" class="policy-workbench__table-note policy-workbench__table-note--align-right">
+						{{ createRuleDisabledReason }}
+					</p>
 
 					<p v-if="state.createUserOverrideDisabledReason && crudScopeFilter === 'user'" class="policy-workbench__table-note">
 						{{ t('libresign', 'Some users may not allow user overrides because their group rule requires inheritance.') }}
@@ -411,6 +402,7 @@ import {
 	mdiFilterVariant,
 	mdiFormatListBulletedSquare,
 	mdiPencil,
+	mdiPlus,
 	mdiViewGridOutline,
 } from '@mdi/js'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
@@ -418,12 +410,12 @@ import { t } from '@nextcloud/l10n'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
+import NcAppNavigationSearch from '@nextcloud/vue/components/NcAppNavigationSearch'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
-import NcPopover from '@nextcloud/vue/components/NcPopover'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
@@ -455,7 +447,6 @@ const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at:
 const crudSearch = ref('')
 const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
 const crudPage = ref(1)
-const popoverBoundary = document.getElementById('app-content-vue') ?? document.body
 const CRUD_PAGE_SIZE = 20
 
 const DRAG_OPEN_THRESHOLD_PX = 6
@@ -1067,32 +1058,10 @@ onBeforeUnmount(() => {
 		color: var(--color-text-maxcontrast);
 	}
 
-	&__crud-filter-popover {
-		display: flex;
-		flex-direction: column;
-		gap: calc(var(--default-grid-baseline) / 2);
-		padding: calc(var(--default-grid-baseline) / 2);
-		min-width: calc(7 * var(--default-clickable-area));
-	}
-
-	&__crud-filter-title {
-		margin: 0;
-		font-size: 0.78rem;
-		font-weight: 600;
-		letter-spacing: 0.01em;
-		text-transform: uppercase;
-		color: var(--color-text-maxcontrast);
-	}
-
-	&__crud-filter-options {
-		display: flex;
-		flex-direction: column;
-		gap: 0.4rem;
-	}
-
 	&__crud-filter-chips {
 		display: flex;
 		align-items: center;
+		margin-left: auto;
 	}
 
 	&__settings-grid {
@@ -1460,26 +1429,23 @@ onBeforeUnmount(() => {
 			align-items: flex-end;
 			gap: 0.85rem;
 
-			:deep(.text-field) {
-				flex: 1 1 320px;
-				min-width: min(100%, 320px);
+			:deep(.app-navigation-search) {
+				flex: 1 1 420px;
+				min-width: min(100%, 420px);
+			}
+
+			:deep(.app-navigation-search__actions) {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.25rem;
 			}
 		}
 	}
 
-	&__crud-controls {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex: 0 1 auto;
-	}
-
-	&__crud-create {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: 0.45rem;
-		margin-left: auto;
+	&__crud-create-button {
+		:deep(.button-vue) {
+			white-space: nowrap;
+		}
 	}
 
 
@@ -1560,20 +1526,10 @@ onBeforeUnmount(() => {
 			align-items: stretch;
 		}
 
-		&__crud-controls {
+		&__crud-filter-chips {
 			width: 100%;
 			justify-content: flex-start;
-		}
-
-		&__crud-create {
 			margin-left: 0;
-			align-items: stretch;
-			width: 100%;
-
-			:deep(.button-vue) {
-				width: 100%;
-				justify-content: center;
-			}
 		}
 
 		&__table-note--align-right {
