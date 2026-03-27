@@ -36,15 +36,15 @@ function mountWorkbench() {
 			stubs: {
 				NcSettingsSection: { template: '<div><slot /></div>' },
 				NcTextField: { template: '<div><label>Find setting</label><input type="text" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>' },
+				NcAppNavigationSearch: { template: '<div class="nc-app-navigation-search-stub"><input type="text" @input="$emit(\'update:modelValue\', $event.target.value)" /><div class="nc-app-navigation-search-stub__actions"><slot name="actions" /></div></div>' },
 				NcButton: { template: '<button v-bind="$attrs" @click="$emit(\'click\', $event)"><slot /></button>' },
-				NcIconSvgWrapper: { template: '' },
+				NcIconSvgWrapper: { template: '<span class="icon-stub" />' },
 				NcNoteCard: { template: '<div class="note-card"><slot /></div>' },
 				NcDialog: { template: '<div class="dialog"><slot /></div>' },
-				NcPopover: { template: '<div class="nc-popover-stub"><slot name="trigger" /><slot /></div>' },
 				NcChip: { template: '<button class="nc-chip-stub">{{ text }}</button>', props: ['text'] },
 				NcCheckboxRadioSwitch: { template: '<input type="checkbox" @change="$emit(\'update:modelValue\', $event.target.checked)" />' },
 				NcSelectUsers: { template: '<div class="nc-select-users-stub" />' },
-				NcActions: { template: '<div><slot /></div>' },
+				NcActions: { template: '<div class="nc-actions-stub"><button class="nc-actions-stub__trigger" aria-label="Filter rules by scope"><slot name="icon" /></button><slot /></div>' },
 				NcActionButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
 			},
 		},
@@ -104,8 +104,8 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		const text = wrapper.text()
 
-		// Validate scope filter follows Files-like filter entrypoint
-		expect(text).toContain('Filters')
+		// Validate scope filter action is available in search actions area
+		expect(wrapper.find('button[aria-label="Filter rules by scope"]').exists()).toBe(true)
 
 		// Validate search/filter UI exists
 		expect(wrapper.find('input[type="text"]').exists()).toBe(true)
