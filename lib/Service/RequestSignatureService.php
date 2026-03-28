@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -27,6 +26,9 @@ use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
@@ -67,6 +69,7 @@ class RequestSignatureService {
 		protected EnvelopeFileRelocator $envelopeFileRelocator,
 		protected FileUploadHelper $uploadHelper,
 		protected SignRequestService $signRequestService,
+		protected PolicyService $policyService,
 	) {
 	}
 
@@ -381,37 +384,62 @@ class RequestSignatureService {
 	}
 
 	private function updateSignatureFlowIfAllowed(FileEntity $file, array $data): void {
-		$adminFlow = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::NONE->value);
-		$adminForcedConfig = $adminFlow !== SignatureFlow::NONE->value;
+		$requestOverrides = $this->getSignatureFlowRequestOverrides($data);
+		$resolvedPolicy = $this->policyService->resolveForUserId(
+			SignatureFlowPolicy::KEY,
+			$file->getUserId(),
+			$requestOverrides,
+		);
+		$this->assertSignatureFlowOverrideAllowed($requestOverrides, $resolvedPolicy);
+		$newFlow = SignatureFlow::from((string)$resolvedPolicy->getEffectiveValue());
 
-		if ($adminForcedConfig) {
-			$adminFlowEnum = SignatureFlow::from($adminFlow);
-			if ($file->getSignatureFlowEnum() !== $adminFlowEnum) {
-				$file->setSignatureFlowEnum($adminFlowEnum);
-				$this->fileService->update($file);
-			}
-			return;
-		}
-
-		if (isset($data['signatureFlow']) && !empty($data['signatureFlow'])) {
-			$newFlow = SignatureFlow::from($data['signatureFlow']);
-			if ($file->getSignatureFlowEnum() !== $newFlow) {
-				$file->setSignatureFlowEnum($newFlow);
-				$this->fileService->update($file);
-			}
+		if ($file->getSignatureFlowEnum() !== $newFlow) {
+			$file->setSignatureFlowEnum($newFlow);
+			$this->fileService->update($file);
 		}
 	}
 
 	private function setSignatureFlow(FileEntity $file, array $data): void {
-		$adminFlow = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::NONE->value);
+		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
+		$requestOverrides = $this->getSignatureFlowRequestOverrides($data);
+		$resolvedPolicy = $this->policyService->resolveForUser(
+			SignatureFlowPolicy::KEY,
+			$user,
+			$requestOverrides,
+		);
+		$this->assertSignatureFlowOverrideAllowed($requestOverrides, $resolvedPolicy);
+		$file->setSignatureFlowEnum(SignatureFlow::from((string)$resolvedPolicy->getEffectiveValue()));
+		$this->storePolicySnapshot($file, $resolvedPolicy);
+	}
 
-		if (isset($data['signatureFlow']) && !empty($data['signatureFlow'])) {
-			$file->setSignatureFlowEnum(SignatureFlow::from($data['signatureFlow']));
-		} elseif ($adminFlow !== SignatureFlow::NONE->value) {
-			$file->setSignatureFlowEnum(SignatureFlow::from($adminFlow));
-		} else {
-			$file->setSignatureFlowEnum(SignatureFlow::NONE);
+	/** @return array<string, string> */
+	private function getSignatureFlowRequestOverrides(array $data): array {
+		if (!isset($data['signatureFlow']) || empty($data['signatureFlow'])) {
+			return [];
 		}
+
+		return [SignatureFlowPolicy::KEY => (string)$data['signatureFlow']];
+	}
+
+	/** @param array<string, string> $requestOverrides */
+	private function assertSignatureFlowOverrideAllowed(array $requestOverrides, ResolvedPolicy $resolvedPolicy): void {
+		if ($requestOverrides === [] || $resolvedPolicy->canUseAsRequestOverride()) {
+			return;
+		}
+
+		$blockedBy = $resolvedPolicy->getBlockedBy() ?? $resolvedPolicy->getSourceScope();
+		throw new LibresignException($this->l10n->t('Signature flow override is blocked by %s.', [$blockedBy]), 422);
+	}
+
+	private function storePolicySnapshot(FileEntity $file, ResolvedPolicy $resolvedPolicy): void {
+		$metadata = $file->getMetadata() ?? [];
+		$policySnapshot = $metadata['policy_snapshot'] ?? [];
+		$policySnapshot[$resolvedPolicy->getPolicyKey()] = [
+			'effectiveValue' => $resolvedPolicy->getEffectiveValue(),
+			'sourceScope' => $resolvedPolicy->getSourceScope(),
+		];
+		$metadata['policy_snapshot'] = $policySnapshot;
+		$file->setMetadata($metadata);
 	}
 
 	private function setDocMdpLevelFromGlobalConfig(FileEntity $file): void {
