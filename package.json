@@ -87,7 +87,7 @@
     "@testing-library/vue": "^8.1.0",
     "@types/blueimp-md5": "^2.18.2",
     "@vitejs/plugin-vue": "^6.0.5",
-    "@vitest/coverage-v8": "^4.1.0",
+    "@vitest/coverage-v8": "^4.1.1",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.9.0",
     "happy-dom": "^20.8.4",
