@@ -235,6 +235,7 @@ OC.L10N.register(
     "Invalid URL" : "Neteisingas URL",
     "Username" : "Naudotojo vardas",
     "Optional" : "Nebūtina",
+    "Email verification" : " El. pašto patvirtinimas",
     "Unable to sign." : "Nepavyko pasirašyti.",
     "Forgot password?" : "Pamiršote slaptažodį?",
     "Complete" : "Baigti",
