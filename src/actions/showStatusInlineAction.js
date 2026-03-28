@@ -15,7 +15,7 @@ const getNodeMime = (node) => node?.mime || node?.mimetype || ''
 const action = {
 	id: 'show-status-inline',
 	displayName: () => '',
-	title: ({ nodes }) => {
+	title: (nodes) => {
 		const node = nodes?.[0]
 		if (!node || !node.attributes) return ''
 
@@ -28,14 +28,13 @@ const action = {
 
 		return t('libresign', 'original file')
 	},
-	exec: async ({ nodes }) => {
-		const node = nodes?.[0]
+	exec: async (node) => {
 		if (!node) return null
 		window.OCA.Files.Sidebar.open(node.path)
 		window.OCA.Files.Sidebar.setActiveTab('libresign')
 		return null
 	},
-	iconSvgInline: ({ nodes }) => {
+	iconSvgInline: (nodes) => {
 		const node = nodes?.[0]
 		if (!node || !node.attributes) return ''
 
@@ -49,7 +48,7 @@ const action = {
 		return getStatusSvgInline(FILE_STATUS.DRAFT) || ''
 	},
 	inline: () => true,
-	enabled: ({ nodes }) => {
+	enabled: (nodes) => {
 		const certificateOk = loadState('libresign', 'certificate_ok')
 		const allHaveStatus = nodes?.every(node => node.attributes?.['libresign-signature-status'] !== undefined)
 
