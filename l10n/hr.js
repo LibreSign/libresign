@@ -120,6 +120,7 @@ OC.L10N.register(
     "Delete" : "Izbriši",
     "Confirm your signature" : "Potvrdite svoj potpis",
     "Enter your Full Name or Initials to create Signature" : "Unesite ime i prezime ili inicijale kako biste stvorili potpis",
+    "Preview" : "Pretpregled",
     "Width" : "Širina",
     "Height" : "Visina",
     "Copy to clipboard" : "Kopiraj u međuspremnik",
