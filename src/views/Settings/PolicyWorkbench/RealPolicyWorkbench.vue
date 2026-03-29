@@ -2208,6 +2208,10 @@ onBeforeUnmount(() => {
 			transform: translateY(-1px);
 		}
 
+		&:focus {
+			outline: none;
+		}
+
 		&:focus-visible {
 			outline: 2px solid color-mix(in srgb, var(--color-primary-element) 70%, transparent);
 			outline-offset: 1px;
