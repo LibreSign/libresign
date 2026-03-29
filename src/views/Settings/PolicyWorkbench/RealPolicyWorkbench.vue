@@ -2208,8 +2208,12 @@ onBeforeUnmount(() => {
 			transform: translateY(-1px);
 		}
 
-		&:focus {
+		&:focus:not(:focus-visible) {
 			outline: none;
+			border-color: color-mix(in srgb, var(--color-border-maxcontrast) 45%, transparent);
+			background: color-mix(in srgb, var(--color-main-background) 94%, var(--color-background-dark));
+			box-shadow: none;
+			transform: none;
 		}
 
 		&:focus-visible {
