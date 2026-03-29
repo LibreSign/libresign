@@ -2205,7 +2205,6 @@ onBeforeUnmount(() => {
 
 	&__status--inherit {
 		color: var(--color-main-text);
-		font-weight: 600;
 	}
 
 	&__global-default-hint {
