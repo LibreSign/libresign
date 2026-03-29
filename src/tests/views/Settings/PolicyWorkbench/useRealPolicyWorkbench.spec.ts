@@ -266,6 +266,50 @@ describe('useRealPolicyWorkbench', () => {
 		expect(saveGroupPolicy).toHaveBeenNthCalledWith(2, 'legal', 'signature_flow', 'ordered_numeric', false)
 	})
 
+	it('keeps explicit instance rule visible after saving when effective source remains group', async () => {
+		let currentPolicy: any = {
+			effectiveValue: 'parallel',
+			allowedValues: ['parallel', 'ordered_numeric'],
+			sourceScope: 'group',
+		}
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return currentPolicy
+			}
+
+			return null
+		})
+
+		saveSystemPolicy.mockImplementation(async (_policyKey: string, value: unknown) => {
+			currentPolicy = {
+				effectiveValue: currentPolicy.effectiveValue,
+				allowedValues: currentPolicy.allowedValues,
+				sourceScope: 'group',
+			}
+
+			return {
+				effectiveValue: value,
+				sourceScope: 'group',
+				allowedValues: ['parallel', 'ordered_numeric'],
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.inheritedSystemRule).toBeNull()
+
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue('ordered_numeric' as never)
+		await state.saveDraft()
+
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', true)
+		expect(state.inheritedSystemRule).not.toBeNull()
+		expect(state.inheritedSystemRule?.value).toBe('ordered_numeric')
+		expect(state.hasGlobalDefault).toBe(true)
+	})
+
 	it('supports multi-target user save for signature_flow', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
@@ -357,7 +401,7 @@ describe('useRealPolicyWorkbench', () => {
 		await state.removeRule('system-default')
 
 		expect(saveSystemPolicy).toHaveBeenCalledTimes(1)
-		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', null)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', null, false)
 	})
 
 	it('closes editor when the edited system rule is reset', async () => {
@@ -400,7 +444,7 @@ describe('useRealPolicyWorkbench', () => {
 	})
 
 	it('does not render a system default rule when effective value is baseline none', () => {
-		getPolicy.mockReturnValue({ effectiveValue: 'none' })
+		getPolicy.mockReturnValue({ effectiveValue: 'none', sourceScope: 'system' })
 
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
@@ -421,6 +465,20 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.inheritedSystemRule).not.toBeNull()
 		expect(state.inheritedSystemRule?.value).toBe('none')
 		expect(state.summary?.currentBaseValue).toBe('Let users choose')
+	})
+
+	it('does not treat group-sourced effective value as explicit instance rule', () => {
+		getPolicy.mockReturnValue({
+			effectiveValue: 'parallel',
+			sourceScope: 'group',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.inheritedSystemRule).toBeNull()
+		expect(state.hasGlobalDefault).toBe(false)
 	})
 
 	it('prefills system rule creation with the current baseline value', () => {
@@ -470,7 +528,7 @@ describe('useRealPolicyWorkbench', () => {
 	it('builds sticky summary metadata with precedence mode and fallback', () => {
 		getPolicy.mockReturnValue({
 			effectiveValue: 'ordered_numeric',
-			sourceScope: 'group',
+			sourceScope: 'global',
 			allowedValues: ['parallel', 'ordered_numeric'],
 		})
 
