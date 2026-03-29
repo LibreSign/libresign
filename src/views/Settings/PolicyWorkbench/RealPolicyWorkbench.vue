@@ -1024,7 +1024,7 @@ async function handleSaveDraft() {
 
 function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string) {
 	const help = scope === 'system'
-		? t('libresign', 'Removing this global default makes the instance use the system default again.')
+		? t('libresign', 'Removing this custom default makes the instance use the system default again.')
 		: scope === 'group'
 			? t('libresign', 'Removing this rule will restore inherited behavior from the global default for this group.')
 			: t('libresign', 'Removing this rule will restore inherited behavior for this user.')
@@ -1088,7 +1088,7 @@ async function confirmRuleRemoval() {
 		const scope = pendingRemoval.value.scope
 		await state.removeRule(pendingRemoval.value.ruleId)
 		removalFeedback.value = scope === 'system'
-			? t('libresign', 'Global default removed. The instance now uses the system default.')
+			? t('libresign', 'Custom default removed. The instance now uses the system default.')
 			: scope === 'group'
 				? t('libresign', 'Group exception removed. Inherited behavior from the global default is now active.')
 				: t('libresign', 'User exception removed. Inherited behavior is now active.')
