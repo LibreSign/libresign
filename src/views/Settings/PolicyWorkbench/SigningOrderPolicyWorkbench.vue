@@ -37,7 +37,7 @@
 					</div>
 
 					<p class="policy-workbench__setting-description">
-						{{ t('libresign', 'Define whether signers work in parallel or sequentially, including global default and group overrides.') }}
+						{{ t('libresign', 'Define whether signers work in parallel or sequentially, including instance default and group overrides.') }}
 					</p>
 
 					<ul class="policy-workbench__setting-metadata">
@@ -47,7 +47,7 @@
 						</li>
 						<li>
 							<strong>{{ t('libresign', 'Available scopes') }}:</strong>
-							<span>{{ t('libresign', 'Global default and group override') }}</span>
+							<span>{{ t('libresign', 'Instance default and group override') }}</span>
 						</li>
 					</ul>
 
@@ -74,7 +74,7 @@
 							</p>
 							<h2>{{ t('libresign', 'Signing order') }}</h2>
 							<p>
-								{{ t('libresign', 'Set the global default first, then add group overrides only when groups need different behavior.') }}
+								{{ t('libresign', 'Set the instance default first, then add group overrides only when groups need different behavior.') }}
 							</p>
 						</div>
 						<NcButton
