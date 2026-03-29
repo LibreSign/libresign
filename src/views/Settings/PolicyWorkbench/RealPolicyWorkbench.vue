@@ -174,6 +174,9 @@
 							({{ state.hasGlobalDefault ? t('libresign', 'custom default') : t('libresign', 'system default') }})
 						</span>
 					</div>
+					<p v-if="state.summary" class="policy-workbench__effective-result">
+						{{ t('libresign', 'Effective result: {value}', { value: state.summary.currentBaseValue }) }}
+					</p>
 
 					<div class="policy-workbench__table-toolbar-row policy-workbench__table-toolbar-row--crud">
 						<NcAppNavigationSearch
@@ -270,7 +273,9 @@
 									<td>{{ row.targetLabel }}</td>
 									<td>{{ row.valueLabel }}</td>
 									<td class="policy-workbench__status">
-										<small :class="{ 'policy-workbench__status--inherit': row.inheritanceLabel === t('libresign', 'Enforced') }">
+										<small
+											:class="{ 'policy-workbench__status--inherit': row.inheritanceLabel === t('libresign', 'Enforced') }"
+											:title="row.inheritanceLabel === t('libresign', 'Enforced') ? t('libresign', 'User cannot change this rule.') : t('libresign', 'User can choose the signing order.')">
 											{{ row.inheritanceLabel }}
 										</small>
 									</td>
@@ -535,9 +540,9 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			key: systemRule.id,
 			ruleId: systemRule.id,
 			scope: 'system',
-			targetLabel: t('libresign', 'Instance default'),
+			targetLabel: t('libresign', 'Default (instance-wide)'),
 			valueLabel: state.summary?.currentBaseValue ?? t('libresign', 'Not configured'),
-			inheritanceLabel: systemRule.allowChildOverride === false ? t('libresign', 'Enforced') : t('libresign', 'User decides'),
+			inheritanceLabel: systemRule.allowChildOverride === false ? t('libresign', 'Enforced') : t('libresign', 'User can choose'),
 			canRemove: Boolean(systemRule.id && state.hasGlobalDefault),
 		})
 	}
@@ -549,7 +554,7 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			scope: 'group',
 			targetLabel: state.resolveTargetLabel('group', rule.targetId || ''),
 			valueLabel: summarizeRuleValue(rule.value),
-			inheritanceLabel: rule.allowChildOverride ? t('libresign', 'User decides') : t('libresign', 'Enforced'),
+			inheritanceLabel: rule.allowChildOverride ? t('libresign', 'User can choose') : t('libresign', 'Enforced'),
 			canRemove: true,
 		})
 	}
@@ -562,7 +567,7 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			targetLabel: state.resolveTargetLabel('user', rule.targetId || ''),
 			valueLabel: summarizeRuleValue(rule.value),
 			inheritanceLabel: resolveSignatureFlowMode(rule.value as never) === 'none'
-				? t('libresign', 'User decides')
+				? t('libresign', 'User can choose')
 				: t('libresign', 'Enforced'),
 			canRemove: true,
 		})
@@ -628,14 +633,14 @@ const editorHelp = computed(() => {
 	}
 
 	if (state.editorDraft.scope === 'system') {
-		return t('libresign', 'Instance rule: base signing order for everyone.')
+		return t('libresign', 'Defines the default signing order for all users.')
 	}
 
 	if (state.editorDraft.scope === 'group') {
-		return t('libresign', 'Group rule: overrides the instance rule for selected groups.')
+		return t('libresign', 'Overrides the default for users in the selected groups.')
 	}
 
-	return t('libresign', 'User rule: overrides group and instance rules for selected users.')
+	return t('libresign', 'Overrides group and instance rules for selected users.')
 })
 
 function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
@@ -1796,6 +1801,12 @@ onBeforeUnmount(() => {
 	}
 
 	&__summary-source-inline {
+		font-size: 0.84rem;
+		color: var(--color-text-maxcontrast);
+	}
+
+	&__effective-result {
+		margin: -0.2rem 0 0.6rem;
 		font-size: 0.84rem;
 		color: var(--color-text-maxcontrast);
 	}
