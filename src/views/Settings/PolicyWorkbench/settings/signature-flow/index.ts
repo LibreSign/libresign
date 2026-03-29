@@ -20,7 +20,7 @@ export const signatureFlowDefinition: PolicySettingDefinition<'signature_flow'> 
 	}),
 	summarizeValue: (value) => {
 		if (!value.enabled) {
-			return t('libresign', 'Disabled')
+			return t('libresign', 'Let users choose')
 		}
 
 		return value.flow === 'parallel'
