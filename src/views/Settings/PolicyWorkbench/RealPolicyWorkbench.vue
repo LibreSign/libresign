@@ -156,27 +156,30 @@
 			<div class="policy-workbench__dialog">
 				<div class="policy-workbench__main">
 					<header class="policy-workbench__dialog-header">
-						<h2>{{ state.activeDefinition.title }}</h2>
-						<p class="policy-workbench__dialog-description">{{ state.activeDefinition.description }}</p>
+						<p class="policy-workbench__dialog-description">{{ dialogDescription }}</p>
 					</header>
 
-					<p
+					<NcNoteCard
 						v-if="removalFeedback"
+						type="success"
 						class="policy-workbench__removal-feedback"
 						aria-live="polite">
 						{{ removalFeedback }}
-					</p>
+					</NcNoteCard>
 
-					<div v-if="state.summary" class="policy-workbench__summary-line policy-workbench__summary-line--crud">
-						<span class="policy-workbench__summary-caption">{{ t('libresign', 'Default:') }}</span>
-						<strong class="policy-workbench__summary-value-compact">{{ state.summary.currentBaseValue }}</strong>
-						<span class="policy-workbench__summary-source-inline">
-							({{ state.hasGlobalDefault ? t('libresign', 'custom default') : t('libresign', 'system default') }})
-						</span>
+					<div v-if="state.summary" class="policy-workbench__default-inline">
+						<span class="policy-workbench__default-inline-label">{{ t('libresign', 'Default:') }}</span>
+						<strong class="policy-workbench__default-inline-value">{{ state.summary.currentBaseValue }}</strong>
+						<span class="policy-workbench__default-inline-source">({{ defaultSourceLabel }})</span>
+						<NcButton
+							v-if="state.viewMode === 'system-admin'"
+							variant="tertiary"
+							size="small"
+							class="policy-workbench__default-inline-action"
+							@click="state.startEditor({ scope: 'system' })">
+							{{ t('libresign', 'Change') }}
+						</NcButton>
 					</div>
-					<p v-if="state.summary" class="policy-workbench__effective-result">
-						{{ t('libresign', 'Effective result: {value}', { value: state.summary.currentBaseValue }) }}
-					</p>
 
 					<div class="policy-workbench__table-toolbar-row policy-workbench__table-toolbar-row--crud">
 						<NcAppNavigationSearch
@@ -245,13 +248,6 @@
 						{{ t('libresign', 'Some users may not allow user overrides because their group rule requires inheritance.') }}
 					</p>
 
-					<div v-if="!state.inheritedSystemRule && state.viewMode === 'system-admin'" class="policy-workbench__global-default-hint">
-						<p>{{ t('libresign', 'No instance default is configured. This setting currently uses the system default.') }}</p>
-						<NcButton variant="primary" size="small" @click="state.startEditor({ scope: 'system' })">
-							{{ t('libresign', 'Set instance default') }}
-						</NcButton>
-					</div>
-
 					<div class="policy-workbench__table-scroll">
 						<div class="policy-workbench__table-priority-note" role="note" aria-live="polite">
 							<NcIconSvgWrapper :path="mdiInformationOutline" :size="16" />
@@ -263,7 +259,6 @@
 									<th>{{ t('libresign', 'Type') }}</th>
 									<th>{{ t('libresign', 'Target') }}</th>
 									<th>{{ t('libresign', 'Value') }}</th>
-									<th>{{ t('libresign', 'Behavior') }}</th>
 									<th>{{ t('libresign', 'Actions') }}</th>
 								</tr>
 							</thead>
@@ -272,17 +267,12 @@
 									<td>{{ crudScopeLabel(row.scope) }}</td>
 									<td>{{ row.targetLabel }}</td>
 									<td>{{ row.valueLabel }}</td>
-									<td class="policy-workbench__status">
-										<span
-											class="policy-workbench__status-label"
-											:class="{ 'policy-workbench__status--inherit': row.inheritanceLabel === t('libresign', 'Enforced') }"
-											:title="row.inheritanceLabel === t('libresign', 'Enforced') ? t('libresign', 'User cannot change this rule.') : t('libresign', 'User can choose the signing order.')">
-											{{ row.inheritanceLabel }}
-										</span>
-									</td>
 									<td class="policy-workbench__table-actions">
 										<template v-if="row.ruleId">
-											<NcActions :aria-label="t('libresign', 'Rule actions')">
+											<NcActions
+												:aria-label="t('libresign', 'Rule actions')"
+												:open="openRuleActionsKey === row.key"
+												@update:open="updateRuleActionsOpen(row.key, $event)">
 												<NcActionButton @click="handleEditRule(row.scope, row.ruleId)">
 													<template #icon>
 														<NcIconSvgWrapper :path="mdiPencil" :size="16" />
@@ -301,7 +291,7 @@
 									</td>
 								</tr>
 								<tr v-if="pagedCrudRows.length === 0">
-									<td colspan="5" class="policy-workbench__table-empty">{{ t('libresign', 'No rules match the current filters.') }}</td>
+									<td colspan="4" class="policy-workbench__table-empty">{{ t('libresign', 'No rules match the current filters.') }}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -483,6 +473,7 @@ const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)
 const lastPress = ref<{ surface: 'cards' | 'list', key: string, x: number, y: number } | null>(null)
 const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at: number } | null>(null)
+const openRuleActionsKey = ref<string | null>(null)
 const crudSearch = ref('')
 const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
 const crudPage = ref(1)
@@ -491,6 +482,7 @@ const CRUD_PAGE_SIZE = 20
 const DRAG_OPEN_THRESHOLD_PX = 6
 const SELECTION_GUARD_WINDOW_MS = 400
 const CATALOG_LAYOUT_CONFIG_KEY = 'policy_workbench_catalog_compact_view'
+const REMOVAL_FEEDBACK_DURATION_MS = 6000
 
 const filteredSettingSummaries = computed(() => {
 	const normalized = settingsFilter.value.trim().toLowerCase()
@@ -529,7 +521,6 @@ type CrudRow = {
 	scope: CrudScope,
 	targetLabel: string,
 	valueLabel: string,
-	inheritanceLabel: string,
 	canRemove: boolean,
 }
 
@@ -543,7 +534,6 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			scope: 'system',
 			targetLabel: t('libresign', 'Default (instance-wide)'),
 			valueLabel: state.summary?.currentBaseValue ?? t('libresign', 'Not configured'),
-			inheritanceLabel: systemRule.allowChildOverride === false ? t('libresign', 'Enforced') : t('libresign', 'User can choose'),
 			canRemove: Boolean(systemRule.id && state.hasGlobalDefault),
 		})
 	}
@@ -555,7 +545,6 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			scope: 'group',
 			targetLabel: state.resolveTargetLabel('group', rule.targetId || ''),
 			valueLabel: summarizeRuleValue(rule.value),
-			inheritanceLabel: rule.allowChildOverride ? t('libresign', 'User can choose') : t('libresign', 'Enforced'),
 			canRemove: true,
 		})
 	}
@@ -567,9 +556,6 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			scope: 'user',
 			targetLabel: state.resolveTargetLabel('user', rule.targetId || ''),
 			valueLabel: summarizeRuleValue(rule.value),
-			inheritanceLabel: resolveSignatureFlowMode(rule.value as never) === 'none'
-				? t('libresign', 'User can choose')
-				: t('libresign', 'Enforced'),
 			canRemove: true,
 		})
 	}
@@ -601,7 +587,7 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 		}
 
 		const scope = crudScopeLabel(row.scope).toLowerCase()
-		return [scope, row.targetLabel.toLowerCase(), row.valueLabel.toLowerCase(), row.inheritanceLabel.toLowerCase()]
+		return [scope, row.targetLabel.toLowerCase(), row.valueLabel.toLowerCase()]
 			.some((value) => value.includes(normalized))
 	})
 })
@@ -642,6 +628,14 @@ const editorHelp = computed(() => {
 	}
 
 	return t('libresign', 'Overrides group and instance rules for selected users.')
+})
+
+const dialogDescription = computed(() => {
+	if (state.activeDefinition?.key === 'signature_flow') {
+		return t('libresign', 'Control how signers complete documents.')
+	}
+
+	return state.activeDefinition?.description || ''
 })
 
 function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
@@ -717,6 +711,12 @@ const activeScopeFilterChip = computed(() => {
 	return t('libresign', 'Scope: {scope}', {
 		scope: crudScopeLabel(crudScopeFilter.value),
 	})
+})
+
+const defaultSourceLabel = computed(() => {
+	return state.hasGlobalDefault
+		? t('libresign', 'custom')
+		: t('libresign', 'system')
 })
 
 const pendingRemovalMessage = computed(() => {
@@ -1032,7 +1032,12 @@ function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', t
 	pendingRemoval.value = { ruleId, scope, targetLabel, help }
 }
 
+function updateRuleActionsOpen(ruleKey: string, open: boolean) {
+	openRuleActionsKey.value = open ? ruleKey : (openRuleActionsKey.value === ruleKey ? null : openRuleActionsKey.value)
+}
+
 function closeOpenActionsMenu() {
+	openRuleActionsKey.value = null
 	const activeElement = document.activeElement
 	if (activeElement instanceof HTMLElement) {
 		activeElement.blur()
@@ -1069,6 +1074,8 @@ function confirmDiscardDialog() {
 	if (action === 'close-setting') {
 		state.closeSetting()
 	}
+
+	openRuleActionsKey.value = null
 }
 
 async function confirmRuleRemoval() {
@@ -1093,7 +1100,7 @@ async function confirmRuleRemoval() {
 		removalFeedbackTimeout.value = window.setTimeout(() => {
 			removalFeedback.value = null
 			removalFeedbackTimeout.value = null
-		}, 2200)
+		}, REMOVAL_FEEDBACK_DURATION_MS)
 
 		pendingRemoval.value = null
 	} finally {
@@ -1145,6 +1152,7 @@ onBeforeUnmount(() => {
 	}
 
 	pendingDiscardAction.value = null
+	openRuleActionsKey.value = null
 	showCreateScopeDialog.value = false
 	selectedCreateScope.value = null
 })
@@ -1823,10 +1831,39 @@ onBeforeUnmount(() => {
 		color: var(--color-text-maxcontrast);
 	}
 
-	&__effective-result {
-		margin: -0.2rem 0 0.6rem;
-		font-size: 0.84rem;
+	&__default-inline {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		flex-wrap: wrap;
+		margin: 0.05rem 0 0.55rem;
+		font-size: 0.9rem;
+		line-height: 1.3;
+	}
+
+	&__default-inline-label {
+		font-weight: 600;
+		color: var(--color-main-text);
+	}
+
+	&__default-inline-value {
+		font-weight: 700;
+		color: var(--color-main-text);
+	}
+
+	&__default-inline-source {
 		color: var(--color-text-maxcontrast);
+	}
+
+	&__default-inline-action {
+		margin-inline-start: 0.35rem;
+
+		:deep(.button-vue) {
+			min-height: auto;
+			padding: 0.05rem 0.35rem;
+			font-size: 0.84rem;
+			font-weight: 600;
+		}
 	}
 
 	&__summary-wrap {
@@ -2201,35 +2238,6 @@ onBeforeUnmount(() => {
 		font-size: inherit;
 		line-height: 1.35;
 		color: var(--color-text-maxcontrast);
-	}
-
-	&__status--inherit {
-		color: var(--color-main-text);
-	}
-
-	&__global-default-hint {
-		display: flex;
-		align-items: flex-start;
-		justify-content: flex-start;
-		flex-direction: column;
-		gap: 0.75rem;
-		padding: 0.7rem 0.8rem;
-		margin-bottom: 0.55rem;
-		border: 1px solid color-mix(in srgb, var(--color-primary-element) 22%, var(--color-border-maxcontrast));
-		border-radius: 10px;
-		background: color-mix(in srgb, var(--color-primary-element) 7%, var(--color-main-background));
-
-		p {
-			margin: 0;
-			font-size: 0.86rem;
-			line-height: 1.45;
-			color: var(--color-main-text);
-		}
-
-		:deep(.button-vue) {
-			white-space: nowrap;
-			font-weight: 600;
-		}
 	}
 
 	&__create-scope-hint {
@@ -2612,13 +2620,11 @@ onBeforeUnmount(() => {
 	}
 
 	&__removal-feedback {
-		margin: 0;
-		padding: 0.65rem 0.8rem;
-		border: 1px solid color-mix(in srgb, var(--color-success) 36%, transparent);
-		border-radius: 10px;
-		background: color-mix(in srgb, var(--color-success) 12%, var(--color-main-background));
-		color: var(--color-main-text);
-		font-size: 0.88rem;
+		margin: 0 0 0.2rem;
+
+		:deep(.notecard) {
+			margin: 0;
+		}
 	}
 
 	&__saving-overlay {
