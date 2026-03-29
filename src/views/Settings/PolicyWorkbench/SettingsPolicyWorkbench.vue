@@ -204,7 +204,7 @@
 					<div class="policy-workbench__rules-column">
 						<section class="policy-workbench__group">
 							<div class="policy-workbench__group-header">
-								<h3>{{ state.viewMode === 'system-admin' ? t('libresign', 'Global default') : t('libresign', 'Inherited global default') }}</h3>
+								<h3>{{ state.viewMode === 'system-admin' ? t('libresign', 'Instance default') : t('libresign', 'Inherited instance default') }}</h3>
 								<p>
 									{{ state.viewMode === 'system-admin'
 										? t('libresign', 'This rule is the baseline for the whole instance.')
@@ -230,7 +230,7 @@
 								@remove="state.viewMode === 'system-admin' && promptRuleRemoval(state.inheritedSystemRule.id, 'system', t('libresign', 'Default configuration'))" />
 
 							<NcNoteCard v-else type="info">
-								{{ t('libresign', 'No global default exists yet for this setting.') }}
+								{{ t('libresign', 'No custom default exists yet for this setting.') }}
 							</NcNoteCard>
 						</section>
 
@@ -265,7 +265,7 @@
 							<NcNoteCard v-else type="info">
 								{{ state.viewMode === 'system-admin'
 									? t('libresign', 'No group rules exist yet for this setting.')
-									: t('libresign', 'The current group still inherits the global default.') }}
+									: t('libresign', 'The current group still inherits the instance default.') }}
 							</NcNoteCard>
 						</section>
 
@@ -274,7 +274,7 @@
 								<h3>{{ t('libresign', 'User rules') }}</h3>
 								<p>
 									{{ state.viewMode === 'system-admin'
-										? t('libresign', 'Use these only when an individual needs a different behavior from the group or system default.')
+										? t('libresign', 'Use these only when an individual needs a different behavior from the group or instance default.')
 										: t('libresign', 'Group admins can only create rules for users inside their own group.') }}
 								</p>
 							</div>
@@ -782,7 +782,7 @@ function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', t
 	const help = scope === 'system'
 		? t('libresign', 'Removing this rule will restore inherited behavior for all groups and users.')
 		: scope === 'group'
-			? t('libresign', 'Removing this rule will restore the global default for this group.')
+			? t('libresign', 'Removing this rule will restore the instance default for this group.')
 			: t('libresign', 'Removing this rule will restore inherited behavior for this user.')
 
 	pendingRemoval.value = { ruleId, targetLabel, help }
