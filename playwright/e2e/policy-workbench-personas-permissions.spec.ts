@@ -20,6 +20,7 @@ const DEFAULT_TEST_PASSWORD = '123456'
 const GROUP_ID = 'policy-e2e-group'
 const GROUP_ADMIN_USER = 'policy-e2e-group-admin'
 const END_USER = 'policy-e2e-end-user'
+const INSTANCE_RESET_USER = 'policy-e2e-instance-reset-user'
 const POLICY_KEY = 'signature_flow'
 
 type OcsPolicyResponse = {
@@ -205,6 +206,46 @@ test('personas can manage policies according to permissions and override toggles
 			adminRequest.dispose(),
 			groupAdminRequest.dispose(),
 			endUserRequest.dispose(),
+		])
+	}
+})
+
+test('admin can remove explicit instance policy and restore system baseline', async ({ page }) => {
+	await ensureUserExists(page.request, INSTANCE_RESET_USER, DEFAULT_TEST_PASSWORD)
+
+	const adminRequest = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
+	const instanceResetUserRequest = await createAuthenticatedRequestContext(INSTANCE_RESET_USER, DEFAULT_TEST_PASSWORD)
+
+	try {
+		await clearOwnUserPreference(instanceResetUserRequest)
+
+		let result = await policyRequest(
+			adminRequest,
+			'POST',
+			`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
+			{ value: 'parallel', allowChildOverride: true },
+		)
+		expect(result.httpStatus).toBe(200)
+
+		let effectivePolicy = await getEffectivePolicy(instanceResetUserRequest)
+		expect(effectivePolicy?.effectiveValue).toBe('parallel')
+		expect(effectivePolicy?.sourceScope).toBe('global')
+
+		result = await policyRequest(
+			adminRequest,
+			'POST',
+			`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
+			{ value: null, allowChildOverride: false },
+		)
+		expect(result.httpStatus).toBe(200)
+
+		effectivePolicy = await getEffectivePolicy(instanceResetUserRequest)
+		expect(effectivePolicy?.effectiveValue).toBe('none')
+		expect(effectivePolicy?.sourceScope).toBe('system')
+	} finally {
+		await Promise.all([
+			adminRequest.dispose(),
+			instanceResetUserRequest.dispose(),
 		])
 	}
 })
