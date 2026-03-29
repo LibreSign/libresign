@@ -424,6 +424,18 @@ describe('Settings', () => {
 			expect(adminItem.props('name')).toBeTruthy()
 			expect(adminItem.props('href')).toBeTruthy()
 		})
+
+		it('does not use fallback icon prop when custom icon slot is present', () => {
+			wrapper = createWrapper(true)
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+			const adminItem = expectItem(findItemByName(items, 'Administration'))
+
+			expect(preferencesItem.props('icon')).toBeUndefined()
+			expect(policiesItem.props('icon')).toBeUndefined()
+			expect(adminItem.props('icon')).toBeUndefined()
+		})
 	})
 
 	describe('RULE: icons render correctly', () => {
