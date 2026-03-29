@@ -867,10 +867,11 @@ const _filesStore = defineStore('files', () => {
 				}
 				const coordinates = element.coordinates && typeof element.coordinates === 'object'
 					? {
-						x: element.coordinates.x,
-						y: element.coordinates.y,
-						w: element.coordinates.w,
-						h: element.coordinates.h,
+						page: element.coordinates.page,
+						top: element.coordinates.top,
+						left: element.coordinates.left,
+						width: element.coordinates.width,
+						height: element.coordinates.height,
 					}
 					: undefined
 				return {
