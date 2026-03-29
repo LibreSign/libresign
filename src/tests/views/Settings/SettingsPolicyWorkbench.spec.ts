@@ -71,10 +71,23 @@ describe('RealPolicyWorkbench.vue', () => {
 		await openPolicyButton?.trigger('click')
 		await wrapper.findAll('button').find((button) => button.text() === 'Create rule')?.trigger('click')
 
-		expect(wrapper.text()).toContain('Choose the level where the new rule should be created')
+		const text = wrapper.text()
+		expect(text).toContain('Where do you want to apply this rule?')
+		expect(text).toContain('Affects all users')
+		expect(text).toContain('Affects all users in a group')
+		expect(text).toContain('Affects a specific user')
 		expect(wrapper.text()).toContain('Instance')
 		expect(wrapper.text()).toContain('Group')
 		expect(wrapper.text()).toContain('User')
+
+		const userIndex = text.indexOf('UserAffects a specific user')
+		const groupIndex = text.indexOf('GroupAffects all users in a group')
+		const instanceIndex = text.indexOf('InstanceAffects all users')
+		expect(userIndex).toBeGreaterThan(-1)
+		expect(groupIndex).toBeGreaterThan(-1)
+		expect(instanceIndex).toBeGreaterThan(-1)
+		expect(userIndex).toBeLessThan(groupIndex)
+		expect(groupIndex).toBeLessThan(instanceIndex)
 	})
 
 	it('shows callout when there is no persisted global default rule', async () => {
@@ -91,8 +104,8 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
-		expect(wrapper.text()).toContain('No global default rule is defined yet')
-		expect(wrapper.text()).toContain('Set global default')
+		expect(wrapper.text()).toContain('No instance default is configured. This setting currently uses the system default.')
+		expect(wrapper.text()).toContain('Set instance default')
 		expect(wrapper.text()).not.toContain('Instance default')
 	})
 
