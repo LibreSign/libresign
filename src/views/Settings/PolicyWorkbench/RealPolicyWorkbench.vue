@@ -283,13 +283,13 @@
 									<td class="policy-workbench__table-actions">
 										<template v-if="row.ruleId">
 											<NcActions :aria-label="t('libresign', 'Rule actions')">
-												<NcActionButton @click="state.startEditor({ scope: row.scope, ruleId: row.ruleId })">
+												<NcActionButton @click="handleEditRule(row.scope, row.ruleId)">
 													<template #icon>
 														<NcIconSvgWrapper :path="mdiPencil" :size="16" />
 													</template>
 													{{ t('libresign', 'Edit') }}
 												</NcActionButton>
-												<NcActionButton v-if="row.canRemove" @click="promptRuleRemoval(row.ruleId, row.scope, row.targetLabel)">
+												<NcActionButton v-if="row.canRemove" @click="handlePromptRuleRemoval(row.ruleId, row.scope, row.targetLabel)">
 													<template #icon>
 														<NcIconSvgWrapper :path="mdiDelete" :size="16" />
 													</template>
@@ -1030,6 +1030,23 @@ function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', t
 			: t('libresign', 'Removing this rule will restore inherited behavior for this user.')
 
 	pendingRemoval.value = { ruleId, scope, targetLabel, help }
+}
+
+function closeOpenActionsMenu() {
+	const activeElement = document.activeElement
+	if (activeElement instanceof HTMLElement) {
+		activeElement.blur()
+	}
+}
+
+function handleEditRule(scope: 'system' | 'group' | 'user', ruleId: string) {
+	closeOpenActionsMenu()
+	state.startEditor({ scope, ruleId })
+}
+
+function handlePromptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string) {
+	closeOpenActionsMenu()
+	promptRuleRemoval(ruleId, scope, targetLabel)
 }
 
 function cancelRuleRemoval() {
