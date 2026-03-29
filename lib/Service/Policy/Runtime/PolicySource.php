@@ -38,11 +38,27 @@ class PolicySource implements IPolicySource {
 			: $defaultValue;
 
 		$layer = (new PolicyLayer())
-			->setScope('system')
+			->setScope($hasExplicitSystemValue ? 'global' : 'system')
 			->setValue($value)
 			->setVisibleToChild(true);
 
-		if (!$hasExplicitSystemValue || $value === $defaultValue) {
+		if (!$hasExplicitSystemValue) {
+			return $layer->setAllowChildOverride(true);
+		}
+
+		if ($value === $defaultValue) {
+			$allowChildOverride = $this->appConfig->getAppValueString(
+				$this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey()),
+				'0',
+			) === '1';
+
+			if ($allowChildOverride) {
+				// Explicitly persisted default value ("let users choose")
+				return $layer
+					->setAllowChildOverride(true)
+					->setAllowedValues([]);
+			}
+
 			return $layer->setAllowChildOverride(true);
 		}
 
@@ -167,6 +183,12 @@ class PolicySource implements IPolicySource {
 		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey());
 
 		if ($normalizedValue === $defaultValue) {
+			if ($allowChildOverride) {
+				$this->appConfig->setAppValueString($definition->getAppConfigKey(), (string)$normalizedValue);
+				$this->appConfig->setAppValueString($allowOverrideConfigKey, '1');
+				return;
+			}
+
 			$this->appConfig->deleteAppValue($definition->getAppConfigKey());
 			$this->appConfig->deleteAppValue($allowOverrideConfigKey);
 			return;
