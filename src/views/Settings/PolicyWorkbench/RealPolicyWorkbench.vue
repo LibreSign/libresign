@@ -6,7 +6,7 @@
 <template>
 	<NcSettingsSection
 		:name="t('libresign', 'Policy configuration')"
-		:description="t('libresign', 'Manage policy settings with global defaults, group overrides, and user overrides.')">
+		:description="t('libresign', 'Manage policy settings with instance defaults, group overrides, and user overrides.')">
 
 		<div class="policy-workbench__catalog-toolbar">
 			<div class="policy-workbench__catalog-search">
@@ -83,7 +83,7 @@
 
 				<ul class="policy-workbench__setting-stats">
 					<li>
-						<strong>{{ t('libresign', 'Global default') }}:</strong>
+						<strong>{{ t('libresign', 'Instance default') }}:</strong>
 						<span :title="summary.defaultSummary" v-html="highlightText(summary.defaultSummary)"></span>
 					</li>
 					<li>
@@ -120,7 +120,7 @@
 
 				<div class="policy-workbench__settings-row-stats">
 					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--default" :title="summary.defaultSummary">
-						<strong>{{ t('libresign', 'Global default') }}:</strong>
+						<strong>{{ t('libresign', 'Instance default') }}:</strong>
 						<span v-html="highlightText(summary.defaultSummary)"></span>
 					</span>
 					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ t('libresign', 'Group overrides') }}:</strong> {{ summary.groupCount }}</span>
@@ -608,7 +608,7 @@ const editorTitle = computed(() => {
 	}
 
 	if (state.editorDraft.scope === 'system') {
-		return t('libresign', 'Global default rule')
+		return t('libresign', 'Instance default rule')
 	}
 
 	return state.draftTargetLabel || t('libresign', 'Select one or more targets')
@@ -984,7 +984,7 @@ function resolveSettingOrigin(groupCount: number, userCount: number) {
 		return t('libresign', 'Group overrides active')
 	}
 
-	return t('libresign', 'Using global default only')
+	return t('libresign', 'Using instance default only')
 }
 
 function toggleCatalogLayout() {
@@ -1026,7 +1026,7 @@ function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', t
 	const help = scope === 'system'
 		? t('libresign', 'Removing this custom default makes the instance use the system default again.')
 		: scope === 'group'
-			? t('libresign', 'Removing this rule will restore inherited behavior from the global default for this group.')
+			? t('libresign', 'Removing this rule will restore inherited behavior from the instance default for this group.')
 			: t('libresign', 'Removing this rule will restore inherited behavior for this user.')
 
 	pendingRemoval.value = { ruleId, scope, targetLabel, help }
@@ -1090,7 +1090,7 @@ async function confirmRuleRemoval() {
 		removalFeedback.value = scope === 'system'
 			? t('libresign', 'Custom default removed. The instance now uses the system default.')
 			: scope === 'group'
-				? t('libresign', 'Group exception removed. Inherited behavior from the global default is now active.')
+				? t('libresign', 'Group exception removed. Inherited behavior from the instance default is now active.')
 				: t('libresign', 'User exception removed. Inherited behavior is now active.')
 
 		if (removalFeedbackTimeout.value !== null) {
