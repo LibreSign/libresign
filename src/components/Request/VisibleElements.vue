@@ -51,20 +51,22 @@
 						</template>
 					</Signer>
 				</ul>
-				<NcButton v-if="canSave"
-					:variant="variantOfSaveButton"
-					:wide="true"
-					:class="{ disabled: signerSelected }"
-					@click="save()">
-					{{ t('libresign', 'Save') }}
-				</NcButton>
+				<div class="sign-details__actions">
+					<NcButton v-if="canSave"
+						:variant="variantOfSaveButton"
+						:wide="true"
+						:class="{ disabled: signerSelected }"
+						@click="save()">
+						{{ t('libresign', 'Save') }}
+					</NcButton>
 
-				<NcButton v-if="canSign"
-					:variant="variantOfSignButton"
-					:wide="true"
-					@click="goToSign">
-					{{ t('libresign', 'Sign') }}
-				</NcButton>
+					<NcButton v-if="canSign"
+						:variant="variantOfSignButton"
+						:wide="true"
+						@click="goToSign">
+						{{ t('libresign', 'Sign') }}
+					</NcButton>
+				</div>
 			</div>
 			<PdfEditor v-if="!filesStore.loading && pdfFiles.length > 0"
 				ref="pdfEditor"
@@ -946,6 +948,12 @@ defineExpose({
 			li {
 				margin: 3px 3px 1em 3px;
 			}
+		}
+		&__actions {
+			position: sticky;
+			bottom: 0;
+			background-color: var(--color-main-background);
+			padding-top: 4px;
 		}
 		.disabled {
 			pointer-events: none;
