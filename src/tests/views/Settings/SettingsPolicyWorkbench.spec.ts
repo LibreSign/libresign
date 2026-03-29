@@ -71,23 +71,22 @@ describe('RealPolicyWorkbench.vue', () => {
 		await openPolicyButton?.trigger('click')
 		await wrapper.findAll('button').find((button) => button.text() === 'Create rule')?.trigger('click')
 
-		const text = wrapper.text()
+		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
+		expect(createScopeDialog.exists()).toBe(true)
+
+		const text = createScopeDialog.text()
 		expect(text).toContain('Where do you want to apply this rule?')
-		expect(text).toContain('Affects all users')
 		expect(text).toContain('Affects all users in a group')
 		expect(text).toContain('Affects a specific user')
-		expect(wrapper.text()).toContain('Instance')
-		expect(wrapper.text()).toContain('Group')
-		expect(wrapper.text()).toContain('User')
+		expect(text).toContain('Group')
+		expect(text).toContain('User')
+		expect(text).not.toContain('InstanceAffects all users')
 
 		const userIndex = text.indexOf('UserAffects a specific user')
 		const groupIndex = text.indexOf('GroupAffects all users in a group')
-		const instanceIndex = text.indexOf('InstanceAffects all users')
 		expect(userIndex).toBeGreaterThan(-1)
 		expect(groupIndex).toBeGreaterThan(-1)
-		expect(instanceIndex).toBeGreaterThan(-1)
 		expect(userIndex).toBeLessThan(groupIndex)
-		expect(groupIndex).toBeLessThan(instanceIndex)
 	})
 
 	it('shows callout when there is no persisted global default rule', async () => {
