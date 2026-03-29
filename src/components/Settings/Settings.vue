@@ -11,24 +11,24 @@
 				<NcIconSvgWrapper class="account-icon" :path="mdiAccount" :size="20" />
 			</template>
 		</NcAppNavigationItem>
-		<NcAppNavigationItem icon="icon-settings" :name="t('libresign', 'Preferences')"
+		<NcAppNavigationItem :name="t('libresign', 'Preferences')"
 			:to="{name: 'Preferences'}">
 			<template #icon>
 				<NcIconSvgWrapper class="preferences-icon" :path="mdiTuneVariant" :size="20" />
 			</template>
 		</NcAppNavigationItem>
-		<NcAppNavigationItem v-if="canManagePolicies" icon="icon-settings"
+		<NcAppNavigationItem v-if="canManagePolicies"
 			:name="t('libresign', 'Policies')"
 			:to="{name: 'Policies'}">
 			<template #icon>
-				<NcIconSvgWrapper class="policies-icon" :path="mdiTune" :size="20" />
+				<NcIconSvgWrapper class="policies-icon" :path="mdiShieldCheckOutline" :size="20" />
 			</template>
 		</NcAppNavigationItem>
-		<NcAppNavigationItem v-if="isAdmin" icon="icon-settings"
+		<NcAppNavigationItem v-if="isAdmin"
 			:name="t('libresign', 'Administration')"
 			:href="getAdminRoute()">
 			<template #icon>
-				<NcIconSvgWrapper class="tune-icon" :path="mdiTune" :size="20" />
+				<NcIconSvgWrapper class="tune-icon" :path="mdiCogOutline" :size="20" />
 			</template>
 		</NcAppNavigationItem>
 		<NcAppNavigationItem icon="icon-star" :name="t('libresign', 'Rate LibreSign  ❤️')"
@@ -51,8 +51,9 @@ import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import {
 	mdiAccount,
+	mdiCogOutline,
 	mdiStar,
-	mdiTune,
+	mdiShieldCheckOutline,
 	mdiTuneVariant,
 } from '@mdi/js'
 
