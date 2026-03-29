@@ -170,8 +170,8 @@
 					<div v-if="state.summary" class="policy-workbench__summary-line policy-workbench__summary-line--crud">
 						<span class="policy-workbench__summary-caption">{{ t('libresign', 'Default:') }}</span>
 						<strong class="policy-workbench__summary-value-compact">{{ state.summary.currentBaseValue }}</strong>
-						<span class="policy-workbench__value-source">
-							{{ state.hasGlobalDefault ? t('libresign', 'Custom default') : t('libresign', 'System default') }}
+						<span class="policy-workbench__summary-source-inline">
+							({{ state.hasGlobalDefault ? t('libresign', 'custom default') : t('libresign', 'system default') }})
 						</span>
 					</div>
 
@@ -179,7 +179,7 @@
 						<NcAppNavigationSearch
 							:model-value="crudSearch"
 							:label="t('libresign', 'Search rules')"
-							:placeholder="t('libresign', 'Search by scope, target, or value')"
+							:placeholder="t('libresign', 'Search rules')"
 							@update:modelValue="onCrudSearchChange">
 							<template #actions>
 								<NcActions :aria-label="t('libresign', 'Filter rules by scope')">
@@ -230,23 +230,24 @@
 						{{ t('libresign', 'Some users may not allow user overrides because their group rule requires inheritance.') }}
 					</p>
 
-					<NcNoteCard v-if="!state.inheritedSystemRule && state.viewMode === 'system-admin'" type="info">
-						<div class="policy-workbench__empty-state policy-workbench__empty-state--compact">
-							<p>{{ t('libresign', 'No global default rule is defined yet. The instance is currently using the platform fallback.') }}</p>
-							<NcButton variant="secondary" size="small" @click="state.startEditor({ scope: 'system' })">
-								{{ t('libresign', 'Set global default') }}
-							</NcButton>
-						</div>
-					</NcNoteCard>
+					<div v-if="!state.inheritedSystemRule && state.viewMode === 'system-admin'" class="policy-workbench__global-default-hint">
+						<p>{{ t('libresign', 'No global default set. Using system default.') }}</p>
+						<NcButton variant="tertiary" size="small" @click="state.startEditor({ scope: 'system' })">
+							{{ t('libresign', 'Set global default') }}
+						</NcButton>
+					</div>
 
 					<div class="policy-workbench__table-scroll">
+						<p class="policy-workbench__table-priority-note">
+							{{ t('libresign', 'Rules are applied by priority: User -> Group -> Default') }}
+						</p>
 						<table class="policy-workbench__table">
 							<thead>
 								<tr>
-									<th>{{ t('libresign', 'Scope') }}</th>
+									<th>{{ t('libresign', 'Type') }}</th>
 									<th>{{ t('libresign', 'Target') }}</th>
 									<th>{{ t('libresign', 'Value') }}</th>
-									<th>{{ t('libresign', 'Inheritance') }}</th>
+									<th>{{ t('libresign', 'Behavior') }}</th>
 									<th>{{ t('libresign', 'Actions') }}</th>
 								</tr>
 							</thead>
@@ -256,13 +257,13 @@
 									<td>{{ row.targetLabel }}</td>
 									<td>{{ row.valueLabel }}</td>
 									<td class="policy-workbench__status">
-										<small :class="{ 'policy-workbench__status--inherit': row.inheritanceLabel === t('libresign', 'Must inherit') }">
+										<small :class="{ 'policy-workbench__status--inherit': row.inheritanceLabel === t('libresign', 'Must follow') }">
 											{{ row.inheritanceLabel }}
 										</small>
 									</td>
 									<td class="policy-workbench__table-actions">
 										<template v-if="row.ruleId">
-											<NcActions :force-name="true" :inline="2">
+											<NcActions :aria-label="t('libresign', 'Rule actions')">
 												<NcActionButton @click="state.startEditor({ scope: row.scope, ruleId: row.ruleId })">
 													<template #icon>
 														<NcIconSvgWrapper :path="mdiPencil" :size="16" />
@@ -309,6 +310,7 @@
 						:duplicate-message="state.duplicateMessage"
 						:can-save-draft="state.canSaveDraft"
 						:save-status="saveStatus"
+						:show-allow-override-switch="state.activeDefinition?.key !== 'signature_flow'"
 						@search-targets="state.searchAvailableTargets"
 						@update-targets="onTargetChange"
 						@update-value="state.updateDraftValue"
@@ -341,6 +343,7 @@
 					:can-save-draft="state.canSaveDraft"
 					:save-status="saveStatus"
 					:sticky-actions="true"
+					:show-allow-override-switch="state.activeDefinition?.key !== 'signature_flow'"
 					@search-targets="state.searchAvailableTargets"
 					@update-targets="onTargetChange"
 					@update-value="state.updateDraftValue"
@@ -357,21 +360,27 @@
 			:can-close="true"
 			@closing="cancelCreateScopeDialog">
 			<div class="policy-workbench__create-scope-dialog">
-				<p>{{ t('libresign', 'Choose the level where the new rule should be created.') }}</p>
-				<div class="policy-workbench__create-scope-actions">
-					<NcButton variant="secondary" :disabled="scopeCreateDisabledReason('system').length > 0" @click="startCreateRuleForScope('system')">
-						{{ t('libresign', 'Instance') }}
-					</NcButton>
-					<NcButton variant="secondary" :disabled="scopeCreateDisabledReason('group').length > 0" @click="startCreateRuleForScope('group')">
-						{{ t('libresign', 'Group') }}
-					</NcButton>
-					<NcButton
-						v-if="state.viewMode === 'system-admin' || !scopeCreateDisabledReason('user')"
-						variant="secondary"
-						:disabled="scopeCreateDisabledReason('user').length > 0"
-						@click="startCreateRuleForScope('user')">
-						{{ t('libresign', 'User') }}
-					</NcButton>
+				<p>{{ t('libresign', 'Where do you want to apply this rule?') }}</p>
+				<div class="policy-workbench__create-scope-grid" role="listbox" :aria-label="t('libresign', 'Rule type')">
+					<button
+						v-for="option in createScopeOptions"
+						:key="option.scope"
+						type="button"
+						role="option"
+						class="policy-workbench__create-scope-option"
+						:class="{
+							'policy-workbench__create-scope-option--disabled': option.disabled,
+							'policy-workbench__create-scope-option--selected': selectedCreateScope === option.scope,
+						}"
+						:disabled="option.disabled"
+						:aria-selected="selectedCreateScope === option.scope"
+						@click="selectCreateScope(option.scope)">
+						<span class="policy-workbench__create-scope-option-icon" aria-hidden="true">
+							<NcIconSvgWrapper :path="mdiCheckCircleOutline" :size="16" />
+						</span>
+						<span class="policy-workbench__create-scope-option-title">{{ option.label }}</span>
+						<span class="policy-workbench__create-scope-option-description">{{ option.description }}</span>
+					</button>
 				</div>
 				<ul class="policy-workbench__create-scope-notes">
 					<li v-if="scopeCreateDisabledReason('group')">{{ t('libresign', 'Group') }}: {{ scopeCreateDisabledReason('group') }}</li>
@@ -402,6 +411,7 @@
 
 <script setup lang="ts">
 import {
+	mdiCheckCircleOutline,
 	mdiDelete,
 	mdiFilterVariant,
 	mdiFormatListBulletedSquare,
@@ -443,6 +453,7 @@ const saveFeedbackTimeout = ref<number | null>(null)
 const pendingRemoval = ref<{ ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string, help: string } | null>(null)
 const pendingDiscardAction = ref<'cancel-editor' | 'close-setting' | null>(null)
 const showCreateScopeDialog = ref(false)
+const selectedCreateScope = ref<'system' | 'group' | 'user' | null>(null)
 const isRemovingRule = ref(false)
 const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)
@@ -508,7 +519,7 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			scope: 'system',
 			targetLabel: t('libresign', 'Instance default'),
 			valueLabel: state.summary?.currentBaseValue ?? t('libresign', 'Not configured'),
-			inheritanceLabel: systemRule.allowChildOverride === false ? t('libresign', 'Must inherit') : t('libresign', 'Can override'),
+			inheritanceLabel: systemRule.allowChildOverride === false ? t('libresign', 'Must follow') : t('libresign', 'Can choose'),
 			canRemove: Boolean(systemRule.id && state.hasGlobalDefault),
 		})
 	}
@@ -520,7 +531,7 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			scope: 'group',
 			targetLabel: state.resolveTargetLabel('group', rule.targetId || ''),
 			valueLabel: summarizeRuleValue(rule.value),
-			inheritanceLabel: rule.allowChildOverride ? t('libresign', 'Can override') : t('libresign', 'Must inherit'),
+			inheritanceLabel: rule.allowChildOverride ? t('libresign', 'Can choose') : t('libresign', 'Must follow'),
 			canRemove: true,
 		})
 	}
@@ -532,10 +543,27 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			scope: 'user',
 			targetLabel: state.resolveTargetLabel('user', rule.targetId || ''),
 			valueLabel: summarizeRuleValue(rule.value),
-			inheritanceLabel: t('libresign', 'Final'),
+			inheritanceLabel: resolveSignatureFlowMode(rule.value as never) === 'none'
+				? t('libresign', 'Can choose')
+				: t('libresign', 'Must follow'),
 			canRemove: true,
 		})
 	}
+
+	const scopePriority: Record<CrudScope, number> = {
+		user: 0,
+		group: 1,
+		system: 2,
+	}
+
+	rows.sort((left, right) => {
+		const priorityDiff = scopePriority[left.scope] - scopePriority[right.scope]
+		if (priorityDiff !== 0) {
+			return priorityDiff
+		}
+
+		return left.targetLabel.localeCompare(right.targetLabel)
+	})
 
 	const normalized = crudSearch.value.trim().toLowerCase()
 
@@ -582,14 +610,14 @@ const editorHelp = computed(() => {
 	}
 
 	if (state.editorDraft.scope === 'system') {
-		return t('libresign', 'This rule becomes the baseline inherited by groups and users unless another override is set.')
+		return t('libresign', 'This rule sets the default signing order for everyone.')
 	}
 
 	if (state.editorDraft.scope === 'group') {
-		return t('libresign', 'A group override replaces the global default and can still allow lower layers to diverge.')
+		return t('libresign', 'This rule sets signing order for all users in the selected groups.')
 	}
 
-	return t('libresign', 'A user override is the most specific layer and takes priority over inherited defaults.')
+	return t('libresign', 'This rule sets signing order for the selected users.')
 })
 
 function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
@@ -615,6 +643,42 @@ const createRuleDisabledReason = computed(() => {
 	}
 
 	return ''
+})
+
+const createScopeOptions = computed<Array<{
+	scope: 'system' | 'group' | 'user',
+	label: string,
+	description: string,
+	disabled: boolean,
+}>>(() => {
+	const options = [
+		{
+			scope: 'user' as const,
+			label: t('libresign', 'User'),
+			description: t('libresign', 'Affects a specific user'),
+			disabled: scopeCreateDisabledReason('user').length > 0,
+		},
+		{
+			scope: 'group' as const,
+			label: t('libresign', 'Group'),
+			description: t('libresign', 'Affects all users in a group'),
+			disabled: scopeCreateDisabledReason('group').length > 0,
+		},
+		{
+			scope: 'system' as const,
+			label: t('libresign', 'Instance'),
+			description: t('libresign', 'Affects all users'),
+			disabled: scopeCreateDisabledReason('system').length > 0,
+		},
+	]
+
+	return options.filter((option) => {
+		if (option.scope !== 'user') {
+			return true
+		}
+
+		return state.viewMode === 'system-admin' || !option.disabled
+	})
 })
 
 const activeScopeFilterChip = computed(() => {
@@ -689,6 +753,29 @@ function summarizeRuleValue(value: unknown) {
 	return state.activeDefinition.summarizeValue(value as never)
 }
 
+function resolveSignatureFlowMode(value: unknown): 'parallel' | 'ordered_numeric' | 'none' | null {
+	if (value === 0 || value === 'none') {
+		return 'none'
+	}
+
+	if (value === 1 || value === 'parallel') {
+		return 'parallel'
+	}
+
+	if (value === 2 || value === 'ordered_numeric') {
+		return 'ordered_numeric'
+	}
+
+	if (value && typeof value === 'object' && 'flow' in (value as Record<string, unknown>)) {
+		const candidate = (value as { flow?: unknown }).flow
+		if (candidate === 'parallel' || candidate === 'ordered_numeric' || candidate === 'none') {
+			return candidate
+		}
+	}
+
+	return null
+}
+
 function crudScopeLabel(scope: CrudScope) {
 	if (scope === 'system') {
 		return t('libresign', 'Instance')
@@ -725,6 +812,16 @@ function requestCreateRule() {
 
 function cancelCreateScopeDialog() {
 	showCreateScopeDialog.value = false
+	selectedCreateScope.value = null
+}
+
+function selectCreateScope(scope: 'system' | 'group' | 'user') {
+	if (scopeCreateDisabledReason(scope).length > 0) {
+		return
+	}
+
+	selectedCreateScope.value = scope
+	startCreateRuleForScope(scope)
 }
 
 function startCreateRuleForScope(scope: 'system' | 'group' | 'user') {
@@ -1002,6 +1099,7 @@ onBeforeUnmount(() => {
 
 	pendingDiscardAction.value = null
 	showCreateScopeDialog.value = false
+	selectedCreateScope.value = null
 })
 </script>
 
@@ -1673,6 +1771,11 @@ onBeforeUnmount(() => {
 		line-height: 1.2;
 	}
 
+	&__summary-source-inline {
+		font-size: 0.84rem;
+		color: var(--color-text-maxcontrast);
+	}
+
 	&__summary-wrap {
 		:deep(.notecard) {
 			margin: 0;
@@ -1971,7 +2074,7 @@ onBeforeUnmount(() => {
 		th,
 		td {
 			text-align: left;
-			padding: 0.6rem 0.8rem;
+			padding: 0.48rem 0.72rem;
 			vertical-align: middle;
 		}
 
@@ -1992,8 +2095,14 @@ onBeforeUnmount(() => {
 		}
 
 		tbody tr:hover td {
-			background: color-mix(in srgb, var(--color-main-text) 2%, transparent);
+			background: color-mix(in srgb, var(--color-main-text) 1%, transparent);
 		}
+	}
+
+	&__table-priority-note {
+		margin: 0 0 0.45rem;
+		font-size: 0.82rem;
+		color: var(--color-text-maxcontrast);
 	}
 
 	&__table-actions {
@@ -2003,8 +2112,39 @@ onBeforeUnmount(() => {
 			justify-content: flex-start;
 		}
 
+		:deep(.actions__primary) {
+			opacity: 0.8;
+		}
+
+		:deep(.actions__primary:hover),
+		:deep(.actions__primary:focus-visible) {
+			opacity: 1;
+		}
+
 		:deep(.action-item) {
 			font-size: 0.84rem;
+		}
+	}
+
+	&__global-default-hint {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.45rem 0.65rem;
+		margin-bottom: 0.55rem;
+		border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--color-background-dark) 45%, var(--color-main-background));
+
+		p {
+			margin: 0;
+			font-size: 0.84rem;
+			color: var(--color-text-maxcontrast);
+		}
+
+		:deep(.button-vue) {
+			white-space: nowrap;
 		}
 	}
 
@@ -2038,10 +2178,80 @@ onBeforeUnmount(() => {
 		}
 	}
 
-	&__create-scope-actions {
+	&__create-scope-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.68rem;
+	}
+
+	&__create-scope-option {
 		display: flex;
-		gap: 0.5rem;
-		flex-wrap: wrap;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.2rem;
+		width: 100%;
+		padding: 0.7rem 0.8rem;
+		border-radius: 10px;
+		border: 1px solid color-mix(in srgb, var(--color-border-maxcontrast) 45%, transparent);
+		background: color-mix(in srgb, var(--color-main-background) 94%, var(--color-background-dark));
+		text-align: left;
+		cursor: pointer;
+		position: relative;
+		transition: border-color 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+
+		&:hover {
+			border-color: color-mix(in srgb, var(--color-primary-element) 58%, var(--color-border-maxcontrast));
+			background: color-mix(in srgb, var(--color-primary-element) 9%, var(--color-main-background));
+			box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary-element) 12%, transparent);
+			transform: translateY(-1px);
+		}
+
+		&:focus-visible {
+			outline: 2px solid color-mix(in srgb, var(--color-primary-element) 70%, transparent);
+			outline-offset: 1px;
+		}
+
+		&--selected {
+			border-color: color-mix(in srgb, var(--color-primary-element) 58%, var(--color-border-maxcontrast));
+			box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-element) 12%, transparent), 0 2px 10px color-mix(in srgb, var(--color-primary-element) 12%, transparent);
+			background: color-mix(in srgb, var(--color-primary-element) 9%, var(--color-main-background));
+		}
+
+		&--disabled {
+			opacity: 0.55;
+			cursor: not-allowed;
+
+			&:hover {
+				box-shadow: none;
+				transform: none;
+			}
+		}
+	}
+
+	&__create-scope-option-icon {
+		position: absolute;
+		top: 0.55rem;
+		right: 0.55rem;
+		color: color-mix(in srgb, var(--color-primary-element) 75%, transparent);
+		opacity: 0;
+		transform: scale(0.9);
+		transition: opacity 0.12s ease, transform 0.12s ease;
+	}
+
+	&__create-scope-option--selected &__create-scope-option-icon {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	&__create-scope-option-title {
+		font-size: 0.92rem;
+		font-weight: 600;
+		color: var(--color-main-text);
+	}
+
+	&__create-scope-option-description {
+		font-size: 0.83rem;
+		color: var(--color-text-maxcontrast);
 	}
 
 	&__create-scope-notes {
@@ -2054,6 +2264,7 @@ onBeforeUnmount(() => {
 			margin: 0;
 		}
 	}
+
 
 	&__table-empty-state {
 		display: flex;
