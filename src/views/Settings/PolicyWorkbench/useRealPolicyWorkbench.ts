@@ -232,6 +232,7 @@ export function createRealPolicyWorkbenchState() {
 
 	const groupRules = ref<PolicyRuleRecord[]>([])
 	const userRules = ref<PolicyRuleRecord[]>([])
+	const explicitSystemRule = ref<PolicyRuleRecord | null>(null)
 
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
@@ -278,25 +279,23 @@ export function createRealPolicyWorkbenchState() {
 
 		const policy = activePolicyState.value
 		if (!policy?.effectiveValue) {
-			return null
+			return explicitSystemRule.value
 		}
 
-		// A baseline "none" value means there is no explicit global rule persisted.
-		if (activeDefinition.value.key === 'signature_flow') {
-			const mode = resolveSignatureFlowMode(policy.effectiveValue)
-			const sourceScope = policy.sourceScope || 'system'
-			if (mode === 'none' && sourceScope === 'system') {
-				return null
-			}
+		const sourceScope = policy.sourceScope
+		if (sourceScope && sourceScope !== 'global') {
+			return explicitSystemRule.value
 		}
 
-		return {
+		explicitSystemRule.value = {
 			id: 'system-default',
 			scope: 'system',
 			targetId: null,
 			allowChildOverride: inferSystemAllowOverride(policy),
 			value: policy.effectiveValue,
 		}
+
+		return explicitSystemRule.value
 	})
 
 	const policyResolutionMode = computed<PolicyResolutionMode>(() => {
@@ -331,16 +330,20 @@ export function createRealPolicyWorkbenchState() {
 	})
 
 	const hasGlobalDefault = computed(() => {
+		if (explicitSystemRule.value !== null) {
+			return true
+		}
+
 		const policy = activePolicyState.value
 		if (!policy) {
 			return false
 		}
 
-		if (policy.sourceScope === 'system') {
-			return false
+		if (!policy.sourceScope) {
+			return inheritedSystemRule.value !== null
 		}
 
-		return inheritedSystemRule.value !== null
+		return policy.sourceScope === 'global'
 	})
 
 	const effectiveSource = computed(() => {
@@ -551,6 +554,7 @@ export function createRealPolicyWorkbenchState() {
 
 	function openSetting(key: string) {
 		activeSettingKey.value = key
+		explicitSystemRule.value = null
 		groupRules.value = []
 		userRules.value = []
 		void hydratePersistedGroupRules(key)
@@ -786,6 +790,13 @@ export function createRealPolicyWorkbenchState() {
 		try {
 			if (scope === 'system') {
 				await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
+				explicitSystemRule.value = {
+					id: 'system-default',
+					scope: 'system',
+					targetId: null,
+					allowChildOverride,
+					value,
+				}
 				await policiesStore.fetchEffectivePolicies()
 				cancelEditor()
 				return
@@ -838,7 +849,8 @@ export function createRealPolicyWorkbenchState() {
 			&& editorDraft.value.ruleId === ruleId
 
 		if (ruleId === 'system-default' || (inheritedSystemRuleId !== null && ruleId === inheritedSystemRuleId)) {
-			await policiesStore.saveSystemPolicy(policyKey, null as unknown as EffectivePolicyValue)
+			await policiesStore.saveSystemPolicy(policyKey, null as unknown as EffectivePolicyValue, false)
+			explicitSystemRule.value = null
 			highlightedRuleId.value = null
 			await policiesStore.fetchEffectivePolicies()
 			if (shouldCloseSystemEditor) {
