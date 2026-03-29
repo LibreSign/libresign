@@ -123,7 +123,7 @@ const signingOrderSummary = computed(() => {
 	case 'ordered_numeric':
 		return t('libresign', 'Sequential')
 	case 'none':
-		return t('libresign', 'Disabled')
+		return t('libresign', 'Simultaneous or Sequential')
 	default:
 		return t('libresign', 'Waiting for current policy value')
 	}
