@@ -63,7 +63,7 @@ final class PolicySourceTest extends TestCase {
 		$layer = $source->loadSystemPolicy('signature_flow');
 
 		$this->assertNotNull($layer);
-		$this->assertSame('system', $layer->getScope());
+		$this->assertSame('global', $layer->getScope());
 		$this->assertSame('ordered_numeric', $layer->getValue());
 		$this->assertFalse($layer->isAllowChildOverride());
 		$this->assertSame(['ordered_numeric'], $layer->getAllowedValues());
@@ -82,6 +82,7 @@ final class PolicySourceTest extends TestCase {
 
 		$this->assertNotNull($layer);
 		$this->assertSame('none', $layer->getValue());
+		$this->assertSame('system', $layer->getScope());
 		$this->assertTrue($layer->isAllowChildOverride());
 		$this->assertSame([], $layer->getAllowedValues());
 	}
@@ -180,6 +181,29 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame(['policy.signature_flow.system', 'policy.signature_flow.system.allow_child_override'], $deletedKeys);
 	}
 
+	public function testSaveSystemPolicyPersistsExplicitDefaultWhenAllowChildOverrideIsTrue(): void {
+		$savedValues = [];
+		$this->appConfig
+			->expects($this->exactly(2))
+			->method('setAppValueString')
+			->willReturnCallback(static function (string $key, string $value) use (&$savedValues): bool {
+				$savedValues[$key] = $value;
+				return true;
+			});
+
+		$this->appConfig
+			->expects($this->never())
+			->method('deleteAppValue');
+
+		$source = $this->getSource();
+		$source->saveSystemPolicy('signature_flow', 'none', true);
+
+		$this->assertSame([
+			'policy.signature_flow.system' => 'none',
+			'policy.signature_flow.system.allow_child_override' => '1',
+		], $savedValues);
+	}
+
 	public function testSaveSystemPolicyNormalizesAndPersistsAppConfigValue(): void {
 		$savedValues = [];
 		$this->appConfig
@@ -222,9 +246,36 @@ final class PolicySourceTest extends TestCase {
 
 		$this->assertNotNull($layer);
 		$this->assertSame('ordered_numeric', $layer->getValue());
+		$this->assertSame('global', $layer->getScope());
 		$this->assertTrue($layer->isAllowChildOverride());
 		$this->assertSame([], $layer->getAllowedValues());
 		$this->assertSame(2, $calls);
+	}
+
+	public function testLoadSystemPolicyTreatsPersistedDefaultAsExplicitWhenAllowChildOverrideIsSet(): void {
+		$this->appConfig
+			->expects($this->exactly(2))
+			->method('getAppValueString')
+			->willReturnCallback(static function (string $key, string $default): string {
+				if ($key === 'policy.signature_flow.system' && $default === '') {
+					return 'none';
+				}
+
+				if ($key === 'policy.signature_flow.system.allow_child_override' && $default === '0') {
+					return '1';
+				}
+
+				throw new \RuntimeException('Unexpected app config key request: ' . $key);
+			});
+
+		$source = $this->getSource();
+		$layer = $source->loadSystemPolicy('signature_flow');
+
+		$this->assertNotNull($layer);
+		$this->assertSame('none', $layer->getValue());
+		$this->assertSame('global', $layer->getScope());
+		$this->assertTrue($layer->isAllowChildOverride());
+		$this->assertSame([], $layer->getAllowedValues());
 	}
 
 	public function testLoadGroupPolicyConfigReturnsBoundPolicyLayer(): void {
