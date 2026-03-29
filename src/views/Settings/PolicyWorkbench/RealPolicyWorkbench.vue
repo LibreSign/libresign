@@ -273,11 +273,12 @@
 									<td>{{ row.targetLabel }}</td>
 									<td>{{ row.valueLabel }}</td>
 									<td class="policy-workbench__status">
-										<small
+										<span
+											class="policy-workbench__status-label"
 											:class="{ 'policy-workbench__status--inherit': row.inheritanceLabel === t('libresign', 'Enforced') }"
 											:title="row.inheritanceLabel === t('libresign', 'Enforced') ? t('libresign', 'User cannot change this rule.') : t('libresign', 'User can choose the signing order.')">
 											{{ row.inheritanceLabel }}
-										</small>
+										</span>
 									</td>
 									<td class="policy-workbench__table-actions">
 										<template v-if="row.ruleId">
@@ -2171,6 +2172,23 @@ onBeforeUnmount(() => {
 		:deep(.action-item) {
 			font-size: 0.84rem;
 		}
+	}
+
+	&__status {
+		white-space: nowrap;
+	}
+
+	&__status-label {
+		display: inline-flex;
+		align-items: center;
+		font-size: inherit;
+		line-height: 1.35;
+		color: var(--color-text-maxcontrast);
+	}
+
+	&__status--inherit {
+		color: var(--color-main-text);
+		font-weight: 600;
 	}
 
 	&__global-default-hint {
