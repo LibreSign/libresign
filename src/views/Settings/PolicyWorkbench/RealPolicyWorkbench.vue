@@ -691,6 +691,10 @@ const createScopeOptions = computed<Array<{
 	]
 
 	return options.filter((option) => {
+		if (option.scope === 'system' && state.hasGlobalDefault) {
+			return false
+		}
+
 		if (option.scope !== 'user') {
 			return true
 		}
