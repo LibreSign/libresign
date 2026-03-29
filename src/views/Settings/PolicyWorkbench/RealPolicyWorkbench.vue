@@ -187,15 +187,27 @@
 										<NcIconSvgWrapper :path="mdiFilterVariant" :size="20" :title="t('libresign', 'Filter by scope')" />
 									</template>
 									<NcActionButton @click="setCrudScopeFilter('all', true)">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiFilterVariant" :size="16" />
+										</template>
 										{{ t('libresign', 'All scopes') }}
 									</NcActionButton>
 									<NcActionButton @click="setCrudScopeFilter('system', true)">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiOfficeBuildingOutline" :size="16" />
+										</template>
 										{{ t('libresign', 'Instance') }}
 									</NcActionButton>
 									<NcActionButton @click="setCrudScopeFilter('group', true)">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiAccountMultipleOutline" :size="16" />
+										</template>
 										{{ t('libresign', 'Group') }}
 									</NcActionButton>
 									<NcActionButton @click="setCrudScopeFilter('user', true)">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiAccountOutline" :size="16" />
+										</template>
 										{{ t('libresign', 'User') }}
 									</NcActionButton>
 								</NcActions>
@@ -413,11 +425,14 @@
 
 <script setup lang="ts">
 import {
+	mdiAccountMultipleOutline,
+	mdiAccountOutline,
 	mdiCheckCircleOutline,
 	mdiDelete,
 	mdiFilterVariant,
 	mdiFormatListBulletedSquare,
 	mdiInformationOutline,
+	mdiOfficeBuildingOutline,
 	mdiPencil,
 	mdiPlus,
 	mdiViewGridOutline,
