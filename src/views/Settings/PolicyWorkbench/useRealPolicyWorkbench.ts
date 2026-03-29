@@ -115,7 +115,7 @@ const realDefinitions = {
 		description: t('libresign', 'Define whether signers work in parallel or in a sequential order.'),
 		menuHint: t('libresign', 'Define the default signing flow and where overrides are allowed.'),
 		editor: SignatureFlowScalarRuleEditor,
-		createEmptyValue: () => 'parallel' as EffectivePolicyValue,
+		createEmptyValue: () => '' as unknown as EffectivePolicyValue,
 		summarizeValue: (value: EffectivePolicyValue) => {
 			const flowValue = resolveSignatureFlowMode(value)
 			switch (flowValue) {
@@ -124,7 +124,7 @@ const realDefinitions = {
 			case 'ordered_numeric':
 				return t('libresign', 'Sequential')
 			case 'none':
-				return t('libresign', 'Disabled')
+				return t('libresign', 'Let users choose')
 			default:
 				return t('libresign', 'Not configured')
 			}
@@ -150,7 +150,11 @@ function resolveSignatureFlowMode(value: EffectivePolicyValue): string | null {
 	}
 
 	if (typeof value === 'string') {
-		return value
+		if (value === 'parallel' || value === 'ordered_numeric' || value === 'none') {
+			return value
+		}
+
+		return null
 	}
 
 	if (value && typeof value === 'object' && 'flow' in (value as Record<string, unknown>)) {
@@ -179,10 +183,6 @@ function inferSystemAllowOverride(policy: { allowedValues?: unknown[] } | null):
 	return policy.allowedValues.length !== 1
 }
 
-function isModeSet(value: string | null): boolean {
-	return !!value && value !== 'none'
-}
-
 function getPolicyResolutionMode(policyKey: string): PolicyResolutionMode {
 	if (policyKey === 'signature_flow') {
 		return 'precedence'
@@ -192,13 +192,11 @@ function getPolicyResolutionMode(policyKey: string): PolicyResolutionMode {
 }
 
 function getSignatureFlowFallbackSystemDefault(policy: EffectivePolicyState | null): EffectivePolicyValue {
-	const mode = resolveSignatureFlowMode(policy?.effectiveValue ?? null)
-	if (policy?.sourceScope === 'system' && isModeSet(mode)) {
+	if (policy?.sourceScope === 'system' && policy.effectiveValue !== null && policy.effectiveValue !== undefined) {
 		return policy.effectiveValue
 	}
 
-	// TODO(policy-resolution): Replace this fallback when backend exposes explicit systemDefault per policy.
-	return 'parallel'
+	return 'none'
 }
 
 function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
@@ -286,7 +284,8 @@ export function createRealPolicyWorkbenchState() {
 		// A baseline "none" value means there is no explicit global rule persisted.
 		if (activeDefinition.value.key === 'signature_flow') {
 			const mode = resolveSignatureFlowMode(policy.effectiveValue)
-			if (mode === 'none') {
+			const sourceScope = policy.sourceScope || 'system'
+			if (mode === 'none' && sourceScope === 'system') {
 				return null
 			}
 		}
@@ -394,7 +393,7 @@ export function createRealPolicyWorkbenchState() {
 
 	const createGroupOverrideDisabledReason = computed(() => {
 		if (inheritedSystemRule.value?.allowChildOverride === false) {
-			return t('libresign', 'Blocked by the global default, which requires inheritance for lower layers.')
+			return t('libresign', 'Blocked by the global default.')
 		}
 
 		return null
@@ -406,12 +405,12 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		if (inheritedSystemRule.value?.allowChildOverride === false) {
-			return t('libresign', 'Blocked by a higher-level rule that does not allow user exceptions.')
+			return t('libresign', 'Blocked by a locked default rule.')
 		}
 
 		const blockingGroup = groupRules.value.find((rule) => !rule.allowChildOverride)
 		if (blockingGroup?.targetId) {
-			return t('libresign', 'Blocked by the {group} group rule, which requires inheritance for users.', {
+			return t('libresign', 'Blocked by the {group} group rule.', {
 				group: resolveTargetLabel('group', blockingGroup.targetId),
 			})
 		}
@@ -422,17 +421,34 @@ export function createRealPolicyWorkbenchState() {
 	const visibleGroupRules = computed<PolicyRuleRecord[]>(() => groupRules.value)
 	const visibleUserRules = computed<PolicyRuleRecord[]>(() => userRules.value)
 
+	function filterTargetsForCreate(scope: 'group' | 'user', targets: PolicyTargetOption[]): PolicyTargetOption[] {
+		if (!editorDraft.value || editorDraft.value.scope !== scope || editorMode.value !== 'create') {
+			return targets
+		}
+
+		const selectedTargetIds = new Set(editorDraft.value.targetIds)
+		const assignedTargetIds = new Set(
+			(scope === 'group' ? groupRules.value : userRules.value)
+				.map((rule) => rule.targetId)
+				.filter((targetId): targetId is string => !!targetId),
+		)
+
+		return targets.filter((target) => {
+			return selectedTargetIds.has(target.id) || !assignedTargetIds.has(target.id)
+		})
+	}
+
 	const availableTargets = computed<PolicyTargetOption[]>(() => {
 		if (!editorDraft.value) {
 			return []
 		}
 
 		if (editorDraft.value.scope === 'group') {
-			return groups.value
+			return filterTargetsForCreate('group', groups.value)
 		}
 
 		if (editorDraft.value.scope === 'user') {
-			return users.value
+			return filterTargetsForCreate('user', users.value)
 		}
 
 		return []
@@ -461,10 +477,26 @@ export function createRealPolicyWorkbenchState() {
 		return toDraftSnapshot(editorDraft.value) !== editorInitialSnapshot.value
 	})
 
+		function hasSelectableDraftValue(draft: PolicyEditorDraft) {
+			if (!activeDefinition.value) {
+				return false
+			}
+
+			if (activeDefinition.value.key === 'signature_flow') {
+				return resolveSignatureFlowMode(draft.value) !== null
+			}
+
+			return draft.value !== null && draft.value !== undefined
+		}
+
 	const canSaveDraft = computed(() => {
 		if (!editorDraft.value) {
 			return false
 		}
+
+			if (!hasSelectableDraftValue(editorDraft.value)) {
+				return false
+			}
 
 		if (editorDraft.value.scope !== 'system' && editorDraft.value.targetIds.length === 0) {
 			return false
@@ -664,6 +696,11 @@ export function createRealPolicyWorkbenchState() {
 				allowChildOverride = rule.allowChildOverride
 				targetIds = rule.targetId ? [rule.targetId] : []
 			}
+		} else if (scope === 'system') {
+			const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
+			if (baselineRuleValue !== null && baselineRuleValue !== undefined) {
+				value = normalizeDraftValueForPolicy(activeDefinition.value.key, baselineRuleValue)
+			}
 		} else if (scope === 'group') {
 			targetIds = []
 		} else if (scope === 'user') {
@@ -739,12 +776,12 @@ export function createRealPolicyWorkbenchState() {
 	}
 
 	async function saveDraft() {
-		if (!editorDraft.value || !activeDefinition.value) {
+		if (!editorDraft.value || !activeDefinition.value || !canSaveDraft.value) {
 			return
 		}
 
 		const { scope, value, allowChildOverride, targetIds } = editorDraft.value
-			const policyKey = activeDefinition.value.key
+		const policyKey = activeDefinition.value.key
 
 		try {
 			if (scope === 'system') {
