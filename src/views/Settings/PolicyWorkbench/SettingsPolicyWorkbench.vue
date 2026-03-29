@@ -340,7 +340,12 @@
 									:model-value="state.editorDraft.allowChildOverride"
 									:disabled="saveStatus === 'saving'"
 									@update:modelValue="state.updateDraftAllowOverride">
-									<span>{{ t('libresign', 'Allow lower layers to override this rule') }}</span>
+									<div class="policy-workbench__switch-copy">
+										<span>{{ t('libresign', 'Require this signing order') }}</span>
+										<p>
+											{{ state.editorDraft.allowChildOverride ? t('libresign', 'All users must follow this signing order.') : t('libresign', 'Users can choose their preferred signing order.') }}
+										</p>
+									</div>
 								</NcCheckboxRadioSwitch>
 
 								<NcNoteCard v-if="state.duplicateMessage" type="error">
@@ -435,7 +440,12 @@
 							:model-value="state.editorDraft.allowChildOverride"
 							:disabled="saveStatus === 'saving'"
 							@update:modelValue="state.updateDraftAllowOverride">
-							<span>{{ t('libresign', 'Allow lower layers to override this rule') }}</span>
+							<div class="policy-workbench__switch-copy">
+								<span>{{ t('libresign', 'Require this signing order') }}</span>
+								<p>
+									{{ state.editorDraft.allowChildOverride ? t('libresign', 'All users must follow this signing order.') : t('libresign', 'Users can choose their preferred signing order.') }}
+								</p>
+							</div>
 						</NcCheckboxRadioSwitch>
 
 						<NcNoteCard v-if="state.duplicateMessage" type="error">
@@ -1228,6 +1238,18 @@ onBeforeUnmount(() => {
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
 		color: var(--color-text-maxcontrast);
+	}
+
+	&__switch-copy {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+
+		p {
+			margin: 0;
+			font-size: 0.84rem;
+			color: var(--color-text-maxcontrast);
+		}
 	}
 
 	&__editor-actions {
