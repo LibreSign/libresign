@@ -12,6 +12,7 @@
 				</p>
 				<h3>{{ editorTitle }}</h3>
 				<p>{{ editorHelp }}</p>
+				<p class="policy-workbench__precedence-hint">{{ t('libresign', 'Priority: User overrides Group, which overrides Default') }}</p>
 			</div>
 
 			<div v-if="editorDraft.scope !== 'system'" class="policy-workbench__field">
@@ -39,12 +40,17 @@
 			</div>
 
 			<NcCheckboxRadioSwitch
-				v-if="editorDraft.scope !== 'user'"
+				v-if="editorDraft.scope !== 'user' && showAllowOverrideSwitch"
 				type="switch"
 				:model-value="editorDraft.allowChildOverride"
 				:disabled="saveStatus === 'saving'"
 				@update:modelValue="$emit('update-allow-override', $event)">
-				<span>{{ t('libresign', 'Allow lower layers to override this rule') }}</span>
+				<div class="policy-workbench__switch-copy">
+					<span>{{ t('libresign', 'Require this signing order') }}</span>
+					<p>
+						{{ editorDraft.allowChildOverride ? t('libresign', 'All users must follow this signing order.') : t('libresign', 'Users can choose their preferred signing order.') }}
+					</p>
+				</div>
 			</NcCheckboxRadioSwitch>
 
 			<NcNoteCard v-if="duplicateMessage" type="error">
@@ -107,8 +113,10 @@ withDefaults(defineProps<{
 	canSaveDraft: boolean
 	saveStatus: 'idle' | 'saving' | 'saved'
 	stickyActions?: boolean
+	showAllowOverrideSwitch?: boolean
 }>(), {
 	stickyActions: false,
+	showAllowOverrideSwitch: true,
 })
 
 defineEmits<{
@@ -120,3 +128,24 @@ defineEmits<{
 	(e: 'cancel'): void
 }>()
 </script>
+
+<style scoped lang="scss">
+.policy-workbench__switch-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+
+	p {
+		margin: 0;
+		font-size: 0.84rem;
+		color: var(--color-text-maxcontrast);
+	}
+}
+
+.policy-workbench__precedence-hint {
+	margin: 0.2rem 0 0;
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: var(--color-main-text);
+}
+</style>
