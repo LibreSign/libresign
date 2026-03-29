@@ -807,6 +807,7 @@ function requestCreateRule() {
 		return
 	}
 
+	selectedCreateScope.value = null
 	showCreateScopeDialog.value = true
 }
 
@@ -830,6 +831,7 @@ function startCreateRuleForScope(scope: 'system' | 'group' | 'user') {
 	}
 
 	showCreateScopeDialog.value = false
+	selectedCreateScope.value = null
 	state.startEditor({ scope })
 }
 
