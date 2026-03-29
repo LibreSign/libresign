@@ -6,6 +6,26 @@
 import { createAppConfig } from '@nextcloud/vite-config'
 import { resolve } from 'node:path'
 
+const patchPdfElementsTouchmovePassive = {
+	name: 'patch-pdf-elements-touchmove-passive',
+	enforce: 'pre',
+	transform(code, id) {
+		if (!id.includes('/@libresign/pdf-elements/')) {
+			return null
+		}
+		if (!id.endsWith('/dist/index.mjs') && !id.endsWith('/src/components/DraggableElement.vue')) {
+			return null
+		}
+
+		const replaced = code.replace(
+			/window\.addEventListener\((['"])touchmove\1,\s*this\.boundHandleMove\)/g,
+			'window.addEventListener($1touchmove$1, this.boundHandleMove, { passive: false })',
+		)
+
+		return replaced === code ? null : { code: replaced, map: null }
+	},
+}
+
 export default createAppConfig({
 	main: resolve('src/main.ts'),
 	init: resolve('src/init.ts'),
@@ -25,6 +45,7 @@ export default createAppConfig({
 			},
 		},
 		plugins: [
+			patchPdfElementsTouchmovePassive,
 			{
 				name: 'vue-devtools',
 				config(_, { mode }) {

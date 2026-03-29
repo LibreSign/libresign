@@ -127,6 +127,12 @@ type PdfElementsInstance = {
 	selectedDocIndex?: number
 	autoFitZoom?: boolean
 }
+type PdfElementsRuntimeInstance = PdfElementsInstance & {
+	handleMouseMove?: (event: { type: string, touches: Array<{ clientX: number, clientY: number }> }) => void
+	finishAdding?: () => void
+	previewElement?: Record<string, unknown> | null
+	previewVisible?: boolean
+}
 
 defineOptions({
 	name: 'PdfEditor',
@@ -155,6 +161,7 @@ const pdfElements = ref<PdfElementsInstance | null>(null)
 const pendingAddedObjectCount = ref<number | null>(null)
 
 let pendingAddCheckTimer: ReturnType<typeof setTimeout> | null = null
+let pendingAddCheckRetries = 0
 
 const ignoreClickOutsideSelectors = computed(() => ['.action-item__popper', '.action-item'])
 
@@ -271,6 +278,7 @@ function clearPendingAddCheck() {
 		clearTimeout(pendingAddCheckTimer)
 		pendingAddCheckTimer = null
 	}
+	pendingAddCheckRetries = 0
 	pendingAddedObjectCount.value = null
 }
 
@@ -283,11 +291,29 @@ function checkSignerAdded() {
 	pendingAddCheckTimer = null
 	const isAddingMode = pdfElements.value?.isAddingMode === true
 	const objectsAfter = getTotalObjectsCount()
-	pendingAddedObjectCount.value = null
 
-	if (!isAddingMode && objectsAfter > objectsBefore) {
+	if (objectsAfter > objectsBefore) {
+		clearPendingAddCheck()
 		emit('pdf-editor:signer-added')
+		return
 	}
+
+	// Fallback: once add mode ends, unblock the UI even if the object count
+	// comparison was not conclusive due timing/reactivity.
+	if (!isAddingMode) {
+		clearPendingAddCheck()
+		emit('pdf-editor:signer-added')
+		return
+	}
+
+	// Poll while the external component still processes placement.
+	if (pendingAddCheckRetries < 300) {
+		pendingAddCheckRetries++
+		pendingAddCheckTimer = setTimeout(checkSignerAdded, 100)
+		return
+	}
+
+	clearPendingAddCheck()
 }
 
 function scheduleSignerAddedCheck() {
@@ -298,6 +324,38 @@ function scheduleSignerAddedCheck() {
 		clearTimeout(pendingAddCheckTimer)
 	}
 	pendingAddCheckTimer = setTimeout(checkSignerAdded, 0)
+}
+
+function handleDocumentTouchEnd(event: Event) {
+	if (pendingAddedObjectCount.value === null) {
+		return
+	}
+
+	const instance = pdfElements.value as PdfElementsRuntimeInstance | null
+	const touchEvent = event as TouchEvent
+	const touchPoint = touchEvent.changedTouches?.[0]
+	if (!instance || !touchPoint) {
+		scheduleSignerAddedCheck()
+		return
+	}
+
+	// Work around mobile tap placement timing in pdf-elements: touchend has no
+	// touches[0], so preview may never become visible on first tap.
+	if (instance.isAddingMode && instance.previewElement && !instance.previewVisible && instance.handleMouseMove) {
+		instance.handleMouseMove({
+			type: 'touchmove',
+			touches: [{ clientX: touchPoint.clientX, clientY: touchPoint.clientY }],
+		})
+		requestAnimationFrame(() => {
+			if (instance.isAddingMode) {
+				instance.finishAdding?.()
+			}
+			scheduleSignerAddedCheck()
+		})
+		return
+	}
+
+	scheduleSignerAddedCheck()
 }
 
 function startAddingSigner(signer: SignerSummaryRecord | SignerDetailRecord | null | undefined, size: { width?: number, height?: number }) {
@@ -319,6 +377,11 @@ function startAddingSigner(signer: SignerSummaryRecord | SignerDetailRecord | nu
 		signer: signerPayload,
 	})
 	pendingAddedObjectCount.value = getTotalObjectsCount()
+	pendingAddCheckRetries = 0
+	if (pendingAddCheckTimer !== null) {
+		clearTimeout(pendingAddCheckTimer)
+	}
+	pendingAddCheckTimer = setTimeout(checkSignerAdded, 100)
 
 	return true
 }
@@ -383,15 +446,11 @@ async function waitForPageRender(docIndex: number, pageIndex: number) {
 
 onMounted(() => {
 	ensurePdfWorker()
-	document.addEventListener('mouseup', scheduleSignerAddedCheck)
-	document.addEventListener('touchend', scheduleSignerAddedCheck)
-	document.addEventListener('keyup', scheduleSignerAddedCheck)
+	document.addEventListener('touchend', handleDocumentTouchEnd)
 })
 
 onBeforeUnmount(() => {
-	document.removeEventListener('mouseup', scheduleSignerAddedCheck)
-	document.removeEventListener('touchend', scheduleSignerAddedCheck)
-	document.removeEventListener('keyup', scheduleSignerAddedCheck)
+	document.removeEventListener('touchend', handleDocumentTouchEnd)
 	clearPendingAddCheck()
 })
 
