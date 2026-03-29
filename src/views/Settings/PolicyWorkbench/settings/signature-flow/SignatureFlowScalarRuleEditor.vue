@@ -5,21 +5,14 @@
 
 <template>
 	<div class="signature-flow-scalar-editor">
-		<NcCheckboxRadioSwitch
-			type="switch"
-			:model-value="isEnabled"
-			@update:modelValue="onEnabledChange">
-			<span>{{ t('libresign', 'Set global default signing order') }}</span>
-		</NcCheckboxRadioSwitch>
-
-		<div v-if="isEnabled" class="signature-flow-scalar-editor__options">
+		<div class="signature-flow-scalar-editor__options">
 			<NcCheckboxRadioSwitch
 				v-for="flow in flows"
 				:key="flow.value"
 				type="radio"
 				:model-value="normalizedValue === flow.value"
 				name="signature-flow-scalar-editor"
-				@update:modelValue="onFlowChange(flow.value)">
+				@update:modelValue="onFlowChange(flow.value, $event)">
 				<div class="signature-flow-scalar-editor__copy">
 					<strong>{{ flow.label }}</strong>
 					<p>{{ flow.description }}</p>
@@ -48,7 +41,7 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
-const flows: Array<{ value: SignatureFlowMode, label: string, description: string }> = [
+const flows: Array<{ value: SignatureFlowMode | 'none', label: string, description: string }> = [
 	{
 		value: 'parallel',
 		label: t('libresign', 'Simultaneous (Parallel)'),
@@ -59,24 +52,27 @@ const flows: Array<{ value: SignatureFlowMode, label: string, description: strin
 		label: t('libresign', 'Sequential'),
 		description: t('libresign', 'Signers are organized by signing order number. Only those with the lowest pending order number can sign.'),
 	},
+	{
+		value: 'none',
+		label: t('libresign', 'Let users choose'),
+		description: t('libresign', 'Users can choose between simultaneous or sequential signing.'),
+	},
 ]
 
-const normalizedValue = computed<SignatureFlowMode | 'none'>(() => {
+const normalizedValue = computed<SignatureFlowMode | 'none' | null>(() => {
 	const value = props.modelValue
 	if (value === 'parallel' || value === 'ordered_numeric' || value === 'none') {
 		return value
 	}
 
-	return 'parallel'
+	return null
 })
 
-const isEnabled = computed(() => normalizedValue.value !== 'none')
+function onFlowChange(flow: SignatureFlowMode | 'none', selected?: unknown) {
+	if (selected === false) {
+		return
+	}
 
-function onEnabledChange(enabled: boolean) {
-	emit('update:modelValue', enabled ? 'parallel' : 'none')
-}
-
-function onFlowChange(flow: SignatureFlowMode) {
 	emit('update:modelValue', flow)
 }
 </script>
