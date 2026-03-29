@@ -44,7 +44,11 @@ function mountWorkbench() {
 				NcChip: { template: '<button class="nc-chip-stub">{{ text }}</button>', props: ['text'] },
 				NcCheckboxRadioSwitch: { template: '<input type="checkbox" @change="$emit(\'update:modelValue\', $event.target.checked)" />' },
 				NcSelectUsers: { template: '<div class="nc-select-users-stub" />' },
-				NcActions: { template: '<div class="nc-actions-stub"><button class="nc-actions-stub__trigger" aria-label="Filter rules by scope"><slot name="icon" /></button><slot /></div>' },
+				NcActions: {
+					props: ['open', 'ariaLabel'],
+					emits: ['update:open'],
+					template: '<div class="nc-actions-stub"><button class="nc-actions-stub__trigger" :aria-label="ariaLabel" @click="$emit(\'update:open\', !open)"><slot name="icon" /></button><div v-if="open" class="nc-actions-stub__menu"><slot /></div></div>',
+				},
 				NcActionButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
 			},
 		},
@@ -89,10 +93,10 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(userIndex).toBeLessThan(groupIndex)
 	})
 
-	it('shows callout when there is no persisted global default rule', async () => {
+	it('shows unified default summary in system default mode', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'signature_flow') {
-				return { effectiveValue: 'none' }
+				return { effectiveValue: 'none', sourceScope: 'system' }
 			}
 
 			return null
@@ -103,9 +107,14 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
-		expect(wrapper.text()).toContain('No instance default is configured. This setting currently uses the system default.')
-		expect(wrapper.text()).toContain('Set instance default')
-		expect(wrapper.text()).not.toContain('Instance default')
+		const text = wrapper.text()
+		expect(text).toContain('Control how signers complete documents.')
+		expect(text).toContain('Default:')
+		expect(text).toContain('Let users choose')
+		expect(text).toContain('(system)')
+		expect(text).toContain('Change')
+		expect(text).not.toContain('Effective result:')
+		expect(text).not.toContain('No instance default is configured. This setting currently uses the system default.')
 	})
 
 	it('shows signing order with sophisticated visual interface: filter, toggle, counts, and scopes', async () => {
@@ -131,11 +140,21 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		// Validate signing order is displayed with compact header copy
 		expect(text).toContain('Signing order')
-		expect(text).toContain('Define whether signers work in parallel or in a sequential order')
+		expect(text).toContain('Control how signers complete documents.')
 
-		// Validate default value is shown in concise baseline summary
-		expect(text).toContain('Sequential')
+		// Validate default summary block content for custom default mode
 		expect(text).toContain('Default:')
+		expect(text).toContain('Sequential')
+		expect(text).toContain('(custom)')
+		expect(text).toContain('Change')
+		expect(text).not.toContain('Effective result:')
+
+		const tableHeaders = wrapper.findAll('th').map((header) => header.text())
+		expect(tableHeaders).toContain('Type')
+		expect(tableHeaders).toContain('Target')
+		expect(tableHeaders).toContain('Value')
+		expect(tableHeaders).toContain('Actions')
+		expect(tableHeaders).not.toContain('Behavior')
 
 		// Validate noisy inheritance warning is not shown by default
 		expect(text).not.toContain('Some users may not allow user overrides because their group rule requires inheritance.')
@@ -147,6 +166,27 @@ describe('RealPolicyWorkbench.vue', () => {
 		// Validate POC settings are NOT present
 		expect(text).not.toContain('Confetti')
 		expect(text).not.toContain('Identification factors')
+	})
+
+	it('closes the rule actions menu after clicking edit', async () => {
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		const actionsTrigger = wrapper.find('button[aria-label="Rule actions"]')
+		expect(actionsTrigger.exists()).toBe(true)
+		await actionsTrigger.trigger('click')
+
+		expect(wrapper.find('.nc-actions-stub__menu').exists()).toBe(true)
+
+		const editButton = wrapper.findAll('.nc-actions-stub__menu button').find((button) => button.text() === 'Edit')
+		expect(editButton).toBeTruthy()
+		await editButton?.trigger('click')
+
+		expect(wrapper.find('.nc-actions-stub__menu').exists()).toBe(false)
+		expect(wrapper.text()).toContain('Global default rule')
 	})
 
 })
