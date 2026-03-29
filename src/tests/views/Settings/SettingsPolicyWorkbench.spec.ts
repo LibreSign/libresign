@@ -186,7 +186,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		await editButton?.trigger('click')
 
 		expect(wrapper.find('.nc-actions-stub__menu').exists()).toBe(false)
-		expect(wrapper.text()).toContain('Global default rule')
+		expect(wrapper.text()).toContain('Instance default rule')
 	})
 
 })
