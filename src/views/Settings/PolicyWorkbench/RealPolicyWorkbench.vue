@@ -182,9 +182,9 @@
 							:placeholder="t('libresign', 'Search rules')"
 							@update:modelValue="onCrudSearchChange">
 							<template #actions>
-								<NcActions :aria-label="t('libresign', 'Filter rules by scope')">
+								<NcActions :aria-label="t('libresign', 'Filter rules by scope')" :title="t('libresign', 'Filter by scope')">
 									<template #icon>
-										<NcIconSvgWrapper :path="mdiFilterVariant" :size="20" />
+										<NcIconSvgWrapper :path="mdiFilterVariant" :size="20" :title="t('libresign', 'Filter by scope')" />
 									</template>
 									<NcActionButton @click="setCrudScopeFilter('all', true)">
 										{{ t('libresign', 'All scopes') }}
@@ -231,16 +231,17 @@
 					</p>
 
 					<div v-if="!state.inheritedSystemRule && state.viewMode === 'system-admin'" class="policy-workbench__global-default-hint">
-						<p>{{ t('libresign', 'No global default set. Using system default.') }}</p>
-						<NcButton variant="tertiary" size="small" @click="state.startEditor({ scope: 'system' })">
-							{{ t('libresign', 'Set global default') }}
+						<p>{{ t('libresign', 'No instance default is configured. This setting currently uses the system default.') }}</p>
+						<NcButton variant="primary" size="small" @click="state.startEditor({ scope: 'system' })">
+							{{ t('libresign', 'Set instance default') }}
 						</NcButton>
 					</div>
 
 					<div class="policy-workbench__table-scroll">
-						<p class="policy-workbench__table-priority-note">
-							{{ t('libresign', 'Rules are applied by priority: User -> Group -> Default') }}
-						</p>
+						<div class="policy-workbench__table-priority-note" role="note" aria-live="polite">
+							<NcIconSvgWrapper :path="mdiInformationOutline" :size="16" />
+							<span>{{ t('libresign', 'Priority: User overrides Group, which overrides Default') }}</span>
+						</div>
 						<table class="policy-workbench__table">
 							<thead>
 								<tr>
@@ -257,7 +258,7 @@
 									<td>{{ row.targetLabel }}</td>
 									<td>{{ row.valueLabel }}</td>
 									<td class="policy-workbench__status">
-										<small :class="{ 'policy-workbench__status--inherit': row.inheritanceLabel === t('libresign', 'Must follow') }">
+										<small :class="{ 'policy-workbench__status--inherit': row.inheritanceLabel === t('libresign', 'Enforced') }">
 											{{ row.inheritanceLabel }}
 										</small>
 									</td>
@@ -361,6 +362,7 @@
 			@closing="cancelCreateScopeDialog">
 			<div class="policy-workbench__create-scope-dialog">
 				<p>{{ t('libresign', 'Where do you want to apply this rule?') }}</p>
+				<p class="policy-workbench__create-scope-hint">{{ t('libresign', 'User rules override Group and Instance rules.') }}</p>
 				<div class="policy-workbench__create-scope-grid" role="listbox" :aria-label="t('libresign', 'Rule type')">
 					<button
 						v-for="option in createScopeOptions"
@@ -415,6 +417,7 @@ import {
 	mdiDelete,
 	mdiFilterVariant,
 	mdiFormatListBulletedSquare,
+	mdiInformationOutline,
 	mdiPencil,
 	mdiPlus,
 	mdiViewGridOutline,
@@ -519,7 +522,7 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			scope: 'system',
 			targetLabel: t('libresign', 'Instance default'),
 			valueLabel: state.summary?.currentBaseValue ?? t('libresign', 'Not configured'),
-			inheritanceLabel: systemRule.allowChildOverride === false ? t('libresign', 'Must follow') : t('libresign', 'Can choose'),
+			inheritanceLabel: systemRule.allowChildOverride === false ? t('libresign', 'Enforced') : t('libresign', 'User decides'),
 			canRemove: Boolean(systemRule.id && state.hasGlobalDefault),
 		})
 	}
@@ -531,7 +534,7 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			scope: 'group',
 			targetLabel: state.resolveTargetLabel('group', rule.targetId || ''),
 			valueLabel: summarizeRuleValue(rule.value),
-			inheritanceLabel: rule.allowChildOverride ? t('libresign', 'Can choose') : t('libresign', 'Must follow'),
+			inheritanceLabel: rule.allowChildOverride ? t('libresign', 'User decides') : t('libresign', 'Enforced'),
 			canRemove: true,
 		})
 	}
@@ -544,8 +547,8 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			targetLabel: state.resolveTargetLabel('user', rule.targetId || ''),
 			valueLabel: summarizeRuleValue(rule.value),
 			inheritanceLabel: resolveSignatureFlowMode(rule.value as never) === 'none'
-				? t('libresign', 'Can choose')
-				: t('libresign', 'Must follow'),
+				? t('libresign', 'User decides')
+				: t('libresign', 'Enforced'),
 			canRemove: true,
 		})
 	}
@@ -610,14 +613,14 @@ const editorHelp = computed(() => {
 	}
 
 	if (state.editorDraft.scope === 'system') {
-		return t('libresign', 'This rule sets the default signing order for everyone.')
+		return t('libresign', 'Instance rule: base signing order for everyone.')
 	}
 
 	if (state.editorDraft.scope === 'group') {
-		return t('libresign', 'This rule sets signing order for all users in the selected groups.')
+		return t('libresign', 'Group rule: overrides the instance rule for selected groups.')
 	}
 
-	return t('libresign', 'This rule sets signing order for the selected users.')
+	return t('libresign', 'User rule: overrides group and instance rules for selected users.')
 })
 
 function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
@@ -2102,9 +2105,21 @@ onBeforeUnmount(() => {
 	}
 
 	&__table-priority-note {
-		margin: 0 0 0.45rem;
-		font-size: 0.82rem;
-		color: var(--color-text-maxcontrast);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin: 0 0 0.6rem;
+		padding: 0.32rem 0.55rem;
+		border-radius: 8px;
+		font-size: 0.84rem;
+		font-weight: 600;
+		color: var(--color-main-text);
+		border: 1px solid color-mix(in srgb, var(--color-primary-element) 22%, var(--color-border-maxcontrast));
+		background: color-mix(in srgb, var(--color-primary-element) 8%, var(--color-main-background));
+
+		:deep(svg) {
+			color: var(--color-primary-element);
+		}
 	}
 
 	&__table-actions {
@@ -2130,24 +2145,33 @@ onBeforeUnmount(() => {
 
 	&__global-default-hint {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
+		align-items: flex-start;
+		justify-content: flex-start;
+		flex-direction: column;
 		gap: 0.75rem;
-		padding: 0.45rem 0.65rem;
+		padding: 0.7rem 0.8rem;
 		margin-bottom: 0.55rem;
-		border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
-		border-radius: 8px;
-		background: color-mix(in srgb, var(--color-background-dark) 45%, var(--color-main-background));
+		border: 1px solid color-mix(in srgb, var(--color-primary-element) 22%, var(--color-border-maxcontrast));
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--color-primary-element) 7%, var(--color-main-background));
 
 		p {
 			margin: 0;
-			font-size: 0.84rem;
-			color: var(--color-text-maxcontrast);
+			font-size: 0.86rem;
+			line-height: 1.45;
+			color: var(--color-main-text);
 		}
 
 		:deep(.button-vue) {
 			white-space: nowrap;
+			font-weight: 600;
 		}
+	}
+
+	&__create-scope-hint {
+		margin: -0.35rem 0 0;
+		font-size: 0.84rem;
+		color: var(--color-text-maxcontrast);
 	}
 
 	&__table-empty {
