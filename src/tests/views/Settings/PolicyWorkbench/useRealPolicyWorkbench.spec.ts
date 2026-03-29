@@ -205,6 +205,52 @@ describe('useRealPolicyWorkbench', () => {
 		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', true)
 	})
 
+	it('transitions from fallback none to persisted global default after saving system rule', async () => {
+		let currentPolicy: any = {
+			effectiveValue: 'none',
+			allowedValues: ['parallel', 'ordered_numeric'],
+			sourceScope: 'system',
+		}
+
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return currentPolicy
+			}
+
+			return null
+		})
+
+		saveSystemPolicy.mockImplementation(async (_policyKey: string, value: unknown, allowChildOverride?: boolean) => {
+			currentPolicy = {
+				effectiveValue: value,
+				allowedValues: allowChildOverride === false ? [value] : [],
+				sourceScope: 'global',
+			}
+			return currentPolicy
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.inheritedSystemRule).toBeNull()
+
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue('ordered_numeric' as never)
+		await state.saveDraft()
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', true)
+		expect(fetchEffectivePolicies).toHaveBeenCalled()
+		expect(getPolicy('signature_flow')?.effectiveValue).toBe('ordered_numeric')
+
+		const refreshedState = createRealPolicyWorkbenchState()
+		refreshedState.openSetting('signature_flow')
+		expect(refreshedState.inheritedSystemRule).not.toBeNull()
+		expect(refreshedState.summary?.baseSource).toBe('Global default')
+		expect(refreshedState.summary?.currentBaseValue).toBe('Sequential')
+	})
+
 	it('supports multi-target group save for signature_flow', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
@@ -234,16 +280,54 @@ describe('useRealPolicyWorkbench', () => {
 		expect(saveUserPolicyForUser).toHaveBeenNthCalledWith(2, 'user3', 'signature_flow', 'parallel')
 	})
 
+	it('hides groups that already have a rule when creating a new group rule', async () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		state.startEditor({ scope: 'group' })
+		state.updateDraftTargets(['finance'])
+		state.updateDraftValue('parallel' as never)
+		await state.saveDraft()
+
+		state.startEditor({ scope: 'group' })
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(state.availableTargets).toEqual([
+			{ id: 'legal', displayName: 'Legal', subname: '2 members', isNoUser: true },
+		])
+	})
+
+	it('hides users that already have a rule when creating a new user rule', async () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		state.startEditor({ scope: 'user' })
+		state.updateDraftTargets(['user1'])
+		state.updateDraftValue('parallel' as never)
+		await state.saveDraft()
+
+		state.startEditor({ scope: 'user' })
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(state.availableTargets).toEqual([
+			{ id: 'user3', displayName: 'User Three', subname: 'user3@example.com', user: 'user3' },
+		])
+	})
+
 	it('removes persisted group and user rules', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
 
 		state.startEditor({ scope: 'group' })
 		state.updateDraftTargets(['finance'])
+		state.updateDraftValue('parallel' as never)
 		await state.saveDraft()
 
 		state.startEditor({ scope: 'user' })
 		state.updateDraftTargets(['user1'])
+		state.updateDraftValue('parallel' as never)
 		await state.saveDraft()
 
 		const groupRuleId = state.visibleGroupRules[0]?.id
@@ -296,6 +380,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		state.startEditor({ scope: 'group' })
 		state.updateDraftTargets(['finance'])
+		state.updateDraftValue('parallel' as never)
 		await state.saveDraft()
 
 		const groupRuleId = state.visibleGroupRules[0]?.id
@@ -321,6 +406,36 @@ describe('useRealPolicyWorkbench', () => {
 		state.openSetting('signature_flow')
 
 		expect(state.inheritedSystemRule).toBeNull()
+	})
+
+	it('treats none with empty allowedValues as explicit global "let users choose" rule', () => {
+		getPolicy.mockReturnValue({
+			effectiveValue: 'none',
+			sourceScope: 'global',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.inheritedSystemRule).not.toBeNull()
+		expect(state.inheritedSystemRule?.value).toBe('none')
+		expect(state.summary?.currentBaseValue).toBe('Let users choose')
+	})
+
+	it('prefills system rule creation with the current baseline value', () => {
+		getPolicy.mockReturnValue({
+			effectiveValue: 'ordered_numeric',
+			sourceScope: 'global',
+			allowedValues: ['none', 'parallel', 'ordered_numeric'],
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'system' })
+
+		expect(state.editorMode).toBe('create')
+		expect(state.editorDraft?.value).toBe('ordered_numeric')
 	})
 
 	it('normalizes numeric system value when opening editor in edit mode', () => {
@@ -365,7 +480,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.policyResolutionMode).toBe('precedence')
 		expect(state.summary).not.toBeNull()
 		expect(state.summary?.currentBaseValue).toBe('Sequential')
-		expect(state.summary?.platformFallback).toBe('Simultaneous (Parallel)')
+		expect(state.summary?.platformFallback).toBe('Let users choose')
 		expect(state.summary?.baseSource).toBe('Global default')
 	})
 
@@ -376,6 +491,7 @@ describe('useRealPolicyWorkbench', () => {
 		state.openSetting('signature_flow')
 		state.startEditor({ scope: 'group' })
 		state.updateDraftTargets(['finance'])
+		state.updateDraftValue('parallel' as never)
 		state.updateDraftAllowOverride(false)
 		await state.saveDraft()
 
@@ -394,6 +510,7 @@ describe('useRealPolicyWorkbench', () => {
 		state.openSetting('signature_flow')
 		state.startEditor({ scope: 'group' })
 		state.updateDraftTargets(['finance'])
+		state.updateDraftValue('parallel' as never)
 		state.updateDraftAllowOverride(false)
 		await state.saveDraft()
 
@@ -442,6 +559,7 @@ describe('useRealPolicyWorkbench', () => {
 		state.openSetting('signature_flow')
 		state.startEditor({ scope: 'group' })
 		state.updateDraftTargets(['finance'])
+		state.updateDraftValue('parallel' as never)
 		await state.saveDraft()
 
 		const groupRuleId = state.visibleGroupRules[0]?.id
@@ -456,6 +574,18 @@ describe('useRealPolicyWorkbench', () => {
 
 		state.updateDraftAllowOverride(false)
 		expect(state.isDraftDirty).toBe(true)
+		expect(state.canSaveDraft).toBe(true)
+	})
+
+	it('requires explicit value selection before enabling group create save', () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'group' })
+
+		state.updateDraftTargets(['finance'])
+		expect(state.canSaveDraft).toBe(false)
+
+		state.updateDraftValue('parallel' as never)
 		expect(state.canSaveDraft).toBe(true)
 	})
 })
