@@ -342,15 +342,20 @@ function handleDocumentTouchEnd(event: Event) {
 	// Work around mobile tap placement timing in pdf-elements: touchend has no
 	// touches[0], so preview may never become visible on first tap.
 	if (instance.isAddingMode && instance.previewElement && !instance.previewVisible && instance.handleMouseMove) {
+		touchEvent.preventDefault?.()
+		touchEvent.stopImmediatePropagation?.()
+
 		instance.handleMouseMove({
 			type: 'touchmove',
 			touches: [{ clientX: touchPoint.clientX, clientY: touchPoint.clientY }],
 		})
 		requestAnimationFrame(() => {
-			if (instance.isAddingMode) {
-				instance.finishAdding?.()
-			}
-			scheduleSignerAddedCheck()
+			requestAnimationFrame(() => {
+				if (instance.isAddingMode) {
+					instance.finishAdding?.()
+				}
+				scheduleSignerAddedCheck()
+			})
 		})
 		return
 	}
@@ -492,13 +497,14 @@ defineExpose({
 	}
 
 	.action-btn {
-		border: none;
-		background: transparent;
-		color: #ffffff;
+		border: 1px solid #cbd5e1;
+		background: #f8fafc;
+		color: #0f172a;
 		padding: 4px;
 		min-height: 0;
 		min-width: 0;
 		border-radius: 4px;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 		cursor: pointer;
 		display: inline-flex;
 		align-items: center;
@@ -506,7 +512,17 @@ defineExpose({
 		transition: background 120ms ease;
 
 		&:hover {
-			background: rgba(255, 255, 255, 0.1);
+			background: #e2e8f0;
+		}
+
+		:deep(svg),
+		:deep(.icon-vue),
+		:deep(.material-design-icon),
+		:deep([class*='icon']) {
+			color: currentColor;
+			fill: currentColor;
+			stroke: currentColor;
+			opacity: 1;
 		}
 	}
 
