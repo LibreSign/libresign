@@ -866,6 +866,18 @@ function getValidationFileUuid() {
 	return null
 }
 
+function getSignRouteUuid() {
+	const file = filesStore.getFile()
+	const signer = file?.signers?.find((row: EditableRequestSigner) => row.me) || file?.signers?.[0]
+	const fromFile = [file?.signUuid, signer?.sign_uuid]
+		.find((value): value is string => typeof value === 'string' && value.length > 0)
+	const fromSettings = typeof file?.settings?.signerFileUuid === 'string' && file.settings.signerFileUuid.length > 0
+		? file.settings.signerFileUuid
+		: null
+	const fromState = loadState<string | null>('libresign', 'sign_request_uuid', null)
+	return fromFile || fromSettings || (typeof fromState === 'string' && fromState.length > 0 ? fromState : null)
+}
+
 function validationFile() {
 	const targetUuid = getValidationFileUuid()
 	if (!targetUuid) {
@@ -1067,7 +1079,11 @@ async function sign() {
 		return
 	}
 
-	const uuid = 'signUuid' in file ? file.signUuid : null
+	const uuid = getSignRouteUuid()
+	if (!uuid) {
+		showError(t('libresign', 'Signer request not found'))
+		return
+	}
 	if (props.useModal) {
 		const absoluteUrl = generateUrl('/apps/libresign/p/sign/{uuid}/pdf', { uuid })
 		const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
@@ -1293,6 +1309,7 @@ defineExpose({
 	isSignElementsAvailable,
 	closeModal,
 	getValidationFileUuid,
+	getSignRouteUuid,
 	validationFile,
 	addSigner,
 	editSigner,

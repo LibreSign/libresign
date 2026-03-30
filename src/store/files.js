@@ -714,12 +714,17 @@ const _filesStore = defineStore('files', () => {
 		const isSigned = (signer) => Array.isArray(signer.signed)
 			? signer.signed.length > 0
 			: !!signer.signed
+		const signerFileUuid = typeof selectedFile?.settings?.signerFileUuid === 'string'
+			? selectedFile.settings.signerFileUuid
+			: ''
 		const mySigners = selectedFile?.signers?.filter(signer => signer.me) || []
 		if (isFullSigned(selectedFile)
 			|| selectedFile.status <= 0
-			|| mySigners.length === 0
 			|| mySigners.some((signer) => isSigned(signer))) {
 			return false
+		}
+		if (mySigners.length === 0) {
+			return signerFileUuid.length > 0
 		}
 
 		const flow = selectedFile?.signatureFlow

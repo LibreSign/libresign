@@ -407,6 +407,34 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(generateUrlMock).toHaveBeenCalledWith('/apps/libresign/p/sign/{uuid}/pdf', { uuid: 'sign-uuid' })
 			expect(wrapper.vm.modalSrc).toBe('/apps/libresign/p/sign/sign-uuid/pdf')
 		})
+
+		it('falls back to signerFileUuid for signing modal links when signUuid is missing', async () => {
+			await wrapper.setProps({ useModal: true })
+			await updateFile({
+				signUuid: null,
+				settings: { signerFileUuid: 'mobile-fallback-uuid' },
+			})
+			generateUrlMock.mockClear()
+
+			await wrapper.vm.sign()
+
+			expect(generateUrlMock).toHaveBeenCalledWith('/apps/libresign/p/sign/{uuid}/pdf', { uuid: 'mobile-fallback-uuid' })
+			expect(wrapper.vm.modalSrc).toBe('/apps/libresign/p/sign/mobile-fallback-uuid/pdf')
+		})
+
+		it('falls back to signer sign_uuid when signUuid is missing', async () => {
+			await wrapper.setProps({ useModal: true })
+			await updateFile({
+				signUuid: null,
+				signers: [{ me: true, sign_uuid: 'signer-uuid-123' }],
+			})
+			generateUrlMock.mockClear()
+
+			await wrapper.vm.sign()
+
+			expect(generateUrlMock).toHaveBeenCalledWith('/apps/libresign/p/sign/{uuid}/pdf', { uuid: 'signer-uuid-123' })
+			expect(wrapper.vm.modalSrc).toBe('/apps/libresign/p/sign/signer-uuid-123/pdf')
+		})
 	})
 
 	describe('RULE: canEditSigningOrder when using ordered flow', () => {
