@@ -3,6 +3,12 @@ Feature: admin/policies
     Given as user "admin"
     And user "signer1" exists
 
+    When sending "delete" to ocs "/apps/libresign/api/v1/policies/user/admin/signature_flow"
+    Then the response should have a status code 200
+
+    When sending "delete" to ocs "/apps/libresign/api/v1/policies/group/admin/signature_flow"
+    Then the response should have a status code 200
+
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
       | value              | ordered_numeric |
       | allowChildOverride | true            |
@@ -10,7 +16,7 @@ Feature: admin/policies
     And the response should be a JSON array with the following mandatory values
       | key                                | value           |
       | (jq).ocs.data.policy.policyKey     | signature_flow  |
-      | (jq).ocs.data.policy.sourceScope   | system          |
+      | (jq).ocs.data.policy.sourceScope   | global          |
       | (jq).ocs.data.policy.effectiveValue| ordered_numeric |
 
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/admin/signature_flow"
