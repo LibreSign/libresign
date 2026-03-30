@@ -13,19 +13,12 @@ test.describe.configure({ retries: 0, timeout: 45000 })
 const openPolicyButtonName = /Manage this setting|Open policy|Open setting policy/i
 const createRuleButtonName = /Create rule|Create policy rule/i
 const saveRuleButtonName = /Save rule changes|Save changes|Save policy rule changes/i
-const createDefaultButtonName = /Create default rule|Create global default rule/i
-const editGlobalDefaultButtonName = /Edit default|Edit global default/i
-const resetGlobalDefaultButtonName = /Reset default|Reset global default|Reset default rule/i
-const newGroupRuleButtonName = /New group rule|New group override/i
-const newUserRuleButtonName = /New user rule|New user override/i
-const editGroupRuleButtonName = /Edit group rule|Edit group override/i
-const deleteGroupRuleButtonName = /Delete group rule|Delete group override/i
-const editUserRuleButtonName = /Edit user rule|Edit user override/i
-const deleteUserRuleButtonName = /Delete user rule|Delete user override/i
-const groupSectionName = /Group rules|Group overrides/i
-const userSectionName = /User rules|User overrides/i
-const globalEditorHeadingName = /Default rule|Global default rule/i
-const inheritValueMessage = /Lower layers must inherit this rule|Lower layers must inherit this value/i
+const changeDefaultButtonName = /^Change$/i
+const removeExceptionButtonName = /Remove exception|Remove rule/i
+const groupRuleTargetLabel = 'admin'
+const userRuleTargetLabel = 'policy-e2e-user'
+const instanceWideTargetLabel = 'Default (instance-wide)'
+const globalEditorHeadingName = /Default rule|Global default rule|Instance default rule/i
 
 async function openSigningOrderDialog(page: Page) {
 	const manageButtons = page.getByRole('button', { name: openPolicyButtonName })
@@ -43,29 +36,6 @@ async function getSigningOrderDialog(page: Page): Promise<Locator> {
 async function waitForEditorIdle(dialog: Locator) {
 	const savingOverlays = dialog.locator('[aria-busy="true"]')
 	await savingOverlays.first().waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {})
-}
-
-async function setAllowOverride(dialog: Locator, enabled: boolean): Promise<boolean> {
-	const allowOverrideSwitch = dialog.getByLabel('Allow lower layers to override this rule').first()
-	const label = dialog.getByText('Allow lower layers to override this rule').first()
-
-	if (!(await allowOverrideSwitch.count())) {
-		return false
-	}
-
-	if (enabled) {
-		if (!(await allowOverrideSwitch.isChecked())) {
-			await label.click()
-		}
-		await expect(allowOverrideSwitch).toBeChecked()
-		return true
-	}
-
-	if (await allowOverrideSwitch.isChecked()) {
-		await label.click()
-	}
-	await expect(allowOverrideSwitch).not.toBeChecked()
-	return true
 }
 
 async function setSigningFlow(dialog: Locator, flow: 'parallel' | 'ordered_numeric'): Promise<boolean> {
@@ -88,7 +58,8 @@ async function setSigningFlow(dialog: Locator, flow: 'parallel' | 'ordered_numer
 async function submitRule(dialog: Locator) {
 	await waitForEditorIdle(dialog)
 
-	const createButton = dialog.getByRole('button', { name: createRuleButtonName }).first()
+	const editorPanel = dialog.locator('.policy-workbench__editor-panel').last()
+	const createButton = editorPanel.getByRole('button', { name: /Create policy rule/i }).first()
 	if (await createButton.isVisible().catch(() => false)) {
 		await expect(createButton).toBeEnabled({ timeout: 8000 })
 		await createButton.click()
@@ -96,31 +67,50 @@ async function submitRule(dialog: Locator) {
 		return
 	}
 
-	const saveButton = dialog.getByRole('button', { name: saveRuleButtonName }).first()
+	const saveButton = editorPanel.getByRole('button', { name: /Save policy rule changes/i }).first()
 	await expect(saveButton).toBeVisible({ timeout: 8000 })
 	await expect(saveButton).toBeEnabled({ timeout: 8000 })
 	await saveButton.click()
 	await waitForEditorIdle(dialog)
 }
 
-async function openGlobalRuleEditor(dialog: Locator, globalSection: Locator) {
-	const createDefaultButton = globalSection.getByRole('button', { name: createDefaultButtonName }).first()
-	if (await createDefaultButton.isVisible().catch(() => false)) {
-		await createDefaultButton.click()
-		return
-	}
-
-	await globalSection.getByRole('button', { name: editGlobalDefaultButtonName }).first().click()
+function getRuleRow(dialog: Locator, _scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
+	return dialog.locator('tbody tr').filter({
+		hasText: targetLabel,
+	}).first()
 }
 
-async function expectGlobalBaselineState(globalSection: Locator) {
-	const createDefaultButton = globalSection.getByRole('button', { name: createDefaultButtonName }).first()
-	if (await createDefaultButton.isVisible().catch(() => false)) {
-		await expect(createDefaultButton).toBeVisible()
+async function openSystemDefaultEditor(dialog: Locator) {
+	await dialog.getByRole('button', { name: changeDefaultButtonName }).first().click()
+}
+
+async function openRuleActions(dialog: Locator, scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
+	const row = getRuleRow(dialog, scope, targetLabel)
+	await expect(row).toBeVisible({ timeout: 8000 })
+	await row.getByRole('button', { name: 'Rule actions' }).first().click()
+	return row
+}
+
+async function clickRuleMenuAction(dialog: Locator, actionName: 'Edit' | 'Remove') {
+	const menuItem = dialog.getByRole('menuitem', { name: actionName }).first()
+	if (await menuItem.isVisible().catch(() => false)) {
+		await menuItem.click()
 		return
 	}
 
-	await expect(globalSection.getByRole('button', { name: editGlobalDefaultButtonName }).first()).toBeVisible()
+	await dialog.getByText(new RegExp(`^${actionName}$`, 'i')).last().click()
+}
+
+async function editRule(dialog: Locator, scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
+	await openRuleActions(dialog, scope, targetLabel)
+	await clickRuleMenuAction(dialog, 'Edit')
+}
+
+async function removeRule(dialog: Locator, scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
+	await openRuleActions(dialog, scope, targetLabel)
+	await clickRuleMenuAction(dialog, 'Remove')
+	await dialog.getByRole('button', { name: removeExceptionButtonName }).first().click()
+	await waitForEditorIdle(dialog)
 }
 
 async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Target users', optionText: string) {
@@ -160,86 +150,23 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 	}
 }
 
-async function clickSectionAction(section: Locator, actionLabel: string | RegExp) {
-	let lastError: unknown
-
-	for (let attempt = 0; attempt < 5; attempt++) {
-		const button = section.getByRole('button', { name: actionLabel }).first()
-
-		try {
-			await button.waitFor({ state: 'visible', timeout: 2000 })
-			await button.scrollIntoViewIfNeeded().catch(() => {})
-			await button.click({ timeout: 2000 })
-			return
-		} catch (error) {
-			lastError = error
-			await new Promise((resolve) => setTimeout(resolve, 250))
-		}
-	}
-
-	throw lastError instanceof Error
-		? lastError
-		: new Error(`Failed to click section action matching "${String(actionLabel)}"`)
-}
-
-async function removeRuleWithConfirmation(page: Page, dialog: Locator, section: Locator, actionLabel: string | RegExp) {
-	const confirmButton = page.getByRole('button', { name: 'Remove rule' }).first()
-	if (await confirmButton.isVisible().catch(() => false)) {
-		await confirmButton.click()
-		await waitForEditorIdle(dialog)
-	}
-
-	await clickSectionAction(section, actionLabel)
-
-	const confirmationShown = await confirmButton.waitFor({ state: 'visible', timeout: 4000 }).then(() => true).catch(() => false)
-	if (confirmationShown) {
-		await confirmButton.click()
-		await waitForEditorIdle(dialog)
+async function ensureRuleAbsent(dialog: Locator, scope: 'Group' | 'User', targetLabel: string) {
+	const row = getRuleRow(dialog, scope, targetLabel)
+	if (await row.count()) {
+		await removeRule(dialog, scope, targetLabel)
+		await expect(getRuleRow(dialog, scope, targetLabel)).toHaveCount(0)
 	}
 }
 
-async function removeAllRulesByAction(
-	page: Page,
-	dialog: Locator,
-	section: Locator,
-	actionLabel: string | RegExp,
-) {
-	for (let attempt = 0; attempt < 8; attempt++) {
-		const currentCount = await section.getByRole('button', { name: actionLabel }).count()
-		if (!currentCount) {
-			return
-		}
-
-		await removeRuleWithConfirmation(page, dialog, section, actionLabel)
-		await waitForEditorIdle(dialog)
-		await expect.poll(async () => {
-			return section.getByRole('button', { name: actionLabel }).count()
-		}, {
-			timeout: 5000,
-		}).toBeLessThan(currentCount)
-	}
-
-	throw new Error(`Failed to remove all rules for action "${actionLabel}" after multiple attempts`)
-}
-
-async function ensureBaselineRulesForAdminTarget(page: Page, dialog: Locator) {
-	const globalSection = dialog.getByRole('region', { name: 'Global default rules' })
-	const groupSection = dialog.getByRole('region', { name: groupSectionName })
-	const userSection = dialog.getByRole('region', { name: userSectionName })
-
-	await removeAllRulesByAction(page, dialog, userSection, deleteUserRuleButtonName)
-	await removeAllRulesByAction(page, dialog, groupSection, deleteGroupRuleButtonName)
-
-	// Normalize global default into a known baseline where lower layers may override.
-	if (await globalSection.getByRole('button', { name: editGlobalDefaultButtonName }).count()) {
-		await globalSection.getByRole('button', { name: editGlobalDefaultButtonName }).click()
-		if (await setAllowOverride(dialog, true)) {
-			await submitRule(dialog)
-		}
+async function ensureSystemDefaultBaseline(dialog: Locator) {
+	const customBadge = dialog.getByText(/\(custom\)/i).first()
+	if (await customBadge.isVisible().catch(() => false)) {
+		await removeRule(dialog, 'Instance', instanceWideTargetLabel)
+		await expect(dialog.getByText(/\(system\)/i)).toBeVisible()
 	}
 }
 
-test('system default persists allow-override changes across edit cycles', async ({ page }) => {
+test('system default persists across edit cycles and can be reset to the system baseline', async ({ page }) => {
 	await login(
 		page.request,
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
@@ -252,18 +179,18 @@ test('system default persists allow-override changes across edit cycles', async 
 	await openSigningOrderDialog(page)
 
 	const signingOrderDialog = await getSigningOrderDialog(page)
-	await ensureBaselineRulesForAdminTarget(page, signingOrderDialog)
+	await ensureSystemDefaultBaseline(signingOrderDialog)
+	await ensureRuleAbsent(signingOrderDialog, 'Group', groupRuleTargetLabel)
+	await ensureRuleAbsent(signingOrderDialog, 'User', userRuleTargetLabel)
 
-	const globalSection = signingOrderDialog.getByRole('region', { name: 'Global default rules' })
-	await openGlobalRuleEditor(signingOrderDialog, globalSection)
+	await openSystemDefaultEditor(signingOrderDialog)
 	await expect(signingOrderDialog.getByRole('heading', { name: globalEditorHeadingName }).last()).toBeVisible()
-	await setAllowOverride(signingOrderDialog, true)
+	expect(await setSigningFlow(signingOrderDialog, 'ordered_numeric'), 'Expected signing-flow radios in system editor').toBe(true)
 	await submitRule(signingOrderDialog)
+	await expect(getRuleRow(signingOrderDialog, 'Instance', instanceWideTargetLabel)).toContainText('Sequential')
 
-	await signingOrderDialog.getByRole('button', { name: editGlobalDefaultButtonName }).click()
-	await setAllowOverride(signingOrderDialog, true)
-
-	await setAllowOverride(signingOrderDialog, false)
+	await openSystemDefaultEditor(signingOrderDialog)
+	expect(await setSigningFlow(signingOrderDialog, 'parallel'), 'Expected signing-flow radios in system editor').toBe(true)
 	const saveChangesResponsePromise = page.waitForResponse((response) => {
 		return response.request().method() === 'POST'
 			&& response.url().includes('/apps/libresign/api/v1/policies/system/signature_flow')
@@ -271,19 +198,15 @@ test('system default persists allow-override changes across edit cycles', async 
 	await signingOrderDialog.getByRole('button', { name: saveRuleButtonName }).first().click()
 	const saveChangesResponse = await saveChangesResponsePromise
 	expect(saveChangesResponse.status(), 'Expected Save changes request to succeed').toBe(200)
+	await expect(getRuleRow(signingOrderDialog, 'Instance', instanceWideTargetLabel)).toContainText('Simultaneous (Parallel)')
 
-	await signingOrderDialog.getByRole('button', { name: editGlobalDefaultButtonName }).click()
-	await setAllowOverride(signingOrderDialog, false)
-
-	await expect(signingOrderDialog.getByText(inheritValueMessage)).toBeVisible()
-
-	// Reset should restore inherited baseline behavior.
-	await removeRuleWithConfirmation(page, signingOrderDialog, globalSection, resetGlobalDefaultButtonName)
-	await expectGlobalBaselineState(globalSection)
+	await removeRule(signingOrderDialog, 'Instance', instanceWideTargetLabel)
+	await expect(signingOrderDialog.getByText(/\(system\)/i)).toBeVisible()
+	await expect(getRuleRow(signingOrderDialog, 'Instance', instanceWideTargetLabel)).toContainText('Let users choose')
 })
 
 test('admin can create, edit, and delete global, group, and user rules from the policy workbench', async ({ page }) => {
-	const userTarget = 'policy-e2e-user'
+	const userTarget = userRuleTargetLabel
 
 	await ensureUserExists(page.request, userTarget)
 
@@ -297,66 +220,54 @@ test('admin can create, edit, and delete global, group, and user rules from the 
 	await openSigningOrderDialog(page)
 
 	const dialog = await getSigningOrderDialog(page)
-	const globalSection = dialog.getByRole('region', { name: 'Global default rules' })
-	const groupSection = dialog.getByRole('region', { name: groupSectionName })
-	const userSection = dialog.getByRole('region', { name: userSectionName })
-
-	await ensureBaselineRulesForAdminTarget(page, dialog)
+	await ensureSystemDefaultBaseline(dialog)
+	await ensureRuleAbsent(dialog, 'Group', groupRuleTargetLabel)
+	await ensureRuleAbsent(dialog, 'User', userTarget)
 
 	// Global rule: edit
-	await openGlobalRuleEditor(dialog, globalSection)
+	await openSystemDefaultEditor(dialog)
 	expect(await setSigningFlow(dialog, 'ordered_numeric'), 'Expected signing-flow radios in global editor').toBe(true)
-	await setAllowOverride(dialog, true)
 	await submitRule(dialog)
-	await expect(globalSection.getByRole('button', { name: editGlobalDefaultButtonName })).toBeVisible()
-
-	// Global rule: enforce inheritance
-	await globalSection.getByRole('button', { name: editGlobalDefaultButtonName }).click()
-	expect(await setAllowOverride(dialog, false), 'Expected global allow-override switch in editor').toBe(true)
-	await submitRule(dialog)
-	await expect(globalSection.getByRole('button', { name: editGlobalDefaultButtonName })).toBeVisible()
-
-	await globalSection.getByRole('button', { name: editGlobalDefaultButtonName }).click()
-	expect(await setAllowOverride(dialog, true), 'Expected global allow-override switch in editor').toBe(true)
-	await submitRule(dialog)
-	await expect(globalSection.getByRole('button', { name: editGlobalDefaultButtonName })).toBeVisible()
+	await expect(getRuleRow(dialog, 'Instance', instanceWideTargetLabel)).toContainText('Sequential')
 
 	// Group rule: create
-	await dialog.getByRole('button', { name: newGroupRuleButtonName }).first().click()
+	await dialog.getByRole('button', { name: 'Create rule' }).first().click()
+	await dialog.getByRole('option', { name: /Group/i }).click()
 	await chooseTarget(dialog, 'Target groups', 'admin')
 	expect(await setSigningFlow(dialog, 'ordered_numeric'), 'Expected signing-flow radios in group editor').toBe(true)
-	await setAllowOverride(dialog, true)
 	await submitRule(dialog)
-	await expect(groupSection.getByRole('button', { name: editGroupRuleButtonName }).first()).toBeVisible()
+	await expect(getRuleRow(dialog, 'Group', groupRuleTargetLabel)).toContainText('Sequential')
 
 	// Group rule: edit
-	await groupSection.getByRole('button', { name: editGroupRuleButtonName }).first().click()
+	await editRule(dialog, 'Group', groupRuleTargetLabel)
 	expect(await setSigningFlow(dialog, 'parallel'), 'Expected signing-flow radios in group editor').toBe(true)
 	await submitRule(dialog)
-	await expect(groupSection.getByRole('button', { name: editGroupRuleButtonName }).first()).toBeVisible()
+	await expect(getRuleRow(dialog, 'Group', groupRuleTargetLabel)).toContainText('Simultaneous (Parallel)')
 
 	// User rule: create
-	await dialog.getByRole('button', { name: newUserRuleButtonName }).first().click()
+	await dialog.getByRole('button', { name: 'Create rule' }).first().click()
+	await dialog.getByRole('option', { name: /User/i }).click()
 	await chooseTarget(dialog, 'Target users', userTarget)
 	expect(await setSigningFlow(dialog, 'ordered_numeric'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(dialog)
-	await expect(userSection.getByRole('button', { name: editUserRuleButtonName }).first()).toBeVisible()
+	await expect(getRuleRow(dialog, 'User', userTarget)).toContainText('Sequential')
 
 	// User rule: edit
-	await clickSectionAction(userSection, editUserRuleButtonName)
+	await editRule(dialog, 'User', userTarget)
 	expect(await setSigningFlow(dialog, 'parallel'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(dialog)
-	await expect(userSection.getByRole('button', { name: editUserRuleButtonName }).first()).toBeVisible()
+	await expect(getRuleRow(dialog, 'User', userTarget)).toContainText('Simultaneous (Parallel)')
 
 	// User rule: delete
-	await removeAllRulesByAction(page, dialog, userSection, deleteUserRuleButtonName)
-	await expect(userSection.getByRole('button', { name: deleteUserRuleButtonName })).toHaveCount(0)
+	await removeRule(dialog, 'User', userTarget)
+	await expect(getRuleRow(dialog, 'User', userTarget)).toHaveCount(0)
 
 	// Group rule: delete
-	await removeAllRulesByAction(page, dialog, groupSection, deleteGroupRuleButtonName)
-	await expect(groupSection.getByRole('button', { name: deleteGroupRuleButtonName })).toHaveCount(0)
+	await removeRule(dialog, 'Group', groupRuleTargetLabel)
+	await expect(getRuleRow(dialog, 'Group', groupRuleTargetLabel)).toHaveCount(0)
 
 	// Global rule: reset to inherited baseline
-	await removeRuleWithConfirmation(page, dialog, globalSection, resetGlobalDefaultButtonName)
-	await expectGlobalBaselineState(globalSection)
+	await removeRule(dialog, 'Instance', instanceWideTargetLabel)
+	await expect(dialog.getByText(/\(system\)/i)).toBeVisible()
+	await expect(getRuleRow(dialog, 'Instance', instanceWideTargetLabel)).toContainText('Let users choose')
 })
