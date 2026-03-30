@@ -92,13 +92,14 @@ async function openRuleActions(dialog: Locator, scope: 'Instance' | 'Group' | 'U
 }
 
 async function clickRuleMenuAction(dialog: Locator, actionName: 'Edit' | 'Remove') {
-	const menuItem = dialog.getByRole('menuitem', { name: actionName }).first()
-	if (await menuItem.isVisible().catch(() => false)) {
-		await menuItem.click()
-		return
-	}
+	const page = dialog.page()
+	const actionItem = page
+		.locator('.action-item, [role="menuitem"], li')
+		.filter({ hasText: new RegExp(`^${actionName}$`, 'i') })
+		.first()
 
-	await dialog.getByText(new RegExp(`^${actionName}$`, 'i')).last().click()
+	await expect(actionItem).toBeVisible({ timeout: 5000 })
+	await actionItem.click()
 }
 
 async function editRule(dialog: Locator, scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
@@ -109,7 +110,13 @@ async function editRule(dialog: Locator, scope: 'Instance' | 'Group' | 'User', t
 async function removeRule(dialog: Locator, scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
 	await openRuleActions(dialog, scope, targetLabel)
 	await clickRuleMenuAction(dialog, 'Remove')
-	await dialog.getByRole('button', { name: removeExceptionButtonName }).first().click()
+	const page = dialog.page()
+	const removeExceptionButton = page.getByRole('button', { name: removeExceptionButtonName }).first()
+	if (await removeExceptionButton.isVisible().catch(() => false)) {
+		await removeExceptionButton.click()
+	} else {
+		await page.getByText(/^Remove exception$/i).first().click()
+	}
 	await waitForEditorIdle(dialog)
 }
 
@@ -192,17 +199,17 @@ test('system default persists across edit cycles and can be reset to the system 
 	await openSystemDefaultEditor(signingOrderDialog)
 	expect(await setSigningFlow(signingOrderDialog, 'parallel'), 'Expected signing-flow radios in system editor').toBe(true)
 	const saveChangesResponsePromise = page.waitForResponse((response) => {
-		return response.request().method() === 'POST'
+		return ['POST', 'PUT', 'PATCH'].includes(response.request().method())
 			&& response.url().includes('/apps/libresign/api/v1/policies/system/signature_flow')
 	})
-	await signingOrderDialog.getByRole('button', { name: saveRuleButtonName }).first().click()
+	await submitRule(signingOrderDialog)
 	const saveChangesResponse = await saveChangesResponsePromise
 	expect(saveChangesResponse.status(), 'Expected Save changes request to succeed').toBe(200)
 	await expect(getRuleRow(signingOrderDialog, 'Instance', instanceWideTargetLabel)).toContainText('Simultaneous (Parallel)')
 
 	await removeRule(signingOrderDialog, 'Instance', instanceWideTargetLabel)
 	await expect(signingOrderDialog.getByText(/\(system\)/i)).toBeVisible()
-	await expect(getRuleRow(signingOrderDialog, 'Instance', instanceWideTargetLabel)).toContainText('Let users choose')
+	await expect(signingOrderDialog.getByText(/Default:\s*Let users choose/i)).toBeVisible()
 })
 
 test('admin can create, edit, and delete global, group, and user rules from the policy workbench', async ({ page }) => {
@@ -232,7 +239,7 @@ test('admin can create, edit, and delete global, group, and user rules from the 
 
 	// Group rule: create
 	await dialog.getByRole('button', { name: 'Create rule' }).first().click()
-	await dialog.getByRole('option', { name: /Group/i }).click()
+	await dialog.page().getByText(/^Group$/i).first().click()
 	await chooseTarget(dialog, 'Target groups', 'admin')
 	expect(await setSigningFlow(dialog, 'ordered_numeric'), 'Expected signing-flow radios in group editor').toBe(true)
 	await submitRule(dialog)
@@ -246,7 +253,7 @@ test('admin can create, edit, and delete global, group, and user rules from the 
 
 	// User rule: create
 	await dialog.getByRole('button', { name: 'Create rule' }).first().click()
-	await dialog.getByRole('option', { name: /User/i }).click()
+	await dialog.page().getByText(/^User$/i).first().click()
 	await chooseTarget(dialog, 'Target users', userTarget)
 	expect(await setSigningFlow(dialog, 'ordered_numeric'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(dialog)
@@ -269,5 +276,5 @@ test('admin can create, edit, and delete global, group, and user rules from the 
 	// Global rule: reset to inherited baseline
 	await removeRule(dialog, 'Instance', instanceWideTargetLabel)
 	await expect(dialog.getByText(/\(system\)/i)).toBeVisible()
-	await expect(getRuleRow(dialog, 'Instance', instanceWideTargetLabel)).toContainText('Let users choose')
+	await expect(dialog.getByText(/Default:\s*Let users choose/i)).toBeVisible()
 })
