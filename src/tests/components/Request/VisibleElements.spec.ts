@@ -588,6 +588,26 @@ describe('VisibleElements Component - Business Rules', () => {
 			expect(wrapper.vm.modal).toBe(false)
 		})
 
+		it('renders the sign-details action wrapper inside the modal sidebar', async () => {
+			const wrapperWithModalContent = mount(VisibleElements, {
+				global: {
+					stubs: {
+						NcModal: { template: '<div class="modal-stub"><slot /></div>' },
+						NcNoteCard: true,
+						NcChip: true,
+						NcButton: true,
+						NcLoadingIcon: true,
+						PdfEditor: true,
+						Signer: true,
+					},
+				},
+			}) as unknown as VisibleElementsWrapper
+			wrapperWithModalContent.vm.modal = true
+			await wrapperWithModalContent.vm.$nextTick()
+
+			expect(wrapperWithModalContent.find('.sign-details__actions').exists()).toBe(true)
+		})
+
 		it('closeModal resets all modal state', () => {
 			wrapper.vm.modal = true
 			wrapper.vm.elementsLoaded = true
