@@ -139,6 +139,7 @@ OC.L10N.register(
     "Hide details" : "Slėpti išsamesnę informaciją",
     "Show details" : "Rodyti išsamiau",
     "Remote address:" : "Nuotolinis adresas:",
+    "Expiration:" : "Galiojimo pabaiga:",
     "No date" : "No date",
     "Hash algorithm:" : "Maišos algoritmas:",
     "Error" : "Klaida",
