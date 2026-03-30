@@ -80,6 +80,9 @@ type PdfEditorVm = {
 		totalPages: number
 		isAddingMode: boolean
 	}) => string
+	getTotalObjectsCount: () => number
+	checkSignerAdded: () => void
+	scheduleSignerAddedCheck: () => void
 	setProps: (props: Record<string, unknown>) => Promise<void>
 }
 
@@ -244,6 +247,15 @@ describe('PdfEditor Component - Business Rules', () => {
 			expect(result).toBe(false)
 		})
 
+		it('returns false when signer payload cannot be built', () => {
+			const result = wrapper.vm.startAddingSigner(
+				null,
+				{ width: 200, height: 100 },
+			)
+
+			expect(result).toBe(false)
+		})
+
 		it('returns true and starts adding when valid params', () => {
 			const signer = { email: 'test@example.com' }
 			const size = { width: 200, height: 100 }
@@ -263,6 +275,196 @@ describe('PdfEditor Component - Business Rules', () => {
 					}),
 				}),
 			)
+		})
+
+		it('restarts pending add timer when startAddingSigner is called twice', () => {
+			vi.useFakeTimers()
+			Object.assign(getPdfElements(), {
+				isAddingMode: true,
+				pdfDocuments: [{ allObjects: [[]] }],
+			})
+
+			wrapper.vm.startAddingSigner({ email: 'first@example.com' }, { width: 120, height: 60 })
+			expect(vi.getTimerCount()).toBe(1)
+			wrapper.vm.startAddingSigner({ email: 'second@example.com' }, { width: 120, height: 60 })
+
+			expect(vi.getTimerCount()).toBe(1)
+			vi.useRealTimers()
+		})
+
+		it('emits signer-added when object count increases after adding mode starts', () => {
+			vi.useFakeTimers()
+			Object.assign(getPdfElements(), {
+				isAddingMode: true,
+				pdfDocuments: [{ allObjects: [[]] }],
+			})
+
+			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
+			getPdfElements().pdfDocuments = [{ allObjects: [[{ id: 'obj-1' }]] }]
+			wrapper.vm.checkSignerAdded()
+
+			expect(wrapper.emitted('pdf-editor:signer-added')).toHaveLength(1)
+			vi.useRealTimers()
+		})
+
+		it('emits signer-added when adding mode finishes without object delta', () => {
+			vi.useFakeTimers()
+			Object.assign(getPdfElements(), {
+				isAddingMode: true,
+				pdfDocuments: [{ allObjects: [[]] }],
+			})
+
+			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
+			getPdfElements().isAddingMode = false
+			wrapper.vm.checkSignerAdded()
+
+			expect(wrapper.emitted('pdf-editor:signer-added')).toHaveLength(1)
+			vi.useRealTimers()
+		})
+
+		it('keeps polling while adding mode is active and count has not changed', () => {
+			vi.useFakeTimers()
+			Object.assign(getPdfElements(), {
+				isAddingMode: true,
+				pdfDocuments: [{ allObjects: [[]] }],
+			})
+
+			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
+			vi.clearAllTimers()
+			wrapper.vm.checkSignerAdded()
+
+			expect(wrapper.emitted('pdf-editor:signer-added')).toBeFalsy()
+			expect(vi.getTimerCount()).toBeGreaterThan(0)
+			vi.useRealTimers()
+		})
+
+		it('stops polling after retry limit without emitting signer-added', () => {
+			vi.useFakeTimers()
+			Object.assign(getPdfElements(), {
+				isAddingMode: true,
+				pdfDocuments: [{ allObjects: [[]] }],
+			})
+
+			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
+			vi.clearAllTimers()
+			for (let i = 0; i < 301; i++) {
+				wrapper.vm.checkSignerAdded()
+				vi.clearAllTimers()
+			}
+
+			expect(wrapper.emitted('pdf-editor:signer-added')).toBeFalsy()
+			vi.useRealTimers()
+		})
+	})
+
+	describe('RULE: touchend handling for mobile placement', () => {
+		it('ignores touchend when no signer placement is pending', () => {
+			const handleMouseMove = vi.fn()
+			Object.assign(getPdfElements(), {
+				handleMouseMove,
+				isAddingMode: true,
+				previewElement: { id: 'preview-1' },
+				previewVisible: false,
+			})
+			const event = new Event('touchend')
+			Object.defineProperty(event, 'changedTouches', {
+				value: [{ clientX: 10, clientY: 20 }],
+				configurable: true,
+			})
+
+			document.dispatchEvent(event)
+
+			expect(handleMouseMove).not.toHaveBeenCalled()
+			expect(wrapper.emitted('pdf-editor:signer-added')).toBeFalsy()
+		})
+
+		it('schedules signer check when touchend has no touch point', async () => {
+			vi.useFakeTimers()
+			Object.assign(getPdfElements(), {
+				isAddingMode: false,
+				pdfDocuments: [{ allObjects: [[]] }],
+			})
+			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
+			vi.clearAllTimers()
+
+			document.dispatchEvent(new Event('touchend'))
+			await vi.runOnlyPendingTimersAsync()
+
+			expect(wrapper.emitted('pdf-editor:signer-added')).toHaveLength(1)
+			vi.useRealTimers()
+		})
+
+		it('schedules signer check when pdf-elements instance is unavailable', async () => {
+			vi.useFakeTimers()
+			Object.assign(getPdfElements(), {
+				isAddingMode: false,
+				pdfDocuments: [{ allObjects: [[]] }],
+			})
+			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
+			vi.clearAllTimers()
+			wrapper.vm.pdfElements = null
+
+			const event = new Event('touchend')
+			Object.defineProperty(event, 'changedTouches', {
+				value: [{ clientX: 10, clientY: 20 }],
+				configurable: true,
+			})
+			document.dispatchEvent(event)
+			await vi.runOnlyPendingTimersAsync()
+
+			expect(wrapper.emitted('pdf-editor:signer-added')).toHaveLength(1)
+			vi.useRealTimers()
+		})
+
+		it('uses preview fallback on touchend and finalizes adding flow', async () => {
+			vi.useFakeTimers()
+			const runtime = Object.assign(getPdfElements(), {
+				isAddingMode: true,
+				previewElement: { id: 'preview-1' },
+				previewVisible: false,
+				handleMouseMove: vi.fn(),
+				pdfDocuments: [{ allObjects: [[]] }],
+			})
+			runtime.finishAdding = vi.fn(() => {
+				runtime.isAddingMode = false
+			})
+
+			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
+			vi.clearAllTimers()
+
+			const event = new Event('touchend')
+			const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
+			const stopImmediatePropagationSpy = vi.spyOn(event, 'stopImmediatePropagation')
+			Object.defineProperty(event, 'changedTouches', {
+				value: [{ clientX: 44, clientY: 88 }],
+				configurable: true,
+			})
+			document.dispatchEvent(event)
+			await vi.runAllTimersAsync()
+
+			expect(preventDefaultSpy).toHaveBeenCalledTimes(1)
+			expect(stopImmediatePropagationSpy).toHaveBeenCalledTimes(1)
+			expect(runtime.handleMouseMove).toHaveBeenCalledWith({
+				type: 'touchmove',
+				touches: [{ clientX: 44, clientY: 88 }],
+			})
+			expect(runtime.finishAdding).toHaveBeenCalledTimes(1)
+			expect(wrapper.emitted('pdf-editor:signer-added')).toHaveLength(1)
+			vi.useRealTimers()
+		})
+	})
+
+	describe('RULE: document listener lifecycle', () => {
+		it('registers and unregisters touchend listener on mount/unmount', () => {
+			wrapper.unmount()
+			const addEventListenerSpy = vi.spyOn(document, 'addEventListener')
+			const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener')
+			const localWrapper = createWrapper()
+			const touchendCall = addEventListenerSpy.mock.calls.find(([eventName]) => eventName === 'touchend')
+
+			expect(touchendCall).toBeTruthy()
+			localWrapper.unmount()
+			expect(removeEventListenerSpy).toHaveBeenCalledWith('touchend', touchendCall?.[1] as EventListener)
 		})
 	})
 
