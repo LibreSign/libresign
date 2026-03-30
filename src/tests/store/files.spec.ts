@@ -338,6 +338,42 @@ describe('files store - critical business rules', () => {
 
 			expect(store.canSign()).toBe(true)
 		})
+
+		it('allows signing when signer me flag is missing but signerFileUuid exists', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				status: 1,
+				signatureFlow: 'parallel',
+				signers: [
+					{ me: false, signingOrder: 1, signed: [] },
+				],
+				settings: {
+					signerFileUuid: '8af5bd0b-0776-4533-8d57-8ee88ed1f6bf',
+				},
+			}
+
+			expect(store.canSign()).toBe(true)
+		})
+
+		it('blocks signing when signer me flag is missing and signerFileUuid is empty', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				status: 1,
+				signatureFlow: 'parallel',
+				signers: [
+					{ me: false, signingOrder: 1, signed: [] },
+				],
+				settings: {
+					signerFileUuid: '',
+				},
+			}
+
+			expect(store.canSign()).toBe(false)
+		})
 	})
 
 	describe('RULE: adding signers respects document state', () => {
