@@ -105,6 +105,7 @@ describe('useRealPolicyWorkbench', () => {
 								users: {
 									user1: { id: 'user1', displayname: 'User One', email: 'user1@example.com' },
 									user3: { id: 'user3', 'display-name': 'User Three', email: 'user3@example.com' },
+									fakeGroupLike: { id: 'finance', displayname: 'Finance', usercount: 3, isNoUser: true },
 								},
 							},
 						},
@@ -192,6 +193,7 @@ describe('useRealPolicyWorkbench', () => {
 			{ id: 'user1', displayName: 'User One', subname: 'user1@example.com', user: 'user1' },
 			{ id: 'user3', displayName: 'User Three', subname: 'user3@example.com', user: 'user3' },
 		])
+		expect(state.availableTargets.some((target) => target.id === 'finance')).toBe(false)
 	})
 
 	it('saves system signature_flow rule', async () => {
