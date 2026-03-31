@@ -304,40 +304,16 @@
 					</div>
 				</div>
 
-				<!-- Editor panel side-by-side (desktop) -->
-				<div v-if="state.editorDraft && !shouldUseEditorModal" class="policy-workbench__editor-aside">
-					<PolicyRuleEditorPanel
-						v-if="state.editorDraft"
-						:editor-draft="state.editorDraft"
-						:editor-mode="state.editorMode"
-						:editor-title="editorTitle"
-						:editor-help="editorHelp"
-						:active-editor="activeEditor"
-						:selected-target-options="selectedTargetOptions"
-						:available-targets="state.availableTargets"
-						:loading-targets="state.loadingTargets"
-						:duplicate-message="state.duplicateMessage"
-						:can-save-draft="state.canSaveDraft"
-						:save-status="saveStatus"
-						:show-allow-override-switch="state.activeDefinition?.key !== 'signature_flow'"
-						@search-targets="state.searchAvailableTargets"
-						@update-targets="onTargetChange"
-						@update-value="state.updateDraftValue"
-						@update-allow-override="state.updateDraftAllowOverride"
-						@save="handleSaveDraft()"
-						@cancel="requestCancelEditor()" />
-					</div>
 				</div>
-
 			</NcDialog>
 
 			<NcDialog
-				v-if="state.editorDraft && shouldUseEditorModal"
-			:name="editorTitle || t('libresign', 'Rule editor')"
-			size="full"
+				v-if="showCreateScopeDialog || state.editorDraft"
+				:name="ruleDialogTitle"
+				size="normal"
 			:can-close="true"
-			@closing="requestCancelEditor()">
-			<div class="policy-workbench__editor-modal-body">
+				@closing="requestCloseRuleDialog()">
+				<div v-if="state.editorDraft" class="policy-workbench__editor-modal-body">
 				<PolicyRuleEditorPanel
 					v-if="state.editorDraft"
 					:editor-draft="state.editorDraft"
@@ -351,26 +327,18 @@
 					:duplicate-message="state.duplicateMessage"
 					:can-save-draft="state.canSaveDraft"
 					:save-status="saveStatus"
-					:sticky-actions="true"
+					:show-back-button="showCreateRuleBackAction"
 					:show-allow-override-switch="state.activeDefinition?.key !== 'signature_flow'"
 					@search-targets="state.searchAvailableTargets"
 					@update-targets="onTargetChange"
 					@update-value="state.updateDraftValue"
 					@update-allow-override="state.updateDraftAllowOverride"
+					@back="requestBackToCreateScope()"
 					@save="handleSaveDraft()"
-					@cancel="requestCancelEditor()" />
+					@cancel="requestCloseRuleDialog()" />
 			</div>
-		</NcDialog>
-
-		<NcDialog
-			v-if="showCreateScopeDialog"
-			:name="t('libresign', 'What do you want to create?')"
-			size="normal"
-			:can-close="true"
-			@closing="cancelCreateScopeDialog">
-			<div class="policy-workbench__create-scope-dialog">
-				<p>{{ t('libresign', 'Where do you want to apply this rule?') }}</p>
-				<p class="policy-workbench__create-scope-hint">{{ t('libresign', 'User rules override Group and Instance rules.') }}</p>
+			<div v-else class="policy-workbench__create-scope-dialog">
+				<p class="policy-workbench__create-scope-hint">{{ t('libresign', 'Choose the rule type to continue.') }}</p>
 				<div class="policy-workbench__create-scope-grid" role="listbox" :aria-label="t('libresign', 'Rule type')">
 					<button
 						v-for="option in createScopeOptions"
@@ -465,7 +433,7 @@ const catalogLayout = ref<'cards' | 'compact'>('cards')
 const saveStatus = ref<'idle' | 'saving' | 'saved'>('idle')
 const saveFeedbackTimeout = ref<number | null>(null)
 const pendingRemoval = ref<{ ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string, help: string } | null>(null)
-const pendingDiscardAction = ref<'cancel-editor' | 'close-setting' | null>(null)
+const pendingDiscardAction = ref<'back-create-rule' | 'cancel-create-rule' | 'cancel-editor' | 'close-setting' | null>(null)
 const showCreateScopeDialog = ref(false)
 const selectedCreateScope = ref<'system' | 'group' | 'user' | null>(null)
 const isRemovingRule = ref(false)
@@ -496,7 +464,6 @@ const filteredSettingSummaries = computed(() => {
 	})
 })
 
-const shouldUseEditorModal = computed(() => isSmallViewport.value)
 const activeEditor = computed(() => state.activeDefinition?.editor ?? null)
 const effectiveCatalogLayout = computed(() => isSmallViewport.value ? 'cards' : catalogLayout.value)
 const hasActiveFilter = computed(() => settingsFilter.value.trim().length > 0)
@@ -602,16 +569,24 @@ const pagedCrudRows = computed(() => {
 	return filteredCrudRows.value.slice(start, start + CRUD_PAGE_SIZE)
 })
 
+const ruleDialogTitle = computed(() => {
+	if (!state.editorDraft) {
+		return t('libresign', 'What do you want to create?')
+	}
+
+	return state.editorMode === 'edit'
+		? t('libresign', 'Edit rule')
+		: t('libresign', 'Create rule')
+})
+
 const editorTitle = computed(() => {
 	if (!state.editorDraft) {
 		return ''
 	}
 
-	if (state.editorDraft.scope === 'system') {
-		return t('libresign', 'Instance default rule')
-	}
-
-	return state.draftTargetLabel || t('libresign', 'Select one or more targets')
+	return state.editorMode === 'edit'
+		? t('libresign', 'Edit rule')
+		: t('libresign', 'Create rule')
 })
 
 const editorHelp = computed(() => {
@@ -620,14 +595,18 @@ const editorHelp = computed(() => {
 	}
 
 	if (state.editorDraft.scope === 'system') {
-		return t('libresign', 'Defines the default signing order for all users.')
+		return t('libresign', 'This sets the default signing order for everyone.')
 	}
 
 	if (state.editorDraft.scope === 'group') {
-		return t('libresign', 'Overrides the default for users in the selected groups.')
+		return t('libresign', 'This rule applies to all users in the selected groups.')
 	}
 
-	return t('libresign', 'Overrides group and instance rules for selected users.')
+	return t('libresign', 'This rule overrides group and default settings for selected users.')
+})
+
+const showCreateRuleBackAction = computed(() => {
+	return showCreateScopeDialog.value && state.editorMode === 'create'
 })
 
 const dialogDescription = computed(() => {
@@ -691,10 +670,6 @@ const createScopeOptions = computed<Array<{
 	]
 
 	return options.filter((option) => {
-		if (option.scope === 'system' && state.hasGlobalDefault) {
-			return false
-		}
-
 		if (option.scope !== 'user') {
 			return true
 		}
@@ -840,6 +815,7 @@ function requestCreateRule() {
 }
 
 function cancelCreateScopeDialog() {
+	state.cancelEditor()
 	showCreateScopeDialog.value = false
 	selectedCreateScope.value = null
 }
@@ -858,9 +834,21 @@ function startCreateRuleForScope(scope: 'system' | 'group' | 'user') {
 		return
 	}
 
-	showCreateScopeDialog.value = false
-	selectedCreateScope.value = null
 	state.startEditor({ scope })
+}
+
+function requestBackToCreateScope() {
+	if (saveStatus.value === 'saving') {
+		return
+	}
+
+	if (state.isDraftDirty) {
+		pendingDiscardAction.value = 'back-create-rule'
+		return
+	}
+
+	state.cancelEditor()
+	selectedCreateScope.value = null
 }
 
 function onSettingsFilterChange(value: string | number) {
@@ -1066,6 +1054,17 @@ function confirmDiscardDialog() {
 	const action = pendingDiscardAction.value
 	pendingDiscardAction.value = null
 
+	if (action === 'back-create-rule') {
+		state.cancelEditor()
+		selectedCreateScope.value = null
+		return
+	}
+
+	if (action === 'cancel-create-rule') {
+		cancelCreateScopeDialog()
+		return
+	}
+
 	if (action === 'cancel-editor') {
 		state.cancelEditor()
 		return
@@ -1119,6 +1118,29 @@ function requestCancelEditor() {
 	}
 
 	state.cancelEditor()
+}
+
+function requestCloseRuleDialog() {
+	if (saveStatus.value === 'saving') {
+		return
+	}
+
+	if (!state.editorDraft) {
+		cancelCreateScopeDialog()
+		return
+	}
+
+	if (showCreateScopeDialog.value && state.editorMode === 'create') {
+		if (state.isDraftDirty) {
+			pendingDiscardAction.value = 'cancel-create-rule'
+			return
+		}
+
+		cancelCreateScopeDialog()
+		return
+	}
+
+	requestCancelEditor()
 }
 
 function requestCloseSetting() {
@@ -2267,6 +2289,8 @@ onBeforeUnmount(() => {
 	}
 
 	&__create-scope-dialog {
+		width: min(100%, 38rem);
+		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
@@ -2274,6 +2298,11 @@ onBeforeUnmount(() => {
 		p {
 			margin: 0;
 		}
+	}
+
+	&__editor-modal-body {
+		width: min(100%, 42rem);
+		margin: 0 auto;
 	}
 
 	&__create-scope-grid {
@@ -2598,11 +2627,14 @@ onBeforeUnmount(() => {
 
 	&__editor-actions {
 		display: flex;
-		flex-wrap: wrap;
+		flex-direction: row;
+		justify-content: flex-end;
+		align-items: center;
 		gap: 0.75rem;
+		flex-wrap: wrap;
 
 		:deep(.button-vue) {
-			max-width: 100%;
+			flex-shrink: 0;
 		}
 	}
 
