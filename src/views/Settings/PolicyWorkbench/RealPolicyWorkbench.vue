@@ -716,7 +716,7 @@ const ruleDialogButtons = computed(() => {
 		label: string,
 		variant: 'primary' | 'secondary' | 'tertiary',
 		disabled?: boolean,
-		callback: () => void,
+		callback: () => false,
 	}> = []
 
 	if (showCreateRuleBackAction.value) {
@@ -724,7 +724,10 @@ const ruleDialogButtons = computed(() => {
 			label: t('libresign', '← Back'),
 			variant: 'tertiary',
 			disabled: saveStatus.value === 'saving',
-			callback: () => requestBackToCreateScope(),
+			callback: () => {
+				requestBackToCreateScope()
+				return false
+			},
 		})
 	}
 
@@ -734,6 +737,7 @@ const ruleDialogButtons = computed(() => {
 		disabled: !state.canSaveDraft || saveStatus.value === 'saving',
 		callback: () => {
 			void handleSaveDraft()
+			return false
 		},
 	})
 
@@ -741,7 +745,10 @@ const ruleDialogButtons = computed(() => {
 		label: t('libresign', 'Cancel'),
 		variant: 'secondary',
 		disabled: saveStatus.value === 'saving',
-		callback: () => requestCloseRuleDialog(),
+		callback: () => {
+			requestCloseRuleDialog()
+			return false
+		},
 	})
 
 	return buttons
@@ -848,8 +855,17 @@ function setCrudScopeFilter(value: 'all' | 'system' | 'group' | 'user', selected
 }
 
 function requestCreateRule() {
-	if (!hasCreatableScope.value) {
+	if (!hasCreatableScope.value || saveStatus.value === 'saving') {
 		return
+	}
+
+	if (state.editorDraft) {
+		if (state.isDraftDirty) {
+			pendingDiscardAction.value = 'cancel-create-rule'
+			return
+		}
+
+		state.cancelEditor()
 	}
 
 	selectedCreateScope.value = null
