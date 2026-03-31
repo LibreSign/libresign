@@ -46,8 +46,8 @@ function mountWorkbench() {
 				},
 				NcChip: { template: '<button class="nc-chip-stub">{{ text }}</button>', props: ['text'] },
 				NcCheckboxRadioSwitch: {
-					props: ['modelValue', 'type', 'name'],
-					template: "<label class=\"nc-checkbox-radio-switch-stub\"><input :checked=\"modelValue\" :type=\"type === 'radio' ? 'radio' : 'checkbox'\" :name=\"name\" @change=\"$emit('update:modelValue', $event.target.checked)\" /><span><slot /></span></label>",
+					props: ['modelValue', 'type', 'name', 'value'],
+					template: "<label class=\"nc-checkbox-radio-switch-stub\"><input :checked=\"type === 'radio' ? modelValue === value : modelValue\" :type=\"type === 'radio' ? 'radio' : 'checkbox'\" :name=\"name\" @change=\"$emit('update:modelValue', type === 'radio' ? value : $event.target.checked)\" /><span><slot /></span></label>",
 				},
 				NcSelectUsers: {
 					props: ['placeholder', 'ariaLabel'],
@@ -146,6 +146,43 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.text()).toContain('Save changes')
 		expect(wrapper.text()).toContain('Cancel')
 		expect(wrapper.text()).not.toContain('← Back')
+	})
+
+	it('allows opening create flow again after saving a first rule', async () => {
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		const toolbarCreateRuleButton = wrapper.find('button.policy-workbench__crud-create-cta')
+		expect(toolbarCreateRuleButton.exists()).toBe(true)
+		await toolbarCreateRuleButton.trigger('click')
+		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+
+		await findButtonContainingText(wrapper, 'Instance')?.trigger('click')
+		expect(wrapper.find('.policy-workbench__editor-modal-body').exists()).toBe(true)
+
+		const flowRadioInputs = wrapper.findAll('.policy-workbench__editor-modal-body input[type="radio"]')
+		expect(flowRadioInputs.length).toBeGreaterThan(0)
+		await flowRadioInputs[0].trigger('change')
+		await Promise.resolve()
+
+		const dialogCreateRuleButton = wrapper.findAll('.dialog-footer button').find((button) => button.text() === 'Create rule')
+		expect(dialogCreateRuleButton).toBeTruthy()
+		expect(dialogCreateRuleButton?.attributes('disabled')).toBeUndefined()
+		await dialogCreateRuleButton?.trigger('click')
+		await Promise.resolve()
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+
+		const toolbarCreateRuleButtonAfterSave = wrapper.find('button.policy-workbench__crud-create-cta')
+		expect(toolbarCreateRuleButtonAfterSave.exists()).toBe(true)
+		expect(toolbarCreateRuleButtonAfterSave.attributes('disabled')).toBeUndefined()
+		await toolbarCreateRuleButtonAfterSave.trigger('click')
+		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
 	})
 
 	it('shows unified default summary in system default mode', async () => {
