@@ -132,6 +132,66 @@ defineEmits<{
 </script>
 
 <style scoped lang="scss">
+.policy-workbench__editor-panel {
+	padding: 0 !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+.policy-workbench__editor-panel-content {
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+}
+
+.policy-workbench__editor-header {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+
+	p {
+		margin: 0;
+	}
+}
+
+.policy-workbench__label {
+	font-size: 0.78rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--color-text-maxcontrast);
+}
+
+.policy-workbench__field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+}
+
+.policy-workbench__setting-surface {
+	padding: 0;
+	border: none;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.policy-workbench__editor-actions {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+
+	:deep(.button-vue) {
+		width: auto;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+}
+
 .policy-workbench__switch-copy {
 	display: flex;
 	flex-direction: column;
@@ -149,5 +209,11 @@ defineEmits<{
 	font-size: 0.82rem;
 	font-weight: 600;
 	color: var(--color-main-text);
+}
+
+@media (max-width: 640px) {
+	.policy-workbench__editor-actions {
+		justify-content: flex-start;
+	}
 }
 </style>
