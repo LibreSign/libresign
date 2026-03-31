@@ -1664,10 +1664,6 @@ onBeforeUnmount(() => {
 	&__editor-panel,
 	&__editor-mobile-hint,
 	&__editor-empty {
-		padding: 1.25rem;
-		border-radius: 18px;
-		border: 1px solid color-mix(in srgb, var(--color-primary-element) 8%, var(--color-border-maxcontrast));
-		background: color-mix(in srgb, var(--color-background-dark) 8%, var(--color-main-background));
 		display: flex;
 		flex-direction: column;
 		gap: 0.85rem;
@@ -2825,8 +2821,7 @@ onBeforeUnmount(() => {
 			position: static;
 		}
 
-		&__dialog-actions,
-		&__editor-actions {
+		&__dialog-actions {
 			:deep(.button-vue) {
 				width: 100%;
 				justify-content: center;
