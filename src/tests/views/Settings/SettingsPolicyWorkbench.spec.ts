@@ -100,7 +100,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		const text = createScopeDialog.text()
 		expect(text).toContain('User')
 		expect(text).toContain('Group')
-		expect(text).toContain('Instance')
+		expect(text).not.toContain('Instance')
 		expect(text).not.toContain('Where do you want to apply this rule?')
 
 		await findButtonContainingText(wrapper, 'User')?.trigger('click')
@@ -148,7 +148,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.text()).not.toContain('← Back')
 	})
 
-	it('allows opening create flow again after saving a first rule', async () => {
+	it('allows reopening create flow after canceling a draft', async () => {
 		const wrapper = mountWorkbench()
 
 		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
@@ -160,23 +160,15 @@ describe('RealPolicyWorkbench.vue', () => {
 		await toolbarCreateRuleButton.trigger('click')
 		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
 
-		await findButtonContainingText(wrapper, 'Instance')?.trigger('click')
+		await findButtonContainingText(wrapper, 'User')?.trigger('click')
 		expect(wrapper.find('.policy-workbench__editor-modal-body').exists()).toBe(true)
 
-		const flowRadioInputs = wrapper.findAll('.policy-workbench__editor-modal-body input[type="radio"]')
-		expect(flowRadioInputs.length).toBeGreaterThan(0)
-		await flowRadioInputs[0].trigger('change')
+		const dialogCancelButton = wrapper.findAll('.dialog-footer button').find((button) => button.text() === 'Cancel')
+		expect(dialogCancelButton).toBeTruthy()
+		await dialogCancelButton?.trigger('click')
 		await Promise.resolve()
 
-		const dialogCreateRuleButton = wrapper.findAll('.dialog-footer button').find((button) => button.text() === 'Create rule')
-		expect(dialogCreateRuleButton).toBeTruthy()
-		expect(dialogCreateRuleButton?.attributes('disabled')).toBeUndefined()
-		await dialogCreateRuleButton?.trigger('click')
-		await Promise.resolve()
-		await Promise.resolve()
-		await Promise.resolve()
-
-		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(false)
 
 		const toolbarCreateRuleButtonAfterSave = wrapper.find('button.policy-workbench__crud-create-cta')
 		expect(toolbarCreateRuleButtonAfterSave.exists()).toBe(true)
