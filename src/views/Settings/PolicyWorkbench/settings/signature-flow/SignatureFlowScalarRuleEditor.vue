@@ -50,7 +50,7 @@ const flows: Array<{ value: SignatureFlowMode | 'none', label: string, descripti
 	{
 		value: 'ordered_numeric',
 		label: t('libresign', 'Sequential'),
-		description: t('libresign', 'Signers are organized by signing order number. Only those with the lowest pending order number can sign.'),
+		description: t('libresign', 'Signers follow a defined order. Only the next signer can proceed.'),
 	},
 	{
 		value: 'none',
