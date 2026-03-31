@@ -103,9 +103,28 @@ interface UserDetailsRecord {
 interface UserDetailsResponse {
 	ocs?: {
 		data?: {
-			users?: Record<string, UserDetailsRecord>
+			users?: Record<string, UserDetailsRecord | Record<string, unknown> | string>
 		}
 	}
+}
+
+function isUserDetailsRecord(candidate: unknown): candidate is UserDetailsRecord {
+	if (!candidate || typeof candidate !== 'object') {
+		return false
+	}
+
+	const record = candidate as Record<string, unknown>
+	if (typeof record.id !== 'string' || record.id.length === 0) {
+		return false
+	}
+
+	// Defensive filtering: if backend response includes mixed entities,
+	// keep only user-like entries for the user rule target picker.
+	if ('usercount' in record || record.isNoUser === true) {
+		return false
+	}
+
+	return true
 }
 
 const realDefinitions = {
@@ -601,6 +620,7 @@ export function createRealPolicyWorkbenchState() {
 		})
 
 		return Object.values(data.ocs?.data?.users ?? {})
+			.filter(isUserDetailsRecord)
 			.map((user) => ({
 				id: user.id,
 				displayName: user['display-name'] || user.displayname || user.id,
