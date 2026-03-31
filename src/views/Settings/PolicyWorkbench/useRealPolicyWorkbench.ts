@@ -302,8 +302,18 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		const sourceScope = policy.sourceScope
-		if (sourceScope && sourceScope !== 'global') {
+		if (sourceScope === 'group' || sourceScope === 'user') {
 			return explicitSystemRule.value
+		}
+
+		if (sourceScope === 'system') {
+			return {
+				id: 'system-inherited-default',
+				scope: 'system',
+				targetId: null,
+				allowChildOverride: inferSystemAllowOverride(policy),
+				value: policy.effectiveValue,
+			}
 		}
 
 		explicitSystemRule.value = {
