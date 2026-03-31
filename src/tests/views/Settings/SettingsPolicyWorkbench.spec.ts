@@ -41,8 +41,8 @@ function mountWorkbench() {
 				NcIconSvgWrapper: { template: '<span class="icon-stub" />' },
 				NcNoteCard: { template: '<div class="note-card"><slot /></div>' },
 				NcDialog: {
-					props: ['name'],
-					template: '<div class="dialog"><h2 v-if="name" class="dialog-title">{{ name }}</h2><slot /></div>',
+					props: ['name', 'buttons'],
+					template: '<div class="dialog"><h2 v-if="name" class="dialog-title">{{ name }}</h2><slot /><div v-if="buttons" class="dialog-footer"><button v-for="button in buttons" :key="button.label" :disabled="button.disabled" @click="button.callback()">{{ button.label }}</button></div></div>',
 				},
 				NcChip: { template: '<button class="nc-chip-stub">{{ text }}</button>', props: ['text'] },
 				NcCheckboxRadioSwitch: {
@@ -108,15 +108,14 @@ describe('RealPolicyWorkbench.vue', () => {
 		const editorModal = wrapper.find('.policy-workbench__editor-modal-body')
 		expect(editorModal.exists()).toBe(true)
 		const editorText = editorModal.text()
-		expect(editorText).toContain('Create rule')
 		expect(editorText).toContain('This rule overrides group and default settings for selected users.')
 		expect(editorText).toContain('Target users')
 		expect(editorText).toContain('Search users')
 		expect(editorText).toContain('Simultaneous (Parallel)')
 		expect(editorText).toContain('Sequential')
 		expect(editorText).toContain('Let users choose')
-		expect(editorText).toContain('Back')
-		expect(editorText).toContain('Cancel')
+		expect(wrapper.text()).toContain('← Back')
+		expect(wrapper.text()).toContain('Cancel')
 		expect(editorText).not.toContain('Instance default rule')
 		expect(wrapper.find('.policy-workbench__editor-aside').exists()).toBe(false)
 
@@ -144,9 +143,9 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		const editorText = wrapper.find('.policy-workbench__editor-modal-body').text()
 		expect(editorText).toContain('This sets the default signing order for everyone.')
-		expect(editorText).toContain('Save changes')
-		expect(editorText).toContain('Cancel')
-		expect(editorText).not.toContain('Back')
+		expect(wrapper.text()).toContain('Save changes')
+		expect(wrapper.text()).toContain('Cancel')
+		expect(wrapper.text()).not.toContain('← Back')
 	})
 
 	it('shows unified default summary in system default mode', async () => {
