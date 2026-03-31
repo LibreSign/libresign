@@ -628,6 +628,10 @@ function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
 		return state.createUserOverrideDisabledReason || ''
 	}
 
+	if (state.inheritedSystemRule) {
+		return t('libresign', 'Instance default already exists. Use Change to update it.')
+	}
+
 	return ''
 }
 
@@ -672,6 +676,10 @@ const createScopeOptions = computed<Array<{
 	]
 
 	return options.filter((option) => {
+		if (option.scope === 'system') {
+			return !option.disabled
+		}
+
 		if (option.scope !== 'user') {
 			return true
 		}
