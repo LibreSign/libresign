@@ -234,7 +234,8 @@ describe('useRealPolicyWorkbench', () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
 
-		expect(state.inheritedSystemRule).toBeNull()
+		expect(state.inheritedSystemRule).not.toBeNull()
+		expect(state.summary?.baseSource).toBe('System default')
 
 		state.startEditor({ scope: 'system' })
 		state.updateDraftValue('ordered_numeric' as never)
@@ -445,13 +446,15 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.editorMode).toBeNull()
 	})
 
-	it('does not render a system default rule when effective value is baseline none', () => {
+	it('keeps a visible instance row for system-sourced baseline values', () => {
 		getPolicy.mockReturnValue({ effectiveValue: 'none', sourceScope: 'system' })
 
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
 
-		expect(state.inheritedSystemRule).toBeNull()
+		expect(state.inheritedSystemRule).not.toBeNull()
+		expect(state.inheritedSystemRule?.value).toBe('none')
+		expect(state.hasGlobalDefault).toBe(false)
 	})
 
 	it('treats none with empty allowedValues as explicit global "let users choose" rule', () => {
