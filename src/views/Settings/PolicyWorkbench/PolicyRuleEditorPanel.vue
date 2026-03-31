@@ -7,10 +7,6 @@
 	<section class="policy-workbench__editor-panel">
 		<div class="policy-workbench__editor-panel-content" :class="{ 'policy-workbench__editor-panel-content--saving': saveStatus === 'saving' }">
 			<div class="policy-workbench__editor-header">
-				<p class="policy-workbench__eyebrow">
-					{{ editorMode === 'edit' ? t('libresign', 'Edit rule') : t('libresign', 'Create rule') }}
-				</p>
-				<h3>{{ editorTitle }}</h3>
 				<p>{{ editorHelp }}</p>
 				<p class="policy-workbench__precedence-hint">{{ t('libresign', 'Priority: User overrides Group, which overrides Default') }}</p>
 			</div>
@@ -58,6 +54,9 @@
 			</NcNoteCard>
 
 			<div class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
+				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="t('libresign', 'Go back to rule type selection')" :disabled="saveStatus === 'saving'" @click="$emit('back')">
+					{{ t('libresign', '← Back') }}
+				</NcButton>
 				<NcButton variant="primary" :aria-label="editorMode === 'edit' ? t('libresign', 'Save policy rule changes') : t('libresign', 'Create policy rule')" :disabled="!canSaveDraft || saveStatus === 'saving'" @click="$emit('save')">
 					{{ editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
 				</NcButton>
@@ -113,9 +112,11 @@ withDefaults(defineProps<{
 	canSaveDraft: boolean
 	saveStatus: 'idle' | 'saving' | 'saved'
 	stickyActions?: boolean
+	showBackButton?: boolean
 	showAllowOverrideSwitch?: boolean
 }>(), {
 	stickyActions: false,
+	showBackButton: false,
 	showAllowOverrideSwitch: true,
 })
 
@@ -124,6 +125,7 @@ defineEmits<{
 	(e: 'update-targets', value: { id: string } | Array<{ id: string }> | null): void
 	(e: 'update-value', value: EffectivePolicyValue): void
 	(e: 'update-allow-override', value: boolean): void
+	(e: 'back'): void
 	(e: 'save'): void
 	(e: 'cancel'): void
 }>()
