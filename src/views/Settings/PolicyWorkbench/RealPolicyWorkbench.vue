@@ -311,7 +311,8 @@
 				v-if="showCreateScopeDialog || state.editorDraft"
 				:name="ruleDialogTitle"
 				size="normal"
-			:can-close="true"
+				:buttons="ruleDialogButtons"
+				:can-close="true"
 				@closing="requestCloseRuleDialog()">
 				<div v-if="state.editorDraft" class="policy-workbench__editor-modal-body">
 				<PolicyRuleEditorPanel
@@ -327,6 +328,7 @@
 					:duplicate-message="state.duplicateMessage"
 					:can-save-draft="state.canSaveDraft"
 					:save-status="saveStatus"
+					:show-inline-actions="false"
 					:show-back-button="showCreateRuleBackAction"
 					:show-allow-override-switch="state.activeDefinition?.key !== 'signature_flow'"
 					@search-targets="state.searchAvailableTargets"
@@ -703,6 +705,46 @@ const pendingRemovalMessage = computed(() => {
 		target: pendingRemoval.value.targetLabel,
 		help: pendingRemoval.value.help,
 	})
+})
+
+const ruleDialogButtons = computed(() => {
+	if (!state.editorDraft) {
+		return undefined
+	}
+
+	const buttons: Array<{
+		label: string,
+		variant: 'primary' | 'secondary' | 'tertiary',
+		disabled?: boolean,
+		callback: () => void,
+	}> = []
+
+	if (showCreateRuleBackAction.value) {
+		buttons.push({
+			label: t('libresign', '← Back'),
+			variant: 'tertiary',
+			disabled: saveStatus.value === 'saving',
+			callback: () => requestBackToCreateScope(),
+		})
+	}
+
+	buttons.push({
+		label: state.editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule'),
+		variant: 'primary',
+		disabled: !state.canSaveDraft || saveStatus.value === 'saving',
+		callback: () => {
+			void handleSaveDraft()
+		},
+	})
+
+	buttons.push({
+		label: t('libresign', 'Cancel'),
+		variant: 'secondary',
+		disabled: saveStatus.value === 'saving',
+		callback: () => requestCloseRuleDialog(),
+	})
+
+	return buttons
 })
 
 const discardDialogButtons = computed(() => {
