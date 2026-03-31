@@ -51,7 +51,7 @@ function mountWorkbench() {
 				},
 				NcSelectUsers: {
 					props: ['placeholder', 'ariaLabel'],
-					template: '<div class="nc-select-users-stub"><label>{{ ariaLabel }}</label><span>{{ placeholder }}</span></div>',
+					template: '<div class="nc-select-users-stub"><label>{{ ariaLabel }}</label><span>{{ placeholder }}</span><button type="button" class="nc-select-users-stub__select" @click="$emit(\'update:modelValue\', [{ id: \'user-1\' }])">Select target</button></div>',
 				},
 				NcActions: {
 					props: ['open', 'ariaLabel'],
