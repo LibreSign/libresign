@@ -1064,6 +1064,14 @@ async function handleSaveDraft() {
 	saveStatus.value = 'saving'
 	await nextTick()
 	await state.saveDraft()
+
+	// When save succeeds, the editor draft is cleared by state.saveDraft().
+	// Ensure the scope chooser does not remain visible behind the saved flow.
+	if (!state.editorDraft) {
+		showCreateScopeDialog.value = false
+		selectedCreateScope.value = null
+	}
+
 	saveStatus.value = 'saved'
 
 	if (saveFeedbackTimeout.value !== null) {
