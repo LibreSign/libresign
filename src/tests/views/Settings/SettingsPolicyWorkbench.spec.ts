@@ -40,10 +40,19 @@ function mountWorkbench() {
 				NcButton: { template: '<button v-bind="$attrs" @click="$emit(\'click\', $event)"><slot /></button>' },
 				NcIconSvgWrapper: { template: '<span class="icon-stub" />' },
 				NcNoteCard: { template: '<div class="note-card"><slot /></div>' },
-				NcDialog: { template: '<div class="dialog"><slot /></div>' },
+				NcDialog: {
+					props: ['name'],
+					template: '<div class="dialog"><h2 v-if="name" class="dialog-title">{{ name }}</h2><slot /></div>',
+				},
 				NcChip: { template: '<button class="nc-chip-stub">{{ text }}</button>', props: ['text'] },
-				NcCheckboxRadioSwitch: { template: '<input type="checkbox" @change="$emit(\'update:modelValue\', $event.target.checked)" />' },
-				NcSelectUsers: { template: '<div class="nc-select-users-stub" />' },
+				NcCheckboxRadioSwitch: {
+					props: ['modelValue', 'type', 'name'],
+					template: "<label class=\"nc-checkbox-radio-switch-stub\"><input :checked=\"modelValue\" :type=\"type === 'radio' ? 'radio' : 'checkbox'\" :name=\"name\" @change=\"$emit('update:modelValue', $event.target.checked)\" /><span><slot /></span></label>",
+				},
+				NcSelectUsers: {
+					props: ['placeholder', 'ariaLabel'],
+					template: '<div class="nc-select-users-stub"><label>{{ ariaLabel }}</label><span>{{ placeholder }}</span></div>',
+				},
 				NcActions: {
 					props: ['open', 'ariaLabel'],
 					emits: ['update:open'],
@@ -53,6 +62,14 @@ function mountWorkbench() {
 			},
 		},
 	})
+}
+
+function findButtonByText(wrapper: ReturnType<typeof mountWorkbench>, text: string) {
+	return wrapper.findAll('button').find((button) => button.text() === text)
+}
+
+function findButtonContainingText(wrapper: ReturnType<typeof mountWorkbench>, text: string) {
+	return wrapper.findAll('button').find((button) => button.text().includes(text))
 }
 
 describe('RealPolicyWorkbench.vue', () => {
@@ -67,30 +84,69 @@ describe('RealPolicyWorkbench.vue', () => {
 		})
 	})
 
-	it('asks what scope to create when clicking create rule', async () => {
+	it('keeps rule creation inside a modal multi-step flow', async () => {
 		const wrapper = mountWorkbench()
 
 		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
-		await wrapper.findAll('button').find((button) => button.text() === 'Create rule')?.trigger('click')
+		await findButtonByText(wrapper, 'Create rule')?.trigger('click')
+
+		expect(wrapper.findAll('.dialog-title').some((title) => title.text() === 'What do you want to create?')).toBe(true)
 
 		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
 		expect(createScopeDialog.exists()).toBe(true)
 
 		const text = createScopeDialog.text()
-		expect(text).toContain('Where do you want to apply this rule?')
-		expect(text).toContain('Affects all users in a group')
-		expect(text).toContain('Affects a specific user')
-		expect(text).toContain('Group')
 		expect(text).toContain('User')
-		expect(text).not.toContain('InstanceAffects all users')
+		expect(text).toContain('Group')
+		expect(text).toContain('Instance')
+		expect(text).not.toContain('Where do you want to apply this rule?')
 
-		const userIndex = text.indexOf('UserAffects a specific user')
-		const groupIndex = text.indexOf('GroupAffects all users in a group')
-		expect(userIndex).toBeGreaterThan(-1)
-		expect(groupIndex).toBeGreaterThan(-1)
-		expect(userIndex).toBeLessThan(groupIndex)
+		await findButtonContainingText(wrapper, 'User')?.trigger('click')
+
+		const editorModal = wrapper.find('.policy-workbench__editor-modal-body')
+		expect(editorModal.exists()).toBe(true)
+		const editorText = editorModal.text()
+		expect(editorText).toContain('Create rule')
+		expect(editorText).toContain('This rule overrides group and default settings for selected users.')
+		expect(editorText).toContain('Target users')
+		expect(editorText).toContain('Search users')
+		expect(editorText).toContain('Simultaneous (Parallel)')
+		expect(editorText).toContain('Sequential')
+		expect(editorText).toContain('Let users choose')
+		expect(editorText).toContain('Back')
+		expect(editorText).toContain('Cancel')
+		expect(editorText).not.toContain('Instance default rule')
+		expect(wrapper.find('.policy-workbench__editor-aside').exists()).toBe(false)
+
+		await findButtonContainingText(wrapper, 'Back')?.trigger('click')
+		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+	})
+
+	it('opens the editor directly in edit mode without the type selection step', async () => {
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		const actionsTrigger = wrapper.find('button[aria-label="Rule actions"]')
+		expect(actionsTrigger.exists()).toBe(true)
+		await actionsTrigger.trigger('click')
+
+		const editButton = wrapper.findAll('.nc-actions-stub__menu button').find((button) => button.text() === 'Edit')
+		expect(editButton).toBeTruthy()
+		await editButton?.trigger('click')
+
+		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(false)
+		expect(wrapper.find('.policy-workbench__editor-aside').exists()).toBe(false)
+
+		const editorText = wrapper.find('.policy-workbench__editor-modal-body').text()
+		expect(editorText).toContain('This sets the default signing order for everyone.')
+		expect(editorText).toContain('Save changes')
+		expect(editorText).toContain('Cancel')
+		expect(editorText).not.toContain('Back')
 	})
 
 	it('shows unified default summary in system default mode', async () => {
@@ -186,7 +242,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		await editButton?.trigger('click')
 
 		expect(wrapper.find('.nc-actions-stub__menu').exists()).toBe(false)
-		expect(wrapper.text()).toContain('Instance default rule')
+		expect(wrapper.text()).toContain('Edit rule')
 	})
 
 })
