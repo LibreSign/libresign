@@ -230,6 +230,7 @@ OC.L10N.register(
     "Yes" : "Taip",
     "No" : "Ne",
     "Reset to default" : "Atstatyti į numatytąjį",
+    "Background image" : "Fono paveikslėlis",
     "Upload new background image" : "Įkelti naują fono paveikslėlį",
     "Remove background" : "Šalinti foną",
     "Learn more" : "Sužinoti daugiau",
