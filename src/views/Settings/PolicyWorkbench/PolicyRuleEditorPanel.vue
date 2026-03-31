@@ -53,7 +53,7 @@
 				{{ duplicateMessage }}
 			</NcNoteCard>
 
-			<div class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
+			<div v-if="showInlineActions" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
 				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="t('libresign', 'Go back to rule type selection')" :disabled="saveStatus === 'saving'" @click="$emit('back')">
 					{{ t('libresign', '← Back') }}
 				</NcButton>
@@ -111,10 +111,12 @@ withDefaults(defineProps<{
 	duplicateMessage: string | null
 	canSaveDraft: boolean
 	saveStatus: 'idle' | 'saving' | 'saved'
+	showInlineActions?: boolean
 	stickyActions?: boolean
 	showBackButton?: boolean
 	showAllowOverrideSwitch?: boolean
 }>(), {
+	showInlineActions: true,
 	stickyActions: false,
 	showBackButton: false,
 	showAllowOverrideSwitch: true,
