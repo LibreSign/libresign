@@ -13,7 +13,6 @@ test.describe.configure({ mode: 'serial', retries: 0, timeout: 45000 })
 const openPolicyButtonName = /Manage this setting|Open policy|Open setting policy/i
 const changeDefaultButtonName = /^Change$/i
 const removeExceptionButtonName = /Remove exception|Remove rule/i
-const groupRuleTargetLabel = 'admin'
 const userRuleTargetLabel = 'policy-e2e-user'
 const instanceWideTargetLabel = 'Default (instance-wide)'
 const ruleDialogName = /Create rule|Edit rule|What do you want to create\?/i
@@ -118,6 +117,17 @@ function getRuleRow(dialog: Locator, _scope: 'Instance' | 'Group' | 'User', targ
 async function openSystemDefaultEditor(dialog: Locator) {
 	await dialog.getByRole('button', { name: changeDefaultButtonName }).first().click()
 	await getActiveRuleDialog(dialog.page())
+}
+
+async function getCreateScopeDialog(page: Page): Promise<Locator> {
+	const dialog = await getActiveRuleDialog(page)
+	await expect(dialog.getByRole('heading', { name: /What do you want to create\?/i })).toBeVisible()
+	return dialog
+}
+
+async function getCreateScopeOption(page: Page, scopeLabel: 'User' | 'Group' | 'Instance') {
+	const dialog = await getCreateScopeDialog(page)
+	return dialog.getByRole('option', { name: new RegExp(`^${scopeLabel}\\b`, 'i') }).first()
 }
 
 async function openRuleActions(dialog: Locator, scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
@@ -250,7 +260,11 @@ async function clearExistingRules(dialog: Locator) {
 				break
 			}
 
-			await firstAction.click({ timeout: 1500 })
+			const clickedAction = await firstAction.click({ timeout: 1500 }).then(() => true).catch(() => false)
+			if (!clickedAction) {
+				await page.waitForTimeout(150)
+				continue
+			}
 			const hasRemoveAction = await clickRuleMenuAction(dialog, 'Remove')
 			if (!hasRemoveAction) {
 				break
@@ -324,7 +338,7 @@ test('system default persists across edit cycles and can be reset to the system 
 	await expect(reloadedDialog.getByText(/Default:\s*Let users choose/i)).toBeVisible()
 })
 
-test('admin can create, edit, and delete global, group, and user rules from the policy workbench', async ({ page }) => {
+test('admin can manage instance and user rules while signature-flow group rules stay blocked', async ({ page }) => {
 	const userTarget = userRuleTargetLabel
 
 	await ensureUserExists(page.request, userTarget)
@@ -351,48 +365,37 @@ test('admin can create, edit, and delete global, group, and user rules from the 
 	await submitSystemRuleAndWait(stableDialog)
 	await expect(getRuleRow(stableDialog, 'Instance', instanceWideTargetLabel)).toContainText('Sequential')
 
-	// Group rule: create
+	// Signature-flow group rules are intentionally blocked once the instance rule is fixed.
 	await stableDialog.getByRole('button', { name: 'Create rule' }).first().click()
-	await stableDialog.page().getByText(/^Group$/i).first().click()
-	await chooseTarget(stableDialog, 'Target groups', 'admin')
-	expect(await setSigningFlow(stableDialog, 'ordered_numeric'), 'Expected signing-flow radios in group editor').toBe(true)
-	await submitRule(stableDialog)
-	await expect(getRuleRow(stableDialog, 'Group', groupRuleTargetLabel)).toContainText('Sequential')
-
-	// Group rule: edit
-	await editRule(stableDialog, 'Group', groupRuleTargetLabel)
-	expect(await setSigningFlow(stableDialog, 'parallel'), 'Expected signing-flow radios in group editor').toBe(true)
-	await submitRule(stableDialog)
-	await expect(getRuleRow(stableDialog, 'Group', groupRuleTargetLabel)).toContainText('Simultaneous (Parallel)')
+	const groupScopeOption = await getCreateScopeOption(stableDialog.page(), 'Group')
+	await expect(groupScopeOption).toBeDisabled()
+	const createScopeDialog = await getCreateScopeDialog(stableDialog.page())
+	await expect(createScopeDialog.getByText(/^Group:\s+Blocked by the global default\.$/i)).toBeVisible()
 
 	// User rule: create
-	await stableDialog.getByRole('button', { name: 'Create rule' }).first().click()
-	await stableDialog.page().getByText(/^User$/i).first().click()
+	const userScopeOption = await getCreateScopeOption(stableDialog.page(), 'User')
+	await expect(userScopeOption).toBeEnabled()
+	await userScopeOption.click()
 	await chooseTarget(stableDialog, 'Target users', userTarget)
-	expect(await setSigningFlow(stableDialog, 'ordered_numeric'), 'Expected signing-flow radios in user editor').toBe(true)
-	await submitRule(stableDialog)
-	await expect(getRuleRow(stableDialog, 'User', userTarget)).toContainText('Sequential')
-
-	// User rule: edit
-	await editRule(stableDialog, 'User', userTarget)
 	expect(await setSigningFlow(stableDialog, 'parallel'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(stableDialog)
 	await expect(getRuleRow(stableDialog, 'User', userTarget)).toContainText('Simultaneous (Parallel)')
+
+	// User rule: edit
+	await editRule(stableDialog, 'User', userTarget)
+	expect(await setSigningFlow(stableDialog, 'ordered_numeric'), 'Expected signing-flow radios in user editor').toBe(true)
+	await submitRule(stableDialog)
+	await expect(getRuleRow(stableDialog, 'User', userTarget)).toContainText('Sequential')
 
 	await page.reload()
 	await openSigningOrderDialog(page)
 	const reloadedDialog = await getSigningOrderDialog(page)
 	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toContainText('Sequential')
-	await expect(getRuleRow(reloadedDialog, 'Group', groupRuleTargetLabel)).toContainText('Simultaneous (Parallel)')
-	await expect(getRuleRow(reloadedDialog, 'User', userTarget)).toContainText('Simultaneous (Parallel)')
+	await expect(getRuleRow(reloadedDialog, 'User', userTarget)).toContainText('Sequential')
 
 	// User rule: delete
 	await removeRule(reloadedDialog, 'User', userTarget)
 	await expect(getRuleRow(reloadedDialog, 'User', userTarget)).toHaveCount(0)
-
-	// Group rule: delete
-	await removeRule(reloadedDialog, 'Group', groupRuleTargetLabel)
-	await expect(getRuleRow(reloadedDialog, 'Group', groupRuleTargetLabel)).toHaveCount(0)
 
 	// Global rule: reset to explicit "let users choose" baseline
 	await resetSystemRuleToBaseline(reloadedDialog)
