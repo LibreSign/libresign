@@ -446,18 +446,10 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
-	public function testSetUserPolicyForTargetUserReturnsSavedResolvedPolicy(): void {
-		$resolvedPolicy = (new ResolvedPolicy())
-			->setPolicyKey('signature_flow')
-			->setEffectiveValue('ordered_numeric')
-			->setSourceScope('user')
-			->setVisible(true)
-			->setEditableByCurrentActor(true)
-			->setAllowedValues(['none', 'parallel', 'ordered_numeric'])
-			->setCanSaveAsUserDefault(true)
-			->setCanUseAsRequestOverride(true)
-			->setPreferenceWasCleared(false)
-			->setBlockedBy(null);
+	public function testSetUserPolicyForTargetUserReturnsSavedExplicitPolicy(): void {
+		$persistedPolicy = (new PolicyLayer())
+			->setScope('user')
+			->setValue('ordered_numeric');
 
 		$this->l10n
 			->expects($this->once())
@@ -469,13 +461,35 @@ final class PolicyControllerTest extends TestCase {
 			->expects($this->once())
 			->method('saveUserPreferenceForUserId')
 			->with('signature_flow', 'user1', 'ordered_numeric')
-			->willReturn($resolvedPolicy);
+			->willReturn($persistedPolicy);
 
 		$response = $this->controller->setUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('user', $response->getData()['policy']['sourceScope']);
-		$this->assertSame('ordered_numeric', $response->getData()['policy']['effectiveValue']);
+		$this->assertSame('user', $response->getData()['policy']['scope']);
+		$this->assertSame('user1', $response->getData()['policy']['targetId']);
+		$this->assertSame('ordered_numeric', $response->getData()['policy']['value']);
+	}
+
+	public function testClearUserPolicyForTargetUserReturnsClearedExplicitPolicy(): void {
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('clearUserPreferenceForUserId')
+			->with('signature_flow', 'user1')
+			->willReturn(null);
+
+		$response = $this->controller->clearUserPolicyForUser('user1', 'signature_flow');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('user', $response->getData()['policy']['scope']);
+		$this->assertSame('user1', $response->getData()['policy']['targetId']);
+		$this->assertNull($response->getData()['policy']['value']);
 	}
 
 	public function testSetUserPolicyForTargetUserReturnsBadRequestWhenServiceBlocksSave(): void {
