@@ -193,6 +193,14 @@ function normalizeDraftValueForPolicy(policyKey: string, value: EffectivePolicyV
 	return mode ?? 'parallel'
 }
 
+function normalizeAllowChildOverrideForPolicy(policyKey: string, scope: PolicyScope, allowChildOverride: boolean): boolean {
+	if (policyKey === 'signature_flow' && (scope === 'system' || scope === 'group')) {
+		return false
+	}
+
+	return allowChildOverride
+}
+
 function inferSystemAllowOverride(policy: { allowedValues?: unknown[] } | null): boolean {
 	if (!policy || !Array.isArray(policy.allowedValues)) {
 		return true
@@ -256,19 +264,20 @@ export function createRealPolicyWorkbenchState() {
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
 	const loadingTargets = ref(false)
-	const hydrateGroupRulesRequestId = ref(0)
+	const hydratePersistedRulesRequestId = ref(0)
 	const editorInitialSnapshot = ref('')
 
 	const visibleSettingSummaries = computed<PolicySettingSummary[]>(() => {
 		return Object.values(realDefinitions).map((definition) => {
 			const policy = policiesStore.getPolicy(definition.key)
+			const hasEffectiveValue = policy?.effectiveValue !== null && policy?.effectiveValue !== undefined
 
 			return {
 				key: definition.key,
 				title: definition.title,
 				description: definition.description,
 				menuHint: definition.menuHint,
-				defaultSummary: policy?.effectiveValue ? definition.summarizeValue(policy.effectiveValue) : t('libresign', 'Not configured'),
+				defaultSummary: hasEffectiveValue ? definition.summarizeValue(policy.effectiveValue) : t('libresign', 'Not configured'),
 				groupCount: groupRules.value.length,
 				userCount: userRules.value.length,
 			}
@@ -297,7 +306,7 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		const policy = activePolicyState.value
-		if (!policy?.effectiveValue) {
+		if (!policy || policy.effectiveValue === null || policy.effectiveValue === undefined) {
 			return explicitSystemRule.value
 		}
 
@@ -543,42 +552,90 @@ export function createRealPolicyWorkbenchState() {
 			&& !hasGlobalDefault.value
 	})
 
-	async function hydratePersistedGroupRules(policyKey: string) {
-		const currentRequestId = hydrateGroupRulesRequestId.value + 1
-		hydrateGroupRulesRequestId.value = currentRequestId
+	async function hydratePersistedRules(policyKey: string) {
+		const currentRequestId = hydratePersistedRulesRequestId.value + 1
+		hydratePersistedRulesRequestId.value = currentRequestId
 
-		await loadTargets('group')
+		await Promise.all([
+			loadTargets('group', '', true),
+			loadTargets('user', '', true),
+		])
 
-		const hydratedRules: PolicyRuleRecord[] = []
-		for (const group of groups.value) {
-			try {
-				const persistedPolicy = await policiesStore.fetchGroupPolicy(group.id, policyKey)
-				if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
-					continue
-				}
-
-				hydratedRules.push({
-					id: `group-${group.id}-persisted`,
-					scope: 'group',
-					targetId: group.id,
-					allowChildOverride: persistedPolicy.allowChildOverride,
-					value: persistedPolicy.value,
-				})
-			} catch (error) {
-				logger.debug('Could not load persisted group policy for target', {
+		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies] = await Promise.all([
+			policiesStore.fetchSystemPolicy(policyKey).catch((error) => {
+				logger.debug('Could not load explicit system policy for workbench', {
 					error,
 					policyKey,
-					groupId: group.id,
 				})
-			}
-		}
+				return null
+			}),
+			Promise.all(groups.value.map(async (group) => {
+				try {
+					const persistedPolicy = await policiesStore.fetchGroupPolicy(group.id, policyKey)
+					if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
+						return null
+					}
 
-		if (currentRequestId !== hydrateGroupRulesRequestId.value || activeSettingKey.value !== policyKey) {
+					return {
+						id: `group-${group.id}-persisted`,
+						scope: 'group' as const,
+						targetId: group.id,
+						allowChildOverride: persistedPolicy.allowChildOverride,
+						value: persistedPolicy.value,
+					}
+				} catch (error) {
+					logger.debug('Could not load persisted group policy for target', {
+						error,
+						policyKey,
+						groupId: group.id,
+					})
+					return null
+				}
+			})),
+			Promise.all(users.value.map(async (user) => {
+				try {
+					const persistedPolicy = await policiesStore.fetchUserPolicyForUser(user.id, policyKey)
+					if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
+						return null
+					}
+
+					return {
+						id: `user-${user.id}-persisted`,
+						scope: 'user' as const,
+						targetId: user.id,
+						allowChildOverride: true,
+						value: persistedPolicy.value,
+					}
+				} catch (error) {
+					logger.debug('Could not load persisted user policy for target', {
+						error,
+						policyKey,
+						userId: user.id,
+					})
+					return null
+				}
+			})),
+		])
+
+		if (currentRequestId !== hydratePersistedRulesRequestId.value || activeSettingKey.value !== policyKey) {
 			return
 		}
 
-		groupRules.value = hydratedRules
-		nextRuleNumber.value = hydratedRules.length + 1
+		const hasPersistedRule = <TRule>(rule: TRule | null): rule is TRule => rule !== null
+
+		explicitSystemRule.value = persistedSystemPolicy?.scope === 'global' && persistedSystemPolicy.value !== null && persistedSystemPolicy.value !== undefined
+			? {
+				id: 'system-default',
+				scope: 'system',
+				targetId: null,
+				allowChildOverride: persistedSystemPolicy.allowChildOverride,
+				value: persistedSystemPolicy.value,
+			}
+			: null
+
+		groupRules.value = persistedGroupPolicies.filter(hasPersistedRule)
+		userRules.value = persistedUserPolicies.filter(hasPersistedRule)
+		nextRuleNumber.value = groupRules.value.length + userRules.value.length + 1
 	}
 
 	function openSetting(key: string) {
@@ -586,7 +643,7 @@ export function createRealPolicyWorkbenchState() {
 		explicitSystemRule.value = null
 		groupRules.value = []
 		userRules.value = []
-		void hydratePersistedGroupRules(key)
+		void hydratePersistedRules(key)
 	}
 
 	function mergeSelectedTargets(scope: 'group' | 'user', fetchedTargets: PolicyTargetOption[]) {
@@ -599,12 +656,12 @@ export function createRealPolicyWorkbenchState() {
 		return [...selectedTargets, ...fetchedTargets]
 	}
 
-	async function fetchGroups(query = ''): Promise<PolicyTargetOption[]> {
+	async function fetchGroups(query = '', limit = 20, offset = 0): Promise<PolicyTargetOption[]> {
 		const { data } = await axios.get<GroupDetailsResponse>(generateOcsUrl('cloud/groups/details'), {
 			params: {
 				search: query,
-				limit: 20,
-				offset: 0,
+				limit,
+				offset,
 			},
 		})
 
@@ -620,12 +677,12 @@ export function createRealPolicyWorkbenchState() {
 			.sort((left, right) => left.displayName.localeCompare(right.displayName))
 	}
 
-	async function fetchUsers(query = ''): Promise<PolicyTargetOption[]> {
+	async function fetchUsers(query = '', limit = 20, offset = 0): Promise<PolicyTargetOption[]> {
 		const { data } = await axios.get<UserDetailsResponse>(generateOcsUrl('cloud/users/details'), {
 			params: {
 				search: query,
-				limit: 20,
-				offset: 0,
+				limit,
+				offset,
 			},
 		})
 
@@ -640,15 +697,51 @@ export function createRealPolicyWorkbenchState() {
 			.sort((left, right) => left.displayName.localeCompare(right.displayName))
 	}
 
-	async function loadTargets(scope: 'group' | 'user', query = '') {
+	async function fetchAllTargets(scope: 'group' | 'user'): Promise<PolicyTargetOption[]> {
+		const pageSize = 20
+		let offset = 0
+		const aggregatedTargets: PolicyTargetOption[] = []
+		const seenTargetIds = new Set<string>()
+
+		for (let page = 0; page < 100; page += 1) {
+			const pageTargets = scope === 'group'
+				? await fetchGroups('', pageSize, offset)
+				: await fetchUsers('', pageSize, offset)
+
+			for (const target of pageTargets) {
+				if (seenTargetIds.has(target.id)) {
+					continue
+				}
+
+				seenTargetIds.add(target.id)
+				aggregatedTargets.push(target)
+			}
+
+			if (pageTargets.length < pageSize) {
+				break
+			}
+
+			offset += pageSize
+		}
+
+		return aggregatedTargets.sort((left, right) => left.displayName.localeCompare(right.displayName))
+	}
+
+	async function loadTargets(scope: 'group' | 'user', query = '', includeAll = false) {
 		loadingTargets.value = true
 		try {
 			if (scope === 'group') {
-				groups.value = mergeSelectedTargets('group', await fetchGroups(query))
+				const fetchedGroups = includeAll && query === ''
+					? await fetchAllTargets('group')
+					: await fetchGroups(query)
+				groups.value = mergeSelectedTargets('group', fetchedGroups)
 				return
 			}
 
-			users.value = mergeSelectedTargets('user', await fetchUsers(query))
+			const fetchedUsers = includeAll && query === ''
+				? await fetchAllTargets('user')
+				: await fetchUsers(query)
+			users.value = mergeSelectedTargets('user', fetchedUsers)
 		} catch (error) {
 			logger.debug('Could not load policy workbench targets', {
 				error,
@@ -713,7 +806,7 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		// Cancel any in-flight hydration result to avoid stale overwrite while editing.
-		hydrateGroupRulesRequestId.value += 1
+		hydratePersistedRulesRequestId.value += 1
 
 		const isEdit = !!ruleId
 		editorMode.value = isEdit ? 'edit' : 'create'
@@ -721,13 +814,13 @@ export function createRealPolicyWorkbenchState() {
 
 		let value: EffectivePolicyValue = activeDefinition.value.createEmptyValue()
 		let targetIds: string[] = []
-		let allowChildOverride = true
+		let allowChildOverride = normalizeAllowChildOverrideForPolicy(activeDefinition.value.key, scope, true)
 
 		if (isEdit && ruleId) {
 			const rule = findRuleById(scope, ruleId)
 			if (rule) {
 				value = normalizeDraftValueForPolicy(activeDefinition.value.key, rule.value)
-				allowChildOverride = rule.allowChildOverride
+				allowChildOverride = normalizeAllowChildOverrideForPolicy(activeDefinition.value.key, scope, rule.allowChildOverride)
 				targetIds = rule.targetId ? [rule.targetId] : []
 			}
 		} else if (scope === 'system') {
@@ -782,7 +875,11 @@ export function createRealPolicyWorkbenchState() {
 
 	function updateDraftAllowOverride(allowChildOverride: boolean) {
 		if (editorDraft.value) {
-			editorDraft.value.allowChildOverride = allowChildOverride
+			editorDraft.value.allowChildOverride = normalizeAllowChildOverrideForPolicy(
+				activeDefinition.value?.key ?? '',
+				editorDraft.value.scope,
+				allowChildOverride,
+			)
 		}
 	}
 
@@ -814,12 +911,16 @@ export function createRealPolicyWorkbenchState() {
 			return
 		}
 
-		const { scope, value, allowChildOverride, targetIds } = editorDraft.value
+		const { scope, value, targetIds } = editorDraft.value
 		const policyKey = activeDefinition.value.key
+		const allowChildOverride = normalizeAllowChildOverrideForPolicy(policyKey, scope, editorDraft.value.allowChildOverride)
 
 		try {
 			if (scope === 'system') {
 				await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
+				if (viewMode.value === 'system-admin') {
+					await policiesStore.clearUserPreference(policyKey)
+				}
 				explicitSystemRule.value = {
 					id: 'system-default',
 					scope: 'system',
