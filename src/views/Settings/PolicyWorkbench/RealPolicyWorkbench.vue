@@ -181,7 +181,7 @@
 							variant="tertiary"
 							size="small"
 							class="policy-workbench__default-inline-action"
-							@click="state.startEditor({ scope: 'system' })">
+							@click="openRuleEditor('system')">
 							{{ t('libresign', 'Change') }}
 						</NcButton>
 					</div>
@@ -896,12 +896,29 @@ function selectCreateScope(scope: 'system' | 'group' | 'user') {
 	startCreateRuleForScope(scope)
 }
 
+function shouldLockSignatureFlowOverride(scope: 'system' | 'group' | 'user') {
+	return state.activeDefinition?.key === 'signature_flow' && scope !== 'user'
+}
+
+function normalizeEditorDraftSignatureFlowOverride() {
+	if (!state.editorDraft || !shouldLockSignatureFlowOverride(state.editorDraft.scope)) {
+		return
+	}
+
+	state.editorDraft.allowChildOverride = false
+}
+
+function openRuleEditor(scope: 'system' | 'group' | 'user', ruleId?: string) {
+	state.startEditor(ruleId ? { scope, ruleId } : { scope })
+	normalizeEditorDraftSignatureFlowOverride()
+}
+
 function startCreateRuleForScope(scope: 'system' | 'group' | 'user') {
 	if (scopeCreateDisabledReason(scope).length > 0) {
 		return
 	}
 
-	state.startEditor({ scope })
+	openRuleEditor(scope)
 }
 
 function requestBackToCreateScope() {
@@ -1062,6 +1079,7 @@ async function handleSaveDraft() {
 		return
 	}
 
+	normalizeEditorDraftSignatureFlowOverride()
 	saveStatus.value = 'saving'
 	await nextTick()
 	await state.saveDraft()
@@ -1109,7 +1127,7 @@ function closeOpenActionsMenu() {
 
 function handleEditRule(scope: 'system' | 'group' | 'user', ruleId: string) {
 	closeOpenActionsMenu()
-	state.startEditor({ scope, ruleId })
+	openRuleEditor(scope, ruleId)
 }
 
 function handlePromptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string) {
