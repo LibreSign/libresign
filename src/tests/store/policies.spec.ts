@@ -310,15 +310,9 @@ describe('policies store', () => {
 					data: {
 						policy: {
 							policyKey: 'signature_flow',
-							effectiveValue: 'ordered_numeric',
-							allowedValues: ['none', 'parallel', 'ordered_numeric'],
-							sourceScope: 'user',
-							visible: true,
-							editableByCurrentActor: true,
-							canSaveAsUserDefault: true,
-							canUseAsRequestOverride: true,
-							preferenceWasCleared: false,
-							blockedBy: null,
+							scope: 'user',
+							targetId: 'user1',
+							value: 'ordered_numeric',
 						},
 					},
 				},
@@ -333,7 +327,8 @@ describe('policies store', () => {
 			'/ocs/v2.php/apps/libresign/api/v1/policies/user/user1/signature_flow',
 			{ value: 'ordered_numeric' },
 		)
-		expect(policy?.sourceScope).toBe('user')
+		expect(policy?.scope).toBe('user')
+		expect(policy?.value).toBe('ordered_numeric')
 	})
 
 	it('clears a user policy for a target user through the admin endpoint', async () => {
@@ -343,15 +338,9 @@ describe('policies store', () => {
 					data: {
 						policy: {
 							policyKey: 'signature_flow',
-							effectiveValue: 'parallel',
-							allowedValues: ['none', 'parallel', 'ordered_numeric'],
-							sourceScope: 'group',
-							visible: true,
-							editableByCurrentActor: true,
-							canSaveAsUserDefault: true,
-							canUseAsRequestOverride: true,
-							preferenceWasCleared: true,
-							blockedBy: null,
+							scope: 'user',
+							targetId: 'user1',
+							value: null,
 						},
 					},
 				},
@@ -363,6 +352,7 @@ describe('policies store', () => {
 		const policy = await store.clearUserPolicyForUser('user1', 'signature_flow')
 
 		expect(axios.delete).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/policies/user/user1/signature_flow')
-		expect(policy?.preferenceWasCleared).toBe(true)
+		expect(policy?.scope).toBe('user')
+		expect(policy?.value).toBeNull()
 	})
 })
