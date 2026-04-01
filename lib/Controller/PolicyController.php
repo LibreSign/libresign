@@ -32,6 +32,8 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignSystemPolicyResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignSystemPolicyWriteResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignUserPolicyResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignUserPolicyState from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignUserPolicyWriteResponse from \OCA\Libresign\ResponseDefinitions
  */
 final class PolicyController extends AEnvironmentAwareController {
 	public function __construct(
@@ -141,12 +143,7 @@ final class PolicyController extends AEnvironmentAwareController {
 
 		/** @var LibresignUserPolicyResponse $data */
 		$data = [
-			'policy' => [
-				'policyKey' => $policyKey,
-				'scope' => 'user',
-				'targetId' => $userId,
-				'value' => $policy?->getValue(),
-			],
+			'policy' => $this->serializeUserPolicy($userId, $policyKey, $policy),
 		];
 
 		return new DataResponse($data);
@@ -330,7 +327,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * @param string $userId Target user identifier that receives the policy preference.
 	 * @param string $policyKey Policy identifier to persist for the target user.
 	 * @param null|bool|int|float|string $value Policy value to persist as target user preference.
-	 * @return DataResponse<Http::STATUS_OK, LibresignSystemPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Invalid policy value
@@ -342,10 +339,10 @@ final class PolicyController extends AEnvironmentAwareController {
 
 		try {
 			$policy = $this->policyService->saveUserPreferenceForUserId($policyKey, $userId, $value);
-			/** @var LibresignSystemPolicyWriteResponse $data */
+			/** @var LibresignUserPolicyWriteResponse $data */
 			$data = [
 				'message' => $this->l10n->t('Settings saved'),
-				'policy' => $policy->toArray(),
+				'policy' => $this->serializeUserPolicy($userId, $policyKey, $policy),
 			];
 
 			return new DataResponse($data);
@@ -402,7 +399,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * @param string $userId Target user identifier that receives the policy preference removal.
 	 * @param string $policyKey Policy identifier to clear for the target user.
-	 * @return DataResponse<Http::STATUS_OK, LibresignSystemPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 500: Internal server error
@@ -411,10 +408,10 @@ final class PolicyController extends AEnvironmentAwareController {
 	public function clearUserPolicyForUser(string $userId, string $policyKey): DataResponse {
 		try {
 			$policy = $this->policyService->clearUserPreferenceForUserId($policyKey, $userId);
-			/** @var LibresignSystemPolicyWriteResponse $data */
+			/** @var LibresignUserPolicyWriteResponse $data */
 			$data = [
 				'message' => $this->l10n->t('Settings saved'),
-				'policy' => $policy->toArray(),
+				'policy' => $this->serializeUserPolicy($userId, $policyKey, $policy),
 			];
 
 			return new DataResponse($data);
@@ -438,6 +435,16 @@ final class PolicyController extends AEnvironmentAwareController {
 			'allowChildOverride' => $policy?->isAllowChildOverride() ?? true,
 			'visibleToChild' => $policy?->isVisibleToChild() ?? true,
 			'allowedValues' => $policy?->getAllowedValues() ?? [],
+		];
+	}
+
+	/** @return LibresignUserPolicyState */
+	private function serializeUserPolicy(string $userId, string $policyKey, ?PolicyLayer $policy): array {
+		return [
+			'policyKey' => $policyKey,
+			'scope' => 'user',
+			'targetId' => $userId,
+			'value' => $policy?->getValue(),
 		];
 	}
 
