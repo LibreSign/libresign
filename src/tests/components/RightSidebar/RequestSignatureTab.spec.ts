@@ -329,6 +329,84 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 	})
 
+	describe('RULE: showRememberSignatureFlow only when signing order is meaningful', () => {
+		it('shows when document has multiple signers and user can save preference', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [
+					{ email: 'test1@example.com', signed: [] },
+					{ email: 'test2@example.com', signed: [] },
+				],
+			})
+
+			expect(wrapper.vm.showRememberSignatureFlow).toBe(true)
+		})
+
+		it('hides when document has only one signer', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [{ email: 'test@example.com', signed: [] }],
+			})
+
+			expect(wrapper.vm.showRememberSignatureFlow).toBe(false)
+		})
+
+		it('hides when user cannot save preference even with multiple signers', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [
+					{ email: 'test1@example.com', signed: [] },
+					{ email: 'test2@example.com', signed: [] },
+				],
+			})
+			await updatePolicies({ canSaveAsUserDefault: false })
+
+			expect(wrapper.vm.showRememberSignatureFlow).toBe(false)
+		})
+
+		it('hides when effective signature flow policy is fixed to parallel', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [
+					{ email: 'test1@example.com', signed: [] },
+					{ email: 'test2@example.com', signed: [] },
+				],
+			})
+			await updatePolicies({ effectiveValue: 'parallel', canUseAsRequestOverride: false })
+
+			expect(wrapper.vm.showPreserveOrder).toBe(false)
+			expect(wrapper.vm.showRememberSignatureFlow).toBe(false)
+		})
+
+		it('hides when effective signature flow policy is fixed to ordered_numeric', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [
+					{ email: 'test1@example.com', signed: [] },
+					{ email: 'test2@example.com', signed: [] },
+				],
+			})
+			await updatePolicies({ effectiveValue: 'ordered_numeric', canUseAsRequestOverride: false })
+
+			expect(wrapper.vm.showPreserveOrder).toBe(false)
+			expect(wrapper.vm.showRememberSignatureFlow).toBe(false)
+		})
+
+		it('keeps toggles available when ordered_numeric is only the default and request overrides are still allowed', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [
+					{ email: 'test1@example.com', signed: [] },
+					{ email: 'test2@example.com', signed: [] },
+				],
+			})
+			await updatePolicies({ effectiveValue: 'ordered_numeric', canUseAsRequestOverride: true })
+
+			expect(wrapper.vm.showPreserveOrder).toBe(true)
+			expect(wrapper.vm.showRememberSignatureFlow).toBe(true)
+		})
+	})
+
 	describe('RULE: showViewOrderButton for ordered signatures', () => {
 		it('shows when signature flow is ordered_numeric', async () => {
 			await updateFile({
@@ -816,6 +894,30 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
 		})
 
+		it('uses fixed effective policy even when file flow was parallel', async () => {
+			await updatePolicies({ effectiveValue: 'ordered_numeric', canUseAsRequestOverride: false })
+			await updateFile({ signatureFlow: 'parallel' })
+			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
+		})
+
+		it('uses fixed effective policy when value comes as object with flow', async () => {
+			await updatePolicies({ effectiveValue: { flow: 'ordered_numeric' }, canUseAsRequestOverride: false })
+			await updateFile({ signatureFlow: 'parallel' })
+			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
+		})
+
+		it('maps legacy sequential policy value to ordered_numeric', async () => {
+			await updatePolicies({ effectiveValue: 'sequential' as unknown as string, canUseAsRequestOverride: false })
+			await updateFile({ signatureFlow: 'parallel' })
+			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
+		})
+
+		it('keeps request-level file flow when policy defaults to ordered_numeric but still allows overrides', async () => {
+			await updatePolicies({ effectiveValue: 'ordered_numeric', canUseAsRequestOverride: true })
+			await updateFile({ signatureFlow: 'parallel' })
+			expect(wrapper.vm.signatureFlow).toBe('parallel')
+		})
+
 		it('defaults to parallel when both file and policy are none', async () => {
 			await updatePolicies({ effectiveValue: 'none' })
 			await updateFile({ signatureFlow: 'none' })
@@ -838,6 +940,34 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await updatePolicies({
 				canUseAsRequestOverride: false,
 				effectiveValue: 'ordered_numeric',
+			})
+			await updateFile({
+				signers: [
+					{ email: 'test1@example.com' },
+					{ email: 'test2@example.com' },
+				],
+			})
+			expect(wrapper.vm.showPreserveOrder).toBe(false)
+		})
+
+		it('hides preserve order switch when fixed policy comes as object with flow', async () => {
+			await updatePolicies({
+				canUseAsRequestOverride: false,
+				effectiveValue: { flow: 'ordered_numeric' },
+			})
+			await updateFile({
+				signers: [
+					{ email: 'test1@example.com' },
+					{ email: 'test2@example.com' },
+				],
+			})
+			expect(wrapper.vm.showPreserveOrder).toBe(false)
+		})
+
+		it('hides preserve order switch when fixed policy comes as legacy sequential', async () => {
+			await updatePolicies({
+				canUseAsRequestOverride: false,
+				effectiveValue: 'sequential' as unknown as string,
 			})
 			await updateFile({
 				signers: [
@@ -1133,6 +1263,27 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await updateFile({ signatureFlow: 'ordered_numeric' })
 			wrapper.vm.syncPreserveOrderWithFile()
 			expect(wrapper.vm.preserveOrder).toBe(false)
+		})
+
+		it('synchronizes stale draft flow and signing orders when policy locks ordered_numeric', async () => {
+			await updatePolicies({
+				effectiveValue: 'ordered_numeric',
+				canUseAsRequestOverride: false,
+			})
+			await updateFile({
+				signatureFlow: 'parallel',
+				signers: [
+					{ email: 'signer1@example.com', signed: [], signingOrder: 1 },
+					{ email: 'signer2@example.com', signed: [], signingOrder: 1 },
+				],
+			})
+
+			wrapper.vm.syncFileSignatureFlowWithPolicy()
+
+			const syncedFile = filesStore.getEditableFile()
+			expect(syncedFile.signatureFlow).toBe('ordered_numeric')
+			expect(syncedFile.signers?.[0]?.signingOrder).toBe(1)
+			expect(syncedFile.signers?.[1]?.signingOrder).toBe(2)
 		})
 	})
 
