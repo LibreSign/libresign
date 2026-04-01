@@ -181,16 +181,6 @@ const routes: RouteRecordRaw[] = [
 		component: () => import('../views/Account/Account.vue'),
 	},
 	{
-		path: '/f/preferences',
-		name: 'Preferences',
-		component: () => import('../views/Preferences/Preferences.vue'),
-	},
-	{
-		path: '/f/policies',
-		name: 'Policies',
-		component: () => import('../views/Policies/Policies.vue'),
-	},
-	{
 		path: '/f/docs/id-docs/validation',
 		name: 'DocsIdDocsValidation',
 		component: () => import('../views/Documents/IdDocsValidation.vue'),

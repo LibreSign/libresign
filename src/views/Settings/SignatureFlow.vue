@@ -54,7 +54,10 @@
 </template>
 
 <script setup lang="ts">
+import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
+import { generateOcsUrl } from '@nextcloud/router'
 import { computed, onMounted, ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
@@ -62,8 +65,7 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSavingIndicatorIcon from '@nextcloud/vue/components/NcSavingIndicatorIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
-import { usePoliciesStore } from '../../store/policies'
-import type { EffectivePolicyState, SignatureFlowMode, SystemPolicyWriteErrorResponse } from '../../types/index'
+import type { operations } from '../../types/openapi/openapi-administration'
 
 defineOptions({
 	name: 'SignatureFlow',
@@ -75,17 +77,19 @@ type FlowOption = {
 	description: string
 }
 
+type SignatureFlowMode = 'none' | 'parallel' | 'ordered_numeric'
+
+type SignatureFlowRequestBody = operations['admin-set-signature-flow-config']['requestBody']['content']['application/json']
+type SignatureFlowErrorResponse =
+	| operations['admin-set-signature-flow-config']['responses'][400]['content']['application/json']
+	| operations['admin-set-signature-flow-config']['responses'][500]['content']['application/json']
+
 type SignatureFlowRequestError = {
 	response?: {
-		data?: {
-			ocs?: {
-				data?: SystemPolicyWriteErrorResponse
-			}
-		}
+		data?: SignatureFlowErrorResponse
 	}
 }
 
-const policiesStore = usePoliciesStore()
 const enabled = ref(false)
 const selectedFlow = ref<FlowOption | null>(null)
 const loading = ref(false)
@@ -93,8 +97,6 @@ const errorMessage = ref('')
 const saved = ref(false)
 const showErrorIcon = ref(false)
 const flowChanging = ref(false)
-
-const signatureFlowPolicy = computed(() => policiesStore.getPolicy('signature_flow'))
 
 const availableFlows = computed<FlowOption[]>(() => [
 	{
@@ -118,21 +120,17 @@ const selectedFlowValue = computed({
 	},
 })
 
-function applyPolicy(policy: EffectivePolicyState | null) {
-	const mode = policy?.effectiveValue
-	if (mode === 'parallel' || mode === 'ordered_numeric') {
-		enabled.value = true
-		selectedFlow.value = availableFlows.value.find(flow => flow.value === mode) ?? availableFlows.value[0]
-		return
-	}
-
-	enabled.value = false
-	selectedFlow.value = availableFlows.value[0]
-}
-
 function loadConfig() {
 	try {
-		applyPolicy(signatureFlowPolicy.value)
+		const mode = loadState<SignatureFlowMode>('libresign', 'signature_flow', 'none')
+
+		if (mode === 'none') {
+			enabled.value = false
+			selectedFlow.value = availableFlows.value[0]
+		} else {
+			enabled.value = true
+			selectedFlow.value = availableFlows.value.find(flow => flow.value === mode) ?? availableFlows.value[0]
+		}
 	} catch (error) {
 		console.error('Error loading signature flow configuration:', error)
 		errorMessage.value = t('libresign', 'Could not load configuration.')
@@ -167,11 +165,12 @@ async function saveConfig() {
 	showErrorIcon.value = false
 
 	try {
-		const savedPolicy = await policiesStore.saveSystemPolicy(
-			'signature_flow',
-			enabled.value ? (selectedFlow.value?.value ?? 'parallel') : 'none',
-		)
-		applyPolicy(savedPolicy)
+		const url = generateOcsUrl('apps/libresign/api/v1/admin/signature-flow/config')
+		const payload: SignatureFlowRequestBody = {
+			enabled: enabled.value,
+			mode: enabled.value ? (selectedFlow.value?.value ?? 'parallel') : null,
+		}
+		await axios.post(url, payload)
 
 		saved.value = true
 		setTimeout(() => {
@@ -182,7 +181,6 @@ async function saveConfig() {
 		console.error('Error saving signature flow configuration:', error)
 		errorMessage.value = getErrorMessage(error) ?? t('libresign', 'Error saving configuration.')
 		showErrorIcon.value = true
-		applyPolicy(signatureFlowPolicy.value)
 	} finally {
 		loading.value = false
 	}

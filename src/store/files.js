@@ -17,7 +17,6 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { useFilesSortingStore } from './filesSorting.js'
 import { useFiltersStore } from './filters.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
-import { usePoliciesStore } from './policies'
 import { useSidebarStore } from './sidebar.js'
 import { FILE_STATUS } from '../constants.js'
 
@@ -1195,20 +1194,15 @@ const _filesStore = defineStore('files', () => {
 	 */
 	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, signatureFlow = null } = {}) {
 		const store = getStore()
-		const policiesStore = usePoliciesStore()
 		const currentFileKey = selectedFileId.value
 		const selectedFile = getFile()
 		const requestSigners = serializeRequestSigners(signers || selectedFile?.signers || [])
 		const requestVisibleElements = serializeVisibleElements(visibleElements)
-		const canUseSignatureFlowOverride = policiesStore.canUseRequestOverride('signature_flow')
 
-		let flowValue = signatureFlow
-		if (canUseSignatureFlowOverride) {
-			flowValue = signatureFlow ?? selectedFile.signatureFlow
-			if (typeof flowValue === 'number') {
-				const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-				flowValue = flowMap[flowValue] || 'parallel'
-			}
+		let flowValue = signatureFlow || selectedFile.signatureFlow
+		if (typeof flowValue === 'number') {
+			const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+			flowValue = flowMap[flowValue] || 'parallel'
 		}
 
 		const config = {
@@ -1219,7 +1213,7 @@ const _filesStore = defineStore('files', () => {
 				signers: requestSigners,
 				visibleElements: requestVisibleElements,
 				status,
-				...(flowValue !== null && flowValue !== undefined ? { signatureFlow: flowValue } : {}),
+				signatureFlow: flowValue,
 			},
 		}
 

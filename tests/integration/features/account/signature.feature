@@ -222,10 +222,10 @@ Feature: account/signature
     Then the response should have a status code 200
 
   Scenario: CRUD of signature element to guest
-    Given guest "signature-elements-guest@test.coop" exists
+    Given guest "guest@test.coop" exists
     And run the command "config:app:set guests whitelist --value=libresign" with result code 0
     And wait for 3 seconds
-    And as user "signature-elements-guest@test.coop"
+    And as user "guest@test.coop"
     When sending "post" to ocs "/apps/libresign/api/v1/signature/elements"
       | elements | [{"type":"signature","file":{"base64":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="}}] |
     Then the response should have a status code 200

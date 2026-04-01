@@ -44,7 +44,6 @@ use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
-use OCP\Group\ISubAdmin;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -78,7 +77,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ValidateHelper&MockObject $validateHelper;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IGroupManager&MockObject $groupManager;
-	private ISubAdmin&MockObject $subAdmin;
 	private IdDocsService&MockObject $idDocsService;
 	private SignerElementsService&MockObject $signerElementsService;
 	private UserElementMapper&MockObject $userElementMapper;
@@ -116,7 +114,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
-		$this->subAdmin = $this->createMock(ISubAdmin::class);
 		$this->idDocsService = $this->createMock(IdDocsService::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
@@ -150,7 +147,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->subAdmin,
 			$this->idDocsService,
 			$this->signerElementsService,
 			$this->userElementMapper,
@@ -181,25 +177,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->with('admin');
 
 		$this->getService()->deletePfx($user);
-	}
-
-	public function testGetConfigSetsCanManageGroupPoliciesForSubAdmin(): void {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('group-admin-user');
-
-		$this->groupManager->method('isAdmin')
-			->with('group-admin-user')
-			->willReturn(false);
-
-		$this->subAdmin->expects($this->once())
-			->method('isSubAdmin')
-			->with($user)
-			->willReturn(true);
-
-		$config = $this->getService()->getConfig($user);
-
-		$this->assertArrayHasKey('can_manage_group_policies', $config);
-		$this->assertTrue($config['can_manage_group_policies']);
 	}
 
 	#[DataProvider('provideValidateCertificateDataCases')]

@@ -16,9 +16,6 @@
 		<NcNoteCard v-if="shouldLoadDetail && isLoadingFileDetail" type="info">
 			{{ t('libresign', 'Loading signer details...') }}
 		</NcNoteCard>
-		<NcNoteCard v-if="showSignatureFlowPreferenceClearedNotice" type="info">
-			{{ t('libresign', 'A previous signing order preference was removed because it is no longer compatible with higher-level policy.') }}
-		</NcNoteCard>
 		<NcButton v-if="filesStore.canAddSigner() && !isOriginalFileDeleted"
 			:variant="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
@@ -32,12 +29,6 @@
 			type="switch"
 			@update:modelValue="onPreserveOrderChange">
 			{{ t('libresign', 'Sign in order') }}
-		</NcCheckboxRadioSwitch>
-		<NcCheckboxRadioSwitch v-if="showRememberSignatureFlow && !isOriginalFileDeleted"
-			v-model="rememberSignatureFlow"
-			type="switch"
-			@update:modelValue="onRememberSignatureFlowChange">
-			{{ t('libresign', 'Use this as my default signing order') }}
 		</NcCheckboxRadioSwitch>
 		<NcButton v-if="showViewOrderButton && !isOriginalFileDeleted"
 			variant="tertiary"
@@ -326,7 +317,6 @@ import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.t
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
-import { usePoliciesStore } from '../../store/policies'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
@@ -337,6 +327,7 @@ import type {
 	IdentifyMethodRecord,
 	IdentifyMethodSetting as IdentifyMethodConfig,
 	LibresignCapabilities as RequestSignatureTabCapabilities,
+	SignatureFlowMode,
 	SignatureFlowValue,
 } from '../../types/index'
 
@@ -353,7 +344,6 @@ type IdentifySignerToEdit = {
 	description?: string
 	identifyMethods?: IdentifySignerMethod[]
 }
-type ResolvedSignatureFlowMode = 'none' | 'parallel' | 'ordered_numeric'
 type SigningOrderDiagramSigner = {
 	displayName?: string
 	signed?: boolean
@@ -384,7 +374,6 @@ const props = withDefaults(defineProps<{
 })
 
 const filesStore = useFilesStore()
-const policiesStore = usePoliciesStore()
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 const userConfigStore = useUserConfigStore() as ReturnType<typeof useUserConfigStore> & {
@@ -406,48 +395,33 @@ const showConfirmRequestSigner = ref(false)
 const selectedSigner = ref<EditableRequestSigner | null>(null)
 const activeTab = ref('')
 const preserveOrder = ref(false)
-const rememberSignatureFlow = ref(false)
 const showOrderDiagram = ref(false)
 const showEnvelopeFilesDialog = ref(false)
+const adminSignatureFlow = ref<SignatureFlowMode>(loadState<SignatureFlowMode>('libresign', 'signature_flow', 'none'))
 const signingProgress = ref<components['schemas']['ProgressPayload'] | null>(null)
 const signingProgressStatus = ref<number | null>(null)
 const signingProgressStatusText = ref('')
 const stopPollingFunction = ref<null | (() => void)>(null)
 
-const signatureFlowPolicy = computed(() => policiesStore.getPolicy('signature_flow'))
-const canChooseSigningOrderAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('signature_flow'))
-const isAdminFlowForced = computed(() => !canChooseSigningOrderAtRequestLevel.value)
-
 const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
-	const resolvedPolicy = toSignatureFlowMode(signatureFlowPolicy.value?.effectiveValue)
-	const fileFlow = file?.signatureFlow
-	const resolvedFileFlow = toSignatureFlowMode(fileFlow)
+	let flow = file?.signatureFlow
 
-	if (!canChooseSigningOrderAtRequestLevel.value && resolvedPolicy && resolvedPolicy !== 'none') {
-		return resolvedPolicy
+	if (typeof flow === 'number') {
+		const flowMap: Record<number, string> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+		return flowMap[flow]
 	}
 
-	if (typeof fileFlow === 'number' && fileFlow !== 0 && resolvedFileFlow) {
-		return resolvedFileFlow
+	if (flow && flow !== 'none') {
+		return flow
 	}
-
-	if (resolvedFileFlow && resolvedFileFlow !== 'none') {
-		return resolvedFileFlow
+	if (adminSignatureFlow.value && adminSignatureFlow.value !== 'none') {
+		return adminSignatureFlow.value
 	}
-
-	if (resolvedPolicy && resolvedPolicy !== 'none') {
-		return resolvedPolicy
-	}
-
-	if (fileFlow === 0) {
-		return 'none'
-	}
-
 	return 'parallel'
 })
 
-const canSaveSignatureFlowPreference = computed(() => signatureFlowPolicy.value?.canSaveAsUserDefault ?? false)
+const isAdminFlowForced = computed(() => adminSignatureFlow.value && adminSignatureFlow.value !== 'none')
 const isOrderedNumeric = computed(() => signatureFlow.value === 'ordered_numeric')
 const hasSigners = computed(() => filesStore.hasSigners(filesStore.getFile()))
 const totalSigners = computed(() => Number(filesStore.getFile()?.signersCount || filesStore.getFile()?.signers?.length || 0))
@@ -455,12 +429,10 @@ const isOriginalFileDeleted = computed(() => filesStore.isOriginalFileDeleted())
 const currentFile = computed<EditableRequestFile | null>(() => (filesStore.getFile() as EditableRequestFile | null) ?? null)
 const isCurrentFileDetailed = computed(() => currentFile.value?.detailsLoaded === true)
 const shouldLoadDetail = computed(() => totalSigners.value > 0)
-const showSigningOrderOptions = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && hasSigners.value && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value)
-const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && totalSigners.value > 1 && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value)
-const showRememberSignatureFlow = computed(() => showPreserveOrder.value && canSaveSignatureFlowPreference.value)
+const showSigningOrderOptions = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && hasSigners.value && filesStore.canSave() && !isAdminFlowForced.value)
+const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && totalSigners.value > 1 && filesStore.canSave() && !isAdminFlowForced.value)
 const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && totalSigners.value > 1 && hasSigners.value)
 const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && totalSigners.value > 1)
-const showSignatureFlowPreferenceClearedNotice = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
 const currentUserDisplayName = computed(() => OC.getCurrentUser()?.displayName || '')
 const showDocMdpWarning = computed(() => filesStore.isDocMdpNoChangesAllowed() && !filesStore.canAddSigner())
 const fileName = computed(() => filesStore.getSelectedFileView()?.name ?? '')
@@ -479,66 +451,10 @@ const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
 })
 
 function normalizeSignatureFlow(flow: unknown): SignatureFlowValue | null {
-	if (flow && typeof flow === 'object' && 'flow' in (flow as Record<string, unknown>)) {
-		const nestedFlow = (flow as { flow?: unknown }).flow
-		return normalizeSignatureFlow(nestedFlow)
-	}
-
-	// Backward compatibility with legacy string values returned by older payloads.
-	if (flow === 'sequential') {
-		return 'ordered_numeric'
-	}
-
-	if (flow === 'simultaneous') {
-		return 'parallel'
-	}
-
 	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric' || flow === 0 || flow === 1 || flow === 2) {
 		return flow
 	}
 	return null
-}
-
-function toSignatureFlowMode(flow: unknown): ResolvedSignatureFlowMode | null {
-	const normalizedFlow = normalizeSignatureFlow(flow)
-	if (normalizedFlow === 0) {
-		return 'none'
-	}
-
-	if (normalizedFlow === 1) {
-		return 'parallel'
-	}
-
-	if (normalizedFlow === 2) {
-		return 'ordered_numeric'
-	}
-
-	if (normalizedFlow === 'none' || normalizedFlow === 'parallel' || normalizedFlow === 'ordered_numeric') {
-		return normalizedFlow
-	}
-
-	return null
-}
-
-function getResolvedSignatureFlowForSave(): SignatureFlowValue {
-	const flow = signatureFlow.value
-	if (flow === 'ordered_numeric') {
-		return 'ordered_numeric'
-	}
-
-	if (flow === 'parallel') {
-		return 'parallel'
-	}
-
-	return 'parallel'
-}
-
-function getSignatureFlowPayloadForSave(): SignatureFlowValue | null {
-	if (!canChooseSigningOrderAtRequestLevel.value) {
-		return null
-	}
-
-	return getResolvedSignatureFlowForSave()
 }
 
 function getSignerMethod(signer: { identifyMethods?: Array<Pick<IdentifyMethodRecord, 'method'>> }): string | undefined {
@@ -830,7 +746,7 @@ const debouncedSave = debounce(async () => {
 	try {
 		const file = filesStore.getFile()
 		const signers = isOrderedNumeric.value ? file?.signers : null
-		const signatureFlow = getSignatureFlowPayloadForSave()
+		const signatureFlow = normalizeSignatureFlow(file?.signatureFlow)
 		await filesStore.saveOrUpdateSignatureRequest({
 			signers,
 			signatureFlow,
@@ -847,7 +763,6 @@ const debouncedTabChange = debounce((tabId: string) => {
 function onPreserveOrderChange(value: boolean) {
 	preserveOrder.value = value
 	const file = filesStore.getEditableFile()
-	const nextFlow = value ? 'ordered_numeric' : 'parallel'
 
 	if (value) {
 		if (file?.signers) {
@@ -860,7 +775,7 @@ function onPreserveOrderChange(value: boolean) {
 			})
 		}
 		if (file) {
-			file.signatureFlow = nextFlow
+			file.signatureFlow = 'ordered_numeric'
 		}
 	} else if (!isAdminFlowForced.value) {
 		if (file?.signers) {
@@ -871,84 +786,23 @@ function onPreserveOrderChange(value: boolean) {
 			})
 		}
 		if (file) {
-			file.signatureFlow = nextFlow
+			file.signatureFlow = 'parallel'
 		}
-	}
-
-	if (rememberSignatureFlow.value && canSaveSignatureFlowPreference.value) {
-		void saveSignatureFlowPreference(nextFlow)
 	}
 
 	debouncedSave()
 }
 
-async function saveSignatureFlowPreference(flow: 'parallel' | 'ordered_numeric'): Promise<void> {
-	try {
-		await policiesStore.saveUserPreference('signature_flow', flow)
-		syncRememberSignatureFlowWithPolicy()
-	} catch (error: unknown) {
-		showRequestError(error, t('libresign', 'Failed to save signing order preference'))
-		rememberSignatureFlow.value = false
-	}
-}
-
-async function onRememberSignatureFlowChange(value: boolean): Promise<void> {
-	const previousValue = rememberSignatureFlow.value
-	rememberSignatureFlow.value = value
-	if (!canSaveSignatureFlowPreference.value) {
-		return
-	}
-
-	try {
-		if (value) {
-			await saveSignatureFlowPreference(isOrderedNumeric.value ? 'ordered_numeric' : 'parallel')
-			return
-		}
-
-		await policiesStore.clearUserPreference('signature_flow')
-		syncRememberSignatureFlowWithPolicy()
-	} catch (error: unknown) {
-		showRequestError(error, t('libresign', 'Failed to clear signing order preference'))
-		rememberSignatureFlow.value = previousValue
-	}
-}
-
 function syncPreserveOrderWithFile() {
-	preserveOrder.value = signatureFlow.value === 'ordered_numeric' && canChooseSigningOrderAtRequestLevel.value
-}
-
-function syncFileSignatureFlowWithPolicy() {
-	const resolvedPolicy = toSignatureFlowMode(signatureFlowPolicy.value?.effectiveValue)
-	if (canChooseSigningOrderAtRequestLevel.value || !resolvedPolicy || resolvedPolicy === 'none') {
-		return
-	}
-
-	const file = currentFile.value
+	const file = filesStore.getFile()
 	if (!file) {
+		preserveOrder.value = false
 		return
 	}
 
-	file.signatureFlow = resolvedPolicy
-
-	if (resolvedPolicy !== 'ordered_numeric' || !Array.isArray(file.signers)) {
-		return
-	}
-
-	const orders = file.signers.map((signer: EditableRequestSigner) => signer.signingOrder || 0)
-	const hasDuplicateOrders = orders.length !== new Set(orders).size
-	file.signers.forEach((signer: EditableRequestSigner, index: number) => {
-		if (!signer.signingOrder || hasDuplicateOrders) {
-			signer.signingOrder = index + 1
-		}
-	})
-
-	if (file.signers.every((signer: EditableRequestSigner) => typeof signer.signingOrder === 'number')) {
-		normalizeSigningOrders(file.signers as Array<{ signingOrder: number }>)
-	}
-}
-
-function syncRememberSignatureFlowWithPolicy() {
-	rememberSignatureFlow.value = signatureFlowPolicy.value?.sourceScope === 'user'
+	const flow = file.signatureFlow
+	const normalizedFlow = normalizeSignatureFlow(flow)
+	preserveOrder.value = (normalizedFlow === 'ordered_numeric' || normalizedFlow === 2) && !isAdminFlowForced.value
 }
 
 async function ensureCurrentFileDetail(force = false) {
@@ -960,8 +814,6 @@ async function ensureCurrentFileDetail(force = false) {
 	isLoadingFileDetail.value = true
 	try {
 		await filesStore.fetchFileDetail({ fileId: file.id, force })
-		syncFileSignatureFlowWithPolicy()
-		syncPreserveOrderWithFile()
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to load signer details'))
 	} finally {
@@ -1197,7 +1049,7 @@ async function confirmRequestSigner() {
 			}
 			return signer
 		})
-		await filesStore.saveOrUpdateSignatureRequest({ signers: signers as never, status: 1, signatureFlow: getSignatureFlowPayloadForSave() })
+		await filesStore.saveOrUpdateSignatureRequest({ signers: signers as never, status: 1 })
 		showSuccess(t('libresign', 'Signature requested'))
 		showConfirmRequestSigner.value = false
 		selectedSigner.value = null
@@ -1230,7 +1082,7 @@ async function save() {
 	await ensureCurrentFileDetail()
 	hasLoading.value = true
 	try {
-		await filesStore.saveOrUpdateSignatureRequest({ signatureFlow: getSignatureFlowPayloadForSave() })
+		await filesStore.saveOrUpdateSignatureRequest({})
 		emit('libresign:show-visible-elements', new CustomEvent('libresign:show-visible-elements'))
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to save signature request'))
@@ -1246,7 +1098,7 @@ async function confirmRequest() {
 	await ensureCurrentFileDetail()
 	hasLoading.value = true
 	try {
-		const response = await filesStore.saveOrUpdateSignatureRequest({ status: 1, signatureFlow: getSignatureFlowPayloadForSave() })
+		const response = await filesStore.saveOrUpdateSignatureRequest({ status: 1 })
 		showSuccess(t('libresign', response.message || 'Signature requested'))
 		showConfirmRequest.value = false
 	} catch (error: unknown) {
@@ -1257,7 +1109,7 @@ async function confirmRequest() {
 
 async function openManageFiles() {
 	hasLoading.value = true
-	const response = await filesStore.saveOrUpdateSignatureRequest({ signatureFlow: getSignatureFlowPayloadForSave() })
+	const response = await filesStore.saveOrUpdateSignatureRequest({})
 	hasLoading.value = false
 	if (response && 'success' in response && response.success === false && response.message) {
 		showError(response.message)
@@ -1347,18 +1199,10 @@ function stopSigningProgressPolling() {
 
 watch(() => filesStore.selectedFileId, (newFileId) => {
 	if (newFileId) {
-		syncFileSignatureFlowWithPolicy()
 		syncPreserveOrderWithFile()
-		syncRememberSignatureFlowWithPolicy()
 		void ensureCurrentFileDetail()
 	}
 }, { immediate: true })
-
-watch(signatureFlowPolicy, () => {
-	syncFileSignatureFlowWithPolicy()
-	syncPreserveOrderWithFile()
-	syncRememberSignatureFlowWithPolicy()
-})
 
 const handleEditSigner = ((event: NextcloudEvent) => {
 	editSigner((event as CustomEvent<EditableRequestSigner>).detail)
@@ -1376,10 +1220,7 @@ onMounted(() => {
 	subscribe('libresign:edit-signer', handleEditSigner)
 	filesStore.disableIdentifySigner()
 	activeTab.value = userConfigStore.files_list_signer_identify_tab || ''
-	void policiesStore.fetchEffectivePolicies()
-	syncFileSignatureFlowWithPolicy()
 	syncPreserveOrderWithFile()
-	syncRememberSignatureFlowWithPolicy()
 	void ensureCurrentFileDetail()
 })
 
@@ -1401,10 +1242,9 @@ defineExpose({
 	selectedSigner,
 	activeTab,
 	preserveOrder,
-	rememberSignatureFlow,
 	showOrderDiagram,
 	showEnvelopeFilesDialog,
-	signatureFlowPolicy,
+	adminSignatureFlow,
 	debouncedSave,
 	debouncedTabChange,
 	signingProgress,
@@ -1413,12 +1253,9 @@ defineExpose({
 	stopPollingFunction,
 	signatureFlow,
 	isAdminFlowForced,
-	getSignatureFlowPayloadForSave,
 	isOrderedNumeric,
 	showSigningOrderOptions,
 	showPreserveOrder,
-	showRememberSignatureFlow,
-	showSignatureFlowPreferenceClearedNotice,
 	showViewOrderButton,
 	shouldShowOrderedOptions,
 	currentUserDisplayName,
@@ -1446,8 +1283,6 @@ defineExpose({
 	showSigningProgress,
 	isSignerSigned,
 	onPreserveOrderChange,
-	onRememberSignatureFlowChange,
-	syncFileSignatureFlowWithPolicy,
 	syncPreserveOrderWithFile,
 	getSvgIcon,
 	canSignerActInOrder,

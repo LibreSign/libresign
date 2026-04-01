@@ -11,18 +11,15 @@ namespace OCA\Libresign\Settings;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
-use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IAppConfig;
-use OCP\IUserSession;
 use OCP\Settings\ISettings;
 use OCP\Util;
 
@@ -36,8 +33,6 @@ class Admin implements ISettings {
 
 	public function __construct(
 		private IInitialState $initialState,
-		private AccountService $accountService,
-		private IUserSession $userSession,
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private CertificatePolicyService $certificatePolicyService,
@@ -46,14 +41,12 @@ class Admin implements ISettings {
 		private SignatureBackgroundService $signatureBackgroundService,
 		private FooterService $footerService,
 		private DocMdpConfigService $docMdpConfigService,
-		private PolicyService $policyService,
 	) {
 	}
 	#[\Override]
 	public function getForm(): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-settings');
 		Util::addStyle(Application::APP_ID, 'libresign-settings');
-		$this->initialState->provideInitialState('config', $this->accountService->getConfig($this->userSession->getUser()));
 		try {
 			$signatureParsed = $this->signatureTextService->parse();
 			$this->initialState->provideInitialState('signature_text_parsed', $signatureParsed['parsed']);
@@ -94,13 +87,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('tsa_username', $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', ''));
 		$this->initialState->provideInitialState('tsa_password', $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', self::PASSWORD_PLACEHOLDER));
 		$this->initialState->provideInitialState('docmdp_config', $this->docMdpConfigService->getConfig());
-		$resolvedPolicies = [];
-		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
-			$resolvedPolicies[$policyKey] = $resolvedPolicy->toArray();
-		}
-		$this->initialState->provideInitialState('effective_policies', [
-			'policies' => $resolvedPolicies,
-		]);
+		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value));
 		$this->initialState->provideInitialState('signing_mode', $this->getSigningModeInitialState());
 		$this->initialState->provideInitialState('worker_type', $this->getWorkerTypeInitialState());
 		$this->initialState->provideInitialState('identification_documents', $this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false));

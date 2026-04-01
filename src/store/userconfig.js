@@ -14,7 +14,6 @@ import { generateOcsUrl } from '@nextcloud/router'
  * @typedef {Record<string, unknown> & {
  * 	locale?: string
  * 	files_list_grid_view?: boolean
- * 	policy_workbench_catalog_compact_view?: boolean
  * 	files_list_signer_identify_tab?: string
  * 	crl_filters?: { serialNumber?: string, status?: string | null, owner?: string }
  * 	crl_sort?: { sortBy?: string | null, sortOrder?: 'ASC' | 'DESC' | null }

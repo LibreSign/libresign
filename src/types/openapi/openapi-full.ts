@@ -852,60 +852,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/effective": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Effective policies bootstrap */
-        get: operations["policy-effective"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/group/{groupId}/{policyKey}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read a group-level policy value */
-        get: operations["policy-get-group"];
-        /** Save a group-level policy value */
-        put: operations["policy-set-group"];
-        post?: never;
-        /** Clear a group-level policy value */
-        delete: operations["policy-clear-group"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{policyKey}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Save a user policy preference */
-        put: operations["policy-set-user-preference"];
-        post?: never;
-        /** Clear a user policy preference */
-        delete: operations["policy-clear-user-preference"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/request-signature": {
         parameters: {
             query?: never;
@@ -1554,58 +1500,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/system/{policyKey}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read explicit system policy configuration
-         * @description This endpoint requires admin access
-         */
-        get: operations["policy-get-system"];
-        put?: never;
-        /**
-         * Save a system-level policy value
-         * @description This endpoint requires admin access
-         */
-        post: operations["policy-set-system"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{userId}/{policyKey}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read a user-level policy preference for a target user (admin scope)
-         * @description This endpoint requires admin access
-         */
-        get: operations["policy-get-user-policy-for-user"];
-        /**
-         * Save a user policy preference for a target user (admin scope)
-         * @description This endpoint requires admin access
-         */
-        put: operations["policy-set-user-policy-for-user"];
-        post?: never;
-        /**
-         * Clear a user policy preference for a target user (admin scope)
-         * @description This endpoint requires admin access
-         */
-        delete: operations["policy-clear-user-policy-for-user"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -1889,27 +1783,6 @@ export type components = {
             label: string;
             description: string;
         };
-        EffectivePoliciesResponse: {
-            policies: {
-                [key: string]: components["schemas"]["EffectivePolicyState"];
-            };
-        };
-        EffectivePolicyResponse: {
-            policy: components["schemas"]["EffectivePolicyState"];
-        };
-        EffectivePolicyState: {
-            policyKey: string;
-            effectiveValue: components["schemas"]["EffectivePolicyValue"];
-            sourceScope: string;
-            visible: boolean;
-            editableByCurrentActor: boolean;
-            allowedValues: components["schemas"]["EffectivePolicyValue"][];
-            canSaveAsUserDefault: boolean;
-            canUseAsRequestOverride: boolean;
-            preferenceWasCleared: boolean;
-            blockedBy: string | null;
-        };
-        EffectivePolicyValue: (boolean | number | string) | null;
         EngineHandler: {
             configPath: string;
             cfsslUri?: string;
@@ -2051,24 +1924,6 @@ export type components = {
             /** Format: int64 */
             preview_height: number;
         };
-        GroupPolicyResponse: {
-            policy: components["schemas"]["GroupPolicyState"];
-        };
-        GroupPolicyState: {
-            policyKey: string;
-            /** @enum {string} */
-            scope: "group";
-            targetId: string;
-            value: components["schemas"]["EffectivePolicyValue"];
-            allowChildOverride: boolean;
-            visibleToChild: boolean;
-            allowedValues: components["schemas"]["EffectivePolicyValue"][];
-        };
-        GroupPolicyWriteRequest: {
-            value: components["schemas"]["EffectivePolicyValue"];
-            allowChildOverride: boolean;
-        };
-        GroupPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["GroupPolicyResponse"];
         HasRootCertResponse: {
             hasRootCert: boolean;
         };
@@ -2180,10 +2035,6 @@ export type components = {
         PolicySection: {
             OID: string;
             CPS: string;
-        };
-        PolicySnapshotEntry: {
-            effectiveValue: string;
-            sourceScope: string;
         };
         ProgressError: {
             message: string;
@@ -2381,22 +2232,6 @@ export type components = {
             /** @enum {string} */
             status: "success";
         };
-        SystemPolicyResponse: {
-            policy: components["schemas"]["SystemPolicyState"];
-        };
-        SystemPolicyState: {
-            policyKey: string;
-            /** @enum {string} */
-            scope: "system" | "global";
-            value: components["schemas"]["EffectivePolicyValue"];
-            allowChildOverride: boolean;
-            visibleToChild: boolean;
-            allowedValues: components["schemas"]["EffectivePolicyValue"][];
-        };
-        SystemPolicyWriteRequest: {
-            value: components["schemas"]["EffectivePolicyValue"];
-        };
-        SystemPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["EffectivePolicyResponse"];
         UserElement: {
             /** Format: int64 */
             id: number;
@@ -2421,17 +2256,6 @@ export type components = {
         UserElementsResponse: {
             elements: components["schemas"]["UserElement"][];
         };
-        UserPolicyResponse: {
-            policy: components["schemas"]["UserPolicyState"];
-        };
-        UserPolicyState: {
-            policyKey: string;
-            /** @enum {string} */
-            scope: "user";
-            targetId: string;
-            value: components["schemas"]["EffectivePolicyValue"];
-        };
-        UserPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["UserPolicyResponse"];
         ValidateMetadata: {
             extension: string;
             /** Format: int64 */
@@ -2443,12 +2267,8 @@ export type components = {
                 h: number;
             }[];
             original_file_deleted?: boolean;
-            policy_snapshot?: components["schemas"]["ValidatePolicySnapshot"];
             pdfVersion?: string;
             status_changed_at?: string;
-        };
-        ValidatePolicySnapshot: {
-            signature_flow?: components["schemas"]["PolicySnapshotEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
@@ -4761,347 +4581,6 @@ export interface operations {
             };
         };
     };
-    "policy-effective": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["EffectivePoliciesResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "policy-get-group": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Group identifier that receives the policy binding. */
-                groupId: string;
-                /** @description Policy identifier to read for the selected group. */
-                policyKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["GroupPolicyResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "policy-set-group": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Group identifier that receives the policy binding. */
-                groupId: string;
-                /** @description Policy identifier to persist at the group layer. */
-                policyKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** @description Policy value to persist for the group. */
-                    value?: (boolean | number | string) | null;
-                    /**
-                     * @description Whether users and requests below this group may override the group default.
-                     * @default false
-                     */
-                    allowChildOverride?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["GroupPolicyWriteResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Invalid policy value */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "policy-clear-group": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Group identifier that receives the policy binding. */
-                groupId: string;
-                /** @description Policy identifier to clear for the selected group. */
-                policyKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["GroupPolicyWriteResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "policy-set-user-preference": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Policy identifier to persist for the current user. */
-                policyKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** @description Policy value to persist as the current user's default. */
-                    value?: (boolean | number | string) | null;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SystemPolicyWriteResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Invalid policy value */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "policy-clear-user-preference": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Policy identifier to clear for the current user. */
-                policyKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SystemPolicyWriteResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
     "request_signature-request": {
         parameters: {
             query?: never;
@@ -5150,7 +4629,7 @@ export interface operations {
                      * @default 1
                      */
                     status?: number | null;
-                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses the effective policy resolution. */
+                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration */
                     signatureFlow?: string | null;
                 };
             };
@@ -5220,7 +4699,7 @@ export interface operations {
                      * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
                      */
                     status?: number | null;
-                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses the effective policy resolution. */
+                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration */
                     signatureFlow?: string | null;
                     /** @description The name of file to sign */
                     name?: string | null;
@@ -7353,261 +6832,6 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["CrlRevokeResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "policy-get-system": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Policy identifier to read from the system layer. */
-                policyKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SystemPolicyResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "policy-set-system": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Policy identifier to persist at the system layer. */
-                policyKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** @description Policy value to persist. Null resets the policy to its default system value. */
-                    value?: (boolean | number | string) | null;
-                    /**
-                     * @description Whether lower layers may override this system default.
-                     * @default false
-                     */
-                    allowChildOverride?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SystemPolicyWriteResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Invalid policy value */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "policy-get-user-policy-for-user": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Target user identifier that receives the policy preference. */
-                userId: string;
-                /** @description Policy identifier to read for the selected user. */
-                policyKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["UserPolicyResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "policy-set-user-policy-for-user": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Target user identifier that receives the policy preference. */
-                userId: string;
-                /** @description Policy identifier to persist for the target user. */
-                policyKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** @description Policy value to persist as target user preference. */
-                    value?: (boolean | number | string) | null;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["UserPolicyWriteResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Invalid policy value */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "policy-clear-user-policy-for-user": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Target user identifier that receives the policy preference removal. */
-                userId: string;
-                /** @description Policy identifier to clear for the target user. */
-                policyKey: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["UserPolicyWriteResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };

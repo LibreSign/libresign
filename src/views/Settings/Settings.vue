@@ -17,7 +17,7 @@
 		<Validation />
 		<CrlValidation />
 		<DocMDP />
-		<SettingsPolicyWorkbench />
+		<SignatureFlow />
 		<SigningMode v-if="false" />
 		<AllowedGroups />
 		<LegalInformation />
@@ -29,6 +29,7 @@
 		<Envelope />
 		<Reminders />
 		<TSA />
+		<Confetti />
 	</div>
 </template>
 
@@ -37,6 +38,7 @@ import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
 import CollectMetadata from './CollectMetadata.vue'
+import Confetti from './Confetti.vue'
 import CrlValidation from './CrlValidation.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
 import DocMDP from './DocMDP.vue'
@@ -50,7 +52,7 @@ import Reminders from './Reminders.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureEngine from './SignatureEngine.vue'
-import SettingsPolicyWorkbench from './PolicyWorkbench/RealPolicyWorkbench.vue'
+import SignatureFlow from './SignatureFlow.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
 import SignatureStamp from './SignatureStamp.vue'
 import SigningMode from './SigningMode.vue'
@@ -60,31 +62,5 @@ import Validation from './Validation.vue'
 
 defineOptions({
 	name: 'Settings',
-	components: {
-		AllowedGroups,
-		CertificateEngine,
-		ConfigureCheck,
-		CollectMetadata,
-		CrlValidation,
-		DefaultUserFolder,
-		DocMDP,
-		DownloadBinaries,
-		Envelope,
-		ExpirationRules,
-		IdentificationDocuments,
-		IdentificationFactors,
-		LegalInformation,
-		Reminders,
-		RootCertificateCfssl,
-		RootCertificateOpenSsl,
-		SettingsPolicyWorkbench,
-		SignatureEngine,
-		SignatureHashAlgorithm,
-		SignatureStamp,
-		SigningMode,
-		SupportProject,
-		TSA,
-		Validation,
-	},
 })
 </script>

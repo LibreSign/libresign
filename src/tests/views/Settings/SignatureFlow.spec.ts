@@ -6,7 +6,6 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createL10nMock } from '../../testHelpers/l10n.js'
 import { flushPromises, mount } from '@vue/test-utils'
-import { createPinia, setActivePinia } from 'pinia'
 
 type SignatureFlowOption = {
 	value: string
@@ -53,7 +52,6 @@ beforeAll(async () => {
 
 describe('SignatureFlow', () => {
 	beforeEach(() => {
-		setActivePinia(createPinia())
 		loadStateMock.mockReset()
 		generateOcsUrlMock.mockClear()
 		axiosPostMock.mockClear()
@@ -61,45 +59,8 @@ describe('SignatureFlow', () => {
 
 	it('uses boolean switch payload before saving', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'effective_policies') {
-				return {
-					policies: {
-						signature_flow: {
-							policyKey: 'signature_flow',
-							effectiveValue: 'parallel',
-							allowedValues: ['none', 'parallel', 'ordered_numeric'],
-							sourceScope: 'system',
-							visible: true,
-							editableByCurrentActor: true,
-							canSaveAsUserDefault: true,
-							canUseAsRequestOverride: false,
-							preferenceWasCleared: false,
-							blockedBy: null,
-						},
-					},
-				}
-			}
+			if (key === 'signature_flow') return 'parallel'
 			return fallback
-		})
-		axiosPostMock.mockResolvedValue({
-			data: {
-				ocs: {
-					data: {
-						policy: {
-							policyKey: 'signature_flow',
-							effectiveValue: 'none',
-							allowedValues: ['none', 'parallel', 'ordered_numeric'],
-							sourceScope: 'system',
-							visible: true,
-							editableByCurrentActor: true,
-							canSaveAsUserDefault: true,
-							canUseAsRequestOverride: true,
-							preferenceWasCleared: false,
-							blockedBy: null,
-						},
-					},
-				},
-			},
 		})
 
 		const wrapper = mount(SignatureFlow as never, {
@@ -121,51 +82,13 @@ describe('SignatureFlow', () => {
 
 		expect(axiosPostMock).toHaveBeenCalled()
 		const lastCall = axiosPostMock.mock.calls[axiosPostMock.mock.calls.length - 1] as [string, { enabled: boolean }]
-		expect(lastCall[0]).toBe('/apps/libresign/api/v1/policies/system/signature_flow')
-		expect(lastCall[1]).toEqual({ value: 'none' })
+		expect(lastCall[1].enabled).toBe(false)
 	})
 
 	it('loads backend mode and persists selected radio mode', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'effective_policies') {
-				return {
-					policies: {
-						signature_flow: {
-							policyKey: 'signature_flow',
-							effectiveValue: 'ordered_numeric',
-							allowedValues: ['none', 'parallel', 'ordered_numeric'],
-							sourceScope: 'system',
-							visible: true,
-							editableByCurrentActor: true,
-							canSaveAsUserDefault: true,
-							canUseAsRequestOverride: false,
-							preferenceWasCleared: false,
-							blockedBy: null,
-						},
-					},
-				}
-			}
+			if (key === 'signature_flow') return 'ordered_numeric'
 			return fallback
-		})
-		axiosPostMock.mockResolvedValue({
-			data: {
-				ocs: {
-					data: {
-						policy: {
-							policyKey: 'signature_flow',
-							effectiveValue: 'parallel',
-							allowedValues: ['none', 'parallel', 'ordered_numeric'],
-							sourceScope: 'system',
-							visible: true,
-							editableByCurrentActor: true,
-							canSaveAsUserDefault: true,
-							canUseAsRequestOverride: false,
-							preferenceWasCleared: false,
-							blockedBy: null,
-						},
-					},
-				},
-			},
 		})
 
 		const wrapper = mount(SignatureFlow as never, {
@@ -189,8 +112,7 @@ describe('SignatureFlow', () => {
 		await flushPromises()
 
 		expect(vm.selectedFlow?.value).toBe('parallel')
-		const lastCall = axiosPostMock.mock.calls[axiosPostMock.mock.calls.length - 1] as [string, { value: string }]
-		expect(lastCall[0]).toBe('/apps/libresign/api/v1/policies/system/signature_flow')
-		expect(lastCall[1].value).toBe('parallel')
+		const lastCall = axiosPostMock.mock.calls[axiosPostMock.mock.calls.length - 1] as [string, { mode: string }]
+		expect(lastCall[1].mode).toBe('parallel')
 	})
 })

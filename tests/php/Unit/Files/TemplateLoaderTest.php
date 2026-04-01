@@ -15,11 +15,10 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -33,7 +32,7 @@ final class TemplateLoaderTest extends TestCase {
 	private ValidateHelper&MockObject $validateHelper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
-	private PolicyService&MockObject $policyService;
+	private IAppConfig&MockObject $appConfig;
 	private IAppManager&MockObject $appManager;
 	private ConfigService&MockObject $docMdpConfigService;
 
@@ -45,7 +44,7 @@ final class TemplateLoaderTest extends TestCase {
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$this->policyService = $this->createMock(PolicyService::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->appManager = $this->createMock(IAppManager::class);
 		$this->docMdpConfigService = $this->createMock(ConfigService::class);
 	}
@@ -61,6 +60,10 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
 
+		$this->appConfig
+			->method('getValueString')
+			->willReturn('none');
+
 		$this->validateHelper
 			->method('canRequestSign');
 
@@ -68,21 +71,6 @@ final class TemplateLoaderTest extends TestCase {
 		$this->userSession
 			->method('getUser')
 			->willReturn($user);
-
-		$this->policyService
-			->method('resolveKnownPolicies')
-			->willReturn([
-				'signature_flow'
-				=> (new ResolvedPolicy())
-					->setPolicyKey('signature_flow')
-					->setEffectiveValue('parallel')
-					->setSourceScope('group')
-					->setVisible(true)
-					->setEditableByCurrentActor(true)
-					->setAllowedValues(['parallel', 'ordered_numeric'])
-					->setCanSaveAsUserDefault(true)
-					->setCanUseAsRequestOverride(true)
-			]);
 
 		$docMdpConfig = [
 			'enabled' => true,
@@ -99,22 +87,7 @@ final class TemplateLoaderTest extends TestCase {
 		$this->assertSame([
 			'certificate_ok' => true,
 			'identify_methods' => [],
-			'effective_policies' => [
-				'policies' => [
-					'signature_flow' => [
-						'policyKey' => 'signature_flow',
-						'effectiveValue' => 'parallel',
-						'sourceScope' => 'group',
-						'visible' => true,
-						'editableByCurrentActor' => true,
-						'allowedValues' => ['parallel', 'ordered_numeric'],
-						'canSaveAsUserDefault' => true,
-						'canUseAsRequestOverride' => true,
-						'preferenceWasCleared' => false,
-						'blockedBy' => null,
-					],
-				],
-			],
+			'signature_flow' => 'none',
 			'docmdp_config' => $docMdpConfig,
 			'can_request_sign' => true,
 		], $payload);
@@ -131,6 +104,10 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
 
+		$this->appConfig
+			->method('getValueString')
+			->willReturn('none');
+
 		$this->validateHelper
 			->method('canRequestSign')
 			->willThrowException(new \OCA\Libresign\Exception\LibresignException('no'));
@@ -139,21 +116,6 @@ final class TemplateLoaderTest extends TestCase {
 		$this->userSession
 			->method('getUser')
 			->willReturn($user);
-
-		$this->policyService
-			->method('resolveKnownPolicies')
-			->willReturn([
-				'signature_flow'
-				=> (new ResolvedPolicy())
-					->setPolicyKey('signature_flow')
-					->setEffectiveValue('none')
-					->setSourceScope('system')
-					->setVisible(true)
-					->setEditableByCurrentActor(true)
-					->setAllowedValues(['none', 'parallel', 'ordered_numeric'])
-					->setCanSaveAsUserDefault(true)
-					->setCanUseAsRequestOverride(true)
-			]);
 
 		$this->docMdpConfigService
 			->method('getConfig')
@@ -174,7 +136,7 @@ final class TemplateLoaderTest extends TestCase {
 			$this->validateHelper,
 			$this->identifyMethodService,
 			$this->certificateEngineFactory,
-			$this->policyService,
+			$this->appConfig,
 			$this->appManager,
 			$this->docMdpConfigService,
 		);
