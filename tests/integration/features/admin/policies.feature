@@ -42,10 +42,11 @@ Feature: admin/policies
       | value | parallel |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                | value          |
-      | (jq).ocs.data.policy.policyKey     | signature_flow |
-      | (jq).ocs.data.policy.sourceScope   | user           |
-      | (jq).ocs.data.policy.effectiveValue| parallel       |
+      | key                            | value          |
+      | (jq).ocs.data.policy.policyKey | signature_flow |
+      | (jq).ocs.data.policy.scope     | user           |
+      | (jq).ocs.data.policy.targetId  | signer1        |
+      | (jq).ocs.data.policy.value     | parallel       |
 
     Given as user "signer1"
     When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
