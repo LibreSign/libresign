@@ -20,7 +20,11 @@ import type {
 	GroupPolicyWritePayload,
 	GroupPolicyWriteResponse,
 	SystemPolicyWritePayload,
+	SystemPolicyResponse,
+	SystemPolicyState,
 	SystemPolicyWriteResponse,
+	UserPolicyResponse,
+	UserPolicyState,
 } from '../types/index'
 
 function isEffectivePolicyState(value: unknown): value is EffectivePolicyState {
@@ -52,6 +56,30 @@ function isGroupPolicyState(value: unknown): value is GroupPolicyState {
 		&& typeof candidate.allowChildOverride === 'boolean'
 		&& typeof candidate.visibleToChild === 'boolean'
 		&& Array.isArray(candidate.allowedValues)
+}
+
+function isSystemPolicyState(value: unknown): value is SystemPolicyState {
+	if (typeof value !== 'object' || value === null) {
+		return false
+	}
+
+	const candidate = value as Partial<SystemPolicyState>
+	return typeof candidate.policyKey === 'string'
+		&& (candidate.scope === 'system' || candidate.scope === 'global')
+		&& typeof candidate.allowChildOverride === 'boolean'
+		&& typeof candidate.visibleToChild === 'boolean'
+		&& Array.isArray(candidate.allowedValues)
+}
+
+function isUserPolicyState(value: unknown): value is UserPolicyState {
+	if (typeof value !== 'object' || value === null) {
+		return false
+	}
+
+	const candidate = value as Partial<UserPolicyState>
+	return typeof candidate.policyKey === 'string'
+		&& candidate.scope === 'user'
+		&& typeof candidate.targetId === 'string'
 }
 
 function sanitizePolicies(rawPolicies: Record<string, unknown>): EffectivePoliciesState {
@@ -117,6 +145,32 @@ const _policiesStore = defineStore('policies', () => {
 
 		const policy = response.data?.ocs?.data?.policy
 		if (!isGroupPolicyState(policy)) {
+			return null
+		}
+
+		return policy
+	}
+
+	const fetchSystemPolicy = async (policyKey: string): Promise<SystemPolicyState | null> => {
+		const response = await axios.get<{ ocs?: { data?: SystemPolicyResponse } }>(
+			generateOcsUrl(`/apps/libresign/api/v1/policies/system/${policyKey}`),
+		)
+
+		const policy = response.data?.ocs?.data?.policy
+		if (!isSystemPolicyState(policy)) {
+			return null
+		}
+
+		return policy
+	}
+
+	const fetchUserPolicyForUser = async (userId: string, policyKey: string): Promise<UserPolicyState | null> => {
+		const response = await axios.get<{ ocs?: { data?: UserPolicyResponse } }>(
+			generateOcsUrl(`/apps/libresign/api/v1/policies/user/${userId}/${policyKey}`),
+		)
+
+		const policy = response.data?.ocs?.data?.policy
+		if (!isUserPolicyState(policy)) {
 			return null
 		}
 
@@ -244,6 +298,8 @@ const _policiesStore = defineStore('policies', () => {
 		setPolicies,
 		fetchEffectivePolicies,
 		fetchGroupPolicy,
+		fetchSystemPolicy,
+		fetchUserPolicyForUser,
 		saveSystemPolicy,
 		saveGroupPolicy,
 		clearGroupPolicy,
@@ -264,4 +320,6 @@ export const usePoliciesStore = function(...args: Parameters<typeof _policiesSto
 export {
 	isEffectivePolicyState,
 	isGroupPolicyState,
+	isSystemPolicyState,
+	isUserPolicyState,
 }
