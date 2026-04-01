@@ -7,8 +7,8 @@
 	<section class="policy-workbench__editor-panel">
 		<div class="policy-workbench__editor-panel-content" :class="{ 'policy-workbench__editor-panel-content--saving': saveStatus === 'saving' }">
 			<div class="policy-workbench__editor-header">
-				<p>{{ editorHelp }}</p>
-				<p class="policy-workbench__precedence-hint">{{ t('libresign', 'Priority: User overrides Group, which overrides Default') }}</p>
+				<p v-if="editorHelp">{{ editorHelp }}</p>
+				<p class="policy-workbench__precedence-hint">{{ t('libresign', 'Priority: User > Group > Default') }}</p>
 			</div>
 
 			<div v-if="editorDraft.scope !== 'system'" class="policy-workbench__field">
@@ -57,21 +57,17 @@
 				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="t('libresign', 'Go back to rule type selection')" :disabled="saveStatus === 'saving'" @click="$emit('back')">
 					{{ t('libresign', '← Back') }}
 				</NcButton>
-				<NcButton variant="primary" :aria-label="editorMode === 'edit' ? t('libresign', 'Save policy rule changes') : t('libresign', 'Create policy rule')" :disabled="!canSaveDraft || saveStatus === 'saving'" @click="$emit('save')">
+				<NcButton variant="primary" :aria-label="editorMode === 'edit' ? t('libresign', 'Save policy rule changes') : t('libresign', 'Create policy rule')" :loading="saveStatus === 'saving'" :disabled="!canSaveDraft" @click="$emit('save')">
 					{{ editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule') }}
 				</NcButton>
 				<NcButton variant="secondary" :aria-label="t('libresign', 'Cancel editing')" :disabled="saveStatus === 'saving'" @click="$emit('cancel')">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 			</div>
-			<p v-if="saveStatus !== 'idle'" class="policy-workbench__save-feedback" aria-live="polite">
-				{{ saveStatus === 'saving' ? t('libresign', 'Saving...') : t('libresign', 'Changes saved') }}
-			</p>
 		</div>
 
 		<div v-if="saveStatus === 'saving'" class="policy-workbench__saving-overlay" aria-live="polite" aria-busy="true">
 			<div class="policy-workbench__saving-spinner" aria-hidden="true"></div>
-			<p>{{ t('libresign', 'Saving...') }}</p>
 		</div>
 	</section>
 </template>
