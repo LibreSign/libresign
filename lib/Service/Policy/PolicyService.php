@@ -137,7 +137,7 @@ class PolicyService {
 		return $this->resolver->resolve($definition, $context);
 	}
 
-	public function saveUserPreferenceForUserId(string|\BackedEnum $policyKey, string $userId, mixed $value): ResolvedPolicy {
+	public function saveUserPreferenceForUserId(string|\BackedEnum $policyKey, string $userId, mixed $value): ?PolicyLayer {
 		$context = $this->contextFactory->forUserId($userId);
 		$definition = $this->registry->get($policyKey);
 		$resolved = $this->resolver->resolve($definition, $context);
@@ -149,14 +149,17 @@ class PolicyService {
 		$definition->validateValue($normalizedValue, $context);
 		$this->source->saveUserPreference($definition->key(), $context, $normalizedValue);
 
-		return $this->resolver->resolve($definition, $context);
+		return $this->source->loadUserPreference($definition->key(), $context)
+			?? (new PolicyLayer())
+				->setScope('user')
+				->setValue($normalizedValue);
 	}
 
-	public function clearUserPreferenceForUserId(string|\BackedEnum $policyKey, string $userId): ResolvedPolicy {
+	public function clearUserPreferenceForUserId(string|\BackedEnum $policyKey, string $userId): ?PolicyLayer {
 		$context = $this->contextFactory->forUserId($userId);
 		$definition = $this->registry->get($policyKey);
 		$this->source->clearUserPreference($definition->key(), $context);
 
-		return $this->resolver->resolve($definition, $context);
+		return $this->source->loadUserPreference($definition->key(), $context);
 	}
 }
