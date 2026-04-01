@@ -10,6 +10,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
 import { generateOCSResponse } from '../test-helpers'
+import { usePoliciesStore } from '../../store/policies'
 
 type AxiosMock = Mock & {
 	get: Mock
@@ -1229,6 +1230,41 @@ describe('files store - critical business rules', () => {
 			expect(config.data.signatureFlow).toBe('ordered_numeric')
 			expect(config.data.file.nodeId).toBe(99)
 			expect(config.data.file.settings).toEqual({ path: '/files/contract.pdf' })
+		})
+
+		it('omits signatureFlow when policy blocks request overrides', async () => {
+			const store = useFilesStore()
+			const policiesStore = usePoliciesStore()
+			policiesStore.setPolicies({
+				signature_flow: {
+					policyKey: 'signature_flow',
+					effectiveValue: 'ordered_numeric',
+					sourceScope: 'global',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: ['ordered_numeric'],
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					blockedBy: 'global',
+				},
+			})
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				nodeId: 99,
+				name: 'contract.pdf',
+				signatureFlow: 'ordered_numeric',
+				signers: [],
+			}
+			axiosMock.mockResolvedValue({
+				data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'ordered_numeric', signers: [] } } },
+			})
+
+			await store.saveOrUpdateSignatureRequest({ status: 1 })
+
+			const config = axiosMock.mock.calls[0][0]
+			expect(config.data.signatureFlow).toBeUndefined()
 		})
 
 		it('sorts ordered_numeric signers by signingOrder', async () => {
