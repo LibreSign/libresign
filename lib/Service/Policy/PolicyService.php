@@ -63,6 +63,17 @@ class PolicyService {
 		return $this->resolver->resolveMany($definitions, $context);
 	}
 
+	public function getSystemPolicy(string|\BackedEnum $policyKey): ?PolicyLayer {
+		$definition = $this->registry->get($policyKey);
+		return $this->source->loadSystemPolicy($definition->key());
+	}
+
+	public function getUserPreferenceForUserId(string|\BackedEnum $policyKey, string $userId): ?PolicyLayer {
+		$definition = $this->registry->get($policyKey);
+		$context = $this->contextFactory->forUserId($userId);
+		return $this->source->loadUserPreference($definition->key(), $context);
+	}
+
 	public function saveSystem(string|\BackedEnum $policyKey, mixed $value, bool $allowChildOverride = false): ResolvedPolicy {
 		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
