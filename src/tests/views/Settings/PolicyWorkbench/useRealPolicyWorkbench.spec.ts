@@ -352,6 +352,22 @@ describe('useRealPolicyWorkbench', () => {
 		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', false)
 	})
 
+	it('saves fixed parallel system signature_flow rule without child override', async () => {
+		getPolicy.mockReturnValue({
+			effectiveValue: 'none',
+			sourceScope: 'system',
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue('parallel' as never)
+
+		await state.saveDraft()
+
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'parallel', false)
+	})
+
 	it('forces hidden signature_flow override state to remain locked in system and group editors', async () => {
 		fetchSystemPolicy.mockResolvedValue({
 			policyKey: 'signature_flow',
@@ -379,6 +395,33 @@ describe('useRealPolicyWorkbench', () => {
 
 		state.cancelEditor()
 		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.allowChildOverride).toBe(false)
+	})
+
+	it('locks signature_flow system create draft even when inherited rule allows overrides', async () => {
+		fetchSystemPolicy.mockResolvedValue({
+			policyKey: 'signature_flow',
+			scope: 'global',
+			value: 'parallel',
+			allowChildOverride: true,
+			visibleToChild: true,
+			allowedValues: [],
+		})
+		getPolicy.mockReturnValue({
+			effectiveValue: 'parallel',
+			sourceScope: 'global',
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		await vi.waitFor(() => {
+			expect(fetchSystemPolicy).toHaveBeenCalledWith('signature_flow')
+			expect(state.inheritedSystemRule?.allowChildOverride).toBe(true)
+		})
+
+		state.startEditor({ scope: 'system' })
+		expect(state.editorMode).toBe('create')
 		expect(state.editorDraft?.allowChildOverride).toBe(false)
 	})
 
