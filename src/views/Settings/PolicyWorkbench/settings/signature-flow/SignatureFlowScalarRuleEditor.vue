@@ -9,6 +9,7 @@
 			<NcCheckboxRadioSwitch
 				v-for="flow in flows"
 				:key="flow.value"
+				class="signature-flow-scalar-editor__option"
 				type="radio"
 				:model-value="normalizedValue === flow.value"
 				name="signature-flow-scalar-editor"
@@ -89,9 +90,26 @@ function onFlowChange(flow: SignatureFlowMode | 'none', selected?: unknown) {
 		gap: 0.75rem;
 	}
 
+	&__option {
+		width: 100%;
+	}
+
 	&__copy p {
 		margin: 0.35rem 0 0;
 		color: var(--color-text-maxcontrast);
+	}
+
+	:deep(.signature-flow-scalar-editor__option.checkbox-radio-switch) {
+		width: 100%;
+	}
+
+	:deep(.signature-flow-scalar-editor__option .checkbox-radio-switch__content) {
+		width: 100%;
+		max-width: none;
+	}
+
+	:deep(.signature-flow-scalar-editor__option.checkbox-radio-switch--checked:focus-within .checkbox-radio-switch__content) {
+		background-color: transparent;
 	}
 }
 </style>
