@@ -392,8 +392,11 @@ class RequestSignatureService {
 		);
 		$this->assertSignatureFlowOverrideAllowed($requestOverrides, $resolvedPolicy);
 		$newFlow = SignatureFlow::from((string)$resolvedPolicy->getEffectiveValue());
+		$metadataBeforeUpdate = $file->getMetadata() ?? [];
+		$this->storePolicySnapshot($file, $resolvedPolicy);
+		$metadataChanged = ($file->getMetadata() ?? []) !== $metadataBeforeUpdate;
 
-		if ($file->getSignatureFlowEnum() !== $newFlow) {
+		if ($file->getSignatureFlowEnum() !== $newFlow || $metadataChanged) {
 			$file->setSignatureFlowEnum($newFlow);
 			$this->fileService->update($file);
 		}
