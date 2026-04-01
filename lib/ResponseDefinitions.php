@@ -431,6 +431,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignGroupPolicyWriteResponse = LibresignMessageResponse&LibresignGroupPolicyResponse
  * @psalm-type LibresignSystemPolicyWriteResponse = LibresignMessageResponse&LibresignEffectivePolicyResponse
+ * @psalm-type LibresignUserPolicyWriteResponse = LibresignMessageResponse&LibresignUserPolicyResponse
  * @psalm-type LibresignPolicySnapshotEntry = array{
  *     effectiveValue: string,
  *     sourceScope: string,
