@@ -392,6 +392,26 @@ namespace OCA\Libresign;
  *     value: LibresignEffectivePolicyValue,
  *     allowChildOverride: bool,
  * }
+ * @psalm-type LibresignSystemPolicyState = array{
+ *     policyKey: string,
+ *     scope: 'system'|'global',
+ *     value: null|LibresignEffectivePolicyValue,
+ *     allowChildOverride: bool,
+ *     visibleToChild: bool,
+ *     allowedValues: list<LibresignEffectivePolicyValue>,
+ * }
+ * @psalm-type LibresignSystemPolicyResponse = array{
+ *     policy: LibresignSystemPolicyState,
+ * }
+ * @psalm-type LibresignUserPolicyState = array{
+ *     policyKey: string,
+ *     scope: 'user',
+ *     targetId: string,
+ *     value: null|LibresignEffectivePolicyValue,
+ * }
+ * @psalm-type LibresignUserPolicyResponse = array{
+ *     policy: LibresignUserPolicyState,
+ * }
  * @psalm-type LibresignGroupPolicyWriteResponse = LibresignMessageResponse&LibresignGroupPolicyResponse
  * @psalm-type LibresignSystemPolicyWriteResponse = LibresignMessageResponse&LibresignEffectivePolicyResponse
  * @psalm-type LibresignPolicySnapshotEntry = array{
