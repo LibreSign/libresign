@@ -955,6 +955,14 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('john');
 		$file->setSignatureFlowEnum(SignatureFlow::PARALLEL);
+		$file->setMetadata([
+			'policy_snapshot' => [
+				'signature_flow' => [
+					'effectiveValue' => SignatureFlow::PARALLEL->value,
+					'sourceScope' => 'system',
+				],
+			],
+		]);
 		$this->policyService
 			->expects($this->once())
 			->method('resolveForUserId')
@@ -971,6 +979,39 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		]);
 
 		$this->assertSame(SignatureFlow::PARALLEL, $file->getSignatureFlowEnum());
+	}
+
+	public function testUpdateSignatureFlowIfAllowedStoresResolvedPolicySnapshotWhenMissing(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('john');
+		$file->setSignatureFlowEnum(SignatureFlow::PARALLEL);
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(SignatureFlowPolicy::KEY, 'john', [])
+			->willReturn($this->createResolvedPolicy(
+				SignatureFlow::PARALLEL->value,
+				sourceScope: 'group',
+			));
+
+		$this->fileService
+			->expects($this->once())
+			->method('update')
+			->with($this->identicalTo($file));
+
+		self::invokePrivate($this->getService(), 'updateSignatureFlowIfAllowed', [
+			$file,
+			[],
+		]);
+
+		$this->assertSame([
+			'policy_snapshot' => [
+				'signature_flow' => [
+					'effectiveValue' => SignatureFlow::PARALLEL->value,
+					'sourceScope' => 'group',
+				],
+			],
+		], $file->getMetadata());
 	}
 
 	private function createResolvedPolicy(
