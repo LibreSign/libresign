@@ -1561,7 +1561,11 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Read explicit system policy configuration
+         * @description This endpoint requires admin access
+         */
+        get: operations["policy-get-system"];
         put?: never;
         /**
          * Save a system-level policy value
@@ -1581,7 +1585,11 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Read a user-level policy preference for a target user (admin scope)
+         * @description This endpoint requires admin access
+         */
+        get: operations["policy-get-user-policy-for-user"];
         /**
          * Save a user policy preference for a target user (admin scope)
          * @description This endpoint requires admin access
@@ -2371,6 +2379,18 @@ export type components = {
             /** @enum {string} */
             status: "success";
         };
+        SystemPolicyResponse: {
+            policy: components["schemas"]["SystemPolicyState"];
+        };
+        SystemPolicyState: {
+            policyKey: string;
+            /** @enum {string} */
+            scope: "system" | "global";
+            value: components["schemas"]["EffectivePolicyValue"];
+            allowChildOverride: boolean;
+            visibleToChild: boolean;
+            allowedValues: components["schemas"]["EffectivePolicyValue"][];
+        };
         SystemPolicyWriteRequest: {
             value: components["schemas"]["EffectivePolicyValue"];
         };
@@ -2399,6 +2419,17 @@ export type components = {
         UserElementsResponse: {
             elements: components["schemas"]["UserElement"][];
         };
+        UserPolicyResponse: {
+            policy: components["schemas"]["UserPolicyState"];
+        };
+        UserPolicyState: {
+            policyKey: string;
+            /** @enum {string} */
+            scope: "user";
+            targetId: string;
+            value: components["schemas"]["EffectivePolicyValue"];
+        };
+        UserPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["UserPolicyResponse"];
         ValidateMetadata: {
             extension: string;
             /** Format: int64 */
@@ -7325,6 +7356,38 @@ export interface operations {
             };
         };
     };
+    "policy-get-system": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to read from the system layer. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SystemPolicyResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
     "policy-set-system": {
         parameters: {
             query?: never;
@@ -7397,6 +7460,40 @@ export interface operations {
             };
         };
     };
+    "policy-get-user-policy-for-user": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy preference. */
+                userId: string;
+                /** @description Policy identifier to read for the selected user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserPolicyResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
     "policy-set-user-policy-for-user": {
         parameters: {
             query?: never;
@@ -7431,7 +7528,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SystemPolicyWriteResponse"];
+                            data: components["schemas"]["UserPolicyWriteResponse"];
                         };
                     };
                 };
@@ -7493,7 +7590,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SystemPolicyWriteResponse"];
+                            data: components["schemas"]["UserPolicyWriteResponse"];
                         };
                     };
                 };
