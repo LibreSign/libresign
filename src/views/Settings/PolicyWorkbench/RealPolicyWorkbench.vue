@@ -182,43 +182,53 @@
 					</div>
 
 					<div class="policy-workbench__table-toolbar-row policy-workbench__table-toolbar-row--crud">
-						<NcAppNavigationSearch
-							:model-value="crudSearch"
-							:label="t('libresign', 'Search rules')"
-							:placeholder="t('libresign', 'Search rules')"
-							@update:modelValue="onCrudSearchChange">
-							<template #actions>
-								<NcActions :aria-label="t('libresign', 'Filter rules by scope')" :title="t('libresign', 'Filter by scope')">
-									<template #icon>
-										<NcIconSvgWrapper :path="mdiFilterVariant" :size="20" :title="t('libresign', 'Filter by scope')" />
-									</template>
-									<NcActionButton @click="setCrudScopeFilter('all', true)">
+						<div class="policy-workbench__search-with-chips">
+							<NcAppNavigationSearch
+								:model-value="crudSearch"
+								:label="t('libresign', 'Search rules')"
+								:placeholder="t('libresign', 'Search rules')"
+								@update:modelValue="onCrudSearchChange">
+								<template #actions>
+									<NcActions
+										:open="scopeFilterOpen"
+										:aria-label="t('libresign', 'Filter rules by scope')"
+										:title="t('libresign', 'Filter by scope')"
+										@update:open="scopeFilterOpen = $event">
 										<template #icon>
-											<NcIconSvgWrapper :path="mdiFilterVariant" :size="16" />
+											<NcIconSvgWrapper :path="mdiFilterVariant" :size="20" :title="t('libresign', 'Filter by scope')" />
 										</template>
-										{{ t('libresign', 'All scopes') }}
-									</NcActionButton>
-									<NcActionButton @click="setCrudScopeFilter('system', true)">
-										<template #icon>
-											<NcIconSvgWrapper :path="mdiOfficeBuildingOutline" :size="16" />
-										</template>
-										{{ t('libresign', 'Instance') }}
-									</NcActionButton>
-									<NcActionButton @click="setCrudScopeFilter('group', true)">
-										<template #icon>
-											<NcIconSvgWrapper :path="mdiAccountMultipleOutline" :size="16" />
-										</template>
-										{{ t('libresign', 'Group') }}
-									</NcActionButton>
-									<NcActionButton @click="setCrudScopeFilter('user', true)">
-										<template #icon>
-											<NcIconSvgWrapper :path="mdiAccountOutline" :size="16" />
-										</template>
-										{{ t('libresign', 'User') }}
-									</NcActionButton>
-								</NcActions>
-							</template>
-						</NcAppNavigationSearch>
+										<NcActionButton :model-value="crudScopeFilter === 'all'" @click="setCrudScopeFilter('all', true)">
+											<template #icon>
+												<NcIconSvgWrapper :path="mdiFilterVariant" :size="16" />
+											</template>
+											{{ t('libresign', 'All scopes') }}
+										</NcActionButton>
+										<NcActionButton :model-value="crudScopeFilter === 'system'" @click="setCrudScopeFilter('system', true)">
+											<template #icon>
+												<NcIconSvgWrapper :path="mdiOfficeBuildingOutline" :size="16" />
+											</template>
+											{{ t('libresign', 'Instance') }}
+										</NcActionButton>
+										<NcActionButton :model-value="crudScopeFilter === 'group'" @click="setCrudScopeFilter('group', true)">
+											<template #icon>
+												<NcIconSvgWrapper :path="mdiAccountMultipleOutline" :size="16" />
+											</template>
+											{{ t('libresign', 'Group') }}
+										</NcActionButton>
+										<NcActionButton :model-value="crudScopeFilter === 'user'" @click="setCrudScopeFilter('user', true)">
+											<template #icon>
+												<NcIconSvgWrapper :path="mdiAccountOutline" :size="16" />
+											</template>
+											{{ t('libresign', 'User') }}
+										</NcActionButton>
+									</NcActions>
+								</template>
+							</NcAppNavigationSearch>
+
+							<div v-if="activeScopeFilterChip" class="policy-workbench__crud-filter-chips">
+								<NcChip :aria-label-close="t('libresign', 'Remove filter')" :text="activeScopeFilterChip" @close="setCrudScopeFilter('all', true)" />
+							</div>
+						</div>
 
 						<NcButton
 							v-if="state.viewMode === 'system-admin'"
@@ -234,10 +244,6 @@
 							</template>
 							{{ t('libresign', 'Create rule') }}
 						</NcButton>
-
-						<div v-if="activeScopeFilterChip" class="policy-workbench__crud-filter-chips">
-							<NcChip :aria-label-close="t('libresign', 'Remove filter')" :text="activeScopeFilterChip" @close="setCrudScopeFilter('all', true)" />
-						</div>
 					</div>
 
 					<p v-if="createRuleDisabledReason && state.viewMode === 'system-admin'" class="policy-workbench__table-note policy-workbench__table-note--align-right">
@@ -447,6 +453,7 @@ const openRuleActionsKey = ref<string | null>(null)
 const crudSearch = ref('')
 const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
 const crudPage = ref(1)
+const scopeFilterOpen = ref(false)
 const CRUD_PAGE_SIZE = 20
 
 const DRAG_OPEN_THRESHOLD_PX = 6
@@ -724,7 +731,7 @@ const ruleDialogButtons = computed(() => {
 		label: string,
 		variant: 'primary' | 'secondary' | 'tertiary',
 		disabled?: boolean,
-		callback: () => false,
+		callback: () => false | Promise<false>,
 	}> = []
 
 	if (showCreateRuleBackAction.value) {
@@ -742,10 +749,10 @@ const ruleDialogButtons = computed(() => {
 	buttons.push({
 		label: state.editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule'),
 		variant: 'primary',
-		disabled: !state.canSaveDraft || saveStatus.value === 'saving',
-		callback: () => {
-			void handleSaveDraft()
-			return false
+		disabled: !state.canSaveDraft,
+		callback: async () => {
+			await handleSaveDraft()
+			return false as const
 		},
 	})
 
@@ -860,6 +867,7 @@ function setCrudScopeFilter(value: 'all' | 'system' | 'group' | 'user', selected
 
 	crudScopeFilter.value = value
 	crudPage.value = 1
+	scopeFilterOpen.value = false
 }
 
 function requestCreateRule() {
@@ -1314,7 +1322,8 @@ onBeforeUnmount(() => {
 	&__crud-filter-chips {
 		display: flex;
 		align-items: center;
-		margin-left: auto;
+		gap: 0.35rem;
+		flex-wrap: wrap;
 	}
 
 	&__settings-grid {
@@ -1679,12 +1688,19 @@ onBeforeUnmount(() => {
 		margin-bottom: 0.75rem;
 
 		&--crud {
-			align-items: flex-end;
+			align-items: flex-start;
 			gap: 0.85rem;
 
-			:deep(.app-navigation-search) {
+			.policy-workbench__search-with-chips {
 				flex: 1 1 360px;
 				min-width: min(100%, 420px);
+				display: flex;
+				flex-direction: column;
+				gap: 0.35rem;
+
+				:deep(.app-navigation-search) {
+					width: 100%;
+				}
 			}
 
 			:deep(.app-navigation-search__actions) {
@@ -1801,9 +1817,7 @@ onBeforeUnmount(() => {
 		}
 
 		&__crud-filter-chips {
-			width: 100%;
 			justify-content: flex-start;
-			margin-left: 0;
 		}
 
 		&__table-note--align-right {
