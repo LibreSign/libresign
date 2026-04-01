@@ -29,7 +29,9 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignGroupPolicyResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignGroupPolicyState from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignGroupPolicyWriteResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignSystemPolicyResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignSystemPolicyWriteResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignUserPolicyResponse from \OCA\Libresign\ResponseDefinitions
  */
 final class PolicyController extends AEnvironmentAwareController {
 	public function __construct(
@@ -71,6 +73,33 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Read explicit system policy configuration
+	 *
+	 * @param string $policyKey Policy identifier to read from the system layer.
+	 * @return DataResponse<Http::STATUS_OK, LibresignSystemPolicyResponse, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/system/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
+	public function getSystem(string $policyKey): DataResponse {
+		$policy = $this->policyService->getSystemPolicy($policyKey);
+
+		/** @var LibresignSystemPolicyResponse $data */
+		$data = [
+			'policy' => [
+				'policyKey' => $policyKey,
+				'scope' => ($policy?->getScope() === 'global' ? 'global' : 'system'),
+				'value' => $policy?->getValue(),
+				'allowChildOverride' => $policy?->isAllowChildOverride() ?? true,
+				'visibleToChild' => $policy?->isVisibleToChild() ?? true,
+				'allowedValues' => $policy?->getAllowedValues() ?? [],
+			],
+		];
+
+		return new DataResponse($data);
+	}
+
+	/**
 	 * Read a group-level policy value
 	 *
 	 * @param string $groupId Group identifier that receives the policy binding.
@@ -92,6 +121,32 @@ final class PolicyController extends AEnvironmentAwareController {
 		/** @var LibresignGroupPolicyResponse $data */
 		$data = [
 			'policy' => $this->serializeGroupPolicy($groupId, $policyKey, $policy),
+		];
+
+		return new DataResponse($data);
+	}
+
+	/**
+	 * Read a user-level policy preference for a target user (admin scope)
+	 *
+	 * @param string $userId Target user identifier that receives the policy preference.
+	 * @param string $policyKey Policy identifier to read for the selected user.
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyResponse, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
+	public function getUserPolicyForUser(string $userId, string $policyKey): DataResponse {
+		$policy = $this->policyService->getUserPreferenceForUserId($policyKey, $userId);
+
+		/** @var LibresignUserPolicyResponse $data */
+		$data = [
+			'policy' => [
+				'policyKey' => $policyKey,
+				'scope' => 'user',
+				'targetId' => $userId,
+				'value' => $policy?->getValue(),
+			],
 		];
 
 		return new DataResponse($data);
