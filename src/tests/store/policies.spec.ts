@@ -220,6 +220,58 @@ describe('policies store', () => {
 		expect(policy?.value).toBe('parallel')
 	})
 
+	it('loads an explicit system policy through the generic endpoint', async () => {
+		vi.mocked(axios.get).mockResolvedValueOnce({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'signature_flow',
+							scope: 'global',
+							value: 'ordered_numeric',
+							allowChildOverride: false,
+							visibleToChild: true,
+							allowedValues: ['ordered_numeric'],
+						},
+					},
+				},
+			},
+		})
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		const policy = await store.fetchSystemPolicy('signature_flow')
+
+		expect(axios.get).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/policies/system/signature_flow')
+		expect(policy?.scope).toBe('global')
+		expect(policy?.value).toBe('ordered_numeric')
+	})
+
+	it('loads a target user policy through the admin endpoint', async () => {
+		vi.mocked(axios.get).mockResolvedValueOnce({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'signature_flow',
+							scope: 'user',
+							targetId: 'user1',
+							value: 'parallel',
+						},
+					},
+				},
+			},
+		})
+
+		const { usePoliciesStore } = await import('../../store/policies')
+		const store = usePoliciesStore()
+		const policy = await store.fetchUserPolicyForUser('user1', 'signature_flow')
+
+		expect(axios.get).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/policies/user/user1/signature_flow')
+		expect(policy?.targetId).toBe('user1')
+		expect(policy?.value).toBe('parallel')
+	})
+
 	it('saves a group policy through the generic endpoint', async () => {
 		vi.mocked(axios.put).mockResolvedValueOnce({
 			data: {
