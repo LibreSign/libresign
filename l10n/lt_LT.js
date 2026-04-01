@@ -82,6 +82,7 @@ OC.L10N.register(
     "Name cannot be empty" : "Pavadinimas negali būti tuščias",
     "Cancel" : "Atsisakyti",
     "Save" : "Įrašyti",
+    "Draw" : "Piešti",
     "Text" : "Tekstas",
     "Upload" : "Įkelti",
     "Customize your signatures" : "Tinkinti parašus",
