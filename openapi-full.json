@@ -2717,6 +2717,56 @@
                     }
                 }
             },
+            "SystemPolicyResponse": {
+                "type": "object",
+                "required": [
+                    "policy"
+                ],
+                "properties": {
+                    "policy": {
+                        "$ref": "#/components/schemas/SystemPolicyState"
+                    }
+                }
+            },
+            "SystemPolicyState": {
+                "type": "object",
+                "required": [
+                    "policyKey",
+                    "scope",
+                    "value",
+                    "allowChildOverride",
+                    "visibleToChild",
+                    "allowedValues"
+                ],
+                "properties": {
+                    "policyKey": {
+                        "type": "string"
+                    },
+                    "scope": {
+                        "type": "string",
+                        "enum": [
+                            "system",
+                            "global"
+                        ]
+                    },
+                    "value": {
+                        "$ref": "#/components/schemas/EffectivePolicyValue",
+                        "nullable": true
+                    },
+                    "allowChildOverride": {
+                        "type": "boolean"
+                    },
+                    "visibleToChild": {
+                        "type": "boolean"
+                    },
+                    "allowedValues": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EffectivePolicyValue"
+                        }
+                    }
+                }
+            },
             "SystemPolicyWriteRequest": {
                 "type": "object",
                 "required": [
@@ -2819,6 +2869,54 @@
                         }
                     }
                 }
+            },
+            "UserPolicyResponse": {
+                "type": "object",
+                "required": [
+                    "policy"
+                ],
+                "properties": {
+                    "policy": {
+                        "$ref": "#/components/schemas/UserPolicyState"
+                    }
+                }
+            },
+            "UserPolicyState": {
+                "type": "object",
+                "required": [
+                    "policyKey",
+                    "scope",
+                    "targetId",
+                    "value"
+                ],
+                "properties": {
+                    "policyKey": {
+                        "type": "string"
+                    },
+                    "scope": {
+                        "type": "string",
+                        "enum": [
+                            "user"
+                        ]
+                    },
+                    "targetId": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "$ref": "#/components/schemas/EffectivePolicyValue",
+                        "nullable": true
+                    }
+                }
+            },
+            "UserPolicyWriteResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/MessageResponse"
+                    },
+                    {
+                        "$ref": "#/components/schemas/UserPolicyResponse"
+                    }
+                ]
             },
             "ValidateMetadata": {
                 "type": "object",
@@ -14408,6 +14506,88 @@
             }
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/system/{policyKey}": {
+            "get": {
+                "operationId": "policy-get-system",
+                "summary": "Read explicit system policy configuration",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "policy"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "policyKey",
+                        "in": "path",
+                        "description": "Policy identifier to read from the system layer.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/SystemPolicyResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "operationId": "policy-set-system",
                 "summary": "Save a system-level policy value",
@@ -14589,6 +14769,98 @@
             }
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{userId}/{policyKey}": {
+            "get": {
+                "operationId": "policy-get-user-policy-for-user",
+                "summary": "Read a user-level policy preference for a target user (admin scope)",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "policy"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "Target user identifier that receives the policy preference.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[^/]+$"
+                        }
+                    },
+                    {
+                        "name": "policyKey",
+                        "in": "path",
+                        "description": "Policy identifier to read for the selected user.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/UserPolicyResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "put": {
                 "operationId": "policy-set-user-policy-for-user",
                 "summary": "Save a user policy preference for a target user (admin scope)",
@@ -14702,7 +14974,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/SystemPolicyWriteResponse"
+                                                    "$ref": "#/components/schemas/UserPolicyWriteResponse"
                                                 }
                                             }
                                         }
@@ -14854,7 +15126,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/SystemPolicyWriteResponse"
+                                                    "$ref": "#/components/schemas/UserPolicyWriteResponse"
                                                 }
                                             }
                                         }
