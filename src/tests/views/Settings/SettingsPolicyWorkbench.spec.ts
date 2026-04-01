@@ -17,11 +17,17 @@ const getPolicy = vi.fn((key: string) => {
 
 	return null
 })
+const fetchSystemPolicy = vi.fn().mockResolvedValue(null)
+const fetchGroupPolicy = vi.fn().mockResolvedValue(null)
+const fetchUserPolicyForUser = vi.fn().mockResolvedValue(null)
 
 vi.mock('../../../store/policies', () => ({
 	usePoliciesStore: () => ({
 		getPolicy,
 		fetchEffectivePolicies: vi.fn().mockResolvedValue(undefined),
+		fetchSystemPolicy,
+		fetchGroupPolicy,
+		fetchUserPolicyForUser,
 		saveSystemPolicy: vi.fn().mockResolvedValue(undefined),
 		saveGroupPolicy: vi.fn().mockResolvedValue(undefined),
 		saveUserPreference: vi.fn().mockResolvedValue(undefined),
@@ -75,6 +81,9 @@ function findButtonContainingText(wrapper: ReturnType<typeof mountWorkbench>, te
 describe('RealPolicyWorkbench.vue', () => {
 	beforeEach(() => {
 		getPolicy.mockReset()
+		fetchSystemPolicy.mockReset().mockResolvedValue(null)
+		fetchGroupPolicy.mockReset().mockResolvedValue(null)
+		fetchUserPolicyForUser.mockReset().mockResolvedValue(null)
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'signature_flow') {
 				return { effectiveValue: 'ordered_numeric' }
@@ -108,7 +117,8 @@ describe('RealPolicyWorkbench.vue', () => {
 		const editorModal = wrapper.find('.policy-workbench__editor-modal-body')
 		expect(editorModal.exists()).toBe(true)
 		const editorText = editorModal.text()
-		expect(editorText).toContain('This rule overrides group and default settings for selected users.')
+		expect(editorText).toContain('Priority: User > Group > Default')
+		expect(editorText).not.toContain('This rule overrides group and default settings for selected users.')
 		expect(editorText).toContain('Target users')
 		expect(editorText).toContain('Search users')
 		expect(editorText).toContain('Simultaneous (Parallel)')
@@ -142,7 +152,8 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.find('.policy-workbench__editor-aside').exists()).toBe(false)
 
 		const editorText = wrapper.find('.policy-workbench__editor-modal-body').text()
-		expect(editorText).toContain('This sets the default signing order for everyone.')
+		expect(editorText).toContain('Priority: User > Group > Default')
+		expect(editorText).not.toContain('This sets the default signing order for everyone.')
 		expect(wrapper.text()).toContain('Save changes')
 		expect(wrapper.text()).toContain('Cancel')
 		expect(wrapper.text()).not.toContain('← Back')
@@ -195,7 +206,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).toContain('Control how signers complete documents.')
 		expect(text).toContain('Default:')
 		expect(text).toContain('Let users choose')
-		expect(text).toContain('(system)')
+		expect(text).toContain('(system default)')
 		expect(text).toContain('Change')
 		expect(text).not.toContain('Effective result:')
 		expect(text).not.toContain('No instance default is configured. This setting currently uses the system default.')
@@ -231,6 +242,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).toContain('Sequential')
 		expect(text).toContain('(custom)')
 		expect(text).toContain('Change')
+		expect(text).toContain('Priority: User > Group > Default')
 		expect(text).not.toContain('Effective result:')
 
 		const tableHeaders = wrapper.findAll('th').map((header) => header.text())
