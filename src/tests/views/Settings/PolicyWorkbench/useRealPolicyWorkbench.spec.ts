@@ -45,7 +45,10 @@ vi.mock('@nextcloud/router', () => ({
 const saveSystemPolicy = vi.fn()
 const saveGroupPolicy = vi.fn()
 const fetchGroupPolicy = vi.fn()
+const fetchSystemPolicy = vi.fn()
+const fetchUserPolicyForUser = vi.fn()
 const saveUserPolicyForUser = vi.fn()
+const clearUserPreference = vi.fn()
 const clearGroupPolicy = vi.fn()
 const clearUserPolicyForUser = vi.fn()
 const getPolicy = vi.fn()
@@ -56,7 +59,10 @@ vi.mock('../../../../store/policies', () => ({
 		saveSystemPolicy,
 		saveGroupPolicy,
 		fetchGroupPolicy,
+		fetchSystemPolicy,
+		fetchUserPolicyForUser,
 		saveUserPolicyForUser,
+		clearUserPreference,
 		clearGroupPolicy,
 		clearUserPolicyForUser,
 		getPolicy,
@@ -73,13 +79,19 @@ describe('useRealPolicyWorkbench', () => {
 		saveSystemPolicy.mockReset()
 		saveGroupPolicy.mockReset()
 		fetchGroupPolicy.mockReset()
+		fetchSystemPolicy.mockReset()
+		fetchUserPolicyForUser.mockReset()
 		saveUserPolicyForUser.mockReset()
+		clearUserPreference.mockReset()
 		clearGroupPolicy.mockReset()
 		clearUserPolicyForUser.mockReset()
 		getPolicy.mockReset()
 		fetchEffectivePolicies.mockReset()
 		getPolicy.mockReturnValue({ effectiveValue: 'parallel' })
+		fetchSystemPolicy.mockResolvedValue(null)
 		fetchGroupPolicy.mockResolvedValue(null)
+		fetchUserPolicyForUser.mockResolvedValue(null)
+		clearUserPreference.mockResolvedValue(null)
 		fetchEffectivePolicies.mockResolvedValue(undefined)
 		axiosGet.mockImplementation((url: string) => {
 			if (url === 'cloud/groups/details') {
@@ -151,6 +163,139 @@ describe('useRealPolicyWorkbench', () => {
 		})
 	})
 
+	it('hydrates explicit system rule and persisted user rules when opening a setting', async () => {
+		getPolicy.mockReturnValue({
+			effectiveValue: 'parallel',
+			sourceScope: 'user',
+		})
+
+		fetchSystemPolicy.mockResolvedValue({
+			policyKey: 'signature_flow',
+			scope: 'global',
+			value: 'ordered_numeric',
+			allowChildOverride: true,
+			visibleToChild: true,
+			allowedValues: [],
+		})
+		fetchUserPolicyForUser.mockImplementation(async (userId: string) => {
+			if (userId !== 'user1') {
+				return null
+			}
+
+			return {
+				policyKey: 'signature_flow',
+				scope: 'user',
+				targetId: 'user1',
+				value: 'parallel',
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		await vi.waitFor(() => {
+			expect(fetchSystemPolicy).toHaveBeenCalledWith('signature_flow')
+			expect(fetchUserPolicyForUser).toHaveBeenCalledWith('user1', 'signature_flow')
+			expect(state.inheritedSystemRule?.value).toBe('ordered_numeric')
+			expect(state.visibleUserRules).toHaveLength(1)
+		})
+
+		expect(state.visibleUserRules[0]).toMatchObject({
+			targetId: 'user1',
+			value: 'parallel',
+		})
+	})
+
+	it('hydrates persisted user rules beyond the first users page', async () => {
+		axiosGet.mockImplementation((url: string, config?: { params?: { offset?: number } }) => {
+			if (url === 'cloud/groups/details') {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: [],
+							},
+						},
+					},
+				})
+			}
+
+			if (url === 'cloud/users/details') {
+				const offset = config?.params?.offset ?? 0
+				if (offset === 0) {
+					const firstPageUsers = Object.fromEntries(
+						Array.from({ length: 20 }, (_, index) => {
+							const id = `user${index + 1}`
+							return [id, { id, displayname: `User ${index + 1}` }]
+						}),
+					)
+
+					return Promise.resolve({
+						data: {
+							ocs: {
+								data: {
+									users: firstPageUsers,
+								},
+							},
+						},
+					})
+				}
+
+				if (offset === 20) {
+					return Promise.resolve({
+						data: {
+							ocs: {
+								data: {
+									users: {
+										user21: { id: 'user21', displayname: 'User 21' },
+									},
+								},
+							},
+						},
+					})
+				}
+
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								users: {},
+							},
+						},
+					},
+				})
+			}
+
+			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+
+		fetchUserPolicyForUser.mockImplementation(async (userId: string) => {
+			if (userId !== 'user21') {
+				return null
+			}
+
+			return {
+				policyKey: 'signature_flow',
+				scope: 'user',
+				targetId: 'user21',
+				value: 'ordered_numeric',
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		await vi.waitFor(() => {
+			expect(fetchUserPolicyForUser).toHaveBeenCalledWith('user21', 'signature_flow')
+			expect(state.visibleUserRules).toHaveLength(1)
+		})
+
+		expect(state.visibleUserRules[0]).toMatchObject({
+			targetId: 'user21',
+			value: 'ordered_numeric',
+		})
+	})
+
 	it('loads real group targets from OCS when opening the group editor', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
@@ -204,7 +349,37 @@ describe('useRealPolicyWorkbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', true)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', false)
+	})
+
+	it('forces hidden signature_flow override state to remain locked in system and group editors', async () => {
+		fetchSystemPolicy.mockResolvedValue({
+			policyKey: 'signature_flow',
+			scope: 'global',
+			value: 'ordered_numeric',
+			allowChildOverride: true,
+			visibleToChild: true,
+			allowedValues: [],
+		})
+		getPolicy.mockReturnValue({
+			effectiveValue: 'ordered_numeric',
+			sourceScope: 'global',
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		await vi.waitFor(() => {
+			expect(fetchSystemPolicy).toHaveBeenCalledWith('signature_flow')
+			expect(state.inheritedSystemRule?.allowChildOverride).toBe(true)
+		})
+
+		state.startEditor({ scope: 'system', ruleId: 'system-default' })
+		expect(state.editorDraft?.allowChildOverride).toBe(false)
+
+		state.cancelEditor()
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft?.allowChildOverride).toBe(false)
 	})
 
 	it('transitions from fallback none to persisted global default after saving system rule', async () => {
@@ -243,7 +418,7 @@ describe('useRealPolicyWorkbench', () => {
 		await Promise.resolve()
 		await Promise.resolve()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', true)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', false)
 		expect(fetchEffectivePolicies).toHaveBeenCalled()
 		expect(getPolicy('signature_flow')?.effectiveValue).toBe('ordered_numeric')
 
@@ -307,7 +482,7 @@ describe('useRealPolicyWorkbench', () => {
 		state.updateDraftValue('ordered_numeric' as never)
 		await state.saveDraft()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', true)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', false)
 		expect(state.inheritedSystemRule).not.toBeNull()
 		expect(state.inheritedSystemRule?.value).toBe('ordered_numeric')
 		expect(state.hasGlobalDefault).toBe(true)
@@ -472,6 +647,21 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.summary?.currentBaseValue).toBe('Let users choose')
 	})
 
+	it('keeps persisted numeric system default visible after reload', () => {
+		getPolicy.mockReturnValue({
+			effectiveValue: 0,
+			sourceScope: 'system',
+			allowedValues: [0, 1, 2],
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.inheritedSystemRule).not.toBeNull()
+		expect(state.inheritedSystemRule?.value).toBe(0)
+		expect(state.summary?.currentBaseValue).toBe('Let users choose')
+	})
+
 	it('does not treat group-sourced effective value as explicit instance rule', () => {
 		getPolicy.mockReturnValue({
 			effectiveValue: 'parallel',
@@ -617,6 +807,18 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.createUserOverrideDisabledReason).toBeNull()
 	})
 
+	it('clears current user preference when system-admin saves system rule', async () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue('ordered_numeric' as never)
+
+		await state.saveDraft()
+
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', false)
+		expect(clearUserPreference).toHaveBeenCalledWith('signature_flow')
+	})
+
 	it('requires dirty draft changes before save is enabled in edit mode', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
@@ -635,7 +837,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.isDraftDirty).toBe(false)
 		expect(state.canSaveDraft).toBe(false)
 
-		state.updateDraftAllowOverride(false)
+		state.updateDraftValue('ordered_numeric' as never)
 		expect(state.isDraftDirty).toBe(true)
 		expect(state.canSaveDraft).toBe(true)
 	})
