@@ -12,12 +12,15 @@ import type { TranslationFunction } from '../../test-types'
 
 type SettingsComponent = typeof import('../../../components/Settings/Settings.vue').default
 type AuthModule = typeof import('@nextcloud/auth')
+type InitialStateModule = typeof import('@nextcloud/initial-state')
 
 const t: TranslationFunction = (_app, text) => text
 
 let Settings: SettingsComponent
 let auth: AuthModule
+let initialState: InitialStateModule
 let getCurrentUserMock: MockedFunction<typeof import('@nextcloud/auth').getCurrentUser>
+let loadStateMock: MockedFunction<typeof import('@nextcloud/initial-state').loadState>
 
 type SettingsVm = {
 	getAdminRoute: () => string
@@ -34,13 +37,18 @@ vi.mock('@nextcloud/auth', () => ({
 	})),
 }))
 vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: vi.fn((app, key, defaults) => defaults),
+}))
 vi.mock('@nextcloud/router', () => ({
 	generateUrl: vi.fn((url) => `/admin/${url}`),
 }))
 
 beforeAll(async () => {
 	auth = await import('@nextcloud/auth')
+	initialState = await import('@nextcloud/initial-state')
 	getCurrentUserMock = auth.getCurrentUser as MockedFunction<typeof auth.getCurrentUser>
+	loadStateMock = initialState.loadState as MockedFunction<typeof initialState.loadState>
 	;({ default: Settings } = await import('../../../components/Settings/Settings.vue'))
 })
 
@@ -83,9 +91,18 @@ describe('Settings', () => {
 		return item
 	}
 
-	const createWrapper = (isAdmin = false): SettingsWrapper => {
+	const createWrapper = (isAdmin = false, canManagePolicies = false): SettingsWrapper => {
 		const user = { isAdmin } as ReturnType<typeof auth.getCurrentUser>
 		getCurrentUserMock.mockReturnValue(user)
+		loadStateMock.mockImplementation((app, key, defaults) => {
+			if (key === 'config') {
+				return {
+					...(defaults as Record<string, unknown>),
+					can_manage_group_policies: canManagePolicies,
+				}
+			}
+			return defaults
+		})
 
 		return mount(Settings, {
 			global: {
@@ -112,6 +129,7 @@ describe('Settings', () => {
 			wrapper = null
 		}
 		vi.clearAllMocks()
+		loadStateMock.mockImplementation((app, key, defaults) => defaults)
 	})
 
 	describe('RULE: Account navigation item always displays', () => {
@@ -302,8 +320,8 @@ describe('Settings', () => {
 			wrapper = createUnauthenticatedWrapper()
 			const items = getItems()
 
-			// Account + Rate = 2
-			expect(items.length).toBe(2)
+			// Account + Preferences + Rate = 3
+			expect(items.length).toBe(3)
 		})
 	})
 
@@ -312,16 +330,71 @@ describe('Settings', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
-			// Account + Rate = 2
-			expect(items.length).toBe(2)
+			// Account + Preferences + Rate = 3
+			expect(items.length).toBe(3)
 		})
 
 		it('shows 3 items for admin', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
-			// Account + Administration + Rate = 3
-			expect(items.length).toBe(3)
+			// Account + Preferences + Policies + Administration + Rate = 5
+			expect(items.length).toBe(5)
+		})
+	})
+
+	describe('RULE: Preferences item is always available inside the app', () => {
+		it('shows Preferences for non-admin users', () => {
+			wrapper = createWrapper(false)
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+
+			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
+		})
+
+		it('shows Preferences for admin users', () => {
+			wrapper = createWrapper(true)
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+
+			expect(preferencesItem).toBeTruthy()
+		})
+
+		it('renders the preferences icon', () => {
+			wrapper = createWrapper(false)
+
+			expect(getWrapper().find('.preferences-icon').exists()).toBe(true)
+		})
+	})
+
+	describe('RULE: Policies item follows policy-management capability in the app menu', () => {
+		it('hides Policies for non-admin users', () => {
+			wrapper = createWrapper(false)
+			const items = getItems()
+
+			expect(findItemByName(items, 'Policies')).toBeUndefined()
+		})
+
+		it('shows Policies for admin users', () => {
+			wrapper = createWrapper(true)
+			const items = getItems()
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+
+			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('shows Policies for non-admin users with group policy capability', () => {
+			wrapper = createWrapper(false, true)
+			const items = getItems()
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+
+			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('renders the policies icon for admin users', () => {
+			wrapper = createWrapper(true)
+
+			expect(getWrapper().find('.policies-icon').exists()).toBe(true)
 		})
 	})
 
@@ -350,6 +423,18 @@ describe('Settings', () => {
 
 			expect(adminItem.props('name')).toBeTruthy()
 			expect(adminItem.props('href')).toBeTruthy()
+		})
+
+		it('does not use fallback icon prop when custom icon slot is present', () => {
+			wrapper = createWrapper(true)
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+			const adminItem = expectItem(findItemByName(items, 'Administration'))
+
+			expect(preferencesItem.props('icon')).toBeUndefined()
+			expect(policiesItem.props('icon')).toBeUndefined()
+			expect(adminItem.props('icon')).toBeUndefined()
 		})
 	})
 
@@ -398,7 +483,17 @@ describe('Settings', () => {
 			const items = getItems()
 			const secondItem = expectItemAt(items, 1)
 
-			expect(secondItem.props('name')).toContain('Administration')
+			expect(secondItem.props('name')).toContain('Preferences')
+		})
+
+		it('renders Policies before Administration for admin users', () => {
+			wrapper = createWrapper(true)
+			const items = getItems()
+			const thirdItem = expectItemAt(items, 2)
+			const fourthItem = expectItemAt(items, 3)
+
+			expect(thirdItem.props('name')).toContain('Policies')
+			expect(fourthItem.props('name')).toContain('Administration')
 		})
 
 		it('renders Rate last', async () => {
@@ -431,13 +526,15 @@ describe('Settings', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
-			expect(items).toHaveLength(2)
+			expect(items).toHaveLength(3)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
+			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
 			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
 			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
+			expect(hasPreferences).toBe(true)
 			expect(hasRate).toBe(true)
 			expect(hasAdmin).toBe(false)
 		})
@@ -446,15 +543,38 @@ describe('Settings', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
-			expect(items).toHaveLength(3)
+			expect(items).toHaveLength(5)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
+			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
+			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
 			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
 			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
+			expect(hasPreferences).toBe(true)
+			expect(hasPolicies).toBe(true)
 			expect(hasRate).toBe(true)
 			expect(hasAdmin).toBe(true)
+		})
+
+		it('provides policies entry for group manager without global admin link', () => {
+			wrapper = createWrapper(false, true)
+			const items = getItems()
+
+			expect(items).toHaveLength(4)
+
+			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
+			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
+			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
+			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
+			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
+
+			expect(hasAccount).toBe(true)
+			expect(hasPreferences).toBe(true)
+			expect(hasPolicies).toBe(true)
+			expect(hasRate).toBe(true)
+			expect(hasAdmin).toBe(false)
 		})
 	})
 

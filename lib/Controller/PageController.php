@@ -23,6 +23,7 @@ use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -58,6 +59,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private AccountService $accountService,
 		protected SignFileService $signFileService,
 		protected RequestSignatureService $requestSignatureService,
+		private PolicyService $policyService,
 		private SignerElementsService $signerElementsService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
@@ -106,7 +108,13 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
-		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value));
+		$resolvedPolicies = [];
+		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
+			$resolvedPolicies[$policyKey] = $resolvedPolicy->toArray();
+		}
+		$this->initialState->provideInitialState('effective_policies', [
+			'policies' => $resolvedPolicies,
+		]);
 		$this->initialState->provideInitialState('docmdp_config', $this->docMdpConfigService->getConfig());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information'));
 
