@@ -157,6 +157,10 @@
 				<div class="policy-workbench__main">
 					<header class="policy-workbench__dialog-header">
 						<p class="policy-workbench__dialog-description">{{ dialogDescription }}</p>
+						<div class="policy-workbench__table-priority-note" role="note" aria-live="polite">
+							<NcIconSvgWrapper :path="mdiInformationOutline" :size="16" />
+							<span>{{ t('libresign', 'Priority: User > Group > Default') }}</span>
+						</div>
 					</header>
 
 					<NcNoteCard
@@ -171,6 +175,7 @@
 						<span class="policy-workbench__default-inline-label">{{ t('libresign', 'Default:') }}</span>
 						<strong class="policy-workbench__default-inline-value">{{ state.summary.currentBaseValue }}</strong>
 						<span class="policy-workbench__default-inline-source">({{ defaultSourceLabel }})</span>
+						<span v-if="state.viewMode === 'system-admin'" class="policy-workbench__default-inline-separator" aria-hidden="true">&middot;</span>
 						<NcButton
 							v-if="state.viewMode === 'system-admin'"
 							variant="tertiary"
@@ -255,10 +260,6 @@
 					</p>
 
 					<div class="policy-workbench__table-scroll">
-						<div class="policy-workbench__table-priority-note" role="note" aria-live="polite">
-							<NcIconSvgWrapper :path="mdiInformationOutline" :size="16" />
-							<span>{{ t('libresign', 'Priority: User overrides Group, which overrides Default') }}</span>
-						</div>
 						<table class="policy-workbench__table">
 							<thead>
 								<tr>
@@ -603,15 +604,7 @@ const editorHelp = computed(() => {
 		return ''
 	}
 
-	if (state.editorDraft.scope === 'system') {
-		return t('libresign', 'This sets the default signing order for everyone.')
-	}
-
-	if (state.editorDraft.scope === 'group') {
-		return t('libresign', 'This rule applies to all users in the selected groups.')
-	}
-
-	return t('libresign', 'This rule overrides group and default settings for selected users.')
+	return ''
 })
 
 const showCreateRuleBackAction = computed(() => {
@@ -708,7 +701,7 @@ const activeScopeFilterChip = computed(() => {
 const defaultSourceLabel = computed(() => {
 	return state.hasGlobalDefault
 		? t('libresign', 'custom')
-		: t('libresign', 'system')
+		: t('libresign', 'system default')
 })
 
 const pendingRemovalMessage = computed(() => {
@@ -1958,6 +1951,10 @@ onBeforeUnmount(() => {
 	}
 
 	&__default-inline-source {
+		color: var(--color-text-maxcontrast);
+	}
+
+	&__default-inline-separator {
 		color: var(--color-text-maxcontrast);
 	}
 
