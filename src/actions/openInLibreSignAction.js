@@ -32,7 +32,7 @@ export const action = {
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
 
-	enabled({ nodes }) {
+	enabled(nodes) {
 		const getNodeMime = (node) => node?.mime || node?.mimetype || ''
 
 		if (!loadState('libresign', 'certificate_ok', false)) {
@@ -62,8 +62,7 @@ export const action = {
 	/**
 	 * Single file or folder: open in sidebar
 	 */
-	async exec({ nodes }) {
-		const node = nodes[0]
+	async exec(node) {
 		await window.OCA.Files.Sidebar.open(node.path)
 		window.OCA.Files.Sidebar.setActiveTab('libresign')
 		return null
@@ -73,11 +72,11 @@ export const action = {
 	 * Multiple files: prepare envelope data and delegate to sidebar
 	 * Similar to exec, but passes multiple files to the sidebar for processing
 	 */
-	async execBatch({ nodes }) {
+	async execBatch(nodes) {
 		const getNodeFileId = (node) => node?.fileid ?? node?.id
 
 		if (nodes.length === 1) {
-			await this.exec({ nodes })
+			await this.exec(nodes[0])
 			return [null]
 		}
 
