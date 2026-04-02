@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
@@ -152,5 +153,25 @@ final class IdentifyServiceTest extends TestCase {
 			}));
 
 		$this->service->save($identifyMethod);
+	}
+
+	public function testGetSavedSettingsFallsBackToDefaultWhenStoredValueIsInvalid(): void {
+		$this->appConfig
+			->expects($this->once())
+			->method('getValueArray')
+			->with(Application::APP_ID, 'identify_methods', [])
+			->willThrowException(new \TypeError('Invalid app config value type'));
+
+		$this->logger
+			->expects($this->once())
+			->method('warning')
+			->with(
+				'Invalid identify_methods app config; falling back to defaults.',
+				$this->callback(static function (array $context): bool {
+					return isset($context['exception']) && $context['exception'] instanceof \TypeError;
+				})
+			);
+
+		$this->assertSame([], $this->service->getSavedSettings());
 	}
 }
