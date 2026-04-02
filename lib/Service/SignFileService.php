@@ -630,10 +630,10 @@ class SignFileService {
 			$this->validateDocMdpAllowsSignatures();
 
 			try {
-				$fileToSign = $this->getFileToSign();
+				$engine = $this->getEngine();
 				$signedFile = $this->runWithVolatileActiveUser(
-					$fileToSign->getOwner(),
-					fn (): File => $this->getEngine()->sign(),
+					$this->fileToSign?->getOwner(),
+					fn (): File => $engine->sign(),
 				);
 			} catch (LibresignException|Exception $e) {
 				$this->cleanupUnsignedSignedFile();
