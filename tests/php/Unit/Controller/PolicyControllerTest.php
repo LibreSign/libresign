@@ -201,6 +201,19 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
+	public function testSetSystemBubblesUnexpectedExceptions(): void {
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with('signature_flow', 'ordered_numeric', false)
+			->willThrowException(new \RuntimeException('Unexpected policy failure'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Unexpected policy failure');
+
+		$this->controller->setSystem('signature_flow', 'ordered_numeric');
+	}
+
 	public function testSetUserPreferenceReturnsSavedResolvedPolicy(): void {
 		$resolvedPolicy = (new ResolvedPolicy())
 			->setPolicyKey('signature_flow')
@@ -446,6 +459,42 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
+	public function testSetGroupBubblesUnexpectedExceptions(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with('signature_flow', 'finance', 'ordered_numeric', false)
+			->willThrowException(new \RuntimeException('Unexpected policy failure'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Unexpected policy failure');
+
+		$this->controller->setGroup('finance', 'signature_flow', 'ordered_numeric');
+	}
+
+	public function testClearGroupBubblesUnexpectedExceptions(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
+			->method('clearGroupPolicy')
+			->with('signature_flow', 'finance')
+			->willThrowException(new \RuntimeException('Unexpected policy failure'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Unexpected policy failure');
+
+		$this->controller->clearGroup('finance', 'signature_flow');
+	}
+
 	public function testSetUserPolicyForTargetUserReturnsSavedExplicitPolicy(): void {
 		$persistedPolicy = (new PolicyLayer())
 			->setScope('user')
@@ -511,6 +560,58 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame([
 			'error' => 'Saving a user preference is not allowed for signature_flow',
 		], $response->getData());
+	}
+
+	public function testSetUserPreferenceBubblesUnexpectedExceptions(): void {
+		$this->policyService
+			->expects($this->once())
+			->method('saveUserPreference')
+			->with('signature_flow', 'parallel')
+			->willThrowException(new \RuntimeException('Unexpected policy failure'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Unexpected policy failure');
+
+		$this->controller->setUserPreference('signature_flow', 'parallel');
+	}
+
+	public function testSetUserPolicyForTargetUserBubblesUnexpectedExceptions(): void {
+		$this->policyService
+			->expects($this->once())
+			->method('saveUserPreferenceForUserId')
+			->with('signature_flow', 'user1', 'ordered_numeric')
+			->willThrowException(new \RuntimeException('Unexpected policy failure'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Unexpected policy failure');
+
+		$this->controller->setUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric');
+	}
+
+	public function testClearUserPreferenceBubblesUnexpectedExceptions(): void {
+		$this->policyService
+			->expects($this->once())
+			->method('clearUserPreference')
+			->with('signature_flow')
+			->willThrowException(new \RuntimeException('Unexpected policy failure'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Unexpected policy failure');
+
+		$this->controller->clearUserPreference('signature_flow');
+	}
+
+	public function testClearUserPolicyForTargetUserBubblesUnexpectedExceptions(): void {
+		$this->policyService
+			->expects($this->once())
+			->method('clearUserPreferenceForUserId')
+			->with('signature_flow', 'user1')
+			->willThrowException(new \RuntimeException('Unexpected policy failure'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Unexpected policy failure');
+
+		$this->controller->clearUserPolicyForUser('user1', 'signature_flow');
 	}
 
 	public function testSetUserPreferenceReadsBodyParamsFromRequest(): void {
