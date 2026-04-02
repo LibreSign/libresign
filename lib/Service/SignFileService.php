@@ -594,6 +594,22 @@ class SignFileService {
 		return $args;
 	}
 
+	private function runWithVolatileActiveUser(?IUser $user, callable $callback): mixed {
+		$currentUser = $this->userSession->getUser();
+
+		if ($user === null || $currentUser?->getUID() === $user->getUID()) {
+			return $callback();
+		}
+
+		$this->userSession->setVolatileActiveUser($user);
+
+		try {
+			return $callback();
+		} finally {
+			$this->userSession->setVolatileActiveUser($currentUser);
+		}
+	}
+
 	/**
 	 * @return DateTimeInterface|null Last signed date
 	 */
@@ -614,7 +630,11 @@ class SignFileService {
 			$this->validateDocMdpAllowsSignatures();
 
 			try {
-				$signedFile = $this->getEngine()->sign();
+				$fileToSign = $this->getFileToSign();
+				$signedFile = $this->runWithVolatileActiveUser(
+					$fileToSign->getOwner(),
+					fn (): File => $this->getEngine()->sign(),
+				);
 			} catch (LibresignException|Exception $e) {
 				$this->cleanupUnsignedSignedFile();
 				$this->recordSignatureAttempt($e);
@@ -1457,7 +1477,8 @@ class SignFileService {
 			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
 			basename($originalFile->getPath())
 		);
-		$owner = $originalFile->getOwner()->getUID();
+		$owner = $originalFile->getOwner();
+		$ownerUid = $owner->getUID();
 
 		$fileId = $this->libreSignFile->getId();
 		$extension = $originalFile->getExtension();
@@ -1465,9 +1486,12 @@ class SignFileService {
 
 		try {
 			/** @var \OCP\Files\Folder */
-			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($originalFile->getParentId());
+			$parentFolder = $this->root->getUserFolder($ownerUid)->getFirstNodeById($originalFile->getParentId());
 
-			$this->createdSignedFile = $parentFolder->newFile($uniqueFilename, $content);
+			$this->createdSignedFile = $this->runWithVolatileActiveUser(
+				$owner,
+				fn (): File => $parentFolder->newFile($uniqueFilename, $content),
+			);
 
 			return $this->createdSignedFile;
 		} catch (NotPermittedException) {
