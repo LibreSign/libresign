@@ -26,7 +26,7 @@ use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
 class IdentifyService {
-	private array $savedSettings = [];
+	private ?array $savedSettings = null;
 	public function __construct(
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private SessionService $sessionService,
@@ -126,10 +126,20 @@ class IdentifyService {
 	}
 
 	public function getSavedSettings(): array {
-		if (!empty($this->savedSettings)) {
+		if ($this->savedSettings !== null) {
 			return $this->savedSettings;
 		}
-		return $this->getAppConfig()->getValueArray(Application::APP_ID, 'identify_methods', []);
+
+		try {
+			$this->savedSettings = $this->getAppConfig()->getValueArray(Application::APP_ID, 'identify_methods', []);
+		} catch (\TypeError $exception) {
+			$this->logger->warning('Invalid identify_methods app config; falling back to defaults.', [
+				'exception' => $exception,
+			]);
+			$this->savedSettings = [];
+		}
+
+		return $this->savedSettings;
 	}
 
 	public function getEventDispatcher(): IEventDispatcher {
