@@ -82,7 +82,6 @@ export type GroupPolicyWriteResponse = ApiOcsResponseData<ApiOperations['policy-
 export type SystemPolicyWritePayload = ApiRequestJsonBody<AdminOperations['policy-set-system']>
 export type SystemPolicyWriteResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 200>
 export type SystemPolicyWriteErrorResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 400>
-	| ApiOcsResponseData<AdminOperations['policy-set-system'], 500>
 export type NewFilePayload = ApiComponents['schemas']['NewFile']
 export type IdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
 export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']
