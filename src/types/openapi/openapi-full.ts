@@ -4952,20 +4952,6 @@ export interface operations {
                     };
                 };
             };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
         };
     };
     "policy-clear-group": {
@@ -5002,20 +4988,6 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5081,20 +5053,6 @@ export interface operations {
                     };
                 };
             };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
         };
     };
     "policy-clear-user-preference": {
@@ -5123,20 +5081,6 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["SystemPolicyWriteResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -7542,20 +7486,6 @@ export interface operations {
                     };
                 };
             };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
         };
     };
     "policy-get-user-policy-for-user": {
@@ -7645,20 +7575,6 @@ export interface operations {
                     };
                 };
             };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
         };
     };
     "policy-clear-user-policy-for-user": {
@@ -7689,20 +7605,6 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["UserPolicyWriteResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
