@@ -202,6 +202,29 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertTrue($config['can_manage_group_policies']);
 	}
 
+	public function testGetConfigIncludesPolicyWorkbenchCatalogCompactViewPreference(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('preference-user');
+
+		$this->userConfig
+			->expects($this->atLeastOnce())
+			->method('getValueString')
+			->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = ''): string {
+				if ($uid === 'preference-user'
+					&& $appId === Application::APP_ID
+					&& $key === 'policy_workbench_catalog_compact_view') {
+					return '1';
+				}
+
+				return $default;
+			});
+
+		$config = $this->getService()->getConfig($user);
+
+		$this->assertArrayHasKey('policy_workbench_catalog_compact_view', $config);
+		$this->assertTrue($config['policy_workbench_catalog_compact_view']);
+	}
+
 	#[DataProvider('provideValidateCertificateDataCases')]
 	public function testValidateCertificateDataUsingDataProvider($arguments, $expectedErrorMessage):void {
 		if (is_callable($arguments)) {
