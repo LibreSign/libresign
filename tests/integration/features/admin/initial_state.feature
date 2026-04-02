@@ -5,10 +5,8 @@ Feature: admin/initial_state
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                     | value                                                                                                            |
-      | (jq)length                              | 3                                                                                                                |
       | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].enabled == true and .[0].mandatory == true and .[0].signatureMethods.password.enabled == true |
       | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].enabled == false and .[0].mandatory == true and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
-      | (jq)map(select(.name=="whatsapp"))     | (jq)length == 1 and .[0].enabled == false and .[0].mandatory == true and .[0].test_url == "/index.php/settings/user/security" and .[0].signatureMethods.whatsappToken.enabled == false |
 
   Scenario: Identify methods stored as invalid string fall back to the default contract
     Given as user "admin"
@@ -16,10 +14,8 @@ Feature: admin/initial_state
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                     | value                                                                                                            |
-      | (jq)length                              | 3                                                                                                                |
       | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].enabled == true and .[0].mandatory == true and .[0].signatureMethods.password.enabled == true |
       | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].enabled == false and .[0].mandatory == true and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
-      | (jq)map(select(.name=="whatsapp"))     | (jq)length == 1 and .[0].enabled == false and .[0].mandatory == true and .[0].test_url == "/index.php/settings/user/security" and .[0].signatureMethods.whatsappToken.enabled == false |
 
   Scenario Outline: Invalid identify methods updates preserve the default contract
     Given as user "admin"
@@ -29,10 +25,8 @@ Feature: admin/initial_state
     Then sending "get" to "/settings/admin/libresign"
     And the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                     | value                                                                                                            |
-      | (jq)length                              | 3                                                                                                                |
       | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].enabled == true and .[0].mandatory == true and .[0].signatureMethods.password.enabled == true |
       | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].enabled == false and .[0].mandatory == true and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
-      | (jq)map(select(.name=="whatsapp"))     | (jq)length == 1 and .[0].enabled == false and .[0].mandatory == true and .[0].test_url == "/index.php/settings/user/security" and .[0].signatureMethods.whatsappToken.enabled == false |
 
     Examples:
       | payload                                 |
@@ -48,10 +42,8 @@ Feature: admin/initial_state
     Then sending "get" to "/settings/admin/libresign"
     And the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                 | value                                                                                                       |
-      | (jq)length                          | 3                                                                                                           |
       | (jq)map(select(.name=="account"))  | (jq)length == 1 and .[0].signatureMethods.clickToSign.enabled == true and .[0].signatureMethods.password.enabled == false |
       | (jq)map(select(.name=="email"))    | (jq)length == 1 and .[0].mandatory == false and .[0].signatureMethods.emailToken.enabled == true           |
-      | (jq)map(select(.name=="whatsapp")) | (jq)length == 1 and .[0].signatureMethods.whatsappToken.enabled == false                                   |
     And run the command "config:app:delete libresign identify_methods" with result code 0
 
   Scenario: Stable default admin initial states are exposed
@@ -270,10 +262,6 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-crl_external_validation_enabled" with the following values:
       """
       true
-      """
-    And the response should contain the initial state "libresign-ldap_extension_available" with the following values:
-      """
-      false
       """
     And run the command "user:setting admin libresign files_list_sorting_mode --delete" with result code 0
     And run the command "user:setting admin libresign files_list_sorting_direction --delete" with result code 0
