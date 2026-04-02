@@ -2724,7 +2724,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testSignSequentiallyRunsEngineSignAsOwnerAndRestoresSession(): void {
 		$service = $this->getService([
 			'validateDocMdpAllowsSignatures',
-			'getFileToSign',
 			'getEngine',
 			'computeHash',
 			'updateSignRequest',
@@ -2764,12 +2763,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$service->expects($this->once())
 			->method('validateDocMdpAllowsSignatures');
-		$service->expects($this->once())
-			->method('getFileToSign')
-			->willReturn($fileToSign);
 		$service->expects($this->exactly(2))
 			->method('getEngine')
-			->willReturn($engine);
+			->willReturnCallback(function () use ($service, $fileToSign, $engine) {
+				$fileToSignProperty = new \ReflectionProperty(SignFileService::class, 'fileToSign');
+				$fileToSignProperty->setValue($service, $fileToSign);
+				return $engine;
+			});
 		$service->expects($this->once())
 			->method('computeHash')
 			->with($signedFile)
