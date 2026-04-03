@@ -4,12 +4,11 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import CodeEditor from '../../components/CodeEditor.vue'
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@ssddanbrown/codemirror-lang-twig', () => ({
 	twig: vi.fn(() => ({ name: 'twig-extension' })),
