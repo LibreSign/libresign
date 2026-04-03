@@ -241,8 +241,9 @@ onBeforeMount(() => {
 async function createAccount() {
 	state.loading = true
 	try {
-		await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}'), {
+		await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}', {
 			uuid: route.value.params.uuid ?? '',
+		}), {
 			email: state.email,
 			password: state.password,
 		})
