@@ -14,6 +14,14 @@ default:
   extensions:
     LibreSign\Behat\MailpitExtension\ServiceContainer\MailpitExtension:
       base_url: http://mailpit:8025
+    LibreSign\Behat\TsaExtension\ServiceContainer\TsaExtension:
+      enabled: true
+      host: 127.0.0.1
+      port: 0
+      path: /tsr
+      policy_oid: 1.2.3.4.1
+      env_var: LIBRESIGN_TSA_URL
+      verbose: false
     PhpBuiltin\Server:
       runAs: www-data
       workers: 10
