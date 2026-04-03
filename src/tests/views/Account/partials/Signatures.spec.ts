@@ -4,12 +4,11 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import Signatures from '../../../../views/Account/partials/Signatures.vue'
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@nextcloud/capabilities', () => ({
 	getCapabilities: vi.fn(() => ({
