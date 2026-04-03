@@ -30,6 +30,14 @@ describe('SigningRequirementValidator', () => {
 		identificationDocumentStore?: IdentificationDocumentStoreOverrides
 	}
 
+	const visibleSignatureElement = {
+		elementId: 101,
+		fileId: 1,
+		signRequestId: 10,
+		type: 'signature',
+		coordinates: { page: 1, left: 10, top: 20 },
+	}
+
 	const createStores = (overrides: StoresOverrides = {}) => {
 		const signStore = {
 			errors: [],
@@ -44,7 +52,7 @@ describe('SigningRequirementValidator', () => {
 					identifyMethod: 'email',
 					identifyValue: 'signer@example.com',
 				}],
-				visibleElements: [{ signRequestId: 10 }],
+				visibleElements: [visibleSignatureElement],
 			},
 			...overrides.signStore,
 		}
@@ -183,6 +191,39 @@ describe('SigningRequirementValidator', () => {
 		const result = validator.needsCreateSignature({ hasSignatures: false, canCreateSignature: true })
 
 		expect(result).toBe(false)
+	})
+
+	it('requires createSignature when current signer visible elements are only on envelope child files', () => {
+		const stores = createStores({
+			signStore: {
+				document: {
+					signers: [{ me: true, signRequestId: 700 }],
+					visibleElements: [],
+					files: [
+						{
+							id: 10,
+							signers: [{ me: true, signRequestId: 501 }],
+							visibleElements: [{
+								elementId: 201,
+								fileId: 10,
+								signRequestId: 501,
+								type: 'signature',
+								coordinates: { page: 1, left: 15, top: 25 },
+							}],
+						},
+					],
+				},
+			},
+		})
+		const validator = new SigningRequirementValidator(
+			stores.signStore,
+			stores.signMethodsStore,
+			stores.identificationDocumentStore,
+		)
+
+		const result = validator.needsCreateSignature({ hasSignatures: false, canCreateSignature: true })
+
+		expect(result).toBe(true)
 	})
 
 	it('returns createSignature before clickToSign when no signature exists', () => {
