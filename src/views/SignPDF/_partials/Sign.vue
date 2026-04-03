@@ -199,10 +199,14 @@ import { SigningRequirementValidator } from '../../../services/SigningRequiremen
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import {
 	normalizeDocumentForVisibleElements,
-	normalizeFileForVisibleElements,
 } from '../../../services/signingDocumentAdapter'
 import { FILE_STATUS } from '../../../constants.js'
-import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner } from '../../../services/visibleElementsService'
+import {
+	getCurrentUserSignRequestIds,
+	hasVisibleElementsForCurrentUser,
+	getVisibleElementsFromDocument,
+	idsMatch,
+} from '../../../services/visibleElementsService'
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
 type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
@@ -322,7 +326,6 @@ type SignatureProfile = LibreSignUserElement
 
 type SignDocument = NonNullable<ReturnType<typeof useSignStore>['document']>
 type SignDocumentFile = NonNullable<SignDocument['files']>[number]
-type SignDocumentSigner = NonNullable<SignDocument['signers']>[number]
 
 type SignResult = {
 	status: 'signingInProgress' | 'signed' | 'unknown'
@@ -419,24 +422,10 @@ let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
 const currentDocument = computed<SignDocument>(() => signStore.document)
 const visibleElementsDocument = computed(() => normalizeDocumentForVisibleElements(currentDocument.value))
+const currentUserSignRequestIds = computed(() => new Set(getCurrentUserSignRequestIds(visibleElementsDocument.value)))
 
 const elements = computed(() => {
-	const document = currentDocument.value
-	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
-
-	const signRequestIds = new Set<number>()
-	if (signer?.signRequestId !== undefined) {
-		signRequestIds.add(signer.signRequestId)
-	}
-
-	if (Array.isArray(document?.files)) {
-		document.files
-			.map(normalizeFileForVisibleElements)
-			.flatMap((file) => getFileSigners(file))
-			.filter((row): row is ReturnType<typeof getFileSigners>[number] & { me: true; signRequestId: number } => isCurrentUserSigner(row) && row.signRequestId !== undefined)
-			.forEach((row) => signRequestIds.add(row.signRequestId))
-	}
-
+	const signRequestIds = currentUserSignRequestIds.value
 	if (signRequestIds.size === 0) {
 		return []
 	}
@@ -458,13 +447,7 @@ const needCreateSignature = computed(() => {
 	if (!canCreateSignature.value || hasSignatures.value) {
 		return false
 	}
-	const document = currentDocument.value
-	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
-	if (signer?.signRequestId === undefined) {
-		return false
-	}
-	const visibleElements = visibleElementsDocument.value.visibleElements || []
-	return visibleElements.some((row) => row.signRequestId === signer.signRequestId)
+	return hasVisibleElementsForCurrentUser(visibleElementsDocument.value)
 })
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const canCreateSignature = computed(() => {
