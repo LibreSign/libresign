@@ -4,7 +4,6 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../testHelpers/l10n.js'
 import { shallowMount } from '@vue/test-utils'
 import ResetPassword from '../../views/ResetPassword.vue'
 
@@ -44,7 +43,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path: string) => path),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 describe('ResetPassword.vue', () => {
 	beforeEach(() => {
