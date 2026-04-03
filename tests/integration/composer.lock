@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7bf03bae631e1e0482a6dfc27dc14386",
+    "content-hash": "ce5d0e3076ed4e24a270a1b399150a3b",
     "packages": [
         {
             "name": "behat/behat",
@@ -946,6 +946,60 @@
                 "source": "https://github.com/LibreSign/behat-builtin-extension/tree/v0.6.3"
             },
             "time": "2024-10-31T18:50:11+00:00"
+        },
+        {
+            "name": "libresign/behat-tsa-extension",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/LibreSign/behat-tsa-extension.git",
+                "reference": "cac8018d8226aacb407ef9ecfeb627f5085ffbb5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/LibreSign/behat-tsa-extension/zipball/cac8018d8226aacb407ef9ecfeb627f5085ffbb5",
+                "reference": "cac8018d8226aacb407ef9ecfeb627f5085ffbb5",
+                "shasum": ""
+            },
+            "require": {
+                "behat/behat": "^3.13",
+                "php": "^8.2",
+                "symfony/config": "^7.0",
+                "symfony/dependency-injection": "^7.0",
+                "symfony/event-dispatcher": "^7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "LibreSign\\Behat\\TsaExtension\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "AGPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "LibreSign Team",
+                    "email": "hello@libresign.coop"
+                }
+            ],
+            "description": "Behat extension that boots a local RFC3161 TSA server for deterministic integration tests",
+            "keywords": [
+                "Behat",
+                "libresign",
+                "nextcloud",
+                "rfc3161",
+                "tsa"
+            ],
+            "support": {
+                "issues": "https://github.com/LibreSign/behat-tsa-extension/issues",
+                "source": "https://github.com/LibreSign/behat-tsa-extension/tree/v0.1.0"
+            },
+            "time": "2026-04-03T23:12:03+00:00"
         },
         {
             "name": "libresign/mailpit-behat-extension",
