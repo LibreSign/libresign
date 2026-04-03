@@ -38,9 +38,9 @@ type OcsEnvelopeResponse = {
 	files?: OcsEnvelopeChildFile[]
 }
 
-function createIssue7344Scenario(): EnvelopeSigningScenario {
+function buildSigningScenario(): EnvelopeSigningScenario {
 	return {
-		envelopeName: `Issue 7344 envelope ${Date.now()}`,
+		envelopeName: `Envelope with visible signature ${Date.now()}`,
 		signerEmail: 'signer01@libresign.coop',
 		signerName: 'Signer 01',
 	}
@@ -209,25 +209,32 @@ async function expectEnvelopeSigned(page: Page, envelopeName: string) {
 }
 
 test('unauthenticated signer can define a visible signature for an envelope with multiple PDFs', async ({ page }) => {
-	const scenario = createIssue7344Scenario()
+	const scenario = buildSigningScenario()
 	const mailpit = createMailpitClient()
 
-	// 1. Prepare the signing rules used in this scenario.
-	await enableEnvelopeScenario(page.request)
+	await test.step('Given the system is configured to allow envelope signing via e-mail', async () => {
+		await enableEnvelopeScenario(page.request)
+	})
 
-	// 2. Start with a clean inbox and create the envelope already containing
-	//    a visible signature box inside the first PDF of the envelope.
-	await mailpit.deleteMessages()
-	await createEnvelopeWithVisibleSignatureRequirement(page.request, scenario)
+	await test.step('And an envelope with two PDFs is created requiring a visible signature on the first document', async () => {
+		await mailpit.deleteMessages()
+		await createEnvelopeWithVisibleSignatureRequirement(page.request, scenario)
+	})
 
-	// 3. Open the invitation exactly as the external signer would do.
-	const signLink = await waitForSignerInvitationLink(scenario.signerEmail)
-	await openInvitationAsExternalSigner(page, signLink)
+	await test.step('When the external signer opens the invitation link received by e-mail', async () => {
+		const signLink = await waitForSignerInvitationLink(scenario.signerEmail)
+		await openInvitationAsExternalSigner(page, signLink)
+	})
 
-	// 4. Define the visible signature and complete the signing action.
-	await defineVisibleSignature(page)
-	await finishSigning(page)
+	await test.step('And the signer draws and saves their visible signature on the document', async () => {
+		await defineVisibleSignature(page)
+	})
 
-	// 5. Confirm the signer reaches the final success screen.
-	await expectEnvelopeSigned(page, scenario.envelopeName)
+	await test.step('And the signer submits the signed document', async () => {
+		await finishSigning(page)
+	})
+
+	await test.step('Then the success confirmation screen is shown with the envelope name', async () => {
+		await expectEnvelopeSigned(page, scenario.envelopeName)
+	})
 })
