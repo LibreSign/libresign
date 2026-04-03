@@ -4,7 +4,7 @@ Feature: TSA Administration - Core Configuration
     Given as user "admin"
 
     When sending "post" to ocs "/apps/libresign/api/v1/admin/tsa"
-      | tsa_url       | https://freetsa.org/tsr |
+      | tsa_url       | <TSA_URL> |
       | tsa_policy    | 1.2.3.4.1               |
       | tsa_auth_type | none                    |
     Then the response should have a status code 200
@@ -16,7 +16,7 @@ Feature: TSA Administration - Core Configuration
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                | value                   |
-      | (jq).ocs.data.data | https://freetsa.org/tsr |
+      | (jq).ocs.data.data | <TSA_URL>               |
 
     When sending "delete" to ocs "/apps/libresign/api/v1/admin/tsa"
     Then the response should have a status code 200
