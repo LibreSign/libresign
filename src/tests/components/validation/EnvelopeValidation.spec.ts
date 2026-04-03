@@ -4,7 +4,6 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
@@ -93,7 +92,7 @@ let EnvelopeValidation: EnvelopeValidationComponent
 vi.mock('@nextcloud/router', () => ({
 	generateUrl: vi.fn((url: string, params: { uuid: string }) => url.replace('{uuid}', params.uuid)),
 }))
-vi.mock('@nextcloud/l10n', () => createL10nMock({
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 	t,
 	translate: t,
 	n,
