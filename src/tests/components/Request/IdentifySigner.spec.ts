@@ -4,7 +4,6 @@
  */
 
 import { describe, expect, it, beforeEach, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -83,7 +82,7 @@ vi.mock('../../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStore),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@mdi/svg/svg/account.svg?raw', () => ({ default: '<svg></svg>' }))
 vi.mock('@mdi/svg/svg/email.svg?raw', () => ({ default: '<svg></svg>' }))

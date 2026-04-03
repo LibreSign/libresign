@@ -4,7 +4,6 @@
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 import SignerSelect from '../../../components/Request/SignerSelect.vue'
 
@@ -32,7 +31,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path: string) => path),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 describe('SignerSelect.vue', () => {
 	beforeEach(() => {

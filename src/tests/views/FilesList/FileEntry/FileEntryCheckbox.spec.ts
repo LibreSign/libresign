@@ -4,7 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock, interpolateL10n } from '../../../testHelpers/l10n.js'
+import { interpolateL10n } from '../../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import FileEntryCheckbox from '../../../../views/FilesList/FileEntry/FileEntryCheckbox.vue'
@@ -26,7 +26,7 @@ const selectionStoreMock = {
 	reset: vi.fn(),
 }
 
-vi.mock('@nextcloud/l10n', () => createL10nMock({
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 	t: (_app: string, text: string, vars?: Record<string, string | number>) => interpolateL10n(text, vars),
 	n: (_app: string, singular: string, plural: string, count: number, vars?: Record<string, string | number>) => {
 		const template = count === 1 ? singular : plural
