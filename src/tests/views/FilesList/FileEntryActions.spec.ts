@@ -4,7 +4,6 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import FileEntryActions from '../../../views/FilesList/FileEntry/FileEntryActions.vue'
@@ -64,7 +63,7 @@ vi.mock('vue-router', () => ({
 	})),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((_app: string, _key: string, defaultValue: unknown) => defaultValue),
