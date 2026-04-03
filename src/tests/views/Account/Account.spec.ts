@@ -4,12 +4,11 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import Account from '../../../views/Account/Account.vue'
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: vi.fn(() => ({
