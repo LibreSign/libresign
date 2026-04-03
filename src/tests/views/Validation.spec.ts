@@ -4,7 +4,7 @@
  */
 
 import { afterEach, describe, expect, it, beforeEach, vi } from 'vitest'
-import { createL10nMock, interpolateL10n } from '../testHelpers/l10n.js'
+import { interpolateL10n } from '../testHelpers/l10n.js'
 import { shallowMount } from '@vue/test-utils'
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -98,7 +98,7 @@ vi.mock('@nextcloud/logger', () => ({
 	})),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock({
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 	t: (app: string, text: string, vars?: Record<string, string>) => {
 		return interpolateL10n(text, vars)
 	},
