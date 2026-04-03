@@ -8,11 +8,7 @@ import { mount } from '@vue/test-utils'
 
 import SupportProject from '../../../views/Settings/SupportProject.vue'
 
-vi.mock('@nextcloud/l10n', async () => {
-	const { createL10nMock } = await import('../../testHelpers/l10n.js')
-
-	return createL10nMock()
-})
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 describe('SupportProject.vue', () => {
 	it('renders the three support links with expected targets', () => {
