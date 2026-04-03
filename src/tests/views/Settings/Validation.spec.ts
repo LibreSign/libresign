@@ -4,7 +4,6 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { flushPromises, mount } from '@vue/test-utils'
 
 import Validation from '../../../views/Settings/Validation.vue'
@@ -26,7 +25,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path: string) => path),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 const appConfigSetValueMock = vi.fn()
 
