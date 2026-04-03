@@ -4,7 +4,6 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { flushPromises, mount } from '@vue/test-utils'
 
 const axiosGetMock = vi.fn()
@@ -25,7 +24,7 @@ vi.mock('@nextcloud/password-confirmation', () => ({
 	confirmPassword: () => confirmPasswordMock(),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 const OCP = {
 	AppConfig: {
