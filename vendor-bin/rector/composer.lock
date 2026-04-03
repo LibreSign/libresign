@@ -9,16 +9,16 @@
     "packages-dev": [
         {
             "name": "nextcloud/ocp",
-            "version": "v33.0.0",
+            "version": "v33.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "a643b20f9ff1849a297d69ef250414ef16c48f6a"
+                "reference": "f5a898fb7795fa28a135f528105b8628df6d97f5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/a643b20f9ff1849a297d69ef250414ef16c48f6a",
-                "reference": "a643b20f9ff1849a297d69ef250414ef16c48f6a",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/f5a898fb7795fa28a135f528105b8628df6d97f5",
+                "reference": "f5a898fb7795fa28a135f528105b8628df6d97f5",
                 "shasum": ""
             },
             "require": {
@@ -51,9 +51,9 @@
             "description": "Composer package containing Nextcloud's public OCP API and the unstable NCU API",
             "support": {
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
-                "source": "https://github.com/nextcloud-deps/ocp/tree/v33.0.0"
+                "source": "https://github.com/nextcloud-deps/ocp/tree/v33.0.2"
             },
-            "time": "2026-02-12T01:11:10+00:00"
+            "time": "2026-03-27T01:17:36+00:00"
         },
         {
             "name": "nextcloud/rector",
@@ -122,11 +122,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.41",
+            "version": "2.1.46",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/a2eae8f20856b3afe74bf1f9726ce8c11438e300",
-                "reference": "a2eae8f20856b3afe74bf1f9726ce8c11438e300",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/a193923fc2d6325ef4e741cf3af8c3e8f54dbf25",
+                "reference": "a193923fc2d6325ef4e741cf3af8c3e8f54dbf25",
                 "shasum": ""
             },
             "require": {
@@ -171,7 +171,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-03-16T18:24:10+00:00"
+            "time": "2026-04-01T09:25:14+00:00"
         },
         {
             "name": "psr/clock",
