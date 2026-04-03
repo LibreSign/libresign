@@ -4,12 +4,17 @@
  */
 
 import { ACTION_CODES } from '../helpers/ActionMapping.ts'
+import { hasVisibleElementsForCurrentUser } from './visibleElementsService'
 
 interface SignStore {
 	errors: Array<{ code?: number; [key: string]: unknown }>
 	document?: {
 		signers?: Array<{ me?: boolean; signRequestId?: number }> | null
 		visibleElements?: Array<{ signRequestId?: number }> | null
+		files?: Array<{
+			signers?: Array<{ me?: boolean; signRequestId?: number }> | null
+			visibleElements?: Array<{ signRequestId?: number }> | null
+		}> | null
 	}
 }
 
@@ -110,14 +115,8 @@ export class SigningRequirementValidator {
 			return false
 		}
 
-		const signer = this.signStore.document?.signers?.find(row => row.me) || {}
-		const signRequestId = (signer as { signRequestId?: number }).signRequestId
-
-		if (!signRequestId) {
-			return false
-		}
-
-		const visibleElements = this.signStore.document?.visibleElements || []
-		return visibleElements.some(row => row.signRequestId === signRequestId)
+		return hasVisibleElementsForCurrentUser(
+			(this.signStore.document ?? {}) as Parameters<typeof hasVisibleElementsForCurrentUser>[0],
+		)
 	}
 }

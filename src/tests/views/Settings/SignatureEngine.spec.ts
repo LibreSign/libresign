@@ -9,8 +9,10 @@ import { mount } from '@vue/test-utils'
 
 import SignatureEngine from '../../../views/Settings/SignatureEngine.vue'
 
-const loadStateMock = vi.fn()
-const emitMock = vi.fn()
+const { loadStateMock, emitMock } = vi.hoisted(() => ({
+	loadStateMock: vi.fn(),
+	emitMock: vi.fn(),
+}))
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: (...args: unknown[]) => loadStateMock(...args),
