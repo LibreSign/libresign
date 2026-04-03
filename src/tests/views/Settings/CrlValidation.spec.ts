@@ -4,7 +4,6 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import CrlValidation from '../../../views/Settings/CrlValidation.vue'
@@ -15,7 +14,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 	loadState: (...args: unknown[]) => loadStateMock(...args),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 const OCP = {
 	AppConfig: {
