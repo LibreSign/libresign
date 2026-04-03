@@ -1208,6 +1208,69 @@ describe('Sign.vue - signWithTokenCode', () => {
 			expect(wrapper.vm.needCreateSignature).toBe(false)
 		})
 
+		it('requires signature creation for envelope child elements even when parent signer id differs', async () => {
+			const { default: realSign } = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const { useSignStore } = await import('../../../store/sign.js')
+			const { useSignatureElementsStore } = await import('../../../store/signatureElements.js')
+
+			const signStore = useSignStore()
+			const signatureElementsStore = useSignatureElementsStore()
+
+			signStore.document = createSignDocument({
+				nodeType: 'envelope',
+				signers: [
+					{ signRequestId: 700, me: true },
+				],
+				files: [
+					{
+						id: 10,
+						name: 'child-file',
+						signers: [
+							{ signRequestId: 501, me: true },
+						],
+						visibleElements: [
+							{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+						],
+					},
+				],
+			})
+
+			signatureElementsStore.signs.signature = {
+				id: 0,
+				type: '',
+				file: { url: '', nodeId: 0 },
+				starred: 0,
+				createdAt: '',
+			}
+
+			const wrapper = mount(realSign, {
+				global: {
+					stubs: {
+						NcButton: true,
+						NcDialog: true,
+						NcLoadingIcon: true,
+						TokenManager: true,
+						EmailManager: true,
+						UploadCertificate: true,
+						Documents: true,
+						Signatures: true,
+						Draw: true,
+						ManagePassword: true,
+						CreatePassword: true,
+						NcNoteCard: true,
+						NcPasswordField: true,
+						NcRichText: true,
+					},
+					mocks: {
+						$watch: vi.fn(),
+					},
+				},
+			})
+
+			expect(wrapper.vm.hasSignatures).toBe(false)
+			expect(wrapper.vm.needCreateSignature).toBe(true)
+		})
+
 		it('returns false for needCreateSignature when signer has no placed visibleElements (clickToSign scenario)', async () => {
 			// Regression: commit e9ea79495 removed visibleElements.some() check, causing
 			// needCreateSignature to return true for clickToSign documents where no visual
