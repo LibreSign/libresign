@@ -4,7 +4,6 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import FilesListVirtual from '../../../views/FilesList/FilesListVirtual.vue'
@@ -17,7 +16,7 @@ const userConfigStoreMock = {
 	files_list_grid_view: false,
 }
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('../../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStoreMock),
