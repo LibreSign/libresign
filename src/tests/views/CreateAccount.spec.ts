@@ -8,6 +8,8 @@ import { shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import CreateAccount from '../../views/CreateAccount.vue'
 import md5 from 'blueimp-md5'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 
 type ValidationField = {
 	$model: string
@@ -82,8 +84,12 @@ describe('CreateAccount.vue - Business Logic', () => {
 	}
 
 	let wrapper!: CreateAccountWrapper
+	const axiosPostMock = vi.mocked(axios.post)
+	const generateOcsUrlMock = vi.mocked(generateOcsUrl)
 
 	beforeEach(() => {
+		axiosPostMock.mockReset()
+		generateOcsUrlMock.mockClear()
 		wrapper = shallowMount(CreateAccount, {
 			global: {
 				mocks: {
@@ -485,6 +491,36 @@ describe('CreateAccount.vue - Business Logic', () => {
 			})
 
 			expect(wrapper.vm.canSave).toBe(false)
+		})
+
+		it('posts create-account request with interpolated sign request uuid', async () => {
+			axiosPostMock.mockRejectedValue({
+				response: {
+					data: {
+						ocs: {
+							data: {
+								message: 'Invalid UUID',
+							},
+						},
+					},
+				},
+			})
+
+			await wrapper.setData({
+				email: 'test@example.com',
+				password: 'validPassword123',
+				passwordConfirm: 'validPassword123',
+			})
+
+			await wrapper.vm.createAccount()
+
+			expect(generateOcsUrlMock).toHaveBeenCalledWith('/apps/libresign/api/v1/account/create/{uuid}', {
+				uuid: 'test-uuid',
+			})
+			expect(axiosPostMock).toHaveBeenCalledWith('/apps/libresign/api/v1/account/create/{uuid}', {
+				email: 'test@example.com',
+				password: 'validPassword123',
+			})
 		})
 	})
 })
