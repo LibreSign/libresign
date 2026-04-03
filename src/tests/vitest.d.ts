@@ -5,6 +5,20 @@
 
 import 'vitest'
 
+type L10nMockFactoryOptions = {
+	t?: (...args: Array<any>) => string,
+	translate?: (...args: Array<any>) => string,
+	n?: (...args: Array<any>) => string,
+	translatePlural?: (...args: Array<any>) => string,
+	language?: string,
+	locale?: string,
+	isRTL?: boolean,
+}
+
+declare global {
+	var mockNextcloudL10n: (options?: L10nMockFactoryOptions) => Record<string, unknown>
+}
+
 declare module 'vitest' {
 	export interface Mock<T = any, Y extends any[] = any> {
 		(...args: Y): T
