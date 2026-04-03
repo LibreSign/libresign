@@ -4,7 +4,6 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../../testHelpers/l10n.js'
 import { flushPromises, mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 
@@ -37,7 +36,7 @@ vi.mock('@nextcloud/dialogs', () => ({
 	getFilePickerBuilder: vi.fn(),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 type DocumentsComponent = typeof import('../../../../views/Account/partials/Documents.vue').default
 
