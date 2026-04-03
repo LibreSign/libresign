@@ -4,12 +4,15 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import SupportProject from '../../../views/Settings/SupportProject.vue'
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', async () => {
+	const { createL10nMock } = await import('../../testHelpers/l10n.js')
+
+	return createL10nMock()
+})
 
 describe('SupportProject.vue', () => {
 	it('renders the three support links with expected targets', () => {
