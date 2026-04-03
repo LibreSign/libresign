@@ -4,7 +4,6 @@
  */
 
 import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
-import { createL10nMock } from '../testHelpers/l10n.js'
 
 // Mock @nextcloud/logger to avoid import-time errors with @nextcloud/vue
 vi.mock('@nextcloud/logger', () => ({
@@ -83,7 +82,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 	}),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@nextcloud/vue/functions/dialog', () => ({
 	spawnDialog: vi.fn(() => Promise.resolve('Test Envelope')),
