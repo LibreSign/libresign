@@ -17,6 +17,7 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\Files\IRootFolder;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -130,8 +131,21 @@ class IdentifyService {
 			return $this->savedSettings;
 		}
 
+		$this->getAppConfig()->clearCache(true);
+
 		try {
 			$this->savedSettings = $this->getAppConfig()->getValueArray(Application::APP_ID, 'identify_methods', []);
+		} catch (AppConfigTypeConflictException $exception) {
+			$legacySettings = $this->getLegacySavedSettings();
+			if ($legacySettings !== null) {
+				$this->savedSettings = $legacySettings;
+				return $this->savedSettings;
+			}
+
+			$this->logger->warning('Invalid identify_methods app config; falling back to defaults.', [
+				'exception' => $exception,
+			]);
+			$this->savedSettings = [];
 		} catch (\TypeError $exception) {
 			$this->logger->warning('Invalid identify_methods app config; falling back to defaults.', [
 				'exception' => $exception,
@@ -140,6 +154,17 @@ class IdentifyService {
 		}
 
 		return $this->savedSettings;
+	}
+
+	private function getLegacySavedSettings(): ?array {
+		try {
+			$legacyValue = $this->getAppConfig()->getValueString(Application::APP_ID, 'identify_methods', '');
+		} catch (AppConfigTypeConflictException|\TypeError) {
+			return null;
+		}
+
+		$decoded = json_decode($legacyValue, true);
+		return is_array($decoded) ? $decoded : null;
 	}
 
 	public function getEventDispatcher(): IEventDispatcher {
