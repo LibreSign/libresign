@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -161,10 +160,7 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	private function isEnabledByDefault(): bool {
-		$config = $this->identifyService->getAppConfig()->getValueArray(Application::APP_ID, 'identify_methods', []);
-		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
-			return true;
-		}
+		$config = $this->identifyService->getSavedSettings();
 
 		// Remove not enabled
 		$config = array_filter($config, fn ($i) => isset($i['enabled']) && $i['enabled'] ? true : false);
