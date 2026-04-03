@@ -4,14 +4,13 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import FileStatusList from '../../components/FileStatusList.vue'
 
 const axiosGetMock = vi.fn()
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@nextcloud/files', () => ({
 	formatFileSize: vi.fn((size: number) => `${size}B`),
