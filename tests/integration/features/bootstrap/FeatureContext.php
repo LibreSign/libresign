@@ -49,6 +49,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	protected function parseText(string $text): string {
 		$fields = $this->fields;
 		$fields['BASE_URL'] = $this->baseUrl . '/index.php';
+		$fields['TSA_URL'] = getenv('LIBRESIGN_TSA_URL') ?: 'https://freetsa.org/tsr';
 		foreach ($fields as $key => $value) {
 			$patterns[] = '/<' . $key . '>/';
 			$replacements[] = $value;
