@@ -1820,13 +1820,13 @@
                                         "type": "number",
                                         "format": "double",
                                         "default": 350,
-                                        "description": "Signature width"
+                                        "description": "Signature box width, minimum 1"
                                     },
                                     "signatureHeight": {
                                         "type": "number",
                                         "format": "double",
                                         "default": 100,
-                                        "description": "Signature height"
+                                        "description": "Signature box height, minimum 1"
                                     },
                                     "renderMode": {
                                         "type": "string",
