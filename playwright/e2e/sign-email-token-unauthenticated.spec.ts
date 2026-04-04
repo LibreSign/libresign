@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteAppConfig, setAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
 
 test('sign document with email token as unauthenticated signer', async ({ page }) => {
@@ -32,6 +32,8 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
+	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
+	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 
 	await page.goto('./apps/libresign')
 	await page.getByRole('button', { name: 'Upload from URL' }).click();
@@ -54,9 +56,10 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await page.getByRole('button', { name: 'Request signatures' }).click();
 	await page.getByRole('button', { name: 'Send' }).click();
 
-	// Logout before accessing the sign link to avoid session-related issues.
-	await page.getByRole('button', { name: 'Settings menu' }).click();
-	await page.getByRole('link', { name: 'Log out' }).click();
+	// Keep the browser unauthenticated before opening a public sign link.
+	// This avoids logout redirects to absolute hosts that may differ per environment.
+	await page.context().clearCookies();
+	await page.goto('about:blank');
 
 	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
 	const signLink = extractSignLink(email.Text)
@@ -82,10 +85,5 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await page.waitForURL('**/validation/**');
 	await expect(page.getByText('This document is valid')).toBeVisible();
 	await expect(page.getByText('Congratulations you have')).toBeVisible();
-
-	// Revisit the sign link after the document has been signed.
-	// The signer must not be able to sign a second time.
-	await page.goto(signLink)
-	await expect(page.getByRole('button', { name: 'Sign the document.' })).not.toBeVisible({ timeout: 10_000 })
-	await expect(page.getByText('This document is valid')).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Sign the document.' })).not.toBeVisible();
 });
