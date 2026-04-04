@@ -6,7 +6,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteAppConfig, setAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
 
 async function addEmailSigner(
@@ -51,6 +51,8 @@ test('request signatures from two signers in sequential order', async ({ page })
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
 		]),
 	)
+	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
+	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
@@ -75,6 +77,7 @@ test('request signatures from two signers in sequential order', async ({ page })
 	// Send the signature request
 	await page.getByRole('button', { name: 'Request signatures' }).click()
 	await page.getByRole('button', { name: 'Send' }).click()
+	const appOrigin = new URL(page.url()).origin
 
 	// In sequential mode only signer01 (order 1) gets the email immediately.
 	// Proof: signer01's email arrives, but signer02's does NOT at this point.
@@ -83,15 +86,15 @@ test('request signatures from two signers in sequential order', async ({ page })
 	const afterFirst = await mailpit.searchMessages({ query: 'subject:"LibreSign: There is a file for you to sign"' })
 	expect(afterFirst.messages).toHaveLength(1)
 
-	// Logout before signing as signer01 — the sign link is for an email-based signer
-	// (no Nextcloud account), so it must be accessed without an active admin session.
-	await page.getByRole('button', { name: 'Settings menu' }).click()
-	await page.getByRole('link', { name: 'Log out' }).click()
+	// Keep the browser unauthenticated before opening a public sign link.
+	// This avoids logout redirects to absolute hosts that may differ per environment.
+	await page.context().clearCookies()
+	await page.goto('about:blank')
 
 	// Signer01 signs via the link received in the email
 	const signLink = extractSignLink(email01.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
-	await page.goto(signLink)
+	await page.goto(new URL(signLink, appOrigin).toString())
 	await page.getByRole('button', { name: 'Sign the document.' }).click()
 	await page.getByRole('button', { name: 'Sign document' }).click()
 	await page.waitForURL('**/validation/**')
@@ -117,7 +120,7 @@ test('request signatures from two signers in sequential order', async ({ page })
 	// The admin is still logged out from the signer01 step, so this is unauthenticated.
 	const signLink02 = extractSignLink(email02.Text)
 	if (!signLink02) throw new Error('Sign link for signer02 not found in email')
-	await page.goto(signLink02)
+	await page.goto(new URL(signLink02, appOrigin).toString())
 	await page.getByRole('button', { name: 'Sign the document.' }).click()
 	await page.getByRole('button', { name: 'Sign document' }).click()
 	await page.waitForURL('**/validation/**')
