@@ -52,6 +52,7 @@ window.addEventListener('DOMContentLoaded', () => {
 		const tabPinia = createPinia()
 		let currentApp: ReturnType<typeof createApp> | null = null
 		let currentInstance: TabComponentInstance | null = null
+		let mountVersion = 0
 
 		sidebarService.registerTab(new sidebarService.Tab({
 			id: 'libresign',
@@ -74,15 +75,23 @@ window.addEventListener('DOMContentLoaded', () => {
 			},
 			mount(el: HTMLElement, rawFileInfo: unknown) {
 				const fileInfo = rawFileInfo as FileInfo
-				currentApp = createApp(AppFilesTab)
-				currentApp.config.globalProperties.t = t
-				currentApp.config.globalProperties.n = n
-				currentApp.use(tabPinia)
-				currentInstance = currentApp.mount(el) as TabComponentInstance
-				if (typeof currentInstance?.update === 'function') {
-					currentInstance.update(fileInfo)
-				}
 				window.OCA.Libresign.fileInfo = fileInfo
+
+				const currentMountVersion = ++mountVersion
+				void import('./components/RightSidebar/AppFilesTab.vue').then(({ default: AppFilesTab }) => {
+					if (!el.isConnected || currentMountVersion !== mountVersion) {
+						return
+					}
+
+					currentApp = createApp(AppFilesTab)
+					currentApp.config.globalProperties.t = t
+					currentApp.config.globalProperties.n = n
+					currentApp.use(tabPinia)
+					currentInstance = currentApp.mount(el) as TabComponentInstance
+					if (typeof currentInstance?.update === 'function') {
+						currentInstance.update(fileInfo)
+					}
+				})
 			},
 			update(rawFileInfo: unknown) {
 				const fileInfo = rawFileInfo as FileInfo
@@ -92,6 +101,7 @@ window.addEventListener('DOMContentLoaded', () => {
 				window.OCA.Libresign.fileInfo = fileInfo
 			},
 			destroy() {
+				mountVersion += 1
 				if (currentApp) {
 					currentApp.unmount()
 					currentApp = null
