@@ -451,8 +451,8 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param string $template Template to signature text
 	 * @param float $templateFontSize Font size used when print the parsed text of this template at PDF file
 	 * @param float $signatureFontSize Font size used when the signature mode is SIGNAME_AND_DESCRIPTION
-	 * @param float $signatureWidth Signature width
-	 * @param float $signatureHeight Signature height
+	 * @param float $signatureWidth Signature box width, minimum 1
+	 * @param float $signatureHeight Signature box height, minimum 1
 	 * @param string $renderMode Signature render mode
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureTextSettingsResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
