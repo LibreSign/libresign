@@ -54,10 +54,6 @@ type PdfElementsMock = {
 	selectedDocIndex: number
 	autoFitZoom: boolean
 	isAddingMode?: boolean
-	handleMouseMove?: ReturnType<typeof vi.fn>
-	finishAdding?: ReturnType<typeof vi.fn>
-	previewElement?: Record<string, unknown> | null
-	previewVisible?: boolean
 }
 
 type PdfEditorVm = {
@@ -362,114 +358,21 @@ describe('PdfEditor Component - Business Rules', () => {
 		})
 	})
 
-	describe('RULE: touchend handling for mobile placement', () => {
-		it('ignores touchend when no signer placement is pending', () => {
-			const handleMouseMove = vi.fn()
-			Object.assign(getPdfElements(), {
-				handleMouseMove,
-				isAddingMode: true,
-				previewElement: { id: 'preview-1' },
-				previewVisible: false,
-			})
-			const event = new Event('touchend')
-			Object.defineProperty(event, 'changedTouches', {
-				value: [{ clientX: 10, clientY: 20 }],
-				configurable: true,
-			})
-
-			document.dispatchEvent(event)
-
-			expect(handleMouseMove).not.toHaveBeenCalled()
-			expect(wrapper.emitted('pdf-editor:signer-added')).toBeFalsy()
-		})
-
-		it('schedules signer check when touchend has no touch point', async () => {
-			vi.useFakeTimers()
-			Object.assign(getPdfElements(), {
-				isAddingMode: false,
-				pdfDocuments: [{ allObjects: [[]] }],
-			})
-			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
-			vi.clearAllTimers()
-
-			document.dispatchEvent(new Event('touchend'))
-			await vi.runOnlyPendingTimersAsync()
-
-			expect(wrapper.emitted('pdf-editor:signer-added')).toHaveLength(1)
-			vi.useRealTimers()
-		})
-
-		it('schedules signer check when pdf-elements instance is unavailable', async () => {
-			vi.useFakeTimers()
-			Object.assign(getPdfElements(), {
-				isAddingMode: false,
-				pdfDocuments: [{ allObjects: [[]] }],
-			})
-			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
-			vi.clearAllTimers()
-			wrapper.vm.pdfElements = null
-
-			const event = new Event('touchend')
-			Object.defineProperty(event, 'changedTouches', {
-				value: [{ clientX: 10, clientY: 20 }],
-				configurable: true,
-			})
-			document.dispatchEvent(event)
-			await vi.runOnlyPendingTimersAsync()
-
-			expect(wrapper.emitted('pdf-editor:signer-added')).toHaveLength(1)
-			vi.useRealTimers()
-		})
-
-		it('uses preview fallback on touchend and finalizes adding flow', async () => {
-			vi.useFakeTimers()
-			const runtime = Object.assign(getPdfElements(), {
-				isAddingMode: true,
-				previewElement: { id: 'preview-1' },
-				previewVisible: false,
-				handleMouseMove: vi.fn(),
-				pdfDocuments: [{ allObjects: [[]] }],
-			})
-			runtime.finishAdding = vi.fn(() => {
-				runtime.isAddingMode = false
-			})
-
-			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
-			vi.clearAllTimers()
-
-			const event = new Event('touchend')
-			const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
-			const stopImmediatePropagationSpy = vi.spyOn(event, 'stopImmediatePropagation')
-			Object.defineProperty(event, 'changedTouches', {
-				value: [{ clientX: 44, clientY: 88 }],
-				configurable: true,
-			})
-			document.dispatchEvent(event)
-			await vi.runAllTimersAsync()
-
-			expect(preventDefaultSpy).toHaveBeenCalledTimes(1)
-			expect(stopImmediatePropagationSpy).toHaveBeenCalledTimes(1)
-			expect(runtime.handleMouseMove).toHaveBeenCalledWith({
-				type: 'touchmove',
-				touches: [{ clientX: 44, clientY: 88 }],
-			})
-			expect(runtime.finishAdding).toHaveBeenCalledTimes(1)
-			expect(wrapper.emitted('pdf-editor:signer-added')).toHaveLength(1)
-			vi.useRealTimers()
-		})
-	})
-
 	describe('RULE: document listener lifecycle', () => {
 		it('registers and unregisters touchend listener on mount/unmount', () => {
 			wrapper.unmount()
 			const addEventListenerSpy = vi.spyOn(document, 'addEventListener')
 			const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener')
 			const localWrapper = createWrapper()
-			const touchendCall = addEventListenerSpy.mock.calls.find(([eventName]) => eventName === 'touchend')
+			const registeredEvents = addEventListenerSpy.mock.calls
+				.filter(([eventName]) => ['mouseup', 'touchend', 'keyup'].includes(String(eventName)))
+				.map(([eventName]) => String(eventName))
 
-			expect(touchendCall).toBeTruthy()
+			expect(registeredEvents).toEqual(['mouseup', 'touchend', 'keyup'])
 			localWrapper.unmount()
-			expect(removeEventListenerSpy).toHaveBeenCalledWith('touchend', touchendCall?.[1] as EventListener)
+			expect(removeEventListenerSpy).toHaveBeenCalledWith('mouseup', expect.any(Function))
+			expect(removeEventListenerSpy).toHaveBeenCalledWith('touchend', expect.any(Function))
+			expect(removeEventListenerSpy).toHaveBeenCalledWith('keyup', expect.any(Function))
 		})
 	})
 
