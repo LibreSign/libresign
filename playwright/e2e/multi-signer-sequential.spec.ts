@@ -6,7 +6,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteAppConfig, setAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
 
 async function addEmailSigner(
@@ -51,6 +51,8 @@ test('request signatures from two signers in sequential order', async ({ page })
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
 		]),
 	)
+	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
+	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
@@ -83,10 +85,10 @@ test('request signatures from two signers in sequential order', async ({ page })
 	const afterFirst = await mailpit.searchMessages({ query: 'subject:"LibreSign: There is a file for you to sign"' })
 	expect(afterFirst.messages).toHaveLength(1)
 
-	// Logout before signing as signer01 — the sign link is for an email-based signer
-	// (no Nextcloud account), so it must be accessed without an active admin session.
-	await page.getByRole('button', { name: 'Settings menu' }).click()
-	await page.getByRole('link', { name: 'Log out' }).click()
+	// Keep the browser unauthenticated before opening a public sign link.
+	// This avoids logout redirects to absolute hosts that may differ per environment.
+	await page.context().clearCookies()
+	await page.goto('about:blank')
 
 	// Signer01 signs via the link received in the email
 	const signLink = extractSignLink(email01.Text)
