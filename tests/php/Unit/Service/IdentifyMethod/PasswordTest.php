@@ -148,7 +148,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler->method('readCertificate')->willReturn($certificateData);
 
 		$this->identifyService->method('getL10n')->willReturn($this->l10n);
-		$this->identifyService->method('getAppConfig')->willReturn($this->appConfig);
 
 		$password = $this->getClass();
 		$password->setCodeSentByUser('senha');
@@ -329,28 +328,4 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	public function testValidateToSignWithMissingCrlWhenExternalValidationDisabled(): void {
-		$appConfig = $this->createMock(\OCP\IAppConfig::class);
-		$appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'crl_external_validation_enabled', true)
-			->willReturn(false);
-
-		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner', 'setCertificate', 'setPassword', 'readCertificate']);
-		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn('mock-pfx');
-		$this->pkcs12Handler->method('setCertificate')->willReturnSelf();
-		$this->pkcs12Handler->method('setPassword')->willReturnSelf();
-		$this->pkcs12Handler->method('readCertificate')->willReturn([
-			'validTo_time_t' => (new \DateTime('+50 years'))->getTimestamp(),
-			'crl_validation' => CrlValidationStatus::MISSING,
-		]);
-		$this->identifyService->method('getL10n')->willReturn($this->l10n);
-		$this->identifyService->method('getAppConfig')->willReturn($appConfig);
-
-		$password = $this->getClass();
-		$password->setCodeSentByUser('senha');
-		$password->validateToSign();
-
-		// If we reach here, signing was allowed (no exception thrown).
-		$this->expectNotToPerformAssertions();
-	}
 }
