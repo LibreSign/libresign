@@ -18,10 +18,7 @@ const sidebarStoreMock = {
 	isVisible: false,
 }
 
-vi.mock('@nextcloud/l10n', async () => {
-	const { createL10nMock } = await import('../testHelpers/l10n.js')
-	return createL10nMock()
-})
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('../../store/files.js', () => ({
 	useFilesStore: vi.fn(() => filesStoreMock),
