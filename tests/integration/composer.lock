@@ -949,16 +949,16 @@
         },
         {
             "name": "libresign/behat-tsa-extension",
-            "version": "v0.1.0",
+            "version": "v0.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/behat-tsa-extension.git",
-                "reference": "cac8018d8226aacb407ef9ecfeb627f5085ffbb5"
+                "reference": "3023dee644115db79545790f9b8c6d9e51c5a38d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/behat-tsa-extension/zipball/cac8018d8226aacb407ef9ecfeb627f5085ffbb5",
-                "reference": "cac8018d8226aacb407ef9ecfeb627f5085ffbb5",
+                "url": "https://api.github.com/repos/LibreSign/behat-tsa-extension/zipball/3023dee644115db79545790f9b8c6d9e51c5a38d",
+                "reference": "3023dee644115db79545790f9b8c6d9e51c5a38d",
                 "shasum": ""
             },
             "require": {
@@ -997,9 +997,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/behat-tsa-extension/issues",
-                "source": "https://github.com/LibreSign/behat-tsa-extension/tree/v0.1.0"
+                "source": "https://github.com/LibreSign/behat-tsa-extension/tree/v0.1.1"
             },
-            "time": "2026-04-03T23:12:03+00:00"
+            "time": "2026-04-04T00:59:59+00:00"
         },
         {
             "name": "libresign/mailpit-behat-extension",
