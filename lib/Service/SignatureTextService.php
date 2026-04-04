@@ -29,6 +29,7 @@ use Sabre\DAV\UUIDUtil;
 class SignatureTextService {
 	public const TEMPLATE_DEFAULT_FONT_SIZE = 10;
 	public const SIGNATURE_DEFAULT_FONT_SIZE = 20;
+	public const SIGNATURE_DIMENSION_MINIMUM = 1;
 	public const FONT_SIZE_MINIMUM = 0.1;
 	public const FRONT_SIZE_MAX = 30;
 	public const DEFAULT_SIGNATURE_WIDTH = 350;
@@ -68,6 +69,19 @@ class SignatureTextService {
 			// signature in the signed PDF. The user must enter a numeric value
 			// within the accepted range.
 			throw new LibresignException($this->l10n->t('Invalid signature font size. The value must be between %.1f and %.0f.', [self::FONT_SIZE_MINIMUM, self::FRONT_SIZE_MAX]));
+		}
+		if (
+			!is_finite($signatureWidth)
+			|| !is_finite($signatureHeight)
+			|| $signatureWidth < self::SIGNATURE_DIMENSION_MINIMUM
+			|| $signatureHeight < self::SIGNATURE_DIMENSION_MINIMUM
+		) {
+			// TRANSLATORS This message is shown when the visible signature box size
+			// configured by the admin is invalid. "Signature box" is the rectangular
+			// area reserved for the handwritten-style signature image in the signed
+			// PDF. "Width" and "height" are its pixel dimensions. %.0f is the
+			// minimum allowed value for each dimension.
+			throw new LibresignException($this->l10n->t('Invalid signature box size. Width and height must be at least %.0f.', [self::SIGNATURE_DIMENSION_MINIMUM]));
 		}
 		$template = trim($template);
 		$template = preg_replace(
@@ -432,11 +446,11 @@ class SignatureTextService {
 	}
 
 	public function getFullSignatureWidth(): float {
-		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+		return $this->getSanitizedDimension('signature_width', self::DEFAULT_SIGNATURE_WIDTH);
 	}
 
 	public function getFullSignatureHeight(): float {
-		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_height', self::DEFAULT_SIGNATURE_HEIGHT);
+		return $this->getSanitizedDimension('signature_height', self::DEFAULT_SIGNATURE_HEIGHT);
 	}
 
 	public function getSignatureWidth(): float {
@@ -448,7 +462,21 @@ class SignatureTextService {
 	}
 
 	public function getSignatureHeight(): float {
-		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_height', self::DEFAULT_SIGNATURE_HEIGHT);
+		return $this->getFullSignatureHeight();
+	}
+
+	private function getSanitizedDimension(string $key, float $default): float {
+		$value = $this->appConfig->getValueFloat(Application::APP_ID, $key, $default);
+		if (!is_finite($value) || $value < self::SIGNATURE_DIMENSION_MINIMUM) {
+			$this->appConfig->setValueFloat(Application::APP_ID, $key, $default);
+			$this->logger->warning('Invalid signature dimension found in app config. Falling back to default.', [
+				'key' => $key,
+				'value' => $value,
+				'default' => $default,
+			]);
+			return $default;
+		}
+		return $value;
 	}
 
 	public function getTemplateFontSize(): float {
