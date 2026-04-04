@@ -72,10 +72,15 @@ class Password extends AbstractSignatureMethod {
 
 	private function getRevocationErrorMessage(CrlValidationStatus $status): string {
 		return match ($status) {
+			// TRANSLATORS Error when the CRL distribution points (URLs) cannot be reached to check if certificate is revoked
 			CrlValidationStatus::URLS_INACCESSIBLE => $this->identifyService->getL10n()->t('Cannot reach the certificate revocation service. Signing is not allowed.'),
+			// TRANSLATORS Error when an error occurs during certificate revocation status validation
 			CrlValidationStatus::VALIDATION_ERROR => $this->identifyService->getL10n()->t('An error occurred during certificate validation. Signing is not allowed.'),
+			// TRANSLATORS Error when certificate validation completed but could not determine if certificate is revoked
 			CrlValidationStatus::VALIDATION_FAILED => $this->identifyService->getL10n()->t('Certificate validation failed. Signing is not allowed. Contact your administrator.'),
+			// TRANSLATORS Error when certificate has no CRL distribution points (URLs to check revocation)
 			CrlValidationStatus::NO_URLS => $this->identifyService->getL10n()->t('This certificate has no revocation URLs. Signing is not allowed. Contact your administrator.'),
+			// TRANSLATORS Error when certificate has no revocation information configured
 			CrlValidationStatus::MISSING => $this->identifyService->getL10n()->t('This certificate has no revocation information. Signing is not allowed. Contact your administrator.'),
 			default => $this->identifyService->getL10n()->t('Certificate validation could not be completed. Signing is not allowed.'),
 		};
