@@ -6,9 +6,10 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import type { useSignStore } from '../../../store/sign.js'
+import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../../constants.js'
 
 type TokenMethodKey = 'smsToken' | 'whatsappToken' | 'signalToken' | 'telegramToken' | 'xmppToken'
 
@@ -508,6 +509,106 @@ describe('Sign.vue - signWithTokenCode', () => {
 			expect(context.actionHandler.showModal).not.toHaveBeenCalled()
 			expect(context.signStore.setSigningErrors).toHaveBeenCalledWith(apiErrors)
 			expect(context.loading).toBe(false)
+		})
+
+		it('closes password modal when signing fails with non-retriable certificate error', async () => {
+			const apiErrors = [{ message: 'Certificate revocation status could not be verified', code: 422 }]
+			const context = {
+				loading: false,
+				elements: [],
+				canCreateSignature: false,
+				signRequestUuid: 'test-sign-request-uuid',
+				signMethodsStore: {
+					certificateEngine: 'openssl',
+				},
+				signatureElementsStore: {
+					signs: {},
+				},
+				actionHandler: {
+					showModal: vi.fn(),
+					closeModal: vi.fn(),
+				},
+				signStore: {
+					document: { id: 10 },
+					clearSigningErrors: vi.fn(),
+					setSigningErrors: vi.fn(),
+					submitSignature: vi.fn().mockRejectedValue({
+						type: 'signError',
+						errors: apiErrors,
+					}),
+				},
+				$emit: vi.fn(),
+				sidebarStore: {
+					hideSidebar: vi.fn(),
+				},
+			}
+
+			await submitSignatureCompatMethod.call(context, {
+				method: 'password',
+				token: '123456',
+			})
+
+			expect(context.actionHandler.closeModal).toHaveBeenCalledWith('password')
+			expect(context.signStore.setSigningErrors).toHaveBeenCalledWith(apiErrors)
+			expect(context.loading).toBe(false)
+		})
+
+		it('blocks sign CTA and shows explicit retry action when non-retriable error exists', async () => {
+			setActivePinia(createPinia())
+
+			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const realSign = SignComponent.default
+			const { useSignStore } = await import('../../../store/sign.js')
+
+			const mountedSignStore = useSignStore()
+			mountedSignStore.document = createSignDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ me: true, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, signRequestId: 501 }],
+				visibleElements: [],
+			})
+			mountedSignStore.setSigningErrors([
+				{ message: 'Certificate validation failed', code: 422 },
+			])
+
+			const wrapper = mount(realSign, {
+				global: {
+					stubs: {
+						NcButton: {
+							template: '<button><slot /></button>',
+						},
+						NcDialog: true,
+						NcLoadingIcon: true,
+						TokenManager: true,
+						EmailManager: true,
+						UploadCertificate: true,
+						Documents: true,
+						Signatures: true,
+						Draw: true,
+						ManagePassword: true,
+						CreatePassword: true,
+						NcNoteCard: {
+							template: '<div class="nc-note-card-stub"><slot /></div>',
+						},
+						NcPasswordField: true,
+						NcRichText: {
+							props: ['text'],
+							template: '<span>{{ text }}</span>',
+						},
+					},
+					mocks: {
+						$watch: vi.fn(),
+						$nextTick: vi.fn(),
+					},
+				},
+			})
+
+			await wrapper.vm.$nextTick()
+			await wrapper.vm.$nextTick()
+			await flushPromises()
+
+			expect(wrapper.text()).toContain('Try signing again')
+			expect(wrapper.text()).not.toContain('Sign the document.')
+			expect(wrapper.findAll('.nc-note-card-stub')).toHaveLength(1)
 		})
 	})
 
