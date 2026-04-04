@@ -54,11 +54,16 @@ class CrlRevocationChecker {
 	}
 
 	private function validateFromUrlsWithDetails(array $crlUrls, string $certPem): array {
+		$externalValidationEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true);
+
 		if (empty($crlUrls)) {
+			// When external validation is disabled, treat an empty distribution-point
+			// list the same as if all points were intentionally skipped.
+			if (!$externalValidationEnabled) {
+				return ['status' => CrlValidationStatus::DISABLED];
+			}
 			return ['status' => CrlValidationStatus::NO_URLS];
 		}
-
-		$externalValidationEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true);
 
 		$accessibleUrls = 0;
 		$disabledUrls = 0;
