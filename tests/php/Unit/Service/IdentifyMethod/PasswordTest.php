@@ -327,5 +327,4 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 		];
 	}
-
 }
