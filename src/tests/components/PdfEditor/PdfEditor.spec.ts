@@ -53,6 +53,11 @@ type PdfElementsMock = {
 	pdfDocuments: PdfDocumentRecord[]
 	selectedDocIndex: number
 	autoFitZoom: boolean
+	isAddingMode?: boolean
+	handleMouseMove?: ReturnType<typeof vi.fn>
+	finishAdding?: ReturnType<typeof vi.fn>
+	previewElement?: Record<string, unknown> | null
+	previewVisible?: boolean
 }
 
 type PdfEditorVm = {
