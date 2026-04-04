@@ -458,9 +458,9 @@ defineExpose({
 	}
 
 	.action-btn {
-		border: 1px solid #cbd5e1;
-		background: #f8fafc;
-		color: #0f172a;
+		border: 1px solid var(--color-border-maxcontrast, #cbd5e1);
+		background: var(--color-main-background, #f8fafc);
+		color: var(--color-main-text, #0f172a);
 		padding: 4px;
 		min-height: 0;
 		min-width: 0;
@@ -473,7 +473,7 @@ defineExpose({
 		transition: background 120ms ease;
 
 		&:hover {
-			background: #e2e8f0;
+			background: var(--color-background-hover, #e2e8f0);
 		}
 
 		:deep(svg),
