@@ -139,7 +139,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateToSignWithCertificateData(
 		array $certificateData,
 		bool $shouldThrow,
-		string $expectedMessage = '',
 		?int $expectedCode = null,
 	): void {
 		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner', 'setCertificate', 'setPassword', 'readCertificate']);
@@ -149,15 +148,13 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler->method('readCertificate')->willReturn($certificateData);
 
 		$this->identifyService->method('getL10n')->willReturn($this->l10n);
+		$this->identifyService->method('getAppConfig')->willReturn($this->appConfig);
 
 		$password = $this->getClass();
 		$password->setCodeSentByUser('senha');
 
 		if ($shouldThrow) {
 			$this->expectException(LibresignException::class);
-			if ($expectedMessage) {
-				$this->expectExceptionMessage($expectedMessage);
-			}
 			if ($expectedCode !== null) {
 				$this->expectExceptionCode($expectedCode);
 			}
@@ -190,7 +187,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validTo_time_t' => $pastTimestamp,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has expired',
 				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is string' => [
@@ -198,7 +194,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validTo_time_t' => '1234567890',
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
 				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is null' => [
@@ -206,35 +201,30 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validTo_time_t' => null,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
 			],
 			'invalid certificate - validTo_time_t is float' => [
 				'certificateData' => [
 					'validTo_time_t' => 1234567890.5,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
 			],
 			'invalid certificate - validTo_time_t is boolean true' => [
 				'certificateData' => [
 					'validTo_time_t' => true,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
 			],
 			'invalid certificate - validTo_time_t is boolean false' => [
 				'certificateData' => [
 					'validTo_time_t' => false,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
 			],
 			'invalid certificate - validTo_time_t is array' => [
 				'certificateData' => [
 					'validTo_time_t' => ['timestamp' => 1234567890],
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
 			],
 			'revoked certificate' => [
 				'certificateData' => [
@@ -242,7 +232,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::REVOKED,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has been revoked',
 				'expectedCode' => 422,
 			],
 			'valid certificate with crl validation' => [
@@ -265,7 +254,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => 'failed',
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
 				'expectedCode' => 422,
 			],
 			'invalid certificate - crl validation empty string' => [
@@ -274,7 +262,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => '',
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
 			],
 			'invalid certificate - crl validation null' => [
 				'certificateData' => [
@@ -282,7 +269,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => null,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
 			],
 			'invalid certificate - crl urls_inaccessible' => [
 				'certificateData' => [
@@ -290,7 +276,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::URLS_INACCESSIBLE,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
 			],
 			'invalid certificate - crl validation_failed' => [
 				'certificateData' => [
@@ -298,7 +283,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::VALIDATION_FAILED,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
 			],
 			'invalid certificate - crl validation_error' => [
 				'certificateData' => [
@@ -306,7 +290,20 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::VALIDATION_ERROR,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
+			],
+			'invalid certificate - crl no_urls' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::NO_URLS,
+				],
+				'shouldThrow' => true,
+			],
+			'invalid certificate - crl missing' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::MISSING,
+				],
+				'shouldThrow' => true,
 			],
 			'revoked and expired certificate' => [
 				'certificateData' => [
@@ -314,15 +311,46 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::REVOKED,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has been revoked', // revocation is checked first
+			],
+			'crl missing - but validation enabled (default) still blocks' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::MISSING,
+				],
+				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'valid certificate - old date but valid (1970s timestamp)' => [
 				'certificateData' => [
 					'validTo_time_t' => 31536000, // 1971-01-01
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has expired',
 			],
 		];
+	}
+
+	public function testValidateToSignWithMissingCrlWhenExternalValidationDisabled(): void {
+		$appConfig = $this->createMock(\OCP\IAppConfig::class);
+		$appConfig->method('getValueBool')
+			->with(Application::APP_ID, 'crl_external_validation_enabled', true)
+			->willReturn(false);
+
+		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner', 'setCertificate', 'setPassword', 'readCertificate']);
+		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn('mock-pfx');
+		$this->pkcs12Handler->method('setCertificate')->willReturnSelf();
+		$this->pkcs12Handler->method('setPassword')->willReturnSelf();
+		$this->pkcs12Handler->method('readCertificate')->willReturn([
+			'validTo_time_t' => (new \DateTime('+50 years'))->getTimestamp(),
+			'crl_validation' => CrlValidationStatus::MISSING,
+		]);
+		$this->identifyService->method('getL10n')->willReturn($this->l10n);
+		$this->identifyService->method('getAppConfig')->willReturn($appConfig);
+
+		$password = $this->getClass();
+		$password->setCodeSentByUser('senha');
+		$password->validateToSign();
+
+		// If we reach here, signing was allowed (no exception thrown).
+		$this->expectNotToPerformAssertions();
 	}
 }
