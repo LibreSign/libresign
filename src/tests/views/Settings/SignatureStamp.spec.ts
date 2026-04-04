@@ -316,4 +316,41 @@ describe('SignatureStamp.vue', () => {
 		expect(wrapper.vm.signatureWidth).toBe(180)
 		expect(wrapper.vm.signatureHeight).toBe(90)
 	})
+
+	it('regression: signature dimension fields bind min="1" matching the backend SIGNATURE_DIMENSION_MINIMUM', () => {
+		const wrapper = createWrapper()
+
+		const textFields = wrapper.findAllComponents({ name: 'NcTextField' })
+		const widthField = textFields.find(c => c.props('label') === 'Default signature width')
+		const heightField = textFields.find(c => c.props('label') === 'Default signature height')
+
+		expect(widthField).toBeDefined()
+		expect(heightField).toBeDefined()
+		expect(widthField!.attributes('min')).toBe('1')
+		expect(heightField!.attributes('min')).toBe('1')
+	})
+
+	it('regression: shows API error when saveTemplate receives a 400 for invalid signature box size', async () => {
+		axiosPostMock.mockRejectedValue({
+			response: {
+				data: {
+					ocs: {
+						data: {
+							error: 'Invalid signature box size. Width and height must be at least 1.',
+						},
+					},
+				},
+			},
+		})
+		const wrapper = createWrapper()
+
+		await wrapper.vm.saveTemplate()
+		await flushPromises()
+
+		expect(wrapper.vm.errorMessageTemplate).toContain(
+			'Invalid signature box size. Width and height must be at least 1.',
+		)
+		expect(wrapper.vm.parsed).toBe('')
+		expect(wrapper.vm.templateSaved).toBe(false)
+	})
 })
