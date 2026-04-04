@@ -70,7 +70,7 @@ class Password extends AbstractSignatureMethod {
 		]);
 	}
 
-	private function getRevocationErrorMessage(?CrlValidationStatus $status): string {
+	private function getRevocationErrorMessage(CrlValidationStatus $status): string {
 		return match ($status) {
 			CrlValidationStatus::URLS_INACCESSIBLE => $this->identifyService->getL10n()->t('Cannot reach the certificate revocation service. Signing is not allowed.'),
 			CrlValidationStatus::VALIDATION_ERROR => $this->identifyService->getL10n()->t('An error occurred during certificate validation. Signing is not allowed.'),
