@@ -29,9 +29,7 @@ vi.mock('@nextcloud/capabilities', () => ({
 vi.mock('../../../components/PdfEditor/PdfEditor.vue', () => ({
 	default: {
 		name: 'PdfEditor',
-		render() {
-			return null
-		},
+		template: '<div data-test="pdf-editor" />',
 	},
 }))
 
@@ -213,5 +211,61 @@ describe('SignPDF.vue', () => {
 				],
 			},
 		])
+	})
+
+	it('hides PDF only when error scope is pdfLoad', async () => {
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+
+		signStore.document = createSignDocument()
+		signStore.errors = [{ message: 'Document not found', scope: 'pdfLoad' }]
+
+		const wrapper = mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
+				},
+			},
+		})
+
+		wrapper.vm.mounted = true
+		wrapper.vm.pdfBlobs = [new File([new Blob(['pdf'], { type: 'application/pdf' })], 'sample.pdf', { type: 'application/pdf' })]
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.find('[data-test="pdf-editor"]').exists()).toBe(false)
+	})
+
+	it('keeps PDF visible for non-pdfLoad errors', async () => {
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+
+		signStore.document = createSignDocument()
+		signStore.errors = [{ message: 'Certificate validation failed', code: 422 }]
+
+		const wrapper = mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
+				},
+			},
+		})
+
+		wrapper.vm.mounted = true
+		wrapper.vm.pdfBlobs = [new File([new Blob(['pdf'], { type: 'application/pdf' })], 'sample.pdf', { type: 'application/pdf' })]
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.find('[data-test="pdf-editor"]').exists()).toBe(true)
 	})
 })
