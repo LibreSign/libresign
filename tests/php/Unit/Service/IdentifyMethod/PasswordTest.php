@@ -248,6 +248,20 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				'shouldThrow' => false,
 			],
+			'valid certificate with crl validation as serialized string' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::VALID->value,
+				],
+				'shouldThrow' => false,
+			],
+			'disabled crl validation as serialized string' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::DISABLED->value,
+				],
+				'shouldThrow' => false,
+			],
 			'invalid certificate - crl validation failed' => [
 				'certificateData' => [
 					'validTo_time_t' => $futureTimestamp,
