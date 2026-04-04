@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
@@ -59,12 +60,24 @@ class Password extends AbstractSignatureMethod {
 		if ($status === CrlValidationStatus::DISABLED) {
 			return;
 		}
-		// Any other status (urls_inaccessible, validation_failed, validation_error, etc.):
-		// fail-closed – we cannot confirm the certificate is not revoked.
-		throw new LibresignException(
-			$this->identifyService->getL10n()->t('Certificate revocation status could not be verified'),
-			422
-		);
+		// MISSING is set before the CRL checker runs (no CDP extension at all), so
+		// the toggle is not consulted by the checker. Check it explicitly here.
+		if ($status === CrlValidationStatus::MISSING
+			&& !$this->identifyService->getAppConfig()->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true)) {
+			return;
+		}
+		throw new LibresignException($this->getRevocationErrorMessage($status), 422);
+	}
+
+	private function getRevocationErrorMessage(mixed $status): string {
+		return match ($status) {
+			CrlValidationStatus::URLS_INACCESSIBLE => $this->identifyService->getL10n()->t('Cannot reach the certificate revocation service. Signing is blocked.'),
+			CrlValidationStatus::VALIDATION_ERROR => $this->identifyService->getL10n()->t('An error occurred during certificate validation. Signing is blocked.'),
+			CrlValidationStatus::VALIDATION_FAILED => $this->identifyService->getL10n()->t('Certificate validation failed. Signing is blocked. Contact your administrator if needed.'),
+			CrlValidationStatus::NO_URLS => $this->identifyService->getL10n()->t('This certificate has no revocation URLs. Signing is blocked. Contact your administrator.'),
+			CrlValidationStatus::MISSING => $this->identifyService->getL10n()->t('This certificate has no revocation information. Signing is blocked. Contact your administrator.'),
+			default => $this->identifyService->getL10n()->t('Certificate validation could not be completed. Signing is blocked.'),
+		};
 	}
 
 	private function validateCertificateExpiration(array $certificateData): void {
