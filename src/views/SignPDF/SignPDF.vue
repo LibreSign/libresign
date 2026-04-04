@@ -120,13 +120,14 @@ type EnvelopeFileListResponse = {
 	}
 }
 
-type SignStore = Pick<ReturnType<typeof useSignStore>, 'document' | 'errors' | 'mounted' | 'initFromState' | 'setFileToSign' | 'queueAction'> & {
+type SignStore = Pick<ReturnType<typeof useSignStore>, 'document' | 'errors' | 'mounted' | 'initFromState' | 'setFileToSign' | 'queueAction' | 'setSigningErrors'> & {
 	document: SignDocument
 	errors: SignError[]
 	mounted: boolean
 	initFromState: () => Promise<void>
 	setFileToSign: (file: SignDocument) => void
 	queueAction: (action: string) => void
+	setSigningErrors: (newErrors: SignError[]) => void
 }
 
 type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'getAllFiles' | 'addFile' | 'selectFile' | 'getFile'> & {
@@ -235,10 +236,11 @@ const PDF_LOAD_ERROR_SCOPE = 'pdfLoad'
 const hasPdfLoadError = computed(() => signStore.errors.some((error) => error.scope === PDF_LOAD_ERROR_SCOPE))
 
 function setPdfLoadErrors(errors: SignError[]) {
-	signStore.errors = errors.map((error) => ({
+	const mappedErrors = errors.map((error) => ({
 		...error,
 		scope: PDF_LOAD_ERROR_SCOPE,
 	}))
+	signStore.setSigningErrors(mappedErrors)
 }
 
 function getRouteUuid() {
