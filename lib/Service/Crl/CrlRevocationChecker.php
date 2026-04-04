@@ -46,13 +46,21 @@ class CrlRevocationChecker {
 
 	/**
 	 * Validate a certificate against the CRL Distribution Points found in its
-	 * data. Returns an array with at least a 'status' key ({@see CrlValidationStatus})
+	 * data. Returns an array with a 'status' key (always {@see CrlValidationStatus})
 	 * and optionally 'revoked_at' (ISO 8601) when the certificate is revoked.
+	 *
+	 * @return array{status: CrlValidationStatus, revoked_at?: string}
 	 */
 	public function validate(array $crlUrls, string $certPem): array {
 		return $this->validateFromUrlsWithDetails($crlUrls, $certPem);
 	}
 
+	/**
+	 * Internal validation worker that iterates through CRL distribution points
+	 * and returns the validation status from the first accessible/conclusive point.
+	 *
+	 * @return array{status: CrlValidationStatus, revoked_at?: string}
+	 */
 	private function validateFromUrlsWithDetails(array $crlUrls, string $certPem): array {
 		$externalValidationEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true);
 
@@ -106,6 +114,11 @@ class CrlRevocationChecker {
 		return ['status' => CrlValidationStatus::VALIDATION_FAILED];
 	}
 
+	/**
+	 * Download and validate CRL content from a single source URL.
+	 *
+	 * @return array{status: CrlValidationStatus, revoked_at?: string}
+	 */
 	private function downloadAndValidateWithDetails(string $crlUrl, string $certPem, bool $isLocal): array {
 		try {
 			if ($isLocal) {
@@ -226,6 +239,11 @@ class CrlRevocationChecker {
 		return preg_match('/Serial Number: 0*' . preg_quote($normalizedSerial, '/') . '/', $crlText) === 1;
 	}
 
+	/**
+	 * Check if certificate serial is revoked in the provided CRL content.
+	 *
+	 * @return array{status: CrlValidationStatus, revoked_at?: string}
+	 */
 	private function checkCertificateInCrlWithDetails(string $certPem, string $crlContent): array {
 		try {
 			$certResource = openssl_x509_read($certPem);
