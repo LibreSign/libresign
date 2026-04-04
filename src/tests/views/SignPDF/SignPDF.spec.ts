@@ -29,9 +29,7 @@ vi.mock('@nextcloud/capabilities', () => ({
 vi.mock('../../../components/PdfEditor/PdfEditor.vue', () => ({
 	default: {
 		name: 'PdfEditor',
-		render() {
-			return null
-		},
+		template: '<div data-test="pdf-editor" />',
 	},
 }))
 
@@ -212,6 +210,90 @@ describe('SignPDF.vue', () => {
 					{ elementId: 201, fileId: 10, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
 				],
 			},
+		])
+	})
+
+	it('hides PDF only when error scope is pdfLoad', async () => {
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+
+		signStore.document = createSignDocument()
+		signStore.errors = [{ message: 'Document not found', scope: 'pdfLoad' }]
+
+		const wrapper = mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
+				},
+			},
+		})
+
+		wrapper.vm.mounted = true
+		wrapper.vm.pdfBlobs = [new File([new Blob(['pdf'], { type: 'application/pdf' })], 'sample.pdf', { type: 'application/pdf' })]
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.find('[data-test="pdf-editor"]').exists()).toBe(false)
+	})
+
+	it('keeps PDF visible for non-pdfLoad errors', async () => {
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+
+		signStore.document = createSignDocument()
+		signStore.errors = [{ message: 'Certificate validation failed', code: 422 }]
+
+		const wrapper = mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
+				},
+			},
+		})
+
+		wrapper.vm.mounted = true
+		wrapper.vm.pdfBlobs = [new File([new Blob(['pdf'], { type: 'application/pdf' })], 'sample.pdf', { type: 'application/pdf' })]
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.find('[data-test="pdf-editor"]').exists()).toBe(true)
+	})
+
+	it('uses setSigningErrors with pdfLoad scope when document is missing', async () => {
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+
+		signStore.document = undefined
+		const setSigningErrorsSpy = vi.spyOn(signStore, 'setSigningErrors')
+
+		const wrapper = mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
+				},
+			},
+		})
+
+		await wrapper.vm.loadPdfsFromStore()
+
+		expect(setSigningErrorsSpy).toHaveBeenCalledWith([
+			{ message: 'Document not found', scope: 'pdfLoad' },
 		])
 	})
 })

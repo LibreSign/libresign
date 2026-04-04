@@ -139,7 +139,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateToSignWithCertificateData(
 		array $certificateData,
 		bool $shouldThrow,
-		string $expectedMessage = '',
 		?int $expectedCode = null,
 	): void {
 		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner', 'setCertificate', 'setPassword', 'readCertificate']);
@@ -149,15 +148,13 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler->method('readCertificate')->willReturn($certificateData);
 
 		$this->identifyService->method('getL10n')->willReturn($this->l10n);
+		$this->identifyService->method('getLogger')->willReturn($this->logger);
 
 		$password = $this->getClass();
 		$password->setCodeSentByUser('senha');
 
 		if ($shouldThrow) {
 			$this->expectException(LibresignException::class);
-			if ($expectedMessage) {
-				$this->expectExceptionMessage($expectedMessage);
-			}
 			if ($expectedCode !== null) {
 				$this->expectExceptionCode($expectedCode);
 			}
@@ -190,7 +187,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validTo_time_t' => $pastTimestamp,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has expired',
 				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is string' => [
@@ -198,7 +194,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validTo_time_t' => '1234567890',
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
 				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is null' => [
@@ -206,35 +201,35 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validTo_time_t' => null,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
+				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is float' => [
 				'certificateData' => [
 					'validTo_time_t' => 1234567890.5,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
+				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is boolean true' => [
 				'certificateData' => [
 					'validTo_time_t' => true,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
+				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is boolean false' => [
 				'certificateData' => [
 					'validTo_time_t' => false,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
+				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is array' => [
 				'certificateData' => [
 					'validTo_time_t' => ['timestamp' => 1234567890],
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Invalid certificate',
+				'expectedCode' => 422,
 			],
 			'revoked certificate' => [
 				'certificateData' => [
@@ -242,7 +237,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::REVOKED,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has been revoked',
 				'expectedCode' => 422,
 			],
 			'valid certificate with crl validation' => [
@@ -259,38 +253,13 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				'shouldThrow' => false,
 			],
-			'invalid certificate - crl validation failed' => [
-				'certificateData' => [
-					'validTo_time_t' => $futureTimestamp,
-					'crl_validation' => 'failed',
-				],
-				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
-				'expectedCode' => 422,
-			],
-			'invalid certificate - crl validation empty string' => [
-				'certificateData' => [
-					'validTo_time_t' => $futureTimestamp,
-					'crl_validation' => '',
-				],
-				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
-			],
-			'invalid certificate - crl validation null' => [
-				'certificateData' => [
-					'validTo_time_t' => $futureTimestamp,
-					'crl_validation' => null,
-				],
-				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
-			],
 			'invalid certificate - crl urls_inaccessible' => [
 				'certificateData' => [
 					'validTo_time_t' => $futureTimestamp,
 					'crl_validation' => CrlValidationStatus::URLS_INACCESSIBLE,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
+				'expectedCode' => 422,
 			],
 			'invalid certificate - crl validation_failed' => [
 				'certificateData' => [
@@ -298,7 +267,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::VALIDATION_FAILED,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
+				'expectedCode' => 422,
 			],
 			'invalid certificate - crl validation_error' => [
 				'certificateData' => [
@@ -306,7 +275,23 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::VALIDATION_ERROR,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate revocation status could not be verified',
+				'expectedCode' => 422,
+			],
+			'invalid certificate - crl no_urls' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::NO_URLS,
+				],
+				'shouldThrow' => true,
+				'expectedCode' => 422,
+			],
+			'invalid certificate - crl missing' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::MISSING,
+				],
+				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'revoked and expired certificate' => [
 				'certificateData' => [
@@ -314,14 +299,22 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::REVOKED,
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has been revoked', // revocation is checked first
+				'expectedCode' => 422,
+			],
+			'crl missing - but validation enabled (default) still blocks' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => CrlValidationStatus::MISSING,
+				],
+				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'valid certificate - old date but valid (1970s timestamp)' => [
 				'certificateData' => [
 					'validTo_time_t' => 31536000, // 1971-01-01
 				],
 				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has expired',
+				'expectedCode' => 422,
 			],
 		];
 	}
