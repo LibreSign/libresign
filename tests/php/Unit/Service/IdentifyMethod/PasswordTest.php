@@ -148,6 +148,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler->method('readCertificate')->willReturn($certificateData);
 
 		$this->identifyService->method('getL10n')->willReturn($this->l10n);
+		$this->identifyService->method('getLogger')->willReturn($this->logger);
 
 		$password = $this->getClass();
 		$password->setCodeSentByUser('senha');
