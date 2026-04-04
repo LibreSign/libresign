@@ -89,6 +89,7 @@ test('closes password modal on non-retriable signing error', async ({ page }) =>
 	await expect(page.getByRole('button', { name: 'Sign the document.' })).toBeHidden()
 	await expect(page.getByRole('button', { name: 'Try signing again' })).toBeVisible()
 	await expect(page.locator('.button-wrapper').getByText('Certificate revocation status could not be verified').first()).toBeVisible()
+	await page.screenshot({ path: '/tmp/playwright-results/non-retriable-blocked-ui.png', fullPage: true })
 })
 
 test('keeps normal sign UI when no non-retriable error is returned', async ({ page }) => {
@@ -119,4 +120,5 @@ test('keeps normal sign UI when no non-retriable error is returned', async ({ pa
 
 	await expect(page.getByText('Signing is blocked until the certificate validation issue is resolved.')).toBeHidden()
 	await expect(page.getByRole('button', { name: 'Try signing again' })).toBeHidden()
+	await page.screenshot({ path: '/tmp/playwright-results/non-retriable-normal-ui.png', fullPage: true })
 })
