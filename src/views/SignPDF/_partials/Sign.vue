@@ -8,6 +8,13 @@
 			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
+			<NcNoteCard v-for="(error, index) in signStore.errors"
+				:key="index"
+				:heading="error.title || ''"
+				type="error">
+				<NcRichText :text="error.message"
+					:use-markdown="true" />
+			</NcNoteCard>
 			<div v-if="needCreateSignature" class="no-signature-warning">
 				<p>
 					{{ t('libresign', 'You do not have any signature defined.') }}
@@ -43,6 +50,17 @@
 			</div>
 			<div v-else-if="needIdentificationDocuments" class="no-identification-warning">
 				<Documents :sign-request-uuid="signRequestUuid" />
+			</div>
+			<div v-else-if="hasBlockingSignError" class="sign-blocked-warning">
+				<p>
+					<!-- TRANSLATORS Shown after a non-retriable certificate validation failure. "Signing is blocked" means the signer cannot continue now and must resolve the certificate issue first. -->
+					{{ t('libresign', 'Signing is blocked until the certificate validation issue is resolved.') }}
+				</p>
+				<NcButton :wide="true"
+					:disabled="loading"
+					@click="clearBlockingSignError">
+					{{ t('libresign', 'Try signing again') }}
+				</NcButton>
 			</div>
 			<NcButton v-else-if="ableToSign"
 				:wide="true"
@@ -283,6 +301,13 @@ defineOptions({
 					this.actionHandler.showModal(modalCode)
 				}
 
+				const shouldCloseModal = (methodConfig.modalCode || methodConfig.method || 'token') === 'password'
+					&& Array.isArray(signError.errors)
+					&& signError.errors.some((error) => Number(error?.code) === 422)
+				if (shouldCloseModal) {
+					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
+				}
+
 				this.signStore.setSigningErrors(signError.errors || [])
 			} finally {
 				this.loading = false
@@ -344,6 +369,21 @@ type SubmitSignaturePayload = {
 type SignSubmissionError = {
 	type?: string
 	errors?: SignError[]
+}
+
+const NON_RETRIABLE_SIGN_ERROR_CODE = 422
+
+function shouldCloseCurrentModalOnSignError(
+	methodConfig: SignatureMethodConfig,
+	signError: SignSubmissionError,
+): boolean {
+	const modalCode = methodConfig.modalCode || methodConfig.method || 'token'
+	if (modalCode !== 'password') {
+		return false
+	}
+
+	const errors = Array.isArray(signError.errors) ? signError.errors : []
+	return errors.some((error) => Number(error?.code) === NON_RETRIABLE_SIGN_ERROR_CODE)
 }
 
 type SignStoreContract = ReturnType<typeof useSignStore> & {
@@ -455,6 +495,7 @@ const canCreateSignature = computed(() => {
 	return capabilities.libresign?.config['sign-elements']['can-create-signature'] === true
 })
 const ableToSign = computed(() => signStore.ableToSign)
+const hasBlockingSignError = computed(() => signStore.errors.some((error) => Number(error?.code) === NON_RETRIABLE_SIGN_ERROR_CODE))
 const signRequestUuid = computed(() => {
 	const doc = signStore.document
 	const signer = doc?.signers?.find((row) => row.me) ?? doc?.signers?.[0]
@@ -522,6 +563,10 @@ function resetSignMethodsState() {
 function onSignatureFileCreated() {
 	signStore.clearSigningErrors()
 	showManagePassword.value = false
+}
+
+function clearBlockingSignError() {
+	signStore.clearSigningErrors()
 }
 
 function saveSignature() {
@@ -643,6 +688,10 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 				? 'uploadCertificate'
 				: 'createPassword'
 			actionHandler!.showModal(modalCode)
+		}
+
+		if (shouldCloseCurrentModalOnSignError(methodConfig, signError)) {
+			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 		}
 
 		signStore.setSigningErrors(signError.errors || [])
@@ -791,6 +840,13 @@ defineExpose({
 
 .no-identification-warning {
 	margin-top: 1em;
+}
+
+.sign-blocked-warning {
+	margin-top: 1em;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 }
 
 .button-wrapper {
