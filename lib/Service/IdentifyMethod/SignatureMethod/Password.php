@@ -48,7 +48,8 @@ class Password extends AbstractSignatureMethod {
 		if (!array_key_exists('crl_validation', $certificateData)) {
 			return;
 		}
-		$status = $certificateData['crl_validation'];
+		$rawStatus = $certificateData['crl_validation'];
+		$status = $this->normalizeRevocationStatus($rawStatus);
 		if ($status === CrlValidationStatus::VALID) {
 			return;
 		}
@@ -59,8 +60,18 @@ class Password extends AbstractSignatureMethod {
 		if ($status === CrlValidationStatus::DISABLED) {
 			return;
 		}
-		$this->logRevocationBlockedSigning($status);
+		$this->logRevocationBlockedSigning($rawStatus);
 		throw new LibresignException($this->getRevocationErrorMessage($status), 422);
+	}
+
+	private function normalizeRevocationStatus(mixed $status): ?CrlValidationStatus {
+		if ($status instanceof CrlValidationStatus) {
+			return $status;
+		}
+		if (is_string($status)) {
+			return CrlValidationStatus::tryFrom($status);
+		}
+		return null;
 	}
 
 	private function logRevocationBlockedSigning(mixed $status): void {
@@ -71,7 +82,7 @@ class Password extends AbstractSignatureMethod {
 		]);
 	}
 
-	private function getRevocationErrorMessage(mixed $status): string {
+	private function getRevocationErrorMessage(?CrlValidationStatus $status): string {
 		return match ($status) {
 			CrlValidationStatus::URLS_INACCESSIBLE => $this->identifyService->getL10n()->t('Cannot reach the certificate revocation service. Signing is not allowed.'),
 			CrlValidationStatus::VALIDATION_ERROR => $this->identifyService->getL10n()->t('An error occurred during certificate validation. Signing is not allowed.'),
