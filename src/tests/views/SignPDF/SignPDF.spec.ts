@@ -268,4 +268,32 @@ describe('SignPDF.vue', () => {
 
 		expect(wrapper.find('[data-test="pdf-editor"]').exists()).toBe(true)
 	})
+
+	it('uses setSigningErrors with pdfLoad scope when document is missing', async () => {
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+
+		signStore.document = undefined
+		const setSigningErrorsSpy = vi.spyOn(signStore, 'setSigningErrors')
+
+		const wrapper = mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
+				},
+			},
+		})
+
+		await wrapper.vm.loadPdfsFromStore()
+
+		expect(setSigningErrorsSpy).toHaveBeenCalledWith([
+			{ message: 'Document not found', scope: 'pdfLoad' },
+		])
+	})
 })
