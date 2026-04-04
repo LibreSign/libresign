@@ -127,12 +127,6 @@ type PdfElementsInstance = {
 	selectedDocIndex?: number
 	autoFitZoom?: boolean
 }
-type PdfElementsRuntimeInstance = PdfElementsInstance & {
-	handleMouseMove?: (event: { type: string, touches: Array<{ clientX: number, clientY: number }> }) => void
-	finishAdding?: () => void
-	previewElement?: Record<string, unknown> | null
-	previewVisible?: boolean
-}
 
 defineOptions({
 	name: 'PdfEditor',
@@ -326,43 +320,6 @@ function scheduleSignerAddedCheck() {
 	pendingAddCheckTimer = setTimeout(checkSignerAdded, 0)
 }
 
-function handleDocumentTouchEnd(event: Event) {
-	if (pendingAddedObjectCount.value === null) {
-		return
-	}
-
-	const instance = pdfElements.value as PdfElementsRuntimeInstance | null
-	const touchEvent = event as TouchEvent
-	const touchPoint = touchEvent.changedTouches?.[0]
-	if (!instance || !touchPoint) {
-		scheduleSignerAddedCheck()
-		return
-	}
-
-	// Work around mobile tap placement timing in pdf-elements: touchend has no
-	// touches[0], so preview may never become visible on first tap.
-	if (instance.isAddingMode && instance.previewElement && !instance.previewVisible && instance.handleMouseMove) {
-		touchEvent.preventDefault?.()
-		touchEvent.stopImmediatePropagation?.()
-
-		instance.handleMouseMove({
-			type: 'touchmove',
-			touches: [{ clientX: touchPoint.clientX, clientY: touchPoint.clientY }],
-		})
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				if (instance.isAddingMode) {
-					instance.finishAdding?.()
-				}
-				scheduleSignerAddedCheck()
-			})
-		})
-		return
-	}
-
-	scheduleSignerAddedCheck()
-}
-
 function startAddingSigner(signer: SignerSummaryRecord | SignerDetailRecord | null | undefined, size: { width?: number, height?: number }) {
 	if (!pdfElements.value || !size?.width || !size?.height) {
 		return false
@@ -451,11 +408,15 @@ async function waitForPageRender(docIndex: number, pageIndex: number) {
 
 onMounted(() => {
 	ensurePdfWorker()
-	document.addEventListener('touchend', handleDocumentTouchEnd)
+	document.addEventListener('mouseup', scheduleSignerAddedCheck)
+	document.addEventListener('touchend', scheduleSignerAddedCheck)
+	document.addEventListener('keyup', scheduleSignerAddedCheck)
 })
 
 onBeforeUnmount(() => {
-	document.removeEventListener('touchend', handleDocumentTouchEnd)
+	document.removeEventListener('mouseup', scheduleSignerAddedCheck)
+	document.removeEventListener('touchend', scheduleSignerAddedCheck)
+	document.removeEventListener('keyup', scheduleSignerAddedCheck)
 	clearPendingAddCheck()
 })
 
