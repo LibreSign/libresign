@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { setWorkerPath } from '@libresign/pdf-elements'
+import { setWorkerPath } from '@libresign/pdf-elements/src/utils/asyncReader'
 
 let configured = false
 
