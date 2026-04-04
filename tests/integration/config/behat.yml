@@ -20,8 +20,4 @@ default:
     jarnaiz\JUnitFormatter\JUnitFormatterExtension:
       filename: report.xml
       outputDir: '%paths.base%/../output/'
-    LibreSign\Behat\TsaExtension\ServiceContainer\TsaExtension:
-      host: 127.0.0.1
-      port: 0
-      path: /tsr
-      policy_oid: '1.2.3.4.1'
+    LibreSign\Behat\TsaExtension\ServiceContainer\TsaExtension: ~
