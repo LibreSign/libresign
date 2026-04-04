@@ -289,6 +289,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$paramsAsOptions = preg_replace('/\\/\S+_text_image.png/', 'text_image.png', (string)$paramsAsOptions);
 		$paramsAsOptions = preg_replace('/\\/\S+_background.png/', 'background.png', (string)$paramsAsOptions);
 		$paramsAsOptions = preg_replace('/\\/\S+app-dark.png/', 'signature.png', (string)$paramsAsOptions);
+		$paramsAsOptions = preg_replace('/ --tsa-server-url\s+\S+/', '', (string)$paramsAsOptions);
 		$this->assertEquals($params, $paramsAsOptions);
 	}
 
@@ -499,6 +500,24 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
+				'template' => '',
+				'signatureBackgroundType' => 'default',
+				'renderMode' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png'
+			],
+			'regression: invalid stored dimensions should fallback to defaults and keep signing flow' => [
+				'visibleElements' => [self::getElement([
+					'page' => 2,
+					'llx' => 10,
+					'lly' => 20,
+					'urx' => 30,
+					'ury' => 40,
+				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
+				'signatureWidth' => 0,
+				'signatureHeight' => 0,
 				'template' => '',
 				'signatureBackgroundType' => 'default',
 				'renderMode' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
