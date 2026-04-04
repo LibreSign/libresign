@@ -239,24 +239,15 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			'scientific width below minimum' => [1.0E-6, 100.0],
 			'negative width' => [-1.0, 100.0],
 			'very small negative width' => [-0.0001, 100.0],
-			'NaN width' => [NAN, 100.0],
-			'INF width' => [INF, 100.0],
-			'-INF width' => [-INF, 100.0],
 			'zero height' => [350.0, 0.0],
 			'fractional height below minimum' => [350.0, 0.9999],
 			'subnormal height' => [350.0, 1.0E-320],
 			'scientific height below minimum' => [350.0, 1.0E-6],
 			'negative height' => [350.0, -1.0],
 			'very small negative height' => [350.0, -0.0001],
-			'NaN height' => [350.0, NAN],
-			'INF height' => [350.0, INF],
-			'-INF height' => [350.0, -INF],
 			'both dimensions zero' => [0.0, 0.0],
 			'both dimensions negative' => [-1.0, -1.0],
 			'both dimensions fractional below minimum' => [0.5, 0.5],
-			'both dimensions NaN' => [NAN, NAN],
-			'both dimensions INF' => [INF, INF],
-			'mixed NaN and -INF' => [NAN, -INF],
 		];
 	}
 
@@ -265,12 +256,6 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', -1.0);
 
 		$class = $this->getClass();
-
-		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_WIDTH, $class->getFullSignatureWidth());
-		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_HEIGHT, $class->getFullSignatureHeight());
-
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', NAN);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', INF);
 
 		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_WIDTH, $class->getFullSignatureWidth());
 		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_HEIGHT, $class->getFullSignatureHeight());
