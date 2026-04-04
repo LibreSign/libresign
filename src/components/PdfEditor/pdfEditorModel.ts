@@ -3,17 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
+import type { PDFElementObject } from '@libresign/pdf-elements'
 
-type PdfElementObject = {
-	id?: string
-	type?: string
-	x: number
-	y: number
-	width: number
-	height: number
-	[key: string]: unknown
-}
+import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } from '../../types/index'
 
 export type PdfObjectLocation = {
 	docIndex: number
@@ -190,7 +182,7 @@ export function createPdfEditorObject({
 	documentIndex?: number
 	placement: PdfPlacement
 	objectId?: string
-}): PdfElementObject & {
+}): PDFElementObject & {
 	id: string
 	signer: SignerSummaryRecord | SignerDetailRecord
 	visibleElement?: VisibleElementRecord
