@@ -7,7 +7,7 @@
 		<TopBar
 			v-if="!isMobile"
 			:sidebar-toggle="true" />
-		<PdfEditor v-if="mounted && !signStore.errors.length && pdfBlobs.length > 0"
+		<PdfEditor v-if="mounted && !hasPdfLoadError && pdfBlobs.length > 0"
 			ref="pdfEditor"
 			width="100%"
 			height="100%"
@@ -71,7 +71,7 @@ import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } fr
 
 type ServiceVisibleElement = VisibleElementRecord
 
-type SignError = { title?: string; message?: string }
+type SignError = { title?: string; message?: string; scope?: string }
 type SignDocumentStatus = number | string
 type SignDocumentVisibleElement = {
 	elementId?: number
@@ -230,6 +230,17 @@ const pdfFileName = computed(() => {
 	return `${doc.name}.${extension}`
 })
 
+const PDF_LOAD_ERROR_SCOPE = 'pdfLoad'
+
+const hasPdfLoadError = computed(() => signStore.errors.some((error) => error.scope === PDF_LOAD_ERROR_SCOPE))
+
+function setPdfLoadErrors(errors: SignError[]) {
+	signStore.errors = errors.map((error) => ({
+		...error,
+		scope: PDF_LOAD_ERROR_SCOPE,
+	}))
+}
+
 function getRouteUuid() {
 	const uuid = getRoute().params.uuid
 	return Array.isArray(uuid) ? uuid[0] : uuid
@@ -318,9 +329,9 @@ async function handleInitialStatePdfs(urls: string[]) {
 			sidebarStore.hideSidebar()
 			const firstErrorMessage = data.errors?.[0]?.message
 			if (firstErrorMessage && firstErrorMessage.length > 0) {
-				signStore.errors = data.errors ?? []
+				setPdfLoadErrors(data.errors ?? [])
 			} else {
-				signStore.errors = [{ message: t('libresign', 'File not found') }]
+				setPdfLoadErrors([{ message: t('libresign', 'File not found') }])
 			}
 			return
 		}
@@ -336,7 +347,7 @@ async function loadPdfsFromStore() {
 	const doc = signStore.document
 
 	if (!doc || !doc.nodeId) {
-		signStore.errors = [{ message: t('libresign', 'Document not found') }]
+		setPdfLoadErrors([{ message: t('libresign', 'Document not found') }])
 		return
 	}
 
@@ -351,7 +362,7 @@ async function loadPdfsFromStore() {
 	if (fileUrl) {
 		await getCompatMethod('handleInitialStatePdfs')([fileUrl])
 	} else {
-		signStore.errors = [{ message: t('libresign', 'Document URL not found') }]
+		setPdfLoadErrors([{ message: t('libresign', 'Document URL not found') }])
 	}
 }
 
@@ -365,7 +376,7 @@ async function loadEnvelopePdfs(parentFileId: number | string) {
 		}
 
 		if (!normalizedEnvelopeFiles.length) {
-			signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
+			setPdfLoadErrors([{ message: t('libresign', 'Failed to load envelope files') }])
 			return
 		}
 
@@ -378,14 +389,14 @@ async function loadEnvelopePdfs(parentFileId: number | string) {
 			.map((file) => getFileUrl(file))
 			.filter((url): url is string => Boolean(url))
 		if (!urls.length) {
-			signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
+			setPdfLoadErrors([{ message: t('libresign', 'Failed to load envelope files') }])
 			return
 		}
 
 		fileNames.value = normalizedEnvelopeFiles.map((file) => `${file.name}.${(file.metadata as SignDocumentMetadata | undefined)?.extension || 'pdf'}`)
 		await getCompatMethod('handleInitialStatePdfs')(urls)
 	} catch {
-		signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
+		setPdfLoadErrors([{ message: t('libresign', 'Failed to load envelope files') }])
 	}
 }
 
