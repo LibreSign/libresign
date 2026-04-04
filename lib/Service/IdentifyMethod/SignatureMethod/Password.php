@@ -59,12 +59,31 @@ class Password extends AbstractSignatureMethod {
 		if ($status === CrlValidationStatus::DISABLED) {
 			return;
 		}
-		// Any other status (urls_inaccessible, validation_failed, validation_error, etc.):
-		// fail-closed – we cannot confirm the certificate is not revoked.
-		throw new LibresignException(
-			$this->identifyService->getL10n()->t('Certificate revocation status could not be verified'),
-			422
-		);
+		$this->logRevocationBlockedSigning($status);
+		throw new LibresignException($this->getRevocationErrorMessage($status), 422);
+	}
+
+	private function logRevocationBlockedSigning(CrlValidationStatus $status): void {
+		$this->identifyService->getLogger()->warning('Signing blocked due to CRL validation status', [
+			'status' => $status->value,
+			'signer_uid' => $this->userSession->getUser()?->getUID(),
+		]);
+	}
+
+	private function getRevocationErrorMessage(CrlValidationStatus $status): string {
+		return match ($status) {
+			// TRANSLATORS Error when the CRL distribution points (URLs) cannot be reached to check if certificate is revoked
+			CrlValidationStatus::URLS_INACCESSIBLE => $this->identifyService->getL10n()->t('Cannot reach the certificate revocation service. Signing is not allowed.'),
+			// TRANSLATORS Error when an error occurs during certificate revocation status validation
+			CrlValidationStatus::VALIDATION_ERROR => $this->identifyService->getL10n()->t('An error occurred during certificate validation. Signing is not allowed.'),
+			// TRANSLATORS Error when certificate validation completed but could not determine if certificate is revoked
+			CrlValidationStatus::VALIDATION_FAILED => $this->identifyService->getL10n()->t('Certificate validation failed. Signing is not allowed. Contact your administrator.'),
+			// TRANSLATORS Error when certificate has no CRL distribution points (URLs to check revocation)
+			CrlValidationStatus::NO_URLS => $this->identifyService->getL10n()->t('This certificate has no revocation URLs. Signing is not allowed. Contact your administrator.'),
+			// TRANSLATORS Error when certificate has no revocation information configured
+			CrlValidationStatus::MISSING => $this->identifyService->getL10n()->t('This certificate has no revocation information. Signing is not allowed. Contact your administrator.'),
+			default => $this->identifyService->getL10n()->t('Certificate validation could not be completed. Signing is not allowed.'),
+		};
 	}
 
 	private function validateCertificateExpiration(array $certificateData): void {
