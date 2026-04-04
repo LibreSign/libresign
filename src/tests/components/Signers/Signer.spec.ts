@@ -4,7 +4,6 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
@@ -82,7 +81,7 @@ vi.mock('@nextcloud/event-bus', () => ({
 	unsubscribe: vi.fn(),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 import { emit } from '@nextcloud/event-bus'
 

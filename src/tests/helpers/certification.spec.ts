@@ -4,7 +4,6 @@
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { createL10nMock } from '../testHelpers/l10n.js'
 import { selectCustonOption, options } from '../../helpers/certification'
 
 // Mock @nextcloud packages to avoid import-time errors
@@ -27,7 +26,7 @@ vi.mock('@nextcloud/logger', () => ({
 	})),
 }))
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 const optionFromMock = vi.fn((value) => ({ value }))
 

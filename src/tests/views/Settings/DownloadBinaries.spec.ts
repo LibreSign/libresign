@@ -4,7 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
+import { interpolateL10n } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import DownloadBinaries from '../../../views/Settings/DownloadBinaries.vue'
@@ -13,7 +13,7 @@ const generateOcsUrlMock = vi.fn((path: string) => path)
 const useConfigureCheckStoreMock = vi.fn()
 const listenMock = vi.fn()
 
-vi.mock('@nextcloud/l10n', () => createL10nMock({
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 	t: (_app: string, text: string, params?: Record<string, string>) => interpolateL10n(text, params),
 }))
 

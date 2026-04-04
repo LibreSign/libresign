@@ -4,7 +4,6 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import RightSidebar from '../../../components/RightSidebar/RightSidebar.vue'
@@ -27,7 +26,7 @@ const signStoreMock = {
 	document: undefined as undefined | { statusText: string },
 }
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('vue-router', () => ({
 	useRoute: vi.fn(() => ({
