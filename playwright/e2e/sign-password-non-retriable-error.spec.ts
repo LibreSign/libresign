@@ -51,16 +51,25 @@ async function bootstrapAdminCertificate(page: Parameters<typeof test>[1] extend
 		]),
 	)
 
+	await setAppConfig(
+		page.request,
+		'libresign',
+		'crl_external_validation_enabled',
+		'1',
+	)
+
 	await deleteUserPfx(page.request, adminUser, adminPassword)
 
 	return { adminUser }
 }
 
-test('closes password modal on non-retriable signing error', async ({ page }) => {
+test('switches from blocked (enabled) to normal (disabled) without extra scenarios', async ({ page }) => {
 	const { adminUser } = await bootstrapAdminCertificate(page)
 	await prepareSignFlow(page, adminUser)
 
-	await page.route('**/ocs/v2.php/apps/libresign/api/v1/sign/**', async (route) => {
+	const signRoute = '**/ocs/v2.php/apps/libresign/api/v1/sign/**'
+
+	const blockedHandler = async (route) => {
 		await route.fulfill({
 			status: 422,
 			contentType: 'application/json',
@@ -81,7 +90,9 @@ test('closes password modal on non-retriable signing error', async ({ page }) =>
 				},
 			}),
 		})
-	})
+	}
+
+	await page.route(signRoute, blockedHandler)
 
 	await page.getByRole('button', { name: 'Sign document' }).click()
 
@@ -90,13 +101,17 @@ test('closes password modal on non-retriable signing error', async ({ page }) =>
 	await expect(page.getByRole('button', { name: 'Try signing again' })).toBeVisible()
 	await expect(page.locator('.button-wrapper').getByText('Certificate revocation status could not be verified').first()).toBeVisible()
 	await page.screenshot({ path: '/tmp/playwright-results/non-retriable-blocked-ui.png', fullPage: true })
-})
 
-test('keeps normal sign UI when no non-retriable error is returned', async ({ page }) => {
-	const { adminUser } = await bootstrapAdminCertificate(page)
-	await prepareSignFlow(page, adminUser)
+	await setAppConfig(
+		page.request,
+		'libresign',
+		'crl_external_validation_enabled',
+		'0',
+	)
 
-	await page.route('**/ocs/v2.php/apps/libresign/api/v1/sign/**', async (route) => {
+	await page.unroute(signRoute, blockedHandler)
+
+	await page.route(signRoute, async (route) => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
@@ -116,6 +131,9 @@ test('keeps normal sign UI when no non-retriable error is returned', async ({ pa
 		})
 	})
 
+	await page.getByRole('button', { name: 'Try signing again' }).click()
+	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	await page.getByLabel('Signature password').fill('Password1234')
 	await page.getByRole('button', { name: 'Sign document' }).click()
 
 	await expect(page.getByText('Signing is blocked until the certificate validation issue is resolved.')).toBeHidden()
