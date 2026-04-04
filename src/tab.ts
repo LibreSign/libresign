@@ -4,15 +4,13 @@
  */
 
 import { createPinia } from 'pinia'
-import { createApp } from 'vue'
+import { createApp, type App as VueApp } from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
 import { t, n } from '@nextcloud/l10n'
 import { FileType } from '@nextcloud/files'
 
 import LibreSignLogoDarkSvg from '../img/app-dark.svg?raw'
-
-import AppFilesTab from './components/RightSidebar/AppFilesTab.vue'
 
 import './style/icons.scss'
 
