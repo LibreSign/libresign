@@ -201,30 +201,35 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validTo_time_t' => null,
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is float' => [
 				'certificateData' => [
 					'validTo_time_t' => 1234567890.5,
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is boolean true' => [
 				'certificateData' => [
 					'validTo_time_t' => true,
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is boolean false' => [
 				'certificateData' => [
 					'validTo_time_t' => false,
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'invalid certificate - validTo_time_t is array' => [
 				'certificateData' => [
 					'validTo_time_t' => ['timestamp' => 1234567890],
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'revoked certificate' => [
 				'certificateData' => [
@@ -254,6 +259,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::URLS_INACCESSIBLE,
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'invalid certificate - crl validation_failed' => [
 				'certificateData' => [
@@ -261,6 +267,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::VALIDATION_FAILED,
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'invalid certificate - crl validation_error' => [
 				'certificateData' => [
@@ -268,6 +275,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::VALIDATION_ERROR,
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'invalid certificate - crl no_urls' => [
 				'certificateData' => [
@@ -275,6 +283,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::NO_URLS,
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'invalid certificate - crl missing' => [
 				'certificateData' => [
@@ -282,6 +291,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::MISSING,
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'revoked and expired certificate' => [
 				'certificateData' => [
@@ -289,6 +299,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'crl_validation' => CrlValidationStatus::REVOKED,
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'crl missing - but validation enabled (default) still blocks' => [
 				'certificateData' => [
@@ -303,6 +314,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validTo_time_t' => 31536000, // 1971-01-01
 				],
 				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 		];
 	}
