@@ -59,17 +59,26 @@ class Password extends AbstractSignatureMethod {
 		if ($status === CrlValidationStatus::DISABLED) {
 			return;
 		}
+		$this->logRevocationBlockedSigning($status);
 		throw new LibresignException($this->getRevocationErrorMessage($status), 422);
+	}
+
+	private function logRevocationBlockedSigning(mixed $status): void {
+		$statusValue = $status instanceof CrlValidationStatus ? $status->value : (is_scalar($status) ? (string)$status : get_debug_type($status));
+		$this->identifyService->getLogger()->warning('Signing blocked due to CRL validation status', [
+			'status' => $statusValue,
+			'signer_uid' => $this->userSession->getUser()?->getUID(),
+		]);
 	}
 
 	private function getRevocationErrorMessage(mixed $status): string {
 		return match ($status) {
-			CrlValidationStatus::URLS_INACCESSIBLE => $this->identifyService->getL10n()->t('Cannot reach the certificate revocation service. Signing is blocked.'),
-			CrlValidationStatus::VALIDATION_ERROR => $this->identifyService->getL10n()->t('An error occurred during certificate validation. Signing is blocked.'),
-			CrlValidationStatus::VALIDATION_FAILED => $this->identifyService->getL10n()->t('Certificate validation failed. Signing is blocked. Contact your administrator if needed.'),
-			CrlValidationStatus::NO_URLS => $this->identifyService->getL10n()->t('This certificate has no revocation URLs. Signing is blocked. Contact your administrator.'),
-			CrlValidationStatus::MISSING => $this->identifyService->getL10n()->t('This certificate has no revocation information. Signing is blocked. Contact your administrator.'),
-			default => $this->identifyService->getL10n()->t('Certificate validation could not be completed. Signing is blocked.'),
+			CrlValidationStatus::URLS_INACCESSIBLE => $this->identifyService->getL10n()->t('Cannot reach the certificate revocation service. Signing is not allowed.'),
+			CrlValidationStatus::VALIDATION_ERROR => $this->identifyService->getL10n()->t('An error occurred during certificate validation. Signing is not allowed.'),
+			CrlValidationStatus::VALIDATION_FAILED => $this->identifyService->getL10n()->t('Certificate validation failed. Signing is not allowed. Contact your administrator.'),
+			CrlValidationStatus::NO_URLS => $this->identifyService->getL10n()->t('This certificate has no revocation URLs. Signing is not allowed. Contact your administrator.'),
+			CrlValidationStatus::MISSING => $this->identifyService->getL10n()->t('This certificate has no revocation information. Signing is not allowed. Contact your administrator.'),
+			default => $this->identifyService->getL10n()->t('Certificate validation could not be completed. Signing is not allowed.'),
 		};
 	}
 
