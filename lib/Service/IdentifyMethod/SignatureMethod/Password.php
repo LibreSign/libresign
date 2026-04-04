@@ -48,8 +48,7 @@ class Password extends AbstractSignatureMethod {
 		if (!array_key_exists('crl_validation', $certificateData)) {
 			return;
 		}
-		$rawStatus = $certificateData['crl_validation'];
-		$status = $this->normalizeRevocationStatus($rawStatus);
+		$status = $certificateData['crl_validation'];
 		if ($status === CrlValidationStatus::VALID) {
 			return;
 		}
@@ -60,24 +59,13 @@ class Password extends AbstractSignatureMethod {
 		if ($status === CrlValidationStatus::DISABLED) {
 			return;
 		}
-		$this->logRevocationBlockedSigning($rawStatus);
+		$this->logRevocationBlockedSigning($status);
 		throw new LibresignException($this->getRevocationErrorMessage($status), 422);
 	}
 
-	private function normalizeRevocationStatus(mixed $status): ?CrlValidationStatus {
-		if ($status instanceof CrlValidationStatus) {
-			return $status;
-		}
-		if (is_string($status)) {
-			return CrlValidationStatus::tryFrom($status);
-		}
-		return null;
-	}
-
-	private function logRevocationBlockedSigning(mixed $status): void {
-		$statusValue = $status instanceof CrlValidationStatus ? $status->value : (is_scalar($status) ? (string)$status : get_debug_type($status));
+	private function logRevocationBlockedSigning(CrlValidationStatus $status): void {
 		$this->identifyService->getLogger()->warning('Signing blocked due to CRL validation status', [
-			'status' => $statusValue,
+			'status' => $status->value,
 			'signer_uid' => $this->userSession->getUser()?->getUID(),
 		]);
 	}
