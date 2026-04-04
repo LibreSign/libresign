@@ -8,6 +8,13 @@
 			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
+			<NcNoteCard v-for="(error, index) in signStore.errors"
+				:key="index"
+				:heading="error.title || ''"
+				type="error">
+				<NcRichText :text="error.message"
+					:use-markdown="true" />
+			</NcNoteCard>
 			<div v-if="needCreateSignature" class="no-signature-warning">
 				<p>
 					{{ t('libresign', 'You do not have any signature defined.') }}
@@ -43,6 +50,17 @@
 			</div>
 			<div v-else-if="needIdentificationDocuments" class="no-identification-warning">
 				<Documents :sign-request-uuid="signRequestUuid" />
+			</div>
+			<div v-else-if="hasBlockingSignError" class="sign-blocked-warning">
+				<p>
+					<!-- TRANSLATORS Shown after a non-retriable certificate validation failure. "Signing is blocked" means the signer cannot continue now and must resolve the certificate issue first. -->
+					{{ t('libresign', 'Signing is blocked until the certificate validation issue is resolved.') }}
+				</p>
+				<NcButton :wide="true"
+					:disabled="loading"
+					@click="clearBlockingSignError">
+					{{ t('libresign', 'Try signing again') }}
+				</NcButton>
 			</div>
 			<NcButton v-else-if="ableToSign"
 				:wide="true"
@@ -176,6 +194,7 @@ import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 
 import ModalVerificationCode from './ModalVerificationCode.vue'
+import { NON_RETRIABLE_SIGN_ERROR_CODE, shouldCloseCurrentModalOnSignError } from './signErrorUtils'
 import Draw from '../../../components/Draw/Draw.vue'
 import Documents from '../../../views/Account/partials/Documents.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
@@ -199,10 +218,14 @@ import { SigningRequirementValidator } from '../../../services/SigningRequiremen
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import {
 	normalizeDocumentForVisibleElements,
-	normalizeFileForVisibleElements,
 } from '../../../services/signingDocumentAdapter'
 import { FILE_STATUS } from '../../../constants.js'
-import { getFileSigners, getVisibleElementsFromDocument, idsMatch, isCurrentUserSigner } from '../../../services/visibleElementsService'
+import {
+	getCurrentUserSignRequestIds,
+	hasVisibleElementsForCurrentUser,
+	getVisibleElementsFromDocument,
+	idsMatch,
+} from '../../../services/visibleElementsService'
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
 type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
@@ -279,6 +302,10 @@ defineOptions({
 					this.actionHandler.showModal(modalCode)
 				}
 
+				if (shouldCloseCurrentModalOnSignError(methodConfig, signError)) {
+					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
+				}
+
 				this.signStore.setSigningErrors(signError.errors || [])
 			} finally {
 				this.loading = false
@@ -322,7 +349,6 @@ type SignatureProfile = LibreSignUserElement
 
 type SignDocument = NonNullable<ReturnType<typeof useSignStore>['document']>
 type SignDocumentFile = NonNullable<SignDocument['files']>[number]
-type SignDocumentSigner = NonNullable<SignDocument['signers']>[number]
 
 type SignResult = {
 	status: 'signingInProgress' | 'signed' | 'unknown'
@@ -419,24 +445,10 @@ let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
 const currentDocument = computed<SignDocument>(() => signStore.document)
 const visibleElementsDocument = computed(() => normalizeDocumentForVisibleElements(currentDocument.value))
+const currentUserSignRequestIds = computed(() => new Set(getCurrentUserSignRequestIds(visibleElementsDocument.value)))
 
 const elements = computed(() => {
-	const document = currentDocument.value
-	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
-
-	const signRequestIds = new Set<number>()
-	if (signer?.signRequestId !== undefined) {
-		signRequestIds.add(signer.signRequestId)
-	}
-
-	if (Array.isArray(document?.files)) {
-		document.files
-			.map(normalizeFileForVisibleElements)
-			.flatMap((file) => getFileSigners(file))
-			.filter((row): row is ReturnType<typeof getFileSigners>[number] & { me: true; signRequestId: number } => isCurrentUserSigner(row) && row.signRequestId !== undefined)
-			.forEach((row) => signRequestIds.add(row.signRequestId))
-	}
-
+	const signRequestIds = currentUserSignRequestIds.value
 	if (signRequestIds.size === 0) {
 		return []
 	}
@@ -458,13 +470,7 @@ const needCreateSignature = computed(() => {
 	if (!canCreateSignature.value || hasSignatures.value) {
 		return false
 	}
-	const document = currentDocument.value
-	const signer = document?.signers?.find((row: SignDocumentSigner) => row.me)
-	if (signer?.signRequestId === undefined) {
-		return false
-	}
-	const visibleElements = visibleElementsDocument.value.visibleElements || []
-	return visibleElements.some((row) => row.signRequestId === signer.signRequestId)
+	return hasVisibleElementsForCurrentUser(visibleElementsDocument.value)
 })
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const canCreateSignature = computed(() => {
@@ -472,6 +478,7 @@ const canCreateSignature = computed(() => {
 	return capabilities.libresign?.config['sign-elements']['can-create-signature'] === true
 })
 const ableToSign = computed(() => signStore.ableToSign)
+const hasBlockingSignError = computed(() => signStore.errors.some((error) => Number(error?.code) === NON_RETRIABLE_SIGN_ERROR_CODE))
 const signRequestUuid = computed(() => {
 	const doc = signStore.document
 	const signer = doc?.signers?.find((row) => row.me) ?? doc?.signers?.[0]
@@ -539,6 +546,10 @@ function resetSignMethodsState() {
 function onSignatureFileCreated() {
 	signStore.clearSigningErrors()
 	showManagePassword.value = false
+}
+
+function clearBlockingSignError() {
+	signStore.clearSigningErrors()
 }
 
 function saveSignature() {
@@ -660,6 +671,10 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 				? 'uploadCertificate'
 				: 'createPassword'
 			actionHandler!.showModal(modalCode)
+		}
+
+		if (shouldCloseCurrentModalOnSignError(methodConfig, signError)) {
+			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 		}
 
 		signStore.setSigningErrors(signError.errors || [])
@@ -808,6 +823,13 @@ defineExpose({
 
 .no-identification-warning {
 	margin-top: 1em;
+}
+
+.sign-blocked-warning {
+	margin-top: 1em;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 }
 
 .button-wrapper {

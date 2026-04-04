@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use Imagick;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\IAppConfig;
 use OCP\IDateTimeZone;
@@ -217,5 +218,46 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 
 	public function testHasFont(): void {
 		$this->assertFileExists($fallbackFond = __DIR__ . '/../../../../3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf');
+	}
+
+	#[DataProvider('providerInvalidSignatureDimensions')]
+	public function testSaveShouldRejectInvalidSignatureDimensions(float $signatureWidth, float $signatureHeight): void {
+		$this->expectException(LibresignException::class);
+
+		$this->getClass()->save(
+			template: 'valid',
+			signatureWidth: $signatureWidth,
+			signatureHeight: $signatureHeight,
+		);
+	}
+
+	public static function providerInvalidSignatureDimensions(): array {
+		return [
+			'zero width' => [0.0, 100.0],
+			'fractional width below minimum' => [0.9999, 100.0],
+			'subnormal width' => [1.0E-320, 100.0],
+			'scientific width below minimum' => [1.0E-6, 100.0],
+			'negative width' => [-1.0, 100.0],
+			'very small negative width' => [-0.0001, 100.0],
+			'zero height' => [350.0, 0.0],
+			'fractional height below minimum' => [350.0, 0.9999],
+			'subnormal height' => [350.0, 1.0E-320],
+			'scientific height below minimum' => [350.0, 1.0E-6],
+			'negative height' => [350.0, -1.0],
+			'very small negative height' => [350.0, -0.0001],
+			'both dimensions zero' => [0.0, 0.0],
+			'both dimensions negative' => [-1.0, -1.0],
+			'both dimensions fractional below minimum' => [0.5, 0.5],
+		];
+	}
+
+	public function testGetFullSignatureDimensionsShouldFallbackToDefaultsWhenConfigIsInvalid(): void {
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', 0.0);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', -1.0);
+
+		$class = $this->getClass();
+
+		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_WIDTH, $class->getFullSignatureWidth());
+		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_HEIGHT, $class->getFullSignatureHeight());
 	}
 }

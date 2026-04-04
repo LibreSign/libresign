@@ -4,14 +4,13 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock } from '../../testHelpers/l10n.js'
 import { mount } from '@vue/test-utils'
 
 import IdentificationFactors from '../../../views/Settings/IdentificationFactors.vue'
 
 const useConfigureCheckStoreMock = vi.fn()
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('../../../store/configureCheck.js', () => ({
 	useConfigureCheckStore: (...args: unknown[]) => useConfigureCheckStoreMock(...args),

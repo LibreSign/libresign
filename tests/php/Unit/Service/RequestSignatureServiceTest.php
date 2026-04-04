@@ -37,6 +37,7 @@ use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\SignRequest\StatusUpdatePolicy;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -768,5 +769,68 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$result2,
 			'Second signer in ordered flow should remain DRAFT until first signs'
 		);
+	}
+
+	/**
+	 * Regression test for issue #7343.
+	 *
+	 * processFileData() must extract the inner `file` descriptor
+	 * and pass it to FileService::getNodeFromData(), not the whole
+	 * item (which would create a double-nested `file.file.path`
+	 * and trigger "No file source provided").
+	 */
+	public function testSaveEnvelopeExtractsFileDescriptorFromNestedFilesArrayItems(): void {
+		$service = $this->getService(['saveFile']);
+
+		$envelope = new \OCA\Libresign\Db\File();
+		$envelope->setId(10);
+
+		$folder = $this->createMock(Folder::class);
+		$folder->method('getId')->willReturn(99);
+
+		$nodeA = $this->createMock(\OCP\Files\Node::class);
+		$nodeB = $this->createMock(\OCP\Files\Node::class);
+
+		$childA = new \OCA\Libresign\Db\File();
+		$childA->setId(11);
+		$childB = new \OCA\Libresign\Db\File();
+		$childB->setId(12);
+
+		$this->user->method('getUID')->willReturn('testuser');
+		$this->envelopeService->method('validateEnvelopeConstraints');
+		$this->envelopeService->method('createEnvelope')->willReturn($envelope);
+		$this->envelopeService->method('getEnvelopeFolder')->willReturn($folder);
+		$this->envelopeService->method('addFileToEnvelope')->willReturn(new \OCA\Libresign\Db\File());
+
+		// KEY assertion: getNodeFromData must receive the inner file descriptor,
+		// not the doubled-nested wrapper { file: { path }, name }.
+		$this->fileService->expects($this->exactly(2))
+			->method('getNodeFromData')
+			->with($this->callback(function (array $data): bool {
+				return isset($data['file']['path']) && !isset($data['file']['file']);
+			}))
+			->willReturnOnConsecutiveCalls($nodeA, $nodeB);
+
+		$this->envelopeFileRelocator->method('ensureFileInEnvelopeFolder')
+			->willReturnOnConsecutiveCalls($nodeA, $nodeB);
+
+		$service->method('saveFile')->willReturnOnConsecutiveCalls($childA, $childB);
+
+		$result = $service->saveEnvelope([
+			'files' => [
+				['file' => ['path' => '/A/file1.pdf'], 'name' => 'file1'],
+				['file' => ['path' => '/B/file2.pdf'], 'name' => 'file2'],
+			],
+			'name' => 'My Envelope',
+			'userManager' => $this->user,
+			'settings' => [],
+			'signers' => [],
+			'status' => \OCA\Libresign\Enum\FileStatus::DRAFT->value,
+			'visibleElements' => [],
+			'signatureFlow' => null,
+		]);
+
+		$this->assertSame($envelope, $result['envelope']);
+		$this->assertCount(2, $result['files']);
 	}
 }

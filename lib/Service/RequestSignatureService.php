@@ -220,7 +220,7 @@ class RequestSignatureService {
 			$sourceNode = $this->fileService->getNodeFromData([
 				'userManager' => $userManager,
 				'name' => $name,
-				'file' => $fileData,
+				'file' => $fileData['file'] ?? $fileData,
 				'settings' => $settings,
 			]);
 		}

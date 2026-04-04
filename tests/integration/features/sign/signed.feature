@@ -9,7 +9,11 @@ Feature: signed
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And run the command "config:app:set libresign add_footer --value=true --type=boolean" with result code 0
     And run the command "config:app:set libresign write_qrcode_on_footer --value=true --type=boolean" with result code 0
-    And run the command "config:app:set libresign tsa_url --value=https://freetsa.org/tsr --type=string" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/admin/tsa"
+      | tsa_url        | <TSA_URL> |
+      | tsa_policy_oid | 1.2.3.4.1 |
+      | tsa_auth_type  | none      |
+    And the response should have a status code 200
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"password":{"name":"password","enabled":true}},"signatureMethodEnabled":"password"}] |
     And the response should have a status code 200

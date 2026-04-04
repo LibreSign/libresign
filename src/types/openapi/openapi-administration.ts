@@ -1195,13 +1195,13 @@ export interface operations {
                     signatureFontSize?: number;
                     /**
                      * Format: double
-                     * @description Signature width
+                     * @description Signature box width, minimum 1
                      * @default 350
                      */
                     signatureWidth?: number;
                     /**
                      * Format: double
-                     * @description Signature height
+                     * @description Signature box height, minimum 1
                      * @default 100
                      */
                     signatureHeight?: number;

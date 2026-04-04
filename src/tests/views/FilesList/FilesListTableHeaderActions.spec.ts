@@ -4,7 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock, interpolateL10n } from '../../testHelpers/l10n.js'
+import { interpolateL10n } from '../../testHelpers/l10n.js'
 import { flushPromises, mount } from '@vue/test-utils'
 
 import FilesListTableHeaderActions from '../../../views/FilesList/FilesListTableHeaderActions.vue'
@@ -28,7 +28,7 @@ const selectionStoreMock = {
 	set: vi.fn(),
 }
 
-vi.mock('@nextcloud/l10n', () => createL10nMock({
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 	t: (_app: string, text: string, params?: Record<string, string>) => interpolateL10n(text, params),
 }))
 

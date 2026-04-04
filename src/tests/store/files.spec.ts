@@ -4,7 +4,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createL10nMock, interpolateL10n } from '../testHelpers/l10n.js'
+import { interpolateL10n } from '../testHelpers/l10n.js'
 import type { Mock } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
@@ -30,7 +30,7 @@ type Signer = {
 	signRequestId?: number
 }
 
-vi.mock('@nextcloud/l10n', () => createL10nMock({
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 	t: (_app: string, msg: string, params?: TranslationParams) => interpolateL10n(msg, params),
 }))
 
