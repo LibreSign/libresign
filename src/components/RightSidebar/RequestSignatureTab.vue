@@ -874,8 +874,7 @@ function getSignRouteUuid() {
 	const fromSettings = typeof file?.settings?.signerFileUuid === 'string' && file.settings.signerFileUuid.length > 0
 		? file.settings.signerFileUuid
 		: null
-	const fromState = loadState<string | null>('libresign', 'sign_request_uuid', null)
-	return fromFile || fromSettings || (typeof fromState === 'string' && fromState.length > 0 ? fromState : null)
+	return fromFile || fromSettings || null
 }
 
 function validationFile() {
