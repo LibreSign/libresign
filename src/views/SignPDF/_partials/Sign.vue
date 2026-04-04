@@ -194,6 +194,7 @@ import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 
 import ModalVerificationCode from './ModalVerificationCode.vue'
+import { NON_RETRIABLE_SIGN_ERROR_CODE, shouldCloseCurrentModalOnSignError } from './signErrorUtils'
 import Draw from '../../../components/Draw/Draw.vue'
 import Documents from '../../../views/Account/partials/Documents.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
@@ -301,10 +302,7 @@ defineOptions({
 					this.actionHandler.showModal(modalCode)
 				}
 
-				const shouldCloseModal = (methodConfig.modalCode || methodConfig.method || 'token') === 'password'
-					&& Array.isArray(signError.errors)
-					&& signError.errors.some((error) => Number(error?.code) === 422)
-				if (shouldCloseModal) {
+				if (shouldCloseCurrentModalOnSignError(methodConfig, signError)) {
 					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 				}
 
@@ -369,21 +367,6 @@ type SubmitSignaturePayload = {
 type SignSubmissionError = {
 	type?: string
 	errors?: SignError[]
-}
-
-const NON_RETRIABLE_SIGN_ERROR_CODE = 422
-
-function shouldCloseCurrentModalOnSignError(
-	methodConfig: SignatureMethodConfig,
-	signError: SignSubmissionError,
-): boolean {
-	const modalCode = methodConfig.modalCode || methodConfig.method || 'token'
-	if (modalCode !== 'password') {
-		return false
-	}
-
-	const errors = Array.isArray(signError.errors) ? signError.errors : []
-	return errors.some((error) => Number(error?.code) === NON_RETRIABLE_SIGN_ERROR_CODE)
 }
 
 type SignStoreContract = ReturnType<typeof useSignStore> & {
