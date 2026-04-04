@@ -8,6 +8,7 @@ import { shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
 import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatureTab.vue'
 import { useFilesStore } from '../../../store/files.js'
@@ -104,6 +105,16 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	beforeEach(async () => {
 		setActivePinia(createPinia())
 		generateUrlMock.mockClear()
+		vi.mocked(loadState).mockImplementation((app, key, defaultValue) => {
+			if (key === 'config') {
+				return {
+					'sign-elements': { 'is-available': true },
+					'identification_documents': { enabled: false },
+				}
+			}
+			if (key === 'can_request_sign') return true
+			return defaultValue
+		})
 		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>)
 		filesStore = useFilesStore()
 
@@ -434,6 +445,35 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 			expect(generateUrlMock).toHaveBeenCalledWith('/apps/libresign/p/sign/{uuid}/pdf', { uuid: 'signer-uuid-123' })
 			expect(wrapper.vm.modalSrc).toBe('/apps/libresign/p/sign/signer-uuid-123/pdf')
+		})
+
+		it('does not use stale sign_request_uuid from initial state when file has no signing UUIDs', async () => {
+			vi.mocked(loadState).mockImplementation((app, key, defaultValue) => {
+				if (key === 'sign_request_uuid') {
+					return 'stale-sign-request-uuid'
+				}
+				if (key === 'config') {
+					return {
+						'sign-elements': { 'is-available': true },
+						'identification_documents': { enabled: false },
+					}
+				}
+				if (key === 'can_request_sign') return true
+				return defaultValue
+			})
+
+			await wrapper.setProps({ useModal: true })
+			await updateFile({
+				signUuid: null,
+				signers: [],
+				settings: { signerFileUuid: '' },
+			})
+			generateUrlMock.mockClear()
+
+			await wrapper.vm.sign()
+
+			expect(generateUrlMock).not.toHaveBeenCalledWith('/apps/libresign/p/sign/{uuid}/pdf', { uuid: 'stale-sign-request-uuid' })
+			expect(wrapper.vm.modalSrc).toBe('')
 		})
 	})
 
