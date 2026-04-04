@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
@@ -58,12 +57,6 @@ class Password extends AbstractSignatureMethod {
 		}
 		// Admin explicitly disabled external CRL validation – allow signing.
 		if ($status === CrlValidationStatus::DISABLED) {
-			return;
-		}
-		// MISSING is set before the CRL checker runs (no CDP extension at all), so
-		// the toggle is not consulted by the checker. Check it explicitly here.
-		if ($status === CrlValidationStatus::MISSING
-			&& !$this->identifyService->getAppConfig()->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true)) {
 			return;
 		}
 		throw new LibresignException($this->getRevocationErrorMessage($status), 422);
