@@ -193,7 +193,10 @@ abstract class AEngineHandler implements IEngineHandler {
 				$certData['crl_revoked_at'] = $crlDetails['revoked_at'];
 			}
 		} else {
-			$certData['crl_validation'] = CrlValidationStatus::MISSING;
+			$externalValidationEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true);
+			$certData['crl_validation'] = $externalValidationEnabled
+				? CrlValidationStatus::MISSING
+				: CrlValidationStatus::DISABLED;
 			$certData['crl_urls'] = [];
 		}
 	}
