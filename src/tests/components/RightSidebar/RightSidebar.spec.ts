@@ -17,6 +17,7 @@ const filesStoreMock = {
 const sidebarStoreMock = {
 	activeTab: 'request-signature-tab',
 	isVisible: true,
+	showSidebar: vi.fn(),
 	setActiveTab: vi.fn(),
 	hideSidebar: vi.fn(),
 	handleRouteChange: vi.fn(),
@@ -67,6 +68,7 @@ describe('RightSidebar.vue', () => {
 		filesStoreMock.getSubtitle.mockReturnValue('Alice, Bob')
 		sidebarStoreMock.activeTab = 'request-signature-tab'
 		sidebarStoreMock.isVisible = true
+		sidebarStoreMock.showSidebar.mockReset()
 		signStoreMock.document = { statusText: 'Draft' }
 		sidebarStoreMock.setActiveTab.mockReset()
 		sidebarStoreMock.hideSidebar.mockReset()
@@ -81,7 +83,7 @@ describe('RightSidebar.vue', () => {
 						name: 'NcAppSidebar',
 						template: '<div class="app-sidebar"><slot /></div>',
 						props: ['open', 'name', 'subtitle', 'active'],
-						emits: ['update:active', 'close'],
+						emits: ['update:active', 'update:open', 'close'],
 					},
 					NcAppSidebarTab: {
 						name: 'NcAppSidebarTab',
@@ -117,14 +119,17 @@ describe('RightSidebar.vue', () => {
 		expect(wrapper.find('.sign-tab').exists()).toBe(false)
 	})
 
-	it('forwards active tab updates and close events to the sidebar store', async () => {
+	it('forwards active and open state updates to the sidebar store', async () => {
 		const wrapper = createWrapper()
 		const sidebar = wrapper.findComponent({ name: 'NcAppSidebar' })
 
 		await sidebar.vm.$emit('update:active', 'sign-tab')
+		await sidebar.vm.$emit('update:open', true)
+		await sidebar.vm.$emit('update:open', false)
 		await sidebar.vm.$emit('close')
 
 		expect(sidebarStoreMock.setActiveTab).toHaveBeenCalledWith('sign-tab')
-		expect(sidebarStoreMock.hideSidebar).toHaveBeenCalledTimes(1)
+		expect(sidebarStoreMock.showSidebar).toHaveBeenCalledTimes(1)
+		expect(sidebarStoreMock.hideSidebar).toHaveBeenCalledTimes(2)
 	})
 })
