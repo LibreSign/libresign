@@ -33,9 +33,9 @@ vi.mock('../../../components/PdfEditor/PdfEditor.vue', () => ({
 	},
 }))
 
-vi.mock('../../store/files.js', () => {
+vi.mock('../../../store/files.js', () => {
 	const filesInstance = {
-		getAllFiles: vi.fn(),
+		fetchFileDetail: vi.fn(),
 		addFile: vi.fn(),
 		selectFile: vi.fn(),
 		getFile: vi.fn(),
@@ -45,7 +45,7 @@ vi.mock('../../store/files.js', () => {
 	}
 })
 
-vi.mock('../../store/sidebar.js', () => {
+vi.mock('../../../store/sidebar.js', () => {
 	const sidebarInstance = {
 		toggleSidebar: vi.fn(),
 		hideSidebar: vi.fn(),
@@ -56,8 +56,8 @@ vi.mock('../../store/sidebar.js', () => {
 	}
 })
 
-vi.mock('../../store/sign.js', async () => {
-	const actual = await vi.importActual('../../store/sign.js')
+vi.mock('../../../store/sign.js', async () => {
+	const actual = await vi.importActual('../../../store/sign.js')
 	return actual
 })
 
@@ -66,7 +66,7 @@ describe('SignPDF.vue', () => {
 		id: 1,
 		name: 'Envelope',
 		description: '',
-		status: '',
+		status: 0,
 		statusText: '',
 		url: '/apps/libresign/p/pdf/uuid-123',
 		nodeId: 1,
@@ -196,13 +196,13 @@ describe('SignPDF.vue', () => {
 				id: 10,
 				name: 'file1',
 				file: '/file1.pdf',
+				files: undefined,
 				metadata: { extension: 'pdf' },
 				signers: [
 					{
 						signRequestId: 501,
 						displayName: 'Ada',
 						email: 'ada@example.com',
-							localKey: 'signer:501',
 						me: true,
 					},
 				],
@@ -295,5 +295,58 @@ describe('SignPDF.vue', () => {
 		expect(setSigningErrorsSpy).toHaveBeenCalledWith([
 			{ message: 'Document not found', scope: 'pdfLoad' },
 		])
+	})
+
+	it('loads the signing document from file validation when entering the internal sign route', async () => {
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { useFilesStore } = await import('../../../store/files.js')
+		const { useSidebarStore } = await import('../../../store/sidebar.js')
+		const { useSignStore } = await import('../../../store/sign.js')
+		const filesStore = useFilesStore()
+		const sidebarStore = useSidebarStore()
+		const signStore = useSignStore()
+		const file = createSignDocument({
+			id: 12,
+			status: 1,
+			statusText: 'Ready to sign',
+			signers: [{ me: true, signRequestId: 44, displayName: 'Admin', email: 'admin@email.tld' }],
+		})
+
+		vi.mocked(filesStore.fetchFileDetail).mockResolvedValue(file)
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+			headers: {
+				get: vi.fn(() => 'application/pdf'),
+			},
+			blob: vi.fn(async () => new Blob(['pdf'], { type: 'application/pdf' })),
+		}))
+
+		mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					PdfEditor: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'SignPDF', params: { uuid: 'sign-uuid-123' }, query: {} },
+				},
+			},
+		})
+
+		await vi.waitFor(() => {
+			expect(filesStore.fetchFileDetail).toHaveBeenCalledWith({
+				uuid: 'sign-uuid-123',
+				force: true,
+			})
+		})
+
+		expect(signStore.document).toEqual(expect.objectContaining({
+			id: 12,
+			status: 1,
+			statusText: 'Ready to sign',
+		}))
+		expect(filesStore.selectFile).toHaveBeenCalledWith(12)
+		expect(sidebarStore.activeSignTab).toHaveBeenCalled()
 	})
 })
