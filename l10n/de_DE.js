@@ -229,7 +229,6 @@ OC.L10N.register(
     "Email token" : "E-Mail-Token",
     "Certificate with password" : "Zertifikat mit Passwort",
     "Certificate has been revoked" : "Zertifikat wurde widerrufen",
-    "Certificate revocation status could not be verified" : "Der Status des Zertifikatswiderrufs konnte nicht überprüft werden",
     "Invalid certificate" : "Ungültiges Zertifikat",
     "Signal token" : "Signal-Token",
     "SMS token" : "SMS-Token",

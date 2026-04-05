@@ -229,7 +229,6 @@ OC.L10N.register(
     "Email token" : "E-posta kodu",
     "Certificate with password" : "Parola ile korunmuş sertifika",
     "Certificate has been revoked" : "Sertifika geçersiz kılınmış",
-    "Certificate revocation status could not be verified" : "Sertifika geçersiz kılma durumu doğrulanamadı",
     "Invalid certificate" : "Sertifika geçersiz",
     "Signal token" : "Signal kodu",
     "SMS token" : "SMS kodu",
