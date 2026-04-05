@@ -5,7 +5,7 @@
 <template>
 	<NcAppSidebar v-if="sidebarStore.activeTab.length > 0"
 		ref="rightAppSidebar"
-		:open="sidebarStore.isVisible"
+		v-model:open="opened"
 		:name="fileName"
 		:subtitle="subTitle"
 		v-model:active="sidebarStore.activeTab"
@@ -58,7 +58,16 @@ const route = useRoute()
 const rightAppSidebar = ref<SidebarRef | null>(null)
 
 const fileName = computed(() => filesStore.getSelectedFileView()?.name ?? '')
-const opened = computed(() => sidebarStore.isVisible)
+const opened = computed({
+	get: () => sidebarStore.isVisible,
+	set: (isOpen: boolean) => {
+		if (isOpen) {
+			sidebarStore.showSidebar()
+		} else {
+			sidebarStore.hideSidebar()
+		}
+	},
+})
 const subTitle = computed(() => {
 	if (!opened.value) {
 		return t('libresign', 'Enter who will receive the request')

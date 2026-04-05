@@ -9,7 +9,12 @@ import { createPinia, setActivePinia } from 'pinia'
 
 import FilesList from '../../../views/FilesList/FilesList.vue'
 import { useFilesStore } from '../../../store/files.js'
+import { useSidebarStore } from '../../../store/sidebar.js'
 import { useUserConfigStore } from '../../../store/userconfig.js'
+
+vi.mock('vue-router', () => ({
+	useRoute: vi.fn(() => routeMock),
+}))
 
 vi.mock('@nextcloud/logger', () => ({
 	getLogger: vi.fn(() => ({
@@ -132,6 +137,7 @@ describe('FilesList.vue rendering rules', () => {
 	beforeEach(() => {
 		setActivePinia(createPinia())
 		vi.clearAllMocks()
+		routeMock.query = {}
 	})
 
 	function mountComponent() {
@@ -276,5 +282,35 @@ describe('FilesList.vue rendering rules', () => {
 		const gridButton = wrapper.find('.files-list__header-grid-button')
 		const iconWithPath = gridButton.findAll('.nc-icon').find((node) => !!node.attributes('data-path'))
 		expect(iconWithPath?.attributes('data-path')).toBe(wrapper.vm.mdiFormatListBulletedSquare)
+	})
+
+	it('preserves the selected file while the sign sidebar is open', async () => {
+		const filesStore = useFilesStore()
+		const sidebarStore = useSidebarStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+		const selectSpy = vi.spyOn(filesStore, 'selectFile')
+
+		const wrapper = mountComponent()
+		await flushPromises()
+		selectSpy.mockClear()
+
+		sidebarStore.activeSignTab()
+		wrapper.unmount()
+
+		expect(selectSpy).not.toHaveBeenCalled()
+	})
+
+	it('clears the selected file when the sign sidebar is not active', async () => {
+		const filesStore = useFilesStore()
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({})
+		const selectSpy = vi.spyOn(filesStore, 'selectFile')
+
+		const wrapper = mountComponent()
+		await flushPromises()
+		selectSpy.mockClear()
+
+		wrapper.unmount()
+
+		expect(selectSpy).toHaveBeenCalledWith()
 	})
 })

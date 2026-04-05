@@ -73,7 +73,10 @@ test('updates files list status after signing with native engine', async ({ page
 
 	await targetRow.getByRole('button', { name: 'Actions' }).click()
 	await page.getByRole('menuitem', { name: 'Sign' }).click()
-	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	await page.waitForURL('**/f/sign/**/pdf')
+	const signButton = page.getByRole('button', { name: 'Sign the document.' })
+	await expect(signButton).toBeVisible()
+	await signButton.click()
 	await page.getByRole('button', { name: 'Sign document' }).click()
 	await page.waitForURL('**/validation/**')
 	await expect(page.getByText('This document is valid')).toBeVisible()

@@ -8,6 +8,10 @@ import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import PdfEditor from '../../../components/PdfEditor/PdfEditor.vue'
 
+const ensurePdfWorkerMock = vi.fn()
+const pdfElementsWorkerReadyStates: boolean[] = []
+let workerConfiguredBeforeMount = false
+
 type SignerRecord = {
 	displayName?: string
 	email?: string
@@ -53,6 +57,7 @@ type PdfElementsMock = {
 	pdfDocuments: PdfDocumentRecord[]
 	selectedDocIndex: number
 	autoFitZoom: boolean
+	isAddingMode?: boolean
 }
 
 type PdfEditorVm = {
@@ -80,6 +85,8 @@ type PdfEditorVm = {
 		totalPages: number
 		isAddingMode: boolean
 	}) => string
+	getTotalObjectsCount: () => number
+	handleAddingEnded: (event: Event) => void
 	setProps: (props: Record<string, unknown>) => Promise<void>
 }
 
@@ -90,6 +97,7 @@ vi.mock('@libresign/pdf-elements', () => ({
 		name: 'PDFElements',
 		template: '<div class="pdf-elements-mock"></div>',
 		setup(_props: unknown, { expose }: { expose: (methods: any) => void }) {
+			pdfElementsWorkerReadyStates.push(workerConfiguredBeforeMount)
 			const methods = {
 				startAddingElement: vi.fn(),
 				cancelAdding: vi.fn(),
@@ -108,7 +116,10 @@ vi.mock('@libresign/pdf-elements', () => ({
 }))
 
 vi.mock('../../../helpers/pdfWorker.js', () => ({
-	ensurePdfWorker: vi.fn(),
+	ensurePdfWorker: vi.fn(() => {
+		workerConfiguredBeforeMount = true
+		return ensurePdfWorkerMock()
+	}),
 }))
 
 describe('PdfEditor Component - Business Rules', () => {
@@ -136,8 +147,17 @@ describe('PdfEditor Component - Business Rules', () => {
 	}
 
 	beforeEach(() => {
+		workerConfiguredBeforeMount = false
+		pdfElementsWorkerReadyStates.length = 0
 		vi.clearAllMocks()
 		wrapper = createWrapper()
+	})
+
+	describe('RULE: worker initialization ordering', () => {
+		it('configures the pdf worker before mounting PDFElements', () => {
+			expect(ensurePdfWorkerMock).toHaveBeenCalledTimes(1)
+			expect(pdfElementsWorkerReadyStates).toEqual([true])
+		})
 	})
 
 	describe('RULE: getSignerLabel with fallback chain', () => {
@@ -244,6 +264,15 @@ describe('PdfEditor Component - Business Rules', () => {
 			expect(result).toBe(false)
 		})
 
+		it('returns false when signer payload cannot be built', () => {
+			const result = wrapper.vm.startAddingSigner(
+				null,
+				{ width: 200, height: 100 },
+			)
+
+			expect(result).toBe(false)
+		})
+
 		it('returns true and starts adding when valid params', () => {
 			const signer = { email: 'test@example.com' }
 			const size = { width: 200, height: 100 }
@@ -264,8 +293,40 @@ describe('PdfEditor Component - Business Rules', () => {
 				}),
 			)
 		})
+
+		it('does not start polling before a placement interaction happens', () => {
+			vi.useFakeTimers()
+			Object.assign(getPdfElements(), {
+				isAddingMode: true,
+				pdfDocuments: [{ allObjects: [[]] }],
+			})
+
+			wrapper.vm.startAddingSigner({ email: 'first@example.com' }, { width: 120, height: 60 })
+
+			expect(vi.getTimerCount()).toBe(0)
+			vi.useRealTimers()
+		})
+
 	})
 
+
+	describe('RULE: pdf-elements event relay', () => {
+		it('relays pdf-elements:adding-ended event to pdf-editor:adding-ended', () => {
+			wrapper.vm.handleAddingEnded({ detail: { reason: 'placed' } } as CustomEvent)
+
+			const emitted = wrapper.emitted('pdf-editor:adding-ended')
+			expect(emitted).toHaveLength(1)
+			expect(emitted?.[0]).toEqual([{ reason: 'placed' }])
+		})
+
+		it('relays cancelled event with reason', () => {
+			wrapper.vm.handleAddingEnded({ detail: { reason: 'cancelled' } } as CustomEvent)
+
+			const emitted = wrapper.emitted('pdf-editor:adding-ended')
+			expect(emitted).toHaveLength(1)
+			expect(emitted?.[0]).toEqual([{ reason: 'cancelled' }])
+		})
+	})
 	describe('RULE: addSigner coordinate calculations', () => {
 		beforeEach(() => {
 			Object.assign(getPdfElements(), {
