@@ -94,13 +94,6 @@ test('sign herself with drawn signature', async ({ page }) => {
 		page.getByLabel('PDF document to sign').getByRole('img', { name: 'Signature position for Admin Name' })
 	).toBeVisible()
 
-	// If a signature already exists from a previous run, delete it before creating a new one
-	const deleteSignatureBtn = page.getByRole('button', { name: 'Delete signature' })
-	await deleteSignatureBtn.waitFor({ state: 'visible', timeout: 3000 }).catch(() => null)
-	if (await deleteSignatureBtn.isVisible()) {
-		await deleteSignatureBtn.click()
-	}
-
 	await page.getByRole('button', { name: 'Define your signature.' }).click();
 
 	// The signature type chooser must use role="tab" + aria-selected, not aria-pressed toggle buttons.
@@ -129,6 +122,7 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'Confirm your signature' })).toBeVisible();
 	await expect(page.getByRole('img', { name: 'Signature preview' })).toBeVisible();
 	await page.getByLabel('Confirm your signature').getByRole('button', { name: 'Save' }).click();
+	await expect(page.getByRole('button', { name: 'Sign the document.' })).toBeVisible();
 
 	await page.getByRole('button', { name: 'Sign the document.' }).click();
 	await page.getByRole('button', { name: 'Sign document' }).click();
