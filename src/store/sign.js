@@ -176,6 +176,7 @@ export const useSignStore = defineStore('sign', () => {
 		if (file) {
 			errors.value = []
 			document.value = file
+			mounted.value = true
 
 			const sidebarStore = useSidebarStore()
 			sidebarStore.activeSignTab()
@@ -191,6 +192,7 @@ export const useSignStore = defineStore('sign', () => {
 	const reset = () => {
 		errors.value = []
 		document.value = defaultState.document
+		mounted.value = defaultState.mounted
 		const sidebarStore = useSidebarStore()
 		sidebarStore.setActiveTab()
 	}
