@@ -384,33 +384,40 @@ defineExpose({
 	.actions-toolbar[data-v-314ea048],
 	.pdf-elements-root .overlay .draggable-wrapper .actions-toolbar,
 	.actions-toolbar {
-		gap: var(--pdf-elements-toolbar-gap, 10px);
-		padding: var(--pdf-elements-toolbar-padding, 6px 10px 6px 14px);
+		gap: var(--pdf-elements-toolbar-gap, 4px);
+		padding: var(--pdf-elements-toolbar-padding, 4px);
 		background-color: var(--color-main-background, #f8fafc) !important;
-		border: 1px solid var(--color-border-maxcontrast, #cbd5e1) !important;
+		border: 1px solid var(--color-border, #d1d5db) !important;
+		border-radius: var(--border-radius-element, 8px) !important;
 		color: var(--color-main-text, #0f172a) !important;
+		box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18) !important;
 	}
 
 	.pdf-elements-root .overlay .draggable-wrapper .actions-toolbar .action-btn,
 	.action-btn,
 	.action-btn.button-vue,
 	.action-btn.button-vue--tertiary {
-		border: 1px solid var(--color-border-maxcontrast, #cbd5e1) !important;
-		background-color: var(--color-main-background, #f8fafc) !important;
+		border: none !important;
+		background-color: transparent !important;
 		color: var(--color-main-text, #0f172a) !important;
-		padding: 4px;
-		min-height: 0;
-		min-width: 0;
-		border-radius: 4px;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+		padding: 6px !important;
+		min-height: 30px;
+		min-width: 30px;
+		border-radius: var(--border-radius-small, 6px);
+		box-shadow: none !important;
 		cursor: pointer;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		transition: background 120ms ease;
+		transition: background-color 120ms ease;
 
 		&:hover {
 			background-color: var(--color-background-hover, #e2e8f0) !important;
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--color-primary-element, #2563eb);
+			outline-offset: 1px;
 		}
 
 		:deep(svg),
