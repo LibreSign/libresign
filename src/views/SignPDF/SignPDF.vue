@@ -131,7 +131,7 @@ type SignStore = Pick<ReturnType<typeof useSignStore>, 'document' | 'errors' | '
 }
 
 type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'getAllFiles' | 'addFile' | 'selectFile' | 'getFile'> & {
-	getAllFiles: (filter: { signer_uuid?: string; details?: boolean }) => Promise<Record<string, SignDocument>>
+	fetchFileDetail: (options: { fileId?: number | null; uuid?: string | null; force?: boolean }) => Promise<SignDocument | null>
 	addFile: (file: SignDocumentFile) => void
 	selectFile: (fileId: number) => void
 	getFile: () => { status?: SignDocumentStatus } | null
@@ -287,22 +287,15 @@ async function initSignExternal() {
 }
 
 async function initSignInternal() {
-	const files = await filesStore.getAllFiles({
-		signer_uuid: getRouteUuid(),
-		details: true,
+	const file = await filesStore.fetchFileDetail({
+		uuid: getRouteUuid(),
+		force: true,
 	})
-	for (const key in files) {
-		const file = files[key]
-		if (!file) {
-			continue
-		}
-		const signer = file.signers?.find((row) => row?.me === true)
-		if (signer) {
-			signStore.setFileToSign(file)
-			filesStore.selectFile(parseInt(key, 10))
-			return
-		}
+	if (!file || typeof file.id !== 'number') {
+		return
 	}
+	signStore.setFileToSign(file)
+	filesStore.selectFile(file.id)
 }
 
 async function initIdDocsApprove() {
@@ -587,6 +580,10 @@ onBeforeMount(async () => {
 })
 
 onMounted(() => {
+	const routeName = getRoute().name
+	if (!isMobile && (routeName === 'SignPDF' || routeName === 'IdDocsApprove')) {
+		sidebarStore.activeSignTab()
+	}
 	void getCompatMethod('setupElementClickListener')()
 })
 
