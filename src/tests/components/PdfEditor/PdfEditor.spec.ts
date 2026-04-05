@@ -8,6 +8,10 @@ import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import PdfEditor from '../../../components/PdfEditor/PdfEditor.vue'
 
+const ensurePdfWorkerMock = vi.fn()
+const pdfElementsWorkerReadyStates: boolean[] = []
+let workerConfiguredBeforeMount = false
+
 type SignerRecord = {
 	displayName?: string
 	email?: string
@@ -94,6 +98,7 @@ vi.mock('@libresign/pdf-elements', () => ({
 		name: 'PDFElements',
 		template: '<div class="pdf-elements-mock"></div>',
 		setup(_props: unknown, { expose }: { expose: (methods: any) => void }) {
+			pdfElementsWorkerReadyStates.push(workerConfiguredBeforeMount)
 			const methods = {
 				startAddingElement: vi.fn(),
 				cancelAdding: vi.fn(),
@@ -112,7 +117,10 @@ vi.mock('@libresign/pdf-elements', () => ({
 }))
 
 vi.mock('../../../helpers/pdfWorker.js', () => ({
-	ensurePdfWorker: vi.fn(),
+	ensurePdfWorker: vi.fn(() => {
+		workerConfiguredBeforeMount = true
+		return ensurePdfWorkerMock()
+	}),
 }))
 
 describe('PdfEditor Component - Business Rules', () => {
@@ -140,8 +148,17 @@ describe('PdfEditor Component - Business Rules', () => {
 	}
 
 	beforeEach(() => {
+		workerConfiguredBeforeMount = false
+		pdfElementsWorkerReadyStates.length = 0
 		vi.clearAllMocks()
 		wrapper = createWrapper()
+	})
+
+	describe('RULE: worker initialization ordering', () => {
+		it('configures the pdf worker before mounting PDFElements', () => {
+			expect(ensurePdfWorkerMock).toHaveBeenCalledTimes(1)
+			expect(pdfElementsWorkerReadyStates).toEqual([true])
+		})
 	})
 
 	describe('RULE: getSignerLabel with fallback chain', () => {
