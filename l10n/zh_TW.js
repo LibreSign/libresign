@@ -229,7 +229,6 @@ OC.L10N.register(
     "Email token" : "電子郵件權杖",
     "Certificate with password" : "有密碼的憑證",
     "Certificate has been revoked" : "憑證已被撤銷",
-    "Certificate revocation status could not be verified" : "無法驗證憑證撤銷狀態",
     "Invalid certificate" : "無效憑證",
     "Signal token" : "訊號權杖",
     "SMS token" : "簡訊權杖",

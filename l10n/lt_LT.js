@@ -99,6 +99,7 @@ OC.L10N.register(
     "Underline" : "Pabrauktas",
     "Undo" : "Atšaukti",
     "Redo" : "Grąžinti",
+    "Duplicate" : "Dublikatai",
     "Loading …" : "Įkeliama…",
     "Name" : "Vardas",
     "Update" : "Atnaujinti",

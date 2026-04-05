@@ -227,7 +227,6 @@
     "Email token" : "Jeton d'e-mail",
     "Certificate with password" : "Certificat avec mot de passe",
     "Certificate has been revoked" : "Le certificat a été révoqué",
-    "Certificate revocation status could not be verified" : "Le statut de révocation du certificat n’a pas pu être vérifié.",
     "Invalid certificate" : "Certificat invalide",
     "Signal token" : "Jeton de signal",
     "SMS token" : "Jeton SMS",

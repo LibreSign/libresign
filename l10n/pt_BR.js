@@ -229,7 +229,6 @@ OC.L10N.register(
     "Email token" : "Token por e-mail",
     "Certificate with password" : "Certificado com senha",
     "Certificate has been revoked" : "O certificado foi revogado.",
-    "Certificate revocation status could not be verified" : "Não foi possível verificar o status de revogação do certificado",
     "Invalid certificate" : "Certificado inválido",
     "Signal token" : "Token via Signal",
     "SMS token" : "Token via SMS",

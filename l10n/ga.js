@@ -229,7 +229,6 @@ OC.L10N.register(
     "Email token" : "Comhartha ríomhphoist",
     "Certificate with password" : "Deimhniú le focal faire",
     "Certificate has been revoked" : "Tá an deimhniú curtha ar ceal",
-    "Certificate revocation status could not be verified" : "Níorbh fhéidir stádas cúlghairme an deimhnithe a fhíorú",
     "Invalid certificate" : "Teastas neamhbhailí",
     "Signal token" : "Comhartha comhartha",
     "SMS token" : "Comhartha SMS",
