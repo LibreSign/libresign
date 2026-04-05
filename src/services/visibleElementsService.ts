@@ -26,6 +26,7 @@ export type SignerLike = {
 export type NestedFileLike = {
 	id?: number | string
 	name?: string
+	url?: string | null
 	file?: string | NestedFileLike | null
 	metadata?: unknown
 	visibleElements?: VisibleElementRecord[] | null
@@ -106,12 +107,32 @@ export const isCurrentUserSigner = (signer: SignerLike | null | undefined): sign
 	&& 'me' in signer
 	&& signer.me === true
 
-export const getFileUrl = (file: FileLike | null | undefined): string | null =>
-	typeof file?.file === 'string'
-		? file.file
-		: Array.isArray(file?.files) && typeof file.files[0]?.file === 'string'
-			? file.files[0].file
-			: null
+export const getFileUrl = (file: FileLike | null | undefined): string | null => {
+	if (typeof file?.file === 'string') {
+		return file.file
+	}
+
+	if (file?.file && typeof file.file === 'object' && typeof file.file.url === 'string') {
+		return file.file.url
+	}
+
+	if (typeof file?.url === 'string') {
+		return file.url
+	}
+
+	if (!Array.isArray(file?.files)) {
+		return null
+	}
+
+	for (const nestedFile of file.files) {
+		const nestedFileUrl = getFileUrl(nestedFile)
+		if (nestedFileUrl) {
+			return nestedFileUrl
+		}
+	}
+
+	return null
+}
 
 export const getFileSigners = (file: FileLike): SignerLike[] => {
 	if (Array.isArray(file.signers) && file.signers.length > 0) {
