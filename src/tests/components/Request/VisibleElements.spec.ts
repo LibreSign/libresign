@@ -57,7 +57,7 @@ vi.mock('@nextcloud/router', () => ({
 }))
 
 vi.mock('@libresign/pdf-elements', () => ({
-	setWorkerPath: vi.fn(),
+	ensureWorkerReady: vi.fn(),
 }))
 
 describe('VisibleElements Component - Business Rules', () => {
