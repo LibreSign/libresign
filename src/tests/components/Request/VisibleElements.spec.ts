@@ -623,7 +623,7 @@ describe('VisibleElements Component - Business Rules', () => {
 						},
 						NcLoadingIcon: true,
 						PdfEditor: {
-							template: '<div class="pdf-editor-stub" @click="$emit(\'pdf-editor:signer-added\')" />',
+							template: '<div class="pdf-editor-stub" @click="$emit(\'pdf-editor:adding-ended\')" />',
 						},
 						Signer: {
 							props: ['signerIndex'],
