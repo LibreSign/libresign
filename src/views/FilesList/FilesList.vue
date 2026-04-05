@@ -90,7 +90,8 @@
 <script setup lang="ts">
 
 import { t } from '@nextcloud/l10n'
-import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
 import HomeSvg from '@mdi/svg/svg/home.svg?raw'
 import {
@@ -128,9 +129,7 @@ const filesStore = useFilesStore()
 const filtersStore = useFiltersStore()
 const userConfigStore = useUserConfigStore()
 const sidebarStore = useSidebarStore()
-
-const instance = getCurrentInstance()
-const route = computed(() => instance?.proxy?.$route ?? { query: {} })
+const route = useRoute()
 
 const isMenuOpen = ref(false)
 const loading = ref(true)
@@ -156,7 +155,7 @@ function toggleGridView() {
 }
 
 function checkAndOpenFileFromUri() {
-	const query = route.value.query as { uuid?: string | string[] }
+	const query = route.query as { uuid?: string | string[] }
 	const uuid = Array.isArray(query.uuid) ? query.uuid[0] : query.uuid
 	if (uuid) {
 		filesStore.selectFileByUuid(uuid).then((fileId) => {
@@ -175,7 +174,9 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-	filesStore.selectFile()
+	if (!(sidebarStore.isVisible && sidebarStore.activeTab === 'sign-tab')) {
+		filesStore.selectFile()
+	}
 })
 
 defineExpose({
