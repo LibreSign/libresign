@@ -381,11 +381,16 @@ defineExpose({
 	width: 100%;
 	height: 100%;
 
+	.pdf-elements-root .overlay .draggable-wrapper .actions-toolbar,
 	.actions-toolbar {
 		gap: var(--pdf-elements-toolbar-gap, 10px);
 		padding: var(--pdf-elements-toolbar-padding, 6px 10px 6px 14px);
+		background-color: var(--color-main-background, #f8fafc) !important;
+		border: 1px solid var(--color-border-maxcontrast, #cbd5e1) !important;
+		color: var(--color-main-text, #0f172a) !important;
 	}
 
+	.pdf-elements-root .overlay .draggable-wrapper .actions-toolbar .action-btn,
 	.action-btn,
 	.action-btn.button-vue,
 	.action-btn.button-vue--tertiary {
