@@ -38,6 +38,7 @@ const filesStoreMock = {
 		nodeId: 17,
 		nodeType: 'file',
 		signers: [{ me: true, sign_uuid: 'sign-uuid' }],
+		settings: { signerFileUuid: '' },
 	})),
 	getAllFiles: vi.fn(async () => ({
 		1: { id: 1, uuid: 'file-uuid' },
@@ -48,6 +49,7 @@ const filesStoreMock = {
 
 const sidebarStoreMock = {
 	hideSidebar: vi.fn(),
+	activeSignTab: vi.fn(),
 	activeRequestSignatureTab: vi.fn(),
 }
 
@@ -177,6 +179,7 @@ describe('FileEntryActions.vue', () => {
 		filesStoreMock.delete.mockReset()
 		filesStoreMock.rename.mockReset()
 		sidebarStoreMock.hideSidebar.mockReset()
+		sidebarStoreMock.activeSignTab.mockReset()
 		sidebarStoreMock.activeRequestSignatureTab.mockReset()
 		signStoreMock.setFileToSign.mockReset()
 		routerPushMock.mockReset()
@@ -221,7 +224,7 @@ describe('FileEntryActions.vue', () => {
 
 		await wrapper.vm.onActionClick({ id: 'sign' })
 
-		expect(sidebarStoreMock.hideSidebar).toHaveBeenCalledTimes(1)
+		expect(sidebarStoreMock.hideSidebar).not.toHaveBeenCalled()
 		expect(filesStoreMock.fetchFileDetail).toHaveBeenCalledWith({
 			fileId: 1,
 			force: true,
@@ -236,7 +239,64 @@ describe('FileEntryActions.vue', () => {
 			params: { uuid: 'sign-uuid' },
 		})
 		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(1)
-		expect(sidebarStoreMock.activeRequestSignatureTab).toHaveBeenCalledTimes(1)
+		expect(sidebarStoreMock.activeSignTab).toHaveBeenCalledTimes(1)
+		expect(sidebarStoreMock.activeRequestSignatureTab).not.toHaveBeenCalled()
+	})
+
+	it('closes the sidebar before routing to validation', async () => {
+		const wrapper = createWrapper()
+
+		await wrapper.vm.onActionClick({ id: 'validate' })
+
+		expect(sidebarStoreMock.hideSidebar).toHaveBeenCalledTimes(1)
+		expect(routerPushMock).toHaveBeenCalledWith({
+			name: 'ValidationFile',
+			params: { uuid: 'file-uuid' },
+		})
+	})
+
+	it('falls back to the current signer UUID when file detail has no signUuid', async () => {
+		filesStoreMock.fetchFileDetail.mockResolvedValueOnce({
+			id: 1,
+			uuid: 'file-uuid',
+			signUuid: '',
+			name: 'contract.pdf',
+			nodeId: 17,
+			nodeType: 'file',
+			signers: [{ me: true, sign_uuid: 'signer-uuid' }],
+			settings: { signerFileUuid: '' },
+		})
+
+		const wrapper = createWrapper()
+
+		await wrapper.vm.onActionClick({ id: 'sign' })
+
+		expect(routerPushMock).toHaveBeenCalledWith({
+			name: 'SignPDF',
+			params: { uuid: 'signer-uuid' },
+		})
+	})
+
+	it('falls back to signerFileUuid when file detail has no signUuid or signer UUID', async () => {
+		filesStoreMock.fetchFileDetail.mockResolvedValueOnce({
+			id: 1,
+			uuid: 'file-uuid',
+			signUuid: '',
+			name: 'contract.pdf',
+			nodeId: 17,
+			nodeType: 'file',
+			signers: [],
+			settings: { signerFileUuid: 'signer-file-uuid' },
+		})
+
+		const wrapper = createWrapper()
+
+		await wrapper.vm.onActionClick({ id: 'sign' })
+
+		expect(routerPushMock).toHaveBeenCalledWith({
+			name: 'SignPDF',
+			params: { uuid: 'signer-file-uuid' },
+		})
 	})
 
 	it('routes validation, rename and open actions to the expected targets', async () => {
