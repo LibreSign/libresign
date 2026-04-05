@@ -122,6 +122,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$policy = new ContentSecurityPolicy();
 		$policy->allowEvalScript(true);
 		$policy->addAllowedFrameDomain('\'self\'');
+		$policy->addAllowedWorkerSrcDomain("'self'");
 		$response->setContentSecurityPolicy($policy);
 
 		return $response;
@@ -387,6 +388,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$policy = new ContentSecurityPolicy();
 		$policy->allowEvalScript(true);
+		$policy->addAllowedWorkerSrcDomain("'self'");
 		$response->setContentSecurityPolicy($policy);
 
 		return $response;

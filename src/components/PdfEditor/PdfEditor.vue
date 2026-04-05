@@ -19,7 +19,8 @@
 			:style="toolbarStyleVars"
 			@pdf-elements:end-init="endInit"
 			@pdf-elements:object-click="handleObjectClick"
-			@pdf-elements:delete-object="handleDeleteObject">
+			@pdf-elements:delete-object="handleDeleteObject"
+			@pdf-elements:adding-ended="handleAddingEnded">
 			<template #actions="slotProps">
 				<slot name="actions" v-bind="slotProps">
 					<SignerMenu
@@ -29,7 +30,8 @@
 						:get-signer-label="getSignerLabel"
 						@change="onSignerChange(slotProps.object, $event)" />
 					<NcButton
-						class="action-btn"
+						:class="['action-btn', slotProps.actionClass]"
+						v-bind="slotProps.actionAttrs"
 						type="button"
 						variant="tertiary"
 						:aria-label="t('libresign', 'Duplicate')"
@@ -40,7 +42,8 @@
 						</template>
 					</NcButton>
 					<NcButton
-						class="action-btn"
+						:class="['action-btn', slotProps.actionClass]"
+						v-bind="slotProps.actionAttrs"
 						type="button"
 						variant="tertiary"
 						:aria-label="t('libresign', 'Delete')"
@@ -64,7 +67,7 @@
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import PDFElements from '@libresign/pdf-elements'
 import '@libresign/pdf-elements/dist/index.css'
 
@@ -132,6 +135,8 @@ defineOptions({
 	name: 'PdfEditor',
 })
 
+ensurePdfWorker()
+
 const props = withDefaults(defineProps<{
 	files?: PdfInput[]
 	fileNames?: string[]
@@ -148,19 +153,30 @@ const emit = defineEmits<{
 	(event: 'pdf-editor:end-init', payload: EndInitPayload): void
 	(event: 'pdf-editor:on-delete-signer', payload: VisibleElementRecord): void
 	(event: 'pdf-editor:object-click', payload: Record<string, unknown>): void
-	(event: 'pdf-editor:signer-added'): void
+	(event: 'pdf-editor:adding-ended', payload: { reason?: string }): void
 }>()
 
 const pdfElements = ref<PdfElementsInstance | null>(null)
-const pendingAddedObjectCount = ref<number | null>(null)
-
-let pendingAddCheckTimer: ReturnType<typeof setTimeout> | null = null
 
 const ignoreClickOutsideSelectors = computed(() => ['.action-item__popper', '.action-item'])
 
 const toolbarStyleVars = computed(() => ({
 	'--pdf-elements-toolbar-gap': '10px',
 	'--pdf-elements-toolbar-padding': '10px 10px 6px 18px',
+	'--pdf-elements-toolbar-background': 'var(--color-main-background)',
+	'--pdf-elements-toolbar-color': 'var(--color-main-text)',
+	'--pdf-elements-toolbar-border-color': 'var(--color-border)',
+	'--pdf-elements-toolbar-border-radius': '10px',
+	'--pdf-elements-toolbar-shadow': '0 8px 20px rgba(15, 23, 42, 0.18)',
+	'--pdf-elements-action-btn-border': 'none',
+	'--pdf-elements-action-btn-background': 'transparent',
+	'--pdf-elements-action-btn-color': 'var(--color-main-text)',
+	'--pdf-elements-action-btn-padding': '6px',
+	'--pdf-elements-action-btn-radius': '6px',
+	'--pdf-elements-action-btn-min-height': '30px',
+	'--pdf-elements-action-btn-min-width': '30px',
+	'--pdf-elements-action-btn-shadow': 'none',
+	'--pdf-elements-action-btn-hover-background': 'var(--color-background-hover)',
 }))
 
 const hasMultipleSigners = computed(() => (props.signers || []).length > 1)
@@ -266,40 +282,11 @@ function getTotalObjectsCount() {
 	}, 0)
 }
 
-function clearPendingAddCheck() {
-	if (pendingAddCheckTimer !== null) {
-		clearTimeout(pendingAddCheckTimer)
-		pendingAddCheckTimer = null
-	}
-	pendingAddedObjectCount.value = null
+function handleAddingEnded(event: Event) {
+	emit('pdf-editor:adding-ended', {
+		reason: (event as CustomEvent)?.detail?.reason,
+	})
 }
-
-function checkSignerAdded() {
-	const objectsBefore = pendingAddedObjectCount.value
-	if (objectsBefore === null) {
-		return
-	}
-
-	pendingAddCheckTimer = null
-	const isAddingMode = pdfElements.value?.isAddingMode === true
-	const objectsAfter = getTotalObjectsCount()
-	pendingAddedObjectCount.value = null
-
-	if (!isAddingMode && objectsAfter > objectsBefore) {
-		emit('pdf-editor:signer-added')
-	}
-}
-
-function scheduleSignerAddedCheck() {
-	if (pendingAddedObjectCount.value === null) {
-		return
-	}
-	if (pendingAddCheckTimer !== null) {
-		clearTimeout(pendingAddCheckTimer)
-	}
-	pendingAddCheckTimer = setTimeout(checkSignerAdded, 0)
-}
-
 function startAddingSigner(signer: SignerSummaryRecord | SignerDetailRecord | null | undefined, size: { width?: number, height?: number }) {
 	if (!pdfElements.value || !size?.width || !size?.height) {
 		return false
@@ -318,14 +305,12 @@ function startAddingSigner(signer: SignerSummaryRecord | SignerDetailRecord | nu
 		height: size.height,
 		signer: signerPayload,
 	})
-	pendingAddedObjectCount.value = getTotalObjectsCount()
 
 	return true
 }
 
 function cancelAdding() {
 	pdfElements.value?.cancelAdding()
-	clearPendingAddCheck()
 }
 
 async function addSigner(signer: SignerSummaryRecord | SignerDetailRecord, visibleElement: VisibleElementRecord, options: { documentIndex?: number } = {}) {
@@ -381,20 +366,6 @@ async function waitForPageRender(docIndex: number, pageIndex: number) {
 	await nextTick()
 }
 
-onMounted(() => {
-	ensurePdfWorker()
-	document.addEventListener('mouseup', scheduleSignerAddedCheck)
-	document.addEventListener('touchend', scheduleSignerAddedCheck)
-	document.addEventListener('keyup', scheduleSignerAddedCheck)
-})
-
-onBeforeUnmount(() => {
-	document.removeEventListener('mouseup', scheduleSignerAddedCheck)
-	document.removeEventListener('touchend', scheduleSignerAddedCheck)
-	document.removeEventListener('keyup', scheduleSignerAddedCheck)
-	clearPendingAddCheck()
-})
-
 defineExpose({
 	t,
 	mdiContentCopy,
@@ -417,8 +388,7 @@ defineExpose({
 	addSigner,
 	waitForPageRender,
 	getTotalObjectsCount,
-	checkSignerAdded,
-	scheduleSignerAddedCheck,
+	handleAddingEnded,
 })
 </script>
 
@@ -426,30 +396,6 @@ defineExpose({
 .pdf-editor {
 	width: 100%;
 	height: 100%;
-
-	.actions-toolbar {
-		gap: var(--pdf-elements-toolbar-gap, 10px);
-		padding: var(--pdf-elements-toolbar-padding, 6px 10px 6px 14px);
-	}
-
-	.action-btn {
-		border: none;
-		background: transparent;
-		color: #ffffff;
-		padding: 4px;
-		min-height: 0;
-		min-width: 0;
-		border-radius: 4px;
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		transition: background 120ms ease;
-
-		&:hover {
-			background: rgba(255, 255, 255, 0.1);
-		}
-	}
-
 }
+
 </style>
