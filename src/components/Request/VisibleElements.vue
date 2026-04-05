@@ -60,7 +60,7 @@
 						{{ t('libresign', 'Save') }}
 					</NcButton>
 
-					<NcButton v-if="canSign"
+					<NcButton v-if="canSign && !signerSelected"
 						:variant="variantOfSignButton"
 						:wide="true"
 						@click="goToSign">
