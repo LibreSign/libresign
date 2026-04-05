@@ -30,7 +30,8 @@
 						:get-signer-label="getSignerLabel"
 						@change="onSignerChange(slotProps.object, $event)" />
 					<NcButton
-						class="action-btn"
+						:class="['action-btn', slotProps.actionClass]"
+						v-bind="slotProps.actionAttrs"
 						type="button"
 						variant="tertiary"
 						:aria-label="t('libresign', 'Duplicate')"
@@ -41,7 +42,8 @@
 						</template>
 					</NcButton>
 					<NcButton
-						class="action-btn"
+						:class="['action-btn', slotProps.actionClass]"
+						v-bind="slotProps.actionAttrs"
 						type="button"
 						variant="tertiary"
 						:aria-label="t('libresign', 'Delete')"
@@ -161,6 +163,20 @@ const ignoreClickOutsideSelectors = computed(() => ['.action-item__popper', '.ac
 const toolbarStyleVars = computed(() => ({
 	'--pdf-elements-toolbar-gap': '10px',
 	'--pdf-elements-toolbar-padding': '10px 10px 6px 18px',
+	'--pdf-elements-toolbar-background': 'var(--color-main-background)',
+	'--pdf-elements-toolbar-color': 'var(--color-main-text)',
+	'--pdf-elements-toolbar-border-color': 'var(--color-border)',
+	'--pdf-elements-toolbar-border-radius': '10px',
+	'--pdf-elements-toolbar-shadow': '0 8px 20px rgba(15, 23, 42, 0.18)',
+	'--pdf-elements-action-btn-border': 'none',
+	'--pdf-elements-action-btn-background': 'transparent',
+	'--pdf-elements-action-btn-color': 'var(--color-main-text)',
+	'--pdf-elements-action-btn-padding': '6px',
+	'--pdf-elements-action-btn-radius': '6px',
+	'--pdf-elements-action-btn-min-height': '30px',
+	'--pdf-elements-action-btn-min-width': '30px',
+	'--pdf-elements-action-btn-shadow': 'none',
+	'--pdf-elements-action-btn-hover-background': 'var(--color-background-hover)',
 }))
 
 const hasMultipleSigners = computed(() => (props.signers || []).length > 1)
@@ -380,56 +396,6 @@ defineExpose({
 .pdf-editor {
 	width: 100%;
 	height: 100%;
-
-	.actions-toolbar[data-v-314ea048],
-	.pdf-elements-root .overlay .draggable-wrapper .actions-toolbar,
-	.actions-toolbar {
-		gap: var(--pdf-elements-toolbar-gap, 4px);
-		padding: var(--pdf-elements-toolbar-padding, 4px);
-		background-color: var(--color-main-background, #f8fafc) !important;
-		border: 1px solid var(--color-border, #d1d5db) !important;
-		border-radius: var(--border-radius-element, 8px) !important;
-		color: var(--color-main-text, #0f172a) !important;
-		box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18) !important;
-	}
-
-	.pdf-elements-root .overlay .draggable-wrapper .actions-toolbar .action-btn,
-	.action-btn,
-	.action-btn.button-vue,
-	.action-btn.button-vue--tertiary {
-		border: none !important;
-		background-color: transparent !important;
-		color: var(--color-main-text, #0f172a) !important;
-		padding: 6px !important;
-		min-height: 30px;
-		min-width: 30px;
-		border-radius: var(--border-radius-small, 6px);
-		box-shadow: none !important;
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		transition: background-color 120ms ease;
-
-		&:hover {
-			background-color: var(--color-background-hover, #e2e8f0) !important;
-		}
-
-		&:focus-visible {
-			outline: 2px solid var(--color-primary-element, #2563eb);
-			outline-offset: 1px;
-		}
-
-		:deep(svg),
-		:deep(.icon-vue),
-		:deep(.material-design-icon),
-		:deep([class*='icon']) {
-			color: currentColor;
-			fill: currentColor;
-			stroke: currentColor;
-			opacity: 1;
-		}
-	}
-
 }
+
 </style>
