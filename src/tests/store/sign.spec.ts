@@ -223,6 +223,28 @@ describe('useSignStore', () => {
 		})
 	})
 
+	describe('mounted state', () => {
+		it('marks the sign interface as ready when a file is selected for signing', () => {
+			const store = useSignStore()
+
+			expect(store.mounted).toBe(false)
+
+			store.setFileToSign(createDocument())
+
+			expect(store.mounted).toBe(true)
+		})
+
+		it('clears the mounted state when resetting the sign store', () => {
+			const store = useSignStore()
+
+			store.setFileToSign(createDocument())
+			store.reset()
+
+			expect(store.mounted).toBe(false)
+			expect(store.document).toBeUndefined()
+		})
+	})
+
 	describe('buildSignUrl', () => {
 		it('uses /sign/uuid endpoint when signRequestUuid is provided', () => {
 			const store = useSignStore()
