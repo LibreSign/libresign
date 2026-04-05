@@ -381,6 +381,7 @@ defineExpose({
 	width: 100%;
 	height: 100%;
 
+	.pdf-editor .actions-toolbar[data-v-314ea048],
 	.pdf-elements-root .overlay .draggable-wrapper .actions-toolbar,
 	.actions-toolbar {
 		gap: var(--pdf-elements-toolbar-gap, 10px);
