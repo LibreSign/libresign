@@ -229,7 +229,6 @@ OC.L10N.register(
     "Email token" : "E-mailový token",
     "Certificate with password" : "Certifikát s heslem",
     "Certificate has been revoked" : "Platnost certifikátu byla odvolána",
-    "Certificate revocation status could not be verified" : "Stav odvolání platnosti certifikátu nebylo možné ověřit",
     "Invalid certificate" : "Neplatný certifikát",
     "Signal token" : "Token ze Signal",
     "SMS token" : "SMS token",
