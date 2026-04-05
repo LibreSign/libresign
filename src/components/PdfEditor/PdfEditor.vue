@@ -132,6 +132,9 @@ defineOptions({
 	name: 'PdfEditor',
 })
 
+// PDFElements expects the worker path to be available before its own mount.
+ensurePdfWorker()
+
 const props = withDefaults(defineProps<{
 	files?: PdfInput[]
 	fileNames?: string[]
@@ -407,7 +410,6 @@ async function waitForPageRender(docIndex: number, pageIndex: number) {
 }
 
 onMounted(() => {
-	ensurePdfWorker()
 	document.addEventListener('mouseup', scheduleSignerAddedCheck)
 	document.addEventListener('touchend', scheduleSignerAddedCheck)
 	document.addEventListener('keyup', scheduleSignerAddedCheck)
