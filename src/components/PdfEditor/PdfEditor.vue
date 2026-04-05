@@ -132,7 +132,6 @@ defineOptions({
 	name: 'PdfEditor',
 })
 
-// PDFElements expects the worker path to be available before its own mount.
 ensurePdfWorker()
 
 const props = withDefaults(defineProps<{
@@ -151,14 +150,13 @@ const emit = defineEmits<{
 	(event: 'pdf-editor:end-init', payload: EndInitPayload): void
 	(event: 'pdf-editor:on-delete-signer', payload: VisibleElementRecord): void
 	(event: 'pdf-editor:object-click', payload: Record<string, unknown>): void
-	(event: 'pdf-editor:signer-added'): void
+	(event: 'pdf-editor:adding-ended'): void
 }>()
 
 const pdfElements = ref<PdfElementsInstance | null>(null)
 const pendingAddedObjectCount = ref<number | null>(null)
 
 let pendingAddCheckTimer: ReturnType<typeof setTimeout> | null = null
-let pendingAddCheckRetries = 0
 
 const ignoreClickOutsideSelectors = computed(() => ['.action-item__popper', '.action-item'])
 
@@ -275,8 +273,12 @@ function clearPendingAddCheck() {
 		clearTimeout(pendingAddCheckTimer)
 		pendingAddCheckTimer = null
 	}
-	pendingAddCheckRetries = 0
 	pendingAddedObjectCount.value = null
+}
+
+function finishPendingAddCheck() {
+	clearPendingAddCheck()
+	emit('pdf-editor:adding-ended')
 }
 
 function checkSignerAdded() {
@@ -290,27 +292,14 @@ function checkSignerAdded() {
 	const objectsAfter = getTotalObjectsCount()
 
 	if (objectsAfter > objectsBefore) {
-		clearPendingAddCheck()
-		emit('pdf-editor:signer-added')
+		finishPendingAddCheck()
 		return
 	}
 
-	// Fallback: once add mode ends, unblock the UI even if the object count
-	// comparison was not conclusive due timing/reactivity.
 	if (!isAddingMode) {
-		clearPendingAddCheck()
-		emit('pdf-editor:signer-added')
+		finishPendingAddCheck()
 		return
 	}
-
-	// Poll while the external component still processes placement.
-	if (pendingAddCheckRetries < 300) {
-		pendingAddCheckRetries++
-		pendingAddCheckTimer = setTimeout(checkSignerAdded, 100)
-		return
-	}
-
-	clearPendingAddCheck()
 }
 
 function scheduleSignerAddedCheck() {
@@ -342,11 +331,9 @@ function startAddingSigner(signer: SignerSummaryRecord | SignerDetailRecord | nu
 		signer: signerPayload,
 	})
 	pendingAddedObjectCount.value = getTotalObjectsCount()
-	pendingAddCheckRetries = 0
 	if (pendingAddCheckTimer !== null) {
 		clearTimeout(pendingAddCheckTimer)
 	}
-	pendingAddCheckTimer = setTimeout(checkSignerAdded, 100)
 
 	return true
 }
