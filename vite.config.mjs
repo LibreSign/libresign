@@ -20,16 +20,9 @@ export default createAppConfig({
 			host: '0.0.0.0',
 		},
 		resolve: {
-			alias: [
-				{
-					find: /^@libresign\/pdf-elements$/,
-					replacement: resolve(import.meta.dirname, 'node_modules/@libresign/pdf-elements/src/index.ts'),
-				},
-				{
-					find: '@',
-					replacement: resolve(import.meta.dirname, 'src'),
-				},
-			],
+			alias: {
+				'@': resolve(import.meta.dirname, 'src'),
+			},
 		},
 		plugins: [
 			{
