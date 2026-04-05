@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import PDFElements from '@libresign/pdf-elements'
 import '@libresign/pdf-elements/dist/index.css'
 
@@ -270,7 +270,6 @@ function handleAddingEnded(event: Event) {
 	emit('pdf-editor:adding-ended', {
 		reason: (event as CustomEvent)?.detail?.reason,
 	})
-
 }
 function startAddingSigner(signer: SignerSummaryRecord | SignerDetailRecord | null | undefined, size: { width?: number, height?: number }) {
 	if (!pdfElements.value || !size?.width || !size?.height) {
@@ -350,14 +349,6 @@ async function waitForPageRender(docIndex: number, pageIndex: number) {
 	await nextTick()
 	await nextTick()
 }
-
-onMounted(() => {
-	// PDF worker and listeners are already handled by pdf-elements component
-})
-
-onBeforeUnmount(() => {
-	// Cleanup is handled by pdf-elements component
-})
 
 defineExpose({
 	t,
