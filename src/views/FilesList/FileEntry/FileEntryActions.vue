@@ -22,7 +22,7 @@
 				}"
 				:aria-label="action.title"
 				:title="action.title"
-				@click="onActionClick(action)">
+				@click.stop="onActionClick(action)">
 				<template #icon>
 					<NcLoadingIcon v-if="loading === action.id" :size="18" />
 					<NcIconSvgWrapper v-else :svg="action.iconSvgInline" />
@@ -94,6 +94,13 @@ defineOptions({
 
 type SourceFile = FileEntrySource & {
 	signUuid?: string | null
+	settings?: {
+		signerFileUuid?: string | null
+	}
+	signers?: Array<{
+		me?: boolean
+		sign_uuid?: string | null
+	}>
 }
 
 type MenuAction = {
@@ -146,6 +153,16 @@ function registerAction(action: MenuAction) {
 	enabledMenuActions.value = [...enabledMenuActions.value, action]
 }
 
+function getSignRouteUuid(file: SourceFile | null | undefined) {
+	const signer = file?.signers?.find((row) => row?.me) || file?.signers?.[0]
+	const fromSettings = typeof file?.settings?.signerFileUuid === 'string' && file.settings.signerFileUuid.length > 0
+		? file.settings.signerFileUuid
+		: null
+
+	return [file?.signUuid, signer?.sign_uuid, fromSettings, props.source.signUuid]
+		.find((value): value is string => typeof value === 'string' && value.length > 0) || ''
+}
+
 function visibleIf(action: Pick<MenuAction, 'id'>) {
 	let visible = false
 	if (action.id === 'request-signature') {
@@ -169,29 +186,29 @@ function visibleIf(action: Pick<MenuAction, 'id'>) {
 
 async function onActionClick(action: Pick<MenuAction, 'id'>) {
 	openedMenu.value = false
-	sidebarStore.hideSidebar()
 	if (action.id === 'details' || action.id === 'request-signature') {
 		filesStore.selectFile(props.source.id)
 		sidebarStore.activeRequestSignatureTab()
 	} else if (action.id === 'sign') {
-		const detailedFile = await filesStore.fetchFileDetail({ fileId: props.source.id, force: true })
-		const signUuid = detailedFile?.signUuid || props.source.signUuid || ''
+		const detailedFile = await filesStore.fetchFileDetail({ fileId: props.source.id, force: true }) as SourceFile | undefined
+		const signUuid = getSignRouteUuid(detailedFile)
 		if (!signUuid || !detailedFile) {
 			return
 		}
+		filesStore.selectFile(props.source.id)
 		signStore.setFileToSign(detailedFile)
-		router.push({
+		await router.push({
 			name: 'SignPDF',
 			params: {
 				uuid: signUuid,
 			},
 		})
-		filesStore.selectFile(props.source.id)
-		sidebarStore.activeRequestSignatureTab()
+		sidebarStore.activeSignTab()
 	} else if (action.id === 'validate') {
 		if (!props.source.uuid) {
 			return
 		}
+		sidebarStore.hideSidebar()
 		router.push({
 			name: 'ValidationFile',
 			params: {
