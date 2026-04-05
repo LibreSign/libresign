@@ -86,8 +86,7 @@ type PdfEditorVm = {
 		isAddingMode: boolean
 	}) => string
 	getTotalObjectsCount: () => number
-	checkSignerAdded: () => void
-	scheduleSignerAddedCheck: () => void
+	handleAddingEnded: (event: Event) => void
 	setProps: (props: Record<string, unknown>) => Promise<void>
 }
 
@@ -308,92 +307,26 @@ describe('PdfEditor Component - Business Rules', () => {
 			vi.useRealTimers()
 		})
 
-		it('schedules a deferred completion check after a placement interaction', () => {
-			vi.useFakeTimers()
-			Object.assign(getPdfElements(), {
-				isAddingMode: true,
-				pdfDocuments: [{ allObjects: [[]] }],
-			})
-
-			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
-			wrapper.vm.scheduleSignerAddedCheck()
-
-			expect(vi.getTimerCount()).toBe(1)
-			vi.useRealTimers()
-		})
-
-		it('emits adding-ended when object count increases after adding mode starts', () => {
-			vi.useFakeTimers()
-			Object.assign(getPdfElements(), {
-				isAddingMode: true,
-				pdfDocuments: [{ allObjects: [[]] }],
-			})
-
-			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
-			getPdfElements().pdfDocuments = [{ allObjects: [[{ id: 'obj-1' }]] }]
-			wrapper.vm.checkSignerAdded()
-
-			expect(wrapper.emitted('pdf-editor:adding-ended')).toHaveLength(1)
-			vi.useRealTimers()
-		})
-
-		it('emits adding-ended when adding mode finishes without object delta', () => {
-			vi.useFakeTimers()
-			Object.assign(getPdfElements(), {
-				isAddingMode: true,
-				pdfDocuments: [{ allObjects: [[]] }],
-			})
-
-			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
-			getPdfElements().isAddingMode = false
-			wrapper.vm.checkSignerAdded()
-
-			expect(wrapper.emitted('pdf-editor:adding-ended')).toHaveLength(1)
-			vi.useRealTimers()
-		})
-
-		it('keeps waiting while adding mode is active and count has not changed', () => {
-			vi.useFakeTimers()
-			Object.assign(getPdfElements(), {
-				isAddingMode: true,
-				pdfDocuments: [{ allObjects: [[]] }],
-			})
-
-			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
-			wrapper.vm.checkSignerAdded()
-
-			expect(wrapper.emitted('pdf-editor:adding-ended')).toBeFalsy()
-			expect(vi.getTimerCount()).toBe(0)
-			vi.useRealTimers()
-		})
-
-		it('ignores completion checks when no add session is pending', () => {
-			vi.useFakeTimers()
-			wrapper.vm.checkSignerAdded()
-
-			expect(wrapper.emitted('pdf-editor:adding-ended')).toBeFalsy()
-			vi.useRealTimers()
-		})
 	})
 
-	describe('RULE: document listener lifecycle', () => {
-		it('registers and unregisters touchend listener on mount/unmount', () => {
-			wrapper.unmount()
-			const addEventListenerSpy = vi.spyOn(document, 'addEventListener')
-			const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener')
-			const localWrapper = createWrapper()
-			const registeredEvents = addEventListenerSpy.mock.calls
-				.filter(([eventName]) => ['mouseup', 'touchend', 'keyup'].includes(String(eventName)))
-				.map(([eventName]) => String(eventName))
 
-			expect(registeredEvents).toEqual(['mouseup', 'touchend', 'keyup'])
-			localWrapper.unmount()
-			expect(removeEventListenerSpy).toHaveBeenCalledWith('mouseup', expect.any(Function))
-			expect(removeEventListenerSpy).toHaveBeenCalledWith('touchend', expect.any(Function))
-			expect(removeEventListenerSpy).toHaveBeenCalledWith('keyup', expect.any(Function))
+	describe('RULE: pdf-elements event relay', () => {
+		it('relays pdf-elements:adding-ended event to pdf-editor:adding-ended', () => {
+			wrapper.vm.handleAddingEnded({ detail: { reason: 'placed' } } as CustomEvent)
+
+			const emitted = wrapper.emitted('pdf-editor:adding-ended')
+			expect(emitted).toHaveLength(1)
+			expect(emitted?.[0]).toEqual([{ reason: 'placed' }])
+		})
+
+		it('relays cancelled event with reason', () => {
+			wrapper.vm.handleAddingEnded({ detail: { reason: 'cancelled' } } as CustomEvent)
+
+			const emitted = wrapper.emitted('pdf-editor:adding-ended')
+			expect(emitted).toHaveLength(1)
+			expect(emitted?.[0]).toEqual([{ reason: 'cancelled' }])
 		})
 	})
-
 	describe('RULE: addSigner coordinate calculations', () => {
 		beforeEach(() => {
 			Object.assign(getPdfElements(), {
