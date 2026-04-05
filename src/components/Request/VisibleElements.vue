@@ -76,7 +76,7 @@
 				:file-names="pdfFileNames"
 				:signers="pdfEditorSigners"
 				@pdf-editor:end-init="updateSigners"
-				@pdf-editor:signer-added="handleSignerAdded"
+				@pdf-editor:adding-ended="handleAddingEnded"
 				@pdf-editor:on-delete-signer="handleDeleteSigner">
 			</PdfEditor>
 		</div>
@@ -792,7 +792,7 @@ function handleSignerSelect(signer: unknown) {
 	onSelectSigner(pdfEditorSigner)
 }
 
-function handleSignerAdded() {
+function handleAddingEnded() {
 	stopAddSigner()
 }
 
