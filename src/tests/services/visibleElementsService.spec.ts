@@ -6,11 +6,35 @@
 import { describe, expect, it } from 'vitest'
 import {
 	getCurrentUserSignRequestIds,
+	getFileUrl,
 	getVisibleElementsFromDocument,
 	hasVisibleElementsForCurrentUser,
 } from '../../services/visibleElementsService'
 
 describe('visibleElementsService', () => {
+	describe('getFileUrl', () => {
+		it('supports nested file objects with url payloads', () => {
+			const file = {
+				file: {
+					url: '/apps/libresign/p/pdf/uuid-123',
+				},
+			}
+
+			expect(getFileUrl(file)).toBe('/apps/libresign/p/pdf/uuid-123')
+		})
+
+		it('finds the first renderable child file recursively', () => {
+			const file = {
+				files: [
+					{ id: 10, file: null },
+					{ id: 20, file: { url: '/apps/libresign/p/pdf/uuid-456' } },
+				],
+			}
+
+			expect(getFileUrl(file)).toBe('/apps/libresign/p/pdf/uuid-456')
+		})
+	})
+
 	describe('getVisibleElementsFromDocument', () => {
 		it('includes visible elements from child files (envelope)', () => {
 			const document = {
