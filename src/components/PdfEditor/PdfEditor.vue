@@ -386,10 +386,12 @@ defineExpose({
 		padding: var(--pdf-elements-toolbar-padding, 6px 10px 6px 14px);
 	}
 
-	.action-btn {
-		border: 1px solid var(--color-border-maxcontrast, #cbd5e1);
-		background: var(--color-main-background, #f8fafc);
-		color: var(--color-main-text, #0f172a);
+	.action-btn,
+	.action-btn.button-vue,
+	.action-btn.button-vue--tertiary {
+		border: 1px solid var(--color-border-maxcontrast, #cbd5e1) !important;
+		background-color: var(--color-main-background, #f8fafc) !important;
+		color: var(--color-main-text, #0f172a) !important;
 		padding: 4px;
 		min-height: 0;
 		min-width: 0;
@@ -402,7 +404,7 @@ defineExpose({
 		transition: background 120ms ease;
 
 		&:hover {
-			background: var(--color-background-hover, #e2e8f0);
+			background-color: var(--color-background-hover, #e2e8f0) !important;
 		}
 
 		:deep(svg),
