@@ -20,6 +20,10 @@ Types of changes:
 <!-- changelog-linker -->
 ## 13.2.1 - 2026-04-05
 
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
 ### Changed
 - Update translations
 - Bump dependencies [#7382](https://github.com/LibreSign/libresign/pull/7382)
@@ -35,6 +39,10 @@ Types of changes:
 - feat: mobile signature placement flow improvements [#7416](https://github.com/LibreSign/libresign/pull/7416)
 
 ## 12.4.1 - 2026-04-05
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
 
 ### Changed
 - Update translations
