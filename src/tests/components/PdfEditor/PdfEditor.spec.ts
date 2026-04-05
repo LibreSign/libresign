@@ -295,7 +295,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			)
 		})
 
-		it('restarts pending add timer when startAddingSigner is called twice', () => {
+		it('does not start polling before a placement interaction happens', () => {
 			vi.useFakeTimers()
 			Object.assign(getPdfElements(), {
 				isAddingMode: true,
@@ -303,14 +303,26 @@ describe('PdfEditor Component - Business Rules', () => {
 			})
 
 			wrapper.vm.startAddingSigner({ email: 'first@example.com' }, { width: 120, height: 60 })
-			expect(vi.getTimerCount()).toBe(1)
-			wrapper.vm.startAddingSigner({ email: 'second@example.com' }, { width: 120, height: 60 })
+
+			expect(vi.getTimerCount()).toBe(0)
+			vi.useRealTimers()
+		})
+
+		it('schedules a deferred completion check after a placement interaction', () => {
+			vi.useFakeTimers()
+			Object.assign(getPdfElements(), {
+				isAddingMode: true,
+				pdfDocuments: [{ allObjects: [[]] }],
+			})
+
+			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
+			wrapper.vm.scheduleSignerAddedCheck()
 
 			expect(vi.getTimerCount()).toBe(1)
 			vi.useRealTimers()
 		})
 
-		it('emits signer-added when object count increases after adding mode starts', () => {
+		it('emits adding-ended when object count increases after adding mode starts', () => {
 			vi.useFakeTimers()
 			Object.assign(getPdfElements(), {
 				isAddingMode: true,
@@ -321,11 +333,11 @@ describe('PdfEditor Component - Business Rules', () => {
 			getPdfElements().pdfDocuments = [{ allObjects: [[{ id: 'obj-1' }]] }]
 			wrapper.vm.checkSignerAdded()
 
-			expect(wrapper.emitted('pdf-editor:signer-added')).toHaveLength(1)
+			expect(wrapper.emitted('pdf-editor:adding-ended')).toHaveLength(1)
 			vi.useRealTimers()
 		})
 
-		it('emits signer-added when adding mode finishes without object delta', () => {
+		it('emits adding-ended when adding mode finishes without object delta', () => {
 			vi.useFakeTimers()
 			Object.assign(getPdfElements(), {
 				isAddingMode: true,
@@ -336,11 +348,11 @@ describe('PdfEditor Component - Business Rules', () => {
 			getPdfElements().isAddingMode = false
 			wrapper.vm.checkSignerAdded()
 
-			expect(wrapper.emitted('pdf-editor:signer-added')).toHaveLength(1)
+			expect(wrapper.emitted('pdf-editor:adding-ended')).toHaveLength(1)
 			vi.useRealTimers()
 		})
 
-		it('keeps polling while adding mode is active and count has not changed', () => {
+		it('keeps waiting while adding mode is active and count has not changed', () => {
 			vi.useFakeTimers()
 			Object.assign(getPdfElements(), {
 				isAddingMode: true,
@@ -348,29 +360,18 @@ describe('PdfEditor Component - Business Rules', () => {
 			})
 
 			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
-			vi.clearAllTimers()
 			wrapper.vm.checkSignerAdded()
 
-			expect(wrapper.emitted('pdf-editor:signer-added')).toBeFalsy()
-			expect(vi.getTimerCount()).toBeGreaterThan(0)
+			expect(wrapper.emitted('pdf-editor:adding-ended')).toBeFalsy()
+			expect(vi.getTimerCount()).toBe(0)
 			vi.useRealTimers()
 		})
 
-		it('stops polling after retry limit without emitting signer-added', () => {
+		it('ignores completion checks when no add session is pending', () => {
 			vi.useFakeTimers()
-			Object.assign(getPdfElements(), {
-				isAddingMode: true,
-				pdfDocuments: [{ allObjects: [[]] }],
-			})
+			wrapper.vm.checkSignerAdded()
 
-			wrapper.vm.startAddingSigner({ email: 'test@example.com' }, { width: 120, height: 60 })
-			vi.clearAllTimers()
-			for (let i = 0; i < 301; i++) {
-				wrapper.vm.checkSignerAdded()
-				vi.clearAllTimers()
-			}
-
-			expect(wrapper.emitted('pdf-editor:signer-added')).toBeFalsy()
+			expect(wrapper.emitted('pdf-editor:adding-ended')).toBeFalsy()
 			vi.useRealTimers()
 		})
 	})
