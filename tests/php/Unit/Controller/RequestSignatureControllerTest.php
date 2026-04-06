@@ -62,7 +62,8 @@ final class RequestSignatureControllerTest extends TestCase {
 		);
 	}
 
-	public function testRequestOmitsStatusWhenNull(): void {
+	#[DataProvider('statusPayloadScenarios')]
+	public function testRequestStatusPropagation(?int $status, bool $expectStatusKey): void {
 		$file = new FileEntity();
 		$file->setId(10);
 		$file->setParentFileId(99);
@@ -70,8 +71,15 @@ final class RequestSignatureControllerTest extends TestCase {
 		$this->requestSignatureService
 			->expects($this->once())
 			->method('validateNewRequestToFile')
-			->with($this->callback(static function (array $payload): bool {
-				return !array_key_exists('status', $payload);
+			->with($this->callback(static function (array $payload) use ($expectStatusKey, $status): bool {
+				$hasStatus = array_key_exists('status', $payload);
+				if ($expectStatusKey !== $hasStatus) {
+					return false;
+				}
+				if ($expectStatusKey) {
+					return $payload['status'] === $status;
+				}
+				return true;
 			}));
 
 		$this->requestSignatureService
@@ -98,7 +106,7 @@ final class RequestSignatureControllerTest extends TestCase {
 			file: ['nodeId' => 12],
 			files: [],
 			callback: null,
-			status: null,
+			status: $status,
 			signatureFlow: null,
 		);
 
@@ -170,6 +178,14 @@ final class RequestSignatureControllerTest extends TestCase {
 			'null status is omitted' => [
 				'status' => null,
 				'expectStatusKey' => false,
+			],
+			'draft status is preserved' => [
+				'status' => 0,
+				'expectStatusKey' => true,
+			],
+			'able to sign status is preserved' => [
+				'status' => 1,
+				'expectStatusKey' => true,
 			],
 			'explicit status is preserved' => [
 				'status' => 4,
