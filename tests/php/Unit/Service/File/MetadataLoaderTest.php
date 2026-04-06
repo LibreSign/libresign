@@ -223,13 +223,19 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	public function testLoadMetadataNormalizesRequiredContractFields(): void {
+	#[DataProvider('provideMetadataContractNormalizationScenarios')]
+	public function testLoadMetadataNormalizesRequiredContractFields(
+		string $filename,
+		array $initialMetadata,
+		int $expectedP,
+		string $expectedExtension,
+	): void {
 		$file = new File();
 		$file->setId(1);
-		$file->setName('contract.PDF');
+		$file->setName($filename);
 		$file->setUserId('user123');
 		$file->setSignedNodeId(123);
-		$file->setMetadata([]);
+		$file->setMetadata($initialMetadata);
 		$file->setUuid('uuid-123');
 
 		$fileNode = $this->createMock(\OCP\Files\File::class);
@@ -247,7 +253,17 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->loadMetadata($file, $fileData);
 
 		$this->assertIsArray($fileData->metadata);
-		$this->assertSame(0, $fileData->metadata['p']);
-		$this->assertSame('pdf', $fileData->metadata['extension']);
+		$this->assertSame($expectedP, $fileData->metadata['p']);
+		$this->assertSame($expectedExtension, $fileData->metadata['extension']);
+	}
+
+	public static function provideMetadataContractNormalizationScenarios(): array {
+		return [
+			'uppercase extension lowercased when not in metadata' => ['contract.PDF', [], 0, 'pdf'],
+			'fallback to pdf when filename has no extension' => ['contract', [], 0, 'pdf'],
+			'empty extension in metadata treated as missing' => ['contract.pdf', ['extension' => ''], 0, 'pdf'],
+			'existing extension in metadata is preserved' => ['renamed.PDF', ['extension' => 'docx'], 0, 'docx'],
+			'p in metadata is preserved as totalPages when already set' => ['doc.pdf', ['p' => 99], 99, 'pdf'],
+		];
 	}
 }
