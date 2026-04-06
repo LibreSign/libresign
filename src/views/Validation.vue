@@ -244,7 +244,7 @@ function normalizeValidationDocument(data: unknown): ValidationFileRecord | null
 		? data.files
 			.map(normalizeValidationChildFile)
 			.filter((file): file is ValidatedChildFileRecord => file !== null)
-		: undefined
+		: []
 	const signers = Array.isArray(data.signers)
 		? data.signers
 			.map(normalizeValidationSigner)
@@ -254,8 +254,6 @@ function normalizeValidationDocument(data: unknown): ValidationFileRecord | null
 		? 'envelope'
 		: data.nodeType === 'file'
 			? 'file'
-			: files && files.length > 0
-				? 'envelope'
 				: null
 
 	if (!uuid || !name || nodeId === null || status === null || nodeType === null) {
@@ -758,9 +756,6 @@ function handleValidationSuccess(data: unknown) {
 		return
 	}
 	documentValidMessage.value = t('libresign', 'This document is valid')
-	if (isRecord(data) && !data.nodeType && Array.isArray(data.files) && data.files.length > 0) {
-		data.nodeType = 'envelope'
-	}
 	const normalizedDocument = normalizeValidationDocument(data)
 	if (!normalizedDocument) {
 		setValidationError(t('libresign', 'Failed to validate document'))
