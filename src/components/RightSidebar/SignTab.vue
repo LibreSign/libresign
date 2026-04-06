@@ -40,6 +40,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { FILE_STATUS } from '../../constants.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
+import { getSigningRouteUuid } from '../../utils/signRequestUuid.ts'
 
 defineOptions({
 	name: 'SignTab',
@@ -70,13 +71,11 @@ function signEnabled() {
 }
 
 function getSignRequestUuid() {
-	const doc = currentDocument.value
-	const signer = doc.signers?.find(row => row.me) || doc.signers?.[0]
-	const fromDoc = [doc.signRequestUuid, doc.sign_request_uuid, doc.signUuid, doc.sign_uuid]
-		.find((value): value is string => typeof value === 'string' && value.length > 0)
-	const fromSigner = signer?.sign_uuid
 	const fromState = loadState<string | null>('libresign', 'sign_request_uuid', null)
-	return fromDoc || fromSigner || (typeof fromState === 'string' && fromState.length > 0 ? fromState : null)
+	return getSigningRouteUuid(
+		currentDocument.value,
+		typeof fromState === 'string' && fromState.length > 0 ? fromState : null,
+	)
 }
 
 function getValidationRouteName() {
