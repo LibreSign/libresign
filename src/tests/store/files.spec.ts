@@ -296,11 +296,12 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
+				uuid: 'file-uuid',
 				status: 1,
 				signatureFlow: 'ordered_numeric',
 				signers: [
 					{ me: false, signingOrder: 1, signed: [] },
-					{ me: true, signingOrder: 2, signed: [] },
+					{ me: true, signingOrder: 2, signed: [], sign_request_uuid: 'sign-request-uuid' },
 				],
 			}
 
@@ -312,11 +313,12 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
+				uuid: 'file-uuid',
 				status: 1,
 				signatureFlow: 'ordered_numeric',
 				signers: [
 					{ me: false, signingOrder: 1, signed: ['signed'] },
-					{ me: true, signingOrder: 2, signed: [] },
+					{ me: true, signingOrder: 2, signed: [], sign_request_uuid: 'sign-request-uuid' },
 				],
 			}
 
@@ -328,47 +330,50 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
+				uuid: 'file-uuid',
 				status: 1,
 				signatureFlow: 'parallel',
 				signers: [
 					{ me: false, signingOrder: 1, signed: [] },
-					{ me: true, signingOrder: 2, signed: [] },
+					{ me: true, signingOrder: 2, signed: [], sign_request_uuid: 'sign-request-uuid' },
 				],
 			}
 
 			expect(store.canSign()).toBe(true)
 		})
 
-		it('allows signing when signer me flag is missing but signerFileUuid exists', () => {
+		it('allows signing for approvers when no signer me flag exists but the file uuid is available', () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
+				uuid: 'approver-file-uuid',
 				status: 1,
 				signatureFlow: 'parallel',
 				signers: [
 					{ me: false, signingOrder: 1, signed: [] },
 				],
 				settings: {
-					signerFileUuid: '8af5bd0b-0776-4533-8d57-8ee88ed1f6bf',
+					isApprover: true,
 				},
 			}
 
 			expect(store.canSign()).toBe(true)
 		})
 
-		it('blocks signing when signer me flag is missing and signerFileUuid is empty', () => {
+		it('blocks signing when there is no current signer and the viewer is not an approver', () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
+				uuid: 'another-file-uuid',
 				status: 1,
 				signatureFlow: 'parallel',
 				signers: [
 					{ me: false, signingOrder: 1, signed: [] },
 				],
 				settings: {
-					signerFileUuid: '',
+					isApprover: false,
 				},
 			}
 
