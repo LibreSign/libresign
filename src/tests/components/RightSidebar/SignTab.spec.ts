@@ -178,7 +178,7 @@ describe('SignTab', () => {
 			expect(wrapper.vm.getSignRequestUuid()).toBe('signer-uuid')
 		})
 
-		it('uses the file uuid for approver routes', async () => {
+		it('prefers signer uuid even when approver flag is true', async () => {
 			signStore.document = createDocument({
 				uuid: 'approver-file-uuid',
 				settings: { isApprover: true },
@@ -186,7 +186,7 @@ describe('SignTab', () => {
 			})
 			wrapper = await createWrapper()
 
-			expect(wrapper.vm.getSignRequestUuid()).toBe('approver-file-uuid')
+			expect(wrapper.vm.getSignRequestUuid()).toBe('signer-uuid')
 		})
 
 		it('does not fall back to a non-current signer', async () => {
