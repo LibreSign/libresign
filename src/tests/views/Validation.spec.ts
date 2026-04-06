@@ -1047,5 +1047,39 @@ describe('Validation.vue - Business Logic', () => {
 			expect(wrapper.vm.document).toBe(null)
 			expect(wrapper.vm.validationErrorMessage).toBe('Failed to validate document')
 		})
+
+		it('rejects document payload when metadata dimensions are malformed', () => {
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({
+				metadata: {
+					extension: 'pdf',
+					p: 1,
+					d: [{ w: '100', h: 200 }],
+				},
+			}))
+
+			expect(wrapper.vm.document).toBe(null)
+			expect(wrapper.vm.validationErrorMessage).toBe('Failed to validate document')
+		})
+
+		it('rejects document payload when signer extended validation fields have invalid types', () => {
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({
+				signers: [{
+					signRequestId: 1,
+					displayName: 'Signer',
+					email: 'signer@example.com',
+					signed: null,
+					status: 1,
+					statusText: 'Pending',
+					description: null,
+					request_sign_date: '2026-01-01T00:00:00Z',
+					me: false,
+					visibleElements: [],
+					signature_validation: { id: '1', label: 'Valid' },
+				}],
+			}))
+
+			expect(wrapper.vm.document).toBe(null)
+			expect(wrapper.vm.validationErrorMessage).toBe('Failed to validate document')
+		})
 	})
 })
