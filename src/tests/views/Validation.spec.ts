@@ -288,16 +288,9 @@ describe('Validation.vue - Business Logic', () => {
 			expect(wrapper.vm.isEnvelope).toBe(true)
 		})
 
-		it('returns true when document has files array', () => {
+		it('returns false when document has files array but nodeType is not envelope', () => {
 			wrapper.vm.document = {
 				document: { files: [{ id: 1 }] },
-			}.document
-			expect(wrapper.vm.isEnvelope).toBe(true)
-		})
-
-		it('returns false when files array is empty', () => {
-			wrapper.vm.document = {
-				document: { files: [] },
 			}.document
 			expect(wrapper.vm.isEnvelope).toBe(false)
 		})
