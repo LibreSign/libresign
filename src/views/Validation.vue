@@ -134,8 +134,6 @@ import { useFilesStore } from '../store/files.js'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
 import type {
-	LoadedValidationEnvelopeDocument,
-	LoadedValidationFileDocument,
 	SignerDetailRecord,
 	ValidatedChildFileRecord,
 	ValidationFileRecord,
@@ -198,6 +196,20 @@ type ValidationErrorResponse = {
 type ValidationMetadataDimension = {
 	w: number
 	h: number
+}
+
+type ValidationDocumentState = ValidationFileRecord & {
+	signers: SignerDetailRecord[]
+	metadata: NonNullable<ValidationFileRecord['metadata']>
+	settings: NonNullable<ValidationFileRecord['settings']>
+}
+
+type LoadedValidationEnvelopeDocumentState = ValidationDocumentState & {
+	nodeType: 'envelope'
+}
+
+type LoadedValidationFileDocumentState = ValidationDocumentState & {
+	nodeType: 'file'
 }
 
 type UnknownRecord = Record<string, unknown>
@@ -420,8 +432,44 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 	return true
 }
 
-function toValidationDocument(data: unknown): ValidationFileRecord | null {
-	return isValidationDocumentRecord(data) ? data : null
+const DEFAULT_VALIDATION_METADATA: NonNullable<ValidationFileRecord['metadata']> = {
+	extension: 'pdf',
+	p: 0,
+}
+
+const DEFAULT_VALIDATION_SETTINGS: NonNullable<ValidationFileRecord['settings']> = {
+	canSign: false,
+	canRequestSign: false,
+	phoneNumber: '',
+	hasSignatureFile: false,
+	needIdentificationDocuments: false,
+	identificationDocumentsWaitingApproval: false,
+}
+
+function toValidationDocument(data: unknown): ValidationDocumentState | null {
+	if (!isValidationDocumentRecord(data)) {
+		return null
+	}
+
+	const metadata = isValidationMetadata(data.metadata)
+		? data.metadata
+		: {
+			...DEFAULT_VALIDATION_METADATA,
+			p: data.totalPages,
+		}
+
+	const settings = isValidationSettings(data.settings)
+		? data.settings
+		: DEFAULT_VALIDATION_SETTINGS
+
+	const signers = Array.isArray(data.signers) ? data.signers : []
+
+	return {
+		...data,
+		metadata,
+		settings,
+		signers,
+	}
 }
 
 function getValidationErrorMessage(response: ValidationErrorResponse | undefined, fallback: string): string {
@@ -431,11 +479,11 @@ function getValidationErrorMessage(response: ValidationErrorResponse | undefined
 	return fallback
 }
 
-function isLoadedValidationEnvelopeDocument(document: ValidationFileRecord | null): document is LoadedValidationEnvelopeDocument {
+function isLoadedValidationEnvelopeDocument(document: ValidationDocumentState | null): document is LoadedValidationEnvelopeDocumentState {
 	return document?.nodeType === 'envelope'
 }
 
-function isLoadedValidationFileDocument(document: ValidationFileRecord | null): document is LoadedValidationFileDocument {
+function isLoadedValidationFileDocument(document: ValidationDocumentState | null): document is LoadedValidationFileDocumentState {
 	return document?.nodeType === 'file'
 }
 
@@ -459,7 +507,7 @@ const logo = ref(logoGray)
 const uuidToValidate = ref(route.value.params.uuid ?? '')
 const hasInfo = ref(false)
 const loading = ref(false)
-const document = ref<ValidationFileRecord | null>(null)
+const document = ref<ValidationDocumentState | null>(null)
 const legalInformation = ref(loadState('libresign', 'legal_information', ''))
 const clickedValidate = ref(false)
 const getUUID = ref(false)
@@ -491,8 +539,8 @@ const isEnvelope = computed(() => document.value?.nodeType === 'envelope'
 	|| (Array.isArray(document.value?.files) && document.value.files.length > 0))
 const validationComponent = computed(() => (isEnvelope.value ? EnvelopeValidation : FileValidation))
 const validationDocument = computed(() => document.value)
-const validationEnvelopeDocument = computed<LoadedValidationEnvelopeDocument | null>(() => (isLoadedValidationEnvelopeDocument(document.value) ? document.value : null))
-const validationFileDocument = computed<LoadedValidationFileDocument | null>(() => (isLoadedValidationFileDocument(document.value) ? document.value : null))
+const validationEnvelopeDocument = computed<LoadedValidationEnvelopeDocumentState | null>(() => (isLoadedValidationEnvelopeDocument(document.value) ? document.value : null))
+const validationFileDocument = computed<LoadedValidationFileDocumentState | null>(() => (isLoadedValidationFileDocument(document.value) ? document.value : null))
 
 const canValidate = computed(() => {
 	if (!uuidToValidate.value) {
