@@ -144,7 +144,6 @@ class SettingsLoader {
 		return [
 			'canSign' => false,
 			'canRequestSign' => false,
-			'signerFileUuid' => null,
 			'phoneNumber' => '',
 			'hasSignatureFile' => false,
 			'needIdentificationDocuments' => in_array($status, [
