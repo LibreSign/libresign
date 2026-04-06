@@ -12,17 +12,17 @@ Feature: page/validate
       | name | document |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
-    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
+    And fetch field "(SIGN_REQUEST_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
     When sending "get" to "<url>"
     And the response should have a status code 200
 
     Examples:
       | url                                    |
-      | /apps/libresign/p/sign/<SIGN_UUID>     |
-      | /apps/libresign/validation/<SIGN_UUID> |
+      | /apps/libresign/p/sign/<SIGN_REQUEST_UUID>     |
+      | /apps/libresign/validation/<FILE_UUID> |
       | /apps/libresign/p/validation           |
-      | /apps/libresign/pdf/<SIGN_UUID>        |
+      | /apps/libresign/pdf/<SIGN_REQUEST_UUID>        |
       | /apps/libresign/p/pdf/<FILE_UUID>      |
 
   Scenario Outline: Unauthenticated user can not see sign page

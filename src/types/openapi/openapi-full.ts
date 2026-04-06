@@ -1766,7 +1766,6 @@ export type components = {
             name: string;
             /** @enum {string} */
             nodeType: "file" | "envelope";
-            signUuid?: string | null;
             metadata: components["schemas"]["ValidateMetadata"];
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
@@ -1889,7 +1888,6 @@ export type components = {
             /** @enum {string} */
             nodeType: "file" | "envelope";
             created_at: string;
-            signUuid?: string | null;
             metadata: components["schemas"]["ValidateMetadata"];
             /** Format: int64 */
             docmdpLevel: number;
@@ -2117,7 +2115,6 @@ export type components = {
         Settings: {
             canSign: boolean;
             canRequestSign: boolean;
-            signerFileUuid: string | null;
             phoneNumber: string;
             hasSignatureFile: boolean;
             isApprover?: boolean;
@@ -2193,7 +2190,7 @@ export type components = {
             notify?: components["schemas"]["Notify"][];
             userId?: string;
             sign_date?: string | null;
-            sign_uuid?: string;
+            sign_request_uuid?: string;
             hash_algorithm?: string;
             me: boolean;
             /**
@@ -2320,7 +2317,6 @@ export type components = {
             requested_by: components["schemas"]["RequestedBy"];
             file?: string;
             url?: string;
-            signUuid?: string | null;
             mime?: string;
             pages?: components["schemas"]["ValidationPage"][];
             metadata?: components["schemas"]["ValidateMetadata"];
