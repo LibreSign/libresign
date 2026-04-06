@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Db;
 
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Tests\Unit\TestCase;
@@ -53,5 +54,26 @@ final class FileTest extends TestCase {
 	public function testHasParentReturnsTrueWhenParentFileIdIsSet(): void {
 		$this->file->setParentFileId(123);
 		$this->assertTrue($this->file->hasParent());
+	}
+
+	public function testGetStatusReturnsDraftWhenInternalStatusIsNull(): void {
+		$reflectionProperty = new \ReflectionProperty($this->file, 'status');
+		$reflectionProperty->setAccessible(true);
+		$reflectionProperty->setValue($this->file, null);
+
+		$this->assertSame(FileStatus::DRAFT->value, $this->file->getStatus());
+	}
+
+	public function testSetStatusRejectsInvalidStatusCode(): void {
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Invalid file status code: 999');
+
+		$this->file->setStatus(999);
+	}
+
+	public function testSetStatusAcceptsKnownFileStatusCodes(): void {
+		$this->file->setStatus(FileStatus::SIGNED->value);
+
+		$this->assertSame(FileStatus::SIGNED->value, $this->file->getStatus());
 	}
 }
