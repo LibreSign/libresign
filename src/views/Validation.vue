@@ -200,8 +200,18 @@ type ValidationMetadataDimension = {
 	h: number
 }
 
+type UnknownRecord = Record<string, unknown>
+
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
+}
+
+function hasOwn(record: UnknownRecord, key: string): boolean {
+	return Object.prototype.hasOwnProperty.call(record, key)
+}
+
+function isOptionalField(record: UnknownRecord, key: string, guard: (value: unknown) => boolean): boolean {
+	return !hasOwn(record, key) || guard(record[key])
 }
 
 function normalizeRouteRecord(value: unknown, source: 'params' | 'query'): Record<string, string> {
@@ -270,8 +280,8 @@ function isValidationStatusInfo(value: unknown): value is ValidationStatusInfo {
 		return false
 	}
 
-	return (value.id === undefined || typeof value.id === 'number')
-		&& (value.label === undefined || isString(value.label))
+	return isOptionalField(value, 'id', fieldValue => typeof fieldValue === 'number')
+		&& isOptionalField(value, 'label', isString)
 }
 
 function isValidationModificationInfo(value: unknown): value is ValidationModificationInfo {
@@ -279,8 +289,8 @@ function isValidationModificationInfo(value: unknown): value is ValidationModifi
 		return false
 	}
 
-	return (value.status === undefined || typeof value.status === 'number')
-		&& (value.valid === undefined || typeof value.valid === 'boolean')
+	return isOptionalField(value, 'status', fieldValue => typeof fieldValue === 'number')
+		&& isOptionalField(value, 'valid', fieldValue => typeof fieldValue === 'boolean')
 }
 
 function isValidationMetadataDimension(value: unknown): value is ValidationMetadataDimension {
@@ -308,10 +318,10 @@ function isValidationMetadata(value: unknown): value is NonNullable<ValidationFi
 		return false
 	}
 
-	return (value.d === undefined || (Array.isArray(value.d) && value.d.every(isValidationMetadataDimension)))
-		&& (value.original_file_deleted === undefined || typeof value.original_file_deleted === 'boolean')
-		&& (value.pdfVersion === undefined || isString(value.pdfVersion))
-		&& (value.status_changed_at === undefined || isString(value.status_changed_at))
+	return isOptionalField(value, 'd', fieldValue => Array.isArray(fieldValue) && fieldValue.every(isValidationMetadataDimension))
+		&& isOptionalField(value, 'original_file_deleted', fieldValue => typeof fieldValue === 'boolean')
+		&& isOptionalField(value, 'pdfVersion', isString)
+		&& isOptionalField(value, 'status_changed_at', isString)
 }
 
 function isValidationSettings(value: unknown): value is NonNullable<ValidationFileRecord['settings']> {
@@ -324,7 +334,7 @@ function isValidationSettings(value: unknown): value is NonNullable<ValidationFi
 		&& typeof value.hasSignatureFile === 'boolean'
 		&& typeof value.needIdentificationDocuments === 'boolean'
 		&& typeof value.identificationDocumentsWaitingApproval === 'boolean'
-		&& (typeof value.isApprover === 'boolean' || value.isApprover === undefined)
+		&& isOptionalField(value, 'isApprover', fieldValue => typeof fieldValue === 'boolean')
 }
 
 function isSignerDetailRecord(value: unknown): value is SignerDetailRecord {
@@ -342,11 +352,11 @@ function isSignerDetailRecord(value: unknown): value is SignerDetailRecord {
 		&& isString(value.request_sign_date)
 		&& typeof value.me === 'boolean'
 		&& Array.isArray(value.visibleElements)
-		&& (value.signature_validation === undefined || isValidationStatusInfo(value.signature_validation))
-		&& (value.certificate_validation === undefined || isValidationStatusInfo(value.certificate_validation))
-		&& (value.modification_validation === undefined || isValidationModificationInfo(value.modification_validation))
-		&& (value.crl_validation === undefined || isString(value.crl_validation))
-		&& (value.isLibreSignRootCA === undefined || typeof value.isLibreSignRootCA === 'boolean')
+		&& isOptionalField(value, 'signature_validation', isValidationStatusInfo)
+		&& isOptionalField(value, 'certificate_validation', isValidationStatusInfo)
+		&& isOptionalField(value, 'modification_validation', isValidationModificationInfo)
+		&& isOptionalField(value, 'crl_validation', isString)
+		&& isOptionalField(value, 'isLibreSignRootCA', fieldValue => typeof fieldValue === 'boolean')
 }
 
 function isValidatedChildFileRecord(value: unknown): value is ValidatedChildFileRecord {
@@ -395,15 +405,15 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 		return false
 	}
 
-	if (data.signers !== undefined && (!Array.isArray(data.signers) || !data.signers.every(isSignerDetailRecord))) {
+	if (hasOwn(data, 'signers') && (!Array.isArray(data.signers) || !data.signers.every(isSignerDetailRecord))) {
 		return false
 	}
 
-	if (data.metadata !== undefined && !isValidationMetadata(data.metadata)) {
+	if (hasOwn(data, 'metadata') && !isValidationMetadata(data.metadata)) {
 		return false
 	}
 
-	if (data.settings !== undefined && !isValidationSettings(data.settings)) {
+	if (hasOwn(data, 'settings') && !isValidationSettings(data.settings)) {
 		return false
 	}
 
