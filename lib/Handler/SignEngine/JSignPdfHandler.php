@@ -671,10 +671,10 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 		if ($isTsaError) {
 			if (str_contains($errorMessage, 'Invalid TSA') && preg_match("/Invalid TSA '([^']+)'/", $errorMessage, $matches)) {
-				$friendlyMessage = 'Timestamp Authority (TSA) service is unavailable or misconfigured: ' . $matches[1];
+				$friendlyMessage = 'Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: ' . $matches[1];
 			} else {
 				$friendlyMessage = 'Timestamp Authority (TSA) service error.' . "\n"
-					. 'Please check the TSA configuration.';
+					. 'Check TSA endpoint and DNS/network/firewall connectivity from this server.';
 			}
 			throw new LibresignException($friendlyMessage);
 		}
