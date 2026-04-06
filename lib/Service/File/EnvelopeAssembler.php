@@ -40,10 +40,16 @@ class EnvelopeAssembler {
 		$fileData->status = $childFile->getStatus();
 		$fileData->statusText = $this->fileMapper->getTextOfStatus($childFile->getStatus());
 		$fileData->nodeId = $childFile->getNodeId();
-		$fileData->metadata = $childFile->getMetadata();
 		$childMetadata = $childFile->getMetadata() ?? [];
 		$fileData->totalPages = (int)($childMetadata['p'] ?? 0);
 		$fileData->pdfVersion = (string)($childMetadata['pdfVersion'] ?? '');
+
+		$childMetadata['p'] = $fileData->totalPages;
+		$extension = pathinfo($childFile->getName(), PATHINFO_EXTENSION);
+		if (!isset($childMetadata['extension']) || !is_string($childMetadata['extension']) || trim($childMetadata['extension']) === '') {
+			$childMetadata['extension'] = is_string($extension) && $extension !== '' ? strtolower($extension) : 'pdf';
+		}
+		$fileData->metadata = $childMetadata;
 
 		$nodeId = $childFile->getSignedNodeId() ?: $childFile->getNodeId();
 		$fileNode = $this->root->getUserFolder($childFile->getUserId())->getFirstNodeById($nodeId);
