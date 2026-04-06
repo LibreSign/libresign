@@ -618,12 +618,39 @@ class FileService {
 				'metadata' => $this->fileData->metadata,
 				'totalPages' => $this->fileData->totalPages ?? 0,
 				'pdfVersion' => $this->fileData->pdfVersion ?? '',
-				'mime' => $this->fileData->mime ?? '',
 				'size' => $this->fileData->size ?? 0,
-				'signers' => $this->fileData->signers ?? [],
+				'signers' => $this->mapSignerDetailsToSummary($this->fileData->signers ?? []),
 				'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->fileData->uuid]),
 			],
 		];
+	}
+
+	/**
+	 * @param array<int, array<string, mixed>|object> $signers
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function mapSignerDetailsToSummary(array $signers): array {
+		return array_map(static function ($signer): array {
+			$signerData = is_object($signer) ? (array)$signer : $signer;
+			if (!is_array($signerData)) {
+				return [];
+			}
+
+			$summary = [
+				'signRequestId' => $signerData['signRequestId'] ?? null,
+				'displayName' => $signerData['displayName'] ?? '',
+				'email' => $signerData['email'] ?? '',
+				'signed' => $signerData['signed'] ?? null,
+				'status' => $signerData['status'] ?? 0,
+				'statusText' => $signerData['statusText'] ?? '',
+			];
+
+			if (isset($signerData['identifyMethods']) && is_array($signerData['identifyMethods'])) {
+				$summary['identifyMethods'] = $signerData['identifyMethods'];
+			}
+
+			return $summary;
+		}, $signers);
 	}
 
 	private function computeEnvelopeSignersProgress(): void {
