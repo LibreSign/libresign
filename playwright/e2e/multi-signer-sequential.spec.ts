@@ -6,7 +6,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteAppConfig, ensureJavaDependenciesConfigured, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteAppConfig, setAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
 
 async function addEmailSigner(
@@ -41,7 +41,6 @@ test('request signatures from two signers in sequential order', async ({ page })
 		O: 'LibreSign',
 		L: 'Rio de Janeiro',
 	})
-	await ensureJavaDependenciesConfigured(page.request)
 
 	await setAppConfig(
 		page.request,
