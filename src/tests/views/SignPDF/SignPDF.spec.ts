@@ -297,6 +297,42 @@ describe('SignPDF.vue', () => {
 		])
 	})
 
+	it('prefers canonical files collection URL when loading single-file PDF', async () => {
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+		const fetchMock = vi.fn().mockResolvedValue({
+			headers: {
+				get: vi.fn(() => 'application/pdf'),
+			},
+			blob: vi.fn(async () => new Blob(['pdf'], { type: 'application/pdf' })),
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		signStore.document = createSignDocument({
+			nodeType: 'file',
+			url: '/legacy-root-url.pdf',
+			files: [
+				{ id: 99, name: 'contract', file: '/canonical-file-url.pdf', metadata: { extension: 'pdf' } },
+			],
+		})
+
+		const wrapper = mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
+				},
+			},
+		})
+		await wrapper.vm.$nextTick()
+		expect(fetchMock).toHaveBeenCalledWith('/canonical-file-url.pdf')
+	})
+
 	it('loads the signing document from file validation when entering the internal sign route', async () => {
 		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
 		const { useFilesStore } = await import('../../../store/files.js')
