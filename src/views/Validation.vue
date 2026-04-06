@@ -166,8 +166,18 @@ type ValidationStatusInfo = {
 	id?: number
 	label?: string
 }
+
+const MODIFICATION_UNMODIFIED = 1
+const MODIFICATION_ALLOWED = 2
+const MODIFICATION_VIOLATION = 3
+
+type ModificationValidationStatus =
+	typeof MODIFICATION_UNMODIFIED
+	| typeof MODIFICATION_ALLOWED
+	| typeof MODIFICATION_VIOLATION
+
 type ValidationModificationInfo = {
-	status?: number
+	status?: ModificationValidationStatus
 	valid?: boolean
 }
 type ValidationDisplaySigner = SignerDetailRecord & {
@@ -310,8 +320,14 @@ function isValidationModificationInfo(value: unknown): value is ValidationModifi
 		return false
 	}
 
-	return isOptionalField(value, 'status', fieldValue => typeof fieldValue === 'number')
+	return isOptionalField(value, 'status', isModificationValidationStatus)
 		&& isOptionalField(value, 'valid', fieldValue => typeof fieldValue === 'boolean')
+}
+
+function isModificationValidationStatus(value: unknown): value is ModificationValidationStatus {
+	return value === MODIFICATION_UNMODIFIED
+		|| value === MODIFICATION_ALLOWED
+		|| value === MODIFICATION_VIOLATION
 }
 
 function isValidationMetadataDimension(value: unknown): value is ValidationMetadataDimension {
@@ -856,29 +872,36 @@ function hasDocMdpInfo(signer: ValidationDisplaySigner) {
 	return signer.docmdp || signer.modifications || signer.modification_validation
 }
 
-function getModificationStatusIcon(signer: ValidationDisplaySigner) {
+function getModificationStatusVariant(signer: ValidationDisplaySigner): 'success' | 'error' | 'default' {
 	if (!signer.modification_validation) {
-		return null
+		return 'default'
 	}
+
 	const status = signer.modification_validation.status
 	const valid = signer.modification_validation.valid
 
-	if (valid && status === 2) return mdiCheckCircle
-	if (status === 1) return mdiCheckCircle
-	if (status === 3) return mdiCancel
-	return mdiHelpCircle
+	if ((valid && status === MODIFICATION_ALLOWED) || status === MODIFICATION_UNMODIFIED) {
+		return 'success'
+	}
+
+	if (status === MODIFICATION_VIOLATION) {
+		return 'error'
+	}
+
+	return 'default'
+}
+
+function getModificationStatusIcon(signer: ValidationDisplaySigner) {
+	const variant = getModificationStatusVariant(signer)
+	if (variant === 'success') return mdiCheckCircle
+	if (variant === 'error') return mdiCancel
+	return signer.modification_validation ? mdiHelpCircle : null
 }
 
 function getModificationStatusClass(signer: ValidationDisplaySigner) {
-	if (!signer.modification_validation) {
-		return ''
-	}
-	const status = signer.modification_validation.status
-	const valid = signer.modification_validation.valid
-
-	if (valid && status === 2) return 'icon-success'
-	if (status === 1) return 'icon-success'
-	if (status === 3) return 'icon-error'
+	const variant = getModificationStatusVariant(signer)
+	if (variant === 'success') return 'icon-success'
+	if (variant === 'error') return 'icon-error'
 	return ''
 }
 
