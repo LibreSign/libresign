@@ -15,6 +15,12 @@ use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Tests\Unit\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
+final class FileWithNullableStatusForTest extends File {
+	public function forceNullStatusForTest(): void {
+		$this->status = null;
+	}
+}
+
 final class FileTest extends TestCase {
 	private File $file;
 
@@ -58,11 +64,10 @@ final class FileTest extends TestCase {
 	}
 
 	public function testGetStatusReturnsDraftWhenInternalStatusIsNull(): void {
-		$reflectionProperty = new \ReflectionProperty($this->file, 'status');
-		$reflectionProperty->setAccessible(true);
-		$reflectionProperty->setValue($this->file, null);
+		$file = new FileWithNullableStatusForTest();
+		$file->forceNullStatusForTest();
 
-		$this->assertSame(FileStatus::DRAFT->value, $this->file->getStatus());
+		$this->assertSame(FileStatus::DRAFT->value, $file->getStatus());
 	}
 
 	public function testSetStatusRejectsInvalidStatusCode(): void {
