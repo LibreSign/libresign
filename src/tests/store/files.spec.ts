@@ -233,6 +233,36 @@ describe('files store - critical business rules', () => {
 			expect(store.files[123].status).toBe(3)
 			expect(store.files[123].statusText).toBe('Signed')
 		})
+		it('returns the authoritative server detail even when a local draft exists', async () => {
+			const store = useFilesStore()
+			store.files[123] = {
+				id: 123,
+				uuid: 'file-uuid',
+				status: 1,
+				name: 'contract.pdf',
+				signers: [],
+			}
+			store.selectedFileId = 123
+
+			const editableFile = store.getEditableFile()
+			editableFile.signers = []
+
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
+				payload: {
+					id: 123,
+					uuid: 'file-uuid',
+					status: 1,
+					name: 'contract.pdf',
+					settings: { isApprover: true },
+					signers: [{ me: true, sign_request_uuid: 'sign-request-uuid' }],
+				},
+			}))
+
+			const detailedFile = await store.fetchFileDetail({ fileId: 123, force: true })
+
+			expect(detailedFile?.uuid).toBe('file-uuid')
+			expect(detailedFile?.signers?.[0]?.sign_request_uuid).toBe('sign-request-uuid')
+		})
 	})
 
 	describe('RULE: envelope filesCount reflects file operations', () => {
