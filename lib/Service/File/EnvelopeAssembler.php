@@ -47,11 +47,7 @@ class EnvelopeAssembler {
 		$fileData->totalPages = (int)($childMetadata['p'] ?? 0);
 		$fileData->pdfVersion = (string)($childMetadata['pdfVersion'] ?? '');
 
-		$childMetadata['p'] = $fileData->totalPages;
-		$extension = pathinfo($childFile->getName(), PATHINFO_EXTENSION);
-		if (!isset($childMetadata['extension']) || !is_string($childMetadata['extension']) || trim($childMetadata['extension']) === '') {
-			$childMetadata['extension'] = is_string($extension) && $extension !== '' ? strtolower($extension) : 'pdf';
-		}
+		$childMetadata = ValidationMetadataNormalizer::normalize($childMetadata, $childFile->getName(), $fileData->totalPages);
 		$fileData->metadata = $childMetadata;
 
 		$nodeId = $childFile->getSignedNodeId() ?: $childFile->getNodeId();
