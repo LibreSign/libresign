@@ -146,9 +146,9 @@ defineOptions({
 })
 
 type RouteState = {
-	name?: string
-	params?: Record<string, string | undefined>
-	query?: Record<string, string | undefined>
+	name: string | null
+	params: Record<string, string>
+	query: Record<string, string>
 }
 
 type RouterState = {
@@ -197,6 +197,21 @@ type ValidationErrorResponse = {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
+}
+
+function toStringRecord(value: unknown): Record<string, string> {
+	if (!isRecord(value)) {
+		return {}
+	}
+
+	const result: Record<string, string> = {}
+	for (const [key, entry] of Object.entries(value)) {
+		if (typeof entry === 'string') {
+			result[key] = entry
+		}
+	}
+
+	return result
 }
 
 function toNumber(value: unknown): number | null {
@@ -365,11 +380,18 @@ const filesStore = useFilesStore()
 const instance = getCurrentInstance()
 const EXPIRATION_WARNING_DAYS = 30
 
-const route = computed<RouteState>(() => (instance?.proxy?.$route as RouteState | undefined) ?? { params: {}, query: {} })
+const route = computed<RouteState>(() => {
+	const rawRoute = (instance?.proxy?.$route as Partial<RouteState> | undefined) ?? {}
+	return {
+		name: typeof rawRoute.name === 'string' ? rawRoute.name : null,
+		params: toStringRecord(rawRoute.params),
+		query: toStringRecord(rawRoute.query),
+	}
+})
 const router = computed<RouterState>(() => (instance?.proxy?.$router as RouterState | undefined) ?? { push: () => {}, replace: () => {} })
 
 const logo = ref(logoGray)
-const uuidToValidate = ref(route.value.params?.uuid ?? '')
+const uuidToValidate = ref(route.value.params.uuid ?? '')
 const hasInfo = ref(false)
 const loading = ref(false)
 const document = ref<ValidationFileRecord | null>(null)
@@ -392,8 +414,8 @@ const signRequestUuidForProgress = computed(() => {
 	const doc = signStore?.document || {}
 	const fromState = loadState('libresign', 'sign_request_uuid', null)
 	const fromDocument = getSigningRouteUuid(doc, typeof fromState === 'string' ? fromState : null)
-	return route.value.query?.signRequestUuid
-		|| route.value.params?.signRequestUuid
+	return route.value.query.signRequestUuid
+		|| route.value.params.signRequestUuid
 		|| fromDocument
 		|| uuidToValidate.value
 })
@@ -591,7 +613,7 @@ function goBack() {
 	}
 	hasInfo.value = false
 	document.value = null
-	uuidToValidate.value = route.value.params?.uuid ?? ''
+	uuidToValidate.value = route.value.params.uuid ?? ''
 	validationErrorMessage.value = null
 	documentValidMessage.value = null
 }
@@ -832,7 +854,7 @@ function handleValidationSuccess(data: unknown) {
 		|| routeName === 'ValidationFile'
 		|| routeName === 'ValidationFileExternal'
 		|| routeName === 'ValidationFileShortUrl'
-	if (shouldUpdateRoute && route.value.params?.uuid !== normalizedDocument.uuid) {
+	if (shouldUpdateRoute && route.value.params.uuid !== normalizedDocument.uuid) {
 		router.value.replace({
 			name: route.value.name,
 			params: {
