@@ -18,6 +18,26 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 12.4.1 - 2026-04-05
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Update translations
+- Bump dependencies [#7381](https://github.com/LibreSign/libresign/pull/7381)
+
+### Fixes
+- fix: files menu shortcut and icons [#7340](https://github.com/LibreSign/libresign/pull/7340)
+- fix: interpolate sign-request uuid into account create URL [#7387](https://github.com/LibreSign/libresign/pull/7387)
+- fix: handle visible signatures for envelope child files [#7386](https://github.com/LibreSign/libresign/pull/7386)
+- fix: extract file descriptor when items have nested `file` key [#7390](https://github.com/LibreSign/libresign/pull/7390)
+- fix: lazy load files sidebar tab [#7400](https://github.com/LibreSign/libresign/pull/7400)
+- fix: CRL disabled flow and signing error UX [#7403](https://github.com/LibreSign/libresign/pull/7403)
+- fix: prevent Imagick crash caused by invalid signature box dimensions [#7406](https://github.com/LibreSign/libresign/pull/7406)
+- fix: validate engine name in migration to prevent installation failures [#7412](https://github.com/LibreSign/libresign/pull/7412)
+
 ## 12.4.0 - 2026-03-17
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
