@@ -181,12 +181,14 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				'file' => $file,
 				'signers' => $signers,
 				'userManager' => $user,
-				'status' => $status,
 				'visibleElements' => $visibleElements,
 				'signatureFlow' => $signatureFlow,
 				'name' => $name,
 				'settings' => $settings,
 			];
+			if ($status !== null) {
+				$data['status'] = $status;
+			}
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateFileStatus($data);
 			$this->validateHelper->validateIdentifySigners($data);
@@ -239,12 +241,15 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			'file' => $file,
 			'name' => $name,
 			'signers' => $signers,
-			'status' => $status,
 			'callback' => $callback,
 			'userManager' => $user,
 			'signatureFlow' => $signatureFlow,
 			'settings' => !empty($settings) ? $settings : ($file['settings'] ?? []),
 		];
+
+		if ($status !== null) {
+			$data['status'] = $status;
+		}
 
 		if ($isEnvelope) {
 			$data['files'] = $filesToSave;
