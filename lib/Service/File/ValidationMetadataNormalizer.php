@@ -13,40 +13,73 @@ namespace OCA\Libresign\Service\File;
  * @psalm-import-type LibresignValidateMetadata from \OCA\Libresign\ResponseDefinitions
  */
 final class ValidationMetadataNormalizer {
+	private const OPTIONAL_SCALAR_TYPE_GUARDS = [
+		'original_file_deleted' => 'is_bool',
+		'pdfVersion' => 'is_string',
+		'status_changed_at' => 'is_string',
+	];
+
 	/**
 	 * @param array<string, mixed> $metadata
 	 * @psalm-return array<string, mixed>&LibresignValidateMetadata
 	 */
 	public static function normalize(array $metadata, string $fileName, int $totalPages): array {
-		$metadata['p'] = max(0, $totalPages);
+		$normalized = $metadata;
+		$normalized['p'] = self::normalizePageCount($totalPages);
+		$normalized['extension'] = self::normalizeExtension($normalized, $fileName);
+
+		self::normalizeOptionalScalarFields($normalized);
+		self::normalizeDimensionsField($normalized);
+
+		return $normalized;
+	}
+
+	private static function normalizePageCount(int $totalPages): int {
+		return max(0, $totalPages);
+	}
+
+	/**
+	 * @param array<string, mixed> $metadata
+	 */
+	private static function normalizeExtension(array $metadata, string $fileName): string {
+		if (isset($metadata['extension']) && is_string($metadata['extension']) && trim($metadata['extension']) !== '') {
+			return $metadata['extension'];
+		}
 
 		$extension = pathinfo($fileName, PATHINFO_EXTENSION);
-		if (!isset($metadata['extension']) || !is_string($metadata['extension']) || trim($metadata['extension']) === '') {
-			$metadata['extension'] = is_string($extension) && $extension !== '' ? strtolower($extension) : 'pdf';
-		}
+		return is_string($extension) && $extension !== '' ? strtolower($extension) : 'pdf';
+	}
 
-		if (array_key_exists('original_file_deleted', $metadata) && !is_bool($metadata['original_file_deleted'])) {
-			unset($metadata['original_file_deleted']);
-		}
+	/**
+	 * @param array<string, mixed> $metadata
+	 */
+	private static function normalizeOptionalScalarFields(array &$metadata): void {
+		foreach (self::OPTIONAL_SCALAR_TYPE_GUARDS as $key => $guard) {
+			if (!array_key_exists($key, $metadata)) {
+				continue;
+			}
 
-		if (array_key_exists('pdfVersion', $metadata) && !is_string($metadata['pdfVersion'])) {
-			unset($metadata['pdfVersion']);
-		}
-
-		if (array_key_exists('status_changed_at', $metadata) && !is_string($metadata['status_changed_at'])) {
-			unset($metadata['status_changed_at']);
-		}
-
-		if (array_key_exists('d', $metadata)) {
-			$normalizedDimensions = self::normalizeDimensions($metadata['d']);
-			if ($normalizedDimensions === null) {
-				unset($metadata['d']);
-			} else {
-				$metadata['d'] = $normalizedDimensions;
+			if (!is_callable($guard) || !$guard($metadata[$key])) {
+				unset($metadata[$key]);
 			}
 		}
+	}
 
-		return $metadata;
+	/**
+	 * @param array<string, mixed> $metadata
+	 */
+	private static function normalizeDimensionsField(array &$metadata): void {
+		if (!array_key_exists('d', $metadata)) {
+			return;
+		}
+
+		$normalizedDimensions = self::normalizeDimensions($metadata['d']);
+		if ($normalizedDimensions === null) {
+			unset($metadata['d']);
+			return;
+		}
+
+		$metadata['d'] = $normalizedDimensions;
 	}
 
 	/**
