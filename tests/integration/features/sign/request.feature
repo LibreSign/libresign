@@ -50,14 +50,14 @@ Feature: request-signature
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
     And as user "signer1"
     And I fetch the signer UUID from notification
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 200
     And as user "signer2"
     When sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should be a JSON array with the following mandatory values
       | key           | value |
       | (jq).ocs.data | []    |
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value            |
@@ -87,14 +87,14 @@ Feature: request-signature
     And I open the latest email to "contact@domain.test" with subject "LibreSign: There is a file for you to sign"
     And as user "signer1"
     And I fetch the signer UUID from notification
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 200
     And as user "signer2"
     When sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should be a JSON array with the following mandatory values
       | key           | value |
       | (jq).ocs.data | []    |
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value            |
@@ -116,7 +116,7 @@ Feature: request-signature
     And as user "signer1"
     And I fetch the signer UUID from notification
     And as user ""
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value                                     |
@@ -142,7 +142,7 @@ Feature: request-signature
     And user "signer2" exists
     And set the email of user "signer2" to "signer2@domain.test"
     And as user "signer2"
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value                                                          |
@@ -165,7 +165,7 @@ Feature: request-signature
     And I fetch the signer UUID from opened email
     And as user ""
     When wait for 2 second
-    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    And sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value             |
@@ -191,7 +191,7 @@ Feature: request-signature
     And run the command "config:app:set libresign maximum_validity --value=300 --type=integer" with result code 0
     And run the command "config:app:set libresign renewal_interval --value=1 --type=integer" with result code 0
     Given wait for 2 second
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value        |
@@ -199,7 +199,7 @@ Feature: request-signature
       | title  | Link expired |
     Given my inbox is empty
     When as user "admin"
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>/renew/email"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>/renew/email"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                        |
@@ -211,16 +211,16 @@ Feature: request-signature
     # the 4rd don't will fail because on each valid request, the renewal
     # interval is renewed.
     And run the command "config:app:set libresign renewal_interval --value=3 --type=integer" with result code 0
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     And the response should have a status code 200
     Given wait for 1 second
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 200
     Given wait for 1 second
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 200
     Given wait for 1 second
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 200
     And the response should contain the initial state "libresign-action" with the following values:
       """
@@ -468,7 +468,7 @@ Feature: request-signature
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hasConfirmCode | false                            |
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.blurredEmail   | 111***@***.test                  |
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hashOfEmail    | c8cb84220c4cf19b723390f29b83a0f8 |
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
       | method | clickToSign |
       | token |  |
     And the response should have a status code 422
@@ -476,7 +476,7 @@ Feature: request-signature
       | key                             | value         |
       | (jq).ocs.data.action            | 2000          |
       | (jq).ocs.data.errors[0].message | Invalid code. |
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
       | method | account |
       | token |  |
     And the response should have a status code 422
@@ -513,7 +513,7 @@ Feature: request-signature
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hasConfirmCode | false                            |
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.blurredEmail   | 111***@***.test                  |
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hashOfEmail    | c8cb84220c4cf19b723390f29b83a0f8 |
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
       | method | email |
       | token |  |
     And the response should have a status code 422
@@ -521,7 +521,7 @@ Feature: request-signature
       | key                             | value         |
       | (jq).ocs.data.action            | 2000          |
       | (jq).ocs.data.errors[0].message | Invalid code. |
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
       | method | email |
       | token | randomtoken123 |
     And the response should have a status code 422
