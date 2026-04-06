@@ -366,6 +366,70 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(1, $enqueued);
 	}
 
+	public function testGetPdfToSignThrowsWhenPhpNativeAndJavaPathIsMissing(): void {
+		$this->appConfig->setValueString('libresign', 'signature_engine', 'PhpNative');
+
+		$service = $this->getService(['getSignedFile', 'getSigners']);
+		$libreSignFile = new File();
+		$libreSignFile->setId(10);
+		$libreSignFile->setUuid('file-uuid');
+
+		$originalFile = $this->createMock(\OCP\Files\File::class);
+		$originalFile->method('getContent')->willReturn('%PDF-original-content%');
+		$originalFile->method('getExtension')->willReturn('pdf');
+		$originalFile->method('getPath')->willReturn('/Documents/source.pdf');
+		$originalFile->method('getParentId')->willReturn(300);
+
+		$owner = $this->createMock(\OCP\IUser::class);
+		$owner->method('getUID')->willReturn('signer1');
+		$originalFile->method('getOwner')->willReturn($owner);
+
+		$this->pdfSignatureDetectionService
+			->expects($this->once())
+			->method('hasSignatures')
+			->with('%PDF-original-content%')
+			->willReturn(false);
+
+		$this->footerHandler
+			->expects($this->once())
+			->method('getMetadata')
+			->with($originalFile, $libreSignFile)
+			->willReturn(['d' => [['w' => 210.0, 'h' => 297.0]]]);
+
+		$this->footerHandler
+			->expects($this->exactly(2))
+			->method('setTemplateVar')
+			->willReturnSelf();
+
+		$this->footerHandler
+			->expects($this->once())
+			->method('getFooter')
+			->with([['w' => 210.0, 'h' => 297.0]])
+			->willReturn('%PDF-footer%');
+
+		$this->tempManager
+			->expects($this->exactly(2))
+			->method('getTemporaryFile')
+			->willReturnOnConsecutiveCalls('/tmp/libresign-test-stamp.pdf', '/tmp/libresign-test-input.pdf');
+
+		$this->pdf
+			->expects($this->once())
+			->method('applyStamp')
+			->willThrowException(new \RuntimeException('Java path not set.'));
+
+		$service->method('getSignedFile')->willReturn(null);
+		$service->method('getSigners')->willReturn([]);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Java path not set.');
+
+		self::invokePrivate(
+			$service->setLibreSignFile($libreSignFile),
+			'getPdfToSign',
+			[$originalFile],
+		);
+	}
+
 	private function getService(array $methods = []): SignFileService|MockObject {
 		if ($methods) {
 			return $this->getMockBuilder(SignFileService::class)
