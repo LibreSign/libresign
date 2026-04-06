@@ -545,5 +545,9 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame('libresign.page.getPdfFile:sign-request-uuid', $result['url']);
 		$this->assertArrayNotHasKey('signUuid', $result);
 		$this->assertSame('sign-request-uuid', $result['signers'][0]['sign_request_uuid']);
+		$this->assertSame(1, $result['filesCount']);
+		$this->assertIsArray($result['files']);
+		$this->assertCount(1, $result['files']);
+		$this->assertSame('file-uuid', $result['files'][0]['uuid']);
 	}
 }
