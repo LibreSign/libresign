@@ -222,4 +222,32 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'single page with pdf version' => [1, '1.5', 1, '1.5'],
 		];
 	}
+
+	public function testLoadMetadataNormalizesRequiredContractFields(): void {
+		$file = new File();
+		$file->setId(1);
+		$file->setName('contract.PDF');
+		$file->setUserId('user123');
+		$file->setSignedNodeId(123);
+		$file->setMetadata([]);
+		$file->setUuid('uuid-123');
+
+		$fileNode = $this->createMock(\OCP\Files\File::class);
+		$fileNode->method('getSize')->willReturn(5000);
+		$fileNode->method('getMimeType')->willReturn('application/pdf');
+
+		$userFolder = $this->createMock(Folder::class);
+		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
+
+		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->urlGenerator->method('linkToRoute')->willReturn('http://example.com/page.pdf');
+
+		$fileData = new stdClass();
+		$service = $this->getService();
+		$service->loadMetadata($file, $fileData);
+
+		$this->assertIsArray($fileData->metadata);
+		$this->assertSame(0, $fileData->metadata['p']);
+		$this->assertSame('pdf', $fileData->metadata['extension']);
+	}
 }
