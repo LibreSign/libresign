@@ -31,9 +31,11 @@ class MetadataLoader {
 			return;
 		}
 
+		$rawMetadata = $file->getMetadata() ?? [];
+
 		try {
 			$fileNode = $this->getFileNode($file);
-			$metadata = $file->getMetadata() ?? [];
+			$metadata = $rawMetadata;
 
 			if (method_exists($fileNode, 'getSize')) {
 				$fileData->size = $fileNode->getSize();
@@ -59,6 +61,11 @@ class MetadataLoader {
 		$fileData->size ??= 0;
 		$fileData->totalPages ??= 0;
 		$fileData->pdfVersion ??= '';
+		$fileData->metadata = ValidationMetadataNormalizer::normalize(
+			is_array($fileData->metadata ?? null) ? $fileData->metadata : $rawMetadata,
+			$file->getName(),
+			(int)$fileData->totalPages,
+		);
 	}
 
 	/**
