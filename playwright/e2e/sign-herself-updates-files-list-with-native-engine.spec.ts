@@ -5,7 +5,7 @@
 
 import { expect, test, type Page } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, ensureJavaDependenciesConfigured, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
 
 async function sortByCreatedAtDescending(page: Page) {
 	const createdAtTh = page.getByRole('columnheader', { name: 'Created at' })
@@ -32,8 +32,6 @@ test('updates files list status after signing with native engine', async ({ page
 		O: 'LibreSign',
 		L: 'Rio de Janeiro',
 	})
-
-	await ensureJavaDependenciesConfigured(page.request)
 
 	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
 	await setAppConfig(
