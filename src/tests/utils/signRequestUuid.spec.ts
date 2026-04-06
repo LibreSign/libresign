@@ -32,11 +32,19 @@ describe('signRequestUuid utils', () => {
 		expect(getCurrentSignerSignRequestUuid(undefined, 'fallback-uuid')).toBe('fallback-uuid')
 	})
 
-	it('returns the file uuid for approver signing routes', () => {
+	it('prefers the current signer sign_request_uuid for approver-capable routes', () => {
 		expect(getSigningRouteUuid({
 			uuid: 'file-uuid',
 			settings: { isApprover: true },
 			signers: [{ me: true, sign_request_uuid: 'sign-request-uuid' }],
+		})).toBe('sign-request-uuid')
+	})
+
+	it('falls back to file uuid for approver signing routes when signer uuid is unavailable', () => {
+		expect(getSigningRouteUuid({
+			uuid: 'file-uuid',
+			settings: { isApprover: true },
+			signers: [],
 		})).toBe('file-uuid')
 	})
 
