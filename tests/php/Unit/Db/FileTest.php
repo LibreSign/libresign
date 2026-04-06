@@ -13,6 +13,7 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Tests\Unit\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class FileTest extends TestCase {
 	private File $file;
@@ -71,9 +72,17 @@ final class FileTest extends TestCase {
 		$this->file->setStatus(999);
 	}
 
-	public function testSetStatusAcceptsKnownFileStatusCodes(): void {
-		$this->file->setStatus(FileStatus::SIGNED->value);
+	#[DataProvider('provideKnownFileStatuses')]
+	public function testSetStatusAcceptsKnownFileStatusCodes(FileStatus $status): void {
+		$this->file->setStatus($status->value);
 
-		$this->assertSame(FileStatus::SIGNED->value, $this->file->getStatus());
+		$this->assertSame($status->value, $this->file->getStatus());
+	}
+
+	public static function provideKnownFileStatuses(): array {
+		return array_map(
+			static fn (FileStatus $status): array => [$status],
+			FileStatus::cases()
+		);
 	}
 }
