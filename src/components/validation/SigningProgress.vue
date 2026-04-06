@@ -270,7 +270,7 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 	if (!doc) {
 		return null
 	}
-	if (doc.nodeType === 'envelope' || (Array.isArray(doc.files) && doc.files.length > 0)) {
+	if (doc.nodeType === 'envelope') {
 		const files = (doc.files ?? [])
 			.filter((file): file is typeof file & { id: number; name: string; status: number } => {
 				return typeof file.id === 'number'
