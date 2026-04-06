@@ -351,7 +351,8 @@ async function loadPdfsFromStore() {
 		return
 	}
 
-	const baseFileUrl = (doc.url ?? getFileUrl(doc.files?.[0] ? normalizeFileForVisibleElements(doc.files[0]) : null))
+	const canonicalFileUrl = getFileUrl(doc.files?.[0] ? normalizeFileForVisibleElements(doc.files[0]) : null)
+	const baseFileUrl = canonicalFileUrl || doc.url
 		|| (doc.uuid ? generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: doc.uuid }) : null)
 	const fileUrl = addIdDocApprovalParam(baseFileUrl)
 	if (fileUrl) {
