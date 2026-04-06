@@ -50,6 +50,8 @@ use TypeError;
 
 /**
  * @psalm-import-type LibresignValidatedFile from ResponseDefinitions
+ * @psalm-import-type LibresignSignerDetail from ResponseDefinitions
+ * @psalm-import-type LibresignSignerSummary from ResponseDefinitions
  */
 class FileService {
 
@@ -626,8 +628,8 @@ class FileService {
 	}
 
 	/**
-	 * @param array<int, array<string, mixed>|object> $signers
-	 * @return array<int, array<string, mixed>>
+	 * @param list<LibresignSignerDetail> $signers
+	 * @return list<LibresignSignerSummary>
 	 */
 	private function mapSignerDetailsToSummary(array $signers): array {
 		return array_map(static function ($signer): array {
