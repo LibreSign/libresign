@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteAppConfig, ensureJavaDependenciesConfigured, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteAppConfig, setAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
 
 test('sign document with email token as unauthenticated signer', async ({ page }) => {
@@ -22,7 +22,6 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 		O: 'LibreSign',
 		L: 'Rio de Janeiro',
 	})
-	await ensureJavaDependenciesConfigured(page.request)
 
 	await setAppConfig(
 		page.request,
