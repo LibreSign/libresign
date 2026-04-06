@@ -195,6 +195,11 @@ type ValidationErrorResponse = {
 	}
 }
 
+type ValidationMetadataDimension = {
+	w: number
+	h: number
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
 }
@@ -250,6 +255,33 @@ function isNullableString(value: unknown): value is string | null {
 	return value === null || typeof value === 'string'
 }
 
+function isValidationStatusInfo(value: unknown): value is ValidationStatusInfo {
+	if (!isRecord(value)) {
+		return false
+	}
+
+	return (value.id === undefined || typeof value.id === 'number')
+		&& (value.label === undefined || isString(value.label))
+}
+
+function isValidationModificationInfo(value: unknown): value is ValidationModificationInfo {
+	if (!isRecord(value)) {
+		return false
+	}
+
+	return (value.status === undefined || typeof value.status === 'number')
+		&& (value.valid === undefined || typeof value.valid === 'boolean')
+}
+
+function isValidationMetadataDimension(value: unknown): value is ValidationMetadataDimension {
+	if (!isRecord(value)) {
+		return false
+	}
+
+	return typeof value.w === 'number' && Number.isFinite(value.w)
+		&& typeof value.h === 'number' && Number.isFinite(value.h)
+}
+
 function isRequestedBy(value: unknown): value is ValidationFileRecord['requested_by'] {
 	if (!isRecord(value)) {
 		return false
@@ -261,7 +293,15 @@ function isValidationMetadata(value: unknown): value is NonNullable<ValidationFi
 	if (!isRecord(value)) {
 		return false
 	}
-	return isString(value.extension) && typeof value.p === 'number'
+
+	if (!isString(value.extension) || typeof value.p !== 'number') {
+		return false
+	}
+
+	return (value.d === undefined || (Array.isArray(value.d) && value.d.every(isValidationMetadataDimension)))
+		&& (value.original_file_deleted === undefined || typeof value.original_file_deleted === 'boolean')
+		&& (value.pdfVersion === undefined || isString(value.pdfVersion))
+		&& (value.status_changed_at === undefined || isString(value.status_changed_at))
 }
 
 function isValidationSettings(value: unknown): value is NonNullable<ValidationFileRecord['settings']> {
@@ -292,6 +332,11 @@ function isSignerDetailRecord(value: unknown): value is SignerDetailRecord {
 		&& isString(value.request_sign_date)
 		&& typeof value.me === 'boolean'
 		&& Array.isArray(value.visibleElements)
+		&& (value.signature_validation === undefined || isValidationStatusInfo(value.signature_validation))
+		&& (value.certificate_validation === undefined || isValidationStatusInfo(value.certificate_validation))
+		&& (value.modification_validation === undefined || isValidationModificationInfo(value.modification_validation))
+		&& (value.crl_validation === undefined || isString(value.crl_validation))
+		&& (value.isLibreSignRootCA === undefined || typeof value.isLibreSignRootCA === 'boolean')
 }
 
 function isValidatedChildFileRecord(value: unknown): value is ValidatedChildFileRecord {
