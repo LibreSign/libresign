@@ -149,6 +149,12 @@ type RouteState = {
 	query: Record<string, string>
 }
 
+type ValidationRouteName =
+	| 'validation'
+	| 'ValidationFile'
+	| 'ValidationFileExternal'
+	| 'ValidationFileShortUrl'
+
 type RouterState = {
 	push: (location: unknown) => void
 	replace: (location: unknown) => void
@@ -255,28 +261,31 @@ function toNumber(value: unknown): number | null {
 	return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
-const VALIDATION_STATUS_VALUES: readonly ValidationStatus[] = [
-	FILE_STATUS.DRAFT,
-	FILE_STATUS.ABLE_TO_SIGN,
-	FILE_STATUS.PARTIAL_SIGNED,
-	FILE_STATUS.SIGNED,
-	FILE_STATUS.DELETED,
-]
-
 function isValidationStatus(value: unknown): value is ValidationStatus {
 	const normalizedValue = toNumber(value)
-	return normalizedValue !== null && VALIDATION_STATUS_VALUES.includes(normalizedValue as ValidationStatus)
+	return normalizedValue === FILE_STATUS.DRAFT
+		|| normalizedValue === FILE_STATUS.ABLE_TO_SIGN
+		|| normalizedValue === FILE_STATUS.PARTIAL_SIGNED
+		|| normalizedValue === FILE_STATUS.SIGNED
+		|| normalizedValue === FILE_STATUS.DELETED
 }
-
-const SIGNER_STATUS_VALUES: readonly SignerDetailRecord['status'][] = [
-	SIGN_REQUEST_STATUS.DRAFT,
-	SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
-	SIGN_REQUEST_STATUS.SIGNED,
-]
 
 function isSignerStatus(value: unknown): value is SignerDetailRecord['status'] {
 	const normalizedValue = toNumber(value)
-	return normalizedValue !== null && SIGNER_STATUS_VALUES.includes(normalizedValue as SignerDetailRecord['status'])
+	return normalizedValue === SIGN_REQUEST_STATUS.DRAFT
+		|| normalizedValue === SIGN_REQUEST_STATUS.ABLE_TO_SIGN
+		|| normalizedValue === SIGN_REQUEST_STATUS.SIGNED
+}
+
+function isValidationRouteName(value: RouteState['name']): value is ValidationRouteName {
+	return value === 'validation'
+		|| value === 'ValidationFile'
+		|| value === 'ValidationFileExternal'
+		|| value === 'ValidationFileShortUrl'
+}
+
+function isSignedDocumentStatus(status: unknown): boolean {
+	return Number(status) === FILE_STATUS.SIGNED
 }
 
 function isString(value: unknown): value is string {
@@ -962,11 +971,7 @@ function handleValidationSuccess(data: unknown) {
 		setValidationError(t('libresign', 'Failed to validate document'))
 		return
 	}
-	const routeName = route.value?.name || ''
-	const shouldUpdateRoute = routeName === 'validation'
-		|| routeName === 'ValidationFile'
-		|| routeName === 'ValidationFileExternal'
-		|| routeName === 'ValidationFileShortUrl'
+	const shouldUpdateRoute = isValidationRouteName(route.value.name)
 	if (shouldUpdateRoute && route.value.params.uuid !== normalizedDocument.uuid) {
 		router.value.replace({
 			name: route.value.name,
@@ -979,16 +984,16 @@ function handleValidationSuccess(data: unknown) {
 	}
 	document.value = normalizedDocument
 	hasInfo.value = true
-	const isSignedStatus = (status: unknown) => Number(status) === FILE_STATUS.SIGNED
-	const isSignedDoc = isSignedStatus(document.value?.status)
+	const isSignedDoc = isSignedDocumentStatus(document.value?.status)
 	const allFilesSigned = Array.isArray(document.value?.files)
 		&& document.value.files.length > 0
-		&& document.value.files.every(file => isSignedStatus(file.status))
+		&& document.value.files.every(file => isSignedDocumentStatus(file.status))
 	const signerCompleted = isCurrentSignerSigned()
-	if (isSignedDoc || allFilesSigned || signerCompleted) {
+	const shouldSyncSignedState = isSignedDoc || allFilesSigned || signerCompleted
+	if (shouldSyncSignedState) {
 		syncValidatedDocumentToFilesStore(normalizedDocument)
 	}
-	if ((isSignedDoc || allFilesSigned || signerCompleted) && (isAfterSigned.value || shouldFireAsyncConfetti.value)) {
+	if (shouldSyncSignedState && (isAfterSigned.value || shouldFireAsyncConfetti.value)) {
 		const capabilities = getCapabilities() as { libresign?: { config?: Record<string, unknown> } } | undefined
 		if (capabilities?.libresign?.config?.['show-confetti'] === true) {
 			const jsConfetti = new JSConfetti()
@@ -1010,11 +1015,10 @@ async function refreshAfterAsyncSigning() {
 			return
 		}
 
-		const isSignedStatus = (status: unknown) => Number(status) === FILE_STATUS.SIGNED
-		const isSigned = isSignedStatus(document.value?.status)
+		const isSigned = isSignedDocumentStatus(document.value?.status)
 		const allFilesSigned = Array.isArray(document.value?.files)
 			&& document.value.files.length > 0
-			&& document.value.files.every(file => isSignedStatus(file.status))
+			&& document.value.files.every(file => isSignedDocumentStatus(file.status))
 
 		if (isSigned || allFilesSigned) {
 			return
@@ -1050,7 +1054,7 @@ function handleSigningError(message?: string) {
 }
 
 function isCurrentSignerSigned() {
-	const signer = document.value?.signers?.find(row => row.me)
+	const signer = document.value?.signers.find(row => row.me)
 	return !!signer?.signed || Number(signer?.status) === SIGN_REQUEST_STATUS.SIGNED
 }
 
