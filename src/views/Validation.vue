@@ -203,20 +203,28 @@ function toNumber(value: unknown): number | null {
 	return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
-function toValidationStatus(value: unknown): ValidationStatus | null {
+const VALIDATION_STATUS_VALUES: readonly ValidationStatus[] = [
+	FILE_STATUS.DRAFT,
+	FILE_STATUS.ABLE_TO_SIGN,
+	FILE_STATUS.PARTIAL_SIGNED,
+	FILE_STATUS.SIGNED,
+	FILE_STATUS.DELETED,
+]
+
+function isValidationStatus(value: unknown): value is ValidationStatus {
 	const normalizedValue = toNumber(value)
-	if (normalizedValue === 0 || normalizedValue === 1 || normalizedValue === 2 || normalizedValue === 3 || normalizedValue === 4) {
-		return normalizedValue
-	}
-	return null
+	return normalizedValue !== null && VALIDATION_STATUS_VALUES.includes(normalizedValue as ValidationStatus)
 }
 
-function toSignerStatus(value: unknown): SignerDetailRecord['status'] | null {
+const SIGNER_STATUS_VALUES: readonly SignerDetailRecord['status'][] = [
+	SIGN_REQUEST_STATUS.DRAFT,
+	SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+	SIGN_REQUEST_STATUS.SIGNED,
+]
+
+function isSignerStatus(value: unknown): value is SignerDetailRecord['status'] {
 	const normalizedValue = toNumber(value)
-	if (normalizedValue === 0 || normalizedValue === 1 || normalizedValue === 2) {
-		return normalizedValue
-	}
-	return null
+	return normalizedValue !== null && SIGNER_STATUS_VALUES.includes(normalizedValue as SignerDetailRecord['status'])
 }
 
 function isString(value: unknown): value is string {
@@ -263,7 +271,7 @@ function isSignerDetailRecord(value: unknown): value is SignerDetailRecord {
 		&& isString(value.displayName)
 		&& isString(value.email)
 		&& isNullableString(value.signed)
-		&& toSignerStatus(value.status) !== null
+		&& isSignerStatus(value.status)
 		&& isString(value.statusText)
 		&& isNullableString(value.description)
 		&& isString(value.request_sign_date)
@@ -279,7 +287,7 @@ function isValidatedChildFileRecord(value: unknown): value is ValidatedChildFile
 	return typeof value.id === 'number'
 		&& isString(value.uuid)
 		&& isString(value.name)
-		&& toValidationStatus(value.status) !== null
+		&& isValidationStatus(value.status)
 		&& isString(value.statusText)
 		&& typeof value.nodeId === 'number'
 		&& typeof value.size === 'number'
@@ -296,7 +304,7 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 		typeof data.id !== 'number'
 		|| !isString(data.uuid)
 		|| !isString(data.name)
-		|| toValidationStatus(data.status) === null
+		|| !isValidationStatus(data.status)
 		|| !isString(data.statusText)
 		|| typeof data.nodeId !== 'number'
 		|| (data.nodeType !== 'file' && data.nodeType !== 'envelope')
