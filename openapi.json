@@ -2106,6 +2106,8 @@
                     "nodeType",
                     "signatureFlow",
                     "docmdpLevel",
+                    "filesCount",
+                    "files",
                     "totalPages",
                     "size",
                     "pdfVersion",
@@ -7409,7 +7411,7 @@
             "post": {
                 "operationId": "request_signature-request",
                 "summary": "Request signature",
-                "description": "Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.",
+                "description": "Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. The returned `data` always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
                     "request_signature"
                 ],
