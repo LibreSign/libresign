@@ -473,25 +473,6 @@ class FileService {
 			}
 		}
 
-		if ($this->fileData->nodeType !== 'envelope') {
-			$this->fileData->filesCount = 1;
-			if (empty($this->fileData->files)) {
-				$this->fileData->files = [
-					(object)[
-						'id' => $this->file->getId(),
-						'uuid' => $this->file->getUuid(),
-						'name' => $this->file->getName(),
-						'status' => $this->file->getStatus(),
-						'statusText' => $this->fileMapper->getTextOfStatus($this->file->getStatus()),
-						'nodeId' => $this->file->getNodeId(),
-						'metadata' => $this->file->getMetadata() ?? [],
-						'signers' => [],
-						'size' => 0,
-					],
-				];
-			}
-		}
-
 		$this->fileData->requested_by = [
 			'userId' => $this->file->getUserId(),
 			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
@@ -640,6 +621,7 @@ class FileService {
 				'mime' => $this->fileData->mime ?? '',
 				'size' => $this->fileData->size ?? 0,
 				'signers' => $this->fileData->signers ?? [],
+				'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->fileData->uuid]),
 			],
 		];
 	}
