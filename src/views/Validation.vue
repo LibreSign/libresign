@@ -200,13 +200,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function toNumber(value: unknown): number | null {
-	if (typeof value === 'number' && Number.isFinite(value)) {
-		return value
-	}
-	if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) {
-		return Number(value)
-	}
-	return null
+	return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
 function toValidationStatus(value: unknown): ValidationStatus | null {
@@ -225,292 +219,121 @@ function toSignerStatus(value: unknown): SignerDetailRecord['status'] | null {
 	return null
 }
 
-function toStringOrNull(value: unknown): string | null {
-	return typeof value === 'string' ? value : null
+function isString(value: unknown): value is string {
+	return typeof value === 'string'
 }
 
 function isNullableString(value: unknown): value is string | null {
 	return value === null || typeof value === 'string'
 }
 
-function normalizeRequestedBy(value: unknown): ValidationFileRecord['requested_by'] | null {
+function isRequestedBy(value: unknown): value is ValidationFileRecord['requested_by'] {
 	if (!isRecord(value)) {
-		return null
+		return false
 	}
-	const userId = toStringOrNull(value.userId)
-	const displayName = toStringOrNull(value.displayName)
-	if (!userId || !displayName) {
-		return null
-	}
-	return {
-		userId,
-		displayName,
-	}
+	return isString(value.userId) && isString(value.displayName)
 }
 
-function normalizeValidationMetadata(value: unknown): ValidationFileRecord['metadata'] | undefined {
+function isValidationMetadata(value: unknown): value is NonNullable<ValidationFileRecord['metadata']> {
 	if (!isRecord(value)) {
-		return undefined
+		return false
 	}
-	const extension = toStringOrNull(value.extension)
-	const p = toNumber(value.p)
-	if (!extension || p === null) {
-		return undefined
-	}
-	return {
-		extension,
-		p,
-	}
+	return isString(value.extension) && typeof value.p === 'number'
 }
 
-function normalizeValidationSettings(value: unknown): ValidationFileRecord['settings'] | undefined {
+function isValidationSettings(value: unknown): value is NonNullable<ValidationFileRecord['settings']> {
 	if (!isRecord(value)) {
-		return undefined
+		return false
 	}
-	if (
-		typeof value.canSign !== 'boolean'
-		|| typeof value.canRequestSign !== 'boolean'
-		|| typeof value.phoneNumber !== 'string'
-		|| typeof value.hasSignatureFile !== 'boolean'
-		|| typeof value.needIdentificationDocuments !== 'boolean'
-		|| typeof value.identificationDocumentsWaitingApproval !== 'boolean'
-	) {
-		return undefined
-	}
-	return {
-		canSign: value.canSign,
-		canRequestSign: value.canRequestSign,
-		phoneNumber: value.phoneNumber,
-		hasSignatureFile: value.hasSignatureFile,
-		needIdentificationDocuments: value.needIdentificationDocuments,
-		identificationDocumentsWaitingApproval: value.identificationDocumentsWaitingApproval,
-		isApprover: typeof value.isApprover === 'boolean' ? value.isApprover : undefined,
-	}
+	return typeof value.canSign === 'boolean'
+		&& typeof value.canRequestSign === 'boolean'
+		&& typeof value.phoneNumber === 'string'
+		&& typeof value.hasSignatureFile === 'boolean'
+		&& typeof value.needIdentificationDocuments === 'boolean'
+		&& typeof value.identificationDocumentsWaitingApproval === 'boolean'
+		&& (typeof value.isApprover === 'boolean' || value.isApprover === undefined)
 }
 
-function normalizeValidationSigner(signer: unknown): SignerDetailRecord | null {
-	if (!isRecord(signer)) {
-		return null
+function isSignerDetailRecord(value: unknown): value is SignerDetailRecord {
+	if (!isRecord(value)) {
+		return false
 	}
 
-	const signRequestId = toNumber(signer.signRequestId)
-	const displayName = toStringOrNull(signer.displayName)
-	const email = toStringOrNull(signer.email)
-	const signed = isNullableString(signer.signed) ? signer.signed : null
-	const status = toSignerStatus(signer.status)
-	const statusText = toStringOrNull(signer.statusText)
-	const description = isNullableString(signer.description) ? signer.description : null
-	const requestSignDate = toStringOrNull(signer.request_sign_date)
-	const me = typeof signer.me === 'boolean' ? signer.me : null
-	const visibleElements = Array.isArray(signer.visibleElements) ? signer.visibleElements : null
-
-	if (
-		signRequestId === null
-		|| !displayName
-		|| !email
-		|| status === null
-		|| !statusText
-		|| !requestSignDate
-		|| me === null
-		|| !visibleElements
-	) {
-		return null
-	}
-
-	const normalizedSigner: SignerDetailRecord = {
-		signRequestId,
-		displayName,
-		email,
-		signed,
-		status,
-		statusText,
-		description,
-		request_sign_date: requestSignDate,
-		me,
-		visibleElements,
-	}
-
-	const subject = toStringOrNull(signer.subject)
-	if (subject) {
-		normalizedSigner.subject = subject
-	}
-	const validFrom = toNumber(signer.valid_from)
-	if (validFrom !== null) {
-		normalizedSigner.valid_from = validFrom
-	}
-	const validTo = toNumber(signer.valid_to)
-	if (validTo !== null) {
-		normalizedSigner.valid_to = validTo
-	}
-	const remoteAddress = toStringOrNull(signer.remote_address)
-	if (remoteAddress) {
-		normalizedSigner.remote_address = remoteAddress
-	}
-	const userAgent = toStringOrNull(signer.user_agent)
-	if (userAgent) {
-		normalizedSigner.user_agent = userAgent
-	}
-	const userId = toStringOrNull(signer.userId)
-	if (userId) {
-		normalizedSigner.userId = userId
-	}
-	const signDate = isNullableString(signer.sign_date) ? signer.sign_date : undefined
-	if (signDate !== undefined) {
-		normalizedSigner.sign_date = signDate
-	}
-	const signRequestUuid = toStringOrNull(signer.sign_request_uuid)
-	if (signRequestUuid) {
-		normalizedSigner.sign_request_uuid = signRequestUuid
-	}
-	const hashAlgorithm = toStringOrNull(signer.hash_algorithm)
-	if (hashAlgorithm) {
-		normalizedSigner.hash_algorithm = hashAlgorithm
-	}
-	const signingOrder = toNumber(signer.signingOrder)
-	if (signingOrder !== null) {
-		normalizedSigner.signingOrder = signingOrder
-	}
-
-	return normalizedSigner
+	return typeof value.signRequestId === 'number'
+		&& isString(value.displayName)
+		&& isString(value.email)
+		&& isNullableString(value.signed)
+		&& toSignerStatus(value.status) !== null
+		&& isString(value.statusText)
+		&& isNullableString(value.description)
+		&& isString(value.request_sign_date)
+		&& typeof value.me === 'boolean'
+		&& Array.isArray(value.visibleElements)
 }
 
-function normalizeValidationChildFile(file: unknown): ValidatedChildFileRecord | null {
-	if (!isRecord(file)) {
-		return null
+function isValidatedChildFileRecord(value: unknown): value is ValidatedChildFileRecord {
+	if (!isRecord(value)) {
+		return false
 	}
 
-	const id = toNumber(file.id)
-	const uuid = toStringOrNull(file.uuid)
-	const name = toStringOrNull(file.name)
-	const status = toValidationStatus(file.status)
-	const statusText = toStringOrNull(file.statusText)
-	const nodeId = toNumber(file.nodeId)
-	const size = toNumber(file.size)
-	const fileUrl = toStringOrNull(file.file)
-	const metadata = isRecord(file.metadata) ? file.metadata : null
-	const metadataExtension = metadata ? toStringOrNull(metadata.extension) : null
-	const metadataPageCount = metadata ? toNumber(metadata.p) : null
-	const signers = Array.isArray(file.signers) ? file.signers : null
-
-	if (
-		id === null
-		|| !uuid
-		|| !name
-		|| status === null
-		|| !statusText
-		|| nodeId === null
-		|| size === null
-		|| !fileUrl
-		|| !metadata
-		|| !metadataExtension
-		|| metadataPageCount === null
-		|| !signers
-	) {
-		return null
-	}
-
-	return {
-		id,
-		uuid,
-		name,
-		status,
-		statusText,
-		nodeId,
-		totalPages: toNumber(file.totalPages) ?? 0,
-		size,
-		pdfVersion: toStringOrNull(file.pdfVersion) ?? '',
-		signers,
-		file: fileUrl,
-		metadata: {
-			extension: metadataExtension,
-			p: metadataPageCount,
-		},
-	}
+	return typeof value.id === 'number'
+		&& isString(value.uuid)
+		&& isString(value.name)
+		&& toValidationStatus(value.status) !== null
+		&& isString(value.statusText)
+		&& typeof value.nodeId === 'number'
+		&& typeof value.size === 'number'
+		&& Array.isArray(value.signers)
+		&& isString(value.file)
+		&& isValidationMetadata(value.metadata)
 }
 
-function normalizeValidationDocument(data: unknown): ValidationFileRecord | null {
+function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord {
 	if (!isRecord(data)) {
-		return null
+		return false
 	}
-
-	const id = toNumber(data.id)
-	const uuid = typeof data.uuid === 'string' ? data.uuid : null
-	const name = typeof data.name === 'string' ? data.name : null
-	const nodeId = toNumber(data.nodeId)
-	const status = toValidationStatus(data.status)
-	const statusText = toStringOrNull(data.statusText)
-	const signatureFlow = toNumber(data.signatureFlow)
-	const docmdpLevel = toNumber(data.docmdpLevel)
-	const filesCount = toNumber(data.filesCount)
-	const totalPages = toNumber(data.totalPages)
-	const size = toNumber(data.size)
-	const pdfVersion = toStringOrNull(data.pdfVersion)
-	const createdAt = toStringOrNull(data.created_at)
-	const requestedBy = normalizeRequestedBy(data.requested_by)
-	const files = Array.isArray(data.files)
-		? data.files
-			.map(normalizeValidationChildFile)
-			.filter((file): file is ValidatedChildFileRecord => file !== null)
-		: []
-	const signers = Array.isArray(data.signers)
-		? data.signers
-			.map(normalizeValidationSigner)
-			.filter((signer): signer is SignerDetailRecord => signer !== null)
-		: []
-	const nodeType = data.nodeType === 'envelope'
-		? 'envelope'
-		: data.nodeType === 'file'
-			? 'file'
-			: null
-
 	if (
-		id === null
-		|| !uuid
-		|| !name
-		|| nodeId === null
-		|| status === null
-		|| !statusText
-		|| nodeType === null
-		|| signatureFlow === null
-		|| docmdpLevel === null
-		|| filesCount === null
-		|| totalPages === null
-		|| size === null
-		|| !pdfVersion
-		|| !createdAt
-		|| !requestedBy
+		typeof data.id !== 'number'
+		|| !isString(data.uuid)
+		|| !isString(data.name)
+		|| toValidationStatus(data.status) === null
+		|| !isString(data.statusText)
+		|| typeof data.nodeId !== 'number'
+		|| (data.nodeType !== 'file' && data.nodeType !== 'envelope')
+		|| typeof data.signatureFlow !== 'number'
+		|| typeof data.docmdpLevel !== 'number'
+		|| typeof data.filesCount !== 'number'
+		|| !Array.isArray(data.files)
+		|| typeof data.totalPages !== 'number'
+		|| typeof data.size !== 'number'
+		|| !isString(data.pdfVersion)
+		|| !isString(data.created_at)
+		|| !isRequestedBy(data.requested_by)
 	) {
-		return null
+		return false
 	}
 
-	return {
-		id,
-		uuid,
-		name,
-		statusText,
-		nodeId,
-		status,
-		nodeType,
-		signatureFlow,
-		docmdpLevel,
-		filesCount,
-		files,
-		totalPages,
-		size,
-		pdfVersion,
-		created_at: createdAt,
-		requested_by: requestedBy,
-		file: toStringOrNull(data.file) ?? undefined,
-		url: toStringOrNull(data.url) ?? undefined,
-		mime: toStringOrNull(data.mime) ?? undefined,
-		metadata: normalizeValidationMetadata(data.metadata),
-		signersCount: toNumber(data.signersCount) ?? undefined,
-		signers,
-		settings: normalizeValidationSettings(data.settings),
-		messages: Array.isArray(data.messages) ? data.messages : undefined,
-		visibleElements: Array.isArray(data.visibleElements) ? data.visibleElements : undefined,
-		pages: Array.isArray(data.pages) ? data.pages : undefined,
+	if (!data.files.every(isValidatedChildFileRecord)) {
+		return false
 	}
+
+	if (data.signers !== undefined && (!Array.isArray(data.signers) || !data.signers.every(isSignerDetailRecord))) {
+		return false
+	}
+
+	if (data.metadata !== undefined && !isValidationMetadata(data.metadata)) {
+		return false
+	}
+
+	if (data.settings !== undefined && !isValidationSettings(data.settings)) {
+		return false
+	}
+
+	return true
+}
+
+function toValidationDocument(data: unknown): ValidationFileRecord | null {
+	return isValidationDocumentRecord(data) ? data : null
 }
 
 function getValidationErrorMessage(response: ValidationErrorResponse | undefined, fallback: string): string {
@@ -997,7 +820,7 @@ function handleValidationSuccess(data: unknown) {
 		return
 	}
 	documentValidMessage.value = t('libresign', 'This document is valid')
-	const normalizedDocument = normalizeValidationDocument(data)
+	const normalizedDocument = toValidationDocument(data)
 	if (!normalizedDocument) {
 		setValidationError(t('libresign', 'Failed to validate document'))
 		return
@@ -1070,7 +893,7 @@ function handleSigningComplete(file?: unknown) {
 	}
 	isAsyncSigning.value = false
 	shouldFireAsyncConfetti.value = true
-	const normalizedFile = normalizeValidationDocument(file)
+	const normalizedFile = toValidationDocument(file)
 	if (normalizedFile) {
 		loading.value = false
 		handleValidationSuccess(normalizedFile)
@@ -1106,7 +929,7 @@ watch(() => route.value.params?.uuid, (uuid) => {
 	}
 })
 
-document.value = normalizeValidationDocument(loadState('libresign', 'file_info', {}))
+document.value = toValidationDocument(loadState('libresign', 'file_info', {}))
 
 if (!uuidToValidate.value) {
 	document.value = null
