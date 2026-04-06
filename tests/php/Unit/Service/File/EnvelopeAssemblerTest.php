@@ -23,6 +23,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\NullLogger;
 
@@ -294,6 +295,46 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$result->signers[0]->identifyMethods
 		);
 		$this->assertSame(['certificate_info' => ['serialNumber' => '1234']], $result->signers[0]->metadata);
+	}
+
+	#[DataProvider('provideChildMetadataContractScenarios')]
+	public function testBuildEnvelopeChildNormalizesMetadataContract(
+		string $filename,
+		array $initialMetadata,
+		int $expectedP,
+		string $expectedExtension,
+	): void {
+		$this->mockFileNode();
+
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+		$this->fileMapper->method('getTextOfStatus')->willReturn('pending');
+
+		$childFile = new DbFile();
+		$childFile->setId(1);
+		$childFile->setUuid('uuid-1');
+		$childFile->setName($filename);
+		$childFile->setStatus(1);
+		$childFile->setNodeId(100);
+		$childFile->setUserId('user1');
+		$childFile->setMetadata($initialMetadata);
+
+		$options = new FileResponseOptions();
+		$result = $this->getService()->buildEnvelopeChildData($childFile, $options);
+
+		$this->assertIsArray($result->metadata);
+		$this->assertSame($expectedP, $result->metadata['p']);
+		$this->assertSame($expectedExtension, $result->metadata['extension']);
+	}
+
+	public static function provideChildMetadataContractScenarios(): array {
+		return [
+			'extension absent → derived from filename lowercased' => ['contract.PDF', [], 0, 'pdf'],
+			'filename without extension → pdf fallback' => ['contract', [], 0, 'pdf'],
+			'empty extension in metadata → derived from filename' => ['doc.pdf', ['extension' => ''], 0, 'pdf'],
+			'non-string extension in metadata → derived from filename' => ['doc.pdf', ['extension' => 42], 0, 'pdf'],
+			'extension already set → preserved' => ['renamed.PDF', ['extension' => 'docx'], 0, 'docx'],
+			'p in metadata preserved as totalPages' => ['doc.pdf', ['p' => 5], 5, 'pdf'],
+		];
 	}
 
 	private function createMockFileElement(
