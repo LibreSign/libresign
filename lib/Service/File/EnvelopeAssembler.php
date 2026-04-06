@@ -16,6 +16,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\IRootFolder;
+use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 
 class EnvelopeAssembler {
@@ -24,6 +25,7 @@ class EnvelopeAssembler {
 		private IdentifyMethodService $identifyMethodService,
 		private FileMapper $fileMapper,
 		private IRootFolder $root,
+		private IURLGenerator $urlGenerator,
 		private SignersLoader $signersLoader,
 		private ?CertificateChainService $certificateChainService,
 		private \OCA\Libresign\Handler\SignEngine\Pkcs12Handler $pkcs12Handler,
@@ -40,6 +42,7 @@ class EnvelopeAssembler {
 		$fileData->status = $childFile->getStatus();
 		$fileData->statusText = $this->fileMapper->getTextOfStatus($childFile->getStatus());
 		$fileData->nodeId = $childFile->getNodeId();
+		$fileData->file = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $childFile->getUuid()]);
 		$childMetadata = $childFile->getMetadata() ?? [];
 		$fileData->totalPages = (int)($childMetadata['p'] ?? 0);
 		$fileData->pdfVersion = (string)($childMetadata['pdfVersion'] ?? '');
