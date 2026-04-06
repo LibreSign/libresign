@@ -74,6 +74,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 
 import { openDocument } from '../../../utils/viewer.js'
+import { getSigningRouteUuid } from '../../../utils/signRequestUuid.ts'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -93,13 +94,12 @@ defineOptions({
 })
 
 type SourceFile = FileEntrySource & {
-	signUuid?: string | null
 	settings?: {
-		signerFileUuid?: string | null
+		isApprover?: boolean
 	}
 	signers?: Array<{
 		me?: boolean
-		sign_uuid?: string | null
+		sign_request_uuid?: string | null
 	}>
 }
 
@@ -154,13 +154,7 @@ function registerAction(action: MenuAction) {
 }
 
 function getSignRouteUuid(file: SourceFile | null | undefined) {
-	const signer = file?.signers?.find((row) => row?.me) || file?.signers?.[0]
-	const fromSettings = typeof file?.settings?.signerFileUuid === 'string' && file.settings.signerFileUuid.length > 0
-		? file.settings.signerFileUuid
-		: null
-
-	return [file?.signUuid, signer?.sign_uuid, fromSettings, props.source.signUuid]
-		.find((value): value is string => typeof value === 'string' && value.length > 0) || ''
+	return getSigningRouteUuid(file) || ''
 }
 
 function visibleIf(action: Pick<MenuAction, 'id'>) {
@@ -191,8 +185,8 @@ async function onActionClick(action: Pick<MenuAction, 'id'>) {
 		sidebarStore.activeRequestSignatureTab()
 	} else if (action.id === 'sign') {
 		const detailedFile = await filesStore.fetchFileDetail({ fileId: props.source.id, force: true }) as SourceFile | undefined
-		const signUuid = getSignRouteUuid(detailedFile)
-		if (!signUuid || !detailedFile) {
+		const signRequestUuid = getSignRouteUuid(detailedFile)
+		if (!signRequestUuid || !detailedFile) {
 			return
 		}
 		filesStore.selectFile(props.source.id)
@@ -200,7 +194,7 @@ async function onActionClick(action: Pick<MenuAction, 'id'>) {
 		await router.push({
 			name: 'SignPDF',
 			params: {
-				uuid: signUuid,
+				uuid: signRequestUuid,
 			},
 		})
 		sidebarStore.activeSignTab()
