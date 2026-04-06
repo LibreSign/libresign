@@ -53,7 +53,7 @@ class File extends Entity {
 	protected string $uuid = '';
 	protected ?\DateTime $createdAt = null;
 	protected string $name = '';
-	protected ?int $status = FileStatus::DRAFT->value;
+	protected ?int $status = null;
 	protected ?string $userId = null;
 	protected ?int $signedNodeId = null;
 	protected ?string $signedHash = null;
