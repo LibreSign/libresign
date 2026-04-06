@@ -23,6 +23,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\IURLGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\NullLogger;
@@ -32,6 +33,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private FileMapper&MockObject $fileMapper;
 	private IRootFolder&MockObject $root;
+	private IURLGenerator&MockObject $urlGenerator;
 	private SignersLoader&MockObject $signersLoader;
 	private Pkcs12Handler&MockObject $pkcs12Handler;
 	private FileElementService&MockObject $fileElementService;
@@ -42,6 +44,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->root = $this->createMock(IRootFolder::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->signersLoader = $this->createMock(SignersLoader::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->fileElementService = $this->createMock(FileElementService::class);
@@ -53,6 +56,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->identifyMethodService,
 			$this->fileMapper,
 			$this->root,
+			$this->urlGenerator,
 			$this->signersLoader,
 			null,
 			$this->pkcs12Handler,
@@ -66,6 +70,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode = $this->createMock(File::class);
 		$folder->method('getFirstNodeById')->willReturn($fileNode);
 		$this->root->method('getUserFolder')->willReturn($folder);
+		$this->urlGenerator->method('linkToRoute')->willReturn('http://example.com/page.pdf');
 	}
 
 	public function testBuildsChildDataWithoutCertificateChain(): void {
@@ -104,6 +109,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertIsObject($result);
 		$this->assertEquals(7, $result->id);
 		$this->assertEquals('child.pdf', $result->name);
+		$this->assertSame('http://example.com/page.pdf', $result->file);
 		$this->assertIsArray($result->signers);
 		$this->assertCount(1, $result->signers);
 		$this->assertEquals(42, $result->signers[0]->signRequestId);
