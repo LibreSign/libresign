@@ -264,6 +264,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'empty extension in metadata treated as missing' => ['contract.pdf', ['extension' => ''], 0, 'pdf'],
 			'existing extension in metadata is preserved' => ['renamed.PDF', ['extension' => 'docx'], 0, 'docx'],
 			'p in metadata is preserved as totalPages when already set' => ['doc.pdf', ['p' => 99], 99, 'pdf'],
+			'non-string extension in metadata treated as missing' => ['doc.pdf', ['extension' => 42], 0, 'pdf'],
 		];
 	}
 }
