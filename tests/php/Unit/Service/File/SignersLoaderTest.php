@@ -10,13 +10,19 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 
 use DateTime;
 use DateTimeInterface;
+use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\CrlValidationStatus;
+use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\SignersLoader;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Accounts\IAccountManager;
+use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -45,6 +51,63 @@ final class SignersLoaderTest extends TestCase {
 			$this->accountManager,
 			$this->userManager,
 		);
+	}
+
+	public function testLoadLibreSignSignersUsesCanonicalSignerUuidWithoutSettingsLeak(): void {
+		$file = new File();
+		$file->setId(10);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(52);
+		$signRequest->setFileId(10);
+		$signRequest->setUuid('sign-request-uuid');
+		$signRequest->setDisplayName('Signer User');
+		$signRequest->setCreatedAt(new DateTime('2026-01-01T00:00:00Z'));
+		$signRequest->setStatus(1);
+
+		$identifyEntity = new IdentifyMethod();
+		$identifyEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+		$identifyEntity->setIdentifierValue('signer@example.com');
+		$identifyEntity->setMandatory(1);
+
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getEntity')->willReturn($identifyEntity);
+
+		$currentIdentifyMethod = $this->createMock(IIdentifyMethod::class);
+		$currentIdentifyMethod->method('getSignatureMethods')->willReturn([]);
+
+		$currentUser = $this->createMock(IUser::class);
+		$currentUser->method('getUID')->willReturn('signer-user');
+		$currentUser->method('getEMailAddress')->willReturn('signer@example.com');
+
+		$options = new FileResponseOptions();
+		$options->setMe($currentUser);
+
+		$fileData = new \stdClass();
+		$fileData->settings = [
+			'canSign' => false,
+			'canRequestSign' => false,
+			'phoneNumber' => '',
+		];
+
+		$this->signRequestMapper->method('getByFileId')->with(10)->willReturn([$signRequest]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn([
+			52 => [
+				IdentifyMethodService::IDENTIFY_EMAIL => [$identifyMethod],
+			],
+		]);
+		$this->identifyMethodService->method('setCurrentIdentifyMethod')->willReturnSelf();
+		$this->identifyMethodService->method('getInstanceOfIdentifyMethod')->willReturn($currentIdentifyMethod);
+
+		$this->getService()->loadLibreSignSigners($file, $fileData, $options);
+
+		$this->assertCount(1, $fileData->signers);
+		$this->assertSame('sign-request-uuid', $fileData->signers[0]->sign_request_uuid);
+		$this->assertObjectNotHasProperty('sign_uuid', $fileData->signers[0]);
+		$this->assertTrue($fileData->settings['canSign']);
+		$this->assertArrayNotHasKey('signerFileUuid', $fileData->settings);
 	}
 
 	#[DataProvider('dataLoadSignersFromCertData')]
