@@ -411,7 +411,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 		it('uses generateUrl for signing modal links', async () => {
 			await wrapper.setProps({ useModal: true })
-			await updateFile({ signUuid: 'sign-uuid' })
+			await updateFile({ signers: [{ me: true, sign_request_uuid: 'sign-uuid' }] })
 
 			await wrapper.vm.sign()
 
@@ -419,25 +419,25 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.modalSrc).toBe('/apps/libresign/p/sign/sign-uuid/pdf')
 		})
 
-		it('falls back to signerFileUuid for signing modal links when signUuid is missing', async () => {
+		it('uses the file uuid for approver signing modal links', async () => {
 			await wrapper.setProps({ useModal: true })
 			await updateFile({
-				signUuid: null,
-				settings: { signerFileUuid: 'mobile-fallback-uuid' },
+				uuid: 'approver-file-uuid',
+				signers: [],
+				settings: { isApprover: true },
 			})
 			generateUrlMock.mockClear()
 
 			await wrapper.vm.sign()
 
-			expect(generateUrlMock).toHaveBeenCalledWith('/apps/libresign/p/sign/{uuid}/pdf', { uuid: 'mobile-fallback-uuid' })
-			expect(wrapper.vm.modalSrc).toBe('/apps/libresign/p/sign/mobile-fallback-uuid/pdf')
+			expect(generateUrlMock).toHaveBeenCalledWith('/apps/libresign/p/sign/{uuid}/pdf', { uuid: 'approver-file-uuid' })
+			expect(wrapper.vm.modalSrc).toBe('/apps/libresign/p/sign/approver-file-uuid/pdf')
 		})
 
-		it('falls back to signer sign_uuid when signUuid is missing', async () => {
+		it('uses the current signer sign_request_uuid when signing root fields are absent', async () => {
 			await wrapper.setProps({ useModal: true })
 			await updateFile({
-				signUuid: null,
-				signers: [{ me: true, sign_uuid: 'signer-uuid-123' }],
+				signers: [{ me: true, sign_request_uuid: 'signer-uuid-123' }],
 			})
 			generateUrlMock.mockClear()
 
@@ -464,9 +464,8 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 			await wrapper.setProps({ useModal: true })
 			await updateFile({
-				signUuid: null,
 				signers: [],
-				settings: { signerFileUuid: '' },
+				settings: { isApprover: false },
 			})
 			generateUrlMock.mockClear()
 
