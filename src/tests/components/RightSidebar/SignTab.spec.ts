@@ -35,7 +35,7 @@ type SignDocument = {
 	signers: Array<{
 		me?: boolean
 		status?: number
-		sign_uuid?: string
+		sign_request_uuid?: string
 		signatureMethods?: SignatureMethodsRecord
 	}>
 	visibleElements: Array<Record<string, unknown>>
@@ -168,79 +168,41 @@ describe('SignTab', () => {
 		})
 	})
 
-	describe('RULE: getSignRequestUuid uses fallback chain to find UUID', () => {
-		it('uses document signRequestUuid when available', async () => {
-			signStore.document = createDocument({ signRequestUuid: 'doc-uuid' })
-			wrapper = await createWrapper()
-
-			expect(wrapper.vm.getSignRequestUuid()).toBe('doc-uuid')
-		})
-
-		it('falls back to sign_request_uuid', async () => {
-			signStore.document = createDocument({ sign_request_uuid: 'doc-snake-uuid' })
-			wrapper = await createWrapper()
-
-			expect(wrapper.vm.getSignRequestUuid()).toBe('doc-snake-uuid')
-		})
-
-		it('falls back to signUuid', async () => {
-			signStore.document = createDocument({ signUuid: 'sign-uuid' })
-			wrapper = await createWrapper()
-
-			expect(wrapper.vm.getSignRequestUuid()).toBe('sign-uuid')
-		})
-
-		it('falls back to sign_uuid', async () => {
-			signStore.document = createDocument({ sign_uuid: 'sign-snake-uuid' })
-			wrapper = await createWrapper()
-
-			expect(wrapper.vm.getSignRequestUuid()).toBe('sign-snake-uuid')
-		})
-
-		it('uses signer sign_uuid when document has none', async () => {
+	describe('RULE: getSignRequestUuid uses the current signer contract', () => {
+		it('uses the current signer sign_request_uuid when available', async () => {
 			signStore.document = createDocument({
-				signers: [{ sign_uuid: 'signer-uuid' }],
+				signers: [{ me: true, sign_request_uuid: 'signer-uuid' }],
 			})
 			wrapper = await createWrapper()
 
 			expect(wrapper.vm.getSignRequestUuid()).toBe('signer-uuid')
 		})
 
-		it('prefers document UUID over signer UUID', async () => {
+		it('uses the file uuid for approver routes', async () => {
 			signStore.document = createDocument({
-				signRequestUuid: 'doc-uuid',
-				signers: [{ sign_uuid: 'signer-uuid' }],
+				uuid: 'approver-file-uuid',
+				settings: { isApprover: true },
+				signers: [{ me: true, sign_request_uuid: 'signer-uuid' }],
 			})
 			wrapper = await createWrapper()
 
-			expect(wrapper.vm.getSignRequestUuid()).toBe('doc-uuid')
+			expect(wrapper.vm.getSignRequestUuid()).toBe('approver-file-uuid')
 		})
 
-		it('uses me signer when available', async () => {
-			signStore.document = createDocument({
-				signers: [
-					{ sign_uuid: 'other-uuid' },
-					{ me: true, sign_uuid: 'my-uuid' },
-				],
-			})
-			wrapper = await createWrapper()
-
-			expect(wrapper.vm.getSignRequestUuid()).toBe('my-uuid')
-		})
-
-		it('falls back to first signer when no me', async () => {
+		it('does not fall back to a non-current signer', async () => {
 			signStore.document = createDocument({
 				signers: [
-					{ sign_uuid: 'first-uuid' },
-					{ sign_uuid: 'second-uuid' },
+					{ sign_request_uuid: 'first-uuid' },
+					{ sign_request_uuid: 'second-uuid' },
 				],
 			})
+			vi.mocked(loadState).mockReturnValue(null)
 			wrapper = await createWrapper()
 
-			expect(wrapper.vm.getSignRequestUuid()).toBe('first-uuid')
+			expect(wrapper.vm.getSignRequestUuid()).toBeNull()
 		})
 
-		it('falls back to loadState when nothing else available', async () => {
+		it('falls back to loadState when no current signer uuid is available', async () => {
 			vi.mocked(loadState).mockReturnValue('state-uuid')
 			signStore.document = createDocument()
 			wrapper = await createWrapper()
@@ -318,7 +280,7 @@ describe('SignTab', () => {
 		it('calls onSigningStarted when status is SIGNING_IN_PROGRESS', async () => {
 			signStore.document = createDocument({
 				status: FILE_STATUS.SIGNING_IN_PROGRESS,
-				signRequestUuid: 'progress-uuid',
+				signers: [{ me: true, sign_request_uuid: 'progress-uuid' }],
 			})
 			wrapper = await createWrapper('/', true)
 
@@ -333,7 +295,7 @@ describe('SignTab', () => {
 		it('does not call onSigningStarted for other statuses', async () => {
 			signStore.document = createDocument({
 				status: FILE_STATUS.ABLE_TO_SIGN,
-				signRequestUuid: 'able-uuid',
+				signers: [{ me: true, sign_request_uuid: 'able-uuid' }],
 			})
 			wrapper = await createWrapper('/', true)
 
