@@ -549,5 +549,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertIsArray($result['files']);
 		$this->assertCount(1, $result['files']);
 		$this->assertSame('file-uuid', $result['files'][0]['uuid']);
+		$this->assertSame('libresign.page.getPdf:file-uuid', $result['files'][0]['file']);
 	}
 }
