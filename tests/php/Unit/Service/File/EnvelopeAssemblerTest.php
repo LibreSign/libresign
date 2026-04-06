@@ -342,25 +342,4 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'p in metadata preserved as totalPages' => ['doc.pdf', ['p' => 5], 5, 'pdf'],
 		];
 	}
-
-	private function createMockFileElement(
-		int $id,
-		int $signRequestId,
-		int $page,
-		int $llx,
-		int $lly,
-		int $urx,
-		int $ury,
-	): \OCA\Libresign\Db\FileElement {
-		$element = $this->createMock(\OCA\Libresign\Db\FileElement::class);
-		$element->method('getId')->willReturn($id);
-		$element->method('getSignRequestId')->willReturn($signRequestId);
-		$element->method('getPage')->willReturn($page);
-		$element->method('getLlx')->willReturn($llx);
-		$element->method('getLly')->willReturn($lly);
-		$element->method('getUrx')->willReturn($urx);
-		$element->method('getUry')->willReturn($ury);
-		$element->method('getMetadata')->willReturn([]);
-		return $element;
-	}
 }
