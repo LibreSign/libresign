@@ -121,6 +121,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testLoadMetadataLogsWarningOnError(): void {
 		$file = new File();
 		$file->setId(1);
+		$file->setName('document.pdf');
 		$file->setUserId('user123');
 		$file->setSignedNodeId(123);
 
@@ -139,8 +140,9 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService();
 		$service->loadMetadata($file, $fileData);
 
-		// Should not throw exception
-		$this->assertTrue(true);
+		$this->assertIsArray($fileData->metadata);
+		$this->assertSame(0, $fileData->metadata['p']);
+		$this->assertSame('pdf', $fileData->metadata['extension']);
 	}
 
 	#[DataProvider('provideNodeIdPrecedenceScenarios')]
