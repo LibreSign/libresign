@@ -254,7 +254,7 @@ function normalizeValidationDocument(data: unknown): ValidationFileRecord | null
 		? 'envelope'
 		: data.nodeType === 'file'
 			? 'file'
-				: null
+			: null
 
 	if (!uuid || !name || nodeId === null || status === null || nodeType === null) {
 		return null
@@ -328,8 +328,7 @@ const signRequestUuidForProgress = computed(() => {
 
 const isAfterSigned = computed(() => history.state?.isAfterSigned ?? shouldFireAsyncConfetti.value ?? false)
 
-const isEnvelope = computed(() => document.value?.nodeType === 'envelope'
-	|| (Array.isArray(document.value?.files) && document.value.files.length > 0))
+const isEnvelope = computed(() => document.value?.nodeType === 'envelope')
 
 const validationComponent = computed(() => (isEnvelope.value ? EnvelopeValidation : FileValidation))
 const validationDocument = computed(() => document.value)
