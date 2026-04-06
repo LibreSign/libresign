@@ -985,4 +985,67 @@ describe('Validation.vue - Business Logic', () => {
 			})
 		})
 	})
+
+	describe('status contract guards', () => {
+		const createLoadedValidationDocument = (patch: Record<string, unknown> = {}) => ({
+			id: 100,
+			uuid: '550e8400-e29b-41d4-a716-446655440000',
+			name: 'contract.pdf',
+			statusText: 'Pending',
+			nodeId: 100,
+			nodeType: 'file',
+			signatureFlow: 0,
+			docmdpLevel: 0,
+			filesCount: 1,
+			files: [{
+				id: 100,
+				uuid: '550e8400-e29b-41d4-a716-446655440000',
+				name: 'contract.pdf',
+				status: 1,
+				statusText: 'Pending',
+				nodeId: 100,
+				totalPages: 1,
+				size: 10,
+				pdfVersion: '1.7',
+				signers: [],
+				file: '/apps/libresign/p/pdf/550e8400-e29b-41d4-a716-446655440000',
+				metadata: { extension: 'pdf', p: 1 },
+			}],
+			totalPages: 1,
+			size: 10,
+			pdfVersion: '1.7',
+			created_at: '2026-01-01T00:00:00Z',
+			requested_by: { userId: 'creator-user', displayName: 'Creator User' },
+			status: 1,
+			signers: [],
+			...patch,
+		})
+
+		it('rejects document payload when status is null', () => {
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({ status: null }))
+
+			expect(wrapper.vm.document).toBe(null)
+			expect(wrapper.vm.validationErrorMessage).toBe('Failed to validate document')
+		})
+
+		it('rejects document payload when signer status is out of range', () => {
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({
+				signers: [{
+					signRequestId: 1,
+					displayName: 'Signer',
+					email: 'signer@example.com',
+					signed: null,
+					status: 99,
+					statusText: 'Invalid',
+					description: null,
+					request_sign_date: '2026-01-01T00:00:00Z',
+					me: false,
+					visibleElements: [],
+				}],
+			}))
+
+			expect(wrapper.vm.document).toBe(null)
+			expect(wrapper.vm.validationErrorMessage).toBe('Failed to validate document')
+		})
+	})
 })
