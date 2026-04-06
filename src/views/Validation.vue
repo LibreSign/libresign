@@ -204,16 +204,26 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
 }
 
-function toStringRecord(value: unknown): Record<string, string> {
+function normalizeRouteRecord(value: unknown, source: 'params' | 'query'): Record<string, string> {
 	if (!isRecord(value)) {
 		return {}
 	}
 
 	const result: Record<string, string> = {}
+	const droppedKeys: string[] = []
 	for (const [key, entry] of Object.entries(value)) {
 		if (typeof entry === 'string') {
 			result[key] = entry
+		} else {
+			droppedKeys.push(key)
 		}
+	}
+
+	if (droppedKeys.length > 0) {
+		logger.warn('Validation route normalization dropped non-string entries', {
+			source,
+			droppedKeys,
+		})
 	}
 
 	return result
@@ -429,8 +439,8 @@ const route = computed<RouteState>(() => {
 	const rawRoute = (instance?.proxy?.$route as Partial<RouteState> | undefined) ?? {}
 	return {
 		name: typeof rawRoute.name === 'string' ? rawRoute.name : null,
-		params: toStringRecord(rawRoute.params),
-		query: toStringRecord(rawRoute.query),
+		params: normalizeRouteRecord(rawRoute.params, 'params'),
+		query: normalizeRouteRecord(rawRoute.query, 'query'),
 	}
 })
 const router = computed<RouterState>(() => (instance?.proxy?.$router as RouterState | undefined) ?? { push: () => {}, replace: () => {} })
