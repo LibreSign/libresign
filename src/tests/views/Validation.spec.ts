@@ -1081,5 +1081,26 @@ describe('Validation.vue - Business Logic', () => {
 			expect(wrapper.vm.document).toBe(null)
 			expect(wrapper.vm.validationErrorMessage).toBe('Failed to validate document')
 		})
+
+		it('normalizes missing optional fields to internal defaults', () => {
+			const payload = createLoadedValidationDocument()
+			delete (payload as Record<string, unknown>).signers
+			delete (payload as Record<string, unknown>).metadata
+			delete (payload as Record<string, unknown>).settings
+
+			wrapper.vm.handleValidationSuccess(payload)
+
+			expect(wrapper.vm.document).not.toBe(null)
+			expect(wrapper.vm.document.signers).toEqual([])
+			expect(wrapper.vm.document.metadata).toEqual({ extension: 'pdf', p: 1 })
+			expect(wrapper.vm.document.settings).toEqual(expect.objectContaining({
+				canSign: false,
+				canRequestSign: false,
+				phoneNumber: '',
+				hasSignatureFile: false,
+				needIdentificationDocuments: false,
+				identificationDocumentsWaitingApproval: false,
+			}))
+		})
 	})
 })
