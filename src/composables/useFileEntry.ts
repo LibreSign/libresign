@@ -15,7 +15,7 @@ type FileEntrySigner = {
 	displayName?: string
 	email?: string
 	me?: boolean
-	sign_uuid?: string
+	sign_request_uuid?: string
 }
 
 export type FileEntrySource = {

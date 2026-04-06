@@ -348,6 +348,130 @@ final class FileListServiceTest extends TestCase {
 		$this->assertStringContainsString('uuid-signer', $result['url']);
 	}
 
+	#[DataProvider('provideSignerUuidExposureScenarios')]
+	public function testSignRequestUuidIsScopedToCurrentSigner(
+		string $currentUserId,
+		bool $expectSignerScopedUuid,
+	): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+
+		$signer = $this->createSigner(100, 1);
+		$signer->setUuid('sign-request-uuid');
+
+		$identifyMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'signer-user'
+		);
+
+		$this->user->method('getUID')->willReturn($currentUserId);
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([100 => [$identifyMethod]]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+
+		if ($expectSignerScopedUuid) {
+			$this->mockSignatureMethodsResolution();
+			$this->urlGenerator->method('linkToRoute')->willReturn('https://example.com/sign?uuid=sign-request-uuid');
+		}
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertArrayNotHasKey('signUuid', $result);
+		$this->assertCount(1, $result['signers']);
+		$this->assertArrayNotHasKey('sign_uuid', $result['signers'][0]);
+
+		if ($expectSignerScopedUuid) {
+			$this->assertSame('sign-request-uuid', $result['signers'][0]['sign_request_uuid']);
+			$this->assertArrayHasKey('url', $result);
+			$this->assertStringContainsString('sign-request-uuid', $result['url']);
+			return;
+		}
+
+		$this->assertArrayNotHasKey('sign_request_uuid', $result['signers'][0]);
+	}
+
+	public static function provideSignerUuidExposureScenarios(): array {
+		return [
+			'current signer gets signer-scoped sign request uuid' => ['signer-user', true],
+			'other viewer does not get signer-scoped sign request uuid' => ['other-user', false],
+		];
+	}
+
+	public function testDetailedFileDoesNotExposeSignRequestUuidAtRoot(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+
+		$signer = $this->createSigner(100, 1);
+		$signer->setUuid('sign-request-uuid');
+
+		$identifyMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'signer-user'
+		);
+
+		$this->user->method('getUID')->willReturn('signer-user');
+
+		$this->signRequestMapper->method('getByFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([100 => [$identifyMethod]]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+
+		$this->mockSignatureMethodsResolution();
+		$this->urlGenerator->method('linkToRoute')->willReturn('https://example.com/sign?uuid=sign-request-uuid');
+
+		$service = $this->getService();
+		$result = $service->formatFileWithChildren($file, [], $this->user);
+
+		$this->assertArrayNotHasKey('signUuid', $result);
+		$this->assertSame('sign-request-uuid', $result['signers'][0]['sign_request_uuid']);
+		$this->assertArrayNotHasKey('sign_uuid', $result['signers'][0]);
+		$this->assertArrayHasKey('url', $result);
+		$this->assertStringContainsString('sign-request-uuid', $result['url']);
+	}
+
+	public function testSummaryListDoesNotExposeSignRequestUuidAtRoot(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+
+		$signer = $this->createSigner(100, 1);
+		$signer->setUuid('sign-request-uuid');
+
+		$identifyMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'signer-user'
+		);
+
+		$this->user->method('getUID')->willReturn('signer-user');
+		$this->appConfig->method('getValueInt')->willReturn(100);
+		$this->signRequestMapper->method('getFilesAssociatedFilesWithMe')->willReturn([
+			'data' => [$file],
+			'pagination' => new class {
+				public function setRouteName(string $routeName): void {
+				}
+
+				public function getPagination(int $page, int $length, array $filter): array {
+					return [
+						'total' => 1,
+						'current' => null,
+						'next' => null,
+						'prev' => null,
+						'last' => null,
+						'first' => null,
+					];
+				}
+			},
+		]);
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([100 => [$identifyMethod]]);
+		$this->fileMapper->method('getTextOfStatus')->willReturn('Status text');
+
+		$service = $this->getService();
+		$result = $service->listAssociatedFilesOfSignFlow($this->user, 1, 100, [], [], false);
+
+		$this->assertCount(1, $result['data']);
+		$this->assertArrayNotHasKey('signUuid', $result['data'][0]);
+	}
+
 	public function testRequestedByIncludesUserDisplayName(): void {
 		$file = self::createFileEntity(1, 'file', 'doc.pdf');
 		$file->setUserId('creator-user');
@@ -600,5 +724,13 @@ final class FileListServiceTest extends TestCase {
 		$method->setIdentifierValue($value);
 		$method->setMandatory(true);
 		return $method;
+	}
+
+	private function mockSignatureMethodsResolution(): void {
+		$this->identifyMethodService->method('setCurrentIdentifyMethod')->willReturnSelf();
+		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
+		$mockIdentifyMethod = $this->createMock(\OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod::class);
+		$mockIdentifyMethod->method('getSignatureMethods')->willReturn([]);
+		$this->identifyMethodService->method('getInstanceOfIdentifyMethod')->willReturn($mockIdentifyMethod);
 	}
 }

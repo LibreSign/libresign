@@ -314,6 +314,7 @@ import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
 import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
+import { getSigningRouteUuid, getValidationRouteUuid } from '../../utils/signRequestUuid.ts'
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
@@ -845,36 +846,11 @@ function closeModal() {
 
 function getValidationFileUuid() {
 	const file = filesStore.getFile()
-	if (file?.uuid) {
-		return file.uuid
-	}
-
-	const signer = file?.signers?.find((row: EditableRequestSigner) => row.me) || file?.signers?.[0]
-	if (signer?.sign_uuid) {
-		return signer.sign_uuid
-	}
-
-	const loadedUuid = loadState<string | null>('libresign', 'sign_request_uuid', null)
-	if (loadedUuid) {
-		return loadedUuid
-	}
-
-	if (file?.id) {
-		return file.id
-	}
-
-	return null
+	return getValidationRouteUuid(filesStore.getFile())
 }
 
 function getSignRouteUuid() {
-	const file = filesStore.getFile()
-	const signer = file?.signers?.find((row: EditableRequestSigner) => row.me) || file?.signers?.[0]
-	const fromFile = [file?.signUuid, signer?.sign_uuid]
-		.find((value): value is string => typeof value === 'string' && value.length > 0)
-	const fromSettings = typeof file?.settings?.signerFileUuid === 'string' && file.settings.signerFileUuid.length > 0
-		? file.settings.signerFileUuid
-		: null
-	return fromFile || fromSettings || null
+	return getSigningRouteUuid(filesStore.getFile())
 }
 
 function validationFile() {
