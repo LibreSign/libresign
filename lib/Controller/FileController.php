@@ -87,8 +87,9 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file using Uuid
 	 *
 	 * Validate a file returning file data.
-	 * When `nodeType` is `envelope`, the response includes `filesCount`
-	 * and `files` as a list of envelope child files.
+	 * The response always includes `filesCount` and `files`.
+	 * For `nodeType=file`, `filesCount=1` and `files` contains the current file.
+	 * For `nodeType=envelope`, `files` contains envelope child files.
 	 *
 	 * @param string $uuid The UUID of the LibreSign file
 	 * @param bool $showVisibleElements Whether to include visible elements in the response
@@ -118,8 +119,9 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file using FileId
 	 *
 	 * Validate a file returning file data.
-	 * When `nodeType` is `envelope`, the response includes `filesCount`
-	 * and `files` as a list of envelope child files.
+	 * The response always includes `filesCount` and `files`.
+	 * For `nodeType=file`, `filesCount=1` and `files` contains the current file.
+	 * For `nodeType=envelope`, `files` contains envelope child files.
 	 *
 	 * @param int $fileId The identifier value of the LibreSign file
 	 * @param bool $showVisibleElements Whether to include visible elements in the response
@@ -150,8 +152,9 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * Validate a binary file returning file data.
 	 * Use field 'file' for the file upload.
-	 * When `nodeType` is `envelope`, the response includes `filesCount`
-	 * and `files` as a list of envelope child files.
+	 * The response always includes `filesCount` and `files`.
+	 * For `nodeType=file`, `filesCount=1` and `files` contains the current file.
+	 * For `nodeType=envelope`, `files` contains envelope child files.
 	 *
 	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, LibresignActionErrorResponse, array{}>
 	 *
