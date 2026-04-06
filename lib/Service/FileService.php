@@ -107,7 +107,6 @@ class FileService {
 		$this->fileData->nodeId = 0;
 		$this->fileData->nodeType = 'file';
 		$this->fileData->created_at = '';
-		$this->fileData->signUuid = null;
 		$this->fileData->metadata = [];
 		$this->fileData->signatureFlow = SignatureFlow::PARALLEL->value;
 		$this->fileData->signers = [];
@@ -217,7 +216,6 @@ class FileService {
 			$this->fileData->settings = [
 				'canSign' => false,
 				'canRequestSign' => false,
-				'signerFileUuid' => null,
 				'phoneNumber' => '',
 			];
 		} else {
@@ -410,16 +408,18 @@ class FileService {
 			return;
 		}
 
-		$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $this->fileData->uuid]);
+		$pdfRouteUuid = $this->fileData->uuid;
 
 		if (!empty($this->fileData->signers) && is_array($this->fileData->signers)) {
 			foreach ($this->fileData->signers as $signer) {
-				if (!empty($signer->me) && isset($signer->sign_uuid)) {
-					$this->fileData->signUuid = $signer->sign_uuid;
+				if (!empty($signer->me) && isset($signer->sign_request_uuid)) {
+					$pdfRouteUuid = $signer->sign_request_uuid;
 					break;
 				}
 			}
 		}
+
+		$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $pdfRouteUuid]);
 	}
 
 	private function loadFileMetadata(): void {

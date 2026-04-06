@@ -127,6 +127,7 @@ import SigningProgress from '../components/validation/SigningProgress.vue'
 import logoGray from '../../img/logo-gray.svg'
 import { openDocument } from '../utils/viewer.js'
 import { getStatusLabel } from '../utils/fileStatus.js'
+import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 import logger from '../logger.js'
 import { useFilesStore } from '../store/files.js'
@@ -319,14 +320,11 @@ const isActiveView = ref(true)
 
 const signRequestUuidForProgress = computed(() => {
 	const doc = signStore?.document || {}
-	const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
-	const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
-	const fromSigner = signer.sign_uuid
+	const fromState = loadState('libresign', 'sign_request_uuid', null)
+	const fromDocument = getSigningRouteUuid(doc, typeof fromState === 'string' ? fromState : null)
 	return route.value.query?.signRequestUuid
 		|| route.value.params?.signRequestUuid
-		|| fromDoc
-		|| fromSigner
-		|| loadState('libresign', 'sign_request_uuid', null)
+		|| fromDocument
 		|| uuidToValidate.value
 })
 

@@ -174,21 +174,22 @@ describe('VisibleElements Component - Business Rules', () => {
 	describe('RULE: canSign depends on status and signer UUID', () => {
 		it('returns false when status is not ABLE_TO_SIGN', () => {
 			filesStore.files[1].status = FILE_STATUS.DRAFT
-			filesStore.files[1].settings = { signerFileUuid: 'valid-uuid' }
+			filesStore.files[1].signers = [{ me: true, sign_request_uuid: 'valid-uuid' }]
 
 			expect(wrapper.vm.canSign).toBe(false)
 		})
 
-		it('returns false when status is ABLE_TO_SIGN but no signerFileUuid', () => {
+		it('returns false when status is ABLE_TO_SIGN but there is no current signer uuid', () => {
 			filesStore.files[1].status = FILE_STATUS.ABLE_TO_SIGN
-			filesStore.files[1].settings = {}
+			filesStore.files[1].signers = []
+			filesStore.files[1].settings = { isApprover: false }
 
 			expect(wrapper.vm.canSign).toBe(false)
 		})
 
-		it('returns true when status is ABLE_TO_SIGN and has signerFileUuid', () => {
+		it('returns true when status is ABLE_TO_SIGN and the current signer has sign_request_uuid', () => {
 			filesStore.files[1].status = FILE_STATUS.ABLE_TO_SIGN
-			filesStore.files[1].settings = { signerFileUuid: 'valid-uuid' }
+			filesStore.files[1].signers = [{ me: true, sign_request_uuid: 'valid-uuid' }]
 
 			expect(wrapper.vm.canSign).toBe(true)
 		})

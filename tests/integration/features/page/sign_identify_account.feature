@@ -30,8 +30,8 @@ Feature: page/sign_identify_account
       | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1             |
       | (jq).ocs.data.data[0].signers[0].identifyMethods[0].method | account       |
       | (jq).ocs.data.data[0].signers[0].identifyMethods[0].value  | signer1       |
-    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
-    # invalid UUID, need to be the signer UUID
+    And fetch field "(SIGN_REQUEST_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
+    # invalid UUID, need to be the sign request UUID
     When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<FILE_UUID>"
     Then the response should have a status code 404
@@ -41,7 +41,7 @@ Feature: page/sign_identify_account
       | errors | [{"message":"Invalid UUID"}] |
     # invalid user
     When as user "admin"
-    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    And sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
@@ -49,7 +49,7 @@ Feature: page/sign_identify_account
       | errors | [{"message":"Invalid user"}] |
     # unauthenticated user
     When as user ""
-    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    And sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value                                     |
@@ -83,9 +83,9 @@ Feature: page/sign_identify_account
       | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1             |
       | (jq).ocs.data.data[0].signers[0].identifyMethods[0].method | account       |
       | (jq).ocs.data.data[0].signers[0].identifyMethods[0].value  | signer1       |
-    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
+    And fetch field "(SIGN_REQUEST_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
     When as user "signer1"
-    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    And sending "get" to "/apps/libresign/p/sign/<SIGN_REQUEST_UUID>"
     And the response should contain the initial state "libresign-action" with the following values:
       """
       2500
@@ -93,7 +93,7 @@ Feature: page/sign_identify_account
     And the response should contain the initial state "libresign-pdfs" with the following values:
       """
       [
-        "/index.php/apps/libresign/pdf/<SIGN_UUID>"
+        "/index.php/apps/libresign/pdf/<SIGN_REQUEST_UUID>"
       ]
       """
     And the response should contain the initial state "libresign-filename" with the following values:

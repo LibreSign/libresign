@@ -1052,7 +1052,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 				signStore.document = createSignDocument({
 					id: 99,
-					signRequestUuid: 'test-sign-request-uuid',
+					signers: [{ me: true, sign_request_uuid: 'test-sign-request-uuid' }],
 				})
 
 				const submitSignatureMock = vi.fn().mockResolvedValue({ status: 'signed' })

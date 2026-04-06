@@ -503,4 +503,47 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(200, $result['visibleElements'][0]['signRequestId']);
 		$this->assertSame(20, $result['visibleElements'][0]['fileId']);
 	}
+
+	public function testToArrayUsesSignerScopedSignRequestUuidForCurrentSignerUrl(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(1);
+		$file->setUuid('file-uuid');
+		$file->setName('contract.pdf');
+		$file->setStatus(1);
+		$file->setCreatedAt(new \DateTime('2026-01-01T00:00:00Z'));
+		$file->setNodeId(100);
+		$file->setSignatureFlow('');
+		$file->setDocmdpLevel('');
+		$file->setUserId('creator-user');
+
+		$creator = $this->createMock(\OCP\IUser::class);
+		$creator->method('getDisplayName')->willReturn('Creator User');
+
+		$this->fileMapper->method('getTextOfStatus')->willReturn('Status text');
+		$this->fileMapper->method('getChildrenFiles')->willReturn([]);
+		$this->userManager->method('get')->with('creator-user')->willReturn($creator);
+		$this->urlGenerator->method('linkToRoute')->willReturnCallback(static function (string $route, array $params): string {
+			return sprintf('%s:%s', $route, $params['uuid']);
+		});
+		$this->signersLoader->expects($this->once())
+			->method('loadLibreSignSigners')
+			->willReturnCallback(static function ($fileEntity, \stdClass $fileData): void {
+				$fileData->signers = [
+					(object)[
+						'me' => true,
+						'sign_request_uuid' => 'sign-request-uuid',
+					],
+				];
+			});
+
+		$service = $this->createFileService();
+		$result = $service
+			->setFile($file)
+			->showSigners()
+			->toArray();
+
+		$this->assertSame('libresign.page.getPdfFile:sign-request-uuid', $result['url']);
+		$this->assertArrayNotHasKey('signUuid', $result);
+		$this->assertSame('sign-request-uuid', $result['signers'][0]['sign_request_uuid']);
+	}
 }

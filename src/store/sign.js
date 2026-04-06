@@ -23,7 +23,7 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * 	signRequestId?: number
  * 	displayName?: string
  * 	email?: string
- * 	sign_uuid?: string | null
+ * 	sign_request_uuid?: string | null
  * 	me?: boolean
  * 	status?: number
  * 	signed?: string | null | boolean | unknown[]
@@ -35,7 +35,6 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * @typedef {{
  * 	canSign?: boolean
  * 	canRequestSign?: boolean
- * 	signerFileUuid?: string | null
  * 	phoneNumber?: string
  * 	hasSignatureFile?: boolean
  * 	isApprover?: boolean
@@ -81,10 +80,6 @@ import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
  * 	name?: string
  * 	description?: string
  * 	uuid?: string | null
- * 	signUuid?: string | null
- * 	sign_uuid?: string | null
- * 	signRequestUuid?: string | null
- * 	sign_request_uuid?: string | null
  * 	nodeId?: number
  * 	nodeType?: string
  * 	status?: number | string

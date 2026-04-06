@@ -20,9 +20,9 @@ Feature: validate
     Then the response should be a JSON array with the following mandatory values
       | key                        | value         |
       | (jq).ocs.data.data[0].name | Document Name |
-    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
+    And fetch field "(SIGN_REQUEST_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
-    When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
+    When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID>"
       | key    | value       |
       | method | clickToSign |
     Then the response should have a status code 200
@@ -58,14 +58,13 @@ Feature: validate
       | name | document |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
-    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
     When sending "<method>" to ocs "<url>"
     And the response should have a status code <statusCode>
 
     Examples:
       | url                                                   | method | statusCode |
-      | /apps/libresign/api/v1/file/validate/uuid/<SIGN_UUID> | get    | 200        |
+      | /apps/libresign/api/v1/file/validate/uuid/<FILE_UUID> | get    | 200        |
       | /apps/libresign/api/v1/file/validate/file_id/171      | get    | 404        |
       | /apps/libresign/api/v1/file/validate/                 | post   | 404        |
 
