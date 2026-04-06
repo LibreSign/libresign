@@ -561,7 +561,7 @@ const _filesStore = defineStore('files', () => {
 		}
 
 		await store.addFile(fileData, { detailsLoaded: true })
-		return files.value[fileData.id] || null
+		return apiFiles.value[fileData.id] || files.value[fileData.id] || null
 	}
 
 	async function addFilesToEnvelope(envelopeUuid, formData, options = {}) {
