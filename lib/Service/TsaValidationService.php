@@ -62,7 +62,7 @@ class TsaValidationService {
 		}
 
 		if (!@gethostbyname($host) || gethostbyname($host) === $host) {
-			throw new LibresignException('Timestamp Authority (TSA) service is unavailable or misconfigured: ' . $tsaUrl);
+			throw new LibresignException('Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: ' . $tsaUrl);
 		}
 	}
 }
