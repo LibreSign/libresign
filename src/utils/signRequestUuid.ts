@@ -47,11 +47,16 @@ export function getSigningRouteUuid(
 	document: DocumentLike | null | undefined,
 	fallbackUuid: string | null = null,
 ): string | null {
+	const signerUuid = getCurrentSignerSignRequestUuid(document, fallbackUuid)
+	if (isNonEmptyString(signerUuid)) {
+		return signerUuid
+	}
+
 	if (document?.settings?.isApprover === true && isNonEmptyString(document?.uuid)) {
 		return document.uuid
 	}
 
-	return getCurrentSignerSignRequestUuid(document, fallbackUuid)
+	return null
 }
 
 export function getValidationRouteUuid(document: DocumentLike | null | undefined): string | number | null {
