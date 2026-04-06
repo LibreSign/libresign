@@ -157,6 +157,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { useSignStore } from '../../../store/sign.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
+import { getCurrentSignerSignRequestUuid } from '../../../utils/signRequestUuid.ts'
 import { validateEmail } from '../../../utils/validators.js'
 
 const sanitizePhoneNumber = (val: string) => {
@@ -198,7 +199,7 @@ type SignMethodsStore = {
 type SignStore = {
 	document: {
 		fileId?: number
-		signers?: Array<{ me?: boolean; sign_uuid?: string }>
+		signers?: Array<{ me?: boolean; sign_request_uuid?: string }>
 	}
 	errors?: Array<{ message?: string }>
 }
@@ -391,10 +392,13 @@ async function requestCode() {
 				params,
 			)
 		} else {
-			const signer = signStore.document.signers?.find((row) => row.me) || {}
+			const signRequestUuid = getCurrentSignerSignRequestUuid(signStore.document)
+			if (!signRequestUuid) {
+				throw new Error(t('libresign', 'Document not found'))
+			}
 			await axios.post(
 				generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {
-					uuid: signer.sign_uuid,
+					uuid: signRequestUuid,
 				}),
 				params,
 			)
