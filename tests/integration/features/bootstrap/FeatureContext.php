@@ -69,6 +69,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
+		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];
 		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 
@@ -159,6 +160,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 		preg_match('/f\/sign\/(?<uuid>[\w-]+)\/pdf$/', $found['link'], $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
+		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];
 		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 
