@@ -27,7 +27,7 @@ type SignatureElementResponse = {
 	}>
 }
 
-async function ocsRequest(
+async function ocsRequest<T = unknown>(
 	request: APIRequestContext,
 	method: 'GET' | 'POST' | 'PUT' | 'DELETE',
 	path: string,
@@ -35,7 +35,7 @@ async function ocsRequest(
 	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 	body?: Record<string, string>,
 	jsonBody?: unknown,
-): Promise<OcsResponse> {
+): Promise<OcsResponse<T>> {
 	const url = `./ocs/v2.php${path}`
 	const auth = 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64')
 	const headers: Record<string, string> = {
@@ -59,9 +59,9 @@ async function ocsRequest(
 
 	const text = await response.text()
 	if (!text) {
-		return { ocs: { meta: { status: 'ok', statuscode: response.status(), message: '' }, data: {} } } as OcsResponse
+		return { ocs: { meta: { status: 'ok', statuscode: response.status(), message: '' }, data: {} as T } }
 	}
-	return JSON.parse(text) as OcsResponse
+	return JSON.parse(text) as OcsResponse<T>
 }
 
 export async function clearSignatureElements(
@@ -149,19 +149,6 @@ export async function setAppConfig(
 	if (result.ocs.meta.statuscode !== 200) {
 		throw new Error(`Failed to set app config ${appId}/${key}: ${result.ocs.meta.message}`)
 	}
-}
-
-/**
- * Ensures Java/PDFtk app config paths are present for Java-dependent signing stages
- * (for example footer stamping) regardless of selected signature engine.
- */
-export async function ensureJavaDependenciesConfigured(
-	request: APIRequestContext,
-	javaPath = process.env.LIBRESIGN_JAVA_PATH ?? '/usr/bin/java',
-	pdftkPath = process.env.LIBRESIGN_PDFTK_PATH ?? '/usr/bin/pdftk',
-): Promise<void> {
-	await setAppConfig(request, 'libresign', 'java_path', javaPath)
-	await setAppConfig(request, 'libresign', 'pdftk_path', pdftkPath)
 }
 
 /**
