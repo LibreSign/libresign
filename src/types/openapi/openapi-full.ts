@@ -502,7 +502,7 @@ export type paths = {
         };
         /**
          * Validate a file using Uuid
-         * @description Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
+         * @description Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.
          */
         get: operations["file-validate-uuid"];
         put?: never;
@@ -522,7 +522,7 @@ export type paths = {
         };
         /**
          * Validate a file using FileId
-         * @description Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
+         * @description Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.
          */
         get: operations["file-validate-file-id"];
         put?: never;
@@ -544,7 +544,7 @@ export type paths = {
         put?: never;
         /**
          * Validate a binary file
-         * @description Validate a binary file returning file data. Use field 'file' for the file upload. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
+         * @description Validate a binary file returning file data. Use field 'file' for the file upload. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.
          */
         post: operations["file-validate-binary"];
         delete?: never;
@@ -863,7 +863,7 @@ export type paths = {
         put?: never;
         /**
          * Request signature
-         * @description Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.
+         * @description Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. The returned `data` always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.
          */
         post: operations["request_signature-request"];
         delete?: never;
@@ -2306,8 +2306,8 @@ export type components = {
             /** Format: int64 */
             docmdpLevel: number;
             /** Format: int64 */
-            filesCount?: number;
-            files?: components["schemas"]["ValidatedChildFile"][];
+            filesCount: number;
+            files: components["schemas"]["ValidatedChildFile"][];
             /** Format: int64 */
             totalPages: number;
             /** Format: int64 */
