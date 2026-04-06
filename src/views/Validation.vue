@@ -254,7 +254,7 @@ function normalizeValidationDocument(data: unknown): ValidationFileRecord | null
 		? 'envelope'
 		: data.nodeType === 'file'
 			? 'file'
-				: null
+			: null
 
 	if (!uuid || !name || nodeId === null || status === null || nodeType === null) {
 		return null
