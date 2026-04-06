@@ -19,6 +19,7 @@ import { useFiltersStore } from './filters.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { useSidebarStore } from './sidebar.js'
 import { FILE_STATUS } from '../constants.js'
+import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
 
 /** @typedef {import('../types/index').IdentifyMethodRecord} SignerMethodRecord */
 /** @typedef {import('../types/index').FileSettings} FileSettings */
@@ -57,7 +58,7 @@ import { FILE_STATUS } from '../constants.js'
  * 	visibleElements?: (VisibleElementRecord | VisibleElementDraft)[]
  * 	me?: boolean
  * 	signed?: string | null | boolean | unknown[]
- * 	sign_uuid?: string | null
+ * 	sign_request_uuid?: string | null
  * }} EditableSignerDraft
  */
 
@@ -71,7 +72,6 @@ import { FILE_STATUS } from '../constants.js'
  * 	nodeType?: string
  * 	name?: string
  * 	docmdpLevel?: number | string
- * 	signUuid?: string | null
  * 	file?: string | EditableFileReferenceDraft | null
  * 	files?: EditableFileReferenceDraft[]
  * 	path?: string
@@ -104,7 +104,6 @@ import { FILE_STATUS } from '../constants.js'
  * 	docmdpLevel?: number | string
  * 	status?: FileStatus
  * 	statusText?: FileStatusText
- * 	signUuid?: string | null
  * 	file?: string | EditableFileReferenceDraft | null
  * 	files?: EditableFileReferenceDraft[]
  * 	loading?: string | boolean
@@ -139,7 +138,6 @@ import { FILE_STATUS } from '../constants.js'
  * 	statusText?: FileStatusText
  * 	nodeId?: number | string | null
  * 	nodeType?: string
- * 	signUuid?: string | null
  * 	file?: string | EditableFileReferenceDraft | null
  * 	files?: EditableFileReferenceDraft[]
  * 	loading?: string | boolean
@@ -714,17 +712,19 @@ const _filesStore = defineStore('files', () => {
 		const isSigned = (signer) => Array.isArray(signer.signed)
 			? signer.signed.length > 0
 			: !!signer.signed
-		const signerFileUuid = typeof selectedFile?.settings?.signerFileUuid === 'string'
-			? selectedFile.settings.signerFileUuid
-			: ''
 		const mySigners = selectedFile?.signers?.filter(signer => signer.me) || []
 		if (isFullSigned(selectedFile)
 			|| selectedFile.status <= 0
 			|| mySigners.some((signer) => isSigned(signer))) {
 			return false
 		}
+		const signingRouteUuid = getSigningRouteUuid(selectedFile)
 		if (mySigners.length === 0) {
-			return signerFileUuid.length > 0
+			return typeof signingRouteUuid === 'string' && signingRouteUuid.length > 0
+		}
+
+		if (typeof signingRouteUuid !== 'string' || signingRouteUuid.length === 0) {
+			return false
 		}
 
 		const flow = selectedFile?.signatureFlow
@@ -1110,7 +1110,7 @@ const _filesStore = defineStore('files', () => {
 							// return true when found signer by signer_uuid
 							return value.signers?.filter((signer) => {
 								// filter signers by signer_uuid
-								return signer.sign_uuid === filter.signer_uuid
+								return signer.sign_request_uuid === filter.signer_uuid
 							}).length > 0
 						}
 						return false
