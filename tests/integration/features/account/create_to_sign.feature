@@ -23,8 +23,8 @@ Feature: account/create_to_sign
     And the response should be a JSON array with the following mandatory values
       | key    | value |
       | action | 1500  |
-    Then sending "post" to ocs "/apps/libresign/api/v1/account/create/<SIGN_UUID>"
-      | uuid     | <SIGN_UUID>         |
+    Then sending "post" to ocs "/apps/libresign/api/v1/account/create/<SIGN_REQUEST_UUID>"
+      | uuid     | <SIGN_REQUEST_UUID>         |
       | email    | invalid@domain.test |
       | password | 123456              |
     And the response should have a status code 422
@@ -44,8 +44,8 @@ Feature: account/create_to_sign
     And the response should be a JSON array with the following mandatory values
       | key    | value |
       | action | 1500  |
-    Then sending "post" to ocs "/apps/libresign/api/v1/account/create/<SIGN_UUID>"
-      | uuid | <SIGN_UUID> |
+    Then sending "post" to ocs "/apps/libresign/api/v1/account/create/<SIGN_REQUEST_UUID>"
+      | uuid | <SIGN_REQUEST_UUID> |
       | email | signer1@domain.test |
       | password | 123456 |
     And the response should have a status code 200
