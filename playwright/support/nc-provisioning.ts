@@ -152,6 +152,19 @@ export async function setAppConfig(
 }
 
 /**
+ * Ensures Java/PDFtk app config paths are present for Java-dependent signing stages
+ * (for example footer stamping) regardless of selected signature engine.
+ */
+export async function ensureJavaDependenciesConfigured(
+	request: APIRequestContext,
+	javaPath = process.env.LIBRESIGN_JAVA_PATH ?? '/usr/bin/java',
+	pdftkPath = process.env.LIBRESIGN_PDFTK_PATH ?? '/usr/bin/pdftk',
+): Promise<void> {
+	await setAppConfig(request, 'libresign', 'java_path', javaPath)
+	await setAppConfig(request, 'libresign', 'pdftk_path', pdftkPath)
+}
+
+/**
  * Deletes an app config value.
  * Equivalent to: `occ config:app:delete <appId> <key>`
  */
