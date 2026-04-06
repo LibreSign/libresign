@@ -107,7 +107,6 @@ appstore:
 		appinfo \
 		composer \
 		css \
-		dist \
 		img \
 		js \
 		l10n \
@@ -118,6 +117,9 @@ appstore:
 		CHANGELOG.md \
 		openapi*.json \
 		$(appstore_sign_dir)/$(app_name)
+	if [ -d dist ]; then \
+		cp -r dist $(appstore_sign_dir)/$(app_name)/; \
+	fi
 	rm -rf $(appstore_sign_dir)/$(app_name)/img/screenshot/
 	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/.git
 	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/.github
