@@ -12,6 +12,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Enum\DocMdpLevel;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
@@ -731,5 +732,27 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['GRAPHIC_ONLY',     'a"a',  '""'],
 			['GRAPHIC_ONLY',     'a$a',  '""'],
 		];
+	}
+
+	public function testCheckTsaErrorInvalidTsaMentionsDnsNetworkFirewall(): void {
+		$jSignPdfHandler = $this->getInstance();
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Timestamp Authority (TSA) service is unavailable. Check DNS/network/firewall connectivity from this server: https://invalid-tsa.example.com/tsr');
+
+		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
+			"Invalid TSA 'https://invalid-tsa.example.com/tsr'",
+		]);
+	}
+
+	public function testCheckTsaErrorUnknownHostMentionsDnsNetworkFirewall(): void {
+		$jSignPdfHandler = $this->getInstance();
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage("Timestamp Authority (TSA) service error.\nCheck TSA endpoint and DNS/network/firewall connectivity from this server.");
+
+		self::invokePrivate($jSignPdfHandler, 'checkTsaError', [
+			'TSAClientBouncyCastle: java.net.UnknownHostException: invalid-tsa.example.com',
+		]);
 	}
 }
