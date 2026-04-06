@@ -889,10 +889,6 @@
                                     "envelope"
                                 ]
                             },
-                            "signUuid": {
-                                "type": "string",
-                                "nullable": true
-                            },
                             "metadata": {
                                 "$ref": "#/components/schemas/ValidateMetadata"
                             },
@@ -1349,10 +1345,6 @@
                     },
                     "created_at": {
                         "type": "string"
-                    },
-                    "signUuid": {
-                        "type": "string",
-                        "nullable": true
                     },
                     "metadata": {
                         "$ref": "#/components/schemas/ValidateMetadata"
@@ -2125,7 +2117,6 @@
                 "required": [
                     "canSign",
                     "canRequestSign",
-                    "signerFileUuid",
                     "phoneNumber",
                     "hasSignatureFile",
                     "needIdentificationDocuments",
@@ -2137,10 +2128,6 @@
                     },
                     "canRequestSign": {
                         "type": "boolean"
-                    },
-                    "signerFileUuid": {
-                        "type": "string",
-                        "nullable": true
                     },
                     "phoneNumber": {
                         "type": "string"
@@ -2400,7 +2387,7 @@
                                 "type": "string",
                                 "nullable": true
                             },
-                            "sign_uuid": {
+                            "sign_request_uuid": {
                                 "type": "string"
                             },
                             "hash_algorithm": {
@@ -2817,10 +2804,6 @@
                     },
                     "url": {
                         "type": "string"
-                    },
-                    "signUuid": {
-                        "type": "string",
-                        "nullable": true
                     },
                     "mime": {
                         "type": "string"
