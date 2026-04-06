@@ -79,7 +79,7 @@ final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			],
 			'unresolvable host' => [
 				'https://invalid-tsa-server-abc123xyz.example.com/tsr',
-				'/Timestamp Authority \(TSA\) service is unavailable or misconfigured/',
+				'/Timestamp Authority \(TSA\) service is unavailable\. Check DNS\/network\/firewall connectivity from this server/',
 				true,
 			],
 		];
