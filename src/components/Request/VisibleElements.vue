@@ -101,6 +101,7 @@ import PdfEditor from '../PdfEditor/PdfEditor.vue'
 import Signer from '../Signers/Signer.vue'
 
 import { FILE_STATUS } from '../../constants.js'
+import { getSigningRouteUuid } from '../../utils/signRequestUuid.ts'
 import { useFilesStore } from '../../store/files.js'
 import {
 	aggregateVisibleElementsByFiles,
@@ -522,7 +523,7 @@ const pdfEditorSigners = computed<SignerSummaryRecord[]>(() => (Array.isArray(do
 const status = computed(() => Number(document.value.status))
 const isDraft = computed(() => status.value === FILE_STATUS.DRAFT)
 const canSave = computed(() => ([FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED] as number[]).includes(status.value))
-const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && (document.value?.settings?.signerFileUuid ?? '').length > 0)
+const canSign = computed(() => status.value === FILE_STATUS.ABLE_TO_SIGN && !!getSigningRouteUuid(document.value))
 const variantOfSaveButton = computed(() => canSave.value ? 'primary' : 'secondary')
 const variantOfSignButton = computed(() => canSave.value ? 'secondary' : 'primary')
 const statusLabel = computed(() => document.value.statusText || '')
@@ -820,7 +821,7 @@ function handleDeleteSigner(object: unknown) {
 }
 
 async function goToSign() {
-	const uuid = document.value.settings?.signerFileUuid
+	const uuid = getSigningRouteUuid(document.value)
 	if (await save()) {
 		const route = instance?.proxy?.$router.resolve({ name: 'SignPDF', params: { uuid } })
 		if (route?.href) {
