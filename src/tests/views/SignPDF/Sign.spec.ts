@@ -1535,3 +1535,192 @@ describe('Sign.vue - signWithTokenCode', () => {
 		})
 	})
 })
+
+	describe('Sign.vue - envelope multi-file signing (issue #7344 phase 2)', () => {
+		let submitSignatureCompatMethod: SubmitSignatureCompatMethod
+
+		beforeAll(async () => {
+			const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+			submitSignatureCompatMethod = (SignComponent.default as any).methods.submitSignature
+		})
+
+		it('calls signStore.submitSignature once per file for envelopes with multiple me=true signers', async () => {
+			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
+
+			const context = {
+				loading: false,
+				elements: [
+					{ elementId: 100, signRequestId: 10, type: 'signature' },
+					{ elementId: 200, signRequestId: 20, type: 'signature' },
+				],
+				canCreateSignature: false,
+				signRequestUuid: 'uuid-file-1',
+				signatureElementsStore: { signs: {} },
+				actionHandler: { showModal: vi.fn(), closeModal: vi.fn() },
+				signStore: {
+					document: {
+						id: 1,
+						nodeType: 'envelope',
+						signers: [
+							{ signRequestId: 10, me: true, sign_request_uuid: 'uuid-file-1' },
+							{ signRequestId: 20, me: true, sign_request_uuid: 'uuid-file-2' },
+						],
+					},
+					clearSigningErrors: vi.fn(),
+					setSigningErrors: vi.fn(),
+					submitSignature: storeSubmitMock,
+				},
+				$emit: vi.fn(),
+				sidebarStore: { hideSidebar: vi.fn() },
+			}
+
+			await submitSignatureCompatMethod.call(context, { method: 'clickToSign' })
+
+			expect(storeSubmitMock).toHaveBeenCalledTimes(2)
+			expect(storeSubmitMock).toHaveBeenNthCalledWith(
+				1,
+				{ method: 'clickToSign', elements: [{ documentElementId: 100 }] },
+				'uuid-file-1',
+				{ documentId: 1 },
+			)
+			expect(storeSubmitMock).toHaveBeenNthCalledWith(
+				2,
+				{ method: 'clickToSign', elements: [{ documentElementId: 200 }] },
+				'uuid-file-2',
+				{ documentId: 1 },
+			)
+		})
+
+		it('submits each file without elements when no visible elements are placed (click-to-sign envelope)', async () => {
+			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
+
+			const context = {
+				loading: false,
+				elements: [],
+				canCreateSignature: false,
+				signRequestUuid: 'uuid-file-1',
+				signatureElementsStore: { signs: {} },
+				actionHandler: { showModal: vi.fn(), closeModal: vi.fn() },
+				signStore: {
+					document: {
+						id: 1,
+						nodeType: 'envelope',
+						signers: [
+							{ signRequestId: 10, me: true, sign_request_uuid: 'uuid-file-1' },
+							{ signRequestId: 20, me: true, sign_request_uuid: 'uuid-file-2' },
+						],
+					},
+					clearSigningErrors: vi.fn(),
+					setSigningErrors: vi.fn(),
+					submitSignature: storeSubmitMock,
+				},
+				$emit: vi.fn(),
+				sidebarStore: { hideSidebar: vi.fn() },
+			}
+
+			await submitSignatureCompatMethod.call(context, { method: 'clickToSign' })
+
+			expect(storeSubmitMock).toHaveBeenCalledTimes(2)
+			expect(storeSubmitMock).toHaveBeenNthCalledWith(
+				1,
+				{ method: 'clickToSign' },
+				'uuid-file-1',
+				{ documentId: 1 },
+			)
+			expect(storeSubmitMock).toHaveBeenNthCalledWith(
+				2,
+				{ method: 'clickToSign' },
+				'uuid-file-2',
+				{ documentId: 1 },
+			)
+		})
+
+		it('preserves single-file behavior when document nodeType is not envelope', async () => {
+			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
+
+			const context = {
+				loading: false,
+				elements: [
+					{ elementId: 100, signRequestId: 10, type: 'signature' },
+				],
+				canCreateSignature: false,
+				signRequestUuid: 'uuid-file-1',
+				signatureElementsStore: { signs: {} },
+				actionHandler: { showModal: vi.fn(), closeModal: vi.fn() },
+				signStore: {
+					document: {
+						id: 1,
+						nodeType: 'file',
+						signers: [
+							{ signRequestId: 10, me: true, sign_request_uuid: 'uuid-file-1' },
+						],
+					},
+					clearSigningErrors: vi.fn(),
+					setSigningErrors: vi.fn(),
+					submitSignature: storeSubmitMock,
+				},
+				$emit: vi.fn(),
+				sidebarStore: { hideSidebar: vi.fn() },
+			}
+
+			await submitSignatureCompatMethod.call(context, { method: 'clickToSign' })
+
+			expect(storeSubmitMock).toHaveBeenCalledTimes(1)
+			expect(storeSubmitMock).toHaveBeenCalledWith(
+				{ method: 'clickToSign', elements: [{ documentElementId: 100 }] },
+				'uuid-file-1',
+				{ documentId: 1 },
+			)
+		})
+
+		it('includes profileNodeId per element when canCreateSignature is true for envelope', async () => {
+			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
+
+			const context = {
+				loading: false,
+				elements: [
+					{ elementId: 100, signRequestId: 10, type: 'signature' },
+					{ elementId: 200, signRequestId: 20, type: 'signature' },
+				],
+				canCreateSignature: true,
+				signRequestUuid: 'uuid-file-1',
+				signatureElementsStore: {
+					signs: {
+						signature: { file: { nodeId: 42 } },
+					},
+				},
+				actionHandler: { showModal: vi.fn(), closeModal: vi.fn() },
+				signStore: {
+					document: {
+						id: 1,
+						nodeType: 'envelope',
+						signers: [
+							{ signRequestId: 10, me: true, sign_request_uuid: 'uuid-file-1' },
+							{ signRequestId: 20, me: true, sign_request_uuid: 'uuid-file-2' },
+						],
+					},
+					clearSigningErrors: vi.fn(),
+					setSigningErrors: vi.fn(),
+					submitSignature: storeSubmitMock,
+				},
+				$emit: vi.fn(),
+				sidebarStore: { hideSidebar: vi.fn() },
+			}
+
+			await submitSignatureCompatMethod.call(context, { method: 'clickToSign' })
+
+			expect(storeSubmitMock).toHaveBeenCalledTimes(2)
+			expect(storeSubmitMock).toHaveBeenNthCalledWith(
+				1,
+				{ method: 'clickToSign', elements: [{ documentElementId: 100, profileNodeId: 42 }] },
+				'uuid-file-1',
+				{ documentId: 1 },
+			)
+			expect(storeSubmitMock).toHaveBeenNthCalledWith(
+				2,
+				{ method: 'clickToSign', elements: [{ documentElementId: 200, profileNodeId: 42 }] },
+				'uuid-file-2',
+				{ documentId: 1 },
+			)
+		})
+	})
