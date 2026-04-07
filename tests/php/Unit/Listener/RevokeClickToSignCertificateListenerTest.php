@@ -30,8 +30,6 @@ class RevokeClickToSignCertificateListenerTest extends TestCase {
 	private RevokeClickToSignCertificateListener $listener;
 
 	protected function setUp(): void {
-		parent::setUp();
-
 		$this->crlService = $this->createMock(CrlService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 

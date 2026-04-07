@@ -154,11 +154,11 @@ class CrlMapper extends QBMapper {
 	}
 
 	public function isInvalidAt(string $serialNumber, ?DateTime $checkDate = null): bool {
-		$checkDate = $checkDate ?? new DateTime();
+		$checkDate ??= new DateTime();
 
 		try {
 			$certificate = $this->findBySerialNumber($serialNumber);
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			return false;
 		}
 
@@ -174,7 +174,7 @@ class CrlMapper extends QBMapper {
 	}
 
 	public function cleanupExpiredCertificates(?DateTime $before = null): int {
-		$before = $before ?? new DateTime('-1 year');
+		$before ??= new DateTime('-1 year');
 
 		$qb = $this->db->getQueryBuilder();
 

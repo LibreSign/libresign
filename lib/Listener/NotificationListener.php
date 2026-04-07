@@ -213,7 +213,7 @@ class NotificationListener implements IEventListener {
 			$manager = \OCP\Server::get(\OCP\Activity\IManager::class);
 			try {
 				$manager->getSettingById($type);
-			} catch (\Exception $e) {
+			} catch (\Exception) {
 				return false;
 			}
 
