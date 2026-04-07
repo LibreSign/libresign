@@ -502,12 +502,17 @@ describe('Sign.vue - signWithTokenCode', () => {
 					submitSignature: vi.fn()
 						.mockResolvedValueOnce({
 							status: 'signingInProgress',
-							data: {},
+							data: {
+								job: {
+									file: { uuid: 'async-validation-uuid' },
+								},
+							},
 						})
 						.mockResolvedValueOnce({
 							status: 'signed',
 							data: {
 								action: 3500,
+								file: { uuid: 'validation-envelope-uuid' },
 							},
 						}),
 				},
@@ -525,10 +530,72 @@ describe('Sign.vue - signWithTokenCode', () => {
 			expect(context.signStore.submitSignature).toHaveBeenCalledTimes(2)
 			expect(context.$emit).toHaveBeenCalledWith('signed', expect.objectContaining({
 				action: 3500,
-				signRequestUuid: 'uuid-file-a',
+				signRequestUuid: 'validation-envelope-uuid',
 			}))
 			expect(context.$emit).not.toHaveBeenCalledWith('signing-started', expect.anything())
 			expect(context.loading).toBe(false)
+		})
+
+		it('emits signed when an earlier envelope submission is signed and a later one is unknown', async () => {
+			const context = {
+				loading: false,
+				elements: [
+					{ elementId: 101, signRequestId: 501, type: 'signature' },
+					{ elementId: 102, signRequestId: 502, type: 'signature' },
+				],
+				canCreateSignature: false,
+				signRequestUuid: 'fallback-uuid',
+				signatureElementsStore: {
+					signs: {},
+				},
+				actionHandler: {
+					showModal: vi.fn(),
+					closeModal: vi.fn(),
+				},
+				signMethodsStore: {
+					certificateEngine: 'openssl',
+				},
+				signStore: {
+					document: {
+						id: 10,
+						nodeType: 'envelope',
+						signers: [
+							{ me: true, signRequestId: 501, sign_request_uuid: 'uuid-file-a' },
+							{ me: true, signRequestId: 502, sign_request_uuid: 'uuid-file-b' },
+						],
+					},
+					clearSigningErrors: vi.fn(),
+					setSigningErrors: vi.fn(),
+					submitSignature: vi.fn()
+						.mockResolvedValueOnce({
+							status: 'signed',
+							data: {
+								action: 3500,
+								file: { uuid: 'validation-envelope-uuid' },
+							},
+						})
+						.mockResolvedValueOnce({
+							status: 'unknown',
+							data: {},
+						}),
+				},
+				$emit: vi.fn(),
+				sidebarStore: {
+					hideSidebar: vi.fn(),
+				},
+			}
+
+			await submitSignatureCompatMethod.call(context, {
+				method: 'password',
+				token: '123456',
+			})
+
+			expect(context.signStore.submitSignature).toHaveBeenCalledTimes(2)
+			expect(context.$emit).toHaveBeenCalledWith('signed', expect.objectContaining({
+				action: 3500,
+				signRequestUuid: 'validation-envelope-uuid',
+			}))
+			expect(context.$emit).not.toHaveBeenCalledWith('signing-started', expect.anything())
 		})
 
 		it('keeps certificate validation errors in signStore and does not open certificate modal', async () => {
