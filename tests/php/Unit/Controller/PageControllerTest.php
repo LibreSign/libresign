@@ -18,6 +18,7 @@ use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -98,6 +99,9 @@ final class PageControllerTest extends TestCase {
 			accountService: $this->accountService,
 			signFileService: $this->signFileService,
 			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
+			policyService: $this->createConfiguredMock(PolicyService::class, [
+				'resolveKnownPolicies' => [],
+			]),
 			signerElementsService: $this->signerElementsService,
 			l10n: $this->createMock(IL10N::class),
 			identifyMethodService: $this->createConfiguredMock(IdentifyMethodService::class, [
