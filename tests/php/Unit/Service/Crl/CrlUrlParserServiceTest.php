@@ -19,7 +19,6 @@ class CrlUrlParserServiceTest extends TestCase {
 	private CrlUrlParserService $service;
 
 	protected function setUp(): void {
-		parent::setUp();
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->service = new CrlUrlParserService($this->urlGenerator);
 	}
