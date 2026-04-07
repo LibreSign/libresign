@@ -16,7 +16,6 @@ class TSATest extends TestCase {
 	private TSA $tsa;
 
 	protected function setUp(): void {
-		parent::setUp();
 		$this->tsa = new TSA();
 	}
 
