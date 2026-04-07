@@ -8,6 +8,7 @@ import { flushPromises, shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
 import { usePoliciesStore } from '../../../store/policies'
 import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatureTab.vue'
@@ -565,7 +566,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('does not use stale sign_request_uuid from initial state when file has no signing UUIDs', async () => {
-			vi.mocked(loadState).mockImplementation((app, key, defaultValue) => {
+			vi.mocked(loadState).mockImplementation((_app: string, key: string, defaultValue: unknown) => {
 				if (key === 'sign_request_uuid') {
 					return 'stale-sign-request-uuid'
 				}
