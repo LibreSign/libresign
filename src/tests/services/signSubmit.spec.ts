@@ -124,7 +124,7 @@ describe('signSubmit service', () => {
 		])
 	})
 
-	it('uses child file signers when envelope also includes a top-level signer for current user', () => {
+	it('prefers top-level envelope signer and includes file-level visible elements in payload', () => {
 		const requests = getEnvelopeSubmitRequests({
 			document: {
 				nodeType: 'envelope',
@@ -155,17 +155,13 @@ describe('signSubmit service', () => {
 
 		expect(requests).toEqual([
 			{
-				signRequestUuid: 'uuid-a',
+				signRequestUuid: 'envelope-uuid',
 				payload: {
 					method: 'clickToSign',
-					elements: [{ documentElementId: 101 }],
-				},
-			},
-			{
-				signRequestUuid: 'uuid-c',
-				payload: {
-					method: 'clickToSign',
-					elements: [{ documentElementId: 303 }],
+					elements: [
+						{ documentElementId: 101 },
+						{ documentElementId: 303 },
+					],
 				},
 			},
 		])
