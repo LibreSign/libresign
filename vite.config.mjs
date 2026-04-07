@@ -9,6 +9,7 @@ import { resolve } from 'node:path'
 export default createAppConfig({
 	main: resolve('src/main.ts'),
 	init: resolve('src/init.ts'),
+	'eurooffice-bridge': resolve('src/euroofficeBridge.ts'),
 	tab: resolve('src/tab.ts'),
 	settings: resolve('src/settings.ts'),
 	external: resolve('src/external.ts'),
