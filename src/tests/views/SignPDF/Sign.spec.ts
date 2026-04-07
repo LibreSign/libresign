@@ -106,6 +106,36 @@ const createSignDocument = (overrides: Partial<SignDocument> = {}): SignDocument
 	...overrides,
 })
 
+const createSignMountOptions = () => ({
+	global: {
+		stubs: {
+			NcButton: true,
+			NcDialog: true,
+			NcLoadingIcon: true,
+			TokenManager: true,
+			EmailManager: true,
+			UploadCertificate: true,
+			Documents: true,
+			Signatures: true,
+			Draw: true,
+			ManagePassword: true,
+			CreatePassword: true,
+			NcNoteCard: true,
+			NcPasswordField: true,
+			NcRichText: true,
+		},
+		mocks: {
+			$watch: vi.fn(),
+			$nextTick: vi.fn(),
+		},
+	},
+})
+
+const mountRealSignComponent = async () => {
+	const SignComponent = await import('../../../views/SignPDF/_partials/Sign.vue')
+	return mount(SignComponent.default, createSignMountOptions())
+}
+
 // Global mock for axios - prevents unhandled rejections during component mounting
 vi.mock('@nextcloud/axios', () => {
 	const axiosInstanceMock = Object.assign(vi.fn().mockResolvedValue({
@@ -465,6 +495,113 @@ describe('Sign.vue - signWithTokenCode', () => {
 			await expect(instance.signWithTokenCode('123456')).rejects.toThrow('No identify method found for active token method')
 
 			expect(submitSignatureSpy).not.toHaveBeenCalled()
+		})
+	})
+
+	describe('Sign.vue - lifecycle regressions', () => {
+		it('consumes pendingAction on mount and opens the matching signing modal', async () => {
+			setActivePinia(createPinia())
+
+			const { useSignStore } = await import('../../../store/sign.js')
+			const signStore = useSignStore()
+			const signMethodsStore = useSignMethodsStore()
+
+			signStore.document = createSignDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ me: true, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, signRequestId: 501, sign_request_uuid: 'pending-action-uuid' }],
+			})
+			signStore.queueAction('sign')
+			signMethodsStore.settings = {
+				clickToSign: {},
+			}
+
+			await mountRealSignComponent()
+			await flushPromises()
+
+			expect(signMethodsStore.modal.clickToSign).toBe(true)
+			expect(signStore.pendingAction).toBe(null)
+		})
+
+		it('emits signing-started on mount when document is already signing in progress', async () => {
+			setActivePinia(createPinia())
+
+			const { useSignStore } = await import('../../../store/sign.js')
+			const signStore = useSignStore()
+
+			signStore.document = createSignDocument({
+				status: FILE_STATUS.SIGNING_IN_PROGRESS,
+				signers: [{ me: true, signRequestId: 501, sign_request_uuid: 'progress-uuid' }],
+			})
+
+			const wrapper = await mountRealSignComponent()
+			await flushPromises()
+
+			expect(wrapper.emitted('signing-started')).toEqual([
+				[{ signRequestUuid: 'progress-uuid', async: true }],
+			])
+		})
+
+		it('resets modal and local signing state when signRequestUuid changes', async () => {
+			setActivePinia(createPinia())
+
+			const { useSignStore } = await import('../../../store/sign.js')
+			const signStore = useSignStore()
+			const signMethodsStore = useSignMethodsStore()
+
+			signStore.document = createSignDocument({
+				signers: [{ me: true, signRequestId: 501, sign_request_uuid: 'uuid-before' }],
+			})
+
+			const wrapper = await mountRealSignComponent()
+			const signVm = wrapper.vm as typeof wrapper.vm & {
+				showManagePassword: boolean
+				signPassword: string
+			}
+			signMethodsStore.showModal('password')
+			signMethodsStore.showModal('token')
+			signStore.setSigningErrors([{ message: 'existing error', code: 422 }])
+			signVm.showManagePassword = true
+			signVm.signPassword = '123456'
+
+			signStore.document = createSignDocument({
+				signers: [{ me: true, signRequestId: 502, sign_request_uuid: 'uuid-after' }],
+			})
+
+			await wrapper.vm.$nextTick()
+			await flushPromises()
+
+			expect(signMethodsStore.modal.password).toBe(false)
+			expect(signMethodsStore.modal.token).toBe(false)
+			expect(signStore.errors).toEqual([])
+			expect(signVm.showManagePassword).toBe(false)
+			expect(signVm.signPassword).toBe('')
+		})
+
+		it('cleans modal and signing errors on unmount', async () => {
+			setActivePinia(createPinia())
+
+			const { useSignStore } = await import('../../../store/sign.js')
+			const signStore = useSignStore()
+			const signMethodsStore = useSignMethodsStore()
+
+			signStore.document = createSignDocument({
+				signers: [{ me: true, signRequestId: 501, sign_request_uuid: 'cleanup-uuid' }],
+			})
+
+			const wrapper = await mountRealSignComponent()
+			signMethodsStore.showModal('password')
+			signMethodsStore.showModal('createSignature')
+			signMethodsStore.settings = {
+				password: { hasSignatureFile: true },
+			}
+			signStore.setSigningErrors([{ message: 'existing error', code: 422 }])
+
+			wrapper.unmount()
+
+			expect(signMethodsStore.modal.password).toBe(false)
+			expect(signMethodsStore.modal.createSignature).toBe(false)
+			expect(signMethodsStore.settings).toEqual({})
+			expect(signStore.errors).toEqual([])
 		})
 	})
 
@@ -1786,6 +1923,63 @@ describe('Sign.vue - signWithTokenCode', () => {
 			expect(storeSubmitMock).toHaveBeenNthCalledWith(
 				2,
 				{ method: 'clickToSign', elements: [{ documentElementId: 200, profileNodeId: 42 }] },
+				'uuid-file-2',
+				{ documentId: 1 },
+			)
+		})
+
+		it('submits each envelope file when current signer uuids only exist in child files', async () => {
+			const storeSubmitMock = vi.fn().mockResolvedValue({ status: 'signed', data: {} })
+
+			const context = {
+				loading: false,
+				elements: [
+					{ elementId: 100, signRequestId: 10, type: 'signature' },
+					{ elementId: 200, signRequestId: 20, type: 'signature' },
+				],
+				canCreateSignature: false,
+				signRequestUuid: 'fallback-envelope-uuid',
+				signatureElementsStore: { signs: {} },
+				actionHandler: { showModal: vi.fn(), closeModal: vi.fn() },
+				signMethodsStore: { certificateEngine: 'openssl' },
+				signStore: {
+					document: {
+						id: 1,
+						nodeType: 'envelope',
+						signers: [],
+						files: [
+							{
+								signers: [
+									{ signRequestId: 10, me: true, sign_request_uuid: 'uuid-file-1' },
+								],
+							},
+							{
+								signers: [
+									{ signRequestId: 20, me: true, sign_request_uuid: 'uuid-file-2' },
+								],
+							},
+						],
+					},
+					clearSigningErrors: vi.fn(),
+					setSigningErrors: vi.fn(),
+					submitSignature: storeSubmitMock,
+				},
+				$emit: vi.fn(),
+				sidebarStore: { hideSidebar: vi.fn() },
+			}
+
+			await submitSignatureCompatMethod.call(context, { method: 'clickToSign' })
+
+			expect(storeSubmitMock).toHaveBeenCalledTimes(2)
+			expect(storeSubmitMock).toHaveBeenNthCalledWith(
+				1,
+				{ method: 'clickToSign', elements: [{ documentElementId: 100 }] },
+				'uuid-file-1',
+				{ documentId: 1 },
+			)
+			expect(storeSubmitMock).toHaveBeenNthCalledWith(
+				2,
+				{ method: 'clickToSign', elements: [{ documentElementId: 200 }] },
 				'uuid-file-2',
 				{ documentId: 1 },
 			)
