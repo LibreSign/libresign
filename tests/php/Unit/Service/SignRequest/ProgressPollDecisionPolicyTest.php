@@ -16,7 +16,6 @@ class ProgressPollDecisionPolicyTest extends TestCase {
 	private ProgressPollDecisionPolicy $policy;
 
 	protected function setUp(): void {
-		parent::setUp();
 		$this->policy = new ProgressPollDecisionPolicy();
 	}
 
