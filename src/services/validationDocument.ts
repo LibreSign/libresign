@@ -128,7 +128,7 @@ function isRequestedBy(value: unknown): value is ValidationFileRecord['requested
 	if (!isRecord(value)) {
 		return false
 	}
-	return isString(value.userId) && isString(value.displayName)
+	return isString(value.userId) && (value.displayName === null || isString(value.displayName))
 }
 
 function isValidationMetadata(value: unknown): value is NonNullable<ValidationFileRecord['metadata']> {
