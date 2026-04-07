@@ -218,6 +218,12 @@ import type {
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import {
+	buildSubmitSignaturePayload,
+	createBaseSubmitSignaturePayload,
+	getEnvelopeSubmitRequests,
+	resolveSignSubmissionOutcome,
+} from '../../../services/signSubmit'
+import {
 	normalizeDocumentForVisibleElements,
 } from '../../../services/signingDocumentAdapter'
 import { FILE_STATUS } from '../../../constants.js'
@@ -227,6 +233,12 @@ import {
 	getVisibleElementsFromDocument,
 	idsMatch,
 } from '../../../services/visibleElementsService'
+import type {
+	SignResult,
+	SignSubmissionAttempt,
+	SignatureMethodConfig,
+	SubmitSignaturePayload,
+} from '../../../services/signSubmit'
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
 type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
@@ -251,48 +263,55 @@ defineOptions({
 			this.signStore.clearSigningErrors()
 
 			try {
-				const payload: SubmitSignaturePayload = {
-					method: methodConfig.method,
-				}
-
-				if (methodConfig.token) {
-					payload.token = methodConfig.token
-				}
-
-				if (this.elements?.length > 0) {
-					if (this.canCreateSignature) {
-						payload.elements = this.elements.flatMap((row) => typeof row.elementId === 'number'
-							? [{
-							documentElementId: row.elementId,
-							profileNodeId: row.type ? this.signatureElementsStore.signs[row.type]?.file.nodeId : undefined,
-							}]
-							: [])
-					} else {
-						payload.elements = this.elements.flatMap((row) => typeof row.elementId === 'number'
-							? [{
-							documentElementId: row.elementId,
-							}]
-							: [])
-					}
-				}
-
-				const result = await this.signStore.submitSignature(payload, this.signRequestUuid, {
-					documentId: this.signStore.document.id,
+				const basePayload = createBaseSubmitSignaturePayload(methodConfig)
+				const envelopeRequests = getEnvelopeSubmitRequests({
+					document: this.signStore.document,
+					basePayload,
+					elements: this.elements ?? [],
+					canCreateSignature: this.canCreateSignature,
+					signatures: this.signatureElementsStore.signs,
 				})
 
-				if (result.status === 'signingInProgress') {
-					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-					this.$emit('signing-started', {
-						signRequestUuid: this.signRequestUuid,
-						async: true,
+				const attempts: SignSubmissionAttempt[] = []
+
+				if (envelopeRequests.length > 0) {
+					for (const request of envelopeRequests) {
+						const result = await this.signStore.submitSignature(request.payload, request.signRequestUuid, {
+							documentId: this.signStore.document.id,
+						})
+						attempts.push({
+							result,
+							signRequestUuid: request.signRequestUuid,
+						})
+					}
+				} else {
+					const payload = buildSubmitSignaturePayload({
+						basePayload,
+						elements: this.elements ?? [],
+						canCreateSignature: this.canCreateSignature,
+						signatures: this.signatureElementsStore.signs,
 					})
-				} else if (result.status === 'signed') {
-					this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
+
+					const result = await this.signStore.submitSignature(payload, this.signRequestUuid, {
+						documentId: this.signStore.document.id,
+					})
+
+					attempts.push({
+						result,
+						signRequestUuid: this.signRequestUuid,
+					})
+				}
+
+				const outcome = resolveSignSubmissionOutcome(attempts)
+				const modalCode = methodConfig.modalCode || methodConfig.method || 'token'
+
+				if (outcome?.type === 'signed') {
+					this.actionHandler.closeModal(modalCode)
 					this.sidebarStore.hideSidebar()
-					this.$emit('signed', {
-						...result.data,
-						signRequestUuid: this.signRequestUuid,
-					})
+					this.$emit('signed', outcome.payload)
+				} else if (outcome?.type === 'signing-started') {
+					this.actionHandler.closeModal(modalCode)
+					this.$emit('signing-started', outcome.payload)
 				}
 			} catch (error: unknown) {
 				const signError = typeof error === 'object' && error !== null ? error as SignSubmissionError : {}
@@ -316,12 +335,6 @@ defineOptions({
 })
 
 type UserInfo = LibreSignAccountMe
-
-type SignatureMethodConfig = {
-	method?: string
-	modalCode?: string
-	token?: string
-}
 
 type SignError = {
 	title?: string
@@ -350,20 +363,6 @@ type SignatureProfile = LibreSignUserElement
 
 type SignDocument = NonNullable<ReturnType<typeof useSignStore>['document']>
 type SignDocumentFile = NonNullable<SignDocument['files']>[number]
-
-type SignResult = {
-	status: 'signingInProgress' | 'signed' | 'unknown'
-	data: Record<string, unknown>
-}
-
-type SubmitSignaturePayload = {
-	method?: string
-	token?: string
-	elements?: Array<{
-		documentElementId: number
-		profileNodeId?: number
-	}>
-}
 
 type SignSubmissionError = {
 	type?: string
@@ -526,14 +525,10 @@ function onCloseConfirmPassword() {
 }
 
 function resetSignMethodsState() {
-	if (typeof signMethodsStore?.$reset === 'function') {
-		signMethodsStore.$reset()
-	} else {
-		Object.keys(signMethodsStore.modal || {}).forEach((key) => {
-			signMethodsStore.closeModal(key)
-		})
-		signMethodsStore.settings = {}
-	}
+	Object.keys(signMethodsStore.modal || {}).forEach((key) => {
+		signMethodsStore.closeModal(key)
+	})
+	signMethodsStore.settings = {}
 	signStore.clearSigningErrors()
 	showManagePassword.value = false
 	signPassword.value = ''
@@ -611,53 +606,60 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	signStore.clearSigningErrors()
 
 	try {
-		const payload: SubmitSignaturePayload = {
-			method: methodConfig.method,
-		}
+		const basePayload = createBaseSubmitSignaturePayload(methodConfig)
+		const envelopeRequests = getEnvelopeSubmitRequests({
+			document: signStore.document,
+			basePayload,
+			elements: elements.value,
+			canCreateSignature: canCreateSignature.value,
+			signatures: signatureElementsStore.signs,
+		})
+		const attempts: SignSubmissionAttempt[] = []
 
-		if (methodConfig.token) {
-			payload.token = methodConfig.token
-		}
+		if (envelopeRequests.length > 0) {
+			for (const request of envelopeRequests) {
+				const result = await signStore.submitSignature(request.payload, request.signRequestUuid, {
+					documentId: signStore.document.id,
+				})
 
-		if (elements.value.length > 0) {
-			if (canCreateSignature.value) {
-				payload.elements = elements.value.flatMap((row) => typeof row.elementId === 'number'
-					? [{
-					documentElementId: row.elementId,
-					profileNodeId: row.type ? signatureElementsStore.signs[row.type]?.file.nodeId : undefined,
-					}]
-					: [])
-			} else {
-				payload.elements = elements.value.flatMap((row) => typeof row.elementId === 'number'
-					? [{
-					documentElementId: row.elementId,
-					}]
-					: [])
+				attempts.push({
+					result,
+					signRequestUuid: request.signRequestUuid,
+				})
 			}
+		} else {
+			const payload = buildSubmitSignaturePayload({
+				basePayload,
+				elements: elements.value,
+				canCreateSignature: canCreateSignature.value,
+				signatures: signatureElementsStore.signs,
+			})
+
+			const result = await signStore.submitSignature(
+				payload,
+				signRequestUuid.value,
+				{
+					documentId: signStore.document.id,
+				},
+			)
+
+			attempts.push({
+				result,
+				signRequestUuid: signRequestUuid.value,
+			})
 		}
 
-		const result = await signStore.submitSignature(
-			payload,
-			signRequestUuid.value,
-			{
-				documentId: signStore.document.id,
-			},
-		)
+		const outcome = resolveSignSubmissionOutcome(attempts)
+		const modalCode = methodConfig.modalCode || methodConfig.method || 'token'
 
 		ensureServices()
-		if (result.status === 'signingInProgress') {
-			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-			emit('signing-started', {
-				signRequestUuid: signRequestUuid.value,
-				async: true,
-			})
-		} else if (result.status === 'signed') {
-			actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
+		if (outcome?.type === 'signed') {
+			actionHandler!.closeModal(modalCode)
 			sidebarStore.hideSidebar()
-			emit('signed', {
-				...result.data,
-				signRequestUuid: signRequestUuid.value,
-			})
+			emit('signed', outcome.payload)
+		} else if (outcome?.type === 'signing-started') {
+			actionHandler!.closeModal(modalCode)
+			emit('signing-started', outcome.payload)
 		}
 	} catch (error: unknown) {
 		const signError = isSignSubmissionError(error) ? error : {}

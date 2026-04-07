@@ -247,7 +247,7 @@ describe('Draw.vue', () => {
 		expect(wrapper.emitted('close')).toBeTruthy()
 	})
 
-	it('calls store loadSignatures when save is triggered', async () => {
+	it('persists the signature without triggering a parallel reload', async () => {
 		const wrapper = mountDraw({
 			props: {
 				type: 'signature',
@@ -259,16 +259,14 @@ describe('Draw.vue', () => {
 
 		await wrapper.vm.$nextTick()
 
-		const store = useSignatureElementsStore()
-		const originalLoadSignatures = store.loadSignatures
-		store.loadSignatures = vi.fn()
-		store.save = vi.fn()
-
 		wrapper.vm.signatureElementsStore.loadSignatures = vi.fn()
 		wrapper.vm.signatureElementsStore.save = vi.fn()
 
 		const base64Data = 'data:image/png;base64,test'
 		await wrapper.vm.save(base64Data)
+
+		expect(wrapper.vm.signatureElementsStore.loadSignatures).not.toHaveBeenCalled()
+		expect(wrapper.vm.signatureElementsStore.save).toHaveBeenCalledWith('signature', base64Data)
 	})
 
 	it('emits save event after complete flow', async () => {
@@ -283,7 +281,6 @@ describe('Draw.vue', () => {
 
 		await wrapper.vm.$nextTick()
 		const store = wrapper.vm.signatureElementsStore
-		store.loadSignatures = vi.fn()
 		store.save = vi.fn()
 
 		await wrapper.vm.save('data:image/png;base64,test')
@@ -303,7 +300,6 @@ describe('Draw.vue', () => {
 
 		await wrapper.vm.$nextTick()
 		const store = wrapper.vm.signatureElementsStore
-		store.loadSignatures = vi.fn()
 		store.save = vi.fn()
 
 		const closeEmits = wrapper.emitted('close') || []
