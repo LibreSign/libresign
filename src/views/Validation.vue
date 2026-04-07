@@ -278,6 +278,7 @@ const signRequestUuidForProgress = computed(() => {
 const isAfterSigned = computed(() => history.state?.isAfterSigned ?? shouldFireAsyncConfetti.value ?? false)
 
 const isEnvelope = computed(() => document.value?.nodeType === 'envelope')
+
 const validationComponent = computed(() => (isEnvelope.value ? EnvelopeValidation : FileValidation))
 const validationDocument = computed(() => document.value)
 const validationEnvelopeDocument = computed<LoadedValidationEnvelopeDocumentState | null>(() => (isLoadedValidationEnvelopeDocument(document.value) ? document.value : null))
@@ -360,12 +361,6 @@ async function uploadFile() {
 
 function dateFromSqlAnsi(date: string) {
 	return Moment(Date.parse(date)).format('LL LTS')
-}
-
-function toggleDetail(_signer: SignerDetailRecord) {
-}
-
-function toggleFileDetail(_file: ValidatedChildFileRecord) {
 }
 
 function getSignerStatus(status: string) {
@@ -861,6 +856,8 @@ defineExpose({
 	loading,
 	document,
 	validationDocument,
+	validationEnvelopeDocument,
+	validationFileDocument,
 	legalInformation,
 	clickedValidate,
 	getUUID,
@@ -884,15 +881,11 @@ defineExpose({
 	helperTextValidation,
 	size,
 	documentStatus,
-	validationEnvelopeDocument,
-	validationFileDocument,
 	validityStatusMap,
 	crlStatusMap,
 	upload,
 	uploadFile,
 	dateFromSqlAnsi,
-	toggleDetail,
-	toggleFileDetail,
 	getSignerStatus,
 	validate,
 	validateByUUID,
