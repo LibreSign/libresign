@@ -277,8 +277,7 @@ const signRequestUuidForProgress = computed(() => {
 
 const isAfterSigned = computed(() => history.state?.isAfterSigned ?? shouldFireAsyncConfetti.value ?? false)
 
-const isEnvelope = computed(() => document.value?.nodeType === 'envelope'
-	|| (Array.isArray(document.value?.files) && document.value.files.length > 0))
+const isEnvelope = computed(() => document.value?.nodeType === 'envelope')
 const validationComponent = computed(() => (isEnvelope.value ? EnvelopeValidation : FileValidation))
 const validationDocument = computed(() => document.value)
 const validationEnvelopeDocument = computed<LoadedValidationEnvelopeDocumentState | null>(() => (isLoadedValidationEnvelopeDocument(document.value) ? document.value : null))
