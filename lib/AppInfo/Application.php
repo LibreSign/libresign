@@ -70,6 +70,8 @@ class Application extends App implements IBootstrap {
 
 		// Files newFile listener
 		$context->registerEventListener(LoadAdditionalScriptsEvent::class, LoadAdditionalListener::class);
+
+		// Eurooffice bridge listener
 		$context->registerEventListener(BeforeTemplateRenderedEvent::class, LoadEuroofficeBridgeListener::class);
 
 		// Activity listeners
