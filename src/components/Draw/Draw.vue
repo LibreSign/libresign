@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import {
 	mdiCloudUpload,
@@ -116,8 +116,8 @@ function close() {
 }
 
 async function save(base64: string) {
-	signatureElementsStore.loadSignatures()
 	await signatureElementsStore.save(props.type, base64)
+	await nextTick()
 	emit('save')
 	close()
 }
