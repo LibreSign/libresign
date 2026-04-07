@@ -137,6 +137,7 @@ import {
 	MODIFICATION_VIOLATION,
 	toValidationDocument,
 } from '../services/validationDocument'
+import { normalizeRouteRecord } from '../services/routeNormalization.js'
 import logger from '../logger.js'
 import { useFilesStore } from '../store/files.js'
 import { useSignStore } from '../store/sign.js'
@@ -204,31 +205,6 @@ type ValidationErrorResponse = {
 			}
 		}
 	}
-}
-
-function normalizeRouteRecord(value: unknown, source: 'params' | 'query'): Record<string, string> {
-	if (typeof value !== 'object' || value === null) {
-		return {}
-	}
-
-	const result: Record<string, string> = {}
-	const droppedKeys: string[] = []
-	for (const [key, entry] of Object.entries(value)) {
-		if (typeof entry === 'string') {
-			result[key] = entry
-		} else {
-			droppedKeys.push(key)
-		}
-	}
-
-	if (droppedKeys.length > 0) {
-		logger.warn('Validation route normalization dropped non-string entries', {
-			source,
-			droppedKeys,
-		})
-	}
-
-	return result
 }
 
 function toNumber(value: unknown): number | null {
