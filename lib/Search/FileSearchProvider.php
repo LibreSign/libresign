@@ -46,7 +46,7 @@ class FileSearchProvider implements IProvider {
 
 	#[\Override]
 	public function getOrder(string $route, array $routeParameters): int {
-		if (strpos($route, Application::APP_ID . '.') === 0) {
+		if (str_starts_with($route, Application::APP_ID . '.')) {
 			return 0;
 		}
 		return 10;
@@ -68,9 +68,7 @@ class FileSearchProvider implements IProvider {
 			return SearchResult::complete($this->l10n->t('LibreSign documents'), []);
 		}
 
-		$results = array_map(function (File $file) use ($user) {
-			return $this->formatResult($file, $user);
-		}, $files);
+		$results = array_map(fn (File $file) => $this->formatResult($file, $user), $files);
 
 		return SearchResult::paginated(
 			$this->l10n->t('LibreSign documents'),
