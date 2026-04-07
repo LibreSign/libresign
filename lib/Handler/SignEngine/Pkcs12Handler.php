@@ -247,7 +247,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		foreach ($organizationalUnits as $ou) {
-			$ou = trim($ou);
+			$ou = trim((string)$ou);
 			if ($this->caIdentifierService->isValidCaId($ou, $instanceId)) {
 				return true;
 			}
