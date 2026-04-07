@@ -158,7 +158,7 @@ class CrlMapper extends QBMapper {
 
 		try {
 			$certificate = $this->findBySerialNumber($serialNumber);
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			return false;
 		}
 
