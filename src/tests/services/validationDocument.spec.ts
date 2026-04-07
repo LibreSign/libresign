@@ -246,4 +246,36 @@ describe('validationDocument', () => {
 		expect(isLoadedValidationEnvelopeDocument(null)).toBe(false)
 		expect(isLoadedValidationFileDocument(null)).toBe(false)
 	})
+
+	it('accepts requested_by.displayName as null (missing profile info)', () => {
+		// OpenAPI contract allows requested_by.displayName to be null
+		// when requester profile info is not available
+		const payload = createValidationPayload({
+			requested_by: { userId: 'creator-user', displayName: null },
+		})
+
+		const normalized = toValidationDocument(payload)
+
+		expect(normalized).not.toBeNull()
+		expect(normalized?.requested_by).toEqual({
+			userId: 'creator-user',
+			displayName: null,
+		})
+	})
+
+	it('rejects requested_by when displayName is neither string nor null', () => {
+		const payload = createValidationPayload({
+			requested_by: { userId: 'creator-user', displayName: 123 },
+		})
+
+		expect(toValidationDocument(payload)).toBeNull()
+	})
+
+	it('rejects requested_by when displayName is missing', () => {
+		const payload = createValidationPayload({
+			requested_by: { userId: 'creator-user' },
+		})
+
+		expect(toValidationDocument(payload)).toBeNull()
+	})
 })
