@@ -640,18 +640,13 @@ class FileService {
 				continue;
 			}
 
-			// Validate and type-cast signRequestId (required field)
-			$signRequestId = $signerData['signRequestId'] ?? null;
-			if (is_int($signRequestId)) {
-				$typedSignRequestId = $signRequestId;
-			} elseif (is_string($signRequestId) && ctype_digit($signRequestId)) {
-				$typedSignRequestId = (int)$signRequestId;
-			} else {
+			$signRequestId = $this->extractValidSignRequestId($signerData);
+			if ($signRequestId === null) {
 				continue;
 			}
 
 			$summary = [
-				'signRequestId' => $typedSignRequestId,
+				'signRequestId' => $signRequestId,
 				'displayName' => isset($signerData['displayName']) ? (string)$signerData['displayName'] : '',
 				'email' => isset($signerData['email']) ? (string)$signerData['email'] : '',
 				'signed' => $signerData['signed'] ?? null,
@@ -667,6 +662,24 @@ class FileService {
 		}
 
 		return $summaries;
+	}
+
+	/**
+	 * Extracts and type-casts signRequestId from signer data.
+	 * Returns null if signRequestId is missing, null, non-numeric, or cannot be converted.
+	 */
+	private function extractValidSignRequestId(array $signerData): ?int {
+		$signRequestId = $signerData['signRequestId'] ?? null;
+		
+		if (is_int($signRequestId)) {
+			return $signRequestId;
+		}
+		
+		if (is_string($signRequestId) && ctype_digit($signRequestId)) {
+			return (int)$signRequestId;
+		}
+		
+		return null;
 	}
 
 	private function computeEnvelopeSignersProgress(): void {
