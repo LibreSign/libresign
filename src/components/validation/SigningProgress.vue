@@ -68,24 +68,12 @@ import {
 } from '@mdi/js'
 import { buildStatusMap } from '../../utils/fileStatus.js'
 import type { components } from '../../types/openapi/openapi'
+import type { ValidationFileRecord } from '../../types/index'
 
-type OpenApiNextcloudFile = components['schemas']['DetailedFileResponse']
-type OpenApiSigner = components['schemas']['SignerDetail']
 type ProgressFile = components['schemas']['ProgressFile']
 type ProgressState = components['schemas']['ProgressPayload']
 
-type ValidationDocument = {
-	id?: OpenApiNextcloudFile['id'] | string | number
-	nodeType?: OpenApiNextcloudFile['nodeType'] | string
-	files?: Array<{
-		id?: OpenApiNextcloudFile['id'] | string | number
-		name?: OpenApiNextcloudFile['name']
-		status?: OpenApiNextcloudFile['status'] | string | number
-	}>
-	signers?: Array<{
-		signed?: OpenApiSigner['signed'] | boolean | Array<unknown>
-	}>
-}
+type ValidationDocument = Partial<Pick<ValidationFileRecord, 'nodeType' | 'files' | 'signers'>>
 
 type StatusMeta = {
 	label: string
@@ -270,7 +258,7 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 	if (!doc) {
 		return null
 	}
-	if (doc.nodeType === 'envelope' || (Array.isArray(doc.files) && doc.files.length > 0)) {
+	if (doc.nodeType === 'envelope') {
 		const files = (doc.files ?? [])
 			.filter((file): file is typeof file & { id: number; name: string; status: number } => {
 				return typeof file.id === 'number'

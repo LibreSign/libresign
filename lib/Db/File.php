@@ -100,7 +100,20 @@ class File extends Entity {
 	}
 
 	public function getStatusEnum(): FileStatus {
-		return FileStatus::from($this->status ?? FileStatus::DRAFT->value);
+		return FileStatus::from($this->getStatus());
+	}
+
+	public function getStatus(): int {
+		return $this->status ?? FileStatus::DRAFT->value;
+	}
+
+	public function setStatus(int $status): void {
+		if (FileStatus::tryFrom($status) === null) {
+			throw new \InvalidArgumentException(sprintf('Invalid file status code: %d', $status));
+		}
+
+		$this->status = $status;
+		$this->markFieldUpdated('status');
 	}
 
 	public function setStatusEnum(FileStatus $status): void {

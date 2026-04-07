@@ -129,27 +129,47 @@ import { openDocument } from '../utils/viewer.js'
 import { getStatusLabel } from '../utils/fileStatus.js'
 import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
+import {
+	isLoadedValidationEnvelopeDocument,
+	isLoadedValidationFileDocument,
+	MODIFICATION_ALLOWED,
+	MODIFICATION_UNMODIFIED,
+	MODIFICATION_VIOLATION,
+	toValidationDocument,
+} from '../services/validationDocument'
+import { normalizeRouteRecord } from '../services/routeNormalization.js'
 import logger from '../logger.js'
 import { useFilesStore } from '../store/files.js'
 import { useSignStore } from '../store/sign.js'
 import { useSidebarStore } from '../store/sidebar.js'
 import type {
-	LoadedValidationEnvelopeDocument,
-	LoadedValidationFileDocument,
 	SignerDetailRecord,
 	ValidatedChildFileRecord,
 	ValidationFileRecord,
 } from '../types/index'
+import type {
+	LoadedValidationEnvelopeDocumentState,
+	LoadedValidationFileDocumentState,
+	ValidationDocumentState,
+	ValidationModificationInfo,
+	ValidationStatusInfo,
+} from '../services/validationDocument'
 
 defineOptions({
 	name: 'Validation',
 })
 
 type RouteState = {
-	name?: string
-	params?: Record<string, string | undefined>
-	query?: Record<string, string | undefined>
+	name: string | null
+	params: Record<string, string>
+	query: Record<string, string>
 }
+
+type ValidationRouteName =
+	| 'validation'
+	| 'ValidationFile'
+	| 'ValidationFileExternal'
+	| 'ValidationFileShortUrl'
 
 type RouterState = {
 	push: (location: unknown) => void
@@ -157,15 +177,7 @@ type RouterState = {
 }
 
 type ToggleOpenState = Record<number, boolean>
-type ValidationStatus = ValidationFileRecord['status']
-type ValidationStatusInfo = {
-	id?: number
-	label?: string
-}
-type ValidationModificationInfo = {
-	status?: number
-	valid?: boolean
-}
+
 type ValidationDisplaySigner = SignerDetailRecord & {
 	signature_validation?: ValidationStatusInfo
 	certificate_validation?: ValidationStatusInfo
@@ -195,83 +207,19 @@ type ValidationErrorResponse = {
 	}
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null
-}
-
 function toNumber(value: unknown): number | null {
-	if (typeof value === 'number' && Number.isFinite(value)) {
-		return value
-	}
-	if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) {
-		return Number(value)
-	}
-	return null
+	return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
-function toValidationStatus(value: unknown): ValidationStatus | null {
-	const normalizedValue = toNumber(value)
-	if (normalizedValue === 0 || normalizedValue === 1 || normalizedValue === 2 || normalizedValue === 3 || normalizedValue === 4) {
-		return normalizedValue
-	}
-	return null
+function isValidationRouteName(value: RouteState['name']): value is ValidationRouteName {
+	return value === 'validation'
+		|| value === 'ValidationFile'
+		|| value === 'ValidationFileExternal'
+		|| value === 'ValidationFileShortUrl'
 }
 
-function normalizeValidationSigner(signer: unknown): SignerDetailRecord | null {
-	if (!isRecord(signer)) {
-		return null
-	}
-	return { ...signer } as SignerDetailRecord
-}
-
-function normalizeValidationChildFile(file: unknown): ValidatedChildFileRecord | null {
-	if (!isRecord(file)) {
-		return null
-	}
-	return { ...file } as ValidatedChildFileRecord
-}
-
-function normalizeValidationDocument(data: unknown): ValidationFileRecord | null {
-	if (!isRecord(data)) {
-		return null
-	}
-
-	const uuid = typeof data.uuid === 'string' ? data.uuid : null
-	const name = typeof data.name === 'string' ? data.name : null
-	const nodeId = toNumber(data.nodeId)
-	const status = toValidationStatus(data.status)
-	const files = Array.isArray(data.files)
-		? data.files
-			.map(normalizeValidationChildFile)
-			.filter((file): file is ValidatedChildFileRecord => file !== null)
-		: undefined
-	const signers = Array.isArray(data.signers)
-		? data.signers
-			.map(normalizeValidationSigner)
-			.filter((signer): signer is SignerDetailRecord => signer !== null)
-		: undefined
-	const nodeType = data.nodeType === 'envelope'
-		? 'envelope'
-		: data.nodeType === 'file'
-			? 'file'
-			: files && files.length > 0
-				? 'envelope'
-				: null
-
-	if (!uuid || !name || nodeId === null || status === null || nodeType === null) {
-		return null
-	}
-
-	return {
-		...(data as ValidationFileRecord),
-		uuid,
-		name,
-		nodeId,
-		status,
-		nodeType,
-		files,
-		signers,
-	}
+function isSignedDocumentStatus(status: unknown): boolean {
+	return Number(status) === FILE_STATUS.SIGNED
 }
 
 function getValidationErrorMessage(response: ValidationErrorResponse | undefined, fallback: string): string {
@@ -281,28 +229,27 @@ function getValidationErrorMessage(response: ValidationErrorResponse | undefined
 	return fallback
 }
 
-function isLoadedValidationEnvelopeDocument(document: ValidationFileRecord | null): document is LoadedValidationEnvelopeDocument {
-	return document?.nodeType === 'envelope'
-}
-
-function isLoadedValidationFileDocument(document: ValidationFileRecord | null): document is LoadedValidationFileDocument {
-	return document?.nodeType === 'file'
-}
-
 const signStore = useSignStore()
 const sidebarStore = useSidebarStore()
 const filesStore = useFilesStore()
 const instance = getCurrentInstance()
 const EXPIRATION_WARNING_DAYS = 30
 
-const route = computed<RouteState>(() => (instance?.proxy?.$route as RouteState | undefined) ?? { params: {}, query: {} })
+const route = computed<RouteState>(() => {
+	const rawRoute = (instance?.proxy?.$route as Partial<RouteState> | undefined) ?? {}
+	return {
+		name: typeof rawRoute.name === 'string' ? rawRoute.name : null,
+		params: normalizeRouteRecord(rawRoute.params, 'params'),
+		query: normalizeRouteRecord(rawRoute.query, 'query'),
+	}
+})
 const router = computed<RouterState>(() => (instance?.proxy?.$router as RouterState | undefined) ?? { push: () => {}, replace: () => {} })
 
 const logo = ref(logoGray)
-const uuidToValidate = ref(route.value.params?.uuid ?? '')
+const uuidToValidate = ref(route.value.params.uuid ?? '')
 const hasInfo = ref(false)
 const loading = ref(false)
-const document = ref<ValidationFileRecord | null>(null)
+const document = ref<ValidationDocumentState | null>(null)
 const legalInformation = ref(loadState('libresign', 'legal_information', ''))
 const clickedValidate = ref(false)
 const getUUID = ref(false)
@@ -322,21 +269,20 @@ const signRequestUuidForProgress = computed(() => {
 	const doc = signStore?.document || {}
 	const fromState = loadState('libresign', 'sign_request_uuid', null)
 	const fromDocument = getSigningRouteUuid(doc, typeof fromState === 'string' ? fromState : null)
-	return route.value.query?.signRequestUuid
-		|| route.value.params?.signRequestUuid
+	return route.value.query.signRequestUuid
+		|| route.value.params.signRequestUuid
 		|| fromDocument
 		|| uuidToValidate.value
 })
 
 const isAfterSigned = computed(() => history.state?.isAfterSigned ?? shouldFireAsyncConfetti.value ?? false)
 
-const isEnvelope = computed(() => document.value?.nodeType === 'envelope'
-	|| (Array.isArray(document.value?.files) && document.value.files.length > 0))
+const isEnvelope = computed(() => document.value?.nodeType === 'envelope')
 
 const validationComponent = computed(() => (isEnvelope.value ? EnvelopeValidation : FileValidation))
 const validationDocument = computed(() => document.value)
-const validationEnvelopeDocument = computed<LoadedValidationEnvelopeDocument | null>(() => (isLoadedValidationEnvelopeDocument(document.value) ? document.value : null))
-const validationFileDocument = computed<LoadedValidationFileDocument | null>(() => (isLoadedValidationFileDocument(document.value) ? document.value : null))
+const validationEnvelopeDocument = computed<LoadedValidationEnvelopeDocumentState | null>(() => (isLoadedValidationEnvelopeDocument(document.value) ? document.value : null))
+const validationFileDocument = computed<LoadedValidationFileDocumentState | null>(() => (isLoadedValidationFileDocument(document.value) ? document.value : null))
 
 const canValidate = computed(() => {
 	if (!uuidToValidate.value) {
@@ -522,7 +468,7 @@ function goBack() {
 	}
 	hasInfo.value = false
 	document.value = null
-	uuidToValidate.value = route.value.params?.uuid ?? ''
+	uuidToValidate.value = route.value.params.uuid ?? ''
 	validationErrorMessage.value = null
 	documentValidMessage.value = null
 }
@@ -637,29 +583,36 @@ function hasDocMdpInfo(signer: ValidationDisplaySigner) {
 	return signer.docmdp || signer.modifications || signer.modification_validation
 }
 
-function getModificationStatusIcon(signer: ValidationDisplaySigner) {
+function getModificationStatusVariant(signer: ValidationDisplaySigner): 'success' | 'error' | 'default' {
 	if (!signer.modification_validation) {
-		return null
+		return 'default'
 	}
+
 	const status = signer.modification_validation.status
 	const valid = signer.modification_validation.valid
 
-	if (valid && status === 2) return mdiCheckCircle
-	if (status === 1) return mdiCheckCircle
-	if (status === 3) return mdiCancel
-	return mdiHelpCircle
+	if ((valid && status === MODIFICATION_ALLOWED) || status === MODIFICATION_UNMODIFIED) {
+		return 'success'
+	}
+
+	if (status === MODIFICATION_VIOLATION) {
+		return 'error'
+	}
+
+	return 'default'
+}
+
+function getModificationStatusIcon(signer: ValidationDisplaySigner) {
+	const variant = getModificationStatusVariant(signer)
+	if (variant === 'success') return mdiCheckCircle
+	if (variant === 'error') return mdiCancel
+	return signer.modification_validation ? mdiHelpCircle : null
 }
 
 function getModificationStatusClass(signer: ValidationDisplaySigner) {
-	if (!signer.modification_validation) {
-		return ''
-	}
-	const status = signer.modification_validation.status
-	const valid = signer.modification_validation.valid
-
-	if (valid && status === 2) return 'icon-success'
-	if (status === 1) return 'icon-success'
-	if (status === 3) return 'icon-error'
+	const variant = getModificationStatusVariant(signer)
+	if (variant === 'success') return 'icon-success'
+	if (variant === 'error') return 'icon-error'
 	return ''
 }
 
@@ -738,7 +691,7 @@ function syncValidatedDocumentToFilesStore(validationDocument: ValidationFileRec
 			? currentFile.files
 			: []
 		if (nestedFiles.length > 0) {
-			pendingFiles.push(...nestedFiles.filter((file): file is ValidatedChildFileRecord => isRecord(file)))
+			pendingFiles.push(...nestedFiles.filter((file): file is ValidatedChildFileRecord => typeof file === 'object' && file !== null))
 		}
 	}
 }
@@ -753,20 +706,13 @@ function handleValidationSuccess(data: unknown) {
 		return
 	}
 	documentValidMessage.value = t('libresign', 'This document is valid')
-	if (isRecord(data) && !data.nodeType && Array.isArray(data.files) && data.files.length > 0) {
-		data.nodeType = 'envelope'
-	}
-	const normalizedDocument = normalizeValidationDocument(data)
+	const normalizedDocument = toValidationDocument(data)
 	if (!normalizedDocument) {
 		setValidationError(t('libresign', 'Failed to validate document'))
 		return
 	}
-	const routeName = route.value?.name || ''
-	const shouldUpdateRoute = routeName === 'validation'
-		|| routeName === 'ValidationFile'
-		|| routeName === 'ValidationFileExternal'
-		|| routeName === 'ValidationFileShortUrl'
-	if (shouldUpdateRoute && route.value.params?.uuid !== normalizedDocument.uuid) {
+	const shouldUpdateRoute = isValidationRouteName(route.value.name)
+	if (shouldUpdateRoute && route.value.params.uuid !== normalizedDocument.uuid) {
 		router.value.replace({
 			name: route.value.name,
 			params: {
@@ -778,16 +724,16 @@ function handleValidationSuccess(data: unknown) {
 	}
 	document.value = normalizedDocument
 	hasInfo.value = true
-	const isSignedStatus = (status: unknown) => Number(status) === FILE_STATUS.SIGNED
-	const isSignedDoc = isSignedStatus(document.value?.status)
+	const isSignedDoc = isSignedDocumentStatus(document.value?.status)
 	const allFilesSigned = Array.isArray(document.value?.files)
 		&& document.value.files.length > 0
-		&& document.value.files.every(file => isSignedStatus(file.status))
+		&& document.value.files.every(file => isSignedDocumentStatus(file.status))
 	const signerCompleted = isCurrentSignerSigned()
-	if (isSignedDoc || allFilesSigned || signerCompleted) {
+	const shouldSyncSignedState = isSignedDoc || allFilesSigned || signerCompleted
+	if (shouldSyncSignedState) {
 		syncValidatedDocumentToFilesStore(normalizedDocument)
 	}
-	if ((isSignedDoc || allFilesSigned || signerCompleted) && (isAfterSigned.value || shouldFireAsyncConfetti.value)) {
+	if (shouldSyncSignedState && (isAfterSigned.value || shouldFireAsyncConfetti.value)) {
 		const capabilities = getCapabilities() as { libresign?: { config?: Record<string, unknown> } } | undefined
 		if (capabilities?.libresign?.config?.['show-confetti'] === true) {
 			const jsConfetti = new JSConfetti()
@@ -809,11 +755,10 @@ async function refreshAfterAsyncSigning() {
 			return
 		}
 
-		const isSignedStatus = (status: unknown) => Number(status) === FILE_STATUS.SIGNED
-		const isSigned = isSignedStatus(document.value?.status)
+		const isSigned = isSignedDocumentStatus(document.value?.status)
 		const allFilesSigned = Array.isArray(document.value?.files)
 			&& document.value.files.length > 0
-			&& document.value.files.every(file => isSignedStatus(file.status))
+			&& document.value.files.every(file => isSignedDocumentStatus(file.status))
 
 		if (isSigned || allFilesSigned) {
 			return
@@ -829,7 +774,7 @@ function handleSigningComplete(file?: unknown) {
 	}
 	isAsyncSigning.value = false
 	shouldFireAsyncConfetti.value = true
-	const normalizedFile = normalizeValidationDocument(file)
+	const normalizedFile = toValidationDocument(file)
 	if (normalizedFile) {
 		loading.value = false
 		handleValidationSuccess(normalizedFile)
@@ -849,7 +794,7 @@ function handleSigningError(message?: string) {
 }
 
 function isCurrentSignerSigned() {
-	const signer = document.value?.signers?.find(row => row.me)
+	const signer = document.value?.signers.find(row => row.me)
 	return !!signer?.signed || Number(signer?.status) === SIGN_REQUEST_STATUS.SIGNED
 }
 
@@ -865,7 +810,7 @@ watch(() => route.value.params?.uuid, (uuid) => {
 	}
 })
 
-document.value = normalizeValidationDocument(loadState('libresign', 'file_info', {}))
+document.value = toValidationDocument(loadState('libresign', 'file_info', {}))
 
 if (!uuidToValidate.value) {
 	document.value = null

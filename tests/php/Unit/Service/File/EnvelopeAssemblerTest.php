@@ -23,6 +23,8 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\IURLGenerator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\NullLogger;
 
@@ -31,6 +33,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private FileMapper&MockObject $fileMapper;
 	private IRootFolder&MockObject $root;
+	private IURLGenerator&MockObject $urlGenerator;
 	private SignersLoader&MockObject $signersLoader;
 	private Pkcs12Handler&MockObject $pkcs12Handler;
 	private FileElementService&MockObject $fileElementService;
@@ -41,6 +44,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->root = $this->createMock(IRootFolder::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->signersLoader = $this->createMock(SignersLoader::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->fileElementService = $this->createMock(FileElementService::class);
@@ -52,6 +56,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->identifyMethodService,
 			$this->fileMapper,
 			$this->root,
+			$this->urlGenerator,
 			$this->signersLoader,
 			null,
 			$this->pkcs12Handler,
@@ -65,6 +70,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileNode = $this->createMock(File::class);
 		$folder->method('getFirstNodeById')->willReturn($fileNode);
 		$this->root->method('getUserFolder')->willReturn($folder);
+		$this->urlGenerator->method('linkToRoute')->willReturn('http://example.com/page.pdf');
 	}
 
 	public function testBuildsChildDataWithoutCertificateChain(): void {
@@ -103,6 +109,7 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertIsObject($result);
 		$this->assertEquals(7, $result->id);
 		$this->assertEquals('child.pdf', $result->name);
+		$this->assertSame('http://example.com/page.pdf', $result->file);
 		$this->assertIsArray($result->signers);
 		$this->assertCount(1, $result->signers);
 		$this->assertEquals(42, $result->signers[0]->signRequestId);
@@ -296,24 +303,43 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(['certificate_info' => ['serialNumber' => '1234']], $result->signers[0]->metadata);
 	}
 
-	private function createMockFileElement(
-		int $id,
-		int $signRequestId,
-		int $page,
-		int $llx,
-		int $lly,
-		int $urx,
-		int $ury,
-	): \OCA\Libresign\Db\FileElement {
-		$element = $this->createMock(\OCA\Libresign\Db\FileElement::class);
-		$element->method('getId')->willReturn($id);
-		$element->method('getSignRequestId')->willReturn($signRequestId);
-		$element->method('getPage')->willReturn($page);
-		$element->method('getLlx')->willReturn($llx);
-		$element->method('getLly')->willReturn($lly);
-		$element->method('getUrx')->willReturn($urx);
-		$element->method('getUry')->willReturn($ury);
-		$element->method('getMetadata')->willReturn([]);
-		return $element;
+	#[DataProvider('provideChildMetadataContractScenarios')]
+	public function testBuildEnvelopeChildNormalizesMetadataContract(
+		string $filename,
+		array $initialMetadata,
+		int $expectedP,
+		string $expectedExtension,
+	): void {
+		$this->mockFileNode();
+
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+		$this->fileMapper->method('getTextOfStatus')->willReturn('pending');
+
+		$childFile = new DbFile();
+		$childFile->setId(1);
+		$childFile->setUuid('uuid-1');
+		$childFile->setName($filename);
+		$childFile->setStatus(1);
+		$childFile->setNodeId(100);
+		$childFile->setUserId('user1');
+		$childFile->setMetadata($initialMetadata);
+
+		$options = new FileResponseOptions();
+		$result = $this->getService()->buildEnvelopeChildData($childFile, $options);
+
+		$this->assertIsArray($result->metadata);
+		$this->assertSame($expectedP, $result->metadata['p']);
+		$this->assertSame($expectedExtension, $result->metadata['extension']);
+	}
+
+	public static function provideChildMetadataContractScenarios(): array {
+		return [
+			'extension absent → derived from filename lowercased' => ['contract.PDF', [], 0, 'pdf'],
+			'filename without extension → pdf fallback' => ['contract', [], 0, 'pdf'],
+			'empty extension in metadata → derived from filename' => ['doc.pdf', ['extension' => ''], 0, 'pdf'],
+			'non-string extension in metadata → derived from filename' => ['doc.pdf', ['extension' => 42], 0, 'pdf'],
+			'extension already set → preserved' => ['renamed.PDF', ['extension' => 'docx'], 0, 'docx'],
+			'p in metadata preserved as totalPages' => ['doc.pdf', ['p' => 5], 5, 'pdf'],
+		];
 	}
 }
