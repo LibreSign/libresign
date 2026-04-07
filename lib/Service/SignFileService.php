@@ -731,7 +731,7 @@ class SignFileService {
 				$identifyMethod,
 				$result['envelope']->getId()
 			);
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 		}
 
 		return $result;
