@@ -152,7 +152,7 @@ class CrlApiController extends AEnvironmentAwareController {
 				'success' => false,
 				'message' => $e->getMessage(),
 			], Http::STATUS_BAD_REQUEST);
-		} catch (\Exception $e) {
+		} catch (\Exception) {
 			return new DataResponse([
 				'success' => false,
 				'message' => 'An error occurred while revoking the certificate',

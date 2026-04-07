@@ -129,7 +129,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 				if (is_array($decoded)) {
 					$existingMetadata = $decoded;
 				}
-			} catch (\Throwable $e) {
+			} catch (\Throwable) {
 			}
 		}
 

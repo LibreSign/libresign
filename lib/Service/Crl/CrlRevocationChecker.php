@@ -96,7 +96,7 @@ class CrlRevocationChecker {
 				if ($validationResult['status'] !== CrlValidationStatus::VALIDATION_ERROR) {
 					$accessibleUrls++;
 				}
-			} catch (\Exception $e) {
+			} catch (\Exception) {
 				continue;
 			}
 		}
@@ -135,7 +135,7 @@ class CrlRevocationChecker {
 
 			return $this->checkCertificateInCrlWithDetails($certPem, $crlContent);
 
-		} catch (\Exception $e) {
+		} catch (\Exception) {
 			return ['status' => CrlValidationStatus::VALIDATION_ERROR];
 		}
 	}
@@ -162,7 +162,7 @@ class CrlRevocationChecker {
 				// Lazy-loaded to avoid a circular dependency:
 				// CrlService → CertificateEngineFactory → OpenSslHandler → CrlRevocationChecker → CrlService
 				/** @var \OCA\Libresign\Service\Crl\CrlService */
-				$crlService = \OC::$server->get(\OCA\Libresign\Service\Crl\CrlService::class);
+				$crlService = \OCP\Server::get(\OCA\Libresign\Service\Crl\CrlService::class);
 
 				return $crlService->generateCrlDer($instanceId, $generation, $engineType);
 			}
@@ -290,7 +290,7 @@ class CrlRevocationChecker {
 				}
 			}
 
-		} catch (\Exception $e) {
+		} catch (\Exception) {
 			return ['status' => CrlValidationStatus::VALIDATION_ERROR];
 		}
 	}
@@ -320,7 +320,7 @@ class CrlRevocationChecker {
 			try {
 				$date = new \DateTimeImmutable($dateText, new \DateTimeZone('UTC'));
 				return $date->setTimezone(new \DateTimeZone('UTC'))->format(\DateTimeInterface::ATOM);
-			} catch (\Exception $e) {
+			} catch (\Exception) {
 				continue;
 			}
 		}
