@@ -26,7 +26,7 @@
     "@codemirror/autocomplete": "^6.20.1",
     "@codemirror/commands": "^6.10.3",
     "@codemirror/lang-html": "^6.4.11",
-    "@codemirror/language": "^6.12.2",
+    "@codemirror/language": "^6.12.3",
     "@codemirror/state": "^6.6.0",
     "@codemirror/view": "^6.41.0",
     "@fontsource/dancing-script": "^5.2.8",
