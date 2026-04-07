@@ -22,7 +22,6 @@ final class CaIdentifierServiceTest extends TestCase {
 	private MockObject $appConfig;
 
 	protected function setUp(): void {
-		parent::setUp();
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		/** @var IAppConfig $appConfig */
 		$appConfig = $this->appConfig;
