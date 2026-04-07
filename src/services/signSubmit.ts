@@ -182,14 +182,25 @@ function getEnvelopeOwnSigners(document: SignDocumentForSubmission): Array<Envel
 		ownSigners.push(signer)
 	}
 
-	for (const signer of document.signers ?? []) {
-		addSigner(signer)
-	}
-
+	const fileOwnSigners: EnvelopeSigner[] = []
 	for (const file of document.files ?? []) {
 		for (const signer of file.signers ?? []) {
+			if (isOwnEnvelopeSigner(signer)) {
+				fileOwnSigners.push(signer)
+			}
+		}
+	}
+
+	if (fileOwnSigners.length > 0) {
+		for (const signer of fileOwnSigners) {
 			addSigner(signer)
 		}
+
+		return ownSigners
+	}
+
+	for (const signer of document.signers ?? []) {
+		addSigner(signer)
 	}
 
 	return ownSigners
