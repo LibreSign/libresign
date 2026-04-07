@@ -218,6 +218,12 @@ import type {
 import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator'
 import { SignFlowHandler } from '../../../services/SignFlowHandler'
 import {
+	buildSubmitSignaturePayload,
+	createBaseSubmitSignaturePayload,
+	getEnvelopeSubmitRequests,
+	resolveSignSubmissionOutcome,
+} from '../../../services/signSubmit'
+import {
 	normalizeDocumentForVisibleElements,
 } from '../../../services/signingDocumentAdapter'
 import { FILE_STATUS } from '../../../constants.js'
@@ -227,6 +233,12 @@ import {
 	getVisibleElementsFromDocument,
 	idsMatch,
 } from '../../../services/visibleElementsService'
+import type {
+	SignResult,
+	SignSubmissionAttempt,
+	SignatureMethodConfig,
+	SubmitSignaturePayload,
+} from '../../../services/signSubmit'
 
 type OpenApiAccountMe = operations['account-me']['responses'][200]['content']['application/json']['ocs']['data']
 type LibreSignAccountMe = Omit<OpenApiAccountMe, 'settings'> & {
@@ -251,123 +263,55 @@ defineOptions({
 			this.signStore.clearSigningErrors()
 
 			try {
-				const basePayload: SubmitSignaturePayload = {
-					method: methodConfig.method,
-				}
+				const basePayload = createBaseSubmitSignaturePayload(methodConfig)
+				const envelopeRequests = getEnvelopeSubmitRequests({
+					document: this.signStore.document,
+					basePayload,
+					elements: this.elements ?? [],
+					canCreateSignature: this.canCreateSignature,
+					signatures: this.signatureElementsStore.signs,
+				})
 
-				if (methodConfig.token) {
-					basePayload.token = methodConfig.token
-				}
+				const attempts: SignSubmissionAttempt[] = []
 
-				const myEnvelopeSigners = this.signStore.document?.nodeType === 'envelope'
-					? (this.signStore.document?.signers ?? [])
-						.filter((s): s is NonNullable<typeof s> & { signRequestId: number; sign_request_uuid: string } =>
-							s.me === true && typeof s.sign_request_uuid === 'string')
-					: []
-
-				if (myEnvelopeSigners.length > 0) {
-					let signingInProgressResult: { result: SignResult; fallbackUuid: string } | null = null
-					let signedResult: { result: SignResult; fallbackUuid: string } | null = null
-
-					for (const signer of myEnvelopeSigners) {
-						const filePayload: SubmitSignaturePayload = { ...basePayload }
-						const fileElements = (this.elements ?? []).filter((el) => el.signRequestId === signer.signRequestId)
-						if (fileElements.length > 0) {
-							if (this.canCreateSignature) {
-								filePayload.elements = fileElements.flatMap((row) => typeof row.elementId === 'number'
-									? [{
-									documentElementId: row.elementId,
-									profileNodeId: row.type ? this.signatureElementsStore.signs[row.type]?.file.nodeId : undefined,
-									}]
-									: [])
-							} else {
-								filePayload.elements = fileElements.flatMap((row) => typeof row.elementId === 'number'
-									? [{
-									documentElementId: row.elementId,
-									}]
-									: [])
-							}
-						}
-						const result = await this.signStore.submitSignature(filePayload, signer.sign_request_uuid, {
+				if (envelopeRequests.length > 0) {
+					for (const request of envelopeRequests) {
+						const result = await this.signStore.submitSignature(request.payload, request.signRequestUuid, {
 							documentId: this.signStore.document.id,
 						})
-						if (result.status === 'signed') {
-							signedResult = {
-								result,
-								fallbackUuid: signer.sign_request_uuid,
-							}
-						}
-						if (result.status === 'signingInProgress' && !signingInProgressResult) {
-							signingInProgressResult = {
-								result,
-								fallbackUuid: signer.sign_request_uuid,
-							}
-						}
-					}
-
-					if (signedResult) {
-						const signRequestUuid = typeof signedResult.result.data.file?.uuid === 'string'
-							&& signedResult.result.data.file.uuid.length > 0
-							? signedResult.result.data.file.uuid
-							: signedResult.fallbackUuid
-						this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-						this.sidebarStore.hideSidebar()
-						this.$emit('signed', {
-							...signedResult.result.data,
-							signRequestUuid,
-						})
-					} else if (signingInProgressResult) {
-						const signRequestUuid = typeof signingInProgressResult.result.data.job?.file?.uuid === 'string'
-							&& signingInProgressResult.result.data.job.file.uuid.length > 0
-							? signingInProgressResult.result.data.job.file.uuid
-							: signingInProgressResult.fallbackUuid
-						this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-						this.$emit('signing-started', {
-							signRequestUuid,
-							async: true,
+						attempts.push({
+							result,
+							signRequestUuid: request.signRequestUuid,
 						})
 					}
 				} else {
-					const payload = { ...basePayload }
-					if (this.elements?.length > 0) {
-						if (this.canCreateSignature) {
-							payload.elements = this.elements.flatMap((row) => typeof row.elementId === 'number'
-								? [{
-								documentElementId: row.elementId,
-								profileNodeId: row.type ? this.signatureElementsStore.signs[row.type]?.file.nodeId : undefined,
-								}]
-								: [])
-						} else {
-							payload.elements = this.elements.flatMap((row) => typeof row.elementId === 'number'
-								? [{
-								documentElementId: row.elementId,
-								}]
-								: [])
-						}
-					}
+					const payload = buildSubmitSignaturePayload({
+						basePayload,
+						elements: this.elements ?? [],
+						canCreateSignature: this.canCreateSignature,
+						signatures: this.signatureElementsStore.signs,
+					})
 
 					const result = await this.signStore.submitSignature(payload, this.signRequestUuid, {
 						documentId: this.signStore.document.id,
 					})
 
-					if (result.status === 'signingInProgress') {
-						this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-						this.$emit('signing-started', {
-							signRequestUuid: this.signRequestUuid,
-							async: true,
-						})
-					} else if (result.status === 'signed') {
-						const signRequestUuid = typeof result.data.file?.uuid === 'string'
-							&& result.data.file.uuid.length > 0
-							? result.data.file.uuid
-							: this.signRequestUuid
-						this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-						this.sidebarStore.hideSidebar()
-						this.$emit('signed', {
-							...result.data,
-							signRequestUuid,
-						})
-					}
+					attempts.push({
+						result,
+						signRequestUuid: this.signRequestUuid,
+					})
+				}
+
+				const outcome = resolveSignSubmissionOutcome(attempts)
+				const modalCode = methodConfig.modalCode || methodConfig.method || 'token'
+
+				if (outcome?.type === 'signed') {
+					this.actionHandler.closeModal(modalCode)
+					this.sidebarStore.hideSidebar()
+					this.$emit('signed', outcome.payload)
+				} else if (outcome?.type === 'signing-started') {
+					this.actionHandler.closeModal(modalCode)
+					this.$emit('signing-started', outcome.payload)
 				}
 			} catch (error: unknown) {
 				const signError = typeof error === 'object' && error !== null ? error as SignSubmissionError : {}
@@ -391,12 +335,6 @@ defineOptions({
 })
 
 type UserInfo = LibreSignAccountMe
-
-type SignatureMethodConfig = {
-	method?: string
-	modalCode?: string
-	token?: string
-}
 
 type SignError = {
 	title?: string
@@ -425,34 +363,6 @@ type SignatureProfile = LibreSignUserElement
 
 type SignDocument = NonNullable<ReturnType<typeof useSignStore>['document']>
 type SignDocumentFile = NonNullable<SignDocument['files']>[number]
-
-type SignResult = {
-	status: 'signingInProgress' | 'signed' | 'unknown'
-	data: SignResultData
-}
-
-type SignResultData = {
-	action?: number
-	file?: {
-		uuid?: string
-	}
-	job?: {
-		status?: string
-		file?: {
-			uuid?: string
-		}
-	}
-	[key: string]: unknown
-}
-
-type SubmitSignaturePayload = {
-	method?: string
-	token?: string
-	elements?: Array<{
-		documentElementId: number
-		profileNodeId?: number
-	}>
-}
 
 type SignSubmissionError = {
 	type?: string
@@ -497,21 +407,6 @@ type SubmitSignatureCompatContext = {
 	sidebarStore: SidebarStoreContract
 	signMethodsStore: SignMethodsStoreContract
 	$emit: (event: string, payload: unknown) => void
-}
-
-function getNavigationUuidFromSignResultData(
-	data: SignResultData | null | undefined,
-	fallbackUuid: string,
-): string {
-	if (typeof data?.file?.uuid === 'string' && data.file.uuid.length > 0) {
-		return data.file.uuid
-	}
-
-	if (typeof data?.job?.file?.uuid === 'string' && data.job.file.uuid.length > 0) {
-		return data.job.file.uuid
-	}
-
-	return fallbackUuid
 }
 
 function isSignSubmissionError(error: unknown): error is SignSubmissionError {
@@ -630,14 +525,10 @@ function onCloseConfirmPassword() {
 }
 
 function resetSignMethodsState() {
-	if (typeof signMethodsStore?.$reset === 'function') {
-		signMethodsStore.$reset()
-	} else {
-		Object.keys(signMethodsStore.modal || {}).forEach((key) => {
-			signMethodsStore.closeModal(key)
-		})
-		signMethodsStore.settings = {}
-	}
+	Object.keys(signMethodsStore.modal || {}).forEach((key) => {
+		signMethodsStore.closeModal(key)
+	})
+	signMethodsStore.settings = {}
 	signStore.clearSigningErrors()
 	showManagePassword.value = false
 	signPassword.value = ''
@@ -715,100 +606,34 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	signStore.clearSigningErrors()
 
 	try {
-		const basePayload: SubmitSignaturePayload = {
-			method: methodConfig.method,
-		}
+		const basePayload = createBaseSubmitSignaturePayload(methodConfig)
+		const envelopeRequests = getEnvelopeSubmitRequests({
+			document: signStore.document,
+			basePayload,
+			elements: elements.value,
+			canCreateSignature: canCreateSignature.value,
+			signatures: signatureElementsStore.signs,
+		})
+		const attempts: SignSubmissionAttempt[] = []
 
-		if (methodConfig.token) {
-			basePayload.token = methodConfig.token
-		}
-
-		const myEnvelopeSigners = signStore.document?.nodeType === 'envelope'
-			? (signStore.document?.signers ?? [])
-				.filter((s): s is NonNullable<typeof s> & { signRequestId: number; sign_request_uuid: string } =>
-					s.me === true && typeof s.sign_request_uuid === 'string')
-			: []
-
-		if (myEnvelopeSigners.length > 0) {
-			let signingInProgressResult: { result: SignResult; fallbackUuid: string } | null = null
-			let signedResult: { result: SignResult; fallbackUuid: string } | null = null
-
-			for (const signer of myEnvelopeSigners) {
-				const filePayload: SubmitSignaturePayload = { ...basePayload }
-				const fileElements = elements.value.filter((el) => el.signRequestId === signer.signRequestId)
-				if (fileElements.length > 0) {
-					if (canCreateSignature.value) {
-						filePayload.elements = fileElements.flatMap((row) => typeof row.elementId === 'number'
-							? [{
-							documentElementId: row.elementId,
-							profileNodeId: row.type ? signatureElementsStore.signs[row.type]?.file.nodeId : undefined,
-							}]
-							: [])
-					} else {
-						filePayload.elements = fileElements.flatMap((row) => typeof row.elementId === 'number'
-							? [{
-							documentElementId: row.elementId,
-							}]
-							: [])
-					}
-				}
-				const result = await signStore.submitSignature(filePayload, signer.sign_request_uuid, {
+		if (envelopeRequests.length > 0) {
+			for (const request of envelopeRequests) {
+				const result = await signStore.submitSignature(request.payload, request.signRequestUuid, {
 					documentId: signStore.document.id,
 				})
-				if (result.status === 'signed') {
-					signedResult = {
-						result,
-						fallbackUuid: signer.sign_request_uuid,
-					}
-				}
 
-				if (result.status === 'signingInProgress' && !signingInProgressResult) {
-					signingInProgressResult = {
-						result,
-						fallbackUuid: signer.sign_request_uuid,
-					}
-				}
-			}
-
-			ensureServices()
-			if (signedResult) {
-				actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-				sidebarStore.hideSidebar()
-				emit('signed', {
-					...signedResult.result.data,
-					signRequestUuid: getNavigationUuidFromSignResultData(
-						signedResult.result.data,
-						signedResult.fallbackUuid,
-					),
-				})
-			} else if (signingInProgressResult) {
-				actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-				emit('signing-started', {
-					signRequestUuid: getNavigationUuidFromSignResultData(
-						signingInProgressResult.result.data,
-						signingInProgressResult.fallbackUuid,
-					),
-					async: true,
+				attempts.push({
+					result,
+					signRequestUuid: request.signRequestUuid,
 				})
 			}
 		} else {
-			const payload = { ...basePayload }
-			if (elements.value.length > 0) {
-				if (canCreateSignature.value) {
-					payload.elements = elements.value.flatMap((row) => typeof row.elementId === 'number'
-						? [{
-						documentElementId: row.elementId,
-						profileNodeId: row.type ? signatureElementsStore.signs[row.type]?.file.nodeId : undefined,
-						}]
-						: [])
-				} else {
-					payload.elements = elements.value.flatMap((row) => typeof row.elementId === 'number'
-						? [{
-						documentElementId: row.elementId,
-						}]
-						: [])
-				}
-			}
+			const payload = buildSubmitSignaturePayload({
+				basePayload,
+				elements: elements.value,
+				canCreateSignature: canCreateSignature.value,
+				signatures: signatureElementsStore.signs,
+			})
 
 			const result = await signStore.submitSignature(
 				payload,
@@ -818,21 +643,23 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 				},
 			)
 
-			ensureServices()
-			if (result.status === 'signingInProgress') {
-				actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-				emit('signing-started', {
-					signRequestUuid: signRequestUuid.value,
-					async: true,
-				})
-			} else if (result.status === 'signed') {
-				actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-				sidebarStore.hideSidebar()
-				emit('signed', {
-					...result.data,
-					signRequestUuid: getNavigationUuidFromSignResultData(result.data, signRequestUuid.value),
-				})
-			}
+			attempts.push({
+				result,
+				signRequestUuid: signRequestUuid.value,
+			})
+		}
+
+		const outcome = resolveSignSubmissionOutcome(attempts)
+		const modalCode = methodConfig.modalCode || methodConfig.method || 'token'
+
+		ensureServices()
+		if (outcome?.type === 'signed') {
+			actionHandler!.closeModal(modalCode)
+			sidebarStore.hideSidebar()
+			emit('signed', outcome.payload)
+		} else if (outcome?.type === 'signing-started') {
+			actionHandler!.closeModal(modalCode)
+			emit('signing-started', outcome.payload)
 		}
 	} catch (error: unknown) {
 		const signError = isSignSubmissionError(error) ? error : {}
