@@ -69,6 +69,9 @@ export type LoadedValidationEnvelopeDocument = LoadedValidationDocument & {
 }
 export type SignatureMethodsRecord = ApiComponents['schemas']['SignatureMethods']
 export type UserElementRecord = ApiComponents['schemas']['UserElement']
+export type SignActionResponseRecord = ApiComponents['schemas']['SignActionResponse']
+export type SigningJobRecord = ApiComponents['schemas']['SigningJob']
+export type FileUuidReferenceRecord = ApiComponents['schemas']['FileUuidReference']
 export type RequestSignerRecord = ApiComponents['schemas']['NewSigner']
 export type ValidationMetadataRecord = ApiComponents['schemas']['ValidateMetadata']
 export type RequestedByRecord = ApiComponents['schemas']['RequestedBy']
