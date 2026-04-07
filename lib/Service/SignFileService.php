@@ -1386,7 +1386,7 @@ class SignFileService {
 		if (!$fileToSign instanceof File) {
 			$this->logger->error('[file-access] Node is not a File - nodeId={nodeId} type={type}', [
 				'nodeId' => $nodeId,
-				'type' => $fileToSign ? get_class($fileToSign) : 'NULL',
+				'type' => $fileToSign ? $fileToSign::class : 'NULL',
 			]);
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
@@ -1443,7 +1443,7 @@ class SignFileService {
 
 		$fileId = $this->libreSignFile->getId();
 		$extension = $originalFile->getExtension();
-		$uniqueFilename = substr($filename, 0, -strlen($extension) - 1) . '_' . $fileId . '.' . $extension;
+		$uniqueFilename = substr((string)$filename, 0, -strlen($extension) - 1) . '_' . $fileId . '.' . $extension;
 
 		try {
 			/** @var \OCP\Files\Folder */
@@ -1608,7 +1608,7 @@ class SignFileService {
 
 		$attempt = [
 			'timestamp' => (new DateTime())->format(\DateTime::ATOM),
-			'engine' => $this->engine ? get_class($this->engine) : 'unknown',
+			'engine' => $this->engine ? $this->engine::class : 'unknown',
 			'error_message' => $exception->getMessage(),
 			'error_code' => $exception->getCode(),
 		];
