@@ -9,9 +9,17 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Db;
 
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Tests\Unit\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+
+final class FileWithNullableStatusForTest extends File {
+	public function forceNullStatusForTest(): void {
+		$this->status = null;
+	}
+}
 
 final class FileTest extends TestCase {
 	private File $file;
@@ -53,5 +61,33 @@ final class FileTest extends TestCase {
 	public function testHasParentReturnsTrueWhenParentFileIdIsSet(): void {
 		$this->file->setParentFileId(123);
 		$this->assertTrue($this->file->hasParent());
+	}
+
+	public function testGetStatusReturnsDraftWhenInternalStatusIsNull(): void {
+		$file = new FileWithNullableStatusForTest();
+		$file->forceNullStatusForTest();
+
+		$this->assertSame(FileStatus::DRAFT->value, $file->getStatus());
+	}
+
+	public function testSetStatusRejectsInvalidStatusCode(): void {
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Invalid file status code: 999');
+
+		$this->file->setStatus(999);
+	}
+
+	#[DataProvider('provideKnownFileStatuses')]
+	public function testSetStatusAcceptsKnownFileStatusCodes(FileStatus $status): void {
+		$this->file->setStatus($status->value);
+
+		$this->assertSame($status->value, $this->file->getStatus());
+	}
+
+	public static function provideKnownFileStatuses(): array {
+		return array_map(
+			static fn (FileStatus $status): array => [$status],
+			FileStatus::cases()
+		);
 	}
 }

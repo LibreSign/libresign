@@ -473,5 +473,27 @@ describe('SigningProgress', () => {
 				pending: 1,
 			})
 		})
+
+		it('uses signer progress for single-file documents even when files array exists', () => {
+			wrapper = createWrapper()
+
+			const progress = wrapper.vm.buildProgressFromValidation({
+				nodeType: 'file',
+				files: [
+					{ id: 1, name: 'contract.pdf', status: 3 },
+				],
+				signers: [
+					{ signed: true },
+					{ signed: false },
+				],
+			})
+
+			expect(progress).toEqual({
+				total: 2,
+				signed: 1,
+				inProgress: 0,
+				pending: 1,
+			})
+		})
 	})
 })

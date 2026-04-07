@@ -288,16 +288,9 @@ describe('Validation.vue - Business Logic', () => {
 			expect(wrapper.vm.isEnvelope).toBe(true)
 		})
 
-		it('returns true when document has files array', () => {
+		it('returns false when document has files array but nodeType is not envelope', () => {
 			wrapper.vm.document = {
 				document: { files: [{ id: 1 }] },
-			}.document
-			expect(wrapper.vm.isEnvelope).toBe(true)
-		})
-
-		it('returns false when files array is empty', () => {
-			wrapper.vm.document = {
-				document: { files: [] },
 			}.document
 			expect(wrapper.vm.isEnvelope).toBe(false)
 		})
@@ -653,11 +646,63 @@ describe('Validation.vue - Business Logic', () => {
 	describe('handleValidationSuccess - confetti behavior', () => {
 		// FILE_STATUS.SIGNED = 3
 		const SIGNED_STATUS = 3
+		const createSignerDetail = (patch: Record<string, unknown> = {}) => ({
+			signRequestId: 1,
+			displayName: 'Signer',
+			email: 'signer@example.com',
+			signed: null,
+			status: 0,
+			statusText: 'Pending',
+			description: null,
+			request_sign_date: '2026-01-01T00:00:00Z',
+			me: false,
+			visibleElements: [],
+			...patch,
+		})
+		const createChildFile = (patch: Record<string, unknown> = {}) => ({
+			id: 201,
+			uuid: 'child-1',
+			name: 'child-1.pdf',
+			status: 1,
+			statusText: 'Pending',
+			nodeId: 201,
+			totalPages: 1,
+			size: 10,
+			pdfVersion: '1.7',
+			signers: [],
+			file: '/apps/libresign/p/pdf/child-1',
+			metadata: { extension: 'pdf', p: 1 },
+			...patch,
+		})
 		const createLoadedValidationDocument = (patch: Record<string, unknown> = {}) => ({
+			id: 100,
 			uuid: '550e8400-e29b-41d4-a716-446655440000',
 			name: 'contract.pdf',
+			statusText: 'Pending',
 			nodeId: 100,
 			nodeType: 'file',
+			signatureFlow: 0,
+			docmdpLevel: 0,
+			filesCount: 1,
+			files: [{
+				id: 100,
+				uuid: '550e8400-e29b-41d4-a716-446655440000',
+				name: 'contract.pdf',
+				status: 1,
+				statusText: 'Pending',
+				nodeId: 100,
+				totalPages: 1,
+				size: 10,
+				pdfVersion: '1.7',
+				signers: [],
+				file: '/apps/libresign/p/pdf/550e8400-e29b-41d4-a716-446655440000',
+				metadata: { extension: 'pdf', p: 1 },
+			}],
+			totalPages: 1,
+			size: 10,
+			pdfVersion: '1.7',
+			created_at: '2026-01-01T00:00:00Z',
+			requested_by: { userId: 'creator-user', displayName: 'Creator User' },
 			status: 1,
 			signers: [],
 			...patch,
@@ -680,9 +725,10 @@ describe('Validation.vue - Business Logic', () => {
 			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({
 				nodeType: 'envelope',
 				status: 0,
+				filesCount: 2,
 				files: [
-					{ status: SIGNED_STATUS },
-					{ status: SIGNED_STATUS },
+					createChildFile({ id: 201, uuid: 'child-1', nodeId: 201, status: SIGNED_STATUS, statusText: 'Signed' }),
+					createChildFile({ id: 202, uuid: 'child-2', nodeId: 202, status: SIGNED_STATUS, statusText: 'Signed', file: '/apps/libresign/p/pdf/child-2', name: 'child-2.pdf' }),
 				],
 			}))
 			expect(mockAddConfetti).toHaveBeenCalledOnce()
@@ -693,7 +739,7 @@ describe('Validation.vue - Business Logic', () => {
 			// SIGN_REQUEST_STATUS.SIGNED = 2
 			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({
 				status: 0,
-				signers: [{ me: true, status: 2 }],
+				signers: [createSignerDetail({ me: true, status: 2 })],
 			}))
 			expect(mockAddConfetti).toHaveBeenCalledOnce()
 		})
@@ -783,9 +829,10 @@ describe('Validation.vue - Business Logic', () => {
 			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({
 				nodeType: 'envelope',
 				status: 0,
+				filesCount: 2,
 				files: [
-					{ id: 201, uuid: 'child-1', nodeId: 201, name: 'child-1.pdf', status: SIGNED_STATUS },
-					{ id: 202, uuid: 'child-2', nodeId: 202, name: 'child-2.pdf', status: SIGNED_STATUS },
+					createChildFile({ id: 201, uuid: 'child-1', nodeId: 201, status: SIGNED_STATUS, statusText: 'Signed' }),
+					createChildFile({ id: 202, uuid: 'child-2', nodeId: 202, status: SIGNED_STATUS, statusText: 'Signed', file: '/apps/libresign/p/pdf/child-2', name: 'child-2.pdf' }),
 				],
 			}))
 
@@ -810,11 +857,48 @@ describe('Validation.vue - Business Logic', () => {
 		const SIGNED_STATUS = 3
 		// SIGN_REQUEST_STATUS.SIGNED = 2
 		const SIGNER_SIGNED_STATUS = 2
+		const createSignerDetail = (patch: Record<string, unknown> = {}) => ({
+			signRequestId: 1,
+			displayName: 'Signer',
+			email: 'signer@example.com',
+			signed: null,
+			status: 0,
+			statusText: 'Pending',
+			description: null,
+			request_sign_date: '2026-01-01T00:00:00Z',
+			me: false,
+			visibleElements: [],
+			...patch,
+		})
 		const createLoadedValidationDocument = (patch: Record<string, unknown> = {}) => ({
+			id: 100,
 			uuid: '550e8400-e29b-41d4-a716-446655440000',
 			name: 'contract.pdf',
+			statusText: 'Pending',
 			nodeId: 100,
 			nodeType: 'file',
+			signatureFlow: 0,
+			docmdpLevel: 0,
+			filesCount: 1,
+			files: [{
+				id: 100,
+				uuid: '550e8400-e29b-41d4-a716-446655440000',
+				name: 'contract.pdf',
+				status: 1,
+				statusText: 'Pending',
+				nodeId: 100,
+				totalPages: 1,
+				size: 10,
+				pdfVersion: '1.7',
+				signers: [],
+				file: '/apps/libresign/p/pdf/550e8400-e29b-41d4-a716-446655440000',
+				metadata: { extension: 'pdf', p: 1 },
+			}],
+			totalPages: 1,
+			size: 10,
+			pdfVersion: '1.7',
+			created_at: '2026-01-01T00:00:00Z',
+			requested_by: { userId: 'creator-user', displayName: 'Creator User' },
 			status: 1,
 			signers: [],
 			...patch,
@@ -851,7 +935,7 @@ describe('Validation.vue - Business Logic', () => {
 			it('fires confetti when the current signer is marked as signed', () => {
 				const fileWithSignedSigner = createLoadedValidationDocument({
 					status: 1,
-					signers: [{ me: true, status: SIGNER_SIGNED_STATUS, signed: '2025-01-01T00:00:00Z' }],
+					signers: [createSignerDetail({ me: true, status: SIGNER_SIGNED_STATUS, signed: '2025-01-01T00:00:00Z' })],
 				})
 				wrapper.vm.handleSigningComplete(fileWithSignedSigner)
 				expect(mockAddConfetti).toHaveBeenCalledOnce()
@@ -860,7 +944,7 @@ describe('Validation.vue - Business Logic', () => {
 			it('does not fire confetti when the file is not yet signed and no signer is marked as signed', () => {
 				// This is a realistic scenario: SigningProgress emits 'completed'
 				// with a file object whose status is still pending/partial
-				const unsignedFile = createLoadedValidationDocument({ status: 1, signers: [{ me: true, status: 0 }] })
+				const unsignedFile = createLoadedValidationDocument({ status: 1, signers: [createSignerDetail({ me: true, status: 0 })] })
 				wrapper.vm.handleSigningComplete(unsignedFile)
 				expect(mockAddConfetti).not.toHaveBeenCalled()
 			})
@@ -888,7 +972,7 @@ describe('Validation.vue - Business Logic', () => {
 						ocs: {
 							data: createLoadedValidationDocument({
 								status: 1,
-								signers: [{ me: true, status: SIGNER_SIGNED_STATUS, signed: '2025-01-01T00:00:00Z' }],
+								signers: [createSignerDetail({ me: true, status: SIGNER_SIGNED_STATUS, signed: '2025-01-01T00:00:00Z' })],
 							}),
 						},
 					},
@@ -899,6 +983,124 @@ describe('Validation.vue - Business Logic', () => {
 
 				expect(mockAddConfetti).toHaveBeenCalledOnce()
 			})
+		})
+	})
+
+	describe('status contract guards', () => {
+		const createLoadedValidationDocument = (patch: Record<string, unknown> = {}) => ({
+			id: 100,
+			uuid: '550e8400-e29b-41d4-a716-446655440000',
+			name: 'contract.pdf',
+			statusText: 'Pending',
+			nodeId: 100,
+			nodeType: 'file',
+			signatureFlow: 0,
+			docmdpLevel: 0,
+			filesCount: 1,
+			files: [{
+				id: 100,
+				uuid: '550e8400-e29b-41d4-a716-446655440000',
+				name: 'contract.pdf',
+				status: 1,
+				statusText: 'Pending',
+				nodeId: 100,
+				totalPages: 1,
+				size: 10,
+				pdfVersion: '1.7',
+				signers: [],
+				file: '/apps/libresign/p/pdf/550e8400-e29b-41d4-a716-446655440000',
+				metadata: { extension: 'pdf', p: 1 },
+			}],
+			totalPages: 1,
+			size: 10,
+			pdfVersion: '1.7',
+			created_at: '2026-01-01T00:00:00Z',
+			requested_by: { userId: 'creator-user', displayName: 'Creator User' },
+			status: 1,
+			signers: [],
+			...patch,
+		})
+
+		it('rejects document payload when status is null', () => {
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({ status: null }))
+
+			expect(wrapper.vm.document).toBe(null)
+			expect(wrapper.vm.validationErrorMessage).toBe('Failed to validate document')
+		})
+
+		it('rejects document payload when signer status is out of range', () => {
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({
+				signers: [{
+					signRequestId: 1,
+					displayName: 'Signer',
+					email: 'signer@example.com',
+					signed: null,
+					status: 99,
+					statusText: 'Invalid',
+					description: null,
+					request_sign_date: '2026-01-01T00:00:00Z',
+					me: false,
+					visibleElements: [],
+				}],
+			}))
+
+			expect(wrapper.vm.document).toBe(null)
+			expect(wrapper.vm.validationErrorMessage).toBe('Failed to validate document')
+		})
+
+		it('rejects document payload when metadata dimensions are malformed', () => {
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({
+				metadata: {
+					extension: 'pdf',
+					p: 1,
+					d: [{ w: '100', h: 200 }],
+				},
+			}))
+
+			expect(wrapper.vm.document).toBe(null)
+			expect(wrapper.vm.validationErrorMessage).toBe('Failed to validate document')
+		})
+
+		it('rejects document payload when signer extended validation fields have invalid types', () => {
+			wrapper.vm.handleValidationSuccess(createLoadedValidationDocument({
+				signers: [{
+					signRequestId: 1,
+					displayName: 'Signer',
+					email: 'signer@example.com',
+					signed: null,
+					status: 1,
+					statusText: 'Pending',
+					description: null,
+					request_sign_date: '2026-01-01T00:00:00Z',
+					me: false,
+					visibleElements: [],
+					signature_validation: { id: '1', label: 'Valid' },
+				}],
+			}))
+
+			expect(wrapper.vm.document).toBe(null)
+			expect(wrapper.vm.validationErrorMessage).toBe('Failed to validate document')
+		})
+
+		it('normalizes missing optional fields to internal defaults', () => {
+			const payload = createLoadedValidationDocument()
+			delete (payload as Record<string, unknown>).signers
+			delete (payload as Record<string, unknown>).metadata
+			delete (payload as Record<string, unknown>).settings
+
+			wrapper.vm.handleValidationSuccess(payload)
+
+			expect(wrapper.vm.document).not.toBe(null)
+			expect(wrapper.vm.document.signers).toEqual([])
+			expect(wrapper.vm.document.metadata).toEqual({ extension: 'pdf', p: 1 })
+			expect(wrapper.vm.document.settings).toEqual(expect.objectContaining({
+				canSign: false,
+				canRequestSign: false,
+				phoneNumber: '',
+				hasSignatureFile: false,
+				needIdentificationDocuments: false,
+				identificationDocumentsWaitingApproval: false,
+			}))
 		})
 	})
 })

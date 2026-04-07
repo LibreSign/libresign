@@ -2718,6 +2718,8 @@
                     "nodeType",
                     "signatureFlow",
                     "docmdpLevel",
+                    "filesCount",
+                    "files",
                     "totalPages",
                     "size",
                     "pdfVersion",
@@ -4849,7 +4851,7 @@
             "get": {
                 "operationId": "file-validate-uuid",
                 "summary": "Validate a file using Uuid",
-                "description": "Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
+                "description": "Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -5002,7 +5004,7 @@
             "get": {
                 "operationId": "file-validate-file-id",
                 "summary": "Validate a file using FileId",
-                "description": "Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
+                "description": "Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -5156,7 +5158,7 @@
             "post": {
                 "operationId": "file-validate-binary",
                 "summary": "Validate a binary file",
-                "description": "Validate a binary file returning file data. Use field 'file' for the file upload. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
+                "description": "Validate a binary file returning file data. Use field 'file' for the file upload. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -8021,7 +8023,7 @@
             "post": {
                 "operationId": "request_signature-request",
                 "summary": "Request signature",
-                "description": "Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.",
+                "description": "Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. The returned `data` always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
                     "request_signature"
                 ],

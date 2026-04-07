@@ -121,6 +121,7 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testLoadMetadataLogsWarningOnError(): void {
 		$file = new File();
 		$file->setId(1);
+		$file->setName('document.pdf');
 		$file->setUserId('user123');
 		$file->setSignedNodeId(123);
 
@@ -139,8 +140,9 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService();
 		$service->loadMetadata($file, $fileData);
 
-		// Should not throw exception
-		$this->assertTrue(true);
+		$this->assertIsArray($fileData->metadata);
+		$this->assertSame(0, $fileData->metadata['p']);
+		$this->assertSame('pdf', $fileData->metadata['extension']);
 	}
 
 	#[DataProvider('provideNodeIdPrecedenceScenarios')]
@@ -220,6 +222,51 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'no pages with no pdfVersion' => [0, null, 0, ''],
 			'multiple pages with pdf version' => [5, '1.7', 5, '1.7'],
 			'single page with pdf version' => [1, '1.5', 1, '1.5'],
+		];
+	}
+
+	#[DataProvider('provideMetadataContractNormalizationScenarios')]
+	public function testLoadMetadataNormalizesRequiredContractFields(
+		string $filename,
+		array $initialMetadata,
+		int $expectedP,
+		string $expectedExtension,
+	): void {
+		$file = new File();
+		$file->setId(1);
+		$file->setName($filename);
+		$file->setUserId('user123');
+		$file->setSignedNodeId(123);
+		$file->setMetadata($initialMetadata);
+		$file->setUuid('uuid-123');
+
+		$fileNode = $this->createMock(\OCP\Files\File::class);
+		$fileNode->method('getSize')->willReturn(5000);
+		$fileNode->method('getMimeType')->willReturn('application/pdf');
+
+		$userFolder = $this->createMock(Folder::class);
+		$userFolder->method('getFirstNodeById')->with(123)->willReturn($fileNode);
+
+		$this->root->method('getUserFolder')->with('user123')->willReturn($userFolder);
+		$this->urlGenerator->method('linkToRoute')->willReturn('http://example.com/page.pdf');
+
+		$fileData = new stdClass();
+		$service = $this->getService();
+		$service->loadMetadata($file, $fileData);
+
+		$this->assertIsArray($fileData->metadata);
+		$this->assertSame($expectedP, $fileData->metadata['p']);
+		$this->assertSame($expectedExtension, $fileData->metadata['extension']);
+	}
+
+	public static function provideMetadataContractNormalizationScenarios(): array {
+		return [
+			'uppercase extension lowercased when not in metadata' => ['contract.PDF', [], 0, 'pdf'],
+			'fallback to pdf when filename has no extension' => ['contract', [], 0, 'pdf'],
+			'empty extension in metadata treated as missing' => ['contract.pdf', ['extension' => ''], 0, 'pdf'],
+			'existing extension in metadata is preserved' => ['renamed.PDF', ['extension' => 'docx'], 0, 'docx'],
+			'p in metadata is preserved as totalPages when already set' => ['doc.pdf', ['p' => 99], 99, 'pdf'],
+			'non-string extension in metadata treated as missing' => ['doc.pdf', ['extension' => 42], 0, 'pdf'],
 		];
 	}
 }
