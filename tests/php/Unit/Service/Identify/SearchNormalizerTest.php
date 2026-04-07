@@ -22,7 +22,6 @@ class SearchNormalizerTest extends TestCase {
 	private IPhoneNumberUtil $phoneNumberUtil;
 
 	protected function setUp(): void {
-		parent::setUp();
 		$this->config = $this->createMock(IConfig::class);
 		$this->phoneNumberUtil = Server::get(IPhoneNumberUtil::class);
 		$this->normalizer = new SearchNormalizer($this->config, $this->phoneNumberUtil);
