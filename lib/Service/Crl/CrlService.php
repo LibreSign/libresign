@@ -296,26 +296,24 @@ class CrlService {
 
 		$result = $this->crlMapper->listWithPagination($page, $length, $filter, $sort);
 
-		$formattedData = array_values(array_map(function ($entity) {
-			return [
-				'id' => $entity->getId(),
-				'serial_number' => $entity->getSerialNumber(),
-				'owner' => $entity->getOwner(),
-				'status' => $entity->getStatus(),
-				'certificate_type' => $entity->getCertificateType(),
-				'engine' => $entity->getEngine(),
-				'instance_id' => $entity->getInstanceId(),
-				'generation' => $entity->getGeneration(),
-				'issued_at' => $entity->getIssuedAt()?->format('Y-m-d H:i:s'),
-				'valid_to' => $entity->getValidTo()?->format('Y-m-d H:i:s'),
-				'revoked_at' => $entity->getRevokedAt()?->format('Y-m-d H:i:s'),
-				'reason_code' => $entity->getReasonCode(),
-				'comment' => $entity->getComment(),
-				'revoked_by' => $entity->getRevokedBy(),
-				'invalidity_date' => $entity->getInvalidityDate()?->format('Y-m-d H:i:s'),
-				'crl_number' => $entity->getCrlNumber(),
-			];
-		}, $result['data']));
+		$formattedData = array_values(array_map(fn ($entity) => [
+			'id' => $entity->getId(),
+			'serial_number' => $entity->getSerialNumber(),
+			'owner' => $entity->getOwner(),
+			'status' => $entity->getStatus(),
+			'certificate_type' => $entity->getCertificateType(),
+			'engine' => $entity->getEngine(),
+			'instance_id' => $entity->getInstanceId(),
+			'generation' => $entity->getGeneration(),
+			'issued_at' => $entity->getIssuedAt()?->format('Y-m-d H:i:s'),
+			'valid_to' => $entity->getValidTo()?->format('Y-m-d H:i:s'),
+			'revoked_at' => $entity->getRevokedAt()?->format('Y-m-d H:i:s'),
+			'reason_code' => $entity->getReasonCode(),
+			'comment' => $entity->getComment(),
+			'revoked_by' => $entity->getRevokedBy(),
+			'invalidity_date' => $entity->getInvalidityDate()?->format('Y-m-d H:i:s'),
+			'crl_number' => $entity->getCrlNumber(),
+		], $result['data']));
 
 		return [
 			'data' => $formattedData,
