@@ -713,14 +713,14 @@ class FileController extends AEnvironmentAwareController {
 					$this->fileService->validateUploadedFile($uploadedFile);
 					$filesArray[] = [
 						'uploadedFile' => $uploadedFile,
-						'name' => pathinfo($uploadedFile['name'], PATHINFO_FILENAME),
+						'name' => pathinfo((string)$uploadedFile['name'], PATHINFO_FILENAME),
 					];
 				}
 			} else {
 				$this->fileService->validateUploadedFile($uploadedFiles);
 				$filesArray[] = [
 					'uploadedFile' => $uploadedFiles,
-					'name' => pathinfo($uploadedFiles['name'], PATHINFO_FILENAME),
+					'name' => pathinfo((string)$uploadedFiles['name'], PATHINFO_FILENAME),
 				];
 			}
 		}
@@ -756,7 +756,7 @@ class FileController extends AEnvironmentAwareController {
 			return $fileData['name'];
 		}
 		if (!empty($fileData['url'])) {
-			return rawurldecode(pathinfo($fileData['url'], PATHINFO_FILENAME));
+			return rawurldecode(pathinfo((string)$fileData['url'], PATHINFO_FILENAME));
 		}
 		return '';
 	}
