@@ -49,6 +49,13 @@ export type EnvelopeSigner = Omit<Partial<Pick<SignerDetailRecord, 'me' | 'signR
 	sign_request_uuid?: string | null
 }
 
+type EnvelopeOwnSigner = EnvelopeSigner & {
+	me: true
+	signRequestId: number
+	sign_request_uuid: string
+	level: 'top' | 'file'
+}
+
 export type EnvelopeFileForSubmission = {
 	signers?: EnvelopeSigner[]
 }
@@ -142,7 +149,10 @@ export function getEnvelopeSubmitRequests({
 			continue
 		}
 
-		const signerElements = elements.filter((element) => element.signRequestId === signer.signRequestId)
+		const matchingElements = elements.filter((element) => element.signRequestId === signer.signRequestId)
+		const signerElements = signer.level === 'top' && matchingElements.length === 0
+			? elements
+			: matchingElements
 		requests.push({
 			signRequestUuid: signer.sign_request_uuid,
 			payload: buildSubmitSignaturePayload({
@@ -161,15 +171,12 @@ function getEnvelopeOwnSigners(document: SignDocumentForSubmission): Array<Envel
 	me: true
 	signRequestId: number
 	sign_request_uuid: string
+	level: 'top' | 'file'
 }> {
-	const ownSigners: Array<EnvelopeSigner & {
-		me: true
-		signRequestId: number
-		sign_request_uuid: string
-	}> = []
+	const ownSigners: EnvelopeOwnSigner[] = []
 	const seen = new Set<string>()
 
-	const addSigner = (signer: EnvelopeSigner) => {
+	const addSigner = (signer: EnvelopeSigner, level: 'top' | 'file') => {
 		if (!isOwnEnvelopeSigner(signer)) {
 			return
 		}
@@ -179,28 +186,45 @@ function getEnvelopeOwnSigners(document: SignDocumentForSubmission): Array<Envel
 		}
 
 		seen.add(signer.sign_request_uuid)
-		ownSigners.push(signer)
+		ownSigners.push({
+			...signer,
+			level,
+		})
 	}
 
-	const fileOwnSigners: EnvelopeSigner[] = []
+	const topOwnSigners: EnvelopeSigner[] = []
+	for (const signer of document.signers ?? []) {
+		if (isOwnEnvelopeSigner(signer)) {
+			topOwnSigners.push(signer)
+		}
+	}
+
+	if (topOwnSigners.length > 0) {
+		for (const signer of topOwnSigners) {
+			addSigner(signer, 'top')
+		}
+
+		return ownSigners
+	}
+
+	const fileOwnSigners: EnvelopeOwnSigner[] = []
 	for (const file of document.files ?? []) {
 		for (const signer of file.signers ?? []) {
 			if (isOwnEnvelopeSigner(signer)) {
-				fileOwnSigners.push(signer)
+				fileOwnSigners.push({
+					...signer,
+					level: 'file',
+				})
 			}
 		}
 	}
 
 	if (fileOwnSigners.length > 0) {
 		for (const signer of fileOwnSigners) {
-			addSigner(signer)
+			addSigner(signer, 'file')
 		}
 
 		return ownSigners
-	}
-
-	for (const signer of document.signers ?? []) {
-		addSigner(signer)
 	}
 
 	return ownSigners
