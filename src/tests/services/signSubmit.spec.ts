@@ -124,6 +124,53 @@ describe('signSubmit service', () => {
 		])
 	})
 
+	it('uses child file signers when envelope also includes a top-level signer for current user', () => {
+		const requests = getEnvelopeSubmitRequests({
+			document: {
+				nodeType: 'envelope',
+				signers: [
+					{ me: true, signRequestId: 999, sign_request_uuid: 'envelope-uuid' },
+				],
+				files: [
+					{
+						signers: [
+							{ me: true, signRequestId: 10, sign_request_uuid: 'uuid-a' },
+						],
+					},
+					{
+						signers: [
+							{ me: true, signRequestId: 30, sign_request_uuid: 'uuid-c' },
+						],
+					},
+				],
+			},
+			basePayload: createBaseSubmitSignaturePayload({ method: 'clickToSign' }),
+			elements: [
+				{ elementId: 101, signRequestId: 10 },
+				{ elementId: 303, signRequestId: 30 },
+			],
+			canCreateSignature: false,
+			signatures: {},
+		})
+
+		expect(requests).toEqual([
+			{
+				signRequestUuid: 'uuid-a',
+				payload: {
+					method: 'clickToSign',
+					elements: [{ documentElementId: 101 }],
+				},
+			},
+			{
+				signRequestUuid: 'uuid-c',
+				payload: {
+					method: 'clickToSign',
+					elements: [{ documentElementId: 303 }],
+				},
+			},
+		])
+	})
+
 	it('prefers a signed outcome over signing in progress and uses the validation uuid from the API', () => {
 		const outcome = resolveSignSubmissionOutcome([
 			{
