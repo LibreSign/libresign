@@ -162,7 +162,7 @@ class CrlRevocationChecker {
 				// Lazy-loaded to avoid a circular dependency:
 				// CrlService → CertificateEngineFactory → OpenSslHandler → CrlRevocationChecker → CrlService
 				/** @var \OCA\Libresign\Service\Crl\CrlService */
-				$crlService = \OC::$server->get(\OCA\Libresign\Service\Crl\CrlService::class);
+				$crlService = \OCP\Server::get(\OCA\Libresign\Service\Crl\CrlService::class);
 
 				return $crlService->generateCrlDer($instanceId, $generation, $engineType);
 			}
