@@ -96,7 +96,7 @@ class CrlRevocationChecker {
 				if ($validationResult['status'] !== CrlValidationStatus::VALIDATION_ERROR) {
 					$accessibleUrls++;
 				}
-			} catch (\Exception $e) {
+			} catch (\Exception) {
 				continue;
 			}
 		}
@@ -135,7 +135,7 @@ class CrlRevocationChecker {
 
 			return $this->checkCertificateInCrlWithDetails($certPem, $crlContent);
 
-		} catch (\Exception $e) {
+		} catch (\Exception) {
 			return ['status' => CrlValidationStatus::VALIDATION_ERROR];
 		}
 	}
@@ -290,7 +290,7 @@ class CrlRevocationChecker {
 				}
 			}
 
-		} catch (\Exception $e) {
+		} catch (\Exception) {
 			return ['status' => CrlValidationStatus::VALIDATION_ERROR];
 		}
 	}
@@ -320,7 +320,7 @@ class CrlRevocationChecker {
 			try {
 				$date = new \DateTimeImmutable($dateText, new \DateTimeZone('UTC'));
 				return $date->setTimezone(new \DateTimeZone('UTC'))->format(\DateTimeInterface::ATOM);
-			} catch (\Exception $e) {
+			} catch (\Exception) {
 				continue;
 			}
 		}
