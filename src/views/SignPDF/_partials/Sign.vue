@@ -296,18 +296,18 @@ defineOptions({
 						}
 					}
 
-					if (anySigningInProgress) {
-						this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-						this.$emit('signing-started', {
-							signRequestUuid: myEnvelopeSigners[0].sign_request_uuid,
-							async: true,
-						})
-					} else if (lastResult?.status === 'signed') {
+					if (lastResult?.status === 'signed') {
 						this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 						this.sidebarStore.hideSidebar()
 						this.$emit('signed', {
 							...lastResult.data,
 							signRequestUuid: myEnvelopeSigners[0].sign_request_uuid,
+						})
+					} else if (anySigningInProgress) {
+						this.actionHandler.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
+						this.$emit('signing-started', {
+							signRequestUuid: myEnvelopeSigners[0].sign_request_uuid,
+							async: true,
 						})
 					}
 				} else {
@@ -711,18 +711,18 @@ let submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 			}
 
 			ensureServices()
-			if (anySigningInProgress) {
-				actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
-				emit('signing-started', {
-					signRequestUuid: myEnvelopeSigners[0].sign_request_uuid,
-					async: true,
-				})
-			} else if (lastResult?.status === 'signed') {
+			if (lastResult?.status === 'signed') {
 				actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
 				sidebarStore.hideSidebar()
 				emit('signed', {
 					...lastResult.data,
 					signRequestUuid: myEnvelopeSigners[0].sign_request_uuid,
+				})
+			} else if (anySigningInProgress) {
+				actionHandler!.closeModal(methodConfig.modalCode || methodConfig.method || 'token')
+				emit('signing-started', {
+					signRequestUuid: myEnvelopeSigners[0].sign_request_uuid,
+					async: true,
 				})
 			}
 		} else {
