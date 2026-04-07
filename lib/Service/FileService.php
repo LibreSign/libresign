@@ -664,21 +664,17 @@ class FileService {
 		return $summaries;
 	}
 
-	/**
-	 * Extracts and type-casts signRequestId from signer data.
-	 * Returns null if signRequestId is missing, null, non-numeric, or cannot be converted.
-	 */
 	private function extractValidSignRequestId(array $signerData): ?int {
 		$signRequestId = $signerData['signRequestId'] ?? null;
-		
+
 		if (is_int($signRequestId)) {
 			return $signRequestId;
 		}
-		
+
 		if (is_string($signRequestId) && ctype_digit($signRequestId)) {
 			return (int)$signRequestId;
 		}
-		
+
 		return null;
 	}
 
