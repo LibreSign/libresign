@@ -170,7 +170,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			if (!empty($timestampData['genTime']) || !empty($timestampData['policy']) || !empty($timestampData['serialNumber'])) {
 				$result['timestamp'] = $timestampData;
 			}
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 		}
 
 		if (!isset($result['signingTime']) || !$result['signingTime'] instanceof \DateTime) {
