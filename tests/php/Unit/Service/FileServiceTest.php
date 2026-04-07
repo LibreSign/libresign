@@ -551,4 +551,203 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame('file-uuid', $result['files'][0]['uuid']);
 		$this->assertSame('libresign.page.getPdf:file-uuid', $result['files'][0]['file']);
 	}
+
+	#[DataProvider('mapSignerDetailsToSummaryProvider')]
+	public function testMapSignerDetailsToSummaryFiltersInvalidSigners(array $signers, array $expectedSummaries): void {
+		$service = $this->createFileService();
+		$reflectionMethod = new \ReflectionMethod(FileService::class, 'mapSignerDetailsToSummary');
+		$reflectionMethod->setAccessible(true);
+
+		$result = $reflectionMethod->invokeArgs($service, [$signers]);
+
+		$this->assertEquals($expectedSummaries, $result);
+	}
+
+	public static function mapSignerDetailsToSummaryProvider(): array {
+		return [
+			'valid signer with all required fields' => [
+				'signers' => [
+					[
+						'signRequestId' => 1,
+						'displayName' => 'John Doe',
+						'email' => 'john@example.com',
+						'signed' => null,
+						'status' => 0,
+						'statusText' => 'pending',
+					],
+				],
+				'expectedSummaries' => [
+					[
+						'signRequestId' => 1,
+						'displayName' => 'John Doe',
+						'email' => 'john@example.com',
+						'signed' => null,
+						'status' => 0,
+						'statusText' => 'pending',
+					],
+				],
+			],
+			'filters signer with null signRequestId' => [
+				'signers' => [
+					[
+						'signRequestId' => null,
+						'displayName' => 'John',
+						'email' => 'john@example.com',
+						'status' => 0,
+						'statusText' => 'pending',
+					],
+				],
+				'expectedSummaries' => [],
+			],
+			'filters signer with missing signRequestId' => [
+				'signers' => [
+					[
+						'displayName' => 'John',
+						'email' => 'john@example.com',
+						'status' => 0,
+						'statusText' => 'pending',
+					],
+				],
+				'expectedSummaries' => [],
+			],
+			'converts numeric string signRequestId to integer' => [
+				'signers' => [
+					[
+						'signRequestId' => '42',
+						'displayName' => 'Jane',
+						'email' => 'jane@example.com',
+						'signed' => null,
+						'status' => 0,
+						'statusText' => 'pending',
+					],
+				],
+				'expectedSummaries' => [
+					[
+						'signRequestId' => 42,
+						'displayName' => 'Jane',
+						'email' => 'jane@example.com',
+						'signed' => null,
+						'status' => 0,
+						'statusText' => 'pending',
+					],
+				],
+			],
+			'filters signer with non-numeric string signRequestId' => [
+				'signers' => [
+					[
+						'signRequestId' => 'invalid',
+						'displayName' => 'Bob',
+						'email' => 'bob@example.com',
+						'status' => 0,
+						'statusText' => 'pending',
+					],
+				],
+				'expectedSummaries' => [],
+			],
+			'filters non-array signer entries' => [
+				'signers' => [
+					'not an array',
+					null,
+					123,
+				],
+				'expectedSummaries' => [],
+			],
+			'mixed valid and invalid signers' => [
+				'signers' => [
+					[
+						'signRequestId' => 1,
+						'displayName' => 'Valid',
+						'email' => 'valid@example.com',
+						'signed' => null,
+						'status' => 0,
+						'statusText' => 'pending',
+					],
+					[
+						'signRequestId' => null,
+						'displayName' => 'Invalid',
+						'email' => 'invalid@example.com',
+						'signed' => null,
+						'status' => 0,
+						'statusText' => 'pending',
+					],
+					[
+						'signRequestId' => '2',
+						'displayName' => 'AlsoValid',
+						'email' => 'also@example.com',
+						'signed' => null,
+						'status' => 1,
+						'statusText' => 'signed',
+					],
+				],
+				'expectedSummaries' => [
+					[
+						'signRequestId' => 1,
+						'displayName' => 'Valid',
+						'email' => 'valid@example.com',
+						'signed' => null,
+						'status' => 0,
+						'statusText' => 'pending',
+					],
+					[
+						'signRequestId' => 2,
+						'displayName' => 'AlsoValid',
+						'email' => 'also@example.com',
+						'signed' => null,
+						'status' => 1,
+						'statusText' => 'signed',
+					],
+				],
+			],
+			'preserves identifyMethods when present' => [
+				'signers' => [
+					[
+						'signRequestId' => 1,
+						'displayName' => 'John',
+						'email' => 'john@example.com',
+						'signed' => null,
+						'status' => 0,
+						'statusText' => 'pending',
+						'identifyMethods' => ['cpf', 'email'],
+					],
+				],
+				'expectedSummaries' => [
+					[
+						'signRequestId' => 1,
+						'displayName' => 'John',
+						'email' => 'john@example.com',
+						'signed' => null,
+						'status' => 0,
+						'statusText' => 'pending',
+						'identifyMethods' => ['cpf', 'email'],
+					],
+				],
+			],
+			'type-casts string fields to proper types' => [
+				'signers' => [
+					[
+						'signRequestId' => 5,
+						'displayName' => 123,
+						'email' => 456.78,
+						'signed' => null,
+						'status' => '7',
+						'statusText' => 890,
+					],
+				],
+				'expectedSummaries' => [
+					[
+						'signRequestId' => 5,
+						'displayName' => '123',
+						'email' => '456.78',
+						'signed' => null,
+						'status' => 7,
+						'statusText' => '890',
+					],
+				],
+			],
+			'empty signers list' => [
+				'signers' => [],
+				'expectedSummaries' => [],
+			],
+		];
+	}
 }
