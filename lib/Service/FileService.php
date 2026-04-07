@@ -632,27 +632,41 @@ class FileService {
 	 * @return list<LibresignSignerSummary>
 	 */
 	private function mapSignerDetailsToSummary(array $signers): array {
-		return array_map(static function ($signer): array {
+		$summaries = [];
+
+		foreach ($signers as $signer) {
 			$signerData = is_object($signer) ? (array)$signer : $signer;
 			if (!is_array($signerData)) {
-				return [];
+				continue;
+			}
+
+			// Validate and type-cast signRequestId (required field)
+			$signRequestId = $signerData['signRequestId'] ?? null;
+			if (is_int($signRequestId)) {
+				$typedSignRequestId = $signRequestId;
+			} elseif (is_string($signRequestId) && ctype_digit($signRequestId)) {
+				$typedSignRequestId = (int)$signRequestId;
+			} else {
+				continue;
 			}
 
 			$summary = [
-				'signRequestId' => $signerData['signRequestId'] ?? null,
-				'displayName' => $signerData['displayName'] ?? '',
-				'email' => $signerData['email'] ?? '',
+				'signRequestId' => $typedSignRequestId,
+				'displayName' => isset($signerData['displayName']) ? (string)$signerData['displayName'] : '',
+				'email' => isset($signerData['email']) ? (string)$signerData['email'] : '',
 				'signed' => $signerData['signed'] ?? null,
-				'status' => $signerData['status'] ?? 0,
-				'statusText' => $signerData['statusText'] ?? '',
+				'status' => isset($signerData['status']) ? (int)$signerData['status'] : 0,
+				'statusText' => isset($signerData['statusText']) ? (string)$signerData['statusText'] : '',
 			];
 
 			if (isset($signerData['identifyMethods']) && is_array($signerData['identifyMethods'])) {
 				$summary['identifyMethods'] = $signerData['identifyMethods'];
 			}
 
-			return $summary;
-		}, $signers);
+			$summaries[] = $summary;
+		}
+
+		return $summaries;
 	}
 
 	private function computeEnvelopeSignersProgress(): void {
