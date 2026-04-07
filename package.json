@@ -81,7 +81,7 @@
     "@nextcloud/stylelint-config": "^3.2.1",
     "@nextcloud/vite-config": "^2.5.2",
     "@pinia/testing": "^1.0.3",
-    "@playwright/test": "^1.58.2",
+    "@playwright/test": "^1.59.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/vue": "^8.1.0",
     "@types/blueimp-md5": "^2.18.2",
