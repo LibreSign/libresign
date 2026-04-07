@@ -264,6 +264,8 @@ OC.L10N.register(
     "Modified" : "Módosítva",
     "Switch to list view" : "Váltás listanézetre",
     "Switch to grid view" : "Váltás rácsnézetre",
+    "Reload content" : "Tartalom újratöltése",
+    "File list is reloading" : "A fájllista újratöltődik",
     "There are no documents" : "Nincsenek dokumentumok",
     "Choose the file to request signatures." : "Válasszon fájlt az aláírások kéréséhez.",
     "1 file" : "1 fájl",
