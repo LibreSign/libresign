@@ -28,8 +28,6 @@ class FileUploadHelperTest extends TestCase {
 	private string $tempFile;
 
 	protected function setUp(): void {
-		parent::setUp();
-
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')
 			->willReturnCallback(fn ($text) => $text);
@@ -46,7 +44,6 @@ class FileUploadHelperTest extends TestCase {
 		if (file_exists($this->tempFile)) {
 			@unlink($this->tempFile);
 		}
-		parent::tearDown();
 	}
 
 	public function testValidateUploadedFileSuccess(): void {

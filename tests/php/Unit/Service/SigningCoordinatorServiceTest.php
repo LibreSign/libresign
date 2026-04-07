@@ -20,7 +20,6 @@ final class SigningCoordinatorServiceTest extends TestCase {
 	private SigningCoordinatorService $service;
 
 	protected function setUp(): void {
-		parent::setUp();
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->service = new SigningCoordinatorService($this->appConfig);
 	}

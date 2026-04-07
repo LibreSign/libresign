@@ -503,7 +503,7 @@ class SignRequestMapper extends CachedQBMapper {
 				$file = File::fromRow($row);
 
 				$files[] = $file;
-			} catch (\Exception $e) {
+			} catch (\Exception) {
 				continue;
 			}
 		}

@@ -39,7 +39,7 @@ class PdfSignatureDetectionService {
 			$engine = $this->signEngineFactory->resolve('pdf');
 			$certificates = $engine->getCertificateChain($resource);
 			return !empty($certificates);
-		} catch (LibresignException $e) {
+		} catch (LibresignException) {
 			return false;
 		} catch (\Throwable $e) {
 			$this->logger->debug('Failed to detect signatures: ' . $e->getMessage());

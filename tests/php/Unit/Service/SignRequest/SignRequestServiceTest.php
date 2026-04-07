@@ -32,7 +32,6 @@ final class SignRequestServiceTest extends TestCase {
 	private SignRequestService $service;
 
 	protected function setUp(): void {
-		parent::setUp();
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnArgument(0);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);

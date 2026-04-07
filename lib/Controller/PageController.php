@@ -251,7 +251,7 @@ class PageController extends AEnvironmentPageAwareController {
 				$this->initialState->provideInitialState('identificationDocumentsWaitingApproval', $file['settings']['identificationDocumentsWaitingApproval'] ?? false);
 			} catch (LibresignException $e) {
 				throw $e;
-			} catch (\Throwable $e) {
+			} catch (\Throwable) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
 					'errors' => [['message' => $this->l10n->t('Invalid UUID')]],

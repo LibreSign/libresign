@@ -641,7 +641,7 @@ class RequestSignatureService {
 				if ($childSignRequest->getId()) {
 					$this->unassociateToUser($child->getId(), $childSignRequest->getId());
 				}
-			} catch (\Throwable $e) {
+			} catch (\Throwable) {
 				continue;
 			}
 		}
