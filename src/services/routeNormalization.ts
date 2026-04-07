@@ -23,20 +23,33 @@ export function normalizeRouteRecord(
 	value: unknown,
 	source: 'params' | 'query',
 ): Record<string, string> {
-	if (typeof value !== 'object' || value === null) {
+	if (!isValidRecordInput(value)) {
 		return {}
 	}
 
-	if (Array.isArray(value)) {
+	if (shouldRejectAsArray(value)) {
 		logger.warn('Validation route normalization rejected array input', {
 			source,
 		})
 		return {}
 	}
 
+	return buildStringOnlyRecord(value as Record<string, unknown>, source)
+}
+
+function isValidRecordInput(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function shouldRejectAsArray(value: unknown): value is unknown[] {
+	return Array.isArray(value)
+}
+
+function buildStringOnlyRecord(record: Record<string, unknown>, source: 'params' | 'query'): Record<string, string> {
 	const result: Record<string, string> = {}
 	const droppedKeys: string[] = []
-	for (const [key, entry] of Object.entries(value)) {
+	
+	for (const [key, entry] of Object.entries(record)) {
 		if (typeof entry === 'string') {
 			result[key] = entry
 		} else {
