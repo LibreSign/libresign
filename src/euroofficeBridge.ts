@@ -65,21 +65,17 @@ function getFilenameFromHeaders(headers: Headers, fallbackName: string): string 
 	return fallbackName
 }
 
-function blobToBase64(blob: Blob): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onerror = () => reject(new Error('Unable to encode PDF to base64'))
-		reader.onload = () => {
-			const result = String(reader.result ?? '')
-			const base64 = result.split(',')[1] ?? ''
-			if (!base64) {
-				reject(new Error('Unable to encode PDF to base64'))
-				return
-			}
-			resolve(base64)
-		}
-		reader.readAsDataURL(blob)
-	})
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+	let binary = ''
+	const bytes = new Uint8Array(buffer)
+	const chunkSize = 0x8000
+
+	for (let i = 0; i < bytes.length; i += chunkSize) {
+		const chunk = bytes.subarray(i, i + chunkSize)
+		binary += String.fromCharCode(...chunk)
+	}
+
+	return btoa(binary)
 }
 
 async function convertToPdfBase64(fileId: number): Promise<{ name: string, base64: string }> {
@@ -94,12 +90,12 @@ async function convertToPdfBase64(fileId: number): Promise<{ name: string, base6
 
 	const fallbackName = `document-${fileId}.pdf`
 	const fileName = getFilenameFromHeaders(downloadResponse.headers, fallbackName)
-	const pdfBlob = await downloadResponse.blob()
-	const base64 = await blobToBase64(pdfBlob)
+	const pdfArrayBuffer = await downloadResponse.arrayBuffer()
+	const base64 = arrayBufferToBase64(pdfArrayBuffer)
 
 	return {
 		name: fileName,
-		base64,
+		base64: `data:application/pdf;base64,${base64}`,
 	}
 }
 
