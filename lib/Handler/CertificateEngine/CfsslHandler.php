@@ -376,25 +376,29 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		);
 	}
 
-	/**
-	 * Parse command
-	 *
-	 * Have commands that need to be executed as sudo otherwise don't will work,
-	 * by example the command runuser or kill. To prevent error when run in a
-	 * GitHub Actions, these commands are executed prefixed by sudo when exists
-	 * an environment called GITHUB_ACTIONS.
-	 */
-	private function parseCommand(string $command): string {
-		if (getenv('GITHUB_ACTIONS') !== false) {
-			$command = 'sudo ' . $command;
-		}
-		return $command;
-	}
-
 	private function stopIfRunning(): void {
-		$pid = $this->getServerPid();
-		if ($pid > 0) {
-			exec($this->parseCommand('kill -9 ' . $pid));
+		$uri = $this->getCfsslUri();
+		$port = (int)(parse_url($uri, PHP_URL_PORT) ?? 0);
+		$this->processManager->setSourceHint(self::PROCESS_SOURCE, [
+			'uri' => $uri,
+			'port' => $port,
+		]);
+
+		$this->processManager->findRunningPid(
+			self::PROCESS_SOURCE,
+			fn (array $entry): bool => ($entry['context']['uri'] ?? '') === $uri,
+		);
+
+		foreach ($this->processManager->listRunning(self::PROCESS_SOURCE) as $entry) {
+			if (($entry['context']['uri'] ?? '') !== $uri) {
+				continue;
+			}
+
+			$pid = (int)($entry['pid'] ?? 0);
+			if ($pid <= 0) {
+				continue;
+			}
+			$this->processManager->stopPid($pid, SIGKILL);
 			$this->processManager->unregister(self::PROCESS_SOURCE, $pid);
 		}
 	}
