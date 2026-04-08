@@ -18,6 +18,21 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 12.4.2 - 2026-04-08
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Update translations
+- Bump dependencies [#7451](https://github.com/LibreSign/libresign/pull/7451) [#7454](https://github.com/LibreSign/libresign/pull/7454) [#7455](https://github.com/LibreSign/libresign/pull/7455) [#7460](https://github.com/LibreSign/libresign/pull/7460) [#7458](https://github.com/LibreSign/libresign/pull/7458) [#7462](https://github.com/LibreSign/libresign/pull/7462) [#7464](https://github.com/LibreSign/libresign/pull/7464) [#7472](https://github.com/LibreSign/libresign/pull/7472) [#7470](https://github.com/LibreSign/libresign/pull/7470)
+
+### Fixes
+- fix: align signer and file UUID contracts [#7440](https://github.com/LibreSign/libresign/pull/7440)
+- fix(validation): harden unified files contract [#7444](https://github.com/LibreSign/libresign/pull/7444)
+- fix(Sign): submit each envelope file independently with its UUID [#7447](https://github.com/LibreSign/libresign/pull/7447)
+
 ## 12.4.1 - 2026-04-05
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
@@ -38,6 +53,22 @@ Types of changes:
 - fix: prevent Imagick crash caused by invalid signature box dimensions [#7406](https://github.com/LibreSign/libresign/pull/7406)
 - fix: validate engine name in migration to prevent installation failures [#7412](https://github.com/LibreSign/libresign/pull/7412)
 
+## 13.2.0 - 2026-03-17
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Advance the Vue 3 and TypeScript migration across signature flows, the files list and shared frontend infrastructure [#7166](https://github.com/LibreSign/libresign/pull/7166) [#7169](https://github.com/LibreSign/libresign/pull/7169) [#7173](https://github.com/LibreSign/libresign/pull/7173) [#7201](https://github.com/LibreSign/libresign/pull/7201) [#7251](https://github.com/LibreSign/libresign/pull/7251)
+- Improve Playwright feedback, frontend test coverage and l10n mocking stability [#7195](https://github.com/LibreSign/libresign/pull/7195) [#7210](https://github.com/LibreSign/libresign/pull/7210) [#7272](https://github.com/LibreSign/libresign/pull/7272) [#7282](https://github.com/LibreSign/libresign/pull/7282)
+- Update translations
+- Bump dependencies [#7261](https://github.com/LibreSign/libresign/pull/7261) [#7286](https://github.com/LibreSign/libresign/pull/7286) [#7288](https://github.com/LibreSign/libresign/pull/7288)
+
+### Fixes
+- fix: restore signing flow after 13.1.x [#7175](https://github.com/LibreSign/libresign/pull/7175)
+- fix(files): keep files list and validation state synchronized after signing [#7294](https://github.com/LibreSign/libresign/pull/7294)
+
 ## 12.4.0 - 2026-03-17
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
@@ -53,6 +84,24 @@ Types of changes:
 ### Fixes
 - fix: restore signing flow after 12.3.x [#7176](https://github.com/LibreSign/libresign/pull/7176)
 - fix(files): keep files list and validation state synchronized after signing [#7293](https://github.com/LibreSign/libresign/pull/7293)
+
+## 13.1.3 - 2026-03-06
+
+### Fixes
+- fix: avoid router resolution in request signature tab modal
+- test: cover modal urls in request signature tab
+
+## 13.1.2 - 2026-03-06
+
+### Fixes
+- fix: include dist assets in appstore package
+- ci: verify appstore package in release workflow
+- ci: verify appstore package in nightly release
+
+## 13.1.1 - 2026-03-06
+
+### Fixes
+- fix: include css assets in appstore package
 
 ## 12.3.3 - 2026-03-06
 
@@ -71,6 +120,43 @@ Types of changes:
 
 ### Fixes
 - fix: include css assets in appstore package
+
+## 13.1.0 - 2026-03-05
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- feat: vue3 typescript migration [#6995](https://github.com/LibreSign/libresign/pull/6995)
+- feat: playwright e2e tests [#7007](https://github.com/LibreSign/libresign/pull/7007)
+- feat: files list header restructure [#7011](https://github.com/LibreSign/libresign/pull/7011)
+- feat: file list filters [#7019](https://github.com/LibreSign/libresign/pull/7019)
+- feat: signature confirmation steps [#7041](https://github.com/LibreSign/libresign/pull/7041)
+- feat: sign usign only php [#7073](https://github.com/LibreSign/libresign/pull/7073)
+- feat: implement more e2e tests [#7080](https://github.com/LibreSign/libresign/pull/7080)
+- feat: show confetti setting [#7085](https://github.com/LibreSign/libresign/pull/7085)
+- feat: crl revocation checker [#7084](https://github.com/LibreSign/libresign/pull/7084)
+
+### Changed
+- Update translations
+- Bump dependencies
+
+### Fixes
+- fix: vue3 component api migration [#7003](https://github.com/LibreSign/libresign/pull/7003)
+- fix: nextcloud vue v9 compat [#7005](https://github.com/LibreSign/libresign/pull/7005)
+- fix: files list grid toggle and status chip [#7009](https://github.com/LibreSign/libresign/pull/7009)
+- fix: vue router 5 non path params [#7015](https://github.com/LibreSign/libresign/pull/7015)
+- fix: confetti vue router 5 params [#7014](https://github.com/LibreSign/libresign/pull/7014)
+- fix(fileupload): fix oversized preview image in confirm signature dialog [#7017](https://github.com/LibreSign/libresign/pull/7017)
+- fix: a11y improvements [#7052](https://github.com/LibreSign/libresign/pull/7052)
+- fix: files list sort accessibility [#7057](https://github.com/LibreSign/libresign/pull/7057)
+- fix: draw signature tab accessibility [#7059](https://github.com/LibreSign/libresign/pull/7059)
+- fix: use legacy pdfjs worker for browser compat [#7064](https://github.com/LibreSign/libresign/pull/7064)
+- fix: signature engine key [#7067](https://github.com/LibreSign/libresign/pull/7067)
+- fix: files integration actions and propfind [#7138](https://github.com/LibreSign/libresign/pull/7138)
+- fix: orphan file delete null nodeid [#7140](https://github.com/LibreSign/libresign/pull/7140)
+- fix(files): load libresign inline status icons with esm imports [#7147](https://github.com/LibreSign/libresign/pull/7147)
 
 ## 12.3.0 - 2026-03-05
 
@@ -113,6 +199,15 @@ Types of changes:
 - fix: orphan file delete null nodeid [#7141](https://github.com/LibreSign/libresign/pull/7141)
 - fix(files): load libresign inline status icons with esm imports [#7148](https://github.com/LibreSign/libresign/pull/7148)
 
+## 13.0.3 - 2026-02-20
+### Fixes
+- fix: prevent CA configuration loss during migrations [#6982](https://github.com/LibreSign/libresign/pull/6982)
+- fix(migration): prevent CA file loss in Version13000Date20251031165700 [#6982](https://github.com/LibreSign/libresign/pull/6982)
+- fix: add pki directory to DeleteOldBinaries whitelist [#6982](https://github.com/LibreSign/libresign/pull/6982)
+
+### Changed
+- feat(migration): add repair migration for CA structure [#6982](https://github.com/LibreSign/libresign/pull/6982)
+
 ## 12.2.3 - 2026-02-20
 ### Fixes
 - fix: prevent CA configuration loss during migrations [#6981](https://github.com/LibreSign/libresign/pull/6981)
@@ -121,6 +216,16 @@ Types of changes:
 
 ### Changed
 - feat(migration): add repair migration for CA structure [#6981](https://github.com/LibreSign/libresign/pull/6981)
+
+## 13.0.2 - 2026-02-20
+### Fixes
+- fix: store signature at right user [#6972](https://github.com/LibreSign/libresign/pull/6972)
+- fix: prevent double HTML escaping in footer template [#6967](https://github.com/LibreSign/libresign/pull/6967)
+- fix: upper case first at status [#6963](https://github.com/LibreSign/libresign/pull/6963)
+
+### Changed
+- refactor: improve English text [#6954](https://github.com/LibreSign/libresign/pull/6954)
+- refactor: improve text [#6952](https://github.com/LibreSign/libresign/pull/6952)
 
 ## 12.2.2 - 2026-02-20
 ### Fixes
@@ -132,11 +237,50 @@ Types of changes:
 - refactor: improve English text [#6955](https://github.com/LibreSign/libresign/pull/6955)
 - refactor: improve text [#6953](https://github.com/LibreSign/libresign/pull/6953)
 
+## 13.0.1 - 2026-02-18
+### Fixes
+- fix: docmdp first signature allow [#6944](https://github.com/LibreSign/libresign/pull/6944)
+- fix: signature status propfind [#6945](https://github.com/LibreSign/libresign/pull/6945)
+- fix: avoid empty crl engine default [#6940](https://github.com/LibreSign/libresign/pull/6940)
+
 ## 12.2.1 - 2026-02-18
 ### Fixes
 - fix: docmdp first signature allow [#6943](https://github.com/LibreSign/libresign/pull/6943)
 - fix: signature status propfind [#6946](https://github.com/LibreSign/libresign/pull/6946)
 - fix: avoid empty crl engine default [#6939](https://github.com/LibreSign/libresign/pull/6939)
+
+## 13.0.0 - 2026-02-17
+
+⚠️ **MAJOR RELEASE - Breaking Changes** — The API has been completely redesigned. If you have existing API integrations, review the new API documentation before upgrading.
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Added
+- Envelopes to organize multiple signature workflows
+- DocMDP (Document Modification Detection and Prevention)
+- CRL (Certificate Revocation Lists) support
+- TSA (Time Stamp Authority) integration
+- Parallel and synchronous signatures
+- Rich text editor for signature stamps
+- Customizable footer
+- Multi-channel notifications: WhatsApp, Telegram, Signal, XMPP, SMS
+- Redesigned document identification flow
+- CPS (Certification Practice Statement) support
+
+### Changed
+- Complete API redesign (breaking change)
+- UI/UX improvements
+- Performance optimizations
+- Security enhancements
+
+### Fixed
+- Signature validation improvements
+- Better error handling
+- PDF compatibility fixes
+
+---
 
 ## 12.2.0 - 2026-02-17
 
@@ -168,6 +312,8 @@ Types of changes:
 - Signature validation improvements
 - Better error handling
 - PDF compatibility fixes
+
+---
 
 ## 12.1.0 - 2025-11-28
 ### Features
@@ -324,6 +470,7 @@ Types of changes:
 
 ### Fixes
 - fix: typo [#5442](https://github.com/LibreSign/libresign/pull/5442)
+
 
 ## 12.0.0-beta.1 - 2025-09-12
 ### Changes
