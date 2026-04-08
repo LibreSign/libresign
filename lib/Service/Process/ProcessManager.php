@@ -14,11 +14,19 @@ use Psr\Log\LoggerInterface;
 
 class ProcessManager {
 	private const APP_CONFIG_KEY = 'process_registry';
+	private const APP_CONFIG_HINTS_KEY = 'process_registry_hints';
+
+	private ProcessSignaler $signaler;
+	private ListeningPidResolver $pidResolver;
 
 	public function __construct(
 		private IAppConfig $appConfig,
 		private LoggerInterface $logger,
+		?ProcessSignaler $signaler = null,
+		?ListeningPidResolver $pidResolver = null,
 	) {
+		$this->signaler = $signaler ?? new ProcessSignaler($logger);
+		$this->pidResolver = $pidResolver ?? new ListeningPidResolver();
 	}
 
 	/**
@@ -36,6 +44,7 @@ class ProcessManager {
 			'createdAt' => time(),
 		];
 		$this->saveRegistry($registry);
+		$this->setSourceHint($source, $context);
 	}
 
 	public function unregister(string $source, int $pid): void {
@@ -83,6 +92,16 @@ class ProcessManager {
 	 * @param null|callable(array{pid: int, context: array<string, scalar>, createdAt: int}): bool $filter
 	 */
 	public function findRunningPid(string $source, ?callable $filter = null): int {
+		$entries = $this->listRunning($source);
+		foreach ($entries as $entry) {
+			if ($filter !== null && !$filter($entry)) {
+				continue;
+			}
+			return $entry['pid'];
+		}
+
+		$this->hydrateFromFallback($source);
+
 		foreach ($this->listRunning($source) as $entry) {
 			if ($filter !== null && !$filter($entry)) {
 				continue;
@@ -96,7 +115,7 @@ class ProcessManager {
 	public function stopAll(string $source, int $signal = SIGTERM): int {
 		$stopped = 0;
 		foreach ($this->listRunning($source) as $entry) {
-			if ($this->terminate($entry['pid'], $signal)) {
+			if ($this->stopPid($entry['pid'], $signal)) {
 				$stopped++;
 			}
 			$this->unregister($source, $entry['pid']);
@@ -105,55 +124,89 @@ class ProcessManager {
 		return $stopped;
 	}
 
+	public function stopPid(int $pid, int $signal = SIGTERM): bool {
+		return $this->signaler->stopPid($pid, $signal);
+	}
+
+	/**
+	 * @param array<string, scalar> $context
+	 */
+	public function setSourceHint(string $source, array $context): void {
+		if ($source === '' || $context === []) {
+			return;
+		}
+
+		$hints = $this->getHints();
+		$hints[$source] = $context;
+		$this->saveHints($hints);
+	}
+
+	/**
+	 * @return int[]
+	 */
+	public function findListeningPids(int $port): array {
+		return $this->pidResolver->findListeningPids($port);
+	}
+
 	public function isRunning(int $pid): bool {
-		if ($pid <= 0) {
-			return false;
+		return $this->signaler->isRunning($pid);
+	}
+
+	private function hydrateFromFallback(string $source): void {
+		$hint = $this->getSourceHint($source);
+		if (!is_array($hint) || $hint === []) {
+			return;
 		}
 
-		if (function_exists('posix_kill')) {
-			return @posix_kill($pid, 0);
-		}
-
-		if (!function_exists('exec')) {
-			return false;
+		$port = $this->getPortFromHint($hint);
+		if ($port <= 0) {
+			return;
 		}
 
 		try {
-			exec(sprintf('kill -0 %d 2>/dev/null', $pid), $output, $exitCode);
-			return $exitCode === 0;
-		} catch (\Throwable $e) {
-			$this->logger->debug('Failed to probe process status', [
-				'pid' => $pid,
+			$pids = $this->findListeningPids($port);
+		} catch (\RuntimeException $e) {
+			$this->logger->debug('Unable to hydrate process registry from fallback', [
+				'source' => $source,
+				'port' => $port,
 				'error' => $e->getMessage(),
 			]);
-			return false;
+			return;
+		}
+
+		foreach ($pids as $pid) {
+			if ($pid <= 0) {
+				continue;
+			}
+			$this->register($source, $pid, $hint);
 		}
 	}
 
-	protected function terminate(int $pid, int $signal): bool {
-		if ($pid <= 0) {
-			return false;
+	/**
+	 * @param array<string, scalar> $hint
+	 */
+	private function getPortFromHint(array $hint): int {
+		if (isset($hint['port']) && is_numeric((string)$hint['port'])) {
+			$port = (int)$hint['port'];
+			if ($port > 0) {
+				return $port;
+			}
 		}
 
-		if (function_exists('posix_kill')) {
-			return @posix_kill($pid, $signal);
+		if (isset($hint['uri']) && is_string($hint['uri'])) {
+			return (int)(parse_url($hint['uri'], PHP_URL_PORT) ?? 0);
 		}
 
-		if (!function_exists('exec')) {
-			return false;
-		}
+		return 0;
+	}
 
-		try {
-			exec(sprintf('kill -%d %d 2>/dev/null', $signal, $pid), $output, $exitCode);
-			return $exitCode === 0;
-		} catch (\Throwable $e) {
-			$this->logger->debug('Failed to terminate process', [
-				'pid' => $pid,
-				'signal' => $signal,
-				'error' => $e->getMessage(),
-			]);
-			return false;
-		}
+	/**
+	 * @return array<string, scalar>
+	 */
+	private function getSourceHint(string $source): array {
+		$hints = $this->getHints();
+		$hint = $hints[$source] ?? [];
+		return is_array($hint) ? $hint : [];
 	}
 
 	/**
@@ -175,4 +228,25 @@ class ProcessManager {
 	private function saveRegistry(array $registry): void {
 		$this->appConfig->setValueString(Application::APP_ID, self::APP_CONFIG_KEY, json_encode($registry));
 	}
+
+	/**
+	 * @return array<string, array<string, scalar>>
+	 */
+	private function getHints(): array {
+		$raw = $this->appConfig->getValueString(Application::APP_ID, self::APP_CONFIG_HINTS_KEY, '{}');
+		$decoded = json_decode($raw, true);
+		if (!is_array($decoded)) {
+			return [];
+		}
+
+		return $decoded;
+	}
+
+	/**
+	 * @param array<string, array<string, scalar>> $hints
+	 */
+	private function saveHints(array $hints): void {
+		$this->appConfig->setValueString(Application::APP_ID, self::APP_CONFIG_HINTS_KEY, json_encode($hints));
+	}
+
 }
