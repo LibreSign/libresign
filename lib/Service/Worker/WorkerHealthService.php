@@ -8,12 +8,15 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Worker;
 
+use OCA\Libresign\Service\Process\ProcessManager;
 use Psr\Log\LoggerInterface;
 
 class WorkerHealthService {
+	private const PROCESS_SOURCE = 'worker';
+
 	public function __construct(
 		private WorkerConfiguration $workerConfiguration,
-		private WorkerCounter $workerCounter,
+		private ProcessManager $processManager,
 		private WorkerJobCounter $workerJobCounter,
 		private StartThrottlePolicy $startThrottlePolicy,
 		private WorkerStarter $workerStarter,
@@ -54,7 +57,7 @@ class WorkerHealthService {
 
 	private function calculateWorkersNeeded(): int {
 		$desired = $this->workerConfiguration->getDesiredWorkerCount();
-		$running = $this->workerCounter->countRunning();
+		$running = $this->processManager->countRunning(self::PROCESS_SOURCE);
 		$pendingJobs = $this->workerJobCounter->countPendingJobs();
 
 		if ($this->hasNoPendingWork($pendingJobs)) {
