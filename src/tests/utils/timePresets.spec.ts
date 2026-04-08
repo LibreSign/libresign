@@ -6,6 +6,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getTimePresetRange, getTimePresets } from '../../utils/timePresets.js'
+
 describe('getTimePresets', () => {
 	describe('business rule: should return all 5 presets with correct structure', () => {
 		it('returns exactly 5 presets', () => {

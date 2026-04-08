@@ -22,6 +22,8 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Process\ProcessManager;
+use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -39,6 +41,7 @@ use Psr\Log\LoggerInterface;
  */
 class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
+	private const PROCESS_SOURCE = 'cfssl';
 
 	/** @var Client */
 	protected $client;
@@ -58,6 +61,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		protected CrlMapper $crlMapper,
 		protected LoggerInterface $logger,
 		CrlRevocationChecker $crlRevocationChecker,
+		private ProcessManager $processManager,
 	) {
 		parent::__construct(
 			$config,
@@ -245,10 +249,11 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$configPath = $this->getCurrentConfigPath();
 		$csrFile = $configPath . '/csr_server.json';
 
-		$cmd = escapeshellcmd($binary) . ' gencert -initca ' . escapeshellarg($csrFile);
-		$output = shell_exec($cmd);
+		$process = $this->createProcess([$binary, 'gencert', '-initca', $csrFile]);
+		$process->run();
+		$output = $process->getOutput();
 
-		if (!$output) {
+		if (!$process->isSuccessful() || $output === '') {
 			throw new \RuntimeException('cfssl without output.');
 		}
 
@@ -320,11 +325,26 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			throw new LibresignException('CFSSL not configured.');
 		}
 		$this->cfsslServerHandler->updateExpirity($this->getCaExpiryInDays());
-		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 '
-			. '-ca-key ' . $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem '
-			. '-ca ' . $configPath . DIRECTORY_SEPARATOR . 'ca.pem '
-			. '-config ' . $configPath . DIRECTORY_SEPARATOR . 'config_server.json > /dev/null 2>&1 & echo $!';
-		shell_exec($cmd);
+		$process = $this->createProcess([
+			$binary,
+			'serve',
+			'-address=127.0.0.1',
+			'-ca-key', $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem',
+			'-ca', $configPath . DIRECTORY_SEPARATOR . 'ca.pem',
+			'-config', $configPath . DIRECTORY_SEPARATOR . 'config_server.json',
+		]);
+		$process->setOptions(['create_new_console' => true]);
+		$process->setTimeout(null);
+		$process->disableOutput();
+		$process->start();
+
+		$pid = (int)($process->getPid() ?? 0);
+		if ($pid > 0) {
+			$this->processManager->register(self::PROCESS_SOURCE, $pid, [
+				'uri' => $this->getCfsslUri(),
+			]);
+		}
+
 		$loops = 0;
 		while (!$this->portOpen() && $loops <= 4) {
 			sleep(1);
@@ -349,38 +369,37 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	private function getServerPid(): int {
-		$cmd = 'ps -eo pid,command|';
-		$cmd .= 'grep "cfssl.*serve.*-address"|'
-			. 'grep -v grep|'
-			. 'grep -v defunct|'
-			. 'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
-		$output = shell_exec($cmd);
-		if (!is_string($output)) {
-			return 0;
-		}
-		$pid = trim($output);
-		return (int)$pid;
-	}
-
-	/**
-	 * Parse command
-	 *
-	 * Have commands that need to be executed as sudo otherwise don't will work,
-	 * by example the command runuser or kill. To prevent error when run in a
-	 * GitHub Actions, these commands are executed prefixed by sudo when exists
-	 * an environment called GITHUB_ACTIONS.
-	 */
-	private function parseCommand(string $command): string {
-		if (getenv('GITHUB_ACTIONS') !== false) {
-			$command = 'sudo ' . $command;
-		}
-		return $command;
+		$uri = $this->getCfsslUri();
+		return $this->processManager->findRunningPid(
+			self::PROCESS_SOURCE,
+			fn (array $entry): bool => ($entry['context']['uri'] ?? '') === $uri,
+		);
 	}
 
 	private function stopIfRunning(): void {
-		$pid = $this->getServerPid();
-		if ($pid > 0) {
-			exec($this->parseCommand('kill -9 ' . $pid));
+		$uri = $this->getCfsslUri();
+		$port = (int)(parse_url($uri, PHP_URL_PORT) ?? 0);
+		$this->processManager->setSourceHint(self::PROCESS_SOURCE, [
+			'uri' => $uri,
+			'port' => $port,
+		]);
+
+		$this->processManager->findRunningPid(
+			self::PROCESS_SOURCE,
+			fn (array $entry): bool => ($entry['context']['uri'] ?? '') === $uri,
+		);
+
+		foreach ($this->processManager->listRunning(self::PROCESS_SOURCE) as $entry) {
+			if (($entry['context']['uri'] ?? '') !== $uri) {
+				continue;
+			}
+
+			$pid = (int)($entry['pid'] ?? 0);
+			if ($pid <= 0) {
+				continue;
+			}
+			$this->processManager->stopPid($pid, SIGKILL);
+			$this->processManager->unregister(self::PROCESS_SOURCE, $pid);
 		}
 	}
 
@@ -452,8 +471,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					->setTip('Run occ libresign:install --cfssl'),
 			];
 		}
-		$version = shell_exec("$binary version");
-		if (!is_string($version) || empty($version)) {
+		$process = $this->createProcess([$binary, 'version']);
+		$process->run();
+		$version = $process->getOutput();
+		if (!$process->isSuccessful() || empty($version)) {
 			return [
 				(new ConfigureCheckHelper())
 					->setErrorMessage(sprintf(
@@ -500,6 +521,13 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			->setSuccessMessage('Runtime: ' . $matches['version'][1])
 			->setResource('cfssl');
 		return $return;
+	}
+
+	/**
+	 * @param string[] $command
+	 */
+	protected function createProcess(array $command): Process {
+		return new Process($command);
 	}
 
 	/**

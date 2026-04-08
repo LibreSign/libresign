@@ -4,17 +4,17 @@
  */
 
 import axios from '@nextcloud/axios'
-import { addNewFileMenuEntry, Permission } from '@nextcloud/files'
+import { addNewFileMenuEntry, Permission, getSidebar } from '@nextcloud/files'
 import type { NewMenuEntry, IFolder, INode } from '@nextcloud/files'
 import { registerDavProperty } from '@nextcloud/files/dav'
 import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
+import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 import { getUploader } from '@nextcloud/upload'
 import type { Uploader } from '@nextcloud/upload'
 import type { FileStat, ResponseDataDetailed } from 'webdav'
 
-import logger from './logger'
 import './actions/openInLibreSignAction.js'
 import './actions/showStatusInlineAction.js'
 import LibreSignLogoSvg from '../img/app-colored.svg?raw'
@@ -42,6 +42,9 @@ addNewFileMenuEntry({
 	uploadManager: getUploader(),
 	order: 1,
 	enabled(context: IFolder) {
+		if (!loadState('libresign', 'certificate_ok', false)) {
+			return false
+		}
 		return (context.permissions & Permission.CREATE) !== 0
 	},
 	async handler(this: ExtendedNewMenuEntry, context: IFolder, content: INode[]) {
@@ -66,7 +69,7 @@ addNewFileMenuEntry({
 				name: file.name,
 			})
 
-			// Fetch the complete node object including NC-specific DAV properties.
+			// Fetch the complete node object including Nextcloud-specific props (fileid, etc.)
 			const client = getClient()
 			const result = await client.stat(`${getRootPath()}${path}`, {
 				details: true,
@@ -75,8 +78,9 @@ addNewFileMenuEntry({
 			const node = resultToNode(result.data)
 
 			// Open sidebar with LibreSign tab
-			window.OCA.Files?.Sidebar?.open(node.path)
-			window.OCA.Files?.Sidebar?.setActiveTab('libresign')
+			const sidebar = getSidebar()
+			await sidebar.open(node, 'libresign')
+			sidebar.setActiveTab('libresign')
 		}
 
 		input.click()

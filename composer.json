@@ -1,7 +1,7 @@
 {
 	"require-dev": {
 		"bamarni/composer-bin-plugin": "^1.8",
-		"nextcloud/ocp": "dev-stable32",
+		"nextcloud/ocp": "dev-master",
 		"roave/security-advisories": "dev-latest"
 	},
 	"config": {
@@ -14,7 +14,7 @@
 			"cweagans/composer-patches": true
 		},
 		"platform": {
-			"php": "8.1"
+			"php": "8.2"
 		}
 	},
 	"scripts": {
@@ -60,15 +60,9 @@
 			"OCA\\Libresign\\Tests\\Fixtures\\": "tests/php/fixtures/"
 		}
 	},
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "https://github.com/vitormattos/pdf-signer-php"
-		}
-	],
 	"require": {
 		"cweagans/composer-patches": "^2.0",
-		"jeidison/signer-php": "dev-feat/visible-signature-appearance-php81",
+		"jeidison/signer-php": "^1.0",
 		"phpseclib/phpseclib": "^3.0"
 	}
 }

@@ -4,9 +4,17 @@
 name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 filter-by-commitish: true
+pull-request-limit: 100
+history-limit: 50
+sort-by: merged_at
+sort-direction: ascending
 exclude-contributors:
   - 'dependabot[bot]'
   - 'renovate[bot]'
+exclude-labels:
+  - 'skip-changelog'
+
+category-template: '### $TITLE'
 
 categories:
   - title: 'Added'
@@ -14,8 +22,10 @@ categories:
       - 'feature'
       - 'feat'
       - 'enhancement'
+      - 'minor'
 
   - title: 'Changed'
+    collapse-after: 4
     labels:
       - 'chore'
       - 'refactor'
@@ -26,6 +36,7 @@ categories:
       - 'fix'
       - 'bugfix'
       - 'bug'
+      - 'patch'
 
   - title: 'Removed'
     labels:
@@ -37,10 +48,12 @@ categories:
       - 'security'
 
   - title: 'Tests'
+    collapse-after: 3
     labels:
       - 'test'
 
   - title: 'Dependencies'
+    collapse-after: 2
     labels:
       - 'dependencies'
 
@@ -52,6 +65,64 @@ categories:
     labels: []
 
 change-template: '- $TITLE [#$NUMBER]($URL)'
+change-title-escapes: '#@'
+
+replacers:
+  - search: '/^\[stable\d+\]\s+/gm'
+    replace: ''
+  - search: '/^- hotfix:\s+v\d+\.\d+\.\d+.*$/gmi'
+    replace: ''
+  - search: '/^- fix:\s+pr\s+\d+\s+backport.*$/gmi'
+    replace: ''
+  - search: '/^- pr\s+\d+$/gmi'
+    replace: ''
+
+autolabeler:
+  - label: 'skip-changelog'
+    title:
+      - '/^\[stable\d+\]\s+fix:\s+release drafter process alignment$/i'
+      - '/^\[stable\d+\]\s+hotfix:\s+v\d+\.\d+\.\d+.*$/i'
+      - '/^hotfix:\s+v\d+\.\d+\.\d+.*$/i'
+      - '/^fix:\s+pr\s+\d+\s+backport$/i'
+      - '/^pr\s+\d+$/i'
+  - label: 'minor'
+    title:
+      - '/^\[stable\d+\]\s+feat:/i'
+      - '/^feat:/i'
+      - '/\b(migrate|migration)\b/i'
+  - label: 'patch'
+    title:
+      - '/^\[stable\d+\]\s+fix:/i'
+      - '/^fix:/i'
+  - label: 'fix'
+    title:
+      - '/^fix/i'
+      - '/^\[stable\d+\]\s+fix:/i'
+  - label: 'feature'
+    title:
+      - '/^feat/i'
+      - '/^\[stable\d+\]\s+feat:/i'
+  - label: 'chore'
+    title:
+      - '/^chore/i'
+      - '/^\[stable\d+\]\s+chore:/i'
+  - label: 'docs'
+    title:
+      - '/^docs/i'
+      - '/^\[stable\d+\]\s+docs:/i'
+  - label: 'refactor'
+    title:
+      - '/^refactor/i'
+      - '/^\[stable\d+\]\s+refactor/i'
+  - label: 'test'
+    title:
+      - '/^test/i'
+      - '/^\[stable\d+\]\s+test:/i'
+  - label: 'dependencies'
+    title:
+      - '/deps/i'
+      - '/^chore:\s+bump\s+(js|php)\s+dependencies$/i'
+      - '/^\[stable\d+\]\s+chore:\s+bump\s+(js|php)\s+dependencies$/i'
 
 autolabeler:
   - label: 'fix'
@@ -80,9 +151,11 @@ version-resolver:
   minor:
     labels:
       - 'minor'
+      - 'feature'
   patch:
     labels:
       - 'patch'
+      - 'fix'
   default: patch
 
 template: |

@@ -1711,6 +1711,18 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				expectedException: LibresignException::class,
 			),
 
+			// Regression: canCreateSignature=true but signer submits no element (clickToSign).
+			// Before the fix `if (!$element) { continue; }` silently skipped the DB file element,
+			// producing an empty visibleElements array and no stamp on the document.
+			'canCreateSignature true, signer submits no element (clickToSign): element still included' => self::createScenarioSetVisibleElements(
+				signerList: [],      // user did not submit any drawn signature
+				fileElements: [['id' => $validDocumentId]], // admin placed element on doc
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+			),
+
 			'cannot create signature, visible element fallback' => self::createScenarioSetVisibleElements(
 				signerList: [
 					['documentElementId' => $validDocumentId],

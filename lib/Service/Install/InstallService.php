@@ -21,7 +21,9 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\CaIdentifierService;
+use OCA\Libresign\Service\Process\ProcessManager;
 use OCA\Libresign\Vendor\LibreSign\WhatOSAmI\OperatingSystem;
+use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
@@ -37,7 +39,6 @@ use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\Process;
 
 class InstallService {
 	use TSimpleFile {
@@ -52,6 +53,7 @@ class InstallService {
 	public const JSIGNPDF_VERSION = '2.3.0'; /** @todo When update, verify the hash **/
 	private const JSIGNPDF_HASH = 'd239658ea50a39eb35169d8392feaffb';
 	public const CFSSL_VERSION = '1.6.5';
+	private const PROCESS_SOURCE = 'install';
 
 	private ICache $cache;
 	private ?OutputInterface $output = null;
@@ -77,6 +79,7 @@ class InstallService {
 		private SignSetupService $signSetupService,
 		protected IAppDataFactory $appDataFactory,
 		private CaIdentifierService $caIdentifierService,
+		private ProcessManager $processManager,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
 		$this->appData = $appDataFactory->get('libresign');
@@ -145,16 +148,26 @@ class InstallService {
 
 	private function runAsync(): void {
 		$resource = $this->resource;
-		$process = new Process([OC::$SERVERROOT . '/occ', 'libresign:install', '--' . $resource]);
+		$process = $this->createProcess([OC::$SERVERROOT . '/occ', 'libresign:install', '--' . $resource]);
 		$process->setOptions(['create_new_console' => true]);
 		$process->setTimeout(null);
 		$process->start();
 		$data['pid'] = $process->getPid();
 		if ($data['pid']) {
+			$this->processManager->register(self::PROCESS_SOURCE, (int)$data['pid'], [
+				'resource' => $resource,
+			]);
 			$this->setCache($resource, $data);
 		} else {
 			$this->logger->error('Error to get PID of background install proccess. Command: ' . OC::$SERVERROOT . '/occ libresign:install --' . $resource);
 		}
+	}
+
+	/**
+	 * @param string[] $command
+	 */
+	protected function createProcess(array $command): Process {
+		return new Process($command);
 	}
 
 	private function progressToDatabase(int $downloadSize, int $downloaded): void {
@@ -295,27 +308,27 @@ class InstallService {
 	}
 
 	private function getInstallPid(int $pid = 0): int {
+		$resource = $this->resource;
 		if ($pid > 0) {
-			if (shell_exec('which ps') === null) {
-				if (is_dir('/proc/' . $pid)) {
-					return $pid;
-				}
-				return 0;
+			$registeredPid = $this->processManager->findRunningPid(
+				self::PROCESS_SOURCE,
+				fn (array $entry): bool
+					=> $entry['pid'] === $pid
+					&& ($entry['context']['resource'] ?? '') === $resource,
+			);
+
+			if ($registeredPid > 0) {
+				return $registeredPid;
 			}
-			$cmd = 'ps -p ' . $pid . ' -o pid,command|';
-		} else {
-			$cmd = 'ps -eo pid,command|';
-		}
-		$cmd .= 'grep "libresign:install --' . $this->resource . '"|'
-			. 'grep -v grep|'
-			. 'grep -v defunct|'
-			. 'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
-		$output = shell_exec($cmd);
-		if (!is_string($output)) {
+
+			$this->processManager->unregister(self::PROCESS_SOURCE, $pid);
 			return 0;
 		}
-		$pid = trim($output);
-		return (int)$pid;
+
+		return $this->processManager->findRunningPid(
+			self::PROCESS_SOURCE,
+			fn (array $entry): bool => ($entry['context']['resource'] ?? '') === $resource,
+		);
 	}
 
 	public function setResource(string $resource): self {

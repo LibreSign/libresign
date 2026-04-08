@@ -36,7 +36,7 @@ jobs:
       src: ${{ steps.changes.outputs.src }}
 
     steps:
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         id: changes
         continue-on-error: true
         with:
@@ -103,7 +103,7 @@ jobs:
           filename: apps/${{ env.APP_NAME }}/appinfo/info.xml
 
       - name: Set up php ${{ steps.php_versions.outputs.php-min }}
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
         with:
           php-version: ${{ steps.php_versions.outputs.php-min }}
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, sqlite, pdo_sqlite, xmlreader, xmlwriter, zip, zlib
@@ -115,7 +115,7 @@ jobs:
 
       - name: Check composer file existence
         id: check_composer
-        uses: andstor/file-existence-action@076e0072799f4942c8bc574a82233e1e4d13e9d6 # v3.0.0
+        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3.1.0
         with:
           files: apps/${{ env.APP_NAME }}/composer.json
 
@@ -135,7 +135,7 @@ jobs:
           fallbackNpm: '^11'
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
           cache: npm
@@ -154,7 +154,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles(format('apps/{0}/package-lock.json', env.APP_NAME)) }}
@@ -163,7 +163,7 @@ jobs:
 
       - name: Cache LibreSign binary payloads
         id: libresign-binaries-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .cache/libresign-binaries
           key: ${{ runner.os }}-libresign-binaries-${{ hashFiles(format('apps/{0}/appinfo/install-*.json', env.APP_NAME), format('apps/{0}/lib/Service/Install/InstallService.php', env.APP_NAME)) }}

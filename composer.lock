@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fb7d6a7f310afe3561b7e77a9c0d2d1c",
+    "content-hash": "683fc6c9ae20a480af7b531acfea05bb",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -131,16 +131,16 @@
         },
         {
             "name": "jeidison/signer-php",
-            "version": "dev-feat/visible-signature-appearance-php81",
+            "version": "v1.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/vitormattos/pdf-signer-php.git",
-                "reference": "337ce1afd515aac53cb727b0bcd83f746106bbee"
+                "url": "https://github.com/jeidison/signer-php.git",
+                "reference": "47c8d011558c9995a1a46674be1911d9087cfd73"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vitormattos/pdf-signer-php/zipball/337ce1afd515aac53cb727b0bcd83f746106bbee",
-                "reference": "337ce1afd515aac53cb727b0bcd83f746106bbee",
+                "url": "https://api.github.com/repos/jeidison/signer-php/zipball/47c8d011558c9995a1a46674be1911d9087cfd73",
+                "reference": "47c8d011558c9995a1a46674be1911d9087cfd73",
                 "shasum": ""
             },
             "require": {
@@ -148,7 +148,7 @@
                 "ext-fileinfo": "*",
                 "ext-openssl": "*",
                 "ext-zlib": "*",
-                "php": "^8.1"
+                "php": "^8.2"
             },
             "require-dev": {
                 "deptrac/deptrac": "^4.6",
@@ -170,45 +170,7 @@
                     "SignerPHP\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "SignerPHP\\Tests\\": "tests/"
-                }
-            },
-            "scripts": {
-                "tests": [
-                    "vendor/bin/pest --configuration phpunit.xml tests"
-                ],
-                "tests:coverage": [
-                    "vendor/bin/pest --configuration phpunit.xml tests --coverage --min=98.1"
-                ],
-                "pint:fix": [
-                    "vendor/bin/pint"
-                ],
-                "pint:check": [
-                    "vendor/bin/pint --test"
-                ],
-                "security:audit": [
-                    "composer audit --no-interaction"
-                ],
-                "psalm": [
-                    "vendor/bin/psalm --no-progress"
-                ],
-                "deptrac": [
-                    "vendor/bin/deptrac analyse --no-progress"
-                ],
-                "infection": [
-                    "vendor/bin/infection --threads=max --min-msi=65 --min-covered-msi=70"
-                ],
-                "quality:all": [
-                    "@pint:check",
-                    "@security:audit",
-                    "@tests:coverage",
-                    "@psalm",
-                    "@deptrac",
-                    "@infection"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -231,9 +193,10 @@
                 "timestamp"
             ],
             "support": {
-                "source": "https://github.com/vitormattos/pdf-signer-php/tree/feat/visible-signature-appearance-php81"
+                "issues": "https://github.com/jeidison/signer-php/issues",
+                "source": "https://github.com/jeidison/signer-php/tree/v1.0.1"
             },
-            "time": "2026-03-05T16:20:02+00:00"
+            "time": "2026-03-17T00:40:40+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -525,20 +488,20 @@
         },
         {
             "name": "nextcloud/ocp",
-            "version": "dev-stable32",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "9eff94dcc966d95c1f1621cad35f0d83160b42eb"
+                "reference": "50fef0ff2189206a5228b81044f1730c2aa4b396"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/9eff94dcc966d95c1f1621cad35f0d83160b42eb",
-                "reference": "9eff94dcc966d95c1f1621cad35f0d83160b42eb",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/50fef0ff2189206a5228b81044f1730c2aa4b396",
+                "reference": "50fef0ff2189206a5228b81044f1730c2aa4b396",
                 "shasum": ""
             },
             "require": {
-                "php": "~8.1 || ~8.2 || ~8.3 || ~8.4",
+                "php": "~8.1 || ~8.2 || ~8.3 || ~8.4 || ~8.5",
                 "psr/clock": "^1.0",
                 "psr/container": "^2.0.2",
                 "psr/event-dispatcher": "^1.0",
@@ -547,7 +510,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-stable32": "32.0.0-dev"
+                    "dev-master": "34.0.0-dev"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -569,7 +532,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/stable32"
             },
-            "time": "2026-03-27T01:17:35+00:00"
+            "time": "2026-03-31T01:18:57+00:00"
         },
         {
             "name": "psr/clock",
@@ -1835,7 +1798,7 @@
     "platform": {},
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.1"
+        "php": "8.2"
     },
     "plugin-api-version": "2.9.0"
 }

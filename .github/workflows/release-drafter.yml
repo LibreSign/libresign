@@ -28,14 +28,52 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: Resolve release draft version
+        id: resolve-version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_REF_NAME: ${{ github.ref_name }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -eu
+
+          branch="$PUSH_REF_NAME"
+          if [ "$EVENT_NAME" = "pull_request_target" ]; then
+            branch="$PR_BASE_REF"
+          fi
+
+          previous_tag=$(git describe --tags --abbrev=0 "origin/$branch")
+          current_version=${previous_tag#v}
+          major=${current_version%%.*}
+          version_tail=${current_version#*.}
+          minor=${version_tail%%.*}
+          patch=${version_tail##*.}
+
+          release_messages=$(git log --format='%s%n%b' "${previous_tag}..origin/${branch}")
+          if printf '%s\n' "$release_messages" | grep -Eiq '(^|\])\s*feat:|vue3 phase|migration to vue3|script setup ts|typescript'; then
+            minor=$((minor + 1))
+            patch=0
+          else
+            patch=$((patch + 1))
+          fi
+
+          version="${major}.${minor}.${patch}"
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+          echo "previous_tag=${previous_tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
       - name: Draft release for this branch
-        uses: release-drafter/release-drafter@v6
+        uses: release-drafter/release-drafter@v7
         with:
           config-name: release-drafter.yml
+          commitish: ${{ steps.resolve-version.outputs.branch }}
+          version: ${{ steps.resolve-version.outputs.version }}
+          name: v${{ steps.resolve-version.outputs.version }}
+          tag: v${{ steps.resolve-version.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
