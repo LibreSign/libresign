@@ -18,6 +18,21 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 12.4.2 - 2026-04-08
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Update translations
+- Bump dependencies [#7451](https://github.com/LibreSign/libresign/pull/7451) [#7454](https://github.com/LibreSign/libresign/pull/7454) [#7455](https://github.com/LibreSign/libresign/pull/7455) [#7460](https://github.com/LibreSign/libresign/pull/7460) [#7458](https://github.com/LibreSign/libresign/pull/7458) [#7462](https://github.com/LibreSign/libresign/pull/7462) [#7464](https://github.com/LibreSign/libresign/pull/7464) [#7472](https://github.com/LibreSign/libresign/pull/7472) [#7470](https://github.com/LibreSign/libresign/pull/7470)
+
+### Fixes
+- fix: align signer and file UUID contracts [#7440](https://github.com/LibreSign/libresign/pull/7440)
+- fix(validation): harden unified files contract [#7444](https://github.com/LibreSign/libresign/pull/7444)
+- fix(Sign): submit each envelope file independently with its UUID [#7447](https://github.com/LibreSign/libresign/pull/7447)
+
 ## 12.4.1 - 2026-04-05
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
@@ -168,6 +183,8 @@ Types of changes:
 - Signature validation improvements
 - Better error handling
 - PDF compatibility fixes
+
+---
 
 ## 12.1.0 - 2025-11-28
 ### Features
@@ -324,6 +341,7 @@ Types of changes:
 
 ### Fixes
 - fix: typo [#5442](https://github.com/LibreSign/libresign/pull/5442)
+
 
 ## 12.0.0-beta.1 - 2025-09-12
 ### Changes
