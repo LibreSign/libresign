@@ -139,9 +139,4 @@
       <code><![CDATA[$gatewayFactory]]></code>
     </UndefinedDocblockClass>
   </file>
-  <file src="lib/Service/Install/InstallService.php">
-    <UndefinedClass>
-      <code><![CDATA[Process]]></code>
-    </UndefinedClass>
-  </file>
 </files>
