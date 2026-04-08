@@ -8,14 +8,16 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Migration;
 
-use OCA\Libresign\Service\Worker\WorkerStopper;
+use OCA\Libresign\Service\Process\ProcessManager;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 use Psr\Log\LoggerInterface;
 
 class StopRunningWorkers implements IRepairStep {
+	private const PROCESS_SOURCE = 'worker';
+
 	public function __construct(
-		private WorkerStopper $stopper,
+		private ProcessManager $processManager,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -28,7 +30,7 @@ class StopRunningWorkers implements IRepairStep {
 	#[\Override]
 	public function run(IOutput $output): void {
 		try {
-			$stopped = $this->stopper->stopAll();
+			$stopped = $this->processManager->stopAll(self::PROCESS_SOURCE, SIGTERM);
 			if ($stopped > 0) {
 				$output->info('Stopped ' . $stopped . ' LibreSign worker(s).');
 			}
