@@ -24,6 +24,7 @@ use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -60,7 +61,70 @@ class CfsslHandlerTest extends TestCase {
 		$this->assertTrue(class_exists(Process::class));
 	}
 
-	public function testCheckBinariesReturnsErrorWhenProcessFails(): void {
+	public function testStopIfRunningKillsRegisteredAndPortListenerPids(): void {
+		$unregisteredPids = [];
+		$stoppedPids = [];
+		$uri = CfsslHandler::CFSSL_URI;
+		$port = 8888;
+
+		$this->processManager->expects($this->once())
+			->method('setSourceHint')
+			->with(self::PROCESS_SOURCE, [
+				'uri' => $uri,
+				'port' => $port,
+			]);
+
+		$this->processManager->expects($this->once())
+			->method('findRunningPid')
+			->with(self::PROCESS_SOURCE, $this->callback('is_callable'))
+			->willReturn(321);
+
+		$this->processManager->expects($this->once())
+			->method('listRunning')
+			->with(self::PROCESS_SOURCE)
+			->willReturn([
+				['pid' => 321, 'context' => ['uri' => $uri], 'createdAt' => 1],
+				['pid' => 654, 'context' => ['uri' => $uri], 'createdAt' => 2],
+			]);
+
+		$this->processManager->expects($this->exactly(2))
+			->method('unregister')
+			->willReturnCallback(function (string $source, int $pid) use (&$unregisteredPids): void {
+				$this->assertSame(self::PROCESS_SOURCE, $source);
+				$unregisteredPids[] = $pid;
+			});
+
+		$this->processManager->expects($this->exactly(2))
+			->method('stopPid')
+			->withAnyParameters()
+			->willReturnCallback(function (int $pid, int $signal) use (&$stoppedPids): bool {
+				$this->assertSame(SIGKILL, $signal);
+				$stoppedPids[] = $pid;
+				return true;
+			});
+
+		$handler = $this->getMockBuilder(CfsslHandler::class)
+			->setConstructorArgs($this->getConstructorArgs())
+			->onlyMethods(['createProcess'])
+			->getMock();
+
+		$handler->method('createProcess')
+			->willReturn($this->createMock(Process::class));
+
+		self::invokePrivate($handler, 'stopIfRunning');
+
+		sort($unregisteredPids);
+		sort($stoppedPids);
+		$this->assertSame([321, 654], $unregisteredPids);
+		$this->assertSame([321, 654], $stoppedPids);
+	}
+
+	#[DataProvider('provideCheckBinariesErrorCases')]
+	public function testCheckBinariesReturnsErrorForInvalidProcessState(
+		bool $isSuccessful,
+		string $output,
+		string $expectedMessage,
+	): void {
 		$binary = tempnam(sys_get_temp_dir(), 'cfssl-bin-');
 		$this->assertNotFalse($binary);
 
@@ -68,17 +132,17 @@ class CfsslHandlerTest extends TestCase {
 		$process->expects($this->once())
 			->method('run');
 		$process->expects($this->once())
-			->method('getOutput')
-			->willReturn('');
-		$process->expects($this->once())
 			->method('isSuccessful')
-			->willReturn(false);
+			->willReturn($isSuccessful);
+		$process->expects($this->once())
+			->method('getOutput')
+			->willReturn($output);
 
 		$handler = $this->createHandler($process, (string)$binary);
 		$result = self::invokePrivate($handler, 'checkBinaries');
 
 		$this->assertSame('error', $result[0]->jsonSerialize()['status']);
-		$this->assertStringContainsString('Failed to run the command', $result[0]->jsonSerialize()['message']);
+		$this->assertStringContainsString($expectedMessage, $result[0]->jsonSerialize()['message']);
 
 		@unlink((string)$binary);
 	}
@@ -108,53 +172,49 @@ class CfsslHandlerTest extends TestCase {
 		@unlink((string)$binary);
 	}
 
-	public function testCheckBinariesReturnsErrorWhenVersionOutputFormatIsInvalid(): void {
-		$binary = tempnam(sys_get_temp_dir(), 'cfssl-bin-');
-		$this->assertNotFalse($binary);
 
-		$process = $this->createMock(Process::class);
-		$process->expects($this->once())
-			->method('run');
-		$process->expects($this->once())
-			->method('isSuccessful')
-			->willReturn(true);
-		$process->expects($this->once())
-			->method('getOutput')
-			->willReturn('cfssl version output without expected separators');
-
-		$handler = $this->createHandler($process, (string)$binary);
-		$result = self::invokePrivate($handler, 'checkBinaries');
-
-		$this->assertSame('error', $result[0]->jsonSerialize()['status']);
-		$this->assertStringContainsString('Failed to identify cfssl version', $result[0]->jsonSerialize()['message']);
-
-		@unlink((string)$binary);
-	}
-
-	public function testCheckBinariesReturnsErrorWhenCfsslVersionDoesNotMatchExpected(): void {
-		$binary = tempnam(sys_get_temp_dir(), 'cfssl-bin-');
-		$this->assertNotFalse($binary);
-
-		$process = $this->createMock(Process::class);
-		$process->expects($this->once())
-			->method('run');
-		$process->expects($this->once())
-			->method('isSuccessful')
-			->willReturn(true);
-		$process->expects($this->once())
-			->method('getOutput')
-			->willReturn("Version: 0.0.1\nRuntime: go1.22\n");
-
-		$handler = $this->createHandler($process, (string)$binary);
-		$result = self::invokePrivate($handler, 'checkBinaries');
-
-		$this->assertSame('error', $result[0]->jsonSerialize()['status']);
-		$this->assertStringContainsString('Invalid version. Expected:', $result[0]->jsonSerialize()['message']);
-
-		@unlink((string)$binary);
+	/**
+	 * @return array<string, array{0: bool, 1: string, 2: string}>
+	 */
+	public static function provideCheckBinariesErrorCases(): array {
+		return [
+			'process failure without output' => [
+				false,
+				'',
+				'Failed to run the command',
+			],
+			'invalid version output format' => [
+				true,
+				'cfssl version output without expected separators',
+				'Failed to identify cfssl version',
+			],
+			'version mismatch' => [
+				true,
+				"Version: 0.0.1\nRuntime: go1.22\n",
+				'Invalid version. Expected:',
+			],
+		];
 	}
 
 	private function createHandler(?Process $process = null, ?string $binary = null): CfsslHandler {
+		$constructorArgs = $this->getConstructorArgs($binary);
+		$process ??= $this->createMock(Process::class);
+
+		$handler = $this->getMockBuilder(CfsslHandler::class)
+			->setConstructorArgs($constructorArgs)
+			->onlyMethods(['createProcess'])
+			->getMock();
+
+		$handler->method('createProcess')
+			->willReturn($process);
+
+		return $handler;
+	}
+
+	/**
+	 * @return array<int, mixed>
+	 */
+	private function getConstructorArgs(?string $binary = null): array {
 		$config = \OCP\Server::get(IConfig::class);
 		$appConfig = $this->getMockAppConfigWithReset();
 		if ($binary !== null) {
@@ -180,30 +240,21 @@ class CfsslHandlerTest extends TestCase {
 		$cfsslServerHandler = $this->createMock(CfsslServerHandler::class);
 		$cfsslServerHandler->expects($this->once())
 			->method('configCallback');
-		$process ??= $this->createMock(Process::class);
 
-		$handler = $this->getMockBuilder(CfsslHandler::class)
-			->setConstructorArgs([
-				$config,
-				$appConfig,
-				$appDataFactory,
-				$dateTimeFormatter,
-				$tempManager,
-				$cfsslServerHandler,
-				$certificatePolicyService,
-				$urlGenerator,
-				$caIdentifierService,
-				$crlMapper,
-				$logger,
-				$crlRevocationChecker,
-				$this->processManager,
-			])
-			->onlyMethods(['createProcess'])
-			->getMock();
-
-		$handler->method('createProcess')
-			->willReturn($process);
-
-		return $handler;
+		return [
+			$config,
+			$appConfig,
+			$appDataFactory,
+			$dateTimeFormatter,
+			$tempManager,
+			$cfsslServerHandler,
+			$certificatePolicyService,
+			$urlGenerator,
+			$caIdentifierService,
+			$crlMapper,
+			$logger,
+			$crlRevocationChecker,
+			$this->processManager,
+		];
 	}
 }
