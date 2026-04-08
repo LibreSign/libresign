@@ -121,6 +121,8 @@ OC.L10N.register(
     "Modified" : "Breytt",
     "Switch to list view" : "Skipta yfir í listasýn",
     "Switch to grid view" : "Skipta yfir í reitasýn",
+    "Reload content" : "Endurlesa efni",
+    "File list is reloading" : "Skráalisti er að hlaðast inn",
     "1 file" : "1 skrá",
     "{fileCount} files" : "{fileCount} skrár",
     "Total rows summary" : "Samantek á fjölda raða",
