@@ -248,4 +248,179 @@ class WorkerJobCounterTest extends TestCase {
 		$counter = $this->makeCounter();
 		$this->assertSame(1003, $counter->countPendingJobs());
 	}
+
+	public function testCountPendingJobsTreatsNonArraySignFileArgumentAsSingleWorkUnit(): void {
+		$signFileJob = $this->createMock(SignFileJob::class);
+		$signFileJob->method('getArgument')
+			->willReturn('invalid');
+
+		$signFileJobs = [$signFileJob];
+		$signSingleJobs = [];
+		$callIndex = 0;
+		$this->jobList->expects($this->exactly(2))
+			->method('getJobsIterator')
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
+
+		$this->fileMapper->expects($this->never())
+			->method('getById');
+
+		$counter = $this->makeCounter();
+		$this->assertSame(1, $counter->countPendingJobs());
+	}
+
+	public function testCountPendingJobsTreatsMissingFileIdAsSingleWorkUnit(): void {
+		$signFileJob = $this->makeSignFileJob([]);
+
+		$signFileJobs = [$signFileJob];
+		$signSingleJobs = [];
+		$callIndex = 0;
+		$this->jobList->expects($this->exactly(2))
+			->method('getJobsIterator')
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
+
+		$this->fileMapper->expects($this->never())
+			->method('getById');
+
+		$counter = $this->makeCounter();
+		$this->assertSame(1, $counter->countPendingJobs());
+	}
+
+	public function testCountPendingJobsTreatsMapperLookupFailureAsSingleWorkUnit(): void {
+		$signFileJob = $this->makeSignFileJob(['fileId' => 77]);
+
+		$signFileJobs = [$signFileJob];
+		$signSingleJobs = [];
+		$callIndex = 0;
+		$this->jobList->expects($this->exactly(2))
+			->method('getJobsIterator')
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with(77)
+			->will($this->throwException(new \RuntimeException('not found')));
+
+		$counter = $this->makeCounter();
+		$this->assertSame(1, $counter->countPendingJobs());
+	}
+
+	public function testCountPendingJobsKeepsAtLeastOneWorkUnitForEmptyEnvelope(): void {
+		$signFileJob = $this->makeSignFileJob(['fileId' => 33]);
+		$envelope = new FileEntity();
+		$envelope->setId(33);
+		$envelope->setNodeTypeEnum(NodeType::ENVELOPE);
+
+		$signFileJobs = [$signFileJob];
+		$signSingleJobs = [];
+		$callIndex = 0;
+		$this->jobList->expects($this->exactly(2))
+			->method('getJobsIterator')
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with(33)
+			->willReturn($envelope);
+
+		$this->fileMapper->expects($this->once())
+			->method('countChildrenFiles')
+			->with(33)
+			->willReturn(0);
+
+		$counter = $this->makeCounter();
+		$this->assertSame(1, $counter->countPendingJobs());
+	}
+
+	public function testCountPendingJobsCastsStringFileIdToInt(): void {
+		$signFileJob = $this->makeSignFileJob(['fileId' => '123']);
+		$envelope = new FileEntity();
+		$envelope->setId(123);
+		$envelope->setNodeTypeEnum(NodeType::ENVELOPE);
+
+		$signFileJobs = [$signFileJob];
+		$signSingleJobs = [];
+		$callIndex = 0;
+		$this->jobList->expects($this->exactly(2))
+			->method('getJobsIterator')
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with(123)
+			->willReturn($envelope);
+
+		$this->fileMapper->expects($this->once())
+			->method('countChildrenFiles')
+			->with(123)
+			->willReturn(2);
+
+		$counter = $this->makeCounter();
+		$this->assertSame(2, $counter->countPendingJobs());
+	}
+
+	public function testCountPendingJobsReturnsZeroWhenSecondIteratorFails(): void {
+		$signFileJob = $this->makeSignFileJob([]);
+		$callIndex = 0;
+		$this->jobList->expects($this->exactly(2))
+			->method('getJobsIterator')
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJob) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return [$signFileJob];
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				throw new \RuntimeException('queue unavailable');
+			});
+
+		$this->logger->expects($this->once())
+			->method('debug')
+			->with(
+				$this->stringContains('Failed to count pending jobs'),
+				$this->arrayHasKey('error')
+			);
+
+		$counter = $this->makeCounter();
+		$this->assertSame(0, $counter->countPendingJobs());
+	}
 }
