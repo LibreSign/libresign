@@ -163,6 +163,7 @@ function checkAndOpenFileFromUri() {
 				sidebarStore.activeRequestSignatureTab()
 			}
 		})
+		return
 	}
 }
 
