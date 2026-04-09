@@ -896,4 +896,20 @@ describe('useRealPolicyWorkbench', () => {
 		state.updateDraftValue('parallel' as never)
 		expect(state.canSaveDraft).toBe(true)
 	})
+
+	it('requires changing the value before enabling system create save', () => {
+		getPolicy.mockReturnValue({ effectiveValue: 'parallel', sourceScope: 'system' })
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'system' })
+
+		expect(state.canSaveDraft).toBe(false)
+
+		state.updateDraftValue('ordered_numeric' as never)
+		expect(state.canSaveDraft).toBe(true)
+
+		state.updateDraftValue('parallel' as never)
+		expect(state.canSaveDraft).toBe(false)
+	})
 })
