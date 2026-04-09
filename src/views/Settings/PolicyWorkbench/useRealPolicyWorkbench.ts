@@ -132,8 +132,8 @@ const realDefinitions = {
 	signature_flow: {
 		key: 'signature_flow',
 		title: t('libresign', 'Signing order'),
-		description: t('libresign', 'Define how signing works and where overrides apply.'),
-		menuHint: t('libresign', 'Signing order defaults and overrides.'),
+		description: t('libresign', 'Choose whether documents are signed in order or all at once.'),
+		menuHint: t('libresign', 'Signing order options for everyone, groups, and users.'),
 		editor: SignatureFlowScalarRuleEditor,
 		createEmptyValue: () => '' as unknown as EffectivePolicyValue,
 		summarizeValue: (value: EffectivePolicyValue) => {
@@ -144,21 +144,21 @@ const realDefinitions = {
 			case 'ordered_numeric':
 				return t('libresign', 'Sequential')
 			case 'none':
-				return t('libresign', 'Let users choose')
+				return t('libresign', 'User choice')
 			default:
 				return t('libresign', 'Not configured')
 			}
 		},
 		formatAllowOverride: (allowChildOverride: boolean) =>
 			allowChildOverride
-				? t('libresign', 'Lower layers may override this rule')
-				: t('libresign', 'Lower layers must inherit this value'),
+				? t('libresign', 'Groups and users can set their own rule')
+				: t('libresign', 'Groups and users must follow this value'),
 	},
 	docmdp: {
 		key: 'docmdp',
 		title: t('libresign', 'PDF certification (DocMDP)'),
-		description: t('libresign', 'Define PDF certification defaults and allowed overrides.'),
-		menuHint: t('libresign', 'DocMDP defaults and overrides.'),
+		description: t('libresign', 'Control what changes are allowed after a document is signed.'),
+		menuHint: t('libresign', 'PDF certification options for everyone, groups, and users.'),
 		editor: DocMdpScalarRuleEditor,
 		createEmptyValue: () => 0,
 		summarizeValue: (value: EffectivePolicyValue) => {
@@ -178,8 +178,8 @@ const realDefinitions = {
 		},
 		formatAllowOverride: (allowChildOverride: boolean) =>
 			allowChildOverride
-				? t('libresign', 'Lower layers may override this rule')
-				: t('libresign', 'Lower layers must inherit this value'),
+				? t('libresign', 'Groups and users can set their own rule')
+				: t('libresign', 'Groups and users must follow this value'),
 	},
 }
 
@@ -499,7 +499,7 @@ export function createRealPolicyWorkbenchState() {
 		return {
 			currentBaseValue,
 			baseSource,
-			configurableLayers: t('libresign', 'Global > Group > User'),
+			configurableLayers: t('libresign', 'Default > Group > User'),
 			platformFallback: fallbackLabel,
 			resolutionMode: policyResolutionMode.value,
 			activeGroupExceptions,
