@@ -485,15 +485,6 @@ function normalizeSignatureFlow(flow: unknown): SignatureFlowValue | null {
 		return normalizeSignatureFlow(nestedFlow)
 	}
 
-	// Backward compatibility with legacy string values returned by older payloads.
-	if (flow === 'sequential') {
-		return 'ordered_numeric'
-	}
-
-	if (flow === 'simultaneous') {
-		return 'parallel'
-	}
-
 	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric' || flow === 0 || flow === 1 || flow === 2) {
 		return flow
 	}
