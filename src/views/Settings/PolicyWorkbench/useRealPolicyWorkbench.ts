@@ -543,13 +543,7 @@ export function createRealPolicyWorkbenchState() {
 			return false
 		}
 
-		if (isDraftDirty.value) {
-			return true
-		}
-
-		return editorDraft.value.scope === 'system'
-			&& editorMode.value === 'create'
-			&& !hasGlobalDefault.value
+		return isDraftDirty.value
 	})
 
 	async function hydratePersistedRules(policyKey: string) {
