@@ -31,8 +31,10 @@ class PolicySource implements IPolicySource {
 	public function loadSystemPolicy(string $policyKey): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
 		$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
-		$storedValue = $this->appConfig->getAppValueString($definition->getAppConfigKey(), '');
-		$hasExplicitSystemValue = $storedValue !== '';
+		$hasExplicitSystemValue = $this->appConfig->hasAppKey($definition->getAppConfigKey());
+		$storedValue = $hasExplicitSystemValue
+			? $this->readSystemValue($definition->getAppConfigKey(), $defaultValue)
+			: null;
 		$value = $hasExplicitSystemValue
 			? $definition->normalizeValue($storedValue)
 			: $defaultValue;
@@ -184,7 +186,7 @@ class PolicySource implements IPolicySource {
 
 		if ($normalizedValue === $defaultValue) {
 			if ($allowChildOverride) {
-				$this->appConfig->setAppValueString($definition->getAppConfigKey(), (string)$normalizedValue);
+				$this->writeSystemValue($definition->getAppConfigKey(), $normalizedValue);
 				$this->appConfig->setAppValueString($allowOverrideConfigKey, '1');
 				return;
 			}
@@ -194,8 +196,52 @@ class PolicySource implements IPolicySource {
 			return;
 		}
 
-		$this->appConfig->setAppValueString($definition->getAppConfigKey(), (string)$normalizedValue);
+		$this->writeSystemValue($definition->getAppConfigKey(), $normalizedValue);
 		$this->appConfig->setAppValueString($allowOverrideConfigKey, $allowChildOverride ? '1' : '0');
+	}
+
+	private function readSystemValue(string $key, mixed $defaultValue): mixed {
+		if (is_int($defaultValue)) {
+			return $this->appConfig->getAppValueInt($key, $defaultValue);
+		}
+
+		if (is_bool($defaultValue)) {
+			return $this->appConfig->getAppValueBool($key, $defaultValue);
+		}
+
+		if (is_float($defaultValue)) {
+			return $this->appConfig->getAppValueFloat($key, $defaultValue);
+		}
+
+		if (is_array($defaultValue)) {
+			return $this->appConfig->getAppValueArray($key, $defaultValue);
+		}
+
+		return $this->appConfig->getAppValueString($key, (string)$defaultValue);
+	}
+
+	private function writeSystemValue(string $key, mixed $value): void {
+		if (is_int($value)) {
+			$this->appConfig->setAppValueInt($key, $value);
+			return;
+		}
+
+		if (is_bool($value)) {
+			$this->appConfig->setAppValueBool($key, $value);
+			return;
+		}
+
+		if (is_float($value)) {
+			$this->appConfig->setAppValueFloat($key, $value);
+			return;
+		}
+
+		if (is_array($value)) {
+			$this->appConfig->setAppValueArray($key, $value);
+			return;
+		}
+
+		$this->appConfig->setAppValueString($key, (string)$value);
 	}
 
 	private function getSystemAllowOverrideConfigKey(string $policyConfigKey): string {
