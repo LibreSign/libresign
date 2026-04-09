@@ -504,14 +504,14 @@ type CrudRow = {
 const filteredCrudRows = computed<CrudRow[]>(() => {
 	const rows: CrudRow[] = []
 	const systemRule = state.inheritedSystemRule
-	if (systemRule) {
+	if (systemRule && state.hasGlobalDefault) {
 		rows.push({
 			key: systemRule.id,
 			ruleId: systemRule.id,
 			scope: 'system',
 			targetLabel: t('libresign', 'Default (instance-wide)'),
 			valueLabel: state.summary?.currentBaseValue ?? t('libresign', 'Not configured'),
-			canRemove: Boolean(systemRule.id && state.hasGlobalDefault),
+			canRemove: Boolean(systemRule.id),
 		})
 	}
 
@@ -628,7 +628,7 @@ function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
 		return state.createUserOverrideDisabledReason || ''
 	}
 
-	if (state.inheritedSystemRule) {
+	if (state.hasGlobalDefault) {
 		return t('libresign', 'Instance default already exists. Use Change to update it.')
 	}
 
