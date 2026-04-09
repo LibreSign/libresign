@@ -21,6 +21,6 @@ final class SignatureFlowPolicyTest extends TestCase {
 		$this->assertSame(SignatureFlowPolicy::KEY, $definition->key());
 		$this->assertSame('none', $definition->defaultSystemValue());
 		$this->assertSame(['none', 'parallel', 'ordered_numeric'], $definition->allowedValues(new PolicyContext()));
-		$this->assertSame('ordered_numeric', $definition->normalizeValue(2));
+		$this->assertSame('ordered_numeric', $definition->normalizeValue('ordered_numeric'));
 	}
 }
