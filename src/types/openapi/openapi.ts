@@ -1523,6 +1523,11 @@ export type components = {
             effectiveValue: string;
             sourceScope: string;
         };
+        PolicySnapshotIntegerEntry: {
+            /** Format: int64 */
+            effectiveValue: number;
+            sourceScope: string;
+        };
         ProgressError: {
             message: string;
             /** Format: int64 */
@@ -1728,6 +1733,7 @@ export type components = {
             status_changed_at?: string;
         };
         ValidatePolicySnapshot: {
+            docmdp?: components["schemas"]["PolicySnapshotIntegerEntry"];
             signature_flow?: components["schemas"]["PolicySnapshotEntry"];
         };
         ValidatedChildFile: {
