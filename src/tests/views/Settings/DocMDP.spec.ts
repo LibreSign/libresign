@@ -5,6 +5,7 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 
 type DocMDPLevel = {
 	value: number
@@ -15,6 +16,7 @@ type DocMDPLevel = {
 type DocMDPVm = {
 	enabled: boolean
 	selectedLevel?: DocMDPLevel
+	canEdit?: boolean
 	onEnabledChange: () => void
 }
 
@@ -53,55 +55,30 @@ beforeAll(async () => {
 
 describe('DocMDP', () => {
 	beforeEach(() => {
+		setActivePinia(createPinia())
 		loadStateMock.mockReset()
 		generateOcsUrlMock.mockClear()
 		axiosPostMock.mockClear()
 	})
 
-	it('uses typed backend config on load', async () => {
+	it('loads effective docmdp policy from bootstrap state', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'docmdp_config') {
+			if (key === 'effective_policies') {
 				return {
-					enabled: false,
-					defaultLevel: 2,
-					availableLevels: [
-						{ value: 1, label: 'L1', description: 'D1' },
-						{ value: 2, label: 'L2', description: 'D2' },
-					],
-				}
-			}
-			return fallback
-		})
-
-		const wrapper = mount(DocMDP as never, {
-			global: {
-				stubs: {
-					NcSettingsSection: { template: '<div><slot /></div>' },
-					NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
-					NcLoadingIcon: true,
-					NcNoteCard: true,
-					NcSavingIndicatorIcon: true,
-				},
-			},
-		})
-		const vm = wrapper.vm as unknown as DocMDPVm
-		await flushPromises()
-
-		expect(vm.enabled).toBe(false)
-		expect(vm.selectedLevel?.value).toBe(2)
-	})
-
-	it('respects backend default config when storage is empty', async () => {
-		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'docmdp_config') {
-				return {
-					enabled: true,
-					defaultLevel: 2,
-					availableLevels: [
-						{ value: 0, label: 'L0', description: 'D0' },
-						{ value: 1, label: 'L1', description: 'D1' },
-						{ value: 2, label: 'L2', description: 'D2' },
-					],
+					policies: {
+						docmdp: {
+							policyKey: 'docmdp',
+							effectiveValue: 2,
+							allowedValues: [0, 1, 2, 3],
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: false,
+							canUseAsRequestOverride: false,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
 				}
 			}
 			return fallback
@@ -125,20 +102,89 @@ describe('DocMDP', () => {
 		expect(vm.selectedLevel?.value).toBe(2)
 	})
 
-	it('changes selected level and persists selected radio value', async () => {
+	it('disables controls when effective policy is not editable', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'docmdp_config') {
+			if (key === 'effective_policies') {
 				return {
-					enabled: true,
-					defaultLevel: 1,
-					availableLevels: [
-						{ value: 1, label: 'L1', description: 'D1' },
-						{ value: 2, label: 'L2', description: 'D2' },
-						{ value: 3, label: 'L3', description: 'D3' },
-					],
+					policies: {
+						docmdp: {
+							policyKey: 'docmdp',
+							effectiveValue: 1,
+							allowedValues: [1],
+							sourceScope: 'group',
+							visible: true,
+							editableByCurrentActor: false,
+							canSaveAsUserDefault: false,
+							canUseAsRequestOverride: false,
+							preferenceWasCleared: false,
+							blockedBy: 'group',
+						},
+					},
 				}
 			}
 			return fallback
+		})
+
+		const wrapper = mount(DocMDP as never, {
+			global: {
+				stubs: {
+					NcSettingsSection: { template: '<div><slot /></div>' },
+					NcCheckboxRadioSwitch: NcCheckboxRadioSwitchStub,
+					NcLoadingIcon: true,
+					NcNoteCard: true,
+					NcSavingIndicatorIcon: true,
+				},
+			},
+		})
+		const vm = wrapper.vm as unknown as DocMDPVm
+		await flushPromises()
+
+		expect(vm.enabled).toBe(true)
+		expect(vm.selectedLevel?.value).toBe(1)
+		expect(vm.canEdit).toBe(false)
+	})
+
+	it('changes selected level and persists to system policy endpoint', async () => {
+		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
+			if (key === 'effective_policies') {
+				return {
+					policies: {
+						docmdp: {
+							policyKey: 'docmdp',
+							effectiveValue: 1,
+							allowedValues: [0, 1, 2, 3],
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: false,
+							canUseAsRequestOverride: false,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
+				}
+			}
+			return fallback
+		})
+		axiosPostMock.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'docmdp',
+							effectiveValue: 3,
+							allowedValues: [0, 1, 2, 3],
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: false,
+							canUseAsRequestOverride: false,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
+				},
+			},
 		})
 
 		const wrapper = mount(DocMDP as never, {
@@ -161,24 +207,52 @@ describe('DocMDP', () => {
 
 		expect(vm.selectedLevel?.value).toBe(3)
 		expect(axiosPostMock).toHaveBeenCalled()
-		const lastCall = axiosPostMock.mock.calls[axiosPostMock.mock.calls.length - 1] as [string, { enabled: boolean, defaultLevel: number }]
-		expect(lastCall[1].defaultLevel).toBe(3)
+		const lastCall = axiosPostMock.mock.calls[axiosPostMock.mock.calls.length - 1] as [string, { value: number }]
+		expect(lastCall[0]).toBe('/apps/libresign/api/v1/policies/system/docmdp')
+		expect(lastCall[1].value).toBe(3)
 	})
 
-	it('uses preferred level 2 when enabling without explicit selected level', async () => {
+	it('saves value 0 when disabling docmdp', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'docmdp_config') {
+			if (key === 'effective_policies') {
 				return {
-					enabled: false,
-					defaultLevel: 2,
-					availableLevels: [
-						{ value: 0, label: 'L0', description: 'D0' },
-						{ value: 1, label: 'L1', description: 'D1' },
-						{ value: 2, label: 'L2', description: 'D2' },
-					],
+					policies: {
+						docmdp: {
+							policyKey: 'docmdp',
+							effectiveValue: 2,
+							allowedValues: [0, 1, 2, 3],
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: false,
+							canUseAsRequestOverride: false,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
 				}
 			}
 			return fallback
+		})
+		axiosPostMock.mockResolvedValue({
+			data: {
+				ocs: {
+					data: {
+						policy: {
+							policyKey: 'docmdp',
+							effectiveValue: 0,
+							allowedValues: [0, 1, 2, 3],
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							canSaveAsUserDefault: false,
+							canUseAsRequestOverride: false,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
+					},
+				},
+			},
 		})
 
 		const wrapper = mount(DocMDP as never, {
@@ -195,12 +269,12 @@ describe('DocMDP', () => {
 		const vm = wrapper.vm as unknown as DocMDPVm
 		await flushPromises()
 
-		expect(vm.selectedLevel?.value).toBe(2)
-		vm.enabled = true
+		vm.enabled = false
 		vm.onEnabledChange()
 		await flushPromises()
 
-		const lastCall = axiosPostMock.mock.calls[axiosPostMock.mock.calls.length - 1] as [string, { enabled: boolean, defaultLevel: number }]
-		expect(lastCall[1]).toMatchObject({ enabled: true, defaultLevel: 2 })
+		const lastCall = axiosPostMock.mock.calls[axiosPostMock.mock.calls.length - 1] as [string, { value: number }]
+		expect(lastCall[0]).toBe('/apps/libresign/api/v1/policies/system/docmdp')
+		expect(lastCall[1].value).toBe(0)
 	})
 })
