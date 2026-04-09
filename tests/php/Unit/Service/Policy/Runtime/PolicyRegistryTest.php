@@ -12,6 +12,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use PHPUnit\Framework\TestCase;
@@ -27,7 +28,19 @@ final class PolicyRegistryTest extends TestCase {
 		$this->assertSame(SignatureFlowPolicy::KEY, $definition->key());
 		$this->assertSame('none', $definition->defaultSystemValue());
 		$this->assertSame(['none', 'parallel', 'ordered_numeric'], $definition->allowedValues(new PolicyContext()));
-		$this->assertSame('ordered_numeric', $definition->normalizeValue(2));
+		$this->assertSame('ordered_numeric', $definition->normalizeValue('ordered_numeric'));
+	}
+
+	public function testRegistryReturnsDocMdpDefinition(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->with(DocMdpPolicy::class)->willReturn(new DocMdpPolicy());
+		$registry = new PolicyRegistry($container);
+		$definition = $registry->get(DocMdpPolicy::KEY);
+
+		$this->assertSame(DocMdpPolicy::KEY, $definition->key());
+		$this->assertSame(0, $definition->defaultSystemValue());
+		$this->assertSame([0, 1, 2, 3], $definition->allowedValues(new PolicyContext()));
+		$this->assertSame(2, $definition->normalizeValue(2));
 	}
 
 	public function testRegistryThrowsForUnknownPolicy(): void {
