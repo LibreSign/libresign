@@ -9,7 +9,7 @@
 			type="switch"
 			:model-value="modelValue.enabled"
 			@update:modelValue="onEnabledChange">
-			<span>{{ t('libresign', 'Enable identification factors policy') }}</span>
+			<span>{{ t('libresign', 'Enable identification factors rules') }}</span>
 		</NcCheckboxRadioSwitch>
 
 		<div v-if="modelValue.enabled" class="identify-factors-rule-editor__content">
