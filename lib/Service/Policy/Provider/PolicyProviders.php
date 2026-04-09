@@ -8,11 +8,13 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider;
 
+use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 
 final class PolicyProviders {
 	/** @var array<string, class-string> */
 	public const BY_KEY = [
+		DocMdpPolicy::KEY => DocMdpPolicy::class,
 		SignatureFlowPolicy::KEY => SignatureFlowPolicy::class,
 	];
 }
