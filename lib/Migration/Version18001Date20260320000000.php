@@ -10,8 +10,10 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCP\DB\ISchemaWrapper;
+use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
@@ -45,6 +47,18 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 
 		$this->appConfig->deleteKey(Application::APP_ID, self::LEGACY_SYSTEM_KEY);
 		$this->appConfig->deleteKey(Application::APP_ID, self::LEGACY_ALLOW_CHILD_OVERRIDE_KEY);
+
+		// Migrate docmdp_level from string type to int type (typed app config enforcement)
+		$docMdpLevelLegacyValue = '';
+		try {
+			$docMdpLevelLegacyValue = $this->appConfig->getValueString(Application::APP_ID, DocMdpPolicy::SYSTEM_APP_CONFIG_KEY, '');
+		} catch (AppConfigTypeConflictException) {
+			// Already stored as int, no migration needed
+		}
+		if ($docMdpLevelLegacyValue !== '' && is_numeric($docMdpLevelLegacyValue)) {
+			$this->appConfig->deleteKey(Application::APP_ID, DocMdpPolicy::SYSTEM_APP_CONFIG_KEY);
+			$this->appConfig->setValueInt(Application::APP_ID, DocMdpPolicy::SYSTEM_APP_CONFIG_KEY, (int)$docMdpLevelLegacyValue);
+		}
 	}
 
 	#[\Override]
