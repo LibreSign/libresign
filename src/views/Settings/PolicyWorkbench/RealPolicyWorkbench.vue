@@ -5,8 +5,8 @@
 
 <template>
 	<NcSettingsSection
-		:name="t('libresign', 'Policy configuration')"
-		:description="t('libresign', 'Manage policy settings with instance defaults, group overrides, and user overrides.')">
+		:name="t('libresign', 'Document signing settings')"
+		:description="t('libresign', 'Configure how signing works.')">
 
 		<div class="policy-workbench__catalog-toolbar">
 			<div class="policy-workbench__catalog-search">
@@ -17,12 +17,6 @@
 					@keydown.esc.prevent="clearSettingsFilter"
 					@update:modelValue="onSettingsFilterChange" />
 				<div class="policy-workbench__catalog-foot">
-					<p class="policy-workbench__catalog-meta" aria-live="polite">
-						{{ t('libresign', '{shown} of {total} settings visible', {
-							shown: String(filteredSettingSummaries.length),
-							total: String(state.visibleSettingSummaries.length),
-						}) }}
-					</p>
 					<NcButton
 						variant="tertiary"
 						class="policy-workbench__clear-filter-button"
@@ -63,38 +57,35 @@
 				@click="openSettingFromPointer('cards', summary.key, $event)"
 				@keydown.enter.prevent="state.openSetting(summary.key)"
 				@keydown.space.prevent="state.openSetting(summary.key)">
-				<div class="policy-workbench__setting-header">
-					<div>
-						<h3 v-html="highlightText(summary.title)"></h3>
-						<p v-html="highlightText(summary.description)"></p>
+				<div class="policy-workbench__setting-body">
+					<div class="policy-workbench__setting-header">
+						<div>
+							<h3 v-html="highlightText(summary.title)"></h3>
+							<p class="policy-workbench__setting-description" v-html="highlightText(summary.description)"></p>
+						</div>
 					</div>
-					<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Open setting policy')" @click.stop="state.openSetting(summary.key)">
-						{{ t('libresign', 'Open policy') }}
-					</NcButton>
+
+					<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge">
+						{{ t('libresign', 'Custom rules active') }}
+					</p>
+
+					<ul class="policy-workbench__setting-stats">
+						<li>
+							<strong>{{ t('libresign', 'Default') }}:</strong>
+							<span :title="summary.defaultSummary" v-html="highlightText(summary.defaultSummary)"></span>
+						</li>
+						<li>
+							<strong>{{ t('libresign', 'Custom rules') }}:</strong>
+							<span>{{ formatOverrideSummary(summary.groupCount, summary.userCount) }}</span>
+						</li>
+					</ul>
 				</div>
 
-				<p class="policy-workbench__setting-hint">
-					<span v-html="highlightText(summary.menuHint)"></span>
-				</p>
-
-				<p class="policy-workbench__origin-badge">
-					{{ resolveSettingOrigin(summary.groupCount, summary.userCount) }}
-				</p>
-
-				<ul class="policy-workbench__setting-stats">
-					<li>
-						<strong>{{ t('libresign', 'Instance default') }}:</strong>
-						<span :title="summary.defaultSummary" v-html="highlightText(summary.defaultSummary)"></span>
-					</li>
-					<li>
-						<strong>{{ t('libresign', 'Group overrides') }}:</strong>
-						{{ summary.groupCount }}
-					</li>
-					<li>
-						<strong>{{ t('libresign', 'User overrides') }}:</strong>
-						{{ summary.userCount }}
-					</li>
-				</ul>
+				<div class="policy-workbench__setting-footer">
+					<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="state.openSetting(summary.key)">
+						{{ t('libresign', 'Configure') }}
+					</NcButton>
+				</div>
 			</article>
 		</div>
 
@@ -113,22 +104,21 @@
 				<div class="policy-workbench__settings-row-main">
 					<h3 v-html="highlightText(summary.title)"></h3>
 					<p v-html="highlightText(summary.description)"></p>
-					<p class="policy-workbench__origin-badge policy-workbench__origin-badge--inline">
-						{{ resolveSettingOrigin(summary.groupCount, summary.userCount) }}
+					<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge policy-workbench__origin-badge--inline">
+						{{ t('libresign', 'Custom rules active') }}
 					</p>
 				</div>
 
 				<div class="policy-workbench__settings-row-stats">
 					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--default" :title="summary.defaultSummary">
-						<strong>{{ t('libresign', 'Instance default') }}:</strong>
+						<strong>{{ t('libresign', 'Default') }}:</strong>
 						<span v-html="highlightText(summary.defaultSummary)"></span>
 					</span>
-					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ t('libresign', 'Group overrides') }}:</strong> {{ summary.groupCount }}</span>
-					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ t('libresign', 'User overrides') }}:</strong> {{ summary.userCount }}</span>
+					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ t('libresign', 'Custom rules') }}:</strong> {{ formatOverrideSummary(summary.groupCount, summary.userCount) }}</span>
 				</div>
 
-				<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Open setting policy')" @click.stop="state.openSetting(summary.key)">
-					{{ t('libresign', 'Open policy') }}
+				<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="state.openSetting(summary.key)">
+					{{ t('libresign', 'Configure') }}
 				</NcButton>
 			</article>
 		</div>
@@ -212,7 +202,7 @@
 											<template #icon>
 												<NcIconSvgWrapper :path="mdiOfficeBuildingOutline" :size="16" />
 											</template>
-											{{ t('libresign', 'Instance') }}
+												{{ t('libresign', 'Everyone') }}
 										</NcActionButton>
 										<NcActionButton :model-value="crudScopeFilter === 'group'" @click="setCrudScopeFilter('group', true)">
 											<template #icon>
@@ -256,7 +246,7 @@
 					</p>
 
 					<p v-if="state.createUserOverrideDisabledReason && crudScopeFilter === 'user'" class="policy-workbench__table-note">
-						{{ t('libresign', 'Some users may not allow user overrides because their group rule requires inheritance.') }}
+						{{ t('libresign', 'Some users may not allow personal rules because their group rule requires inheritance.') }}
 					</p>
 
 					<div class="policy-workbench__table-scroll">
@@ -509,7 +499,7 @@ const filteredCrudRows = computed<CrudRow[]>(() => {
 			key: systemRule.id,
 			ruleId: systemRule.id,
 			scope: 'system',
-			targetLabel: t('libresign', 'Default (instance-wide)'),
+			targetLabel: t('libresign', 'Default (everyone)'),
 			valueLabel: state.summary?.currentBaseValue ?? t('libresign', 'Not configured'),
 			canRemove: Boolean(systemRule.id),
 		})
@@ -611,13 +601,7 @@ const showCreateRuleBackAction = computed(() => {
 	return showCreateScopeDialog.value && state.editorMode === 'create'
 })
 
-const dialogDescription = computed(() => {
-	if (state.activeDefinition?.key === 'signature_flow') {
-		return t('libresign', 'Control how signers complete documents.')
-	}
-
-	return state.activeDefinition?.description || ''
-})
+const dialogDescription = computed(() => state.activeDefinition?.description || '')
 
 function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
 	if (scope === 'group') {
@@ -629,7 +613,7 @@ function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
 	}
 
 	if (state.hasGlobalDefault) {
-		return t('libresign', 'Instance default already exists. Use Change to update it.')
+		return t('libresign', 'A default for everyone already exists. Use Change to update it.')
 	}
 
 	return ''
@@ -669,7 +653,7 @@ const createScopeOptions = computed<Array<{
 		},
 		{
 			scope: 'system' as const,
-			label: t('libresign', 'Instance'),
+			label: t('libresign', 'Everyone'),
 			description: t('libresign', 'Affects all users'),
 			disabled: scopeCreateDisabledReason('system').length > 0,
 		},
@@ -701,7 +685,7 @@ const activeScopeFilterChip = computed(() => {
 const defaultSourceLabel = computed(() => {
 	return state.hasGlobalDefault
 		? t('libresign', 'custom')
-		: t('libresign', 'system default')
+		: t('libresign', 'default')
 })
 
 const pendingRemovalMessage = computed(() => {
@@ -838,7 +822,7 @@ function resolveSignatureFlowMode(value: unknown): 'parallel' | 'ordered_numeric
 
 function crudScopeLabel(scope: CrudScope) {
 	if (scope === 'system') {
-		return t('libresign', 'Instance')
+		return t('libresign', 'Everyone')
 	}
 
 	if (scope === 'group') {
@@ -1047,16 +1031,19 @@ function highlightText(value: string) {
 	return safeValue.replace(matcher, '<mark>$1</mark>')
 }
 
-function resolveSettingOrigin(groupCount: number, userCount: number) {
-	if (userCount > 0) {
-		return t('libresign', 'User overrides active')
+function hasActiveOverrides(groupCount: number, userCount: number) {
+	return groupCount > 0 || userCount > 0
+}
+
+function formatOverrideSummary(groupCount: number, userCount: number) {
+	if (groupCount === 0 && userCount === 0) {
+		return t('libresign', 'none')
 	}
 
-	if (groupCount > 0) {
-		return t('libresign', 'Group overrides active')
-	}
-
-	return t('libresign', 'Using instance default only')
+	return t('libresign', '{groupCount} groups · {userCount} users', {
+		groupCount: String(groupCount),
+		userCount: String(userCount),
+	})
 }
 
 function toggleCatalogLayout() {
@@ -1105,9 +1092,9 @@ async function handleSaveDraft() {
 
 function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string) {
 	const help = scope === 'system'
-		? t('libresign', 'Removing this custom default makes the instance use the system default again.')
+		? t('libresign', 'Removing this custom default restores the default behavior for everyone.')
 		: scope === 'group'
-			? t('libresign', 'Removing this rule will restore inherited behavior from the instance default for this group.')
+			? t('libresign', 'Removing this rule restores inherited behavior for this group.')
 			: t('libresign', 'Removing this rule will restore inherited behavior for this user.')
 
 	pendingRemoval.value = { ruleId, scope, targetLabel, help }
@@ -1180,10 +1167,10 @@ async function confirmRuleRemoval() {
 		const scope = pendingRemoval.value.scope
 		await state.removeRule(pendingRemoval.value.ruleId)
 		removalFeedback.value = scope === 'system'
-			? t('libresign', 'Custom default removed. The instance now uses the system default.')
+			? t('libresign', 'Custom default removed. The default behavior for everyone is active again.')
 			: scope === 'group'
-				? t('libresign', 'Group exception removed. Inherited behavior from the instance default is now active.')
-				: t('libresign', 'User exception removed. Inherited behavior is now active.')
+				? t('libresign', 'Group custom rule removed. Inherited behavior is now active.')
+				: t('libresign', 'User custom rule removed. Inherited behavior is now active.')
 
 		if (removalFeedbackTimeout.value !== null) {
 			window.clearTimeout(removalFeedbackTimeout.value)
@@ -1340,7 +1327,7 @@ onBeforeUnmount(() => {
 	&__settings-grid {
 		margin-top: 1rem;
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 1rem;
 	}
 
@@ -1464,7 +1451,10 @@ onBeforeUnmount(() => {
 			linear-gradient(180deg, color-mix(in srgb, var(--color-main-background) 92%, white), var(--color-main-background));
 		display: flex;
 		flex-direction: column;
+		justify-content: space-between;
 		gap: 1rem;
+		min-height: 240px;
+		height: 100%;
 		cursor: pointer;
 		transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
@@ -1486,10 +1476,7 @@ onBeforeUnmount(() => {
 	}
 
 	&__setting-header {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		gap: 1rem;
-		align-items: flex-start;
+		display: block;
 
 		> div {
 			min-width: 0;
@@ -1501,11 +1488,27 @@ onBeforeUnmount(() => {
 		}
 	}
 
-	&__setting-hint {
+	&__setting-body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+		min-height: 0;
+	}
+
+	&__setting-description {
 		margin: 0;
-		font-size: 0.86rem;
 		color: var(--color-text-maxcontrast);
-		word-break: break-word;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+		min-height: calc(1.4em * 2);
+	}
+
+	&__setting-footer {
+		margin-top: auto;
+		display: flex;
+		justify-content: flex-start;
 	}
 
 	&__setting-stats {
@@ -1514,12 +1517,13 @@ onBeforeUnmount(() => {
 		list-style: none;
 		display: flex;
 		flex-direction: column;
-		gap: 0.35rem;
+		gap: 0.5rem;
 
 		li {
 			display: flex;
 			gap: 0.3rem;
 			align-items: baseline;
+			min-width: 0;
 
 			strong {
 				white-space: nowrap;
@@ -1528,10 +1532,18 @@ onBeforeUnmount(() => {
 
 			span {
 				min-width: 0;
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
+				overflow-wrap: anywhere;
 			}
+		}
+	}
+
+	@media (max-width: 960px) {
+		&__settings-grid {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		&__settings-row {
+			grid-template-columns: minmax(0, 1fr);
 		}
 	}
 
