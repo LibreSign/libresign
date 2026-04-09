@@ -10,12 +10,15 @@
 		<div>
 			<NcCheckboxRadioSwitch type="switch"
 				v-model="enabled"
-				:disabled="loading"
+				:disabled="loading || !canEdit"
 				@update:modelValue="onEnabledChange">
 				<!-- TRANSLATORS: Label for enabling DocMDP certification -->
 				{{ t('libresign', 'Enable DocMDP') }}
 			</NcCheckboxRadioSwitch>
 		</div>
+		<NcNoteCard v-if="!canEdit" type="info">
+			{{ t('libresign', 'This setting is managed by higher-level policy (%s).', sourceScopeLabel) }}
+		</NcNoteCard>
 		<NcNoteCard v-if="errorMessage" type="error">
 			{{ errorMessage }}
 		</NcNoteCard>
@@ -30,7 +33,7 @@
 					type="radio"
 					v-model="selectedLevelValue"
 					:value="String(level.value)"
-					:disabled="loading"
+					:disabled="loading || !canEdit"
 					name="docmdp_level"
 					@update:modelValue="onLevelChange">
 					<div class="docmdp-option">
@@ -53,9 +56,6 @@
 </template>
 
 <script setup lang="ts">
-import axios from '@nextcloud/axios'
-import { loadState } from '@nextcloud/initial-state'
-import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
 import { computed, onMounted, ref } from 'vue'
 
@@ -64,33 +64,75 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSavingIndicatorIcon from '@nextcloud/vue/components/NcSavingIndicatorIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
-import type { AdminDocMdpConfigState, AdminDocMdpLevelOption } from '../../types'
-import type { operations } from '../../types/openapi/openapi-administration'
+import { usePoliciesStore } from '../../store/policies'
+import type { EffectivePolicyState, SystemPolicyWriteErrorResponse } from '../../types'
 
 defineOptions({
 	name: 'DocMDP',
 })
 
-type DocMdpRequestBody = operations['admin-set-doc-mdp-config']['requestBody']['content']['application/json']
-type DocMdpErrorResponse =
-	| operations['admin-set-doc-mdp-config']['responses'][400]['content']['application/json']
-	| operations['admin-set-doc-mdp-config']['responses'][500]['content']['application/json']
+type DocMdpLevelOption = {
+	value: number
+	label: string
+	description: string
+}
 
 type DocMdpRequestError = {
 	response?: {
-		data?: DocMdpErrorResponse
+		data?: {
+			ocs?: {
+				data?: SystemPolicyWriteErrorResponse
+			}
+		}
 	}
 }
 
 const PREFERRED_DEFAULT_LEVEL = 2
+const DOCMDP_DISABLED_LEVEL = 0
 
+const policiesStore = usePoliciesStore()
 const enabled = ref(false)
-const selectedLevel = ref<AdminDocMdpLevelOption | null>(null)
-const availableLevels = ref<AdminDocMdpLevelOption[]>([])
+const selectedLevel = ref<DocMdpLevelOption | null>(null)
 const loading = ref(false)
 const errorMessage = ref('')
 const saved = ref(false)
 const showErrorIcon = ref(false)
+
+const docMdpPolicy = computed<EffectivePolicyState | null>(() => policiesStore.getPolicy('docmdp'))
+const canEdit = computed(() => docMdpPolicy.value?.editableByCurrentActor ?? true)
+
+const availableLevels = computed<DocMdpLevelOption[]>(() => [
+	{
+		value: 1,
+		label: t('libresign', 'No changes allowed'),
+		description: t('libresign', 'After signing, no changes are allowed in the document.'),
+	},
+	{
+		value: 2,
+		label: t('libresign', 'Form filling'),
+		description: t('libresign', 'After signing, only form filling is allowed.'),
+	},
+	{
+		value: 3,
+		label: t('libresign', 'Form filling and annotations'),
+		description: t('libresign', 'After signing, form filling and annotations are allowed.'),
+	},
+])
+
+const sourceScopeLabel = computed(() => {
+	switch (docMdpPolicy.value?.sourceScope) {
+	case 'group':
+		return t('libresign', 'group')
+	case 'user':
+		return t('libresign', 'user preference')
+	case 'request':
+		return t('libresign', 'request override')
+	case 'global':
+		return t('libresign', 'global')
+	default:
+		return t('libresign', 'system')
+	}
+})
 
 const name = computed(() => {
 	return t('libresign', 'PDF certification (DocMDP)')
@@ -107,26 +149,26 @@ const selectedLevelValue = computed({
 })
 
 function getPreferredDefaultLevel() {
-	return availableLevels.value.find(level => level.value === PREFERRED_DEFAULT_LEVEL)
+	return availableLevels.value.find((level) => level.value === PREFERRED_DEFAULT_LEVEL)
 		?? availableLevels.value[0]
 		?? null
 }
 
+function applyPolicy(policy: EffectivePolicyState | null) {
+	const effectiveValue = Number(policy?.effectiveValue ?? DOCMDP_DISABLED_LEVEL)
+	if (effectiveValue > DOCMDP_DISABLED_LEVEL) {
+		enabled.value = true
+		selectedLevel.value = availableLevels.value.find((level) => level.value === effectiveValue) ?? getPreferredDefaultLevel()
+		return
+	}
+
+	enabled.value = false
+	selectedLevel.value = getPreferredDefaultLevel()
+}
+
 function loadConfig() {
 	try {
-		const config = loadState<AdminDocMdpConfigState>('libresign', 'docmdp_config', {
-			enabled: false,
-			defaultLevel: PREFERRED_DEFAULT_LEVEL,
-			availableLevels: [],
-		})
-
-		enabled.value = config.enabled
-		availableLevels.value = config.availableLevels
-		selectedLevel.value = availableLevels.value.find(level => level.value === config.defaultLevel) ?? null
-
-		if (!selectedLevel.value) {
-			selectedLevel.value = getPreferredDefaultLevel()
-		}
+		applyPolicy(docMdpPolicy.value)
 	} catch (error) {
 		console.error('Error loading DocMDP configuration:', error)
 		errorMessage.value = t('libresign', 'Could not load configuration.')
@@ -163,12 +205,11 @@ async function saveConfig() {
 	showErrorIcon.value = false
 
 	try {
-		const url = generateOcsUrl('apps/libresign/api/v1/admin/docmdp/config')
-		const payload: DocMdpRequestBody = {
-			enabled: enabled.value,
-			defaultLevel: enabled.value ? (selectedLevel.value?.value ?? 0) : 0,
-		}
-		await axios.post(url, payload)
+		const savedPolicy = await policiesStore.saveSystemPolicy(
+			'docmdp',
+			enabled.value ? (selectedLevel.value?.value ?? PREFERRED_DEFAULT_LEVEL) : DOCMDP_DISABLED_LEVEL,
+		)
+		applyPolicy(savedPolicy)
 
 		saved.value = true
 		setTimeout(() => {
@@ -178,6 +219,7 @@ async function saveConfig() {
 		console.error('Error saving DocMDP configuration:', error)
 		errorMessage.value = getErrorMessage(error) ?? t('libresign', 'Could not save configuration.')
 		showErrorIcon.value = true
+		applyPolicy(docMdpPolicy.value)
 		setTimeout(() => {
 			showErrorIcon.value = false
 		}, 3000)
@@ -193,6 +235,8 @@ onMounted(() => {
 defineExpose({
 	enabled,
 	selectedLevel,
+	canEdit,
+	docMdpPolicy,
 	onEnabledChange,
 })
 </script>
