@@ -163,6 +163,101 @@ describe('useRealPolicyWorkbench', () => {
 		})
 	})
 
+	it('shows docmdp as available setting in policy workbench summaries', async () => {
+		const state = createRealPolicyWorkbenchState()
+		const keys = state.visibleSettingSummaries.map((summary) => summary.key)
+
+		expect(keys).toContain('signature_flow')
+		expect(keys).toContain('docmdp')
+	})
+
+	it('keeps override counts isolated per setting after opening and closing dialogs', async () => {
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (policyKey !== 'signature_flow' || groupId !== 'finance') {
+				return null
+			}
+
+			return {
+				policyKey: 'signature_flow',
+				scope: 'group',
+				targetId: 'finance',
+				value: 'ordered_numeric',
+				allowChildOverride: false,
+				visibleToChild: true,
+				allowedValues: ['ordered_numeric'],
+			}
+		})
+
+		fetchUserPolicyForUser.mockImplementation(async (userId: string, policyKey: string) => {
+			if (policyKey !== 'signature_flow' || userId !== 'user1') {
+				return null
+			}
+
+			return {
+				policyKey: 'signature_flow',
+				scope: 'user',
+				targetId: 'user1',
+				value: 'parallel',
+			}
+		})
+
+		const state = createRealPolicyWorkbenchState()
+
+		state.openSetting('signature_flow')
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(1)
+			expect(state.visibleUserRules).toHaveLength(1)
+		})
+		state.closeSetting()
+
+		state.openSetting('docmdp')
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(0)
+			expect(state.visibleUserRules).toHaveLength(0)
+		})
+		state.closeSetting()
+
+		const summariesByKey = Object.fromEntries(state.visibleSettingSummaries.map((summary) => [summary.key, summary]))
+
+		expect(summariesByKey.signature_flow?.groupCount).toBe(1)
+		expect(summariesByKey.signature_flow?.userCount).toBe(1)
+		expect(summariesByKey.docmdp?.groupCount).toBe(0)
+		expect(summariesByKey.docmdp?.userCount).toBe(0)
+	})
+
+	it('saves system docmdp rule through generic policy endpoint flow', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'docmdp') {
+				return {
+					policyKey: 'docmdp',
+					effectiveValue: 2,
+					allowedValues: [0, 1, 2, 3],
+					sourceScope: 'system',
+					visible: true,
+					editableByCurrentActor: true,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					blockedBy: null,
+				}
+			}
+
+			return { effectiveValue: 'parallel' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('docmdp')
+		await Promise.resolve()
+		await Promise.resolve()
+
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue(3)
+		await state.saveDraft()
+
+		expect(saveSystemPolicy).toHaveBeenCalledWith('docmdp', 3, true)
+		expect(fetchEffectivePolicies).toHaveBeenCalled()
+	})
+
 	it('hydrates explicit system rule and persisted user rules when opening a setting', async () => {
 		getPolicy.mockReturnValue({
 			effectiveValue: 'parallel',
