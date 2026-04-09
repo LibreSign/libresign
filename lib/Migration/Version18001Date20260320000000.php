@@ -19,6 +19,9 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version18001Date20260320000000 extends SimpleMigrationStep {
+	private const APP_ID = Application::APP_ID;
+	private const EMPTY_STRING = '';
+	private const IDENTIFY_METHODS_KEY = 'identify_methods';
 	private const LEGACY_SYSTEM_KEY = SignatureFlowPolicy::KEY;
 	private const LEGACY_ALLOW_CHILD_OVERRIDE_KEY = SignatureFlowPolicy::KEY . '.allow_child_override';
 	private const SYSTEM_ALLOW_CHILD_OVERRIDE_SUFFIX = '.allow_child_override';
@@ -30,34 +33,63 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 
 	#[\Override]
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+		$this->migrateSignatureFlowKeys();
+		$this->migrateDocMdpLevelType();
+		$this->migrateIdentifyMethodsType();
+	}
+
+	private function migrateSignatureFlowKeys(): void {
 		$newSystemKey = SignatureFlowPolicy::SYSTEM_APP_CONFIG_KEY;
 		$newAllowChildOverrideKey = $newSystemKey . self::SYSTEM_ALLOW_CHILD_OVERRIDE_SUFFIX;
 
-		$legacySystemValue = $this->appConfig->getValueString(Application::APP_ID, self::LEGACY_SYSTEM_KEY, '');
-		$newSystemValue = $this->appConfig->getValueString(Application::APP_ID, $newSystemKey, '');
-		if ($legacySystemValue !== '' && $newSystemValue === '') {
-			$this->appConfig->setValueString(Application::APP_ID, $newSystemKey, $legacySystemValue);
+		$this->copyStringValueWhenDestinationEmpty(self::LEGACY_SYSTEM_KEY, $newSystemKey);
+		$this->copyStringValueWhenDestinationEmpty(self::LEGACY_ALLOW_CHILD_OVERRIDE_KEY, $newAllowChildOverrideKey);
+
+		$this->appConfig->deleteKey(self::APP_ID, self::LEGACY_SYSTEM_KEY);
+		$this->appConfig->deleteKey(self::APP_ID, self::LEGACY_ALLOW_CHILD_OVERRIDE_KEY);
+	}
+
+	private function migrateDocMdpLevelType(): void {
+		$legacyValue = $this->readLegacyString(DocMdpPolicy::SYSTEM_APP_CONFIG_KEY);
+		if ($legacyValue === null || $legacyValue === self::EMPTY_STRING || !is_numeric($legacyValue)) {
+			return;
 		}
 
-		$legacyAllowOverrideValue = $this->appConfig->getValueString(Application::APP_ID, self::LEGACY_ALLOW_CHILD_OVERRIDE_KEY, '');
-		$newAllowOverrideValue = $this->appConfig->getValueString(Application::APP_ID, $newAllowChildOverrideKey, '');
-		if ($legacyAllowOverrideValue !== '' && $newAllowOverrideValue === '') {
-			$this->appConfig->setValueString(Application::APP_ID, $newAllowChildOverrideKey, $legacyAllowOverrideValue);
+		$this->appConfig->deleteKey(self::APP_ID, DocMdpPolicy::SYSTEM_APP_CONFIG_KEY);
+		$this->appConfig->setValueInt(self::APP_ID, DocMdpPolicy::SYSTEM_APP_CONFIG_KEY, (int)$legacyValue);
+	}
+
+	private function migrateIdentifyMethodsType(): void {
+		$legacyValue = $this->readLegacyString(self::IDENTIFY_METHODS_KEY);
+		if ($legacyValue === null || $legacyValue === self::EMPTY_STRING) {
+			return;
 		}
 
-		$this->appConfig->deleteKey(Application::APP_ID, self::LEGACY_SYSTEM_KEY);
-		$this->appConfig->deleteKey(Application::APP_ID, self::LEGACY_ALLOW_CHILD_OVERRIDE_KEY);
+		$this->appConfig->deleteKey(self::APP_ID, self::IDENTIFY_METHODS_KEY);
+		$decoded = json_decode($legacyValue, true);
+		if (!is_array($decoded)) {
+			return;
+		}
 
-		// Migrate docmdp_level from string type to int type (typed app config enforcement)
-		$docMdpLevelLegacyValue = '';
+		$this->appConfig->setValueArray(self::APP_ID, self::IDENTIFY_METHODS_KEY, $decoded);
+	}
+
+	private function copyStringValueWhenDestinationEmpty(string $sourceKey, string $destinationKey): void {
+		$sourceValue = $this->appConfig->getValueString(self::APP_ID, $sourceKey, self::EMPTY_STRING);
+		$destinationValue = $this->appConfig->getValueString(self::APP_ID, $destinationKey, self::EMPTY_STRING);
+		if ($sourceValue === self::EMPTY_STRING || $destinationValue !== self::EMPTY_STRING) {
+			return;
+		}
+
+		$this->appConfig->setValueString(self::APP_ID, $destinationKey, $sourceValue);
+	}
+
+	private function readLegacyString(string $key): ?string {
 		try {
-			$docMdpLevelLegacyValue = $this->appConfig->getValueString(Application::APP_ID, DocMdpPolicy::SYSTEM_APP_CONFIG_KEY, '');
+			return $this->appConfig->getValueString(self::APP_ID, $key, self::EMPTY_STRING);
 		} catch (AppConfigTypeConflictException) {
-			// Already stored as int, no migration needed
-		}
-		if ($docMdpLevelLegacyValue !== '' && is_numeric($docMdpLevelLegacyValue)) {
-			$this->appConfig->deleteKey(Application::APP_ID, DocMdpPolicy::SYSTEM_APP_CONFIG_KEY);
-			$this->appConfig->setValueInt(Application::APP_ID, DocMdpPolicy::SYSTEM_APP_CONFIG_KEY, (int)$docMdpLevelLegacyValue);
+			// The key is already stored in the target typed format
+			return null;
 		}
 	}
 
