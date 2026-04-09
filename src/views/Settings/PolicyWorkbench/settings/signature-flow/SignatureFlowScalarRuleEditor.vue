@@ -22,7 +22,7 @@
 			</NcCheckboxRadioSwitch>
 		</div>
 		<p v-if="isInstanceCreateMode" class="signature-flow-scalar-editor__hint">
-			{{ t('libresign', 'To create an instance rule, choose Simultaneous or Sequential. "Let users choose" already matches the system default and is not saved as an instance override.') }}
+			{{ t('libresign', 'To create a rule for everyone, choose Simultaneous or Sequential. "User choice" already matches the default and is not saved as a custom rule.') }}
 		</p>
 	</div>
 </template>
@@ -61,7 +61,7 @@ const baseFlows: Array<{ value: SignatureFlowMode | 'none', label: string, descr
 	},
 	{
 		value: 'none',
-		label: t('libresign', 'Let users choose'),
+		label: t('libresign', 'User choice'),
 		description: t('libresign', 'Users can choose between simultaneous or sequential signing.'),
 	},
 ]
@@ -76,7 +76,7 @@ const flows = computed(() => {
 			return {
 				...flow,
 				disabled: true,
-				description: t('libresign', 'Already the system default for this setting. Choose another option to create an explicit instance rule.'),
+				description: t('libresign', 'Already the default for this setting. Choose another option to create an explicit custom rule.'),
 			}
 		}
 
