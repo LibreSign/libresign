@@ -287,7 +287,7 @@
 									:title="state.resolveTargetLabel('user', rule.targetId)"
 									:summary="summarizeRuleValue(rule.value)"
 									:description="t('libresign', 'Applies only to this user.')"
-									:badges="[t('libresign', 'Final override')]"
+									:badges="[t('libresign', 'Final rule')]"
 									:highlighted="state.highlightedRuleId === rule.id"
 									:edit-label="t('libresign', 'Edit user rule')"
 									:remove-label="t('libresign', 'Delete user rule')"
