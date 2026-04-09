@@ -13,8 +13,6 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 
-use function is_int;
-
 final class SignatureFlowPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'signature_flow';
 	public const SYSTEM_APP_CONFIG_KEY = 'policy.signature_flow.system';
@@ -40,10 +38,6 @@ final class SignatureFlowPolicy implements IPolicyDefinitionProvider {
 				normalizer: static function (mixed $rawValue): mixed {
 					if ($rawValue instanceof SignatureFlow) {
 						return $rawValue->value;
-					}
-
-					if (is_int($rawValue)) {
-						return SignatureFlow::fromNumeric($rawValue)->value;
 					}
 
 					return $rawValue;
