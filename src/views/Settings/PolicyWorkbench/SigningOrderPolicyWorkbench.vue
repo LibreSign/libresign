@@ -5,13 +5,13 @@
 
 <template>
 	<NcSettingsSection
-		:name="t('libresign', 'Policy settings')"
-		:description="t('libresign', 'Manage policy-enabled settings. Signing order is the first setting connected to real persistence.')">
+		:name="t('libresign', 'Document signing settings')"
+		:description="t('libresign', 'Configure how signing works.')">
 		<div class="policy-workbench">
 			<header class="policy-workbench__header">
 				<div>
 					<p class="policy-workbench__eyebrow">
-						{{ t('libresign', 'Live policy configuration') }}
+						{{ t('libresign', 'Live settings') }}
 					</p>
 					<h3>{{ t('libresign', 'One live setting, ready to configure') }}</h3>
 					<p>
@@ -37,7 +37,7 @@
 					</div>
 
 					<p class="policy-workbench__setting-description">
-						{{ t('libresign', 'Define whether signers work in parallel or sequentially, including instance default and group overrides.') }}
+						{{ t('libresign', 'Choose whether documents are signed in order or all at once.') }}
 					</p>
 
 					<ul class="policy-workbench__setting-metadata">
@@ -47,13 +47,13 @@
 						</li>
 						<li>
 							<strong>{{ t('libresign', 'Available scopes') }}:</strong>
-							<span>{{ t('libresign', 'Instance default and group override') }}</span>
+							<span>{{ t('libresign', 'Default for everyone and group rules') }}</span>
 						</li>
 					</ul>
 
 					<NcButton
 						variant="primary"
-						:aria-label="t('libresign', 'Manage signing order policy')"
+						:aria-label="t('libresign', 'Manage signing order')"
 						@click="openSigningOrderDialog">
 						{{ t('libresign', 'Manage') }}
 					</NcButton>
@@ -70,16 +70,16 @@
 					<header class="policy-workbench__dialog-header">
 						<div>
 							<p class="policy-workbench__eyebrow">
-								{{ t('libresign', 'Signing order policy') }}
+								{{ t('libresign', 'Signing order settings') }}
 							</p>
 							<h2>{{ t('libresign', 'Signing order') }}</h2>
 							<p>
-								{{ t('libresign', 'Set the instance default first, then add group overrides only when groups need different behavior.') }}
+								{{ t('libresign', 'Set a default for everyone, then add group rules only when groups need different behavior.') }}
 							</p>
 						</div>
 						<NcButton
 							variant="secondary"
-							:aria-label="t('libresign', 'Close signing order policy dialog')"
+							:aria-label="t('libresign', 'Close signing order settings dialog')"
 							@click="closeSigningOrderDialog">
 							{{ t('libresign', 'Close') }}
 						</NcButton>
