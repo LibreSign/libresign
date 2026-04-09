@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -40,10 +41,67 @@ final class PolicyServiceTest extends TestCase {
 		$container = $this->createMock(ContainerInterface::class);
 		$container
 			->method('get')
-			->with(SignatureFlowPolicy::class)
-			->willReturn(new SignatureFlowPolicy());
+			->willReturnCallback(static function (string $class): object {
+				return match ($class) {
+					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
+					DocMdpPolicy::class => new DocMdpPolicy(),
+					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
+				};
+			});
 		$this->registry = new PolicyRegistry($container);
 		$this->contextFactory = new PolicyContextFactory($this->userManager, $this->groupManager, $this->userSession);
+	}
+
+	public function testResolveForUserIdUsesDocMdpGroupPolicyWhenSystemAllowsOverride(): void {
+		$user = $this->createMock(IUser::class);
+		$this->userManager
+			->expects($this->once())
+			->method('get')
+			->with('john')
+			->willReturn($user);
+
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn(['finance']);
+
+		$this->source
+			->method('loadSystemPolicy')
+			->with(DocMdpPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue(0)
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true));
+
+		$this->source
+			->method('loadGroupPolicies')
+			->with(DocMdpPolicy::KEY, $this->callback(static function ($context): bool {
+				return $context->getUserId() === 'john' && $context->getGroups() === ['finance'];
+			}))
+			->willReturn([(new PolicyLayer())
+				->setScope('group')
+				->setValue(2)
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true)
+				->setAllowedValues([2])]);
+
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source->method('loadUserPreference')->willReturn(null);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+		);
+
+		$resolved = $service->resolveForUserId(DocMdpPolicy::KEY, 'john');
+
+		$this->assertSame(2, $resolved->getEffectiveValue());
+		$this->assertSame('group', $resolved->getSourceScope());
+		$this->assertFalse($resolved->canUseAsRequestOverride());
 	}
 
 	public function testResolveForUserIdBuildsContextWithGroupsAndRequestOverride(): void {
