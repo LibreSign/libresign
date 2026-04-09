@@ -10,6 +10,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { computed, reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 
+import DocMdpScalarRuleEditor from './settings/docmdp/DocMdpScalarRuleEditor.vue'
 import SignatureFlowScalarRuleEditor from './settings/signature-flow/SignatureFlowScalarRuleEditor.vue'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
@@ -131,8 +132,8 @@ const realDefinitions = {
 	signature_flow: {
 		key: 'signature_flow',
 		title: t('libresign', 'Signing order'),
-		description: t('libresign', 'Define whether signers work in parallel or in a sequential order.'),
-		menuHint: t('libresign', 'Define the default signing flow and where overrides are allowed.'),
+		description: t('libresign', 'Define how signing works and where overrides apply.'),
+		menuHint: t('libresign', 'Signing order defaults and overrides.'),
 		editor: SignatureFlowScalarRuleEditor,
 		createEmptyValue: () => '' as unknown as EffectivePolicyValue,
 		summarizeValue: (value: EffectivePolicyValue) => {
@@ -144,6 +145,33 @@ const realDefinitions = {
 				return t('libresign', 'Sequential')
 			case 'none':
 				return t('libresign', 'Let users choose')
+			default:
+				return t('libresign', 'Not configured')
+			}
+		},
+		formatAllowOverride: (allowChildOverride: boolean) =>
+			allowChildOverride
+				? t('libresign', 'Lower layers may override this rule')
+				: t('libresign', 'Lower layers must inherit this value'),
+	},
+	docmdp: {
+		key: 'docmdp',
+		title: t('libresign', 'PDF certification (DocMDP)'),
+		description: t('libresign', 'Define PDF certification defaults and allowed overrides.'),
+		menuHint: t('libresign', 'DocMDP defaults and overrides.'),
+		editor: DocMdpScalarRuleEditor,
+		createEmptyValue: () => 0,
+		summarizeValue: (value: EffectivePolicyValue) => {
+			const level = resolveDocMdpLevel(value)
+			switch (level) {
+			case 0:
+				return t('libresign', 'Disabled')
+			case 1:
+				return t('libresign', 'No changes allowed')
+			case 2:
+				return t('libresign', 'Form filling')
+			case 3:
+				return t('libresign', 'Form filling and annotations')
 			default:
 				return t('libresign', 'Not configured')
 			}
@@ -185,12 +213,17 @@ function resolveSignatureFlowMode(value: EffectivePolicyValue): string | null {
 }
 
 function normalizeDraftValueForPolicy(policyKey: string, value: EffectivePolicyValue): EffectivePolicyValue {
-	if (policyKey !== 'signature_flow') {
-		return value
+	if (policyKey === 'signature_flow') {
+		const mode = resolveSignatureFlowMode(value)
+		return mode ?? 'parallel'
 	}
 
-	const mode = resolveSignatureFlowMode(value)
-	return mode ?? 'parallel'
+	if (policyKey === 'docmdp') {
+		const level = resolveDocMdpLevel(value)
+		return level ?? 0
+	}
+
+	return value
 }
 
 function normalizeAllowChildOverrideForPolicy(policyKey: string, scope: PolicyScope, allowChildOverride: boolean): boolean {
@@ -224,6 +257,26 @@ function getSignatureFlowFallbackSystemDefault(policy: EffectivePolicyState | nu
 	}
 
 	return 'none'
+}
+
+function getDocMdpFallbackSystemDefault(policy: EffectivePolicyState | null): EffectivePolicyValue {
+	if (policy?.sourceScope === 'system' && policy.effectiveValue !== null && policy.effectiveValue !== undefined) {
+		return policy.effectiveValue
+	}
+
+	return 0
+}
+
+function resolveDocMdpLevel(value: EffectivePolicyValue): number | null {
+	if (typeof value === 'number' && value >= 0 && value <= 3) {
+		return value
+	}
+
+	if (typeof value === 'string' && /^[0-3]$/.test(value)) {
+		return Number(value)
+	}
+
+	return null
 }
 
 function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
@@ -260,6 +313,25 @@ export function createRealPolicyWorkbenchState() {
 	const groupRules = ref<PolicyRuleRecord[]>([])
 	const userRules = ref<PolicyRuleRecord[]>([])
 	const explicitSystemRule = ref<PolicyRuleRecord | null>(null)
+	const settingRuleCounts = ref<Record<string, { groupCount: number, userCount: number }>>({})
+
+	function setSettingRuleCounts(policyKey: string, groupCount: number, userCount: number) {
+		settingRuleCounts.value = {
+			...settingRuleCounts.value,
+			[policyKey]: {
+				groupCount,
+				userCount,
+			},
+		}
+	}
+
+	function syncActiveSettingRuleCounts() {
+		if (!activeSettingKey.value) {
+			return
+		}
+
+		setSettingRuleCounts(activeSettingKey.value, groupRules.value.length, userRules.value.length)
+	}
 
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
@@ -271,6 +343,8 @@ export function createRealPolicyWorkbenchState() {
 		return Object.values(realDefinitions).map((definition) => {
 			const policy = policiesStore.getPolicy(definition.key)
 			const hasEffectiveValue = policy?.effectiveValue !== null && policy?.effectiveValue !== undefined
+			const persistedCounts = settingRuleCounts.value[definition.key]
+			const isActiveSetting = activeSettingKey.value === definition.key
 
 			return {
 				key: definition.key,
@@ -278,8 +352,8 @@ export function createRealPolicyWorkbenchState() {
 				description: definition.description,
 				menuHint: definition.menuHint,
 				defaultSummary: hasEffectiveValue ? definition.summarizeValue(policy.effectiveValue) : t('libresign', 'Not configured'),
-				groupCount: groupRules.value.length,
-				userCount: userRules.value.length,
+				groupCount: isActiveSetting ? groupRules.value.length : (persistedCounts?.groupCount ?? 0),
+				userCount: isActiveSetting ? userRules.value.length : (persistedCounts?.userCount ?? 0),
 			}
 		})
 	})
@@ -352,7 +426,9 @@ export function createRealPolicyWorkbenchState() {
 		const policy = activePolicyState.value
 		const fallbackValue = activeDefinition.value.key === 'signature_flow'
 			? getSignatureFlowFallbackSystemDefault(policy)
-			: policy?.effectiveValue
+			: activeDefinition.value.key === 'docmdp'
+				? getDocMdpFallbackSystemDefault(policy)
+				: policy?.effectiveValue
 
 		if (fallbackValue === null || fallbackValue === undefined) {
 			return null
@@ -527,6 +603,10 @@ export function createRealPolicyWorkbenchState() {
 				return resolveSignatureFlowMode(draft.value) !== null
 			}
 
+			if (activeDefinition.value.key === 'docmdp') {
+				return resolveDocMdpLevel(draft.value) !== null
+			}
+
 			return draft.value !== null && draft.value !== undefined
 		}
 
@@ -630,6 +710,7 @@ export function createRealPolicyWorkbenchState() {
 		groupRules.value = persistedGroupPolicies.filter(hasPersistedRule)
 		userRules.value = persistedUserPolicies.filter(hasPersistedRule)
 		nextRuleNumber.value = groupRules.value.length + userRules.value.length + 1
+		setSettingRuleCounts(policyKey, groupRules.value.length, userRules.value.length)
 	}
 
 	function openSetting(key: string) {
@@ -762,6 +843,9 @@ export function createRealPolicyWorkbenchState() {
 
 	function closeSetting() {
 		activeSettingKey.value = null
+		groupRules.value = []
+		userRules.value = []
+		explicitSystemRule.value = null
 		editorDraft.value = null
 		editorMode.value = null
 		duplicateMessage.value = null
@@ -923,6 +1007,7 @@ export function createRealPolicyWorkbenchState() {
 					value,
 				}
 				await policiesStore.fetchEffectivePolicies()
+				syncActiveSettingRuleCounts()
 				cancelEditor()
 				return
 			}
@@ -937,6 +1022,7 @@ export function createRealPolicyWorkbenchState() {
 				}
 
 				await policiesStore.fetchEffectivePolicies()
+				syncActiveSettingRuleCounts()
 				cancelEditor()
 				return
 			}
@@ -950,6 +1036,7 @@ export function createRealPolicyWorkbenchState() {
 			}
 
 			await policiesStore.fetchEffectivePolicies()
+			syncActiveSettingRuleCounts()
 			cancelEditor()
 		} catch (error) {
 			console.error('Failed to save policy:', error)
@@ -978,6 +1065,7 @@ export function createRealPolicyWorkbenchState() {
 			explicitSystemRule.value = null
 			highlightedRuleId.value = null
 			await policiesStore.fetchEffectivePolicies()
+			syncActiveSettingRuleCounts()
 			if (shouldCloseSystemEditor) {
 				cancelEditor()
 			}
@@ -993,6 +1081,7 @@ export function createRealPolicyWorkbenchState() {
 			groupRules.value.splice(groupIndex, 1)
 			highlightedRuleId.value = null
 			await policiesStore.fetchEffectivePolicies()
+			syncActiveSettingRuleCounts()
 			if (shouldCloseGroupEditor) {
 				cancelEditor()
 			}
@@ -1008,6 +1097,7 @@ export function createRealPolicyWorkbenchState() {
 			userRules.value.splice(userIndex, 1)
 			highlightedRuleId.value = null
 			await policiesStore.fetchEffectivePolicies()
+			syncActiveSettingRuleCounts()
 			if (shouldCloseUserEditor) {
 				cancelEditor()
 			}
