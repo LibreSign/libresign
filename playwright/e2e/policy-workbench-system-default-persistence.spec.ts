@@ -242,6 +242,14 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 }
 
 async function resetSystemRuleToBaseline(dialog: Locator) {
+	const instanceRow = getRuleRow(dialog, 'Instance', instanceWideTargetLabel)
+	const hasInstanceRule = await instanceRow.count().then((count) => count > 0)
+
+	if (hasInstanceRule) {
+		await removeRule(dialog, 'Instance', instanceWideTargetLabel)
+		return
+	}
+
 	await openSystemDefaultEditor(dialog)
 	expect(await setSigningFlow(dialog, 'none'), 'Expected signing-flow radios in system editor').toBe(true)
 	await submitSystemRuleAndWait(dialog)
@@ -334,7 +342,7 @@ test('system default persists across edit cycles and can be reset to the system 
 	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toContainText('Simultaneous (Parallel)')
 
 	await resetSystemRuleToBaseline(reloadedDialog)
-	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toContainText('Let users choose')
+	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toHaveCount(0)
 	await expect(reloadedDialog.getByText(/Default:\s*Let users choose/i)).toBeVisible()
 })
 
@@ -399,6 +407,6 @@ test('admin can manage instance and user rules while signature-flow group rules 
 
 	// Global rule: reset to explicit "let users choose" baseline
 	await resetSystemRuleToBaseline(reloadedDialog)
-	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toContainText('Let users choose')
+	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toHaveCount(0)
 	await expect(reloadedDialog.getByText(/Default:\s*Let users choose/i)).toBeVisible()
 })
