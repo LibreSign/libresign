@@ -14,6 +14,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
@@ -28,6 +29,7 @@ use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -320,6 +322,7 @@ class RequestSignatureService {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->updateSignatureFlowIfAllowed($file, $data);
+			$this->updateDocMdpLevelFromPolicy($file, $data);
 			if (!empty($data['name'])) {
 				$file->setName($data['name']);
 				$this->fileService->update($file);
@@ -336,6 +339,7 @@ class RequestSignatureService {
 			try {
 				$file = $this->fileMapper->getByNodeId($fileId);
 				$this->updateSignatureFlowIfAllowed($file, $data);
+				$this->updateDocMdpLevelFromPolicy($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 			} catch (\Throwable) {
 			}
@@ -377,7 +381,7 @@ class RequestSignatureService {
 		}
 
 		$this->setSignatureFlow($file, $data);
-		$this->setDocMdpLevelFromGlobalConfig($file);
+		$this->setDocMdpLevelFromPolicy($file, $data);
 
 		$this->fileMapper->insert($file);
 		return $file;
@@ -445,11 +449,41 @@ class RequestSignatureService {
 		$file->setMetadata($metadata);
 	}
 
-	private function setDocMdpLevelFromGlobalConfig(FileEntity $file): void {
-		if ($this->docMdpConfigService->isEnabled()) {
-			$docmdpLevel = $this->docMdpConfigService->getLevel();
-			$file->setDocmdpLevelEnum($docmdpLevel);
+	private function updateDocMdpLevelFromPolicy(FileEntity $file, array $data): void {
+		$resolvedPolicy = $this->policyService->resolveForUserId(
+			DocMdpPolicy::KEY,
+			$file->getUserId(),
+			$this->getDocMdpRequestOverrides($data),
+		);
+		$newLevel = DocMdpLevel::tryFrom((int)$resolvedPolicy->getEffectiveValue()) ?? DocMdpLevel::NOT_CERTIFIED;
+		$metadataBeforeUpdate = $file->getMetadata() ?? [];
+		$this->storePolicySnapshot($file, $resolvedPolicy);
+		$metadataChanged = ($file->getMetadata() ?? []) !== $metadataBeforeUpdate;
+
+		if ($file->getDocmdpLevelEnum() !== $newLevel || $metadataChanged) {
+			$file->setDocmdpLevelEnum($newLevel);
+			$this->fileService->update($file);
 		}
+	}
+
+	private function setDocMdpLevelFromPolicy(FileEntity $file, array $data): void {
+		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
+		$resolvedPolicy = $this->policyService->resolveForUser(
+			DocMdpPolicy::KEY,
+			$user,
+			$this->getDocMdpRequestOverrides($data),
+		);
+		$file->setDocmdpLevelEnum(DocMdpLevel::tryFrom((int)$resolvedPolicy->getEffectiveValue()) ?? DocMdpLevel::NOT_CERTIFIED);
+		$this->storePolicySnapshot($file, $resolvedPolicy);
+	}
+
+	/** @return array<string, int> */
+	private function getDocMdpRequestOverrides(array $data): array {
+		if (!isset($data['docmdpLevel']) || $data['docmdpLevel'] === null || $data['docmdpLevel'] === '') {
+			return [];
+		}
+
+		return [DocMdpPolicy::KEY => (int)$data['docmdpLevel']];
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {
