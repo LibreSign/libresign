@@ -29,7 +29,7 @@ describe('SignatureFlowScalarRuleEditor.vue', () => {
 
 		expect(wrapper.text()).toContain('Simultaneous (Parallel)')
 		expect(wrapper.text()).toContain('Sequential')
-		expect(wrapper.text()).toContain('Let users choose')
+		expect(wrapper.text()).toContain('User choice')
 		expect(wrapper.text()).toContain('Users can choose between simultaneous or sequential signing.')
 
 		const switches = wrapper.findAll('.switch')
@@ -100,7 +100,7 @@ describe('SignatureFlowScalarRuleEditor.vue', () => {
 			},
 		})
 
-		expect(wrapper.text()).toContain('already matches the system default')
+		expect(wrapper.text()).toContain('already matches the default')
 
 		const switches = wrapper.findAll('.switch-disabled')
 		expect(switches).toHaveLength(3)
