@@ -111,7 +111,7 @@ OC.L10N.register(
     "Password reset" : "Parole atiestatīta",
     "Current password" : "Pašreizējā parole",
     "New password" : "Jauna parole",
-    "Repeat password" : "Atkārtojiet paroli",
+    "Repeat password" : "Atkārtot paroli",
     "Refresh" : "Atsvaidzināt",
     "Add new" : "Pievienot jaunu",
     "Remove" : "Noņemt",
