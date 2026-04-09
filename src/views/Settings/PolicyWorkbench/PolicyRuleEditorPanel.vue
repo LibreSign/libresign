@@ -32,6 +32,8 @@
 				<component
 					:is="activeEditor"
 					:model-value="editorDraft.value"
+					:editor-scope="editorDraft.scope"
+					:editor-mode="editorMode"
 					@update:modelValue="$emit('update-value', $event)" />
 			</div>
 
