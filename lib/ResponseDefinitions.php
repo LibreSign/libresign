@@ -420,7 +420,12 @@ namespace OCA\Libresign;
  *     effectiveValue: string,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignPolicySnapshotNumericEntry = array{
+ *     effectiveValue: int,
+ *     sourceScope: string,
+ * }
  * @psalm-type LibresignValidatePolicySnapshot = array{
+ *     docmdp?: LibresignPolicySnapshotNumericEntry,
  *     signature_flow?: LibresignPolicySnapshotEntry,
  * }
  * @psalm-type LibresignValidateMetadata = array{
