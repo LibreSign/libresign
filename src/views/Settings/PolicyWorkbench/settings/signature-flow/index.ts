@@ -12,7 +12,7 @@ export const signatureFlowDefinition: PolicySettingDefinition<'signature_flow'> 
 	key: 'signature_flow',
 	title: t('libresign', 'Signing order'),
 	description: t('libresign', 'Define how signers receive and process the signature request.'),
-	menuHint: t('libresign', 'Good policy-shell candidate because it combines a simple editor with multiple scopes.'),
+	menuHint: t('libresign', 'Choose how signing order should work for everyone, groups, and users.'),
 	editor: SignatureFlowRuleEditor,
 	createEmptyValue: () => ({
 		enabled: true,
@@ -20,7 +20,7 @@ export const signatureFlowDefinition: PolicySettingDefinition<'signature_flow'> 
 	}),
 	summarizeValue: (value) => {
 		if (!value.enabled) {
-			return t('libresign', 'Let users choose')
+			return t('libresign', 'User choice')
 		}
 
 		return value.flow === 'parallel'
@@ -28,6 +28,6 @@ export const signatureFlowDefinition: PolicySettingDefinition<'signature_flow'> 
 			: t('libresign', 'Sequential')
 	},
 	formatAllowOverride: (allowChildOverride) => allowChildOverride
-		? t('libresign', 'Lower layers may override this rule')
-		: t('libresign', 'Lower layers must inherit this value'),
+		? t('libresign', 'Groups and users can set their own rule')
+		: t('libresign', 'Groups and users must follow this value'),
 }
