@@ -21,7 +21,6 @@ use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
-use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\Files\IRootFolder;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -156,7 +155,7 @@ final class IdentifyServiceTest extends TestCase {
 		$this->service->save($identifyMethod);
 	}
 
-	public function testGetSavedSettingsFallsBackToDefaultWhenStoredValueIsInvalid(): void {
+	public function testGetSavedSettingsThrowsWhenStoredValueIsInvalid(): void {
 		$this->appConfig
 			->expects($this->once())
 			->method('clearCache')
@@ -169,77 +168,11 @@ final class IdentifyServiceTest extends TestCase {
 			->willThrowException(new \TypeError('Invalid app config value type'));
 
 		$this->logger
-			->expects($this->once())
-			->method('warning')
-			->with(
-				'Invalid identify_methods app config; falling back to defaults.',
-				$this->callback(static function (array $context): bool {
-					return isset($context['exception']) && $context['exception'] instanceof \TypeError;
-				})
-			);
-
-		$this->assertSame([], $this->service->getSavedSettings());
-	}
-
-	public function testGetSavedSettingsDecodesLegacyJsonStringWhenStoredValueTypeConflicts(): void {
-		$this->appConfig
-			->expects($this->once())
-			->method('clearCache')
-			->with(true);
-
-		$this->appConfig
-			->expects($this->once())
-			->method('getValueArray')
-			->with(Application::APP_ID, 'identify_methods', [])
-			->willThrowException(new AppConfigTypeConflictException('conflict with value type from database'));
-
-		$this->appConfig
-			->expects($this->once())
-			->method('getValueString')
-			->with(Application::APP_ID, 'identify_methods', '')
-			->willReturn('[{"name":"account","enabled":true}]');
-
-		$this->logger
 			->expects($this->never())
 			->method('warning');
 
-		$this->assertSame([
-			[
-				'name' => 'account',
-				'enabled' => true,
-			],
-		], $this->service->getSavedSettings());
-	}
-
-	public function testGetSavedSettingsFallsBackToDefaultWhenLegacyStringIsInvalid(): void {
-		$this->appConfig
-			->expects($this->once())
-			->method('clearCache')
-			->with(true);
-
-		$this->appConfig
-			->expects($this->once())
-			->method('getValueArray')
-			->with(Application::APP_ID, 'identify_methods', [])
-			->willThrowException(new AppConfigTypeConflictException('conflict with value type from database'));
-
-		$this->appConfig
-			->expects($this->once())
-			->method('getValueString')
-			->with(Application::APP_ID, 'identify_methods', '')
-			->willReturn('invalid');
-
-		$this->logger
-			->expects($this->once())
-			->method('warning')
-			->with(
-				'Invalid identify_methods app config; falling back to defaults.',
-				$this->callback(static function (array $context): bool {
-					return isset($context['exception']) && $context['exception'] instanceof AppConfigTypeConflictException;
-				})
-			);
-
-		$this->assertSame([], $this->service->getSavedSettings());
+		$this->expectException(\TypeError::class);
+		$this->service->getSavedSettings();
 	}
 
 	public function testGetSavedSettingsReloadsAppConfigBeforeReading(): void {
