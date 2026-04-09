@@ -159,6 +159,29 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.text()).not.toContain('← Back')
 	})
 
+	it('shows remove action for instance default rules', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return { effectiveValue: 'ordered_numeric', sourceScope: 'global' }
+			}
+
+			return null
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		const actionsTrigger = wrapper.find('button[aria-label="Rule actions"]')
+		expect(actionsTrigger.exists()).toBe(true)
+		await actionsTrigger.trigger('click')
+
+		const removeButton = wrapper.findAll('.nc-actions-stub__menu button').find((button) => button.text() === 'Remove')
+		expect(removeButton).toBeTruthy()
+	})
+
 	it('allows reopening create flow after canceling a draft', async () => {
 		const wrapper = mountWorkbench()
 
@@ -186,6 +209,28 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(toolbarCreateRuleButtonAfterSave.attributes('disabled')).toBeUndefined()
 		await toolbarCreateRuleButtonAfterSave.trigger('click')
 		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+	})
+
+	it('shows instance option in create rule when only system default is active', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return { effectiveValue: 'ordered_numeric', sourceScope: 'system' }
+			}
+
+			return null
+		})
+
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await wrapper.find('button.policy-workbench__crud-create-cta').trigger('click')
+
+		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
+		expect(createScopeDialog.exists()).toBe(true)
+		expect(createScopeDialog.text()).toContain('Instance')
 	})
 
 	it('shows unified default summary in system default mode', async () => {
