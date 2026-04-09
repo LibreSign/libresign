@@ -782,7 +782,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(state.inheritedSystemRule).not.toBeNull()
 		expect(state.inheritedSystemRule?.value).toBe('none')
-		expect(state.summary?.currentBaseValue).toBe('Let users choose')
+		expect(state.summary?.currentBaseValue).toBe('User choice')
 	})
 
 	it('keeps persisted numeric system default visible after reload', () => {
@@ -797,7 +797,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(state.inheritedSystemRule).not.toBeNull()
 		expect(state.inheritedSystemRule?.value).toBe(0)
-		expect(state.summary?.currentBaseValue).toBe('Let users choose')
+		expect(state.summary?.currentBaseValue).toBe('User choice')
 	})
 
 	it('does not treat group-sourced effective value as explicit instance rule', () => {
@@ -871,7 +871,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.policyResolutionMode).toBe('precedence')
 		expect(state.summary).not.toBeNull()
 		expect(state.summary?.currentBaseValue).toBe('Sequential')
-		expect(state.summary?.platformFallback).toBe('Let users choose')
+		expect(state.summary?.platformFallback).toBe('User choice')
 		expect(state.summary?.baseSource).toBe('Global default')
 	})
 
