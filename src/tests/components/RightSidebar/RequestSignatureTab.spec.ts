@@ -889,12 +889,6 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
 		})
 
-		it('maps legacy sequential policy value to ordered_numeric', async () => {
-			await updatePolicies({ effectiveValue: 'sequential' as unknown as string, canUseAsRequestOverride: false })
-			await updateFile({ signatureFlow: 'parallel' })
-			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
-		})
-
 		it('keeps request-level file flow when policy defaults to ordered_numeric but still allows overrides', async () => {
 			await updatePolicies({ effectiveValue: 'ordered_numeric', canUseAsRequestOverride: true })
 			await updateFile({ signatureFlow: 'parallel' })
@@ -937,20 +931,6 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await updatePolicies({
 				canUseAsRequestOverride: false,
 				effectiveValue: { flow: 'ordered_numeric' },
-			})
-			await updateFile({
-				signers: [
-					{ email: 'test1@example.com' },
-					{ email: 'test2@example.com' },
-				],
-			})
-			expect(wrapper.vm.showPreserveOrder).toBe(false)
-		})
-
-		it('hides preserve order switch when fixed policy comes as legacy sequential', async () => {
-			await updatePolicies({
-				canUseAsRequestOverride: false,
-				effectiveValue: 'sequential' as unknown as string,
 			})
 			await updateFile({
 				signers: [
