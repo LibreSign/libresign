@@ -1614,7 +1614,7 @@
                     }
                 }
             },
-            "PolicySnapshotIntegerEntry": {
+            "PolicySnapshotNumericEntry": {
                 "type": "object",
                 "required": [
                     "effectiveValue",
@@ -2330,7 +2330,7 @@
                 "type": "object",
                 "properties": {
                     "docmdp": {
-                        "$ref": "#/components/schemas/PolicySnapshotIntegerEntry"
+                        "$ref": "#/components/schemas/PolicySnapshotNumericEntry"
                     },
                     "signature_flow": {
                         "$ref": "#/components/schemas/PolicySnapshotEntry"
