@@ -96,7 +96,7 @@ describe('RealPolicyWorkbench.vue', () => {
 	it('keeps rule creation inside a modal multi-step flow', async () => {
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 		await findButtonByText(wrapper, 'Create rule')?.trigger('click')
@@ -123,7 +123,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(editorText).toContain('Search users')
 		expect(editorText).toContain('Simultaneous (Parallel)')
 		expect(editorText).toContain('Sequential')
-		expect(editorText).toContain('Let users choose')
+		expect(editorText).toContain('User choice')
 		expect(wrapper.text()).toContain('← Back')
 		expect(wrapper.text()).toContain('Cancel')
 		expect(editorText).not.toContain('Instance default rule')
@@ -136,7 +136,7 @@ describe('RealPolicyWorkbench.vue', () => {
 	it('opens the editor directly in edit mode without the type selection step', async () => {
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -170,7 +170,7 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -185,7 +185,7 @@ describe('RealPolicyWorkbench.vue', () => {
 	it('allows reopening create flow after canceling a draft', async () => {
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -222,7 +222,7 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -230,7 +230,7 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
 		expect(createScopeDialog.exists()).toBe(true)
-		expect(createScopeDialog.text()).toContain('Instance')
+		expect(createScopeDialog.text()).toContain('Everyone')
 	})
 
 	it('shows unified default summary in system default mode', async () => {
@@ -243,15 +243,15 @@ describe('RealPolicyWorkbench.vue', () => {
 		})
 
 		const wrapper = mountWorkbench()
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
 		const text = wrapper.text()
-		expect(text).toContain('Control how signers complete documents.')
+		expect(text).toContain('Choose whether documents are signed in order or all at once.')
 		expect(text).toContain('Default:')
-		expect(text).toContain('Let users choose')
-		expect(text).toContain('(system default)')
+		expect(text).toContain('User choice')
+		expect(text).toContain('(default)')
 		expect(text).toContain('Change')
 		expect(text).not.toContain('Effective result:')
 		expect(text).not.toContain('No instance default is configured. This setting currently uses the system default.')
@@ -259,7 +259,7 @@ describe('RealPolicyWorkbench.vue', () => {
 
 	it('shows signing order with sophisticated visual interface: filter, toggle, counts, and scopes', async () => {
 		const wrapper = mountWorkbench()
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -272,15 +272,15 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.find('input[type="text"]').exists()).toBe(true)
 		expect(text).toContain('Find setting')
 
-		// Validate settings count display
-		expect(text).toContain('1 of 1 settings visible')
+		// Validate settings count display is hidden
+		expect(text).not.toContain('Showing 2 settings')
 
 		// Validate toggle button exists for card/list view
 		expect(wrapper.find('.policy-workbench__catalog-view-button').exists()).toBe(true)
 
 		// Validate signing order is displayed with compact header copy
 		expect(text).toContain('Signing order')
-		expect(text).toContain('Control how signers complete documents.')
+		expect(text).toContain('Choose whether documents are signed in order or all at once.')
 
 		// Validate default summary block content for custom default mode
 		expect(text).toContain('Default:')
@@ -301,8 +301,8 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).not.toContain('Some users may not allow user overrides because their group rule requires inheritance.')
 
 		// Validate counts shown
-		expect(text).toContain('Group overrides: 0')
-		expect(text).toContain('User overrides: 0')
+		expect(text).toContain('Custom rules:none')
+		expect(text).not.toContain('Custom rules active')
 
 		// Validate POC settings are NOT present
 		expect(text).not.toContain('Confetti')
@@ -312,7 +312,7 @@ describe('RealPolicyWorkbench.vue', () => {
 	it('closes the rule actions menu after clicking edit', async () => {
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Open policy'))
+		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
