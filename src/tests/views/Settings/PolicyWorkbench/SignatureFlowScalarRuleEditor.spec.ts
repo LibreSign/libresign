@@ -82,4 +82,31 @@ describe('SignatureFlowScalarRuleEditor.vue', () => {
 		const selectedStates = wrapper.findAll('.switch-state').map((node) => node.attributes('data-selected'))
 		expect(selectedStates).toEqual(['false', 'false', 'false'])
 	})
+
+	it('disables default option and shows helper copy for instance rule creation', async () => {
+		const wrapper = mount(SignatureFlowScalarRuleEditor, {
+			props: {
+				modelValue: 'none',
+				editorScope: 'system',
+				editorMode: 'create',
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: {
+						props: ['disabled'],
+						template: '<div class="switch-disabled" :data-disabled="disabled ? \'true\' : \'false\'" @click="!disabled && $emit(\'update:modelValue\', true)"><slot /></div>',
+					},
+				},
+			},
+		})
+
+		expect(wrapper.text()).toContain('already matches the system default')
+
+		const switches = wrapper.findAll('.switch-disabled')
+		expect(switches).toHaveLength(3)
+		expect(switches[2]?.attributes('data-disabled')).toBe('true')
+
+		await switches[2]?.trigger('click')
+		expect(wrapper.emitted('update:modelValue')).toBeFalsy()
+	})
 })
