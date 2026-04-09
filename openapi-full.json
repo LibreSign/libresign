@@ -2053,6 +2053,22 @@
                     }
                 }
             },
+            "PolicySnapshotIntegerEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
             "ProgressError": {
                 "type": "object",
                 "required": [
@@ -2959,6 +2975,9 @@
             "ValidatePolicySnapshot": {
                 "type": "object",
                 "properties": {
+                    "docmdp": {
+                        "$ref": "#/components/schemas/PolicySnapshotIntegerEntry"
+                    },
                     "signature_flow": {
                         "$ref": "#/components/schemas/PolicySnapshotEntry"
                     }
