@@ -17,6 +17,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -33,6 +34,7 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
@@ -1078,14 +1080,120 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		], $file->getMetadata());
 	}
 
+	public function testSetDocMdpLevelUsesResolvedPolicyValue(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(DocMdpPolicy::KEY, null, [])
+			->willReturn($this->createResolvedPolicy(
+				2,
+				policyKey: DocMdpPolicy::KEY,
+			));
+
+		self::invokePrivate($this->getService(), 'setDocMdpLevelFromPolicy', [
+			$file,
+			[],
+		]);
+
+		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING, $file->getDocmdpLevelEnum());
+	}
+
+	public function testSetDocMdpLevelStoresResolvedPolicySnapshotInMetadata(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(DocMdpPolicy::KEY, null, [DocMdpPolicy::KEY => 3])
+			->willReturn($this->createResolvedPolicy(
+				3,
+				sourceScope: 'group',
+				policyKey: DocMdpPolicy::KEY,
+			));
+
+		self::invokePrivate($this->getService(), 'setDocMdpLevelFromPolicy', [
+			$file,
+			['docmdpLevel' => '3'],
+		]);
+
+		$this->assertSame([
+			'policy_snapshot' => [
+				'docmdp' => [
+					'effectiveValue' => 3,
+					'sourceScope' => 'group',
+				],
+			],
+		], $file->getMetadata());
+	}
+
+	public function testUpdateDocMdpLevelFromPolicyUpdatesFileWhenEffectiveValueChanges(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('john');
+		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(DocMdpPolicy::KEY, 'john', [DocMdpPolicy::KEY => 1])
+			->willReturn($this->createResolvedPolicy(
+				1,
+				policyKey: DocMdpPolicy::KEY,
+			));
+
+		$this->fileService
+			->expects($this->once())
+			->method('update')
+			->with($this->identicalTo($file));
+
+		self::invokePrivate($this->getService(), 'updateDocMdpLevelFromPolicy', [
+			$file,
+			['docmdpLevel' => 1],
+		]);
+
+		$this->assertSame(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, $file->getDocmdpLevelEnum());
+	}
+
+	public function testUpdateDocMdpLevelFromPolicyDoesNotPersistWhenNothingChangedAndSnapshotExists(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('john');
+		$file->setDocmdpLevelEnum(DocMdpLevel::CERTIFIED_FORM_FILLING);
+		$file->setMetadata([
+			'policy_snapshot' => [
+				'docmdp' => [
+					'effectiveValue' => 2,
+					'sourceScope' => 'system',
+				],
+			],
+		]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(DocMdpPolicy::KEY, 'john', [])
+			->willReturn($this->createResolvedPolicy(
+				2,
+				policyKey: DocMdpPolicy::KEY,
+			));
+
+		$this->fileService
+			->expects($this->never())
+			->method('update');
+
+		self::invokePrivate($this->getService(), 'updateDocMdpLevelFromPolicy', [
+			$file,
+			[],
+		]);
+	}
+
 	private function createResolvedPolicy(
-		string $effectiveValue,
+		mixed $effectiveValue,
 		string $sourceScope = 'system',
 		bool $canUseAsRequestOverride = true,
 		?string $blockedBy = null,
+		string $policyKey = 'signature_flow',
 	): ResolvedPolicy {
 		return (new ResolvedPolicy())
-			->setPolicyKey('signature_flow')
+			->setPolicyKey($policyKey)
 			->setEffectiveValue($effectiveValue)
 			->setSourceScope($sourceScope)
 			->setCanUseAsRequestOverride($canUseAsRequestOverride)
