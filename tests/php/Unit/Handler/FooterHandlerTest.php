@@ -16,6 +16,7 @@ use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\SignatureFooterPolicyValue;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
@@ -42,7 +43,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('resolve')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				$value = match ($policyKey) {
-					AddFooterPolicy::KEY => $this->appConfig->getValueBool(Application::APP_ID, 'add_footer', true),
+					AddFooterPolicy::KEY => $this->appConfig->getValueString(Application::APP_ID, 'add_footer', '1'),
 					default => null,
 				};
 
@@ -74,7 +75,16 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFooterWithoutValidationSite(): void {
-		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', false);
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			'add_footer',
+			SignatureFooterPolicyValue::encode([
+				'enabled' => false,
+				'writeQrcodeOnFooter' => true,
+				'validationSite' => '',
+				'customizeFooterTemplate' => false,
+			]),
+		);
 		$dimensions = [['w' => 595, 'h' => 842]];
 		$this->l10n = $this->l10nFactory->get(Application::APP_ID);
 		$actual = $this->getClass()
@@ -86,6 +96,20 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[DataProvider('dataGetFooterWithSuccess')]
 	public function testGetFooterWithSuccess(string $language, array $settings, array $expected): void {
 		foreach ($settings as $key => $value) {
+			if ($key === 'add_footer') {
+				$this->appConfig->setValueString(
+					Application::APP_ID,
+					'add_footer',
+					SignatureFooterPolicyValue::encode([
+						'enabled' => (bool)$value,
+						'writeQrcodeOnFooter' => true,
+						'validationSite' => '',
+						'customizeFooterTemplate' => false,
+					]),
+				);
+				continue;
+			}
+
 			switch (gettype($value)) {
 				case 'boolean':
 					$this->appConfig->setValueBool(Application::APP_ID, $key, $value);
@@ -261,7 +285,16 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFooterWithoutUuid(): void {
-		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			'add_footer',
+			SignatureFooterPolicyValue::encode([
+				'enabled' => true,
+				'writeQrcodeOnFooter' => true,
+				'validationSite' => '',
+				'customizeFooterTemplate' => false,
+			]),
+		);
 		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', '<div>{{ signedBy|raw }}</div>');
 
 		$dimensions = [['w' => 595, 'h' => 100]];
@@ -277,7 +310,16 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCustomValidationSiteNotOverwritten(): void {
-		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			'add_footer',
+			SignatureFooterPolicyValue::encode([
+				'enabled' => true,
+				'writeQrcodeOnFooter' => true,
+				'validationSite' => '',
+				'customizeFooterTemplate' => false,
+			]),
+		);
 		$this->appConfig->setValueString(Application::APP_ID, 'validation_site', 'https://default.site');
 		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', '<div>{{ validationSite }}</div>');
 
@@ -349,7 +391,16 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		array $expectedSubstrings,
 		array $forbiddenSubstrings,
 	): void {
-		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			'add_footer',
+			SignatureFooterPolicyValue::encode([
+				'enabled' => true,
+				'writeQrcodeOnFooter' => true,
+				'validationSite' => '',
+				'customizeFooterTemplate' => false,
+			]),
+		);
 		$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
 
 		$dimensions = [['w' => 595, 'h' => 100]];
@@ -374,6 +425,38 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		foreach ($forbiddenSubstrings as $forbidden) {
 			$this->assertStringNotContainsString($forbidden, $text, "Should not find '{$forbidden}' for test: {$testName}");
 		}
+	}
+
+	public function testPolicyCanDisableQrCodeRendering(): void {
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			'add_footer',
+			SignatureFooterPolicyValue::encode([
+				'enabled' => true,
+				'writeQrcodeOnFooter' => false,
+				'validationSite' => 'https://validation.example',
+				'customizeFooterTemplate' => false,
+			]),
+		);
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			'footer_template',
+			'<div>qrcode:{{ qrcode }} validateIn:{{ validationSite }}</div>',
+		);
+
+		$dimensions = [['w' => 595, 'h' => 100]];
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
+
+		$pdf = $this->getClass()
+			->setTemplateVar('uuid', 'unit-test-uuid')
+			->getFooter($dimensions);
+
+		$this->assertNotEmpty($pdf);
+		$parser = new \Smalot\PdfParser\Parser();
+		$pdfParsed = $parser->parseContent($pdf);
+		$text = $pdfParsed->getText();
+		$this->assertStringContainsString('validateIn:https://validation.example/unit-test-uuid', str_replace(' ', '', $text));
+		$this->assertStringNotContainsString('iVBOR', $text);
 	}
 
 	public static function dataAccentedCharactersInFooter(): array {
