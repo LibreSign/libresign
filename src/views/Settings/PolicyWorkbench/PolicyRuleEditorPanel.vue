@@ -44,9 +44,9 @@
 				:disabled="saveStatus === 'saving'"
 				@update:modelValue="$emit('update-allow-override', $event)">
 				<div class="policy-workbench__switch-copy">
-					<span>{{ t('libresign', 'Require this signing order') }}</span>
+					<span>{{ t('libresign', 'Allow lower-level overrides') }}</span>
 					<p>
-						{{ editorDraft.allowChildOverride ? t('libresign', 'All users must follow this signing order.') : t('libresign', 'Users can choose their preferred signing order.') }}
+						{{ editorDraft.allowChildOverride ? t('libresign', 'Groups and users can define a more specific value.') : t('libresign', 'Groups and users must inherit this value.') }}
 					</p>
 				</div>
 			</NcCheckboxRadioSwitch>
