@@ -11,8 +11,8 @@ import type { PolicySettingDefinition } from '../../types'
 export const signatureFlowDefinition: PolicySettingDefinition<'signature_flow'> = {
 	key: 'signature_flow',
 	title: t('libresign', 'Signing order'),
+	context: t('libresign', 'SignatureFlow'),
 	description: t('libresign', 'Define how signers receive and process the signature request.'),
-	menuHint: t('libresign', 'Choose how signing order should work for everyone, groups, and users.'),
 	editor: SignatureFlowRuleEditor,
 	createEmptyValue: () => ({
 		enabled: true,
