@@ -55,8 +55,8 @@ const definitions = {
 	auto_reminders: {
 		key: 'auto_reminders',
 		title: t('libresign', 'Automatic reminders'),
+		context: t('libresign', 'Notification cadence'),
 		description: t('libresign', 'Control whether reminder notifications are automatically sent for pending signers.'),
-		menuHint: t('libresign', 'Simple on/off policy used to validate list usability at scale.'),
 		editor: ConfettiRuleEditor,
 		createEmptyValue: () => ({ enabled: true }),
 		summarizeValue: (value) => value.enabled
@@ -69,8 +69,8 @@ const definitions = {
 	request_notifications: {
 		key: 'request_notifications',
 		title: t('libresign', 'Request notifications'),
+		context: t('libresign', 'Delivery channel'),
 		description: t('libresign', 'Define whether users receive status notifications while a request is in progress.'),
-		menuHint: t('libresign', 'Useful when notification behavior differs by group or user.'),
 		editor: ConfettiRuleEditor,
 		createEmptyValue: () => ({ enabled: true }),
 		summarizeValue: (value) => value.enabled
@@ -83,8 +83,8 @@ const definitions = {
 	document_download_after_sign: {
 		key: 'document_download_after_sign',
 		title: t('libresign', 'Download after signing'),
+		context: t('libresign', 'Post-sign action'),
 		description: t('libresign', 'Control whether the finalized document is automatically offered for download after signing.'),
-		menuHint: t('libresign', 'Compact setting used to validate discoverability in larger policy catalogs.'),
 		editor: ConfettiRuleEditor,
 		createEmptyValue: () => ({ enabled: true }),
 		summarizeValue: (value) => value.enabled
@@ -595,9 +595,9 @@ export function createPolicyWorkbenchState() {
 			return {
 				key: definition.key,
 				title: definition.title,
+				context: definition.context,
 				description: definition.description,
-				menuHint: definition.menuHint,
-							defaultSummary: systemRule ? definition.summarizeValue(systemRule.value as never) : t('libresign', 'No global default rule'),
+				defaultSummary: systemRule ? definition.summarizeValue(systemRule.value as never) : t('libresign', 'No global default rule'),
 				groupCount: groupRuleCount,
 				userCount: userRuleCount,
 			}
