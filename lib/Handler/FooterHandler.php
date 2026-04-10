@@ -12,6 +12,8 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -41,17 +43,17 @@ class FooterHandler {
 		private IL10N $l10n,
 		private IFactory $l10nFactory,
 		private ITempManager $tempManager,
+		private PolicyService $policyService,
 		private TemplateVariables $templateVars,
 	) {
 	}
 
-	public function getFooter(array $dimensions): string {
-		$add_footer = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'add_footer', true);
-		if (!$add_footer) {
+	public function getFooter(array $dimensions, bool $forceEnabled = false): string {
+		if (!$forceEnabled && !$this->isFooterEnabled()) {
 			return '';
 		}
 
-		$htmlFooter = $this->getRenderedHtmlFooter();
+		$htmlFooter = $this->getRenderedHtmlFooter($forceEnabled);
 		foreach ($dimensions as $dimension) {
 			if (!isset($pdf)) {
 				$pdf = new Mpdf([
@@ -94,14 +96,14 @@ class FooterHandler {
 		return $metadata;
 	}
 
-	private function getRenderedHtmlFooter(): string {
+	private function getRenderedHtmlFooter(bool $forceEnabled = false): string {
 		try {
 			$twigEnvironment = new Environment(
 				new FilesystemLoader(),
 			);
 			return $twigEnvironment
 				->createTemplate($this->getTemplate())
-				->render($this->prepareTemplateVars());
+				->render($this->prepareTemplateVars($forceEnabled));
 		} catch (SyntaxError $e) {
 			throw new LibresignException($e->getMessage());
 		}
@@ -112,7 +114,7 @@ class FooterHandler {
 		return $this;
 	}
 
-	private function prepareTemplateVars(): array {
+	private function prepareTemplateVars(bool $forceEnabled = false): array {
 		if (!$this->templateVars->getSignedBy()) {
 			$this->templateVars->setSignedBy(
 				$this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digitally signed by LibreSign.'))
@@ -155,7 +157,7 @@ class FooterHandler {
 			}
 		}
 
-		if ($this->appConfig->getValueBool(Application::APP_ID, 'write_qrcode_on_footer', true) && $this->templateVars->getValidationSite()) {
+		if ($this->templateVars->getValidationSite()) {
 			$this->templateVars->setQrcode($this->getQrCodeImageBase64($this->templateVars->getValidationSite()));
 		}
 
@@ -203,5 +205,11 @@ class FooterHandler {
 
 	public function getTemplateVariablesMetadata(): array {
 		return $this->templateVars->getVariablesMetadata();
+	}
+
+	private function isFooterEnabled(): bool {
+		return (bool)$this->policyService
+			->resolve(AddFooterPolicy::KEY)
+			->getEffectiveValue();
 	}
 }
