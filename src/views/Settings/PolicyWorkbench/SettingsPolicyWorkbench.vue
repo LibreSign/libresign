@@ -16,7 +16,7 @@
 				<NcTextField
 					:model-value="settingsFilter"
 					:label="t('libresign', 'Find setting')"
-					:placeholder="t('libresign', 'Search by name, summary or hint')"
+					:placeholder="t('libresign', 'Search by name, summary, description or context')"
 					@keydown.esc.prevent="clearSettingsFilter"
 					@update:modelValue="onSettingsFilterChange" />
 				<div class="policy-workbench__catalog-foot">
@@ -68,17 +68,16 @@
 				@keydown.space.prevent="state.openSetting(summary.key)">
 				<div class="policy-workbench__setting-header">
 					<div>
-						<h3 v-html="highlightText(summary.title)"></h3>
+						<h3 class="policy-workbench__setting-title">
+							<span v-html="highlightText(summary.title)"></span>
+							<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
+						</h3>
 						<p v-html="highlightText(summary.description)"></p>
 					</div>
 					<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Manage this setting')" @click.stop="state.openSetting(summary.key)">
 						{{ t('libresign', 'Manage') }}
 					</NcButton>
 				</div>
-
-				<p class="policy-workbench__setting-hint">
-					<span v-html="highlightText(summary.menuHint)"></span>
-				</p>
 
 				<p class="policy-workbench__origin-badge">
 					{{ resolveSettingOrigin(summary.groupCount, summary.userCount) }}
@@ -114,7 +113,10 @@
 				@keydown.enter.prevent="state.openSetting(summary.key)"
 				@keydown.space.prevent="state.openSetting(summary.key)">
 				<div class="policy-workbench__settings-row-main">
-					<h3 v-html="highlightText(summary.title)"></h3>
+					<h3 class="policy-workbench__setting-title">
+						<span v-html="highlightText(summary.title)"></span>
+						<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
+					</h3>
 					<p v-html="highlightText(summary.description)"></p>
 					<p class="policy-workbench__origin-badge policy-workbench__origin-badge--inline">
 						{{ resolveSettingOrigin(summary.groupCount, summary.userCount) }}
@@ -539,7 +541,7 @@ const filteredSettingSummaries = computed(() => {
 	}
 
 	return state.visibleSettingSummaries.filter((summary) => {
-		return [summary.title, summary.description, summary.menuHint, summary.defaultSummary]
+		return [summary.title, summary.context ?? '', summary.description, summary.defaultSummary]
 			.some((value) => value.toLowerCase().includes(normalized))
 	})
 })
@@ -1027,9 +1029,16 @@ onBeforeUnmount(() => {
 		}
 	}
 
-	&__setting-hint {
+	&__setting-title {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.35rem;
+	}
+
+	&__setting-context {
+		font-size: 0.88em;
+		font-weight: 500;
 		color: var(--color-text-maxcontrast);
-		word-break: break-word;
 	}
 
 	&__setting-stats {
