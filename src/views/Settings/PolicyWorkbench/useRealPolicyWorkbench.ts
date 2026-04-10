@@ -296,6 +296,7 @@ function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
 export function createRealPolicyWorkbenchState() {
 	const policiesStore = usePoliciesStore()
 	const currentUser = getCurrentUser()
+	const isInstanceAdmin = currentUser?.isAdmin === true
 	const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
 	const initialViewMode: 'system-admin' | 'group-admin' = currentUser?.isAdmin
 		? 'system-admin'
@@ -509,6 +510,10 @@ export function createRealPolicyWorkbenchState() {
 	})
 
 	const createGroupOverrideDisabledReason = computed(() => {
+		if (isInstanceAdmin) {
+			return null
+		}
+
 		if (inheritedSystemRule.value?.allowChildOverride === false) {
 			return t('libresign', 'Blocked by the global default.')
 		}
