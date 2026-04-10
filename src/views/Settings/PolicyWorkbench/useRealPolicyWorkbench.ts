@@ -10,8 +10,9 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { computed, reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 
-import DocMdpScalarRuleEditor from './settings/docmdp/DocMdpScalarRuleEditor.vue'
-import SignatureFlowScalarRuleEditor from './settings/signature-flow/SignatureFlowScalarRuleEditor.vue'
+import { resolveDocMdpLevel } from './settings/docmdp/realDefinition'
+import { realDefinitions } from './settings/realDefinitions'
+import { resolveSignatureFlowMode } from './settings/signature-flow/realDefinition'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
 import logger from '../../../logger.js'
@@ -51,17 +52,6 @@ interface PolicyEditorDraft {
 	targetIds: string[]
 	value: EffectivePolicyValue
 	allowChildOverride: boolean
-}
-
-interface PolicySettingDefinition {
-	key: string
-	title: string
-	context?: string
-	description: string
-	editor: unknown
-	createEmptyValue: () => EffectivePolicyValue
-	summarizeValue: (value: EffectivePolicyValue) => string
-	formatAllowOverride: (allowChildOverride: boolean) => string
 }
 
 interface PolicySettingSummary {
@@ -128,90 +118,6 @@ function isUserDetailsRecord(candidate: unknown): candidate is UserDetailsRecord
 	return true
 }
 
-const realDefinitions = {
-	signature_flow: {
-		key: 'signature_flow',
-		title: t('libresign', 'Signing order'),
-		context: undefined,
-		description: t('libresign', 'Choose whether documents are signed in order or all at once.'),
-		editor: SignatureFlowScalarRuleEditor,
-		createEmptyValue: () => '' as unknown as EffectivePolicyValue,
-		summarizeValue: (value: EffectivePolicyValue) => {
-			const flowValue = resolveSignatureFlowMode(value)
-			switch (flowValue) {
-			case 'parallel':
-				return t('libresign', 'Simultaneous (Parallel)')
-			case 'ordered_numeric':
-				return t('libresign', 'Sequential')
-			case 'none':
-				return t('libresign', 'User choice')
-			default:
-				return t('libresign', 'Not configured')
-			}
-		},
-		formatAllowOverride: (allowChildOverride: boolean) =>
-			allowChildOverride
-				? t('libresign', 'Groups and users can set their own rule')
-				: t('libresign', 'Groups and users must follow this value'),
-	},
-	docmdp: {
-		key: 'docmdp',
-		title: t('libresign', 'PDF certification'),
-		context: t('libresign', 'DocMDP'),
-		description: t('libresign', 'Control what changes are allowed after a document is signed.'),
-		editor: DocMdpScalarRuleEditor,
-		createEmptyValue: () => 0,
-		summarizeValue: (value: EffectivePolicyValue) => {
-			const level = resolveDocMdpLevel(value)
-			switch (level) {
-			case 0:
-				return t('libresign', 'Disabled')
-			case 1:
-				return t('libresign', 'No changes allowed')
-			case 2:
-				return t('libresign', 'Form filling')
-			case 3:
-				return t('libresign', 'Form filling and annotations')
-			default:
-				return t('libresign', 'Not configured')
-			}
-		},
-		formatAllowOverride: (allowChildOverride: boolean) =>
-			allowChildOverride
-				? t('libresign', 'Groups and users can set their own rule')
-				: t('libresign', 'Groups and users must follow this value'),
-	},
-}
-
-function resolveSignatureFlowMode(value: EffectivePolicyValue): string | null {
-	if (value === 0) {
-		return 'none'
-	}
-
-	if (value === 1) {
-		return 'parallel'
-	}
-
-	if (value === 2) {
-		return 'ordered_numeric'
-	}
-
-	if (typeof value === 'string') {
-		if (value === 'parallel' || value === 'ordered_numeric' || value === 'none') {
-			return value
-		}
-
-		return null
-	}
-
-	if (value && typeof value === 'object' && 'flow' in (value as Record<string, unknown>)) {
-		const candidate = (value as { flow?: unknown }).flow
-		return typeof candidate === 'string' ? candidate : null
-	}
-
-	return null
-}
-
 function normalizeDraftValueForPolicy(policyKey: string, value: EffectivePolicyValue): EffectivePolicyValue {
 	if (policyKey === 'signature_flow') {
 		const mode = resolveSignatureFlowMode(value)
@@ -265,18 +171,6 @@ function getDocMdpFallbackSystemDefault(policy: EffectivePolicyState | null): Ef
 	}
 
 	return 0
-}
-
-function resolveDocMdpLevel(value: EffectivePolicyValue): number | null {
-	if (typeof value === 'number' && value >= 0 && value <= 3) {
-		return value
-	}
-
-	if (typeof value === 'string' && /^[0-3]$/.test(value)) {
-		return Number(value)
-	}
-
-	return null
 }
 
 function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
