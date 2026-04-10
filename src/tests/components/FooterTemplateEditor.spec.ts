@@ -181,9 +181,9 @@ describe('FooterTemplateEditor.vue', () => {
 		const wrapper = createWrapper()
 		await flushPromises()
 
-		wrapper.vm.previewWidth = 700
+		wrapper.vm.previewWidth = 800
 		wrapper.vm.previewHeight = 150
-		wrapper.vm.resetDimensions()
+		await wrapper.vm.resetDimensions()
 
 		expect(wrapper.vm.previewWidth).toBe(wrapper.vm.DEFAULT_PREVIEW_WIDTH)
 		expect(wrapper.vm.previewHeight).toBe(wrapper.vm.DEFAULT_PREVIEW_HEIGHT)

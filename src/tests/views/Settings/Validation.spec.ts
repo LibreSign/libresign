@@ -114,7 +114,8 @@ describe('Settings/Validation.vue', () => {
 	})
 
 	it('resets the footer template when customization is disabled', async () => {
-		axiosGetMock.mockResolvedValue({ data: { ocs: { data: { data: '1' } } } })
+		axiosGetMock
+			.mockResolvedValue({ data: { ocs: { data: { data: '1' } } } })
 
 		const wrapper = createWrapper()
 		await flushPromises()
