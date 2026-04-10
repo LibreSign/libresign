@@ -13,6 +13,9 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\TemplateVariables;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
@@ -25,6 +28,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private PdfMetadataExtractor&MockObject $pdfMetadataExtractor;
 	private IURLGenerator&MockObject $urlGenerator;
+	private PolicyService&MockObject $policyService;
 	private IL10N $l10n;
 	private IFactory $l10nFactory;
 	private ITempManager $tempManager;
@@ -33,6 +37,23 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->pdfMetadataExtractor = $this->createMock(PdfMetadataExtractor::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService
+			->method('resolve')
+			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
+				$value = match ($policyKey) {
+					AddFooterPolicy::KEY => $this->appConfig->getValueBool(Application::APP_ID, 'add_footer', true),
+					default => null,
+				};
+
+				return (new ResolvedPolicy())
+					->setPolicyKey($policyKey)
+					->setEffectiveValue($value)
+					->setSourceScope('system')
+					->setVisible(true)
+					->setEditableByCurrentActor(true)
+					->setAllowedValues([true, false]);
+			});
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->l10nFactory = \OCP\Server::get(IFactory::class);
 	}
@@ -46,6 +67,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->l10nFactory,
 			$this->tempManager,
+			$this->policyService,
 			$templateVars,
 		);
 		return $this->footerHandler;
@@ -92,7 +114,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				array_keys($expected),
 				$this->l10nFactory->getLanguageDirection($language)
 			);
-			if ($settings['write_qrcode_on_footer']) {
+			if (!empty($expected['qrcode'])) {
 				$this->assertNotEmpty($actual['qrcode'], 'Invalid qrcode content');
 				unset($actual['qrcode'], $expected['qrcode']);
 			}
@@ -113,7 +135,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
-					'write_qrcode_on_footer' => true,
 					'footer_link_to_site' => 'https://libresign.coop',
 					'footer_signed_by' => 'Digital signed by LibreSign.',
 					'footer_validate_in' => 'Validate in %s.',
@@ -138,7 +159,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
-					'write_qrcode_on_footer' => false,
 					'footer_link_to_site' => 'https://libresign.coop',
 					'footer_signed_by' => 'Digital signed by LibreSign.',
 					'footer_validate_in' => 'Validate in %s.',
@@ -159,7 +179,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
-					'write_qrcode_on_footer' => false,
 					'footer_link_to_site' => 'https://libresign.coop',
 					'footer_signed_by' => 'Signé numériquement avec LibreSign.',
 					'footer_validate_in' => 'Validate in %s',
@@ -180,7 +199,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
-					'write_qrcode_on_footer' => false,
 					'footer_link_to_site' => 'https://libresign.coop',
 					'footer_signed_by' => 'Το αρχείο υπάρχει',
 					'footer_validate_in' => 'Επικυρώστε στο %s.',
@@ -201,7 +219,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
-					'write_qrcode_on_footer' => false,
 					'footer_link_to_site' => 'https://libresign.coop',
 					'footer_signed_by' => 'אין המלצות. נא להתחיל להקליד.',
 					'footer_validate_in' => 'אמת ב- %s.',
@@ -245,7 +262,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetFooterWithoutUuid(): void {
 		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
-		$this->appConfig->setValueBool(Application::APP_ID, 'write_qrcode_on_footer', true);
 		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', '<div>{{ signedBy|raw }}</div>');
 
 		$dimensions = [['w' => 595, 'h' => 100]];
@@ -334,7 +350,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		array $forbiddenSubstrings,
 	): void {
 		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
-		$this->appConfig->setValueBool(Application::APP_ID, 'write_qrcode_on_footer', false);
 		$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
 
 		$dimensions = [['w' => 595, 'h' => 100]];

@@ -12,6 +12,7 @@ use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -43,6 +44,7 @@ final class PolicyServiceTest extends TestCase {
 			->method('get')
 			->willReturnCallback(static function (string $class): object {
 				return match ($class) {
+					AddFooterPolicy::class => new AddFooterPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
