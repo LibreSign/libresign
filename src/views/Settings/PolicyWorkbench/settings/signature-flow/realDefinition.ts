@@ -43,7 +43,27 @@ export const signatureFlowRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Signing order'),
 	description: t('libresign', 'Choose whether documents are signed in order or all at once.'),
 	editor: SignatureFlowScalarRuleEditor,
+	resolutionMode: 'precedence',
 	createEmptyValue: () => '' as unknown as EffectivePolicyValue,
+	normalizeDraftValue: (value: EffectivePolicyValue) => {
+		const mode = resolveSignatureFlowMode(value)
+		return mode ?? 'parallel'
+	},
+	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveSignatureFlowMode(value) !== null,
+	normalizeAllowChildOverride: (scope, allowChildOverride: boolean) => {
+		if (scope === 'system' || scope === 'group') {
+			return false
+		}
+
+		return allowChildOverride
+	},
+	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
+		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
+			return policyValue
+		}
+
+		return 'none'
+	},
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const flowValue = resolveSignatureFlowMode(value)
 		switch (flowValue) {
