@@ -69,14 +69,8 @@ class FolderService {
 	public function getFolder(): Folder {
 		$path = $this->getLibreSignDefaultPath();
 		$containerFolder = $this->getContainerFolder();
-		try {
-			/** @var Folder $folder */
-			$folder = $containerFolder->get($path);
-		} catch (NotFoundException) {
-			/** @var Folder $folder */
-			$folder = $containerFolder->newFolder($path);
-		}
-		return $folder;
+
+		return $this->ensureFolderPathExists($containerFolder, $path);
 	}
 
 	/**
@@ -117,6 +111,23 @@ class FolderService {
 		$reflection = new \ReflectionClass($containerFolder);
 		$reflectionProperty = $reflection->getProperty('folder');
 		return $reflectionProperty->getValue($containerFolder);
+	}
+
+	private function ensureFolderPathExists(Folder $folder, string $path): Folder {
+		$cleanPath = trim($path, '/');
+
+		if ($cleanPath === '') {
+			return $folder;
+		}
+
+		$segments = array_filter(explode('/', $cleanPath), static fn (string $segment): bool => $segment !== '');
+		$currentFolder = $folder;
+
+		foreach ($segments as $segment) {
+			$currentFolder = $currentFolder->getOrCreateFolder($segment);
+		}
+
+		return $currentFolder;
 	}
 
 	private function getLibreSignDefaultPath(): string {
