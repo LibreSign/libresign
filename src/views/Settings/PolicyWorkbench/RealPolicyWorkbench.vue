@@ -13,7 +13,7 @@
 				<NcTextField
 					:model-value="settingsFilter"
 					:label="t('libresign', 'Search settings')"
-					:placeholder="t('libresign', 'Search by setting name, summary, or hint')"
+					:placeholder="t('libresign', 'Search by setting name, summary, description, or context')"
 					@keydown.esc.prevent="clearSettingsFilter"
 					@update:modelValue="onSettingsFilterChange" />
 				<div class="policy-workbench__catalog-foot">
@@ -60,7 +60,10 @@
 				<div class="policy-workbench__setting-body">
 					<div class="policy-workbench__setting-header">
 						<div>
-							<h3 v-html="highlightText(summary.title)"></h3>
+							<h3 class="policy-workbench__setting-title">
+								<span v-html="highlightText(summary.title)"></span>
+								<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
+							</h3>
 							<p class="policy-workbench__setting-description" v-html="highlightText(summary.description)"></p>
 						</div>
 					</div>
@@ -102,7 +105,10 @@
 				@keydown.enter.prevent="state.openSetting(summary.key)"
 				@keydown.space.prevent="state.openSetting(summary.key)">
 				<div class="policy-workbench__settings-row-main">
-					<h3 v-html="highlightText(summary.title)"></h3>
+					<h3 class="policy-workbench__setting-title">
+						<span v-html="highlightText(summary.title)"></span>
+						<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
+					</h3>
 					<p v-html="highlightText(summary.description)"></p>
 					<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge policy-workbench__origin-badge--inline">
 						{{ t('libresign', 'Custom rules active') }}
@@ -459,7 +465,7 @@ const filteredSettingSummaries = computed(() => {
 	}
 
 	return state.visibleSettingSummaries.filter((summary) => {
-		return [summary.title, summary.description, summary.menuHint, summary.defaultSummary]
+		return [summary.title, summary.context ?? '', summary.description, summary.defaultSummary]
 			.some((value) => value.toLowerCase().includes(normalized))
 	})
 })
@@ -1486,6 +1492,18 @@ onBeforeUnmount(() => {
 			overflow-wrap: anywhere;
 			word-break: break-word;
 		}
+	}
+
+	&__setting-title {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.35rem;
+	}
+
+	&__setting-context {
+		font-size: 0.88em;
+		font-weight: 500;
+		color: var(--color-text-maxcontrast);
 	}
 
 	&__setting-body {
