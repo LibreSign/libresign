@@ -1,16 +1,21 @@
 Feature: admin/initial_state
   Scenario: Default identify methods are exposed in admin initial state
     Given as user "admin"
-    And run the command "config:app:delete libresign identify_methods" with result code 0
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"password":{"enabled":true}}},{"name":"email","enabled":false,"mandatory":true,"can_create_account":true,"signatureMethods":{"emailToken":{"enabled":true}}}] |
+    And the response should have a status code 200
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                     | value                                                                                                            |
       | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].enabled == true and .[0].mandatory == true and .[0].signatureMethods.password.enabled == true |
       | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].enabled == false and .[0].mandatory == true and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
 
-  Scenario: Identify methods stored as invalid string fall back to the default contract
+  Scenario: Identify methods stored as invalid string can be normalized through the API contract
     Given as user "admin"
     And run the command "config:app:set libresign identify_methods --value=invalid --type=string" with result code 0
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","fake":null}] |
+    And the response should have a status code 200
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                     | value                                                                                                            |
