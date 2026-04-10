@@ -23,8 +23,6 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 	private const EMPTY_STRING = '';
 	private const IDENTIFY_METHODS_KEY = 'identify_methods';
 	private const LEGACY_SYSTEM_KEY = SignatureFlowPolicy::KEY;
-	private const LEGACY_ALLOW_CHILD_OVERRIDE_KEY = SignatureFlowPolicy::KEY . '.allow_child_override';
-	private const SYSTEM_ALLOW_CHILD_OVERRIDE_SUFFIX = '.allow_child_override';
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -40,13 +38,10 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 
 	private function migrateSignatureFlowKeys(): void {
 		$newSystemKey = SignatureFlowPolicy::SYSTEM_APP_CONFIG_KEY;
-		$newAllowChildOverrideKey = $newSystemKey . self::SYSTEM_ALLOW_CHILD_OVERRIDE_SUFFIX;
 
 		$this->copyStringValueWhenDestinationEmpty(self::LEGACY_SYSTEM_KEY, $newSystemKey);
-		$this->copyStringValueWhenDestinationEmpty(self::LEGACY_ALLOW_CHILD_OVERRIDE_KEY, $newAllowChildOverrideKey);
 
 		$this->appConfig->deleteKey(self::APP_ID, self::LEGACY_SYSTEM_KEY);
-		$this->appConfig->deleteKey(self::APP_ID, self::LEGACY_ALLOW_CHILD_OVERRIDE_KEY);
 	}
 
 	private function migrateDocMdpLevelType(): void {
