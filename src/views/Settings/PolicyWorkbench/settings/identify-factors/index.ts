@@ -11,8 +11,8 @@ import type { PolicySettingDefinition } from '../../types'
 export const identifyFactorsDefinition: PolicySettingDefinition<'identify_factors'> = {
 	key: 'identify_factors',
 	title: t('libresign', 'Identification factors'),
+	context: t('libresign', 'Identity matrix'),
 	description: t('libresign', 'Configure which factors identify signers and how each factor maps to signature methods.'),
-	menuHint: t('libresign', 'Complex matrix example with nested options per factor and fallback behavior.'),
 	editor: IdentifyFactorsRuleEditor,
 	createEmptyValue: () => ({
 		enabled: true,
