@@ -93,8 +93,8 @@ export type PolicyTargetOption = {
 export type PolicySettingDefinition<K extends PolicySettingKey = PolicySettingKey> = {
 	key: K
 	title: string
+	context?: string
 	description: string
-	menuHint: string
 	editor: Component
 	createEmptyValue: (scope: PolicyScope) => PolicySettingValueMap[K]
 	summarizeValue: (value: PolicySettingValueMap[K]) => string
@@ -104,8 +104,8 @@ export type PolicySettingDefinition<K extends PolicySettingKey = PolicySettingKe
 export type PolicySettingSummary = {
 	key: PolicySettingKey
 	title: string
+	context?: string
 	description: string
-	menuHint: string
 	defaultSummary: string
 	groupCount: number
 	userCount: number
