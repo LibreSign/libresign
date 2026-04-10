@@ -28,25 +28,20 @@ final class AddFooterPolicy implements IPolicyDefinitionProvider {
 		return match ($this->normalizePolicyKey($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
-				defaultSystemValue: true,
-				allowedValues: [
-					true,
-					false,
-				],
+				defaultSystemValue: SignatureFooterPolicyValue::encode(SignatureFooterPolicyValue::defaults()),
+				allowedValues: static fn (): array => [],
 				normalizer: static function (mixed $rawValue): mixed {
-					if (is_bool($rawValue)) {
-						return $rawValue;
+					return SignatureFooterPolicyValue::encode(SignatureFooterPolicyValue::normalize($rawValue));
+				},
+				validator: static function (mixed $value): void {
+					if (!is_string($value) || trim($value) === '') {
+						throw new \InvalidArgumentException('Invalid value for ' . self::KEY);
 					}
 
-					if (is_int($rawValue)) {
-						return $rawValue === 1;
+					$decoded = json_decode($value, true);
+					if (!is_array($decoded)) {
+						throw new \InvalidArgumentException('Invalid value for ' . self::KEY);
 					}
-
-					if (is_string($rawValue)) {
-						return in_array(strtolower($rawValue), ['1', 'true', 'yes', 'on'], true);
-					}
-
-					return (bool)$rawValue;
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 			),
