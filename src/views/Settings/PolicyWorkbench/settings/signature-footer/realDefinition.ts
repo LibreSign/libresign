@@ -19,6 +19,7 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Signature footer'),
 	description: t('libresign', 'Manage footer visibility, QR code behavior, validation URL, and footer template customization.'),
 	editor: SignatureFooterRuleEditor,
+	editorDialogLayout: 'wide',
 	resolutionMode: 'precedence',
 	createEmptyValue: () => serializeSignatureFooterPolicyConfig(getDefaultSignatureFooterPolicyConfig()),
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
