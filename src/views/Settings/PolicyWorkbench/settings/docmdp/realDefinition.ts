@@ -27,7 +27,21 @@ export const docMdpRealDefinition: RealPolicySettingDefinition = {
 	context: t('libresign', 'DocMDP'),
 	description: t('libresign', 'Control what changes are allowed after a document is signed.'),
 	editor: DocMdpScalarRuleEditor,
+	resolutionMode: 'precedence',
 	createEmptyValue: () => 0,
+	normalizeDraftValue: (value: EffectivePolicyValue) => {
+		const level = resolveDocMdpLevel(value)
+		return level ?? 0
+	},
+	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveDocMdpLevel(value) !== null,
+	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
+	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
+		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
+			return policyValue
+		}
+
+		return 0
+	},
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const level = resolveDocMdpLevel(value)
 		switch (level) {
