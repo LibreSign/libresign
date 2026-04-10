@@ -415,7 +415,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$userFolder = $this->createMock(Folder::class);
 		$userFolder->method('isUpdateable')->willReturn(true);
-		$userFolder->method('get')->willReturn($mockUserFolder);
+		$userFolder->method('getOrCreateFolder')->willReturn($mockUserFolder);
 		$this->root->method('getUserFolder')->willReturn($userFolder);
 
 		$service = $this->getInstance('testuser');
@@ -445,7 +445,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$userFolder = $this->createMock(Folder::class);
 		$userFolder->method('isUpdateable')->willReturn(true);
-		$userFolder->method('get')->willReturn($mockUserFolder);
+		$userFolder->method('getOrCreateFolder')->willReturn($mockUserFolder);
 		$this->root->method('getUserFolder')->willReturn($userFolder);
 
 		$service = $this->getInstance('user1');
