@@ -11,8 +11,8 @@ import type { PolicySettingDefinition } from '../../types'
 export const confettiDefinition: PolicySettingDefinition<'confetti'> = {
 	key: 'confetti',
 	title: t('libresign', 'Confetti animation'),
+	context: t('libresign', 'UI effect'),
 	description: t('libresign', 'Control whether a celebratory animation is shown when someone signs a document.'),
-	menuHint: t('libresign', 'Useful to validate the policy shell with a compact editor and simple value shape.'),
 	editor: ConfettiRuleEditor,
 	createEmptyValue: () => ({
 		enabled: true,
