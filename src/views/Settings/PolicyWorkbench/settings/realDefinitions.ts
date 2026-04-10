@@ -4,12 +4,12 @@
  */
 
 import { docMdpRealDefinition } from './docmdp/realDefinition'
-import { addFooterRealDefinition } from './footer/realDefinition'
+import { signatureFooterRealDefinition } from './signature-footer/realDefinition'
 import { signatureFlowRealDefinition } from './signature-flow/realDefinition'
 import type { RealPolicySettingDefinition } from './realTypes'
 
 export const realDefinitions = {
-	add_footer: addFooterRealDefinition,
+	add_footer: signatureFooterRealDefinition,
 	signature_flow: signatureFlowRealDefinition,
 	docmdp: docMdpRealDefinition,
 } satisfies Record<string, RealPolicySettingDefinition>
