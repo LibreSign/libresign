@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\Footer;
 
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\SignatureFooterPolicyValue;
 use PHPUnit\Framework\TestCase;
 
 final class AddFooterPolicyTest extends TestCase {
@@ -19,19 +20,45 @@ final class AddFooterPolicyTest extends TestCase {
 		$definition = $provider->get(AddFooterPolicy::KEY);
 
 		$this->assertSame(AddFooterPolicy::KEY, $definition->key());
-		$this->assertTrue($definition->defaultSystemValue());
-		$this->assertSame([true, false], $definition->allowedValues(new PolicyContext()));
+		$this->assertSame(
+			SignatureFooterPolicyValue::encode(SignatureFooterPolicyValue::defaults()),
+			$definition->defaultSystemValue(),
+		);
+		$this->assertSame([], $definition->allowedValues(new PolicyContext()));
 	}
 
 	public function testProviderNormalizesBooleanLikeValues(): void {
 		$provider = new AddFooterPolicy();
 		$definition = $provider->get(AddFooterPolicy::KEY);
 
-		$this->assertTrue($definition->normalizeValue(true));
-		$this->assertFalse($definition->normalizeValue(false));
-		$this->assertTrue($definition->normalizeValue('1'));
-		$this->assertFalse($definition->normalizeValue('0'));
-		$this->assertTrue($definition->normalizeValue('true'));
-		$this->assertFalse($definition->normalizeValue('false'));
+		$this->assertSame(
+			SignatureFooterPolicyValue::encode([
+				'enabled' => true,
+				'writeQrcodeOnFooter' => true,
+				'validationSite' => '',
+				'customizeFooterTemplate' => false,
+			]),
+			$definition->normalizeValue(true),
+		);
+
+		$this->assertSame(
+			SignatureFooterPolicyValue::encode([
+				'enabled' => false,
+				'writeQrcodeOnFooter' => true,
+				'validationSite' => '',
+				'customizeFooterTemplate' => false,
+			]),
+			$definition->normalizeValue('0'),
+		);
+
+		$this->assertSame(
+			SignatureFooterPolicyValue::encode([
+				'enabled' => true,
+				'writeQrcodeOnFooter' => false,
+				'validationSite' => 'https://validation.example',
+				'customizeFooterTemplate' => true,
+			]),
+			$definition->normalizeValue('{"enabled":true,"writeQrcodeOnFooter":false,"validationSite":"https://validation.example","customizeFooterTemplate":true}'),
+		);
 	}
 }
