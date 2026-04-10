@@ -375,7 +375,7 @@ test('system default persists across edit cycles and can be reset to the system 
 	expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
 })
 
-test('admin can manage instance and user rules while signature-flow group rules stay blocked', async ({ page }) => {
+test('admin can manage instance, group, and user rules when system default is fixed', async ({ page }) => {
 	const userTarget = userRuleTargetLabel
 
 	await ensureUserExists(page.request, userTarget)
@@ -402,12 +402,10 @@ test('admin can manage instance and user rules while signature-flow group rules 
 	await submitSystemRuleAndWait(stableDialog)
 	expect(await getSystemSignatureFlowValue(page)).toBe('ordered_numeric')
 
-	// Signature-flow group rules are intentionally blocked once the instance rule is fixed.
+	// Instance admins can still create group-level exceptions even when the system default is fixed.
 	await stableDialog.getByRole('button', { name: 'Create rule' }).first().click()
 	const groupScopeOption = await getCreateScopeOption(stableDialog.page(), 'Group')
-	await expect(groupScopeOption).toBeDisabled()
-	const createScopeDialog = await getCreateScopeDialog(stableDialog.page())
-	await expect(createScopeDialog.getByText(/^Group:\s+Blocked by the global default\.$/i)).toBeVisible()
+	await expect(groupScopeOption).toBeEnabled()
 
 	// User rule: create
 	const userScopeOption = await getCreateScopeOption(stableDialog.page(), 'User')
