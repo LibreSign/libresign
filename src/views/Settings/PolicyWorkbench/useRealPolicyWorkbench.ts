@@ -10,15 +10,14 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { computed, reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 
-import { resolveDocMdpLevel } from './settings/docmdp/realDefinition'
 import { realDefinitions } from './settings/realDefinitions'
-import { resolveSignatureFlowMode } from './settings/signature-flow/realDefinition'
+import type { RealPolicyResolutionMode } from './settings/realTypes'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
 import logger from '../../../logger.js'
 
 type PolicyScope = 'system' | 'group' | 'user'
-type PolicyResolutionMode = 'precedence' | 'merge' | 'conflict_requires_selection'
+type PolicyResolutionMode = RealPolicyResolutionMode
 
 interface PolicyImpactPreview {
 	groupCount?: number
@@ -118,28 +117,6 @@ function isUserDetailsRecord(candidate: unknown): candidate is UserDetailsRecord
 	return true
 }
 
-function normalizeDraftValueForPolicy(policyKey: string, value: EffectivePolicyValue): EffectivePolicyValue {
-	if (policyKey === 'signature_flow') {
-		const mode = resolveSignatureFlowMode(value)
-		return mode ?? 'parallel'
-	}
-
-	if (policyKey === 'docmdp') {
-		const level = resolveDocMdpLevel(value)
-		return level ?? 0
-	}
-
-	return value
-}
-
-function normalizeAllowChildOverrideForPolicy(policyKey: string, scope: PolicyScope, allowChildOverride: boolean): boolean {
-	if (policyKey === 'signature_flow' && (scope === 'system' || scope === 'group')) {
-		return false
-	}
-
-	return allowChildOverride
-}
-
 function inferSystemAllowOverride(policy: { allowedValues?: unknown[] } | null): boolean {
 	if (!policy || !Array.isArray(policy.allowedValues)) {
 		return true
@@ -147,30 +124,6 @@ function inferSystemAllowOverride(policy: { allowedValues?: unknown[] } | null):
 
 	// When lower layers are locked, backend narrows allowedValues to a single value.
 	return policy.allowedValues.length !== 1
-}
-
-function getPolicyResolutionMode(policyKey: string): PolicyResolutionMode {
-	if (policyKey === 'signature_flow') {
-		return 'precedence'
-	}
-
-	return 'precedence'
-}
-
-function getSignatureFlowFallbackSystemDefault(policy: EffectivePolicyState | null): EffectivePolicyValue {
-	if (policy?.sourceScope === 'system' && policy.effectiveValue !== null && policy.effectiveValue !== undefined) {
-		return policy.effectiveValue
-	}
-
-	return 'none'
-}
-
-function getDocMdpFallbackSystemDefault(policy: EffectivePolicyState | null): EffectivePolicyValue {
-	if (policy?.sourceScope === 'system' && policy.effectiveValue !== null && policy.effectiveValue !== undefined) {
-		return policy.effectiveValue
-	}
-
-	return 0
 }
 
 function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
@@ -310,7 +263,7 @@ export function createRealPolicyWorkbenchState() {
 			return 'precedence'
 		}
 
-		return getPolicyResolutionMode(activeDefinition.value.key)
+		return activeDefinition.value.resolutionMode
 	})
 
 	const systemDefaultRule = computed<PolicyRuleRecord | null>(() => {
@@ -319,11 +272,10 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		const policy = activePolicyState.value
-		const fallbackValue = activeDefinition.value.key === 'signature_flow'
-			? getSignatureFlowFallbackSystemDefault(policy)
-			: activeDefinition.value.key === 'docmdp'
-				? getDocMdpFallbackSystemDefault(policy)
-				: policy?.effectiveValue
+		const fallbackValue = activeDefinition.value.getFallbackSystemDefault(
+			policy?.effectiveValue,
+			policy?.sourceScope,
+		)
 
 		if (fallbackValue === null || fallbackValue === undefined) {
 			return null
@@ -493,21 +445,13 @@ export function createRealPolicyWorkbenchState() {
 		return toDraftSnapshot(editorDraft.value) !== editorInitialSnapshot.value
 	})
 
-		function hasSelectableDraftValue(draft: PolicyEditorDraft) {
-			if (!activeDefinition.value) {
-				return false
-			}
-
-			if (activeDefinition.value.key === 'signature_flow') {
-				return resolveSignatureFlowMode(draft.value) !== null
-			}
-
-			if (activeDefinition.value.key === 'docmdp') {
-				return resolveDocMdpLevel(draft.value) !== null
-			}
-
-			return draft.value !== null && draft.value !== undefined
+	function hasSelectableDraftValue(draft: PolicyEditorDraft) {
+		if (!activeDefinition.value) {
+			return false
 		}
+
+		return activeDefinition.value.hasSelectableDraftValue(draft.value)
+	}
 
 	const canSaveDraft = computed(() => {
 		if (!editorDraft.value) {
@@ -791,19 +735,19 @@ export function createRealPolicyWorkbenchState() {
 
 		let value: EffectivePolicyValue = activeDefinition.value.createEmptyValue()
 		let targetIds: string[] = []
-		let allowChildOverride = normalizeAllowChildOverrideForPolicy(activeDefinition.value.key, scope, true)
+		let allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, true)
 
 		if (isEdit && ruleId) {
 			const rule = findRuleById(scope, ruleId)
 			if (rule) {
-				value = normalizeDraftValueForPolicy(activeDefinition.value.key, rule.value)
-				allowChildOverride = normalizeAllowChildOverrideForPolicy(activeDefinition.value.key, scope, rule.allowChildOverride)
+				value = activeDefinition.value.normalizeDraftValue(rule.value)
+				allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, rule.allowChildOverride)
 				targetIds = rule.targetId ? [rule.targetId] : []
 			}
 		} else if (scope === 'system') {
 			const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
 			if (baselineRuleValue !== null && baselineRuleValue !== undefined) {
-				value = normalizeDraftValueForPolicy(activeDefinition.value.key, baselineRuleValue)
+				value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
 			}
 		} else if (scope === 'group') {
 			targetIds = []
@@ -852,11 +796,9 @@ export function createRealPolicyWorkbenchState() {
 
 	function updateDraftAllowOverride(allowChildOverride: boolean) {
 		if (editorDraft.value) {
-			editorDraft.value.allowChildOverride = normalizeAllowChildOverrideForPolicy(
-				activeDefinition.value?.key ?? '',
-				editorDraft.value.scope,
-				allowChildOverride,
-			)
+			editorDraft.value.allowChildOverride = activeDefinition.value
+				? activeDefinition.value.normalizeAllowChildOverride(editorDraft.value.scope, allowChildOverride)
+				: allowChildOverride
 		}
 	}
 
@@ -890,7 +832,7 @@ export function createRealPolicyWorkbenchState() {
 
 		const { scope, value, targetIds } = editorDraft.value
 		const policyKey = activeDefinition.value.key
-		const allowChildOverride = normalizeAllowChildOverrideForPolicy(policyKey, scope, editorDraft.value.allowChildOverride)
+		const allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, editorDraft.value.allowChildOverride)
 
 		try {
 			if (scope === 'system') {
