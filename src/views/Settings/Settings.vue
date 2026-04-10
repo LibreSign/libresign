@@ -16,7 +16,6 @@
 		<ExpirationRules />
 		<Validation />
 		<CrlValidation />
-		<DocMDP />
 		<SettingsPolicyWorkbench />
 		<SigningMode v-if="false" />
 		<AllowedGroups />
@@ -39,7 +38,6 @@ import ConfigureCheck from './ConfigureCheck.vue'
 import CollectMetadata from './CollectMetadata.vue'
 import CrlValidation from './CrlValidation.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
-import DocMDP from './PolicyWorkbench/settings/docmdp/DocMDP.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
 import Envelope from './Envelope.vue'
 import ExpirationRules from './ExpirationRules.vue'
@@ -67,7 +65,6 @@ defineOptions({
 		CollectMetadata,
 		CrlValidation,
 		DefaultUserFolder,
-		DocMDP,
 		DownloadBinaries,
 		Envelope,
 		ExpirationRules,
