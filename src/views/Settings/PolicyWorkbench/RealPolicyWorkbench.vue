@@ -55,8 +55,8 @@
 				@pointerdown="trackPress('cards', summary.key, $event)"
 				@mouseup="markSelectionGesture('cards', summary.key)"
 				@click="openSettingFromPointer('cards', summary.key, $event)"
-				@keydown.enter.prevent="state.openSetting(summary.key)"
-				@keydown.space.prevent="state.openSetting(summary.key)">
+				@keydown.enter.prevent="openSettingFromKeyboard(summary.key)"
+				@keydown.space.prevent="openSettingFromKeyboard(summary.key)">
 				<div class="policy-workbench__setting-body">
 					<div class="policy-workbench__setting-header">
 						<div>
@@ -85,7 +85,7 @@
 				</div>
 
 				<div class="policy-workbench__setting-footer">
-					<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="state.openSetting(summary.key)">
+					<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="openSettingFromAction(summary.key, $event)">
 						{{ t('libresign', 'Configure') }}
 					</NcButton>
 				</div>
@@ -102,8 +102,8 @@
 				@pointerdown="trackPress('list', summary.key, $event)"
 				@mouseup="markSelectionGesture('list', summary.key)"
 				@click="openSettingFromPointer('list', summary.key, $event)"
-				@keydown.enter.prevent="state.openSetting(summary.key)"
-				@keydown.space.prevent="state.openSetting(summary.key)">
+				@keydown.enter.prevent="openSettingFromKeyboard(summary.key)"
+				@keydown.space.prevent="openSettingFromKeyboard(summary.key)">
 				<div class="policy-workbench__settings-row-main">
 					<h3 class="policy-workbench__setting-title">
 						<span v-html="highlightText(summary.title)"></span>
@@ -123,7 +123,7 @@
 					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ t('libresign', 'Custom rules') }}:</strong> {{ formatOverrideSummary(summary.groupCount, summary.userCount) }}</span>
 				</div>
 
-				<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="state.openSetting(summary.key)">
+				<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="openSettingFromAction(summary.key, $event)">
 					{{ t('libresign', 'Configure') }}
 				</NcButton>
 			</article>
@@ -446,6 +446,7 @@ const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)
 const lastPress = ref<{ surface: 'cards' | 'list', key: string, x: number, y: number } | null>(null)
 const recentSelectionGesture = ref<{ surface: 'cards' | 'list', key: string, at: number } | null>(null)
+const clearCatalogFocusOnClose = ref(false)
 const openRuleActionsKey = ref<string | null>(null)
 const crudSearch = ref('')
 const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
@@ -1006,6 +1007,17 @@ function openSettingFromPointer(surface: 'cards' | 'list', key: string, event: M
 		return
 	}
 
+	clearCatalogFocusOnClose.value = true
+	state.openSetting(key as never)
+}
+
+function openSettingFromAction(key: string, event: MouseEvent) {
+	clearCatalogFocusOnClose.value = event.detail > 0
+	state.openSetting(key as never)
+}
+
+function openSettingFromKeyboard(key: string) {
+	clearCatalogFocusOnClose.value = false
 	state.openSetting(key as never)
 }
 
@@ -1158,6 +1170,15 @@ function confirmDiscardDialog() {
 
 	if (action === 'close-setting') {
 		state.closeSetting()
+		if (clearCatalogFocusOnClose.value) {
+			void nextTick().then(() => {
+				const activeElement = document.activeElement
+				if (activeElement instanceof HTMLElement) {
+					activeElement.blur()
+				}
+			})
+		}
+		clearCatalogFocusOnClose.value = false
 	}
 
 	openRuleActionsKey.value = null
@@ -1240,6 +1261,15 @@ function requestCloseSetting() {
 	}
 
 	state.closeSetting()
+	if (clearCatalogFocusOnClose.value) {
+		void nextTick().then(() => {
+			const activeElement = document.activeElement
+			if (activeElement instanceof HTMLElement) {
+				activeElement.blur()
+			}
+		})
+	}
+	clearCatalogFocusOnClose.value = false
 }
 
 onMounted(async () => {
