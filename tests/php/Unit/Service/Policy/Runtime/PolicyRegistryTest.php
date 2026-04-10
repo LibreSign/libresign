@@ -13,6 +13,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use PHPUnit\Framework\TestCase;
@@ -42,6 +43,19 @@ final class PolicyRegistryTest extends TestCase {
 		$this->assertSame([0, 1, 2, 3], $definition->allowedValues(new PolicyContext()));
 		$this->assertSame(2, $definition->normalizeValue(2));
 	}
+
+	public function testRegistryReturnsAddFooterDefinition(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->with(AddFooterPolicy::class)->willReturn(new AddFooterPolicy());
+		$registry = new PolicyRegistry($container);
+		$definition = $registry->get(AddFooterPolicy::KEY);
+
+		$this->assertSame(AddFooterPolicy::KEY, $definition->key());
+		$this->assertTrue($definition->defaultSystemValue());
+		$this->assertSame([true, false], $definition->allowedValues(new PolicyContext()));
+		$this->assertFalse($definition->normalizeValue('0'));
+	}
+
 
 	public function testRegistryThrowsForUnknownPolicy(): void {
 		$this->expectException(\InvalidArgumentException::class);
