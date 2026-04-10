@@ -78,6 +78,15 @@ function findButtonContainingText(wrapper: ReturnType<typeof mountWorkbench>, te
 	return wrapper.findAll('button').find((button) => button.text().includes(text))
 }
 
+function findConfigureButtonForSetting(wrapper: ReturnType<typeof mountWorkbench>, settingTitle: string) {
+	const settingCard = wrapper.findAll('article').find((article) => article.text().includes(settingTitle))
+	if (!settingCard) {
+		return undefined
+	}
+
+	return settingCard.findAll('button').find((button) => button.text().includes('Configure'))
+}
+
 describe('RealPolicyWorkbench.vue', () => {
 	beforeEach(() => {
 		getPolicy.mockReset()
@@ -96,7 +105,7 @@ describe('RealPolicyWorkbench.vue', () => {
 	it('keeps rule creation inside a modal multi-step flow', async () => {
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 		await findButtonByText(wrapper, 'Create rule')?.trigger('click')
@@ -136,7 +145,7 @@ describe('RealPolicyWorkbench.vue', () => {
 	it('opens the editor directly in edit mode without the type selection step', async () => {
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -170,7 +179,7 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -185,7 +194,7 @@ describe('RealPolicyWorkbench.vue', () => {
 	it('allows reopening create flow after canceling a draft', async () => {
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -222,7 +231,7 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -243,7 +252,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		})
 
 		const wrapper = mountWorkbench()
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -259,7 +268,7 @@ describe('RealPolicyWorkbench.vue', () => {
 
 	it('shows signing order with sophisticated visual interface: filter, toggle, counts, and scopes', async () => {
 		const wrapper = mountWorkbench()
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
@@ -312,7 +321,7 @@ describe('RealPolicyWorkbench.vue', () => {
 	it('closes the rule actions menu after clicking edit', async () => {
 		const wrapper = mountWorkbench()
 
-		const openPolicyButton = wrapper.findAll('button').find((button) => button.text().includes('Configure'))
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
