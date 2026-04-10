@@ -50,7 +50,7 @@ const NcCheckboxRadioSwitchStub = {
 }
 
 beforeAll(async () => {
-	;({ default: DocMDP } = await import('../../../views/Settings/DocMDP.vue'))
+	;({ default: DocMDP } = await import('../../../views/Settings/PolicyWorkbench/settings/docmdp/DocMDP.vue'))
 })
 
 describe('DocMDP', () => {
