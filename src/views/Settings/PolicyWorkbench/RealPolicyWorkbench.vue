@@ -314,10 +314,14 @@
 				v-if="showCreateScopeDialog || state.editorDraft"
 				:name="ruleDialogTitle"
 				size="normal"
+				:class="ruleEditorDialogClass"
 				:buttons="ruleDialogButtons"
 				:can-close="true"
 				@closing="requestCloseRuleDialog()">
-				<div v-if="state.editorDraft" class="policy-workbench__editor-modal-body">
+				<div
+					v-if="state.editorDraft"
+					class="policy-workbench__editor-modal-body"
+					:class="ruleEditorDialogBodyClass">
 				<PolicyRuleEditorPanel
 					v-if="state.editorDraft"
 					:editor-draft="state.editorDraft"
@@ -609,6 +613,18 @@ const showCreateRuleBackAction = computed(() => {
 })
 
 const dialogDescription = computed(() => state.activeDefinition?.description || '')
+
+const ruleEditorDialogClass = computed(() => {
+	return state.activeDefinition?.editorDialogLayout === 'wide'
+		? 'policy-workbench__rule-dialog policy-workbench__rule-dialog--wide'
+		: 'policy-workbench__rule-dialog'
+})
+
+const ruleEditorDialogBodyClass = computed(() => {
+	return state.activeDefinition?.editorDialogLayout === 'wide'
+		? 'policy-workbench__editor-modal-body--wide'
+		: ''
+})
 
 function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
 	if (scope === 'group') {
@@ -2462,6 +2478,10 @@ onBeforeUnmount(() => {
 	&__editor-modal-body {
 		width: min(100%, 42rem);
 		margin: 0 auto;
+
+		&--wide {
+			width: min(100%, 64rem);
+		}
 	}
 
 	&__create-scope-grid {
