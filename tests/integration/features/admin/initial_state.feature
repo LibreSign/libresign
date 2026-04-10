@@ -1,9 +1,7 @@
 Feature: admin/initial_state
   Scenario: Default identify methods are exposed in admin initial state
     Given as user "admin"
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"password":{"enabled":true}}},{"name":"email","enabled":false,"mandatory":true,"can_create_account":true,"signatureMethods":{"emailToken":{"enabled":true}}}] |
-    And the response should have a status code 200
+    And run the command "config:app:delete libresign identify_methods" with result code 0
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                     | value                                                                                                            |
