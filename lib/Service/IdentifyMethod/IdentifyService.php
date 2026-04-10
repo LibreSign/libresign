@@ -17,6 +17,7 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\Files\IRootFolder;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -131,7 +132,25 @@ class IdentifyService {
 		}
 
 		$this->getAppConfig()->clearCache(true);
-		$this->savedSettings = $this->getAppConfig()->getValueArray(Application::APP_ID, 'identify_methods', []);
+		try {
+			$this->savedSettings = $this->getAppConfig()->getValueArray(Application::APP_ID, 'identify_methods', []);
+		} catch (AppConfigTypeConflictException) {
+			// Key was stored with wrong type (e.g., string written by the provisioning API).
+			// Normalize it: read the raw string, delete the key, and re-store as array type.
+			try {
+				$raw = $this->getAppConfig()->getValueString(Application::APP_ID, 'identify_methods', '');
+			} catch (AppConfigTypeConflictException) {
+				$raw = '';
+			}
+			$this->getAppConfig()->deleteKey(Application::APP_ID, 'identify_methods');
+			$decoded = json_decode($raw, true);
+			if (is_array($decoded)) {
+				$this->getAppConfig()->setValueArray(Application::APP_ID, 'identify_methods', $decoded);
+				$this->savedSettings = $decoded;
+			} else {
+				$this->savedSettings = [];
+			}
+		}
 
 		return $this->savedSettings;
 	}
