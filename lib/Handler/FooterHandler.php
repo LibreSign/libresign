@@ -14,6 +14,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\SignatureFooterPolicyValue;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -115,6 +116,10 @@ class FooterHandler {
 	}
 
 	private function prepareTemplateVars(bool $forceEnabled = false): array {
+		$footerPolicy = SignatureFooterPolicyValue::normalize(
+			$this->policyService->resolve(AddFooterPolicy::KEY)->getEffectiveValue()
+		);
+
 		if (!$this->templateVars->getSignedBy()) {
 			$this->templateVars->setSignedBy(
 				$this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digitally signed by LibreSign.'))
@@ -134,7 +139,9 @@ class FooterHandler {
 		}
 
 		if (!$this->templateVars->getValidationSite() && $this->templateVars->getUuid()) {
-			$validationSite = $this->appConfig->getValueString(Application::APP_ID, 'validation_site');
+			$validationSite = $footerPolicy['validationSite'] !== ''
+				? $footerPolicy['validationSite']
+				: $this->appConfig->getValueString(Application::APP_ID, 'validation_site');
 			if ($validationSite) {
 				$this->templateVars->setValidationSite(
 					rtrim($validationSite, '/') . '/' . $this->templateVars->getUuid()
@@ -157,7 +164,7 @@ class FooterHandler {
 			}
 		}
 
-		if ($this->templateVars->getValidationSite()) {
+		if ($footerPolicy['writeQrcodeOnFooter'] && $this->templateVars->getValidationSite()) {
 			$this->templateVars->setQrcode($this->getQrCodeImageBase64($this->templateVars->getValidationSite()));
 		}
 
@@ -208,8 +215,8 @@ class FooterHandler {
 	}
 
 	private function isFooterEnabled(): bool {
-		return (bool)$this->policyService
-			->resolve(AddFooterPolicy::KEY)
-			->getEffectiveValue();
+		return SignatureFooterPolicyValue::isEnabled(
+			$this->policyService->resolve(AddFooterPolicy::KEY)->getEffectiveValue()
+		);
 	}
 }
