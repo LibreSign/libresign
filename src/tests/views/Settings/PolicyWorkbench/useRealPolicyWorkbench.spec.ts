@@ -921,7 +921,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.createGroupOverrideDisabledReason).toBeNull()
 	})
 
-	it('blocks creating group rule only when system rule explicitly disallows child override', () => {
+	it('allows instance admin to create group rule even when system rule disallows child override', () => {
 		// Single allowedValues → backend signals allowChildOverride = false
 		getPolicy.mockReturnValue({
 			effectiveValue: 'parallel',
@@ -929,6 +929,21 @@ describe('useRealPolicyWorkbench', () => {
 		})
 
 		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.inheritedSystemRule?.allowChildOverride).toBe(false)
+		expect(state.createGroupOverrideDisabledReason).toBeNull()
+	})
+
+	it('blocks group-admin from creating group rule when system rule disallows child override', () => {
+		currentUserState.isAdmin = false
+		getPolicy.mockReturnValue({
+			effectiveValue: 'parallel',
+			allowedValues: ['parallel'],
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.setViewMode('group-admin')
 		state.openSetting('signature_flow')
 
 		expect(state.inheritedSystemRule?.allowChildOverride).toBe(false)
