@@ -64,8 +64,8 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSavingIndicatorIcon from '@nextcloud/vue/components/NcSavingIndicatorIcon'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
-import { usePoliciesStore } from '../../store/policies'
-import type { EffectivePolicyState, SystemPolicyWriteErrorResponse } from '../../types'
+import { usePoliciesStore } from '../../../../../store/policies'
+import type { EffectivePolicyState, SystemPolicyWriteErrorResponse } from '../../../../../types'
 
 defineOptions({
 	name: 'DocMDP',
