@@ -56,8 +56,8 @@ interface PolicyEditorDraft {
 interface PolicySettingDefinition {
 	key: string
 	title: string
+	context?: string
 	description: string
-	menuHint: string
 	editor: unknown
 	createEmptyValue: () => EffectivePolicyValue
 	summarizeValue: (value: EffectivePolicyValue) => string
@@ -67,8 +67,8 @@ interface PolicySettingDefinition {
 interface PolicySettingSummary {
 	key: string
 	title: string
+	context?: string
 	description: string
-	menuHint: string
 	defaultSummary: string
 	groupCount: number
 	userCount: number
@@ -132,8 +132,8 @@ const realDefinitions = {
 	signature_flow: {
 		key: 'signature_flow',
 		title: t('libresign', 'Signing order'),
+		context: undefined,
 		description: t('libresign', 'Choose whether documents are signed in order or all at once.'),
-		menuHint: t('libresign', 'Signing order options for everyone, groups, and users.'),
 		editor: SignatureFlowScalarRuleEditor,
 		createEmptyValue: () => '' as unknown as EffectivePolicyValue,
 		summarizeValue: (value: EffectivePolicyValue) => {
@@ -156,9 +156,9 @@ const realDefinitions = {
 	},
 	docmdp: {
 		key: 'docmdp',
-		title: t('libresign', 'PDF certification (DocMDP)'),
+		title: t('libresign', 'PDF certification'),
+		context: t('libresign', 'DocMDP'),
 		description: t('libresign', 'Control what changes are allowed after a document is signed.'),
-		menuHint: t('libresign', 'PDF certification options for everyone, groups, and users.'),
 		editor: DocMdpScalarRuleEditor,
 		createEmptyValue: () => 0,
 		summarizeValue: (value: EffectivePolicyValue) => {
@@ -350,8 +350,8 @@ export function createRealPolicyWorkbenchState() {
 			return {
 				key: definition.key,
 				title: definition.title,
+				context: definition.context,
 				description: definition.description,
-				menuHint: definition.menuHint,
 				defaultSummary: hasEffectiveValue ? definition.summarizeValue(policy.effectiveValue) : t('libresign', 'Not configured'),
 				groupCount: isActiveSetting ? groupRules.value.length : (persistedCounts?.groupCount ?? 0),
 				userCount: isActiveSetting ? userRules.value.length : (persistedCounts?.userCount ?? 0),
