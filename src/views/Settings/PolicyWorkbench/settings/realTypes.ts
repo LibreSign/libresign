@@ -7,6 +7,7 @@ import type { EffectivePolicyValue } from '../../../../types/index'
 
 export type RealPolicyScope = 'system' | 'group' | 'user'
 export type RealPolicyResolutionMode = 'precedence' | 'merge' | 'conflict_requires_selection'
+export type RealPolicyEditorDialogLayout = 'default' | 'wide'
 
 export interface RealPolicySettingDefinition {
 	key: string
@@ -14,6 +15,7 @@ export interface RealPolicySettingDefinition {
 	context?: string
 	description: string
 	editor: unknown
+	editorDialogLayout?: RealPolicyEditorDialogLayout
 	resolutionMode: RealPolicyResolutionMode
 	createEmptyValue: () => EffectivePolicyValue
 	normalizeDraftValue: (value: EffectivePolicyValue) => EffectivePolicyValue
