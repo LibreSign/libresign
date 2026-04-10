@@ -11,8 +11,8 @@ import type { PolicySettingDefinition } from '../../types'
 export const signatureStampDefinition: PolicySettingDefinition<'signature_stamp'> = {
 	key: 'signature_stamp',
 	title: t('libresign', 'Signature stamp'),
+	context: t('libresign', 'Template and rendering'),
 	description: t('libresign', 'Manage the visible signature block, template and dimensions with a richer policy model.'),
-	menuHint: t('libresign', 'Complex policy example with dimensions, render modes, template text, and background behavior.'),
 	editor: SignatureStampRuleEditor,
 	createEmptyValue: () => ({
 		enabled: true,
