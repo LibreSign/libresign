@@ -988,42 +988,6 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Set signature flow configuration
-	 *
-	 * @param bool $enabled Whether to force a signature flow for all documents
-	 * @param string|null $mode Signature flow mode: 'parallel' or 'ordered_numeric' (only used when enabled is true)
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
-	 *
-	 * 200: Configuration saved successfully
-	 * 400: Invalid signature flow mode provided
-	 * 500: Internal server error
-	 */
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-flow/config', requirements: ['apiVersion' => '(v1)'])]
-	public function setSignatureFlowConfig(bool $enabled, ?string $mode = null): DataResponse {
-		try {
-			if ($enabled && $mode === null) {
-				return new DataResponse([
-					'error' => $this->l10n->t('Mode is required when signature flow is enabled.'),
-				], Http::STATUS_BAD_REQUEST);
-			}
-
-			$this->policyService->saveSystem('signature_flow', $enabled ? $mode : null);
-
-			return new DataResponse([
-				'message' => $this->l10n->t('Settings saved'),
-			]);
-		} catch (\InvalidArgumentException) {
-			return new DataResponse([
-				'error' => $this->l10n->t('Invalid signature flow mode. Use "parallel" or "ordered_numeric".'),
-			], Http::STATUS_BAD_REQUEST);
-		} catch (\Exception $e) {
-			return new DataResponse([
-				'error' => $e->getMessage(),
-			], Http::STATUS_INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	/**
 	 * Configure DocMDP signature restrictions
 	 *
 	 * @param bool $enabled Whether to enable DocMDP restrictions
