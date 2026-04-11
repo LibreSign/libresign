@@ -14,10 +14,10 @@
 				</template>
 				{{ t('libresign', 'Available variables') }}
 			</NcButton>
-				<NcButton v-if="hasTemplateChanged"
+				<NcButton v-if="!isDefaultTemplate"
 				variant="tertiary"
-					:aria-label="t('libresign', 'Reset template to original')"
-					@click="resetTemplateToOriginal">
+					:aria-label="t('libresign', 'Reset template to default')"
+					@click="resetTemplateToDefault">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 				</template>
@@ -27,7 +27,7 @@
 			v-model="footerTemplate"
 			:label="t('libresign', 'Footer template')"
 			:placeholder="t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')"
-			@update:modelValue="debouncedSaveFooterTemplate" />
+			@update:modelValue="onTemplateChange" />
 		<div v-if="pdfPreviewFile" class="footer-preview">
 			<h4>{{ t('libresign', 'Preview') }}</h4>
 			<div class="footer-preview__controls">
@@ -171,6 +171,7 @@ defineOptions({
 
 const emit = defineEmits<{
 	(event: 'template-reset'): void
+	(event: 'template-changed'): void
 }>()
 
 const vLinkify = Linkify
@@ -260,9 +261,29 @@ function copyToClipboard(text: string) {
 	}, 2000)
 }
 
-function resetTemplateToOriginal() {
-	footerTemplate.value = originalTemplate.value
+function onTemplateChange() {
+	emit('template-changed')
 	debouncedSaveFooterTemplate()
+}
+
+function resetTemplateToDefault() {
+	axios.post(
+		generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
+		{
+			template: '',
+			width: Number(previewWidth.value),
+			height: Number(previewHeight.value),
+		},
+		{ responseType: 'blob' },
+	).then(response => {
+		footerTemplate.value = ''
+		originalTemplate.value = ''
+		isDefaultTemplate.value = true
+		emit('template-reset')
+		setPdfPreview(response.data)
+	}).catch(error => {
+		console.error('Error resetting footer template:', error)
+	})
 }
 
 function resetDimensionsToOriginal() {
@@ -316,7 +337,7 @@ function setPdfPreview(blob: Blob) {
 		const timestamp = Date.now()
 		pdfPreviewFile.value = new File([blob], `footer-preview-${timestamp}.pdf`, { type: 'application/pdf' })
 		pdfKey.value += 1
-		
+
 		// Timeout to prevent infinite loading if PDFElements doesn't emit end-init
 		const loadingTimeout = setTimeout(() => {
 			if (loadingPreview.value) {
@@ -325,7 +346,7 @@ function setPdfPreview(blob: Blob) {
 				containerHeight.value = null
 			}
 		}, 5000)
-		
+
 		// Store timeout ID so it can be cleared when PDF actually loads
 		;(blob as any).__loadingTimeoutId = loadingTimeout
 	})
@@ -365,7 +386,7 @@ onMounted(() => {
 				const template = response.data.ocs.data.template
 				const width = response.data.ocs.data.preview_width
 				const height = response.data.ocs.data.preview_height
-				
+
 				footerTemplate.value = template
 				originalTemplate.value = template
 				isDefaultTemplate.value = response.data.ocs.data.isDefault ?? true
@@ -383,6 +404,7 @@ defineExpose({
 	footerDescription,
 		footerTemplate,
 		originalTemplate,
+	isDefaultTemplate,
 	pdfPreviewFile,
 	loadingPreview,
 	pdfKey,
@@ -401,13 +423,14 @@ defineExpose({
 	getVariableText,
 	isCopied,
 	copyToClipboard,
-	resetTemplateToOriginal,
+	resetTemplateToDefault,
 	resetDimensionsToOriginal,
 	resetDimensions,
 	saveDimensions,
 	saveFooterTemplate,
 	setPdfPreview,
 	onPdfReady,
+	onTemplateChange,
 	changeZoomLevel,
 	onZoomInput,
 	updateScale,
