@@ -212,7 +212,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	#[Given('the response header :header should contain :value')]
 	public function theResponseHeaderShouldContain(string $header, string $value): void {
 		Assert::assertNotNull($this->response, 'No response available');
-		$actual = strtolower((string)$this->response->getHeaderLine($header));
+		$actual = strtolower($this->response->getHeaderLine($header));
 		Assert::assertStringContainsString(strtolower($value), $actual, sprintf('Response header "%s" does not contain "%s"', $header, $value));
 	}
 
