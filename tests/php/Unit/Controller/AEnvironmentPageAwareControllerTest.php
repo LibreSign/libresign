@@ -91,7 +91,9 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 		$nextcloudFile = $root->getFirstNodeById($file->getNodeId());
 		$trashManager = \OCP\Server::get(ITrashManager::class);
 		$trashManager->pauseTrash();
-		$nextcloudFile->delete();
+		if ($nextcloudFile !== null) {
+			$nextcloudFile->delete();
+		}
 
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionCode(404);
