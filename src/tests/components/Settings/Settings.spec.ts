@@ -7,6 +7,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
+import { ref, nextTick } from 'vue'
 import type { TranslationFunction } from '../../test-types'
 
 type SettingsComponent = typeof import('../../../components/Settings/Settings.vue').default
@@ -20,6 +21,7 @@ let auth: AuthModule
 let initialState: InitialStateModule
 let getCurrentUserMock: MockedFunction<typeof import('@nextcloud/auth').getCurrentUser>
 let loadStateMock: MockedFunction<typeof import('@nextcloud/initial-state').loadState>
+const mockPolicies = ref<Record<string, unknown>>({})
 
 type SettingsVm = {
 	getAdminRoute: () => string
@@ -41,6 +43,13 @@ vi.mock('@nextcloud/initial-state', () => ({
 }))
 vi.mock('@nextcloud/router', () => ({
 	generateUrl: vi.fn((url) => `/admin/${url}`),
+}))
+vi.mock('../../../store/policies', () => ({
+	usePoliciesStore: () => ({
+		get policies() {
+			return mockPolicies.value
+		},
+	}),
 }))
 
 beforeAll(async () => {
@@ -97,17 +106,12 @@ describe('Settings', () => {
 	): SettingsWrapper => {
 		const user = { isAdmin } as ReturnType<typeof auth.getCurrentUser>
 		getCurrentUserMock.mockReturnValue(user)
+		mockPolicies.value = effectivePolicies
 		loadStateMock.mockImplementation((app, key, defaults) => {
 			if (key === 'config') {
 				return {
 					...(defaults as Record<string, unknown>),
 					can_manage_group_policies: canManagePolicies,
-				}
-			}
-			if (key === 'effective_policies') {
-				return {
-					...(defaults as Record<string, unknown>),
-					policies: effectivePolicies,
 				}
 			}
 			return defaults
@@ -138,6 +142,7 @@ describe('Settings', () => {
 			wrapper = null
 		}
 		vi.clearAllMocks()
+		mockPolicies.value = {}
 		loadStateMock.mockImplementation((app, key, defaults) => defaults)
 	})
 
@@ -392,17 +397,16 @@ describe('Settings', () => {
 			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
 		})
 
-		it('hides Policies for non-admin users with group policy capability but no editable policies', () => {
+		it('hides Policies for non-admin users with group policy capability but no delegated policies', () => {
 			wrapper = createWrapper(false, true)
 			const items = getItems()
 
 			expect(findItemByName(items, 'Policies')).toBeUndefined()
 		})
 
-		it('shows Policies for non-admin users with group policy capability and editable policies', () => {
+		it('shows Policies for non-admin users with group policy capability and delegated policies', () => {
 			wrapper = createWrapper(false, true, {
 				signature_flow: {
-					editableByCurrentActor: true,
 					groupCount: 1,
 					userCount: 0,
 				},
@@ -413,10 +417,9 @@ describe('Settings', () => {
 			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
 		})
 
-		it('hides Policies for non-admin users when only system-level editable policies exist', () => {
+		it('hides Policies for non-admin users when only system-level policies exist', () => {
 			wrapper = createWrapper(false, true, {
 				docmdp: {
-					editableByCurrentActor: true,
 					groupCount: 0,
 					userCount: 0,
 				},
@@ -424,6 +427,22 @@ describe('Settings', () => {
 			const items = getItems()
 
 			expect(findItemByName(items, 'Policies')).toBeUndefined()
+		})
+
+		it('updates Policies visibility after the policies store receives delegated counts', async () => {
+			wrapper = createWrapper(false, true)
+			expect(findItemByName(getItems(), 'Policies')).toBeUndefined()
+
+			mockPolicies.value = {
+				add_footer: {
+					groupCount: 1,
+					userCount: 0,
+				},
+			}
+			await nextTick()
+
+			const policiesItem = expectItem(findItemByName(getItems(), 'Policies'))
+			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
 		})
 
 		it('renders the policies icon for admin users', () => {
