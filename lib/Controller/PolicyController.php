@@ -58,11 +58,27 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/effective', requirements: ['apiVersion' => '(v1)'])]
 	public function effective(): DataResponse {
+		$user = $this->userSession->getUser();
+		$isSystemAdmin = $user !== null && $this->groupManager->isAdmin($user->getUID());
+		$isSubAdmin = !$isSystemAdmin && $user !== null && $this->subAdmin->isSubAdmin($user);
+
+		if ($isSystemAdmin) {
+			$ruleCounts = $this->policyService->getAllRuleCounts();
+		} elseif ($isSubAdmin) {
+			$managedGroups = $this->subAdmin->getSubAdminsGroups($user);
+			$groupIds = array_map(static fn ($group) => $group->getGID(), $managedGroups);
+			$ruleCounts = $this->policyService->getRuleCounts($groupIds, []);
+		} else {
+			$ruleCounts = [];
+		}
+
 		/** @var array<string, LibresignEffectivePolicyState> $policies */
 		$policies = [];
 		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
 			/** @var LibresignEffectivePolicyState $policyState */
 			$policyState = $resolvedPolicy->toArray();
+			$policyState['groupCount'] = $ruleCounts[$policyKey]['groupCount'] ?? 0;
+			$policyState['userCount'] = $ruleCounts[$policyKey]['userCount'] ?? 0;
 			$policies[$policyKey] = $policyState;
 		}
 
