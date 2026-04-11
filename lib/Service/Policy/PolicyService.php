@@ -162,4 +162,18 @@ class PolicyService {
 
 		return $this->source->loadUserPreference($definition->key(), $context);
 	}
+
+	/**
+	 * @param list<string> $groupIds
+	 * @param list<string> $userIds
+	 * @return array<string, array{groupCount: int, userCount: int}>
+	 */
+	public function getRuleCounts(array $groupIds, array $userIds): array {
+		return $this->source->loadRuleCounts($groupIds, $userIds);
+	}
+
+	/** @return array<string, array{groupCount: int, userCount: int}> */
+	public function getAllRuleCounts(): array {
+		return $this->source->loadAllRuleCounts();
+	}
 }
