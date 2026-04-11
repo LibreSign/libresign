@@ -486,6 +486,84 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertSame('system', $resolved->getSourceScope());
 	}
 
+	public function testSaveGroupPolicyBlocksSubAdminWhenGlobalDefaultDisallowsOverrides(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->source
+			->expects($this->once())
+			->method('loadSystemPolicy')
+			->with(FooterPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue('{"enabled":true}')
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true));
+
+		$this->source
+			->expects($this->never())
+			->method('saveGroupPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+		);
+
+		$this->expectException(\DomainException::class);
+		$this->expectExceptionMessage('Lower-level overrides are not allowed for this policy');
+
+		$service->saveGroupPolicy(FooterPolicy::KEY, 'finance', '{"enabled":false}', false);
+	}
+
+	public function testClearGroupPolicyBlocksSubAdminWhenGlobalDefaultDisallowsOverrides(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('group-admin');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('group-admin')
+			->willReturn(false);
+
+		$this->source
+			->expects($this->once())
+			->method('loadSystemPolicy')
+			->with(FooterPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue('{"enabled":true}')
+				->setAllowChildOverride(false)
+				->setVisibleToChild(true));
+
+		$this->source
+			->expects($this->never())
+			->method('clearGroupPolicy');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+		);
+
+		$this->expectException(\DomainException::class);
+		$this->expectExceptionMessage('Lower-level overrides are not allowed for this policy');
+
+		$service->clearGroupPolicy(FooterPolicy::KEY, 'finance');
+	}
+
 	public function testGetAllRuleCountsDelegatesToSource(): void {
 		$expected = [
 			'signature_flow' => ['groupCount' => 2, 'userCount' => 5],
