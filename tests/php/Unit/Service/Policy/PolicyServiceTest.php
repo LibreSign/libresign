@@ -18,6 +18,7 @@ use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCP\IGroupManager;
+use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
@@ -30,6 +31,7 @@ final class PolicyServiceTest extends TestCase {
 	private IGroupManager&MockObject $groupManager;
 	private IUserSession&MockObject $userSession;
 	private PolicySource&MockObject $source;
+	private IL10N&MockObject $l10n;
 	private PolicyRegistry $registry;
 	private PolicyContextFactory $contextFactory;
 
@@ -39,6 +41,14 @@ final class PolicyServiceTest extends TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->source = $this->createMock(PolicySource::class);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			foreach ($parameters as $key => $value) {
+				$text = str_replace('{' . $key . '}', (string)$value, $text);
+			}
+
+			return $text;
+		});
 		$container = $this->createMock(ContainerInterface::class);
 		$container
 			->method('get')
@@ -97,6 +107,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$resolved = $service->resolveForUserId(DocMdpPolicy::KEY, 'john');
@@ -149,6 +160,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$resolved = $service->resolveForUserId(SignatureFlowPolicy::KEY, 'john', [SignatureFlowPolicy::KEY => 'ordered_numeric']);
@@ -187,6 +199,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$resolved = $service->resolveForUserId(SignatureFlowPolicy::KEY, 'ghost');
@@ -240,6 +253,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$resolved = $service->resolve(SignatureFlowPolicy::KEY);
@@ -299,6 +313,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$policy = $service->saveUserPreferenceForUserId(SignatureFlowPolicy::KEY, 'user1', 'ordered_numeric');
@@ -379,6 +394,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$policy = $service->saveUserPreferenceForUserId(SignatureFlowPolicy::KEY, 'user1', 'ordered_numeric');
@@ -446,6 +462,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
@@ -478,6 +495,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$resolved = $service->saveSystem(SignatureFlowPolicy::KEY, 'ordered_numeric', true);
@@ -517,6 +535,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$this->expectException(\DomainException::class);
@@ -556,6 +575,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$this->expectException(\DomainException::class);
@@ -579,6 +599,7 @@ final class PolicyServiceTest extends TestCase {
 			$this->contextFactory,
 			$this->source,
 			$this->registry,
+			$this->l10n,
 		);
 
 		$result = $service->getAllRuleCounts();
