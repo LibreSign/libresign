@@ -14,12 +14,16 @@ use OCA\Libresign\Db\PermissionSetBindingMapper;
 use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
-use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\DB\IResult;
+use OCP\DB\QueryBuilder\IExpressionBuilder;
+use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IDBConnection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -28,6 +32,7 @@ final class PolicySourceTest extends TestCase {
 	private IAppConfig&MockObject $appConfig;
 	private PermissionSetMapper&MockObject $permissionSetMapper;
 	private PermissionSetBindingMapper&MockObject $bindingMapper;
+	private IDBConnection&MockObject $db;
 	private PolicyRegistry $registry;
 
 	protected function setUp(): void {
@@ -35,12 +40,13 @@ final class PolicySourceTest extends TestCase {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->permissionSetMapper = $this->createMock(PermissionSetMapper::class);
 		$this->bindingMapper = $this->createMock(PermissionSetBindingMapper::class);
+		$this->db = $this->createMock(IDBConnection::class);
 		$container = $this->createMock(ContainerInterface::class);
 		$container
 			->method('get')
 			->willReturnCallback(static function (string $class): object {
 				return match ($class) {
-					AddFooterPolicy::class => new AddFooterPolicy(),
+					FooterPolicy::class => new FooterPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
@@ -536,12 +542,115 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('ordered_numeric', $layer->getValue());
 	}
 
+	public function testLoadAllGroupPoliciesBuildsLayersForAllPoliciesWithSingleQueryPair(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(77);
+		$binding->setTargetType('group');
+		$binding->setTargetId('finance');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(77);
+		$permissionSet->setPolicyJson([
+			'signature_flow' => [
+				'defaultValue' => 'ordered_numeric',
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => ['ordered_numeric'],
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('findByTargets')
+			->with('group', ['finance'])
+			->willReturn([$binding]);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('findByIds')
+			->with([77])
+			->willReturn([$permissionSet]);
+
+		$context = PolicyContext::fromUserId('john')
+			->setGroups(['finance'])
+			->setActiveContext(['type' => 'group', 'id' => 'finance']);
+
+		$source = $this->getSource();
+		$result = $source->loadAllGroupPolicies(['signature_flow', 'docmdp', 'footer_template'], $context);
+
+		$this->assertArrayHasKey('signature_flow', $result);
+		$this->assertArrayHasKey('docmdp', $result);
+		$this->assertArrayHasKey('footer_template', $result);
+
+		$this->assertCount(1, $result['signature_flow']);
+		$this->assertSame('ordered_numeric', $result['signature_flow'][0]->getValue());
+		$this->assertSame('group', $result['signature_flow'][0]->getScope());
+
+		$this->assertSame([], $result['docmdp']);
+		$this->assertSame([], $result['footer_template']);
+	}
+
+	public function testLoadAllGroupPoliciesReturnsEmptyArraysWhenContextHasNoGroups(): void {
+		$this->bindingMapper->expects($this->never())->method('findByTargets');
+		$this->permissionSetMapper->expects($this->never())->method('findByIds');
+
+		$policyKeys = ['signature_flow', 'docmdp'];
+		$result = $this->getSource()->loadAllGroupPolicies($policyKeys, PolicyContext::fromUserId('john'));
+
+		$this->assertSame(['signature_flow' => [], 'docmdp' => []], $result);
+	}
+
+	public function testLoadAllUserPreferencesReturnsEmptyArrayWhenContextHasNoUser(): void {
+		$this->db->expects($this->never())->method('getQueryBuilder');
+
+		$result = $this->getSource()->loadAllUserPreferences(['signature_flow'], new PolicyContext());
+
+		$this->assertSame([], $result);
+	}
+
+	public function testLoadAllUserPreferencesReturnsMappedLayersFromDatabase(): void {
+		$expr = $this->createMock(IExpressionBuilder::class);
+		$expr->method('eq')->willReturn('1=1');
+		$expr->method('in')->willReturn('1=1');
+		$expr->method('neq')->willReturn('1=1');
+
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('select')->willReturnSelf();
+		$qb->method('from')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('andWhere')->willReturnSelf();
+		$qb->method('expr')->willReturn($expr);
+		$qb->method('createNamedParameter')->willReturn(':p');
+
+		$dbResult = $this->createMock(IResult::class);
+		$dbResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
+			['configkey' => 'policy.signature_flow', 'configvalue' => 'parallel'],
+			false,
+		);
+		$dbResult->expects($this->once())->method('closeCursor');
+		$qb->method('executeQuery')->willReturn($dbResult);
+
+		$this->db->expects($this->once())->method('getQueryBuilder')->willReturn($qb);
+
+		$source = $this->getSource();
+		$result = $source->loadAllUserPreferences(
+			['signature_flow', 'docmdp'],
+			PolicyContext::fromUserId('john'),
+		);
+
+		$this->assertArrayHasKey('signature_flow', $result);
+		$this->assertArrayNotHasKey('docmdp', $result);
+		$this->assertSame('user', $result['signature_flow']->getScope());
+		$this->assertSame('parallel', $result['signature_flow']->getValue());
+	}
+
 	private function getSource(): PolicySource {
 		return new PolicySource(
 			$this->appConfig,
 			$this->permissionSetMapper,
 			$this->bindingMapper,
 			$this->registry,
+			$this->db,
 		);
 	}
 }
