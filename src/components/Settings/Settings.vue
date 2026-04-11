@@ -45,8 +45,9 @@ import { t } from '@nextcloud/l10n'
 import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
-import type { EffectivePoliciesResponse } from '../../types'
+import { computed } from 'vue'
 
+import { usePoliciesStore } from '../../store/policies'
 
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
@@ -64,25 +65,22 @@ defineOptions({
 
 const isAdmin = getCurrentUser()?.isAdmin ?? false
 const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
-const effectivePoliciesState = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
-const hasDelegatedEditablePolicies = Object.values(effectivePoliciesState.policies ?? {}).some((policy) => {
+const policiesStore = usePoliciesStore()
+
+const hasDelegatedPolicies = computed(() => Object.values(policiesStore.policies).some((policy) => {
 	if (!policy || typeof policy !== 'object') {
 		return false
 	}
+
 	const policyState = policy as {
-		editableByCurrentActor?: boolean
 		groupCount?: number
 		userCount?: number
 	}
-	const hasDelegatedRule = (policyState.groupCount ?? 0) > 0 || (policyState.userCount ?? 0) > 0
-	if (!hasDelegatedRule) {
-		return false
-	}
 
-	return Boolean(policyState.editableByCurrentActor)
-})
+	return (policyState.groupCount ?? 0) > 0 || (policyState.userCount ?? 0) > 0
+}))
 
-const canManagePolicies = isAdmin || (Boolean(config.can_manage_group_policies) && hasDelegatedEditablePolicies)
+const canManagePolicies = computed(() => isAdmin || (Boolean(config.can_manage_group_policies) && hasDelegatedPolicies.value))
 
 function getAdminRoute() {
 	return generateUrl('settings/admin/libresign')
