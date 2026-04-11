@@ -21,6 +21,7 @@ use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
+use OCP\IUserManager;
 use OCP\IUserSession;
 
 /**
@@ -43,6 +44,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		private PolicyService $policyService,
 		private IUserSession $userSession,
 		private IGroupManager $groupManager,
+		private IUserManager $userManager,
 		private ISubAdmin $subAdmin,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -419,7 +421,16 @@ final class PolicyController extends AEnvironmentAwareController {
 		}
 
 		if ($this->groupManager->isAdmin($user->getUID())) {
-			return $this->policyService->getAllRuleCounts();
+			$groupIds = array_values(array_map(
+				static fn ($group): string => $group->getGID(),
+				$this->groupManager->search(''),
+			));
+			$userIds = array_values(array_map(
+				static fn ($candidate): string => $candidate->getUID(),
+				$this->userManager->search(''),
+			));
+
+			return $this->policyService->getRuleCounts($groupIds, $userIds);
 		}
 
 		if ($this->subAdmin->isSubAdmin($user)) {
