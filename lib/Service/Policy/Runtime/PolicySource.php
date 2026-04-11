@@ -345,7 +345,7 @@ class PolicySource implements IPolicySource {
 
 		$query = $this->db->getQueryBuilder();
 		$query->select('configkey')
-			->selectAlias($query->func()->count('DISTINCT userid'), 'user_count')
+			->selectAlias($query->createFunction('COUNT(DISTINCT userid)'), 'user_count')
 			->from('preferences')
 			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
 			->andWhere($query->expr()->in('userid', $query->createNamedParameter($userIds, IQueryBuilder::PARAM_STR_ARRAY)))
@@ -419,7 +419,7 @@ class PolicySource implements IPolicySource {
 
 		$query = $this->db->getQueryBuilder();
 		$query->select('configkey')
-			->selectAlias($query->func()->count('DISTINCT userid'), 'user_count')
+			->selectAlias($query->createFunction('COUNT(DISTINCT userid)'), 'user_count')
 			->from('preferences')
 			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
 			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPreferenceKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
