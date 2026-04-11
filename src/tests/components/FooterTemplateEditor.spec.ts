@@ -80,6 +80,7 @@ vi.mock('@nextcloud/vue/components/NcButton', () => ({
 vi.mock('@nextcloud/vue/components/NcDialog', () => ({
 	default: {
 		name: 'NcDialog',
+		props: ['name', 'open', 'size'],
 		template: '<div class="nc-dialog-stub"><slot /><slot name="actions" /></div>',
 	},
 }))
@@ -165,6 +166,7 @@ describe('FooterTemplateEditor.vue', () => {
 		expect(wrapper.vm.footerTemplate).toBe('Footer {{ signerName }}')
 		expect(wrapper.vm.previewWidth).toBe(640)
 		expect(wrapper.vm.previewHeight).toBe(120)
+		expect(wrapper.getComponent({ name: 'NcDialog' }).props('size')).toBe('normal')
 	})
 
 	it('copies template variables to the clipboard and marks them as copied', async () => {
@@ -209,5 +211,91 @@ describe('FooterTemplateEditor.vue', () => {
 		wrapper.vm.updateScale()
 
 		expect(wrapper.vm.pdfPreview.scale).toBe(1.3)
+	})
+
+	it('updates PDF scale when zoom input changes', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		const previewRef = { scale: 1 }
+		wrapper.vm.pdfPreview = previewRef
+		wrapper.vm.zoomLevel = 140
+		wrapper.vm.onZoomInput()
+
+		expect(previewRef.scale).toBe(1.4)
+	})
+
+	it('persists custom dimensions and requests a new preview PDF', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		wrapper.vm.footerTemplate = 'Custom footer'
+		wrapper.vm.previewWidth = 700
+		wrapper.vm.previewHeight = 150
+
+		wrapper.vm.saveDimensions()
+		await flushPromises()
+
+		expect(appConfigMock.setValue).toHaveBeenCalledWith('libresign', 'footer_preview_width', 700)
+		expect(appConfigMock.setValue).toHaveBeenCalledWith('libresign', 'footer_preview_height', 150)
+		expect(axiosPostMock).toHaveBeenLastCalledWith(
+			'/ocs/v2.php/apps/libresign/api/v1/admin/footer-template',
+			{
+				template: 'Custom footer',
+				width: 700,
+				height: 150,
+			},
+			{ responseType: 'blob' },
+		)
+	})
+
+	it('marks preview as loading and updates preview file when saving template', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		wrapper.vm.footerTemplate = 'Updated template'
+		wrapper.vm.previewWidth = 595
+		wrapper.vm.previewHeight = 100
+
+		wrapper.vm.saveFooterTemplate()
+		await flushPromises()
+
+		expect(wrapper.vm.loadingPreview).toBe(true)
+		expect(wrapper.vm.pdfPreviewFile).toBeInstanceOf(File)
+		expect(axiosPostMock).toHaveBeenLastCalledWith(
+			'/ocs/v2.php/apps/libresign/api/v1/admin/footer-template',
+			{
+				template: 'Updated template',
+				width: 595,
+				height: 100,
+			},
+			{ responseType: 'blob' },
+		)
+	})
+
+	it('clears loading state when PDF preview initialization completes', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		wrapper.vm.loadingPreview = true
+		wrapper.vm.containerHeight = 200
+
+		wrapper.vm.onPdfReady()
+
+		expect(wrapper.vm.loadingPreview).toBe(false)
+		expect(wrapper.vm.containerHeight).toBe(null)
+	})
+
+	it('binds a non-zero min-height to the preview container before PDF initialization completes', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		wrapper.vm.pdfPreviewFile = new File(['pdf'], 'preview.pdf', { type: 'application/pdf' })
+		await wrapper.vm.$nextTick()
+
+		const previewContainer = wrapper.find('.footer-preview__pdf')
+		expect(previewContainer.exists()).toBe(true)
+		const minHeight = parseInt((previewContainer.element as HTMLElement).style.minHeight, 10)
+		expect(minHeight).toBeGreaterThan(0)
 	})
 })
