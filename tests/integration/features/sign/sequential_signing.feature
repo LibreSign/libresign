@@ -36,9 +36,8 @@ Feature: sequential-signing
   Scenario: Sequential signing - only first signer can sign initially
     Given user "signer1" exists
     And user "signer2" exists
-    And sending "post" to ocs "/apps/libresign/api/v1/admin/signature-flow/config"
-      | enabled | true            |
-      | mode    | ordered_numeric |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+      | value | ordered_numeric |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
