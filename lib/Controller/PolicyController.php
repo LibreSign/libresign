@@ -141,12 +141,17 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * @param string $userId Target user identifier that receives the policy preference.
 	 * @param string $policyKey Policy identifier to read for the selected user.
-	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 403: Forbidden
 	 */
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function getUserPolicyForUser(string $userId, string $policyKey): DataResponse {
+		if (!$this->canManageUserPolicy($userId)) {
+			return $this->forbiddenUserPolicyResponse();
+		}
+
 		$policy = $this->policyService->getUserPreferenceForUserId($policyKey, $userId);
 
 		/** @var LibresignUserPolicyResponse $data */
@@ -317,13 +322,18 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * @param string $userId Target user identifier that receives the policy preference.
 	 * @param string $policyKey Policy identifier to persist for the target user.
 	 * @param null|bool|int|float|string $value Policy value to persist as target user preference.
-	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Invalid policy value
+	 * 403: Forbidden
 	 */
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function setUserPolicyForUser(string $userId, string $policyKey, null|bool|int|float|string $value = null): DataResponse {
+		if (!$this->canManageUserPolicy($userId)) {
+			return $this->forbiddenUserPolicyResponse();
+		}
+
 		$value = $this->readScalarParam('value', $value);
 
 		try {
@@ -371,12 +381,17 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * @param string $userId Target user identifier that receives the policy preference removal.
 	 * @param string $policyKey Policy identifier to clear for the target user.
-	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 403: Forbidden
 	 */
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function clearUserPolicyForUser(string $userId, string $policyKey): DataResponse {
+		if (!$this->canManageUserPolicy($userId)) {
+			return $this->forbiddenUserPolicyResponse();
+		}
+
 		$policy = $this->policyService->clearUserPreferenceForUserId($policyKey, $userId);
 		/** @var LibresignUserPolicyWriteResponse $data */
 		$data = [
@@ -426,6 +441,37 @@ final class PolicyController extends AEnvironmentAwareController {
 		}
 
 		return $this->subAdmin->isSubAdminOfGroup($user, $group);
+	}
+
+	private function canManageUserPolicy(string $userId): bool {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return false;
+		}
+
+		if ($this->groupManager->isAdmin($user->getUID())) {
+			return true;
+		}
+
+		if (!$this->subAdmin->isSubAdmin($user)) {
+			return false;
+		}
+
+		$targetUser = $this->userManager->get($userId);
+		if (!$targetUser instanceof IUser) {
+			return false;
+		}
+
+		$managedGroupIds = array_values(array_map(
+			static fn ($group): string => $group->getGID(),
+			$this->subAdmin->getSubAdminsGroups($user),
+		));
+		if ($managedGroupIds === []) {
+			return false;
+		}
+
+		$targetGroupIds = $this->groupManager->getUserGroupIds($targetUser);
+		return array_intersect($managedGroupIds, $targetGroupIds) !== [];
 	}
 
 	/**
@@ -479,6 +525,16 @@ final class PolicyController extends AEnvironmentAwareController {
 		/** @var LibresignErrorResponse $data */
 		$data = [
 			'error' => $this->l10n->t('Not allowed to manage this group policy'),
+		];
+
+		return new DataResponse($data, Http::STATUS_FORBIDDEN);
+	}
+
+	/** @return DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}> */
+	private function forbiddenUserPolicyResponse(): DataResponse {
+		/** @var LibresignErrorResponse $data */
+		$data = [
+			'error' => $this->l10n->t('Not allowed to manage this user policy'),
 		];
 
 		return new DataResponse($data, Http::STATUS_FORBIDDEN);
