@@ -298,4 +298,71 @@ describe('FooterTemplateEditor.vue', () => {
 		const minHeight = parseInt((previewContainer.element as HTMLElement).style.minHeight, 10)
 		expect(minHeight).toBeGreaterThan(0)
 	})
+
+	describe('previewContainerMinHeight', () => {
+		it('uses containerHeight directly when it is positive', async () => {
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			wrapper.vm.containerHeight = 350
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.vm.previewContainerMinHeight).toBe(350)
+		})
+
+		it('returns the floor value when height is invalid', async () => {
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			wrapper.vm.containerHeight = null
+			wrapper.vm.previewHeight = 0
+			wrapper.vm.zoomLevel = 100
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.vm.previewContainerMinHeight).toBe(160)
+		})
+
+		it('returns the floor value when the formula result is below the minimum', async () => {
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			wrapper.vm.containerHeight = null
+			wrapper.vm.previewHeight = 100
+			wrapper.vm.zoomLevel = 100
+			await wrapper.vm.$nextTick()
+
+			// 100 * 100 / 100 + 24 = 124 — below the 160 floor
+			expect(wrapper.vm.previewContainerMinHeight).toBe(160)
+		})
+
+		it('returns a value above the floor for larger dimensions', async () => {
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			wrapper.vm.containerHeight = null
+			wrapper.vm.previewHeight = 250
+			wrapper.vm.zoomLevel = 100
+			await wrapper.vm.$nextTick()
+
+			// 250 * 100 / 100 + 24 = 274
+			expect(wrapper.vm.previewContainerMinHeight).toBe(274)
+		})
+
+		it('grows proportionally with zoom level', async () => {
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			wrapper.vm.containerHeight = null
+			wrapper.vm.previewHeight = 250
+			wrapper.vm.zoomLevel = 100
+			await wrapper.vm.$nextTick()
+			const atNormalZoom = wrapper.vm.previewContainerMinHeight
+
+			wrapper.vm.zoomLevel = 200
+			await wrapper.vm.$nextTick()
+			const atDoubleZoom = wrapper.vm.previewContainerMinHeight
+
+			expect(atDoubleZoom).toBeGreaterThan(atNormalZoom)
+		})
+	})
 })
