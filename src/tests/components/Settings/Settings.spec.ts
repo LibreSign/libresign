@@ -90,7 +90,11 @@ describe('Settings', () => {
 		return item
 	}
 
-	const createWrapper = (isAdmin = false, canManagePolicies = false): SettingsWrapper => {
+	const createWrapper = (
+		isAdmin = false,
+		canManagePolicies = false,
+		effectivePolicies: Record<string, unknown> = {},
+	): SettingsWrapper => {
 		const user = { isAdmin } as ReturnType<typeof auth.getCurrentUser>
 		getCurrentUserMock.mockReturnValue(user)
 		loadStateMock.mockImplementation((app, key, defaults) => {
@@ -98,6 +102,12 @@ describe('Settings', () => {
 				return {
 					...(defaults as Record<string, unknown>),
 					can_manage_group_policies: canManagePolicies,
+				}
+			}
+			if (key === 'effective_policies') {
+				return {
+					...(defaults as Record<string, unknown>),
+					policies: effectivePolicies,
 				}
 			}
 			return defaults
@@ -382,8 +392,19 @@ describe('Settings', () => {
 			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
 		})
 
-		it('shows Policies for non-admin users with group policy capability', () => {
+		it('hides Policies for non-admin users with group policy capability but no editable policies', () => {
 			wrapper = createWrapper(false, true)
+			const items = getItems()
+
+			expect(findItemByName(items, 'Policies')).toBeUndefined()
+		})
+
+		it('shows Policies for non-admin users with group policy capability and editable policies', () => {
+			wrapper = createWrapper(false, true, {
+				signature_flow: {
+					editableByCurrentActor: true,
+				},
+			})
 			const items = getItems()
 			const policiesItem = expectItem(findItemByName(items, 'Policies'))
 
@@ -557,11 +578,11 @@ describe('Settings', () => {
 			expect(hasAdmin).toBe(true)
 		})
 
-		it('provides policies entry for group manager without global admin link', () => {
+		it('hides policies entry for group manager without editable policies', () => {
 			wrapper = createWrapper(false, true)
 			const items = getItems()
 
-			expect(items).toHaveLength(4)
+			expect(items).toHaveLength(3)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
@@ -571,8 +592,25 @@ describe('Settings', () => {
 
 			expect(hasAccount).toBe(true)
 			expect(hasPreferences).toBe(true)
-			expect(hasPolicies).toBe(true)
+			expect(hasPolicies).toBe(false)
 			expect(hasRate).toBe(true)
+			expect(hasAdmin).toBe(false)
+		})
+
+		it('shows policies entry for group manager with editable policies', () => {
+			wrapper = createWrapper(false, true, {
+				signature_flow: {
+					editableByCurrentActor: true,
+				},
+			})
+			const items = getItems()
+
+			expect(items).toHaveLength(4)
+
+			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
+			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
+
+			expect(hasPolicies).toBe(true)
 			expect(hasAdmin).toBe(false)
 		})
 	})
