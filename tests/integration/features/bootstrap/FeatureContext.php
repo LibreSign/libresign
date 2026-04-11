@@ -201,30 +201,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->fields[$alias] = (string)$result[0];
 	}
 
-	#[Given('the response header :header should contain :value')]
-	public function theResponseHeaderShouldContain(string $header, string $value): void {
-		Assert::assertNotNull($this->response, 'No response available');
-		$actual = strtolower($this->response->getHeaderLine($header));
-		Assert::assertStringContainsString(strtolower($value), $actual, sprintf('Response header "%s" does not contain "%s"', $header, $value));
-	}
-
-	#[Given('the response body should not be empty')]
-	public function theResponseBodyShouldNotBeEmpty(): void {
-		Assert::assertNotNull($this->response, 'No response available');
-		$body = $this->response->getBody();
-		$body->rewind();
-		Assert::assertNotSame('', $body->getContents(), 'Response body is empty');
-	}
-
-	#[Given('the response body should match the regular expression :pattern')]
-	public function theResponseBodyShouldMatchTheRegularExpression(string $pattern): void {
-		Assert::assertNotNull($this->response, 'No response available');
-		$body = $this->response->getBody();
-		$body->rewind();
-		$content = $body->getContents();
-		Assert::assertMatchesRegularExpression('#' . $pattern . '#', $content, sprintf('Response body does not match pattern "%s"', $pattern));
-	}
-
 	private function davRequest(string $user, string $method, string $path, ?string $body = null, array $headers = []): void {
 		$client = new \GuzzleHttp\Client();
 		try {
