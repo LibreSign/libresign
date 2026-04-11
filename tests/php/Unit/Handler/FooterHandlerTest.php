@@ -15,8 +15,8 @@ use OCA\Libresign\Handler\TemplateVariables;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
-use OCA\Libresign\Service\Policy\Provider\Footer\SignatureFooterPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
@@ -43,7 +43,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('resolve')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				$value = match ($policyKey) {
-					AddFooterPolicy::KEY => $this->appConfig->getValueString(Application::APP_ID, 'add_footer', '1'),
+					FooterPolicy::KEY => $this->appConfig->getValueString(Application::APP_ID, 'add_footer', '1'),
 					default => null,
 				};
 
@@ -78,7 +78,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->setValueString(
 			Application::APP_ID,
 			'add_footer',
-			SignatureFooterPolicyValue::encode([
+			FooterPolicyValue::encode([
 				'enabled' => false,
 				'writeQrcodeOnFooter' => true,
 				'validationSite' => '',
@@ -97,13 +97,16 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetFooterWithSuccess(string $language, array $settings, array $expected): void {
 		foreach ($settings as $key => $value) {
 			if ($key === 'add_footer') {
+				$policyValidationSite = isset($settings['validation_site']) && is_string($settings['validation_site'])
+					? $settings['validation_site']
+					: '';
 				$this->appConfig->setValueString(
 					Application::APP_ID,
 					'add_footer',
-					SignatureFooterPolicyValue::encode([
+					FooterPolicyValue::encode([
 						'enabled' => (bool)$value,
 						'writeQrcodeOnFooter' => true,
-						'validationSite' => '',
+						'validationSite' => $policyValidationSite,
 						'customizeFooterTemplate' => false,
 					]),
 				);
@@ -288,7 +291,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->setValueString(
 			Application::APP_ID,
 			'add_footer',
-			SignatureFooterPolicyValue::encode([
+			FooterPolicyValue::encode([
 				'enabled' => true,
 				'writeQrcodeOnFooter' => true,
 				'validationSite' => '',
@@ -313,7 +316,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->setValueString(
 			Application::APP_ID,
 			'add_footer',
-			SignatureFooterPolicyValue::encode([
+			FooterPolicyValue::encode([
 				'enabled' => true,
 				'writeQrcodeOnFooter' => true,
 				'validationSite' => '',
@@ -394,7 +397,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->setValueString(
 			Application::APP_ID,
 			'add_footer',
-			SignatureFooterPolicyValue::encode([
+			FooterPolicyValue::encode([
 				'enabled' => true,
 				'writeQrcodeOnFooter' => true,
 				'validationSite' => '',
@@ -431,7 +434,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->setValueString(
 			Application::APP_ID,
 			'add_footer',
-			SignatureFooterPolicyValue::encode([
+			FooterPolicyValue::encode([
 				'enabled' => true,
 				'writeQrcodeOnFooter' => false,
 				'validationSite' => 'https://validation.example',
