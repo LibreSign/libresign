@@ -24,6 +24,7 @@ use OCP\DB\IResult;
 use OCP\DB\QueryBuilder\IExpressionBuilder;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -33,6 +34,7 @@ final class PolicySourceTest extends TestCase {
 	private PermissionSetMapper&MockObject $permissionSetMapper;
 	private PermissionSetBindingMapper&MockObject $bindingMapper;
 	private IDBConnection&MockObject $db;
+	private IL10N&MockObject $l10n;
 	private PolicyRegistry $registry;
 
 	protected function setUp(): void {
@@ -41,6 +43,8 @@ final class PolicySourceTest extends TestCase {
 		$this->permissionSetMapper = $this->createMock(PermissionSetMapper::class);
 		$this->bindingMapper = $this->createMock(PermissionSetBindingMapper::class);
 		$this->db = $this->createMock(IDBConnection::class);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnArgument(0);
 		$container = $this->createMock(ContainerInterface::class);
 		$container
 			->method('get')
@@ -746,6 +750,7 @@ final class PolicySourceTest extends TestCase {
 			$this->bindingMapper,
 			$this->registry,
 			$this->db,
+			$this->l10n,
 		);
 	}
 }
