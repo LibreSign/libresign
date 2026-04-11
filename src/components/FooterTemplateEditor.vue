@@ -14,6 +14,14 @@
 				</template>
 				{{ t('libresign', 'Available variables') }}
 			</NcButton>
+			<NcButton v-if="!isDefaultTemplate"
+				variant="tertiary"
+				:aria-label="t('libresign', 'Reset template to default')"
+				@click="resetFooterTemplate">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
+				</template>
+			</NcButton>
 		</div>
 		<CodeEditor
 			v-model="footerTemplate"
@@ -188,6 +196,7 @@ const DEFAULT_PREVIEW_HEIGHT = 100
 
 const footerDescription = t('libresign', 'Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/')
 const footerTemplate = ref('')
+const isDefaultTemplate = ref(loadState('libresign', 'footer_template_is_default', true))
 const pdfPreviewFile = ref<File | null>(null)
 const loadingPreview = ref(false)
 const pdfKey = ref(0)
@@ -248,9 +257,26 @@ function copyToClipboard(text: string) {
 }
 
 async function resetFooterTemplate() {
-	emit('template-reset')
-	resetDimensions()
-	await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
+	loadingPreview.value = true
+	try {
+		await axios.post(
+			generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
+			{
+				template: '',
+				width: Number(previewWidth.value),
+				height: Number(previewHeight.value),
+			},
+			{ responseType: 'blob' },
+		).then(response => {
+			footerTemplate.value = ''
+			isDefaultTemplate.value = true
+			setPdfPreview(response.data)
+			emit('template-reset')
+		})
+	} catch (error) {
+		console.error('Error resetting footer template:', error)
+		loadingPreview.value = false
+	}
 }
 
 function resetDimensions() {
@@ -329,6 +355,7 @@ onMounted(() => {
 	axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
 		.then(response => {
 			footerTemplate.value = response.data.ocs.data.template
+			isDefaultTemplate.value = response.data.ocs.data.isDefault ?? true
 			previewHeight.value = response.data.ocs.data.preview_height
 			previewWidth.value = response.data.ocs.data.preview_width
 			saveFooterTemplate()
