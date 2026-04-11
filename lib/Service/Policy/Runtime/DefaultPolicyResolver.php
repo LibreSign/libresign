@@ -119,7 +119,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			->setEffectiveValue($currentValue)
 			->setSourceScope($currentSourceScope)
 			->setVisible($visible)
-			->setEditableByCurrentActor($visible && $canOverrideBelow)
+			->setEditableByCurrentActor($visible && $this->canManagePolicyAtCurrentScope($context))
 			->setCanSaveAsUserDefault($visible && $canOverrideBelow)
 			->setCanUseAsRequestOverride($visible && $canOverrideBelow)
 			->setBlockedBy($currentBlockedBy);
@@ -256,6 +256,13 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 
 		$definition->validateValue($value, $context);
 		return true;
+	}
+
+	private function canManagePolicyAtCurrentScope(PolicyContext $context): bool {
+		$actorCapabilities = $context->getActorCapabilities();
+
+		return ($actorCapabilities['canManageSystemPolicies'] ?? false) === true
+			|| ($actorCapabilities['canManageGroupPolicies'] ?? false) === true;
 	}
 
 	/** @param list<mixed> $currentAllowedValues
