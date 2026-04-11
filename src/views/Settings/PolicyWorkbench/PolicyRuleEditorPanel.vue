@@ -34,6 +34,7 @@
 					:model-value="editorDraft.value"
 					:editor-scope="editorDraft.scope"
 					:editor-mode="editorMode"
+					@template-changed="$emit('template-changed')"
 					@update:modelValue="$emit('update-value', $event)" />
 			</div>
 
@@ -124,6 +125,7 @@ defineEmits<{
 	(e: 'search-targets', value: string): void
 	(e: 'update-targets', value: { id: string } | Array<{ id: string }> | null): void
 	(e: 'update-value', value: EffectivePolicyValue): void
+	(e: 'template-changed'): void
 	(e: 'update-allow-override', value: boolean): void
 	(e: 'back'): void
 	(e: 'save'): void
@@ -138,12 +140,15 @@ defineEmits<{
 	border-radius: 0 !important;
 	background: transparent !important;
 	box-shadow: none !important;
+	position: static !important;
+	overflow: visible !important;
 }
 
 .policy-workbench__editor-panel-content {
 	display: flex;
 	flex-direction: column;
 	gap: 0.85rem;
+	overflow: visible;
 }
 
 .policy-workbench__editor-header {
