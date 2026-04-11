@@ -171,21 +171,31 @@ export function createRealPolicyWorkbenchState() {
 	const editorInitialTouchVersion = ref(0)
 
 	const visibleSettingSummaries = computed<PolicySettingSummary[]>(() => {
-		return Object.values(realDefinitions).map((definition) => {
-			const policy = policiesStore.getPolicy(definition.key)
-			const hasEffectiveValue = policy?.effectiveValue !== null && policy?.effectiveValue !== undefined
-			const isActiveSetting = activeSettingKey.value === definition.key
+		const isGroupAdminMode = viewMode.value === 'group-admin'
 
-			return {
-				key: definition.key,
-				title: definition.title,
-				context: definition.context,
-				description: definition.description,
-				defaultSummary: hasEffectiveValue ? definition.summarizeValue(policy.effectiveValue) : t('libresign', 'Not configured'),
-				groupCount: isActiveSetting ? groupRules.value.length : (policy?.groupCount ?? 0),
-				userCount: isActiveSetting ? userRules.value.length : (policy?.userCount ?? 0),
-			}
-		})
+		return Object.values(realDefinitions)
+			.map((definition) => {
+				const policy = policiesStore.getPolicy(definition.key)
+				const hasEffectiveValue = policy?.effectiveValue !== null && policy?.effectiveValue !== undefined
+				const isActiveSetting = activeSettingKey.value === definition.key
+
+				return {
+					key: definition.key,
+					title: definition.title,
+					context: definition.context,
+					description: definition.description,
+					defaultSummary: hasEffectiveValue ? definition.summarizeValue(policy.effectiveValue) : t('libresign', 'Not configured'),
+					groupCount: isActiveSetting ? groupRules.value.length : (policy?.groupCount ?? 0),
+					userCount: isActiveSetting ? userRules.value.length : (policy?.userCount ?? 0),
+				}
+			})
+			.filter((summary) => {
+				if (!isGroupAdminMode) {
+					return true
+				}
+
+				return summary.groupCount > 0 || summary.userCount > 0
+			})
 	})
 
 	const activeDefinition = computed(() => {
