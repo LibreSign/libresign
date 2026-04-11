@@ -12,7 +12,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 
-final class AddFooterPolicy implements IPolicyDefinitionProvider {
+final class FooterPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'add_footer';
 	public const SYSTEM_APP_CONFIG_KEY = 'add_footer';
 
@@ -28,10 +28,10 @@ final class AddFooterPolicy implements IPolicyDefinitionProvider {
 		return match ($this->normalizePolicyKey($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
-				defaultSystemValue: SignatureFooterPolicyValue::encode(SignatureFooterPolicyValue::defaults()),
+				defaultSystemValue: FooterPolicyValue::encode(FooterPolicyValue::defaults()),
 				allowedValues: static fn (): array => [],
 				normalizer: static function (mixed $rawValue): mixed {
-					return SignatureFooterPolicyValue::encode(SignatureFooterPolicyValue::normalize($rawValue));
+					return FooterPolicyValue::encode(FooterPolicyValue::normalize($rawValue));
 				},
 				validator: static function (mixed $value): void {
 					if (!is_string($value) || trim($value) === '') {
