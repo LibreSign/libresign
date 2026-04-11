@@ -657,7 +657,9 @@
                     "canSaveAsUserDefault",
                     "canUseAsRequestOverride",
                     "preferenceWasCleared",
-                    "blockedBy"
+                    "blockedBy",
+                    "groupCount",
+                    "userCount"
                 ],
                 "properties": {
                     "policyKey": {
@@ -693,6 +695,16 @@
                     "blockedBy": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "groupCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "userCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
                     }
                 }
             },
