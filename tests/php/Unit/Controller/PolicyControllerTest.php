@@ -127,7 +127,7 @@ final class PolicyControllerTest extends TestCase {
 			->with('')
 			->willReturn([$group]);
 		$this->userManager
-			->method('search')
+			->method('searchDisplayName')
 			->with('')
 			->willReturn([$managedUser]);
 
