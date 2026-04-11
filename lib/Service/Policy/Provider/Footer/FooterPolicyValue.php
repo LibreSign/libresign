@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider\Footer;
 
-final class SignatureFooterPolicyValue {
+final class FooterPolicyValue {
 	/** @return array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool} */
 	public static function defaults(): array {
 		return [
