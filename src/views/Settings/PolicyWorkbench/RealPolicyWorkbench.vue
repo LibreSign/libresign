@@ -232,7 +232,6 @@
 						</div>
 
 						<NcButton
-							v-if="state.viewMode === 'system-admin'"
 							variant="primary"
 							size="small"
 							:disabled="!hasCreatableScope"
@@ -247,7 +246,7 @@
 						</NcButton>
 					</div>
 
-					<p v-if="createRuleDisabledReason && state.viewMode === 'system-admin'" class="policy-workbench__table-note policy-workbench__table-note--align-right">
+					<p v-if="createRuleDisabledReason" class="policy-workbench__table-note policy-workbench__table-note--align-right">
 						{{ createRuleDisabledReason }}
 					</p>
 
@@ -649,8 +648,16 @@ function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
 	return ''
 }
 
-const hasCreatableScope = computed(() => {
+const allowedCreateScopes = computed<Array<'system' | 'group' | 'user'>>(() => {
+	if (state.viewMode === 'group-admin') {
+		return ['group', 'user']
+	}
+
 	return ['system', 'group', 'user']
+})
+
+const hasCreatableScope = computed(() => {
+	return allowedCreateScopes.value
 		.some((scope) => scopeCreateDisabledReason(scope as 'system' | 'group' | 'user').length === 0)
 })
 
@@ -690,8 +697,12 @@ const createScopeOptions = computed<Array<{
 	]
 
 	return options.filter((option) => {
+		if (!allowedCreateScopes.value.includes(option.scope)) {
+			return false
+		}
+
 		if (option.scope === 'system') {
-			return !option.disabled
+			return state.viewMode === 'system-admin' && !option.disabled
 		}
 
 		if (option.scope !== 'user') {
