@@ -48,7 +48,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame('group', $resolved->getSourceScope());
-		$this->assertTrue($resolved->isEditableByCurrentActor());
+		$this->assertFalse($resolved->isEditableByCurrentActor());
 		$this->assertTrue($resolved->canSaveAsUserDefault());
 		$this->assertTrue($resolved->canUseAsRequestOverride());
 	}
@@ -140,7 +140,7 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame('parallel', $resolved->getEffectiveValue());
 		$this->assertSame('group', $resolved->getSourceScope());
 		$this->assertSame(['parallel', 'ordered_numeric'], $resolved->getAllowedValues());
-		$this->assertTrue($resolved->isEditableByCurrentActor());
+		$this->assertFalse($resolved->isEditableByCurrentActor());
 		$this->assertTrue($resolved->canSaveAsUserDefault());
 		$this->assertTrue($resolved->canUseAsRequestOverride());
 	}
@@ -198,6 +198,53 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame('system', $resolved->getSourceScope());
 		$this->assertSame(['ordered_numeric'], $resolved->getAllowedValues());
+		$this->assertFalse($resolved->isEditableByCurrentActor());
+		$this->assertFalse($resolved->canUseAsRequestOverride());
+	}
+
+	public function testResolveMarksPolicyEditableForSystemAdminEvenWhenChildrenCannotOverride(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('ordered_numeric')
+			->setAllowChildOverride(false)
+			->setVisibleToChild(true)
+			->setAllowedValues(['ordered_numeric']);
+
+		$context = PolicyContext::fromUserId('admin')
+			->setActorCapabilities([
+				'canManageSystemPolicies' => true,
+				'canManageGroupPolicies' => true,
+			]);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($this->getDefinition(), $context);
+
+		$this->assertTrue($resolved->isEditableByCurrentActor());
+		$this->assertFalse($resolved->canSaveAsUserDefault());
+		$this->assertFalse($resolved->canUseAsRequestOverride());
+	}
+
+	public function testResolveMarksPolicyEditableForGroupAdminEvenWhenChildrenCannotOverride(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('ordered_numeric')
+			->setAllowChildOverride(false)
+			->setVisibleToChild(true)
+			->setAllowedValues(['ordered_numeric']);
+
+		$context = PolicyContext::fromUserId('manager')
+			->setActorCapabilities([
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => true,
+			]);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($this->getDefinition(), $context);
+
+		$this->assertTrue($resolved->isEditableByCurrentActor());
+		$this->assertFalse($resolved->canSaveAsUserDefault());
 		$this->assertFalse($resolved->canUseAsRequestOverride());
 	}
 
