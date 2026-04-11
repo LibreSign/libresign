@@ -10,6 +10,23 @@ import { createL10nMock } from '../../testHelpers/l10n.js'
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
 
+const axiosGetMock = vi.fn().mockResolvedValue({
+	data: {
+		ocs: {
+			data: {
+				groups: [],
+				users: {},
+			},
+		},
+	},
+})
+
+vi.mock('@nextcloud/axios', () => ({
+	default: {
+		get: (...args: unknown[]) => axiosGetMock(...args),
+	},
+}))
+
 const getPolicy = vi.fn((key: string) => {
 	if (key === 'signature_flow') {
 		return { effectiveValue: 'ordered_numeric' }
@@ -47,8 +64,8 @@ function mountWorkbench() {
 				NcIconSvgWrapper: { template: '<span class="icon-stub" />' },
 				NcNoteCard: { template: '<div class="note-card"><slot /></div>' },
 				NcDialog: {
-					props: ['name', 'buttons'],
-					template: '<div class="dialog"><h2 v-if="name" class="dialog-title">{{ name }}</h2><slot /><div v-if="buttons" class="dialog-footer"><button v-for="button in buttons" :key="button.label" :disabled="button.disabled" @click="button.callback()">{{ button.label }}</button></div></div>',
+					props: ['name', 'buttons', 'size'],
+					template: '<div class="dialog" :data-size="size"><h2 v-if="name" class="dialog-title">{{ name }}</h2><slot /><div v-if="buttons" class="dialog-footer"><button v-for="button in buttons" :key="button.label" :disabled="button.disabled" @click="button.callback()">{{ button.label }}</button></div></div>',
 				},
 				NcChip: { template: '<button class="nc-chip-stub">{{ text }}</button>', props: ['text'] },
 				NcCheckboxRadioSwitch: {
@@ -90,6 +107,7 @@ function findConfigureButtonForSetting(wrapper: ReturnType<typeof mountWorkbench
 describe('RealPolicyWorkbench.vue', () => {
 	beforeEach(() => {
 		getPolicy.mockReset()
+		axiosGetMock.mockClear()
 		fetchSystemPolicy.mockReset().mockResolvedValue(null)
 		fetchGroupPolicy.mockReset().mockResolvedValue(null)
 		fetchUserPolicyForUser.mockReset().mockResolvedValue(null)
@@ -264,6 +282,19 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).toContain('Change')
 		expect(text).not.toContain('Effective result:')
 		expect(text).not.toContain('No instance default is configured. This setting currently uses the system default.')
+	})
+
+	it('uses large outer editor dialog for signature footer', async () => {
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signature footer')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await findButtonByText(wrapper, 'Create rule')?.trigger('click')
+		await findButtonContainingText(wrapper, 'User')?.trigger('click')
+
+		expect(wrapper.findAll('.dialog[data-size="large"]').length).toBeGreaterThan(0)
 	})
 
 	it('shows signing order with sophisticated visual interface: filter, toggle, counts, and scopes', async () => {
