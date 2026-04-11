@@ -41,6 +41,7 @@
 			<FooterTemplateEditor
 				v-if="value.customizeFooterTemplate"
 				ref="footerTemplateEditor"
+				@template-changed="onTemplateChanged"
 				@template-reset="onTemplateReset" />
 		</div>
 	</div>
@@ -66,7 +67,7 @@ defineOptions({
 })
 
 type FooterTemplateEditorInstance = {
-	resetFooterTemplate: () => Promise<void> | void
+	resetTemplateToDefault: () => Promise<void> | void
 }
 
 const props = defineProps<{
@@ -75,6 +76,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
+	'template-changed': []
 }>()
 
 const footerTemplateEditor = ref<FooterTemplateEditorInstance | null>(null)
@@ -115,8 +117,12 @@ function onValidationSiteChange(validationSite: string | number) {
 async function onCustomizeFooterTemplateChange(customizeFooterTemplate: boolean) {
 	updateValue({ customizeFooterTemplate })
 	if (!customizeFooterTemplate) {
-		await footerTemplateEditor.value?.resetFooterTemplate()
+		await footerTemplateEditor.value?.resetTemplateToDefault()
 	}
+}
+
+function onTemplateChanged() {
+	emit('template-changed')
 }
 
 function onTemplateReset() {
