@@ -26,6 +26,7 @@ const mockPolicies = ref<Record<string, unknown>>({})
 type SettingsVm = {
 	getAdminRoute: () => string
 	isAdmin: boolean
+	canManagePreferences: boolean
 }
 
 type SettingsWrapper = VueWrapper<SettingsVm>
@@ -102,7 +103,11 @@ describe('Settings', () => {
 	const createWrapper = (
 		isAdmin = false,
 		canManagePolicies = false,
-		effectivePolicies: Record<string, unknown> = {},
+		effectivePolicies: Record<string, unknown> = {
+			signature_flow: {
+				canSaveAsUserDefault: true,
+			},
+		},
 	): SettingsWrapper => {
 		const user = { isAdmin } as ReturnType<typeof auth.getCurrentUser>
 		getCurrentUserMock.mockReturnValue(user)
@@ -335,7 +340,7 @@ describe('Settings', () => {
 			const items = getItems()
 
 			// Account + Preferences + Rate = 3
-			expect(items.length).toBe(3)
+			expect(items.length).toBe(2)
 		})
 	})
 
@@ -357,7 +362,7 @@ describe('Settings', () => {
 		})
 	})
 
-	describe('RULE: Preferences item is always available inside the app', () => {
+	describe('RULE: Preferences item follows personal preference capability', () => {
 		it('shows Preferences for non-admin users', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
@@ -378,6 +383,36 @@ describe('Settings', () => {
 			wrapper = createWrapper(false)
 
 			expect(getWrapper().find('.preferences-icon').exists()).toBe(true)
+		})
+
+		it('hides Preferences when the user cannot save a personal preference', () => {
+			wrapper = createWrapper(false, false, {
+				signature_flow: {
+					canSaveAsUserDefault: false,
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Preferences')).toBeUndefined()
+		})
+
+		it('updates Preferences visibility after policy state changes', async () => {
+			wrapper = createWrapper(false, false, {
+				signature_flow: {
+					canSaveAsUserDefault: false,
+				},
+			})
+			expect(findItemByName(getItems(), 'Preferences')).toBeUndefined()
+
+			mockPolicies.value = {
+				signature_flow: {
+					canSaveAsUserDefault: true,
+				},
+			}
+			await nextTick()
+
+			const preferencesItem = expectItem(findItemByName(getItems(), 'Preferences'))
+			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
 		})
 	})
 
@@ -646,9 +681,27 @@ describe('Settings', () => {
 			expect(hasAdmin).toBe(false)
 		})
 
+		it('hides preferences entry when the user cannot change anything personally', () => {
+			wrapper = createWrapper(false, false, {
+				signature_flow: {
+					canSaveAsUserDefault: false,
+				},
+			})
+			const items = getItems()
+
+			expect(items).toHaveLength(2)
+
+			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
+			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
+
+			expect(hasPreferences).toBe(false)
+			expect(hasPolicies).toBe(false)
+		})
+
 		it('shows policies entry for group manager with editable policies', () => {
 			wrapper = createWrapper(false, true, {
 				signature_flow: {
+					canSaveAsUserDefault: true,
 					editableByCurrentActor: true,
 					groupCount: 1,
 					userCount: 0,
