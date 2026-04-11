@@ -70,7 +70,11 @@ class FolderService {
 		$path = $this->getLibreSignDefaultPath();
 		$containerFolder = $this->getContainerFolder();
 
-		return $this->ensureFolderPathExists($containerFolder, $path);
+		try {
+			return $this->ensureFolderPathExists($containerFolder, $path);
+		} catch (NotFoundException) {
+			return $this->ensureFolderPathExists($this->getAppDataContainerFolder(), $path);
+		}
 	}
 
 	/**
@@ -102,11 +106,19 @@ class FolderService {
 
 	protected function getContainerFolder(): Folder {
 		if ($this->getUserId() && !$this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
-			$containerFolder = $this->root->getUserFolder($this->getUserId());
-			if ($containerFolder->isUpdateable()) {
-				return $containerFolder;
+			try {
+				$containerFolder = $this->root->getUserFolder($this->getUserId());
+				if ($containerFolder->isUpdateable()) {
+					return $containerFolder;
+				}
+			} catch (NotFoundException) {
+				// Users provisioned in tests may not have a home folder yet.
 			}
 		}
+		return $this->getAppDataContainerFolder();
+	}
+
+	private function getAppDataContainerFolder(): Folder {
 		$containerFolder = $this->appData->getFolder('/');
 		$reflection = new \ReflectionClass($containerFolder);
 		$reflectionProperty = $reflection->getProperty('folder');
