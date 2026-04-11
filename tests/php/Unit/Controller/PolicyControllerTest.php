@@ -652,6 +652,11 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testSetUserPolicyForTargetUserReturnsSavedExplicitPolicy(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
 		$persistedPolicy = (new PolicyLayer())
 			->setScope('user')
 			->setValue('ordered_numeric');
@@ -677,6 +682,11 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testClearUserPolicyForTargetUserReturnsClearedExplicitPolicy(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
 		$this->l10n
 			->expects($this->once())
 			->method('t')
@@ -698,6 +708,11 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testSetUserPolicyForTargetUserReturnsBadRequestWhenServiceBlocksSave(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
 		$this->policyService
 			->expects($this->once())
 			->method('saveUserPreferenceForUserId')
@@ -726,6 +741,11 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testSetUserPolicyForTargetUserBubblesUnexpectedExceptions(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
 		$this->policyService
 			->expects($this->once())
 			->method('saveUserPreferenceForUserId')
@@ -752,6 +772,11 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testClearUserPolicyForTargetUserBubblesUnexpectedExceptions(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
 		$this->policyService
 			->expects($this->once())
 			->method('clearUserPreferenceForUserId')
@@ -762,6 +787,56 @@ final class PolicyControllerTest extends TestCase {
 		$this->expectExceptionMessage('Unexpected policy failure');
 
 		$this->controller->clearUserPolicyForUser('user1', 'signature_flow');
+	}
+
+	public function testSetUserPolicyForTargetUserReturnsForbiddenWhenCurrentActorCannotManageTargetUser(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(false);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(false);
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Not allowed to manage this user policy')
+			->willReturn('Not allowed to manage this user policy');
+
+		$this->policyService->expects($this->never())->method('saveUserPreferenceForUserId');
+
+		$response = $this->controller->setUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric');
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Not allowed to manage this user policy',
+		], $response->getData());
+	}
+
+	public function testClearUserPolicyForTargetUserReturnsForbiddenWhenCurrentActorCannotManageTargetUser(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(false);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(false);
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Not allowed to manage this user policy')
+			->willReturn('Not allowed to manage this user policy');
+
+		$this->policyService->expects($this->never())->method('clearUserPreferenceForUserId');
+
+		$response = $this->controller->clearUserPolicyForUser('user1', 'signature_flow');
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Not allowed to manage this user policy',
+		], $response->getData());
 	}
 
 	public function testSetUserPreferenceReadsBodyParamsFromRequest(): void {
