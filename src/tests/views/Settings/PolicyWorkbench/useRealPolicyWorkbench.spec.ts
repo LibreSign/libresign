@@ -172,6 +172,13 @@ describe('useRealPolicyWorkbench', () => {
 	})
 
 	it('keeps override counts isolated per setting after opening and closing dialogs', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return { effectiveValue: 'parallel', groupCount: 1, userCount: 1, sourceScope: 'system', visible: true, editableByCurrentActor: true, allowedValues: ['parallel', 'ordered_numeric'], blockedBy: null, canSaveAsUserDefault: true, canUseAsRequestOverride: true, preferenceWasCleared: false }
+			}
+			return { effectiveValue: 'parallel', groupCount: 0, userCount: 0, sourceScope: 'system', visible: true, editableByCurrentActor: true, allowedValues: ['parallel', 'ordered_numeric'], blockedBy: null, canSaveAsUserDefault: true, canUseAsRequestOverride: true, preferenceWasCleared: false }
+		})
+
 		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
 			if (policyKey !== 'signature_flow' || groupId !== 'finance') {
 				return null
