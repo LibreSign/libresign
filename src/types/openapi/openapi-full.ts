@@ -1887,6 +1887,10 @@ export type components = {
             canUseAsRequestOverride: boolean;
             preferenceWasCleared: boolean;
             blockedBy: string | null;
+            /** Format: int64 */
+            groupCount: number;
+            /** Format: int64 */
+            userCount: number;
         };
         EffectivePolicyValue: (boolean | number | string) | null;
         EngineHandler: {
