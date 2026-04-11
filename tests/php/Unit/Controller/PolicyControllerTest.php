@@ -581,6 +581,32 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
+	public function testSetGroupReturnsForbiddenWhenGlobalDefaultBlocksLowerLevelOverrides(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Lower-level overrides are not allowed for this policy')
+			->willReturn('Lower-level overrides are not allowed for this policy');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveGroupPolicy')
+			->with('signature_flow', 'finance', 'parallel', true)
+			->willThrowException(new \DomainException('Lower-level overrides are not allowed for this policy'));
+
+		$response = $this->controller->setGroup('finance', 'signature_flow', 'parallel', true);
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Lower-level overrides are not allowed for this policy',
+		], $response->getData());
+	}
+
 	public function testSetGroupBubblesUnexpectedExceptions(): void {
 		$this->groupManager
 			->method('isAdmin')
@@ -615,6 +641,32 @@ final class PolicyControllerTest extends TestCase {
 		$this->expectExceptionMessage('Unexpected policy failure');
 
 		$this->controller->clearGroup('finance', 'signature_flow');
+	}
+
+	public function testClearGroupReturnsForbiddenWhenGlobalDefaultBlocksLowerLevelOverrides(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Lower-level overrides are not allowed for this policy')
+			->willReturn('Lower-level overrides are not allowed for this policy');
+
+		$this->policyService
+			->expects($this->once())
+			->method('clearGroupPolicy')
+			->with('signature_flow', 'finance')
+			->willThrowException(new \DomainException('Lower-level overrides are not allowed for this policy'));
+
+		$response = $this->controller->clearGroup('finance', 'signature_flow');
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame([
+			'error' => 'Lower-level overrides are not allowed for this policy',
+		], $response->getData());
 	}
 
 	public function testSetUserPolicyForTargetUserReturnsSavedExplicitPolicy(): void {
