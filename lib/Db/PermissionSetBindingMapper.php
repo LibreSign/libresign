@@ -80,4 +80,22 @@ class PermissionSetBindingMapper extends CachedQBMapper {
 
 		return $entities;
 	}
+
+	/**
+	 * @return list<PermissionSetBinding>
+	 */
+	public function findByTargetType(string $targetType): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('target_type', $qb->createNamedParameter($targetType)));
+
+		/** @var list<PermissionSetBinding> */
+		$entities = $this->findEntities($qb);
+		foreach ($entities as $entity) {
+			$this->cacheEntity($entity);
+		}
+
+		return $entities;
+	}
 }
