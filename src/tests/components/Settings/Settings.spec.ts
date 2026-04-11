@@ -409,12 +409,26 @@ describe('Settings', () => {
 				signature_flow: {
 					groupCount: 1,
 					userCount: 0,
+					editableByCurrentActor: true,
 				},
 			})
 			const items = getItems()
 			const policiesItem = expectItem(findItemByName(items, 'Policies'))
 
 			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('hides Policies for non-admin users with delegated rules that are not editable', () => {
+			wrapper = createWrapper(false, true, {
+				add_footer: {
+					groupCount: 1,
+					userCount: 0,
+					editableByCurrentActor: false,
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Policies')).toBeUndefined()
 		})
 
 		it('hides Policies for non-admin users when only system-level policies exist', () => {
@@ -437,6 +451,7 @@ describe('Settings', () => {
 				add_footer: {
 					groupCount: 1,
 					userCount: 0,
+					editableByCurrentActor: true,
 				},
 			}
 			await nextTick()
