@@ -313,7 +313,7 @@
 			<NcDialog
 				v-if="showCreateScopeDialog || state.editorDraft"
 				:name="ruleDialogTitle"
-				size="normal"
+				:size="ruleEditorDialogSize"
 				:class="ruleEditorDialogClass"
 				:buttons="ruleDialogButtons"
 				:can-close="true"
@@ -341,6 +341,7 @@
 					@search-targets="state.searchAvailableTargets"
 					@update-targets="onTargetChange"
 					@update-value="state.updateDraftValue"
+					@template-changed="state.markDraftTouched"
 					@update-allow-override="state.updateDraftAllowOverride"
 					@back="requestBackToCreateScope()"
 					@save="handleSaveDraft()"
@@ -618,6 +619,12 @@ const ruleEditorDialogClass = computed(() => {
 	return state.activeDefinition?.editorDialogLayout === 'wide'
 		? 'policy-workbench__rule-dialog policy-workbench__rule-dialog--wide'
 		: 'policy-workbench__rule-dialog'
+})
+
+const ruleEditorDialogSize = computed(() => {
+	return state.activeDefinition?.editorDialogLayout === 'wide'
+		? 'large'
+		: 'normal'
 })
 
 const ruleEditorDialogBodyClass = computed(() => {
