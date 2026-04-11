@@ -15,6 +15,7 @@ use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
+use OCP\IL10N;
 use OCP\IUser;
 
 class PolicyService {
@@ -24,6 +25,7 @@ class PolicyService {
 		private PolicyContextFactory $contextFactory,
 		private PolicySource $source,
 		private PolicyRegistry $registry,
+		private IL10N $l10n,
 	) {
 		$this->resolver = new DefaultPolicyResolver($this->source);
 	}
@@ -123,7 +125,7 @@ class PolicyService {
 
 		$systemPolicy = $this->source->loadSystemPolicy($policyKey);
 		if ($systemPolicy !== null && !$systemPolicy->isAllowChildOverride()) {
-			throw new \DomainException('Lower-level overrides are not allowed for this policy');
+			throw new \DomainException($this->l10n->t('Lower-level overrides are not allowed for this policy'));
 		}
 	}
 
@@ -132,7 +134,9 @@ class PolicyService {
 		$definition = $this->registry->get($policyKey);
 		$resolved = $this->resolver->resolve($definition, $context);
 		if (!$resolved->canSaveAsUserDefault()) {
-			throw new \InvalidArgumentException('Saving a user preference is not allowed for ' . $definition->key());
+			throw new \InvalidArgumentException($this->l10n->t('Saving a user preference is not allowed for {policyKey}', [
+				'policyKey' => $definition->key(),
+			]));
 		}
 
 		$normalizedValue = $definition->normalizeValue($value);
@@ -155,7 +159,9 @@ class PolicyService {
 		$definition = $this->registry->get($policyKey);
 		$resolved = $this->resolver->resolve($definition, $context);
 		if (!$resolved->canSaveAsUserDefault() && !$this->contextFactory->isCurrentActorSystemAdmin()) {
-			throw new \InvalidArgumentException('Saving a user preference is not allowed for ' . $definition->key());
+			throw new \InvalidArgumentException($this->l10n->t('Saving a user preference is not allowed for {policyKey}', [
+				'policyKey' => $definition->key(),
+			]));
 		}
 
 		$normalizedValue = $definition->normalizeValue($value);
