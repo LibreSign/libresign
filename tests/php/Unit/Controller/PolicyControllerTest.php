@@ -19,6 +19,7 @@ use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
+use OCP\IUserManager;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -29,6 +30,7 @@ final class PolicyControllerTest extends TestCase {
 	private PolicyService&MockObject $policyService;
 	private IUserSession&MockObject $userSession;
 	private IGroupManager&MockObject $groupManager;
+	private IUserManager&MockObject $userManager;
 	private ISubAdmin&MockObject $subAdmin;
 	private IUser&MockObject $currentUser;
 	private PolicyController $controller;
@@ -45,6 +47,7 @@ final class PolicyControllerTest extends TestCase {
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->userManager = $this->createMock(IUserManager::class);
 		$this->subAdmin = $this->createMock(ISubAdmin::class);
 		$this->currentUser = $this->createMock(IUser::class);
 		$this->currentUser
@@ -60,6 +63,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->policyService,
 			$this->userSession,
 			$this->groupManager,
+			$this->userManager,
 			$this->subAdmin,
 		);
 	}
@@ -108,14 +112,29 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testEffectiveEmbedsSytemAdminRuleCounts(): void {
+		$group = $this->createMock(IGroup::class);
+		$group->method('getGID')->willReturn('finance');
+
+		$managedUser = $this->createMock(IUser::class);
+		$managedUser->method('getUID')->willReturn('guest-perm@test.coop');
+
 		$this->groupManager
 			->method('isAdmin')
 			->with('admin')
 			->willReturn(true);
+		$this->groupManager
+			->method('search')
+			->with('')
+			->willReturn([$group]);
+		$this->userManager
+			->method('search')
+			->with('')
+			->willReturn([$managedUser]);
 
 		$this->policyService
 			->expects($this->once())
-			->method('getAllRuleCounts')
+			->method('getRuleCounts')
+			->with(['finance'], ['guest-perm@test.coop'])
 			->willReturn([
 				'signature_flow' => ['groupCount' => 3, 'userCount' => 7],
 			]);
@@ -182,7 +201,6 @@ final class PolicyControllerTest extends TestCase {
 		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
 		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(false);
 
-		$this->policyService->expects($this->never())->method('getAllRuleCounts');
 		$this->policyService->expects($this->never())->method('getRuleCounts');
 
 		$resolvedPolicy = (new ResolvedPolicy())
@@ -427,6 +445,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->policyService,
 			$this->userSession,
 			$this->groupManager,
+			$this->userManager,
 			$this->subAdmin,
 		);
 
@@ -476,6 +495,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->policyService,
 			$this->userSession,
 			$this->groupManager,
+			$this->userManager,
 			$this->subAdmin,
 		);
 
@@ -732,6 +752,7 @@ final class PolicyControllerTest extends TestCase {
 			$this->policyService,
 			$this->userSession,
 			$this->groupManager,
+			$this->userManager,
 			$this->subAdmin,
 		);
 
