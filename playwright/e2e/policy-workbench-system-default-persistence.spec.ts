@@ -10,7 +10,6 @@ import { ensureUserExists } from '../support/nc-provisioning'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 45000 })
 
-const openPolicyButtonName = /Manage signing order|Manage this setting|Manage setting|Open policy|Open setting policy/i
 const changeDefaultButtonName = /^Change$/i
 const removeExceptionButtonName = /Remove exception|Remove rule/i
 const userRuleTargetLabel = 'policy-e2e-user'
@@ -31,16 +30,10 @@ async function getActiveRuleDialog(page: Page): Promise<Locator> {
 }
 
 async function openSigningOrderDialog(page: Page) {
-	const manageButtonsByClass = page.locator('.policy-workbench__manage-button')
-	if (await manageButtonsByClass.count()) {
-		await expect(manageButtonsByClass.first()).toBeVisible({ timeout: 20000 })
-		await manageButtonsByClass.first().click()
-	} else {
-		const manageButtonsByName = page.getByRole('button', { name: openPolicyButtonName })
-		await expect(manageButtonsByName.first()).toBeVisible({ timeout: 20000 })
-		await manageButtonsByName.first().click()
-	}
-	await expect(page.getByLabel('Signing order')).toBeVisible()
+	const signingOrderCardButton = page.getByRole('button', { name: /Signing order/i }).first()
+	await expect(signingOrderCardButton).toBeVisible({ timeout: 20000 })
+	await signingOrderCardButton.click()
+	await expect(page.getByLabel('Signing order')).toBeVisible({ timeout: 10000 })
 }
 
 async function getSigningOrderDialog(page: Page): Promise<Locator> {
