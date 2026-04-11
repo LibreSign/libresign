@@ -13,8 +13,8 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
-use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
-use OCA\Libresign\Service\Policy\Provider\Footer\SignatureFooterPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use PHPUnit\Framework\TestCase;
@@ -45,20 +45,20 @@ final class PolicyRegistryTest extends TestCase {
 		$this->assertSame(2, $definition->normalizeValue(2));
 	}
 
-	public function testRegistryReturnsAddFooterDefinition(): void {
+	public function testRegistryReturnsFooterDefinition(): void {
 		$container = $this->createMock(ContainerInterface::class);
-		$container->method('get')->with(AddFooterPolicy::class)->willReturn(new AddFooterPolicy());
+		$container->method('get')->with(FooterPolicy::class)->willReturn(new FooterPolicy());
 		$registry = new PolicyRegistry($container);
-		$definition = $registry->get(AddFooterPolicy::KEY);
+		$definition = $registry->get(FooterPolicy::KEY);
 
-		$this->assertSame(AddFooterPolicy::KEY, $definition->key());
+		$this->assertSame(FooterPolicy::KEY, $definition->key());
 		$this->assertSame(
-			SignatureFooterPolicyValue::encode(SignatureFooterPolicyValue::defaults()),
+			FooterPolicyValue::encode(FooterPolicyValue::defaults()),
 			$definition->defaultSystemValue(),
 		);
 		$this->assertSame([], $definition->allowedValues(new PolicyContext()));
 		$this->assertSame(
-			SignatureFooterPolicyValue::encode([
+			FooterPolicyValue::encode([
 				'enabled' => false,
 				'writeQrcodeOnFooter' => true,
 				'validationSite' => '',
