@@ -230,6 +230,39 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertFalse($source->circlePoliciesLoaded);
 	}
 
+	public function testResolveManyUsesBulkLoadingAndResolvesAllDefinitions(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('ordered_numeric')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues(['parallel', 'ordered_numeric']),
+		];
+
+		// Both definitions share the same allowed value set so the group layer applies to both
+		$definitions = [
+			new PolicySpec(key: 'signature_flow', defaultSystemValue: 'none', allowedValues: ['none', 'parallel', 'ordered_numeric']),
+			new PolicySpec(key: 'alt_policy', defaultSystemValue: 'none', allowedValues: ['none', 'parallel', 'ordered_numeric']),
+		];
+
+		$resolver = new DefaultPolicyResolver($source);
+		$results = $resolver->resolveMany($definitions, PolicyContext::fromUserId('john'));
+
+		$this->assertArrayHasKey('signature_flow', $results);
+		$this->assertArrayHasKey('alt_policy', $results);
+		$this->assertSame('ordered_numeric', $results['signature_flow']->getEffectiveValue());
+		$this->assertSame('ordered_numeric', $results['alt_policy']->getEffectiveValue());
+		$this->assertTrue($source->bulkGroupPoliciesLoaded);
+		$this->assertTrue($source->bulkUserPrefsLoaded);
+	}
+
 	private function getDefinition(): PolicySpec {
 		return new PolicySpec(
 			key: 'signature_flow',
@@ -258,6 +291,8 @@ final class InMemoryPolicySource implements IPolicySource {
 	public ?PolicyLayer $requestOverride = null;
 	public bool $userPreferenceCleared = false;
 	public bool $circlePoliciesLoaded = false;
+	public bool $bulkGroupPoliciesLoaded = false;
+	public bool $bulkUserPrefsLoaded = false;
 
 	public function loadSystemPolicy(string $policyKey): ?PolicyLayer {
 		return $this->systemLayer;
@@ -282,6 +317,21 @@ final class InMemoryPolicySource implements IPolicySource {
 
 	public function loadRequestOverride(string $policyKey, PolicyContext $context): ?PolicyLayer {
 		return $this->requestOverride;
+	}
+
+	/** @param list<string> $policyKeys */
+	public function loadAllGroupPolicies(array $policyKeys, PolicyContext $context): array {
+		$this->bulkGroupPoliciesLoaded = true;
+		return array_fill_keys($policyKeys, $this->groupLayers);
+	}
+
+	/** @param list<string> $policyKeys */
+	public function loadAllUserPreferences(array $policyKeys, PolicyContext $context): array {
+		$this->bulkUserPrefsLoaded = true;
+		if ($this->userPreference === null) {
+			return [];
+		}
+		return array_fill_keys($policyKeys, $this->userPreference);
 	}
 
 	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void {
