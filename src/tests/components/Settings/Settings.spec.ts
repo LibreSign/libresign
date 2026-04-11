@@ -403,12 +403,27 @@ describe('Settings', () => {
 			wrapper = createWrapper(false, true, {
 				signature_flow: {
 					editableByCurrentActor: true,
+					groupCount: 1,
+					userCount: 0,
 				},
 			})
 			const items = getItems()
 			const policiesItem = expectItem(findItemByName(items, 'Policies'))
 
 			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('hides Policies for non-admin users when only system-level editable policies exist', () => {
+			wrapper = createWrapper(false, true, {
+				docmdp: {
+					editableByCurrentActor: true,
+					groupCount: 0,
+					userCount: 0,
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Policies')).toBeUndefined()
 		})
 
 		it('renders the policies icon for admin users', () => {
@@ -601,6 +616,8 @@ describe('Settings', () => {
 			wrapper = createWrapper(false, true, {
 				signature_flow: {
 					editableByCurrentActor: true,
+					groupCount: 1,
+					userCount: 0,
 				},
 			})
 			const items = getItems()
