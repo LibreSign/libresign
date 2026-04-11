@@ -194,7 +194,9 @@ export function createRealPolicyWorkbenchState() {
 					return true
 				}
 
-				return summary.groupCount > 0 || summary.userCount > 0
+				const policy = policiesStore.getPolicy(summary.key)
+				return (summary.groupCount > 0 || summary.userCount > 0)
+					&& policy?.editableByCurrentActor === true
 			})
 	})
 
@@ -352,6 +354,10 @@ export function createRealPolicyWorkbenchState() {
 			return null
 		}
 
+		if (activePolicyState.value?.editableByCurrentActor === false) {
+			return t('libresign', 'Blocked by the global default.')
+		}
+
 		if (inheritedSystemRule.value?.allowChildOverride === false) {
 			return t('libresign', 'Blocked by the global default.')
 		}
@@ -362,6 +368,10 @@ export function createRealPolicyWorkbenchState() {
 	const createUserOverrideDisabledReason = computed(() => {
 		if (viewMode.value === 'system-admin') {
 			return null
+		}
+
+		if (activePolicyState.value?.editableByCurrentActor === false) {
+			return t('libresign', 'Blocked by the global default.')
 		}
 
 		if (inheritedSystemRule.value?.allowChildOverride === false) {
