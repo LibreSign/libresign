@@ -100,6 +100,8 @@ final class PolicyControllerTest extends TestCase {
 					'canUseAsRequestOverride' => false,
 					'preferenceWasCleared' => false,
 					'blockedBy' => 'group',
+					'groupCount' => 0,
+					'userCount' => 0,
 				],
 			],
 		], $response->getData());
@@ -662,4 +664,5 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('parallel', $response->getData()['policy']['effectiveValue']);
 	}
+
 }
