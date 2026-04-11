@@ -80,7 +80,7 @@ type OcpGlobal = {
 }
 
 type FooterTemplateEditorInstance = {
-	resetFooterTemplate: () => Promise<void> | void
+	resetTemplateToDefault: () => Promise<void> | void
 }
 
 defineOptions({
@@ -183,7 +183,7 @@ async function onCustomizeFooterChange(value: boolean) {
 	await toggleSetting('footer_template_is_default', !value)
 	isDefaultFooterTemplate.value = !value
 	if (!value) {
-		await footerTemplateEditor.value?.resetFooterTemplate()
+		await footerTemplateEditor.value?.resetTemplateToDefault()
 	}
 }
 
