@@ -329,14 +329,14 @@ class DocMdpHandler {
 	 *
 	 * @param bool $valid Whether modification is valid
 	 * @param int $status Status constant from File class
-	 * @param string $messageKey Translation key
+	 * @param string $message Translated message
 	 * @return array Validation result
 	 */
-	private function buildValidationResult(bool $valid, int $status, string $messageKey): array {
+	private function buildValidationResult(bool $valid, int $status, string $message): array {
 		return [
 			'valid' => $valid,
 			'status' => $status,
-			'message' => $this->l10n->t($messageKey),
+			'message' => $message,
 		];
 	}
 
@@ -348,10 +348,10 @@ class DocMdpHandler {
 	 */
 	private function getAllowedModificationMessage(DocMdpLevel $level): string {
 		return match ($level) {
-			DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED => 'Invalid: Document was modified after signing (DocMDP violation - no changes allowed)',
-			DocMdpLevel::CERTIFIED_FORM_FILLING => 'Document form fields were modified (allowed by DocMDP P=2)',
-			DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => 'Document form fields or annotations were modified (allowed by DocMDP P=3)',
-			default => 'Document was modified after signing',
+			DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED => $this->l10n->t('Invalid: Document was modified after signing (DocMDP violation - no changes allowed)'),
+			DocMdpLevel::CERTIFIED_FORM_FILLING => $this->l10n->t('Document form fields were modified (allowed by DocMDP P=2)'),
+			DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => $this->l10n->t('Document form fields or annotations were modified (allowed by DocMDP P=3)'),
+			default => $this->l10n->t('Document was modified after signing'),
 		};
 	}
 
