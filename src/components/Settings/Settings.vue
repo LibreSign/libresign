@@ -45,6 +45,7 @@ import { t } from '@nextcloud/l10n'
 import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
+import type { EffectivePoliciesResponse } from '../../types'
 
 
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
@@ -63,7 +64,16 @@ defineOptions({
 
 const isAdmin = getCurrentUser()?.isAdmin ?? false
 const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
-const canManagePolicies = isAdmin || Boolean(config.can_manage_group_policies)
+const effectivePoliciesState = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
+const hasEditablePolicies = Object.values(effectivePoliciesState.policies ?? {}).some((policy) => {
+	if (!policy || typeof policy !== 'object') {
+		return false
+	}
+
+	return Boolean((policy as { editableByCurrentActor?: boolean }).editableByCurrentActor)
+})
+
+const canManagePolicies = isAdmin || (Boolean(config.can_manage_group_policies) && hasEditablePolicies)
 
 function getAdminRoute() {
 	return generateUrl('settings/admin/libresign')
