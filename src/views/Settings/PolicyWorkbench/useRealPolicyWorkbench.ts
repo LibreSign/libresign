@@ -186,6 +186,8 @@ export function createRealPolicyWorkbenchState() {
 	const loadingTargets = ref(false)
 	const hydratePersistedRulesRequestId = ref(0)
 	const editorInitialSnapshot = ref('')
+	const draftTouchVersion = ref(0)
+	const editorInitialTouchVersion = ref(0)
 
 	const visibleSettingSummaries = computed<PolicySettingSummary[]>(() => {
 		return Object.values(realDefinitions).map((definition) => {
@@ -443,6 +445,7 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		return toDraftSnapshot(editorDraft.value) !== editorInitialSnapshot.value
+			|| draftTouchVersion.value !== editorInitialTouchVersion.value
 	})
 
 	function hasSelectableDraftValue(draft: PolicyEditorDraft) {
@@ -554,6 +557,21 @@ export function createRealPolicyWorkbenchState() {
 		userRules.value = persistedUserPolicies.filter(hasPersistedRule)
 		nextRuleNumber.value = groupRules.value.length + userRules.value.length + 1
 		setSettingRuleCounts(policyKey, groupRules.value.length, userRules.value.length)
+	}
+
+	function hydrateAllSettingRuleCounts() {
+		const persistedCounts: Record<string, { groupCount: number, userCount: number }> = {}
+		for (const policyKey of Object.keys(realDefinitions)) {
+			const policy = policiesStore.getPolicy(policyKey)
+			persistedCounts[policyKey] = {
+				groupCount: policy?.groupCount ?? 0,
+				userCount: policy?.userCount ?? 0,
+			}
+		}
+		settingRuleCounts.value = {
+			...settingRuleCounts.value,
+			...persistedCounts,
+		}
 	}
 
 	function openSetting(key: string) {
@@ -763,6 +781,7 @@ export function createRealPolicyWorkbenchState() {
 			allowChildOverride,
 		}
 		editorInitialSnapshot.value = toDraftSnapshot(editorDraft.value)
+		editorInitialTouchVersion.value = draftTouchVersion.value
 
 		if (scope === 'group' || scope === 'user') {
 			void loadTargets(scope)
@@ -774,6 +793,15 @@ export function createRealPolicyWorkbenchState() {
 		editorMode.value = null
 		duplicateMessage.value = null
 		editorInitialSnapshot.value = ''
+		editorInitialTouchVersion.value = draftTouchVersion.value
+	}
+
+	function markDraftTouched() {
+		if (!editorDraft.value) {
+			return
+		}
+
+		draftTouchVersion.value += 1
 	}
 
 	function updateDraftValue(value: EffectivePolicyValue) {
@@ -973,10 +1001,12 @@ export function createRealPolicyWorkbenchState() {
 		startEditor,
 		cancelEditor,
 		updateDraftValue,
+		markDraftTouched,
 		updateDraftTarget,
 		updateDraftTargets,
 		updateDraftAllowOverride,
 		searchAvailableTargets,
+		hydrateAllSettingRuleCounts,
 		setViewMode,
 		saveDraft,
 		removeRule,
