@@ -224,6 +224,13 @@ final class PolicyController extends AEnvironmentAwareController {
 			];
 
 			return new DataResponse($data);
+		} catch (\DomainException $exception) {
+			/** @var LibresignErrorResponse $data */
+			$data = [
+				'error' => $this->l10n->t($exception->getMessage()),
+			];
+
+			return new DataResponse($data, Http::STATUS_FORBIDDEN);
 		} catch (\InvalidArgumentException $exception) {
 			/** @var LibresignErrorResponse $data */
 			$data = [
@@ -251,14 +258,23 @@ final class PolicyController extends AEnvironmentAwareController {
 			return $this->forbiddenGroupPolicyResponse();
 		}
 
-		$policy = $this->policyService->clearGroupPolicy($policyKey, $groupId);
-		/** @var LibresignGroupPolicyWriteResponse $data */
-		$data = [
-			'message' => $this->l10n->t('Settings saved'),
-			'policy' => $this->serializeGroupPolicy($groupId, $policyKey, $policy),
-		];
+		try {
+			$policy = $this->policyService->clearGroupPolicy($policyKey, $groupId);
+			/** @var LibresignGroupPolicyWriteResponse $data */
+			$data = [
+				'message' => $this->l10n->t('Settings saved'),
+				'policy' => $this->serializeGroupPolicy($groupId, $policyKey, $policy),
+			];
 
-		return new DataResponse($data);
+			return new DataResponse($data);
+		} catch (\DomainException $exception) {
+			/** @var LibresignErrorResponse $data */
+			$data = [
+				'error' => $this->l10n->t($exception->getMessage()),
+			];
+
+			return new DataResponse($data, Http::STATUS_FORBIDDEN);
+		}
 	}
 
 	/**
