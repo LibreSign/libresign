@@ -644,6 +644,101 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('parallel', $result['signature_flow']->getValue());
 	}
 
+	public function testLoadAllRuleCountsReturnsZeroCountsWhenNoBindingsExist(): void {
+		$this->bindingMapper
+			->expects($this->once())
+			->method('findByTargetType')
+			->with('group')
+			->willReturn([]);
+
+		$expr = $this->createMock(IExpressionBuilder::class);
+		$expr->method('eq')->willReturn('1=1');
+		$expr->method('in')->willReturn('1=1');
+		$expr->method('neq')->willReturn('1=1');
+
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('select')->willReturnSelf();
+		$qb->method('selectAlias')->willReturnSelf();
+		$qb->method('from')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('andWhere')->willReturnSelf();
+		$qb->method('groupBy')->willReturnSelf();
+		$qb->method('expr')->willReturn($expr);
+		$qb->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
+		$qb->method('createNamedParameter')->willReturn(':p');
+
+		$dbResult = $this->createMock(IResult::class);
+		$dbResult->method('fetchAssociative')->willReturn(false);
+		$dbResult->expects($this->once())->method('closeCursor');
+		$qb->method('executeQuery')->willReturn($dbResult);
+
+		$this->db->expects($this->once())->method('getQueryBuilder')->willReturn($qb);
+
+		$result = $this->getSource()->loadAllRuleCounts();
+
+		$this->assertArrayHasKey('signature_flow', $result);
+		$this->assertSame(0, $result['signature_flow']['groupCount']);
+		$this->assertSame(0, $result['signature_flow']['userCount']);
+	}
+
+	public function testLoadAllRuleCountsAggregatesGroupAndUserCounts(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(10);
+		$binding->setTargetType('group');
+		$binding->setTargetId('finance');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(10);
+		$permissionSet->setPolicyJson([
+			'signature_flow' => ['defaultValue' => 'ordered_numeric', 'allowChildOverride' => false, 'visibleToChild' => true, 'allowedValues' => ['ordered_numeric']],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('findByTargetType')
+			->with('group')
+			->willReturn([$binding]);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('findByIds')
+			->with([10])
+			->willReturn([$permissionSet]);
+
+		$expr = $this->createMock(IExpressionBuilder::class);
+		$expr->method('eq')->willReturn('1=1');
+		$expr->method('in')->willReturn('1=1');
+		$expr->method('neq')->willReturn('1=1');
+
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('select')->willReturnSelf();
+		$qb->method('selectAlias')->willReturnSelf();
+		$qb->method('from')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('andWhere')->willReturnSelf();
+		$qb->method('groupBy')->willReturnSelf();
+		$qb->method('expr')->willReturn($expr);
+		$qb->method('func')->willReturn($this->createMock(\OCP\DB\QueryBuilder\IFunctionBuilder::class));
+		$qb->method('createNamedParameter')->willReturn(':p');
+
+		$dbResult = $this->createMock(IResult::class);
+		$dbResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
+			['configkey' => 'policy.signature_flow', 'user_count' => '3'],
+			false,
+		);
+		$dbResult->expects($this->once())->method('closeCursor');
+		$qb->method('executeQuery')->willReturn($dbResult);
+
+		$this->db->expects($this->once())->method('getQueryBuilder')->willReturn($qb);
+
+		$result = $this->getSource()->loadAllRuleCounts();
+
+		$this->assertSame(1, $result['signature_flow']['groupCount']);
+		$this->assertSame(3, $result['signature_flow']['userCount']);
+		$this->assertSame(0, $result['docmdp']['groupCount']);
+		$this->assertSame(0, $result['docmdp']['userCount']);
+	}
+
 	private function getSource(): PolicySource {
 		return new PolicySource(
 			$this->appConfig,
