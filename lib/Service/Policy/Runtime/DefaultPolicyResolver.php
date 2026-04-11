@@ -23,13 +23,29 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 
 	#[\Override]
 	public function resolve(IPolicyDefinition $definition, PolicyContext $context): ResolvedPolicy {
+		return $this->resolveCore(
+			$definition,
+			$context,
+			$this->source->loadGroupPolicies($definition->key(), $context),
+			$this->source->loadUserPreference($definition->key(), $context),
+		);
+	}
+
+	/**
+	 * @param list<PolicyLayer> $groupLayers Pre-fetched group layers (avoids repeat DB calls in bulk resolution)
+	 */
+	private function resolveCore(
+		IPolicyDefinition $definition,
+		PolicyContext $context,
+		array $groupLayers,
+		?PolicyLayer $userPreference,
+	): ResolvedPolicy {
 		$policyKey = $definition->key();
 		$resolved = (new ResolvedPolicy())
 			->setPolicyKey($policyKey)
 			->setAllowedValues($definition->allowedValues($context));
 
 		$systemLayer = $this->source->loadSystemPolicy($policyKey);
-		$groupLayers = $this->source->loadGroupPolicies($policyKey, $context);
 
 		$currentValue = $definition->defaultSystemValue();
 		$currentSourceScope = 'system';
@@ -76,7 +92,6 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			}
 		}
 
-		$userPreference = $this->source->loadUserPreference($policyKey, $context);
 		if ($userPreference !== null) {
 			if ($this->canApplyLowerLayer($definition, $resolved, $userPreference, $canOverrideBelow, $visible, $context)) {
 				$currentValue = $definition->normalizeValue($userPreference->getValue());
@@ -171,13 +186,28 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 	#[\Override]
 	/** @param list<IPolicyDefinition> $definitions */
 	public function resolveMany(array $definitions, PolicyContext $context): array {
-		$resolved = [];
-		foreach ($definitions as $definition) {
-			if (!$definition instanceof IPolicyDefinition) {
-				continue;
-			}
+		$validDefinitions = array_filter(
+			$definitions,
+			static fn (mixed $d): bool => $d instanceof IPolicyDefinition,
+		);
 
-			$resolved[$definition->key()] = $this->resolve($definition, $context);
+		$policyKeys = array_map(
+			static fn (IPolicyDefinition $d): string => $d->key(),
+			$validDefinitions,
+		);
+
+		$allGroupLayers = $this->source->loadAllGroupPolicies($policyKeys, $context);
+		$allUserPrefs = $this->source->loadAllUserPreferences($policyKeys, $context);
+
+		$resolved = [];
+		foreach ($validDefinitions as $definition) {
+			$key = $definition->key();
+			$resolved[$key] = $this->resolveCore(
+				$definition,
+				$context,
+				$allGroupLayers[$key] ?? [],
+				$allUserPrefs[$key] ?? null,
+			);
 		}
 		return $resolved;
 	}
