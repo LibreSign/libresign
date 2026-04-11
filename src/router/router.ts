@@ -5,7 +5,6 @@
 
 import { createRouter, createWebHistory, type Router, type RouteRecordRaw } from 'vue-router'
 
-import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 import { getRootUrl, generateUrl } from '@nextcloud/router'
 
@@ -23,29 +22,6 @@ function generateWebBasePath(): string {
 	const doesURLContainIndexPHP = window.location.pathname.startsWith(webRootWithIndexPHP)
 	return generateUrl('/apps/libresign', {}, {
 		noRewrite: doesURLContainIndexPHP,
-	})
-}
-
-type EffectivePolicySummary = {
-	groupCount?: number
-	userCount?: number
-	editableByCurrentActor?: boolean
-}
-
-function canAccessPoliciesRoute(): boolean {
-	if (getCurrentUser()?.isAdmin) {
-		return true
-	}
-
-	const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
-	if (!config?.can_manage_group_policies) {
-		return false
-	}
-
-	const effectivePolicies = loadState<{ policies?: Record<string, EffectivePolicySummary> }>('libresign', 'effective_policies', { policies: {} })
-	return Object.values(effectivePolicies?.policies ?? {}).some((policy) => {
-		const hasDelegatedRules = (policy.groupCount ?? 0) > 0 || (policy.userCount ?? 0) > 0
-		return hasDelegatedRules && policy.editableByCurrentActor === true
 	})
 }
 
@@ -212,12 +188,6 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/f/policies',
 		name: 'Policies',
-		beforeEnter: () => {
-			if (!canAccessPoliciesRoute()) {
-				return { name: 'Preferences' }
-			}
-			return true
-		},
 		component: () => import('../views/Policies/Policies.vue'),
 	},
 	{
