@@ -20,6 +20,7 @@ use OCP\Group\ISubAdmin;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 
 /**
@@ -59,18 +60,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/effective', requirements: ['apiVersion' => '(v1)'])]
 	public function effective(): DataResponse {
 		$user = $this->userSession->getUser();
-		$isSystemAdmin = $user !== null && $this->groupManager->isAdmin($user->getUID());
-		$isSubAdmin = !$isSystemAdmin && $user !== null && $this->subAdmin->isSubAdmin($user);
-
-		if ($isSystemAdmin) {
-			$ruleCounts = $this->policyService->getAllRuleCounts();
-		} elseif ($isSubAdmin) {
-			$managedGroups = $this->subAdmin->getSubAdminsGroups($user);
-			$groupIds = array_map(static fn ($group) => $group->getGID(), $managedGroups);
-			$ruleCounts = $this->policyService->getRuleCounts($groupIds, []);
-		} else {
-			$ruleCounts = [];
-		}
+		$ruleCounts = $this->resolveRuleCountsForActor($user);
 
 		/** @var array<string, LibresignEffectivePolicyState> $policies */
 		$policies = [];
@@ -418,6 +408,29 @@ final class PolicyController extends AEnvironmentAwareController {
 		}
 
 		return $this->subAdmin->isSubAdminOfGroup($user, $group);
+	}
+
+	/**
+	 * @return array<string, array{groupCount: int, userCount: int}>
+	 */
+	private function resolveRuleCountsForActor(?IUser $user): array {
+		if ($user === null) {
+			return [];
+		}
+
+		if ($this->groupManager->isAdmin($user->getUID())) {
+			return $this->policyService->getAllRuleCounts();
+		}
+
+		if ($this->subAdmin->isSubAdmin($user)) {
+			$groupIds = array_map(
+				static fn ($group) => $group->getGID(),
+				$this->subAdmin->getSubAdminsGroups($user),
+			);
+			return $this->policyService->getRuleCounts($groupIds, []);
+		}
+
+		return [];
 	}
 
 	private function readScalarParam(string $key, null|bool|int|float|string $default): null|bool|int|float|string {
