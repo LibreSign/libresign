@@ -38,9 +38,13 @@ const GROUP_ID = 'policy-menu-visibility-group'
 const GROUP_ADMIN = 'policy-menu-visibility-admin'
 const GROUP_ADMIN_PASSWORD = '123456'
 
-// signature_flow: well-known valid values; "Signing order" UI title.
-// Using a system type so we don't need to set up complex JSON values (add_footer).
-const POLICY_KEY = 'signature_flow'
+const POLICY_KEY = 'add_footer'
+const FOOTER_ENABLED_VALUE = JSON.stringify({
+	enabled: true,
+	writeQrcodeOnFooter: true,
+	validationSite: '',
+	customizeFooterTemplate: false,
+})
 
 // ─── Admin API helpers (no browser needed) ────────────────────────────────────
 
@@ -90,6 +94,27 @@ async function setGroupPolicy(
 	expect(resp.status(), `setGroupPolicy: expected 200 but got ${resp.status()}`).toBe(200)
 }
 
+async function getEffectivePolicy(
+	ctx: APIRequestContext,
+): Promise<{ editableByCurrentActor?: boolean, groupCount?: number } | null> {
+	const response = await ctx.get('./ocs/v2.php/apps/libresign/api/v1/policies/effective', {
+		failOnStatusCode: false,
+	})
+	expect(response.status(), `getEffectivePolicy: expected 200 but got ${response.status()}`).toBe(200)
+	const data = await response.json() as {
+		ocs?: {
+			data?: {
+				policies?: Record<string, {
+					editableByCurrentActor?: boolean
+					groupCount?: number
+				}>
+			}
+		}
+	}
+
+	return data.ocs?.data?.policies?.[POLICY_KEY] ?? null
+}
+
 /**
  * DELETE /policies/group/{group}/{key} — remove the rule so groupCount drops to 0
  * and the Policies nav item disappears for the group admin.
@@ -101,9 +126,23 @@ async function deleteGroupPolicy(ctx: APIRequestContext): Promise<void> {
 	)
 }
 
+async function expandSettingsMenu(page: import('@playwright/test').Page): Promise<void> {
+	await page.keyboard.press('Escape').catch(() => {})
+	const sidebar = page.locator('#app-navigation-vue')
+	const settingsLink = sidebar.getByRole('link', { name: 'Account' })
+	if (await settingsLink.count()) {
+		return
+	}
+
+	const settingsToggle = sidebar.getByRole('button', { name: 'Settings' })
+	if (await settingsToggle.count()) {
+		await settingsToggle.first().click()
+	}
+}
+
 // ─── Test ─────────────────────────────────────────────────────────────────────
 
-test('policies nav item appears for group admin when a group rule exists, and hides when removed', async ({ page }) => {
+test('policies nav item is visible only when group admin can edit at least one delegated rule', async ({ page }) => {
 	const adminCtx = await makeAdminContext()
 
 	try {
@@ -119,10 +158,25 @@ test('policies nav item appears for group admin when a group rule exists, and hi
 		//
 		// System policy must allow child overrides so the workbench unlocks the
 		// "Create rule" button for the group admin.
-		await setSystemPolicy(adminCtx, 'parallel', true)
+		await setSystemPolicy(adminCtx, FOOTER_ENABLED_VALUE, true)
 		// Group-scoped rule → groupCount becomes ≥ 1 in the effective-policies
 		// API response seen by the group admin.
-		await setGroupPolicy(adminCtx, 'ordered_numeric', true)
+		await setGroupPolicy(adminCtx, FOOTER_ENABLED_VALUE, true)
+
+		const groupAdminCtx = await request.newContext({
+			baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
+			ignoreHTTPSErrors: true,
+			extraHTTPHeaders: {
+				'OCS-ApiRequest': 'true',
+				Accept: 'application/json',
+				Authorization: 'Basic ' + Buffer.from(`${GROUP_ADMIN}:${GROUP_ADMIN_PASSWORD}`).toString('base64'),
+			},
+		})
+
+		const editablePolicy = await getEffectivePolicy(groupAdminCtx)
+		expect(editablePolicy?.groupCount).toBeGreaterThan(0)
+		expect(editablePolicy?.editableByCurrentActor).toBe(true)
+		await groupAdminCtx.dispose()
 
 		// ── 2. Log in as group admin ───────────────────────────────────────────
 
@@ -133,6 +187,7 @@ test('policies nav item appears for group admin when a group rule exists, and hi
 		await page.goto('./apps/libresign/f/preferences')
 
 		// ── 3. "Policies" must appear in the settings sidebar ─────────────────
+		await expandSettingsMenu(page)
 
 		const policiesNavItem = page.getByRole('link', { name: 'Policies' })
 		await expect(policiesNavItem, 'Policies link should be visible when a delegated group rule exists').toBeVisible({ timeout: 20000 })
@@ -158,8 +213,8 @@ test('policies nav item appears for group admin when a group rule exists, and hi
 
 		await configureButton.click()
 
-		const settingDialog = page.getByRole('dialog', { name: /Signing order/i })
-		await expect(settingDialog, '"Signing order" dialog should open on click').toBeVisible({ timeout: 10000 })
+		const settingDialog = page.getByRole('dialog', { name: /Signature footer/i })
+		await expect(settingDialog, '"Signature footer" dialog should open on click').toBeVisible({ timeout: 10000 })
 
 		// ── 7. "Create rule" button must be available inside the dialog ───────
 
@@ -182,18 +237,44 @@ test('policies nav item appears for group admin when a group rule exists, and hi
 		await page.keyboard.press('Escape')
 		await expect(createPolicyDialog).toBeHidden({ timeout: 5000 })
 
-		// ── 9. Admin: remove the group policy ─────────────────────────────────
+		// ── 9. Admin: lock the only group rule (no lower-level override) ──────
+		//
+		// With only one group rule and allowChildOverride:false, the effective
+		// policy is not editable by this group admin. The menu must disappear.
+		await setGroupPolicy(adminCtx, FOOTER_ENABLED_VALUE, false)
+
+		const lockedGroupAdminCtx = await request.newContext({
+			baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
+			ignoreHTTPSErrors: true,
+			extraHTTPHeaders: {
+				'OCS-ApiRequest': 'true',
+				Accept: 'application/json',
+				Authorization: 'Basic ' + Buffer.from(`${GROUP_ADMIN}:${GROUP_ADMIN_PASSWORD}`).toString('base64'),
+			},
+		})
+
+		const lockedPolicy = await getEffectivePolicy(lockedGroupAdminCtx)
+		expect(lockedPolicy?.groupCount).toBeGreaterThan(0)
+		expect(lockedPolicy?.editableByCurrentActor).toBe(false)
+		await lockedGroupAdminCtx.dispose()
+
+		await page.goto('./apps/libresign/f/preferences')
+		await expandSettingsMenu(page)
+		await expect(page.getByRole('link', { name: 'Policies' }), 'Policies link should be hidden when all delegated rules are read-only for the group admin').toBeHidden({ timeout: 20000 })
+
+		// ── 10. Admin: remove the group policy ────────────────────────────────
 
 		await deleteGroupPolicy(adminCtx)
 
-		// ── 10. Reload as group admin to refresh effective-policies state ──────
+		// ── 11. Reload as group admin to refresh effective-policies state ──────
 		//
 		// A full navigation re-triggers fetchEffectivePolicies() in Preferences.vue,
 		// causing Settings.vue's hasDelegatedPolicies computed to update reactively.
 
 		await page.goto('./apps/libresign/f/preferences')
+		await expandSettingsMenu(page)
 
-		// ── 11. "Policies" must no longer appear in the settings sidebar ───────
+		// ── 12. "Policies" must no longer appear in the settings sidebar ───────
 
 		await expect(page.getByRole('link', { name: 'Policies' }), 'Policies link should be gone after the group rule is removed').toBeHidden({ timeout: 20000 })
 	} finally {
