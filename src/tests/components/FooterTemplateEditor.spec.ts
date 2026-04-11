@@ -321,74 +321,50 @@ describe('FooterTemplateEditor.vue', () => {
 			const wrapper = createWrapper()
 			await flushPromises()
 
-			const resetButton = wrapper.find('button[aria-label*="Reset template"]')
+			expect(wrapper.vm.hasTemplateChanged).toBe(false)
+			const resetButton = wrapper.find('button[aria-label*="Reset template to original"]')
 			expect(resetButton.exists()).toBe(false)
 		})
 
-		it('shows the reset button when template is not default', async () => {
-			axiosGetMock.mockResolvedValueOnce({
-				data: {
-					ocs: {
-						data: {
-							template: 'Custom footer',
-							isDefault: false,
-							preview_height: 120,
-							preview_width: 640,
-						},
-					},
-				},
-			})
-
+		it('shows the reset button when template is changed', async () => {
 			const wrapper = createWrapper()
 			await flushPromises()
 
-			const resetButton = wrapper.find('button[aria-label*="Reset template"]')
+			// Initially button should not exist (template hasn't changed)
+			expect(wrapper.vm.hasTemplateChanged).toBe(false)
+
+			// Modify the template
+			wrapper.vm.footerTemplate = 'Modified footer'
+			await wrapper.vm.$nextTick()
+
+			// Now button should exist
+			expect(wrapper.vm.hasTemplateChanged).toBe(true)
+			const resetButton = wrapper.find('button[aria-label*="Reset template to original"]')
 			expect(resetButton.exists()).toBe(true)
 		})
 
-		it('resets the template to default and reloads preview', async () => {
-			axiosGetMock.mockResolvedValueOnce({
-				data: {
-					ocs: {
-						data: {
-							template: 'Custom footer',
-							isDefault: false,
-							preview_height: 120,
-							preview_width: 640,
-						},
-					},
-				},
-			})
-
-			axiosPostMock.mockResolvedValueOnce({ data: new Blob(['pdf'], { type: 'application/pdf' }) })
-
+		it('resets the template to original value', async () => {
 			const wrapper = createWrapper()
 			await flushPromises()
 
-			wrapper.vm.footerTemplate = 'Custom footer'
-			wrapper.vm.isDefaultTemplate = false
+			const originalTemplate = wrapper.vm.footerTemplate
+
+			// Change template
+			wrapper.vm.footerTemplate = 'Modified footer'
 			await wrapper.vm.$nextTick()
+
+			// Verify button shows and template has changed
+			expect(wrapper.vm.hasTemplateChanged).toBe(true)
+			const resetButton = wrapper.find('button[aria-label*="Reset template to original"]')
+			expect(resetButton.exists()).toBe(true)
 
 			// Click reset button
-			const resetButton = wrapper.find('button[aria-label*="Reset template"]')
-			await resetButton.trigger('click')
-			await flushPromises()
-
-			// Verify API call was made with empty template
-			expect(axiosPostMock).toHaveBeenCalledWith(
-				'/ocs/v2.php/apps/libresign/api/v1/admin/footer-template',
-				expect.objectContaining({
-					template: '',
-					width: 640,
-					height: 120,
-				}),
-				{ responseType: 'blob' },
-			)
+			await wrapper.vm.resetTemplateToOriginal()
+			await wrapper.vm.$nextTick()
 
 			// Verify state was reset
-			await wrapper.vm.$nextTick()
-			expect(wrapper.vm.footerTemplate).toBe('')
-			expect(wrapper.vm.isDefaultTemplate).toBe(true)
+			expect(wrapper.vm.footerTemplate).toBe(originalTemplate)
+			expect(wrapper.vm.hasTemplateChanged).toBe(false)
 		})
 	})
 })
