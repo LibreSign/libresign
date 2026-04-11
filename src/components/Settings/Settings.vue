@@ -67,7 +67,7 @@ const isAdmin = getCurrentUser()?.isAdmin ?? false
 const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
 const policiesStore = usePoliciesStore()
 
-const hasDelegatedPolicies = computed(() => Object.values(policiesStore.policies).some((policy) => {
+const hasDelegatedEditablePolicies = computed(() => Object.values(policiesStore.policies).some((policy) => {
 	if (!policy || typeof policy !== 'object') {
 		return false
 	}
@@ -75,12 +75,14 @@ const hasDelegatedPolicies = computed(() => Object.values(policiesStore.policies
 	const policyState = policy as {
 		groupCount?: number
 		userCount?: number
+		editableByCurrentActor?: boolean
 	}
 
-	return (policyState.groupCount ?? 0) > 0 || (policyState.userCount ?? 0) > 0
+	const hasDelegatedRules = (policyState.groupCount ?? 0) > 0 || (policyState.userCount ?? 0) > 0
+	return hasDelegatedRules && policyState.editableByCurrentActor === true
 }))
 
-const canManagePolicies = computed(() => isAdmin || (Boolean(config.can_manage_group_policies) && hasDelegatedPolicies.value))
+const canManagePolicies = computed(() => isAdmin || (Boolean(config.can_manage_group_policies) && hasDelegatedEditablePolicies.value))
 
 function getAdminRoute() {
 	return generateUrl('settings/admin/libresign')
