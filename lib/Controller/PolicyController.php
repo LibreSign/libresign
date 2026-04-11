@@ -427,7 +427,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			));
 			$userIds = array_values(array_map(
 				static fn ($candidate): string => $candidate->getUID(),
-				$this->userManager->search(''),
+				$this->userManager->searchDisplayName(''),
 			));
 
 			return $this->policyService->getRuleCounts($groupIds, $userIds);
