@@ -12,7 +12,7 @@ use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
-use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -44,7 +44,7 @@ final class PolicyServiceTest extends TestCase {
 			->method('get')
 			->willReturnCallback(static function (string $class): object {
 				return match ($class) {
-					AddFooterPolicy::class => new AddFooterPolicy(),
+					FooterPolicy::class => new FooterPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
@@ -484,5 +484,27 @@ final class PolicyServiceTest extends TestCase {
 
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame('system', $resolved->getSourceScope());
+	}
+
+	public function testGetAllRuleCountsDelegatesToSource(): void {
+		$expected = [
+			'signature_flow' => ['groupCount' => 2, 'userCount' => 5],
+			'docmdp' => ['groupCount' => 0, 'userCount' => 0],
+		];
+
+		$this->source
+			->expects($this->once())
+			->method('loadAllRuleCounts')
+			->willReturn($expected);
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+		);
+
+		$result = $service->getAllRuleCounts();
+
+		$this->assertSame($expected, $result);
 	}
 }
