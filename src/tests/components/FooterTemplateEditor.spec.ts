@@ -289,69 +289,27 @@ describe('FooterTemplateEditor.vue', () => {
 	})
 
 	describe('previewContainerMinHeight', () => {
-		it('uses containerHeight directly when it is positive', async () => {
+		it.each([
+			// containerHeight set → returned directly, previewHeight/zoomLevel irrelevant
+			{ description: 'uses containerHeight directly when it is positive', containerHeight: 350, previewHeight: 120, zoomLevel: 100, expected: 350 },
+			// invalid previewHeight → falls back to 160 floor
+			{ description: 'returns the floor value when height is invalid', containerHeight: null, previewHeight: 0, zoomLevel: 100, expected: 160 },
+			// 100 * 100 / 100 + 24 = 124 → clamped to 160 floor
+			{ description: 'returns the floor value when the formula result is below the minimum', containerHeight: null, previewHeight: 100, zoomLevel: 100, expected: 160 },
+			// 250 * 100 / 100 + 24 = 274 → above floor
+			{ description: 'returns a value above the floor for larger dimensions', containerHeight: null, previewHeight: 250, zoomLevel: 100, expected: 274 },
+			// 250 * 200 / 100 + 24 = 524 → grows with zoom
+			{ description: 'grows proportionally with zoom level', containerHeight: null, previewHeight: 250, zoomLevel: 200, expected: 524 },
+		])('$description', async ({ containerHeight, previewHeight, zoomLevel, expected }) => {
 			const wrapper = createWrapper()
 			await flushPromises()
 
-			wrapper.vm.containerHeight = 350
+			wrapper.vm.containerHeight = containerHeight
+			wrapper.vm.previewHeight = previewHeight
+			wrapper.vm.zoomLevel = zoomLevel
 			await wrapper.vm.$nextTick()
 
-			expect(wrapper.vm.previewContainerMinHeight).toBe(350)
-		})
-
-		it('returns the floor value when height is invalid', async () => {
-			const wrapper = createWrapper()
-			await flushPromises()
-
-			wrapper.vm.containerHeight = null
-			wrapper.vm.previewHeight = 0
-			wrapper.vm.zoomLevel = 100
-			await wrapper.vm.$nextTick()
-
-			expect(wrapper.vm.previewContainerMinHeight).toBe(160)
-		})
-
-		it('returns the floor value when the formula result is below the minimum', async () => {
-			const wrapper = createWrapper()
-			await flushPromises()
-
-			wrapper.vm.containerHeight = null
-			wrapper.vm.previewHeight = 100
-			wrapper.vm.zoomLevel = 100
-			await wrapper.vm.$nextTick()
-
-			// 100 * 100 / 100 + 24 = 124 — below the 160 floor
-			expect(wrapper.vm.previewContainerMinHeight).toBe(160)
-		})
-
-		it('returns a value above the floor for larger dimensions', async () => {
-			const wrapper = createWrapper()
-			await flushPromises()
-
-			wrapper.vm.containerHeight = null
-			wrapper.vm.previewHeight = 250
-			wrapper.vm.zoomLevel = 100
-			await wrapper.vm.$nextTick()
-
-			// 250 * 100 / 100 + 24 = 274
-			expect(wrapper.vm.previewContainerMinHeight).toBe(274)
-		})
-
-		it('grows proportionally with zoom level', async () => {
-			const wrapper = createWrapper()
-			await flushPromises()
-
-			wrapper.vm.containerHeight = null
-			wrapper.vm.previewHeight = 250
-			wrapper.vm.zoomLevel = 100
-			await wrapper.vm.$nextTick()
-			const atNormalZoom = wrapper.vm.previewContainerMinHeight
-
-			wrapper.vm.zoomLevel = 200
-			await wrapper.vm.$nextTick()
-			const atDoubleZoom = wrapper.vm.previewContainerMinHeight
-
-			expect(atDoubleZoom).toBeGreaterThan(atNormalZoom)
+			expect(wrapper.vm.previewContainerMinHeight).toBe(expected)
 		})
 	})
 })
