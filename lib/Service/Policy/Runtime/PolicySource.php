@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Runtime;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\PermissionSet;
 use OCA\Libresign\Db\PermissionSetBinding;
 use OCA\Libresign\Db\PermissionSetBindingMapper;
@@ -15,8 +16,11 @@ use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IDBConnection;
 
 class PolicySource implements IPolicySource {
 	public function __construct(
@@ -24,6 +28,7 @@ class PolicySource implements IPolicySource {
 		private PermissionSetMapper $permissionSetMapper,
 		private PermissionSetBindingMapper $bindingMapper,
 		private PolicyRegistry $registry,
+		private IDBConnection $db,
 	) {
 	}
 
@@ -148,6 +153,111 @@ class PolicySource implements IPolicySource {
 			->setValue($definition->normalizeValue($value));
 	}
 
+	/**
+	 * @param list<string> $policyKeys
+	 * @return array<string, list<PolicyLayer>>
+	 */
+	#[\Override]
+	public function loadAllGroupPolicies(array $policyKeys, PolicyContext $context): array {
+		/** @var array<string, list<PolicyLayer>> $result */
+		$result = array_fill_keys($policyKeys, []);
+
+		$groupIds = $this->resolveGroupIds($context);
+		if ($groupIds === []) {
+			return $result;
+		}
+
+		$bindingsByTargetId = [];
+		foreach ($this->bindingMapper->findByTargets('group', $groupIds) as $binding) {
+			$bindingsByTargetId[$binding->getTargetId()] = $binding;
+		}
+
+		$permissionSetIds = array_values(array_unique(array_map(
+			static fn (PermissionSetBinding $b): int => $b->getPermissionSetId(),
+			$bindingsByTargetId,
+		)));
+
+		$permissionSetsById = [];
+		foreach ($this->permissionSetMapper->findByIds($permissionSetIds) as $permissionSet) {
+			$permissionSetsById[$permissionSet->getId()] = $permissionSet;
+		}
+
+		foreach ($groupIds as $groupId) {
+			$binding = $bindingsByTargetId[$groupId] ?? null;
+			if (!$binding instanceof PermissionSetBinding) {
+				continue;
+			}
+
+			$permissionSet = $permissionSetsById[$binding->getPermissionSetId()] ?? null;
+			if (!$permissionSet instanceof PermissionSet) {
+				continue;
+			}
+
+			$policyJson = $permissionSet->getDecodedPolicyJson();
+			foreach ($policyKeys as $policyKey) {
+				$policyConfig = $policyJson[$policyKey] ?? null;
+				if (!is_array($policyConfig)) {
+					continue;
+				}
+
+				$result[$policyKey][] = (new PolicyLayer())
+					->setScope('group')
+					->setValue($policyConfig['defaultValue'] ?? null)
+					->setAllowChildOverride((bool)($policyConfig['allowChildOverride'] ?? false))
+					->setVisibleToChild((bool)($policyConfig['visibleToChild'] ?? true))
+					->setAllowedValues(is_array($policyConfig['allowedValues'] ?? null) ? $policyConfig['allowedValues'] : []);
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * @param list<string> $policyKeys
+	 * @return array<string, PolicyLayer>
+	 */
+	#[\Override]
+	public function loadAllUserPreferences(array $policyKeys, PolicyContext $context): array {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			return [];
+		}
+
+		$userPreferenceKeyByPolicy = [];
+		foreach ($policyKeys as $policyKey) {
+			$userPreferenceKeyByPolicy[$policyKey] = $this->registry->get($policyKey)->getUserPreferenceKey();
+		}
+		$policyKeyByPreferenceKey = array_flip($userPreferenceKeyByPolicy);
+
+		$query = $this->db->getQueryBuilder();
+		$query->select('configkey', 'configvalue')
+			->from('preferences')
+			->where($query->expr()->eq('userid', $query->createNamedParameter($userId)))
+			->andWhere($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
+			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPreferenceKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')));
+
+		$result = $query->executeQuery();
+		$layers = [];
+		try {
+			while ($row = $result->fetchAssociative()) {
+				$policyKey = $policyKeyByPreferenceKey[$row['configkey']] ?? null;
+				if ($policyKey === null) {
+					continue;
+				}
+
+				$definition = $this->registry->get($policyKey);
+				$layers[$policyKey] = (new PolicyLayer())
+					->setScope('user')
+					->setValue($definition->normalizeValue($row['configvalue']));
+			}
+		} finally {
+			$result->closeCursor();
+		}
+
+		return $layers;
+	}
+
 	#[\Override]
 	public function loadRequestOverride(string $policyKey, PolicyContext $context): ?PolicyLayer {
 		$requestOverrides = $context->getRequestOverrides();
@@ -175,6 +285,89 @@ class PolicySource implements IPolicySource {
 		}
 
 		return $this->createGroupPolicyLayer($policyConfig);
+	}
+
+	/**
+	 * @param list<string> $groupIds
+	 * @param list<string> $userIds
+	 * @return array<string, array{groupCount: int, userCount: int}>
+	 */
+	public function loadRuleCounts(array $groupIds, array $userIds): array {
+		$policyKeys = array_keys(PolicyProviders::BY_KEY);
+		/** @var array<string, array{groupCount: int, userCount: int}> $counts */
+		$counts = [];
+		foreach ($policyKeys as $policyKey) {
+			$counts[$policyKey] = [
+				'groupCount' => 0,
+				'userCount' => 0,
+			];
+		}
+
+		$groupIds = array_values(array_unique(array_filter($groupIds, static fn (string $groupId): bool => $groupId !== '')));
+		if ($groupIds !== []) {
+			$groupBindings = $this->bindingMapper->findByTargets('group', $groupIds);
+			$permissionSetIds = array_values(array_unique(array_map(
+				static fn (PermissionSetBinding $binding): int => $binding->getPermissionSetId(),
+				$groupBindings,
+			)));
+
+			$permissionSetsById = [];
+			foreach ($this->permissionSetMapper->findByIds($permissionSetIds) as $permissionSet) {
+				$permissionSetsById[$permissionSet->getId()] = $permissionSet;
+			}
+
+			foreach ($groupBindings as $binding) {
+				$policyJson = $permissionSetsById[$binding->getPermissionSetId()]?->getDecodedPolicyJson() ?? [];
+				foreach ($policyJson as $policyKey => $policyConfig) {
+					if (!isset($counts[$policyKey]) || !is_array($policyConfig)) {
+						continue;
+					}
+
+					if (!array_key_exists('defaultValue', $policyConfig) || $policyConfig['defaultValue'] === null) {
+						continue;
+					}
+
+					$counts[$policyKey]['groupCount']++;
+				}
+			}
+		}
+
+		$userIds = array_values(array_unique(array_filter($userIds, static fn (string $userId): bool => $userId !== '')));
+		if ($userIds === []) {
+			return $counts;
+		}
+
+		$userPreferenceKeyByPolicy = [];
+		foreach ($policyKeys as $policyKey) {
+			$userPreferenceKeyByPolicy[$policyKey] = $this->registry->get($policyKey)->getUserPreferenceKey();
+		}
+		$policyKeyByUserPreference = array_flip($userPreferenceKeyByPolicy);
+
+		$query = $this->db->getQueryBuilder();
+		$query->select('configkey')
+			->selectAlias($query->func()->count('DISTINCT userid'), 'user_count')
+			->from('preferences')
+			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
+			->andWhere($query->expr()->in('userid', $query->createNamedParameter($userIds, IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPreferenceKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')))
+			->groupBy('configkey');
+
+		$result = $query->executeQuery();
+		try {
+			while ($row = $result->fetchAssociative()) {
+				$policyKey = $policyKeyByUserPreference[$row['configkey']] ?? null;
+				if (!is_string($policyKey) || !isset($counts[$policyKey])) {
+					continue;
+				}
+
+				$counts[$policyKey]['userCount'] = (int)($row['user_count'] ?? 0);
+			}
+		} finally {
+			$result->closeCursor();
+		}
+
+		return $counts;
 	}
 
 	#[\Override]
