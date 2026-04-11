@@ -161,25 +161,6 @@ export function createRealPolicyWorkbenchState() {
 	const groupRules = ref<PolicyRuleRecord[]>([])
 	const userRules = ref<PolicyRuleRecord[]>([])
 	const explicitSystemRule = ref<PolicyRuleRecord | null>(null)
-	const settingRuleCounts = ref<Record<string, { groupCount: number, userCount: number }>>({})
-
-	function setSettingRuleCounts(policyKey: string, groupCount: number, userCount: number) {
-		settingRuleCounts.value = {
-			...settingRuleCounts.value,
-			[policyKey]: {
-				groupCount,
-				userCount,
-			},
-		}
-	}
-
-	function syncActiveSettingRuleCounts() {
-		if (!activeSettingKey.value) {
-			return
-		}
-
-		setSettingRuleCounts(activeSettingKey.value, groupRules.value.length, userRules.value.length)
-	}
 
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
@@ -193,7 +174,6 @@ export function createRealPolicyWorkbenchState() {
 		return Object.values(realDefinitions).map((definition) => {
 			const policy = policiesStore.getPolicy(definition.key)
 			const hasEffectiveValue = policy?.effectiveValue !== null && policy?.effectiveValue !== undefined
-			const persistedCounts = settingRuleCounts.value[definition.key]
 			const isActiveSetting = activeSettingKey.value === definition.key
 
 			return {
@@ -202,8 +182,8 @@ export function createRealPolicyWorkbenchState() {
 				context: definition.context,
 				description: definition.description,
 				defaultSummary: hasEffectiveValue ? definition.summarizeValue(policy.effectiveValue) : t('libresign', 'Not configured'),
-				groupCount: isActiveSetting ? groupRules.value.length : (persistedCounts?.groupCount ?? 0),
-				userCount: isActiveSetting ? userRules.value.length : (persistedCounts?.userCount ?? 0),
+				groupCount: isActiveSetting ? groupRules.value.length : (policy?.groupCount ?? 0),
+				userCount: isActiveSetting ? userRules.value.length : (policy?.userCount ?? 0),
 			}
 		})
 	})
@@ -556,22 +536,6 @@ export function createRealPolicyWorkbenchState() {
 		groupRules.value = persistedGroupPolicies.filter(hasPersistedRule)
 		userRules.value = persistedUserPolicies.filter(hasPersistedRule)
 		nextRuleNumber.value = groupRules.value.length + userRules.value.length + 1
-		setSettingRuleCounts(policyKey, groupRules.value.length, userRules.value.length)
-	}
-
-	function hydrateAllSettingRuleCounts() {
-		const persistedCounts: Record<string, { groupCount: number, userCount: number }> = {}
-		for (const policyKey of Object.keys(realDefinitions)) {
-			const policy = policiesStore.getPolicy(policyKey)
-			persistedCounts[policyKey] = {
-				groupCount: policy?.groupCount ?? 0,
-				userCount: policy?.userCount ?? 0,
-			}
-		}
-		settingRuleCounts.value = {
-			...settingRuleCounts.value,
-			...persistedCounts,
-		}
 	}
 
 	function openSetting(key: string) {
@@ -876,7 +840,6 @@ export function createRealPolicyWorkbenchState() {
 					value,
 				}
 				await policiesStore.fetchEffectivePolicies()
-				syncActiveSettingRuleCounts()
 				cancelEditor()
 				return
 			}
@@ -891,7 +854,6 @@ export function createRealPolicyWorkbenchState() {
 				}
 
 				await policiesStore.fetchEffectivePolicies()
-				syncActiveSettingRuleCounts()
 				cancelEditor()
 				return
 			}
@@ -905,7 +867,6 @@ export function createRealPolicyWorkbenchState() {
 			}
 
 			await policiesStore.fetchEffectivePolicies()
-			syncActiveSettingRuleCounts()
 			cancelEditor()
 		} catch (error) {
 			console.error('Failed to save policy:', error)
@@ -934,7 +895,6 @@ export function createRealPolicyWorkbenchState() {
 			explicitSystemRule.value = null
 			highlightedRuleId.value = null
 			await policiesStore.fetchEffectivePolicies()
-			syncActiveSettingRuleCounts()
 			if (shouldCloseSystemEditor) {
 				cancelEditor()
 			}
@@ -950,7 +910,6 @@ export function createRealPolicyWorkbenchState() {
 			groupRules.value.splice(groupIndex, 1)
 			highlightedRuleId.value = null
 			await policiesStore.fetchEffectivePolicies()
-			syncActiveSettingRuleCounts()
 			if (shouldCloseGroupEditor) {
 				cancelEditor()
 			}
@@ -966,7 +925,6 @@ export function createRealPolicyWorkbenchState() {
 			userRules.value.splice(userIndex, 1)
 			highlightedRuleId.value = null
 			await policiesStore.fetchEffectivePolicies()
-			syncActiveSettingRuleCounts()
 			if (shouldCloseUserEditor) {
 				cancelEditor()
 			}
@@ -1006,7 +964,6 @@ export function createRealPolicyWorkbenchState() {
 		updateDraftTargets,
 		updateDraftAllowOverride,
 		searchAvailableTargets,
-		hydrateAllSettingRuleCounts,
 		setViewMode,
 		saveDraft,
 		removeRule,
