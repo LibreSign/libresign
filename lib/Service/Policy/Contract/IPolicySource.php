@@ -22,6 +22,22 @@ interface IPolicySource {
 
 	public function loadUserPreference(string $policyKey, PolicyContext $context): ?PolicyLayer;
 
+	/**
+	 * Bulk-load group policy layers for all known policy keys at once.
+	 *
+	 * @param list<string> $policyKeys
+	 * @return array<string, list<PolicyLayer>> keyed by policyKey
+	 */
+	public function loadAllGroupPolicies(array $policyKeys, PolicyContext $context): array;
+
+	/**
+	 * Bulk-load user preference layers for all known policy keys at once.
+	 *
+	 * @param list<string> $policyKeys
+	 * @return array<string, PolicyLayer> keyed by policyKey
+	 */
+	public function loadAllUserPreferences(array $policyKeys, PolicyContext $context): array;
+
 	public function loadRequestOverride(string $policyKey, PolicyContext $context): ?PolicyLayer;
 
 	public function loadGroupPolicyConfig(string $policyKey, string $groupId): ?PolicyLayer;
