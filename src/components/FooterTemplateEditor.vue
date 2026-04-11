@@ -403,6 +403,7 @@ defineExpose({
 	copyToClipboard,
 	resetTemplateToOriginal,
 	resetDimensionsToOriginal,
+	resetDimensions,
 	saveDimensions,
 	saveFooterTemplate,
 	setPdfPreview,
