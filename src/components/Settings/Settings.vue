@@ -65,15 +65,24 @@ defineOptions({
 const isAdmin = getCurrentUser()?.isAdmin ?? false
 const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
 const effectivePoliciesState = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
-const hasEditablePolicies = Object.values(effectivePoliciesState.policies ?? {}).some((policy) => {
+const hasDelegatedEditablePolicies = Object.values(effectivePoliciesState.policies ?? {}).some((policy) => {
 	if (!policy || typeof policy !== 'object') {
 		return false
 	}
+	const policyState = policy as {
+		editableByCurrentActor?: boolean
+		groupCount?: number
+		userCount?: number
+	}
+	const hasDelegatedRule = (policyState.groupCount ?? 0) > 0 || (policyState.userCount ?? 0) > 0
+	if (!hasDelegatedRule) {
+		return false
+	}
 
-	return Boolean((policy as { editableByCurrentActor?: boolean }).editableByCurrentActor)
+	return Boolean(policyState.editableByCurrentActor)
 })
 
-const canManagePolicies = isAdmin || (Boolean(config.can_manage_group_policies) && hasEditablePolicies)
+const canManagePolicies = isAdmin || (Boolean(config.can_manage_group_policies) && hasDelegatedEditablePolicies)
 
 function getAdminRoute() {
 	return generateUrl('settings/admin/libresign')
