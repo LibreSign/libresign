@@ -73,7 +73,7 @@
 					</NcButton>
 				</div>
 			</div>
-			<div ref="pdfContainer" class="footer-preview__pdf" :style="containerHeight ? `min-height: ${containerHeight}px` : ''">
+			<div ref="pdfContainer" class="footer-preview__pdf" :style="`min-height: ${previewContainerMinHeight}px`">
 				<div v-if="loadingPreview" class="footer-preview__loading">
 					<NcLoadingIcon :size="64" />
 				</div>
@@ -203,6 +203,20 @@ const pdfContainer = ref<HTMLElement | null>(null)
 const pdfPreview = ref<PdfPreviewRef | null>(null)
 
 const showResetDimensions = computed(() => Number(previewWidth.value) !== DEFAULT_PREVIEW_WIDTH || Number(previewHeight.value) !== DEFAULT_PREVIEW_HEIGHT)
+
+const previewContainerMinHeight = computed(() => {
+	if (containerHeight.value && containerHeight.value > 0) {
+		return containerHeight.value
+	}
+	return estimateContainerHeightForFirstRender(Number(previewHeight.value), Number(zoomLevel.value))
+})
+
+function estimateContainerHeightForFirstRender(height: number, zoom: number): number {
+	if (!Number.isFinite(height) || height <= 0 || !Number.isFinite(zoom) || zoom <= 0) {
+		return 160
+	}
+	return Math.max(160, Math.round((height * zoom) / 100) + 24)
+}
 
 const appConfig = (globalThis as typeof globalThis & { OCP?: { AppConfig: AppConfigApi } }).OCP?.AppConfig
 
