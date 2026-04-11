@@ -11,7 +11,8 @@
 				<NcIconSvgWrapper class="account-icon" :path="mdiAccount" :size="20" />
 			</template>
 		</NcAppNavigationItem>
-		<NcAppNavigationItem :name="t('libresign', 'Preferences')"
+		<NcAppNavigationItem v-if="canManagePreferences"
+			:name="t('libresign', 'Preferences')"
 			:to="{name: 'Preferences'}">
 			<template #icon>
 				<NcIconSvgWrapper class="preferences-icon" :path="mdiTuneVariant" :size="20" />
@@ -67,6 +68,19 @@ const isAdmin = getCurrentUser()?.isAdmin ?? false
 const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
 const policiesStore = usePoliciesStore()
 
+const canManagePreferences = computed(() => {
+	const signatureFlowPolicy = policiesStore.policies.signature_flow
+	if (!signatureFlowPolicy || typeof signatureFlowPolicy !== 'object') {
+		return false
+	}
+
+	const policyState = signatureFlowPolicy as {
+		canSaveAsUserDefault?: boolean
+	}
+
+	return policyState.canSaveAsUserDefault === true
+})
+
 const hasDelegatedEditablePolicies = computed(() => Object.values(policiesStore.policies).some((policy) => {
 	if (!policy || typeof policy !== 'object') {
 		return false
@@ -90,6 +104,7 @@ function getAdminRoute() {
 
 defineExpose({
 	getAdminRoute,
+	canManagePreferences,
 	canManagePolicies,
 })
 </script>
