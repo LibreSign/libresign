@@ -13,8 +13,8 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\Footer\AddFooterPolicy;
-use OCA\Libresign\Service\Policy\Provider\Footer\SignatureFooterPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -116,8 +116,8 @@ class FooterHandler {
 	}
 
 	private function prepareTemplateVars(bool $forceEnabled = false): array {
-		$footerPolicy = SignatureFooterPolicyValue::normalize(
-			$this->policyService->resolve(AddFooterPolicy::KEY)->getEffectiveValue()
+		$footerPolicy = FooterPolicyValue::normalize(
+			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
 		);
 
 		if (!$this->templateVars->getSignedBy()) {
@@ -139,9 +139,7 @@ class FooterHandler {
 		}
 
 		if (!$this->templateVars->getValidationSite() && $this->templateVars->getUuid()) {
-			$validationSite = $footerPolicy['validationSite'] !== ''
-				? $footerPolicy['validationSite']
-				: $this->appConfig->getValueString(Application::APP_ID, 'validation_site');
+			$validationSite = $footerPolicy['validationSite'];
 			if ($validationSite) {
 				$this->templateVars->setValidationSite(
 					rtrim($validationSite, '/') . '/' . $this->templateVars->getUuid()
@@ -215,8 +213,8 @@ class FooterHandler {
 	}
 
 	private function isFooterEnabled(): bool {
-		return SignatureFooterPolicyValue::isEnabled(
-			$this->policyService->resolve(AddFooterPolicy::KEY)->getEffectiveValue()
+		return FooterPolicyValue::isEnabled(
+			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
 		);
 	}
 }
