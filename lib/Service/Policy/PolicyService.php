@@ -94,6 +94,7 @@ class PolicyService {
 
 	public function saveGroupPolicy(string|\BackedEnum $policyKey, string $groupId, mixed $value, bool $allowChildOverride): PolicyLayer {
 		$definition = $this->registry->get($policyKey);
+		$this->assertCurrentActorCanManageGroupOverride($definition->key());
 		$context = $this->contextFactory->forCurrentUser();
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
@@ -109,9 +110,21 @@ class PolicyService {
 
 	public function clearGroupPolicy(string|\BackedEnum $policyKey, string $groupId): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
+		$this->assertCurrentActorCanManageGroupOverride($definition->key());
 		$this->source->clearGroupPolicy($definition->key(), $groupId);
 
 		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
+	}
+
+	private function assertCurrentActorCanManageGroupOverride(string $policyKey): void {
+		if ($this->contextFactory->isCurrentActorSystemAdmin()) {
+			return;
+		}
+
+		$systemPolicy = $this->source->loadSystemPolicy($policyKey);
+		if ($systemPolicy !== null && !$systemPolicy->isAllowChildOverride()) {
+			throw new \DomainException('Lower-level overrides are not allowed for this policy');
+		}
 	}
 
 	public function saveUserPreference(string|\BackedEnum $policyKey, mixed $value): ResolvedPolicy {
