@@ -64,7 +64,7 @@ class FooterService {
 					'signed' => date('c'),
 				],
 			])
-			->getFooter([['w' => $width, 'h' => $height]]);
+			->getFooter([['w' => $width, 'h' => $height]], true);
 	}
 
 	public function getTemplateVariablesMetadata(): array {
