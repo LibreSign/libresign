@@ -316,10 +316,26 @@ function setPdfPreview(blob: Blob) {
 		const timestamp = Date.now()
 		pdfPreviewFile.value = new File([blob], `footer-preview-${timestamp}.pdf`, { type: 'application/pdf' })
 		pdfKey.value += 1
+		
+		// Timeout to prevent infinite loading if PDFElements doesn't emit end-init
+		const loadingTimeout = setTimeout(() => {
+			if (loadingPreview.value) {
+				console.warn('PDF loading timeout - forcing preview ready state')
+				loadingPreview.value = false
+				containerHeight.value = null
+			}
+		}, 5000)
+		
+		// Store timeout ID so it can be cleared when PDF actually loads
+		;(blob as any).__loadingTimeoutId = loadingTimeout
 	})
 }
 
 function onPdfReady() {
+	// Clear the loading timeout if it exists
+	if (pdfPreviewFile.value && (pdfPreviewFile.value as any).__loadingTimeoutId !== undefined) {
+		clearTimeout((pdfPreviewFile.value as any).__loadingTimeoutId)
+	}
 	loadingPreview.value = false
 	containerHeight.value = null
 }
