@@ -14,10 +14,10 @@
 				</template>
 				{{ t('libresign', 'Available variables') }}
 			</NcButton>
-			<NcButton v-if="!isDefaultTemplate"
+				<NcButton v-if="hasTemplateChanged"
 				variant="tertiary"
-				:aria-label="t('libresign', 'Reset template to default')"
-				@click="resetFooterTemplate">
+					:aria-label="t('libresign', 'Reset template to original')"
+					@click="resetTemplateToOriginal">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 				</template>
@@ -71,10 +71,10 @@
 						:max="500"
 						:spellcheck="false"
 						@input="debouncedSaveDimensions" />
-					<NcButton v-if="showResetDimensions"
+					<NcButton v-if="hasDimensionsChanged"
 						:aria-label="t('libresign', 'Reset dimensions')"
 						variant="tertiary"
-						@click="resetDimensions">
+						@click="resetDimensionsToOriginal">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 						</template>
@@ -196,6 +196,7 @@ const DEFAULT_PREVIEW_HEIGHT = 100
 
 const footerDescription = t('libresign', 'Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/')
 const footerTemplate = ref('')
+const originalTemplate = ref('')
 const isDefaultTemplate = ref(loadState('libresign', 'footer_template_is_default', true))
 const pdfPreviewFile = ref<File | null>(null)
 const loadingPreview = ref(false)
@@ -203,6 +204,8 @@ const pdfKey = ref(0)
 const zoomLevel = ref(loadState('libresign', 'footer_preview_zoom_level', 100))
 const previewWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
 const previewHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
+const originalWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
+const originalHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
 const containerHeight = ref<number | null>(null)
 const showVariablesDialog = ref(false)
 const templateVariables = ref<Record<string, TemplateVariableMeta>>(loadState('libresign', 'footer_template_variables', {}))
@@ -211,7 +214,8 @@ const copiedVariable = ref<string | null>(null)
 const pdfContainer = ref<HTMLElement | null>(null)
 const pdfPreview = ref<PdfPreviewRef | null>(null)
 
-const showResetDimensions = computed(() => Number(previewWidth.value) !== DEFAULT_PREVIEW_WIDTH || Number(previewHeight.value) !== DEFAULT_PREVIEW_HEIGHT)
+const hasTemplateChanged = computed(() => footerTemplate.value !== originalTemplate.value)
+const hasDimensionsChanged = computed(() => Number(previewWidth.value) !== Number(originalWidth.value) || Number(previewHeight.value) !== Number(originalHeight.value))
 
 const previewContainerMinHeight = computed(() => {
 	if (containerHeight.value && containerHeight.value > 0) {
@@ -256,27 +260,15 @@ function copyToClipboard(text: string) {
 	}, 2000)
 }
 
-async function resetFooterTemplate() {
-	loadingPreview.value = true
-	try {
-		await axios.post(
-			generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
-			{
-				template: '',
-				width: Number(previewWidth.value),
-				height: Number(previewHeight.value),
-			},
-			{ responseType: 'blob' },
-		).then(response => {
-			footerTemplate.value = ''
-			isDefaultTemplate.value = true
-			setPdfPreview(response.data)
-			emit('template-reset')
-		})
-	} catch (error) {
-		console.error('Error resetting footer template:', error)
-		loadingPreview.value = false
-	}
+function resetTemplateToOriginal() {
+	footerTemplate.value = originalTemplate.value
+	debouncedSaveFooterTemplate()
+}
+
+function resetDimensionsToOriginal() {
+	previewWidth.value = originalWidth.value
+	previewHeight.value = originalHeight.value
+	debouncedSaveDimensions()
 }
 
 function resetDimensions() {
@@ -354,11 +346,18 @@ const debouncedSaveDimensions = debounce(saveDimensions, 500)
 onMounted(() => {
 	axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
 		.then(response => {
-			footerTemplate.value = response.data.ocs.data.template
-			isDefaultTemplate.value = response.data.ocs.data.isDefault ?? true
-			previewHeight.value = response.data.ocs.data.preview_height
-			previewWidth.value = response.data.ocs.data.preview_width
-			saveFooterTemplate()
+				const template = response.data.ocs.data.template
+				const width = response.data.ocs.data.preview_width
+				const height = response.data.ocs.data.preview_height
+				
+				footerTemplate.value = template
+				originalTemplate.value = template
+				isDefaultTemplate.value = response.data.ocs.data.isDefault ?? true
+				previewHeight.value = height
+				originalHeight.value = height
+				previewWidth.value = width
+				originalWidth.value = width
+				saveFooterTemplate()
 		})
 })
 
@@ -366,7 +365,8 @@ defineExpose({
 	DEFAULT_PREVIEW_WIDTH,
 	DEFAULT_PREVIEW_HEIGHT,
 	footerDescription,
-	footerTemplate,
+		footerTemplate,
+		originalTemplate,
 	pdfPreviewFile,
 	loadingPreview,
 	pdfKey,
@@ -377,13 +377,16 @@ defineExpose({
 	showVariablesDialog,
 	templateVariables,
 	copiedVariable,
-	showResetDimensions,
+	originalWidth,
+	originalHeight,
+	hasTemplateChanged,
+	hasDimensionsChanged,
 	previewContainerMinHeight,
 	getVariableText,
 	isCopied,
 	copyToClipboard,
-	resetFooterTemplate,
-	resetDimensions,
+	resetTemplateToOriginal,
+	resetDimensionsToOriginal,
 	saveDimensions,
 	saveFooterTemplate,
 	setPdfPreview,
