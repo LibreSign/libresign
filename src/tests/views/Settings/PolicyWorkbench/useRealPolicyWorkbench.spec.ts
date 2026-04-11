@@ -1014,6 +1014,24 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.canSaveDraft).toBe(true)
 	})
 
+	it('hides policies without group rules in group-admin viewMode', () => {
+		currentUserState.isAdmin = false
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'add_footer' || key === 'docmdp') {
+				return { effectiveValue: null, groupCount: 1, userCount: 0 }
+			}
+
+			return { effectiveValue: 'parallel', groupCount: 0, userCount: 0 }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		const keys = state.visibleSettingSummaries.map((summary) => summary.key)
+
+		expect(keys).toContain('add_footer')
+		expect(keys).toContain('docmdp')
+		expect(keys).not.toContain('signature_flow')
+	})
+
 	it('requires changing the value before enabling system create save', () => {
 		getPolicy.mockReturnValue({ effectiveValue: 'parallel', sourceScope: 'system' })
 
