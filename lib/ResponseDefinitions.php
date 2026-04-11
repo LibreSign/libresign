@@ -382,6 +382,8 @@ namespace OCA\Libresign;
  *     canUseAsRequestOverride: bool,
  *     preferenceWasCleared: bool,
  *     blockedBy: ?string,
+ *     groupCount: non-negative-int,
+ *     userCount: non-negative-int,
  * }
  * @psalm-type LibresignEffectivePolicyResponse = array{
  *     policy: LibresignEffectivePolicyState,
