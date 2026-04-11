@@ -185,7 +185,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		} catch (\InvalidArgumentException $exception) {
 			/** @var LibresignErrorResponse $data */
 			$data = [
-				'error' => $this->l10n->t($exception->getMessage()),
+				'error' => $exception->getMessage(),
 			];
 
 			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
@@ -227,14 +227,14 @@ final class PolicyController extends AEnvironmentAwareController {
 		} catch (\DomainException $exception) {
 			/** @var LibresignErrorResponse $data */
 			$data = [
-				'error' => $this->l10n->t($exception->getMessage()),
+				'error' => $exception->getMessage(),
 			];
 
 			return new DataResponse($data, Http::STATUS_FORBIDDEN);
 		} catch (\InvalidArgumentException $exception) {
 			/** @var LibresignErrorResponse $data */
 			$data = [
-				'error' => $this->l10n->t($exception->getMessage()),
+				'error' => $exception->getMessage(),
 			];
 
 			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
@@ -270,7 +270,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		} catch (\DomainException $exception) {
 			/** @var LibresignErrorResponse $data */
 			$data = [
-				'error' => $this->l10n->t($exception->getMessage()),
+				'error' => $exception->getMessage(),
 			];
 
 			return new DataResponse($data, Http::STATUS_FORBIDDEN);
@@ -304,7 +304,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		} catch (\InvalidArgumentException $exception) {
 			/** @var LibresignErrorResponse $data */
 			$data = [
-				'error' => $this->l10n->t($exception->getMessage()),
+				'error' => $exception->getMessage(),
 			];
 
 			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
@@ -338,7 +338,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		} catch (\InvalidArgumentException $exception) {
 			/** @var LibresignErrorResponse $data */
 			$data = [
-				'error' => $this->l10n->t($exception->getMessage()),
+				'error' => $exception->getMessage(),
 			];
 
 			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
