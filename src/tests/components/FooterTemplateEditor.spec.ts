@@ -40,6 +40,9 @@ vi.mock('@nextcloud/initial-state', () => ({
 				signerName: { description: 'Signer', type: 'string', example: 'Alice' },
 			}
 		}
+		if (key === 'footer_template_is_default') {
+			return true
+		}
 		return defaultValue
 	}),
 }))
@@ -310,6 +313,82 @@ describe('FooterTemplateEditor.vue', () => {
 			await wrapper.vm.$nextTick()
 
 			expect(wrapper.vm.previewContainerMinHeight).toBe(expected)
+		})
+	})
+
+	describe('reset template button', () => {
+		it('does not show the reset button when template is default', async () => {
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			const resetButton = wrapper.find('button[aria-label*="Reset template"]')
+			expect(resetButton.exists()).toBe(false)
+		})
+
+		it('shows the reset button when template is not default', async () => {
+			axiosGetMock.mockResolvedValueOnce({
+				data: {
+					ocs: {
+						data: {
+							template: 'Custom footer',
+							isDefault: false,
+							preview_height: 120,
+							preview_width: 640,
+						},
+					},
+				},
+			})
+
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			const resetButton = wrapper.find('button[aria-label*="Reset template"]')
+			expect(resetButton.exists()).toBe(true)
+		})
+
+		it('resets the template to default and reloads preview', async () => {
+			axiosGetMock.mockResolvedValueOnce({
+				data: {
+					ocs: {
+						data: {
+							template: 'Custom footer',
+							isDefault: false,
+							preview_height: 120,
+							preview_width: 640,
+						},
+					},
+				},
+			})
+
+			axiosPostMock.mockResolvedValueOnce({ data: new Blob(['pdf'], { type: 'application/pdf' }) })
+
+			const wrapper = createWrapper()
+			await flushPromises()
+
+			wrapper.vm.footerTemplate = 'Custom footer'
+			wrapper.vm.isDefaultTemplate = false
+			await wrapper.vm.$nextTick()
+
+			// Click reset button
+			const resetButton = wrapper.find('button[aria-label*="Reset template"]')
+			await resetButton.trigger('click')
+			await flushPromises()
+
+			// Verify API call was made with empty template
+			expect(axiosPostMock).toHaveBeenCalledWith(
+				'/ocs/v2.php/apps/libresign/api/v1/admin/footer-template',
+				expect.objectContaining({
+					template: '',
+					width: 640,
+					height: 120,
+				}),
+				{ responseType: 'blob' },
+			)
+
+			// Verify state was reset
+			await wrapper.vm.$nextTick()
+			expect(wrapper.vm.footerTemplate).toBe('')
+			expect(wrapper.vm.isDefaultTemplate).toBe(true)
 		})
 	})
 })
