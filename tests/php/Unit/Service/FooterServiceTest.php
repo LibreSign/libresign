@@ -114,7 +114,7 @@ class FooterServiceTest extends TestCase {
 		$this->footerHandler
 			->expects($this->once())
 			->method('getFooter')
-			->with([['w' => $width, 'h' => $height]])
+			->with([['w' => $width, 'h' => $height]], true)
 			->willReturn('PDF binary content');
 
 		$result = $this->service->renderPreviewPdf($template, $width, $height);
