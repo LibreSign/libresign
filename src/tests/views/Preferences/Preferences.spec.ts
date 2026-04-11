@@ -68,6 +68,8 @@ describe('Preferences view', () => {
 			canSaveAsUserDefault: true,
 			canUseAsRequestOverride: true,
 			preferenceWasCleared: false,
+			groupCount: 0,
+			userCount: 0,
 		})
 	})
 
@@ -119,6 +121,8 @@ describe('Preferences view', () => {
 			canSaveAsUserDefault: true,
 			canUseAsRequestOverride: true,
 			preferenceWasCleared: false,
+			groupCount: 0,
+			userCount: 0,
 		})
 		const wrapper = await createWrapper()
 
@@ -139,6 +143,8 @@ describe('Preferences view', () => {
 			canSaveAsUserDefault: false,
 			canUseAsRequestOverride: false,
 			preferenceWasCleared: false,
+			groupCount: 0,
+			userCount: 0,
 		})
 		const wrapper = await createWrapper()
 		await nextTick()
