@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy\Runtime;
 
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCP\Group\ISubAdmin;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -18,13 +19,15 @@ final class PolicyContextFactory {
 	public function __construct(
 		private IUserManager $userManager,
 		private IGroupManager $groupManager,
+		private ISubAdmin $subAdmin,
 		private IUserSession $userSession,
 	) {
 	}
 
 	/** @param array<string, mixed> $requestOverrides */
 	public function forCurrentUser(array $requestOverrides = [], ?array $activeContext = null): PolicyContext {
-		return $this->forUser($this->userSession->getUser(), $requestOverrides, $activeContext);
+		$user = $this->userSession->getUser();
+		return $this->build($user?->getUID(), $user, $requestOverrides, $activeContext, $user);
 	}
 
 	public function isCurrentActorSystemAdmin(): bool {
@@ -38,7 +41,7 @@ final class PolicyContextFactory {
 
 	/** @param array<string, mixed> $requestOverrides */
 	public function forUser(?IUser $user, array $requestOverrides = [], ?array $activeContext = null): PolicyContext {
-		return $this->build($user?->getUID(), $user, $requestOverrides, $activeContext);
+		return $this->build($user?->getUID(), $user, $requestOverrides, $activeContext, $this->userSession->getUser());
 	}
 
 	/** @param array<string, mixed> $requestOverrides */
@@ -51,14 +54,15 @@ final class PolicyContextFactory {
 			}
 		}
 
-		return $this->build($userId, $user, $requestOverrides, $activeContext);
+		return $this->build($userId, $user, $requestOverrides, $activeContext, $this->userSession->getUser());
 	}
 
 	/** @param array<string, mixed> $requestOverrides */
-	private function build(?string $userId, ?IUser $user, array $requestOverrides = [], ?array $activeContext = null): PolicyContext {
+	private function build(?string $userId, ?IUser $user, array $requestOverrides = [], ?array $activeContext = null, ?IUser $currentActor = null): PolicyContext {
 		$context = (new PolicyContext())
 			->setRequestOverrides($requestOverrides)
-			->setActiveContext($activeContext);
+			->setActiveContext($activeContext)
+			->setActorCapabilities($this->resolveActorCapabilities($currentActor));
 
 		if ($userId !== null && $userId !== '') {
 			$context->setUserId($userId);
@@ -68,5 +72,23 @@ final class PolicyContextFactory {
 		}
 
 		return $context;
+	}
+
+	/** @return array<string, bool> */
+	private function resolveActorCapabilities(?IUser $currentActor): array {
+		if (!$currentActor instanceof IUser) {
+			return [
+				'canManageSystemPolicies' => false,
+				'canManageGroupPolicies' => false,
+			];
+		}
+
+		$userId = $currentActor->getUID();
+		$canManageSystemPolicies = $this->groupManager->isAdmin($userId) === true;
+
+		return [
+			'canManageSystemPolicies' => $canManageSystemPolicies,
+			'canManageGroupPolicies' => $canManageSystemPolicies || $this->subAdmin->isSubAdmin($currentActor) === true,
+		];
 	}
 }
