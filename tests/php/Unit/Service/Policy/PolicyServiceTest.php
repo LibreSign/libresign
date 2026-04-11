@@ -17,6 +17,7 @@ use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
+use OCP\Group\ISubAdmin;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
@@ -29,6 +30,7 @@ use Psr\Container\ContainerInterface;
 final class PolicyServiceTest extends TestCase {
 	private IUserManager&MockObject $userManager;
 	private IGroupManager&MockObject $groupManager;
+	private ISubAdmin&MockObject $subAdmin;
 	private IUserSession&MockObject $userSession;
 	private PolicySource&MockObject $source;
 	private IL10N&MockObject $l10n;
@@ -39,6 +41,7 @@ final class PolicyServiceTest extends TestCase {
 		parent::setUp();
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->subAdmin = $this->createMock(ISubAdmin::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->source = $this->createMock(PolicySource::class);
 		$this->l10n = $this->createMock(IL10N::class);
@@ -61,7 +64,7 @@ final class PolicyServiceTest extends TestCase {
 				};
 			});
 		$this->registry = new PolicyRegistry($container);
-		$this->contextFactory = new PolicyContextFactory($this->userManager, $this->groupManager, $this->userSession);
+		$this->contextFactory = new PolicyContextFactory($this->userManager, $this->groupManager, $this->subAdmin, $this->userSession);
 	}
 
 	public function testResolveForUserIdUsesDocMdpGroupPolicyWhenSystemAllowsOverride(): void {
@@ -351,7 +354,6 @@ final class PolicyServiceTest extends TestCase {
 			->willReturn(['finance']);
 
 		$this->groupManager
-			->expects($this->once())
 			->method('isAdmin')
 			->with('admin')
 			->willReturn(true);
@@ -428,7 +430,6 @@ final class PolicyServiceTest extends TestCase {
 			->willReturn(['finance']);
 
 		$this->groupManager
-			->expects($this->once())
 			->method('isAdmin')
 			->with('manager')
 			->willReturn(false);
