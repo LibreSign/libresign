@@ -21,6 +21,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\IL10N;
 
 class PolicySource implements IPolicySource {
 	public function __construct(
@@ -29,6 +30,7 @@ class PolicySource implements IPolicySource {
 		private PermissionSetBindingMapper $bindingMapper,
 		private PolicyRegistry $registry,
 		private IDBConnection $db,
+		private IL10N $l10n,
 	) {
 	}
 
@@ -586,7 +588,7 @@ class PolicySource implements IPolicySource {
 	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void {
 		$userId = $context->getUserId();
 		if ($userId === null || $userId === '') {
-			throw new \InvalidArgumentException('A signed-in user is required to save a policy preference.');
+			throw new \InvalidArgumentException($this->l10n->t('A signed-in user is required to save a policy preference.'));
 		}
 
 		$definition = $this->registry->get($policyKey);
