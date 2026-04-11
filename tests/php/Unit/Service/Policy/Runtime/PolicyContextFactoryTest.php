@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Runtime;
 
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
+use OCP\Group\ISubAdmin;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -19,12 +20,14 @@ use PHPUnit\Framework\TestCase;
 final class PolicyContextFactoryTest extends TestCase {
 	private IUserManager&MockObject $userManager;
 	private IGroupManager&MockObject $groupManager;
+	private ISubAdmin&MockObject $subAdmin;
 	private IUserSession&MockObject $userSession;
 
 	protected function setUp(): void {
 		parent::setUp();
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->subAdmin = $this->createMock(ISubAdmin::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 	}
 
@@ -42,6 +45,46 @@ final class PolicyContextFactoryTest extends TestCase {
 		$this->assertSame(['finance'], $context->getGroups());
 		$this->assertSame(['signature_flow' => 'parallel'], $context->getRequestOverrides());
 		$this->assertSame(['type' => 'group', 'id' => 'finance'], $context->getActiveContext());
+		$this->assertSame([
+			'canManageSystemPolicies' => false,
+			'canManageGroupPolicies' => false,
+		], $context->getActorCapabilities());
+	}
+
+	public function testForCurrentUserMarksSystemAdminCapabilities(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('admin');
+
+		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
+		$this->groupManager->expects($this->once())->method('getUserGroupIds')->with($user)->willReturn([]);
+		$this->groupManager->expects($this->once())->method('isAdmin')->with('admin')->willReturn(true);
+		$this->subAdmin->expects($this->never())->method('isSubAdmin');
+
+		$factory = $this->getFactory();
+		$context = $factory->forCurrentUser();
+
+		$this->assertSame([
+			'canManageSystemPolicies' => true,
+			'canManageGroupPolicies' => true,
+		], $context->getActorCapabilities());
+	}
+
+	public function testForCurrentUserMarksSubAdminGroupCapabilities(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('manager');
+
+		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
+		$this->groupManager->expects($this->once())->method('getUserGroupIds')->with($user)->willReturn(['finance']);
+		$this->groupManager->expects($this->once())->method('isAdmin')->with('manager')->willReturn(false);
+		$this->subAdmin->expects($this->once())->method('isSubAdmin')->with($user)->willReturn(true);
+
+		$factory = $this->getFactory();
+		$context = $factory->forCurrentUser();
+
+		$this->assertSame([
+			'canManageSystemPolicies' => false,
+			'canManageGroupPolicies' => true,
+		], $context->getActorCapabilities());
 	}
 
 	public function testForUserIdLoadsUserWhenAvailable(): void {
@@ -68,6 +111,6 @@ final class PolicyContextFactoryTest extends TestCase {
 	}
 
 	private function getFactory(): PolicyContextFactory {
-		return new PolicyContextFactory($this->userManager, $this->groupManager, $this->userSession);
+		return new PolicyContextFactory($this->userManager, $this->groupManager, $this->subAdmin, $this->userSession);
 	}
 }
