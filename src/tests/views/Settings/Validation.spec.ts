@@ -39,7 +39,7 @@ const FooterTemplateEditorStub = {
 	},
 	template: '<div class="footer-template-editor-stub" />',
 	methods: {
-		resetFooterTemplate() {},
+		resetTemplateToDefault() {},
 	},
 }
 
@@ -124,13 +124,13 @@ describe('Settings/Validation.vue', () => {
 		await wrapper.vm.$nextTick()
 
 		const footerEditor = wrapper.findComponent(FooterTemplateEditorStub)
-		const resetFooterTemplateMock = vi.spyOn(footerEditor.vm, 'resetFooterTemplate')
+		const resetTemplateToDefaultMock = vi.spyOn(footerEditor.vm, 'resetTemplateToDefault')
 
 		await wrapper.vm.onCustomizeFooterChange(false)
 
 		expect(appConfigSetValueMock).toHaveBeenCalledWith('libresign', 'footer_template_is_default', '1')
 		expect(wrapper.vm.isDefaultFooterTemplate).toBe(true)
-		expect(resetFooterTemplateMock).toHaveBeenCalledTimes(1)
+		expect(resetTemplateToDefaultMock).toHaveBeenCalledTimes(1)
 	})
 
 	it('persists the private validation URL toggle through the shared setter', async () => {
