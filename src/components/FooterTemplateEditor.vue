@@ -145,6 +145,7 @@ import PDFElements from '@libresign/pdf-elements'
 import '@libresign/pdf-elements/dist/index.css'
 
 import CodeEditor from './CodeEditor.vue'
+import { estimateContainerHeightForFirstRender } from '../helpers/containerHeight'
 import { ensurePdfWorker } from '../helpers/pdfWorker'
 
 import {
@@ -210,13 +211,6 @@ const previewContainerMinHeight = computed(() => {
 	}
 	return estimateContainerHeightForFirstRender(Number(previewHeight.value), Number(zoomLevel.value))
 })
-
-function estimateContainerHeightForFirstRender(height: number, zoom: number): number {
-	if (!Number.isFinite(height) || height <= 0 || !Number.isFinite(zoom) || zoom <= 0) {
-		return 160
-	}
-	return Math.max(160, Math.round((height * zoom) / 100) + 24)
-}
 
 const appConfig = (globalThis as typeof globalThis & { OCP?: { AppConfig: AppConfigApi } }).OCP?.AppConfig
 
