@@ -87,16 +87,19 @@ describe('router business rules', () => {
 	let loadState: MockedFunction<typeof import('@nextcloud/initial-state').loadState>
 	let generateUrl: MockedFunction<typeof import('@nextcloud/router').generateUrl>
 	let getRootUrl: MockedFunction<typeof import('@nextcloud/router').getRootUrl>
+	let getCurrentUser: MockedFunction<typeof import('@nextcloud/auth').getCurrentUser>
 	let isExternal: MockedFunction<typeof import('../../helpers/isExternal.js').isExternal>
 	let selectAction: MockedFunction<typeof import('../../helpers/SelectAction.js').selectAction>
 	const getRoutes = (): RouteRecordNormalized[] => router.getRoutes()
 
 	beforeAll(async () => {
+		const { getCurrentUser: getCurrentUserModule } = await import('@nextcloud/auth')
 		const { loadState: loadStateModule } = await import('@nextcloud/initial-state')
 		const { generateUrl: generateUrlModule, getRootUrl: getRootUrlModule } = await import('@nextcloud/router')
 		const { isExternal: isExternalModule } = await import('../../helpers/isExternal.js')
 		const { selectAction: selectActionModule } = await import('../../helpers/SelectAction.js')
 
+		getCurrentUser = getCurrentUserModule as MockedFunction<typeof getCurrentUserModule>
 		loadState = loadStateModule as MockedFunction<typeof loadStateModule>
 		generateUrl = generateUrlModule as MockedFunction<typeof generateUrlModule>
 		getRootUrl = getRootUrlModule as MockedFunction<typeof getRootUrlModule>
@@ -109,6 +112,10 @@ describe('router business rules', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
+		getCurrentUser.mockReturnValue({
+			uid: 'test-user',
+			displayName: 'Test User',
+		} as ReturnType<typeof getCurrentUser>)
 		loadState.mockReturnValue('')
 		generateUrl.mockImplementation(path => path)
 		getRootUrl.mockReturnValue('')
@@ -316,6 +323,58 @@ describe('router business rules', () => {
 
 				expect(result).toEqual({ name: expectedRoute })
 			})
+		})
+	})
+
+	describe('policies route access guard', () => {
+		it('redirects to Preferences when user cannot manage policies', () => {
+			loadState.mockImplementation((app, key, defaultValue) => {
+				if (key === 'config') {
+					return { can_manage_group_policies: false }
+				}
+				if (key === 'effective_policies') {
+					return { policies: {} }
+				}
+				return defaultValue
+			})
+
+			const route = getRoutes().find((r: RouteRecordNormalized) => r.name === 'Policies')
+			expect(route).toBeDefined()
+			expect(route?.beforeEnter).toBeDefined()
+
+			const guard = route?.beforeEnter as (to: RouteLocationNormalized, from: RouteLocationNormalized) => unknown
+			const result = guard(makeRoute({ path: '/f/policies' }), makeRoute({ path: '/f/account' }))
+
+			expect(result).toEqual({ name: 'Preferences' })
+		})
+
+		it('allows Policies when delegated editable policies exist for a group admin', () => {
+			loadState.mockImplementation((app, key, defaultValue) => {
+				if (key === 'config') {
+					return { can_manage_group_policies: true }
+				}
+				if (key === 'effective_policies') {
+					return {
+						policies: {
+							signature_flow: {
+								groupCount: 1,
+								userCount: 0,
+								editableByCurrentActor: true,
+							},
+						},
+					}
+				}
+				return defaultValue
+			})
+
+			const route = getRoutes().find((r: RouteRecordNormalized) => r.name === 'Policies')
+			expect(route).toBeDefined()
+			expect(route?.beforeEnter).toBeDefined()
+
+			const guard = route?.beforeEnter as (to: RouteLocationNormalized, from: RouteLocationNormalized) => unknown
+			const result = guard(makeRoute({ path: '/f/policies' }), makeRoute({ path: '/f/account' }))
+
+			expect(result).toBe(true)
 		})
 	})
 })
