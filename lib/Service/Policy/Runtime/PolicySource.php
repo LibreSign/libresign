@@ -20,6 +20,7 @@ use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IDBConnection;
 use OCP\IL10N;
 
@@ -469,23 +470,35 @@ class PolicySource implements IPolicySource {
 	}
 
 	private function readSystemValue(string $key, mixed $defaultValue): mixed {
-		if (is_int($defaultValue)) {
-			return $this->appConfig->getAppValueInt($key, $defaultValue);
-		}
+		try {
+			if (is_int($defaultValue)) {
+				return $this->appConfig->getAppValueInt($key, $defaultValue);
+			}
 
-		if (is_bool($defaultValue)) {
-			return $this->appConfig->getAppValueBool($key, $defaultValue);
-		}
+			if (is_bool($defaultValue)) {
+				return $this->appConfig->getAppValueBool($key, $defaultValue);
+			}
 
-		if (is_float($defaultValue)) {
-			return $this->appConfig->getAppValueFloat($key, $defaultValue);
-		}
+			if (is_float($defaultValue)) {
+				return $this->appConfig->getAppValueFloat($key, $defaultValue);
+			}
 
-		if (is_array($defaultValue)) {
-			return $this->appConfig->getAppValueArray($key, $defaultValue);
-		}
+			if (is_array($defaultValue)) {
+				return $this->appConfig->getAppValueArray($key, $defaultValue);
+			}
 
-		return $this->appConfig->getAppValueString($key, (string)$defaultValue);
+			return $this->appConfig->getAppValueString($key, (string)$defaultValue);
+		} catch (AppConfigTypeConflictException $exception) {
+			if (is_string($defaultValue)) {
+				return $this->appConfig->getAppValueBool($key, in_array(strtolower(trim($defaultValue)), ['1', 'true', 'yes', 'on'], true));
+			}
+
+			if (is_bool($defaultValue)) {
+				return $this->appConfig->getAppValueString($key, $defaultValue ? '1' : '0');
+			}
+
+			throw $exception;
+		}
 	}
 
 	private function writeSystemValue(string $key, mixed $value): void {
