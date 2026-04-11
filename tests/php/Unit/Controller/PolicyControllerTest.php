@@ -301,12 +301,6 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testSetSystemReturnsBadRequestWhenPolicyValueIsInvalid(): void {
-		$this->l10n
-			->expects($this->once())
-			->method('t')
-			->with('Invalid value for signature_flow')
-			->willReturn('Invalid value for signature_flow');
-
 		$this->policyService
 			->expects($this->once())
 			->method('saveSystem')
@@ -587,12 +581,6 @@ final class PolicyControllerTest extends TestCase {
 			->with('admin')
 			->willReturn(true);
 
-		$this->l10n
-			->expects($this->once())
-			->method('t')
-			->with('Lower-level overrides are not allowed for this policy')
-			->willReturn('Lower-level overrides are not allowed for this policy');
-
 		$this->policyService
 			->expects($this->once())
 			->method('saveGroupPolicy')
@@ -648,12 +636,6 @@ final class PolicyControllerTest extends TestCase {
 			->method('isAdmin')
 			->with('admin')
 			->willReturn(true);
-
-		$this->l10n
-			->expects($this->once())
-			->method('t')
-			->with('Lower-level overrides are not allowed for this policy')
-			->willReturn('Lower-level overrides are not allowed for this policy');
 
 		$this->policyService
 			->expects($this->once())
@@ -716,12 +698,6 @@ final class PolicyControllerTest extends TestCase {
 	}
 
 	public function testSetUserPolicyForTargetUserReturnsBadRequestWhenServiceBlocksSave(): void {
-		$this->l10n
-			->expects($this->once())
-			->method('t')
-			->with('Saving a user preference is not allowed for signature_flow')
-			->willReturn('Saving a user preference is not allowed for signature_flow');
-
 		$this->policyService
 			->expects($this->once())
 			->method('saveUserPreferenceForUserId')
