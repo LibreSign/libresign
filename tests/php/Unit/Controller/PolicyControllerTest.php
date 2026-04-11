@@ -107,6 +107,106 @@ final class PolicyControllerTest extends TestCase {
 		], $response->getData());
 	}
 
+	public function testEffectiveEmbedsSytemAdminRuleCounts(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$this->policyService
+			->expects($this->once())
+			->method('getAllRuleCounts')
+			->willReturn([
+				'signature_flow' => ['groupCount' => 3, 'userCount' => 7],
+			]);
+
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('ordered_numeric')
+			->setSourceScope('system')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues(['ordered_numeric'])
+			->setCanSaveAsUserDefault(false)
+			->setCanUseAsRequestOverride(false)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		$this->policyService
+			->method('resolveKnownPolicies')
+			->willReturn(['signature_flow' => $resolvedPolicy]);
+
+		$response = $this->controller->effective();
+
+		$this->assertSame(3, $response->getData()['policies']['signature_flow']['groupCount']);
+		$this->assertSame(7, $response->getData()['policies']['signature_flow']['userCount']);
+	}
+
+	public function testEffectiveEmbedsSubAdminRuleCountsForManagedGroupsOnly(): void {
+		$group = $this->createMock(IGroup::class);
+		$group->method('getGID')->willReturn('finance');
+
+		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
+		$this->subAdmin->method('getSubAdminsGroups')->with($this->currentUser)->willReturn([$group]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('getRuleCounts')
+			->with(['finance'], [])
+			->willReturn(['signature_flow' => ['groupCount' => 1, 'userCount' => 0]]);
+
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('ordered_numeric')
+			->setSourceScope('group')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues(['ordered_numeric'])
+			->setCanSaveAsUserDefault(false)
+			->setCanUseAsRequestOverride(false)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		$this->policyService
+			->method('resolveKnownPolicies')
+			->willReturn(['signature_flow' => $resolvedPolicy]);
+
+		$response = $this->controller->effective();
+
+		$this->assertSame(1, $response->getData()['policies']['signature_flow']['groupCount']);
+		$this->assertSame(0, $response->getData()['policies']['signature_flow']['userCount']);
+	}
+
+	public function testEffectiveEmbedsZeroCountsForRegularUser(): void {
+		$this->groupManager->method('isAdmin')->with('admin')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(false);
+
+		$this->policyService->expects($this->never())->method('getAllRuleCounts');
+		$this->policyService->expects($this->never())->method('getRuleCounts');
+
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey('signature_flow')
+			->setEffectiveValue('parallel')
+			->setSourceScope('system')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues(['parallel', 'ordered_numeric'])
+			->setCanSaveAsUserDefault(true)
+			->setCanUseAsRequestOverride(false)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		$this->policyService
+			->method('resolveKnownPolicies')
+			->willReturn(['signature_flow' => $resolvedPolicy]);
+
+		$response = $this->controller->effective();
+
+		$this->assertSame(0, $response->getData()['policies']['signature_flow']['groupCount']);
+		$this->assertSame(0, $response->getData()['policies']['signature_flow']['userCount']);
+	}
+
 	public function testSetSystemReturnsSavedResolvedPolicy(): void {
 		$resolvedPolicy = (new ResolvedPolicy())
 			->setPolicyKey('signature_flow')
