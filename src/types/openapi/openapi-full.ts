@@ -1566,18 +1566,18 @@ export type paths = {
             cookie?: never;
         };
         /**
-         * Read a user-level policy preference for a target user (admin scope)
+         * Read an explicit user-level policy for a target user (admin scope)
          * @description This endpoint requires admin access
          */
         get: operations["policy-get-user-policy-for-user"];
         /**
-         * Save a user policy preference for a target user (admin scope)
+         * Save an explicit user policy for a target user (admin scope)
          * @description This endpoint requires admin access
          */
         put: operations["policy-set-user-policy-for-user"];
         post?: never;
         /**
-         * Clear a user policy preference for a target user (admin scope)
+         * Clear an explicit user policy for a target user (admin scope)
          * @description This endpoint requires admin access
          */
         delete: operations["policy-clear-user-policy-for-user"];
@@ -2413,9 +2413,10 @@ export type components = {
         UserPolicyState: {
             policyKey: string;
             /** @enum {string} */
-            scope: "user";
+            scope: "user_policy";
             targetId: string;
             value: components["schemas"]["EffectivePolicyValue"];
+            allowChildOverride: boolean;
         };
         UserPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["UserPolicyResponse"];
         ValidateMetadata: {
@@ -7321,7 +7322,7 @@ export interface operations {
             };
             path: {
                 apiVersion: "v1";
-                /** @description Target user identifier that receives the policy preference. */
+                /** @description Target user identifier that receives the policy assignment. */
                 userId: string;
                 /** @description Policy identifier to read for the selected user. */
                 policyKey: string;
@@ -7344,6 +7345,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
         };
     };
     "policy-set-user-policy-for-user": {
@@ -7355,7 +7370,7 @@ export interface operations {
             };
             path: {
                 apiVersion: "v1";
-                /** @description Target user identifier that receives the policy preference. */
+                /** @description Target user identifier that receives the policy assignment. */
                 userId: string;
                 /** @description Policy identifier to persist for the target user. */
                 policyKey: string;
@@ -7365,8 +7380,13 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /** @description Policy value to persist as target user preference. */
+                    /** @description Policy value to persist as assigned target user policy. */
                     value?: (boolean | number | string) | null;
+                    /**
+                     * @description Whether the target user may still override the assigned value in personal preferences.
+                     * @default false
+                     */
+                    allowChildOverride?: boolean;
                 };
             };
         };
@@ -7399,6 +7419,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
         };
     };
     "policy-clear-user-policy-for-user": {
@@ -7410,7 +7444,7 @@ export interface operations {
             };
             path: {
                 apiVersion: "v1";
-                /** @description Target user identifier that receives the policy preference removal. */
+                /** @description Target user identifier that receives the policy assignment removal. */
                 userId: string;
                 /** @description Policy identifier to clear for the target user. */
                 policyKey: string;
@@ -7429,6 +7463,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["UserPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
