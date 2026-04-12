@@ -432,11 +432,29 @@ describe('Settings', () => {
 			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
 		})
 
-		it('hides Policies for non-admin users with group policy capability but no delegated policies', () => {
-			wrapper = createWrapper(false, true)
+		it('hides Policies for non-admin users with group policy capability but no editable policies', () => {
+			wrapper = createWrapper(false, true, {
+				signature_flow: {
+					editableByCurrentActor: false,
+				},
+			})
 			const items = getItems()
 
 			expect(findItemByName(items, 'Policies')).toBeUndefined()
+		})
+
+		it('shows Policies for non-admin users with group policy capability and editable policy even without delegated rules', () => {
+			wrapper = createWrapper(false, true, {
+				add_footer: {
+					groupCount: 0,
+					userCount: 0,
+					editableByCurrentActor: true,
+				},
+			})
+			const items = getItems()
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+
+			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
 		})
 
 		it('shows Policies for non-admin users with group policy capability and delegated policies', () => {
