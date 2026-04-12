@@ -163,7 +163,7 @@ final class PolicySourceTest extends TestCase {
 			->expects($this->once())
 			->method('getUserValue')
 			->with('john', 'policy.signature_flow', '')
-			->willReturn('parallel');
+			->willReturn('"parallel"');
 
 		$source = $this->getSource();
 		$layer = $source->loadUserPreference('signature_flow', PolicyContext::fromUserId('john'));
@@ -177,10 +177,47 @@ final class PolicySourceTest extends TestCase {
 		$this->appConfig
 			->expects($this->once())
 			->method('setUserValue')
-			->with('john', 'policy.signature_flow', 'ordered_numeric');
+			->with('john', 'policy.signature_flow', '"ordered_numeric"');
 
 		$source = $this->getSource();
 		$source->saveUserPreference('signature_flow', PolicyContext::fromUserId('john'), 'ordered_numeric');
+	}
+
+	public function testLoadUserPolicyReturnsExplicitAssignedLayerFromUserConfig(): void {
+		$this->appConfig
+			->expects($this->once())
+			->method('getUserValue')
+			->with('john', 'policy.signature_flow.assigned', '')
+			->willReturn('{"value":"ordered_numeric","allowChildOverride":false}');
+
+		$source = $this->getSource();
+		$layer = $source->loadUserPolicy('signature_flow', PolicyContext::fromUserId('john'));
+
+		$this->assertNotNull($layer);
+		$this->assertSame('user_policy', $layer->getScope());
+		$this->assertSame('ordered_numeric', $layer->getValue());
+		$this->assertFalse($layer->isAllowChildOverride());
+		$this->assertSame(['ordered_numeric'], $layer->getAllowedValues());
+	}
+
+	public function testSaveUserPolicyPersistsAssignedUserPayload(): void {
+		$this->appConfig
+			->expects($this->once())
+			->method('setUserValue')
+			->with('john', 'policy.signature_flow.assigned', '{"value":"ordered_numeric","allowChildOverride":true}');
+
+		$source = $this->getSource();
+		$source->saveUserPolicy('signature_flow', PolicyContext::fromUserId('john'), 'ordered_numeric', true);
+	}
+
+	public function testClearUserPolicyDeletesAssignedUserConfig(): void {
+		$this->appConfig
+			->expects($this->once())
+			->method('deleteUserValue')
+			->with('john', 'policy.signature_flow.assigned');
+
+		$source = $this->getSource();
+		$source->clearUserPolicy('signature_flow', PolicyContext::fromUserId('john'));
 	}
 
 	public function testClearUserPreferenceDeletesUserConfig(): void {
@@ -628,7 +665,7 @@ final class PolicySourceTest extends TestCase {
 
 		$dbResult = $this->createMock(IResult::class);
 		$dbResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
-			['configkey' => 'policy.signature_flow', 'configvalue' => 'parallel'],
+			['configkey' => 'policy.signature_flow', 'configvalue' => '"parallel"'],
 			false,
 		);
 		$dbResult->expects($this->once())->method('closeCursor');
@@ -727,7 +764,7 @@ final class PolicySourceTest extends TestCase {
 
 		$dbResult = $this->createMock(IResult::class);
 		$dbResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
-			['configkey' => 'policy.signature_flow', 'user_count' => '3'],
+			['configkey' => 'policy.signature_flow.assigned', 'user_count' => '3'],
 			false,
 		);
 		$dbResult->expects($this->once())->method('closeCursor');
