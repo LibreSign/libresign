@@ -27,6 +27,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			$definition,
 			$context,
 			$this->source->loadGroupPolicies($definition->key(), $context),
+			$this->source->loadUserPolicy($definition->key(), $context),
 			$this->source->loadUserPreference($definition->key(), $context),
 		);
 	}
@@ -38,6 +39,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		IPolicyDefinition $definition,
 		PolicyContext $context,
 		array $groupLayers,
+		?PolicyLayer $userPolicy,
 		?PolicyLayer $userPreference,
 	): ResolvedPolicy {
 		$policyKey = $definition->key();
@@ -90,6 +92,19 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 					$visible,
 				);
 			}
+		}
+
+		if ($userPolicy !== null) {
+			[$currentValue, $currentSourceScope, $canOverrideBelow, $visible] = $this->applyLayer(
+				$definition,
+				$resolved,
+				$userPolicy,
+				$context,
+				$currentValue,
+				$currentSourceScope,
+				$canOverrideBelow,
+				$visible,
+			);
 		}
 
 		if ($userPreference !== null) {
@@ -197,6 +212,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 		);
 
 		$allGroupLayers = $this->source->loadAllGroupPolicies($policyKeys, $context);
+		$allUserPolicies = $this->source->loadAllUserPolicies($policyKeys, $context);
 		$allUserPrefs = $this->source->loadAllUserPreferences($policyKeys, $context);
 
 		$resolved = [];
@@ -206,6 +222,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				$definition,
 				$context,
 				$allGroupLayers[$key] ?? [],
+				$allUserPolicies[$key] ?? null,
 				$allUserPrefs[$key] ?? null,
 			);
 		}
