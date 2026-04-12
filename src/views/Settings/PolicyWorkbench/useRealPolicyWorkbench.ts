@@ -227,7 +227,7 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		const sourceScope = policy.sourceScope
-		if (sourceScope === 'group' || sourceScope === 'user') {
+		if (sourceScope === 'group' || sourceScope === 'user' || sourceScope === 'user_policy') {
 			return explicitSystemRule.value
 		}
 
@@ -309,6 +309,10 @@ export function createRealPolicyWorkbenchState() {
 
 		if (sourceScope === 'group' || sourceScope === 'user') {
 			return sourceScope
+		}
+
+		if (sourceScope === 'user_policy') {
+			return 'user'
 		}
 
 		return hasGlobalDefault.value ? 'global' : 'system'
@@ -523,7 +527,7 @@ export function createRealPolicyWorkbenchState() {
 						id: `user-${user.id}-persisted`,
 						scope: 'user' as const,
 						targetId: user.id,
-						allowChildOverride: true,
+						allowChildOverride: persistedPolicy.allowChildOverride,
 						value: persistedPolicy.value,
 					}
 				} catch (error) {
@@ -879,11 +883,11 @@ export function createRealPolicyWorkbenchState() {
 			}
 
 			await Promise.all(targetIds.map((targetId) => {
-				return policiesStore.saveUserPolicyForUser(targetId, policyKey, value)
+				return policiesStore.saveUserPolicyForUser(targetId, policyKey, value, allowChildOverride)
 			}))
 
 			for (const targetId of targetIds) {
-				upsertRule(userRules.value, 'user', targetId, value, true)
+				upsertRule(userRules.value, 'user', targetId, value, allowChildOverride)
 			}
 
 			await policiesStore.fetchEffectivePolicies()
