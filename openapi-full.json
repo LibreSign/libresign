@@ -3000,7 +3000,8 @@
                     "policyKey",
                     "scope",
                     "targetId",
-                    "value"
+                    "value",
+                    "allowChildOverride"
                 ],
                 "properties": {
                     "policyKey": {
@@ -3009,7 +3010,7 @@
                     "scope": {
                         "type": "string",
                         "enum": [
-                            "user"
+                            "user_policy"
                         ]
                     },
                     "targetId": {
@@ -3018,6 +3019,9 @@
                     "value": {
                         "$ref": "#/components/schemas/EffectivePolicyValue",
                         "nullable": true
+                    },
+                    "allowChildOverride": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -14069,7 +14073,7 @@
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{userId}/{policyKey}": {
             "get": {
                 "operationId": "policy-get-user-policy-for-user",
-                "summary": "Read a user-level policy preference for a target user (admin scope)",
+                "summary": "Read an explicit user-level policy for a target user (admin scope)",
                 "description": "This endpoint requires admin access",
                 "tags": [
                     "policy"
@@ -14098,7 +14102,7 @@
                     {
                         "name": "userId",
                         "in": "path",
-                        "description": "Target user identifier that receives the policy preference.",
+                        "description": "Target user identifier that receives the policy assignment.",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -14156,12 +14160,42 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
             "put": {
                 "operationId": "policy-set-user-policy-for-user",
-                "summary": "Save a user policy preference for a target user (admin scope)",
+                "summary": "Save an explicit user policy for a target user (admin scope)",
                 "description": "This endpoint requires admin access",
                 "tags": [
                     "policy"
@@ -14183,7 +14217,7 @@
                                 "properties": {
                                     "value": {
                                         "nullable": true,
-                                        "description": "Policy value to persist as target user preference.",
+                                        "description": "Policy value to persist as assigned target user policy.",
                                         "anyOf": [
                                             {
                                                 "type": "boolean"
@@ -14200,6 +14234,11 @@
                                                 "type": "string"
                                             }
                                         ]
+                                    },
+                                    "allowChildOverride": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Whether the target user may still override the assigned value in personal preferences."
                                     }
                                 }
                             }
@@ -14222,7 +14261,7 @@
                     {
                         "name": "userId",
                         "in": "path",
-                        "description": "Target user identifier that receives the policy preference.",
+                        "description": "Target user identifier that receives the policy assignment.",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -14310,12 +14349,42 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
             "delete": {
                 "operationId": "policy-clear-user-policy-for-user",
-                "summary": "Clear a user policy preference for a target user (admin scope)",
+                "summary": "Clear an explicit user policy for a target user (admin scope)",
                 "description": "This endpoint requires admin access",
                 "tags": [
                     "policy"
@@ -14344,7 +14413,7 @@
                     {
                         "name": "userId",
                         "in": "path",
-                        "description": "Target user identifier that receives the policy preference removal.",
+                        "description": "Target user identifier that receives the policy assignment removal.",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -14395,6 +14464,36 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/UserPolicyWriteResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
                                                 }
                                             }
                                         }
