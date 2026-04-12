@@ -239,8 +239,9 @@ test('policies nav item is visible only when group admin can edit at least one d
 
 		// ── 9. Admin: lock the only group rule (no lower-level override) ──────
 		//
-		// With only one group rule and allowChildOverride:false, the effective
-		// policy is not editable by this group admin. The menu must disappear.
+		// With only one group rule and allowChildOverride:false, lower layers are
+		// locked, but the group admin still governs that group layer itself.
+		// The menu must remain visible while at least one delegated rule exists.
 		await setGroupPolicy(adminCtx, FOOTER_ENABLED_VALUE, false)
 
 		const lockedGroupAdminCtx = await request.newContext({
@@ -255,12 +256,12 @@ test('policies nav item is visible only when group admin can edit at least one d
 
 		const lockedPolicy = await getEffectivePolicy(lockedGroupAdminCtx)
 		expect(lockedPolicy?.groupCount).toBeGreaterThan(0)
-		expect(lockedPolicy?.editableByCurrentActor).toBe(false)
+		expect(lockedPolicy?.editableByCurrentActor).toBe(true)
 		await lockedGroupAdminCtx.dispose()
 
 		await page.goto('./apps/libresign/f/preferences')
 		await expandSettingsMenu(page)
-		await expect(page.getByRole('link', { name: 'Policies' }), 'Policies link should be hidden when all delegated rules are read-only for the group admin').toBeHidden({ timeout: 20000 })
+		await expect(page.getByRole('link', { name: 'Policies' }), 'Policies link should stay visible while the group admin can manage the delegated rule').toBeVisible({ timeout: 20000 })
 
 		// ── 10. Admin: remove the group policy ────────────────────────────────
 
