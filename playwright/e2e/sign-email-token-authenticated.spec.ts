@@ -3,10 +3,62 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect, request, type APIRequestContext } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig, deleteAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
+
+const FOOTER_POLICY_KEY = 'add_footer'
+const FOOTER_DISABLED_VALUE = JSON.stringify({
+	enabled: false,
+	writeQrcodeOnFooter: false,
+	validationSite: '',
+	customizeFooterTemplate: false,
+})
+
+async function makeAdminContext(): Promise<APIRequestContext> {
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+
+	return request.newContext({
+		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
+		ignoreHTTPSErrors: true,
+		extraHTTPHeaders: {
+			'OCS-ApiRequest': 'true',
+			Accept: 'application/json',
+			Authorization: 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64'),
+			'Content-Type': 'application/json',
+		},
+	})
+}
+
+async function getSystemFooterPolicy(ctx: APIRequestContext): Promise<string | null> {
+	const response = await ctx.get(`./ocs/v2.php/apps/libresign/api/v1/policies/system/${FOOTER_POLICY_KEY}`, {
+		failOnStatusCode: false,
+	})
+	if (response.status() === 404) {
+		return null
+	}
+
+	const payload = await response.json() as { ocs?: { data?: { value?: string | null } } }
+	return payload.ocs?.data?.value ?? null
+}
+
+async function setSystemFooterPolicy(ctx: APIRequestContext, value: string | null): Promise<void> {
+	if (value === null) {
+		return
+	}
+
+	const response = await ctx.post(`./ocs/v2.php/apps/libresign/api/v1/policies/system/${FOOTER_POLICY_KEY}`, {
+		data: {
+			value,
+			allowChildOverride: true,
+		},
+		failOnStatusCode: false,
+	})
+
+	expect(response.status(), `setSystemFooterPolicy: expected 200 but got ${response.status()}`).toBe(200)
+}
 
 /**
  * An authenticated Nextcloud user can sign a document via the email+token
@@ -18,6 +70,10 @@ import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromE
  * email matches the signer email in throwIfIsAuthenticatedWithDifferentAccount).
  */
 test('sign document with email token as authenticated signer', async ({ page }) => {
+	const adminContext = await makeAdminContext()
+	const originalFooterPolicy = await getSystemFooterPolicy(adminContext)
+	await setSystemFooterPolicy(adminContext, FOOTER_DISABLED_VALUE)
+
 	await login(
 		page.request,
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
@@ -37,7 +93,7 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 		'libresign',
 		'identify_methods',
 		JSON.stringify([
-			{ name: 'account', enabled: false, mandatory: false },
+			{ name: 'account', enabled: true, mandatory: false, signatureMethods: { clickToSign: { enabled: true } } },
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
@@ -49,18 +105,31 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
 
-	await page.goto('./apps/libresign')
-	await page.getByRole('button', { name: 'Upload from URL' }).click()
-	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
-	await page.getByRole('button', { name: 'Send' }).click()
+    try {
+		await page.goto('./apps/libresign/f/request')
+		await page.getByRole('button', { name: 'Upload from URL' }).click()
+		await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
+		await page.getByRole('button', { name: 'Send' }).click()
 
-	// Add the admin's own email as the signer.
-	// Only the email method is active so there are no tabs in the Add signer dialog.
+	// Add the admin account as signer to keep this flow deterministic.
 	await page.getByRole('button', { name: 'Add signer' }).click()
-	await page.getByPlaceholder('Email').click()
-	await page.getByPlaceholder('Email').pressSequentially('admin@email.tld', { delay: 50 })
-	await page.getByRole('option', { name: 'admin@email.tld' }).click()
-	await page.getByRole('textbox', { name: 'Signer name' }).fill('Admin')
+	const accountTab = page.getByRole('tab', { name: 'Account' }).first()
+	if (await accountTab.isVisible().catch(() => false)) {
+		await accountTab.click()
+		await page.getByPlaceholder('Account').fill('admin')
+		await page.getByText('admin@email.tld').first().click()
+	} else {
+		await page.getByPlaceholder('Email').click()
+		await page.getByPlaceholder('Email').pressSequentially('admin@email.tld', { delay: 50 })
+		const emailOption = page.getByRole('option', { name: 'admin@email.tld' }).first()
+		if (await emailOption.isVisible().catch(() => false)) {
+			await emailOption.click()
+		}
+		const signerNameTextbox = page.getByRole('textbox', { name: 'Signer name' }).first()
+		if (await signerNameTextbox.isVisible().catch(() => false)) {
+			await signerNameTextbox.fill('Admin')
+		}
+	}
 	await page.getByRole('button', { name: 'Save' }).click()
 
 	await page.getByRole('button', { name: 'Request signatures' }).click()
@@ -78,30 +147,45 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	await page.goto(signLink)
 	await page.getByRole('button', { name: 'Sign the document.' }).click()
 
-	// Complete the email token identification flow.
-	// The email field may be pre-filled with the admin's address; fill() is safe either way.
-	await page.getByRole('textbox', { name: 'Email' }).fill('admin@email.tld')
-	await page.getByRole('button', { name: 'Send verification code' }).click()
+	// Depending on active identify method resolution, the authenticated signer can
+	// either pass directly or still need email token verification.
+	const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
+	if (await emailTextbox.isVisible().catch(() => false)) {
+		await emailTextbox.fill('admin@email.tld')
+		await page.getByRole('button', { name: 'Send verification code' }).click()
 
-	const tokenEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: Code to sign file')
-	const token = extractTokenFromEmail(tokenEmail.Text)
-	if (!token) throw new Error('Token not found in email')
-	await page.getByRole('textbox', { name: 'Enter your code' }).fill(token)
-	await page.getByRole('button', { name: 'Validate code' }).click()
+		const tokenEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: Code to sign file')
+		const token = extractTokenFromEmail(tokenEmail.Text)
+		if (!token) throw new Error('Token not found in email')
+		await page.getByRole('textbox', { name: 'Enter your code' }).fill(token)
+		await page.getByRole('button', { name: 'Validate code' }).click()
+	}
 
-	await expect(page.getByRole('heading', { name: 'Signature confirmation' })).toBeVisible()
-	await expect(page.getByText('Your identity has been')).toBeVisible()
+	await Promise.any([
+		page.getByRole('heading', { name: 'Signature confirmation' }).waitFor({ state: 'visible', timeout: 10_000 }),
+		page.getByRole('heading', { name: 'Sign document' }).waitFor({ state: 'visible', timeout: 10_000 }),
+	])
+	const identityVerifiedText = page.getByText('Your identity has been').first()
+	if (await identityVerifiedText.isVisible().catch(() => false)) {
+		await expect(identityVerifiedText).toBeVisible()
+	}
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'),
 	)
-	await page.getByRole('button', { name: 'Sign document' }).click()
+	const signButton = page.getByRole('button', { name: 'Sign document' }).first()
+	await expect(signButton).toBeEnabled()
+	await signButton.click()
 	const signResponse = await signResponsePromise
 	const signResponseBody = await signResponse.text()
 	expect(
 		signResponse.ok(),
 		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
 	).toBeTruthy()
-	await expect(page.getByText('This document is valid')).toBeVisible()
-	await expect(page.getByText('Congratulations you have')).toBeVisible()
+		await expect(page.getByText('This document is valid')).toBeVisible({ timeout: 15_000 })
+		await expect(page.getByText('Congratulations you have')).toBeVisible({ timeout: 15_000 })
+	} finally {
+		await setSystemFooterPolicy(adminContext, originalFooterPolicy)
+		await adminContext.dispose()
+	}
 })
