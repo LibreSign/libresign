@@ -717,7 +717,7 @@ export function createPolicyWorkbenchState() {
 			settingKey: key,
 			scope,
 			targetId,
-			allowChildOverride: scope !== 'user',
+			allowChildOverride: true,
 			value: cloneValue(definition.createEmptyValue(scope)) as PolicySettingValueMap[PolicySettingKey],
 		}
 	}
@@ -815,7 +815,7 @@ export function createPolicyWorkbenchState() {
 			id: editorDraft.value.id ?? `${activeSettingKey.value}-${nextRuleNumber.value++}`,
 			scope: editorDraft.value.scope,
 			targetId: editorDraft.value.scope === 'system' ? null : editorDraft.value.targetId,
-			allowChildOverride: editorDraft.value.scope === 'user' ? false : editorDraft.value.allowChildOverride,
+			allowChildOverride: editorDraft.value.allowChildOverride,
 			value: cloneValue(editorDraft.value.value),
 		}
 
