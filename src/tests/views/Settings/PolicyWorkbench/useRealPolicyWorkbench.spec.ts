@@ -1030,7 +1030,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.canSaveDraft).toBe(true)
 	})
 
-	it('hides policies without group rules in group-admin viewMode', () => {
+	it('shows editable policies in group-admin viewMode even without group rules', () => {
 		currentUserState.isAdmin = false
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'add_footer' || key === 'docmdp') {
@@ -1045,7 +1045,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(keys).toContain('add_footer')
 		expect(keys).toContain('docmdp')
-		expect(keys).not.toContain('signature_flow')
+		expect(keys).toContain('signature_flow')
 	})
 
 	it('hides locked policies from group-admin catalog even when rules exist', () => {
