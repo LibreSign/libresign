@@ -658,8 +658,9 @@ final class PolicyControllerTest extends TestCase {
 			->willReturn(true);
 
 		$persistedPolicy = (new PolicyLayer())
-			->setScope('user')
-			->setValue('ordered_numeric');
+			->setScope('user_policy')
+			->setValue('ordered_numeric')
+			->setAllowChildOverride(false);
 
 		$this->l10n
 			->expects($this->once())
@@ -669,16 +670,17 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->policyService
 			->expects($this->once())
-			->method('saveUserPreferenceForUserId')
-			->with('signature_flow', 'user1', 'ordered_numeric')
+			->method('saveUserPolicyForUserId')
+			->with('signature_flow', 'user1', 'ordered_numeric', false)
 			->willReturn($persistedPolicy);
 
 		$response = $this->controller->setUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('user', $response->getData()['policy']['scope']);
+		$this->assertSame('user_policy', $response->getData()['policy']['scope']);
 		$this->assertSame('user1', $response->getData()['policy']['targetId']);
 		$this->assertSame('ordered_numeric', $response->getData()['policy']['value']);
+		$this->assertFalse($response->getData()['policy']['allowChildOverride']);
 	}
 
 	public function testClearUserPolicyForTargetUserReturnsClearedExplicitPolicy(): void {
@@ -695,16 +697,17 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->policyService
 			->expects($this->once())
-			->method('clearUserPreferenceForUserId')
+			->method('clearUserPolicyForUserId')
 			->with('signature_flow', 'user1')
 			->willReturn(null);
 
 		$response = $this->controller->clearUserPolicyForUser('user1', 'signature_flow');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('user', $response->getData()['policy']['scope']);
+		$this->assertSame('user_policy', $response->getData()['policy']['scope']);
 		$this->assertSame('user1', $response->getData()['policy']['targetId']);
 		$this->assertNull($response->getData()['policy']['value']);
+		$this->assertTrue($response->getData()['policy']['allowChildOverride']);
 	}
 
 	public function testSetUserPolicyForTargetUserReturnsBadRequestWhenServiceBlocksSave(): void {
@@ -715,15 +718,15 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->policyService
 			->expects($this->once())
-			->method('saveUserPreferenceForUserId')
-			->with('signature_flow', 'user1', 'ordered_numeric')
-			->willThrowException(new \InvalidArgumentException('Saving a user preference is not allowed for signature_flow'));
+			->method('saveUserPolicyForUserId')
+			->with('signature_flow', 'user1', 'ordered_numeric', false)
+			->willThrowException(new \InvalidArgumentException('Invalid value for signature_flow'));
 
 		$response = $this->controller->setUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric');
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
 		$this->assertSame([
-			'error' => 'Saving a user preference is not allowed for signature_flow',
+			'error' => 'Invalid value for signature_flow',
 		], $response->getData());
 	}
 
@@ -748,8 +751,8 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->policyService
 			->expects($this->once())
-			->method('saveUserPreferenceForUserId')
-			->with('signature_flow', 'user1', 'ordered_numeric')
+			->method('saveUserPolicyForUserId')
+			->with('signature_flow', 'user1', 'ordered_numeric', false)
 			->willThrowException(new \RuntimeException('Unexpected policy failure'));
 
 		$this->expectException(\RuntimeException::class);
@@ -779,7 +782,7 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->policyService
 			->expects($this->once())
-			->method('clearUserPreferenceForUserId')
+			->method('clearUserPolicyForUserId')
 			->with('signature_flow', 'user1')
 			->willThrowException(new \RuntimeException('Unexpected policy failure'));
 
@@ -804,7 +807,7 @@ final class PolicyControllerTest extends TestCase {
 			->with('Not allowed to manage this user policy')
 			->willReturn('Not allowed to manage this user policy');
 
-		$this->policyService->expects($this->never())->method('saveUserPreferenceForUserId');
+		$this->policyService->expects($this->never())->method('saveUserPolicyForUserId');
 
 		$response = $this->controller->setUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric');
 
@@ -829,7 +832,7 @@ final class PolicyControllerTest extends TestCase {
 			->with('Not allowed to manage this user policy')
 			->willReturn('Not allowed to manage this user policy');
 
-		$this->policyService->expects($this->never())->method('clearUserPreferenceForUserId');
+		$this->policyService->expects($this->never())->method('clearUserPolicyForUserId');
 
 		$response = $this->controller->clearUserPolicyForUser('user1', 'signature_flow');
 
