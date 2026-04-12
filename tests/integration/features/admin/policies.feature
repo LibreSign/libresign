@@ -42,19 +42,20 @@ Feature: admin/policies
       | value | parallel |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                            | value          |
-      | (jq).ocs.data.policy.policyKey | signature_flow |
-      | (jq).ocs.data.policy.scope     | user           |
-      | (jq).ocs.data.policy.targetId  | signer1        |
-      | (jq).ocs.data.policy.value     | parallel       |
+      | key                                         | value          |
+      | (jq).ocs.data.policy.policyKey              | signature_flow |
+      | (jq).ocs.data.policy.scope                  | user_policy    |
+      | (jq).ocs.data.policy.targetId               | signer1        |
+      | (jq).ocs.data.policy.value                  | parallel       |
+      | (jq).ocs.data.policy.allowChildOverride     | false          |
 
     Given as user "signer1"
     When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                                      | value    |
-      | (jq).ocs.data.policies.signature_flow.effectiveValue    | parallel |
-      | (jq).ocs.data.policies.signature_flow.sourceScope       | user     |
+      | key                                                      | value       |
+      | (jq).ocs.data.policies.signature_flow.effectiveValue    | parallel    |
+      | (jq).ocs.data.policies.signature_flow.sourceScope       | user_policy |
 
     Given as user "admin"
     When sending "delete" to ocs "/apps/libresign/api/v1/policies/user/signer1/signature_flow"
