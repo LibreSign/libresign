@@ -93,64 +93,54 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 		'libresign',
 		'identify_methods',
 		JSON.stringify([
-			{ name: 'account', enabled: true, mandatory: false, signatureMethods: { clickToSign: { enabled: true } } },
+			{ name: 'account', enabled: false, mandatory: false },
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
 	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
 	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
-	await setAppConfig(page.request, 'libresign', 'java_path', '/usr/bin/java')
-	await setAppConfig(page.request, 'libresign', 'pdftk_path', '/usr/bin/pdftk')
-
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
 
-    try {
+	try {
 		await page.goto('./apps/libresign/f/request')
 		await page.getByRole('button', { name: 'Upload from URL' }).click()
 		await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 		await page.getByRole('button', { name: 'Send' }).click()
 
-	// Add the admin account as signer to keep this flow deterministic.
-	await page.getByRole('button', { name: 'Add signer' }).click()
-	const accountTab = page.getByRole('tab', { name: 'Account' }).first()
-	if (await accountTab.isVisible().catch(() => false)) {
-		await accountTab.click()
-		await page.getByPlaceholder('Account').fill('admin')
-		await page.getByText('admin@email.tld').first().click()
-	} else {
+		// Add signer by email to exercise the email-token flow deterministically.
+		await page.getByRole('button', { name: 'Add signer' }).click()
 		await page.getByPlaceholder('Email').click()
 		await page.getByPlaceholder('Email').pressSequentially('admin@email.tld', { delay: 50 })
-		const emailOption = page.getByRole('option', { name: 'admin@email.tld' }).first()
-		if (await emailOption.isVisible().catch(() => false)) {
-			await emailOption.click()
+		await page.getByRole('option', { name: 'admin@email.tld' }).first().click()
+		await page.getByRole('textbox', { name: 'Signer name' }).first().fill('Admin')
+		await page.getByRole('button', { name: 'Save' }).click()
+
+		await page.getByRole('button', { name: 'Request signatures' }).click()
+		await page.getByRole('button', { name: 'Send' }).click()
+
+		// Get the sign link from the notification email sent to admin@email.tld.
+		// The admin is intentionally NOT logged out — this tests the authenticated path.
+		const notificationEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: There is a file for you to sign')
+		const signLink = extractSignLink(notificationEmail.Text)
+		if (!signLink) throw new Error('Sign link not found in notification email')
+
+		// Navigate to the sign link while still logged in as admin.
+		// throwIfIsAuthenticatedWithDifferentAccount allows this because
+		// admin@email.tld === the signer's email address.
+		await page.goto(signLink)
+		const openSignButton = page.getByRole('button', { name: 'Sign the document.' }).first()
+		const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
+		await Promise.any([
+			openSignButton.waitFor({ state: 'visible', timeout: 10_000 }),
+			emailTextbox.waitFor({ state: 'visible', timeout: 10_000 }),
+		])
+		if (await openSignButton.isVisible().catch(() => false)) {
+			await openSignButton.click()
 		}
-		const signerNameTextbox = page.getByRole('textbox', { name: 'Signer name' }).first()
-		if (await signerNameTextbox.isVisible().catch(() => false)) {
-			await signerNameTextbox.fill('Admin')
-		}
-	}
-	await page.getByRole('button', { name: 'Save' }).click()
 
-	await page.getByRole('button', { name: 'Request signatures' }).click()
-	await page.getByRole('button', { name: 'Send' }).click()
-
-	// Get the sign link from the notification email sent to admin@email.tld.
-	// The admin is intentionally NOT logged out — this tests the authenticated path.
-	const notificationEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: There is a file for you to sign')
-	const signLink = extractSignLink(notificationEmail.Text)
-	if (!signLink) throw new Error('Sign link not found in notification email')
-
-	// Navigate to the sign link while still logged in as admin.
-	// throwIfIsAuthenticatedWithDifferentAccount allows this because
-	// admin@email.tld === the signer's email address.
-	await page.goto(signLink)
-	await page.getByRole('button', { name: 'Sign the document.' }).click()
-
-	// Depending on active identify method resolution, the authenticated signer can
-	// either pass directly or still need email token verification.
-	const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
-	if (await emailTextbox.isVisible().catch(() => false)) {
+		// Email-token verification must happen in this scenario.
+		await expect(emailTextbox).toBeVisible()
 		await emailTextbox.fill('admin@email.tld')
 		await page.getByRole('button', { name: 'Send verification code' }).click()
 
@@ -159,31 +149,22 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 		if (!token) throw new Error('Token not found in email')
 		await page.getByRole('textbox', { name: 'Enter your code' }).fill(token)
 		await page.getByRole('button', { name: 'Validate code' }).click()
-	}
 
-	await Promise.any([
-		page.getByRole('heading', { name: 'Signature confirmation' }).waitFor({ state: 'visible', timeout: 10_000 }),
-		page.getByRole('heading', { name: 'Sign document' }).waitFor({ state: 'visible', timeout: 10_000 }),
-	])
-	const identityVerifiedText = page.getByText('Your identity has been').first()
-	if (await identityVerifiedText.isVisible().catch(() => false)) {
-		await expect(identityVerifiedText).toBeVisible()
-	}
-	const signResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'POST'
-		&& response.url().includes('/apps/libresign/api/v1/sign/'),
-	)
-	const signButton = page.getByRole('button', { name: 'Sign document' }).first()
-	await expect(signButton).toBeEnabled()
-	await signButton.click()
-	const signResponse = await signResponsePromise
-	const signResponseBody = await signResponse.text()
-	expect(
-		signResponse.ok(),
-		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
-	).toBeTruthy()
-		await expect(page.getByText('This document is valid')).toBeVisible({ timeout: 15_000 })
-		await expect(page.getByText('Congratulations you have')).toBeVisible({ timeout: 15_000 })
+		await expect(page.getByRole('heading', { name: 'Signature confirmation' })).toBeVisible()
+		await expect(page.getByText('Your identity has been')).toBeVisible()
+		const signResponsePromise = page.waitForResponse((response) =>
+			response.request().method() === 'POST'
+			&& response.url().includes('/apps/libresign/api/v1/sign/'),
+		)
+		await page.getByRole('button', { name: 'Sign document' }).click()
+		const signResponse = await signResponsePromise
+		const signResponseBody = await signResponse.text()
+		expect(
+			signResponse.ok(),
+			`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
+		).toBeTruthy()
+		await expect(page.getByText('This document is valid')).toBeVisible()
+		await expect(page.getByText('Congratulations you have')).toBeVisible()
 	} finally {
 		await setSystemFooterPolicy(adminContext, originalFooterPolicy)
 		await adminContext.dispose()
