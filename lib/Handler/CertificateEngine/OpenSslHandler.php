@@ -247,7 +247,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			],
 			'v3_ca' => [
 				'basicConstraints' => 'critical, CA:TRUE, pathlen:1',
-				'keyUsage' => 'critical, digitalSignature, keyCertSign',
+				'keyUsage' => 'critical, digitalSignature, keyCertSign, cRLSign',
 				'extendedKeyUsage' => 'clientAuth, emailProtection',
 				'subjectAltName' => $this->getSubjectAltNames(),
 				'authorityKeyIdentifier' => 'keyid',
