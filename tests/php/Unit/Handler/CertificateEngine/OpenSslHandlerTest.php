@@ -502,7 +502,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 			$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 			$verifyCmd = sprintf(
-				'openssl crl -in %s -inform DER -CAfile %s -noout 2>&1',
+				'openssl crl -in %s -inform DER -CAfile %s -verify -noout 2>&1',
 				escapeshellarg($tempCrlFile),
 				escapeshellarg($caCertPath)
 			);
