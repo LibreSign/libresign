@@ -625,6 +625,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 			$this->assertEquals(0, $verifyExitCode, 'CRL signature verification should succeed. Output: ' . $verifyResult);
 			$this->assertStringNotContainsString('unable to get issuer certificate', strtolower($verifyResult), 'CRL verification should use the provided CA certificate');
+			// OpenSSL output text varies across versions/distributions; rely on exit code for stability.
+			$this->assertStringNotContainsString('Error loading CRL', $verifyResult, 'CRL output should not report parsing/loading errors');
 
 		} finally {
 			if (file_exists($tempCrlFile)) {
