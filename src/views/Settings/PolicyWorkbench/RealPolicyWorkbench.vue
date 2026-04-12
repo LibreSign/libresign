@@ -336,7 +336,7 @@
 					:save-status="saveStatus"
 					:show-inline-actions="false"
 					:show-back-button="showCreateRuleBackAction"
-					:show-allow-override-switch="state.activeDefinition?.key !== 'signature_flow'"
+					:show-allow-override-switch="true"
 					@search-targets="state.searchAvailableTargets"
 					@update-targets="onTargetChange"
 					@update-value="state.updateDraftValue"
@@ -921,21 +921,8 @@ function selectCreateScope(scope: 'system' | 'group' | 'user') {
 	startCreateRuleForScope(scope)
 }
 
-function shouldLockSignatureFlowOverride(scope: 'system' | 'group' | 'user') {
-	return state.activeDefinition?.key === 'signature_flow' && scope !== 'user'
-}
-
-function normalizeEditorDraftSignatureFlowOverride() {
-	if (!state.editorDraft || !shouldLockSignatureFlowOverride(state.editorDraft.scope)) {
-		return
-	}
-
-	state.editorDraft.allowChildOverride = false
-}
-
 function openRuleEditor(scope: 'system' | 'group' | 'user', ruleId?: string) {
 	state.startEditor(ruleId ? { scope, ruleId } : { scope })
-	normalizeEditorDraftSignatureFlowOverride()
 }
 
 function startCreateRuleForScope(scope: 'system' | 'group' | 'user') {
@@ -1118,7 +1105,6 @@ async function handleSaveDraft() {
 		return
 	}
 
-	normalizeEditorDraftSignatureFlowOverride()
 	saveStatus.value = 'saving'
 	await nextTick()
 	await state.saveDraft()
