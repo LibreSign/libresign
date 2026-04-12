@@ -51,6 +51,33 @@ export type EffectivePolicyValue = ApiComponents['schemas']['EffectivePolicyValu
 export type EffectivePolicyState = ApiComponents['schemas']['EffectivePolicyState']
 export type EffectivePoliciesResponse = ApiOcsResponseData<ApiOperations['policy-effective'], 200>
 export type EffectivePoliciesState = EffectivePoliciesResponse['policies']
+export type EffectivePolicyState = ApiRecordValue<EffectivePoliciesState>
+export type EffectivePolicyValue = Exclude<ApiRequestJsonBody<AdminOperations['policy-set-system']>['value'], undefined>
+export type GroupPolicyResponse = ApiOcsResponseData<ApiOperations['policy-get-group'], 200>
+export type GroupPolicyState = GroupPolicyResponse['policy']
+export type SystemPolicyState = {
+	policyKey: string
+	scope: 'system' | 'global'
+	value: EffectivePolicyValue | null
+	allowChildOverride: boolean
+	visibleToChild: boolean
+	allowedValues: EffectivePolicyValue[]
+}
+export type SystemPolicyResponse = {
+	policy: SystemPolicyState
+}
+export type UserPolicyState = {
+	policyKey: string
+	scope: 'user_policy'
+	targetId: string
+	value: EffectivePolicyValue | null
+	allowChildOverride: boolean
+}
+export type UserPolicyResponse = {
+	policy: UserPolicyState
+}
+export type GroupPolicyWritePayload = ApiRequestJsonBody<ApiOperations['policy-set-group']>
+export type GroupPolicyWriteResponse = ApiOcsResponseData<ApiOperations['policy-set-group'], 200>
 export type SystemPolicyWritePayload = ApiRequestJsonBody<AdminOperations['policy-set-system']>
 export type SystemPolicyWriteResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 200>
 export type SystemPolicyWriteErrorResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 400>
