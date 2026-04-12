@@ -3,75 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { expect, request, test, type APIRequestContext, type Page } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { useFooterPolicyGuard } from '../support/system-policies'
 
-const FOOTER_POLICY_KEY = 'add_footer'
-const FOOTER_DISABLED_VALUE = JSON.stringify({
-	enabled: false,
-	writeQrcodeOnFooter: false,
-	validationSite: '',
-	customizeFooterTemplate: false,
-})
-
-async function makeAdminContext(): Promise<APIRequestContext> {
-	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
-
-	return request.newContext({
-		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
-		ignoreHTTPSErrors: true,
-		extraHTTPHeaders: {
-			'OCS-ApiRequest': 'true',
-			Accept: 'application/json',
-			Authorization: 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64'),
-			'Content-Type': 'application/json',
-		},
-	})
-}
-
-async function getSystemFooterPolicy(ctx: APIRequestContext): Promise<string | null> {
-	const response = await ctx.get(`./ocs/v2.php/apps/libresign/api/v1/policies/system/${FOOTER_POLICY_KEY}`, {
-		failOnStatusCode: false,
-	})
-	if (response.status() === 404) {
-		return null
-	}
-
-	const payload = await response.json() as { ocs?: { data?: { value?: string | null } } }
-	return payload.ocs?.data?.value ?? null
-}
-
-async function setSystemFooterPolicy(ctx: APIRequestContext, value: string | null): Promise<void> {
-	if (value === null) {
-		return
-	}
-
-	const response = await ctx.post(`./ocs/v2.php/apps/libresign/api/v1/policies/system/${FOOTER_POLICY_KEY}`, {
-		data: {
-			value,
-			allowChildOverride: true,
-		},
-		failOnStatusCode: false,
-	})
-
-	expect(response.status(), `setSystemFooterPolicy: expected 200 but got ${response.status()}`).toBe(200)
-}
-
-let adminContext: APIRequestContext
-let originalFooterPolicy: string | null
-
-test.beforeEach(async () => {
-	adminContext = await makeAdminContext()
-	originalFooterPolicy = await getSystemFooterPolicy(adminContext)
-	await setSystemFooterPolicy(adminContext, FOOTER_DISABLED_VALUE)
-})
-
-test.afterEach(async () => {
-	await setSystemFooterPolicy(adminContext, originalFooterPolicy)
-	await adminContext.dispose()
-})
+useFooterPolicyGuard()
 
 async function sortByCreatedAtDescending(page: Page) {
 	const createdAtTh = page.getByRole('columnheader', { name: 'Created at' })
