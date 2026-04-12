@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setAppConfig, deleteAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
 
 /**
@@ -41,6 +41,10 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
+	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
+	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
+	await setAppConfig(page.request, 'libresign', 'java_path', '/usr/bin/java')
+	await setAppConfig(page.request, 'libresign', 'pdftk_path', '/usr/bin/pdftk')
 
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
@@ -87,8 +91,17 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 
 	await expect(page.getByRole('heading', { name: 'Signature confirmation' })).toBeVisible()
 	await expect(page.getByText('Your identity has been')).toBeVisible()
+	const signResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
 	await page.getByRole('button', { name: 'Sign document' }).click()
-	await page.waitForURL('**/validation/**')
+	const signResponse = await signResponsePromise
+	const signResponseBody = await signResponse.text()
+	expect(
+		signResponse.ok(),
+		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
+	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible()
 	await expect(page.getByText('Congratulations you have')).toBeVisible()
 })
