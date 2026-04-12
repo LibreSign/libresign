@@ -139,6 +139,16 @@ class PolicySource implements IPolicySource {
 	}
 
 	#[\Override]
+	public function loadUserPolicy(string $policyKey, PolicyContext $context): ?PolicyLayer {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			return null;
+		}
+
+		return $this->loadUserPolicyConfig($policyKey, $userId);
+	}
+
+	#[\Override]
 	public function loadUserPreference(string $policyKey, PolicyContext $context): ?PolicyLayer {
 		$userId = $context->getUserId();
 		if ($userId === null || $userId === '') {
@@ -153,7 +163,32 @@ class PolicySource implements IPolicySource {
 
 		return (new PolicyLayer())
 			->setScope('user')
-			->setValue($definition->normalizeValue($value));
+			->setValue($definition->normalizeValue($this->deserializeStoredValue($value)));
+	}
+
+	#[\Override]
+	public function loadUserPolicyConfig(string $policyKey, string $userId): ?PolicyLayer {
+		if ($userId === '') {
+			return null;
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$storedPayload = $this->appConfig->getUserValue($userId, $this->getAssignedUserPolicyKey($definition->getUserPreferenceKey()), '');
+		if ($storedPayload === '') {
+			return null;
+		}
+
+		$decodedPayload = $this->deserializeStoredUserPolicyPayload($storedPayload);
+		if (!is_array($decodedPayload) || !array_key_exists('value', $decodedPayload)) {
+			return null;
+		}
+
+		return (new PolicyLayer())
+			->setScope('user_policy')
+			->setValue($definition->normalizeValue($decodedPayload['value']))
+			->setAllowChildOverride((bool)($decodedPayload['allowChildOverride'] ?? false))
+			->setVisibleToChild(true)
+			->setAllowedValues(((bool)($decodedPayload['allowChildOverride'] ?? false)) ? [] : [$definition->normalizeValue($decodedPayload['value'])]);
 	}
 
 	/**
@@ -220,6 +255,62 @@ class PolicySource implements IPolicySource {
 	 * @return array<string, PolicyLayer>
 	 */
 	#[\Override]
+	public function loadAllUserPolicies(array $policyKeys, PolicyContext $context): array {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			return [];
+		}
+
+		$userPolicyKeyByPolicy = [];
+		foreach ($policyKeys as $policyKey) {
+			$userPolicyKeyByPolicy[$policyKey] = $this->getAssignedUserPolicyKey($this->registry->get($policyKey)->getUserPreferenceKey());
+		}
+		$policyKeyByAssignedKey = array_flip($userPolicyKeyByPolicy);
+
+		$query = $this->db->getQueryBuilder();
+		$query->select('configkey', 'configvalue')
+			->from('preferences')
+			->where($query->expr()->eq('userid', $query->createNamedParameter($userId)))
+			->andWhere($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
+			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')));
+
+		$result = $query->executeQuery();
+		$layers = [];
+		try {
+			while ($row = $result->fetchAssociative()) {
+				$policyKey = $policyKeyByAssignedKey[$row['configkey']] ?? null;
+				if ($policyKey === null) {
+					continue;
+				}
+
+				$definition = $this->registry->get($policyKey);
+				$decodedPayload = $this->deserializeStoredUserPolicyPayload($row['configvalue']);
+				if (!is_array($decodedPayload) || !array_key_exists('value', $decodedPayload)) {
+					continue;
+				}
+
+				$normalizedValue = $definition->normalizeValue($decodedPayload['value']);
+				$allowChildOverride = (bool)($decodedPayload['allowChildOverride'] ?? false);
+				$layers[$policyKey] = (new PolicyLayer())
+					->setScope('user_policy')
+					->setValue($normalizedValue)
+					->setAllowChildOverride($allowChildOverride)
+					->setVisibleToChild(true)
+					->setAllowedValues($allowChildOverride ? [] : [$normalizedValue]);
+			}
+		} finally {
+			$result->closeCursor();
+		}
+
+		return $layers;
+	}
+
+	/**
+	 * @param list<string> $policyKeys
+	 * @return array<string, PolicyLayer>
+	 */
+	#[\Override]
 	public function loadAllUserPreferences(array $policyKeys, PolicyContext $context): array {
 		$userId = $context->getUserId();
 		if ($userId === null || $userId === '') {
@@ -252,7 +343,7 @@ class PolicySource implements IPolicySource {
 				$definition = $this->registry->get($policyKey);
 				$layers[$policyKey] = (new PolicyLayer())
 					->setScope('user')
-					->setValue($definition->normalizeValue($row['configvalue']));
+					->setValue($definition->normalizeValue($this->deserializeStoredValue($row['configvalue'])));
 			}
 		} finally {
 			$result->closeCursor();
@@ -340,11 +431,11 @@ class PolicySource implements IPolicySource {
 			return $counts;
 		}
 
-		$userPreferenceKeyByPolicy = [];
+		$userPolicyKeyByPolicy = [];
 		foreach ($policyKeys as $policyKey) {
-			$userPreferenceKeyByPolicy[$policyKey] = $this->registry->get($policyKey)->getUserPreferenceKey();
+			$userPolicyKeyByPolicy[$policyKey] = $this->getAssignedUserPolicyKey($this->registry->get($policyKey)->getUserPreferenceKey());
 		}
-		$policyKeyByUserPreference = array_flip($userPreferenceKeyByPolicy);
+		$policyKeyByUserPreference = array_flip($userPolicyKeyByPolicy);
 
 		$query = $this->db->getQueryBuilder();
 		$query->select('configkey')
@@ -352,7 +443,7 @@ class PolicySource implements IPolicySource {
 			->from('preferences')
 			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
 			->andWhere($query->expr()->in('userid', $query->createNamedParameter($userIds, IQueryBuilder::PARAM_STR_ARRAY)))
-			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPreferenceKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
 			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')))
 			->groupBy('configkey');
 
@@ -414,18 +505,18 @@ class PolicySource implements IPolicySource {
 			}
 		}
 
-		$userPreferenceKeyByPolicy = [];
+		$userPolicyKeyByPolicy = [];
 		foreach ($policyKeys as $policyKey) {
-			$userPreferenceKeyByPolicy[$policyKey] = $this->registry->get($policyKey)->getUserPreferenceKey();
+			$userPolicyKeyByPolicy[$policyKey] = $this->getAssignedUserPolicyKey($this->registry->get($policyKey)->getUserPreferenceKey());
 		}
-		$policyKeyByUserPreference = array_flip($userPreferenceKeyByPolicy);
+		$policyKeyByUserPreference = array_flip($userPolicyKeyByPolicy);
 
 		$query = $this->db->getQueryBuilder();
 		$query->select('configkey')
 			->selectAlias($query->createFunction('COUNT(DISTINCT userid)'), 'user_count')
 			->from('preferences')
 			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
-			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPreferenceKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->in('configkey', $query->createNamedParameter(array_values($userPolicyKeyByPolicy), IQueryBuilder::PARAM_STR_ARRAY)))
 			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')))
 			->groupBy('configkey');
 
@@ -529,6 +620,37 @@ class PolicySource implements IPolicySource {
 		return $policyConfigKey . '.allow_child_override';
 	}
 
+	private function getAssignedUserPolicyKey(string $policyConfigKey): string {
+		return $policyConfigKey . '.assigned';
+	}
+
+	private function serializeStoredValue(mixed $value): string {
+		return json_encode($value, JSON_THROW_ON_ERROR);
+	}
+
+	private function deserializeStoredValue(string $value): mixed {
+		try {
+			return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+		} catch (\JsonException) {
+			return $value;
+		}
+	}
+
+	private function serializeStoredUserPolicyPayload(mixed $value, bool $allowChildOverride): string {
+		return json_encode([
+			'value' => $value,
+			'allowChildOverride' => $allowChildOverride,
+		], JSON_THROW_ON_ERROR);
+	}
+
+	private function deserializeStoredUserPolicyPayload(string $payload): mixed {
+		try {
+			return json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
+		} catch (\JsonException) {
+			return null;
+		}
+	}
+
 	#[\Override]
 	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride): void {
 		$definition = $this->registry->get($policyKey);
@@ -606,7 +728,23 @@ class PolicySource implements IPolicySource {
 
 		$definition = $this->registry->get($policyKey);
 		$normalizedValue = $definition->normalizeValue($value);
-		$this->appConfig->setUserValue($userId, $definition->getUserPreferenceKey(), (string)$normalizedValue);
+		$this->appConfig->setUserValue($userId, $definition->getUserPreferenceKey(), $this->serializeStoredValue($normalizedValue));
+	}
+
+	#[\Override]
+	public function saveUserPolicy(string $policyKey, PolicyContext $context, mixed $value, bool $allowChildOverride): void {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			throw new \InvalidArgumentException($this->l10n->t('A target user is required to save a user policy.'));
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$normalizedValue = $definition->normalizeValue($value);
+		$this->appConfig->setUserValue(
+			$userId,
+			$this->getAssignedUserPolicyKey($definition->getUserPreferenceKey()),
+			$this->serializeStoredUserPolicyPayload($normalizedValue, $allowChildOverride),
+		);
 	}
 
 	#[\Override]
@@ -618,6 +756,17 @@ class PolicySource implements IPolicySource {
 
 		$definition = $this->registry->get($policyKey);
 		$this->appConfig->deleteUserValue($userId, $definition->getUserPreferenceKey());
+	}
+
+	#[\Override]
+	public function clearUserPolicy(string $policyKey, PolicyContext $context): void {
+		$userId = $context->getUserId();
+		if ($userId === null || $userId === '') {
+			return;
+		}
+
+		$definition = $this->registry->get($policyKey);
+		$this->appConfig->deleteUserValue($userId, $this->getAssignedUserPolicyKey($definition->getUserPreferenceKey()));
 	}
 
 	/** @return list<string> */
