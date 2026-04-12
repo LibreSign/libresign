@@ -195,8 +195,7 @@ export function createRealPolicyWorkbenchState() {
 				}
 
 				const policy = policiesStore.getPolicy(summary.key)
-				return (summary.groupCount > 0 || summary.userCount > 0)
-					&& policy?.editableByCurrentActor === true
+				return policy?.editableByCurrentActor === true
 			})
 	})
 
