@@ -70,9 +70,10 @@ export type SystemPolicyResponse = {
 }
 export type UserPolicyState = {
 	policyKey: string
-	scope: 'user'
+	scope: 'user_policy'
 	targetId: string
 	value: EffectivePolicyValue | null
+	allowChildOverride: boolean
 }
 export type UserPolicyResponse = {
 	policy: UserPolicyState
