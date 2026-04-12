@@ -50,13 +50,7 @@ export const signatureFlowRealDefinition: RealPolicySettingDefinition = {
 		return mode ?? 'parallel'
 	},
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveSignatureFlowMode(value) !== null,
-	normalizeAllowChildOverride: (scope, allowChildOverride: boolean) => {
-		if (scope === 'system' || scope === 'group') {
-			return false
-		}
-
-		return allowChildOverride
-	},
+	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
 			return policyValue
