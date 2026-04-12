@@ -27,6 +27,14 @@ type SignatureElementResponse = {
 	}>
 }
 
+type HasRootCertResponse = {
+	hasRootCert?: boolean
+}
+
+type AppConfigResponse = {
+	data?: string
+}
+
 function toStringList(data: unknown): string[] {
 	if (Array.isArray(data)) {
 		return data.filter((item): item is string => typeof item === 'string')
@@ -255,6 +263,26 @@ export async function setAppConfig(
 	}
 }
 
+export async function getAppConfig(
+	request: APIRequestContext,
+	appId: string,
+	key: string,
+): Promise<string | null> {
+	const result = await ocsRequest<AppConfigResponse>(
+		request,
+		'GET',
+		`/apps/provisioning_api/api/v1/config/apps/${appId}/${key}`,
+	)
+
+	if (result.ocs.meta.statuscode === 404) {
+		return null
+	}
+
+	return typeof result.ocs.data?.data === 'string'
+		? result.ocs.data.data
+		: null
+}
+
 /**
  * Deletes an app config value.
  * Equivalent to: `occ config:app:delete <appId> <key>`
@@ -301,6 +329,17 @@ export async function configureOpenSsl(
 	commonName: string,
 	names: OpenSslCertNames = {},
 ): Promise<void> {
+	const rootCertCheck = await ocsRequest<HasRootCertResponse>(
+		request,
+		'GET',
+		'/apps/libresign/api/v1/setting/has-root-cert',
+	)
+
+	if (rootCertCheck.ocs.data?.hasRootCert) {
+		await clearSignatureElements(request)
+		return
+	}
+
 	const normalised: OpenSslCertNames = { ...names }
 	if (typeof normalised.OU === 'string') {
 		normalised.OU = [normalised.OU]
