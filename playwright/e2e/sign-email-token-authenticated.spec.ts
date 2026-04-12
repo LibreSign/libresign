@@ -74,35 +74,34 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	const originalFooterPolicy = await getSystemFooterPolicy(adminContext)
 	await setSystemFooterPolicy(adminContext, FOOTER_DISABLED_VALUE)
 
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
-
-	await configureOpenSsl(page.request, 'LibreSign Test', {
-		C: 'BR',
-		OU: ['Organization Unit'],
-		ST: 'Rio de Janeiro',
-		O: 'LibreSign',
-		L: 'Rio de Janeiro',
-	})
-
-	await setAppConfig(
-		page.request,
-		'libresign',
-		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: false, mandatory: false },
-			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
-		]),
-	)
-	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
-	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
-	const mailpit = createMailpitClient()
-	await mailpit.deleteMessages()
-
 	try {
+		await login(
+			page.request,
+			process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+			process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+		)
+
+		await configureOpenSsl(page.request, 'LibreSign Test', {
+			C: 'BR',
+			OU: ['Organization Unit'],
+			ST: 'Rio de Janeiro',
+			O: 'LibreSign',
+			L: 'Rio de Janeiro',
+		})
+
+		await setAppConfig(
+			page.request,
+			'libresign',
+			'identify_methods',
+			JSON.stringify([
+				{ name: 'account', enabled: false, mandatory: false },
+				{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
+			]),
+		)
+		await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
+		await deleteAppConfig(page.request, 'libresign', 'tsa_url')
+		const mailpit = createMailpitClient()
+		await mailpit.deleteMessages()
 		await page.goto('./apps/libresign/f/request')
 		await page.getByRole('button', { name: 'Upload from URL' }).click()
 		await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
