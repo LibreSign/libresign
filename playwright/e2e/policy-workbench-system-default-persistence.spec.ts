@@ -173,16 +173,23 @@ async function openRuleActions(dialog: Locator, scope: 'Instance' | 'Group' | 'U
 
 async function clickRuleMenuAction(dialog: Locator, actionName: 'Edit' | 'Remove'): Promise<boolean> {
 	const page = dialog.page()
+	const actionPattern = actionName === 'Remove'
+		? /^(Remove|Delete)$/i
+		: /^Edit$/i
 	const actionItem = page
 		.locator('.action-item:visible, [role="menuitem"]:visible, li.action:visible')
-		.filter({ hasText: new RegExp(`^${actionName}$`, 'i') })
+		.filter({ hasText: actionPattern })
 		.first()
 
 	if (!(await actionItem.isVisible().catch(() => false))) {
 		return false
 	}
 
-	await actionItem.click()
+	const clicked = await actionItem.click({ timeout: 1500 }).then(() => true).catch(() => false)
+	if (!clicked) {
+		return false
+	}
+
 	return true
 }
 
