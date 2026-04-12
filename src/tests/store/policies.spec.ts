@@ -254,9 +254,10 @@ describe('policies store', () => {
 					data: {
 						policy: {
 							policyKey: 'signature_flow',
-							scope: 'user',
+							scope: 'user_policy',
 							targetId: 'user1',
 							value: 'parallel',
+							allowChildOverride: true,
 						},
 					},
 				},
@@ -310,9 +311,10 @@ describe('policies store', () => {
 					data: {
 						policy: {
 							policyKey: 'signature_flow',
-							scope: 'user',
+							scope: 'user_policy',
 							targetId: 'user1',
 							value: 'ordered_numeric',
+							allowChildOverride: false,
 						},
 					},
 				},
@@ -321,14 +323,15 @@ describe('policies store', () => {
 
 		const { usePoliciesStore } = await import('../../store/policies')
 		const store = usePoliciesStore()
-		const policy = await store.saveUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric')
+		const policy = await store.saveUserPolicyForUser('user1', 'signature_flow', 'ordered_numeric', false)
 
 		expect(axios.put).toHaveBeenCalledWith(
 			'/ocs/v2.php/apps/libresign/api/v1/policies/user/user1/signature_flow',
-			{ value: 'ordered_numeric' },
+			{ value: 'ordered_numeric', allowChildOverride: false },
 		)
-		expect(policy?.scope).toBe('user')
+		expect(policy?.scope).toBe('user_policy')
 		expect(policy?.value).toBe('ordered_numeric')
+		expect(policy?.allowChildOverride).toBe(false)
 	})
 
 	it('clears a user policy for a target user through the admin endpoint', async () => {
@@ -338,9 +341,10 @@ describe('policies store', () => {
 					data: {
 						policy: {
 							policyKey: 'signature_flow',
-							scope: 'user',
+							scope: 'user_policy',
 							targetId: 'user1',
 							value: null,
+							allowChildOverride: true,
 						},
 					},
 				},
@@ -352,7 +356,8 @@ describe('policies store', () => {
 		const policy = await store.clearUserPolicyForUser('user1', 'signature_flow')
 
 		expect(axios.delete).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/policies/user/user1/signature_flow')
-		expect(policy?.scope).toBe('user')
+		expect(policy?.scope).toBe('user_policy')
 		expect(policy?.value).toBeNull()
+		expect(policy?.allowChildOverride).toBe(true)
 	})
 })
