@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Runtime;
 
+require_once __DIR__ . '/../../../../../../lib/Service/Policy/Contract/IPolicySource.php';
+
 use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
@@ -334,11 +336,13 @@ final class InMemoryPolicySource implements IPolicySource {
 	public array $groupLayers = [];
 	/** @var list<PolicyLayer> */
 	public array $circleLayers = [];
+	public ?PolicyLayer $userPolicy = null;
 	public ?PolicyLayer $userPreference = null;
 	public ?PolicyLayer $requestOverride = null;
 	public bool $userPreferenceCleared = false;
 	public bool $circlePoliciesLoaded = false;
 	public bool $bulkGroupPoliciesLoaded = false;
+	public bool $bulkUserPoliciesLoaded = false;
 	public bool $bulkUserPrefsLoaded = false;
 
 	public function loadSystemPolicy(string $policyKey): ?PolicyLayer {
@@ -358,6 +362,10 @@ final class InMemoryPolicySource implements IPolicySource {
 		return $this->circleLayers;
 	}
 
+	public function loadUserPolicy(string $policyKey, PolicyContext $context): ?PolicyLayer {
+		return $this->userPolicy;
+	}
+
 	public function loadUserPreference(string $policyKey, PolicyContext $context): ?PolicyLayer {
 		return $this->userPreference;
 	}
@@ -370,6 +378,15 @@ final class InMemoryPolicySource implements IPolicySource {
 	public function loadAllGroupPolicies(array $policyKeys, PolicyContext $context): array {
 		$this->bulkGroupPoliciesLoaded = true;
 		return array_fill_keys($policyKeys, $this->groupLayers);
+	}
+
+	/** @param list<string> $policyKeys */
+	public function loadAllUserPolicies(array $policyKeys, PolicyContext $context): array {
+		$this->bulkUserPoliciesLoaded = true;
+		if ($this->userPolicy === null) {
+			return [];
+		}
+		return array_fill_keys($policyKeys, $this->userPolicy);
 	}
 
 	/** @param list<string> $policyKeys */
@@ -387,7 +404,14 @@ final class InMemoryPolicySource implements IPolicySource {
 	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride): void {
 	}
 
+	public function loadUserPolicyConfig(string $policyKey, string $userId): ?PolicyLayer {
+		return $this->userPolicy;
+	}
+
 	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void {
+	}
+
+	public function saveUserPolicy(string $policyKey, PolicyContext $context, mixed $value, bool $allowChildOverride): void {
 	}
 
 	public function clearGroupPolicy(string $policyKey, string $groupId): void {
@@ -395,5 +419,8 @@ final class InMemoryPolicySource implements IPolicySource {
 
 	public function clearUserPreference(string $policyKey, PolicyContext $context): void {
 		$this->userPreferenceCleared = true;
+	}
+
+	public function clearUserPolicy(string $policyKey, PolicyContext $context): void {
 	}
 }
