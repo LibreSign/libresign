@@ -137,9 +137,9 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Read a user-level policy preference for a target user (admin scope)
+	 * Read an explicit user-level policy for a target user (admin scope)
 	 *
-	 * @param string $userId Target user identifier that receives the policy preference.
+	 * @param string $userId Target user identifier that receives the policy assignment.
 	 * @param string $policyKey Policy identifier to read for the selected user.
 	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
@@ -152,7 +152,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			return $this->forbiddenUserPolicyResponse();
 		}
 
-		$policy = $this->policyService->getUserPreferenceForUserId($policyKey, $userId);
+		$policy = $this->policyService->getUserPolicyForUserId($policyKey, $userId);
 
 		/** @var LibresignUserPolicyResponse $data */
 		$data = [
@@ -317,11 +317,12 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Save a user policy preference for a target user (admin scope)
+	 * Save an explicit user policy for a target user (admin scope)
 	 *
-	 * @param string $userId Target user identifier that receives the policy preference.
+	 * @param string $userId Target user identifier that receives the policy assignment.
 	 * @param string $policyKey Policy identifier to persist for the target user.
-	 * @param null|bool|int|float|string $value Policy value to persist as target user preference.
+	 * @param null|bool|int|float|string $value Policy value to persist as assigned target user policy.
+	 * @param bool $allowChildOverride Whether the target user may still override the assigned value in personal preferences.
 	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -329,15 +330,16 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
-	public function setUserPolicyForUser(string $userId, string $policyKey, null|bool|int|float|string $value = null): DataResponse {
+	public function setUserPolicyForUser(string $userId, string $policyKey, null|bool|int|float|string $value = null, bool $allowChildOverride = false): DataResponse {
 		if (!$this->canManageUserPolicy($userId)) {
 			return $this->forbiddenUserPolicyResponse();
 		}
 
 		$value = $this->readScalarParam('value', $value);
+		$allowChildOverride = $this->readBoolParam('allowChildOverride', $allowChildOverride);
 
 		try {
-			$policy = $this->policyService->saveUserPreferenceForUserId($policyKey, $userId, $value);
+			$policy = $this->policyService->saveUserPolicyForUserId($policyKey, $userId, $value, $allowChildOverride);
 			/** @var LibresignUserPolicyWriteResponse $data */
 			$data = [
 				'message' => $this->l10n->t('Settings saved'),
@@ -377,9 +379,9 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Clear a user policy preference for a target user (admin scope)
+	 * Clear an explicit user policy for a target user (admin scope)
 	 *
-	 * @param string $userId Target user identifier that receives the policy preference removal.
+	 * @param string $userId Target user identifier that receives the policy assignment removal.
 	 * @param string $policyKey Policy identifier to clear for the target user.
 	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
@@ -392,7 +394,7 @@ final class PolicyController extends AEnvironmentAwareController {
 			return $this->forbiddenUserPolicyResponse();
 		}
 
-		$policy = $this->policyService->clearUserPreferenceForUserId($policyKey, $userId);
+		$policy = $this->policyService->clearUserPolicyForUserId($policyKey, $userId);
 		/** @var LibresignUserPolicyWriteResponse $data */
 		$data = [
 			'message' => $this->l10n->t('Settings saved'),
@@ -419,9 +421,10 @@ final class PolicyController extends AEnvironmentAwareController {
 	private function serializeUserPolicy(string $userId, string $policyKey, ?PolicyLayer $policy): array {
 		return [
 			'policyKey' => $policyKey,
-			'scope' => 'user',
+			'scope' => 'user_policy',
 			'targetId' => $userId,
 			'value' => $policy?->getValue(),
+			'allowChildOverride' => $policy?->isAllowChildOverride() ?? true,
 		];
 	}
 
