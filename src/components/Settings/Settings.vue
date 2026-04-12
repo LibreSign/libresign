@@ -81,7 +81,7 @@ const canManagePreferences = computed(() => {
 	return policyState.canSaveAsUserDefault === true
 })
 
-const hasDelegatedEditablePolicies = computed(() => Object.values(policiesStore.policies).some((policy) => {
+const hasEditablePolicies = computed(() => Object.values(policiesStore.policies).some((policy) => {
 	if (!policy || typeof policy !== 'object') {
 		return false
 	}
@@ -92,11 +92,10 @@ const hasDelegatedEditablePolicies = computed(() => Object.values(policiesStore.
 		editableByCurrentActor?: boolean
 	}
 
-	const hasDelegatedRules = (policyState.groupCount ?? 0) > 0 || (policyState.userCount ?? 0) > 0
-	return hasDelegatedRules && policyState.editableByCurrentActor === true
+	return policyState.editableByCurrentActor === true
 }))
 
-const canManagePolicies = computed(() => isAdmin || (Boolean(config.can_manage_group_policies) && hasDelegatedEditablePolicies.value))
+const canManagePolicies = computed(() => isAdmin || (Boolean(config.can_manage_group_policies) && hasEditablePolicies.value))
 
 function getAdminRoute() {
 	return generateUrl('settings/admin/libresign')
