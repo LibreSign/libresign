@@ -39,15 +39,15 @@
 			</div>
 
 			<NcCheckboxRadioSwitch
-				v-if="editorDraft.scope !== 'user' && showAllowOverrideSwitch"
+				v-if="showAllowOverrideSwitch"
 				type="switch"
 				:model-value="editorDraft.allowChildOverride"
 				:disabled="saveStatus === 'saving'"
 				@update:modelValue="$emit('update-allow-override', $event)">
 				<div class="policy-workbench__switch-copy">
-					<span>{{ t('libresign', 'Allow lower-level overrides') }}</span>
+					<span>{{ allowOverrideTitle }}</span>
 					<p>
-						{{ editorDraft.allowChildOverride ? t('libresign', 'Groups and users can define a more specific value.') : t('libresign', 'Groups and users must inherit this value.') }}
+						{{ allowOverrideDescription }}
 					</p>
 				</div>
 			</NcCheckboxRadioSwitch>
@@ -76,6 +76,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { t } from '@nextcloud/l10n'
 import type { EffectivePolicyValue } from '../../../types/index'
 
@@ -98,7 +99,7 @@ interface TargetOption {
 	isNoUser?: boolean
 }
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
 	editorDraft: EditorDraft
 	editorMode: 'create' | 'edit' | null
 	editorTitle: string
@@ -131,6 +132,26 @@ defineEmits<{
 	(e: 'save'): void
 	(e: 'cancel'): void
 }>()
+
+const allowOverrideDescription = computed(() => {
+	if (props.editorDraft.scope === 'user') {
+		return props.editorDraft.allowChildOverride
+			? t('libresign', 'This user can customize personal defaults and request-specific values.')
+			: t('libresign', 'This value is mandatory for this user.')
+	}
+
+	return props.editorDraft.allowChildOverride
+		? t('libresign', 'Groups and users can define a more specific value.')
+		: t('libresign', 'Groups and users must inherit this value.')
+})
+
+const allowOverrideTitle = computed(() => {
+	if (props.editorDraft.scope === 'user') {
+		return t('libresign', 'Allow this user to customize')
+	}
+
+	return t('libresign', 'Allow lower-level customization')
+})
 </script>
 
 <style scoped lang="scss">
