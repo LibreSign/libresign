@@ -20,6 +20,8 @@ interface IPolicySource {
 	/** @return list<PolicyLayer> */
 	public function loadCirclePolicies(string $policyKey, PolicyContext $context): array;
 
+	public function loadUserPolicy(string $policyKey, PolicyContext $context): ?PolicyLayer;
+
 	public function loadUserPreference(string $policyKey, PolicyContext $context): ?PolicyLayer;
 
 	/**
@@ -29,6 +31,14 @@ interface IPolicySource {
 	 * @return array<string, list<PolicyLayer>> keyed by policyKey
 	 */
 	public function loadAllGroupPolicies(array $policyKeys, PolicyContext $context): array;
+
+	/**
+	 * Bulk-load user preference layers for all known policy keys at once.
+	 *
+	 * @param list<string> $policyKeys
+	 * @return array<string, PolicyLayer> keyed by policyKey
+	 */
+	public function loadAllUserPolicies(array $policyKeys, PolicyContext $context): array;
 
 	/**
 	 * Bulk-load user preference layers for all known policy keys at once.
@@ -47,6 +57,12 @@ interface IPolicySource {
 	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride): void;
 
 	public function clearGroupPolicy(string $policyKey, string $groupId): void;
+
+	public function loadUserPolicyConfig(string $policyKey, string $userId): ?PolicyLayer;
+
+	public function saveUserPolicy(string $policyKey, PolicyContext $context, mixed $value, bool $allowChildOverride): void;
+
+	public function clearUserPolicy(string $policyKey, PolicyContext $context): void;
 
 	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void;
 
