@@ -407,9 +407,10 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignUserPolicyState = array{
  *     policyKey: string,
- *     scope: 'user',
+ *     scope: 'user_policy',
  *     targetId: string,
  *     value: null|LibresignEffectivePolicyValue,
+ *     allowChildOverride: bool,
  * }
  * @psalm-type LibresignUserPolicyResponse = array{
  *     policy: LibresignUserPolicyState,
