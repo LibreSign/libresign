@@ -125,6 +125,8 @@ const sourceLabel = computed(() => {
 	switch (signatureFlowPolicy.value?.sourceScope) {
 	case 'user':
 		return t('libresign', 'Your saved preference')
+	case 'user_policy':
+		return t('libresign', 'Assigned user policy')
 	case 'group':
 		return t('libresign', 'Group policy')
 	case 'request':
