@@ -202,9 +202,10 @@ describe('useRealPolicyWorkbench', () => {
 
 			return {
 				policyKey: 'signature_flow',
-				scope: 'user',
+				scope: 'user_policy',
 				targetId: 'user1',
 				value: 'parallel',
+				allowChildOverride: false,
 			}
 		})
 
@@ -286,9 +287,10 @@ describe('useRealPolicyWorkbench', () => {
 
 			return {
 				policyKey: 'signature_flow',
-				scope: 'user',
+				scope: 'user_policy',
 				targetId: 'user1',
 				value: 'parallel',
+				allowChildOverride: true,
 			}
 		})
 
@@ -378,9 +380,10 @@ describe('useRealPolicyWorkbench', () => {
 
 			return {
 				policyKey: 'signature_flow',
-				scope: 'user',
+				scope: 'user_policy',
 				targetId: 'user21',
 				value: 'ordered_numeric',
+				allowChildOverride: false,
 			}
 		})
 
@@ -451,7 +454,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', false)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', true)
 	})
 
 	it('saves fixed parallel system signature_flow rule without child override', async () => {
@@ -467,10 +470,10 @@ describe('useRealPolicyWorkbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'parallel', false)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'parallel', true)
 	})
 
-	it('forces hidden signature_flow override state to remain locked in system and group editors', async () => {
+	it('keeps signature_flow override enabled by default in system and group editors', async () => {
 		fetchSystemPolicy.mockResolvedValue({
 			policyKey: 'signature_flow',
 			scope: 'global',
@@ -493,14 +496,14 @@ describe('useRealPolicyWorkbench', () => {
 		})
 
 		state.startEditor({ scope: 'system', ruleId: 'system-default' })
-		expect(state.editorDraft?.allowChildOverride).toBe(false)
+		expect(state.editorDraft?.allowChildOverride).toBe(true)
 
 		state.cancelEditor()
 		state.startEditor({ scope: 'group' })
-		expect(state.editorDraft?.allowChildOverride).toBe(false)
+		expect(state.editorDraft?.allowChildOverride).toBe(true)
 	})
 
-	it('locks signature_flow system create draft even when inherited rule allows overrides', async () => {
+	it('starts signature_flow system create draft with override enabled', async () => {
 		fetchSystemPolicy.mockResolvedValue({
 			policyKey: 'signature_flow',
 			scope: 'global',
@@ -524,7 +527,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		state.startEditor({ scope: 'system' })
 		expect(state.editorMode).toBe('create')
-		expect(state.editorDraft?.allowChildOverride).toBe(false)
+		expect(state.editorDraft?.allowChildOverride).toBe(true)
 	})
 
 	it('transitions from fallback none to persisted global default after saving system rule', async () => {
@@ -563,7 +566,7 @@ describe('useRealPolicyWorkbench', () => {
 		await Promise.resolve()
 		await Promise.resolve()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', false)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', true)
 		expect(fetchEffectivePolicies).toHaveBeenCalled()
 		expect(getPolicy('signature_flow')?.effectiveValue).toBe('ordered_numeric')
 
@@ -627,7 +630,7 @@ describe('useRealPolicyWorkbench', () => {
 		state.updateDraftValue('ordered_numeric' as never)
 		await state.saveDraft()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', false)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', true)
 		expect(state.inheritedSystemRule).not.toBeNull()
 		expect(state.inheritedSystemRule?.value).toBe('ordered_numeric')
 		expect(state.hasGlobalDefault).toBe(true)
@@ -643,8 +646,21 @@ describe('useRealPolicyWorkbench', () => {
 		await state.saveDraft()
 
 		expect(saveUserPolicyForUser).toHaveBeenCalledTimes(2)
-		expect(saveUserPolicyForUser).toHaveBeenNthCalledWith(1, 'user1', 'signature_flow', 'parallel')
-		expect(saveUserPolicyForUser).toHaveBeenNthCalledWith(2, 'user3', 'signature_flow', 'parallel')
+		expect(saveUserPolicyForUser).toHaveBeenNthCalledWith(1, 'user1', 'signature_flow', 'parallel', true)
+		expect(saveUserPolicyForUser).toHaveBeenNthCalledWith(2, 'user3', 'signature_flow', 'parallel', true)
+	})
+
+	it('supports mandatory user policy by disabling child override at user scope', async () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'user' })
+		state.updateDraftTargets(['user1'])
+		state.updateDraftValue('ordered_numeric' as never)
+		state.updateDraftAllowOverride(false)
+
+		await state.saveDraft()
+
+		expect(saveUserPolicyForUser).toHaveBeenCalledWith('user1', 'signature_flow', 'ordered_numeric', false)
 	})
 
 	it('hides groups that already have a rule when creating a new group rule', async () => {
@@ -975,7 +991,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		await state.saveDraft()
 
-		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', false)
+		expect(saveSystemPolicy).toHaveBeenCalledWith('signature_flow', 'ordered_numeric', true)
 		expect(clearUserPreference).toHaveBeenCalledWith('signature_flow')
 	})
 
