@@ -78,8 +78,9 @@ function isUserPolicyState(value: unknown): value is UserPolicyState {
 
 	const candidate = value as Partial<UserPolicyState>
 	return typeof candidate.policyKey === 'string'
-		&& candidate.scope === 'user'
+		&& candidate.scope === 'user_policy'
 		&& typeof candidate.targetId === 'string'
+		&& typeof candidate.allowChildOverride === 'boolean'
 }
 
 function sanitizePolicies(rawPolicies: Record<string, unknown>): EffectivePoliciesState {
@@ -248,8 +249,16 @@ const _policiesStore = defineStore('policies', () => {
 		return savedPolicy
 	}
 
-	const saveUserPolicyForUser = async (userId: string, policyKey: string, value: EffectivePolicyValue): Promise<UserPolicyState | null> => {
-		const payload: SystemPolicyWritePayload = { value }
+	const saveUserPolicyForUser = async (
+		userId: string,
+		policyKey: string,
+		value: EffectivePolicyValue,
+		allowChildOverride: boolean,
+	): Promise<UserPolicyState | null> => {
+		const payload: SystemPolicyWritePayload & { allowChildOverride: boolean } = {
+			value,
+			allowChildOverride,
+		}
 		const response = await axios.put<{ ocs?: { data?: UserPolicyResponse } }>(
 			generateOcsUrl(`/apps/libresign/api/v1/policies/user/${userId}/${policyKey}`),
 			payload,
