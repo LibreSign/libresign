@@ -70,10 +70,9 @@ class PolicyService {
 		return $this->source->loadSystemPolicy($definition->key());
 	}
 
-	public function getUserPreferenceForUserId(string|\BackedEnum $policyKey, string $userId): ?PolicyLayer {
+	public function getUserPolicyForUserId(string|\BackedEnum $policyKey, string $userId): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
-		$context = $this->contextFactory->forUserId($userId);
-		return $this->source->loadUserPreference($definition->key(), $context);
+		return $this->source->loadUserPolicyConfig($definition->key(), $userId);
 	}
 
 	public function saveSystem(string|\BackedEnum $policyKey, mixed $value, bool $allowChildOverride = false): ResolvedPolicy {
@@ -154,32 +153,27 @@ class PolicyService {
 		return $this->resolver->resolve($definition, $context);
 	}
 
-	public function saveUserPreferenceForUserId(string|\BackedEnum $policyKey, string $userId, mixed $value): ?PolicyLayer {
+	public function saveUserPolicyForUserId(string|\BackedEnum $policyKey, string $userId, mixed $value, bool $allowChildOverride): ?PolicyLayer {
 		$context = $this->contextFactory->forUserId($userId);
 		$definition = $this->registry->get($policyKey);
-		$resolved = $this->resolver->resolve($definition, $context);
-		if (!$resolved->canSaveAsUserDefault() && !$this->contextFactory->isCurrentActorSystemAdmin()) {
-			throw new \InvalidArgumentException($this->l10n->t('Saving a user preference is not allowed for {policyKey}', [
-				'policyKey' => $definition->key(),
-			]));
-		}
-
 		$normalizedValue = $definition->normalizeValue($value);
 		$definition->validateValue($normalizedValue, $context);
-		$this->source->saveUserPreference($definition->key(), $context, $normalizedValue);
+		$this->source->saveUserPolicy($definition->key(), $context, $normalizedValue, $allowChildOverride);
 
-		return $this->source->loadUserPreference($definition->key(), $context)
+		return $this->source->loadUserPolicy($definition->key(), $context)
 			?? (new PolicyLayer())
-				->setScope('user')
-				->setValue($normalizedValue);
+				->setScope('user_policy')
+				->setValue($normalizedValue)
+				->setAllowChildOverride($allowChildOverride)
+				->setVisibleToChild(true);
 	}
 
-	public function clearUserPreferenceForUserId(string|\BackedEnum $policyKey, string $userId): ?PolicyLayer {
+	public function clearUserPolicyForUserId(string|\BackedEnum $policyKey, string $userId): ?PolicyLayer {
 		$context = $this->contextFactory->forUserId($userId);
 		$definition = $this->registry->get($policyKey);
-		$this->source->clearUserPreference($definition->key(), $context);
+		$this->source->clearUserPolicy($definition->key(), $context);
 
-		return $this->source->loadUserPreference($definition->key(), $context);
+		return $this->source->loadUserPolicy($definition->key(), $context);
 	}
 
 	/**
