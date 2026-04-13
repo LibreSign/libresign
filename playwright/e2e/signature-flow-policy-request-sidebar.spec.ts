@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { expect, request, test as base, type APIRequestContext, type Page } from '@playwright/test'
+import { expect, test as base, type APIRequestContext, type Page } from '@playwright/test'
 import { login } from '../support/nc-login'
 import {
 	configureOpenSsl,
@@ -13,6 +13,11 @@ import {
 	ensureUserInGroup,
 	setAppConfig,
 } from '../support/nc-provisioning'
+import {
+	clearUserPolicyPreference,
+	createAuthenticatedRequestContext,
+	setSystemPolicyEntry,
+} from '../support/policy-api'
 
 const POLICY_KEY = 'signature_flow'
 const GROUP_ADMIN_USER = 'signature-flow-e2e-group-admin'
@@ -40,80 +45,7 @@ const test = base.extend<{
 test.setTimeout(120_000)
 test.describe.configure({ mode: 'serial' })
 
-type OcsPolicyResponse = {
-	ocs?: {
-		meta?: {
-			statuscode?: number
-			message?: string
-		}
-		data?: Record<string, unknown>
-	}
-}
 
-async function createAuthenticatedRequestContext(authUser: string, authPassword: string): Promise<APIRequestContext> {
-	const auth = 'Basic ' + Buffer.from(`${authUser}:${authPassword}`).toString('base64')
-
-	return request.newContext({
-		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
-		ignoreHTTPSErrors: true,
-		extraHTTPHeaders: {
-			'OCS-ApiRequest': 'true',
-			Accept: 'application/json',
-			Authorization: auth,
-		},
-	})
-}
-
-async function policyRequest(
-	requestContext: APIRequestContext,
-	method: 'POST' | 'DELETE',
-	path: string,
-	body?: Record<string, unknown>,
-) {
-	const response = method === 'POST'
-		? await requestContext.post(`./ocs/v2.php${path}`, {
-			data: body,
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			failOnStatusCode: false,
-		})
-		: await requestContext.delete(`./ocs/v2.php${path}`, { failOnStatusCode: false })
-
-	const text = await response.text()
-	const parsed = text ? JSON.parse(text) as OcsPolicyResponse : { ocs: { data: {} } }
-
-	return {
-		httpStatus: response.status(),
-		statusCode: parsed.ocs?.meta?.statuscode ?? response.status(),
-		message: parsed.ocs?.meta?.message ?? '',
-	}
-}
-
-async function setSystemSignatureFlowPolicy(
-	requestContext: APIRequestContext,
-	value: 'none' | 'parallel' | 'ordered_numeric',
-	allowChildOverride: boolean,
-) {
-	const result = await policyRequest(
-		requestContext,
-		'POST',
-		`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
-		{ value, allowChildOverride },
-	)
-
-	expect(result.httpStatus, `Failed to set system signature flow policy: ${result.message}`).toBe(200)
-}
-
-async function clearOwnPreference(requestContext: APIRequestContext) {
-	const result = await policyRequest(
-		requestContext,
-		'DELETE',
-		`/apps/libresign/api/v1/policies/user/${POLICY_KEY}`,
-	)
-
-	expect([200, 401, 500], `clearOwnPreference: expected 200, 401 or 500 but got ${result.httpStatus}`).toContain(result.httpStatus)
-}
 
 async function addEmailSigner(page: Page, email: string, name: string) {
 	const dialog = page.getByRole('dialog', { name: 'Add new signer' })
@@ -136,9 +68,9 @@ async function addEmailSigner(page: Page, email: string, name: string) {
 }
 
 test.afterEach(async ({ adminRequestContext, groupAdminRequestContext }) => {
-	await clearOwnPreference(adminRequestContext)
-	await clearOwnPreference(groupAdminRequestContext)
-	await setSystemSignatureFlowPolicy(adminRequestContext, 'none', true)
+	await clearUserPolicyPreference(adminRequestContext, POLICY_KEY, [200, 401, 500])
+	await clearUserPolicyPreference(groupAdminRequestContext, POLICY_KEY, [200, 401, 500])
+	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, 'none', true)
 	await setAppConfig(adminRequestContext, 'libresign', 'groups_request_sign', JSON.stringify(['admin']))
 })
 
@@ -163,8 +95,8 @@ test('request sidebar persists signature flow preference through policies endpoi
 		]),
 	)
 
-	await setSystemSignatureFlowPolicy(adminRequestContext, 'parallel', true)
-	await clearOwnPreference(adminRequestContext)
+	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, 'parallel', true)
+	await clearUserPolicyPreference(adminRequestContext, POLICY_KEY, [200, 401, 500])
 
 	await page.goto('./apps/libresign')
 	await page.getByRole('button', { name: 'Upload from URL' }).click()
@@ -224,8 +156,8 @@ for (const systemFlow of ['ordered_numeric', 'parallel'] as const) {
 			JSON.stringify(['admin', GROUP_ADMIN_GROUP]),
 		)
 
-		await setSystemSignatureFlowPolicy(adminRequestContext, systemFlow, false)
-		await clearOwnPreference(groupAdminRequestContext)
+		await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, systemFlow, false)
+		await clearUserPolicyPreference(groupAdminRequestContext, POLICY_KEY, [200, 401, 500])
 
 		await login(page.request, GROUP_ADMIN_USER, GROUP_ADMIN_PASSWORD)
 		await page.goto('./apps/libresign/f/request')
