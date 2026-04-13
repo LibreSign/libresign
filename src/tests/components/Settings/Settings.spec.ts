@@ -385,7 +385,7 @@ describe('Settings', () => {
 			expect(getWrapper().find('.preferences-icon').exists()).toBe(true)
 		})
 
-		it('hides Preferences when the user cannot save a personal preference', () => {
+		it('hides Preferences when no policy allows saving personal preferences', () => {
 			wrapper = createWrapper(false, false, {
 				signature_flow: {
 					canSaveAsUserDefault: false,
@@ -394,6 +394,21 @@ describe('Settings', () => {
 			const items = getItems()
 
 			expect(findItemByName(items, 'Preferences')).toBeUndefined()
+		})
+
+		it('shows Preferences when add_footer allows saving personal preferences', () => {
+			wrapper = createWrapper(false, false, {
+				signature_flow: {
+					canSaveAsUserDefault: false,
+				},
+				add_footer: {
+					canSaveAsUserDefault: true,
+				},
+			})
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+
+			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
 		})
 
 		it('updates Preferences visibility after policy state changes', async () => {
