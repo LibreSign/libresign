@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { EffectivePolicyValue } from '../../../../types/index'
+import type { EffectivePolicyState, EffectivePolicyValue } from '../../../../types/index'
 
 export type RealPolicyScope = 'system' | 'group' | 'user'
 export type RealPolicyResolutionMode = 'precedence' | 'merge' | 'conflict_requires_selection'
@@ -15,6 +15,8 @@ export interface RealPolicySettingDefinition {
 	context?: string
 	description: string
 	editor: unknown
+	editorProps?: Record<string, unknown>
+	resolveEditorProps?: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => Record<string, unknown>
 	editorDialogLayout?: RealPolicyEditorDialogLayout
 	resolutionMode: RealPolicyResolutionMode
 	createEmptyValue: () => EffectivePolicyValue
