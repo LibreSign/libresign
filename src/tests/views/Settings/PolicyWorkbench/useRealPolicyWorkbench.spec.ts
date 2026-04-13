@@ -109,6 +109,18 @@ describe('useRealPolicyWorkbench', () => {
 				})
 			}
 
+			if (url === 'cloud/groups') {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: ['finance', 'legal'],
+							},
+						},
+					},
+				})
+			}
+
 			if (url === 'cloud/users/details') {
 				return Promise.resolve({
 					data: {
@@ -419,6 +431,30 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.availableTargets).toEqual([
 			{ id: 'finance', displayName: 'Finance', subname: '3 members', isNoUser: true },
 			{ id: 'legal', displayName: 'Legal', subname: '2 members', isNoUser: true },
+		])
+	})
+
+	it('loads group targets using cloud/groups for group-admin without exception fallback', async () => {
+		currentUserState.isAdmin = false
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'group' })
+
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(axiosGet).toHaveBeenCalledWith('cloud/groups', {
+			params: {
+				search: '',
+				limit: 20,
+				offset: 0,
+			},
+		})
+		expect(axiosGet).not.toHaveBeenCalledWith('cloud/groups/details', expect.anything())
+		expect(state.availableTargets).toEqual([
+			{ id: 'finance', displayName: 'finance', isNoUser: true },
+			{ id: 'legal', displayName: 'legal', isNoUser: true },
 		])
 	})
 
