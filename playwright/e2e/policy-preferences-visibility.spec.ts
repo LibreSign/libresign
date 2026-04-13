@@ -20,6 +20,19 @@ const DEFAULT_TEST_PASSWORD = '123456'
 const GROUP_ID = 'policy-preferences-group'
 const END_USER = 'policy-preferences-member'
 const POLICY_KEY = 'signature_flow'
+const FOOTER_POLICY_KEY = 'add_footer'
+const FOOTER_ENABLED_VALUE = JSON.stringify({
+	enabled: true,
+	writeQrcodeOnFooter: true,
+	validationSite: '',
+	customizeFooterTemplate: false,
+})
+const FOOTER_DISABLED_VALUE = JSON.stringify({
+	enabled: false,
+	writeQrcodeOnFooter: false,
+	validationSite: '',
+	customizeFooterTemplate: false,
+})
 
 async function createAuthenticatedRequestContext(authUser: string, authPassword: string): Promise<APIRequestContext> {
 	const auth = 'Basic ' + Buffer.from(`${authUser}:${authPassword}`).toString('base64')
@@ -117,6 +130,34 @@ async function setGroupSignatureFlow(
 	expect(response.httpStatus, `setGroupSignatureFlow: expected 200 but got ${response.httpStatus}`).toBe(200)
 }
 
+async function setSystemFooterPolicy(
+	ctx: APIRequestContext,
+	value: string | null,
+	allowChildOverride: boolean,
+): Promise<void> {
+	const response = await policyRequest(
+		ctx,
+		'POST',
+		`/apps/libresign/api/v1/policies/system/${FOOTER_POLICY_KEY}`,
+		{ value, allowChildOverride },
+	)
+	expect(response.httpStatus, `setSystemFooterPolicy: expected 200 but got ${response.httpStatus}`).toBe(200)
+}
+
+async function setGroupFooterPolicy(
+	ctx: APIRequestContext,
+	value: string,
+	allowChildOverride: boolean,
+): Promise<void> {
+	const response = await policyRequest(
+		ctx,
+		'PUT',
+		`/apps/libresign/api/v1/policies/group/${GROUP_ID}/${FOOTER_POLICY_KEY}`,
+		{ value, allowChildOverride },
+	)
+	expect(response.httpStatus, `setGroupFooterPolicy: expected 200 but got ${response.httpStatus}`).toBe(200)
+}
+
 async function clearOwnUserPreference(ctx: APIRequestContext): Promise<void> {
 	const response = await policyRequest(ctx, 'DELETE', `/apps/libresign/api/v1/policies/user/${POLICY_KEY}`)
 	expect([200, 500]).toContain(response.httpStatus)
@@ -148,6 +189,8 @@ test('group member sees Preferences controls only when lower-layer customization
 		await clearOwnUserPreference(endUserRequest)
 		await setSystemSignatureFlow(adminRequest, 'parallel', true)
 		await setGroupSignatureFlow(adminRequest, 'ordered_numeric', false)
+		await setSystemFooterPolicy(adminRequest, FOOTER_ENABLED_VALUE, true)
+		await setGroupFooterPolicy(adminRequest, FOOTER_ENABLED_VALUE, false)
 
 		let effectivePolicy = await getEffectiveSignatureFlow(endUserRequest)
 		expect(effectivePolicy?.effectiveValue).toBe('ordered_numeric')
@@ -165,13 +208,17 @@ test('group member sees Preferences controls only when lower-layer customization
 		effectivePolicy = await getEffectiveSignatureFlow(endUserRequest)
 		expect(effectivePolicy?.canSaveAsUserDefault).toBe(true)
 
+		await setGroupFooterPolicy(adminRequest, FOOTER_ENABLED_VALUE, true)
+
 		await page.goto('./apps/libresign/f/preferences')
 		await expandSettingsMenu(page)
 
 		await expect(page.getByText('does not allow saving a personal default')).toHaveCount(0)
 		await expect(page.getByRole('button', { name: 'Save as my default' })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Save footer preference' })).toBeVisible()
 	} finally {
 		await clearOwnUserPreference(endUserRequest).catch(() => {})
+		await setSystemFooterPolicy(adminRequest, FOOTER_DISABLED_VALUE, true).catch(() => {})
 		await setSystemSignatureFlow(adminRequest, null, true).catch(() => {})
 		await adminRequest.dispose()
 		await endUserRequest.dispose()
