@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { expect, request, test, type APIRequestContext, type Page } from '@playwright/test'
+import { expect, request, test as base, type APIRequestContext, type Page } from '@playwright/test'
 import { login } from '../support/nc-login'
 import {
 	configureOpenSsl,
@@ -18,6 +18,24 @@ const POLICY_KEY = 'signature_flow'
 const GROUP_ADMIN_USER = 'signature-flow-e2e-group-admin'
 const GROUP_ADMIN_PASSWORD = '123456'
 const GROUP_ADMIN_GROUP = 'signature-flow-e2e-group'
+const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+
+const test = base.extend<{
+	adminRequestContext: APIRequestContext
+	groupAdminRequestContext: APIRequestContext
+}>({
+	adminRequestContext: async ({}, use) => {
+		const ctx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
+		await use(ctx)
+		await ctx.dispose()
+	},
+	groupAdminRequestContext: async ({}, use) => {
+		const ctx = await createAuthenticatedRequestContext(GROUP_ADMIN_USER, GROUP_ADMIN_PASSWORD)
+		await use(ctx)
+		await ctx.dispose()
+	},
+})
 
 test.setTimeout(120_000)
 test.describe.configure({ mode: 'serial' })
@@ -93,8 +111,8 @@ async function clearOwnPreference(requestContext: APIRequestContext) {
 		'DELETE',
 		`/apps/libresign/api/v1/policies/user/${POLICY_KEY}`,
 	)
-	// Can be 200 (cleared) or 500 when preference doesn't exist in some environments.
-	expect([200, 500]).toContain(result.httpStatus)
+
+	expect([200, 500], `clearOwnPreference: expected 200 or 500 but got ${result.httpStatus}`).toContain(result.httpStatus)
 }
 
 async function addEmailSigner(page: Page, email: string, name: string) {
@@ -117,14 +135,17 @@ async function addEmailSigner(page: Page, email: string, name: string) {
 	await expect(dialog).toBeHidden()
 }
 
-test('request sidebar persists signature flow preference through policies endpoint', async ({ page }) => {
-	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
-	const adminRequest = await createAuthenticatedRequestContext(adminUser, adminPassword)
+test.afterEach(async ({ adminRequestContext, groupAdminRequestContext }) => {
+	await clearOwnPreference(adminRequestContext)
+	await clearOwnPreference(groupAdminRequestContext)
+	await setSystemSignatureFlowPolicy(adminRequestContext, 'none', true)
+	await setAppConfig(adminRequestContext, 'libresign', 'groups_request_sign', JSON.stringify(['admin']))
+})
 
-	await login(page.request, adminUser, adminPassword)
+test('request sidebar persists signature flow preference through policies endpoint', async ({ page, adminRequestContext }) => {
+	await login(page.request, ADMIN_USER, ADMIN_PASSWORD)
 
-	await configureOpenSsl(adminRequest, 'LibreSign Test', {
+	await configureOpenSsl(adminRequestContext, 'LibreSign Test', {
 		C: 'BR',
 		OU: ['Organization Unit'],
 		ST: 'Rio de Janeiro',
@@ -133,7 +154,7 @@ test('request sidebar persists signature flow preference through policies endpoi
 	})
 
 	await setAppConfig(
-		adminRequest,
+		adminRequestContext,
 		'libresign',
 		'identify_methods',
 		JSON.stringify([
@@ -142,57 +163,43 @@ test('request sidebar persists signature flow preference through policies endpoi
 		]),
 	)
 
-	try {
-		await setSystemSignatureFlowPolicy(adminRequest, 'parallel', true)
-		await clearOwnPreference(adminRequest)
+	await setSystemSignatureFlowPolicy(adminRequestContext, 'parallel', true)
+	await clearOwnPreference(adminRequestContext)
 
-		await page.goto('./apps/libresign')
-		await page.getByRole('button', { name: 'Upload from URL' }).click()
-		await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
-		await page.getByRole('button', { name: 'Send' }).click()
+	await page.goto('./apps/libresign')
+	await page.getByRole('button', { name: 'Upload from URL' }).click()
+	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
+	await page.getByRole('button', { name: 'Send' }).click()
 
-		await addEmailSigner(page, 'signer01@libresign.coop', 'Signer 01')
-		await addEmailSigner(page, 'signer02@libresign.coop', 'Signer 02')
+	await addEmailSigner(page, 'signer01@libresign.coop', 'Signer 01')
+	await addEmailSigner(page, 'signer02@libresign.coop', 'Signer 02')
 
-		// Enable remember preference first, then switch to ordered mode.
-		// The second action must persist ordered_numeric via policies endpoint.
-		await expect(page.getByLabel('Use this as my default signing order')).toBeVisible()
-		await page.getByText('Use this as my default signing order').click()
+	await expect(page.getByLabel('Use this as my default signing order')).toBeVisible()
+	await page.getByText('Use this as my default signing order').click()
 
-		const saveOrderedPreference = page.waitForResponse((response) => {
-			const req = response.request()
-			return req.method() === 'PUT'
-				&& req.url().includes('/apps/libresign/api/v1/policies/user/signature_flow')
-				&& (req.postData() ?? '').includes('ordered_numeric')
-		})
+	const saveOrderedPreference = page.waitForResponse((response) => {
+		const req = response.request()
+		return req.method() === 'PUT'
+			&& req.url().includes('/apps/libresign/api/v1/policies/user/signature_flow')
+			&& (req.postData() ?? '').includes('ordered_numeric')
+	})
 
-		await expect(page.getByLabel('Sign in order')).toBeVisible()
-		await page.getByText('Sign in order').click()
-		await expect(page.getByLabel('Sign in order')).toBeChecked()
+	await expect(page.getByLabel('Sign in order')).toBeVisible()
+	await page.getByText('Sign in order').click()
+	await expect(page.getByLabel('Sign in order')).toBeChecked()
 
-		const saveOrderedPreferenceResponse = await saveOrderedPreference
-		expect(saveOrderedPreferenceResponse.status()).toBe(200)
-	} finally {
-		await clearOwnPreference(adminRequest)
-		await setSystemSignatureFlowPolicy(adminRequest, 'none', true)
-		await adminRequest.dispose()
-	}
+	const saveOrderedPreferenceResponse = await saveOrderedPreference
+	expect(saveOrderedPreferenceResponse.status()).toBe(200)
 })
 
 for (const systemFlow of ['ordered_numeric', 'parallel'] as const) {
-	test(`fixed system ${systemFlow} signature flow hides request toggles for groupadmin`, async ({ page }) => {
-		const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-		const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+	test(`fixed system ${systemFlow} signature flow hides request toggles for groupadmin`, async ({ page, adminRequestContext, groupAdminRequestContext }) => {
+		await ensureUserExists(adminRequestContext, GROUP_ADMIN_USER, GROUP_ADMIN_PASSWORD)
+		await ensureGroupExists(adminRequestContext, GROUP_ADMIN_GROUP)
+		await ensureUserInGroup(adminRequestContext, GROUP_ADMIN_USER, GROUP_ADMIN_GROUP)
+		await ensureSubadminOfGroup(adminRequestContext, GROUP_ADMIN_USER, GROUP_ADMIN_GROUP)
 
-		const adminRequest = await createAuthenticatedRequestContext(adminUser, adminPassword)
-		const groupAdminRequest = await createAuthenticatedRequestContext(GROUP_ADMIN_USER, GROUP_ADMIN_PASSWORD)
-
-		await ensureUserExists(adminRequest, GROUP_ADMIN_USER, GROUP_ADMIN_PASSWORD)
-		await ensureGroupExists(adminRequest, GROUP_ADMIN_GROUP)
-		await ensureUserInGroup(adminRequest, GROUP_ADMIN_USER, GROUP_ADMIN_GROUP)
-		await ensureSubadminOfGroup(adminRequest, GROUP_ADMIN_USER, GROUP_ADMIN_GROUP)
-
-		await configureOpenSsl(adminRequest, 'LibreSign Test', {
+		await configureOpenSsl(adminRequestContext, 'LibreSign Test', {
 			C: 'BR',
 			OU: ['Organization Unit'],
 			ST: 'Rio de Janeiro',
@@ -201,7 +208,7 @@ for (const systemFlow of ['ordered_numeric', 'parallel'] as const) {
 		})
 
 		await setAppConfig(
-			adminRequest,
+			adminRequestContext,
 			'libresign',
 			'identify_methods',
 			JSON.stringify([
@@ -211,68 +218,59 @@ for (const systemFlow of ['ordered_numeric', 'parallel'] as const) {
 		)
 
 		await setAppConfig(
-			adminRequest,
+			adminRequestContext,
 			'libresign',
 			'groups_request_sign',
 			JSON.stringify(['admin', GROUP_ADMIN_GROUP]),
 		)
 
-		try {
-			await setSystemSignatureFlowPolicy(adminRequest, systemFlow, false)
-			await clearOwnPreference(groupAdminRequest)
+		await setSystemSignatureFlowPolicy(adminRequestContext, systemFlow, false)
+		await clearOwnPreference(groupAdminRequestContext)
 
-			await login(page.request, GROUP_ADMIN_USER, GROUP_ADMIN_PASSWORD)
-			await page.goto('./apps/libresign/f/request')
-			await expect(page.getByRole('heading', { name: 'Request Signatures' })).toBeVisible()
-			await page.getByRole('button', { name: 'Upload from URL' }).click()
-			await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
-			await page.getByRole('button', { name: 'Send' }).click()
+		await login(page.request, GROUP_ADMIN_USER, GROUP_ADMIN_PASSWORD)
+		await page.goto('./apps/libresign/f/request')
+		await expect(page.getByRole('heading', { name: 'Request Signatures' })).toBeVisible()
+		await page.getByRole('button', { name: 'Upload from URL' }).click()
+		await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
+		await page.getByRole('button', { name: 'Send' }).click()
 
-			await addEmailSigner(page, 'signer11@libresign.coop', 'Signer 11')
-			await addEmailSigner(page, 'signer12@libresign.coop', 'Signer 12')
+		await addEmailSigner(page, 'signer11@libresign.coop', 'Signer 11')
+		await addEmailSigner(page, 'signer12@libresign.coop', 'Signer 12')
 
-			await expect(page.getByLabel('Sign in order')).toBeHidden()
-			await expect(page.getByLabel('Use this as my default signing order')).toBeHidden()
+		await expect(page.getByLabel('Sign in order')).toBeHidden()
+		await expect(page.getByLabel('Use this as my default signing order')).toBeHidden()
 
-			const sendRequestResponsePromise = page.waitForResponse((response) => {
-				const request = response.request()
-				const body = request.postData() ?? ''
-				return response.url().includes('/apps/libresign/api/v1/request-signature')
-					&& ['POST', 'PATCH'].includes(request.method())
-					&& body.includes('"status":1')
-			})
+		const sendRequestResponsePromise = page.waitForResponse((response) => {
+			const requestData = response.request()
+			const body = requestData.postData() ?? ''
+			return response.url().includes('/apps/libresign/api/v1/request-signature')
+				&& ['POST', 'PATCH'].includes(requestData.method())
+				&& body.includes('"status":1')
+		})
 
-			await page.getByRole('button', { name: 'Request signatures' }).click()
-			await page.getByRole('button', { name: 'Send' }).click()
+		await page.getByRole('button', { name: 'Request signatures' }).click()
+		await page.getByRole('button', { name: 'Send' }).click()
 
-			const sendRequestResponse = await sendRequestResponsePromise
-			expect(sendRequestResponse.status()).toBe(200)
-			const sendRequestPayload = JSON.parse(sendRequestResponse.request().postData() ?? '{}') as {
-				signatureFlow?: string
-			}
-			expect(sendRequestPayload.signatureFlow).toBeUndefined()
+		const sendRequestResponse = await sendRequestResponsePromise
+		expect(sendRequestResponse.status()).toBe(200)
 
-			const sendRequestBody = await sendRequestResponse.json() as {
-				ocs?: {
-					data?: {
-						signatureFlow?: string
-						signers?: Array<{ signingOrder?: number }>
-					}
+		const sendRequestPayload = JSON.parse(sendRequestResponse.request().postData() ?? '{}') as {
+			signatureFlow?: string
+		}
+		expect(sendRequestPayload.signatureFlow).toBeUndefined()
+
+		const sendRequestBody = await sendRequestResponse.json() as {
+			ocs?: {
+				data?: {
+					signatureFlow?: string
+					signers?: Array<{ signingOrder?: number }>
 				}
 			}
-			expect(sendRequestBody.ocs?.data?.signatureFlow).toBe(systemFlow)
+		}
+		expect(sendRequestBody.ocs?.data?.signatureFlow).toBe(systemFlow)
 
-			if (systemFlow === 'ordered_numeric') {
-				expect(sendRequestBody.ocs?.data?.signers?.map((signer) => signer.signingOrder)).toEqual([1, 2])
-			}
-		} finally {
-			await clearOwnPreference(groupAdminRequest)
-			await setSystemSignatureFlowPolicy(adminRequest, 'none', true)
-			await setAppConfig(adminRequest, 'libresign', 'groups_request_sign', JSON.stringify(['admin']))
-			await Promise.all([
-				adminRequest.dispose(),
-				groupAdminRequest.dispose(),
-			])
+		if (systemFlow === 'ordered_numeric') {
+			expect(sendRequestBody.ocs?.data?.signers?.map((signer) => signer.signingOrder)).toEqual([1, 2])
 		}
 	})
 }
