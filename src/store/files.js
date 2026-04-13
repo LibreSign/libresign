@@ -166,6 +166,7 @@ import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
  * 	uuid?: string | null
  * 	status?: number | null
  * 	signatureFlow?: SignatureFlowValue | null
+ * 	footerPolicy?: string | null
  * }} SaveSignatureRequestOptions
  */
 
@@ -1198,7 +1199,7 @@ const _filesStore = defineStore('files', () => {
 	 * @param {SaveSignatureRequestOptions} [payload]
 	 * @returns {Promise<SaveSignatureRequestResponse>}
 	 */
-	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, signatureFlow = null } = {}) {
+	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, signatureFlow = null, footerPolicy = null } = {}) {
 		const store = getStore()
 		const policiesStore = usePoliciesStore()
 		const currentFileKey = selectedFileId.value
@@ -1206,6 +1207,7 @@ const _filesStore = defineStore('files', () => {
 		const requestSigners = serializeRequestSigners(signers || selectedFile?.signers || [])
 		const requestVisibleElements = serializeVisibleElements(visibleElements)
 		const canUseSignatureFlowOverride = policiesStore.canUseRequestOverride('signature_flow')
+		const canUseFooterOverride = policiesStore.canUseRequestOverride('add_footer')
 
 		let flowValue = signatureFlow
 		if (canUseSignatureFlowOverride) {
@@ -1214,6 +1216,11 @@ const _filesStore = defineStore('files', () => {
 				const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
 				flowValue = flowMap[flowValue] || 'parallel'
 			}
+		}
+
+		let footerPolicyValue = null
+		if (canUseFooterOverride && typeof footerPolicy === 'string' && footerPolicy.trim() !== '') {
+			footerPolicyValue = footerPolicy
 		}
 
 		const config = {
@@ -1225,6 +1232,7 @@ const _filesStore = defineStore('files', () => {
 				visibleElements: requestVisibleElements,
 				status,
 				...(flowValue !== null && flowValue !== undefined ? { signatureFlow: flowValue } : {}),
+				...(footerPolicyValue !== null ? { footerPolicy: footerPolicyValue } : {}),
 			},
 		}
 
