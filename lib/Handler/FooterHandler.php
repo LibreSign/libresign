@@ -34,6 +34,8 @@ use OCP\L10N\IFactory;
 
 class FooterHandler {
 	private QrCode $qrCode;
+	/** @var array<string, mixed> */
+	private array $requestPolicyOverrides = [];
 	private const MIN_QRCODE_SIZE = 100;
 	private const POINT_TO_MILIMETER = 0.3527777778;
 
@@ -115,10 +117,21 @@ class FooterHandler {
 		return $this;
 	}
 
-	private function prepareTemplateVars(bool $forceEnabled = false): array {
-		$footerPolicy = FooterPolicyValue::normalize(
-			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
+	/** @param array<string, mixed> $requestPolicyOverrides */
+	public function setRequestPolicyOverrides(array $requestPolicyOverrides): self {
+		$this->requestPolicyOverrides = $requestPolicyOverrides;
+		return $this;
+	}
+
+	/** @return array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate: string, previewWidth: int, previewHeight: int, previewZoom: int} */
+	private function resolveFooterPolicy(): array {
+		return FooterPolicyValue::normalize(
+			$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue()
 		);
+	}
+
+	private function prepareTemplateVars(bool $forceEnabled = false): array {
+		$footerPolicy = $this->resolveFooterPolicy();
 
 		if (!$this->templateVars->getSignedBy()) {
 			$this->templateVars->setSignedBy(
@@ -177,9 +190,7 @@ class FooterHandler {
 	}
 
 	public function getTemplate(): string {
-		$footerPolicy = FooterPolicyValue::normalize(
-			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
-		);
+		$footerPolicy = $this->resolveFooterPolicy();
 
 		if ($footerPolicy['customizeFooterTemplate']) {
 			$policyTemplate = trim((string)($footerPolicy['footerTemplate'] ?? ''));
@@ -225,7 +236,7 @@ class FooterHandler {
 
 	private function isFooterEnabled(): bool {
 		return FooterPolicyValue::isEnabled(
-			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
+			$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue()
 		);
 	}
 }
