@@ -82,6 +82,11 @@ function mountWorkbench() {
 					template: '<div class="nc-actions-stub"><button class="nc-actions-stub__trigger" :aria-label="ariaLabel" @click="$emit(\'update:open\', !open)"><slot name="icon" /></button><div v-if="open" class="nc-actions-stub__menu"><slot /></div></div>',
 				},
 				NcActionButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
+				SignatureFooterRuleEditor: {
+					name: 'SignatureFooterRuleEditor',
+					props: ['inheritedTemplate'],
+					template: '<div class="signature-footer-rule-editor-stub">Inherited template: {{ inheritedTemplate }}</div>',
+				},
 			},
 		},
 	})
@@ -295,6 +300,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		await findButtonContainingText(wrapper, 'User')?.trigger('click')
 
 		expect(wrapper.findAll('.dialog[data-size="large"]').length).toBeGreaterThan(0)
+		expect(wrapper.text()).toContain('Inherited template:')
 	})
 
 	it('shows signing order with sophisticated visual interface: filter, toggle, counts, and scopes', async () => {
