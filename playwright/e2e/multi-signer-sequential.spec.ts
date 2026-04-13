@@ -4,7 +4,7 @@
  */
 
 import type { APIRequestContext, Page } from '@playwright/test'
-import { expect, request, test } from '@playwright/test'
+import { expect, request, test as base } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, deleteAppConfig, getAppConfig, setAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
@@ -23,7 +23,54 @@ const FOOTER_ENABLED_VALUE = JSON.stringify({
 	customizeFooterTemplate: false,
 })
 
+type OriginalConfigSnapshot = {
+	identifyMethods: string | null
+	signatureEngine: string | null
+	tsaUrl: string | null
+	footerPolicy: string | null
+}
+
+const test = base.extend<{
+	adminContext: APIRequestContext
+	originalConfigSnapshot: OriginalConfigSnapshot
+}>({
+	adminContext: async ({}, use) => {
+		const ctx = await makeAdminContext()
+		await use(ctx)
+		await ctx.dispose()
+	},
+	originalConfigSnapshot: async ({ request, adminContext }, use) => {
+		const response = await adminContext.get(`./ocs/v2.php/apps/libresign/api/v1/policies/system/${FOOTER_POLICY_KEY}`, {
+			failOnStatusCode: false,
+		})
+		expect(response.status(), `getSystemFooterPolicy: expected 200 but got ${response.status()}`).toBe(200)
+		const policyBody = await response.json() as {
+			ocs?: {
+				data?: {
+					policy?: {
+						value?: string | null
+					}
+				}
+			}
+		}
+
+		await use({
+			identifyMethods: await getAppConfig(request, 'libresign', 'identify_methods'),
+			signatureEngine: await getAppConfig(request, 'libresign', 'signature_engine'),
+			tsaUrl: await getAppConfig(request, 'libresign', 'tsa_url'),
+			footerPolicy: policyBody.ocs?.data?.policy?.value ?? null,
+		})
+	},
+})
+
 test.setTimeout(120_000)
+
+test.afterEach(async ({ page, adminContext, originalConfigSnapshot }) => {
+	await restoreAppConfig(page.request, 'identify_methods', originalConfigSnapshot.identifyMethods)
+	await restoreAppConfig(page.request, 'signature_engine', originalConfigSnapshot.signatureEngine)
+	await restoreAppConfig(page.request, 'tsa_url', originalConfigSnapshot.tsaUrl)
+	await setSystemFooterPolicy(adminContext, originalConfigSnapshot.footerPolicy ?? FOOTER_DISABLED_VALUE)
+})
 
 async function addEmailSigner(
 	page: Page,
@@ -87,12 +134,7 @@ async function restoreAppConfig(
 	await setAppConfig(requestContext, 'libresign', key, value)
 }
 
-test('request signatures from two signers in sequential order', async ({ page }) => {
-	const adminContext = await makeAdminContext()
-	const originalIdentifyMethods = await getAppConfig(page.request, 'libresign', 'identify_methods')
-	const originalSignatureEngine = await getAppConfig(page.request, 'libresign', 'signature_engine')
-	const originalTsaUrl = await getAppConfig(page.request, 'libresign', 'tsa_url')
-
+test('request signatures from two signers in sequential order', async ({ page, adminContext }) => {
 	await test.step('configure signing environment', async () => {
 		await login(
 			page.request,
@@ -125,11 +167,10 @@ test('request signatures from two signers in sequential order', async ({ page })
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
 
-	try {
-		await page.goto('./apps/libresign')
-		await page.getByRole('button', { name: 'Upload from URL' }).click()
-		await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
-		await page.getByRole('button', { name: 'Send' }).click()
+	await page.goto('./apps/libresign')
+	await page.getByRole('button', { name: 'Upload from URL' }).click()
+	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
+	await page.getByRole('button', { name: 'Send' }).click()
 
 		// Add first signer — only email method is active, so the field appears directly (no tabs)
 		await addEmailSigner(page, 'signer01@libresign.coop', 'Signer 01')
@@ -197,12 +238,5 @@ test('request signatures from two signers in sequential order', async ({ page })
 		// Both signers must appear as signed in the final validation view.
 		await expect(page.getByText('Signer 01')).toBeVisible()
 		await expect(page.getByText('Signer 02')).toBeVisible()
-		await expect(page.getByText('Not signed yet')).not.toBeVisible()
-	} finally {
-		await restoreAppConfig(page.request, 'identify_methods', originalIdentifyMethods)
-		await restoreAppConfig(page.request, 'signature_engine', originalSignatureEngine)
-		await restoreAppConfig(page.request, 'tsa_url', originalTsaUrl)
-		await setSystemFooterPolicy(adminContext, FOOTER_ENABLED_VALUE)
-		await adminContext.dispose()
-	}
+	await expect(page.getByText('Not signed yet')).not.toBeVisible()
 })
