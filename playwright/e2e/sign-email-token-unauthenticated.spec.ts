@@ -39,19 +39,19 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 
 	await page.goto('./apps/libresign')
-		await page.getByRole('button', { name: 'Upload from URL' }).click();
-		await page.getByRole('textbox', { name: 'URL of a PDF file' }).click();
-		await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('http://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf');
-		await page.getByRole('button', { name: 'Send' }).click();
-		await page.getByRole('button', { name: 'Add signer' }).click();
-		await page.getByRole('tab', { name: 'Email' }).click();
-		await page.getByPlaceholder('Email').click();
-		await page.getByPlaceholder('Email').fill('signer01@libresign.coop');
-		await page.getByRole('option', { name: 'signer01@libresign.coop' }).click();
-		await page.getByRole('textbox', { name: 'Signer name' }).click();
-		await page.getByRole('textbox', { name: 'Signer name' }).press('ControlOrMeta+a');
-		await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01');
-		await page.getByRole('button', { name: 'Save' }).click();
+	await page.getByRole('button', { name: 'Upload from URL' }).click();
+	await page.getByRole('textbox', { name: 'URL of a PDF file' }).click();
+	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('http://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf');
+	await page.getByRole('button', { name: 'Send' }).click();
+	await page.getByRole('button', { name: 'Add signer' }).click();
+	await page.getByRole('tab', { name: 'Email' }).click();
+	await page.getByPlaceholder('Email').click();
+	await page.getByPlaceholder('Email').fill('signer01@libresign.coop');
+	await page.getByRole('option', { name: 'signer01@libresign.coop' }).click();
+	await page.getByRole('textbox', { name: 'Signer name' }).click();
+	await page.getByRole('textbox', { name: 'Signer name' }).press('ControlOrMeta+a');
+	await page.getByRole('textbox', { name: 'Signer name' }).fill('Signer 01');
+	await page.getByRole('button', { name: 'Save' }).click();
 
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
@@ -91,9 +91,9 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await expect(page.getByText('Your identity has been')).toBeVisible();
 	await expect(page.getByText('You can now sign the document.')).toBeVisible();
 	const signResponsePromise = page.waitForResponse((response) =>
-			response.request().method() === 'POST'
-			&& response.url().includes('/apps/libresign/api/v1/sign/'),
-		)
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
 	await page.getByRole('button', { name: 'Sign document' }).click();
 	const signResponse = await signResponsePromise
 	const signResponseBody = await signResponse.text()
