@@ -3,13 +3,29 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { expect, request, test, type APIRequestContext } from '@playwright/test'
+import { expect, request, test as base, type APIRequestContext } from '@playwright/test'
 import { login } from '../support/nc-login'
 import {
 	ensureGroupExists,
 	ensureUserExists,
 	ensureUserInGroup,
 } from '../support/nc-provisioning'
+
+const test = base.extend<{
+	adminRequestContext: APIRequestContext
+	endUserRequestContext: APIRequestContext
+}>({
+	adminRequestContext: async ({}, use) => {
+		const ctx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
+		await use(ctx)
+		await ctx.dispose()
+	},
+	endUserRequestContext: async ({}, use) => {
+		const ctx = await createAuthenticatedRequestContext(END_USER, DEFAULT_TEST_PASSWORD)
+		await use(ctx)
+		await ctx.dispose()
+	},
+})
 
 test.describe.configure({ retries: 0, timeout: 90000 })
 
@@ -175,9 +191,19 @@ async function setGroupFooterPolicy(
 	expect(response.httpStatus, `setGroupFooterPolicy: expected 200 but got ${response.httpStatus}`).toBe(200)
 }
 
-async function clearOwnUserPreference(ctx: APIRequestContext): Promise<void> {
-	const response = await policyRequest(ctx, 'DELETE', `/apps/libresign/api/v1/policies/user/${POLICY_KEY}`)
-	expect([200, 500]).toContain(response.httpStatus)
+async function clearOwnUserPreference(ctx: APIRequestContext, policyKey: string): Promise<void> {
+	const response = await policyRequest(ctx, 'DELETE', `/apps/libresign/api/v1/policies/user/${policyKey}`)
+	expect([200, 500], `clearOwnUserPreference(${policyKey}): expected 200 or 500 but got ${response.httpStatus}`).toContain(response.httpStatus)
+}
+
+async function resetPolicyPreferencesState(
+	adminRequestContext: APIRequestContext,
+	endUserRequestContext: APIRequestContext,
+): Promise<void> {
+	await clearOwnUserPreference(endUserRequestContext, POLICY_KEY)
+	await clearOwnUserPreference(endUserRequestContext, FOOTER_POLICY_KEY)
+	await setSystemFooterPolicy(adminRequestContext, FOOTER_DISABLED_VALUE, true)
+	await setSystemSignatureFlow(adminRequestContext, null, true)
 }
 
 async function expandSettingsMenu(page: import('@playwright/test').Page): Promise<void> {
@@ -194,56 +220,50 @@ async function expandSettingsMenu(page: import('@playwright/test').Page): Promis
 	}
 }
 
-test('group member sees Preferences controls only when lower-layer customization is allowed', async ({ page }) => {
+test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => {
 	await ensureUserExists(page.request, END_USER, DEFAULT_TEST_PASSWORD)
 	await ensureGroupExists(page.request, GROUP_ID)
 	await ensureUserInGroup(page.request, END_USER, GROUP_ID)
+	await resetPolicyPreferencesState(adminRequestContext, endUserRequestContext)
+})
 
-	const adminRequest = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
-	const endUserRequest = await createAuthenticatedRequestContext(END_USER, DEFAULT_TEST_PASSWORD)
+test.afterEach(async ({ adminRequestContext, endUserRequestContext }) => {
+	await resetPolicyPreferencesState(adminRequestContext, endUserRequestContext)
+})
 
-	try {
-		await clearOwnUserPreference(endUserRequest)
-		await setSystemSignatureFlow(adminRequest, 'parallel', true)
-		await setGroupSignatureFlow(adminRequest, 'ordered_numeric', false)
-		await setSystemFooterPolicy(adminRequest, FOOTER_ENABLED_VALUE, true)
-		await setGroupFooterPolicy(adminRequest, FOOTER_ENABLED_VALUE, false)
+test('group member sees Preferences controls only when lower-layer customization is allowed', async ({ page, adminRequestContext, endUserRequestContext }) => {
+	await setSystemSignatureFlow(adminRequestContext, 'parallel', true)
+	await setGroupSignatureFlow(adminRequestContext, 'ordered_numeric', false)
+	await setSystemFooterPolicy(adminRequestContext, FOOTER_ENABLED_VALUE, true)
+	await setGroupFooterPolicy(adminRequestContext, FOOTER_ENABLED_VALUE, false)
 
-		let effectivePolicy = await getEffectivePolicy(endUserRequest, POLICY_KEY)
-		expect(effectivePolicy?.effectiveValue).toBe('ordered_numeric')
-		expect(effectivePolicy?.canSaveAsUserDefault).toBe(false)
+	let effectivePolicy = await getEffectivePolicy(endUserRequestContext, POLICY_KEY)
+	expect(effectivePolicy?.effectiveValue).toBe('ordered_numeric')
+	expect(effectivePolicy?.canSaveAsUserDefault).toBe(false)
 
-		await login(page.request, END_USER, DEFAULT_TEST_PASSWORD)
-		await page.goto('./apps/libresign/f/preferences')
-		await expandSettingsMenu(page)
+	await login(page.request, END_USER, DEFAULT_TEST_PASSWORD)
+	await page.goto('./apps/libresign/f/preferences')
+	await expandSettingsMenu(page)
 
+	await setGroupSignatureFlow(adminRequestContext, 'ordered_numeric', true)
 
-		await setGroupSignatureFlow(adminRequest, 'ordered_numeric', true)
+	effectivePolicy = await getEffectivePolicy(endUserRequestContext, POLICY_KEY)
+	expect(effectivePolicy?.canSaveAsUserDefault).toBe(true)
 
-		effectivePolicy = await getEffectivePolicy(endUserRequest, POLICY_KEY)
-		expect(effectivePolicy?.canSaveAsUserDefault).toBe(true)
+	await setGroupFooterPolicy(adminRequestContext, FOOTER_ENABLED_VALUE, true)
+	await waitForPolicyCanSaveAsUserDefault(endUserRequestContext, FOOTER_POLICY_KEY, true)
 
-		await setGroupFooterPolicy(adminRequest, FOOTER_ENABLED_VALUE, true)
-		await waitForPolicyCanSaveAsUserDefault(endUserRequest, FOOTER_POLICY_KEY, true)
+	await page.goto('./apps/libresign/f/preferences')
+	await expandSettingsMenu(page)
 
-		await page.goto('./apps/libresign/f/preferences')
-		await expandSettingsMenu(page)
+	await expect(page.getByRole('button', { name: 'Save footer preference' })).toBeVisible()
 
-		await expect(page.getByRole('button', { name: 'Save footer preference' })).toBeVisible()
+	const customizeTemplateToggle = page.getByText('Customize footer template', { exact: true })
+	const footerTemplateLabel = page.getByText('Footer template', { exact: true })
+	await customizeTemplateToggle.click()
+	await expect(footerTemplateLabel).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Reset template to inherited default' })).toBeVisible()
 
-		const customizeTemplateToggle = page.getByText('Customize footer template', { exact: true })
-		const footerTemplateLabel = page.getByText('Footer template', { exact: true })
-		await customizeTemplateToggle.click()
-		await expect(footerTemplateLabel).toBeVisible()
-		await expect(page.getByRole('button', { name: 'Reset template to inherited default' })).toBeVisible()
-
-		await customizeTemplateToggle.click()
-		await expect(footerTemplateLabel).toHaveCount(0)
-	} finally {
-		await clearOwnUserPreference(endUserRequest).catch(() => {})
-		await setSystemFooterPolicy(adminRequest, FOOTER_DISABLED_VALUE, true).catch(() => {})
-		await setSystemSignatureFlow(adminRequest, null, true).catch(() => {})
-		await adminRequest.dispose()
-		await endUserRequest.dispose()
-	}
+	await customizeTemplateToggle.click()
+	await expect(footerTemplateLabel).toHaveCount(0)
 })
