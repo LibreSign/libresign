@@ -142,8 +142,8 @@ describe('Signer', () => {
 		vi.clearAllMocks()
 	})
 
-	describe('RULE: signatureFlow uses string contract values only', () => {
-		it('returns ordered_numeric for ordered_numeric flow', () => {
+	describe('RULE: signatureFlow uses canonical string values', () => {
+		it('returns ordered_numeric when already canonical', () => {
 			filesStore.selectedFile = { signatureFlow: 'ordered_numeric', signers: [{}] }
 			wrapper = createWrapper()
 
@@ -156,14 +156,6 @@ describe('Signer', () => {
 
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
-
-		it('returns none for none flow', () => {
-			filesStore.selectedFile = { signatureFlow: 'none', signers: [{}] }
-			wrapper = createWrapper()
-
-			expect(wrapper.vm.signatureFlow).toBe('none')
-		})
-
 		it('defaults to parallel when undefined', () => {
 			filesStore.selectedFile = { signers: [{}] }
 			wrapper = createWrapper()
@@ -171,11 +163,11 @@ describe('Signer', () => {
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
 
-		it('uses string value directly when already string', () => {
-			filesStore.selectedFile = { signatureFlow: 'ordered_numeric', signers: [{}] }
+		it('returns none when file flow is none', () => {
+			filesStore.selectedFile = { signatureFlow: 'none', signers: [{}] }
 			wrapper = createWrapper()
 
-			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
+			expect(wrapper.vm.signatureFlow).toBe('none')
 		})
 	})
 
