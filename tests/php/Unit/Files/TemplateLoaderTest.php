@@ -104,6 +104,7 @@ final class TemplateLoaderTest extends TestCase {
 					'signature_flow' => [
 						'policyKey' => 'signature_flow',
 						'effectiveValue' => 'parallel',
+						'inheritedValue' => null,
 						'sourceScope' => 'group',
 						'visible' => true,
 						'editableByCurrentActor' => true,
