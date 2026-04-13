@@ -12,8 +12,8 @@ use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\DocMdp\FilePolicy\DocMdpFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\FilePolicy\DocMdpFilePolicyApplier;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class DocMdpFilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
