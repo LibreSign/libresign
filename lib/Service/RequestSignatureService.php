@@ -14,9 +14,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -27,11 +25,7 @@ use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
-use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
-use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\FilePolicyApplier;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
@@ -72,7 +66,7 @@ class RequestSignatureService {
 		protected EnvelopeFileRelocator $envelopeFileRelocator,
 		protected FileUploadHelper $uploadHelper,
 		protected SignRequestService $signRequestService,
-		protected PolicyService $policyService,
+		protected FilePolicyApplier $filePolicyApplier,
 	) {
 	}
 
@@ -94,6 +88,8 @@ class RequestSignatureService {
 				'userManager' => $data['userManager'],
 				'status' => FileStatus::DRAFT->value,
 				'settings' => $data['settings'],
+				'policyOverrides' => $data['policyOverrides'] ?? [],
+				'policyActiveContext' => $data['policyActiveContext'] ?? null,
 			];
 
 			if (isset($fileData['uploadedFile'])) {
@@ -120,7 +116,8 @@ class RequestSignatureService {
 			'signers' => $data['signers'] ?? [],
 			'status' => $data['status'] ?? FileStatus::DRAFT->value,
 			'visibleElements' => $data['visibleElements'] ?? [],
-			'signatureFlow' => $data['signatureFlow'] ?? null,
+			'policyOverrides' => $data['policyOverrides'] ?? [],
+			'policyActiveContext' => $data['policyActiveContext'] ?? null,
 		]);
 
 		return [
@@ -191,7 +188,13 @@ class RequestSignatureService {
 				$createdNodes[] = $node;
 
 				$fileData['node'] = $node;
-				$fileEntity = $this->createFileForEnvelope($fileData, $userManager, $envelopeSettings);
+				$fileEntity = $this->createFileForEnvelope(
+					$fileData,
+					$userManager,
+					$envelopeSettings,
+					$data['policyOverrides'] ?? [],
+					$data['policyActiveContext'] ?? null,
+				);
 				$this->envelopeService->addFileToEnvelope($envelope->getId(), $fileEntity);
 				$files[] = $fileEntity;
 			}
@@ -297,7 +300,13 @@ class RequestSignatureService {
 		}
 	}
 
-	private function createFileForEnvelope(array $fileData, ?IUser $userManager, array $settings): FileEntity {
+	private function createFileForEnvelope(
+		array $fileData,
+		?IUser $userManager,
+		array $settings,
+		array $policyOverrides = [],
+		?array $policyActiveContext = null,
+	): FileEntity {
 		if (!isset($fileData['node'])) {
 			throw new \InvalidArgumentException('Node not provided in file data');
 		}
@@ -311,6 +320,8 @@ class RequestSignatureService {
 			'userManager' => $userManager,
 			'status' => FileStatus::DRAFT->value,
 			'settings' => $settings,
+			'policyOverrides' => $policyOverrides,
+			'policyActiveContext' => $policyActiveContext,
 		]);
 	}
 
@@ -322,8 +333,7 @@ class RequestSignatureService {
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
-			$this->updateSignatureFlowIfAllowed($file, $data);
-			$this->updateDocMdpLevelFromPolicy($file, $data);
+			$this->filePolicyApplier->syncCoreFlowPolicies($file, $data);
 			if (!empty($data['name'])) {
 				$file->setName($data['name']);
 				$this->fileService->update($file);
@@ -339,9 +349,7 @@ class RequestSignatureService {
 		if (!is_null($fileId)) {
 			try {
 				$file = $this->fileMapper->getByNodeId($fileId);
-				$this->updateSignatureFlowIfAllowed($file, $data);
-				$this->updateDocMdpLevelFromPolicy($file, $data);
-				$this->updateFooterPolicyFromPolicy($file, $data);
+				$this->filePolicyApplier->syncAllPolicies($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 			} catch (\Throwable) {
 			}
@@ -382,164 +390,10 @@ class RequestSignatureService {
 			$file->setParentFileId($data['parentFileId']);
 		}
 
-		$this->setSignatureFlow($file, $data);
-		$this->setDocMdpLevelFromPolicy($file, $data);
-		$this->setFooterPolicyFromPolicy($file, $data);
+		$this->filePolicyApplier->applyAll($file, $data);
 
 		$this->fileMapper->insert($file);
 		return $file;
-	}
-
-	private function updateSignatureFlowIfAllowed(FileEntity $file, array $data): void {
-		$requestOverrides = $this->getSignatureFlowRequestOverrides($data);
-		$resolvedPolicy = $this->policyService->resolveForUserId(
-			SignatureFlowPolicy::KEY,
-			$file->getUserId(),
-			$requestOverrides,
-		);
-		$this->assertSignatureFlowOverrideAllowed($requestOverrides, $resolvedPolicy);
-		$newFlow = SignatureFlow::from((string)$resolvedPolicy->getEffectiveValue());
-		$metadataBeforeUpdate = $file->getMetadata() ?? [];
-		$this->storePolicySnapshot($file, $resolvedPolicy);
-		$metadataChanged = ($file->getMetadata() ?? []) !== $metadataBeforeUpdate;
-
-		if ($file->getSignatureFlowEnum() !== $newFlow || $metadataChanged) {
-			$file->setSignatureFlowEnum($newFlow);
-			$this->fileService->update($file);
-		}
-	}
-
-	private function setSignatureFlow(FileEntity $file, array $data): void {
-		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
-		$requestOverrides = $this->getSignatureFlowRequestOverrides($data);
-		$resolvedPolicy = $this->policyService->resolveForUser(
-			SignatureFlowPolicy::KEY,
-			$user,
-			$requestOverrides,
-		);
-		$this->assertSignatureFlowOverrideAllowed($requestOverrides, $resolvedPolicy);
-		$file->setSignatureFlowEnum(SignatureFlow::from((string)$resolvedPolicy->getEffectiveValue()));
-		$this->storePolicySnapshot($file, $resolvedPolicy);
-	}
-
-	/** @return array<string, string> */
-	private function getSignatureFlowRequestOverrides(array $data): array {
-		if (!isset($data['signatureFlow']) || empty($data['signatureFlow'])) {
-			return [];
-		}
-
-		return [SignatureFlowPolicy::KEY => (string)$data['signatureFlow']];
-	}
-
-	/** @param array<string, string> $requestOverrides */
-	private function assertSignatureFlowOverrideAllowed(array $requestOverrides, ResolvedPolicy $resolvedPolicy): void {
-		if ($requestOverrides === [] || $resolvedPolicy->canUseAsRequestOverride()) {
-			return;
-		}
-
-		$blockedBy = $resolvedPolicy->getBlockedBy() ?? $resolvedPolicy->getSourceScope();
-		throw new LibresignException($this->l10n->t('Signature flow override is blocked by %s.', [$blockedBy]), 422);
-	}
-
-	private function storePolicySnapshot(FileEntity $file, ResolvedPolicy $resolvedPolicy): void {
-		$metadata = $file->getMetadata() ?? [];
-		$policySnapshot = $metadata['policy_snapshot'] ?? [];
-		$policySnapshot[$resolvedPolicy->getPolicyKey()] = [
-			'effectiveValue' => $resolvedPolicy->getEffectiveValue(),
-			'sourceScope' => $resolvedPolicy->getSourceScope(),
-		];
-		$metadata['policy_snapshot'] = $policySnapshot;
-		$file->setMetadata($metadata);
-	}
-
-	private function updateDocMdpLevelFromPolicy(FileEntity $file, array $data): void {
-		$resolvedPolicy = $this->policyService->resolveForUserId(
-			DocMdpPolicy::KEY,
-			$file->getUserId(),
-			$this->getDocMdpRequestOverrides($data),
-		);
-		$newLevel = DocMdpLevel::tryFrom((int)$resolvedPolicy->getEffectiveValue()) ?? DocMdpLevel::NOT_CERTIFIED;
-		$metadataBeforeUpdate = $file->getMetadata() ?? [];
-		$this->storePolicySnapshot($file, $resolvedPolicy);
-		$metadataChanged = ($file->getMetadata() ?? []) !== $metadataBeforeUpdate;
-
-		if ($file->getDocmdpLevelEnum() !== $newLevel || $metadataChanged) {
-			$file->setDocmdpLevelEnum($newLevel);
-			$this->fileService->update($file);
-		}
-	}
-
-	private function updateFooterPolicyFromPolicy(FileEntity $file, array $data): void {
-		$requestOverrides = $this->getFooterPolicyRequestOverrides($data);
-		$resolvedPolicy = $this->policyService->resolveForUserId(
-			FooterPolicy::KEY,
-			$file->getUserId(),
-			$requestOverrides,
-		);
-		$this->assertFooterPolicyOverrideAllowed($requestOverrides, $resolvedPolicy);
-		$metadataBeforeUpdate = $file->getMetadata() ?? [];
-		$this->storePolicySnapshot($file, $resolvedPolicy);
-		$metadataChanged = ($file->getMetadata() ?? []) !== $metadataBeforeUpdate;
-
-		if ($metadataChanged) {
-			$this->fileService->update($file);
-		}
-	}
-
-	private function setFooterPolicyFromPolicy(FileEntity $file, array $data): void {
-		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
-		$requestOverrides = $this->getFooterPolicyRequestOverrides($data);
-		$resolvedPolicy = $this->policyService->resolveForUser(
-			FooterPolicy::KEY,
-			$user,
-			$requestOverrides,
-		);
-		$this->assertFooterPolicyOverrideAllowed($requestOverrides, $resolvedPolicy);
-		$this->storePolicySnapshot($file, $resolvedPolicy);
-	}
-
-	private function setDocMdpLevelFromPolicy(FileEntity $file, array $data): void {
-		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
-		$resolvedPolicy = $this->policyService->resolveForUser(
-			DocMdpPolicy::KEY,
-			$user,
-			$this->getDocMdpRequestOverrides($data),
-		);
-		$file->setDocmdpLevelEnum(DocMdpLevel::tryFrom((int)$resolvedPolicy->getEffectiveValue()) ?? DocMdpLevel::NOT_CERTIFIED);
-		$this->storePolicySnapshot($file, $resolvedPolicy);
-	}
-
-	/** @return array<string, int> */
-	private function getDocMdpRequestOverrides(array $data): array {
-		if (!isset($data['docmdpLevel']) || $data['docmdpLevel'] === null || $data['docmdpLevel'] === '') {
-			return [];
-		}
-
-		return [DocMdpPolicy::KEY => (int)$data['docmdpLevel']];
-	}
-
-	/** @return array<string, string> */
-	private function getFooterPolicyRequestOverrides(array $data): array {
-		if (!isset($data['footerPolicy']) || !is_string($data['footerPolicy'])) {
-			return [];
-		}
-
-		$footerPolicy = trim($data['footerPolicy']);
-		if ($footerPolicy === '') {
-			return [];
-		}
-
-		return [FooterPolicy::KEY => $footerPolicy];
-	}
-
-	/** @param array<string, string> $requestOverrides */
-	private function assertFooterPolicyOverrideAllowed(array $requestOverrides, ResolvedPolicy $resolvedPolicy): void {
-		if ($requestOverrides === [] || $resolvedPolicy->canUseAsRequestOverride()) {
-			return;
-		}
-
-		$blockedBy = $resolvedPolicy->getBlockedBy() ?? $resolvedPolicy->getSourceScope();
-		throw new LibresignException($this->l10n->t('Footer template override is blocked by %s.', [$blockedBy]), 422);
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {
