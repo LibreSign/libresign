@@ -105,10 +105,7 @@ const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
 	const rawFlow = file?.signatureFlow
 	let flow: SignatureFlowMode = 'parallel'
-	if (typeof rawFlow === 'number') {
-		const flowMap: Record<number, SignatureFlowMode> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-		flow = flowMap[rawFlow] || 'parallel'
-	} else if (rawFlow === 'none' || rawFlow === 'parallel' || rawFlow === 'ordered_numeric') {
+	if (rawFlow === 'none' || rawFlow === 'parallel' || rawFlow === 'ordered_numeric') {
 		flow = rawFlow
 	}
 	return flow
