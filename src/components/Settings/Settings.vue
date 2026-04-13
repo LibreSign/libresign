@@ -69,16 +69,17 @@ const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', '
 const policiesStore = usePoliciesStore()
 
 const canManagePreferences = computed(() => {
-	const signatureFlowPolicy = policiesStore.policies.signature_flow
-	if (!signatureFlowPolicy || typeof signatureFlowPolicy !== 'object') {
-		return false
-	}
+	return Object.values(policiesStore.policies).some((policy) => {
+		if (!policy || typeof policy !== 'object') {
+			return false
+		}
 
-	const policyState = signatureFlowPolicy as {
-		canSaveAsUserDefault?: boolean
-	}
+		const policyState = policy as {
+			canSaveAsUserDefault?: boolean
+		}
 
-	return policyState.canSaveAsUserDefault === true
+		return policyState.canSaveAsUserDefault === true
+	})
 })
 
 const hasEditablePolicies = computed(() => Object.values(policiesStore.policies).some((policy) => {
