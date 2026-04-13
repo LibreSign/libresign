@@ -14,15 +14,19 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\FilePolicy\Contract\IFilePolicyApplier;
+use OCP\IL10N;
 use OCP\IUser;
 
-class DocMdpFilePolicyApplier {
+class DocMdpFilePolicyApplier implements IFilePolicyApplier {
 	public function __construct(
 		private readonly PolicyService $policyService,
 		private readonly FileService $fileService,
+		private readonly ?IL10N $l10n = null,
 	) {
 	}
 
+	#[\Override]
 	public function apply(FileEntity $file, array $data): void {
 		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
 		$requestOverrides = $this->getOverrides($data);
@@ -34,6 +38,7 @@ class DocMdpFilePolicyApplier {
 		$this->storePolicySnapshot($file, $resolvedPolicy);
 	}
 
+	#[\Override]
 	public function sync(FileEntity $file, array $data): void {
 		$requestOverrides = $this->getOverrides($data);
 		$activeContext = $this->extractActiveContext($data);
@@ -49,6 +54,11 @@ class DocMdpFilePolicyApplier {
 			$file->setDocmdpLevelEnum($newLevel);
 			$this->fileService->update($file);
 		}
+	}
+
+	#[\Override]
+	public function supportsCoreFlowSync(): bool {
+		return true;
 	}
 
 	/**
