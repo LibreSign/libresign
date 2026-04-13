@@ -41,7 +41,6 @@ import draggable from 'vuedraggable'
 
 import Signer from './Signer.vue'
 import { useFilesStore } from '../../store/files.js'
-import type { SignatureFlowValue } from '../../types/index'
 
 defineOptions({
 	name: 'Signers',
@@ -81,8 +80,7 @@ const sortableSigners = computed<SignerListItem[] | undefined>({
 })
 
 const isOrderedNumeric = computed(() => {
-	const flow = filesStore.getFile()?.signatureFlow
-	return flow === 'ordered_numeric'
+	return filesStore.getFile()?.signatureFlow === 'ordered_numeric'
 })
 
 const canReorder = computed(() => filesStore.canSave() && (signers.value?.length || 0) > 1)
