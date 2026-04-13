@@ -13,7 +13,7 @@ import { createL10nMock } from '../../testHelpers/l10n.js'
 const fetchEffectivePoliciesMock = vi.fn()
 const saveUserPreferenceMock = vi.fn()
 const clearUserPreferenceMock = vi.fn()
-const getPolicyMock = vi.fn<() => EffectivePolicyState | null>()
+const getPolicyMock = vi.fn<(policyKey: string) => EffectivePolicyState | null>()
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
 
@@ -52,6 +52,13 @@ const NcButton = defineComponent({
 	template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
 })
 
+const SignatureFooterRuleEditor = defineComponent({
+	name: 'SignatureFooterRuleEditor',
+	props: ['modelValue'],
+	emits: ['update:modelValue'],
+	template: '<div class="signature-footer-rule-editor-stub">Footer editor</div>',
+})
+
 describe('Preferences view', () => {
 	beforeEach(() => {
 		fetchEffectivePoliciesMock.mockReset().mockResolvedValue(undefined)
@@ -82,6 +89,7 @@ describe('Preferences view', () => {
 					NcNoteCard,
 					NcCheckboxRadioSwitch,
 					NcButton,
+					SignatureFooterRuleEditor,
 				},
 			},
 		})
@@ -150,5 +158,46 @@ describe('Preferences view', () => {
 		await nextTick()
 
 		expect(wrapper.text()).toContain('does not allow saving a personal default')
+	})
+
+	it('renders footer preference section when footer customization is allowed', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'add_footer') {
+				return {
+					policyKey: 'add_footer',
+					effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false}',
+					sourceScope: 'system',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 0,
+					userCount: 0,
+				}
+			}
+
+			return {
+				policyKey: 'signature_flow',
+				effectiveValue: 'parallel',
+				sourceScope: 'system',
+				visible: true,
+				editableByCurrentActor: true,
+				allowedValues: ['parallel', 'ordered_numeric'],
+				blockedBy: null,
+				canSaveAsUserDefault: false,
+				canUseAsRequestOverride: true,
+				preferenceWasCleared: false,
+				groupCount: 0,
+				userCount: 0,
+			}
+		})
+
+		const wrapper = await createWrapper()
+
+		expect(wrapper.text()).toContain('Signature footer preferences')
+		expect(wrapper.text()).toContain('Save footer preference')
 	})
 })
