@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\Policy\Model;
 final class ResolvedPolicy {
 	private string $policyKey = '';
 	private mixed $effectiveValue = null;
+	private mixed $inheritedValue = null;
 	private string $sourceScope = '';
 	private bool $visible = false;
 	private bool $editableByCurrentActor = false;
@@ -37,6 +38,15 @@ final class ResolvedPolicy {
 
 	public function getEffectiveValue(): mixed {
 		return $this->effectiveValue;
+	}
+
+	public function setInheritedValue(mixed $inheritedValue): self {
+		$this->inheritedValue = $inheritedValue;
+		return $this;
+	}
+
+	public function getInheritedValue(): mixed {
+		return $this->inheritedValue;
 	}
 
 	public function setSourceScope(string $sourceScope): self {
@@ -118,6 +128,7 @@ final class ResolvedPolicy {
 		return [
 			'policyKey' => $this->getPolicyKey(),
 			'effectiveValue' => $this->getEffectiveValue(),
+			'inheritedValue' => $this->getInheritedValue(),
 			'sourceScope' => $this->getSourceScope(),
 			'visible' => $this->isVisible(),
 			'editableByCurrentActor' => $this->isEditableByCurrentActor(),
