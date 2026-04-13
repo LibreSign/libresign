@@ -177,6 +177,17 @@ class FooterHandler {
 	}
 
 	public function getTemplate(): string {
+		$footerPolicy = FooterPolicyValue::normalize(
+			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
+		);
+
+		if ($footerPolicy['customizeFooterTemplate']) {
+			$policyTemplate = trim((string)($footerPolicy['footerTemplate'] ?? ''));
+			if ($policyTemplate !== '') {
+				return $policyTemplate;
+			}
+		}
+
 		$footerTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
 		if ($footerTemplate) {
 			return $footerTemplate;
