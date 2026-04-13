@@ -39,6 +39,27 @@
 			@update:modelValue="onRememberSignatureFlowChange">
 			{{ t('libresign', 'Use this as my default signing order') }}
 		</NcCheckboxRadioSwitch>
+		<div v-if="showFooterTemplateSelector && !isOriginalFileDeleted" class="request-signature-footer-template-selector">
+			<label for="request-signature-footer-template-source" class="request-signature-footer-template-selector__label">
+				{{ t('libresign', 'Footer template for this request') }}
+			</label>
+			<select id="request-signature-footer-template-source"
+				v-model="selectedFooterTemplateSource"
+				class="request-signature-footer-template-selector__input"
+				@change="onFooterTemplateSourceChange">
+				<option v-for="option in footerTemplateSourceOptions"
+					:key="option.value"
+					:value="option.value">
+					{{ option.label }}
+				</option>
+			</select>
+		</div>
+		<NcCheckboxRadioSwitch v-if="showRememberFooterTemplate && !isOriginalFileDeleted"
+			v-model="rememberFooterTemplate"
+			type="switch"
+			@update:modelValue="onRememberFooterTemplateChange">
+			{{ t('libresign', 'Use this as my default footer template') }}
+		</NcCheckboxRadioSwitch>
 		<NcButton v-if="showViewOrderButton && !isOriginalFileDeleted"
 			variant="tertiary"
 			@click="showOrderDiagram = true">
@@ -333,8 +354,14 @@ import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
+import {
+	normalizeSignatureFooterPolicyConfig,
+	serializeSignatureFooterPolicyConfig,
+	type SignatureFooterPolicyConfig,
+} from '../../views/Settings/PolicyWorkbench/settings/signature-footer/model'
 import type { components, operations } from '../../types/openapi/openapi'
 import type {
+	EffectivePolicyValue,
 	IdentifyMethodRecord,
 	IdentifyMethodSetting as IdentifyMethodConfig,
 	LibresignCapabilities as RequestSignatureTabCapabilities,
@@ -359,6 +386,12 @@ type SigningOrderDiagramSigner = {
 	displayName?: string
 	signed?: boolean
 	signingOrder?: number
+}
+type FooterTemplateSource = 'effective' | 'inherited'
+type FooterTemplateSourceOption = {
+	value: FooterTemplateSource
+	label: string
+	policyValue: string
 }
 type PollingStatusData = {
 	status: number
@@ -408,6 +441,8 @@ const selectedSigner = ref<EditableRequestSigner | null>(null)
 const activeTab = ref('')
 const preserveOrder = ref(false)
 const rememberSignatureFlow = ref(false)
+const rememberFooterTemplate = ref(false)
+const selectedFooterTemplateSource = ref<FooterTemplateSource>('effective')
 const showOrderDiagram = ref(false)
 const showEnvelopeFilesDialog = ref(false)
 const signingProgress = ref<components['schemas']['ProgressPayload'] | null>(null)
@@ -416,7 +451,9 @@ const signingProgressStatusText = ref('')
 const stopPollingFunction = ref<null | (() => void)>(null)
 
 const signatureFlowPolicy = computed(() => policiesStore.getPolicy('signature_flow'))
+const footerPolicy = computed(() => policiesStore.getPolicy('add_footer'))
 const canChooseSigningOrderAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('signature_flow'))
+const canChooseFooterTemplateAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('add_footer'))
 const isAdminFlowForced = computed(() => !canChooseSigningOrderAtRequestLevel.value)
 
 const signatureFlow = computed(() => {
@@ -449,6 +486,7 @@ const signatureFlow = computed(() => {
 })
 
 const canSaveSignatureFlowPreference = computed(() => signatureFlowPolicy.value?.canSaveAsUserDefault ?? false)
+const canSaveFooterPreference = computed(() => footerPolicy.value?.canSaveAsUserDefault ?? false)
 const isOrderedNumeric = computed(() => signatureFlow.value === 'ordered_numeric')
 const hasSigners = computed(() => filesStore.hasSigners(filesStore.getFile()))
 const totalSigners = computed(() => Number(filesStore.getFile()?.signersCount || filesStore.getFile()?.signers?.length || 0))
@@ -459,6 +497,48 @@ const shouldLoadDetail = computed(() => totalSigners.value > 0)
 const showSigningOrderOptions = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && hasSigners.value && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value)
 const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && totalSigners.value > 1 && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value)
 const showRememberSignatureFlow = computed(() => showPreserveOrder.value && canSaveSignatureFlowPreference.value)
+const footerTemplateSourceOptions = computed<FooterTemplateSourceOption[]>(() => {
+	const options: FooterTemplateSourceOption[] = []
+	const policy = footerPolicy.value
+	if (!policy) {
+		return options
+	}
+
+	const inheritedValue = (policy as unknown as { inheritedValue?: unknown }).inheritedValue
+	const effectiveConfig = normalizeSignatureFooterPolicyConfig(policy.effectiveValue)
+	const inheritedConfig = normalizeSignatureFooterPolicyConfig((inheritedValue ?? policy.effectiveValue) as EffectivePolicyValue)
+	const hasEffectiveTemplate = hasCustomFooterTemplate(effectiveConfig)
+	const hasInheritedTemplate = hasCustomFooterTemplate(inheritedConfig)
+
+	if (hasEffectiveTemplate) {
+		options.push({
+			value: 'effective',
+			label: t('libresign', 'Use effective template'),
+			policyValue: serializeFooterPolicyConfigForRequest(effectiveConfig),
+		})
+	}
+
+	if (hasInheritedTemplate) {
+		const serializedInherited = serializeFooterPolicyConfigForRequest(inheritedConfig)
+		if (!options.some(option => option.policyValue === serializedInherited)) {
+			options.push({
+				value: 'inherited',
+				label: t('libresign', 'Use inherited template'),
+				policyValue: serializedInherited,
+			})
+		}
+	}
+
+	return options
+})
+const showFooterTemplateSelector = computed(() => {
+	return !isOriginalFileDeleted.value
+		&& isCurrentFileDetailed.value
+		&& filesStore.canSave()
+		&& canChooseFooterTemplateAtRequestLevel.value
+		&& footerTemplateSourceOptions.value.length > 1
+})
+const showRememberFooterTemplate = computed(() => showFooterTemplateSelector.value && canSaveFooterPreference.value)
 const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && totalSigners.value > 1 && hasSigners.value)
 const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && totalSigners.value > 1)
 const showSignatureFlowPreferenceClearedNotice = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
@@ -531,6 +611,69 @@ function getSignatureFlowPayloadForSave(): SignatureFlowValue | null {
 	}
 
 	return getResolvedSignatureFlowForSave()
+}
+
+function hasCustomFooterTemplate(config: SignatureFooterPolicyConfig): boolean {
+	return config.enabled && config.customizeFooterTemplate && config.footerTemplate.trim() !== ''
+}
+
+function serializeFooterPolicyConfigForRequest(config: SignatureFooterPolicyConfig): string {
+	const serialized = serializeSignatureFooterPolicyConfig(config)
+	return typeof serialized === 'string' ? serialized : ''
+}
+
+function getFooterPolicyPayloadForSave(): string | null {
+	if (!canChooseFooterTemplateAtRequestLevel.value) {
+		return null
+	}
+
+	const selectedOption = footerTemplateSourceOptions.value.find(option => option.value === selectedFooterTemplateSource.value)
+	return selectedOption?.policyValue ?? null
+}
+
+async function saveFooterTemplatePreference(footerPolicyValue: string): Promise<void> {
+	try {
+		await policiesStore.saveUserPreference('add_footer', footerPolicyValue)
+		syncRememberFooterTemplateWithPolicy()
+	} catch (error: unknown) {
+		showRequestError(error, t('libresign', 'Failed to save footer template preference'))
+		rememberFooterTemplate.value = false
+	}
+}
+
+async function onRememberFooterTemplateChange(value: boolean): Promise<void> {
+	const previousValue = rememberFooterTemplate.value
+	rememberFooterTemplate.value = value
+	if (!canSaveFooterPreference.value) {
+		return
+	}
+
+	try {
+		if (value) {
+			const footerPolicyValue = getFooterPolicyPayloadForSave()
+			if (footerPolicyValue) {
+				await saveFooterTemplatePreference(footerPolicyValue)
+			}
+			return
+		}
+
+		await policiesStore.clearUserPreference('add_footer')
+		syncRememberFooterTemplateWithPolicy()
+	} catch (error: unknown) {
+		showRequestError(error, t('libresign', 'Failed to clear footer template preference'))
+		rememberFooterTemplate.value = previousValue
+	}
+}
+
+function onFooterTemplateSourceChange(): void {
+	if (rememberFooterTemplate.value && canSaveFooterPreference.value) {
+		const footerPolicyValue = getFooterPolicyPayloadForSave()
+		if (footerPolicyValue) {
+			void saveFooterTemplatePreference(footerPolicyValue)
+		}
+	}
+
+	debouncedSave()
 }
 
 function getSignerMethod(signer: { identifyMethods?: Array<Pick<IdentifyMethodRecord, 'method'>> }): string | undefined {
@@ -823,9 +966,11 @@ const debouncedSave = debounce(async () => {
 		const file = filesStore.getFile()
 		const signers = isOrderedNumeric.value ? file?.signers : null
 		const signatureFlow = getSignatureFlowPayloadForSave()
+		const footerPolicy = getFooterPolicyPayloadForSave()
 		await filesStore.saveOrUpdateSignatureRequest({
 			signers,
 			signatureFlow,
+			footerPolicy,
 		})
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to save signature request'))
@@ -943,6 +1088,21 @@ function syncRememberSignatureFlowWithPolicy() {
 	rememberSignatureFlow.value = signatureFlowPolicy.value?.sourceScope === 'user'
 }
 
+function syncSelectedFooterTemplateSourceWithPolicy() {
+	if (footerTemplateSourceOptions.value.length === 0) {
+		selectedFooterTemplateSource.value = 'effective'
+		return
+	}
+
+	if (!footerTemplateSourceOptions.value.some(option => option.value === selectedFooterTemplateSource.value)) {
+		selectedFooterTemplateSource.value = footerTemplateSourceOptions.value[0]?.value ?? 'effective'
+	}
+}
+
+function syncRememberFooterTemplateWithPolicy() {
+	rememberFooterTemplate.value = footerPolicy.value?.sourceScope === 'user'
+}
+
 async function ensureCurrentFileDetail(force = false) {
 	const file = currentFile.value
 	if (typeof file?.id !== 'number' || (!force && (!shouldLoadDetail.value || isCurrentFileDetailed.value))) {
@@ -954,6 +1114,7 @@ async function ensureCurrentFileDetail(force = false) {
 		await filesStore.fetchFileDetail({ fileId: file.id, force })
 		syncFileSignatureFlowWithPolicy()
 		syncPreserveOrderWithFile()
+		syncSelectedFooterTemplateSourceWithPolicy()
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to load signer details'))
 	} finally {
@@ -1175,7 +1336,12 @@ async function confirmRequestSigner() {
 			}
 			return signer
 		})
-		await filesStore.saveOrUpdateSignatureRequest({ signers: signers as never, status: 1, signatureFlow: getSignatureFlowPayloadForSave() })
+		await filesStore.saveOrUpdateSignatureRequest({
+			signers: signers as never,
+			status: 1,
+			signatureFlow: getSignatureFlowPayloadForSave(),
+			footerPolicy: getFooterPolicyPayloadForSave(),
+		})
 		showSuccess(t('libresign', 'Signature requested'))
 		showConfirmRequestSigner.value = false
 		selectedSigner.value = null
@@ -1212,7 +1378,10 @@ async function save() {
 	await ensureCurrentFileDetail()
 	hasLoading.value = true
 	try {
-		await filesStore.saveOrUpdateSignatureRequest({ signatureFlow: getSignatureFlowPayloadForSave() })
+		await filesStore.saveOrUpdateSignatureRequest({
+			signatureFlow: getSignatureFlowPayloadForSave(),
+			footerPolicy: getFooterPolicyPayloadForSave(),
+		})
 		emit('libresign:show-visible-elements', new CustomEvent('libresign:show-visible-elements'))
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to save signature request'))
@@ -1228,7 +1397,11 @@ async function confirmRequest() {
 	await ensureCurrentFileDetail()
 	hasLoading.value = true
 	try {
-		const response = await filesStore.saveOrUpdateSignatureRequest({ status: 1, signatureFlow: getSignatureFlowPayloadForSave() })
+		const response = await filesStore.saveOrUpdateSignatureRequest({
+			status: 1,
+			signatureFlow: getSignatureFlowPayloadForSave(),
+			footerPolicy: getFooterPolicyPayloadForSave(),
+		})
 		showSuccess(t('libresign', response.message || 'Signature requested'))
 		showConfirmRequest.value = false
 	} catch (error: unknown) {
@@ -1239,7 +1412,10 @@ async function confirmRequest() {
 
 async function openManageFiles() {
 	hasLoading.value = true
-	const response = await filesStore.saveOrUpdateSignatureRequest({ signatureFlow: getSignatureFlowPayloadForSave() })
+	const response = await filesStore.saveOrUpdateSignatureRequest({
+		signatureFlow: getSignatureFlowPayloadForSave(),
+		footerPolicy: getFooterPolicyPayloadForSave(),
+	})
 	hasLoading.value = false
 	if (response && 'success' in response && response.success === false && response.message) {
 		showError(response.message)
@@ -1332,6 +1508,8 @@ watch(() => filesStore.selectedFileId, (newFileId) => {
 		syncFileSignatureFlowWithPolicy()
 		syncPreserveOrderWithFile()
 		syncRememberSignatureFlowWithPolicy()
+		syncSelectedFooterTemplateSourceWithPolicy()
+		syncRememberFooterTemplateWithPolicy()
 		void ensureCurrentFileDetail()
 	}
 }, { immediate: true })
@@ -1340,6 +1518,11 @@ watch(signatureFlowPolicy, () => {
 	syncFileSignatureFlowWithPolicy()
 	syncPreserveOrderWithFile()
 	syncRememberSignatureFlowWithPolicy()
+})
+
+watch(footerPolicy, () => {
+	syncSelectedFooterTemplateSourceWithPolicy()
+	syncRememberFooterTemplateWithPolicy()
 })
 
 const handleEditSigner = ((event: NextcloudEvent) => {
@@ -1362,6 +1545,8 @@ onMounted(() => {
 	syncFileSignatureFlowWithPolicy()
 	syncPreserveOrderWithFile()
 	syncRememberSignatureFlowWithPolicy()
+	syncSelectedFooterTemplateSourceWithPolicy()
+	syncRememberFooterTemplateWithPolicy()
 	void ensureCurrentFileDetail()
 })
 
@@ -1384,9 +1569,12 @@ defineExpose({
 	activeTab,
 	preserveOrder,
 	rememberSignatureFlow,
+	rememberFooterTemplate,
+	selectedFooterTemplateSource,
 	showOrderDiagram,
 	showEnvelopeFilesDialog,
 	signatureFlowPolicy,
+	footerPolicy,
 	debouncedSave,
 	debouncedTabChange,
 	signingProgress,
@@ -1400,6 +1588,9 @@ defineExpose({
 	showSigningOrderOptions,
 	showPreserveOrder,
 	showRememberSignatureFlow,
+	showFooterTemplateSelector,
+	showRememberFooterTemplate,
+	footerTemplateSourceOptions,
 	showSignatureFlowPreferenceClearedNotice,
 	showViewOrderButton,
 	shouldShowOrderedOptions,
@@ -1429,6 +1620,9 @@ defineExpose({
 	isSignerSigned,
 	onPreserveOrderChange,
 	onRememberSignatureFlowChange,
+	onRememberFooterTemplateChange,
+	onFooterTemplateSourceChange,
+	getFooterPolicyPayloadForSave,
 	syncFileSignatureFlowWithPolicy,
 	syncPreserveOrderWithFile,
 	getSvgIcon,
@@ -1471,6 +1665,26 @@ defineExpose({
 
 .action-form-box {
 	margin-top: 6px;
+}
+
+.request-signature-footer-template-selector {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 8px 0;
+
+	&__label {
+		font-weight: 600;
+	}
+
+	&__input {
+		width: 100%;
+		padding: 8px;
+		border: 1px solid var(--color-border-maxcontrast);
+		border-radius: 6px;
+		background: var(--color-main-background);
+		color: var(--color-main-text);
+	}
 }
 
 .iframe {
