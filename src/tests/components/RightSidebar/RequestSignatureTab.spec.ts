@@ -119,6 +119,19 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 							blockedBy: null,
 							...policyOverrides,
 						},
+						add_footer: {
+							policyKey: 'add_footer',
+							effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>My footer</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+							inheritedValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Team footer</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+							sourceScope: 'user',
+							visible: true,
+							editableByCurrentActor: true,
+							allowedValues: [],
+							canSaveAsUserDefault: true,
+							canUseAsRequestOverride: true,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
 					},
 				},
 			},
@@ -153,6 +166,18 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		const policiesStore = usePoliciesStore()
 		policiesStore.setPolicies({
 			signature_flow: createSignatureFlowPolicy(policyOverrides),
+			add_footer: createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
+		})
+		await wrapper.vm.$nextTick()
+	}
+	const updateFooterPolicy = async (policyOverrides: Record<string, unknown>) => {
+		const policiesStore = usePoliciesStore()
+		policiesStore.setPolicies({
+			signature_flow: createSignatureFlowPolicy(),
+			add_footer: {
+				...createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
+				...policyOverrides,
+			},
 		})
 		await wrapper.vm.$nextTick()
 	}
@@ -405,6 +430,66 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 			expect(wrapper.vm.showPreserveOrder).toBe(true)
 			expect(wrapper.vm.showRememberSignatureFlow).toBe(true)
+		})
+	})
+
+	describe('RULE: footer template selection at request time', () => {
+		it('shows template selector when add_footer supports request override and has two options', async () => {
+			await updateFile({
+				status: FILE_STATUS.DRAFT,
+				signers: [
+					{ email: 'test1@example.com', signed: [] },
+				],
+			})
+			await updateFooterPolicy({
+				canUseAsRequestOverride: true,
+				effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Personal template</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+				inheritedValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Group template</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+			})
+
+			expect(wrapper.vm.showFooterTemplateSelector).toBe(true)
+			expect(wrapper.vm.footerTemplateSourceOptions).toHaveLength(2)
+		})
+
+		it('builds payload using selected inherited template source', async () => {
+			await updateFooterPolicy({
+				canUseAsRequestOverride: true,
+				effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Personal template</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+				inheritedValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Group template</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+			})
+
+			wrapper.vm.selectedFooterTemplateSource = 'inherited'
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.vm.getFooterPolicyPayloadForSave()).toContain('Group template')
+		})
+
+		it('saves add_footer preference when remember footer template is enabled', async () => {
+			vi.mocked(axios.put).mockResolvedValue({
+				data: {
+					ocs: {
+						data: {
+							policy: {
+								...createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
+								sourceScope: 'user',
+							},
+						},
+					},
+				},
+			})
+			await updateFooterPolicy({
+				canSaveAsUserDefault: true,
+				canUseAsRequestOverride: true,
+			})
+
+			wrapper.vm.rememberFooterTemplate = true
+			await wrapper.vm.onFooterTemplateSourceChange()
+			await flushPromises()
+
+			expect(axios.put).toHaveBeenCalledWith(
+				'/ocs/apps/libresign/api/v1/policies/user/add_footer',
+				expect.objectContaining({ value: expect.any(String) }),
+			)
 		})
 	})
 
