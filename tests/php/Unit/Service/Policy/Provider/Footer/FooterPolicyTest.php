@@ -40,7 +40,7 @@ final class FooterPolicyTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{0: mixed, 1: array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool}}>
+	 * @return array<string, array{0: mixed, 1: array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate?: string, previewWidth?: int, previewHeight?: int, previewZoom?: int}}>
 	 */
 	public static function normalizationCases(): array {
 		return [
@@ -63,12 +63,15 @@ final class FooterPolicyTest extends TestCase {
 				],
 			],
 			'structured json keeps full explicit payload' => [
-				'{"enabled":true,"writeQrcodeOnFooter":false,"validationSite":"https://validation.example","customizeFooterTemplate":true}',
+				'{"enabled":true,"writeQrcodeOnFooter":false,"validationSite":"https://validation.example","customizeFooterTemplate":true,"previewWidth":740,"previewHeight":160,"previewZoom":130}',
 				[
 					'enabled' => true,
 					'writeQrcodeOnFooter' => false,
 					'validationSite' => 'https://validation.example',
 					'customizeFooterTemplate' => true,
+					'previewWidth' => 740,
+					'previewHeight' => 160,
+					'previewZoom' => 130,
 				],
 			],
 			'legacy snake case json is normalized' => [
@@ -88,6 +91,56 @@ final class FooterPolicyTest extends TestCase {
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
 				],
+			],
+		];
+	}
+
+	#[DataProvider('validationSiteOverrideCases')]
+	public function testValidationSiteOverrideRules(
+		array $actorCapabilities,
+		bool $expectException,
+	): void {
+		$provider = new FooterPolicy();
+		$definition = $provider->get(FooterPolicy::KEY);
+		$value = $definition->normalizeValue([
+			'enabled' => true,
+			'writeQrcodeOnFooter' => true,
+			'validationSite' => 'https://internal.example/validation',
+			'customizeFooterTemplate' => false,
+		]);
+
+		$context = (new PolicyContext())
+			->setActorCapabilities($actorCapabilities);
+
+		if ($expectException) {
+			$this->expectException(\InvalidArgumentException::class);
+		}
+
+		$definition->validateValue($value, $context);
+
+		if (!$expectException) {
+			$this->addToAssertionCount(1);
+		}
+	}
+
+	/**
+	 * @return array<string, array{0: array{canManageSystemPolicies: bool, canManageGroupPolicies: bool}, 1: bool}>
+	 */
+	public static function validationSiteOverrideCases(): array {
+		return [
+			'rejects override for regular actors' => [
+				[
+					'canManageSystemPolicies' => false,
+					'canManageGroupPolicies' => false,
+				],
+				true,
+			],
+			'allows override for policy managers' => [
+				[
+					'canManageSystemPolicies' => false,
+					'canManageGroupPolicies' => true,
+				],
+				false,
 			],
 		];
 	}
