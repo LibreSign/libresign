@@ -39,21 +39,16 @@
 			@update:modelValue="onRememberSignatureFlowChange">
 			{{ t('libresign', 'Use this as my default signing order') }}
 		</NcCheckboxRadioSwitch>
-		<div v-if="showFooterTemplateSelector && !isOriginalFileDeleted" class="request-signature-footer-template-selector">
-			<label for="request-signature-footer-template-source" class="request-signature-footer-template-selector__label">
-				{{ t('libresign', 'Footer template for this request') }}
-			</label>
-			<select id="request-signature-footer-template-source"
-				v-model="selectedFooterTemplateSource"
-				class="request-signature-footer-template-selector__input"
-				@change="onFooterTemplateSourceChange">
-				<option v-for="option in footerTemplateSourceOptions"
-					:key="option.value"
-					:value="option.value">
-					{{ option.label }}
-				</option>
-			</select>
-		</div>
+		<NcCheckboxRadioSwitch v-for="option in footerTemplateSourceOptions"
+			v-if="showFooterTemplateSelector && !isOriginalFileDeleted"
+			:key="option.value"
+			v-model="selectedFooterTemplateSource"
+			type="radio"
+			name="footer-template-source"
+			:value="option.value"
+			@update:modelValue="onFooterTemplateSourceChange">
+			{{ option.label }}
+		</NcCheckboxRadioSwitch>
 		<NcCheckboxRadioSwitch v-if="showRememberFooterTemplate && !isOriginalFileDeleted"
 			v-model="rememberFooterTemplate"
 			type="switch"
@@ -365,7 +360,6 @@ import type {
 	IdentifyMethodRecord,
 	IdentifyMethodSetting as IdentifyMethodConfig,
 	LibresignCapabilities as RequestSignatureTabCapabilities,
-	SignatureFlowValue,
 } from '../../types/index'
 
 type FilesStoreContract = ReturnType<typeof useFilesStore>
@@ -382,6 +376,7 @@ type IdentifySignerToEdit = {
 	identifyMethods?: IdentifySignerMethod[]
 }
 type ResolvedSignatureFlowMode = 'none' | 'parallel' | 'ordered_numeric'
+type RequestSignatureFlowOverride = 'parallel' | 'ordered_numeric'
 type SigningOrderDiagramSigner = {
 	displayName?: string
 	signed?: boolean
@@ -466,20 +461,12 @@ const signatureFlow = computed(() => {
 		return resolvedPolicy
 	}
 
-	if (typeof fileFlow === 'number' && fileFlow !== 0 && resolvedFileFlow) {
-		return resolvedFileFlow
-	}
-
 	if (resolvedFileFlow && resolvedFileFlow !== 'none') {
 		return resolvedFileFlow
 	}
 
 	if (resolvedPolicy && resolvedPolicy !== 'none') {
 		return resolvedPolicy
-	}
-
-	if (fileFlow === 0) {
-		return 'none'
 	}
 
 	return 'parallel'
@@ -511,9 +498,12 @@ const footerTemplateSourceOptions = computed<FooterTemplateSourceOption[]>(() =>
 	const hasInheritedTemplate = hasCustomFooterTemplate(inheritedConfig)
 
 	if (hasEffectiveTemplate) {
+		const isUserOwn = footerPolicy.value?.sourceScope === 'user'
 		options.push({
 			value: 'effective',
-			label: t('libresign', 'Use effective template'),
+			label: isUserOwn
+				? t('libresign', 'My saved footer template')
+				: t('libresign', 'Configured footer template'),
 			policyValue: serializeFooterPolicyConfigForRequest(effectiveConfig),
 		})
 	}
@@ -523,7 +513,7 @@ const footerTemplateSourceOptions = computed<FooterTemplateSourceOption[]>(() =>
 		if (!options.some(option => option.policyValue === serializedInherited)) {
 			options.push({
 				value: 'inherited',
-				label: t('libresign', 'Use inherited template'),
+				label: t('libresign', 'Default footer template'),
 				policyValue: serializedInherited,
 			})
 		}
@@ -559,40 +549,23 @@ const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
 	}))
 })
 
-function normalizeSignatureFlow(flow: unknown): SignatureFlowValue | null {
+function normalizeSignatureFlow(flow: unknown): ResolvedSignatureFlowMode | null {
 	if (flow && typeof flow === 'object' && 'flow' in (flow as Record<string, unknown>)) {
 		const nestedFlow = (flow as { flow?: unknown }).flow
 		return normalizeSignatureFlow(nestedFlow)
 	}
 
-	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric' || flow === 0 || flow === 1 || flow === 2) {
+	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric') {
 		return flow
 	}
 	return null
 }
 
 function toSignatureFlowMode(flow: unknown): ResolvedSignatureFlowMode | null {
-	const normalizedFlow = normalizeSignatureFlow(flow)
-	if (normalizedFlow === 0) {
-		return 'none'
-	}
-
-	if (normalizedFlow === 1) {
-		return 'parallel'
-	}
-
-	if (normalizedFlow === 2) {
-		return 'ordered_numeric'
-	}
-
-	if (normalizedFlow === 'none' || normalizedFlow === 'parallel' || normalizedFlow === 'ordered_numeric') {
-		return normalizedFlow
-	}
-
-	return null
+	return normalizeSignatureFlow(flow)
 }
 
-function getResolvedSignatureFlowForSave(): SignatureFlowValue {
+function getResolvedSignatureFlowForSave(): RequestSignatureFlowOverride {
 	const flow = signatureFlow.value
 	if (flow === 'ordered_numeric') {
 		return 'ordered_numeric'
@@ -605,7 +578,7 @@ function getResolvedSignatureFlowForSave(): SignatureFlowValue {
 	return 'parallel'
 }
 
-function getSignatureFlowPayloadForSave(): SignatureFlowValue | null {
+function getSignatureFlowPayloadForSave(): RequestSignatureFlowOverride | null {
 	if (!canChooseSigningOrderAtRequestLevel.value) {
 		return null
 	}
@@ -629,6 +602,20 @@ function getFooterPolicyPayloadForSave(): string | null {
 
 	const selectedOption = footerTemplateSourceOptions.value.find(option => option.value === selectedFooterTemplateSource.value)
 	return selectedOption?.policyValue ?? null
+}
+
+function getPolicyPayloadForSave(): { overrides: Record<string, string> } | null {
+	const overrides: Record<string, string> = {}
+	const signatureFlow = getSignatureFlowPayloadForSave()
+	if (signatureFlow) {
+		overrides.signature_flow = signatureFlow
+	}
+	const footerPolicyValue = getFooterPolicyPayloadForSave()
+	if (footerPolicyValue) {
+		overrides.add_footer = footerPolicyValue
+	}
+
+	return Object.keys(overrides).length > 0 ? { overrides } : null
 }
 
 async function saveFooterTemplatePreference(footerPolicyValue: string): Promise<void> {
@@ -965,12 +952,10 @@ const debouncedSave = debounce(async () => {
 	try {
 		const file = filesStore.getFile()
 		const signers = isOrderedNumeric.value ? file?.signers : null
-		const signatureFlow = getSignatureFlowPayloadForSave()
-		const footerPolicy = getFooterPolicyPayloadForSave()
+		const policy = getPolicyPayloadForSave()
 		await filesStore.saveOrUpdateSignatureRequest({
 			signers,
-			signatureFlow,
-			footerPolicy,
+			...(policy ? { policy } : {}),
 		})
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to save signature request'))
@@ -1336,11 +1321,11 @@ async function confirmRequestSigner() {
 			}
 			return signer
 		})
+		const policy = getPolicyPayloadForSave()
 		await filesStore.saveOrUpdateSignatureRequest({
 			signers: signers as never,
 			status: 1,
-			signatureFlow: getSignatureFlowPayloadForSave(),
-			footerPolicy: getFooterPolicyPayloadForSave(),
+			...(policy ? { policy } : {}),
 		})
 		showSuccess(t('libresign', 'Signature requested'))
 		showConfirmRequestSigner.value = false
@@ -1378,9 +1363,9 @@ async function save() {
 	await ensureCurrentFileDetail()
 	hasLoading.value = true
 	try {
+		const policy = getPolicyPayloadForSave()
 		await filesStore.saveOrUpdateSignatureRequest({
-			signatureFlow: getSignatureFlowPayloadForSave(),
-			footerPolicy: getFooterPolicyPayloadForSave(),
+			...(policy ? { policy } : {}),
 		})
 		emit('libresign:show-visible-elements', new CustomEvent('libresign:show-visible-elements'))
 	} catch (error: unknown) {
@@ -1397,10 +1382,10 @@ async function confirmRequest() {
 	await ensureCurrentFileDetail()
 	hasLoading.value = true
 	try {
+		const policy = getPolicyPayloadForSave()
 		const response = await filesStore.saveOrUpdateSignatureRequest({
 			status: 1,
-			signatureFlow: getSignatureFlowPayloadForSave(),
-			footerPolicy: getFooterPolicyPayloadForSave(),
+			...(policy ? { policy } : {}),
 		})
 		showSuccess(t('libresign', response.message || 'Signature requested'))
 		showConfirmRequest.value = false
@@ -1412,9 +1397,9 @@ async function confirmRequest() {
 
 async function openManageFiles() {
 	hasLoading.value = true
+	const policy = getPolicyPayloadForSave()
 	const response = await filesStore.saveOrUpdateSignatureRequest({
-		signatureFlow: getSignatureFlowPayloadForSave(),
-		footerPolicy: getFooterPolicyPayloadForSave(),
+		...(policy ? { policy } : {}),
 	})
 	hasLoading.value = false
 	if (response && 'success' in response && response.success === false && response.message) {
@@ -1667,25 +1652,7 @@ defineExpose({
 	margin-top: 6px;
 }
 
-.request-signature-footer-template-selector {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	margin: 8px 0;
 
-	&__label {
-		font-weight: 600;
-	}
-
-	&__input {
-		width: 100%;
-		padding: 8px;
-		border: 1px solid var(--color-border-maxcontrast);
-		border-radius: 6px;
-		background: var(--color-main-background);
-		color: var(--color-main-text);
-	}
-}
 
 .iframe {
 	width: 100%;
