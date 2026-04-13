@@ -2376,6 +2376,9 @@
                     },
                     "signature_flow": {
                         "$ref": "#/components/schemas/PolicySnapshotEntry"
+                    },
+                    "add_footer": {
+                        "$ref": "#/components/schemas/PolicySnapshotEntry"
                     }
                 }
             },
@@ -7927,10 +7930,13 @@
                                         "default": 1,
                                         "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending"
                                     },
-                                    "signatureFlow": {
-                                        "type": "string",
+                                    "policy": {
+                                        "type": "object",
                                         "nullable": true,
-                                        "description": "Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses the effective policy resolution."
+                                        "description": "Structured policy payload with request-level overrides and active context.",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
                                     }
                                 }
                             }
@@ -8086,10 +8092,13 @@
                                         "nullable": true,
                                         "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending"
                                     },
-                                    "signatureFlow": {
-                                        "type": "string",
+                                    "policy": {
+                                        "type": "object",
                                         "nullable": true,
-                                        "description": "Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses the effective policy resolution."
+                                        "description": "Structured policy payload with request-level overrides and active context.",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
                                     },
                                     "name": {
                                         "type": "string",
