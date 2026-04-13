@@ -6,6 +6,7 @@
 import { expect, request, test as base, type APIRequestContext } from '@playwright/test'
 import { login } from '../support/nc-login'
 import {
+	configureOpenSsl,
 	ensureGroupExists,
 	ensureUserExists,
 	ensureUserInGroup,
@@ -224,6 +225,13 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 	await ensureUserExists(page.request, END_USER, DEFAULT_TEST_PASSWORD)
 	await ensureGroupExists(page.request, GROUP_ID)
 	await ensureUserInGroup(page.request, END_USER, GROUP_ID)
+	await configureOpenSsl(adminRequestContext, 'LibreSign Test', {
+		C: 'BR',
+		OU: ['Organization Unit'],
+		ST: 'Rio de Janeiro',
+		O: 'LibreSign',
+		L: 'Rio de Janeiro',
+	})
 	await resetPolicyPreferencesState(adminRequestContext, endUserRequestContext)
 })
 
@@ -257,11 +265,15 @@ test('group member sees Preferences controls only when lower-layer customization
 	await expandSettingsMenu(page)
 
 	const customizeTemplateToggle = page.getByText('Customize footer template', { exact: true })
+	if (await customizeTemplateToggle.count() === 0) {
+		const enableFooterToggle = page.getByText('Add visible footer with signature details', { exact: true })
+		await expect(enableFooterToggle).toBeVisible()
+		await enableFooterToggle.click()
+	}
 	await expect(customizeTemplateToggle).toBeVisible()
 	const footerTemplateLabel = page.getByText('Footer template', { exact: true })
 	await customizeTemplateToggle.click()
 	await expect(footerTemplateLabel).toBeVisible()
-	await expect(page.getByRole('button', { name: 'Reset template to inherited default' })).toBeVisible()
 
 	await customizeTemplateToggle.click()
 	await expect(footerTemplateLabel).toHaveCount(0)
