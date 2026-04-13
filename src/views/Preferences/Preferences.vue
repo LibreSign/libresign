@@ -6,10 +6,12 @@
 <template>
 	<div class="preferences-view">
 		<NcSettingsSection
-			:name="t('libresign', 'Preferences')"
-			:description="t('libresign', 'Save your default signing order for new signature requests when higher-level policies allow it.')">
-			<NcNoteCard v-if="preferenceCleared" type="info">
-				{{ t('libresign', 'A previously saved signing order preference was cleared because it is no longer compatible with a higher-level policy.') }}
+			v-for="entry in preferenceEntries"
+			:key="entry.definition.key"
+			:name="entry.definition.title"
+			:description="entry.definition.description">
+			<NcNoteCard v-if="entry.policy?.preferenceWasCleared" type="info">
+				{{ t('libresign', 'A previously saved preference was cleared because it is no longer compatible with a higher-level policy.') }}
 			</NcNoteCard>
 
 			<NcNoteCard v-if="errorMessage" type="error">
@@ -18,78 +20,39 @@
 
 			<div class="preferences-view__summary">
 				<div>
-					<strong>{{ t('libresign', 'Effective signing order') }}</strong>
-					<p>{{ effectiveLabel }}</p>
+					<strong>{{ t('libresign', 'Effective value') }}</strong>
+					<p>{{ summarizeEffectiveValue(entry.definition.key) }}</p>
 				</div>
 				<div>
 					<strong>{{ t('libresign', 'Source') }}</strong>
-					<p>{{ sourceLabel }}</p>
+					<p>{{ sourceLabelFor(entry.policy) }}</p>
 				</div>
 			</div>
 
-			<NcNoteCard v-if="!canSavePreference" type="info">
-				{{ t('libresign', 'Your current context does not allow saving a personal default for signing order. The effective value above is still applied when you create requests.') }}
+			<NcNoteCard v-if="!canSavePreferenceFor(entry.definition.key)" type="info">
+				{{ t('libresign', 'Your current context does not allow saving a personal default for this setting.') }}
 			</NcNoteCard>
 
 			<div v-else class="preferences-view__options">
-				<NcCheckboxRadioSwitch
-					v-for="flow in availableFlows"
-					:key="flow.value"
-					type="radio"
-					:model-value="selectedValue"
-					:value="flow.value"
-					:disabled="saving"
-					name="signature_flow_preference"
-					@update:modelValue="onPreferenceChange(flow.value)">
-					<div class="preferences-view__option-copy">
-						<strong>{{ flow.label }}</strong>
-						<p>{{ flow.description }}</p>
-					</div>
-				</NcCheckboxRadioSwitch>
+				<component
+					:is="entry.definition.editor"
+					:model-value="selectedPreferenceValues[entry.definition.key]"
+					v-bind="editorPropsFor(entry.definition.key)"
+					@update:modelValue="(value: EffectivePolicyValue) => onPreferenceChange(entry.definition.key, value)" />
 
-				<div class="preferences-view__actions">
+				<div v-if="!shouldAutoSavePreferenceFor(entry.definition.key)" class="preferences-view__actions">
 					<NcButton
-						:variant="hasSavedPreference ? 'secondary' : 'primary'"
+						:variant="hasSavedPreferenceFor(entry.definition.key) ? 'secondary' : 'primary'"
 						:disabled="saving"
-						@click="savePreference(selectedValue)">
-						{{ hasSavedPreference ? t('libresign', 'Update saved preference') : t('libresign', 'Save as my default') }}
+						@click="savePreferenceByKey(entry.definition.key, selectedPreferenceValues[entry.definition.key])">
+						{{ hasSavedPreferenceFor(entry.definition.key) ? t('libresign', 'Update saved preference') : t('libresign', 'Save as my default') }}
 					</NcButton>
 					<NcButton
-						v-if="hasSavedPreference"
+						v-if="hasSavedPreferenceFor(entry.definition.key)"
 						variant="secondary"
 						:disabled="saving"
-						@click="clearPreference">
+						@click="clearPreferenceByKey(entry.definition.key)">
 						{{ t('libresign', 'Clear saved preference') }}
-					</NcButton>
-				</div>
-			</div>
-		</NcSettingsSection>
-
-		<NcSettingsSection
-			:name="t('libresign', 'Signature footer preferences')"
-			:description="t('libresign', 'Save your personal footer defaults when higher-level policies allow customization.')">
-			<NcNoteCard v-if="!canSaveFooterPreference" type="info">
-				{{ t('libresign', 'Your current context does not allow saving personal footer preferences.') }}
-			</NcNoteCard>
-
-			<div v-else class="preferences-view__options">
-				<SignatureFooterRuleEditor
-					:model-value="selectedFooterValue"
-					@update:modelValue="onFooterPreferenceChange" />
-
-				<div class="preferences-view__actions">
-					<NcButton
-						:variant="hasSavedFooterPreference ? 'secondary' : 'primary'"
-						:disabled="saving"
-						@click="saveFooterPreference(selectedFooterValue)">
-						{{ hasSavedFooterPreference ? t('libresign', 'Update footer preference') : t('libresign', 'Save footer preference') }}
-					</NcButton>
-					<NcButton
-						v-if="hasSavedFooterPreference"
-						variant="secondary"
-						:disabled="saving"
-						@click="clearFooterPreference">
-						{{ t('libresign', 'Clear footer preference') }}
 					</NcButton>
 				</div>
 			</div>
@@ -98,71 +61,62 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
-import SignatureFooterRuleEditor from '../Settings/PolicyWorkbench/settings/signature-footer/SignatureFooterRuleEditor.vue'
 import { usePoliciesStore } from '../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue, SignatureFlowMode } from '../../types/index'
-import {
-	normalizeSignatureFooterPolicyConfig,
-	serializeSignatureFooterPolicyConfig,
-} from '../Settings/PolicyWorkbench/settings/signature-footer/model'
+import { realDefinitions } from '../Settings/PolicyWorkbench/settings/realDefinitions'
 
 defineOptions({
 	name: 'Preferences',
 })
 
-type FlowOption = {
-	value: SignatureFlowMode
-	label: string
-	description: string
-}
-
 const policiesStore = usePoliciesStore()
 const saving = ref(false)
 const errorMessage = ref('')
+const selectedPreferenceValues = reactive<Record<string, EffectivePolicyValue>>({})
 
-const availableFlows: FlowOption[] = [
-	{
-		value: 'parallel',
-		label: t('libresign', 'Simultaneous (Parallel)'),
-		description: t('libresign', 'All signers receive the document at the same time and can sign in any order.'),
-	},
-	{
-		value: 'ordered_numeric',
-		label: t('libresign', 'Sequential'),
-		description: t('libresign', 'Signers are organized by signing order number. Only those with the lowest pending order number can sign.'),
-	},
-]
-
-const signatureFlowPolicy = computed<EffectivePolicyState | null>(() => policiesStore.getPolicy('signature_flow'))
-const canSavePreference = computed(() => signatureFlowPolicy.value?.canSaveAsUserDefault ?? false)
-const hasSavedPreference = computed(() => signatureFlowPolicy.value?.sourceScope === 'user')
-const preferenceCleared = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
-
-const footerPolicy = computed<EffectivePolicyState | null>(() => policiesStore.getPolicy('add_footer'))
-const canSaveFooterPreference = computed(() => footerPolicy.value?.canSaveAsUserDefault ?? false)
-const hasSavedFooterPreference = computed(() => footerPolicy.value?.sourceScope === 'user')
-
-const selectedValue = ref<SignatureFlowMode>('parallel')
-const selectedFooterValue = ref<EffectivePolicyValue>(serializeSignatureFooterPolicyConfig(normalizeSignatureFooterPolicyConfig(null)))
-
-const effectiveLabel = computed(() => {
-	if (signatureFlowPolicy.value?.effectiveValue === 'ordered_numeric') {
-		return t('libresign', 'Sequential')
+const preferencePolicyKeys = computed(() => {
+	const policyKeysFromApi = Object.keys(policiesStore.policies ?? {})
+	if (policyKeysFromApi.length > 0) {
+		return policyKeysFromApi
 	}
-	return t('libresign', 'Simultaneous (Parallel)')
+
+	return Object.keys(realDefinitions)
 })
 
-const sourceLabel = computed(() => {
-	switch (signatureFlowPolicy.value?.sourceScope) {
+const preferenceEntries = computed(() => {
+	return preferencePolicyKeys.value
+		.filter((policyKey) => shouldRenderPreferencePolicy(policyKey))
+		.map((policyKey) => realDefinitions[policyKey as keyof typeof realDefinitions])
+		.filter((definition): definition is (typeof realDefinitions)[keyof typeof realDefinitions] => Boolean(definition))
+		.map((definition) => ({
+		definition,
+		policy: policiesStore.getPolicy(definition.key),
+		}))
+})
+
+function shouldRenderPreferencePolicy(policyKey: string): boolean {
+	if (!realDefinitions[policyKey as keyof typeof realDefinitions]) {
+		return false
+	}
+
+	const policy = policiesStore.getPolicy(policyKey)
+	if (!policy) {
+		return false
+	}
+
+	return policy.canSaveAsUserDefault || policy.sourceScope === 'user'
+}
+
+function sourceLabelFor(policy: EffectivePolicyState | null): string {
+	switch (policy?.sourceScope) {
 	case 'user':
 		return t('libresign', 'Your saved preference')
 	case 'user_policy':
@@ -175,93 +129,116 @@ const sourceLabel = computed(() => {
 	default:
 		return t('libresign', 'Global default')
 	}
-})
-
-function syncSelectedValue(): void {
-	selectedValue.value = signatureFlowPolicy.value?.effectiveValue === 'ordered_numeric'
-		? 'ordered_numeric'
-		: 'parallel'
 }
 
-function syncSelectedFooterValue(): void {
-	selectedFooterValue.value = serializeSignatureFooterPolicyConfig(
-		normalizeSignatureFooterPolicyConfig(footerPolicy.value?.effectiveValue ?? null),
-	)
+function summarizeEffectiveValue(policyKey: string): string {
+	const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
+	const policy = policiesStore.getPolicy(policyKey)
+	if (!definition || !policy) {
+		return t('libresign', 'Not configured')
+	}
+
+	return definition.summarizeValue(policy.effectiveValue)
 }
 
-async function savePreference(flow: SignatureFlowMode): Promise<void> {
-	if (!canSavePreference.value) {
+function canSavePreferenceFor(policyKey: string): boolean {
+	return policiesStore.getPolicy(policyKey)?.canSaveAsUserDefault ?? false
+}
+
+function hasSavedPreferenceFor(policyKey: string): boolean {
+	return policiesStore.getPolicy(policyKey)?.sourceScope === 'user'
+}
+
+function syncSelectedPreference(policyKey: string): void {
+	const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
+	if (!definition) {
 		return
 	}
 
-	saving.value = true
-	errorMessage.value = ''
-	try {
-		await policiesStore.saveUserPreference('signature_flow', flow)
-		syncSelectedValue()
-	} catch (error) {
-		console.error('Failed to save signing order preference', error)
-		errorMessage.value = t('libresign', 'Could not save your signing order preference. Try again.')
-	} finally {
-		saving.value = false
+	const policy = policiesStore.getPolicy(policyKey)
+	selectedPreferenceValues[policyKey] = definition.normalizeDraftValue(policy?.effectiveValue ?? null)
+}
+
+function syncAllSelectedPreferences(): void {
+	for (const entry of preferenceEntries.value) {
+		syncSelectedPreference(entry.definition.key)
 	}
+}
+
+function editorPropsFor(policyKey: string): Record<string, unknown> {
+	const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
+	const baseEditorProps = definition?.editorProps ?? {}
+	const resolvedEditorProps = definition?.resolveEditorProps?.(policiesStore.getPolicy(policyKey), baseEditorProps) ?? baseEditorProps
+
+	return {
+		...resolvedEditorProps,
+		editorScope: 'user',
+		editorMode: 'edit',
+	}
+}
+
+function shouldAutoSavePreferenceFor(policyKey: string): boolean {
+	const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
+	return (definition?.editorProps as Record<string, unknown> | undefined)?.preferenceAutoSave === true
+}
+
+function onPreferenceChange(policyKey: string, value: EffectivePolicyValue): void {
+	selectedPreferenceValues[policyKey] = value
+	if (shouldAutoSavePreferenceFor(policyKey) && canSavePreferenceFor(policyKey)) {
+		void savePreferenceByKey(policyKey, value)
+		return
+	}
+
+	if (hasSavedPreferenceFor(policyKey)) {
+		void savePreferenceByKey(policyKey, value)
+	}
+}
+
+async function savePreferenceByKey(policyKey: string, value: EffectivePolicyValue): Promise<void> {
+	await savePreferenceValue(policyKey, value, t('libresign', 'Could not save your preference. Try again.'))
+	syncSelectedPreference(policyKey)
+}
+
+async function clearPreferenceByKey(policyKey: string): Promise<void> {
+	await clearPreferenceValue(policyKey, t('libresign', 'Could not clear your preference. Try again.'))
+	syncSelectedPreference(policyKey)
+}
+
+// Backward-compatible helpers used by existing tests.
+async function savePreference(flow: SignatureFlowMode): Promise<void> {
+	await savePreferenceByKey('signature_flow', flow)
 }
 
 async function clearPreference(): Promise<void> {
-	saving.value = true
-	errorMessage.value = ''
-	try {
-		await policiesStore.clearUserPreference('signature_flow')
-		syncSelectedValue()
-	} catch (error) {
-		console.error('Failed to clear signing order preference', error)
-		errorMessage.value = t('libresign', 'Could not clear your signing order preference. Try again.')
-	} finally {
-		saving.value = false
-	}
+	await clearPreferenceByKey('signature_flow')
 }
 
-function onPreferenceChange(flow: SignatureFlowMode): void {
-	selectedValue.value = flow
-	if (hasSavedPreference.value) {
-		void savePreference(flow)
-	}
-}
-
-function onFooterPreferenceChange(value: EffectivePolicyValue): void {
-	selectedFooterValue.value = value
-	if (hasSavedFooterPreference.value) {
-		void saveFooterPreference(value)
-	}
-}
-
-async function saveFooterPreference(value: EffectivePolicyValue): Promise<void> {
-	if (!canSaveFooterPreference.value) {
+async function savePreferenceValue(policyKey: string, value: EffectivePolicyValue, errorText: string): Promise<void> {
+	const policy = policiesStore.getPolicy(policyKey)
+	if (!policy?.canSaveAsUserDefault) {
 		return
 	}
 
 	saving.value = true
 	errorMessage.value = ''
 	try {
-		await policiesStore.saveUserPreference('add_footer', value)
-		syncSelectedFooterValue()
+		await policiesStore.saveUserPreference(policyKey, value)
 	} catch (error) {
-		console.error('Failed to save footer preference', error)
-		errorMessage.value = t('libresign', 'Could not save your footer preference. Try again.')
+		console.error(`Failed to save ${policyKey} preference`, error)
+		errorMessage.value = errorText
 	} finally {
 		saving.value = false
 	}
 }
 
-async function clearFooterPreference(): Promise<void> {
+async function clearPreferenceValue(policyKey: string, errorText: string): Promise<void> {
 	saving.value = true
 	errorMessage.value = ''
 	try {
-		await policiesStore.clearUserPreference('add_footer')
-		syncSelectedFooterValue()
+		await policiesStore.clearUserPreference(policyKey)
 	} catch (error) {
-		console.error('Failed to clear footer preference', error)
-		errorMessage.value = t('libresign', 'Could not clear your footer preference. Try again.')
+		console.error(`Failed to clear ${policyKey} preference`, error)
+		errorMessage.value = errorText
 	} finally {
 		saving.value = false
 	}
@@ -269,32 +246,21 @@ async function clearFooterPreference(): Promise<void> {
 
 onMounted(async () => {
 	await policiesStore.fetchEffectivePolicies()
-	syncSelectedValue()
-	syncSelectedFooterValue()
+	syncAllSelectedPreferences()
 })
 
 defineExpose({
-	availableFlows,
-	canSavePreference,
-	canSaveFooterPreference,
+	canSavePreferenceFor,
 	clearPreference,
-	clearFooterPreference,
-	effectiveLabel,
 	errorMessage,
-	footerPolicy,
-	hasSavedPreference,
-	hasSavedFooterPreference,
 	onPreferenceChange,
-	onFooterPreferenceChange,
-	preferenceCleared,
 	savePreference,
-	saveFooterPreference,
-	selectedValue,
-	selectedFooterValue,
-	signatureFlowPolicy,
-	sourceLabel,
-	syncSelectedFooterValue,
-	syncSelectedValue,
+	sourceLabelFor,
+	selectedPreferenceValues,
+	preferenceEntries,
+	summarizeEffectiveValue,
+	syncSelectedPreference,
+	syncAllSelectedPreferences,
 })
 </script>
 
