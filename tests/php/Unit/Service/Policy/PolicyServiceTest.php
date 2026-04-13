@@ -594,6 +594,61 @@ final class PolicyServiceTest extends TestCase {
 		$service->clearGroupPolicy(FooterPolicy::KEY, 'finance');
 	}
 
+	public function testSaveUserPreferenceRejectsValidationSiteOverrideForRegularUser(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('john');
+
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$this->groupManager
+			->method('isAdmin')
+			->with('john')
+			->willReturn(false);
+
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($user)
+			->willReturn(false);
+
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn([]);
+
+		$this->source
+			->method('loadSystemPolicy')
+			->with(FooterPolicy::KEY)
+			->willReturn((new PolicyLayer())
+				->setScope('system')
+				->setValue('{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false,"footerTemplate":""}')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]));
+
+		$this->source->method('loadGroupPolicies')->willReturn([]);
+		$this->source->method('loadCirclePolicies')->willReturn([]);
+		$this->source->method('loadUserPreference')->willReturn(null);
+		$this->source->method('loadRequestOverride')->willReturn(null);
+
+		$this->source
+			->expects($this->never())
+			->method('saveUserPreference');
+
+		$service = new PolicyService(
+			$this->contextFactory,
+			$this->source,
+			$this->registry,
+			$this->l10n,
+		);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Validation URL override is not allowed for this actor');
+
+		$service->saveUserPreference(FooterPolicy::KEY, '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"https://forbidden.example","customizeFooterTemplate":false,"footerTemplate":""}');
+	}
+
 	public function testGetAllRuleCountsDelegatesToSource(): void {
 		$expected = [
 			'signature_flow' => ['groupCount' => 2, 'userCount' => 5],
