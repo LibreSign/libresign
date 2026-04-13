@@ -14,8 +14,13 @@ const fetchEffectivePoliciesMock = vi.fn()
 const saveUserPreferenceMock = vi.fn()
 const clearUserPreferenceMock = vi.fn()
 const getPolicyMock = vi.fn<(policyKey: string) => EffectivePolicyState | null>()
+const loadStateMock = vi.fn()
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
+
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: (...args: unknown[]) => loadStateMock(...args),
+}))
 
 vi.mock('../../../store/policies', () => ({
 	usePoliciesStore: () => ({
@@ -54,13 +59,21 @@ const NcButton = defineComponent({
 
 const SignatureFooterRuleEditor = defineComponent({
 	name: 'SignatureFooterRuleEditor',
-	props: ['modelValue'],
+	props: ['modelValue', 'inheritedTemplate'],
 	emits: ['update:modelValue'],
 	template: '<div class="signature-footer-rule-editor-stub">Footer editor</div>',
 })
 
+const SignatureFlowScalarRuleEditor = defineComponent({
+	name: 'SignatureFlowScalarRuleEditor',
+	props: ['modelValue', 'editorScope', 'editorMode'],
+	emits: ['update:modelValue'],
+	template: '<div class="signature-flow-rule-editor-stub">Flow editor</div>',
+})
+
 describe('Preferences view', () => {
 	beforeEach(() => {
+		loadStateMock.mockReset().mockImplementation((_app: string, _key: string, fallback: unknown) => fallback)
 		fetchEffectivePoliciesMock.mockReset().mockResolvedValue(undefined)
 		saveUserPreferenceMock.mockReset().mockResolvedValue(undefined)
 		clearUserPreferenceMock.mockReset().mockResolvedValue(undefined)
@@ -89,6 +102,7 @@ describe('Preferences view', () => {
 					NcNoteCard,
 					NcCheckboxRadioSwitch,
 					NcButton,
+					SignatureFlowScalarRuleEditor,
 					SignatureFooterRuleEditor,
 				},
 			},
@@ -104,7 +118,7 @@ describe('Preferences view', () => {
 	it('shows the effective signing order summary', async () => {
 		const wrapper = await createWrapper()
 
-		expect(wrapper.text()).toContain('Effective signing order')
+		expect(wrapper.text()).toContain('Effective value')
 		expect(wrapper.text()).toContain('Simultaneous (Parallel)')
 		expect(wrapper.text()).toContain('Global default')
 	})
@@ -143,7 +157,7 @@ describe('Preferences view', () => {
 		getPolicyMock.mockReturnValue({
 			policyKey: 'signature_flow',
 			effectiveValue: 'parallel',
-			sourceScope: 'group',
+			sourceScope: 'user',
 			visible: true,
 			editableByCurrentActor: false,
 			allowedValues: ['parallel'],
@@ -160,7 +174,7 @@ describe('Preferences view', () => {
 		expect(wrapper.text()).toContain('does not allow saving a personal default')
 	})
 
-	it('renders footer preference section when footer customization is allowed', async () => {
+	it('does not render footer preference section when user customization is not allowed', async () => {
 		getPolicyMock.mockImplementation((key: string) => {
 			if (key === 'add_footer') {
 				return {
@@ -171,7 +185,7 @@ describe('Preferences view', () => {
 					editableByCurrentActor: true,
 					allowedValues: [],
 					blockedBy: null,
-					canSaveAsUserDefault: true,
+					canSaveAsUserDefault: false,
 					canUseAsRequestOverride: true,
 					preferenceWasCleared: false,
 					groupCount: 0,
@@ -197,7 +211,137 @@ describe('Preferences view', () => {
 
 		const wrapper = await createWrapper()
 
-		expect(wrapper.text()).toContain('Signature footer preferences')
-		expect(wrapper.text()).toContain('Save footer preference')
+		expect(wrapper.text()).not.toContain('Signature footer')
+		expect(wrapper.findComponent({ name: 'SignatureFooterRuleEditor' }).exists()).toBe(false)
+	})
+
+	it('renders footer preference section when user customization is allowed', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'add_footer') {
+				return {
+					policyKey: 'add_footer',
+					effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false}',
+					sourceScope: 'system',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 0,
+					userCount: 0,
+				}
+			}
+
+			if (key === 'docmdp') {
+				return null
+			}
+
+			return {
+				policyKey: 'signature_flow',
+				effectiveValue: 'parallel',
+				sourceScope: 'system',
+				visible: true,
+				editableByCurrentActor: true,
+				allowedValues: ['parallel', 'ordered_numeric'],
+				blockedBy: null,
+				canSaveAsUserDefault: true,
+				canUseAsRequestOverride: true,
+				preferenceWasCleared: false,
+				groupCount: 0,
+				userCount: 0,
+			}
+		})
+
+		const wrapper = await createWrapper()
+
+		expect(wrapper.text()).toContain('Signature footer')
+		expect(wrapper.findComponent({ name: 'SignatureFooterRuleEditor' }).exists()).toBe(true)
+		expect(wrapper.findComponent({ name: 'SignatureFooterRuleEditor' }).props('showPreview')).toBeUndefined()
+	})
+
+	it('auto-saves footer preference changes and hides manual action buttons', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'add_footer') {
+				return {
+					policyKey: 'add_footer',
+					effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Inherited footer template"}',
+					sourceScope: 'system',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 0,
+					userCount: 0,
+				}
+			}
+
+			return null
+		})
+
+		const wrapper = await createWrapper()
+		await nextTick()
+
+		expect(wrapper.text()).toContain('Signature footer')
+		expect(wrapper.text()).not.toContain('Save as my default')
+		expect(wrapper.text()).not.toContain('Update saved preference')
+		expect(wrapper.text()).not.toContain('Clear saved preference')
+
+		await wrapper.vm.onPreferenceChange('add_footer', '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template"}')
+
+		expect(saveUserPreferenceMock).toHaveBeenCalledWith(
+			'add_footer',
+			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template"}',
+		)
+	})
+
+	it('renders footer preference when a user preference already exists even if saving is blocked', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'add_footer') {
+				return {
+					policyKey: 'add_footer',
+					effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":false,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Current user template"}',
+					sourceScope: 'user',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					blockedBy: 'group',
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					groupCount: 0,
+					userCount: 0,
+				}
+			}
+
+			if (key === 'docmdp') {
+				return null
+			}
+
+			return {
+				policyKey: 'signature_flow',
+				effectiveValue: 'parallel',
+				sourceScope: 'system',
+				visible: true,
+				editableByCurrentActor: true,
+				allowedValues: ['parallel', 'ordered_numeric'],
+				blockedBy: null,
+				canSaveAsUserDefault: true,
+				canUseAsRequestOverride: true,
+				preferenceWasCleared: false,
+				groupCount: 0,
+				userCount: 0,
+			}
+		})
+
+		const wrapper = await createWrapper()
+
+		expect(wrapper.text()).toContain('Signature footer')
+		expect(wrapper.findComponent({ name: 'SignatureFooterRuleEditor' }).exists()).toBe(false)
+		expect(wrapper.text()).toContain('does not allow saving a personal default')
 	})
 })
