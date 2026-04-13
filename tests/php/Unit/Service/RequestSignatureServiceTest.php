@@ -35,6 +35,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
@@ -1183,6 +1184,95 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$file,
 			[],
 		]);
+	}
+
+	public function testSetFooterPolicyFromPolicyStoresResolvedPolicySnapshotInMetadata(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$footerPolicyValue = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Group footer</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}';
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(FooterPolicy::KEY, null, [FooterPolicy::KEY => $footerPolicyValue])
+			->willReturn($this->createResolvedPolicy(
+				$footerPolicyValue,
+				sourceScope: 'group',
+				policyKey: FooterPolicy::KEY,
+			));
+
+		self::invokePrivate($this->getService(), 'setFooterPolicyFromPolicy', [
+			$file,
+			['footerPolicy' => $footerPolicyValue],
+		]);
+
+		$this->assertSame([
+			'policy_snapshot' => [
+				'add_footer' => [
+					'effectiveValue' => $footerPolicyValue,
+					'sourceScope' => 'group',
+				],
+			],
+		], $file->getMetadata());
+	}
+
+	public function testSetFooterPolicyFromPolicyThrowsWhenRequestOverrideIsBlocked(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$footerPolicyValue = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>User footer</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}';
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(FooterPolicy::KEY, null, [FooterPolicy::KEY => $footerPolicyValue])
+			->willReturn($this->createResolvedPolicy(
+				$footerPolicyValue,
+				sourceScope: 'group',
+				canUseAsRequestOverride: false,
+				blockedBy: 'group',
+				policyKey: FooterPolicy::KEY,
+			));
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+
+		self::invokePrivate($this->getService(), 'setFooterPolicyFromPolicy', [
+			$file,
+			['footerPolicy' => $footerPolicyValue],
+		]);
+	}
+
+	public function testUpdateFooterPolicyFromPolicyPersistsWhenSnapshotChanges(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('john');
+		$footerPolicyValue = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Request footer</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}';
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(FooterPolicy::KEY, 'john', [FooterPolicy::KEY => $footerPolicyValue])
+			->willReturn($this->createResolvedPolicy(
+				$footerPolicyValue,
+				sourceScope: 'request',
+				policyKey: FooterPolicy::KEY,
+			));
+
+		$this->fileService
+			->expects($this->once())
+			->method('update')
+			->with($this->identicalTo($file));
+
+		self::invokePrivate($this->getService(), 'updateFooterPolicyFromPolicy', [
+			$file,
+			['footerPolicy' => $footerPolicyValue],
+		]);
+
+		$this->assertSame([
+			'policy_snapshot' => [
+				'add_footer' => [
+					'effectiveValue' => $footerPolicyValue,
+					'sourceScope' => 'request',
+				],
+			],
+		], $file->getMetadata());
 	}
 
 	private function createResolvedPolicy(
