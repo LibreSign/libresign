@@ -1267,6 +1267,63 @@ describe('files store - critical business rules', () => {
 			expect(config.data.signatureFlow).toBeUndefined()
 		})
 
+		it('sends footerPolicy when footer request override is allowed', async () => {
+			const store = useFilesStore()
+			const footerPolicyValue = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Footer A</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}'
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				nodeId: 99,
+				name: 'contract.pdf',
+				signatureFlow: 'parallel',
+				signers: [],
+			}
+			axiosMock.mockResolvedValue({
+				data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
+			})
+
+			await store.saveOrUpdateSignatureRequest({ status: 1, footerPolicy: footerPolicyValue })
+
+			const config = axiosMock.mock.calls[0][0]
+			expect(config.data.footerPolicy).toBe(footerPolicyValue)
+		})
+
+		it('omits footerPolicy when policy blocks add_footer request overrides', async () => {
+			const store = useFilesStore()
+			const policiesStore = usePoliciesStore()
+			const footerPolicyValue = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Footer B</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}'
+			policiesStore.setPolicies({
+				add_footer: {
+					policyKey: 'add_footer',
+					effectiveValue: footerPolicyValue,
+					sourceScope: 'global',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					blockedBy: 'global',
+				},
+			})
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				nodeId: 99,
+				name: 'contract.pdf',
+				signatureFlow: 'parallel',
+				signers: [],
+			}
+			axiosMock.mockResolvedValue({
+				data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
+			})
+
+			await store.saveOrUpdateSignatureRequest({ status: 1, footerPolicy: footerPolicyValue })
+
+			const config = axiosMock.mock.calls[0][0]
+			expect(config.data.footerPolicy).toBeUndefined()
+		})
+
 		it('sorts ordered_numeric signers by signingOrder', async () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
