@@ -46,52 +46,51 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	// applySignatureFlow (was setSignatureFlow in RequestSignatureService)
 	// -------------------------------------------------------------------------
 
-	public function testApplySignatureFlowPrefersPayloadOverGlobalConfig(): void {
+	/**
+	 * @dataProvider applySignatureFlowCasesProvider
+	 * @param array<string, mixed> $data
+	 */
+	public function testApplySignatureFlowResolvesExpectedValue(array $data, string $resolvedValue, SignatureFlow $expected): void {
 		$file = new \OCA\Libresign\Db\File();
 		$this->policyService
 			->expects($this->once())
 			->method('resolveForUser')
-			->with(SignatureFlowPolicy::KEY, null, [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value])
-			->willReturn($this->createResolvedPolicy(SignatureFlow::PARALLEL->value));
+			->with(
+				SignatureFlowPolicy::KEY,
+				null,
+				isset($data['policyOverrides'][SignatureFlowPolicy::KEY])
+					? [SignatureFlowPolicy::KEY => $data['policyOverrides'][SignatureFlowPolicy::KEY]]
+					: [],
+			)
+			->willReturn($this->createResolvedPolicy($resolvedValue));
 
 		self::invokePrivate($this->getApplier(), 'applySignatureFlow', [
 			$file,
-			['policyOverrides' => [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value]],
+			$data,
 		]);
 
-		$this->assertSame(SignatureFlow::PARALLEL, $file->getSignatureFlowEnum());
+		$this->assertSame($expected, $file->getSignatureFlowEnum());
 	}
 
-	public function testApplySignatureFlowUsesGlobalConfigWhenPayloadMissing(): void {
-		$file = new \OCA\Libresign\Db\File();
-		$this->policyService
-			->expects($this->once())
-			->method('resolveForUser')
-			->with(SignatureFlowPolicy::KEY, null, [])
-			->willReturn($this->createResolvedPolicy(SignatureFlow::ORDERED_NUMERIC->value));
-
-		self::invokePrivate($this->getApplier(), 'applySignatureFlow', [
-			$file,
-			[],
-		]);
-
-		$this->assertSame(SignatureFlow::ORDERED_NUMERIC, $file->getSignatureFlowEnum());
-	}
-
-	public function testApplySignatureFlowDefaultsToNoneWithoutPayloadOrGlobalConfig(): void {
-		$file = new \OCA\Libresign\Db\File();
-		$this->policyService
-			->expects($this->once())
-			->method('resolveForUser')
-			->with(SignatureFlowPolicy::KEY, null, [])
-			->willReturn($this->createResolvedPolicy(SignatureFlow::NONE->value));
-
-		self::invokePrivate($this->getApplier(), 'applySignatureFlow', [
-			$file,
-			[],
-		]);
-
-		$this->assertSame(SignatureFlow::NONE, $file->getSignatureFlowEnum());
+	/** @return array<string, array{0: array<string, mixed>, 1: string, 2: SignatureFlow}> */
+	public static function applySignatureFlowCasesProvider(): array {
+		return [
+			'payload_override_has_priority' => [
+				['policyOverrides' => [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value]],
+				SignatureFlow::PARALLEL->value,
+				SignatureFlow::PARALLEL,
+			],
+			'global_policy_used_when_payload_missing' => [
+				[],
+				SignatureFlow::ORDERED_NUMERIC->value,
+				SignatureFlow::ORDERED_NUMERIC,
+			],
+			'default_none_when_no_payload_or_forced_global' => [
+				[],
+				SignatureFlow::NONE->value,
+				SignatureFlow::NONE,
+			],
+		];
 	}
 
 	public function testApplySignatureFlowThrowsWhenRequestOverrideIsBlocked(): void {
@@ -147,15 +146,29 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	// syncSignatureFlow (was updateSignatureFlowIfAllowed in RequestSignatureService)
 	// -------------------------------------------------------------------------
 
-	public function testSyncSignatureFlowForcesGlobalConfigOverFileValue(): void {
+	/**
+	 * @dataProvider syncSignatureFlowUpdateCasesProvider
+	 */
+	public function testSyncSignatureFlowUpdatesWhenResolvedFlowDiffers(
+		SignatureFlow $initialFlow,
+		array $data,
+		string $resolvedValue,
+		SignatureFlow $expectedFlow,
+	): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('john');
-		$file->setSignatureFlowEnum(SignatureFlow::PARALLEL);
+		$file->setSignatureFlowEnum($initialFlow);
 		$this->policyService
 			->expects($this->once())
 			->method('resolveForUserId')
-			->with(SignatureFlowPolicy::KEY, 'john', [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value])
-			->willReturn($this->createResolvedPolicy(SignatureFlow::ORDERED_NUMERIC->value));
+			->with(
+				SignatureFlowPolicy::KEY,
+				'john',
+				isset($data['policyOverrides'][SignatureFlowPolicy::KEY])
+					? [SignatureFlowPolicy::KEY => $data['policyOverrides'][SignatureFlowPolicy::KEY]]
+					: [],
+			)
+			->willReturn($this->createResolvedPolicy($resolvedValue));
 
 		$this->fileService
 			->expects($this->once())
@@ -164,33 +177,28 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		self::invokePrivate($this->getApplier(), 'syncSignatureFlow', [
 			$file,
-			['policyOverrides' => [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value]],
+			$data,
 		]);
 
-		$this->assertSame(SignatureFlow::ORDERED_NUMERIC, $file->getSignatureFlowEnum());
+		$this->assertSame($expectedFlow, $file->getSignatureFlowEnum());
 	}
 
-	public function testSyncSignatureFlowUsesPayloadWhenGlobalConfigNotForced(): void {
-		$file = new \OCA\Libresign\Db\File();
-		$file->setUserId('john');
-		$file->setSignatureFlowEnum(SignatureFlow::NONE);
-		$this->policyService
-			->expects($this->once())
-			->method('resolveForUserId')
-			->with(SignatureFlowPolicy::KEY, 'john', [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value])
-			->willReturn($this->createResolvedPolicy(SignatureFlow::PARALLEL->value));
-
-		$this->fileService
-			->expects($this->once())
-			->method('update')
-			->with($this->identicalTo($file));
-
-		self::invokePrivate($this->getApplier(), 'syncSignatureFlow', [
-			$file,
-			['policyOverrides' => [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value]],
-		]);
-
-		$this->assertSame(SignatureFlow::PARALLEL, $file->getSignatureFlowEnum());
+	/** @return array<string, array{0: SignatureFlow, 1: array<string, mixed>, 2: string, 3: SignatureFlow}> */
+	public static function syncSignatureFlowUpdateCasesProvider(): array {
+		return [
+			'global_forces_flow_change' => [
+				SignatureFlow::PARALLEL,
+				['policyOverrides' => [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value]],
+				SignatureFlow::ORDERED_NUMERIC->value,
+				SignatureFlow::ORDERED_NUMERIC,
+			],
+			'payload_resolved_flow_applied' => [
+				SignatureFlow::NONE,
+				['policyOverrides' => [SignatureFlowPolicy::KEY => SignatureFlow::PARALLEL->value]],
+				SignatureFlow::PARALLEL->value,
+				SignatureFlow::PARALLEL,
+			],
+		];
 	}
 
 	public function testSyncSignatureFlowThrowsWhenRequestOverrideIsBlocked(): void {
@@ -288,50 +296,66 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	// applyDocMdpLevel (was setDocMdpLevelFromPolicy in RequestSignatureService)
 	// -------------------------------------------------------------------------
 
-	public function testApplyDocMdpLevelUsesResolvedPolicyValue(): void {
+	/**
+	 * @dataProvider applyDocMdpCasesProvider
+	 * @param array<string, mixed> $data
+	 */
+	public function testApplyDocMdpLevelUsesResolvedPolicyValueAndSnapshot(
+		array $data,
+		int $resolvedValue,
+		DocMdpLevel $expectedLevel,
+		string $expectedSourceScope,
+	): void {
 		$file = new \OCA\Libresign\Db\File();
 		$this->policyService
 			->expects($this->once())
 			->method('resolveForUser')
-			->with(DocMdpPolicy::KEY, null, [])
+			->with(
+				DocMdpPolicy::KEY,
+				null,
+				isset($data['policyOverrides'][DocMdpPolicy::KEY])
+					? [DocMdpPolicy::KEY => $data['policyOverrides'][DocMdpPolicy::KEY]]
+					: [],
+			)
 			->willReturn($this->createResolvedPolicy(
-				2,
+				$resolvedValue,
+				sourceScope: $expectedSourceScope,
 				policyKey: DocMdpPolicy::KEY,
 			));
 
 		self::invokePrivate($this->getApplier(), 'applyDocMdpLevel', [
 			$file,
-			[],
+			$data,
 		]);
 
-		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING, $file->getDocmdpLevelEnum());
-	}
-
-	public function testApplyDocMdpLevelStoresResolvedPolicySnapshotInMetadata(): void {
-		$file = new \OCA\Libresign\Db\File();
-		$this->policyService
-			->expects($this->once())
-			->method('resolveForUser')
-			->with(DocMdpPolicy::KEY, null, [DocMdpPolicy::KEY => 3])
-			->willReturn($this->createResolvedPolicy(
-				3,
-				sourceScope: 'group',
-				policyKey: DocMdpPolicy::KEY,
-			));
-
-		self::invokePrivate($this->getApplier(), 'applyDocMdpLevel', [
-			$file,
-			['policyOverrides' => [DocMdpPolicy::KEY => 3]],
-		]);
+		$this->assertSame($expectedLevel, $file->getDocmdpLevelEnum());
 
 		$this->assertSame([
 			'policy_snapshot' => [
 				'docmdp' => [
-					'effectiveValue' => 3,
-					'sourceScope' => 'group',
+					'effectiveValue' => $resolvedValue,
+					'sourceScope' => $expectedSourceScope,
 				],
 			],
 		], $file->getMetadata());
+	}
+
+	/** @return array<string, array{0: array<string, mixed>, 1: int, 2: DocMdpLevel, 3: string}> */
+	public static function applyDocMdpCasesProvider(): array {
+		return [
+			'default_system_value' => [
+				[],
+				2,
+				DocMdpLevel::CERTIFIED_FORM_FILLING,
+				'system',
+			],
+			'payload_override_group_value' => [
+				['policyOverrides' => [DocMdpPolicy::KEY => 3]],
+				3,
+				DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS,
+				'group',
+			],
+		];
 	}
 
 	// -------------------------------------------------------------------------
