@@ -30,6 +30,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -340,6 +341,7 @@ class RequestSignatureService {
 				$file = $this->fileMapper->getByNodeId($fileId);
 				$this->updateSignatureFlowIfAllowed($file, $data);
 				$this->updateDocMdpLevelFromPolicy($file, $data);
+				$this->updateFooterPolicyFromPolicy($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 			} catch (\Throwable) {
 			}
@@ -382,6 +384,7 @@ class RequestSignatureService {
 
 		$this->setSignatureFlow($file, $data);
 		$this->setDocMdpLevelFromPolicy($file, $data);
+		$this->setFooterPolicyFromPolicy($file, $data);
 
 		$this->fileMapper->insert($file);
 		return $file;
@@ -466,6 +469,35 @@ class RequestSignatureService {
 		}
 	}
 
+	private function updateFooterPolicyFromPolicy(FileEntity $file, array $data): void {
+		$requestOverrides = $this->getFooterPolicyRequestOverrides($data);
+		$resolvedPolicy = $this->policyService->resolveForUserId(
+			FooterPolicy::KEY,
+			$file->getUserId(),
+			$requestOverrides,
+		);
+		$this->assertFooterPolicyOverrideAllowed($requestOverrides, $resolvedPolicy);
+		$metadataBeforeUpdate = $file->getMetadata() ?? [];
+		$this->storePolicySnapshot($file, $resolvedPolicy);
+		$metadataChanged = ($file->getMetadata() ?? []) !== $metadataBeforeUpdate;
+
+		if ($metadataChanged) {
+			$this->fileService->update($file);
+		}
+	}
+
+	private function setFooterPolicyFromPolicy(FileEntity $file, array $data): void {
+		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
+		$requestOverrides = $this->getFooterPolicyRequestOverrides($data);
+		$resolvedPolicy = $this->policyService->resolveForUser(
+			FooterPolicy::KEY,
+			$user,
+			$requestOverrides,
+		);
+		$this->assertFooterPolicyOverrideAllowed($requestOverrides, $resolvedPolicy);
+		$this->storePolicySnapshot($file, $resolvedPolicy);
+	}
+
 	private function setDocMdpLevelFromPolicy(FileEntity $file, array $data): void {
 		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
 		$resolvedPolicy = $this->policyService->resolveForUser(
@@ -484,6 +516,30 @@ class RequestSignatureService {
 		}
 
 		return [DocMdpPolicy::KEY => (int)$data['docmdpLevel']];
+	}
+
+	/** @return array<string, string> */
+	private function getFooterPolicyRequestOverrides(array $data): array {
+		if (!isset($data['footerPolicy']) || !is_string($data['footerPolicy'])) {
+			return [];
+		}
+
+		$footerPolicy = trim($data['footerPolicy']);
+		if ($footerPolicy === '') {
+			return [];
+		}
+
+		return [FooterPolicy::KEY => $footerPolicy];
+	}
+
+	/** @param array<string, string> $requestOverrides */
+	private function assertFooterPolicyOverrideAllowed(array $requestOverrides, ResolvedPolicy $resolvedPolicy): void {
+		if ($requestOverrides === [] || $resolvedPolicy->canUseAsRequestOverride()) {
+			return;
+		}
+
+		$blockedBy = $resolvedPolicy->getBlockedBy() ?? $resolvedPolicy->getSourceScope();
+		throw new LibresignException($this->l10n->t('Footer template override is blocked by %s.', [$blockedBy]), 422);
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {
