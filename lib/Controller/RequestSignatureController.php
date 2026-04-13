@@ -69,6 +69,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses the effective policy resolution.
+	 * @param string|null $footerPolicy Footer policy JSON override used for this request when policy allows request-level override.
 	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -88,6 +89,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		?string $callback = null,
 		?int $status = 1,
 		?string $signatureFlow = null,
+		?string $footerPolicy = null,
 	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
@@ -100,7 +102,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				$signers,
 				$status,
 				$callback,
-				$signatureFlow
+				$signatureFlow,
+				$footerPolicy,
 			);
 		} catch (LibresignException $e) {
 			$errorMessage = $e->getMessage();
@@ -136,6 +139,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignNewFile|null $file File object. Supports nodeId, url, base64 or path when creating a new request.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses the effective policy resolution.
+	 * @param string|null $footerPolicy Footer policy JSON override used for this request when policy allows request-level override.
 	 * @param string|null $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
@@ -156,6 +160,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		?array $file = null,
 		?int $status = null,
 		?string $signatureFlow = null,
+		?string $footerPolicy = null,
 		?string $name = null,
 		array $settings = [],
 		array $files = [],
@@ -176,6 +181,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 					$status,
 					null,
 					$signatureFlow,
+					$footerPolicy,
 					$visibleElements
 				);
 			}
@@ -187,6 +193,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				'userManager' => $user,
 				'visibleElements' => $visibleElements,
 				'signatureFlow' => $signatureFlow,
+				'footerPolicy' => $footerPolicy,
 				'name' => $name,
 				'settings' => $settings,
 			];
@@ -231,6 +238,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		?int $status,
 		?string $callback,
 		?string $signatureFlow,
+		?string $footerPolicy,
 		?array $visibleElements = null,
 	): DataResponse {
 		$isEnvelope = !empty($files);
@@ -248,6 +256,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			'callback' => $callback,
 			'userManager' => $user,
 			'signatureFlow' => $signatureFlow,
+			'footerPolicy' => $footerPolicy,
 			'settings' => !empty($settings) ? $settings : ($file['settings'] ?? []),
 		];
 
