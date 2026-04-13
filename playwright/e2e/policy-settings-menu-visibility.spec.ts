@@ -18,14 +18,21 @@
  * session is needed, keeping the test as fast as possible.
  */
 
-import { expect, request, test as base, type APIRequestContext } from '@playwright/test'
+import { expect, test as base, type APIRequestContext } from '@playwright/test'
 import { login } from '../support/nc-login'
+import { expandSettingsMenu } from '../support/nc-navigation'
 import {
 	ensureGroupExists,
 	ensureSubadminOfGroup,
 	ensureUserExists,
 	ensureUserInGroup,
 } from '../support/nc-provisioning'
+import {
+	createAuthenticatedRequestContext,
+	getEffectivePolicy,
+	setGroupPolicyEntry,
+	setSystemPolicyEntry,
+} from '../support/policy-api'
 
 // One serial block: a single browser session for the group admin
 // across both phases avoids repeated login overhead.
@@ -34,20 +41,12 @@ const test = base.extend<{
 	groupAdminRequestContext: APIRequestContext
 }>({
 	adminRequestContext: async ({}, use) => {
-		const ctx = await makeAdminContext()
+		const ctx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
 		await use(ctx)
 		await ctx.dispose()
 	},
 	groupAdminRequestContext: async ({}, use) => {
-		const ctx = await request.newContext({
-			baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
-			ignoreHTTPSErrors: true,
-			extraHTTPHeaders: {
-				'OCS-ApiRequest': 'true',
-				Accept: 'application/json',
-				Authorization: 'Basic ' + Buffer.from(`${GROUP_ADMIN}:${GROUP_ADMIN_PASSWORD}`).toString('base64'),
-			},
-		})
+		const ctx = await createAuthenticatedRequestContext(GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
 		await use(ctx)
 		await ctx.dispose()
 	},
@@ -69,89 +68,9 @@ const FOOTER_ENABLED_VALUE = JSON.stringify({
 	customizeFooterTemplate: false,
 })
 
-// ─── Admin API helpers (no browser needed) ────────────────────────────────────
-
-async function makeAdminContext(): Promise<APIRequestContext> {
-	return request.newContext({
-		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
-		ignoreHTTPSErrors: true,
-		extraHTTPHeaders: {
-			'OCS-ApiRequest': 'true',
-			Accept: 'application/json',
-			Authorization: 'Basic ' + Buffer.from(`${ADMIN_USER}:${ADMIN_PASSWORD}`).toString('base64'),
-			'Content-Type': 'application/json',
-		},
-	})
-}
-
-/**
- * POST /policies/system/{key} — establish the instance-wide default and allow
- * group admins to override it (allowChildOverride: true).
- */
-async function setSystemPolicy(
-	ctx: APIRequestContext,
-	value: string | null,
-	allowChildOverride: boolean,
-): Promise<void> {
-	const resp = await ctx.post(
-		`./ocs/v2.php/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
-		{ data: { value, allowChildOverride }, failOnStatusCode: false },
-	)
-	expect(resp.status(), `setSystemPolicy: expected 200 but got ${resp.status()}`).toBe(200)
-}
-
-async function getEffectivePolicy(
-	ctx: APIRequestContext,
-): Promise<{ editableByCurrentActor?: boolean, groupCount?: number } | null> {
-	const response = await ctx.get('./ocs/v2.php/apps/libresign/api/v1/policies/effective', {
-		failOnStatusCode: false,
-	})
-	expect(response.status(), `getEffectivePolicy: expected 200 but got ${response.status()}`).toBe(200)
-	const data = await response.json() as {
-		ocs?: {
-			data?: {
-				policies?: Record<string, {
-					editableByCurrentActor?: boolean
-					groupCount?: number
-				}>
-			}
-		}
-	}
-
-	return data.ocs?.data?.policies?.[POLICY_KEY] ?? null
-}
-
-async function setGroupPolicy(
-	ctx: APIRequestContext,
-	value: string,
-	allowChildOverride: boolean,
-): Promise<void> {
-	const response = await ctx.put(`./ocs/v2.php/apps/libresign/api/v1/policies/group/${GROUP_ID}/${POLICY_KEY}`, {
-		data: { value, allowChildOverride },
-		failOnStatusCode: false,
-	})
-
-	expect(response.status(), `setGroupPolicy: expected 200 but got ${response.status()}`).toBe(200)
-}
-
-async function expandSettingsMenu(page: import('@playwright/test').Page): Promise<void> {
-	await page.keyboard.press('Escape').catch(() => {})
-	const sidebar = page.locator('#app-navigation-vue')
-	const settingsLink = sidebar.getByRole('link', { name: 'Account' })
-	if (await settingsLink.count()) {
-		return
-	}
-
-	const settingsToggle = sidebar.getByRole('button', { name: 'Settings' })
-	if (await settingsToggle.count()) {
-		await settingsToggle.first().click()
-	}
-}
-
-// ─── Test ─────────────────────────────────────────────────────────────────────
 
 test.afterEach(async ({ adminRequestContext }) => {
-	await setSystemPolicy(adminRequestContext, null, true)
+	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, null, true)
 })
 
 test('policies nav item is visible when group admin can customize policies even before first group rule exists', async ({ page, adminRequestContext, groupAdminRequestContext }) => {
@@ -162,11 +81,11 @@ test('policies nav item is visible when group admin can customize policies even 
 	await ensureSubadminOfGroup(page.request, GROUP_ADMIN, GROUP_ID)
 
 	// ── 1. Admin: enable delegated customization at system layer ───────────
-	await setSystemPolicy(adminRequestContext, FOOTER_ENABLED_VALUE, true)
+	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, FOOTER_ENABLED_VALUE, true)
 
-	const editablePolicy = await getEffectivePolicy(groupAdminRequestContext)
+	const editablePolicy = await getEffectivePolicy(groupAdminRequestContext, POLICY_KEY)
 	expect(editablePolicy?.editableByCurrentActor).toBe(true)
-	await setGroupPolicy(groupAdminRequestContext, FOOTER_ENABLED_VALUE, true)
+	await setGroupPolicyEntry(groupAdminRequestContext, GROUP_ID, POLICY_KEY, FOOTER_ENABLED_VALUE, true)
 
 	// ── 2. Log in as group admin ───────────────────────────────────────────
 	await login(page.request, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
