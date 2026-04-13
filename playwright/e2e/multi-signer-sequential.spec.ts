@@ -4,10 +4,12 @@
  */
 
 import type { APIRequestContext, Page } from '@playwright/test'
-import { expect, request, test as base } from '@playwright/test'
+import { expect, test as base } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, deleteAppConfig, getAppConfig, setAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
+import { makeAdminContext } from '../support/system-policies'
+import { setSystemPolicyEntry } from '../support/policy-api'
 
 const FOOTER_POLICY_KEY = 'add_footer'
 const FOOTER_DISABLED_VALUE = JSON.stringify({
@@ -69,7 +71,7 @@ test.afterEach(async ({ page, adminContext, originalConfigSnapshot }) => {
 	await restoreAppConfig(page.request, 'identify_methods', originalConfigSnapshot.identifyMethods)
 	await restoreAppConfig(page.request, 'signature_engine', originalConfigSnapshot.signatureEngine)
 	await restoreAppConfig(page.request, 'tsa_url', originalConfigSnapshot.tsaUrl)
-	await setSystemFooterPolicy(adminContext, originalConfigSnapshot.footerPolicy ?? FOOTER_DISABLED_VALUE)
+	await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, originalConfigSnapshot.footerPolicy ?? FOOTER_DISABLED_VALUE, true)
 })
 
 async function addEmailSigner(
@@ -90,36 +92,6 @@ async function addEmailSigner(
 	await page.getByRole('button', { name: 'Save' }).click()
 }
 
-async function makeAdminContext(): Promise<APIRequestContext> {
-	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
-
-	return request.newContext({
-		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
-		ignoreHTTPSErrors: true,
-		extraHTTPHeaders: {
-			'OCS-ApiRequest': 'true',
-			Accept: 'application/json',
-			Authorization: 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64'),
-			'Content-Type': 'application/json',
-		},
-	})
-}
-
-async function setSystemFooterPolicy(
-	ctx: APIRequestContext,
-	value: string,
-): Promise<void> {
-	const response = await ctx.post(`./ocs/v2.php/apps/libresign/api/v1/policies/system/${FOOTER_POLICY_KEY}`, {
-		data: {
-			value,
-			allowChildOverride: true,
-		},
-		failOnStatusCode: false,
-	})
-
-	expect(response.status(), `setSystemFooterPolicy: expected 200 but got ${response.status()}`).toBe(200)
-}
 
 async function restoreAppConfig(
 	requestContext: APIRequestContext,
@@ -161,7 +133,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 		)
 		await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
 		await deleteAppConfig(page.request, 'libresign', 'tsa_url')
-		await setSystemFooterPolicy(adminContext, FOOTER_DISABLED_VALUE)
+		await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE, true)
 	})
 
 	const mailpit = createMailpitClient()
