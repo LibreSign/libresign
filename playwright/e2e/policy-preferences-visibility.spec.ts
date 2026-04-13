@@ -5,6 +5,7 @@
 
 import { expect, test as base, type APIRequestContext } from '@playwright/test'
 import { login } from '../support/nc-login'
+import { expandSettingsMenu } from '../support/nc-navigation'
 import {
 	configureOpenSsl,
 	ensureGroupExists,
@@ -67,20 +68,6 @@ async function resetPolicyPreferencesState(
 	await clearUserPolicyPreference(endUserRequestContext, FOOTER_POLICY_KEY)
 	await setSystemPolicyEntry(adminRequestContext, FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE, true)
 	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, null, true)
-}
-
-async function expandSettingsMenu(page: import('@playwright/test').Page): Promise<void> {
-	await page.keyboard.press('Escape').catch(() => {})
-	const sidebar = page.locator('#app-navigation-vue')
-	const settingsLink = sidebar.getByRole('link', { name: 'Account' })
-	if (await settingsLink.count()) {
-		return
-	}
-
-	const settingsToggle = sidebar.getByRole('button', { name: 'Settings' })
-	if (await settingsToggle.count()) {
-		await settingsToggle.first().click()
-	}
 }
 
 test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => {
