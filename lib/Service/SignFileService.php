@@ -41,6 +41,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -1359,6 +1360,7 @@ class SignFileService {
 			return $this->createSignedFile($originalFile, $originalContent);
 		}
 		$metadata = $this->footerHandler->getMetadata($originalFile, $this->libreSignFile);
+		$this->footerHandler->setRequestPolicyOverrides($this->resolveFooterPolicyRequestOverridesFromFileMetadata());
 		$footer = $this->footerHandler
 			->setTemplateVar('uuid', $this->libreSignFile->getUuid())
 			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
@@ -1384,6 +1386,33 @@ class SignFileService {
 			$pdfContent = $originalContent;
 		}
 		return $this->createSignedFile($originalFile, $pdfContent);
+	}
+
+	/** @return array<string, string> */
+	private function resolveFooterPolicyRequestOverridesFromFileMetadata(): array {
+		$metadata = $this->libreSignFile->getMetadata();
+		if (!is_array($metadata)) {
+			return [];
+		}
+
+		$policySnapshot = $metadata['policy_snapshot'] ?? null;
+		if (!is_array($policySnapshot)) {
+			return [];
+		}
+
+		$footerSnapshot = $policySnapshot[FooterPolicy::KEY] ?? null;
+		if (!is_array($footerSnapshot)) {
+			return [];
+		}
+
+		$effectiveValue = $footerSnapshot['effectiveValue'] ?? null;
+		if (!is_string($effectiveValue) || trim($effectiveValue) === '') {
+			return [];
+		}
+
+		return [
+			FooterPolicy::KEY => $effectiveValue,
+		];
 	}
 
 	protected function getSignedFile(): ?File {
