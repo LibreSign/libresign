@@ -31,6 +31,7 @@ use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataDownloadResponse;
@@ -901,6 +902,8 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 * 400: Bad request
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
 	public function footerTemplatePreviewPdf(string $template = '', int $width = 595, int $height = 50) {
 		try {
