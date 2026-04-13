@@ -373,6 +373,23 @@ describe('files store - critical business rules', () => {
 			expect(store.canSign()).toBe(true)
 		})
 
+		it('in none flow, signing keeps parallel behavior', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				uuid: 'file-uuid',
+				status: 1,
+				signatureFlow: 'none',
+				signers: [
+					{ me: false, signingOrder: 1, signed: [] },
+					{ me: true, signingOrder: 2, signed: [], sign_request_uuid: 'sign-request-uuid' },
+				],
+			}
+
+			expect(store.canSign()).toBe(true)
+		})
+
 		it('allows signing for approvers when no signer me flag exists but the file uuid is available', () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
@@ -1205,14 +1222,14 @@ describe('files store - critical business rules', () => {
 				}])
 			})
 
-		it('maps numeric signatureFlow to ordered_numeric', async () => {
+		it('sends canonical signature_flow override from selected file', async () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
 				nodeId: 99,
 				name: 'contract.pdf',
-				signatureFlow: 2,
+				signatureFlow: 'ordered_numeric',
 				signers: [],
 				settings: { path: '/files/contract.pdf' },
 			}
@@ -1223,7 +1240,7 @@ describe('files store - critical business rules', () => {
 			await store.saveOrUpdateSignatureRequest({ status: 1 })
 
 			const config = axiosMock.mock.calls[0][0]
-			expect(config.data.signatureFlow).toBe('ordered_numeric')
+			expect(config.data.policy.overrides.signature_flow).toBe('ordered_numeric')
 			expect(config.data.file.nodeId).toBe(99)
 			expect(config.data.file.settings).toEqual({ path: '/files/contract.pdf' })
 		})
@@ -1260,7 +1277,7 @@ describe('files store - critical business rules', () => {
 			await store.saveOrUpdateSignatureRequest({ status: 1 })
 
 			const config = axiosMock.mock.calls[0][0]
-			expect(config.data.signatureFlow).toBeUndefined()
+			expect(config.data.policy).toBeUndefined()
 		})
 
 		it('sends footerPolicy when footer request override is allowed', async () => {
@@ -1278,10 +1295,10 @@ describe('files store - critical business rules', () => {
 				data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
 			})
 
-			await store.saveOrUpdateSignatureRequest({ status: 1, footerPolicy: footerPolicyValue })
+			await store.saveOrUpdateSignatureRequest({ status: 1, policy: { overrides: { add_footer: footerPolicyValue } } })
 
 			const config = axiosMock.mock.calls[0][0]
-			expect(config.data.footerPolicy).toBe(footerPolicyValue)
+			expect(config.data.policy.overrides.add_footer).toBe(footerPolicyValue)
 		})
 
 		it('omits footerPolicy when policy blocks add_footer request overrides', async () => {
@@ -1314,10 +1331,11 @@ describe('files store - critical business rules', () => {
 				data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
 			})
 
-			await store.saveOrUpdateSignatureRequest({ status: 1, footerPolicy: footerPolicyValue })
+			await store.saveOrUpdateSignatureRequest({ status: 1, policy: { overrides: { add_footer: footerPolicyValue } } })
 
 			const config = axiosMock.mock.calls[0][0]
-			expect(config.data.footerPolicy).toBeUndefined()
+			expect(config.data.policy?.overrides?.add_footer).toBeUndefined()
+			expect(config.data.policy?.overrides?.signature_flow).toBe('parallel')
 		})
 
 		it('sorts ordered_numeric signers by signingOrder', async () => {
