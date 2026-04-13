@@ -10,11 +10,8 @@ namespace OCA\Libresign\Service\Policy;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\Policy\Provider\DocMdp\FilePolicy\DocMdpFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Provider\FilePolicy\Contract\IFilePolicyApplier;
-use OCA\Libresign\Service\Policy\Provider\Footer\FilePolicy\FooterFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
-use OCA\Libresign\Service\Policy\Provider\Signature\FilePolicy\SignatureFlowFilePolicyApplier;
 use OCP\IL10N;
 
 class FilePolicyApplier {
@@ -60,30 +57,6 @@ class FilePolicyApplier {
 		}
 	}
 
-	private function applySignatureFlow(FileEntity $file, array $data): void {
-		$this->getApplierByClass(SignatureFlowFilePolicyApplier::class)->apply($file, $data);
-	}
-
-	private function syncSignatureFlow(FileEntity $file, array $data): void {
-		$this->getApplierByClass(SignatureFlowFilePolicyApplier::class)->sync($file, $data);
-	}
-
-	private function applyDocMdpLevel(FileEntity $file, array $data): void {
-		$this->getApplierByClass(DocMdpFilePolicyApplier::class)->apply($file, $data);
-	}
-
-	private function syncDocMdpLevel(FileEntity $file, array $data): void {
-		$this->getApplierByClass(DocMdpFilePolicyApplier::class)->sync($file, $data);
-	}
-
-	private function applyFooterPolicy(FileEntity $file, array $data): void {
-		$this->getApplierByClass(FooterFilePolicyApplier::class)->apply($file, $data);
-	}
-
-	private function syncFooterPolicy(FileEntity $file, array $data): void {
-		$this->getApplierByClass(FooterFilePolicyApplier::class)->sync($file, $data);
-	}
-
 	/** @return list<IFilePolicyApplier> */
 	private function discoverAppliers(): array {
 		$appliers = [];
@@ -119,16 +92,5 @@ class FilePolicyApplier {
 			: $shortName;
 
 		return $namespace . '\\FilePolicy\\' . $baseName . 'FilePolicyApplier';
-	}
-
-	/** @param class-string<IFilePolicyApplier> $class */
-	private function getApplierByClass(string $class): IFilePolicyApplier {
-		foreach ($this->appliers as $applier) {
-			if ($applier instanceof $class) {
-				return $applier;
-			}
-		}
-
-		throw new \RuntimeException(sprintf('File policy applier "%s" not registered.', $class));
 	}
 }
