@@ -79,20 +79,20 @@ test('updates files list status after signing with native engine', async ({ page
 	await page.waitForURL('**/f/sign/**/pdf')
 	const signButton = page.getByRole('button', { name: 'Sign the document.' })
 	await expect(signButton).toBeVisible()
-		await signButton.click()
-		const signResponsePromise = page.waitForResponse((response) =>
-			response.request().method() === 'POST'
-			&& response.url().includes('/apps/libresign/api/v1/sign/'),
-		)
-		await page.getByRole('button', { name: 'Sign document' }).click()
-		const signResponse = await signResponsePromise
-		const signResponseBody = await signResponse.text()
-		expect(
-			signResponse.ok(),
-			`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
-		).toBeTruthy()
-		await expect(page.getByText('This document is valid')).toBeVisible()
+	await signButton.click()
+	const signResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
+	await page.getByRole('button', { name: 'Sign document' }).click()
+	const signResponse = await signResponsePromise
+	const signResponseBody = await signResponse.text()
+	expect(
+		signResponse.ok(),
+		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
+	).toBeTruthy()
+	await expect(page.getByText('This document is valid')).toBeVisible()
 
-		await page.locator('#fileslist').getByRole('link', { name: 'Files' }).click()
-		await expect(targetRow.locator('.status-chip__text')).toHaveText('Signed')
+	await page.locator('#fileslist').getByRole('link', { name: 'Files' }).click()
+	await expect(targetRow.locator('.status-chip__text')).toHaveText('Signed')
 })
