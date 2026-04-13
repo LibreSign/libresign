@@ -12,6 +12,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\PrivateValidation;
@@ -62,6 +63,7 @@ class PageController extends AEnvironmentPageAwareController {
 		protected SignFileService $signFileService,
 		protected RequestSignatureService $requestSignatureService,
 		private PolicyService $policyService,
+		private FooterHandler $footerHandler,
 		private SignerElementsService $signerElementsService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
@@ -117,6 +119,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('effective_policies', [
 			'policies' => $resolvedPolicies,
 		]);
+		$this->initialState->provideInitialState('footer_template', $this->footerHandler->getTemplate());
 		$this->initialState->provideInitialState('docmdp_config', $this->docMdpConfigService->getConfig());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information'));
 
