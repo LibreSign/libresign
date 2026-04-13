@@ -328,6 +328,7 @@
 					:editor-title="editorTitle"
 					:editor-help="editorHelp"
 					:active-editor="activeEditor"
+					:editor-props="activeEditorProps"
 					:selected-target-options="selectedTargetOptions"
 					:available-targets="state.availableTargets"
 					:loading-targets="state.loadingTargets"
@@ -476,6 +477,16 @@ const filteredSettingSummaries = computed(() => {
 })
 
 const activeEditor = computed(() => state.activeDefinition?.editor ?? null)
+const activeEditorProps = computed<Record<string, unknown>>(() => {
+	if (!state.activeDefinition) {
+		return {}
+	}
+
+	const baseEditorProps = state.activeDefinition.editorProps ?? {}
+	const activePolicy = policiesStore.getPolicy(state.activeDefinition.key)
+
+	return state.activeDefinition.resolveEditorProps?.(activePolicy, baseEditorProps) ?? baseEditorProps
+})
 const effectiveCatalogLayout = computed(() => isSmallViewport.value ? 'cards' : catalogLayout.value)
 const hasActiveFilter = computed(() => settingsFilter.value.trim().length > 0)
 const catalogViewButtonLabel = computed(() => {
