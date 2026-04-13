@@ -2208,6 +2208,7 @@ export type components = {
         ValidatePolicySnapshot: {
             docmdp?: components["schemas"]["PolicySnapshotNumericEntry"];
             signature_flow?: components["schemas"]["PolicySnapshotEntry"];
+            add_footer?: components["schemas"]["PolicySnapshotEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
@@ -4485,8 +4486,10 @@ export interface operations {
                      * @default 1
                      */
                     status?: number | null;
-                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses the effective policy resolution. */
-                    signatureFlow?: string | null;
+                    /** @description Structured policy payload with request-level overrides and active context. */
+                    policy?: {
+                        [key: string]: Record<string, never>;
+                    } | null;
                 };
             };
         };
@@ -4552,8 +4555,10 @@ export interface operations {
                      * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
                      */
                     status?: number | null;
-                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses the effective policy resolution. */
-                    signatureFlow?: string | null;
+                    /** @description Structured policy payload with request-level overrides and active context. */
+                    policy?: {
+                        [key: string]: Record<string, never>;
+                    } | null;
                     /** @description The name of file to sign */
                     name?: string | null;
                     /**
