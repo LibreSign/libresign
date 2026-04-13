@@ -580,24 +580,44 @@ export function createRealPolicyWorkbenchState() {
 	}
 
 	async function fetchGroups(query = '', limit = 20, offset = 0): Promise<PolicyTargetOption[]> {
-		const { data } = await axios.get<GroupDetailsResponse>(generateOcsUrl('cloud/groups/details'), {
-			params: {
-				search: query,
-				limit,
-				offset,
-			},
-		})
+			try {
+				const { data } = await axios.get<GroupDetailsResponse>(generateOcsUrl('cloud/groups/details'), {
+					params: {
+						search: query,
+						limit,
+						offset,
+					},
+				})
 
-		return (data.ocs?.data?.groups ?? [])
-			.map((group) => ({
-				id: group.id,
-				displayName: group.displayname || group.id,
-				subname: typeof group.usercount === 'number'
-					? t('libresign', '{count} members', { count: String(group.usercount) })
-					: undefined,
-				isNoUser: true,
-			}))
-			.sort((left, right) => left.displayName.localeCompare(right.displayName))
+				return (data.ocs?.data?.groups ?? [])
+					.map((group) => ({
+						id: group.id,
+						displayName: group.displayname || group.id,
+						subname: typeof group.usercount === 'number'
+							? t('libresign', '{count} members', { count: String(group.usercount) })
+							: undefined,
+						isNoUser: true,
+					}))
+					.sort((left, right) => left.displayName.localeCompare(right.displayName))
+			} catch {
+				// Subadmins may receive 403 from /cloud/groups/details. Fall back to
+				// /cloud/groups, which returns the searchable group list they can target.
+				const { data } = await axios.get<{ ocs?: { data?: { groups?: string[] } } }>(generateOcsUrl('cloud/groups'), {
+					params: {
+						search: query,
+						limit,
+						offset,
+					},
+				})
+
+				return (data.ocs?.data?.groups ?? [])
+					.map((groupId) => ({
+						id: groupId,
+						displayName: groupId,
+						isNoUser: true,
+					}))
+					.sort((left, right) => left.displayName.localeCompare(right.displayName))
+			}
 	}
 
 	async function fetchUsers(query = '', limit = 20, offset = 0): Promise<PolicyTargetOption[]> {
