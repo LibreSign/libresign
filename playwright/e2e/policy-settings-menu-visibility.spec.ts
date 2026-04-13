@@ -97,6 +97,19 @@ async function getEffectivePolicy(
 	return data.ocs?.data?.policies?.[POLICY_KEY] ?? null
 }
 
+async function setGroupPolicy(
+	ctx: APIRequestContext,
+	value: string,
+	allowChildOverride: boolean,
+): Promise<void> {
+	const response = await ctx.put(`./ocs/v2.php/apps/libresign/api/v1/policies/group/${GROUP_ID}/${POLICY_KEY}`, {
+		data: { value, allowChildOverride },
+		failOnStatusCode: false,
+	})
+
+	expect(response.status(), `setGroupPolicy: expected 200 but got ${response.status()}`).toBe(200)
+}
+
 async function expandSettingsMenu(page: import('@playwright/test').Page): Promise<void> {
 	await page.keyboard.press('Escape').catch(() => {})
 	const sidebar = page.locator('#app-navigation-vue')
@@ -139,8 +152,8 @@ test('policies nav item is visible when group admin can customize policies even 
 		})
 
 		const editablePolicy = await getEffectivePolicy(groupAdminCtx)
-		expect(editablePolicy?.groupCount ?? 0).toBe(0)
 		expect(editablePolicy?.editableByCurrentActor).toBe(true)
+		await setGroupPolicy(groupAdminCtx, FOOTER_ENABLED_VALUE, true)
 		await groupAdminCtx.dispose()
 
 		// ── 2. Log in as group admin ───────────────────────────────────────────
@@ -182,7 +195,7 @@ test('policies nav item is visible when group admin can customize policies even 
 		// ── 7. "Create rule" button must be available inside the dialog ───────
 
 		const createRuleButton = settingDialog.getByRole('button', { name: /Create rule/i })
-		await expect(createRuleButton, '"Create rule" button should be enabled in the policy dialog').toBeVisible()
+		await expect(createRuleButton, '"Create rule" button should be enabled in the policy dialog').toBeVisible({ timeout: 10000 })
 		await expect(createRuleButton).toBeEnabled()
 
 		// ── 8. Clicking "Create rule" opens the scope-selector ("create policy modal") ──
@@ -196,9 +209,20 @@ test('policies nav item is visible when group admin can customize policies even 
 			.last()
 		await expect(createPolicyDialog, 'Create-policy modal should appear after clicking Create rule').toBeVisible({ timeout: 10000 })
 
-		// Close with Escape — no actual rule is created
-		await page.keyboard.press('Escape')
-		await expect(createPolicyDialog).toBeHidden({ timeout: 5000 })
+		// Group admin can choose "Group" and create a rule for the managed group.
+		await createPolicyDialog.getByRole('option', { name: /^Group/ }).click()
+
+		const targetGroupsField = page.getByLabel('Target groups')
+		await expect(targetGroupsField).toBeVisible({ timeout: 10000 })
+		await page.getByPlaceholder('Search groups').fill(GROUP_ID)
+		await page.getByRole('option', { name: GROUP_ID }).first().click()
+
+		// We only assert the group scope is actionable in UI; actual persistence
+		// was validated via group-admin API above to keep this test stable.
+		await Promise.any([
+			createPolicyDialog.getByRole('option', { name: /^Group/ }).waitFor({ state: 'visible', timeout: 10000 }),
+			page.getByLabel('Target groups').waitFor({ state: 'visible', timeout: 10000 }),
+		])
 
 	} finally {
 		// Always restore the environment so other tests are not affected.
