@@ -23,7 +23,7 @@ type FileSigner = {
 }
 
 type SelectedFile = {
-	signatureFlow?: string | number
+	signatureFlow?: string
 	signers: FileSigner[]
 }
 
@@ -142,26 +142,12 @@ describe('Signer', () => {
 		vi.clearAllMocks()
 	})
 
-	describe('RULE: signatureFlow maps numeric values to string constants', () => {
-		it('returns ordered_numeric for value 2', () => {
-			filesStore.selectedFile = { signatureFlow: 2, signers: [{}] }
+	describe('RULE: signatureFlow uses canonical string values', () => {
+		it('returns ordered_numeric when already canonical', () => {
+			filesStore.selectedFile = { signatureFlow: 'ordered_numeric', signers: [{}] }
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
-		})
-
-		it('returns parallel for value 1', () => {
-			filesStore.selectedFile = { signatureFlow: 1, signers: [{}] }
-			wrapper = createWrapper()
-
-			expect(wrapper.vm.signatureFlow).toBe('parallel')
-		})
-
-		it('returns none for value 0', () => {
-			filesStore.selectedFile = { signatureFlow: 0, signers: [{}] }
-			wrapper = createWrapper()
-
-			expect(wrapper.vm.signatureFlow).toBe('none')
 		})
 
 		it('defaults to parallel when undefined', () => {
@@ -171,11 +157,11 @@ describe('Signer', () => {
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
 
-		it('uses string value directly when already string', () => {
-			filesStore.selectedFile = { signatureFlow: 'ordered_numeric', signers: [{}] }
+		it('returns none when file flow is none', () => {
+			filesStore.selectedFile = { signatureFlow: 'none', signers: [{}] }
 			wrapper = createWrapper()
 
-			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
+			expect(wrapper.vm.signatureFlow).toBe('none')
 		})
 	})
 
