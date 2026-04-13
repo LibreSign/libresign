@@ -446,6 +446,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignValidatePolicySnapshot = array{
  *     docmdp?: LibresignPolicySnapshotNumericEntry,
  *     signature_flow?: LibresignPolicySnapshotEntry,
+ *     add_footer?: LibresignPolicySnapshotEntry,
  * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,
