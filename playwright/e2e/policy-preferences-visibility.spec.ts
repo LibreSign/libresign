@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { expect, request, test as base, type APIRequestContext } from '@playwright/test'
+import { expect, test as base, type APIRequestContext } from '@playwright/test'
 import { login } from '../support/nc-login'
 import {
 	configureOpenSsl,
@@ -11,6 +11,14 @@ import {
 	ensureUserExists,
 	ensureUserInGroup,
 } from '../support/nc-provisioning'
+import {
+	clearUserPolicyPreference,
+	createAuthenticatedRequestContext,
+	getEffectivePolicy,
+	setGroupPolicyEntry,
+	setSystemPolicyEntry,
+	waitForPolicyCanSaveAsUserDefault,
+} from '../support/policy-api'
 
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
@@ -51,160 +59,14 @@ const FOOTER_DISABLED_VALUE = JSON.stringify({
 	customizeFooterTemplate: false,
 })
 
-async function createAuthenticatedRequestContext(authUser: string, authPassword: string): Promise<APIRequestContext> {
-	const auth = 'Basic ' + Buffer.from(`${authUser}:${authPassword}`).toString('base64')
-
-	return request.newContext({
-		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
-		ignoreHTTPSErrors: true,
-		extraHTTPHeaders: {
-			'OCS-ApiRequest': 'true',
-			Accept: 'application/json',
-			Authorization: auth,
-			'Content-Type': 'application/json',
-		},
-	})
-}
-
-async function policyRequest(
-	requestContext: APIRequestContext,
-	method: 'GET' | 'POST' | 'PUT' | 'DELETE',
-	path: string,
-	body?: Record<string, unknown>,
-) {
-	const requestUrl = `./ocs/v2.php${path}`
-	const requestOptions = {
-		data: body,
-		failOnStatusCode: false,
-	}
-
-	const response = method === 'GET'
-		? await requestContext.get(requestUrl, requestOptions)
-		: method === 'POST'
-			? await requestContext.post(requestUrl, requestOptions)
-			: method === 'PUT'
-				? await requestContext.put(requestUrl, requestOptions)
-				: await requestContext.delete(requestUrl, requestOptions)
-
-	const text = await response.text()
-	const parsed = text ? JSON.parse(text) as {
-		ocs?: {
-			meta?: { statuscode?: number, message?: string }
-			data?: Record<string, unknown>
-		}
-	} : { ocs: { data: {} } }
-
-	return {
-		httpStatus: response.status(),
-		statusCode: parsed.ocs?.meta?.statuscode ?? response.status(),
-		message: parsed.ocs?.meta?.message ?? '',
-		data: parsed.ocs?.data ?? {},
-	}
-}
-
-async function getEffectivePolicy(
-	requestContext: APIRequestContext,
-	policyKey: string,
-): Promise<{
-	effectiveValue?: unknown
-	sourceScope?: string
-	canSaveAsUserDefault?: boolean
-} | null> {
-	const result = await policyRequest(requestContext, 'GET', '/apps/libresign/api/v1/policies/effective')
-	const policies = (result.data.policies ?? {}) as Record<string, {
-		effectiveValue?: unknown
-		sourceScope?: string
-		canSaveAsUserDefault?: boolean
-	}>
-
-	return policies[policyKey] ?? null
-}
-
-async function waitForPolicyCanSaveAsUserDefault(
-	requestContext: APIRequestContext,
-	policyKey: string,
-	expected: boolean,
-	maxAttempts = 10,
-): Promise<void> {
-	for (let attempt = 0; attempt < maxAttempts; attempt++) {
-		const effectivePolicy = await getEffectivePolicy(requestContext, policyKey)
-		if (effectivePolicy?.canSaveAsUserDefault === expected) {
-			return
-		}
-	}
-
-	throw new Error(`Policy ${policyKey} did not reach canSaveAsUserDefault=${expected}`)
-}
-
-async function setSystemSignatureFlow(
-	ctx: APIRequestContext,
-	value: string | null,
-	allowChildOverride: boolean,
-): Promise<void> {
-	const response = await policyRequest(
-		ctx,
-		'POST',
-		`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
-		{ value, allowChildOverride },
-	)
-	expect(response.httpStatus, `setSystemSignatureFlow: expected 200 but got ${response.httpStatus}`).toBe(200)
-}
-
-async function setGroupSignatureFlow(
-	ctx: APIRequestContext,
-	value: string,
-	allowChildOverride: boolean,
-): Promise<void> {
-	const response = await policyRequest(
-		ctx,
-		'PUT',
-		`/apps/libresign/api/v1/policies/group/${GROUP_ID}/${POLICY_KEY}`,
-		{ value, allowChildOverride },
-	)
-	expect(response.httpStatus, `setGroupSignatureFlow: expected 200 but got ${response.httpStatus}`).toBe(200)
-}
-
-async function setSystemFooterPolicy(
-	ctx: APIRequestContext,
-	value: string | null,
-	allowChildOverride: boolean,
-): Promise<void> {
-	const response = await policyRequest(
-		ctx,
-		'POST',
-		`/apps/libresign/api/v1/policies/system/${FOOTER_POLICY_KEY}`,
-		{ value, allowChildOverride },
-	)
-	expect(response.httpStatus, `setSystemFooterPolicy: expected 200 but got ${response.httpStatus}`).toBe(200)
-}
-
-async function setGroupFooterPolicy(
-	ctx: APIRequestContext,
-	value: string,
-	allowChildOverride: boolean,
-): Promise<void> {
-	const response = await policyRequest(
-		ctx,
-		'PUT',
-		`/apps/libresign/api/v1/policies/group/${GROUP_ID}/${FOOTER_POLICY_KEY}`,
-		{ value, allowChildOverride },
-	)
-	expect(response.httpStatus, `setGroupFooterPolicy: expected 200 but got ${response.httpStatus}`).toBe(200)
-}
-
-async function clearOwnUserPreference(ctx: APIRequestContext, policyKey: string): Promise<void> {
-	const response = await policyRequest(ctx, 'DELETE', `/apps/libresign/api/v1/policies/user/${policyKey}`)
-	expect([200, 500], `clearOwnUserPreference(${policyKey}): expected 200 or 500 but got ${response.httpStatus}`).toContain(response.httpStatus)
-}
-
 async function resetPolicyPreferencesState(
 	adminRequestContext: APIRequestContext,
 	endUserRequestContext: APIRequestContext,
 ): Promise<void> {
-	await clearOwnUserPreference(endUserRequestContext, POLICY_KEY)
-	await clearOwnUserPreference(endUserRequestContext, FOOTER_POLICY_KEY)
-	await setSystemFooterPolicy(adminRequestContext, FOOTER_DISABLED_VALUE, true)
-	await setSystemSignatureFlow(adminRequestContext, null, true)
+	await clearUserPolicyPreference(endUserRequestContext, POLICY_KEY)
+	await clearUserPolicyPreference(endUserRequestContext, FOOTER_POLICY_KEY)
+	await setSystemPolicyEntry(adminRequestContext, FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE, true)
+	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, null, true)
 }
 
 async function expandSettingsMenu(page: import('@playwright/test').Page): Promise<void> {
@@ -240,10 +102,10 @@ test.afterEach(async ({ adminRequestContext, endUserRequestContext }) => {
 })
 
 test('group member sees Preferences controls only when lower-layer customization is allowed', async ({ page, adminRequestContext, endUserRequestContext }) => {
-	await setSystemSignatureFlow(adminRequestContext, 'parallel', true)
-	await setGroupSignatureFlow(adminRequestContext, 'ordered_numeric', false)
-	await setSystemFooterPolicy(adminRequestContext, FOOTER_ENABLED_VALUE, true)
-	await setGroupFooterPolicy(adminRequestContext, FOOTER_ENABLED_VALUE, false)
+	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, 'parallel', true)
+	await setGroupPolicyEntry(adminRequestContext, GROUP_ID, POLICY_KEY, 'ordered_numeric', false)
+	await setSystemPolicyEntry(adminRequestContext, FOOTER_POLICY_KEY, FOOTER_ENABLED_VALUE, true)
+	await setGroupPolicyEntry(adminRequestContext, GROUP_ID, FOOTER_POLICY_KEY, FOOTER_ENABLED_VALUE, false)
 
 	let effectivePolicy = await getEffectivePolicy(endUserRequestContext, POLICY_KEY)
 	expect(effectivePolicy?.effectiveValue).toBe('ordered_numeric')
@@ -253,12 +115,12 @@ test('group member sees Preferences controls only when lower-layer customization
 	await page.goto('./apps/libresign/f/preferences')
 	await expandSettingsMenu(page)
 
-	await setGroupSignatureFlow(adminRequestContext, 'ordered_numeric', true)
+	await setGroupPolicyEntry(adminRequestContext, GROUP_ID, POLICY_KEY, 'ordered_numeric', true)
 
 	effectivePolicy = await getEffectivePolicy(endUserRequestContext, POLICY_KEY)
 	expect(effectivePolicy?.canSaveAsUserDefault).toBe(true)
 
-	await setGroupFooterPolicy(adminRequestContext, FOOTER_ENABLED_VALUE, true)
+	await setGroupPolicyEntry(adminRequestContext, GROUP_ID, FOOTER_POLICY_KEY, FOOTER_ENABLED_VALUE, true)
 	await waitForPolicyCanSaveAsUserDefault(endUserRequestContext, FOOTER_POLICY_KEY, true)
 
 	await page.goto('./apps/libresign/f/preferences')
