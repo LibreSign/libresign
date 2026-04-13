@@ -13,11 +13,12 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\FilePolicy\Contract\IFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCP\IL10N;
 use OCP\IUser;
 
-class FooterFilePolicyApplier {
+class FooterFilePolicyApplier implements IFilePolicyApplier {
 	public function __construct(
 		private readonly PolicyService $policyService,
 		private readonly FileService $fileService,
@@ -25,6 +26,7 @@ class FooterFilePolicyApplier {
 	) {
 	}
 
+	#[\Override]
 	public function apply(FileEntity $file, array $data): void {
 		$user = ($data['userManager'] ?? null) instanceof IUser ? $data['userManager'] : null;
 		$requestOverrides = $this->getOverrides($data);
@@ -36,6 +38,7 @@ class FooterFilePolicyApplier {
 		$this->storePolicySnapshot($file, $resolvedPolicy);
 	}
 
+	#[\Override]
 	public function sync(FileEntity $file, array $data): void {
 		$requestOverrides = $this->getOverrides($data);
 		$activeContext = $this->extractActiveContext($data);
@@ -50,6 +53,11 @@ class FooterFilePolicyApplier {
 		if ($metadataChanged) {
 			$this->fileService->update($file);
 		}
+	}
+
+	#[\Override]
+	public function supportsCoreFlowSync(): bool {
+		return false;
 	}
 
 	/**
