@@ -69,6 +69,7 @@ final class ResolvedPolicyTest extends TestCase {
 		$this->assertSame([
 			'policyKey' => 'signature_flow',
 			'effectiveValue' => 'parallel',
+			'inheritedValue' => null,
 			'sourceScope' => 'group',
 			'visible' => true,
 			'editableByCurrentActor' => true,
