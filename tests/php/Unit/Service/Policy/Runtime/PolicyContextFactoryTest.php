@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Runtime;
 
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
 use OCP\Group\ISubAdmin;
 use OCP\IGroupManager;
@@ -36,7 +37,7 @@ final class PolicyContextFactoryTest extends TestCase {
 		$user->method('getUID')->willReturn('john');
 
 		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
-		$this->groupManager->expects($this->once())->method('getUserGroupIds')->with($user)->willReturn(['finance']);
+		$this->groupManager->expects($this->exactly(2))->method('getUserGroupIds')->with($user)->willReturn(['finance']);
 		$this->groupManager->expects($this->once())->method('isAdmin')->with('john')->willReturn(false);
 		$this->subAdmin->expects($this->once())->method('isSubAdmin')->with($user)->willReturn(false);
 
@@ -70,6 +71,21 @@ final class PolicyContextFactoryTest extends TestCase {
 
 		$this->assertSame('ghost', $context->getUserId());
 		$this->assertSame([], $context->getGroups());
+	}
+
+	public function testForCurrentUserRejectsUnauthorizedActiveContext(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('john');
+
+		$this->userSession->expects($this->once())->method('getUser')->willReturn($user);
+		$this->groupManager->expects($this->once())->method('getUserGroupIds')->with($user)->willReturn(['finance']);
+		$this->groupManager->expects($this->never())->method('isAdmin');
+		$this->subAdmin->expects($this->never())->method('isSubAdmin');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('You are not allowed to use this policy context.');
+
+		$this->getFactory()->forCurrentUser([], ['type' => 'group', 'id' => 'legal']);
 	}
 
 	private function getFactory(): PolicyContextFactory {
