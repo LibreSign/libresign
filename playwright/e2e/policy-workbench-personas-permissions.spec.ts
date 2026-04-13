@@ -3,13 +3,23 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { expect, request, test, type APIRequestContext } from '@playwright/test'
+import { expect, request, test as base, type APIRequestContext } from '@playwright/test'
 import {
 	ensureGroupExists,
 	ensureSubadminOfGroup,
 	ensureUserExists,
 	ensureUserInGroup,
 } from '../support/nc-provisioning'
+
+const test = base.extend<{
+	adminRequestContext: APIRequestContext
+}>({
+	adminRequestContext: async ({}, use) => {
+		const ctx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
+		await use(ctx)
+		await ctx.dispose()
+	},
+})
 
 test.describe.configure({ retries: 0, timeout: 90000 })
 
@@ -83,7 +93,7 @@ async function clearOwnUserPreference(
 	requestContext: APIRequestContext,
 ) {
 	const result = await policyRequest(requestContext, 'DELETE', `/apps/libresign/api/v1/policies/user/${POLICY_KEY}`)
-	expect([200, 500]).toContain(result.httpStatus)
+	expect([200, 500], `clearOwnUserPreference: expected 200 or 500 but got ${result.httpStatus}`).toContain(result.httpStatus)
 }
 
 async function createAuthenticatedRequestContext(authUser: string, authPassword: string): Promise<APIRequestContext> {
@@ -101,7 +111,16 @@ async function createAuthenticatedRequestContext(authUser: string, authPassword:
 	})
 }
 
-test('personas can manage policies according to permissions and override toggles', async ({ page }) => {
+test.afterEach(async ({ adminRequestContext }) => {
+	await policyRequest(
+		adminRequestContext,
+		'POST',
+		`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
+		{ value: null, allowChildOverride: true },
+	)
+})
+
+test('personas can manage policies according to permissions and override toggles', async ({ page, adminRequestContext }) => {
 	await ensureUserExists(page.request, GROUP_ADMIN_USER, DEFAULT_TEST_PASSWORD)
 	await ensureUserExists(page.request, END_USER, DEFAULT_TEST_PASSWORD)
 	await ensureGroupExists(page.request, GROUP_ID)
@@ -109,11 +128,8 @@ test('personas can manage policies according to permissions and override toggles
 	await ensureUserInGroup(page.request, END_USER, GROUP_ID)
 	await ensureSubadminOfGroup(page.request, GROUP_ADMIN_USER, GROUP_ID)
 
-	const adminRequest = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
 	const groupAdminRequest = await createAuthenticatedRequestContext(GROUP_ADMIN_USER, DEFAULT_TEST_PASSWORD)
 	const endUserRequest = await createAuthenticatedRequestContext(END_USER, DEFAULT_TEST_PASSWORD)
-
-	try {
 
 	// Normalize user-level state before assertions.
 	await clearOwnUserPreference(groupAdminRequest)
@@ -121,7 +137,7 @@ test('personas can manage policies according to permissions and override toggles
 
 	// Global admin defines baseline and group policy with override enabled.
 	let result = await policyRequest(
-		adminRequest,
+		adminRequestContext,
 		'POST',
 		`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
 		{ value: 'parallel', allowChildOverride: true },
@@ -129,7 +145,7 @@ test('personas can manage policies according to permissions and override toggles
 	expect(result.httpStatus).toBe(200)
 
 	result = await policyRequest(
-		adminRequest,
+		adminRequestContext,
 		'PUT',
 		`/apps/libresign/api/v1/policies/group/${GROUP_ID}/${POLICY_KEY}`,
 		{ value: 'ordered_numeric', allowChildOverride: true },
@@ -201,26 +217,21 @@ test('personas can manage policies according to permissions and override toggles
 	expect(endUserEffective?.effectiveValue).toBe('parallel')
 	expect(endUserEffective?.sourceScope).toBe('user')
 	expect(endUserEffective?.canSaveAsUserDefault).toBe(true)
-	} finally {
-		await Promise.all([
-			adminRequest.dispose(),
-			groupAdminRequest.dispose(),
-			endUserRequest.dispose(),
-		])
-	}
+	await Promise.all([
+		groupAdminRequest.dispose(),
+		endUserRequest.dispose(),
+	])
 })
 
-test('admin can remove explicit instance policy and restore system baseline', async ({ page }) => {
+test('admin can remove explicit instance policy and restore system baseline', async ({ page, adminRequestContext }) => {
 	await ensureUserExists(page.request, INSTANCE_RESET_USER, DEFAULT_TEST_PASSWORD)
 
-	const adminRequest = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
 	const instanceResetUserRequest = await createAuthenticatedRequestContext(INSTANCE_RESET_USER, DEFAULT_TEST_PASSWORD)
 
-	try {
-		await clearOwnUserPreference(instanceResetUserRequest)
+	await clearOwnUserPreference(instanceResetUserRequest)
 
 		let result = await policyRequest(
-			adminRequest,
+			adminRequestContext,
 			'POST',
 			`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
 			{ value: 'parallel', allowChildOverride: true },
@@ -232,7 +243,7 @@ test('admin can remove explicit instance policy and restore system baseline', as
 		expect(effectivePolicy?.sourceScope).toBe('global')
 
 		result = await policyRequest(
-			adminRequest,
+			adminRequestContext,
 			'POST',
 			`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
 			{ value: null, allowChildOverride: false },
@@ -242,10 +253,5 @@ test('admin can remove explicit instance policy and restore system baseline', as
 		effectivePolicy = await getEffectivePolicy(instanceResetUserRequest)
 		expect(effectivePolicy?.effectiveValue).toBe('none')
 		expect(effectivePolicy?.sourceScope).toBe('system')
-	} finally {
-		await Promise.all([
-			adminRequest.dispose(),
-			instanceResetUserRequest.dispose(),
-		])
-	}
+	await instanceResetUserRequest.dispose()
 })
