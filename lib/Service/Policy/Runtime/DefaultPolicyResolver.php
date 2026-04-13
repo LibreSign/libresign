@@ -107,6 +107,8 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			);
 		}
 
+		$inheritedValue = $currentValue;
+
 		if ($userPreference !== null) {
 			if ($this->canApplyLowerLayer($definition, $resolved, $userPreference, $canOverrideBelow, $visible, $context)) {
 				$currentValue = $definition->normalizeValue($userPreference->getValue());
@@ -132,6 +134,7 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 
 		$resolved
 			->setEffectiveValue($currentValue)
+			->setInheritedValue($inheritedValue)
 			->setSourceScope($currentSourceScope)
 			->setVisible($visible)
 			->setEditableByCurrentActor($visible && $this->canManagePolicyAtCurrentScope($context))
