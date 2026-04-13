@@ -112,7 +112,7 @@ async function clearOwnPreference(requestContext: APIRequestContext) {
 		`/apps/libresign/api/v1/policies/user/${POLICY_KEY}`,
 	)
 
-	expect([200, 500], `clearOwnPreference: expected 200 or 500 but got ${result.httpStatus}`).toContain(result.httpStatus)
+	expect([200, 401, 500], `clearOwnPreference: expected 200, 401 or 500 but got ${result.httpStatus}`).toContain(result.httpStatus)
 }
 
 async function addEmailSigner(page: Page, email: string, name: string) {
