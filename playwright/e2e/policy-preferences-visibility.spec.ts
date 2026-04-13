@@ -256,9 +256,8 @@ test('group member sees Preferences controls only when lower-layer customization
 	await page.goto('./apps/libresign/f/preferences')
 	await expandSettingsMenu(page)
 
-	await expect(page.getByRole('button', { name: 'Save footer preference' })).toBeVisible()
-
 	const customizeTemplateToggle = page.getByText('Customize footer template', { exact: true })
+	await expect(customizeTemplateToggle).toBeVisible()
 	const footerTemplateLabel = page.getByText('Footer template', { exact: true })
 	await customizeTemplateToggle.click()
 	await expect(footerTemplateLabel).toBeVisible()
