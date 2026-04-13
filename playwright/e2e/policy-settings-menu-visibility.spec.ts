@@ -18,7 +18,7 @@
  * session is needed, keeping the test as fast as possible.
  */
 
-import { expect, request, test, type APIRequestContext } from '@playwright/test'
+import { expect, request, test as base, type APIRequestContext } from '@playwright/test'
 import { login } from '../support/nc-login'
 import {
 	ensureGroupExists,
@@ -29,6 +29,30 @@ import {
 
 // One serial block: a single browser session for the group admin
 // across both phases avoids repeated login overhead.
+const test = base.extend<{
+	adminRequestContext: APIRequestContext
+	groupAdminRequestContext: APIRequestContext
+}>({
+	adminRequestContext: async ({}, use) => {
+		const ctx = await makeAdminContext()
+		await use(ctx)
+		await ctx.dispose()
+	},
+	groupAdminRequestContext: async ({}, use) => {
+		const ctx = await request.newContext({
+			baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
+			ignoreHTTPSErrors: true,
+			extraHTTPHeaders: {
+				'OCS-ApiRequest': 'true',
+				Accept: 'application/json',
+				Authorization: 'Basic ' + Buffer.from(`${GROUP_ADMIN}:${GROUP_ADMIN_PASSWORD}`).toString('base64'),
+			},
+		})
+		await use(ctx)
+		await ctx.dispose()
+	},
+})
+
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
 const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
@@ -126,107 +150,72 @@ async function expandSettingsMenu(page: import('@playwright/test').Page): Promis
 
 // ─── Test ─────────────────────────────────────────────────────────────────────
 
-test('policies nav item is visible when group admin can customize policies even before first group rule exists', async ({ page }) => {
-	const adminCtx = await makeAdminContext()
+test.afterEach(async ({ adminRequestContext }) => {
+	await setSystemPolicy(adminRequestContext, null, true)
+})
 
-	try {
-		// ── 0. Provision users/groups (idempotent; safe to call on every run) ──
+test('policies nav item is visible when group admin can customize policies even before first group rule exists', async ({ page, adminRequestContext, groupAdminRequestContext }) => {
+	// ── 0. Provision users/groups (idempotent; safe to call on every run) ──
+	await ensureUserExists(page.request, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
+	await ensureGroupExists(page.request, GROUP_ID)
+	await ensureUserInGroup(page.request, GROUP_ADMIN, GROUP_ID)
+	await ensureSubadminOfGroup(page.request, GROUP_ADMIN, GROUP_ID)
 
-		await ensureUserExists(page.request, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
-		await ensureGroupExists(page.request, GROUP_ID)
-		await ensureUserInGroup(page.request, GROUP_ADMIN, GROUP_ID)
-		// subadmin role → can_manage_group_policies: true in initial state
-		await ensureSubadminOfGroup(page.request, GROUP_ADMIN, GROUP_ID)
+	// ── 1. Admin: enable delegated customization at system layer ───────────
+	await setSystemPolicy(adminRequestContext, FOOTER_ENABLED_VALUE, true)
 
-		// ── 1. Admin: enable delegated customization at system layer ───────────
-		await setSystemPolicy(adminCtx, FOOTER_ENABLED_VALUE, true)
+	const editablePolicy = await getEffectivePolicy(groupAdminRequestContext)
+	expect(editablePolicy?.editableByCurrentActor).toBe(true)
+	await setGroupPolicy(groupAdminRequestContext, FOOTER_ENABLED_VALUE, true)
 
-		const groupAdminCtx = await request.newContext({
-			baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
-			ignoreHTTPSErrors: true,
-			extraHTTPHeaders: {
-				'OCS-ApiRequest': 'true',
-				Accept: 'application/json',
-				Authorization: 'Basic ' + Buffer.from(`${GROUP_ADMIN}:${GROUP_ADMIN_PASSWORD}`).toString('base64'),
-			},
-		})
+	// ── 2. Log in as group admin ───────────────────────────────────────────
+	await login(page.request, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
+	await page.goto('./apps/libresign/f/preferences')
 
-		const editablePolicy = await getEffectivePolicy(groupAdminCtx)
-		expect(editablePolicy?.editableByCurrentActor).toBe(true)
-		await setGroupPolicy(groupAdminCtx, FOOTER_ENABLED_VALUE, true)
-		await groupAdminCtx.dispose()
+	// ── 3. "Policies" must appear in the settings sidebar ─────────────────
+	await expandSettingsMenu(page)
 
-		// ── 2. Log in as group admin ───────────────────────────────────────────
+	const policiesNavItem = page.getByRole('link', { name: 'Policies' })
+	await expect(policiesNavItem, 'Policies link should be visible when delegated customization is allowed').toBeVisible({ timeout: 20000 })
 
-		await login(page.request, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
+	// ── 4. Navigate to the Policies page ──────────────────────────────────
+	await policiesNavItem.click()
+	await expect(page).toHaveURL(/\/f\/policies/, { timeout: 10000 })
 
-		// Preferences page mounts Preferences.vue which calls fetchEffectivePolicies()
-		// on onMounted, populating the Pinia store that Settings.vue reads reactively.
-		await page.goto('./apps/libresign/f/preferences')
+	// ── 5. The editable policy card must be visible in the workbench ──────
+	const configureButton = page
+		.getByRole('button', { name: /Configure/i })
+		.first()
+	await expect(configureButton, 'At least one Configure button should be visible for the group admin').toBeVisible({ timeout: 15000 })
 
-		// ── 3. "Policies" must appear in the settings sidebar ─────────────────
-		await expandSettingsMenu(page)
+	// ── 6. Open the setting dialog ("Signing order") ──────────────────────
+	await configureButton.click()
 
-		const policiesNavItem = page.getByRole('link', { name: 'Policies' })
-		await expect(policiesNavItem, 'Policies link should be visible when delegated customization is allowed').toBeVisible({ timeout: 20000 })
+	const settingDialog = page.getByRole('dialog', { name: /Signature footer|Signing order/i })
+	await expect(settingDialog, 'Policy dialog should open on click').toBeVisible({ timeout: 10000 })
 
-		// ── 4. Navigate to the Policies page ──────────────────────────────────
+	// ── 7. "Create rule" button must be available inside the dialog ───────
+	const createRuleButton = settingDialog.getByRole('button', { name: /Create rule/i })
+	await expect(createRuleButton, '"Create rule" button should be enabled in the policy dialog').toBeVisible({ timeout: 10000 })
+	await expect(createRuleButton).toBeEnabled()
 
-		await policiesNavItem.click()
-		await expect(page).toHaveURL(/\/f\/policies/, { timeout: 10000 })
+	// ── 8. Clicking "Create rule" opens the scope-selector ("create policy modal") ──
+	await createRuleButton.click()
 
-		// ── 5. The editable policy card must be visible in the workbench ──────
-		//
-		// In group-admin viewMode, editable policies must be available even before
-		// the first explicit group rule is created.
+	const createPolicyDialog = page
+		.getByRole('dialog', { name: /What do you want to create\?|Create rule/i })
+		.last()
+	await expect(createPolicyDialog, 'Create-policy modal should appear after clicking Create rule').toBeVisible({ timeout: 10000 })
 
-		const configureButton = page
-			.getByRole('button', { name: /Configure/i })
-			.first()
-		await expect(configureButton, 'At least one Configure button should be visible for the group admin').toBeVisible({ timeout: 15000 })
+	await createPolicyDialog.getByRole('option', { name: /^Group/ }).click()
 
-		// ── 6. Open the setting dialog ("Signing order") ──────────────────────
+	const targetGroupsField = page.getByLabel('Target groups')
+	await expect(targetGroupsField).toBeVisible({ timeout: 10000 })
+	await page.getByPlaceholder('Search groups').fill(GROUP_ID)
+	await page.getByRole('option', { name: GROUP_ID }).first().click()
 
-		await configureButton.click()
-
-		const settingDialog = page.getByRole('dialog', { name: /Signature footer|Signing order/i })
-		await expect(settingDialog, 'Policy dialog should open on click').toBeVisible({ timeout: 10000 })
-
-		// ── 7. "Create rule" button must be available inside the dialog ───────
-
-		const createRuleButton = settingDialog.getByRole('button', { name: /Create rule/i })
-		await expect(createRuleButton, '"Create rule" button should be enabled in the policy dialog').toBeVisible({ timeout: 10000 })
-		await expect(createRuleButton).toBeEnabled()
-
-		// ── 8. Clicking "Create rule" opens the scope-selector ("create policy modal") ──
-
-		await createRuleButton.click()
-
-		// The scope-selector dialog title is "What do you want to create?"
-		// (falls back to "Create rule" if the workbench skips the selector)
-		const createPolicyDialog = page
-			.getByRole('dialog', { name: /What do you want to create\?|Create rule/i })
-			.last()
-		await expect(createPolicyDialog, 'Create-policy modal should appear after clicking Create rule').toBeVisible({ timeout: 10000 })
-
-		// Group admin can choose "Group" and create a rule for the managed group.
-		await createPolicyDialog.getByRole('option', { name: /^Group/ }).click()
-
-		const targetGroupsField = page.getByLabel('Target groups')
-		await expect(targetGroupsField).toBeVisible({ timeout: 10000 })
-		await page.getByPlaceholder('Search groups').fill(GROUP_ID)
-		await page.getByRole('option', { name: GROUP_ID }).first().click()
-
-		// We only assert the group scope is actionable in UI; actual persistence
-		// was validated via group-admin API above to keep this test stable.
-		await Promise.any([
-			createPolicyDialog.getByRole('option', { name: /^Group/ }).waitFor({ state: 'visible', timeout: 10000 }),
-			page.getByLabel('Target groups').waitFor({ state: 'visible', timeout: 10000 }),
-		])
-
-	} finally {
-		// Always restore the environment so other tests are not affected.
-		await setSystemPolicy(adminCtx, null, true).catch(() => {})
-		await adminCtx.dispose()
-	}
+	await Promise.any([
+		createPolicyDialog.getByRole('option', { name: /^Group/ }).waitFor({ state: 'visible', timeout: 10000 }),
+		page.getByLabel('Target groups').waitFor({ state: 'visible', timeout: 10000 }),
+	])
 })
