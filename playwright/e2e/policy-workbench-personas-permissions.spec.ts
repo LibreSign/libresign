@@ -3,13 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { expect, request, test as base, type APIRequestContext } from '@playwright/test'
+import { expect, test as base, type APIRequestContext } from '@playwright/test'
 import {
 	ensureGroupExists,
 	ensureSubadminOfGroup,
 	ensureUserExists,
 	ensureUserInGroup,
 } from '../support/nc-provisioning'
+import {
+	clearUserPolicyPreference,
+	createAuthenticatedRequestContext,
+	getEffectivePolicy,
+	policyRequest,
+} from '../support/policy-api'
 
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
@@ -33,83 +39,6 @@ const END_USER = 'policy-e2e-end-user'
 const INSTANCE_RESET_USER = 'policy-e2e-instance-reset-user'
 const POLICY_KEY = 'signature_flow'
 
-type OcsPolicyResponse = {
-	ocs?: {
-		meta?: {
-			statuscode?: number
-			message?: string
-		}
-		data?: Record<string, unknown>
-	}
-}
-
-async function policyRequest(
-	requestContext: APIRequestContext,
-	method: 'GET' | 'POST' | 'PUT' | 'DELETE',
-	path: string,
-	body?: Record<string, unknown>,
-) {
-	const requestUrl = `./ocs/v2.php${path}`
-	const requestOptions = {
-		data: body,
-		failOnStatusCode: false,
-	}
-
-	const response = method === 'GET'
-		? await requestContext.get(requestUrl, requestOptions)
-		: method === 'POST'
-			? await requestContext.post(requestUrl, requestOptions)
-			: method === 'PUT'
-				? await requestContext.put(requestUrl, requestOptions)
-				: await requestContext.delete(requestUrl, requestOptions)
-
-	const text = await response.text()
-	const parsed = text ? JSON.parse(text) as OcsPolicyResponse : { ocs: { data: {} } }
-
-	return {
-		httpStatus: response.status(),
-		statusCode: parsed.ocs?.meta?.statuscode ?? response.status(),
-		message: parsed.ocs?.meta?.message ?? '',
-		data: parsed.ocs?.data ?? {},
-	}
-}
-
-async function getEffectivePolicy(
-	requestContext: APIRequestContext,
-) {
-	const result = await policyRequest(requestContext, 'GET', `/apps/libresign/api/v1/policies/effective`)
-	const policies = (result.data.policies ?? {}) as Record<string, {
-		effectiveValue?: unknown
-		editableByCurrentActor?: boolean
-		canSaveAsUserDefault?: boolean
-		sourceScope?: string
-		allowedValues?: unknown[]
-	}>
-
-	return policies[POLICY_KEY] ?? null
-}
-
-async function clearOwnUserPreference(
-	requestContext: APIRequestContext,
-) {
-	const result = await policyRequest(requestContext, 'DELETE', `/apps/libresign/api/v1/policies/user/${POLICY_KEY}`)
-	expect([200, 500], `clearOwnUserPreference: expected 200 or 500 but got ${result.httpStatus}`).toContain(result.httpStatus)
-}
-
-async function createAuthenticatedRequestContext(authUser: string, authPassword: string): Promise<APIRequestContext> {
-	const auth = 'Basic ' + Buffer.from(`${authUser}:${authPassword}`).toString('base64')
-
-	return request.newContext({
-		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
-		ignoreHTTPSErrors: true,
-		extraHTTPHeaders: {
-			'OCS-ApiRequest': 'true',
-			Accept: 'application/json',
-			Authorization: auth,
-			'Content-Type': 'application/json',
-		},
-	})
-}
 
 test.afterEach(async ({ adminRequestContext }) => {
 	await policyRequest(
@@ -132,8 +61,8 @@ test('personas can manage policies according to permissions and override toggles
 	const endUserRequest = await createAuthenticatedRequestContext(END_USER, DEFAULT_TEST_PASSWORD)
 
 	// Normalize user-level state before assertions.
-	await clearOwnUserPreference(groupAdminRequest)
-	await clearOwnUserPreference(endUserRequest)
+	await clearUserPolicyPreference(groupAdminRequest, POLICY_KEY)
+	await clearUserPolicyPreference(endUserRequest, POLICY_KEY)
 
 	// Global admin defines baseline and group policy with override enabled.
 	let result = await policyRequest(
@@ -191,7 +120,7 @@ test('personas can manage policies according to permissions and override toggles
 	)
 	expect(result.httpStatus).toBe(400)
 
-	let endUserEffective = await getEffectivePolicy(endUserRequest)
+		let endUserEffective = await getEffectivePolicy(endUserRequest, POLICY_KEY)
 	expect(endUserEffective?.effectiveValue).toBe('ordered_numeric')
 	expect(endUserEffective?.canSaveAsUserDefault).toBe(false)
 
@@ -213,7 +142,7 @@ test('personas can manage policies according to permissions and override toggles
 	)
 	expect(result.httpStatus).toBe(200)
 
-	endUserEffective = await getEffectivePolicy(endUserRequest)
+		endUserEffective = await getEffectivePolicy(endUserRequest, POLICY_KEY)
 	expect(endUserEffective?.effectiveValue).toBe('parallel')
 	expect(endUserEffective?.sourceScope).toBe('user')
 	expect(endUserEffective?.canSaveAsUserDefault).toBe(true)
@@ -228,7 +157,7 @@ test('admin can remove explicit instance policy and restore system baseline', as
 
 	const instanceResetUserRequest = await createAuthenticatedRequestContext(INSTANCE_RESET_USER, DEFAULT_TEST_PASSWORD)
 
-	await clearOwnUserPreference(instanceResetUserRequest)
+	await clearUserPolicyPreference(instanceResetUserRequest, POLICY_KEY)
 
 		let result = await policyRequest(
 			adminRequestContext,
@@ -238,7 +167,7 @@ test('admin can remove explicit instance policy and restore system baseline', as
 		)
 		expect(result.httpStatus).toBe(200)
 
-		let effectivePolicy = await getEffectivePolicy(instanceResetUserRequest)
+		let effectivePolicy = await getEffectivePolicy(instanceResetUserRequest, POLICY_KEY)
 		expect(effectivePolicy?.effectiveValue).toBe('parallel')
 		expect(effectivePolicy?.sourceScope).toBe('global')
 
@@ -250,7 +179,7 @@ test('admin can remove explicit instance policy and restore system baseline', as
 		)
 		expect(result.httpStatus).toBe(200)
 
-		effectivePolicy = await getEffectivePolicy(instanceResetUserRequest)
+		effectivePolicy = await getEffectivePolicy(instanceResetUserRequest, POLICY_KEY)
 		expect(effectivePolicy?.effectiveValue).toBe('none')
 		expect(effectivePolicy?.sourceScope).toBe('system')
 	await instanceResetUserRequest.dispose()
