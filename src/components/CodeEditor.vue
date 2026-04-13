@@ -4,9 +4,14 @@
 -->
 <template>
 	<div class="code-editor">
-		<label v-if="label" :for="editorId" class="code-editor__label">
-			{{ label }}
-		</label>
+		<div v-if="label || $slots['label-actions']" class="code-editor__header">
+			<label v-if="label" :for="editorId" class="code-editor__label">
+				{{ label }}
+			</label>
+			<span class="code-editor__label-actions">
+				<slot name="label-actions" />
+			</span>
+		</div>
 		<CodeMirror
 			:id="editorId"
 			v-model="internalValue"
@@ -93,14 +98,28 @@ defineExpose({
 	border-radius: var(--border-radius);
 	overflow: hidden;
 
-	&__label {
-		display: block;
+	&__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
 		padding: 8px 12px;
-		font-weight: bold;
-		font-size: 14px;
 		background-color: var(--color-background-dark);
 		border-bottom: 1px solid var(--color-border);
 		color: var(--color-main-text);
+	}
+
+	&__label {
+		display: inline-block;
+		padding: 0;
+		font-weight: bold;
+		font-size: 14px;
+	}
+
+	&__label-actions {
+		display: inline-flex;
+		align-items: center;
+		margin-inline-start: auto;
 	}
 
 	.cm-editor {
