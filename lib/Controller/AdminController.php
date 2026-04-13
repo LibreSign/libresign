@@ -896,6 +896,8 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 * 400: Bad request
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
 	#[NoCSRFRequired]
 	#[NoAdminRequired]
