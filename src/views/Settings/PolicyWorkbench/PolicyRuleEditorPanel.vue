@@ -32,6 +32,7 @@
 				<component
 					:is="activeEditor"
 					:model-value="editorDraft.value"
+					v-bind="editorProps"
 					:editor-scope="editorDraft.scope"
 					:editor-mode="editorMode"
 					@template-changed="$emit('template-changed')"
@@ -105,6 +106,7 @@ const props = withDefaults(defineProps<{
 	editorTitle: string
 	editorHelp: string
 	activeEditor: unknown
+	editorProps?: Record<string, unknown>
 	selectedTargetOptions: TargetOption[]
 	availableTargets: TargetOption[]
 	loadingTargets: boolean
@@ -120,6 +122,7 @@ const props = withDefaults(defineProps<{
 	stickyActions: false,
 	showBackButton: false,
 	showAllowOverrideSwitch: true,
+	editorProps: () => ({}),
 })
 
 defineEmits<{
