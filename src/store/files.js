@@ -165,8 +165,10 @@ import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
  * 	signers?: EditableSignerDraft[] | null
  * 	uuid?: string | null
  * 	status?: number | null
- * 	signatureFlow?: SignatureFlowValue | null
- * 	footerPolicy?: string | null
+ * 	policy?: {
+ * 		overrides?: Record<string, string | number | Record<string, unknown>>
+ * 		activeContext?: { type: 'group', id: string }
+ * 	}
  * }} SaveSignatureRequestOptions
  */
 
@@ -730,7 +732,7 @@ const _filesStore = defineStore('files', () => {
 		}
 
 		const flow = selectedFile?.signatureFlow
-		const isOrderedNumeric = flow === 'ordered_numeric' || flow === 2
+		const isOrderedNumeric = flow === 'ordered_numeric'
 		if (!isOrderedNumeric) {
 			return true
 		}
@@ -1199,7 +1201,7 @@ const _filesStore = defineStore('files', () => {
 	 * @param {SaveSignatureRequestOptions} [payload]
 	 * @returns {Promise<SaveSignatureRequestResponse>}
 	 */
-	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, signatureFlow = null, footerPolicy = null } = {}) {
+	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, policy = null } = {}) {
 		const store = getStore()
 		const policiesStore = usePoliciesStore()
 		const currentFileKey = selectedFileId.value
@@ -1209,18 +1211,24 @@ const _filesStore = defineStore('files', () => {
 		const canUseSignatureFlowOverride = policiesStore.canUseRequestOverride('signature_flow')
 		const canUseFooterOverride = policiesStore.canUseRequestOverride('add_footer')
 
-		let flowValue = signatureFlow
-		if (canUseSignatureFlowOverride) {
-			flowValue = signatureFlow ?? selectedFile.signatureFlow
-			if (typeof flowValue === 'number') {
-				const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-				flowValue = flowMap[flowValue] || 'parallel'
-			}
+		const rawPolicyOverrides = policy?.overrides && typeof policy.overrides === 'object' && !Array.isArray(policy.overrides)
+			? policy.overrides
+			: {}
+		const policyOverrides = Object.fromEntries(
+			Object.entries(rawPolicyOverrides).filter(([key]) => key !== 'signature_flow' && key !== 'add_footer')
+		)
+		const requestedSignatureFlow = rawPolicyOverrides.signature_flow ?? selectedFile?.signatureFlow ?? null
+		if (canUseSignatureFlowOverride && (requestedSignatureFlow === 'none' || requestedSignatureFlow === 'parallel' || requestedSignatureFlow === 'ordered_numeric')) {
+			policyOverrides.signature_flow = requestedSignatureFlow
+		}
+		const requestedFooterPolicy = rawPolicyOverrides.add_footer
+		if (canUseFooterOverride && typeof requestedFooterPolicy === 'string' && requestedFooterPolicy.trim() !== '') {
+			policyOverrides.add_footer = requestedFooterPolicy
 		}
 
-		let footerPolicyValue = null
-		if (canUseFooterOverride && typeof footerPolicy === 'string' && footerPolicy.trim() !== '') {
-			footerPolicyValue = footerPolicy
+		const policyPayload = {
+			...(Object.keys(policyOverrides).length > 0 ? { overrides: policyOverrides } : {}),
+			...(policy?.activeContext ? { activeContext: policy.activeContext } : {}),
 		}
 
 		const config = {
@@ -1231,8 +1239,7 @@ const _filesStore = defineStore('files', () => {
 				signers: requestSigners,
 				visibleElements: requestVisibleElements,
 				status,
-				...(flowValue !== null && flowValue !== undefined ? { signatureFlow: flowValue } : {}),
-				...(footerPolicyValue !== null ? { footerPolicy: footerPolicyValue } : {}),
+				...(Object.keys(policyPayload).length > 0 ? { policy: policyPayload } : {}),
 			},
 		}
 
