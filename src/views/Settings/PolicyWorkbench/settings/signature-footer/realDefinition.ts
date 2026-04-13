@@ -4,8 +4,9 @@
  */
 
 import { t } from '@nextcloud/l10n'
+import { loadState } from '@nextcloud/initial-state'
 
-import type { EffectivePolicyValue } from '../../../../../types/index'
+import type { EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 import SignatureFooterRuleEditor from './SignatureFooterRuleEditor.vue'
 import {
@@ -19,6 +20,23 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Signature footer'),
 	description: t('libresign', 'Manage footer visibility, QR code behavior, validation URL, and footer template customization.'),
 	editor: SignatureFooterRuleEditor,
+	editorProps: {
+		inheritedTemplate: loadState<string>('libresign', 'footer_template', ''),
+		allowValidationSiteOverrideInUserScope: false,
+		preferenceAutoSave: true,
+	},
+	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
+		const policyWithInherited = policy as (EffectivePolicyState & { inheritedValue?: EffectivePolicyValue }) | null
+		const normalizedInherited = normalizeSignatureFooterPolicyConfig(policyWithInherited?.inheritedValue ?? null)
+		if (normalizedInherited.footerTemplate) {
+			return {
+				...baseEditorProps,
+				inheritedTemplate: normalizedInherited.footerTemplate,
+			}
+		}
+
+		return baseEditorProps
+	},
 	editorDialogLayout: 'wide',
 	resolutionMode: 'precedence',
 	createEmptyValue: () => serializeSignatureFooterPolicyConfig(getDefaultSignatureFooterPolicyConfig()),
