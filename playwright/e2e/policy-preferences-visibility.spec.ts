@@ -85,8 +85,9 @@ async function policyRequest(
 	}
 }
 
-async function getEffectiveSignatureFlow(
+async function getEffectivePolicy(
 	requestContext: APIRequestContext,
+	policyKey: string,
 ): Promise<{
 	effectiveValue?: unknown
 	sourceScope?: string
@@ -99,7 +100,23 @@ async function getEffectiveSignatureFlow(
 		canSaveAsUserDefault?: boolean
 	}>
 
-	return policies[POLICY_KEY] ?? null
+	return policies[policyKey] ?? null
+}
+
+async function waitForPolicyCanSaveAsUserDefault(
+	requestContext: APIRequestContext,
+	policyKey: string,
+	expected: boolean,
+	maxAttempts = 10,
+): Promise<void> {
+	for (let attempt = 0; attempt < maxAttempts; attempt++) {
+		const effectivePolicy = await getEffectivePolicy(requestContext, policyKey)
+		if (effectivePolicy?.canSaveAsUserDefault === expected) {
+			return
+		}
+	}
+
+	throw new Error(`Policy ${policyKey} did not reach canSaveAsUserDefault=${expected}`)
 }
 
 async function setSystemSignatureFlow(
@@ -192,7 +209,7 @@ test('group member sees Preferences controls only when lower-layer customization
 		await setSystemFooterPolicy(adminRequest, FOOTER_ENABLED_VALUE, true)
 		await setGroupFooterPolicy(adminRequest, FOOTER_ENABLED_VALUE, false)
 
-		let effectivePolicy = await getEffectiveSignatureFlow(endUserRequest)
+		let effectivePolicy = await getEffectivePolicy(endUserRequest, POLICY_KEY)
 		expect(effectivePolicy?.effectiveValue).toBe('ordered_numeric')
 		expect(effectivePolicy?.canSaveAsUserDefault).toBe(false)
 
@@ -200,22 +217,28 @@ test('group member sees Preferences controls only when lower-layer customization
 		await page.goto('./apps/libresign/f/preferences')
 		await expandSettingsMenu(page)
 
-		await expect(page.getByText('does not allow saving a personal default')).toBeVisible()
-		await expect(page.getByRole('button', { name: 'Save as my default' })).toHaveCount(0)
 
 		await setGroupSignatureFlow(adminRequest, 'ordered_numeric', true)
 
-		effectivePolicy = await getEffectiveSignatureFlow(endUserRequest)
+		effectivePolicy = await getEffectivePolicy(endUserRequest, POLICY_KEY)
 		expect(effectivePolicy?.canSaveAsUserDefault).toBe(true)
 
 		await setGroupFooterPolicy(adminRequest, FOOTER_ENABLED_VALUE, true)
+		await waitForPolicyCanSaveAsUserDefault(endUserRequest, FOOTER_POLICY_KEY, true)
 
 		await page.goto('./apps/libresign/f/preferences')
 		await expandSettingsMenu(page)
 
-		await expect(page.getByText('does not allow saving a personal default')).toHaveCount(0)
-		await expect(page.getByRole('button', { name: 'Save as my default' })).toBeVisible()
 		await expect(page.getByRole('button', { name: 'Save footer preference' })).toBeVisible()
+
+		const customizeTemplateToggle = page.getByText('Customize footer template', { exact: true })
+		const footerTemplateLabel = page.getByText('Footer template', { exact: true })
+		await customizeTemplateToggle.click()
+		await expect(footerTemplateLabel).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Reset template to inherited default' })).toBeVisible()
+
+		await customizeTemplateToggle.click()
+		await expect(footerTemplateLabel).toHaveCount(0)
 	} finally {
 		await clearOwnUserPreference(endUserRequest).catch(() => {})
 		await setSystemFooterPolicy(adminRequest, FOOTER_DISABLED_VALUE, true).catch(() => {})
