@@ -96,6 +96,7 @@ final class PolicyControllerTest extends TestCase {
 				'signature_flow' => [
 					'policyKey' => 'signature_flow',
 					'effectiveValue' => 'ordered_numeric',
+					'inheritedValue' => null,
 					'sourceScope' => 'group',
 					'visible' => true,
 					'editableByCurrentActor' => false,
@@ -258,6 +259,7 @@ final class PolicyControllerTest extends TestCase {
 			'policy' => [
 				'policyKey' => 'signature_flow',
 				'effectiveValue' => 'ordered_numeric',
+				'inheritedValue' => null,
 				'sourceScope' => 'system',
 				'visible' => true,
 				'editableByCurrentActor' => true,
