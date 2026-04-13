@@ -19,6 +19,10 @@ final class FooterPolicyValueTest extends TestCase {
 			'writeQrcodeOnFooter' => true,
 			'validationSite' => '',
 			'customizeFooterTemplate' => false,
+			'footerTemplate' => '',
+			'previewWidth' => 595,
+			'previewHeight' => 100,
+			'previewZoom' => 100,
 		], FooterPolicyValue::defaults());
 	}
 
@@ -29,7 +33,7 @@ final class FooterPolicyValueTest extends TestCase {
 
 	public function testEncodeReturnsCanonicalPayload(): void {
 		$this->assertSame(
-			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false}',
+			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false,"footerTemplate":"","previewWidth":595,"previewHeight":100,"previewZoom":100}',
 			FooterPolicyValue::encode([
 				'enabled' => true,
 				'writeQrcodeOnFooter' => true,
@@ -45,7 +49,7 @@ final class FooterPolicyValueTest extends TestCase {
 	}
 
 	/**
-	 * @return array<string, array{0: mixed, 1: array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool}}>
+	 * @return array<string, array{0: mixed, 1: array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate: string, previewWidth: int, previewHeight: int, previewZoom: int}}>
 	 */
 	public static function normalizeCases(): array {
 		return [
@@ -56,6 +60,10 @@ final class FooterPolicyValueTest extends TestCase {
 					'writeQrcodeOnFooter' => true,
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'int one enables footer' => [
@@ -65,6 +73,10 @@ final class FooterPolicyValueTest extends TestCase {
 					'writeQrcodeOnFooter' => true,
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'legacy scalar off' => [
@@ -74,6 +86,10 @@ final class FooterPolicyValueTest extends TestCase {
 					'writeQrcodeOnFooter' => true,
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'legacy scalar yes treated as true' => [
@@ -83,6 +99,10 @@ final class FooterPolicyValueTest extends TestCase {
 					'writeQrcodeOnFooter' => true,
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'structured json payload' => [
@@ -92,6 +112,10 @@ final class FooterPolicyValueTest extends TestCase {
 					'writeQrcodeOnFooter' => false,
 					'validationSite' => 'https://validation.example',
 					'customizeFooterTemplate' => true,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'legacy snake case array payload' => [
@@ -106,6 +130,10 @@ final class FooterPolicyValueTest extends TestCase {
 					'writeQrcodeOnFooter' => false,
 					'validationSite' => 'https://legacy.example/base/',
 					'customizeFooterTemplate' => true,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'array payload with non scalar validation site is sanitized' => [
@@ -120,6 +148,10 @@ final class FooterPolicyValueTest extends TestCase {
 					'writeQrcodeOnFooter' => true,
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'empty string returns defaults' => [
@@ -129,6 +161,10 @@ final class FooterPolicyValueTest extends TestCase {
 					'writeQrcodeOnFooter' => true,
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 			'invalid json string treated as scalar false' => [
@@ -138,6 +174,10 @@ final class FooterPolicyValueTest extends TestCase {
 					'writeQrcodeOnFooter' => true,
 					'validationSite' => '',
 					'customizeFooterTemplate' => false,
+					'footerTemplate' => '',
+					'previewWidth' => 595,
+					'previewHeight' => 100,
+					'previewZoom' => 100,
 				],
 			],
 		];
