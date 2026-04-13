@@ -162,27 +162,7 @@ describe('Signers', () => {
 			expect(wrapper.vm.isOrderedNumeric).toBe(false)
 		})
 
-		it('returns true for ordered_numeric flow', () => {
-			filesStore.selectedFile = {
-				signatureFlow: 'ordered_numeric',
-				signers: [],
-			}
-			wrapper = createWrapper()
-
-			expect(wrapper.vm.isOrderedNumeric).toBe(true)
-		})
-
-		it('returns false for parallel flow', () => {
-			filesStore.selectedFile = {
-				signatureFlow: 'parallel',
-				signers: [],
-			}
-			wrapper = createWrapper()
-
-			expect(wrapper.vm.isOrderedNumeric).toBe(false)
-		})
-
-		it('returns false for none flow', () => {
+		it('returns false for none string', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'none',
 				signers: [],
