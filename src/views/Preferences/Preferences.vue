@@ -64,6 +64,36 @@
 				</div>
 			</div>
 		</NcSettingsSection>
+
+		<NcSettingsSection
+			:name="t('libresign', 'Signature footer preferences')"
+			:description="t('libresign', 'Save your personal footer defaults when higher-level policies allow customization.')">
+			<NcNoteCard v-if="!canSaveFooterPreference" type="info">
+				{{ t('libresign', 'Your current context does not allow saving personal footer preferences.') }}
+			</NcNoteCard>
+
+			<div v-else class="preferences-view__options">
+				<SignatureFooterRuleEditor
+					:model-value="selectedFooterValue"
+					@update:modelValue="onFooterPreferenceChange" />
+
+				<div class="preferences-view__actions">
+					<NcButton
+						:variant="hasSavedFooterPreference ? 'secondary' : 'primary'"
+						:disabled="saving"
+						@click="saveFooterPreference(selectedFooterValue)">
+						{{ hasSavedFooterPreference ? t('libresign', 'Update footer preference') : t('libresign', 'Save footer preference') }}
+					</NcButton>
+					<NcButton
+						v-if="hasSavedFooterPreference"
+						variant="secondary"
+						:disabled="saving"
+						@click="clearFooterPreference">
+						{{ t('libresign', 'Clear footer preference') }}
+					</NcButton>
+				</div>
+			</div>
+		</NcSettingsSection>
 	</div>
 </template>
 
@@ -77,8 +107,13 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
+import SignatureFooterRuleEditor from '../Settings/PolicyWorkbench/settings/signature-footer/SignatureFooterRuleEditor.vue'
 import { usePoliciesStore } from '../../store/policies'
-import type { EffectivePolicyState, SignatureFlowMode } from '../../types/index'
+import type { EffectivePolicyState, EffectivePolicyValue, SignatureFlowMode } from '../../types/index'
+import {
+	normalizeSignatureFooterPolicyConfig,
+	serializeSignatureFooterPolicyConfig,
+} from '../Settings/PolicyWorkbench/settings/signature-footer/model'
 
 defineOptions({
 	name: 'Preferences',
@@ -112,7 +147,12 @@ const canSavePreference = computed(() => signatureFlowPolicy.value?.canSaveAsUse
 const hasSavedPreference = computed(() => signatureFlowPolicy.value?.sourceScope === 'user')
 const preferenceCleared = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
 
+const footerPolicy = computed<EffectivePolicyState | null>(() => policiesStore.getPolicy('add_footer'))
+const canSaveFooterPreference = computed(() => footerPolicy.value?.canSaveAsUserDefault ?? false)
+const hasSavedFooterPreference = computed(() => footerPolicy.value?.sourceScope === 'user')
+
 const selectedValue = ref<SignatureFlowMode>('parallel')
+const selectedFooterValue = ref<EffectivePolicyValue>(serializeSignatureFooterPolicyConfig(normalizeSignatureFooterPolicyConfig(null)))
 
 const effectiveLabel = computed(() => {
 	if (signatureFlowPolicy.value?.effectiveValue === 'ordered_numeric') {
@@ -141,6 +181,12 @@ function syncSelectedValue(): void {
 	selectedValue.value = signatureFlowPolicy.value?.effectiveValue === 'ordered_numeric'
 		? 'ordered_numeric'
 		: 'parallel'
+}
+
+function syncSelectedFooterValue(): void {
+	selectedFooterValue.value = serializeSignatureFooterPolicyConfig(
+		normalizeSignatureFooterPolicyConfig(footerPolicy.value?.effectiveValue ?? null),
+	)
 }
 
 async function savePreference(flow: SignatureFlowMode): Promise<void> {
@@ -182,24 +228,72 @@ function onPreferenceChange(flow: SignatureFlowMode): void {
 	}
 }
 
+function onFooterPreferenceChange(value: EffectivePolicyValue): void {
+	selectedFooterValue.value = value
+	if (hasSavedFooterPreference.value) {
+		void saveFooterPreference(value)
+	}
+}
+
+async function saveFooterPreference(value: EffectivePolicyValue): Promise<void> {
+	if (!canSaveFooterPreference.value) {
+		return
+	}
+
+	saving.value = true
+	errorMessage.value = ''
+	try {
+		await policiesStore.saveUserPreference('add_footer', value)
+		syncSelectedFooterValue()
+	} catch (error) {
+		console.error('Failed to save footer preference', error)
+		errorMessage.value = t('libresign', 'Could not save your footer preference. Try again.')
+	} finally {
+		saving.value = false
+	}
+}
+
+async function clearFooterPreference(): Promise<void> {
+	saving.value = true
+	errorMessage.value = ''
+	try {
+		await policiesStore.clearUserPreference('add_footer')
+		syncSelectedFooterValue()
+	} catch (error) {
+		console.error('Failed to clear footer preference', error)
+		errorMessage.value = t('libresign', 'Could not clear your footer preference. Try again.')
+	} finally {
+		saving.value = false
+	}
+}
+
 onMounted(async () => {
 	await policiesStore.fetchEffectivePolicies()
 	syncSelectedValue()
+	syncSelectedFooterValue()
 })
 
 defineExpose({
 	availableFlows,
 	canSavePreference,
+	canSaveFooterPreference,
 	clearPreference,
+	clearFooterPreference,
 	effectiveLabel,
 	errorMessage,
+	footerPolicy,
 	hasSavedPreference,
+	hasSavedFooterPreference,
 	onPreferenceChange,
+	onFooterPreferenceChange,
 	preferenceCleared,
 	savePreference,
+	saveFooterPreference,
 	selectedValue,
+	selectedFooterValue,
 	signatureFlowPolicy,
 	sourceLabel,
+	syncSelectedFooterValue,
 	syncSelectedValue,
 })
 </script>
