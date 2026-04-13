@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Runtime;
 
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCP\AppFramework\Http;
 use OCP\Group\ISubAdmin;
 use OCP\IGroupManager;
 use OCP\IUser;
@@ -59,9 +61,11 @@ final class PolicyContextFactory {
 
 	/** @param array<string, mixed> $requestOverrides */
 	private function build(?string $userId, ?IUser $user, array $requestOverrides = [], ?array $activeContext = null, ?IUser $currentActor = null): PolicyContext {
+		$validatedActiveContext = $this->validateActiveContext($activeContext, $currentActor);
+
 		$context = (new PolicyContext())
 			->setRequestOverrides($requestOverrides)
-			->setActiveContext($activeContext)
+			->setActiveContext($validatedActiveContext)
 			->setActorCapabilities($this->resolveActorCapabilities($currentActor));
 
 		if ($userId !== null && $userId !== '') {
@@ -72,6 +76,31 @@ final class PolicyContextFactory {
 		}
 
 		return $context;
+	}
+
+	/** @param array<string, mixed>|null $activeContext
+	 * @return array<string, mixed>|null
+	 */
+	private function validateActiveContext(?array $activeContext, ?IUser $currentActor): ?array {
+		if ($activeContext === null) {
+			return null;
+		}
+
+		$type = $activeContext['type'] ?? null;
+		$id = $activeContext['id'] ?? null;
+		if ($type !== 'group' || !is_string($id) || trim($id) === '') {
+			throw new LibresignException('Only group active context is supported for policy overrides.', Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+
+		$groupId = trim($id);
+		if (!$currentActor instanceof IUser || !in_array($groupId, $this->groupManager->getUserGroupIds($currentActor), true)) {
+			throw new LibresignException('You are not allowed to use this policy context.', Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+
+		return [
+			'type' => 'group',
+			'id' => $groupId,
+		];
 	}
 
 	/** @return array<string, bool> */
