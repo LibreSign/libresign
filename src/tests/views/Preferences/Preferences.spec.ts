@@ -73,7 +73,13 @@ const SignatureFlowScalarRuleEditor = defineComponent({
 
 describe('Preferences view', () => {
 	beforeEach(() => {
-		loadStateMock.mockReset().mockImplementation((_app: string, _key: string, fallback: unknown) => fallback)
+		loadStateMock.mockReset().mockImplementation((_app: string, key: string, fallback: unknown) => {
+			if (key === 'can_request_sign') {
+				return true
+			}
+
+			return fallback
+		})
 		fetchEffectivePoliciesMock.mockReset().mockResolvedValue(undefined)
 		saveUserPreferenceMock.mockReset().mockResolvedValue(undefined)
 		clearUserPreferenceMock.mockReset().mockResolvedValue(undefined)
@@ -113,6 +119,20 @@ describe('Preferences view', () => {
 		await createWrapper()
 
 		expect(fetchEffectivePoliciesMock).toHaveBeenCalledTimes(1)
+	})
+
+	it('hides all preferences when user cannot request signatures', async () => {
+		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
+			if (key === 'can_request_sign') {
+				return false
+			}
+
+			return fallback
+		})
+
+		const wrapper = await createWrapper()
+
+		expect(wrapper.findComponent({ name: 'NcSettingsSection' }).exists()).toBe(false)
 	})
 
 	it('shows the effective signing order summary', async () => {
