@@ -1177,4 +1177,31 @@ describe('useRealPolicyWorkbench', () => {
 		state.updateDraftValue('parallel' as never)
 		expect(state.canSaveDraft).toBe(false)
 	})
+
+	it('blocks user-scope editing for request-sign-groups setting', () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'groups_request_sign') {
+				return {
+					effectiveValue: '["finance"]',
+					sourceScope: 'system',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		state.startEditor({ scope: 'user' })
+
+		expect(state.editorDraft).toBeNull()
+		expect(state.duplicateMessage).toBe('This setting cannot be configured at this scope.')
+	})
 })
