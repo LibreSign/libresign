@@ -6,37 +6,11 @@
 import { t } from '@nextcloud/l10n'
 
 import SignatureFlowScalarRuleEditor from './SignatureFlowScalarRuleEditor.vue'
+import { resolveSignatureFlowMode } from './model'
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 
-export function resolveSignatureFlowMode(value: EffectivePolicyValue): string | null {
-	if (value === 0) {
-		return 'none'
-	}
-
-	if (value === 1) {
-		return 'parallel'
-	}
-
-	if (value === 2) {
-		return 'ordered_numeric'
-	}
-
-	if (typeof value === 'string') {
-		if (value === 'parallel' || value === 'ordered_numeric' || value === 'none') {
-			return value
-		}
-
-		return null
-	}
-
-	if (value && typeof value === 'object' && 'flow' in (value as Record<string, unknown>)) {
-		const candidate = (value as { flow?: unknown }).flow
-		return typeof candidate === 'string' ? candidate : null
-	}
-
-	return null
-}
+export { resolveSignatureFlowMode } from './model'
 
 export const signatureFlowRealDefinition: RealPolicySettingDefinition = {
 	key: 'signature_flow',
