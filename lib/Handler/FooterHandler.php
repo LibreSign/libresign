@@ -36,6 +36,7 @@ class FooterHandler {
 	private QrCode $qrCode;
 	/** @var array<string, mixed> */
 	private array $requestPolicyOverrides = [];
+	private ?bool $writeQrcodeOnFooterOverride = null;
 	private const MIN_QRCODE_SIZE = 100;
 	private const POINT_TO_MILIMETER = 0.3527777778;
 
@@ -123,6 +124,11 @@ class FooterHandler {
 		return $this;
 	}
 
+	public function setWriteQrcodeOnFooterOverride(?bool $value): self {
+		$this->writeQrcodeOnFooterOverride = $value;
+		return $this;
+	}
+
 	/** @return array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate: string, previewWidth: int, previewHeight: int, previewZoom: int} */
 	private function resolveFooterPolicy(): array {
 		return FooterPolicyValue::normalize(
@@ -175,7 +181,8 @@ class FooterHandler {
 			}
 		}
 
-		if ($footerPolicy['writeQrcodeOnFooter'] && $this->templateVars->getValidationSite()) {
+		$shouldWriteQrcode = $this->writeQrcodeOnFooterOverride ?? $footerPolicy['writeQrcodeOnFooter'];
+		if ($shouldWriteQrcode && $this->templateVars->getValidationSite()) {
 			$this->templateVars->setQrcode($this->getQrCodeImageBase64($this->templateVars->getValidationSite()));
 		}
 
