@@ -14,7 +14,7 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
-use OCA\Libresign\Service\Policy\Provider\FilePolicy\Contract\IFilePolicyApplier;
+use OCA\Libresign\Service\Policy\Provider\Support\FilePolicy\Contract\IFilePolicyApplier;
 use OCP\IL10N;
 use OCP\IUser;
 
