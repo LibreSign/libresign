@@ -1087,6 +1087,19 @@ describe('useRealPolicyWorkbench', () => {
 		expect(clearUserPreference).toHaveBeenCalledWith('signature_flow')
 	})
 
+	it('does not clear user preference when saving system rule for policy without user scope', async () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		state.startEditor({ scope: 'system' })
+		state.updateDraftValue('admin,policy-e2e-group' as never)
+
+		await state.saveDraft()
+
+		expect(saveSystemPolicy).toHaveBeenCalledWith('groups_request_sign', 'admin,policy-e2e-group', false)
+		expect(clearUserPreference).not.toHaveBeenCalled()
+		expect(state.editorDraft).toBeNull()
+	})
+
 	it('requires dirty draft changes before save is enabled in edit mode', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
