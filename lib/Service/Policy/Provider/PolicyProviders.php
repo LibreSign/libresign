@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\Policy\Provider;
 
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 
 final class PolicyProviders {
@@ -17,6 +18,7 @@ final class PolicyProviders {
 	public const BY_KEY = [
 		FooterPolicy::KEY => FooterPolicy::class,
 		DocMdpPolicy::KEY => DocMdpPolicy::class,
+		RequestSignGroupsPolicy::KEY => RequestSignGroupsPolicy::class,
 		SignatureFlowPolicy::KEY => SignatureFlowPolicy::class,
 	];
 }
