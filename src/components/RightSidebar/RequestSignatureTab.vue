@@ -350,13 +350,12 @@ import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
 import {
-	normalizeSignatureFooterPolicyConfig,
-	serializeSignatureFooterPolicyConfig,
-	type SignatureFooterPolicyConfig,
+	buildFooterTemplateSourceOptions,
+	type FooterTemplateSource,
+	type FooterTemplateSourceOption,
 } from '../../views/Settings/PolicyWorkbench/settings/signature-footer/model'
 import type { components, operations } from '../../types/openapi/openapi'
 import type {
-	EffectivePolicyValue,
 	IdentifyMethodRecord,
 	IdentifyMethodSetting as IdentifyMethodConfig,
 	LibresignCapabilities as RequestSignatureTabCapabilities,
@@ -381,12 +380,6 @@ type SigningOrderDiagramSigner = {
 	displayName?: string
 	signed?: boolean
 	signingOrder?: number
-}
-type FooterTemplateSource = 'effective' | 'inherited'
-type FooterTemplateSourceOption = {
-	value: FooterTemplateSource
-	label: string
-	policyValue: string
 }
 type PollingStatusData = {
 	status: number
@@ -485,41 +478,11 @@ const showSigningOrderOptions = computed(() => !isOriginalFileDeleted.value && i
 const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && totalSigners.value > 1 && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value)
 const showRememberSignatureFlow = computed(() => showPreserveOrder.value && canSaveSignatureFlowPreference.value)
 const footerTemplateSourceOptions = computed<FooterTemplateSourceOption[]>(() => {
-	const options: FooterTemplateSourceOption[] = []
-	const policy = footerPolicy.value
-	if (!policy) {
-		return options
-	}
-
-	const inheritedValue = (policy as unknown as { inheritedValue?: unknown }).inheritedValue
-	const effectiveConfig = normalizeSignatureFooterPolicyConfig(policy.effectiveValue)
-	const inheritedConfig = normalizeSignatureFooterPolicyConfig((inheritedValue ?? policy.effectiveValue) as EffectivePolicyValue)
-	const hasEffectiveTemplate = hasCustomFooterTemplate(effectiveConfig)
-	const hasInheritedTemplate = hasCustomFooterTemplate(inheritedConfig)
-
-	if (hasEffectiveTemplate) {
-		const isUserOwn = footerPolicy.value?.sourceScope === 'user'
-		options.push({
-			value: 'effective',
-			label: isUserOwn
-				? t('libresign', 'My saved footer template')
-				: t('libresign', 'Configured footer template'),
-			policyValue: serializeFooterPolicyConfigForRequest(effectiveConfig),
-		})
-	}
-
-	if (hasInheritedTemplate) {
-		const serializedInherited = serializeFooterPolicyConfigForRequest(inheritedConfig)
-		if (!options.some(option => option.policyValue === serializedInherited)) {
-			options.push({
-				value: 'inherited',
-				label: t('libresign', 'Default footer template'),
-				policyValue: serializedInherited,
-			})
-		}
-	}
-
-	return options
+	return buildFooterTemplateSourceOptions(footerPolicy.value, {
+		mySavedTemplate: t('libresign', 'My saved footer template'),
+		configuredTemplate: t('libresign', 'Configured footer template'),
+		defaultTemplate: t('libresign', 'Default footer template'),
+	})
 })
 const showFooterTemplateSelector = computed(() => {
 	return !isOriginalFileDeleted.value
@@ -584,15 +547,6 @@ function getSignatureFlowPayloadForSave(): RequestSignatureFlowOverride | null {
 	}
 
 	return getResolvedSignatureFlowForSave()
-}
-
-function hasCustomFooterTemplate(config: SignatureFooterPolicyConfig): boolean {
-	return config.enabled && config.customizeFooterTemplate && config.footerTemplate.trim() !== ''
-}
-
-function serializeFooterPolicyConfigForRequest(config: SignatureFooterPolicyConfig): string {
-	const serialized = serializeSignatureFooterPolicyConfig(config)
-	return typeof serialized === 'string' ? serialized : ''
 }
 
 function getFooterPolicyPayloadForSave(): string | null {
