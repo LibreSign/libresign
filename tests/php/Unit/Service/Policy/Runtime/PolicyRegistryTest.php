@@ -15,6 +15,8 @@ use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use PHPUnit\Framework\TestCase;
@@ -66,6 +68,20 @@ final class PolicyRegistryTest extends TestCase {
 			]),
 			$definition->normalizeValue('0'),
 		);
+	}
+
+	public function testRegistryReturnsRequestSignGroupsDefinition(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->with(RequestSignGroupsPolicy::class)->willReturn(new RequestSignGroupsPolicy());
+		$registry = new PolicyRegistry($container);
+		$definition = $registry->get(RequestSignGroupsPolicy::KEY);
+
+		$this->assertSame(RequestSignGroupsPolicy::KEY, $definition->key());
+		$this->assertSame(
+			RequestSignGroupsPolicyValue::encode(RequestSignGroupsPolicyValue::DEFAULT_GROUPS),
+			$definition->defaultSystemValue(),
+		);
+		$this->assertSame('["admin","finance"]', $definition->normalizeValue(['finance', 'admin']));
 	}
 
 
