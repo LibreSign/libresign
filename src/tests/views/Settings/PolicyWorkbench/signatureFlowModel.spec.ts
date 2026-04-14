@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+	resolveSignatureFlowPayloadForRequest,
 	resolveSignatureFlowMode,
 	toRequestSignatureFlowOverride,
 } from '../../../../views/Settings/PolicyWorkbench/settings/signature-flow/model'
@@ -38,5 +39,17 @@ describe('signature-flow model', () => {
 
 	it('keeps ordered_numeric as request override', () => {
 		expect(toRequestSignatureFlowOverride('ordered_numeric')).toBe('ordered_numeric')
+	})
+
+	it('returns null request payload when request-level override is not allowed', () => {
+		expect(resolveSignatureFlowPayloadForRequest(false, 'ordered_numeric')).toBeNull()
+		expect(resolveSignatureFlowPayloadForRequest(false, 'parallel')).toBeNull()
+	})
+
+	it('returns request payload when request-level override is allowed', () => {
+		expect(resolveSignatureFlowPayloadForRequest(true, 'ordered_numeric')).toBe('ordered_numeric')
+		expect(resolveSignatureFlowPayloadForRequest(true, 'parallel')).toBe('parallel')
+		expect(resolveSignatureFlowPayloadForRequest(true, 'none')).toBe('parallel')
+		expect(resolveSignatureFlowPayloadForRequest(true, null)).toBe('parallel')
 	})
 })
