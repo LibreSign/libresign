@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createL10nMock } from '../../testHelpers/l10n.js'
+
+vi.mock('@nextcloud/l10n', () => createL10nMock())
 
 import Settings from '../../../views/Settings/Settings.vue'
 
@@ -16,6 +19,7 @@ describe('Settings.vue', () => {
 					SupportProject: { template: '<div class="support-project-stub" />' },
 					CertificateEngine: true,
 					SignatureEngine: true,
+					SettingsPolicyWorkbench: true,
 					DownloadBinaries: true,
 					ConfigureCheck: true,
 					RootCertificateCfssl: true,
@@ -24,8 +28,6 @@ describe('Settings.vue', () => {
 					ExpirationRules: true,
 					Validation: true,
 					CrlValidation: true,
-					DocMDP: true,
-					SignatureFlow: true,
 					SigningMode: true,
 					AllowedGroups: true,
 					LegalInformation: true,
@@ -37,7 +39,6 @@ describe('Settings.vue', () => {
 					Envelope: true,
 					Reminders: true,
 					TSA: true,
-					Confetti: true,
 				},
 			},
 		})
@@ -54,6 +55,7 @@ describe('Settings.vue', () => {
 					SupportProject: true,
 					CertificateEngine: true,
 					SignatureEngine: true,
+					SettingsPolicyWorkbench: true,
 					DownloadBinaries: true,
 					ConfigureCheck: true,
 					RootCertificateCfssl: true,
@@ -62,8 +64,6 @@ describe('Settings.vue', () => {
 					ExpirationRules: true,
 					Validation: true,
 					CrlValidation: true,
-					DocMDP: true,
-					SignatureFlow: true,
 					SigningMode: { name: 'SigningMode', template: '<div class="signing-mode-stub" />' },
 					AllowedGroups: true,
 					LegalInformation: true,
@@ -75,7 +75,6 @@ describe('Settings.vue', () => {
 					Envelope: true,
 					Reminders: true,
 					TSA: true,
-					Confetti: true,
 				},
 			},
 		})

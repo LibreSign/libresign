@@ -24,12 +24,14 @@ use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\ReminderService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataDownloadResponse;
@@ -83,6 +85,7 @@ class AdminController extends AEnvironmentAwareController {
 		private ReminderService $reminderService,
 		private FooterService $footerService,
 		private DocMdpConfigService $docMdpConfigService,
+		private PolicyService $policyService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileMapper $fileMapper,
 	) {
@@ -875,7 +878,7 @@ class AdminController extends AEnvironmentAwareController {
 	public function saveFooterTemplate(string $template = '', int $width = 595, int $height = 50) {
 		try {
 			$this->footerService->saveTemplate($template);
-			$pdf = $this->footerService->renderPreviewPdf('', $width, $height);
+			$pdf = $this->footerService->renderPreviewPdf($template, $width, $height);
 
 			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');
 		} catch (\Exception $e) {
@@ -894,15 +897,18 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param string $template Template to preview
 	 * @param int $width Width of preview in points (default: 595 - A4 width)
 	 * @param int $height Height of preview in points (default: 50)
+	 * @param ?bool $writeQrcodeOnFooter Whether to force QR code rendering in footer preview (null uses policy)
 	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
-	public function footerTemplatePreviewPdf(string $template = '', int $width = 595, int $height = 50) {
+	public function footerTemplatePreviewPdf(string $template = '', int $width = 595, int $height = 50, ?bool $writeQrcodeOnFooter = null) {
 		try {
-			$pdf = $this->footerService->renderPreviewPdf($template ?: null, $width, $height);
+			$pdf = $this->footerService->renderPreviewPdf($template ?: null, $width, $height, $writeQrcodeOnFooter);
 			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');
 		} catch (\Exception $e) {
 			return new DataResponse([
@@ -957,57 +963,6 @@ class AdminController extends AEnvironmentAwareController {
 			$this->appConfig->deleteKey(Application::APP_ID, $key);
 		} else {
 			$this->appConfig->setValueString(Application::APP_ID, $key, $value);
-		}
-	}
-
-	/**
-	 * Set signature flow configuration
-	 *
-	 * @param bool $enabled Whether to force a signature flow for all documents
-	 * @param string|null $mode Signature flow mode: 'parallel' or 'ordered_numeric' (only used when enabled is true)
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
-	 *
-	 * 200: Configuration saved successfully
-	 * 400: Invalid signature flow mode provided
-	 * 500: Internal server error
-	 */
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-flow/config', requirements: ['apiVersion' => '(v1)'])]
-	public function setSignatureFlowConfig(bool $enabled, ?string $mode = null): DataResponse {
-		try {
-			if (!$enabled) {
-				$this->appConfig->deleteKey(Application::APP_ID, 'signature_flow');
-				return new DataResponse([
-					'message' => $this->l10n->t('Settings saved'),
-				]);
-			}
-
-			if ($mode === null) {
-				return new DataResponse([
-					'error' => $this->l10n->t('Mode is required when signature flow is enabled.'),
-				], Http::STATUS_BAD_REQUEST);
-			}
-
-			try {
-				$signatureFlow = \OCA\Libresign\Enum\SignatureFlow::from($mode);
-			} catch (\ValueError) {
-				return new DataResponse([
-					'error' => $this->l10n->t('Invalid signature flow mode. Use "parallel" or "ordered_numeric".'),
-				], Http::STATUS_BAD_REQUEST);
-			}
-
-			$this->appConfig->setValueString(
-				Application::APP_ID,
-				'signature_flow',
-				$signatureFlow->value
-			);
-
-			return new DataResponse([
-				'message' => $this->l10n->t('Settings saved'),
-			]);
-		} catch (\Exception $e) {
-			return new DataResponse([
-				'error' => $e->getMessage(),
-			], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 

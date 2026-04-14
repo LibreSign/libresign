@@ -41,7 +41,7 @@ class FooterService {
 		}
 	}
 
-	public function renderPreviewPdf(string $template = '', int $width = 595, int $height = 50): string {
+	public function renderPreviewPdf(string $template = '', int $width = 595, int $height = 50, ?bool $writeQrcodeOnFooter = null): string {
 		if (!empty($template)) {
 			$this->saveTemplate($template);
 		}
@@ -56,15 +56,20 @@ class FooterService {
 			random_int(0, 0xffffffffffff)
 		);
 
-		return $this->footerHandler
+		$handler = $this->footerHandler
 			->setTemplateVar('uuid', $previewUuid)
 			->setTemplateVar('signers', [
 				[
 					'displayName' => 'Preview Signer',
 					'signed' => date('c'),
 				],
-			])
-			->getFooter([['w' => $width, 'h' => $height]]);
+			]);
+
+		if ($writeQrcodeOnFooter !== null) {
+			$handler->setWriteQrcodeOnFooterOverride($writeQrcodeOnFooter);
+		}
+
+		return $handler->getFooter([['w' => $width, 'h' => $height]], true);
 	}
 
 	public function getTemplateVariablesMetadata(): array {

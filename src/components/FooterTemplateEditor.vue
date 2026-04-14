@@ -14,12 +14,20 @@
 				</template>
 				{{ t('libresign', 'Available variables') }}
 			</NcButton>
+				<NcButton v-if="!isDefaultTemplate"
+				variant="tertiary"
+					:aria-label="t('libresign', 'Reset template to default')"
+					@click="resetTemplateToDefault">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
+				</template>
+			</NcButton>
 		</div>
 		<CodeEditor
 			v-model="footerTemplate"
 			:label="t('libresign', 'Footer template')"
 			:placeholder="t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')"
-			@update:modelValue="debouncedSaveFooterTemplate" />
+			@update:modelValue="onTemplateChange" />
 		<div v-if="pdfPreviewFile" class="footer-preview">
 			<h4>{{ t('libresign', 'Preview') }}</h4>
 			<div class="footer-preview__controls">
@@ -63,17 +71,17 @@
 						:max="500"
 						:spellcheck="false"
 						@input="debouncedSaveDimensions" />
-					<NcButton v-if="showResetDimensions"
+					<NcButton v-if="hasDimensionsChanged"
 						:aria-label="t('libresign', 'Reset dimensions')"
 						variant="tertiary"
-						@click="resetDimensions">
+						@click="resetDimensionsToOriginal">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 						</template>
 					</NcButton>
 				</div>
 			</div>
-			<div ref="pdfContainer" class="footer-preview__pdf" :style="containerHeight ? `min-height: ${containerHeight}px` : ''">
+			<div ref="pdfContainer" class="footer-preview__pdf" :style="`min-height: ${previewContainerMinHeight}px`">
 				<div v-if="loadingPreview" class="footer-preview__loading">
 					<NcLoadingIcon :size="64" />
 				</div>
@@ -163,6 +171,7 @@ defineOptions({
 
 const emit = defineEmits<{
 	(event: 'template-reset'): void
+	(event: 'template-changed'): void
 }>()
 
 const vLinkify = Linkify
@@ -188,12 +197,16 @@ const DEFAULT_PREVIEW_HEIGHT = 100
 
 const footerDescription = t('libresign', 'Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/')
 const footerTemplate = ref('')
+const originalTemplate = ref('')
+const isDefaultTemplate = ref(loadState('libresign', 'footer_template_is_default', true))
 const pdfPreviewFile = ref<File | null>(null)
 const loadingPreview = ref(false)
 const pdfKey = ref(0)
 const zoomLevel = ref(loadState('libresign', 'footer_preview_zoom_level', 100))
 const previewWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
 const previewHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
+const originalWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
+const originalHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
 const containerHeight = ref<number | null>(null)
 const showVariablesDialog = ref(false)
 const templateVariables = ref<Record<string, TemplateVariableMeta>>(loadState('libresign', 'footer_template_variables', {}))
@@ -202,7 +215,22 @@ const copiedVariable = ref<string | null>(null)
 const pdfContainer = ref<HTMLElement | null>(null)
 const pdfPreview = ref<PdfPreviewRef | null>(null)
 
-const showResetDimensions = computed(() => Number(previewWidth.value) !== DEFAULT_PREVIEW_WIDTH || Number(previewHeight.value) !== DEFAULT_PREVIEW_HEIGHT)
+const hasTemplateChanged = computed(() => footerTemplate.value !== originalTemplate.value)
+const hasDimensionsChanged = computed(() => Number(previewWidth.value) !== Number(originalWidth.value) || Number(previewHeight.value) !== Number(originalHeight.value))
+
+const previewContainerMinHeight = computed(() => {
+	if (containerHeight.value && containerHeight.value > 0) {
+		return containerHeight.value
+	}
+	return estimateContainerHeightForFirstRender(Number(previewHeight.value), Number(zoomLevel.value))
+})
+
+function estimateContainerHeightForFirstRender(height: number, zoom: number): number {
+	if (!Number.isFinite(height) || height <= 0 || !Number.isFinite(zoom) || zoom <= 0) {
+		return 160
+	}
+	return Math.max(160, Math.round((height * zoom) / 100) + 24)
+}
 
 const appConfig = (globalThis as typeof globalThis & { OCP?: { AppConfig: AppConfigApi } }).OCP?.AppConfig
 
@@ -233,10 +261,35 @@ function copyToClipboard(text: string) {
 	}, 2000)
 }
 
-async function resetFooterTemplate() {
-	emit('template-reset')
-	resetDimensions()
-	await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
+function onTemplateChange() {
+	emit('template-changed')
+	debouncedSaveFooterTemplate()
+}
+
+function resetTemplateToDefault() {
+	axios.post(
+		generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
+		{
+			template: '',
+			width: Number(previewWidth.value),
+			height: Number(previewHeight.value),
+		},
+		{ responseType: 'blob' },
+	).then(response => {
+		footerTemplate.value = ''
+		originalTemplate.value = ''
+		isDefaultTemplate.value = true
+		emit('template-reset')
+		setPdfPreview(response.data)
+	}).catch(error => {
+		console.error('Error resetting footer template:', error)
+	})
+}
+
+function resetDimensionsToOriginal() {
+	previewWidth.value = originalWidth.value
+	previewHeight.value = originalHeight.value
+	debouncedSaveDimensions()
 }
 
 function resetDimensions() {
@@ -284,10 +337,26 @@ function setPdfPreview(blob: Blob) {
 		const timestamp = Date.now()
 		pdfPreviewFile.value = new File([blob], `footer-preview-${timestamp}.pdf`, { type: 'application/pdf' })
 		pdfKey.value += 1
+
+		// Timeout to prevent infinite loading if PDFElements doesn't emit end-init
+		const loadingTimeout = setTimeout(() => {
+			if (loadingPreview.value) {
+				console.warn('PDF loading timeout - forcing preview ready state')
+				loadingPreview.value = false
+				containerHeight.value = null
+			}
+		}, 5000)
+
+		// Store timeout ID so it can be cleared when PDF actually loads
+		;(blob as any).__loadingTimeoutId = loadingTimeout
 	})
 }
 
 function onPdfReady() {
+	// Clear the loading timeout if it exists
+	if (pdfPreviewFile.value && (pdfPreviewFile.value as any).__loadingTimeoutId !== undefined) {
+		clearTimeout((pdfPreviewFile.value as any).__loadingTimeoutId)
+	}
 	loadingPreview.value = false
 	containerHeight.value = null
 }
@@ -314,10 +383,18 @@ const debouncedSaveDimensions = debounce(saveDimensions, 500)
 onMounted(() => {
 	axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
 		.then(response => {
-			footerTemplate.value = response.data.ocs.data.template
-			previewHeight.value = response.data.ocs.data.preview_height
-			previewWidth.value = response.data.ocs.data.preview_width
-			saveFooterTemplate()
+				const template = response.data.ocs.data.template
+				const width = response.data.ocs.data.preview_width
+				const height = response.data.ocs.data.preview_height
+
+				footerTemplate.value = template
+				originalTemplate.value = template
+				isDefaultTemplate.value = response.data.ocs.data.isDefault ?? true
+				previewHeight.value = height
+				originalHeight.value = height
+				previewWidth.value = width
+				originalWidth.value = width
+				saveFooterTemplate()
 		})
 })
 
@@ -325,7 +402,9 @@ defineExpose({
 	DEFAULT_PREVIEW_WIDTH,
 	DEFAULT_PREVIEW_HEIGHT,
 	footerDescription,
-	footerTemplate,
+		footerTemplate,
+		originalTemplate,
+	isDefaultTemplate,
 	pdfPreviewFile,
 	loadingPreview,
 	pdfKey,
@@ -336,16 +415,22 @@ defineExpose({
 	showVariablesDialog,
 	templateVariables,
 	copiedVariable,
-	showResetDimensions,
+	originalWidth,
+	originalHeight,
+	hasTemplateChanged,
+	hasDimensionsChanged,
+	previewContainerMinHeight,
 	getVariableText,
 	isCopied,
 	copyToClipboard,
-	resetFooterTemplate,
+	resetTemplateToDefault,
+	resetDimensionsToOriginal,
 	resetDimensions,
 	saveDimensions,
 	saveFooterTemplate,
 	setPdfPreview,
 	onPdfReady,
+	onTemplateChange,
 	changeZoomLevel,
 	onZoomInput,
 	updateScale,

@@ -36,7 +36,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppDataFactory $appDataFactory;
 	private IDateTimeFormatter $dateTimeFormatter;
 	private ITempManager $tempManager;
-	protected CertificatePolicyService $certificatePolicyService;
+	protected CertificatePolicyService&MockObject $certificatePolicyService;
 	private SerialNumberService $serialNumberService;
 	private IURLGenerator $urlGenerator;
 	private CaIdentifierService $caIdentifierService;
@@ -50,7 +50,9 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
-		$this->certificatePolicyService = \OCP\Server::get(CertificatePolicyService::class);
+		$this->certificatePolicyService = $this->createMock(CertificatePolicyService::class);
+		$this->certificatePolicyService->method('getOid')->willReturn('');
+		$this->certificatePolicyService->method('getCps')->willReturn('');
 		$this->serialNumberService = \OCP\Server::get(SerialNumberService::class);
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
@@ -502,7 +504,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 			$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 			$verifyCmd = sprintf(
-				'openssl crl -in %s -inform DER -CAfile %s -noout 2>&1',
+				'openssl crl -in %s -inform DER -CAfile %s -verify -noout 2>&1',
 				escapeshellarg($tempCrlFile),
 				escapeshellarg($caCertPath)
 			);
@@ -510,7 +512,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$verifyResult = implode("\n", $verifyOutput);
 
 			$this->assertEquals(0, $verifyExitCode, 'CRL signature verification should succeed. Output: ' . $verifyResult);
-			$this->assertStringContainsString('verify OK', $verifyResult, 'CRL signature should be valid');
+			// OpenSSL output text varies across versions/distributions; rely on exit code for stability.
+			$this->assertStringNotContainsString('Error loading CRL', $verifyResult, 'CRL output should not report parsing/loading errors');
 
 		} finally {
 			if (file_exists($tempCrlFile)) {

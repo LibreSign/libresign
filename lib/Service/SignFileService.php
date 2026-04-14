@@ -41,6 +41,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -594,6 +595,22 @@ class SignFileService {
 		return $args;
 	}
 
+	private function runWithVolatileActiveUser(?IUser $user, callable $callback): mixed {
+		$currentUser = $this->userSession->getUser();
+
+		if ($user === null || $currentUser?->getUID() === $user->getUID()) {
+			return $callback();
+		}
+
+		$this->userSession->setVolatileActiveUser($user);
+
+		try {
+			return $callback();
+		} finally {
+			$this->userSession->setVolatileActiveUser($currentUser);
+		}
+	}
+
 	/**
 	 * @return DateTimeInterface|null Last signed date
 	 */
@@ -614,7 +631,11 @@ class SignFileService {
 			$this->validateDocMdpAllowsSignatures();
 
 			try {
-				$signedFile = $this->getEngine()->sign();
+				$engine = $this->getEngine();
+				$signedFile = $this->runWithVolatileActiveUser(
+					$this->fileToSign?->getOwner(),
+					fn (): File => $engine->sign(),
+				);
 			} catch (LibresignException|Exception $e) {
 				$this->cleanupUnsignedSignedFile();
 				$this->recordSignatureAttempt($e);
@@ -1321,6 +1342,7 @@ class SignFileService {
 			return $this->createSignedFile($originalFile, $originalContent);
 		}
 		$metadata = $this->footerHandler->getMetadata($originalFile, $this->libreSignFile);
+		$this->footerHandler->setRequestPolicyOverrides($this->resolveFooterPolicyRequestOverridesFromFileMetadata());
 		$footer = $this->footerHandler
 			->setTemplateVar('uuid', $this->libreSignFile->getUuid())
 			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
@@ -1346,6 +1368,33 @@ class SignFileService {
 			$pdfContent = $originalContent;
 		}
 		return $this->createSignedFile($originalFile, $pdfContent);
+	}
+
+	/** @return array<string, string> */
+	private function resolveFooterPolicyRequestOverridesFromFileMetadata(): array {
+		$metadata = $this->libreSignFile->getMetadata();
+		if (!is_array($metadata)) {
+			return [];
+		}
+
+		$policySnapshot = $metadata['policy_snapshot'] ?? null;
+		if (!is_array($policySnapshot)) {
+			return [];
+		}
+
+		$footerSnapshot = $policySnapshot[FooterPolicy::KEY] ?? null;
+		if (!is_array($footerSnapshot)) {
+			return [];
+		}
+
+		$effectiveValue = $footerSnapshot['effectiveValue'] ?? null;
+		if (!is_string($effectiveValue) || trim($effectiveValue) === '') {
+			return [];
+		}
+
+		return [
+			FooterPolicy::KEY => $effectiveValue,
+		];
 	}
 
 	protected function getSignedFile(): ?File {
@@ -1439,7 +1488,8 @@ class SignFileService {
 			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
 			basename($originalFile->getPath())
 		);
-		$owner = $originalFile->getOwner()->getUID();
+		$owner = $originalFile->getOwner();
+		$ownerUid = $owner->getUID();
 
 		$fileId = $this->libreSignFile->getId();
 		$extension = $originalFile->getExtension();
@@ -1447,9 +1497,12 @@ class SignFileService {
 
 		try {
 			/** @var \OCP\Files\Folder */
-			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($originalFile->getParentId());
+			$parentFolder = $this->root->getUserFolder($ownerUid)->getFirstNodeById($originalFile->getParentId());
 
-			$this->createdSignedFile = $parentFolder->newFile($uniqueFilename, $content);
+			$this->createdSignedFile = $this->runWithVolatileActiveUser(
+				$owner,
+				fn (): File => $parentFolder->newFile($uniqueFilename, $content),
+			);
 
 			return $this->createdSignedFile;
 		} catch (NotPermittedException) {

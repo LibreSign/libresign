@@ -5,8 +5,11 @@
 
 import { test, expect } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setAppConfig, deleteAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
+import { useFooterPolicyGuard } from '../support/system-policies'
+
+useFooterPolicyGuard()
 
 /**
  * An authenticated Nextcloud user can sign a document via the email+token
@@ -41,22 +44,21 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
-
+	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
+	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
-
-	await page.goto('./apps/libresign')
+	await page.goto('./apps/libresign/f/request')
 	await page.getByRole('button', { name: 'Upload from URL' }).click()
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
 
-	// Add the admin's own email as the signer.
-	// Only the email method is active so there are no tabs in the Add signer dialog.
+	// Add signer by email to exercise the email-token flow deterministically.
 	await page.getByRole('button', { name: 'Add signer' }).click()
 	await page.getByPlaceholder('Email').click()
 	await page.getByPlaceholder('Email').pressSequentially('admin@email.tld', { delay: 50 })
-	await page.getByRole('option', { name: 'admin@email.tld' }).click()
-	await page.getByRole('textbox', { name: 'Signer name' }).fill('Admin')
+	await page.getByRole('option', { name: 'admin@email.tld' }).first().click()
+	await page.getByRole('textbox', { name: 'Signer name' }).first().fill('Admin')
 	await page.getByRole('button', { name: 'Save' }).click()
 
 	await page.getByRole('button', { name: 'Request signatures' }).click()
@@ -72,11 +74,19 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	// throwIfIsAuthenticatedWithDifferentAccount allows this because
 	// admin@email.tld === the signer's email address.
 	await page.goto(signLink)
-	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	const openSignButton = page.getByRole('button', { name: 'Sign the document.' }).first()
+	const emailTextbox = page.getByRole('textbox', { name: 'Email' }).first()
+	await Promise.any([
+		openSignButton.waitFor({ state: 'visible', timeout: 10_000 }),
+		emailTextbox.waitFor({ state: 'visible', timeout: 10_000 }),
+	])
+	if (await openSignButton.isVisible().catch(() => false)) {
+		await openSignButton.click()
+	}
 
-	// Complete the email token identification flow.
-	// The email field may be pre-filled with the admin's address; fill() is safe either way.
-	await page.getByRole('textbox', { name: 'Email' }).fill('admin@email.tld')
+	// Email-token verification must happen in this scenario.
+	await expect(emailTextbox).toBeVisible()
+	await emailTextbox.fill('admin@email.tld')
 	await page.getByRole('button', { name: 'Send verification code' }).click()
 
 	const tokenEmail = await waitForEmailTo(mailpit, 'admin@email.tld', 'LibreSign: Code to sign file')
@@ -87,8 +97,17 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 
 	await expect(page.getByRole('heading', { name: 'Signature confirmation' })).toBeVisible()
 	await expect(page.getByText('Your identity has been')).toBeVisible()
+	const signResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
 	await page.getByRole('button', { name: 'Sign document' }).click()
-	await page.waitForURL('**/validation/**')
+	const signResponse = await signResponsePromise
+	const signResponseBody = await signResponse.text()
+	expect(
+		signResponse.ok(),
+		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
+	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible()
 	await expect(page.getByText('Congratulations you have')).toBeVisible()
 })
