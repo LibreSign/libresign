@@ -34,9 +34,13 @@ final class RequestSignGroupsPolicyGuard {
 		throw new \InvalidArgumentException($this->l10n->t(self::USER_SCOPE_NOT_SUPPORTED_MESSAGE));
 	}
 
-	public function normalizeManagedValue(string $policyKey, null|bool|int|float|string $value): null|bool|int|float|string {
+	public function normalizeManagedValue(string $policyKey, null|bool|int|float|string $value, bool $allowNullReset = false): null|bool|int|float|string {
 		if ($policyKey !== RequestSignGroupsPolicy::KEY) {
 			return $value;
+		}
+
+		if ($allowNullReset && $value === null) {
+			return null;
 		}
 
 		$user = $this->userSession->getUser();
