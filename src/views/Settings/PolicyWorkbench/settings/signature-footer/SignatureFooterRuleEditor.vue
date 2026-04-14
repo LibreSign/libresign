@@ -320,6 +320,7 @@ async function updatePreview(template: string): Promise<void> {
 				template,
 				width: previewWidth.value,
 				height: previewHeight.value,
+				writeQrcodeOnFooter: value.value.writeQrcodeOnFooter,
 			},
 			{ responseType: 'blob' },
 		)
