@@ -661,6 +661,9 @@ function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
 
 const allowedCreateScopes = computed<Array<'system' | 'group' | 'user'>>(() => {
 	if (state.viewMode === 'group-admin') {
+		if (state.canManageGroups === false) {
+			return ['user']
+		}
 		return ['group', 'user']
 	}
 
@@ -911,6 +914,11 @@ function requestCreateRule() {
 		}
 
 		state.cancelEditor()
+	}
+
+	if (state.viewMode === 'group-admin' && state.canManageGroups === false) {
+		selectCreateScope('user')
+		return
 	}
 
 	selectedCreateScope.value = null
@@ -1308,6 +1316,9 @@ onMounted(async () => {
 	catalogLayout.value = userConfigStore.policy_workbench_catalog_compact_view ? 'compact' : 'cards'
 	window.addEventListener('resize', updateViewportMode, { passive: true })
 	await policiesStore.fetchEffectivePolicies()
+	if (state.viewMode === 'group-admin') {
+		void state.probeGroupAccess()
+	}
 })
 
 onBeforeUnmount(() => {
