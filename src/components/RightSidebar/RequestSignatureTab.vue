@@ -496,7 +496,7 @@ const showFooterTemplateSelector = computed(() => {
 		&& footerTemplateSourceOptions.value.length > 1
 })
 const showRememberFooterTemplate = computed(() => showFooterTemplateSelector.value && canSaveFooterPreference.value)
-const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && totalSigners.value > 1 && hasSigners.value)
+const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && isOrderedNumeric.value && totalSigners.value > 1 && hasSigners.value && filesStore.canRequestSign)
 const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && totalSigners.value > 1)
 const showSignatureFlowPreferenceClearedNotice = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
 const currentUserDisplayName = computed(() => OC.getCurrentUser()?.displayName || '')
@@ -706,6 +706,9 @@ function canSignerActInOrder(signer: Partial<EditableRequestSigner>) {
 
 const canCustomizeMessage = computed(() => (signer: Partial<EditableRequestSigner>) => {
 	if (isOriginalFileDeleted.value) {
+		return false
+	}
+	if (!filesStore.canRequestSign) {
 		return false
 	}
 	if (isSignerSigned(signer) || !signer.signRequestId || signer.me) {
