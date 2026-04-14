@@ -63,6 +63,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 
+import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -78,6 +79,7 @@ defineOptions({
 })
 
 const policiesStore = usePoliciesStore()
+const canRequestSign = loadState<boolean>('libresign', 'can_request_sign', false)
 const saving = ref(false)
 const errorMessage = ref('')
 const selectedPreferenceValues = reactive<Record<string, EffectivePolicyValue>>({})
@@ -103,6 +105,10 @@ const preferenceEntries = computed(() => {
 })
 
 function shouldRenderPreferencePolicy(policyKey: string): boolean {
+	if (!canRequestSign) {
+		return false
+	}
+
 	if (!realDefinitions[policyKey as keyof typeof realDefinitions]) {
 		return false
 	}
