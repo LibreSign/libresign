@@ -27,4 +27,11 @@ interface IPolicyDefinition {
 	public function allowedValues(PolicyContext $context): array;
 
 	public function defaultSystemValue(): mixed;
+
+	/**
+	 * Whether this policy supports being saved as a user personal preference.
+	 * Returns false for administrative-only policies (e.g. groups_request_sign)
+	 * that must never appear in the user preferences screen.
+	 */
+	public function supportsUserPreference(): bool;
 }
