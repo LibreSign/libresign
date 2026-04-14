@@ -14,6 +14,7 @@ export interface RealPolicySettingDefinition {
 	title: string
 	context?: string
 	description: string
+	supportedScopes?: ReadonlyArray<RealPolicyScope>
 	editor: unknown
 	editorProps?: Record<string, unknown>
 	resolveEditorProps?: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => Record<string, unknown>
