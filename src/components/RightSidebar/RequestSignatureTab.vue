@@ -351,14 +351,14 @@ import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
 import {
 	buildFooterTemplateSourceOptions,
+	resolveFooterPolicyPayloadForRequest,
 	type FooterTemplateSource,
 	type FooterTemplateSourceOption,
 } from '../../views/Settings/PolicyWorkbench/settings/signature-footer/model'
 import {
 	resolveSignatureFlowMode,
-	toRequestSignatureFlowOverride,
+	resolveSignatureFlowPayloadForRequest,
 	type RequestSignatureFlowOverride,
-	type SignatureFlowMode,
 } from '../../views/Settings/PolicyWorkbench/settings/signature-flow/model'
 import type { components, operations } from '../../types/openapi/openapi'
 import type {
@@ -516,25 +516,17 @@ const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
 	}))
 })
 
-function getResolvedSignatureFlowForSave(): RequestSignatureFlowOverride {
-	return toRequestSignatureFlowOverride(signatureFlow.value as SignatureFlowMode | null)
-}
-
 function getSignatureFlowPayloadForSave(): RequestSignatureFlowOverride | null {
-	if (!canChooseSigningOrderAtRequestLevel.value) {
-		return null
-	}
-
-	return getResolvedSignatureFlowForSave()
+	const resolvedFlow = resolveSignatureFlowMode(signatureFlow.value)
+	return resolveSignatureFlowPayloadForRequest(canChooseSigningOrderAtRequestLevel.value, resolvedFlow)
 }
 
 function getFooterPolicyPayloadForSave(): string | null {
-	if (!canChooseFooterTemplateAtRequestLevel.value) {
-		return null
-	}
-
-	const selectedOption = footerTemplateSourceOptions.value.find(option => option.value === selectedFooterTemplateSource.value)
-	return selectedOption?.policyValue ?? null
+	return resolveFooterPolicyPayloadForRequest(
+		canChooseFooterTemplateAtRequestLevel.value,
+		footerTemplateSourceOptions.value,
+		selectedFooterTemplateSource.value,
+	)
 }
 
 function getPolicyPayloadForSave(): { overrides: Record<string, string> } | null {
