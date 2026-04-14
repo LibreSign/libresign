@@ -905,9 +905,9 @@ class AdminController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
-	public function footerTemplatePreviewPdf(string $template = '', int $width = 595, int $height = 50) {
+	public function footerTemplatePreviewPdf(string $template = '', int $width = 595, int $height = 50, ?bool $writeQrcodeOnFooter = null) {
 		try {
-			$pdf = $this->footerService->renderPreviewPdf($template ?: null, $width, $height);
+			$pdf = $this->footerService->renderPreviewPdf($template ?: null, $width, $height, $writeQrcodeOnFooter);
 			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');
 		} catch (\Exception $e) {
 			return new DataResponse([
