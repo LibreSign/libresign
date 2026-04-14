@@ -44,3 +44,14 @@ export function toRequestSignatureFlowOverride(flow: SignatureFlowMode | null): 
 
 	return 'parallel'
 }
+
+export function resolveSignatureFlowPayloadForRequest(
+	canChooseSigningOrderAtRequestLevel: boolean,
+	flow: SignatureFlowMode | null,
+): RequestSignatureFlowOverride | null {
+	if (!canChooseSigningOrderAtRequestLevel) {
+		return null
+	}
+
+	return toRequestSignatureFlowOverride(flow)
+}
