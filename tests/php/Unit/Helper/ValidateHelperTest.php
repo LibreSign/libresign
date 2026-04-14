@@ -26,6 +26,7 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -60,6 +61,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IUserManager&MockObject $userManager;
 	private IRootFolder&MockObject $root;
 	private DocMdpValidator&MockObject $docMdpValidator;
+	private RequestSignAuthorizationService&MockObject $requestSignAuthorizationService;
 
 	#[\Override]
 	public function setUp(): void {
@@ -84,6 +86,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->docMdpValidator = $this->createMock(DocMdpValidator::class);
+		$this->requestSignAuthorizationService = $this->createMock(RequestSignAuthorizationService::class);
 	}
 
 	private function getValidateHelper(): ValidateHelper {
@@ -106,6 +109,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userManager,
 			$this->root,
 			$this->docMdpValidator,
+			$this->requestSignAuthorizationService,
 		);
 		return $validateHelper;
 	}
@@ -420,24 +424,26 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testCanRequestSignWithoutUserManager():void {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
+		$this->requestSignAuthorizationService
+			->expects($this->once())
+			->method('canRequestSign')
+			->with($user)
+			->willReturn(false);
+
 		$this->getValidateHelper()->canRequestSign($user);
 	}
 
 	public function testCanRequestSignWithoutPermission():void {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
-		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('["admin"]');
-		$this->groupManager
-			->method('getUserGroupIds')
-			->willReturn([]);
 		$user = $this->createMock(\OCP\IUser::class);
+		$this->requestSignAuthorizationService
+			->expects($this->once())
+			->method('canRequestSign')
+			->with($user)
+			->willReturn(false);
+
 		$this->getValidateHelper()->canRequestSign($user);
 	}
 
