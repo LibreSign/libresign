@@ -15,6 +15,7 @@ use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
@@ -53,6 +54,7 @@ final class PolicySourceTest extends TestCase {
 					FooterPolicy::class => new FooterPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
+					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
 				};
 			});
@@ -404,6 +406,44 @@ final class PolicySourceTest extends TestCase {
 
 		$source = $this->getSource();
 		$source->saveSystemPolicy(DocMdpPolicy::KEY, 2, false);
+	}
+
+	public function testLoadSystemPolicyNormalizesLegacyTypedArrayForGroupsRequestSign(): void {
+		$this->appConfig
+			->expects($this->once())
+			->method('hasAppKey')
+			->with('groups_request_sign')
+			->willReturn(true);
+
+		$this->appConfig
+			->expects($this->exactly(2))
+			->method('getAppValueString')
+			->willReturnCallback(static function (string $key, string $default): string {
+				if ($key === 'groups_request_sign' && $default === '["admin"]') {
+					throw new \OCP\Exceptions\AppConfigTypeConflictException('array stored');
+				}
+
+				if ($key === 'groups_request_sign.allow_child_override' && $default === '0') {
+					return '0';
+				}
+
+				throw new \RuntimeException('Unexpected app config key request: ' . $key);
+			});
+
+		$this->appConfig
+			->expects($this->once())
+			->method('getAppValueArray')
+			->with('groups_request_sign', [])
+			->willReturn(['finance', 'admin']);
+
+		$source = $this->getSource();
+		$layer = $source->loadSystemPolicy('groups_request_sign');
+
+		$this->assertNotNull($layer);
+		$this->assertSame('global', $layer->getScope());
+		$this->assertSame('["admin","finance"]', $layer->getValue());
+		$this->assertFalse($layer->isAllowChildOverride());
+		$this->assertSame(['["admin","finance"]'], $layer->getAllowedValues());
 	}
 
 	public function testLoadGroupPolicyConfigReturnsBoundPolicyLayer(): void {
