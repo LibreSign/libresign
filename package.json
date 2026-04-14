@@ -90,7 +90,7 @@
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.9.1",
     "happy-dom": "^20.8.9",
-    "mailpit-api": "^1.8.1",
+    "mailpit-api": "^1.8.2",
     "openapi-typescript": "^7.13.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.2",
