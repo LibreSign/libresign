@@ -11,6 +11,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyGuard;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -42,6 +43,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		IRequest $request,
 		private IL10N $l10n,
 		private PolicyService $policyService,
+		private RequestSignGroupsPolicyGuard $requestSignGroupsPolicyGuard,
 		private IUserSession $userSession,
 		private IGroupManager $groupManager,
 		private IUserManager $userManager,
@@ -179,6 +181,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		$allowChildOverride = $this->readBoolParam('allowChildOverride', $allowChildOverride);
 
 		try {
+			$value = $this->requestSignGroupsPolicyGuard->normalizeManagedValue($policyKey, $value);
 			$policy = $this->policyService->saveSystem($policyKey, $value, $allowChildOverride);
 			/** @var LibresignSystemPolicyWriteResponse $data */
 			$data = [
@@ -221,6 +224,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		$allowChildOverride = $this->readBoolParam('allowChildOverride', $allowChildOverride);
 
 		try {
+			$value = $this->requestSignGroupsPolicyGuard->normalizeManagedValue($policyKey, $value);
 			$policy = $this->policyService->saveGroupPolicy($policyKey, $groupId, $value, $allowChildOverride);
 			/** @var LibresignGroupPolicyWriteResponse $data */
 			$data = [
@@ -298,6 +302,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		$value = $this->readScalarParam('value', $value);
 
 		try {
+			$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
 			$policy = $this->policyService->saveUserPreference($policyKey, $value);
 			/** @var LibresignSystemPolicyWriteResponse $data */
 			$data = [
@@ -339,6 +344,7 @@ final class PolicyController extends AEnvironmentAwareController {
 		$allowChildOverride = $this->readBoolParam('allowChildOverride', $allowChildOverride);
 
 		try {
+			$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
 			$policy = $this->policyService->saveUserPolicyForUserId($policyKey, $userId, $value, $allowChildOverride);
 			/** @var LibresignUserPolicyWriteResponse $data */
 			$data = [
@@ -361,21 +367,32 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * Clear a user policy preference
 	 *
 	 * @param string $policyKey Policy identifier to clear for the current user.
-	 * @return DataResponse<Http::STATUS_OK, LibresignSystemPolicyWriteResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignSystemPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 400: User-scope not supported
 	 */
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/user/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function clearUserPreference(string $policyKey): DataResponse {
-		$policy = $this->policyService->clearUserPreference($policyKey);
-		/** @var LibresignSystemPolicyWriteResponse $data */
-		$data = [
-			'message' => $this->l10n->t('Settings saved'),
-			'policy' => $policy->toArray(),
-		];
+		try {
+			$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
+			$policy = $this->policyService->clearUserPreference($policyKey);
+			/** @var LibresignSystemPolicyWriteResponse $data */
+			$data = [
+				'message' => $this->l10n->t('Settings saved'),
+				'policy' => $policy->toArray(),
+			];
 
-		return new DataResponse($data);
+			return new DataResponse($data);
+		} catch (\InvalidArgumentException $exception) {
+			/** @var LibresignErrorResponse $data */
+			$data = [
+				'error' => $exception->getMessage(),
+			];
+
+			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
+		}
 	}
 
 	/**
@@ -383,9 +400,10 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * @param string $userId Target user identifier that receives the policy assignment removal.
 	 * @param string $policyKey Policy identifier to clear for the target user.
-	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 400: User-scope not supported
 	 * 403: Forbidden
 	 */
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
@@ -394,14 +412,24 @@ final class PolicyController extends AEnvironmentAwareController {
 			return $this->forbiddenUserPolicyResponse();
 		}
 
-		$policy = $this->policyService->clearUserPolicyForUserId($policyKey, $userId);
-		/** @var LibresignUserPolicyWriteResponse $data */
-		$data = [
-			'message' => $this->l10n->t('Settings saved'),
-			'policy' => $this->serializeUserPolicy($userId, $policyKey, $policy),
-		];
+		try {
+			$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
+			$policy = $this->policyService->clearUserPolicyForUserId($policyKey, $userId);
+			/** @var LibresignUserPolicyWriteResponse $data */
+			$data = [
+				'message' => $this->l10n->t('Settings saved'),
+				'policy' => $this->serializeUserPolicy($userId, $policyKey, $policy),
+			];
 
-		return new DataResponse($data);
+			return new DataResponse($data);
+		} catch (\InvalidArgumentException $exception) {
+			/** @var LibresignErrorResponse $data */
+			$data = [
+				'error' => $exception->getMessage(),
+			];
+
+			return new DataResponse($data, Http::STATUS_BAD_REQUEST);
+		}
 	}
 
 	/** @return LibresignGroupPolicyState */
