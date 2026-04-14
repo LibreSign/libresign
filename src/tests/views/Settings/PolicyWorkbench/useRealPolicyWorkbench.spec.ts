@@ -458,6 +458,62 @@ describe('useRealPolicyWorkbench', () => {
 		])
 	})
 
+	it('probeGroupAccess sets canManageGroups to true when groups are returned', async () => {
+		currentUserState.isAdmin = false
+
+		const state = createRealPolicyWorkbenchState()
+		expect(state.canManageGroups).toBeNull()
+
+		await state.probeGroupAccess()
+
+		expect(state.canManageGroups).toBe(true)
+		expect(axiosGet).toHaveBeenCalledWith('cloud/groups', expect.objectContaining({
+			params: expect.objectContaining({ limit: 1, offset: 0 }),
+		}))
+	})
+
+	it('probeGroupAccess sets canManageGroups to false when no groups are returned', async () => {
+		currentUserState.isAdmin = false
+		axiosGet.mockImplementation((url: string) => {
+			if (url === 'cloud/groups') {
+				return Promise.resolve({ data: { ocs: { data: { groups: [] } } } })
+			}
+
+			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		await state.probeGroupAccess()
+
+		expect(state.canManageGroups).toBe(false)
+	})
+
+	it('probeGroupAccess sets canManageGroups to false when request fails', async () => {
+		currentUserState.isAdmin = false
+		axiosGet.mockImplementation((url: string) => {
+			if (url === 'cloud/groups') {
+				return Promise.reject(new Error('Forbidden'))
+			}
+
+			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		await state.probeGroupAccess()
+
+		expect(state.canManageGroups).toBe(false)
+	})
+
+	it('probeGroupAccess does nothing for instance admin', async () => {
+		currentUserState.isAdmin = true
+
+		const state = createRealPolicyWorkbenchState()
+		await state.probeGroupAccess()
+
+		expect(state.canManageGroups).toBeNull()
+		expect(axiosGet).not.toHaveBeenCalledWith('cloud/groups', expect.anything())
+	})
+
 	it('loads real user targets from OCS when searching the user editor', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
@@ -1081,6 +1137,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(keys).toContain('add_footer')
 		expect(keys).toContain('docmdp')
+		expect(keys).toContain('groups_request_sign')
 		expect(keys).toContain('signature_flow')
 	})
 
