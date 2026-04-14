@@ -852,13 +852,35 @@ const removalDialogButtons = computed(() => {
 	]
 })
 
-function onTargetChange(option: { id: string } | Array<{ id: string }> | null) {
+function resolveTargetId(option: unknown): string | null {
+	if (typeof option === 'string') {
+		const trimmed = option.trim()
+		return trimmed.length > 0 ? trimmed : null
+	}
+
+	if (option && typeof option === 'object' && 'id' in option) {
+		const candidate = (option as { id?: unknown }).id
+		if (typeof candidate === 'string') {
+			const trimmed = candidate.trim()
+			return trimmed.length > 0 ? trimmed : null
+		}
+	}
+
+	return null
+}
+
+function onTargetChange(option: unknown[] | unknown | null) {
 	if (Array.isArray(option)) {
-		state.updateDraftTargets(option.map(({ id }) => id))
+		state.updateDraftTargets(
+			option
+				.map((candidate) => resolveTargetId(candidate))
+				.filter((candidate): candidate is string => candidate !== null),
+		)
 		return
 	}
 
-	state.updateDraftTargets(option?.id ? [option.id] : [])
+	const targetId = resolveTargetId(option)
+	state.updateDraftTargets(targetId ? [targetId] : [])
 }
 
 function summarizeRuleValue(value: unknown) {
