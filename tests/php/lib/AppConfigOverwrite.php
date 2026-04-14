@@ -12,6 +12,7 @@ use OC\AppConfig;
 use OC\Config\ConfigManager;
 use OC\Config\PresetManager;
 use OC\Memcache\Factory as CacheFactory;
+use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Security\ICrypto;
@@ -103,12 +104,18 @@ class AppConfigOverwrite extends AppConfig {
 	}
 
 	public function getValueString(string $app, string $key, string $default = '', bool $lazy = false): string {
-		return $this->getOverwrite(
+		$value = $this->getOverwrite(
 			$app,
 			$key,
 			$default,
 			fn () => parent::getValueString($app, $key, $default)
 		);
+
+		if (!is_string($value)) {
+			throw new AppConfigTypeConflictException(sprintf('App config "%s" for app "%s" is not a string', $key, $app));
+		}
+
+		return $value;
 	}
 
 	public function setValueString(string $app, string $key, string $value, bool $lazy = false, bool $sensitive = false): bool {
