@@ -43,6 +43,7 @@ final class RequestSignGroupsPolicy implements IPolicyDefinitionProvider {
 					}
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
+				supportsUserPreference: false,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
 		};
