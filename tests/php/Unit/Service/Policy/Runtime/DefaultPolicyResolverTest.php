@@ -320,6 +320,28 @@ final class DefaultPolicyResolverTest extends TestCase {
 		);
 	}
 
+	public function testResolveCanSaveAsUserDefaultFalseWhenDefinitionDoesNotSupportUserPreference(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('system')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+
+		$definition = new PolicySpec(
+			key: 'admin_only_policy',
+			defaultSystemValue: 'none',
+			allowedValues: ['none', 'strict'],
+			supportsUserPreference: false,
+		);
+
+		$resolver = new DefaultPolicyResolver($source);
+		$resolved = $resolver->resolve($definition, PolicyContext::fromUserId('john'));
+
+		$this->assertFalse($resolved->canSaveAsUserDefault(), 'canSaveAsUserDefault must be false when supportsUserPreference() returns false');
+		$this->assertFalse($resolved->canUseAsRequestOverride());
+	}
+
 	private function getValueChoiceDefinition(): PolicySpec {
 		return new PolicySpec(
 			key: 'signature_flow',
