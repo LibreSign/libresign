@@ -10,8 +10,8 @@ namespace OCA\Libresign\Service\Policy;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\Policy\Contract\IFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Provider\PolicyProviders;
-use OCA\Libresign\Service\Policy\Provider\Support\FilePolicy\Contract\IFilePolicyApplier;
 use OCP\IL10N;
 
 class FilePolicyApplier {
