@@ -66,9 +66,14 @@ defineOptions({
 
 const isAdmin = getCurrentUser()?.isAdmin ?? false
 const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
+const canRequestSign = loadState<boolean>('libresign', 'can_request_sign', false)
 const policiesStore = usePoliciesStore()
 
 const canManagePreferences = computed(() => {
+	if (!canRequestSign) {
+		return false
+	}
+
 	return Object.values(policiesStore.policies).some((policy) => {
 		if (!policy || typeof policy !== 'object') {
 			return false
