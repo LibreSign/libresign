@@ -13,6 +13,8 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCP\DB\ISchemaWrapper;
 use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
@@ -29,7 +31,38 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$this->migrateLegacyFooterSettings();
 		$this->migrateDocMdpLevelType();
+		$this->migrateGroupsRequestSignType();
 		$this->migrateIdentifyMethodsType();
+	}
+
+	private function migrateGroupsRequestSignType(): void {
+		$legacyValue = $this->readLegacyString(RequestSignGroupsPolicy::SYSTEM_APP_CONFIG_KEY);
+		if ($legacyValue !== null) {
+			if ($legacyValue === '') {
+				return;
+			}
+
+			$this->appConfig->deleteKey(Application::APP_ID, RequestSignGroupsPolicy::SYSTEM_APP_CONFIG_KEY);
+			$this->appConfig->setValueString(
+				Application::APP_ID,
+				RequestSignGroupsPolicy::SYSTEM_APP_CONFIG_KEY,
+				RequestSignGroupsPolicyValue::encode($legacyValue),
+			);
+			return;
+		}
+
+		$typedValue = $this->appConfig->getValueArray(
+			Application::APP_ID,
+			RequestSignGroupsPolicy::SYSTEM_APP_CONFIG_KEY,
+			RequestSignGroupsPolicyValue::DEFAULT_GROUPS,
+		);
+
+		$this->appConfig->deleteKey(Application::APP_ID, RequestSignGroupsPolicy::SYSTEM_APP_CONFIG_KEY);
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			RequestSignGroupsPolicy::SYSTEM_APP_CONFIG_KEY,
+			RequestSignGroupsPolicyValue::encode($typedValue),
+		);
 	}
 
 	private function migrateLegacyFooterSettings(): void {
