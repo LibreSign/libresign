@@ -12,6 +12,8 @@ use OCA\Libresign\Controller\PolicyController;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyGuard;
 use OCP\AppFramework\Http;
 use OCP\Group\ISubAdmin;
 use OCP\IGroup;
@@ -33,6 +35,7 @@ final class PolicyControllerTest extends TestCase {
 	private IUserManager&MockObject $userManager;
 	private ISubAdmin&MockObject $subAdmin;
 	private IUser&MockObject $currentUser;
+	private RequestSignGroupsPolicyGuard $requestSignGroupsPolicyGuard;
 	private PolicyController $controller;
 
 	protected function setUp(): void {
@@ -56,11 +59,18 @@ final class PolicyControllerTest extends TestCase {
 		$this->userSession
 			->method('getUser')
 			->willReturn($this->currentUser);
+		$this->requestSignGroupsPolicyGuard = new RequestSignGroupsPolicyGuard(
+			$this->l10n,
+			$this->userSession,
+			$this->groupManager,
+			$this->subAdmin,
+		);
 
 		$this->controller = new PolicyController(
 			$this->request,
 			$this->l10n,
 			$this->policyService,
+			$this->requestSignGroupsPolicyGuard,
 			$this->userSession,
 			$this->groupManager,
 			$this->userManager,
@@ -439,6 +449,7 @@ final class PolicyControllerTest extends TestCase {
 			$request,
 			$this->l10n,
 			$this->policyService,
+			$this->requestSignGroupsPolicyGuard,
 			$this->userSession,
 			$this->groupManager,
 			$this->userManager,
@@ -489,6 +500,7 @@ final class PolicyControllerTest extends TestCase {
 			$request,
 			$this->l10n,
 			$this->policyService,
+			$this->requestSignGroupsPolicyGuard,
 			$this->userSession,
 			$this->groupManager,
 			$this->userManager,
@@ -858,6 +870,7 @@ final class PolicyControllerTest extends TestCase {
 			$request,
 			$this->l10n,
 			$this->policyService,
+			$this->requestSignGroupsPolicyGuard,
 			$this->userSession,
 			$this->groupManager,
 			$this->userManager,
@@ -892,6 +905,87 @@ final class PolicyControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('parallel', $response->getData()['policy']['effectiveValue']);
+	}
+
+	public function testSetUserPreferenceBlocksRequestSignGroupsUserScope(): void {
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('User-level scope is not supported for this policy')
+			->willReturn('User-level scope is not supported for this policy');
+
+		$this->policyService->expects($this->never())->method('saveUserPreference');
+
+		$response = $this->controller->setUserPreference(RequestSignGroupsPolicy::KEY, '["finance"]');
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'User-level scope is not supported for this policy',
+		], $response->getData());
+	}
+
+	public function testSetUserPolicyForUserBlocksRequestSignGroupsUserScope(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->willReturn(true);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('User-level scope is not supported for this policy')
+			->willReturn('User-level scope is not supported for this policy');
+
+		$this->policyService->expects($this->never())->method('saveUserPolicyForUserId');
+
+		$response = $this->controller->setUserPolicyForUser('user1', RequestSignGroupsPolicy::KEY, '["finance"]');
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'User-level scope is not supported for this policy',
+		], $response->getData());
+	}
+
+	public function testSetGroupRejectsRequestSignGroupsOutsideSubAdminScope(): void {
+		$managedGroup = $this->createMock(IGroup::class);
+		$managedGroup->method('getGID')->willReturn('finance');
+
+		$targetGroup = $this->createMock(IGroup::class);
+
+		$this->groupManager
+			->method('isAdmin')
+			->willReturn(false);
+		$this->groupManager
+			->method('get')
+			->with('finance')
+			->willReturn($targetGroup);
+
+		$this->subAdmin
+			->method('isSubAdminOfGroup')
+			->with($this->currentUser, $targetGroup)
+			->willReturn(true);
+		$this->subAdmin
+			->method('isSubAdmin')
+			->with($this->currentUser)
+			->willReturn(true);
+		$this->subAdmin
+			->method('getSubAdminsGroups')
+			->with($this->currentUser)
+			->willReturn([$managedGroup]);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('One or more selected groups are not allowed for your administration scope')
+			->willReturn('One or more selected groups are not allowed for your administration scope');
+
+		$this->policyService->expects($this->never())->method('saveGroupPolicy');
+
+		$response = $this->controller->setGroup('finance', RequestSignGroupsPolicy::KEY, '["finance","legal"]');
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame([
+			'error' => 'One or more selected groups are not allowed for your administration scope',
+		], $response->getData());
 	}
 
 }
