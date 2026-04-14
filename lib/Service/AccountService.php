@@ -26,6 +26,8 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Crl\CrlService;
+use OCA\Libresign\Service\Policy\IPolicyAuthorizationService;
+use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -36,7 +38,6 @@ use OCP\Files\File;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
-use OCP\Group\ISubAdmin;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
@@ -74,7 +75,7 @@ class AccountService {
 		private IURLGenerator $urlGenerator,
 		private Pkcs12Handler $pkcs12Handler,
 		private IGroupManager $groupManager,
-		private ISubAdmin $subAdmin,
+		private IPolicyAuthorizationService $policyAuthorizationService,
 		private IdDocsService $idDocsService,
 		private SignerElementsService $signerElementsService,
 		private UserElementMapper $userElementMapper,
@@ -83,6 +84,7 @@ class AccountService {
 		private ITimeFactory $timeFactory,
 		private FileUploadHelper $uploadHelper,
 		private CrlService $crlService,
+		private RequestSignAuthorizationService $requestSignAuthorizationService,
 	) {
 	}
 
@@ -210,8 +212,8 @@ class AccountService {
 		$info['files_list_sorting_mode'] = $this->getUserConfigByKey('files_list_sorting_mode', $user) ?: 'name';
 		$info['files_list_sorting_direction'] = $this->getUserConfigByKey('files_list_sorting_direction', $user) ?: 'asc';
 		$info['policy_workbench_catalog_compact_view'] = $this->getUserConfigByKey('policy_workbench_catalog_compact_view', $user) === '1';
-		$info['can_manage_group_policies'] = $user !== null
-			&& ($this->groupManager->isAdmin($user->getUID()) || $this->subAdmin->isSubAdmin($user));
+		$info['can_manage_group_policies'] = $this->policyAuthorizationService->canUserManageGroupPolicies($user);
+		$info['manageable_policy_group_ids'] = $this->policyAuthorizationService->getManageablePolicyGroupIds($user);
 
 		return array_filter($info, static fn (mixed $value): bool => $value !== null && $value !== '');
 	}
@@ -363,18 +365,7 @@ class AccountService {
 	}
 
 	public function canRequestSign(?IUser $user = null): bool {
-		if (!$user) {
-			return false;
-		}
-		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'groups_request_sign', ['admin']);
-		if (empty($authorized)) {
-			return false;
-		}
-		$userGroups = $this->groupManager->getUserGroupIds($user);
-		if (!array_intersect($userGroups, $authorized)) {
-			return false;
-		}
-		return true;
+		return $this->requestSignAuthorizationService->canRequestSign($user);
 	}
 
 	public function getSettings(?IUser $user = null): array {
