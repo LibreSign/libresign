@@ -340,6 +340,41 @@ final class PolicyControllerTest extends TestCase {
 		$this->controller->setSystem('signature_flow', 'ordered_numeric');
 	}
 
+	public function testSetSystemAllowsNullResetForRequestSignGroups(): void {
+		$this->groupManager
+			->method('isAdmin')
+			->with('admin')
+			->willReturn(true);
+
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey(RequestSignGroupsPolicy::KEY)
+			->setEffectiveValue('["admin"]')
+			->setSourceScope('system')
+			->setVisible(true)
+			->setEditableByCurrentActor(true)
+			->setAllowedValues([])
+			->setCanSaveAsUserDefault(false)
+			->setCanUseAsRequestOverride(false)
+			->setPreferenceWasCleared(false)
+			->setBlockedBy(null);
+
+		$this->l10n
+			->expects($this->once())
+			->method('t')
+			->with('Settings saved')
+			->willReturn('Settings saved');
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with(RequestSignGroupsPolicy::KEY, null, false)
+			->willReturn($resolvedPolicy);
+
+		$response = $this->controller->setSystem(RequestSignGroupsPolicy::KEY, null);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
 	public function testSetUserPreferenceReturnsSavedResolvedPolicy(): void {
 		$resolvedPolicy = (new ResolvedPolicy())
 			->setPolicyKey('signature_flow')
