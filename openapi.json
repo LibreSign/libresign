@@ -3886,6 +3886,11 @@
                                         "format": "int64",
                                         "default": 50,
                                         "description": "Height of preview in points (default: 50)"
+                                    },
+                                    "writeQrcodeOnFooter": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "description": "Whether to force QR code rendering in footer preview (null uses policy)"
                                     }
                                 }
                             }
