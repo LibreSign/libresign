@@ -910,7 +910,7 @@ export function createRealPolicyWorkbenchState() {
 		try {
 			if (scope === 'system') {
 				await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
-				if (viewMode.value === 'system-admin') {
+				if (viewMode.value === 'system-admin' && isScopeSupported('user')) {
 					await policiesStore.clearUserPreference(policyKey)
 				}
 				explicitSystemRule.value = {
