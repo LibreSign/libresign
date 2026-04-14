@@ -29,7 +29,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 
 	public function testMigratesLegacyFooterSettingsIntoStructuredPayload(): void {
 		$this->appConfig
-			->expects($this->exactly(6))
+			->expects($this->exactly(7))
 			->method('getValueString')
 			->willReturnMap([
 				[Application::APP_ID, 'add_footer', '', '1'],
@@ -37,6 +37,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				[Application::APP_ID, 'validation_site', '', 'https://validator.example/base/'],
 				[Application::APP_ID, 'footer_template_is_default', '', '0'],
 				[Application::APP_ID, 'docmdp_level', '', ''],
+				[Application::APP_ID, 'groups_request_sign', '', ''],
 				[Application::APP_ID, 'identify_methods', '', ''],
 			]);
 
@@ -74,7 +75,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 
 	public function testReadsLegacyBooleanWhenAddFooterHasTypedBoolValue(): void {
 		$this->appConfig
-			->expects($this->exactly(6))
+			->expects($this->exactly(7))
 			->method('getValueString')
 			->willReturnCallback(static function (string $app, string $key, string $default): string {
 				if ($app !== Application::APP_ID) {
@@ -98,6 +99,10 @@ final class Version18001Date20260320000000Test extends TestCase {
 				}
 
 				if ($key === 'docmdp_level' || $key === 'identify_methods') {
+					return '';
+				}
+
+				if ($key === 'groups_request_sign') {
 					return '';
 				}
 
@@ -140,5 +145,52 @@ final class Version18001Date20260320000000Test extends TestCase {
 		self::assertSame([
 			[Application::APP_ID, 'add_footer'],
 		], $deletedKeys);
+	}
+
+	public function testMigratesGroupsRequestSignFromTypedArrayToCanonicalString(): void {
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+
+				if ($key === 'groups_request_sign') {
+					throw new AppConfigTypeConflictException('array stored');
+				}
+
+				return '';
+			});
+
+		$this->appConfig
+			->expects($this->once())
+			->method('getValueArray')
+			->with(Application::APP_ID, 'groups_request_sign', ['admin'])
+			->willReturn(['finance', 'admin']);
+
+		$deletedKeys = [];
+		$this->appConfig
+			->expects($this->exactly(2))
+			->method('deleteKey')
+			->willReturnCallback(static function (string $app, string $key) use (&$deletedKeys): bool {
+				$deletedKeys[] = [$app, $key];
+				return true;
+			});
+
+		$this->appConfig
+			->expects($this->exactly(2))
+			->method('setValueString')
+			->willReturnCallback(static function (string $app, string $key, string $value): bool {
+				if ($key === 'groups_request_sign') {
+					TestCase::assertSame('["admin","finance"]', $value);
+				}
+
+				return true;
+			});
+
+		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertContains([Application::APP_ID, 'groups_request_sign'], $deletedKeys);
 	}
 }
