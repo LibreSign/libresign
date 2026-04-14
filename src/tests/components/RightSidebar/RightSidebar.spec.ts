@@ -12,6 +12,7 @@ const filesStoreMock = {
 	getFile: vi.fn(() => ({ name: 'agreement.pdf' })),
 	getSelectedFileView: vi.fn(() => ({ name: 'agreement.pdf' })),
 	getSubtitle: vi.fn(() => 'Alice, Bob'),
+	canRequestSign: true,
 }
 
 const sidebarStoreMock = {
@@ -66,6 +67,7 @@ describe('RightSidebar.vue', () => {
 		filesStoreMock.getFile.mockReturnValue({ name: 'agreement.pdf' })
 		filesStoreMock.getSelectedFileView.mockReturnValue({ name: 'agreement.pdf' })
 		filesStoreMock.getSubtitle.mockReturnValue('Alice, Bob')
+		filesStoreMock.canRequestSign = true
 		sidebarStoreMock.activeTab = 'request-signature-tab'
 		sidebarStoreMock.isVisible = true
 		sidebarStoreMock.showSidebar.mockReset()
