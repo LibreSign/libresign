@@ -39,6 +39,7 @@ final class PolicySpec implements IPolicyDefinition {
 		private ?string $appConfigKey = null,
 		private ?string $userPreferenceKey = null,
 		private string $resolutionMode = self::RESOLUTION_MODE_RESOLVED,
+		private bool $supportsUserPreference = true,
 	) {
 		$this->allowedValuesResolver = $allowedValues;
 		$this->normalizer = $normalizer;
@@ -98,5 +99,10 @@ final class PolicySpec implements IPolicyDefinition {
 	#[\Override]
 	public function defaultSystemValue(): mixed {
 		return $this->defaultSystemValue;
+	}
+
+	#[\Override]
+	public function supportsUserPreference(): bool {
+		return $this->supportsUserPreference;
 	}
 }
