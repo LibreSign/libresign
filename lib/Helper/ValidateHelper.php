@@ -28,6 +28,7 @@ use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -74,6 +75,7 @@ class ValidateHelper {
 		private IUserManager $userManager,
 		private IRootFolder $root,
 		private DocMdpValidator $docMdpValidator,
+		private RequestSignAuthorizationService $requestSignAuthorizationService,
 	) {
 	}
 
@@ -505,21 +507,7 @@ class ValidateHelper {
 	}
 
 	public function canRequestSign(IUser $user): void {
-		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'groups_request_sign', ['admin']);
-		if (empty($authorized)) {
-			$authorized = ['admin'];
-		}
-		if (!is_array($authorized)) {
-			throw new LibresignException(
-				json_encode([
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [['message' => $this->l10n->t('You are not allowed to request signing')]],
-				]),
-				Http::STATUS_UNPROCESSABLE_ENTITY,
-			);
-		}
-		$userGroups = $this->groupManager->getUserGroupIds($user);
-		if (!array_intersect($userGroups, $authorized)) {
+		if (!$this->requestSignAuthorizationService->canRequestSign($user)) {
 			throw new LibresignException(
 				json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
