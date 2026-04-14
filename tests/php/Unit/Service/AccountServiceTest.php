@@ -29,7 +29,7 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\IPolicyAuthorizationService;
+use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -46,6 +46,7 @@ use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
+use OCP\Group\ISubAdmin;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -79,7 +80,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ValidateHelper&MockObject $validateHelper;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IGroupManager&MockObject $groupManager;
-	private IPolicyAuthorizationService&MockObject $policyAuthorizationService;
+	private ISubAdmin&MockObject $subAdmin;
+	private PolicyAuthorizationService $policyAuthorizationService;
 	private IdDocsService&MockObject $idDocsService;
 	private SignerElementsService&MockObject $signerElementsService;
 	private UserElementMapper&MockObject $userElementMapper;
@@ -118,7 +120,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
-		$this->policyAuthorizationService = $this->createMock(IPolicyAuthorizationService::class);
+		$this->subAdmin = $this->createMock(ISubAdmin::class);
+		$this->policyAuthorizationService = new PolicyAuthorizationService($this->groupManager, $this->subAdmin);
 		$this->idDocsService = $this->createMock(IdDocsService::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
@@ -191,10 +194,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('subadmin-user');
 
-		$this->policyAuthorizationService
-			->method('canUserManageGroupPolicies')
-			->with($user)
-			->willReturn(true);
+		$this->groupManager->method('isAdmin')->with('subadmin-user')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($user)->willReturn(true);
 
 		$config = $this->getService()->getConfig($user);
 
@@ -964,10 +965,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('manageable-user');
 
-		$this->policyAuthorizationService
-			->method('getManageablePolicyGroupIds')
-			->with($user)
-			->willReturn(['finance']);
+		$this->groupManager->method('isAdmin')->with('manageable-user')->willReturn(false);
+		$group = $this->createMock(\OCP\IGroup::class);
+		$group->method('getGID')->willReturn('finance');
+		$this->subAdmin->method('getSubAdminsGroups')->with($user)->willReturn([$group]);
 
 		$config = $this->getService()->getConfig($user);
 
@@ -979,10 +980,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('instance-admin');
 
-		$this->policyAuthorizationService
-			->method('canUserManageGroupPolicies')
-			->with($user)
-			->willReturn(true);
+		$this->groupManager->method('isAdmin')->with('instance-admin')->willReturn(true);
 
 		$config = $this->getService()->getConfig($user);
 
