@@ -222,3 +222,16 @@ export function buildFooterTemplateSourceOptions(
 
 	return options
 }
+
+export function resolveFooterPolicyPayloadForRequest(
+	canChooseFooterTemplateAtRequestLevel: boolean,
+	options: FooterTemplateSourceOption[],
+	selectedSource: FooterTemplateSource,
+): string | null {
+	if (!canChooseFooterTemplateAtRequestLevel) {
+		return null
+	}
+
+	const selectedOption = options.find(option => option.value === selectedSource)
+	return selectedOption?.policyValue ?? null
+}
