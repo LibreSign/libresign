@@ -1191,6 +1191,15 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.canSaveDraft).toBe(false)
 	})
 
+	it('allows system create save when policy has immutable override and valid default value', () => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('groups_request_sign')
+		state.startEditor({ scope: 'system' })
+
+		expect(state.editorDraft?.scope).toBe('system')
+		expect(state.canSaveDraft).toBe(true)
+	})
+
 	it('blocks user-scope editing for request-sign-groups setting', () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'groups_request_sign') {
