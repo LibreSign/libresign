@@ -581,7 +581,14 @@ class PolicySource implements IPolicySource {
 			return $this->appConfig->getAppValueString($key, (string)$defaultValue);
 		} catch (AppConfigTypeConflictException $exception) {
 			if (is_string($defaultValue)) {
-				return $this->appConfig->getAppValueBool($key, in_array(strtolower(trim($defaultValue)), ['1', 'true', 'yes', 'on'], true));
+				try {
+					$arrayValue = $this->appConfig->getAppValueArray($key, []);
+					return json_encode($arrayValue, JSON_THROW_ON_ERROR);
+				} catch (AppConfigTypeConflictException) {
+					return $this->appConfig->getAppValueBool($key, in_array(strtolower(trim($defaultValue)), ['1', 'true', 'yes', 'on'], true));
+				} catch (\JsonException) {
+					return (string)$defaultValue;
+				}
 			}
 
 			if (is_bool($defaultValue)) {
