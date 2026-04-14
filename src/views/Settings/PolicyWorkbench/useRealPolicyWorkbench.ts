@@ -468,6 +468,14 @@ export function createRealPolicyWorkbenchState() {
 		return activeDefinition.value.hasSelectableDraftValue(draft.value)
 	}
 
+	function isScopeSupported(scope: PolicyScope): boolean {
+		if (!activeDefinition.value?.supportedScopes || activeDefinition.value.supportedScopes.length === 0) {
+			return true
+		}
+
+		return activeDefinition.value.supportedScopes.includes(scope)
+	}
+
 	const canSaveDraft = computed(() => {
 		if (!editorDraft.value) {
 			return false
@@ -761,6 +769,11 @@ export function createRealPolicyWorkbenchState() {
 			return
 		}
 
+		if (!isScopeSupported(scope)) {
+			duplicateMessage.value = t('libresign', 'This setting cannot be configured at this scope.')
+			return
+		}
+
 		if (!ruleId && scope === 'group' && createGroupOverrideDisabledReason.value) {
 			duplicateMessage.value = createGroupOverrideDisabledReason.value
 			return
@@ -882,6 +895,11 @@ export function createRealPolicyWorkbenchState() {
 
 	async function saveDraft() {
 		if (!editorDraft.value || !activeDefinition.value || !canSaveDraft.value) {
+			return
+		}
+
+		if (!isScopeSupported(editorDraft.value.scope)) {
+			duplicateMessage.value = t('libresign', 'This setting cannot be configured at this scope.')
 			return
 		}
 
