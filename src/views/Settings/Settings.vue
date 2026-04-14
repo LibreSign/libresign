@@ -18,7 +18,6 @@
 		<CrlValidation />
 		<SettingsPolicyWorkbench />
 		<SigningMode v-if="false" />
-		<AllowedGroups />
 		<LegalInformation />
 		<IdentificationDocuments />
 		<CollectMetadata />
@@ -32,7 +31,6 @@
 </template>
 
 <script setup lang="ts">
-import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
 import CollectMetadata from './CollectMetadata.vue'
@@ -59,7 +57,6 @@ import Validation from './Validation.vue'
 defineOptions({
 	name: 'Settings',
 	components: {
-		AllowedGroups,
 		CertificateEngine,
 		ConfigureCheck,
 		CollectMetadata,
