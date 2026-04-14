@@ -29,8 +29,6 @@ use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Notification\Notifier;
 use OCA\Libresign\Search\FileSearchProvider;
-use OCA\Libresign\Service\Policy\IPolicyAuthorizationService;
-use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -55,8 +53,6 @@ class Application extends App implements IBootstrap {
 
 	#[\Override]
 	public function register(IRegistrationContext $context): void {
-		$context->registerServiceAlias(IPolicyAuthorizationService::class, PolicyAuthorizationService::class);
-
 		$context->registerMiddleWare(GlobalInjectionMiddleware::class, true);
 		$context->registerMiddleWare(InjectionMiddleware::class);
 		$context->registerCapability(Capabilities::class);
