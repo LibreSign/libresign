@@ -103,6 +103,7 @@ describe('Settings', () => {
 	const createWrapper = (
 		isAdmin = false,
 		canManagePolicies = false,
+		canRequestSign = true,
 		effectivePolicies: Record<string, unknown> = {
 			signature_flow: {
 				canSaveAsUserDefault: true,
@@ -118,6 +119,9 @@ describe('Settings', () => {
 					...(defaults as Record<string, unknown>),
 					can_manage_group_policies: canManagePolicies,
 				}
+			}
+			if (key === 'can_request_sign') {
+				return canRequestSign
 			}
 			return defaults
 		})
@@ -386,7 +390,7 @@ describe('Settings', () => {
 		})
 
 		it('hides Preferences when no policy allows saving personal preferences', () => {
-			wrapper = createWrapper(false, false, {
+			wrapper = createWrapper(false, false, true, {
 				signature_flow: {
 					canSaveAsUserDefault: false,
 				},
@@ -397,7 +401,7 @@ describe('Settings', () => {
 		})
 
 		it('shows Preferences when add_footer allows saving personal preferences', () => {
-			wrapper = createWrapper(false, false, {
+			wrapper = createWrapper(false, false, true, {
 				signature_flow: {
 					canSaveAsUserDefault: false,
 				},
@@ -412,7 +416,7 @@ describe('Settings', () => {
 		})
 
 		it('updates Preferences visibility after policy state changes', async () => {
-			wrapper = createWrapper(false, false, {
+			wrapper = createWrapper(false, false, true, {
 				signature_flow: {
 					canSaveAsUserDefault: false,
 				},
@@ -428,6 +432,17 @@ describe('Settings', () => {
 
 			const preferencesItem = expectItem(findItemByName(getItems(), 'Preferences'))
 			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
+		})
+
+		it('hides Preferences when user cannot request signatures', () => {
+			wrapper = createWrapper(false, false, false, {
+				signature_flow: {
+					canSaveAsUserDefault: true,
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Preferences')).toBeUndefined()
 		})
 	})
 
@@ -448,7 +463,7 @@ describe('Settings', () => {
 		})
 
 		it('hides Policies for non-admin users with group policy capability but no editable policies', () => {
-			wrapper = createWrapper(false, true, {
+			wrapper = createWrapper(false, true, true, {
 				signature_flow: {
 					editableByCurrentActor: false,
 				},
@@ -459,7 +474,7 @@ describe('Settings', () => {
 		})
 
 		it('shows Policies for non-admin users with group policy capability and editable policy even without delegated rules', () => {
-			wrapper = createWrapper(false, true, {
+			wrapper = createWrapper(false, true, true, {
 				add_footer: {
 					groupCount: 0,
 					userCount: 0,
@@ -473,7 +488,7 @@ describe('Settings', () => {
 		})
 
 		it('shows Policies for non-admin users with group policy capability and delegated policies', () => {
-			wrapper = createWrapper(false, true, {
+			wrapper = createWrapper(false, true, true, {
 				signature_flow: {
 					groupCount: 1,
 					userCount: 0,
@@ -487,7 +502,7 @@ describe('Settings', () => {
 		})
 
 		it('hides Policies for non-admin users with delegated rules that are not editable', () => {
-			wrapper = createWrapper(false, true, {
+			wrapper = createWrapper(false, true, true, {
 				add_footer: {
 					groupCount: 1,
 					userCount: 0,
@@ -500,7 +515,7 @@ describe('Settings', () => {
 		})
 
 		it('hides Policies for non-admin users when only system-level policies exist', () => {
-			wrapper = createWrapper(false, true, {
+			wrapper = createWrapper(false, true, true, {
 				docmdp: {
 					groupCount: 0,
 					userCount: 0,
@@ -715,7 +730,7 @@ describe('Settings', () => {
 		})
 
 		it('hides preferences entry when the user cannot change anything personally', () => {
-			wrapper = createWrapper(false, false, {
+			wrapper = createWrapper(false, false, true, {
 				signature_flow: {
 					canSaveAsUserDefault: false,
 				},
@@ -732,7 +747,7 @@ describe('Settings', () => {
 		})
 
 		it('shows policies entry for group manager with editable policies', () => {
-			wrapper = createWrapper(false, true, {
+			wrapper = createWrapper(false, true, true, {
 				signature_flow: {
 					canSaveAsUserDefault: true,
 					editableByCurrentActor: true,
