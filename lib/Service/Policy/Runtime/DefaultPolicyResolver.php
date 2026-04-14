@@ -138,8 +138,8 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 			->setSourceScope($currentSourceScope)
 			->setVisible($visible)
 			->setEditableByCurrentActor($visible && $this->canManagePolicyAtCurrentScope($context))
-			->setCanSaveAsUserDefault($visible && $canOverrideBelow)
-			->setCanUseAsRequestOverride($visible && $canOverrideBelow)
+			->setCanSaveAsUserDefault($visible && $canOverrideBelow && $definition->supportsUserPreference())
+			->setCanUseAsRequestOverride($visible && $canOverrideBelow && $definition->supportsUserPreference())
 			->setBlockedBy($currentBlockedBy);
 
 		return $resolved;
