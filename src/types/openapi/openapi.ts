@@ -2743,6 +2743,8 @@ export interface operations {
                      * @default 50
                      */
                     height?: number;
+                    /** @description Whether to force QR code rendering in footer preview (null uses policy) */
+                    writeQrcodeOnFooter?: boolean | null;
                 };
             };
         };
