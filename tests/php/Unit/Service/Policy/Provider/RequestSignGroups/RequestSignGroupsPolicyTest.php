@@ -40,4 +40,11 @@ final class RequestSignGroupsPolicyTest extends TestCase {
 			$definition->normalizeValue('["legal", "admin"]'),
 		);
 	}
+
+	public function testGroupsRequestSignDoesNotSupportUserPreference(): void {
+		$provider = new RequestSignGroupsPolicy();
+		$definition = $provider->get(RequestSignGroupsPolicy::KEY);
+
+		$this->assertFalse($definition->supportsUserPreference(), 'groups_request_sign must not appear in user preferences');
+	}
 }
