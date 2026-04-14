@@ -26,7 +26,7 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Crl\CrlService;
-use OCA\Libresign\Service\Policy\IPolicyAuthorizationService;
+use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
@@ -75,7 +75,7 @@ class AccountService {
 		private IURLGenerator $urlGenerator,
 		private Pkcs12Handler $pkcs12Handler,
 		private IGroupManager $groupManager,
-		private IPolicyAuthorizationService $policyAuthorizationService,
+		private PolicyAuthorizationService $policyAuthorizationService,
 		private IdDocsService $idDocsService,
 		private SignerElementsService $signerElementsService,
 		private UserElementMapper $userElementMapper,
