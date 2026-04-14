@@ -42,6 +42,12 @@ final class RequestSignGroupsPolicyGuardTest extends TestCase {
 		$this->assertSame('parallel', $guard->normalizeManagedValue('signature_flow', 'parallel'));
 	}
 
+	public function testNormalizeManagedValueAllowsNullToResetSystemDefault(): void {
+		$guard = $this->createGuard();
+
+		$this->assertNull($guard->normalizeManagedValue(RequestSignGroupsPolicy::KEY, null, true));
+	}
+
 	public function testNormalizeManagedValueRejectsGroupsOutsideSubAdminScope(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('subadmin');
