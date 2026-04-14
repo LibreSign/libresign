@@ -172,6 +172,7 @@ export function createRealPolicyWorkbenchState() {
 
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
+	const canManageGroups = ref<boolean | null>(null)
 	const loadingTargets = ref(false)
 	const hydratePersistedRulesRequestId = ref(0)
 	const editorInitialSnapshot = ref('')
@@ -711,6 +712,19 @@ export function createRealPolicyWorkbenchState() {
 		void loadTargets(scope, query)
 	}
 
+	async function probeGroupAccess() {
+		if (isInstanceAdmin || viewMode.value !== 'group-admin') {
+			return
+		}
+
+		try {
+			const result = await fetchGroups('', 1, 0)
+			canManageGroups.value = result.length > 0
+		} catch {
+			canManageGroups.value = false
+		}
+	}
+
 	function setViewMode(mode: 'system-admin' | 'group-admin') {
 		viewMode.value = mode
 	}
@@ -999,6 +1013,7 @@ export function createRealPolicyWorkbenchState() {
 		viewMode: viewMode as any,
 		availableTargets,
 		loadingTargets,
+		canManageGroups,
 		draftTargetLabel,
 		duplicateMessage: duplicateMessage as any,
 		canSaveDraft,
@@ -1013,6 +1028,7 @@ export function createRealPolicyWorkbenchState() {
 		updateDraftTargets,
 		updateDraftAllowOverride,
 		searchAvailableTargets,
+		probeGroupAccess,
 		setViewMode,
 		saveDraft,
 		removeRule,
