@@ -476,17 +476,35 @@ export function createRealPolicyWorkbenchState() {
 		return activeDefinition.value.supportedScopes.includes(scope)
 	}
 
+	function isAllowOverrideMutable(scope: PolicyScope): boolean {
+		if (!activeDefinition.value) {
+			return true
+		}
+
+		const normalizedTrue = activeDefinition.value.normalizeAllowChildOverride(scope, true)
+		const normalizedFalse = activeDefinition.value.normalizeAllowChildOverride(scope, false)
+
+		return normalizedTrue !== normalizedFalse
+	}
+
 	const canSaveDraft = computed(() => {
 		if (!editorDraft.value) {
 			return false
 		}
 
-			if (!hasSelectableDraftValue(editorDraft.value)) {
-				return false
-			}
+		if (!hasSelectableDraftValue(editorDraft.value)) {
+			return false
+		}
 
 		if (editorDraft.value.scope !== 'system' && editorDraft.value.targetIds.length === 0) {
 			return false
+		}
+
+		if (!isDraftDirty.value
+			&& editorMode.value === 'create'
+			&& editorDraft.value.scope === 'system'
+			&& !isAllowOverrideMutable('system')) {
+			return true
 		}
 
 		return isDraftDirty.value
