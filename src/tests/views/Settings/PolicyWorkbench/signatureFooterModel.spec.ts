@@ -9,6 +9,7 @@ import {
 	buildFooterTemplateSourceOptions,
 	getDefaultSignatureFooterPolicyConfig,
 	normalizeSignatureFooterPolicyConfig,
+	resolveFooterPolicyPayloadForRequest,
 	serializeSignatureFooterPolicyConfig,
 } from '../../../../views/Settings/PolicyWorkbench/settings/signature-footer/model'
 
@@ -117,5 +118,27 @@ describe('signature-footer model', () => {
 		}, footerTemplateLabels)
 
 		expect(options).toEqual([])
+	})
+
+	it('resolves selected footer payload when request-level override is allowed', () => {
+		const options = buildFooterTemplateSourceOptions({
+			effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Personal template</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+			inheritedValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Group template</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+			sourceScope: 'user',
+		}, footerTemplateLabels)
+
+		expect(resolveFooterPolicyPayloadForRequest(true, options, 'inherited')).toContain('Group template')
+		expect(resolveFooterPolicyPayloadForRequest(true, options, 'effective')).toContain('Personal template')
+	})
+
+	it('returns null footer payload when request-level override is disallowed or selected option does not exist', () => {
+		const options = buildFooterTemplateSourceOptions({
+			effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Personal template</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+			inheritedValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false,"footerTemplate":"","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+			sourceScope: 'user',
+		}, footerTemplateLabels)
+
+		expect(resolveFooterPolicyPayloadForRequest(false, options, 'effective')).toBeNull()
+		expect(resolveFooterPolicyPayloadForRequest(true, [], 'effective')).toBeNull()
 	})
 })
