@@ -28,6 +28,8 @@
 
 <script setup lang="ts">
 import axios from '@nextcloud/axios'
+import { getCurrentUser } from '@nextcloud/auth'
+import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 import { computed, onMounted, ref, watch } from 'vue'
@@ -43,6 +45,25 @@ type GroupRow = {
 	displayname: string
 }
 
+type GroupDetailsResponse = {
+	ocs?: {
+		data?: {
+			groups?: Array<{
+				id: string
+				displayname?: string
+			}>
+		}
+	}
+}
+
+type GroupListResponse = {
+	ocs?: {
+		data?: {
+			groups?: string[]
+		}
+	}
+}
+
 defineOptions({
 	name: 'RequestSignGroupsRuleEditor',
 })
@@ -55,9 +76,27 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
-const selectedGroupIds = ref<string[]>(resolveRequestSignGroups(props.modelValue))
+const selectedGroupIds = ref<string[]>([])
 const availableGroups = ref<GroupRow[]>([])
 const loadingGroups = ref(false)
+const currentUser = getCurrentUser()
+const isInstanceAdmin = currentUser?.isAdmin === true
+const config = loadState<{ manageable_policy_group_ids?: string[] }>('libresign', 'config', {})
+const manageableGroupIds = new Set(
+	Array.isArray(config.manageable_policy_group_ids)
+		? config.manageable_policy_group_ids.filter((groupId): groupId is string => typeof groupId === 'string' && groupId.trim().length > 0)
+		: [],
+)
+
+function clampToManageableScope(groupIds: string[]): string[] {
+	if (isInstanceAdmin || manageableGroupIds.size === 0) {
+		return groupIds
+	}
+
+	return groupIds.filter((groupId) => manageableGroupIds.has(groupId))
+}
+
+selectedGroupIds.value = clampToManageableScope(resolveRequestSignGroups(props.modelValue))
 
 const selectedGroups = computed<Array<GroupRow | string>>(() => {
 	return selectedGroupIds.value.map((groupId) => {
@@ -66,25 +105,39 @@ const selectedGroups = computed<Array<GroupRow | string>>(() => {
 })
 
 watch(() => props.modelValue, (nextValue) => {
-	selectedGroupIds.value = resolveRequestSignGroups(nextValue)
+	selectedGroupIds.value = clampToManageableScope(resolveRequestSignGroups(nextValue))
 })
 
 async function searchGroup(query: string) {
 	loadingGroups.value = true
 	try {
-		const response = await axios.get(generateOcsUrl('cloud/groups/details'), {
-			params: {
-				search: query,
-				limit: 40,
-				offset: 0,
-			},
-		})
+		const params = {
+			search: query,
+			limit: 40,
+			offset: 0,
+		}
 
-		availableGroups.value = (response.data?.ocs?.data?.groups ?? [])
-			.map((group: GroupRow) => ({
-				id: group.id,
-				displayname: group.displayname || group.id,
-			}))
+		if (isInstanceAdmin) {
+			const response = await axios.get<GroupDetailsResponse>(generateOcsUrl('cloud/groups/details'), { params })
+			availableGroups.value = filterGroupsByManageableScope(
+				(response.data?.ocs?.data?.groups ?? [])
+					.map((group) => ({
+						id: group.id,
+						displayname: group.displayname || group.id,
+					})),
+			)
+				.sort((left: GroupRow, right: GroupRow) => left.displayname.localeCompare(right.displayname))
+			return
+		}
+
+		const response = await axios.get<GroupListResponse>(generateOcsUrl('cloud/groups'), { params })
+		availableGroups.value = filterGroupsByManageableScope(
+			(response.data?.ocs?.data?.groups ?? [])
+				.map((groupId) => ({
+					id: groupId,
+					displayname: groupId,
+				})),
+		)
 			.sort((left: GroupRow, right: GroupRow) => left.displayname.localeCompare(right.displayname))
 	} catch (error) {
 		logger.debug('Could not search groups for request-sign policy editor', { error })
@@ -93,11 +146,21 @@ async function searchGroup(query: string) {
 	}
 }
 
+function filterGroupsByManageableScope(groups: GroupRow[]): GroupRow[] {
+	if (isInstanceAdmin || manageableGroupIds.size === 0) {
+		return groups
+	}
+
+	return groups.filter((group) => manageableGroupIds.has(group.id))
+}
+
 function onGroupsChange(value: Array<GroupRow | string>) {
-	selectedGroupIds.value = value
+	const nextSelectedGroupIds = value
 		.map((group): string => typeof group === 'string' ? group : group.id)
 		.map((groupId) => groupId.trim())
 		.filter((groupId) => groupId.length > 0)
+
+	selectedGroupIds.value = clampToManageableScope(nextSelectedGroupIds)
 
 	emit('update:modelValue', serializeRequestSignGroups(selectedGroupIds.value))
 }
