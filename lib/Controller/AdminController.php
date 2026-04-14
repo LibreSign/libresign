@@ -897,6 +897,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param string $template Template to preview
 	 * @param int $width Width of preview in points (default: 595 - A4 width)
 	 * @param int $height Height of preview in points (default: 50)
+	 * @param ?bool $writeQrcodeOnFooter Whether to force QR code rendering in footer preview (null uses policy)
 	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
