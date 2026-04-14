@@ -14,6 +14,7 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 	key: 'groups_request_sign',
 	title: t('libresign', 'Request access by group'),
 	description: t('libresign', 'Control which groups can request signatures.'),
+	supportedScopes: ['system', 'group'],
 	editor: RequestSignGroupsRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => serializeRequestSignGroups(DEFAULT_REQUEST_SIGN_GROUPS),
