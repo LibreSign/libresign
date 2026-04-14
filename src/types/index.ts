@@ -55,23 +55,20 @@ export type EffectivePolicyState = ApiRecordValue<EffectivePoliciesState>
 export type EffectivePolicyValue = Exclude<ApiRequestJsonBody<AdminOperations['policy-set-system']>['value'], undefined>
 export type GroupPolicyResponse = ApiOcsResponseData<ApiOperations['policy-get-group'], 200>
 export type GroupPolicyState = GroupPolicyResponse['policy']
-export type SystemPolicyState = {
-	policyKey: string
-	scope: 'system' | 'global'
+
+type OpenApiSystemPolicyResponse = ApiOcsResponseData<AdminOperations['policy-get-system'], 200>
+type OpenApiSystemPolicyState = OpenApiSystemPolicyResponse['policy']
+type OpenApiUserPolicyResponse = ApiOcsResponseData<AdminOperations['policy-get-user-policy-for-user'], 200>
+type OpenApiUserPolicyState = OpenApiUserPolicyResponse['policy']
+
+export type SystemPolicyState = Omit<OpenApiSystemPolicyState, 'value'> & {
 	value: EffectivePolicyValue | null
-	allowChildOverride: boolean
-	visibleToChild: boolean
-	allowedValues: EffectivePolicyValue[]
 }
 export type SystemPolicyResponse = {
 	policy: SystemPolicyState
 }
-export type UserPolicyState = {
-	policyKey: string
-	scope: 'user_policy'
-	targetId: string
+export type UserPolicyState = Omit<OpenApiUserPolicyState, 'value'> & {
 	value: EffectivePolicyValue | null
-	allowChildOverride: boolean
 }
 export type UserPolicyResponse = {
 	policy: UserPolicyState
