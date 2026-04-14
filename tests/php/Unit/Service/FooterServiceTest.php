@@ -129,6 +129,64 @@ class FooterServiceTest extends TestCase {
 		}
 	}
 
+	public function testRenderPreviewPdfWithWriteQrcodeOverrideTrue(): void {
+		$this->footerHandler
+			->expects($this->exactly(2))
+			->method('setTemplateVar')
+			->willReturn($this->footerHandler);
+
+		$this->footerHandler
+			->expects($this->once())
+			->method('setWriteQrcodeOnFooterOverride')
+			->with(true)
+			->willReturn($this->footerHandler);
+
+		$this->footerHandler
+			->expects($this->once())
+			->method('getFooter')
+			->willReturn('PDF binary content');
+
+		$this->service->renderPreviewPdf('', 595, 50, true);
+	}
+
+	public function testRenderPreviewPdfWithWriteQrcodeOverrideFalse(): void {
+		$this->footerHandler
+			->expects($this->exactly(2))
+			->method('setTemplateVar')
+			->willReturn($this->footerHandler);
+
+		$this->footerHandler
+			->expects($this->once())
+			->method('setWriteQrcodeOnFooterOverride')
+			->with(false)
+			->willReturn($this->footerHandler);
+
+		$this->footerHandler
+			->expects($this->once())
+			->method('getFooter')
+			->willReturn('PDF binary content');
+
+		$this->service->renderPreviewPdf('', 595, 50, false);
+	}
+
+	public function testRenderPreviewPdfWithWriteQrcodeOverrideNull(): void {
+		$this->footerHandler
+			->expects($this->exactly(2))
+			->method('setTemplateVar')
+			->willReturn($this->footerHandler);
+
+		$this->footerHandler
+			->expects($this->never())
+			->method('setWriteQrcodeOnFooterOverride');
+
+		$this->footerHandler
+			->expects($this->once())
+			->method('getFooter')
+			->willReturn('PDF binary content');
+
+		$this->service->renderPreviewPdf('', 595, 50, null);
+	}
+
 	public static function provideRenderPreviewPdfScenarios(): array {
 		return [
 			'with custom template and default dimensions' => ['<div>Custom</div>', 595, 50, true],
