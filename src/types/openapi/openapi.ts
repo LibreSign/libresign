@@ -3681,6 +3681,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description User-scope not supported */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
         };
     };
     "request_signature-request-signature": {
