@@ -354,6 +354,12 @@ import {
 	type FooterTemplateSource,
 	type FooterTemplateSourceOption,
 } from '../../views/Settings/PolicyWorkbench/settings/signature-footer/model'
+import {
+	resolveSignatureFlowMode,
+	toRequestSignatureFlowOverride,
+	type RequestSignatureFlowOverride,
+	type SignatureFlowMode,
+} from '../../views/Settings/PolicyWorkbench/settings/signature-flow/model'
 import type { components, operations } from '../../types/openapi/openapi'
 import type {
 	IdentifyMethodRecord,
@@ -374,8 +380,6 @@ type IdentifySignerToEdit = {
 	description?: string
 	identifyMethods?: IdentifySignerMethod[]
 }
-type ResolvedSignatureFlowMode = 'none' | 'parallel' | 'ordered_numeric'
-type RequestSignatureFlowOverride = 'parallel' | 'ordered_numeric'
 type SigningOrderDiagramSigner = {
 	displayName?: string
 	signed?: boolean
@@ -446,9 +450,9 @@ const isAdminFlowForced = computed(() => !canChooseSigningOrderAtRequestLevel.va
 
 const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
-	const resolvedPolicy = toSignatureFlowMode(signatureFlowPolicy.value?.effectiveValue)
+	const resolvedPolicy = resolveSignatureFlowMode(signatureFlowPolicy.value?.effectiveValue)
 	const fileFlow = file?.signatureFlow
-	const resolvedFileFlow = toSignatureFlowMode(fileFlow)
+	const resolvedFileFlow = resolveSignatureFlowMode(fileFlow)
 
 	if (!canChooseSigningOrderAtRequestLevel.value && resolvedPolicy && resolvedPolicy !== 'none') {
 		return resolvedPolicy
@@ -512,33 +516,8 @@ const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
 	}))
 })
 
-function normalizeSignatureFlow(flow: unknown): ResolvedSignatureFlowMode | null {
-	if (flow && typeof flow === 'object' && 'flow' in (flow as Record<string, unknown>)) {
-		const nestedFlow = (flow as { flow?: unknown }).flow
-		return normalizeSignatureFlow(nestedFlow)
-	}
-
-	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric') {
-		return flow
-	}
-	return null
-}
-
-function toSignatureFlowMode(flow: unknown): ResolvedSignatureFlowMode | null {
-	return normalizeSignatureFlow(flow)
-}
-
 function getResolvedSignatureFlowForSave(): RequestSignatureFlowOverride {
-	const flow = signatureFlow.value
-	if (flow === 'ordered_numeric') {
-		return 'ordered_numeric'
-	}
-
-	if (flow === 'parallel') {
-		return 'parallel'
-	}
-
-	return 'parallel'
+	return toRequestSignatureFlowOverride(signatureFlow.value as SignatureFlowMode | null)
 }
 
 function getSignatureFlowPayloadForSave(): RequestSignatureFlowOverride | null {
@@ -994,7 +973,7 @@ function syncPreserveOrderWithFile() {
 }
 
 function syncFileSignatureFlowWithPolicy() {
-	const resolvedPolicy = toSignatureFlowMode(signatureFlowPolicy.value?.effectiveValue)
+	const resolvedPolicy = resolveSignatureFlowMode(signatureFlowPolicy.value?.effectiveValue)
 	if (canChooseSigningOrderAtRequestLevel.value || !resolvedPolicy || resolvedPolicy === 'none') {
 		return
 	}
