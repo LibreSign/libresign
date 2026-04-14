@@ -68,6 +68,8 @@ async function ocsRequest<T = unknown>(
 	}
 	if (jsonBody !== undefined) {
 		headers['Content-Type'] = 'application/json'
+	} else if (body !== undefined) {
+		headers['Content-Type'] = 'application/x-www-form-urlencoded'
 	}
 	const response = await request[method.toLowerCase() as 'get' | 'post' | 'put' | 'delete'](url, {
 		headers,
