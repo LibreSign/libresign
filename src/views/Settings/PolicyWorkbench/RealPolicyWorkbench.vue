@@ -644,6 +644,10 @@ const ruleEditorDialogBodyClass = computed(() => {
 })
 
 function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
+	if (state.activeDefinition?.supportedScopes && !state.activeDefinition.supportedScopes.includes(scope)) {
+		return t('libresign', 'Not available for this setting.')
+	}
+
 	if (scope === 'group') {
 		return state.createGroupOverrideDisabledReason || ''
 	}
@@ -660,14 +664,27 @@ function scopeCreateDisabledReason(scope: 'system' | 'group' | 'user') {
 }
 
 const allowedCreateScopes = computed<Array<'system' | 'group' | 'user'>>(() => {
-	if (state.viewMode === 'group-admin') {
-		if (state.canManageGroups === false) {
-			return ['user']
+	const allScopes: Array<'system' | 'group' | 'user'> = ['system', 'group', 'user']
+	const supportedScopes = state.activeDefinition?.supportedScopes
+		? new Set(state.activeDefinition.supportedScopes)
+		: null
+
+	const isSupported = (scope: 'system' | 'group' | 'user') => {
+		if (!supportedScopes) {
+			return true
 		}
-		return ['group', 'user']
+
+		return supportedScopes.has(scope)
 	}
 
-	return ['system', 'group', 'user']
+	if (state.viewMode === 'group-admin') {
+		if (state.canManageGroups === false) {
+			return allScopes.filter((scope) => scope === 'user' && isSupported(scope))
+		}
+		return allScopes.filter((scope) => (scope === 'group' || scope === 'user') && isSupported(scope))
+	}
+
+	return allScopes.filter((scope) => isSupported(scope))
 })
 
 const hasCreatableScope = computed(() => {
