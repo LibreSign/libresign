@@ -16,6 +16,26 @@ export type SignatureFooterPolicyConfig = {
 	previewZoom: number
 }
 
+export type FooterTemplateSource = 'effective' | 'inherited'
+
+export type FooterTemplateSourceOption = {
+	value: FooterTemplateSource
+	label: string
+	policyValue: string
+}
+
+export type FooterTemplateSourceLabels = {
+	mySavedTemplate: string
+	configuredTemplate: string
+	defaultTemplate: string
+}
+
+export type FooterTemplateSourcePolicyState = {
+	effectiveValue: EffectivePolicyValue
+	sourceScope?: string | null
+	inheritedValue?: unknown
+}
+
 export function getDefaultSignatureFooterPolicyConfig(): SignatureFooterPolicyConfig {
 	return {
 		enabled: true,
@@ -155,4 +175,50 @@ export function serializeSignatureFooterPolicyConfig(value: SignatureFooterPolic
 	}
 
 	return JSON.stringify(normalizedValue)
+}
+
+function hasCustomFooterTemplate(config: SignatureFooterPolicyConfig): boolean {
+	return config.enabled && config.customizeFooterTemplate && config.footerTemplate.trim() !== ''
+}
+
+function toSerializedPolicyValue(config: SignatureFooterPolicyConfig): string {
+	const serialized = serializeSignatureFooterPolicyConfig(config)
+	return typeof serialized === 'string' ? serialized : ''
+}
+
+export function buildFooterTemplateSourceOptions(
+	policy: FooterTemplateSourcePolicyState | null | undefined,
+	labels: FooterTemplateSourceLabels,
+): FooterTemplateSourceOption[] {
+	if (!policy) {
+		return []
+	}
+
+	const options: FooterTemplateSourceOption[] = []
+	const effectiveConfig = normalizeSignatureFooterPolicyConfig(policy.effectiveValue)
+	const inheritedConfig = normalizeSignatureFooterPolicyConfig((policy.inheritedValue ?? policy.effectiveValue) as EffectivePolicyValue)
+	const hasEffectiveTemplate = hasCustomFooterTemplate(effectiveConfig)
+	const hasInheritedTemplate = hasCustomFooterTemplate(inheritedConfig)
+
+	if (hasEffectiveTemplate) {
+		const isUserOwn = policy.sourceScope === 'user'
+		options.push({
+			value: 'effective',
+			label: isUserOwn ? labels.mySavedTemplate : labels.configuredTemplate,
+			policyValue: toSerializedPolicyValue(effectiveConfig),
+		})
+	}
+
+	if (hasInheritedTemplate) {
+		const serializedInherited = toSerializedPolicyValue(inheritedConfig)
+		if (!options.some(option => option.policyValue === serializedInherited)) {
+			options.push({
+				value: 'inherited',
+				label: labels.defaultTemplate,
+				policyValue: serializedInherited,
+			})
+		}
+	}
+
+	return options
 }
