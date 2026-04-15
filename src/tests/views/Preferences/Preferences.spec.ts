@@ -376,6 +376,7 @@ describe('Preferences view', () => {
 		await wrapper.vm.undoAutoSaveByKey('add_footer')
 
 		expect(clearUserPreferenceMock).toHaveBeenCalledWith('add_footer')
+		expect(wrapper.vm.canUndoAutoSaveFor('add_footer')).toBe(false)
 	})
 
 	it('renders footer preference when a user preference already exists even if saving is blocked', async () => {
