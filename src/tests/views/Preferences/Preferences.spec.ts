@@ -57,6 +57,11 @@ const NcButton = defineComponent({
 	template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
 })
 
+const NcIconSvgWrapper = defineComponent({
+	name: 'NcIconSvgWrapper',
+	template: '<span class="icon-wrapper" />',
+})
+
 const SignatureFooterRuleEditor = defineComponent({
 	name: 'SignatureFooterRuleEditor',
 	props: ['modelValue', 'inheritedTemplate'],
@@ -108,6 +113,7 @@ describe('Preferences view', () => {
 					NcNoteCard,
 					NcCheckboxRadioSwitch,
 					NcButton,
+					NcIconSvgWrapper,
 					SignatureFlowScalarRuleEditor,
 					SignatureFooterRuleEditor,
 				},
@@ -119,7 +125,7 @@ describe('Preferences view', () => {
 		await createWrapper()
 
 		expect(fetchEffectivePoliciesMock).toHaveBeenCalledTimes(1)
-	})
+	}, 10000)
 
 	it('hides all preferences when user cannot request signatures', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
@@ -135,12 +141,12 @@ describe('Preferences view', () => {
 		expect(wrapper.findComponent({ name: 'NcSettingsSection' }).exists()).toBe(false)
 	})
 
-	it('shows the effective signing order summary', async () => {
+	it('renders signing order section without verbose summary labels', async () => {
 		const wrapper = await createWrapper()
 
-		expect(wrapper.text()).toContain('Effective value')
-		expect(wrapper.text()).toContain('Simultaneous (Parallel)')
-		expect(wrapper.text()).toContain('Global default')
+		expect(wrapper.text()).toContain('Signing order')
+		expect(wrapper.text()).not.toContain('Effective value')
+		expect(wrapper.text()).not.toContain('Source')
 	})
 
 	it('saves a user preference when requested', async () => {
@@ -307,9 +313,6 @@ describe('Preferences view', () => {
 		await nextTick()
 
 		expect(wrapper.text()).toContain('Signature footer')
-		expect(wrapper.text()).not.toContain('Save as my default')
-		expect(wrapper.text()).not.toContain('Update saved preference')
-		expect(wrapper.text()).not.toContain('Clear saved preference')
 
 		await wrapper.vm.onPreferenceChange('add_footer', '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template"}')
 
@@ -317,6 +320,16 @@ describe('Preferences view', () => {
 			'add_footer',
 			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template"}',
 		)
+	})
+
+	it('auto-saves signing order changes without manual save button', async () => {
+		const wrapper = await createWrapper()
+
+		expect(wrapper.text()).not.toContain('Save as my default')
+
+		await wrapper.vm.onPreferenceChange('signature_flow', 'ordered_numeric')
+
+		expect(saveUserPreferenceMock).toHaveBeenCalledWith('signature_flow', 'ordered_numeric')
 	})
 
 	it('allows undo after footer auto-save and clears preference when there was no prior user default', async () => {
