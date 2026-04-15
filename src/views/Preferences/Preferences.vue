@@ -23,6 +23,20 @@
 			</NcNoteCard>
 
 			<div v-else class="preferences-view__options">
+				<div
+					v-if="canUndoAutoSaveFor(entry.definition.key)"
+					class="preferences-view__undo-row">
+					<NcButton
+						variant="tertiary"
+						:disabled="saving"
+						@click="undoAutoSaveByKey(entry.definition.key)">
+						<template #icon>
+							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
+						</template>
+						{{ undoLabelFor(entry.definition.key) }}
+					</NcButton>
+				</div>
+
 				<div class="preferences-view__editor-shell" :class="{ 'preferences-view__editor-shell--saved': isAutoSaveSavedFor(entry.definition.key) }">
 					<div
 						v-if="isAutoSaveSavingFor(entry.definition.key) || isAutoSaveSavedFor(entry.definition.key)"
@@ -36,17 +50,6 @@
 							{{ isAutoSaveSavingFor(entry.definition.key) ? t('libresign', 'Saving your preference...') : t('libresign', 'Preference saved') }}
 						</span>
 					</div>
-					<NcButton
-						v-else-if="canUndoAutoSaveFor(entry.definition.key)"
-						variant="tertiary"
-						:disabled="saving"
-						class="preferences-view__undo-button"
-						:aria-label="undoLabelFor(entry.definition.key)"
-						@click="undoAutoSaveByKey(entry.definition.key)">
-						<template #icon>
-							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
-						</template>
-					</NcButton>
 
 					<component
 						:is="entry.definition.editor"
@@ -318,7 +321,14 @@ defineExpose({
 	padding: 24px;
 
 	&__options {
-		display: contents;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	&__undo-row {
+		display: flex;
+		justify-content: flex-end;
 	}
 
 	&__editor-shell {
@@ -330,13 +340,6 @@ defineExpose({
 		&--saved {
 			box-shadow: 0 0 0 2px var(--color-border-success);
 		}
-	}
-
-	&__undo-button.button-vue {
-		position: absolute;
-		top: 4px;
-		right: 4px;
-		z-index: 2;
 	}
 
 	&__autosave-status {
