@@ -319,6 +319,46 @@ describe('Preferences view', () => {
 		)
 	})
 
+	it('allows undo after footer auto-save and clears preference when there was no prior user default', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'add_footer') {
+				return {
+					policyKey: 'add_footer',
+					effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":false}',
+					sourceScope: 'system',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 0,
+					userCount: 0,
+				}
+			}
+
+			return null
+		})
+
+		const wrapper = await createWrapper()
+		await nextTick()
+
+		wrapper.vm.onPreferenceChange('add_footer', '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template"}')
+		await Promise.resolve()
+		await nextTick()
+
+		expect(saveUserPreferenceMock).toHaveBeenCalledWith(
+			'add_footer',
+			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template"}',
+		)
+		expect(wrapper.vm.isAutoSaveSavedFor('add_footer')).toBe(true)
+
+		await wrapper.vm.undoAutoSaveByKey('add_footer')
+
+		expect(clearUserPreferenceMock).toHaveBeenCalledWith('add_footer')
+	})
+
 	it('renders footer preference when a user preference already exists even if saving is blocked', async () => {
 		getPolicyMock.mockImplementation((key: string) => {
 			if (key === 'add_footer') {
