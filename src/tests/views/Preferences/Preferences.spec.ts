@@ -338,7 +338,7 @@ describe('Preferences view', () => {
 		expect(saveUserPreferenceMock).toHaveBeenCalledWith('signature_flow', 'ordered_numeric')
 	})
 
-	it('allows undo after footer auto-save and clears preference when there was no prior user default', async () => {
+	it('does not expose reset action after footer autosave when no persisted user default exists yet', async () => {
 		getPolicyMock.mockImplementation((key: string) => {
 			if (key === 'add_footer') {
 				return {
@@ -372,10 +372,11 @@ describe('Preferences view', () => {
 			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template"}',
 		)
 		expect(wrapper.vm.isAutoSaveSavedFor('add_footer')).toBe(true)
+		expect(wrapper.vm.canUndoAutoSaveFor('add_footer')).toBe(false)
 
 		await wrapper.vm.undoAutoSaveByKey('add_footer')
 
-		expect(clearUserPreferenceMock).toHaveBeenCalledWith('add_footer')
+		expect(clearUserPreferenceMock).not.toHaveBeenCalled()
 		expect(wrapper.vm.canUndoAutoSaveFor('add_footer')).toBe(false)
 	})
 
@@ -454,17 +455,18 @@ describe('Preferences view', () => {
 		expect(wrapper.vm.undoLabelFor('signature_flow')).toBe('Reset to default')
 	})
 
-	it('uses undo label when snapshot exists and reset-to-default label when only persisted preference exists', async () => {
+	it('uses reset-to-default label and only shows reset when a saved preference exists', async () => {
 		const wrapper = await createWrapper()
 		await nextTick()
 
 		// Initially no saved preference → button hidden
 		expect(wrapper.vm.canUndoAutoSaveFor('signature_flow')).toBe(false)
+		expect(wrapper.vm.undoLabelFor('signature_flow')).toBe('Reset to default')
 
-		// Make a change → snapshot created → undo label
+		// Changing value does not create temporary undo state anymore
 		wrapper.vm.onPreferenceChange('signature_flow', 'ordered_numeric')
-		expect(wrapper.vm.canUndoAutoSaveFor('signature_flow')).toBe(true)
-		expect(wrapper.vm.undoLabelFor('signature_flow')).toBe('Undo last change')
+		expect(wrapper.vm.canUndoAutoSaveFor('signature_flow')).toBe(false)
+		expect(wrapper.vm.undoLabelFor('signature_flow')).toBe('Reset to default')
 	})
 	it('shows reset button for add_footer on page load when user has a saved preference', async () => {
 		getPolicyMock.mockImplementation((key: string) => {
