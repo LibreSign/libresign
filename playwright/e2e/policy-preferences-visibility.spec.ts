@@ -11,6 +11,7 @@ import {
 	ensureGroupExists,
 	ensureUserExists,
 	ensureUserInGroup,
+	setAppConfig,
 } from '../support/nc-provisioning'
 import {
 	clearUserPolicyPreference,
@@ -47,6 +48,8 @@ const GROUP_ID = 'policy-preferences-group'
 const END_USER = 'policy-preferences-member'
 const POLICY_KEY = 'signature_flow'
 const FOOTER_POLICY_KEY = 'add_footer'
+const REQUEST_SIGN_GROUPS = JSON.stringify(['admin', GROUP_ID])
+const DEFAULT_REQUEST_SIGN_GROUPS = JSON.stringify(['admin'])
 const FOOTER_ENABLED_VALUE = JSON.stringify({
 	enabled: true,
 	writeQrcodeOnFooter: true,
@@ -74,6 +77,7 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 	await ensureUserExists(page.request, END_USER, DEFAULT_TEST_PASSWORD)
 	await ensureGroupExists(page.request, GROUP_ID)
 	await ensureUserInGroup(page.request, END_USER, GROUP_ID)
+	await setAppConfig(adminRequestContext, 'libresign', 'groups_request_sign', REQUEST_SIGN_GROUPS)
 	await configureOpenSsl(adminRequestContext, 'LibreSign Test', {
 		C: 'BR',
 		OU: ['Organization Unit'],
@@ -86,6 +90,7 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 
 test.afterEach(async ({ adminRequestContext, endUserRequestContext }) => {
 	await resetPolicyPreferencesState(adminRequestContext, endUserRequestContext)
+	await setAppConfig(adminRequestContext, 'libresign', 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
 })
 
 test('group member sees Preferences controls only when lower-layer customization is allowed', async ({ page, adminRequestContext, endUserRequestContext }) => {
