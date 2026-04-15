@@ -18,22 +18,24 @@
 				{{ errorMessage }}
 			</NcNoteCard>
 
-			<div class="preferences-view__summary">
-				<div>
-					<strong>{{ t('libresign', 'Effective value') }}</strong>
-					<p>{{ summarizeEffectiveValue(entry.definition.key) }}</p>
-				</div>
-				<div>
-					<strong>{{ t('libresign', 'Source') }}</strong>
-					<p>{{ sourceLabelFor(entry.policy) }}</p>
-				</div>
-			</div>
-
 			<NcNoteCard v-if="!canSavePreferenceFor(entry.definition.key)" type="info">
 				{{ t('libresign', 'Your current context does not allow saving a personal default for this setting.') }}
 			</NcNoteCard>
 
 			<div v-else class="preferences-view__options">
+				<div class="preferences-view__editor-toolbar">
+					<NcButton
+						v-if="canUndoAutoSaveFor(entry.definition.key)"
+						variant="tertiary"
+						:disabled="saving"
+						:aria-label="t('libresign', 'Undo last saved change')"
+						@click="undoAutoSaveByKey(entry.definition.key)">
+						<template #icon>
+							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
+						</template>
+					</NcButton>
+				</div>
+
 				<div class="preferences-view__editor-shell" :class="{ 'preferences-view__editor-shell--saved': isAutoSaveSavedFor(entry.definition.key) }">
 					<component
 						:is="entry.definition.editor"
@@ -42,37 +44,13 @@
 						@update:modelValue="(value: EffectivePolicyValue) => onPreferenceChange(entry.definition.key, value)" />
 				</div>
 
-				<div v-if="shouldAutoSavePreferenceFor(entry.definition.key)" class="preferences-view__autosave-feedback">
+				<div class="preferences-view__autosave-feedback" aria-live="polite">
 					<NcNoteCard v-if="isAutoSaveSavingFor(entry.definition.key)" type="info">
 						{{ t('libresign', 'Saving your preference...') }}
 					</NcNoteCard>
 					<NcNoteCard v-else-if="isAutoSaveSavedFor(entry.definition.key)" type="success">
-						<div class="preferences-view__autosave-success">
-							<span>{{ t('libresign', 'Preference saved') }}</span>
-							<NcButton
-								variant="tertiary"
-								:disabled="saving"
-								@click="undoAutoSaveByKey(entry.definition.key)">
-								{{ t('libresign', 'Undo') }}
-							</NcButton>
-						</div>
+						{{ t('libresign', 'Preference saved') }}
 					</NcNoteCard>
-				</div>
-
-				<div v-if="!shouldAutoSavePreferenceFor(entry.definition.key)" class="preferences-view__actions">
-					<NcButton
-						:variant="hasSavedPreferenceFor(entry.definition.key) ? 'secondary' : 'primary'"
-						:disabled="saving"
-						@click="savePreferenceByKey(entry.definition.key, selectedPreferenceValues[entry.definition.key])">
-						{{ hasSavedPreferenceFor(entry.definition.key) ? t('libresign', 'Update saved preference') : t('libresign', 'Save as my default') }}
-					</NcButton>
-					<NcButton
-						v-if="hasSavedPreferenceFor(entry.definition.key)"
-						variant="secondary"
-						:disabled="saving"
-						@click="clearPreferenceByKey(entry.definition.key)">
-						{{ t('libresign', 'Clear saved preference') }}
-					</NcButton>
 				</div>
 			</div>
 		</NcSettingsSection>
@@ -84,13 +62,15 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
+import { mdiUndoVariant } from '@mdi/js'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import { usePoliciesStore } from '../../store/policies'
-import type { EffectivePolicyState, EffectivePolicyValue, SignatureFlowMode } from '../../types/index'
+import type { EffectivePolicyValue, SignatureFlowMode } from '../../types/index'
 import { realDefinitions } from '../Settings/PolicyWorkbench/settings/realDefinitions'
 
 defineOptions({
@@ -144,32 +124,6 @@ function shouldRenderPreferencePolicy(policyKey: string): boolean {
 	return policy.canSaveAsUserDefault || policy.sourceScope === 'user'
 }
 
-function sourceLabelFor(policy: EffectivePolicyState | null): string {
-	switch (policy?.sourceScope) {
-	case 'user':
-		return t('libresign', 'Your saved preference')
-	case 'user_policy':
-		return t('libresign', 'Assigned user policy')
-	case 'group':
-		return t('libresign', 'Group policy')
-	case 'request':
-		return t('libresign', 'Request override')
-	case 'system':
-	default:
-		return t('libresign', 'Global default')
-	}
-}
-
-function summarizeEffectiveValue(policyKey: string): string {
-	const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
-	const policy = policiesStore.getPolicy(policyKey)
-	if (!definition || !policy) {
-		return t('libresign', 'Not configured')
-	}
-
-	return definition.summarizeValue(policy.effectiveValue)
-}
-
 function canSavePreferenceFor(policyKey: string): boolean {
 	return policiesStore.getPolicy(policyKey)?.canSaveAsUserDefault ?? false
 }
@@ -206,11 +160,6 @@ function editorPropsFor(policyKey: string): Record<string, unknown> {
 	}
 }
 
-function shouldAutoSavePreferenceFor(policyKey: string): boolean {
-	const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
-	return (definition?.editorProps as Record<string, unknown> | undefined)?.preferenceAutoSave === true
-}
-
 function isAutoSaveSavingFor(policyKey: string): boolean {
 	return autoSaveSavingByKey[policyKey] === true
 }
@@ -233,30 +182,29 @@ function setAutoSaveSavedFeedback(policyKey: string): void {
 	autoSaveFeedbackTimers.set(policyKey, timer)
 }
 
+function canUndoAutoSaveFor(policyKey: string): boolean {
+	return Boolean(autoSaveUndoSnapshotByKey[policyKey])
+}
+
 function onPreferenceChange(policyKey: string, value: EffectivePolicyValue): void {
 	const previousValue = selectedPreferenceValues[policyKey]
 	const hadSavedPreference = hasSavedPreferenceFor(policyKey)
 	selectedPreferenceValues[policyKey] = value
-	if (shouldAutoSavePreferenceFor(policyKey) && canSavePreferenceFor(policyKey)) {
+	if (canSavePreferenceFor(policyKey)) {
 		autoSaveUndoSnapshotByKey[policyKey] = {
 			hadSavedPreference,
 			previousValue,
 		}
 		void savePreferenceByKey(policyKey, value)
-		return
-	}
-
-	if (hasSavedPreferenceFor(policyKey)) {
-		void savePreferenceByKey(policyKey, value)
 	}
 }
 
 async function savePreferenceByKey(policyKey: string, value: EffectivePolicyValue): Promise<void> {
-	autoSaveSavingByKey[policyKey] = shouldAutoSavePreferenceFor(policyKey)
+	autoSaveSavingByKey[policyKey] = canSavePreferenceFor(policyKey)
 	autoSaveSavedByKey[policyKey] = false
 	const saved = await savePreferenceValue(policyKey, value, t('libresign', 'Could not save your preference. Try again.'))
 	autoSaveSavingByKey[policyKey] = false
-	if (saved && shouldAutoSavePreferenceFor(policyKey) && canSavePreferenceFor(policyKey)) {
+	if (saved && canSavePreferenceFor(policyKey)) {
 		setAutoSaveSavedFeedback(policyKey)
 	}
 	syncSelectedPreference(policyKey)
@@ -341,12 +289,11 @@ defineExpose({
 	errorMessage,
 	onPreferenceChange,
 	savePreference,
-	sourceLabelFor,
 	selectedPreferenceValues,
 	preferenceEntries,
+	canUndoAutoSaveFor,
 	isAutoSaveSavedFor,
 	isAutoSaveSavingFor,
-	summarizeEffectiveValue,
 	syncSelectedPreference,
 	syncAllSelectedPreferences,
 	undoAutoSaveByKey,
@@ -357,17 +304,16 @@ defineExpose({
 .preferences-view {
 	padding: 24px;
 
-	&__summary {
-		display: grid;
-		gap: 16px;
-		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-		margin-bottom: 20px;
-	}
-
 	&__options {
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
+	}
+
+	&__editor-toolbar {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: -4px;
 	}
 
 	&__editor-shell {
@@ -384,23 +330,9 @@ defineExpose({
 		margin-top: 4px;
 	}
 
-	&__autosave-success {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 12px;
-	}
-
 	&__option-copy p {
 		margin: 4px 0 0;
 		color: var(--color-text-maxcontrast);
-	}
-
-	&__actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 12px;
-		margin-top: 8px;
 	}
 }
 </style>
