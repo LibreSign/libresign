@@ -43,7 +43,7 @@
 				v-if="showAllowOverrideSwitch"
 				type="switch"
 				:model-value="editorDraft.allowChildOverride"
-				:disabled="saveStatus === 'saving'"
+				:disabled="saveStatus === 'saving' || !allowOverrideMutable"
 				@update:modelValue="$emit('update-allow-override', $event)">
 				<div class="policy-workbench__switch-copy">
 					<span>{{ allowOverrideTitle }}</span>
@@ -117,11 +117,13 @@ const props = withDefaults(defineProps<{
 	stickyActions?: boolean
 	showBackButton?: boolean
 	showAllowOverrideSwitch?: boolean
+	allowOverrideMutable?: boolean
 }>(), {
 	showInlineActions: true,
 	stickyActions: false,
 	showBackButton: false,
 	showAllowOverrideSwitch: true,
+	allowOverrideMutable: true,
 	editorProps: () => ({}),
 })
 
