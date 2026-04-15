@@ -37,20 +37,24 @@
 				</div>
 
 				<div class="preferences-view__editor-shell" :class="{ 'preferences-view__editor-shell--saved': isAutoSaveSavedFor(entry.definition.key) }">
+					<div
+						v-if="isAutoSaveSavingFor(entry.definition.key) || isAutoSaveSavedFor(entry.definition.key)"
+						class="preferences-view__autosave-status"
+						:class="{ 'preferences-view__autosave-status--saved': isAutoSaveSavedFor(entry.definition.key) }"
+						role="status"
+						aria-live="polite">
+						<NcLoadingIcon v-if="isAutoSaveSavingFor(entry.definition.key)" :size="16" />
+						<NcIconSvgWrapper v-else :path="mdiCheckCircleOutline" :size="16" />
+						<span>
+							{{ isAutoSaveSavingFor(entry.definition.key) ? t('libresign', 'Saving your preference...') : t('libresign', 'Preference saved') }}
+						</span>
+					</div>
+
 					<component
 						:is="entry.definition.editor"
 						:model-value="selectedPreferenceValues[entry.definition.key]"
 						v-bind="editorPropsFor(entry.definition.key)"
 						@update:modelValue="(value: EffectivePolicyValue) => onPreferenceChange(entry.definition.key, value)" />
-				</div>
-
-				<div class="preferences-view__autosave-feedback" aria-live="polite">
-					<NcNoteCard v-if="isAutoSaveSavingFor(entry.definition.key)" type="info">
-						{{ t('libresign', 'Saving your preference...') }}
-					</NcNoteCard>
-					<NcNoteCard v-else-if="isAutoSaveSavedFor(entry.definition.key)" type="success">
-						{{ t('libresign', 'Preference saved') }}
-					</NcNoteCard>
 				</div>
 			</div>
 		</NcSettingsSection>
@@ -62,10 +66,11 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
-import { mdiUndoVariant } from '@mdi/js'
+import { mdiCheckCircleOutline, mdiUndoVariant } from '@mdi/js'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
@@ -317,6 +322,7 @@ defineExpose({
 	}
 
 	&__editor-shell {
+		position: relative;
 		border-radius: 10px;
 		padding: 2px;
 		transition: box-shadow 180ms ease;
@@ -326,8 +332,27 @@ defineExpose({
 		}
 	}
 
-	&__autosave-feedback {
-		margin-top: 4px;
+	&__autosave-status {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		z-index: 2;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 8px;
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--color-main-background) 86%, transparent);
+		border: 1px solid var(--color-border-dark);
+		color: var(--color-text-maxcontrast);
+		pointer-events: none;
+		font-size: 0.78rem;
+		line-height: 1.2;
+
+		&--saved {
+			border-color: var(--color-border-success);
+			color: var(--color-success-text);
+		}
 	}
 
 	&__option-copy p {
