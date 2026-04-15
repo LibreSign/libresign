@@ -226,6 +226,7 @@ async function undoAutoSaveByKey(policyKey: string): Promise<void> {
 		return
 	}
 
+	delete autoSaveUndoSnapshotByKey[policyKey]
 	autoSaveSavedByKey[policyKey] = false
 	if (snapshot.hadSavedPreference) {
 		await savePreferenceByKey(policyKey, snapshot.previousValue)
