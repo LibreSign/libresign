@@ -303,6 +303,27 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.text()).toContain('Inherited template:')
 	})
 
+	it('hides allow-lower-level-customization toggle for request access by group', async () => {
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Request access by group')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await findButtonByText(wrapper, 'Create rule')?.trigger('click')
+
+		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
+		expect(createScopeDialog.exists()).toBe(true)
+
+		const groupScopeButton = createScopeDialog.findAll('button').find((button) => button.text().includes('Group'))
+		expect(groupScopeButton).toBeTruthy()
+		await groupScopeButton?.trigger('click')
+
+		const editorModal = wrapper.find('.policy-workbench__editor-modal-body')
+		expect(editorModal.exists()).toBe(true)
+		expect(editorModal.text()).not.toContain('Allow lower-level customization')
+	})
+
 	it('shows signing order with sophisticated visual interface: filter, toggle, counts, and scopes', async () => {
 		const wrapper = mountWorkbench()
 		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
