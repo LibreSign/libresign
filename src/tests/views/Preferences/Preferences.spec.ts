@@ -62,6 +62,11 @@ const NcIconSvgWrapper = defineComponent({
 	template: '<span class="icon-wrapper" />',
 })
 
+const NcLoadingIcon = defineComponent({
+	name: 'NcLoadingIcon',
+	template: '<span class="loading-icon" />',
+})
+
 const SignatureFooterRuleEditor = defineComponent({
 	name: 'SignatureFooterRuleEditor',
 	props: ['modelValue', 'inheritedTemplate'],
@@ -114,6 +119,7 @@ describe('Preferences view', () => {
 					NcCheckboxRadioSwitch,
 					NcButton,
 					NcIconSvgWrapper,
+					NcLoadingIcon,
 					SignatureFlowScalarRuleEditor,
 					SignatureFooterRuleEditor,
 				},
