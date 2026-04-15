@@ -201,6 +201,57 @@ describe('SignatureFooterRuleEditor.vue', () => {
 		})
 	})
 
+	it('hides template reset button when showTemplateResetButton is false', async () => {
+		const wrapper = mount(SignatureFooterRuleEditor, {
+			props: {
+				modelValue: asModelValue({
+					enabled: true,
+					writeQrcodeOnFooter: true,
+					validationSite: '',
+					customizeFooterTemplate: true,
+					footerTemplate: 'Custom footer',
+				}),
+				inheritedTemplate: 'Inherited footer',
+				showTemplateResetButton: false,
+				showPreview: false,
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: {
+						name: 'NcCheckboxRadioSwitch',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<div class="switch-stub" @click="$emit(\'update:modelValue\', !modelValue)"><slot /></div>',
+					},
+					NcTextField: {
+						name: 'NcTextField',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<input class="text-field-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+					},
+					NcButton: {
+						name: 'NcButton',
+						emits: ['click'],
+						template: '<button class="button-stub" @click="$emit(\'click\')"><slot /></button>',
+					},
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+					CodeEditor: {
+						name: 'CodeEditor',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<div class="code-editor-wrapper-stub"><div class="code-editor-header-stub"><slot name="label-actions" /></div><textarea class="code-editor-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>',
+					},
+				},
+			},
+		})
+
+		await nextTick()
+		expect(wrapper.find('.code-editor-header-stub .button-stub').exists()).toBe(false)
+	})
+
 	it('forwards template-changed event when template content changes', async () => {
 		const wrapper = createWrapper(asModelValue({
 			enabled: true,
