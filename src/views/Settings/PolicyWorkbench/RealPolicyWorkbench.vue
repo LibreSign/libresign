@@ -338,6 +338,7 @@
 					:show-inline-actions="false"
 					:show-back-button="showCreateRuleBackAction"
 					:show-allow-override-switch="true"
+					:allow-override-mutable="isAllowOverrideMutable"
 					@search-targets="state.searchAvailableTargets"
 					@update-targets="onTargetChange"
 					@update-value="state.updateDraftValue"
@@ -617,6 +618,18 @@ const editorHelp = computed(() => {
 	}
 
 	return ''
+})
+
+const isAllowOverrideMutable = computed(() => {
+	if (!state.editorDraft || !state.activeDefinition) {
+		return true
+	}
+
+	const scope = state.editorDraft.scope
+	const normalizedTrue = state.activeDefinition.normalizeAllowChildOverride(scope, true)
+	const normalizedFalse = state.activeDefinition.normalizeAllowChildOverride(scope, false)
+
+	return normalizedTrue !== normalizedFalse
 })
 
 const showCreateRuleBackAction = computed(() => {
