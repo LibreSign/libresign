@@ -40,7 +40,7 @@
 			</div>
 
 			<NcCheckboxRadioSwitch
-				v-if="showAllowOverrideSwitch"
+				v-if="showAllowOverrideSwitch && allowOverrideMutable"
 				type="switch"
 				:model-value="editorDraft.allowChildOverride"
 				:disabled="saveStatus === 'saving' || !allowOverrideMutable"
