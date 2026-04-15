@@ -90,7 +90,6 @@ const errorMessage = ref('')
 const selectedPreferenceValues = reactive<Record<string, EffectivePolicyValue>>({})
 const autoSaveSavingByKey = reactive<Record<string, boolean>>({})
 const autoSaveSavedByKey = reactive<Record<string, boolean>>({})
-const autoSaveUndoSnapshotByKey = reactive<Record<string, { hadSavedPreference: boolean, previousValue: EffectivePolicyValue }>>({})
 const autoSaveFeedbackTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
 const preferencePolicyKeys = computed(() => {
@@ -161,6 +160,7 @@ function editorPropsFor(policyKey: string): Record<string, unknown> {
 
 	return {
 		...resolvedEditorProps,
+		...(policyKey === 'add_footer' ? { showTemplateResetButton: false } : {}),
 		editorScope: 'user',
 		editorMode: 'edit',
 	}
@@ -189,24 +189,17 @@ function setAutoSaveSavedFeedback(policyKey: string): void {
 }
 
 function canUndoAutoSaveFor(policyKey: string): boolean {
-	return Boolean(autoSaveUndoSnapshotByKey[policyKey]) || hasSavedPreferenceFor(policyKey)
+	return hasSavedPreferenceFor(policyKey)
 }
 
 function undoLabelFor(policyKey: string): string {
-	return autoSaveUndoSnapshotByKey[policyKey]
-		? t('libresign', 'Undo last change')
-		: t('libresign', 'Reset to default')
+	void policyKey
+	return t('libresign', 'Reset to default')
 }
 
 function onPreferenceChange(policyKey: string, value: EffectivePolicyValue): void {
-	const previousValue = selectedPreferenceValues[policyKey]
-	const hadSavedPreference = hasSavedPreferenceFor(policyKey)
 	selectedPreferenceValues[policyKey] = value
 	if (canSavePreferenceFor(policyKey)) {
-		autoSaveUndoSnapshotByKey[policyKey] = {
-			hadSavedPreference,
-			previousValue,
-		}
 		void savePreferenceByKey(policyKey, value)
 	}
 }
@@ -228,18 +221,8 @@ async function clearPreferenceByKey(policyKey: string): Promise<void> {
 }
 
 async function undoAutoSaveByKey(policyKey: string): Promise<void> {
-	const snapshot = autoSaveUndoSnapshotByKey[policyKey]
-
 	autoSaveSavedByKey[policyKey] = false
-
-	if (snapshot) {
-		delete autoSaveUndoSnapshotByKey[policyKey]
-		if (snapshot.hadSavedPreference) {
-			await savePreferenceByKey(policyKey, snapshot.previousValue)
-		} else {
-			await clearPreferenceByKey(policyKey)
-		}
-	} else if (hasSavedPreferenceFor(policyKey)) {
+	if (hasSavedPreferenceFor(policyKey)) {
 		await clearPreferenceByKey(policyKey)
 	}
 }
