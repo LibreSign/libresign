@@ -34,11 +34,30 @@
 			</NcNoteCard>
 
 			<div v-else class="preferences-view__options">
-				<component
-					:is="entry.definition.editor"
-					:model-value="selectedPreferenceValues[entry.definition.key]"
-					v-bind="editorPropsFor(entry.definition.key)"
-					@update:modelValue="(value: EffectivePolicyValue) => onPreferenceChange(entry.definition.key, value)" />
+				<div class="preferences-view__editor-shell" :class="{ 'preferences-view__editor-shell--saved': isAutoSaveSavedFor(entry.definition.key) }">
+					<component
+						:is="entry.definition.editor"
+						:model-value="selectedPreferenceValues[entry.definition.key]"
+						v-bind="editorPropsFor(entry.definition.key)"
+						@update:modelValue="(value: EffectivePolicyValue) => onPreferenceChange(entry.definition.key, value)" />
+				</div>
+
+				<div v-if="shouldAutoSavePreferenceFor(entry.definition.key)" class="preferences-view__autosave-feedback">
+					<NcNoteCard v-if="isAutoSaveSavingFor(entry.definition.key)" type="info">
+						{{ t('libresign', 'Saving your preference...') }}
+					</NcNoteCard>
+					<NcNoteCard v-else-if="isAutoSaveSavedFor(entry.definition.key)" type="success">
+						<div class="preferences-view__autosave-success">
+							<span>{{ t('libresign', 'Preference saved') }}</span>
+							<NcButton
+								variant="tertiary"
+								:disabled="saving"
+								@click="undoAutoSaveByKey(entry.definition.key)">
+								{{ t('libresign', 'Undo') }}
+							</NcButton>
+						</div>
+					</NcNoteCard>
+				</div>
 
 				<div v-if="!shouldAutoSavePreferenceFor(entry.definition.key)" class="preferences-view__actions">
 					<NcButton
@@ -61,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
@@ -83,6 +102,10 @@ const canRequestSign = loadState<boolean>('libresign', 'can_request_sign', false
 const saving = ref(false)
 const errorMessage = ref('')
 const selectedPreferenceValues = reactive<Record<string, EffectivePolicyValue>>({})
+const autoSaveSavingByKey = reactive<Record<string, boolean>>({})
+const autoSaveSavedByKey = reactive<Record<string, boolean>>({})
+const autoSaveUndoSnapshotByKey = reactive<Record<string, { hadSavedPreference: boolean, previousValue: EffectivePolicyValue }>>({})
+const autoSaveFeedbackTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
 const preferencePolicyKeys = computed(() => {
 	const policyKeysFromApi = Object.keys(policiesStore.policies ?? {})
@@ -188,9 +211,37 @@ function shouldAutoSavePreferenceFor(policyKey: string): boolean {
 	return (definition?.editorProps as Record<string, unknown> | undefined)?.preferenceAutoSave === true
 }
 
+function isAutoSaveSavingFor(policyKey: string): boolean {
+	return autoSaveSavingByKey[policyKey] === true
+}
+
+function isAutoSaveSavedFor(policyKey: string): boolean {
+	return autoSaveSavedByKey[policyKey] === true
+}
+
+function setAutoSaveSavedFeedback(policyKey: string): void {
+	autoSaveSavedByKey[policyKey] = true
+	const existingTimer = autoSaveFeedbackTimers.get(policyKey)
+	if (existingTimer) {
+		clearTimeout(existingTimer)
+	}
+
+	const timer = setTimeout(() => {
+		autoSaveSavedByKey[policyKey] = false
+		autoSaveFeedbackTimers.delete(policyKey)
+	}, 2000)
+	autoSaveFeedbackTimers.set(policyKey, timer)
+}
+
 function onPreferenceChange(policyKey: string, value: EffectivePolicyValue): void {
+	const previousValue = selectedPreferenceValues[policyKey]
+	const hadSavedPreference = hasSavedPreferenceFor(policyKey)
 	selectedPreferenceValues[policyKey] = value
 	if (shouldAutoSavePreferenceFor(policyKey) && canSavePreferenceFor(policyKey)) {
+		autoSaveUndoSnapshotByKey[policyKey] = {
+			hadSavedPreference,
+			previousValue,
+		}
 		void savePreferenceByKey(policyKey, value)
 		return
 	}
@@ -201,13 +252,33 @@ function onPreferenceChange(policyKey: string, value: EffectivePolicyValue): voi
 }
 
 async function savePreferenceByKey(policyKey: string, value: EffectivePolicyValue): Promise<void> {
-	await savePreferenceValue(policyKey, value, t('libresign', 'Could not save your preference. Try again.'))
+	autoSaveSavingByKey[policyKey] = shouldAutoSavePreferenceFor(policyKey)
+	autoSaveSavedByKey[policyKey] = false
+	const saved = await savePreferenceValue(policyKey, value, t('libresign', 'Could not save your preference. Try again.'))
+	autoSaveSavingByKey[policyKey] = false
+	if (saved && shouldAutoSavePreferenceFor(policyKey) && canSavePreferenceFor(policyKey)) {
+		setAutoSaveSavedFeedback(policyKey)
+	}
 	syncSelectedPreference(policyKey)
 }
 
 async function clearPreferenceByKey(policyKey: string): Promise<void> {
 	await clearPreferenceValue(policyKey, t('libresign', 'Could not clear your preference. Try again.'))
 	syncSelectedPreference(policyKey)
+}
+
+async function undoAutoSaveByKey(policyKey: string): Promise<void> {
+	const snapshot = autoSaveUndoSnapshotByKey[policyKey]
+	if (!snapshot) {
+		return
+	}
+
+	autoSaveSavedByKey[policyKey] = false
+	if (snapshot.hadSavedPreference) {
+		await savePreferenceByKey(policyKey, snapshot.previousValue)
+	} else {
+		await clearPreferenceByKey(policyKey)
+	}
 }
 
 // Backward-compatible helpers used by existing tests.
@@ -219,19 +290,21 @@ async function clearPreference(): Promise<void> {
 	await clearPreferenceByKey('signature_flow')
 }
 
-async function savePreferenceValue(policyKey: string, value: EffectivePolicyValue, errorText: string): Promise<void> {
+async function savePreferenceValue(policyKey: string, value: EffectivePolicyValue, errorText: string): Promise<boolean> {
 	const policy = policiesStore.getPolicy(policyKey)
 	if (!policy?.canSaveAsUserDefault) {
-		return
+		return false
 	}
 
 	saving.value = true
 	errorMessage.value = ''
 	try {
 		await policiesStore.saveUserPreference(policyKey, value)
+		return true
 	} catch (error) {
 		console.error(`Failed to save ${policyKey} preference`, error)
 		errorMessage.value = errorText
+		return false
 	} finally {
 		saving.value = false
 	}
@@ -255,6 +328,13 @@ onMounted(async () => {
 	syncAllSelectedPreferences()
 })
 
+onBeforeUnmount(() => {
+	for (const timer of autoSaveFeedbackTimers.values()) {
+		clearTimeout(timer)
+	}
+	autoSaveFeedbackTimers.clear()
+})
+
 defineExpose({
 	canSavePreferenceFor,
 	clearPreference,
@@ -264,9 +344,12 @@ defineExpose({
 	sourceLabelFor,
 	selectedPreferenceValues,
 	preferenceEntries,
+	isAutoSaveSavedFor,
+	isAutoSaveSavingFor,
 	summarizeEffectiveValue,
 	syncSelectedPreference,
 	syncAllSelectedPreferences,
+	undoAutoSaveByKey,
 })
 </script>
 
@@ -284,6 +367,27 @@ defineExpose({
 	&__options {
 		display: flex;
 		flex-direction: column;
+		gap: 12px;
+	}
+
+	&__editor-shell {
+		border-radius: 10px;
+		padding: 2px;
+		transition: box-shadow 180ms ease;
+
+		&--saved {
+			box-shadow: 0 0 0 2px var(--color-border-success);
+		}
+	}
+
+	&__autosave-feedback {
+		margin-top: 4px;
+	}
+
+	&__autosave-success {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 		gap: 12px;
 	}
 
