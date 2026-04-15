@@ -466,4 +466,31 @@ describe('Preferences view', () => {
 		expect(wrapper.vm.canUndoAutoSaveFor('signature_flow')).toBe(true)
 		expect(wrapper.vm.undoLabelFor('signature_flow')).toBe('Undo last change')
 	})
+	it('shows reset button for add_footer on page load when user has a saved preference', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'add_footer') {
+				return {
+					policyKey: 'add_footer',
+					effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"My custom template"}',
+					sourceScope: 'user',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 0,
+					userCount: 0,
+				}
+			}
+			return null
+		})
+
+		const wrapper = await createWrapper()
+		await nextTick()
+
+		expect(wrapper.vm.canUndoAutoSaveFor('add_footer')).toBe(true)
+		expect(wrapper.vm.undoLabelFor('add_footer')).toBe('Reset to default')
+	})
 })
