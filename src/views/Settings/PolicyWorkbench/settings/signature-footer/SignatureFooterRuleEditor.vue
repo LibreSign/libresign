@@ -46,7 +46,7 @@
 					@update:modelValue="onFooterTemplateChange">
 					<template #label-actions>
 						<NcButton
-							v-if="showResetTemplateButton"
+							v-if="props.showTemplateResetButton !== false && showResetTemplateButton"
 							variant="tertiary"
 							:aria-label="t('libresign', 'Reset template to inherited default')"
 							@click="onTemplateReset">
@@ -161,8 +161,10 @@ const props = withDefaults(defineProps<{
 	inheritedTemplate?: string
 	editorScope?: 'system' | 'group' | 'user'
 	allowValidationSiteOverrideInUserScope?: boolean
+	showTemplateResetButton?: boolean
 	showPreview?: boolean
 }>(), {
+	showTemplateResetButton: true,
 	showPreview: true,
 })
 
