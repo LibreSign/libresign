@@ -424,4 +424,46 @@ describe('Preferences view', () => {
 		expect(wrapper.findComponent({ name: 'SignatureFooterRuleEditor' }).exists()).toBe(false)
 		expect(wrapper.text()).toContain('does not allow saving a personal default')
 	})
+
+	it('shows reset button on page load when user already has a saved preference', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'signature_flow') {
+				return {
+					policyKey: 'signature_flow',
+					effectiveValue: 'ordered_numeric',
+					sourceScope: 'user',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: ['parallel', 'ordered_numeric'],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 0,
+					userCount: 0,
+				}
+			}
+			return null
+		})
+
+		const wrapper = await createWrapper()
+		await nextTick()
+
+		// Reset button must be visible even without any in-session change
+		expect(wrapper.vm.canUndoAutoSaveFor('signature_flow')).toBe(true)
+		expect(wrapper.vm.undoLabelFor('signature_flow')).toBe('Reset to default')
+	})
+
+	it('uses undo label when snapshot exists and reset-to-default label when only persisted preference exists', async () => {
+		const wrapper = await createWrapper()
+		await nextTick()
+
+		// Initially no saved preference → button hidden
+		expect(wrapper.vm.canUndoAutoSaveFor('signature_flow')).toBe(false)
+
+		// Make a change → snapshot created → undo label
+		wrapper.vm.onPreferenceChange('signature_flow', 'ordered_numeric')
+		expect(wrapper.vm.canUndoAutoSaveFor('signature_flow')).toBe(true)
+		expect(wrapper.vm.undoLabelFor('signature_flow')).toBe('Undo last change')
+	})
 })
