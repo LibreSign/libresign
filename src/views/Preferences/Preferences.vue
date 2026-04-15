@@ -28,7 +28,7 @@
 						v-if="canUndoAutoSaveFor(entry.definition.key)"
 						variant="tertiary"
 						:disabled="saving"
-						:aria-label="t('libresign', 'Undo last saved change')"
+						:aria-label="undoLabelFor(entry.definition.key)"
 						@click="undoAutoSaveByKey(entry.definition.key)">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
@@ -188,7 +188,13 @@ function setAutoSaveSavedFeedback(policyKey: string): void {
 }
 
 function canUndoAutoSaveFor(policyKey: string): boolean {
-	return Boolean(autoSaveUndoSnapshotByKey[policyKey])
+	return Boolean(autoSaveUndoSnapshotByKey[policyKey]) || hasSavedPreferenceFor(policyKey)
+}
+
+function undoLabelFor(policyKey: string): string {
+	return autoSaveUndoSnapshotByKey[policyKey]
+		? t('libresign', 'Undo last change')
+		: t('libresign', 'Reset to default')
 }
 
 function onPreferenceChange(policyKey: string, value: EffectivePolicyValue): void {
@@ -222,15 +228,17 @@ async function clearPreferenceByKey(policyKey: string): Promise<void> {
 
 async function undoAutoSaveByKey(policyKey: string): Promise<void> {
 	const snapshot = autoSaveUndoSnapshotByKey[policyKey]
-	if (!snapshot) {
-		return
-	}
 
-	delete autoSaveUndoSnapshotByKey[policyKey]
 	autoSaveSavedByKey[policyKey] = false
-	if (snapshot.hadSavedPreference) {
-		await savePreferenceByKey(policyKey, snapshot.previousValue)
-	} else {
+
+	if (snapshot) {
+		delete autoSaveUndoSnapshotByKey[policyKey]
+		if (snapshot.hadSavedPreference) {
+			await savePreferenceByKey(policyKey, snapshot.previousValue)
+		} else {
+			await clearPreferenceByKey(policyKey)
+		}
+	} else if (hasSavedPreferenceFor(policyKey)) {
 		await clearPreferenceByKey(policyKey)
 	}
 }
@@ -298,6 +306,7 @@ defineExpose({
 	selectedPreferenceValues,
 	preferenceEntries,
 	canUndoAutoSaveFor,
+	undoLabelFor,
 	isAutoSaveSavedFor,
 	isAutoSaveSavingFor,
 	syncSelectedPreference,
