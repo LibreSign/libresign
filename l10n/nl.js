@@ -172,6 +172,7 @@ OC.L10N.register(
     "Status" : "Status",
     "Document not available for signature." : "Document niet beschikbaar voor ondertekening.",
     "Administration" : "Beheer",
+    "Drag to reorder" : "Slepen om opnieuw te ordenen",
     "Contact" : "Contact",
     "Order" : "Volgorde",
     "Open sidebar" : "Open zijbalk",
