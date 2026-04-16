@@ -308,6 +308,116 @@ describe('SignatureFooterRuleEditor.vue', () => {
 		expect(wrapper.find('.button-stub').exists()).toBe(true)
 	})
 
+	it('shows reset button when customized template has no inherited baseline in system scope', () => {
+		const wrapper = createWrapper(asModelValue({
+			enabled: true,
+			writeQrcodeOnFooter: true,
+			validationSite: '',
+			customizeFooterTemplate: true,
+			footerTemplate: 'System custom footer',
+		}))
+
+		expect(wrapper.find('.button-stub').exists()).toBe(true)
+	})
+
+	it('shows reset button when customized template has no inherited baseline in group scope', () => {
+		const wrapper = mount(SignatureFooterRuleEditor, {
+			props: {
+				modelValue: asModelValue({
+					enabled: true,
+					writeQrcodeOnFooter: true,
+					validationSite: '',
+					customizeFooterTemplate: true,
+					footerTemplate: 'Group custom footer',
+				}),
+				editorScope: 'group',
+				showPreview: false,
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: {
+						name: 'NcCheckboxRadioSwitch',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<div class="switch-stub" @click="$emit(\'update:modelValue\', !modelValue)"><slot /></div>',
+					},
+					NcTextField: {
+						name: 'NcTextField',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<input class="text-field-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+					},
+					NcButton: {
+						name: 'NcButton',
+						emits: ['click'],
+						template: '<button class="button-stub" @click="$emit(\'click\')"><slot /></button>',
+					},
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+					CodeEditor: {
+						name: 'CodeEditor',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<div class="code-editor-wrapper-stub"><div class="code-editor-header-stub"><slot name="label-actions" /></div><textarea class="code-editor-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>',
+					},
+				},
+			},
+		})
+
+		expect(wrapper.find('.button-stub').exists()).toBe(true)
+	})
+
+	it('shows reset button when customized template has no inherited baseline in user scope', () => {
+		const wrapper = mount(SignatureFooterRuleEditor, {
+			props: {
+				modelValue: asModelValue({
+					enabled: true,
+					writeQrcodeOnFooter: true,
+					validationSite: '',
+					customizeFooterTemplate: true,
+					footerTemplate: 'User custom footer',
+				}),
+				editorScope: 'user',
+				showPreview: false,
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: {
+						name: 'NcCheckboxRadioSwitch',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<div class="switch-stub" @click="$emit(\'update:modelValue\', !modelValue)"><slot /></div>',
+					},
+					NcTextField: {
+						name: 'NcTextField',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<input class="text-field-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+					},
+					NcButton: {
+						name: 'NcButton',
+						emits: ['click'],
+						template: '<button class="button-stub" @click="$emit(\'click\')"><slot /></button>',
+					},
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+					CodeEditor: {
+						name: 'CodeEditor',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<div class="code-editor-wrapper-stub"><div class="code-editor-header-stub"><slot name="label-actions" /></div><textarea class="code-editor-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>',
+					},
+				},
+			},
+		})
+
+		expect(wrapper.find('.button-stub').exists()).toBe(true)
+	})
+
 	it('hides reset button when current template equals inherited template', () => {
 		const wrapper = createWrapper(asModelValue({
 			enabled: true,
@@ -428,7 +538,7 @@ describe('SignatureFooterRuleEditor.vue', () => {
 		const model = parseEmittedValue((wrapper.vm as { value: EffectivePolicyValue }).value)
 		expect(model).toMatchObject({
 			customizeFooterTemplate: true,
-			footerTemplate: '',
+			footerTemplate: 'Inherited footer template',
 		})
 	})
 
