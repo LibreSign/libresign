@@ -160,7 +160,6 @@ function editorPropsFor(policyKey: string): Record<string, unknown> {
 
 	return {
 		...resolvedEditorProps,
-		...(policyKey === 'add_footer' ? { showTemplateResetButton: false } : {}),
 		editorScope: 'user',
 		editorMode: 'edit',
 	}
@@ -217,6 +216,7 @@ async function savePreferenceByKey(policyKey: string, value: EffectivePolicyValu
 
 async function clearPreferenceByKey(policyKey: string): Promise<void> {
 	await clearPreferenceValue(policyKey, t('libresign', 'Could not clear your preference. Try again.'))
+	await policiesStore.fetchEffectivePolicies()
 	syncSelectedPreference(policyKey)
 }
 
