@@ -29,9 +29,6 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 		const policyWithInherited = policy as (EffectivePolicyState & { inheritedValue?: EffectivePolicyValue }) | null
 		if (policyWithInherited && Object.prototype.hasOwnProperty.call(policyWithInherited, 'inheritedValue')) {
 			const normalizedInherited = normalizeSignatureFooterPolicyConfig(policyWithInherited.inheritedValue ?? null)
-			// Only override the base inheritedTemplate when the inherited policy level provides a non-empty
-			// custom footer template. Otherwise fall back to the base (which carries the system-level
-			// footer_template from loadState) so the user always sees the real default instead of blank.
 			const resolvedTemplate = normalizedInherited.footerTemplate.trim() !== ''
 				? normalizedInherited.footerTemplate
 				: (baseEditorProps.inheritedTemplate as string | undefined) ?? ''
