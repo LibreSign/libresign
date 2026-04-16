@@ -213,6 +213,10 @@ const showResetTemplateButton = computed(() => {
 	}
 
 	const inheritedTemplate = (props.inheritedTemplate ?? '').trim()
+	if (inheritedTemplate.length === 0) {
+		return true
+	}
+
 	return currentTemplate !== inheritedTemplate
 })
 
@@ -267,7 +271,10 @@ function onCustomizeFooterTemplateChange(customizeFooterTemplate: boolean) {
 		return
 	}
 
-	updateValue({ customizeFooterTemplate })
+	// When enabling customization, seed the template with the inherited default so the
+	// saved value is concrete and not dependent on future inherited-template resolution.
+	const seedTemplate = value.value.footerTemplate || (props.inheritedTemplate ?? '')
+	updateValue({ customizeFooterTemplate, footerTemplate: seedTemplate })
 }
 
 function onFooterTemplateChange(footerTemplate: string | number) {
@@ -283,9 +290,12 @@ function onTemplateReset(event?: Event) {
 	event?.stopPropagation()
 	event?.preventDefault()
 
+	// Reset to the concrete inherited template so the saved value is explicit and
+	// independent of future inherited-template resolution. Using '' (empty) as a
+	// sentinel would break when the inheritedTemplate changes between page loads.
 	updateValue({
 		customizeFooterTemplate: true,
-		footerTemplate: '',
+		footerTemplate: props.inheritedTemplate ?? '',
 	})
 	onTemplateChanged()
 }
