@@ -161,6 +161,7 @@ OC.L10N.register(
     "Delete certificate" : "Ištrinti liudijimą",
     "Create certificate" : "Sukurti liudijimą",
     "Change password" : "Keisti slaptažodį",
+    "Edit {type}" : "Redaguoti {type}",
     "Your signatures" : "Jūsų parašai",
     "Signature" : "Parašas",
     "Initials" : "Inicialai",
