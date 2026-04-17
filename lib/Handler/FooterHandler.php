@@ -129,6 +129,10 @@ class FooterHandler {
 		return $this;
 	}
 
+	public function getEffectiveFooterPolicyAsJson(): string {
+		return (string)$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue();
+	}
+
 	/** @return array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate: string, previewWidth: int, previewHeight: int, previewZoom: int} */
 	private function resolveFooterPolicy(): array {
 		return FooterPolicyValue::normalize(
