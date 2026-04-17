@@ -22,6 +22,11 @@ class FooterService {
 	}
 
 	public function isDefaultTemplate(): bool {
+		$legacyCustomTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
+		if ($legacyCustomTemplate !== '') {
+			return false;
+		}
+
 		$footerPolicy = $this->getEffectiveFooterPolicy();
 		return !$footerPolicy['customizeFooterTemplate'];
 	}

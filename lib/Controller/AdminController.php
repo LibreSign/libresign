@@ -878,7 +878,8 @@ class AdminController extends AEnvironmentAwareController {
 	public function saveFooterTemplate(string $template = '', int $width = 595, int $height = 50) {
 		try {
 			$this->footerService->saveTemplate($template);
-			$pdf = $this->footerService->renderPreviewPdf($template, $width, $height);
+			// Template was already persisted above; avoid a second save that can revert policy flags.
+			$pdf = $this->footerService->renderPreviewPdf('', $width, $height);
 
 			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');
 		} catch (\Exception $e) {
