@@ -185,6 +185,56 @@ describe('Preferences view', () => {
 		expect(clearUserPreferenceMock).toHaveBeenCalledWith('signature_flow')
 	})
 
+	it('refreshes effective policies after reset to avoid stale local value', async () => {
+		let currentPolicy: EffectivePolicyState = {
+			policyKey: 'signature_flow',
+			effectiveValue: 'ordered_numeric',
+			sourceScope: 'user',
+			visible: true,
+			editableByCurrentActor: true,
+			allowedValues: ['parallel', 'ordered_numeric'],
+			blockedBy: null,
+			canSaveAsUserDefault: true,
+			canUseAsRequestOverride: true,
+			preferenceWasCleared: false,
+			groupCount: 0,
+			userCount: 0,
+		}
+		let shouldApplyCanonicalAfterFetch = false
+
+		getPolicyMock.mockImplementation(() => currentPolicy)
+		clearUserPreferenceMock.mockImplementation(async () => {
+			currentPolicy = {
+				...currentPolicy,
+				sourceScope: 'user_policy',
+				// Simulate a stale DELETE response payload that still carries the previous effective value.
+				effectiveValue: 'ordered_numeric',
+			}
+			shouldApplyCanonicalAfterFetch = true
+		})
+		fetchEffectivePoliciesMock.mockImplementation(async () => {
+			if (!shouldApplyCanonicalAfterFetch) {
+				return
+			}
+			currentPolicy = {
+				...currentPolicy,
+				effectiveValue: 'parallel',
+			}
+		})
+
+		const wrapper = await createWrapper()
+		await nextTick()
+
+		expect(wrapper.vm.selectedPreferenceValues.signature_flow).toBe('ordered_numeric')
+
+		await wrapper.vm.undoAutoSaveByKey('signature_flow')
+		await nextTick()
+
+		expect(clearUserPreferenceMock).toHaveBeenCalledWith('signature_flow')
+		expect(fetchEffectivePoliciesMock).toHaveBeenCalledTimes(2)
+		expect(wrapper.vm.selectedPreferenceValues.signature_flow).toBe('parallel')
+	})
+
 	it('shows an informational note when saving is blocked', async () => {
 		getPolicyMock.mockReturnValue({
 			policyKey: 'signature_flow',
