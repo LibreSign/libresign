@@ -152,7 +152,12 @@ export function createRealPolicyWorkbenchState() {
 	const policiesStore = usePoliciesStore()
 	const currentUser = getCurrentUser()
 	const isInstanceAdmin = currentUser?.isAdmin === true
-	const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
+	const config = loadState<{ can_manage_group_policies?: boolean, manageable_policy_group_ids?: string[] }>('libresign', 'config', {})
+	const manageablePolicyGroupIds = new Set(
+		Array.isArray(config.manageable_policy_group_ids)
+			? config.manageable_policy_group_ids.filter((groupId): groupId is string => typeof groupId === 'string' && groupId.trim().length > 0)
+			: [],
+	)
 	const initialViewMode: 'system-admin' | 'group-admin' = currentUser?.isAdmin
 		? 'system-admin'
 		: config.can_manage_group_policies
@@ -178,6 +183,14 @@ export function createRealPolicyWorkbenchState() {
 	const editorInitialSnapshot = ref('')
 	const draftTouchVersion = ref(0)
 	const editorInitialTouchVersion = ref(0)
+
+	function filterManageableGroupTargets(targets: PolicyTargetOption[]): PolicyTargetOption[] {
+		if (isInstanceAdmin || manageablePolicyGroupIds.size === 0) {
+			return targets
+		}
+
+		return targets.filter((target) => manageablePolicyGroupIds.has(target.id))
+	}
 
 	const visibleSettingSummaries = computed<PolicySettingSummary[]>(() => {
 		const isGroupAdminMode = viewMode.value === 'group-admin'
@@ -624,7 +637,7 @@ export function createRealPolicyWorkbenchState() {
 				},
 			})
 
-			return (data.ocs?.data?.groups ?? [])
+			return filterManageableGroupTargets((data.ocs?.data?.groups ?? [])
 				.map((group) => ({
 					id: group.id,
 					displayName: group.displayname || group.id,
@@ -633,7 +646,7 @@ export function createRealPolicyWorkbenchState() {
 						: undefined,
 					isNoUser: true,
 				}))
-				.sort((left, right) => left.displayName.localeCompare(right.displayName))
+				.sort((left, right) => left.displayName.localeCompare(right.displayName)))
 		}
 
 		const { data } = await axios.get<GroupListResponse>(generateOcsUrl('cloud/groups'), {
@@ -644,13 +657,13 @@ export function createRealPolicyWorkbenchState() {
 			},
 		})
 
-		return (data.ocs?.data?.groups ?? [])
+		return filterManageableGroupTargets((data.ocs?.data?.groups ?? [])
 			.map((groupId) => ({
 				id: groupId,
 				displayName: groupId,
 				isNoUser: true,
 			}))
-			.sort((left, right) => left.displayName.localeCompare(right.displayName))
+			.sort((left, right) => left.displayName.localeCompare(right.displayName)))
 	}
 
 	async function fetchUsers(query = '', limit = 20, offset = 0): Promise<PolicyTargetOption[]> {
@@ -740,6 +753,11 @@ export function createRealPolicyWorkbenchState() {
 
 	async function probeGroupAccess() {
 		if (isInstanceAdmin || viewMode.value !== 'group-admin') {
+			return
+		}
+
+		if (manageablePolicyGroupIds.size > 0) {
+			canManageGroups.value = true
 			return
 		}
 
