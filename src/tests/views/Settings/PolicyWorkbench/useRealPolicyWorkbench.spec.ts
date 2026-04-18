@@ -14,6 +14,13 @@ const { currentUserState } = vi.hoisted(() => ({
 	},
 }))
 
+const { configState } = vi.hoisted(() => ({
+	configState: {
+		can_manage_group_policies: true,
+		manageable_policy_group_ids: [] as string[],
+	},
+}))
+
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: vi.fn(() => currentUserState),
 }))
@@ -21,7 +28,7 @@ vi.mock('@nextcloud/auth', () => ({
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((_app, key: string, defaultValue: unknown) => {
 		if (key === 'config') {
-			return { can_manage_group_policies: true }
+			return configState
 		}
 
 		return defaultValue
@@ -75,6 +82,8 @@ import { createRealPolicyWorkbenchState } from '../../../../views/Settings/Polic
 describe('useRealPolicyWorkbench', () => {
 	beforeEach(() => {
 		currentUserState.isAdmin = true
+		configState.can_manage_group_policies = true
+		configState.manageable_policy_group_ids = []
 		axiosGet.mockReset()
 		saveSystemPolicy.mockReset()
 		saveGroupPolicy.mockReset()
@@ -456,6 +465,33 @@ describe('useRealPolicyWorkbench', () => {
 			{ id: 'finance', displayName: 'finance', isNoUser: true },
 			{ id: 'legal', displayName: 'legal', isNoUser: true },
 		])
+	})
+
+	it('filters group targets to manageable_policy_group_ids for group-admin', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['legal']
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'group' })
+
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(state.availableTargets).toEqual([
+			{ id: 'legal', displayName: 'legal', isNoUser: true },
+		])
+	})
+
+	it('probeGroupAccess uses manageable_policy_group_ids shortcut for group-admin', async () => {
+		currentUserState.isAdmin = false
+		configState.manageable_policy_group_ids = ['legal']
+
+		const state = createRealPolicyWorkbenchState()
+		await state.probeGroupAccess()
+
+		expect(state.canManageGroups).toBe(true)
+		expect(axiosGet).not.toHaveBeenCalledWith('cloud/groups', expect.anything())
 	})
 
 	it('probeGroupAccess sets canManageGroups to true when groups are returned', async () => {
