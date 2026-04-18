@@ -60,7 +60,7 @@ class SigningErrorHandler {
 		return [
 			'action' => JSActions::ACTION_DO_NOTHING,
 			'errors' => $this->isKnownError($message)
-				? [['message' => $this->l10n->t($message)]]
+				? [['message' => $this->translateKnownError($message)]]
 				: $this->formatUnknownError($message, $exception),
 		];
 	}
@@ -71,6 +71,15 @@ class SigningErrorHandler {
 			'Certificate Password Invalid.',
 			'Certificate Password is Empty.',
 		], true);
+	}
+
+	private function translateKnownError(string $message): string {
+		return match ($message) {
+			'Host violates local access rules.' => $this->l10n->t('Host violates local access rules.'),
+			'Certificate Password Invalid.' => $this->l10n->t('Certificate Password Invalid.'),
+			'Certificate Password is Empty.' => $this->l10n->t('Certificate Password is Empty.'),
+			default => $message,
+		};
 	}
 
 	/**

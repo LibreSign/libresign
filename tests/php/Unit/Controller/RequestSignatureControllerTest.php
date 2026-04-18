@@ -12,6 +12,7 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 use OCA\Libresign\Controller\RequestSignatureController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
@@ -49,6 +50,7 @@ final class RequestSignatureControllerTest extends TestCase {
 		$this->user = $this->createMock(IUser::class);
 
 		$this->userSession->method('getUser')->willReturn($this->user);
+		$this->l10n->method('t')->willReturnCallback(static fn (string $message): string => $message);
 
 		$this->controller = new RequestSignatureController(
 			$this->request,
@@ -107,10 +109,144 @@ final class RequestSignatureControllerTest extends TestCase {
 			files: [],
 			callback: null,
 			status: $status,
-			signatureFlow: null,
 		);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testRequestPolicyEnvelopeIsMappedToLegacyPayloadFields(): void {
+		$file = new FileEntity();
+		$file->setId(33);
+		$file->setParentFileId(10);
+
+		$this->requestSignatureService
+			->expects($this->once())
+			->method('validateNewRequestToFile')
+			->with($this->callback(static function (array $payload): bool {
+				if (($payload['policyOverrides']['signature_flow'] ?? null) !== 'parallel') {
+					return false;
+				}
+				if (($payload['policyOverrides']['docmdp'] ?? null) !== 2) {
+					return false;
+				}
+				if (($payload['policyOverrides']['add_footer'] ?? null) !== ['enabled' => true]) {
+					return false;
+				}
+				return ($payload['policyActiveContext'] ?? null) === [
+					'type' => 'group',
+					'id' => 'group-a',
+				];
+			}));
+
+		$this->requestSignatureService
+			->expects($this->once())
+			->method('save')
+			->willReturn($file);
+
+		$this->fileListService
+			->expects($this->once())
+			->method('formatFileWithChildren')
+			->with($file, [], $this->user)
+			->willReturn(['ok' => true]);
+
+		$response = $this->controller->request(
+			signers: [[
+				'identifyMethods' => [[
+					'method' => 'email',
+					'value' => 'user@test.coop',
+					'mandatory' => 0,
+				]],
+			]],
+			name: 'contract.pdf',
+			settings: [],
+			file: ['nodeId' => 12],
+			policy: [
+				'overrides' => [
+					'signature_flow' => 'parallel',
+					'docmdp' => 2,
+					'add_footer' => ['enabled' => true],
+				],
+				'activeContext' => [
+					'type' => 'group',
+					'id' => 'group-a',
+				],
+			],
+		);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testRequestRejectsUnknownPolicyOverrideKey(): void {
+		$this->requestSignatureService
+			->expects($this->once())
+			->method('validateNewRequestToFile');
+
+		$this->requestSignatureService
+			->expects($this->once())
+			->method('save')
+			->willReturnCallback(static function (): FileEntity {
+				$file = new FileEntity();
+				$file->setId(44);
+				$file->setParentFileId(10);
+				return $file;
+			});
+
+		$this->fileListService
+			->expects($this->once())
+			->method('formatFileWithChildren')
+			->willReturn(['ok' => true]);
+
+		$response = $this->controller->request(
+			signers: [[
+				'identifyMethods' => [[
+					'method' => 'email',
+					'value' => 'user@test.coop',
+					'mandatory' => 0,
+				]],
+			]],
+			name: 'contract.pdf',
+			settings: [],
+			file: ['nodeId' => 12],
+			policy: [
+				'overrides' => [
+					'unknown' => 'value',
+				],
+			],
+		);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testRequestRejectsUnauthorizedPolicyActiveContext(): void {
+		$this->requestSignatureService
+			->expects($this->once())
+			->method('validateNewRequestToFile');
+
+		$this->requestSignatureService
+			->expects($this->once())
+			->method('save')
+			->willThrowException(new LibresignException('You are not allowed to use this policy context.', Http::STATUS_UNPROCESSABLE_ENTITY));
+
+		$response = $this->controller->request(
+			signers: [[
+				'identifyMethods' => [[
+					'method' => 'email',
+					'value' => 'user@test.coop',
+					'mandatory' => 0,
+				]],
+			]],
+			name: 'contract.pdf',
+			settings: [],
+			file: ['nodeId' => 12],
+			policy: [
+				'activeContext' => [
+					'type' => 'group',
+					'id' => 'group-b',
+				],
+			],
+		);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
 	}
 
 	#[DataProvider('statusPayloadScenarios')]
@@ -164,7 +300,6 @@ final class RequestSignatureControllerTest extends TestCase {
 			visibleElements: null,
 			file: [],
 			status: $status,
-			signatureFlow: null,
 			name: null,
 			settings: [],
 			files: [],

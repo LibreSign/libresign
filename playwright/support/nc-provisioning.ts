@@ -27,6 +27,29 @@ type SignatureElementResponse = {
 	}>
 }
 
+type HasRootCertResponse = {
+	hasRootCert?: boolean
+}
+
+type AppConfigResponse = {
+	data?: string
+}
+
+function toStringList(data: unknown): string[] {
+	if (Array.isArray(data)) {
+		return data.filter((item): item is string => typeof item === 'string')
+	}
+
+	if (data && typeof data === 'object') {
+		const nested = data as { groups?: unknown[] }
+		if (Array.isArray(nested.groups)) {
+			return nested.groups.filter((item): item is string => typeof item === 'string')
+		}
+	}
+
+	return []
+}
+
 async function ocsRequest<T = unknown>(
 	request: APIRequestContext,
 	method: 'GET' | 'POST' | 'PUT' | 'DELETE',
@@ -45,6 +68,8 @@ async function ocsRequest<T = unknown>(
 	}
 	if (jsonBody !== undefined) {
 		headers['Content-Type'] = 'application/json'
+	} else if (body !== undefined) {
+		headers['Content-Type'] = 'application/x-www-form-urlencoded'
 	}
 	const response = await request[method.toLowerCase() as 'get' | 'post' | 'put' | 'delete'](url, {
 		headers,
@@ -125,6 +150,95 @@ export async function deleteUser(
 }
 
 // ---------------------------------------------------------------------------
+// Groups and delegated administration
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates a group if it does not exist.
+ */
+export async function ensureGroupExists(
+	request: APIRequestContext,
+	groupId: string,
+): Promise<void> {
+	const check = await ocsRequest(request, 'GET', `/cloud/groups?search=${encodeURIComponent(groupId)}`)
+	const groups = toStringList(check.ocs.data)
+	if (groups.includes(groupId)) {
+		return
+	}
+
+	const create = await ocsRequest(request, 'POST', '/cloud/groups', undefined, undefined, {
+		groupid: groupId,
+	})
+	if (create.ocs.meta.statuscode !== 200 && create.ocs.meta.statuscode !== 102) {
+		throw new Error(`Failed to create group "${groupId}": ${create.ocs.meta.message}`)
+	}
+}
+
+/**
+ * Adds a user to a group.
+ */
+export async function ensureUserInGroup(
+	request: APIRequestContext,
+	userId: string,
+	groupId: string,
+): Promise<void> {
+	const groupsResponse = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/groups`)
+	const groups = toStringList(groupsResponse.ocs.data)
+	if (groups.includes(groupId)) {
+		return
+	}
+
+	const add = await ocsRequest(
+		request,
+		'POST',
+		`/cloud/users/${encodeURIComponent(userId)}/groups`,
+		undefined,
+		undefined,
+		{ groupid: groupId },
+	)
+	if (add.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to add user "${userId}" to group "${groupId}": ${add.ocs.meta.message}`)
+	}
+
+	const verify = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/groups`)
+	if (!toStringList(verify.ocs.data).includes(groupId)) {
+		throw new Error(`User "${userId}" is not in group "${groupId}" after assignment.`)
+	}
+}
+
+/**
+ * Grants subadmin rights for a specific group.
+ */
+export async function ensureSubadminOfGroup(
+	request: APIRequestContext,
+	userId: string,
+	groupId: string,
+): Promise<void> {
+	const subadmins = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/subadmins`)
+	const groups = toStringList(subadmins.ocs.data)
+	if (groups.includes(groupId)) {
+		return
+	}
+
+	const grant = await ocsRequest(
+		request,
+		'POST',
+		`/cloud/users/${encodeURIComponent(userId)}/subadmins`,
+		undefined,
+		undefined,
+		{ groupid: groupId },
+	)
+	if (grant.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to grant subadmin for user "${userId}" in group "${groupId}": ${grant.ocs.meta.message}`)
+	}
+
+	const verify = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/subadmins`)
+	if (!toStringList(verify.ocs.data).includes(groupId)) {
+		throw new Error(`User "${userId}" was not granted subadmin rights for group "${groupId}".`)
+	}
+}
+
+// ---------------------------------------------------------------------------
 // App config  (equivalent to `occ config:app:set`)
 // ---------------------------------------------------------------------------
 
@@ -149,6 +263,26 @@ export async function setAppConfig(
 	if (result.ocs.meta.statuscode !== 200) {
 		throw new Error(`Failed to set app config ${appId}/${key}: ${result.ocs.meta.message}`)
 	}
+}
+
+export async function getAppConfig(
+	request: APIRequestContext,
+	appId: string,
+	key: string,
+): Promise<string | null> {
+	const result = await ocsRequest<AppConfigResponse>(
+		request,
+		'GET',
+		`/apps/provisioning_api/api/v1/config/apps/${appId}/${key}`,
+	)
+
+	if (result.ocs.meta.statuscode === 404) {
+		return null
+	}
+
+	return typeof result.ocs.data?.data === 'string'
+		? result.ocs.data.data
+		: null
 }
 
 /**
@@ -197,6 +331,17 @@ export async function configureOpenSsl(
 	commonName: string,
 	names: OpenSslCertNames = {},
 ): Promise<void> {
+	const rootCertCheck = await ocsRequest<HasRootCertResponse>(
+		request,
+		'GET',
+		'/apps/libresign/api/v1/setting/has-root-cert',
+	)
+
+	if (rootCertCheck.ocs.data?.hasRootCert) {
+		await clearSignatureElements(request)
+		return
+	}
+
 	const normalised: OpenSslCertNames = { ...names }
 	if (typeof normalised.OU === 'string') {
 		normalised.OU = [normalised.OU]

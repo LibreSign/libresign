@@ -96,6 +96,12 @@ class Reset extends Base {
 				mode: InputOption::VALUE_NONE,
 				description: 'Reset config'
 			)
+			->addOption(
+				name: 'policy',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Reset policy data'
+			)
 		;
 	}
 
@@ -138,6 +144,10 @@ class Reset extends Base {
 			}
 			if ($input->getOption('config') || $all) {
 				$this->resetConfig();
+				$ok = true;
+			}
+			if ($input->getOption('policy') || $all) {
+				$this->resetPolicy();
 				$ok = true;
 			}
 		} catch (\Exception $e) {
@@ -251,6 +261,19 @@ class Reset extends Base {
 				}
 				$this->appConfig->deleteKey(Application::APP_ID, $key);
 			}
+		} catch (\Throwable) {
+		}
+	}
+
+	private function resetPolicy(): void {
+		try {
+			$delete = $this->db->getQueryBuilder();
+			$delete->delete('libresign_permission_set_binding')
+				->executeStatement();
+
+			$delete = $this->db->getQueryBuilder();
+			$delete->delete('libresign_permission_set')
+				->executeStatement();
 		} catch (\Throwable) {
 		}
 	}

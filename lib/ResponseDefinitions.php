@@ -354,11 +354,89 @@ namespace OCA\Libresign;
  *
  * Validation and progress contracts
  *
+ * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string
+ * @psalm-type LibresignEffectivePolicyState = array{
+ *     policyKey: string,
+ *     effectiveValue: LibresignEffectivePolicyValue,
+ *     sourceScope: string,
+ *     visible: bool,
+ *     editableByCurrentActor: bool,
+ *     allowedValues: list<LibresignEffectivePolicyValue>,
+ *     canSaveAsUserDefault: bool,
+ *     canUseAsRequestOverride: bool,
+ *     preferenceWasCleared: bool,
+ *     blockedBy: ?string,
+ *     groupCount: non-negative-int,
+ *     userCount: non-negative-int,
+ * }
+ * @psalm-type LibresignEffectivePolicyResponse = array{
+ *     policy: LibresignEffectivePolicyState,
+ * }
+ * @psalm-type LibresignEffectivePoliciesResponse = array{
+ *     policies: array<string, LibresignEffectivePolicyState>,
+ * }
+ * @psalm-type LibresignSystemPolicyWriteRequest = array{
+ *     value: LibresignEffectivePolicyValue,
+ * }
+ * @psalm-type LibresignGroupPolicyState = array{
+ *     policyKey: string,
+ *     scope: 'group',
+ *     targetId: string,
+ *     value: null|LibresignEffectivePolicyValue,
+ *     allowChildOverride: bool,
+ *     visibleToChild: bool,
+ *     allowedValues: list<LibresignEffectivePolicyValue>,
+ * }
+ * @psalm-type LibresignGroupPolicyResponse = array{
+ *     policy: LibresignGroupPolicyState,
+ * }
+ * @psalm-type LibresignGroupPolicyWriteRequest = array{
+ *     value: LibresignEffectivePolicyValue,
+ *     allowChildOverride: bool,
+ * }
+ * @psalm-type LibresignSystemPolicyState = array{
+ *     policyKey: string,
+ *     scope: 'system'|'global',
+ *     value: null|LibresignEffectivePolicyValue,
+ *     allowChildOverride: bool,
+ *     visibleToChild: bool,
+ *     allowedValues: list<LibresignEffectivePolicyValue>,
+ * }
+ * @psalm-type LibresignSystemPolicyResponse = array{
+ *     policy: LibresignSystemPolicyState,
+ * }
+ * @psalm-type LibresignUserPolicyState = array{
+ *     policyKey: string,
+ *     scope: 'user_policy',
+ *     targetId: string,
+ *     value: null|LibresignEffectivePolicyValue,
+ *     allowChildOverride: bool,
+ * }
+ * @psalm-type LibresignUserPolicyResponse = array{
+ *     policy: LibresignUserPolicyState,
+ * }
+ * @psalm-type LibresignGroupPolicyWriteResponse = LibresignMessageResponse&LibresignGroupPolicyResponse
+ * @psalm-type LibresignSystemPolicyWriteResponse = LibresignMessageResponse&LibresignEffectivePolicyResponse
+ * @psalm-type LibresignUserPolicyWriteResponse = LibresignMessageResponse&LibresignUserPolicyResponse
+ * @psalm-type LibresignPolicySnapshotEntry = array{
+ *     effectiveValue: string,
+ *     sourceScope: string,
+ * }
+ * @psalm-type LibresignPolicySnapshotNumericEntry = array{
+ *     effectiveValue: int,
+ *     sourceScope: string,
+ * }
+ * @psalm-type LibresignValidatePolicySnapshot = array{
+ *     docmdp?: LibresignPolicySnapshotNumericEntry,
+ *     signature_flow?: LibresignPolicySnapshotEntry,
+ *     add_footer?: LibresignPolicySnapshotEntry,
+ * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,
  *     p: int,
  *     d?: list<array{w: float, h: float}>,
  *     original_file_deleted?: bool,
+ *     policy_snapshot?: LibresignValidatePolicySnapshot,
  *     pdfVersion?: string,
  *     status_changed_at?: string,
  * }
