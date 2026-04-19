@@ -19,34 +19,36 @@
 				{{ t('libresign', 'Add visible footer with signature details') }}
 			</NcCheckboxRadioSwitch>
 		</p>
-		<p v-if="addFooter">
-			<NcCheckboxRadioSwitch type="switch"
-				v-model="writeQrcodeOnFooter"
-				@update:model-value="onWriteQrcodeOnFooterChange">
-				{{ t('libresign', 'Write QR code on footer with validation URL') }}
-			</NcCheckboxRadioSwitch>
-		</p>
-		<p v-if="addFooter && writeQrcodeOnFooter">
-			{{ t('libresign', 'To validate the signature of the documents. Only change this value if you want to replace the default validation URL with a different one.') }}
-			<input id="validation_site"
-				ref="urlInput"
-				:placeholder="url"
-				type="text"
-				@input="saveValidationiUrl()"
-				@click="fillValidationUrl()"
-				@keypress.enter="validationUrlEnter()">
-		</p>
-		<p v-if="addFooter">
-			<NcCheckboxRadioSwitch type="switch"
-				v-model="customizeFooter"
-				@update:model-value="onCustomizeFooterChange">
-				{{ t('libresign', 'Customize footer template') }}
-			</NcCheckboxRadioSwitch>
-		</p>
-		<FooterTemplateEditor v-if="addFooter && customizeFooter"
-			:initial-is-default="isDefaultFooterTemplate"
-			ref="footerTemplateEditor"
-			@template-reset="onTemplateReset" />
+		<div v-if="addFooter" class="footer-settings">
+			<p>
+				<NcCheckboxRadioSwitch type="switch"
+					v-model="writeQrcodeOnFooter"
+					@update:model-value="onWriteQrcodeOnFooterChange">
+					{{ t('libresign', 'Write QR code on footer with validation URL') }}
+				</NcCheckboxRadioSwitch>
+			</p>
+			<p v-if="writeQrcodeOnFooter">
+				{{ t('libresign', 'To validate the signature of the documents. Only change this value if you want to replace the default validation URL with a different one.') }}
+				<input id="validation_site"
+					ref="urlInput"
+					:placeholder="url"
+					type="text"
+					@input="saveValidationiUrl()"
+					@click="fillValidationUrl()"
+					@keypress.enter="validationUrlEnter()">
+			</p>
+			<p>
+				<NcCheckboxRadioSwitch type="switch"
+					v-model="customizeFooter"
+					@update:model-value="onCustomizeFooterChange">
+					{{ t('libresign', 'Customize footer template') }}
+				</NcCheckboxRadioSwitch>
+			</p>
+			<FooterTemplateEditor v-if="customizeFooter"
+				:initial-is-default="isDefaultFooterTemplate"
+				ref="footerTemplateEditor"
+				@template-reset="onTemplateReset" />
+		</div>
 	</NcSettingsSection>
 </template>
 <script setup lang="ts">
@@ -78,7 +80,7 @@ type OcpGlobal = {
 }
 
 type FooterTemplateEditorInstance = {
-	resetFooterTemplate: () => Promise<void> | void
+	resetTemplateToDefault: () => Promise<void> | void
 }
 
 defineOptions({
@@ -181,7 +183,7 @@ async function onCustomizeFooterChange(value: boolean) {
 	await toggleSetting('footer_template_is_default', !value)
 	isDefaultFooterTemplate.value = !value
 	if (!value) {
-		footerTemplateEditor.value?.resetFooterTemplate()
+		await footerTemplateEditor.value?.resetTemplateToDefault()
 	}
 }
 

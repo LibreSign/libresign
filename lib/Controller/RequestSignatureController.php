@@ -67,7 +67,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
+	 * @param array<string, mixed>|null $policy Structured policy payload with request-level overrides and active context.
 	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -85,10 +85,13 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		array $files = [],
 		?string $callback = null,
 		?int $status = 1,
-		?string $signatureFlow = null,
+		?array $policy = null,
 	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
+			$policyOverrides = $this->extractPolicyOverrides($policy);
+			$policyActiveContext = $this->extractPolicyActiveContext($policy);
+
 			return $this->createSignatureRequest(
 				$user,
 				$file,
@@ -98,7 +101,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				$signers,
 				$status,
 				$callback,
-				$signatureFlow
+				$policyOverrides,
+				$policyActiveContext,
 			);
 		} catch (LibresignException $e) {
 			$errorMessage = $e->getMessage();
@@ -133,7 +137,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
 	 * @param LibresignNewFile|array<empty>|null $file File object. Supports nodeId, url, base64 or path when creating a new request.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
+	 * @param array<string, mixed>|null $policy Structured policy payload with request-level overrides and active context.
 	 * @param string|null $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
@@ -152,7 +156,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		?array $visibleElements = null,
 		?array $file = [],
 		?int $status = null,
-		?string $signatureFlow = null,
+		?array $policy = null,
 		?string $name = null,
 		array $settings = [],
 		array $files = [],
@@ -160,6 +164,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		try {
 			$user = $this->userSession->getUser();
 			$signers = is_array($signers) ? $signers : [];
+			$policyOverrides = $this->extractPolicyOverrides($policy);
+			$policyActiveContext = $this->extractPolicyActiveContext($policy);
 
 			if (empty($uuid)) {
 				return $this->createSignatureRequest(
@@ -171,7 +177,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 					$signers,
 					$status,
 					null,
-					$signatureFlow,
+					$policyOverrides,
+					$policyActiveContext,
 					$visibleElements
 				);
 			}
@@ -182,7 +189,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				'signers' => $signers,
 				'userManager' => $user,
 				'visibleElements' => $visibleElements,
-				'signatureFlow' => $signatureFlow,
+				'policyOverrides' => $policyOverrides,
+				'policyActiveContext' => $policyActiveContext,
 				'name' => $name,
 				'settings' => $settings,
 			];
@@ -226,7 +234,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		array $signers,
 		?int $status,
 		?string $callback,
-		?string $signatureFlow,
+		array $policyOverrides = [],
+		?array $policyActiveContext = null,
 		?array $visibleElements = null,
 	): DataResponse {
 		$isEnvelope = !empty($files);
@@ -243,7 +252,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			'signers' => $signers,
 			'callback' => $callback,
 			'userManager' => $user,
-			'signatureFlow' => $signatureFlow,
+			'policyOverrides' => $policyOverrides,
+			'policyActiveContext' => $policyActiveContext,
 			'settings' => !empty($settings) ? $settings : ($file['settings'] ?? []),
 		];
 
@@ -363,5 +373,19 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		return $fileEntity->getParentFileId() === null || $fileEntity->isEnvelope()
 			? $this->fileMapper->getChildrenFiles($fileEntity->getId())
 			: [];
+	}
+
+	/** @return array<string, mixed> */
+	private function extractPolicyOverrides(?array $policy): array {
+		$overrides = $policy['overrides'] ?? null;
+
+		return is_array($overrides) ? $overrides : [];
+	}
+
+	/** @return array<string, mixed>|null */
+	private function extractPolicyActiveContext(?array $policy): ?array {
+		$activeContext = $policy['activeContext'] ?? null;
+
+		return is_array($activeContext) ? $activeContext : null;
 	}
 }

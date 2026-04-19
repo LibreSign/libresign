@@ -10,6 +10,8 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\FooterHandler;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCP\IAppConfig;
 
 class FooterService {
@@ -20,8 +22,13 @@ class FooterService {
 	}
 
 	public function isDefaultTemplate(): bool {
-		$customTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
-		return empty($customTemplate);
+		$legacyCustomTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
+		if ($legacyCustomTemplate !== '') {
+			return false;
+		}
+
+		$footerPolicy = $this->getEffectiveFooterPolicy();
+		return !$footerPolicy['customizeFooterTemplate'];
 	}
 
 	public function getTemplate(): string {
@@ -29,25 +36,55 @@ class FooterService {
 	}
 
 	public function saveTemplate(string $template = ''): void {
+		$currentPolicy = $this->getEffectiveFooterPolicy();
+		$defaultTemplateFromPolicy = $currentPolicy['footerTemplate'];
+
 		if (empty($template)) {
 			$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
+			$this->syncFooterPolicyTemplate('', false);
 			return;
 		}
 
-		if ($template === $this->footerHandler->getDefaultTemplate()) {
+		$isProvidedTemplateEqualsDefault = $template === $defaultTemplateFromPolicy;
+
+		if ($isProvidedTemplateEqualsDefault) {
 			$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
+			$this->syncFooterPolicyTemplate('', false);
 		} else {
 			$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
+			$this->syncFooterPolicyTemplate($template, true);
 		}
 	}
 
-	public function renderPreviewPdf(string $template = '', int $width = 595, int $height = 50): string {
+	private function syncFooterPolicyTemplate(string $template, bool $customizeFooterTemplate): void {
+		$currentPolicy = $this->getEffectiveFooterPolicy();
+		$defaultTemplate = $currentPolicy['footerTemplate'];
+
+		$normalizedPolicy = FooterPolicyValue::normalize(
+			$this->appConfig->getValueString(Application::APP_ID, FooterPolicy::KEY, ''),
+			$defaultTemplate
+		);
+
+		$normalizedPolicy['customizeFooterTemplate'] = $customizeFooterTemplate;
+		$normalizedPolicy['footerTemplate'] = $customizeFooterTemplate ? $template : '';
+
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			FooterPolicy::KEY,
+			FooterPolicyValue::encode($normalizedPolicy)
+		);
+	}
+
+	private function getEffectiveFooterPolicy(): array {
+		$policyJson = $this->footerHandler->getEffectiveFooterPolicyAsJson();
+		return FooterPolicyValue::normalize($policyJson, '');
+	}
+
+	public function renderPreviewPdf(string $template = '', int $width = 595, int $height = 50, ?bool $writeQrcodeOnFooter = null): string {
 		if (!empty($template)) {
 			$this->saveTemplate($template);
 		}
 
-		// Generate a realistic UUID format for preview (36 chars with hyphens, same as real UUIDs)
-		// This ensures QR code size matches the final document
 		$previewUuid = sprintf(
 			'preview-%04x-%04x-%04x-%012x',
 			random_int(0, 0xffff),
@@ -56,15 +93,20 @@ class FooterService {
 			random_int(0, 0xffffffffffff)
 		);
 
-		return $this->footerHandler
+		$handler = $this->footerHandler
 			->setTemplateVar('uuid', $previewUuid)
 			->setTemplateVar('signers', [
 				[
 					'displayName' => 'Preview Signer',
 					'signed' => date('c'),
 				],
-			])
-			->getFooter([['w' => $width, 'h' => $height]]);
+			]);
+
+		if ($writeQrcodeOnFooter !== null) {
+			$handler->setWriteQrcodeOnFooterOverride($writeQrcodeOnFooter);
+		}
+
+		return $handler->getFooter([['w' => $width, 'h' => $height]], true);
 	}
 
 	public function getTemplateVariablesMetadata(): array {

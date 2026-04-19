@@ -6,6 +6,7 @@
 import type { components as ApiComponents } from './openapi/openapi'
 import type { operations as ApiOperations } from './openapi/openapi'
 import type { components as AdminComponents } from './openapi/openapi-administration'
+import type { operations as AdminOperations } from './openapi/openapi-administration'
 
 type ApiJsonBody<TRequestBody> = TRequestBody extends {
 	content: {
@@ -44,8 +45,41 @@ type ApiRequestJsonBody<TOperation> = ApiJsonBody<ApiOperationRequestBody<TOpera
 type ApiOcsResponseData<TOperation, TStatusCode extends keyof ApiOperationResponses<TOperation>>
 	= ApiOcsJsonData<ApiOperationResponses<TOperation>[TStatusCode]>
 
+type ApiRecordValue<TRecord> = TRecord extends Record<string, infer TValue>
+	? TValue
+	: never
+
 export type SignatureFlowMode = ApiComponents['schemas']['DetailedFileResponse']['signatureFlow']
 export type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
+export type EffectivePoliciesResponse = ApiOcsResponseData<ApiOperations['policy-effective'], 200>
+export type EffectivePoliciesState = EffectivePoliciesResponse['policies']
+export type EffectivePolicyState = ApiRecordValue<EffectivePoliciesState>
+export type EffectivePolicyValue = Exclude<ApiRequestJsonBody<AdminOperations['policy-set-system']>['value'], undefined>
+export type GroupPolicyResponse = ApiOcsResponseData<ApiOperations['policy-get-group'], 200>
+export type GroupPolicyState = GroupPolicyResponse['policy']
+
+type OpenApiSystemPolicyResponse = ApiOcsResponseData<AdminOperations['policy-get-system'], 200>
+type OpenApiSystemPolicyState = OpenApiSystemPolicyResponse['policy']
+type OpenApiUserPolicyResponse = ApiOcsResponseData<AdminOperations['policy-get-user-policy-for-user'], 200>
+type OpenApiUserPolicyState = OpenApiUserPolicyResponse['policy']
+
+export type SystemPolicyState = Omit<OpenApiSystemPolicyState, 'value'> & {
+	value: EffectivePolicyValue | null
+}
+export type SystemPolicyResponse = {
+	policy: SystemPolicyState
+}
+export type UserPolicyState = Omit<OpenApiUserPolicyState, 'value'> & {
+	value: EffectivePolicyValue | null
+}
+export type UserPolicyResponse = {
+	policy: UserPolicyState
+}
+export type GroupPolicyWritePayload = ApiRequestJsonBody<ApiOperations['policy-set-group']>
+export type GroupPolicyWriteResponse = ApiOcsResponseData<ApiOperations['policy-set-group'], 200>
+export type SystemPolicyWritePayload = ApiRequestJsonBody<AdminOperations['policy-set-system']>
+export type SystemPolicyWriteResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 200>
+export type SystemPolicyWriteErrorResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 400>
 export type NewFilePayload = ApiComponents['schemas']['NewFile']
 export type IdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
 export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']

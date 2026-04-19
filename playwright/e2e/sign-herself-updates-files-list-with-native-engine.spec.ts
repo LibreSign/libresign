@@ -6,6 +6,9 @@
 import { expect, test, type Page } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { useFooterPolicyGuard } from '../support/system-policies'
+
+useFooterPolicyGuard()
 
 async function sortByCreatedAtDescending(page: Page) {
 	const createdAtTh = page.getByRole('columnheader', { name: 'Created at' })
@@ -77,8 +80,17 @@ test('updates files list status after signing with native engine', async ({ page
 	const signButton = page.getByRole('button', { name: 'Sign the document.' })
 	await expect(signButton).toBeVisible()
 	await signButton.click()
+	const signResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
 	await page.getByRole('button', { name: 'Sign document' }).click()
-	await page.waitForURL('**/validation/**')
+	const signResponse = await signResponsePromise
+	const signResponseBody = await signResponse.text()
+	expect(
+		signResponse.ok(),
+		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
+	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible()
 
 	await page.locator('#fileslist').getByRole('link', { name: 'Files' }).click()

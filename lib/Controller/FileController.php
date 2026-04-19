@@ -182,7 +182,7 @@ class FileController extends AEnvironmentAwareController {
 				->toArray();
 			$statusCode = Http::STATUS_OK;
 		} catch (InvalidArgumentException $e) {
-			$message = $this->l10n->t($e->getMessage());
+			$message = $e->getMessage();
 			$return = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $message]]
@@ -254,15 +254,15 @@ class FileController extends AEnvironmentAwareController {
 				->toArray();
 			$statusCode = Http::STATUS_OK;
 		} catch (LibresignException $e) {
-			$message = $this->l10n->t($e->getMessage());
+			$message = $e->getMessage();
 			$return = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $message]]
 			];
 			$statusCode = Http::STATUS_NOT_FOUND;
 		} catch (\Throwable $th) {
-			$message = $this->l10n->t($th->getMessage());
-			$this->logger->error($message);
+			$this->logger->error($th->getMessage(), ['exception' => $th]);
+			$message = $this->l10n->t('Internal error. Contact admin.');
 			$return = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $message]]
