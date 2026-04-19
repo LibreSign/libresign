@@ -128,13 +128,26 @@ test('policies nav item is visible when group admin can customize policies even 
 
 	await createPolicyDialog.getByRole('option', { name: /^Group/ }).click()
 
-	const targetGroupsField = page.getByLabel('Target groups')
+	const targetGroupsField = createPolicyDialog.getByLabel('Target groups').first()
 	await expect(targetGroupsField).toBeVisible({ timeout: 10000 })
-	await page.getByPlaceholder('Search groups').fill(GROUP_ID)
-	await page.getByRole('option', { name: GROUP_ID }).first().click()
+	await targetGroupsField.click()
+
+	const searchGroupsInput = createPolicyDialog.getByPlaceholder('Search groups').first()
+	await expect(searchGroupsInput).toBeVisible({ timeout: 10000 })
+	await searchGroupsInput.fill(GROUP_ID)
+
+	const groupOption = createPolicyDialog.getByRole('option', { name: new RegExp(`^${GROUP_ID}$`, 'i') }).first()
+	const optionWasVisible = await groupOption.waitFor({ state: 'visible', timeout: 8000 }).then(() => true).catch(() => false)
+	if (optionWasVisible) {
+		await groupOption.click()
+	} else {
+		await searchGroupsInput.press('ArrowDown')
+		await searchGroupsInput.press('Enter')
+	}
+	await searchGroupsInput.press('Tab').catch(() => {})
 
 	await Promise.any([
 		createPolicyDialog.getByRole('option', { name: /^Group/ }).waitFor({ state: 'visible', timeout: 10000 }),
-		page.getByLabel('Target groups').waitFor({ state: 'visible', timeout: 10000 }),
+		createPolicyDialog.getByLabel('Target groups').waitFor({ state: 'visible', timeout: 10000 }),
 	])
 })

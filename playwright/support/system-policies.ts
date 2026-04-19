@@ -39,7 +39,7 @@ export async function makeAdminContext(): Promise<APIRequestContext> {
 	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
 
 	return request.newContext({
-		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
+		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost',
 		ignoreHTTPSErrors: true,
 		extraHTTPHeaders: {
 			'OCS-ApiRequest': 'true',
