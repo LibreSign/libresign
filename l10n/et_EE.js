@@ -276,6 +276,7 @@ OC.L10N.register(
     "Close" : "Sulge",
     "Edit signer" : "Muuda allakirjutajat",
     "Add new signer" : "Lisa uus allkirjastaja",
+    "Failed to send reminder" : "Meeldetuletuse saatmine ei õnnestunud",
     "Signature requested" : "Allkirjastamine on palutud",
     "Document URL not found" : "Dokumendi aadressi/võrguaadressi ei leidunud",
     "Error monitoring signing progress" : "Viga allkirjastamisprotsessi jälgimisel",
