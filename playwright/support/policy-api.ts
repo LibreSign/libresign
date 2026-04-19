@@ -49,7 +49,7 @@ export async function createAuthenticatedRequestContext(
 	const auth = 'Basic ' + Buffer.from(`${authUser}:${authPassword}`).toString('base64')
 
 	return request.newContext({
-		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost',
+		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
 		ignoreHTTPSErrors: true,
 		extraHTTPHeaders: {
 			'OCS-ApiRequest': 'true',
