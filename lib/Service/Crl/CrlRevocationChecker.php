@@ -170,7 +170,13 @@ class CrlRevocationChecker {
 			$this->logger->debug('CRL URL does not match expected pattern', ['url' => $crlUrl, 'pattern' => $pattern]);
 			return null;
 		} catch (\Exception $e) {
-			$this->logger->warning('Failed to generate local CRL: ' . $e->getMessage());
+			if ($e instanceof \RuntimeException && str_starts_with($e->getMessage(), 'Config path does not exist for instanceId:')) {
+				$this->logger->debug('Skipping local CRL generation because source PKI config path is missing', [
+					'reason' => $e->getMessage(),
+				]);
+			} else {
+				$this->logger->warning('Failed to generate local CRL: ' . $e->getMessage());
+			}
 			return null;
 		}
 	}
