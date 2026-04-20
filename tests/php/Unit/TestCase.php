@@ -149,11 +149,30 @@ class TestCase extends \Test\TestCase {
 
 	public function setUp(): void {
 		static::getMockAppConfig();
+		$this->mockConfig([
+			'dav' => [
+				'enableDefaultContact' => 'false',
+			],
+		]);
+		$this->ensureDavDefaultContactFixture();
 		$this->getBinariesFromCache();
 		if ($this->iDependOnOthers() || !$this->IsDatabaseAccessAllowed()) {
 			return;
 		}
 		$this->cleanDatabase();
+	}
+
+	private function ensureDavDefaultContactFixture(): void {
+		$instanceId = \OC_Util::getInstanceId();
+		$dir = '../../data/appdata_' . $instanceId . '/dav/defaultContact';
+		if (!is_dir($dir)) {
+			mkdir($dir, 0777, true);
+		}
+
+		$file = $dir . '/defaultContact.vcf';
+		if (!file_exists($file)) {
+			file_put_contents($file, "BEGIN:VCARD\nVERSION:3.0\nFN:Default Contact\nEND:VCARD\n");
+		}
 	}
 
 	public function tearDown(): void {
