@@ -120,7 +120,6 @@ class PageController extends AEnvironmentPageAwareController {
 		$response = new TemplateResponse(Application::APP_ID, 'main');
 
 		$policy = new ContentSecurityPolicy();
-		$policy->allowEvalScript(true);
 		$policy->addAllowedFrameDomain('\'self\'');
 		$policy->addAllowedWorkerSrcDomain("'self'");
 		$response->setContentSecurityPolicy($policy);
@@ -387,7 +386,6 @@ class PageController extends AEnvironmentPageAwareController {
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 
 		$policy = new ContentSecurityPolicy();
-		$policy->allowEvalScript(true);
 		$policy->addAllowedWorkerSrcDomain("'self'");
 		$response->setContentSecurityPolicy($policy);
 
