@@ -57,6 +57,7 @@ class LdapCrlDownloaderTest extends TestCase {
 			'ldap lowercase' => ['ldap://ldap.example.com/cn=CRL,o=Org', true],
 			'ldaps lowercase' => ['ldaps://ldap.example.com/cn=CRL,o=Org', true],
 			'LDAP uppercase' => ['LDAP://ldap.example.com/cn=CRL,o=Org', true],
+			'ldap hostless URL from AD CDP' => ['ldap:///CN=Example%20Issuing%20CA1,CN=CDP,CN=Public%20Key%20Services,DC=example,DC=local?certificateRevocationList?base?objectClass=cRLDistributionPoint', true],
 			'http not ldap' => ['http://crl.example.com/crl.crl', false],
 			'https not ldap' => ['https://crl.example.com/crl.crl', false],
 			'empty string' => ['', false],
