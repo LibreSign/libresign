@@ -307,6 +307,46 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
 	}
 
+	public function testGetPdfByUuidThrowsDoesNotExistWhenNodeNotFound(): void {
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libresignFile->method('__call')
+			->willReturnCallback(fn ($method)
+				=> match ($method) {
+					'getSignedNodeId' => null,
+					'getNodeId' => 123,
+					'getStatus' => \OCA\Libresign\Enum\FileStatus::DRAFT->value,
+				}
+			);
+
+		$this->fileMapper
+			->expects($this->once())
+			->method('getByUuid')
+			->with('uuid')
+			->willReturn($libresignFile);
+
+		$this->fileMapper
+			->expects($this->once())
+			->method('getStorageUserIdByUuid')
+			->with('uuid')
+			->willReturn('guest-user');
+
+		$this->folderService
+			->expects($this->once())
+			->method('setUserId')
+			->with('guest-user');
+
+		$this->folderService
+			->expects($this->once())
+			->method('getFileByNodeId')
+			->with(123)
+			->willThrowException(new NotFoundException('Invalid node'));
+
+		$this->expectException(DoesNotExistException::class);
+		$this->expectExceptionMessage('Not found');
+
+		$this->getService()->getPdfByUuid('uuid');
+	}
+
 	public function testCanRequestSignWithUnexistentUser():void {
 		$actual = $this->getService()->canRequestSign();
 		$this->assertFalse($actual);
