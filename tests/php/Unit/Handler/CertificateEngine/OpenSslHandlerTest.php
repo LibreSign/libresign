@@ -95,6 +95,103 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$rootInstance->generateRootCert('', []);
 	}
 
+	public function testRootCertificateCsrFailureThrowsLibresignException(): void {
+		$rootInstance = $this->getMockBuilder(OpenSslHandler::class)
+			->setConstructorArgs([
+				$this->config,
+				$this->appConfig,
+				$this->appDataFactory,
+				$this->dateTimeFormatter,
+				$this->tempManager,
+				$this->certificatePolicyService,
+				$this->urlGenerator,
+				$this->serialNumberService,
+				$this->caIdentifierService,
+				$this->logger,
+				$this->crlMapper,
+				$this->subjectAlternativeNameService,
+				$this->crlRevocationChecker,
+			])
+			->onlyMethods(['createCsr'])
+			->getMock();
+
+		$rootInstance->method('createCsr')->willReturn(false);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Failed to generate OpenSSL CSR for root certificate');
+		$rootInstance->generateRootCert('Test Root CA', []);
+	}
+
+	public function testRootCertificateSignFailureThrowsLibresignException(): void {
+		$rootInstance = $this->getMockBuilder(OpenSslHandler::class)
+			->setConstructorArgs([
+				$this->config,
+				$this->appConfig,
+				$this->appDataFactory,
+				$this->dateTimeFormatter,
+				$this->tempManager,
+				$this->certificatePolicyService,
+				$this->urlGenerator,
+				$this->serialNumberService,
+				$this->caIdentifierService,
+				$this->logger,
+				$this->crlMapper,
+				$this->subjectAlternativeNameService,
+				$this->crlRevocationChecker,
+			])
+			->onlyMethods(['signCsr'])
+			->getMock();
+
+		$rootInstance->method('signCsr')->willReturn(false);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Failed to sign OpenSSL root certificate');
+		$rootInstance->generateRootCert('Test Root CA', []);
+	}
+
+	public function testRootCertificateCsrUsesGeneratedConfig(): void {
+		$rootInstance = $this->getMockBuilder(OpenSslHandler::class)
+			->setConstructorArgs([
+				$this->config,
+				$this->appConfig,
+				$this->appDataFactory,
+				$this->dateTimeFormatter,
+				$this->tempManager,
+				$this->certificatePolicyService,
+				$this->urlGenerator,
+				$this->serialNumberService,
+				$this->caIdentifierService,
+				$this->logger,
+				$this->crlMapper,
+				$this->subjectAlternativeNameService,
+				$this->crlRevocationChecker,
+			])
+			->onlyMethods(['createCsr', 'signCsr'])
+			->getMock();
+
+		$rootInstance->method('createCsr')
+			->willReturnCallback(function (array $distinguishedNames, mixed $privateKey, array $options) {
+				$this->assertArrayHasKey('config', $options);
+				$this->assertSame('req', $options['config_section_name']);
+				$this->assertArrayNotHasKey('req_extensions', $options);
+				$this->assertFileExists($options['config']);
+				$configContent = file_get_contents($options['config']);
+				$this->assertNotFalse($configContent);
+				$this->assertStringContainsString('[req]', $configContent);
+				$this->assertStringContainsString('distinguished_name = req_distinguished_name', $configContent);
+				$this->assertStringContainsString('[req_distinguished_name]', $configContent);
+				$this->assertStringContainsString('[v3_ca]', $configContent);
+
+				return openssl_csr_new($distinguishedNames, $privateKey, $options);
+			});
+
+		$rootInstance->method('signCsr')->willReturn(false);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Failed to sign OpenSSL root certificate');
+		$rootInstance->generateRootCert('Test Root CA', []);
+	}
+
 	public function testInvalidPassword(): void {
 		// Create root cert
 		$rootInstance = $this->getInstance();
@@ -139,6 +236,23 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signerInstance->setPassword('123456');
 		$this->expectException(LibresignException::class);
 		$signerInstance->generateCertificate();
+	}
+
+	public function testRealOpenSslFailureIncludesDiagnosticMessage(): void {
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('Test Root CA', []);
+
+		$signerInstance = $this->getInstance();
+		$signerInstance->setCommonName(str_repeat('a', 65));
+		$signerInstance->setPassword('123456');
+
+		try {
+			$signerInstance->generateCertificate();
+			$this->fail('Expected LibresignException was not thrown.');
+		} catch (LibresignException $exception) {
+			$this->assertStringContainsString('Failed to generate OpenSSL CSR', $exception->getMessage());
+			$this->assertMatchesRegularExpression('/string too long|add_entry_by_NID/i', $exception->getMessage());
+		}
 	}
 
 	/**
