@@ -337,7 +337,14 @@ class TestCase extends \Test\TestCase {
 		$mailService->method('notifySignedUser')->willReturn(null);
 		$mailService->method('notifyCanceledRequest')->willReturn(null);
 		$mailService->method('sendCodeToSign')->willReturn(null);
-		\OC::$server->registerService(\OCA\Libresign\Service\MailService::class, fn () => $mailService);
+		$this->overwriteService(\OCA\Libresign\Service\MailService::class, $mailService);
+		$this->overwriteService(
+			\OCA\Libresign\Listener\MailNotifyListener::class,
+			new class() implements \OCP\EventDispatcher\IEventListener {
+				public function handle(\OCP\EventDispatcher\Event $event): void {
+				}
+			}
+		);
 
 		if (!isset($data['settings'])) {
 			$data['settings']['separator'] = '_';
