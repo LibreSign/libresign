@@ -379,11 +379,16 @@ class TestCase extends \Test\TestCase {
 		$appConfig->setValueString(Application::APP_ID, 'cfsslUri', self::$server->getServerRoot() . '/api/v1/cfssl/');
 
 		$mailService = $this->createMock(\OCA\Libresign\Service\MailService::class);
-		$mailService->method('notifyUnsignedUser')->willReturn(null);
-		$mailService->method('notifySignDataUpdated')->willReturn(null);
-		$mailService->method('notifySignedUser')->willReturn(null);
-		$mailService->method('notifyCanceledRequest')->willReturn(null);
-		$mailService->method('sendCodeToSign')->willReturn(null);
+		$mailService->method('notifyUnsignedUser')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('notifySignDataUpdated')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('notifySignedUser')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('notifyCanceledRequest')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('sendCodeToSign')->willReturnCallback(static function (): void {
+		});
 		$this->overwriteService(\OCA\Libresign\Service\MailService::class, $mailService);
 		$this->overwriteService(
 			\OCA\Libresign\Listener\MailNotifyListener::class,
