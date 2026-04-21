@@ -342,7 +342,11 @@ class AccountService {
 
 		$userId = $this->fileMapper->getStorageUserIdByUuid($uuid);
 		$this->folderService->setUserId($userId);
-		return $this->folderService->getFileByNodeId($nodeId);
+		try {
+			return $this->folderService->getFileByNodeId($nodeId);
+		} catch (NotFoundException) {
+			throw new DoesNotExistException('Not found');
+		}
 	}
 
 	public function getFileByNodeId(int $nodeId): File {
