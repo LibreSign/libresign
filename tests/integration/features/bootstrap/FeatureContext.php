@@ -187,13 +187,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->davRequest($user, 'PROPFIND', $path, $body, ['Depth' => '0']);
 	}
 
-	#[Given('user :user deletes file :path')]
-	public function userDeletesFile(string $user, string $path): void {
-		$this->setCurrentUser($user);
-		$this->davRequest($user, 'DELETE', $path);
-		Assert::assertContains($this->response->getStatusCode(), [204, 404], 'Failed to delete file');
-	}
-
 	#[Given('the WebDAV response should contain property :property with value :value')]
 	public function theWebDavResponseShouldContainPropertyWithValue(string $property, string $value): void {
 		$result = $this->parseXml()->xpath("//nc:$property");
@@ -206,64 +199,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$result = $this->parseXml()->xpath("//nc:$property");
 		Assert::assertNotEmpty($result, "Property nc:$property not found in WebDAV response");
 		$this->fields[$alias] = (string)$result[0];
-	}
-
-	#[Given('I force sign request :signRequestUuid file node id to :nodeId')]
-	public function iForceSignRequestFileNodeIdTo(string $signRequestUuid, int $nodeId): void {
-		$uuid = $this->parseText($signRequestUuid);
-
-		$nextcloudRootDir = self::findParentDirContainingFile('console.php');
-		$CONFIG = [];
-		require $nextcloudRootDir . '/config/config.php';
-		/** @var array<string, mixed> $config */
-		$config = $CONFIG;
-		$tablePrefix = (string)($config['dbtableprefix'] ?? 'oc_');
-
-		$dbType = (string)$config['dbtype'];
-		if ($dbType === 'mysql') {
-			$dsn = sprintf(
-				'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
-				(string)$config['dbhost'],
-				(string)($config['dbport'] ?? 3306),
-				(string)$config['dbname'],
-			);
-		} elseif ($dbType === 'pgsql') {
-			$dsn = sprintf(
-				'pgsql:host=%s;port=%s;dbname=%s',
-				(string)$config['dbhost'],
-				(string)($config['dbport'] ?? 5432),
-				(string)$config['dbname'],
-			);
-		} else {
-			throw new RuntimeException('Unsupported dbtype for this Behat step: ' . $dbType);
-		}
-
-		$pdo = new PDO(
-			$dsn,
-			(string)$config['dbuser'],
-			(string)$config['dbpassword'],
-			[PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION],
-		);
-
-		$selectStmt = $pdo->prepare(sprintf(
-			'SELECT file_id FROM %slibresign_sign_request WHERE uuid = :uuid LIMIT 1',
-			$tablePrefix,
-		));
-		$selectStmt->execute(['uuid' => $uuid]);
-		$row = $selectStmt->fetch(PDO::FETCH_ASSOC);
-		Assert::assertNotFalse($row, "Sign request not found for UUID: $uuid");
-
-		$updateStmt = $pdo->prepare(sprintf(
-			'UPDATE %slibresign_file SET node_id = :node_id WHERE id = :id',
-			$tablePrefix,
-		));
-		$updateStmt->execute([
-			'node_id' => $nodeId,
-			'id' => (int)$row['file_id'],
-		]);
-
-		$affectedRows = $updateStmt->rowCount();
-		Assert::assertSame(1, $affectedRows, 'Expected exactly one file row to be updated');
 	}
 
 	private function davRequest(string $user, string $method, string $path, ?string $body = null, array $headers = []): void {
