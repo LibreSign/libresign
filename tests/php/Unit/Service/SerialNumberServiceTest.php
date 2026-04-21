@@ -31,7 +31,7 @@ class SerialNumberServiceTest extends TestCase {
 		$this->crlMapper->expects($this->once())
 			->method('createCertificate')
 			->with(
-				$this->isType('string'),
+				$this->callback(static fn (mixed $value): bool => is_string($value) && $value !== ''),
 				'test-owner',
 				'openssl',
 				'inst1234567',
