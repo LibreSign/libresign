@@ -149,11 +149,46 @@ class TestCase extends \Test\TestCase {
 
 	public function setUp(): void {
 		static::getMockAppConfig();
+		$this->suppressMailDelivery();
+		$this->mockConfig([
+			'dav' => [
+				'enableDefaultContact' => 'false',
+			],
+		]);
+		$this->ensureDavDefaultContactFixture();
 		$this->getBinariesFromCache();
 		if ($this->iDependOnOthers() || !$this->IsDatabaseAccessAllowed()) {
 			return;
 		}
 		$this->cleanDatabase();
+	}
+
+	private function suppressMailDelivery(): void {
+		$mailService = $this->createMock(\OCA\Libresign\Service\MailService::class);
+		$mailService->method('notifyUnsignedUser')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('notifySignDataUpdated')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('notifySignedUser')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('notifyCanceledRequest')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('sendCodeToSign')->willReturnCallback(static function (): void {
+		});
+		$this->overwriteService(\OCA\Libresign\Service\MailService::class, $mailService);
+	}
+
+	private function ensureDavDefaultContactFixture(): void {
+		$instanceId = \OC_Util::getInstanceId();
+		$dir = '../../data/appdata_' . $instanceId . '/dav/defaultContact';
+		if (!is_dir($dir)) {
+			mkdir($dir, 0777, true);
+		}
+
+		$file = $dir . '/defaultContact.vcf';
+		if (!file_exists($file)) {
+			file_put_contents($file, "BEGIN:VCARD\nVERSION:3.0\nFN:Default Contact\nEND:VCARD\n");
+		}
 	}
 
 	public function tearDown(): void {
@@ -310,6 +345,19 @@ class TestCase extends \Test\TestCase {
 		$appConfig->setValueString(Application::APP_ID, 'organization', 'Organization');
 		$appConfig->setValueString(Application::APP_ID, 'organizationalUnit', 'organizationalUnit');
 		$appConfig->setValueString(Application::APP_ID, 'cfsslUri', self::$server->getServerRoot() . '/api/v1/cfssl/');
+
+		$mailService = $this->createMock(\OCA\Libresign\Service\MailService::class);
+		$mailService->method('notifyUnsignedUser')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('notifySignDataUpdated')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('notifySignedUser')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('notifyCanceledRequest')->willReturnCallback(static function (): void {
+		});
+		$mailService->method('sendCodeToSign')->willReturnCallback(static function (): void {
+		});
+		$this->overwriteService(\OCA\Libresign\Service\MailService::class, $mailService);
 
 		if (!isset($data['settings'])) {
 			$data['settings']['separator'] = '_';

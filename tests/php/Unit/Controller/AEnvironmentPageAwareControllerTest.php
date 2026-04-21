@@ -70,7 +70,6 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 	 */
 	public function testLoadFileUuidWhenFileNotFound(): void {
 		$user = $this->createAccount('username', 'password');
-		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
