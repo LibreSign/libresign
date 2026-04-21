@@ -149,6 +149,7 @@ class TestCase extends \Test\TestCase {
 
 	public function setUp(): void {
 		static::getMockAppConfig();
+		$this->suppressSendSignNotificationEvents();
 		$this->mockConfig([
 			'dav' => [
 				'enableDefaultContact' => 'false',
@@ -160,6 +161,52 @@ class TestCase extends \Test\TestCase {
 			return;
 		}
 		$this->cleanDatabase();
+	}
+
+	private function suppressSendSignNotificationEvents(): void {
+		$dispatcher = \OCP\Server::get(\OCP\EventDispatcher\IEventDispatcher::class);
+		$this->overwriteService(
+			\OCP\EventDispatcher\IEventDispatcher::class,
+			new class($dispatcher) implements \OCP\EventDispatcher\IEventDispatcher {
+				public function __construct(
+					private \OCP\EventDispatcher\IEventDispatcher $dispatcher,
+				) {
+				}
+
+				public function addListener(string $eventName, callable $listener, int $priority = 0): void {
+					$this->dispatcher->addListener($eventName, $listener, $priority);
+				}
+
+				public function removeListener(string $eventName, callable $listener): void {
+					$this->dispatcher->removeListener($eventName, $listener);
+				}
+
+				public function addServiceListener(string $eventName, string $className, int $priority = 0): void {
+					$this->dispatcher->addServiceListener($eventName, $className, $priority);
+				}
+
+				public function hasListeners(string $eventName): bool {
+					if ($eventName === \OCA\Libresign\Events\SendSignNotificationEvent::class) {
+						return false;
+					}
+					return $this->dispatcher->hasListeners($eventName);
+				}
+
+				public function dispatch(string $eventName, \OCP\EventDispatcher\Event $event): void {
+					if ($eventName === \OCA\Libresign\Events\SendSignNotificationEvent::class) {
+						return;
+					}
+					$this->dispatcher->dispatch($eventName, $event);
+				}
+
+				public function dispatchTyped(\OCP\EventDispatcher\Event $event): void {
+					if ($event instanceof \OCA\Libresign\Events\SendSignNotificationEvent) {
+						return;
+					}
+					$this->dispatcher->dispatchTyped($event);
+				}
+			}
+		);
 	}
 
 	private function ensureDavDefaultContactFixture(): void {
