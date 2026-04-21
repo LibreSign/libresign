@@ -64,7 +64,8 @@ class CrlService {
 
 		try {
 			$certificate = $this->crlMapper->findBySerialNumber($serialNumber);
-			$crlNumber = $this->resolveNextCrlNumber($certificate);
+			['instanceId' => $instanceId, 'generation' => $generation, 'engineType' => $engineType] = $this->getCrlMetadata($certificate);
+			$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
 
 			$this->crlMapper->revokeCertificateEntity(
 				$certificate,
@@ -130,8 +131,8 @@ class CrlService {
 		foreach ($certificates as $certificate) {
 			try {
 				$serialNumber = $certificate->getSerialNumber();
-
-				$crlNumber = $this->resolveNextCrlNumber($certificate);
+				['instanceId' => $instanceId, 'generation' => $generation, 'engineType' => $engineType] = $this->getCrlMetadata($certificate);
+				$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
 
 				$this->crlMapper->revokeCertificateEntity(
 					$certificate,
@@ -234,22 +235,23 @@ class CrlService {
 		return $result;
 	}
 
-	private function resolveNextCrlNumber(\OCA\Libresign\Db\Crl $certificate): ?int {
+	/**
+	 * @return array{instanceId: string, generation: int, engineType: string}
+	 */
+	private function getCrlMetadata(\OCA\Libresign\Db\Crl $certificate): array {
 		$instanceId = $certificate->getInstanceId();
 		$generation = $certificate->getGeneration();
 		$engineType = $certificate->getEngine();
 
 		if ($instanceId === null || $generation === null || $engineType === '') {
-			$this->logger->warning('Skipping CRL number generation for legacy certificate without CA metadata', [
-				'serial' => $certificate->getSerialNumber(),
-				'instanceId' => $instanceId,
-				'generation' => $generation,
-				'engineType' => $engineType,
-			]);
-			return null;
+			throw new \RuntimeException('Certificate missing CRL metadata: instance_id, generation or engine');
 		}
 
-		return $this->getNextCrlNumber($instanceId, $generation, $engineType);
+		return [
+			'instanceId' => $instanceId,
+			'generation' => $generation,
+			'engineType' => $engineType,
+		];
 	}
 
 	private function getNextCrlNumber(string $instanceId, int $generation, string $engineType): int {

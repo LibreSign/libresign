@@ -290,7 +290,7 @@ class CrlServiceTest extends TestCase {
 		$this->assertTrue($result);
 	}
 
-	public function testRevokeCertificateWithoutCrlMetadataStillRevokesLegacyCertificate(): void {
+	public function testRevokeCertificateWithoutCrlMetadataFails(): void {
 		$serialNumber = '654321';
 		$certificate = new Crl();
 		$certificate->setSerialNumber($serialNumber);
@@ -304,30 +304,20 @@ class CrlServiceTest extends TestCase {
 		$this->crlMapper->expects($this->never())
 			->method('getLastCrlNumber');
 
+		$this->crlMapper->expects($this->never())
+			->method('revokeCertificateEntity');
+
 		$this->logger->expects($this->once())
 			->method('warning')
 			->with(
-				'Skipping CRL number generation for legacy certificate without CA metadata',
+				'Failed to revoke certificate {serial}',
 				$this->callback(fn (array $context): bool => $context['serial'] === $serialNumber
-					&& $context['instanceId'] === null
-					&& $context['generation'] === null
-					&& $context['engineType'] === 'openssl')
-			);
-
-		$this->crlMapper->expects($this->once())
-			->method('revokeCertificateEntity')
-			->with(
-				$certificate,
-				CRLReason::UNSPECIFIED,
-				null,
-				null,
-				null,
-				null
+					&& str_contains($context['error'], 'missing CRL metadata'))
 			);
 
 		$result = $this->service->revokeCertificate($serialNumber);
 
-		$this->assertTrue($result);
+		$this->assertFalse($result);
 	}
 
 	public function testGenerateCrlDerReturnsValidBinaryData(): void {
