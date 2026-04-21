@@ -41,6 +41,10 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 		}
 
 		$metadata = $this->resolveMetadataDefaults();
+		if ($metadata === null) {
+			$output->warning('Skipped CRL metadata backfill because no deterministic metadata source was found.');
+			return;
+		}
 
 		$updatedInstance = $this->backfillInstanceId($metadata['instanceId']);
 		$updatedGeneration = $this->backfillGeneration($metadata['generation']);
@@ -65,39 +69,13 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
-		$schema = $schemaClosure();
-		if (!$schema->hasTable('libresign_crl')) {
-			return $schema;
-		}
-
-		$metadata = $this->resolveMetadataDefaults();
-		$table = $schema->getTable('libresign_crl');
-
-		if ($table->hasColumn('instance_id')) {
-			$instanceColumn = $table->getColumn('instance_id');
-			$instanceColumn->setNotnull(true);
-			$instanceColumn->setDefault($metadata['instanceId']);
-		}
-
-		if ($table->hasColumn('generation')) {
-			$generationColumn = $table->getColumn('generation');
-			$generationColumn->setNotnull(true);
-			$generationColumn->setDefault($metadata['generation']);
-		}
-
-		if ($table->hasColumn('engine')) {
-			$engineColumn = $table->getColumn('engine');
-			$engineColumn->setNotnull(true);
-			$engineColumn->setDefault($metadata['engine']);
-		}
-
-		return $schema;
+		return $schemaClosure();
 	}
 
 	/**
-	 * @return array{instanceId: string, generation: int, engine: string}
+	 * @return array{instanceId: string, generation: int, engine: string}|null
 	 */
-	private function resolveMetadataDefaults(): array {
+	private function resolveMetadataDefaults(): ?array {
 		$engine = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		if ($engine === '' || $engine === 'none') {
 			$engine = 'openssl';
@@ -118,8 +96,8 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 			$instanceId = $this->config->getSystemValueString('instanceid', '');
 		}
 
-		if ($instanceId === '') {
-			$instanceId = 'legacy';
+		if ($instanceId === '' || !in_array($engine, ['openssl', 'cfssl'], true)) {
+			return null;
 		}
 
 		return [
@@ -134,7 +112,15 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 
 		return $qb->update('libresign_crl')
 			->set('instance_id', $qb->createNamedParameter($instanceId))
-			->where(
+			->where($qb->expr()->eq('status', $qb->createNamedParameter('issued')))
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('generation'),
+					$qb->expr()->isNull('engine'),
+					$qb->expr()->eq('engine', $qb->createNamedParameter('')),
+				)
+			)
+			->andWhere(
 				$qb->expr()->orX(
 					$qb->expr()->isNull('instance_id'),
 					$qb->expr()->eq('instance_id', $qb->createNamedParameter('')),
@@ -148,7 +134,16 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 
 		return $qb->update('libresign_crl')
 			->set('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT))
-			->where($qb->expr()->isNull('generation'))
+			->where($qb->expr()->eq('status', $qb->createNamedParameter('issued')))
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('instance_id'),
+					$qb->expr()->eq('instance_id', $qb->createNamedParameter('')),
+					$qb->expr()->isNull('engine'),
+					$qb->expr()->eq('engine', $qb->createNamedParameter('')),
+				)
+			)
+			->andWhere($qb->expr()->isNull('generation'))
 			->executeStatement();
 	}
 
@@ -157,7 +152,15 @@ class Version17004Date20260421000000 extends SimpleMigrationStep {
 
 		return $qb->update('libresign_crl')
 			->set('engine', $qb->createNamedParameter($engine))
-			->where(
+			->where($qb->expr()->eq('status', $qb->createNamedParameter('issued')))
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('instance_id'),
+					$qb->expr()->eq('instance_id', $qb->createNamedParameter('')),
+					$qb->expr()->isNull('generation'),
+				)
+			)
+			->andWhere(
 				$qb->expr()->orX(
 					$qb->expr()->isNull('engine'),
 					$qb->expr()->eq('engine', $qb->createNamedParameter('')),
