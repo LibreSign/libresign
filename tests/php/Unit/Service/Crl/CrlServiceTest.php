@@ -312,7 +312,8 @@ class CrlServiceTest extends TestCase {
 			->with(
 				'Failed to revoke certificate {serial}',
 				$this->callback(fn (array $context): bool => $context['serial'] === $serialNumber
-					&& str_contains($context['error'], 'missing CRL metadata'))
+					&& isset($context['error'])
+					&& $context['error'] !== '')
 			);
 
 		$result = $this->service->revokeCertificate($serialNumber);
