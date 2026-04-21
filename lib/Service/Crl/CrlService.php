@@ -269,9 +269,18 @@ class CrlService {
 
 			return $engine->generateCrlDer($revokedCertificates, $instanceId, $generation, $crlNumber);
 		} catch (\Throwable $e) {
-			$this->logger->error('Failed to generate CRL', [
-				'exception' => $e,
-			]);
+			if ($e instanceof \RuntimeException && str_starts_with($e->getMessage(), 'Config path does not exist for instanceId:')) {
+				$this->logger->debug('Skipping local CRL generation because source PKI config path is missing', [
+					'instanceId' => $instanceId,
+					'generation' => $generation,
+					'engineType' => $engineType,
+					'reason' => $e->getMessage(),
+				]);
+			} else {
+				$this->logger->error('Failed to generate CRL', [
+					'exception' => $e,
+				]);
+			}
 			throw $e;
 		}
 	}
