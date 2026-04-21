@@ -33,6 +33,9 @@ use Psr\Log\LoggerInterface;
  * @method CfsslHandler setClient(Client $client)
  */
 class OpenSslHandler extends AEngineHandler implements IEngineHandler {
+	/** @var list<string> */
+	private array $lastOpenSslErrors = [];
+
 	public function __construct(
 		protected IConfig $config,
 		protected IAppConfig $appConfig,
@@ -71,13 +74,20 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			throw new EmptyCertificateException('Common Name (CN) cannot be empty for root certificate');
 		}
 
-		$privateKey = openssl_pkey_new([
+		$privateKey = $this->createPrivateKey([
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
+		if ($privateKey === false) {
+			throw $this->buildOpenSslException('Failed to generate OpenSSL private key for root certificate');
+		}
 
-		$csr = openssl_csr_new($this->getCsrNames(), $privateKey, ['digest_alg' => 'sha256']);
-		$options = $this->getRootCertOptions();
+		$configFile = $this->generateCaConfig();
+		$csr = $this->createCsr($this->getCsrNames(), $privateKey, $this->getRootCsrOptions($configFile));
+		if ($csr === false) {
+			throw $this->buildOpenSslException('Failed to generate OpenSSL CSR for root certificate');
+		}
+		$options = $this->getRootCertOptions($configFile);
 
 		$caDays = $this->getCaExpiryInDays();
 
@@ -97,11 +107,20 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		);
 		$serialNumber = (int)$serialNumberString;
 
-		$x509 = openssl_csr_sign($csr, null, $privateKey, $caDays, $options, $serialNumber);
+		$x509 = $this->signCsr($csr, null, $privateKey, $caDays, $options, $serialNumber);
+		if ($x509 === false) {
+			throw $this->buildOpenSslException('Failed to sign OpenSSL root certificate');
+		}
 
-		openssl_csr_export($csr, $csrout);
-		openssl_x509_export($x509, $certout);
-		openssl_pkey_export($privateKey, $pkeyout);
+		if (!openssl_csr_export($csr, $csrout)) {
+			throw $this->buildOpenSslException('Failed to export OpenSSL root CSR');
+		}
+		if (!openssl_x509_export($x509, $certout)) {
+			throw $this->buildOpenSslException('Failed to export OpenSSL root certificate');
+		}
+		if (!openssl_pkey_export($privateKey, $pkeyout)) {
+			throw $this->buildOpenSslException('Failed to export OpenSSL private key');
+		}
 
 		$configPath = $this->getCurrentConfigPath();
 		CertificateHelper::saveFile($configPath . '/ca.csr', $csrout);
@@ -109,8 +128,15 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		CertificateHelper::saveFile($configPath . '/ca-key.pem', $pkeyout);
 	}
 
-	private function getRootCertOptions(): array {
-		$configFile = $this->generateCaConfig();
+	private function getRootCsrOptions(string $configFile): array {
+		return [
+			'digest_alg' => 'sha256',
+			'config' => $configFile,
+			'config_section_name' => 'req',
+		];
+	}
+
+	private function getRootCertOptions(string $configFile): array {
 
 		return [
 			'digest_alg' => 'sha256',
@@ -142,15 +168,17 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 		$this->inheritRootSubjectFields($rootCertificate);
 
-		$privateKey = openssl_pkey_new([
+		$privateKey = $this->createPrivateKey([
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
+		if ($privateKey === false) {
+			throw $this->buildOpenSslException('Failed to generate OpenSSL private key');
+		}
 
-		$csr = @openssl_csr_new($this->getCsrNames(), $privateKey, ['digest_alg' => 'sha256']);
+		$csr = $this->createCsr($this->getCsrNames(), $privateKey, ['digest_alg' => 'sha256']);
 		if ($csr === false) {
-			$message = openssl_error_string();
-			throw new LibresignException('OpenSSL error: ' . $message);
+			throw $this->buildOpenSslException('Failed to generate OpenSSL CSR');
 		}
 
 		$parsedRoot = openssl_x509_parse($rootCertificate);
@@ -173,7 +201,10 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$serialNumber = (int)$serialNumberString;
 		$options = $this->getLeafCertOptions();
 
-		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->getLeafExpiryInDays(), $options, $serialNumber);
+		$x509 = $this->signCsr($csr, $rootCertificate, $rootPrivateKey, $this->getLeafExpiryInDays(), $options, $serialNumber);
+		if ($x509 === false) {
+			throw $this->buildOpenSslException('Failed to sign OpenSSL certificate');
+		}
 
 		return parent::exportToPkcs12(
 			$x509,
@@ -209,6 +240,54 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		}
 	}
 
+	protected function createPrivateKey(array $options): mixed {
+		return $this->runOpenSslOperation(static fn () => openssl_pkey_new($options));
+	}
+
+	protected function createCsr(array $distinguishedNames, mixed $privateKey, array $options): mixed {
+		return $this->runOpenSslOperation(static fn () => openssl_csr_new($distinguishedNames, $privateKey, $options));
+	}
+
+	protected function signCsr(
+		mixed $csr,
+		mixed $caCertificate,
+		mixed $privateKey,
+		int $days,
+		array $options,
+		int $serialNumber,
+	): mixed {
+		return $this->runOpenSslOperation(static fn () => openssl_csr_sign($csr, $caCertificate, $privateKey, $days, $options, $serialNumber));
+	}
+
+	private function runOpenSslOperation(callable $operation): mixed {
+		$this->lastOpenSslErrors = [];
+
+		set_error_handler(function (int $severity, string $message): bool {
+			$this->lastOpenSslErrors[] = $message;
+			return true;
+		});
+
+		try {
+			return $operation();
+		} finally {
+			restore_error_handler();
+		}
+	}
+
+	private function buildOpenSslException(string $message): LibresignException {
+		$errors = $this->lastOpenSslErrors;
+		while (($error = openssl_error_string()) !== false) {
+			$errors[] = $error;
+		}
+		$this->lastOpenSslErrors = [];
+
+		if (empty($errors)) {
+			return new LibresignException($message . ': unknown OpenSSL error');
+		}
+
+		return new LibresignException($message . ': ' . implode(' | ', $errors));
+	}
+
 	private function generateCaConfig(): string {
 		$config = $this->buildCaCertificateConfig();
 		$this->cleanupCaConfig($config);
@@ -228,6 +307,12 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	 */
 	private function buildCaCertificateConfig(): array {
 		$config = [
+			'req' => [
+				'distinguished_name' => 'req_distinguished_name',
+				'x509_extensions' => 'v3_ca',
+				'prompt' => 'no',
+			],
+			'req_distinguished_name' => [],
 			'ca' => [
 				'default_ca' => 'CA_default'
 			],
@@ -267,6 +352,12 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	private function buildLeafCertificateConfig(): array {
 		$config = [
+			'req' => [
+				'distinguished_name' => 'req_distinguished_name',
+				'req_extensions' => 'v3_req',
+				'prompt' => 'no',
+			],
+			'req_distinguished_name' => [],
 			'v3_req' => [
 				'basicConstraints' => 'CA:FALSE',
 				'keyUsage' => 'digitalSignature, keyEncipherment, nonRepudiation',
