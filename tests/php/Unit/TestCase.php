@@ -340,7 +340,6 @@ class TestCase extends \Test\TestCase {
 
 		$appConfig = static::getMockAppConfig();
 		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
-		$appConfig->setValueBool(Application::APP_ID, 'notify_unsigned_user', false);
 		$appConfig->setValueString(Application::APP_ID, 'commonName', 'CommonName');
 		$appConfig->setValueString(Application::APP_ID, 'country', 'Brazil');
 		$appConfig->setValueString(Application::APP_ID, 'organization', 'Organization');
