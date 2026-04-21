@@ -324,11 +324,20 @@ class TestCase extends \Test\TestCase {
 
 		$appConfig = static::getMockAppConfig();
 		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
+		$appConfig->setValueBool(Application::APP_ID, 'notify_unsigned_user', false);
 		$appConfig->setValueString(Application::APP_ID, 'commonName', 'CommonName');
 		$appConfig->setValueString(Application::APP_ID, 'country', 'Brazil');
 		$appConfig->setValueString(Application::APP_ID, 'organization', 'Organization');
 		$appConfig->setValueString(Application::APP_ID, 'organizationalUnit', 'organizationalUnit');
 		$appConfig->setValueString(Application::APP_ID, 'cfsslUri', self::$server->getServerRoot() . '/api/v1/cfssl/');
+
+		$mailService = $this->createMock(\OCA\Libresign\Service\MailService::class);
+		$mailService->method('notifyUnsignedUser')->willReturn(null);
+		$mailService->method('notifySignDataUpdated')->willReturn(null);
+		$mailService->method('notifySignedUser')->willReturn(null);
+		$mailService->method('notifyCanceledRequest')->willReturn(null);
+		$mailService->method('sendCodeToSign')->willReturn(null);
+		\OC::$server->registerService(\OCA\Libresign\Service\MailService::class, fn () => $mailService);
 
 		if (!isset($data['settings'])) {
 			$data['settings']['separator'] = '_';
