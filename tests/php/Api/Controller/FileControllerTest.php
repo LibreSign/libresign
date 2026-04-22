@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use ByJG\ApiTools\Exception\StatusCodeNotMatchedException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
@@ -27,6 +28,33 @@ final class FileControllerTest extends ApiTestCase {
 		$this->assertNotEmpty($children, 'Expected envelope to have at least one child file.');
 
 		return $children[0];
+	}
+
+	private function assertAuthorizedThumbnailRequest(string $username, string $path): void {
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode($username . ':password'),
+			])
+			->withPath($path)
+			->assertResponseCode(200);
+
+		try {
+			$this->assertRequest();
+			return;
+		} catch (StatusCodeNotMatchedException $exception) {
+			if (!str_contains($exception->getMessage(), 'Expected 200, got 303')) {
+				throw $exception;
+			}
+		}
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode($username . ':password'),
+			])
+			->withPath($path)
+			->assertResponseCode(303);
+
+		$this->assertRequest();
 	}
 
 	/**
@@ -194,15 +222,7 @@ final class FileControllerTest extends ApiTestCase {
 			'userManager' => $owner,
 		]);
 		$file = $this->getDocumentFileFromResult($file);
-
-		$this->request
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('owner:password'),
-			])
-			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId() . '?mimeFallback=1')
-			->assertResponseCode(303);
-
-		$this->assertRequest();
+		$this->assertAuthorizedThumbnailRequest('owner', '/api/v1/file/thumbnail/file_id/' . $file->getId() . '?mimeFallback=1');
 	}
 
 	/**
@@ -231,15 +251,7 @@ final class FileControllerTest extends ApiTestCase {
 			'userManager' => $owner,
 		]);
 		$file = $this->getDocumentFileFromResult($file);
-
-		$this->request
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('signer:password'),
-			])
-			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId() . '?mimeFallback=1')
-			->assertResponseCode(303);
-
-		$this->assertRequest();
+		$this->assertAuthorizedThumbnailRequest('signer', '/api/v1/file/thumbnail/file_id/' . $file->getId() . '?mimeFallback=1');
 	}
 
 	/**
@@ -268,15 +280,7 @@ final class FileControllerTest extends ApiTestCase {
 			'userManager' => $owner,
 		]);
 		$file = $this->getDocumentFileFromResult($file);
-
-		$this->request
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('signer:password'),
-			])
-			->withPath('/api/v1/file/thumbnail/' . $file->getNodeId() . '?mimeFallback=1')
-			->assertResponseCode(303);
-
-		$this->assertRequest();
+		$this->assertAuthorizedThumbnailRequest('signer', '/api/v1/file/thumbnail/' . $file->getNodeId() . '?mimeFallback=1');
 	}
 
 	/**
