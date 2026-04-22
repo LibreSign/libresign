@@ -1906,6 +1906,7 @@ export type components = {
         };
         FolderSettings: {
             folderName?: string;
+            path?: string;
             separator?: string;
             folderPatterns?: {
                 name: string;

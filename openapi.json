@@ -1000,6 +1000,9 @@
                     "folderName": {
                         "type": "string"
                     },
+                    "path": {
+                        "type": "string"
+                    },
                     "separator": {
                         "type": "string"
                     },

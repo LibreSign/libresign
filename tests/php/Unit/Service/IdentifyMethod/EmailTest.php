@@ -9,14 +9,20 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -217,5 +223,78 @@ final class EmailTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'errorMessage' => 'This document is not yours',
 			],
 		];
+	}
+
+	public function testThrowIfFileNotFoundThrowsControlledErrorWhenNodeIdIsInvalid(): void {
+		[$identifyMethod] = $this->setupFileNotFoundContext(nodeId: null);
+
+		try {
+			self::invokePrivate($identifyMethod, 'throwIfFileNotFound');
+			self::fail('Expected LibresignException to be thrown');
+		} catch (LibresignException $exception) {
+			self::assertSame(404, $exception->getCode());
+			self::assertStringContainsString('File not found', $exception->getMessage());
+		}
+	}
+
+	public function testThrowIfFileNotFoundRestoresFolderUserIdOnNotFoundException(): void {
+		$setUserIdCalls = [];
+		[$identifyMethod] = $this->setupFileNotFoundContext(
+			nodeId: 42,
+			configureFolderService: static function (FolderService&MockObject $folderService) use (&$setUserIdCalls): void {
+				$folderService->method('getUserId')->willReturn('previous-user');
+				$folderService->expects(self::exactly(2))
+					->method('setUserId')
+					->willReturnCallback(static function (?string $userId) use (&$setUserIdCalls): void {
+						$setUserIdCalls[] = $userId;
+					});
+				$folderService->method('getFileByNodeId')->willThrowException(new NotFoundException());
+			}
+		);
+
+		try {
+			self::invokePrivate($identifyMethod, 'throwIfFileNotFound');
+			self::fail('Expected LibresignException to be thrown');
+		} catch (LibresignException $exception) {
+			self::assertSame(404, $exception->getCode());
+			self::assertStringContainsString('File not found', $exception->getMessage());
+		}
+
+		self::assertSame(['storage-user', 'previous-user'], $setUserIdCalls);
+	}
+
+	/**
+	 * @param null|callable(FolderService&MockObject):void $configureFolderService
+	 * @return array{Email, FolderService&MockObject}
+	 */
+	private function setupFileNotFoundContext(?int $nodeId, ?callable $configureFolderService = null): array {
+		$identifyMethod = $this->getClass();
+		$identifyMethod->getEntity()->setSignRequestId(500);
+
+		$signRequest = new SignRequest();
+		$signRequest->setFileId(700);
+
+		$file = new File();
+		$file->setUuid('file-uuid');
+		$file->setNodeType('file');
+		$file->setNodeId($nodeId);
+
+		$signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$signRequestMapper->method('getById')->with(500)->willReturn($signRequest);
+
+		$fileMapper = $this->createMock(FileMapper::class);
+		$fileMapper->method('getById')->with(700)->willReturn($file);
+		$fileMapper->method('getStorageUserIdByUuid')->with('file-uuid')->willReturn('storage-user');
+
+		$folderService = $this->createMock(FolderService::class);
+		if ($configureFolderService !== null) {
+			$configureFolderService($folderService);
+		}
+
+		$this->identifyService->method('getSignRequestMapper')->willReturn($signRequestMapper);
+		$this->identifyService->method('getFileMapper')->willReturn($fileMapper);
+		$this->identifyService->method('getFolderService')->willReturn($folderService);
+
+		return [$identifyMethod, $folderService];
 	}
 }

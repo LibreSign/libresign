@@ -150,9 +150,8 @@ class FileMapper extends CachedQBMapper {
 	public function getStorageUserIdByUuid(string $uuid): ?string {
 		$qb = $this->db->getQueryBuilder();
 
-		$qb->select('f.user_id', 'id.user_id AS id_docs_user_id', 'id.id AS id_docs_id')
+		$qb->select('f.user_id')
 			->from($this->getTableName(), 'f')
-			->leftJoin('f', 'libresign_id_docs', 'id', $qb->expr()->eq('f.id', 'id.file_id'))
 			->where($qb->expr()->eq('f.uuid', $qb->createNamedParameter($uuid)));
 
 		$result = $qb->executeQuery();
@@ -161,10 +160,6 @@ class FileMapper extends CachedQBMapper {
 
 		if (!$row) {
 			throw new DoesNotExistException('File not found');
-		}
-
-		if ($row['id_docs_id'] !== null && $row['id_docs_user_id'] !== null) {
-			return $row['id_docs_user_id'];
 		}
 
 		return $row['user_id'];
