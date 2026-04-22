@@ -18,6 +18,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\PrivateValidation;
+use OCA\Libresign\Middleware\Attribute\RequireFileAccess;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
@@ -353,6 +354,7 @@ class FileController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireFileAccess('nodeId')]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/thumbnail/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getThumbnail(
 		int $nodeId = -1,
@@ -369,9 +371,6 @@ class FileController extends AEnvironmentAwareController {
 
 		try {
 			$libreSignFile = $this->fileMapper->getByNodeId($nodeId);
-			if ($libreSignFile->getUserId() !== $this->userSession->getUser()->getUID()) {
-				return new DataResponse([], Http::STATUS_FORBIDDEN);
-			}
 
 			if ($libreSignFile->getNodeType() === 'envelope') {
 				if ($mimeFallback) {
@@ -411,6 +410,7 @@ class FileController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireFileAccess('fileId')]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/thumbnail/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getThumbnailByFileId(
 		int $fileId = -1,
@@ -427,9 +427,6 @@ class FileController extends AEnvironmentAwareController {
 
 		try {
 			$libreSignFile = $this->fileMapper->getById($fileId);
-			if ($libreSignFile->getUserId() !== $this->userSession->getUser()->getUID()) {
-				return new DataResponse([], Http::STATUS_FORBIDDEN);
-			}
 
 			if ($libreSignFile->getNodeType() === 'envelope') {
 				if ($mimeFallback) {
