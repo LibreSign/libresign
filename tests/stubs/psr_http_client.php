@@ -13,4 +13,3 @@ namespace Psr\Http\Client {
 	interface ClientInterface {
 	}
 }
-
