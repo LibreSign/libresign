@@ -39,23 +39,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->openedEmailStorage = $storage;
 	}
 
-	#[Given('the response should have one of these status codes :statusCodes')]
-	public function theResponseShouldHaveOneOfTheseStatusCodes(string $statusCodes): void {
-		$allowedStatusCodes = array_map(
-			'intval',
-			array_filter(
-				array_map('trim', explode(',', $statusCodes)),
-				fn (string $value): bool => $value !== ''
-			)
-		);
-		Assert::assertNotEmpty($allowedStatusCodes, 'Expected at least one allowed status code.');
-		Assert::assertContains(
-			$this->response->getStatusCode(),
-			$allowedStatusCodes,
-			'Unexpected response status code.'
-		);
-	}
-
 	protected function beforeRequest(string $fullUrl, array $options): array {
 		[$fullUrl, $options] = parent::beforeRequest($fullUrl, $options);
 		$options = $this->parseFormParams($options);
