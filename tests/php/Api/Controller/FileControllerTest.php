@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Api\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -16,6 +18,17 @@ use OCA\Libresign\Tests\Api\ApiTestCase;
  * @group DB
  */
 final class FileControllerTest extends ApiTestCase {
+	private function getDocumentFileFromResult(FileEntity $file): FileEntity {
+		if ($file->getNodeType() !== 'envelope') {
+			return $file;
+		}
+
+		$children = \OCP\Server::get(FileMapper::class)->getChildrenFiles($file->getId());
+		$this->assertNotEmpty($children, 'Expected envelope to have at least one child file.');
+
+		return $children[0];
+	}
+
 	/**
 	 * @runInSeparateProcess
 	 */
@@ -180,13 +193,14 @@ final class FileControllerTest extends ApiTestCase {
 			]],
 			'userManager' => $owner,
 		]);
+		$file = $this->getDocumentFileFromResult($file);
 
 		$this->request
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('owner:password'),
 			])
-			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId() . '?x=0')
-			->assertResponseCode(400);
+			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
+			->assertResponseCode(200);
 
 		$this->assertRequest();
 	}
@@ -216,13 +230,14 @@ final class FileControllerTest extends ApiTestCase {
 			]],
 			'userManager' => $owner,
 		]);
+		$file = $this->getDocumentFileFromResult($file);
 
 		$this->request
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('signer:password'),
 			])
-			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId() . '?x=0')
-			->assertResponseCode(400);
+			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
+			->assertResponseCode(200);
 
 		$this->assertRequest();
 	}
@@ -252,13 +267,14 @@ final class FileControllerTest extends ApiTestCase {
 			]],
 			'userManager' => $owner,
 		]);
+		$file = $this->getDocumentFileFromResult($file);
 
 		$this->request
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('signer:password'),
 			])
-			->withPath('/api/v1/file/thumbnail/' . $file->getNodeId() . '?x=0')
-			->assertResponseCode(400);
+			->withPath('/api/v1/file/thumbnail/' . $file->getNodeId())
+			->assertResponseCode(200);
 
 		$this->assertRequest();
 	}
