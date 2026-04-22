@@ -16,6 +16,7 @@ use OCA\Libresign\Tests\Api\ApiTestCase;
  * @group DB
  */
 final class FileControllerTest extends ApiTestCase {
+
 	/**
 	 * @runInSeparateProcess
 	 */
@@ -156,6 +157,70 @@ final class FileControllerTest extends ApiTestCase {
 				'name' => 'test',
 				'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			]);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testGetThumbnailByNonSigner(): void {
+		$owner = $this->createAccount('owner', 'password');
+		$this->createAccount('signer', 'password');
+		$this->createAccount('nonsigner', 'password');
+		$this->getMockAppConfig();
+
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test.pdf',
+			'signers' => [[
+				'identifyMethods' => [[
+					'method' => 'account',
+					'mandatory' => 0,
+					'value' => 'signer',
+				]],
+			]],
+			'userManager' => $owner,
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('nonsigner:password'),
+			])
+			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
+			->assertResponseCode(403);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testGetThumbnailByNodeIdForNonSigner(): void {
+		$owner = $this->createAccount('owner', 'password');
+		$this->createAccount('signer', 'password');
+		$this->createAccount('nonsigner', 'password');
+		$this->getMockAppConfig();
+
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test.pdf',
+			'signers' => [[
+				'identifyMethods' => [[
+					'method' => 'account',
+					'mandatory' => 0,
+					'value' => 'signer',
+				]],
+			]],
+			'userManager' => $owner,
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('nonsigner:password'),
+			])
+			->withPath('/api/v1/file/thumbnail/' . $file->getNodeId())
+			->assertResponseCode(403);
 
 		$this->assertRequest();
 	}
