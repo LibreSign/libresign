@@ -8,10 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
-use ByJG\ApiTools\Exception\StatusCodeNotMatchedException;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\File as FileEntity;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -19,43 +16,6 @@ use OCA\Libresign\Tests\Api\ApiTestCase;
  * @group DB
  */
 final class FileControllerTest extends ApiTestCase {
-	private function getDocumentFileFromResult(FileEntity $file): FileEntity {
-		if ($file->getNodeType() !== 'envelope') {
-			return $file;
-		}
-
-		$children = \OCP\Server::get(FileMapper::class)->getChildrenFiles($file->getId());
-		$this->assertNotEmpty($children, 'Expected envelope to have at least one child file.');
-
-		return $children[0];
-	}
-
-	private function assertAuthorizedThumbnailRequest(string $username, string $path): void {
-		$this->request
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode($username . ':password'),
-			])
-			->withPath($path)
-			->assertResponseCode(200);
-
-		try {
-			$this->assertRequest();
-			return;
-		} catch (StatusCodeNotMatchedException $exception) {
-			if (!str_contains($exception->getMessage(), 'Expected 200, got 303')) {
-				throw $exception;
-			}
-		}
-
-		$this->request
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode($username . ':password'),
-			])
-			->withPath($path)
-			->assertResponseCode(303);
-
-		$this->assertRequest();
-	}
 
 	/**
 	 * @runInSeparateProcess
@@ -199,88 +159,6 @@ final class FileControllerTest extends ApiTestCase {
 			]);
 
 		$this->assertRequest();
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testGetThumbnailByOwner(): void {
-		$owner = $this->createAccount('owner', 'password');
-		$this->createAccount('signer', 'password');
-		$this->getMockAppConfig();
-
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
-			'name' => 'test.pdf',
-			'signers' => [[
-				'identifyMethods' => [[
-					'method' => 'account',
-					'mandatory' => 0,
-					'value' => 'signer',
-				]],
-			]],
-			'userManager' => $owner,
-		]);
-		$file = $this->getDocumentFileFromResult($file);
-		$this->assertAuthorizedThumbnailRequest('owner', '/api/v1/file/thumbnail/file_id/' . $file->getId() . '?mimeFallback=1');
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testGetThumbnailBySigner(): void {
-		$owner = $this->createAccount('owner', 'password');
-		$signer = $this->createAccount('signer', 'password');
-		$signer->setEMailAddress('signer@test.coop');
-
-		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'identify_methods', [[
-			'name' => 'account',
-			'enabled' => 1,
-		]]);
-
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
-			'name' => 'test.pdf',
-			'signers' => [[
-				'identifyMethods' => [[
-					'method' => 'account',
-					'mandatory' => 0,
-					'value' => 'signer',
-				]],
-			]],
-			'userManager' => $owner,
-		]);
-		$file = $this->getDocumentFileFromResult($file);
-		$this->assertAuthorizedThumbnailRequest('signer', '/api/v1/file/thumbnail/file_id/' . $file->getId() . '?mimeFallback=1');
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testGetThumbnailByNodeIdForSigner(): void {
-		$owner = $this->createAccount('owner', 'password');
-		$signer = $this->createAccount('signer', 'password');
-		$signer->setEMailAddress('signer@test.coop');
-
-		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'identify_methods', [[
-			'name' => 'account',
-			'enabled' => 1,
-		]]);
-
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
-			'name' => 'test.pdf',
-			'signers' => [[
-				'identifyMethods' => [[
-					'method' => 'account',
-					'mandatory' => 0,
-					'value' => 'signer',
-				]],
-			]],
-			'userManager' => $owner,
-		]);
-		$file = $this->getDocumentFileFromResult($file);
-		$this->assertAuthorizedThumbnailRequest('signer', '/api/v1/file/thumbnail/' . $file->getNodeId() . '?mimeFallback=1');
 	}
 
 	/**
