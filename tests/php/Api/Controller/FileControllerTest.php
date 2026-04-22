@@ -199,8 +199,8 @@ final class FileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('owner:password'),
 			])
-			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
-			->assertResponseCode(200);
+			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId() . '?mimeFallback=1')
+			->assertResponseCode(303);
 
 		$this->assertRequest();
 	}
@@ -236,8 +236,8 @@ final class FileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('signer:password'),
 			])
-			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
-			->assertResponseCode(200);
+			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId() . '?mimeFallback=1')
+			->assertResponseCode(303);
 
 		$this->assertRequest();
 	}
@@ -273,8 +273,8 @@ final class FileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('signer:password'),
 			])
-			->withPath('/api/v1/file/thumbnail/' . $file->getNodeId())
-			->assertResponseCode(200);
+			->withPath('/api/v1/file/thumbnail/' . $file->getNodeId() . '?mimeFallback=1')
+			->assertResponseCode(303);
 
 		$this->assertRequest();
 	}
