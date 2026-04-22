@@ -92,11 +92,12 @@ class FileSearchProvider implements IProvider {
 				$icon = $this->mimeTypeDetector->mimeTypeIcon($node->getMimetype());
 
 				$thumbnailUrl = $this->urlGenerator->linkToRouteAbsolute(
-					'core.Preview.getPreviewByFileId',
+					'ocs.libresign.File.getThumbnailByFileId',
 					[
+						'apiVersion' => 'v1',
 						'x' => 32,
 						'y' => 32,
-						'fileId' => $node->getId()
+						'fileId' => $file->getId()
 					]
 				);
 

@@ -45,5 +45,6 @@
     </issueHandlers>
     <stubs>
         <file name="tests/stubs/oc_hooks_emitter.php" />
+        <file name="tests/stubs/psr_http_client.php" />
     </stubs>
 </psalm>
