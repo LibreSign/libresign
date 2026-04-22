@@ -159,4 +159,171 @@ final class FileControllerTest extends ApiTestCase {
 
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testGetThumbnailByOwner(): void {
+		$owner = $this->createAccount('owner', 'password');
+		$this->createAccount('signer', 'password');
+		$this->getMockAppConfig();
+
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test',
+			'signers' => [[
+				'identifyMethods' => [[
+					'method' => 'account',
+					'mandatory' => 0,
+					'value' => 'signer',
+				]],
+			]],
+			'userManager' => $owner,
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('owner:password'),
+			])
+			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
+			->assertResponseCode(200);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testGetThumbnailBySigner(): void {
+		$owner = $this->createAccount('owner', 'password');
+		$signer = $this->createAccount('signer', 'password');
+		$signer->setEMailAddress('signer@test.coop');
+
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'identify_methods', [[
+			'name' => 'account',
+			'enabled' => 1,
+		]]);
+
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test',
+			'signers' => [[
+				'identifyMethods' => [[
+					'method' => 'account',
+					'mandatory' => 0,
+					'value' => 'signer',
+				]],
+			]],
+			'userManager' => $owner,
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('signer:password'),
+			])
+			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
+			->assertResponseCode(200);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testGetThumbnailByNodeIdForSigner(): void {
+		$owner = $this->createAccount('owner', 'password');
+		$signer = $this->createAccount('signer', 'password');
+		$signer->setEMailAddress('signer@test.coop');
+
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'identify_methods', [[
+			'name' => 'account',
+			'enabled' => 1,
+		]]);
+
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test',
+			'signers' => [[
+				'identifyMethods' => [[
+					'method' => 'account',
+					'mandatory' => 0,
+					'value' => 'signer',
+				]],
+			]],
+			'userManager' => $owner,
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('signer:password'),
+			])
+			->withPath('/api/v1/file/thumbnail/' . $file->getNodeId())
+			->assertResponseCode(200);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testGetThumbnailByNonSigner(): void {
+		$owner = $this->createAccount('owner', 'password');
+		$this->createAccount('signer', 'password');
+		$this->createAccount('nonsigner', 'password');
+		$this->getMockAppConfig();
+
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test',
+			'signers' => [[
+				'identifyMethods' => [[
+					'method' => 'account',
+					'mandatory' => 0,
+					'value' => 'signer',
+				]],
+			]],
+			'userManager' => $owner,
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('nonsigner:password'),
+			])
+			->withPath('/api/v1/file/thumbnail/file_id/' . $file->getId())
+			->assertResponseCode(403);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testGetThumbnailByNodeIdForNonSigner(): void {
+		$owner = $this->createAccount('owner', 'password');
+		$this->createAccount('signer', 'password');
+		$this->createAccount('nonsigner', 'password');
+		$this->getMockAppConfig();
+
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'test',
+			'signers' => [[
+				'identifyMethods' => [[
+					'method' => 'account',
+					'mandatory' => 0,
+					'value' => 'signer',
+				]],
+			]],
+			'userManager' => $owner,
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('nonsigner:password'),
+			])
+			->withPath('/api/v1/file/thumbnail/' . $file->getNodeId())
+			->assertResponseCode(403);
+
+		$this->assertRequest();
+	}
 }
