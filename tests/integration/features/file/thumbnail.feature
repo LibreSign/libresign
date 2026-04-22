@@ -12,6 +12,12 @@ Feature: file-thumbnail
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
     And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
+    And as user "admin"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/thumbnail/file_id/<FILE_ID>"
+    Then the response should have a status code 200
+    And as user "signer1"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/thumbnail/file_id/<FILE_ID>"
+    Then the response should have a status code 200
     # x=0 triggers a deterministic 400 in controller for authorized users,
     # while unauthorized users are blocked earlier by middleware with 403.
     And as user "admin"
