@@ -33,6 +33,7 @@ namespace OCA\Libresign;
  *
  * @psalm-type LibresignFolderSettings = array{
  *     folderName?: string,
+ *     path?: string,
  *     separator?: string,
  *     folderPatterns?: array{
  *         name: string,
