@@ -187,6 +187,14 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->davRequest($user, 'PROPFIND', $path, $body, ['Depth' => '0']);
 	}
 
+	#[Given('user :user sends WebDAV :method to :path')]
+	public function userSendsWebDavRequest(string $user, string $method, string $path): void {
+		$this->setCurrentUser($user);
+		$normalizedMethod = strtoupper(trim($method));
+		Assert::assertContains($normalizedMethod, ['DELETE', 'PUT', 'PROPFIND', 'GET', 'HEAD', 'MOVE', 'COPY', 'MKCOL'], 'Unsupported WebDAV method');
+		$this->davRequest($user, $normalizedMethod, $path);
+	}
+
 	#[Given('the WebDAV response should contain property :property with value :value')]
 	public function theWebDavResponseShouldContainPropertyWithValue(string $property, string $value): void {
 		$result = $this->parseXml()->xpath("//nc:$property");
