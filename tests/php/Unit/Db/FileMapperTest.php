@@ -17,7 +17,7 @@ use OCP\Server;
 /**
  * @group DB
  */
-final class FileMapperStorageUserResolutionTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class FileMapperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileMapper $fileMapper;
 	private IdDocsMapper $idDocsMapper;
 
