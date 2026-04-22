@@ -59,6 +59,22 @@ Feature: page/validate
     When sending "get" to "/apps/libresign/pdf/<SIGN_REQUEST_UUID>"
     Then the response should have a status code 200
 
+  Scenario: Unauthenticated email signer can fetch PDF using sign request UUID
+    Given as user "admin"
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"can_create_account":false}] |
+    And my inbox is empty
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file    | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | signers | [{"displayName":"External Signer","identifyMethods":[{"method":"email","value":"external@domain.test"}]}] |
+      | name    | external-email-pdf |
+    Then the response should have a status code 200
+    And I open the latest email to "external@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I fetch the signer UUID from opened email
+    And as user ""
+    When sending "get" to "/apps/libresign/pdf/<SIGN_REQUEST_UUID>"
+    Then the response should have a status code 200
+
   Scenario: Missing sign request UUID returns controlled File not found response
     Given as user "signer1"
     And sending "get" to "/apps/libresign/pdf/fakeuuid-6037-47be-9d9e-3d90b9d0a3ea"
