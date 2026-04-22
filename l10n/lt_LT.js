@@ -94,7 +94,7 @@ OC.L10N.register(
     "Copy to clipboard" : "Kopijuoti į iškarpinę",
     "Files" : "Failai",
     "Settings" : "Nustatymai",
-    "Bold" : "Pusjuodis",
+    "Bold" : "Paryškinta",
     "Italic" : "Kursyvas",
     "Underline" : "Pabrauktas",
     "Undo" : "Atšaukti",
