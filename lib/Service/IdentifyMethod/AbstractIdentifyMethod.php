@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
-use OC\AppFramework\Http as AppFrameworkHttp;
 use DateTime;
 use InvalidArgumentException;
+use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Enum\FileStatus;
