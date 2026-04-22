@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use OC\AppFramework\Http as AppFrameworkHttp;
 use DateTime;
 use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
@@ -189,6 +190,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 
 		foreach ($filesToCheck as $fileInfo) {
+			if (!is_int($fileInfo['nodeId'])) {
+				throw new LibresignException(json_encode([
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [['message' => $this->identifyService->getL10n()->t('File not found')]],
+				]), AppFrameworkHttp::STATUS_NOT_FOUND);
+			}
+
 			$storageUserId = $this->identifyService->getFileMapper()
 				->getStorageUserIdByUuid($fileInfo['uuid']);
 			$folderService = $this->identifyService->getFolderService();
@@ -196,12 +204,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			$folderService->setUserId($storageUserId);
 			try {
 				$folderService->getFileByNodeId($fileInfo['nodeId']);
-				$folderService->setUserId($previousUserId);
 			} catch (NotFoundException) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
 					'errors' => [['message' => $this->identifyService->getL10n()->t('File not found')]],
-				]));
+				]), AppFrameworkHttp::STATUS_NOT_FOUND);
+			} finally {
+				$folderService->setUserId($previousUserId);
 			}
 		}
 	}
