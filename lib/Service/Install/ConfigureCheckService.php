@@ -165,11 +165,6 @@ class ConfigureCheckService {
 			return $this->result['jsignpdf'];
 		}
 
-		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
-		if ($signatureEngine !== 'JSignPdf') {
-			return [];
-		}
-
 		$jsignpdJarPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
 			$resultOfVerify = $this->verify('jsignpdf');

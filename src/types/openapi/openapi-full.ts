@@ -1573,7 +1573,7 @@ export type components = {
             data: components["schemas"]["ActiveSigningItem"][];
         };
         /** @enum {string} */
-        AdminSignatureEngine: "JSignPdf" | "PhpNative";
+        AdminSignatureEngine: "JSignPdf";
         /** @enum {string} */
         AdminSigningMode: "sync" | "async";
         /** @enum {string} */

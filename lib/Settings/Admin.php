@@ -118,10 +118,6 @@ class Admin implements ISettings {
 
 	/** @return LibresignAdminSignatureEngine */
 	private function getSignatureEngineInitialState(): string {
-		$engine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
-		if ($engine === 'PhpNative') {
-			return $engine;
-		}
 		return 'JSignPdf';
 	}
 

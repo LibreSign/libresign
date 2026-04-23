@@ -7,7 +7,6 @@
 	<div>
 		<SupportProject />
 		<CertificateEngine />
-		<SignatureEngine />
 		<DownloadBinaries />
 		<ConfigureCheck />
 		<RootCertificateCfssl />
@@ -51,7 +50,6 @@ import LegalInformation from './LegalInformation.vue'
 import Reminders from './Reminders.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
-import SignatureEngine from './SignatureEngine.vue'
 import SignatureFlow from './SignatureFlow.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
 import SignatureStamp from './SignatureStamp.vue'
