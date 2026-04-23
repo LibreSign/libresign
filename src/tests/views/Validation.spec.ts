@@ -38,6 +38,7 @@ type ValidationVm = {
 	handleValidationSuccess: (data: Record<string, any>) => void
 	handleSigningComplete: (file: Record<string, any> | null) => void
 	refreshAfterAsyncSigning: () => Promise<void>
+	validateByUUID: (uuid: string, options?: { suppressLoading?: boolean }) => Promise<void>
 	$nextTick: () => Promise<void>
 }
 
@@ -983,6 +984,53 @@ describe('Validation.vue - Business Logic', () => {
 
 				expect(mockAddConfetti).toHaveBeenCalledOnce()
 			})
+		})
+	})
+
+	describe('validation API error handling', () => {
+		const VALID_UUID = '550e8400-e29b-41d4-a716-446655440000'
+
+		it('redirects to login when validation URL is private', async () => {
+			const hrefSpy = vi.spyOn(window.location, 'href', 'set')
+			vi.mocked(axios.get).mockRejectedValueOnce({
+				response: {
+					status: 401,
+					data: {
+						ocs: {
+							data: {
+								action: 1000,
+								redirect: '/index.php/login?redirect_url=%2Fapps%2Flibresign%2Fvalidation%2F550e8400-e29b-41d4-a716-446655440000',
+								errors: ['You are not logged in. Please log in.'],
+							},
+						},
+					},
+				},
+			})
+
+			await wrapper.vm.validateByUUID(VALID_UUID)
+
+			expect(hrefSpy).toHaveBeenCalledWith('/index.php/login?redirect_url=%2Fapps%2Flibresign%2Fvalidation%2F550e8400-e29b-41d4-a716-446655440000')
+			expect(wrapper.vm.validationErrorMessage).toBe(null)
+			hrefSpy.mockRestore()
+		})
+
+		it('shows string-based backend errors instead of generic fallback', async () => {
+			vi.mocked(axios.get).mockRejectedValueOnce({
+				response: {
+					status: 401,
+					data: {
+						ocs: {
+							data: {
+								errors: ['You are not logged in. Please log in.'],
+							},
+						},
+					},
+				},
+			})
+
+			await wrapper.vm.validateByUUID(VALID_UUID)
+
+			expect(wrapper.vm.validationErrorMessage).toBe('You are not logged in. Please log in.')
 		})
 	})
 
