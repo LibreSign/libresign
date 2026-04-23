@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "683fc6c9ae20a480af7b531acfea05bb",
+    "content-hash": "ecf8085cd1193a30abd69ef25963e320",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -197,6 +197,89 @@
                 "source": "https://github.com/jeidison/signer-php/tree/v1.0.1"
             },
             "time": "2026-03-17T00:40:40+00:00"
+        },
+        {
+            "name": "libresign/pdf-signature-validator",
+            "version": "dev-backport/7525/stable33-manual",
+            "dist": {
+                "type": "path",
+                "url": "../pdf-signature-validator",
+                "reference": "f8eba5ac5e43315f3856645e46e95eb21be4f742"
+            },
+            "require": {
+                "php": "^8.2",
+                "phpseclib/phpseclib": "^3.0"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "^1.8",
+                "roave/security-advisories": "dev-latest"
+            },
+            "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": true,
+                    "forward-command": true
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "LibreSign\\PdfSignatureValidator\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "LibreSign\\PdfSignatureValidator\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "bin": [
+                    "echo 'bin not installed'"
+                ],
+                "lint": [
+                    "find src tests -name '*.php' -print0 | xargs -0 -n1 php -l"
+                ],
+                "cs:check": [
+                    "php-cs-fixer fix --dry-run --diff"
+                ],
+                "cs:fix": [
+                    "php-cs-fixer fix"
+                ],
+                "phpmd": [
+                    "phpmd src,tests text phpmd.xml"
+                ],
+                "psalm": [
+                    "psalm --no-cache --threads=$(nproc)"
+                ],
+                "rector:check": [
+                    "rector --dry-run"
+                ],
+                "rector:fix": [
+                    "rector"
+                ],
+                "test:unit": [
+                    "phpunit --colors=always --fail-on-warning --fail-on-risky"
+                ],
+                "test:coverage": [
+                    "XDEBUG_MODE=coverage phpunit --coverage-text"
+                ],
+                "test:mutation": [
+                    "infection --threads=$(nproc) --skip-initial-tests"
+                ],
+                "post-install-cmd": [
+                    "@composer bin all install --ansi"
+                ],
+                "post-update-cmd": [
+                    "@composer bin all install --ansi"
+                ]
+            },
+            "license": [
+                "AGPL-3.0-or-later"
+            ],
+            "description": "High-quality PDF signature extraction and validation primitives for LibreSign and external consumers.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -1902,6 +1985,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "libresign/pdf-signature-validator": 20,
         "nextcloud/ocp": 20,
         "roave/security-advisories": 20
     },
