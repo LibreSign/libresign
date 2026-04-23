@@ -218,6 +218,12 @@ git commit -s -m "fix: validate certificate chain order
 
 Certificate chains with more than 3 certificates were failing
 validation due to incorrect ordering. The OrderCertificatesTrait
+
+### Changelog Formatting
+When preparing release changelog entries:
+- Put the description first and the reference at the end of the line.
+- Use markdown links to the pull request in this format: `[#1234](https://github.com/LibreSign/libresign/pull/1234)`.
+- Do not place raw PR numbers or commit hashes at the beginning of the bullet item.
 now properly orders from end-entity to root.
 
 Fixes #1234"
