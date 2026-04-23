@@ -9,6 +9,7 @@ namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
@@ -18,12 +19,12 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Fixtures\PdfFixtureCatalog;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
 use OCP\IL10N;
-use OCP\ITempManager;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -35,13 +36,14 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private IL10N $l10n;
 	private FooterHandler&MockObject $footerHandler;
-	private ITempManager $tempManager;
 	private LoggerInterface&MockObject $logger;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IEngineHandler&MockObject $certificateEngine;
 	private CaIdentifierService&MockObject $caIdentifierService;
 	private DocMdpHandler&MockObject $docMdpHandler;
 	private CrlService&MockObject $crlService;
+	private PdfSignatureValidationService&MockObject $pdfSignatureValidationService;
+	private PdfSignatureExtractor $pdfSignatureExtractor;
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
@@ -50,7 +52,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->certificateEngine = $this->createMock(IEngineHandler::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
-		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
@@ -71,11 +72,12 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->certificateEngineFactory,
 					$this->l10n,
 					$this->footerHandler,
-					$this->tempManager,
 					$this->logger,
 					$this->caIdentifierService,
 					$this->docMdpHandler,
 					$this->crlService,
+					$this->pdfSignatureValidationService,
+					$this->pdfSignatureExtractor,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -86,11 +88,12 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->certificateEngineFactory,
 			$this->l10n,
 			$this->footerHandler,
-			$this->tempManager,
 			$this->logger,
 			$this->caIdentifierService,
 			$this->docMdpHandler,
 			$this->crlService,
+			$this->pdfSignatureValidationService,
+			$this->pdfSignatureExtractor,
 		);
 	}
 
