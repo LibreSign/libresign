@@ -26,7 +26,7 @@ vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 vi.mock('@nextcloud/capabilities')
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((url) => `https://example.com${url}`),
+	generateOcsUrl: vi.fn((url, params) => `https://example.com${url.replace('{fileId}', String(params?.fileId ?? '')).replace('{nodeId}', String(params?.nodeId ?? ''))}`),
 	generateUrl: vi.fn((url, params) => url.replace('{uuid}', params.uuid).replace('{nodeId}', params.nodeId)),
 }))
 vi.mock('../../../utils/viewer.js', () => ({
@@ -364,16 +364,24 @@ describe('EnvelopeFilesList', () => {
 	})
 
 	describe('RULE: getPreviewUrl constructs thumbnail URL with parameters', () => {
-		it('builds URL with nodeId and parameters', () => {
+		it('prefers file id URLs and appends preview parameters', () => {
 			wrapper = createWrapper()
 
-			const url = wrapper.vm.getPreviewUrl({ nodeId: 123 })
+			const url = wrapper.vm.getPreviewUrl({ id: 123, nodeId: 456 })
 
-			expect(url).toContain('nodeId')
+			expect(url).toContain('/apps/libresign/api/v1/file/thumbnail/file_id/123')
 			expect(url).toContain('x=32')
 			expect(url).toContain('y=32')
 			expect(url).toContain('mimeFallback=true')
 			expect(url).toContain('a=1')
+		})
+
+		it('falls back to node id URLs when file id is absent', () => {
+			wrapper = createWrapper()
+
+			const url = wrapper.vm.getPreviewUrl({ nodeId: 123 })
+
+			expect(url).toContain('/apps/libresign/api/v1/file/thumbnail/123')
 		})
 
 		it('returns null when no nodeId', () => {

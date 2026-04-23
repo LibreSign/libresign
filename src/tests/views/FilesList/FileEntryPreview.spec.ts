@@ -56,14 +56,21 @@ describe('FileEntryPreview.vue', () => {
 		expect(wrapper.vm.isEnvelope).toBe(true)
 	})
 
-	it('builds a thumbnail URL from the node id with list-size previews', () => {
+	it('prefers the file id thumbnail URL with list-size previews', () => {
+		const wrapper = createWrapper({ id: 7, nodeId: 42 })
+		const url = wrapper.vm.previewUrl as URL
+
+		expect(url.toString()).toContain('/apps/libresign/api/v1/file/thumbnail/file_id/7')
+		expect(url.searchParams.get('x')).toBe('32')
+		expect(url.searchParams.get('y')).toBe('32')
+		expect(url.searchParams.get('a')).toBe('1')
+	})
+
+	it('falls back to the node id thumbnail URL when the file id is absent', () => {
 		const wrapper = createWrapper({ nodeId: 42 })
 		const url = wrapper.vm.previewUrl as URL
 
 		expect(url.toString()).toContain('/apps/libresign/api/v1/file/thumbnail/42')
-		expect(url.searchParams.get('x')).toBe('32')
-		expect(url.searchParams.get('y')).toBe('32')
-		expect(url.searchParams.get('a')).toBe('1')
 	})
 
 	it('uses grid preview sizes when the user config enables grid mode', () => {

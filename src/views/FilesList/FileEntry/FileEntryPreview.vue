@@ -65,13 +65,13 @@ const previewUrl = computed(() => {
 	}
 
 	let nextPreviewUrl = ''
-	if (props.source?.nodeId) {
-		nextPreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
-			nodeId: props.source.nodeId,
-		})
-	} else if (props.source?.id) {
+	if (props.source?.id) {
 		nextPreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
 			fileId: props.source.id,
+		})
+	} else if (props.source?.nodeId) {
+		nextPreviewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
+			nodeId: props.source.nodeId,
 		})
 	} else {
 		nextPreviewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
