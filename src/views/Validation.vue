@@ -137,6 +137,7 @@ import {
 	MODIFICATION_VIOLATION,
 	toValidationDocument,
 } from '../services/validationDocument'
+import { ACTION_CODES } from '../helpers/ActionMapping'
 import { normalizeRouteRecord } from '../services/routeNormalization.js'
 import logger from '../logger.js'
 import { useFilesStore } from '../store/files.js'
@@ -196,13 +197,17 @@ type StatusPresentation = {
 type ErrorMessageEntry = {
 	message?: string
 }
+type ValidationErrorEntry = ErrorMessageEntry | string
+type ValidationErrorPayload = {
+	errors?: ValidationErrorEntry[]
+	action?: number
+	redirect?: string
+}
 type ValidationErrorResponse = {
 	status?: number
 	data?: {
 		ocs?: {
-			data?: {
-				errors?: ErrorMessageEntry[]
-			}
+			data?: ValidationErrorPayload
 		}
 	}
 }
@@ -223,10 +228,27 @@ function isSignedDocumentStatus(status: unknown): boolean {
 }
 
 function getValidationErrorMessage(response: ValidationErrorResponse | undefined, fallback: string): string {
-	if (response?.data?.ocs?.data?.errors?.length) {
-		return response.data.ocs.data.errors[0]?.message || fallback
+	const errors = response?.data?.ocs?.data?.errors
+	if (errors?.length) {
+		const [firstError] = errors
+		if (typeof firstError === 'string' && firstError.length > 0) {
+			return firstError
+		}
+		if (typeof firstError?.message === 'string' && firstError.message.length > 0) {
+			return firstError.message
+		}
 	}
 	return fallback
+}
+
+function handleValidationRedirect(response: ValidationErrorResponse | undefined): boolean {
+	const action = response?.data?.ocs?.data?.action
+	const redirect = response?.data?.ocs?.data?.redirect
+	if (action !== ACTION_CODES.REDIRECT || typeof redirect !== 'string' || redirect.length === 0) {
+		return false
+	}
+	window.location.href = redirect
+	return true
 }
 
 const signStore = useSignStore()
@@ -333,6 +355,9 @@ async function upload(file: File) {
 			handleValidationSuccess(data.ocs.data)
 		})
 		.catch((error: { response?: ValidationErrorResponse }) => {
+			if (handleValidationRedirect(error.response)) {
+				return
+			}
 			const errorMsg = getValidationErrorMessage(error.response, t('libresign', 'Failed to validate document'))
 			setValidationError(errorMsg)
 		})
@@ -397,6 +422,9 @@ async function validateByUUID(uuid: string, { suppressLoading = false }: { suppr
 		})
 		.catch((error: { response?: ValidationErrorResponse }) => {
 			const response = error.response
+			if (handleValidationRedirect(response)) {
+				return
+			}
 			if (response?.status === 404) {
 				setValidationError(t('libresign', 'Document not found'))
 			} else {
@@ -419,6 +447,9 @@ async function validateByNodeID(nodeId: string, { suppressLoading = false }: { s
 		})
 		.catch((error: { response?: ValidationErrorResponse }) => {
 			const response = error.response
+			if (handleValidationRedirect(response)) {
+				return
+			}
 			if (response?.status === 404) {
 				setValidationError(t('libresign', 'Document not found'))
 			} else {
