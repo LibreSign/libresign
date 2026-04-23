@@ -744,9 +744,8 @@ describe('PdfEditor Component - Business Rules', () => {
 	})
 
 	describe('RULE: endInit emits measured dimensions', () => {
-		it('adjusts zoom when auto-fit is disabled and emits page measurements', async () => {
+		it('emits page measurements after init', async () => {
 			Object.assign(getPdfElements(), {
-				autoFitZoom: false,
 				adjustZoomToFit: vi.fn(),
 				pdfDocuments: [
 					{
@@ -761,7 +760,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			await wrapper.vm.endInit({ ready: true })
 
-			expect(getPdfElements().adjustZoomToFit).toHaveBeenCalledTimes(1)
+			expect(getPdfElements().adjustZoomToFit).not.toHaveBeenCalled()
 			expect(wrapper.emitted('pdf-editor:end-init')?.[0]?.[0]).toEqual({
 				ready: true,
 				measurement: {
