@@ -18,6 +18,29 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 12.4.3 - 2026-04-23
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Update translations
+- Bump dependencies
+
+### Fixes
+- avoid crash on hostless ldap crl urls [#7526](https://github.com/LibreSign/libresign/pull/7526)
+- stabilize root csr generation on openssl 3 [#7529](https://github.com/LibreSign/libresign/pull/7529)
+- return 404 when pdf node is missing [#7536](https://github.com/LibreSign/libresign/pull/7536)
+- enforce crl metadata with scoped legacy backfill [#7533](https://github.com/LibreSign/libresign/pull/7533)
+- restore folderservice userid in throwiffilenotfound finally block [#7541](https://github.com/LibreSign/libresign/pull/7541)
+- handle private validation url redirect and string error messages [#7545](https://github.com/LibreSign/libresign/pull/7545)
+- allow signer thumbnail access and prefer file_id preview urls [#7547](https://github.com/LibreSign/libresign/pull/7547)
+- restore horizontal pdf scroll on mobile [#7549](https://github.com/LibreSign/libresign/pull/7549)
+- remove mobile orientation signing hint [#7552](https://github.com/LibreSign/libresign/pull/7552)
+- fix min and max version [#7579](https://github.com/LibreSign/libresign/pull/7579)
+- fix version [#7580](https://github.com/LibreSign/libresign/pull/7580)
+
 ## 13.2.2 - 2026-04-08
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
