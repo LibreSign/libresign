@@ -4,7 +4,7 @@
 name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 filter-by-commitish: true
-pull-request-limit: 100
+pull-request-limit: 50
 history-limit: 50
 sort-by: merged_at
 sort-direction: ascending
