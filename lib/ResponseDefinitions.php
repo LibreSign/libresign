@@ -307,7 +307,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignAdminSigningMode = 'sync'|'async'
  * @psalm-type LibresignAdminWorkerType = 'local'|'external'
- * @psalm-type LibresignAdminSignatureEngine = 'JSignPdf'|'PhpNative'
+ * @psalm-type LibresignAdminSignatureEngine = 'JSignPdf'
  * @psalm-type LibresignDocMdpLevelOption = array{
  *     value: int,
  *     label: string,

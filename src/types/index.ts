@@ -92,7 +92,6 @@ export type FileStatusText = FileListEntry['statusText']
 export type SelectedFileView = Pick<FileListEntry, 'id' | 'nodeId' | 'name' | 'status' | 'statusText'>
 export type SigningModeState = 'sync' | 'async'
 export type WorkerTypeState = 'local' | 'external'
-export type SignatureEngineId = 'JSignPdf' | 'PhpNative'
 export type CertificateEngineId = 'openssl' | 'cfssl' | 'none'
 
 export type AdminDocMdpLevelOption = {
@@ -107,7 +106,7 @@ export type AdminDocMdpConfigState = {
 }
 export type AdminInitialState = {
 	docmdp_config: AdminDocMdpConfigState
-	signature_engine: SignatureEngineId
+	signature_engine: 'JSignPdf'
 	signing_mode: SigningModeState
 	worker_type: WorkerTypeState
 	parallel_workers: string

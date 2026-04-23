@@ -366,9 +366,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(1, $enqueued);
 	}
 
-	public function testGetPdfToSignThrowsWhenPhpNativeAndJavaPathIsMissing(): void {
-		$this->appConfig->setValueString('libresign', 'signature_engine', 'PhpNative');
-
+	public function testGetPdfToSignThrowsWhenJavaPathIsMissing(): void {
 		$service = $this->getService(['getSignedFile', 'getSigners']);
 		$libreSignFile = new File();
 		$libreSignFile->setId(10);

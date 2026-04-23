@@ -15,7 +15,6 @@ describe('Settings.vue', () => {
 				stubs: {
 					SupportProject: { template: '<div class="support-project-stub" />' },
 					CertificateEngine: true,
-					SignatureEngine: true,
 					DownloadBinaries: true,
 					ConfigureCheck: true,
 					RootCertificateCfssl: true,
@@ -43,7 +42,7 @@ describe('Settings.vue', () => {
 		})
 
 		expect(wrapper.find('.support-project-stub').exists()).toBe(true)
-		expect(wrapper.findAllComponents({ name: 'SignatureEngine' })).toHaveLength(1)
+		expect(wrapper.findAllComponents({ name: 'SignatureEngine' })).toHaveLength(0)
 		expect(wrapper.findAllComponents({ name: 'Reminders' })).toHaveLength(1)
 	})
 
@@ -53,7 +52,6 @@ describe('Settings.vue', () => {
 				stubs: {
 					SupportProject: true,
 					CertificateEngine: true,
-					SignatureEngine: true,
 					DownloadBinaries: true,
 					ConfigureCheck: true,
 					RootCertificateCfssl: true,
