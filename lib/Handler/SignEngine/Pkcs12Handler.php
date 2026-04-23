@@ -495,12 +495,10 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	private function getHandler(): SignEngineHandler {
-		$property = 'jSignPdfHandler';
-		$classHandler = JSignPdfHandler::class;
-		if (!$this->$property instanceof $classHandler) {
-			$this->$property = \OCP\Server::get($classHandler);
+		if (!$this->jSignPdfHandler instanceof JSignPdfHandler) {
+			$this->jSignPdfHandler = \OCP\Server::get(JSignPdfHandler::class);
 		}
-		return $this->$property;
+		return $this->jSignPdfHandler;
 	}
 
 	#[\Override]
