@@ -18,6 +18,51 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 13.2.3 - 2026-04-23
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Update translations
+- Bump dependencies
+
+### Fixes
+- #7527 avoid crash on hostless ldap crl urls
+- #7530 stabilize root csr generation on openssl 3
+- #7535 return 404 when pdf node is missing
+- #7532 enforce crl metadata with scoped legacy backfill
+- #7542 restore folderservice userid in throwiffilenotfound finally block
+- #7546 handle private validation url redirect and string error messages
+- #7548 allow signer thumbnail access and prefer file_id preview urls
+- #7550 restore horizontal pdf scroll on mobile
+- #7553 remove mobile orientation signing hint
+- #7582 dependency version stable33
+
+## 12.4.3 - 2026-04-23
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Update translations
+- Bump dependencies
+
+### Fixes
+- #7526 avoid crash on hostless ldap crl urls
+- #7529 stabilize root csr generation on openssl 3
+- #7536 return 404 when pdf node is missing
+- #7533 enforce crl metadata with scoped legacy backfill
+- #7541 restore folderservice userid in throwiffilenotfound finally block
+- #7545 handle private validation url redirect and string error messages
+- #7547 allow signer thumbnail access and prefer file_id preview urls
+- #7549 restore horizontal pdf scroll on mobile
+- #7552 remove mobile orientation signing hint
+- #7579 fix min and max version
+- #7580 fix version
+
 ## 13.2.2 - 2026-04-08
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
