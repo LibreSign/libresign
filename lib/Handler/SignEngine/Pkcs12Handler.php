@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\SignEngine;
 
-use DateTime;
+use LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -18,17 +18,16 @@ use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
-use OCP\ITempManager;
 use phpseclib3\File\ASN1;
 use Psr\Log\LoggerInterface;
 
 class Pkcs12Handler extends SignEngineHandler {
 	use OrderCertificatesTrait;
 	protected string $certificate = '';
-	private array $signaturesFromPoppler = [];
 	private ?JSignPdfHandler $jSignPdfHandler = null;
 	private ?PhpNativeHandler $phpNativeHandler = null;
 	private string $rootCertificatePem = '';
@@ -40,11 +39,12 @@ class Pkcs12Handler extends SignEngineHandler {
 		protected CertificateEngineFactory $certificateEngineFactory,
 		private IL10N $l10n,
 		private FooterHandler $footerHandler,
-		private ITempManager $tempManager,
 		private LoggerInterface $logger,
 		private CaIdentifierService $caIdentifierService,
 		private DocMdpHandler $docMdpHandler,
 		private CrlService $crlService,
+		private PdfSignatureValidationService $pdfSignatureValidationService,
+		private PdfSignatureExtractor $pdfSignatureExtractor,
 	) {
 		parent::__construct($l10n, $folderService, $logger);
 	}
@@ -92,28 +92,40 @@ class Pkcs12Handler extends SignEngineHandler {
 	#[\Override]
 	public function getCertificateChain($resource): array {
 		$certificates = [];
+		$nativeMetadata = array_values($this->extractNativeSignatureMetadata($resource));
+		$nativeValidation = array_values($this->pdfSignatureValidationService->validateFromResource($resource));
+		$index = 0;
 
 		foreach ($this->getSignatures($resource) as $signature) {
 			if (!$signature) {
 				continue;
 			}
 
-			$result = $this->processSignature($resource, $signature);
+			$result = $this->processSignature(
+				$resource,
+				$signature,
+				$nativeMetadata[$index] ?? ($nativeMetadata[0] ?? []),
+				$nativeValidation[$index] ?? ($nativeValidation[0] ?? [])
+			);
 
 			if (empty($result['chain'])) {
 				continue;
 			}
 
 			$certificates[] = $result;
+			$index++;
 		}
 		return $certificates;
 	}
 
-	private function processSignature($resource, ?string $signature): array {
+	private function processSignature($resource, ?string $signature, array $metadata = [], array $validation = []): array {
 		$result = [];
 
 		if (!$signature) {
-			$result['chain'][0]['signature_validation'] = $this->getReadableSigState('Digest Mismatch.');
+			$result['chain'][0]['signature_validation'] = [
+				'id' => 3,
+				'label' => $this->l10n->t('Digest mismatch.'),
+			];
 			return $result;
 		}
 
@@ -123,7 +135,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		$chain = $this->extractCertificateChain($signature);
 		if (!empty($chain)) {
 			$result['chain'] = $this->orderCertificates($chain);
-			$result = $this->enrichLeafWithPopplerData($resource, $result);
+			$result = $this->enrichLeafWithNativeData($result, $metadata, $validation);
 		}
 
 		$result = $this->extractDocMdpData($resource, $result);
@@ -275,149 +287,57 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $this->rootCertificatePem;
 	}
 
-	private function enrichLeafWithPopplerData($resource, array $result): array {
+	private function enrichLeafWithNativeData(array $result, array $metadata, array $validation): array {
 		if (empty($result['chain'])) {
 			return $result;
 		}
 
-		$popplerOnlyFields = ['field', 'range', 'certificate_validation'];
-		if (!isset($result['chain'][0]['subject'])) {
-			return $result;
-		}
-		$needPoppler = false;
-		foreach ($popplerOnlyFields as $field) {
-			if (empty($result['chain'][0][$field])) {
-				$needPoppler = true;
-				break;
+		$leaf = &$result['chain'][0];
+
+		foreach (['field', 'range', 'signature_type', 'signing_hash_algorithm', 'covers_entire_document'] as $key) {
+			if (array_key_exists($key, $metadata)) {
+				$leaf[$key] = $metadata[$key];
 			}
 		}
-		if (!isset($result['chain'][0]['signature_validation']) || $result['chain'][0]['signature_validation']['id'] !== 1) {
-			$needPoppler = true;
+
+		if (isset($validation['signatureValidation']) && is_array($validation['signatureValidation'])) {
+			$leaf['signature_validation'] = $this->getLocalizedSignatureValidation($validation['signatureValidation']);
 		}
-		if (!$needPoppler) {
-			return $result;
+
+		if (isset($validation['certificateValidation']) && is_array($validation['certificateValidation'])) {
+			$leaf['certificate_validation'] = $this->getLocalizedCertificateValidation($validation['certificateValidation']);
 		}
-		$popplerChain = $this->chainFromPoppler($result['chain'][0]['subject'], $resource);
-		if (empty($popplerChain)) {
-			return $result;
+
+		if (!isset($leaf['certificate_validation'])) {
+			$leaf['certificate_validation'] = [
+				'id' => 3,
+				'label' => $this->l10n->t('Certificate issuer is unknown.'),
+			];
 		}
-		foreach ($popplerOnlyFields as $field) {
-			if (isset($popplerChain[$field])) {
-				$result['chain'][0][$field] = $popplerChain[$field];
-			}
-		}
-		if (!isset($result['chain'][0]['signature_validation']) || $result['chain'][0]['signature_validation']['id'] !== 1) {
-			if (isset($popplerChain['signature_validation'])) {
-				$result['chain'][0]['signature_validation'] = $popplerChain['signature_validation'];
-			}
-		}
+
 		return $result;
 	}
 
-	private function chainFromPoppler(array $subject, $resource): array {
-		$fromFallback = $this->popplerUtilsPdfSignFallback($resource);
-		foreach ($fromFallback as $popplerSig) {
-			if (!isset($popplerSig['chain'][0]['subject'])) {
-				continue;
-			}
-			if ($popplerSig['chain'][0]['subject'] == $subject) {
-				return $popplerSig['chain'][0];
-			}
-		}
-		return [];
-	}
+	/**
+	 * Keep LibreSign-side l10n compatibility regardless of upstream validator labels.
+	 */
+	private function getLocalizedSignatureValidation(array $validation): array {
+		$id = (int)($validation['id'] ?? 6);
 
-	private function popplerUtilsPdfSignFallback($resource): array {
-		if (!empty($this->signaturesFromPoppler)) {
-			return $this->signaturesFromPoppler;
-		}
-		if (shell_exec('which pdfsig') === null) {
-			return $this->signaturesFromPoppler;
-		}
-		rewind($resource);
-		$content = stream_get_contents($resource);
-		$tempFile = $this->tempManager->getTemporaryFile('file.pdf');
-		file_put_contents($tempFile, $content);
-
-		$content = shell_exec('env TZ=UTC pdfsig ' . $tempFile);
-		if (empty($content)) {
-			return $this->signaturesFromPoppler;
-		}
-		$lines = explode("\n", $content);
-
-		$lastSignature = 0;
-		foreach ($lines as $item) {
-			$isFirstLevel = preg_match('/^Signature\s#(\d)/', $item, $match);
-			if ($isFirstLevel) {
-				$lastSignature = (int)$match[1] - 1;
-				$this->signaturesFromPoppler[$lastSignature] = [];
-				continue;
-			}
-
-			$match = [];
-			$isSecondLevel = preg_match('/^\s+-\s(?<key>.+):\s(?<value>.*)/', $item, $match);
-			if ($isSecondLevel) {
-				switch ((string)$match['key']) {
-					case 'Signing Time':
-						$this->signaturesFromPoppler[$lastSignature]['signingTime'] = DateTime::createFromFormat('M d Y H:i:s', $match['value'], new \DateTimeZone('UTC'));
-						break;
-					case 'Signer full Distinguished Name':
-						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['subject'] = $this->parseDistinguishedNameWithMultipleValues($match['value']);
-						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['name'] = $match['value'];
-						break;
-					case 'Signing Hash Algorithm':
-						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['signatureTypeSN'] = $match['value'];
-						break;
-					case 'Signature Validation':
-						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['signature_validation'] = $this->getReadableSigState($match['value']);
-						break;
-					case 'Certificate Validation':
-						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['certificate_validation'] = $this->getReadableCertState($match['value']);
-						break;
-					case 'Signed Ranges':
-						if (preg_match('/\[(\d+) - (\d+)\], \[(\d+) - (\d+)\]/', $match['value'], $ranges)) {
-							$this->signaturesFromPoppler[$lastSignature]['chain'][0]['range'] = [
-								'offset1' => (int)$ranges[1],
-								'length1' => (int)$ranges[2],
-								'offset2' => (int)$ranges[3],
-								'length2' => (int)$ranges[4],
-							];
-						}
-						break;
-					case 'Signature Field Name':
-						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['field'] = $match['value'];
-						break;
-					case 'Signature Validation':
-					case 'Signature Type':
-					case 'Total document signed':
-					case 'Not total document signed':
-					default:
-						break;
-				}
-			}
-		}
-		return $this->signaturesFromPoppler;
-	}
-
-	private function getReadableSigState(string $status) {
-		return match ($status) {
-			'Signature is Valid.' => [
+		return match ($id) {
+			1 => [
 				'id' => 1,
 				'label' => $this->l10n->t('Signature is valid.'),
 			],
-			'Signature is Invalid.' => [
+			2 => [
 				'id' => 2,
 				'label' => $this->l10n->t('Signature is invalid.'),
 			],
-			'Digest Mismatch.' => [
+			3 => [
 				'id' => 3,
 				'label' => $this->l10n->t('Digest mismatch.'),
 			],
-			"Document isn't signed or corrupted data." => [
-				'id' => 4,
-				'label' => $this->l10n->t("Document isn't signed or corrupted data."),
-			],
-			'Signature has not yet been verified.' => [
+			5 => [
 				'id' => 5,
 				'label' => $this->l10n->t('Signature has not yet been verified.'),
 			],
@@ -428,65 +348,72 @@ class Pkcs12Handler extends SignEngineHandler {
 		};
 	}
 
+	/**
+	 * Keep LibreSign-side l10n compatibility regardless of upstream validator labels.
+	 */
+	private function getLocalizedCertificateValidation(array $validation): array {
+		$id = (int)($validation['id'] ?? 7);
 
-	private function getReadableCertState(string $status) {
-		return match ($status) {
-			'Certificate is Trusted.' => [
+		return match ($id) {
+			1 => [
 				'id' => 1,
 				'label' => $this->l10n->t('Certificate is trusted.'),
 			],
-			"Certificate issuer isn't Trusted." => [
+			2 => [
 				'id' => 2,
 				'label' => $this->l10n->t("Certificate issuer isn't trusted."),
 			],
-			'Certificate issuer is unknown.' => [
+			3 => [
 				'id' => 3,
 				'label' => $this->l10n->t('Certificate issuer is unknown.'),
 			],
-			'Certificate has been Revoked.' => [
+			4 => [
 				'id' => 4,
 				'label' => $this->l10n->t('Certificate has been revoked.'),
 			],
-			'Certificate has Expired' => [
+			5 => [
 				'id' => 5,
 				'label' => $this->l10n->t('Certificate has expired'),
 			],
-			'Certificate has not yet been verified.' => [
+			6 => [
 				'id' => 6,
 				'label' => $this->l10n->t('Certificate has not yet been verified.'),
 			],
 			default => [
 				'id' => 7,
-				'label' => $this->l10n->t('Unknown issue with Certificate or corrupted data.')
+				'label' => $this->l10n->t('Unknown issue with certificate or corrupted data.'),
 			],
 		};
 	}
 
-
-	private function parseDistinguishedNameWithMultipleValues(string $dn): array {
-		$result = [];
-		$pairs = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $dn);
-
-		foreach ($pairs as $pair) {
-			[$key, $value] = explode('=', $pair, 2);
-			if (empty($key) || empty($value)) {
-				return $result;
-			}
-			$key = trim($key);
-			$value = trim($value);
-			$value = trim($value, '"');
-
-			if (!isset($result[$key])) {
-				$result[$key] = $value;
-			} else {
-				if (!is_array($result[$key])) {
-					$result[$key] = [$result[$key]];
-				}
-				$result[$key][] = $value;
-			}
+	/**
+	 * @param resource $resource
+	 * @return list<array>
+	 */
+	private function extractNativeSignatureMetadata($resource): array {
+		rewind($resource);
+		$content = stream_get_contents($resource);
+		if (!is_string($content) || $content === '') {
+			return [];
 		}
 
-		return $result;
+		try {
+			$signatures = $this->pdfSignatureExtractor->extractFromString($content);
+		} catch (\Throwable) {
+			return [];
+		}
+		$metadata = [];
+
+		foreach ($signatures as $index => $signature) {
+			$metadata[$index] = [
+				'field' => $signature->metadata->field,
+				'range' => $signature->metadata->range,
+				'signature_type' => $signature->metadata->signatureType,
+				'covers_entire_document' => $signature->metadata->coversEntireDocument,
+			];
+		}
+
+		return $metadata;
 	}
 
 	private function der2pem($derData) {
