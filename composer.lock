@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "683fc6c9ae20a480af7b531acfea05bb",
+    "content-hash": "86643c2fbb8bd69c1cfea0bc10c78404",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -128,75 +128,6 @@
                 }
             ],
             "time": "2025-10-30T23:44:22+00:00"
-        },
-        {
-            "name": "jeidison/signer-php",
-            "version": "v1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/jeidison/signer-php.git",
-                "reference": "47c8d011558c9995a1a46674be1911d9087cfd73"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/jeidison/signer-php/zipball/47c8d011558c9995a1a46674be1911d9087cfd73",
-                "reference": "47c8d011558c9995a1a46674be1911d9087cfd73",
-                "shasum": ""
-            },
-            "require": {
-                "ext-curl": "*",
-                "ext-fileinfo": "*",
-                "ext-openssl": "*",
-                "ext-zlib": "*",
-                "php": "^8.2"
-            },
-            "require-dev": {
-                "deptrac/deptrac": "^4.6",
-                "infection/infection": "^0.29",
-                "laravel/pint": "^1.20",
-                "pestphp/pest": "^3.0",
-                "roave/security-advisories": "dev-latest",
-                "symfony/var-dumper": "^6.4.2",
-                "vimeo/psalm": "^6.15"
-            },
-            "bin": [
-                "bin/signer-sign",
-                "bin/signer-inspect",
-                "bin/signer-doctor"
-            ],
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "SignerPHP\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Jeidison Farias"
-                }
-            ],
-            "description": "Open-source PHP library for PDF digital signing with multiple signatures, RFC3161 timestamping, PAdES profiles, and PDF protection",
-            "keywords": [
-                "digital-signature",
-                "docmdp",
-                "icp-brasil",
-                "multiple-signatures",
-                "pades",
-                "pdf",
-                "php",
-                "rfc3161",
-                "signer",
-                "timestamp"
-            ],
-            "support": {
-                "issues": "https://github.com/jeidison/signer-php/issues",
-                "source": "https://github.com/jeidison/signer-php/tree/v1.0.1"
-            },
-            "time": "2026-03-17T00:40:40+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -1910,7 +1841,7 @@
     "platform": {},
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.2"
+        "php": "8.1"
     },
     "plugin-api-version": "2.9.0"
 }
