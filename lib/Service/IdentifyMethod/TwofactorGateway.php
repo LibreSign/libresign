@@ -18,6 +18,7 @@ use OCP\Files\IRootFolder;
 use OCP\IUserSession;
 use OCP\Server;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 class TwofactorGateway extends AbstractIdentifyMethod {
 	public function __construct(
@@ -67,8 +68,17 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 
 		$gatewayName = $this->getGatewayName();
 
-		$gateway = $gatewayFactory->get($gatewayName);
-		return $gateway->isComplete();
+		try {
+			$gateway = $gatewayFactory->get($gatewayName);
+			return $gateway->isComplete();
+		} catch (Throwable $exception) {
+			$this->logger->warning('Unable to load twofactor gateway provider.', [
+				'gateway' => $gatewayName,
+				'identifyMethod' => $this->getId(),
+				'exception' => $exception,
+			]);
+			return false;
+		}
 	}
 
 	private function getGatewayName(): string {

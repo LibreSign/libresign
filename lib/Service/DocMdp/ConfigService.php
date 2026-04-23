@@ -20,6 +20,7 @@ use OCP\IL10N;
  */
 class ConfigService {
 	private const CONFIG_KEY_LEVEL = 'docmdp_level';
+	private const DEFAULT_LEVEL = DocMdpLevel::CERTIFIED_FORM_FILLING;
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -43,8 +44,8 @@ class ConfigService {
 	}
 
 	public function getLevel(): DocMdpLevel {
-		$level = $this->appConfig->getValueInt(Application::APP_ID, self::CONFIG_KEY_LEVEL, DocMdpLevel::CERTIFIED_FORM_FILLING->value);
-		return DocMdpLevel::tryFrom($level) ?? DocMdpLevel::CERTIFIED_FORM_FILLING;
+		$level = $this->appConfig->getValueInt(Application::APP_ID, self::CONFIG_KEY_LEVEL, self::DEFAULT_LEVEL->value);
+		return DocMdpLevel::tryFrom($level) ?? self::DEFAULT_LEVEL;
 	}
 
 	public function setLevel(DocMdpLevel $level): void {
@@ -71,4 +72,5 @@ class ConfigService {
 			DocMdpLevel::cases()
 		);
 	}
+
 }

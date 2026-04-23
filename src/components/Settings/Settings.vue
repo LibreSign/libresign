@@ -11,11 +11,25 @@
 				<NcIconSvgWrapper class="account-icon" :path="mdiAccount" :size="20" />
 			</template>
 		</NcAppNavigationItem>
-		<NcAppNavigationItem v-if="isAdmin" icon="icon-settings"
+		<NcAppNavigationItem v-if="canManagePreferences"
+			:name="t('libresign', 'Preferences')"
+			:to="{name: 'Preferences'}">
+			<template #icon>
+				<NcIconSvgWrapper class="preferences-icon" :path="mdiTuneVariant" :size="20" />
+			</template>
+		</NcAppNavigationItem>
+		<NcAppNavigationItem v-if="canManagePolicies"
+			:name="t('libresign', 'Policies')"
+			:to="{name: 'Policies'}">
+			<template #icon>
+				<NcIconSvgWrapper class="policies-icon" :path="mdiShieldCheckOutline" :size="20" />
+			</template>
+		</NcAppNavigationItem>
+		<NcAppNavigationItem v-if="isAdmin"
 			:name="t('libresign', 'Administration')"
 			:href="getAdminRoute()">
 			<template #icon>
-				<NcIconSvgWrapper class="tune-icon" :path="mdiTune" :size="20" />
+				<NcIconSvgWrapper class="tune-icon" :path="mdiCogOutline" :size="20" />
 			</template>
 		</NcAppNavigationItem>
 		<NcAppNavigationItem icon="icon-star" :name="t('libresign', 'Rate LibreSign  ❤️')"
@@ -30,15 +44,20 @@
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { getCurrentUser } from '@nextcloud/auth'
+import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
+import { computed } from 'vue'
 
+import { usePoliciesStore } from '../../store/policies'
 
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import {
 	mdiAccount,
+	mdiCogOutline,
 	mdiStar,
-	mdiTune,
+	mdiShieldCheckOutline,
+	mdiTuneVariant,
 } from '@mdi/js'
 
 defineOptions({
@@ -46,6 +65,43 @@ defineOptions({
 })
 
 const isAdmin = getCurrentUser()?.isAdmin ?? false
+const config = loadState<{ can_manage_group_policies?: boolean }>('libresign', 'config', {})
+const canRequestSign = loadState<boolean>('libresign', 'can_request_sign', false)
+const policiesStore = usePoliciesStore()
+
+const canManagePreferences = computed(() => {
+	if (!canRequestSign) {
+		return false
+	}
+
+	return Object.values(policiesStore.policies).some((policy) => {
+		if (!policy || typeof policy !== 'object') {
+			return false
+		}
+
+		const policyState = policy as {
+			canSaveAsUserDefault?: boolean
+		}
+
+		return policyState.canSaveAsUserDefault === true
+	})
+})
+
+const hasEditablePolicies = computed(() => Object.values(policiesStore.policies).some((policy) => {
+	if (!policy || typeof policy !== 'object') {
+		return false
+	}
+
+	const policyState = policy as {
+		groupCount?: number
+		userCount?: number
+		editableByCurrentActor?: boolean
+	}
+
+	return policyState.editableByCurrentActor === true
+}))
+
+const canManagePolicies = computed(() => isAdmin || (Boolean(config.can_manage_group_policies) && hasEditablePolicies.value))
 
 function getAdminRoute() {
 	return generateUrl('settings/admin/libresign')
@@ -53,5 +109,7 @@ function getAdminRoute() {
 
 defineExpose({
 	getAdminRoute,
+	canManagePreferences,
+	canManagePolicies,
 })
 </script>

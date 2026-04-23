@@ -365,26 +365,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-flow/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Set signature flow configuration
-         * @description This endpoint requires admin access
-         */
-        post: operations["admin-set-signature-flow-config"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/docmdp/config": {
         parameters: {
             query?: never;
@@ -460,6 +440,58 @@ export type paths = {
          */
         post: operations["crl_api-revoke"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/system/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read explicit system policy configuration
+         * @description This endpoint requires admin access
+         */
+        get: operations["policy-get-system"];
+        put?: never;
+        /**
+         * Save a system-level policy value
+         * @description This endpoint requires admin access
+         */
+        post: operations["policy-set-system"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{userId}/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an explicit user-level policy for a target user (admin scope)
+         * @description This endpoint requires admin access
+         */
+        get: operations["policy-get-user-policy-for-user"];
+        /**
+         * Save an explicit user policy for a target user (admin scope)
+         * @description This endpoint requires admin access
+         */
+        put: operations["policy-set-user-policy-for-user"];
+        post?: never;
+        /**
+         * Clear an explicit user policy for a target user (admin scope)
+         * @description This endpoint requires admin access
+         */
+        delete: operations["policy-clear-user-policy-for-user"];
         options?: never;
         head?: never;
         patch?: never;
@@ -583,6 +615,26 @@ export type components = {
             success: boolean;
             message: string;
         };
+        EffectivePolicyResponse: {
+            policy: components["schemas"]["EffectivePolicyState"];
+        };
+        EffectivePolicyState: {
+            policyKey: string;
+            effectiveValue: components["schemas"]["EffectivePolicyValue"];
+            sourceScope: string;
+            visible: boolean;
+            editableByCurrentActor: boolean;
+            allowedValues: components["schemas"]["EffectivePolicyValue"][];
+            canSaveAsUserDefault: boolean;
+            canUseAsRequestOverride: boolean;
+            preferenceWasCleared: boolean;
+            blockedBy: string | null;
+            /** Format: int64 */
+            groupCount: number;
+            /** Format: int64 */
+            userCount: number;
+        };
+        EffectivePolicyValue: (boolean | number | string) | null;
         EngineHandler: {
             configPath: string;
             cfsslUri?: string;
@@ -705,6 +757,31 @@ export type components = {
             /** @enum {string} */
             status: "success";
         };
+        SystemPolicyResponse: {
+            policy: components["schemas"]["SystemPolicyState"];
+        };
+        SystemPolicyState: {
+            policyKey: string;
+            /** @enum {string} */
+            scope: "system" | "global";
+            value: components["schemas"]["EffectivePolicyValue"];
+            allowChildOverride: boolean;
+            visibleToChild: boolean;
+            allowedValues: components["schemas"]["EffectivePolicyValue"][];
+        };
+        SystemPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["EffectivePolicyResponse"];
+        UserPolicyResponse: {
+            policy: components["schemas"]["UserPolicyState"];
+        };
+        UserPolicyState: {
+            policyKey: string;
+            /** @enum {string} */
+            scope: "user_policy";
+            targetId: string;
+            value: components["schemas"]["EffectivePolicyValue"];
+            allowChildOverride: boolean;
+        };
+        UserPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["UserPolicyResponse"];
     };
     responses: never;
     parameters: never;
@@ -1781,73 +1858,6 @@ export interface operations {
             };
         };
     };
-    "admin-set-signature-flow-config": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Whether to force a signature flow for all documents */
-                    enabled: boolean;
-                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric' (only used when enabled is true) */
-                    mode?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Configuration saved successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Invalid signature flow mode provided */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
     "admin-set-doc-mdp-config": {
         parameters: {
             query?: never;
@@ -2081,6 +2091,280 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["CrlRevokeResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-get-system": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to read from the system layer. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SystemPolicyResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-system": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to persist at the system layer. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Policy value to persist. Null resets the policy to its default system value. */
+                    value?: (boolean | number | string) | null;
+                    /**
+                     * @description Whether lower layers may override this system default.
+                     * @default false
+                     */
+                    allowChildOverride?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SystemPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-get-user-policy-for-user": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy assignment. */
+                userId: string;
+                /** @description Policy identifier to read for the selected user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserPolicyResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-user-policy-for-user": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy assignment. */
+                userId: string;
+                /** @description Policy identifier to persist for the target user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Policy value to persist as assigned target user policy. */
+                    value?: (boolean | number | string) | null;
+                    /**
+                     * @description Whether the target user may still override the assigned value in personal preferences.
+                     * @default false
+                     */
+                    allowChildOverride?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-clear-user-policy-for-user": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy assignment removal. */
+                userId: string;
+                /** @description Policy identifier to clear for the target user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description User-scope not supported */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };

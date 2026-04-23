@@ -3,11 +3,76 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Page } from '@playwright/test'
-import { expect, test } from '@playwright/test'
+import type { APIRequestContext, Page } from '@playwright/test'
+import { expect, test as base } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteAppConfig, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteAppConfig, getAppConfig, setAppConfig } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
+import { makeAdminContext } from '../support/system-policies'
+import { setSystemPolicyEntry } from '../support/policy-api'
+
+const FOOTER_POLICY_KEY = 'add_footer'
+const FOOTER_DISABLED_VALUE = JSON.stringify({
+	enabled: false,
+	writeQrcodeOnFooter: false,
+	validationSite: '',
+	customizeFooterTemplate: false,
+})
+const FOOTER_ENABLED_VALUE = JSON.stringify({
+	enabled: true,
+	writeQrcodeOnFooter: true,
+	validationSite: '',
+	customizeFooterTemplate: false,
+})
+
+type OriginalConfigSnapshot = {
+	identifyMethods: string | null
+	signatureEngine: string | null
+	tsaUrl: string | null
+	footerPolicy: string | null
+}
+
+const test = base.extend<{
+	adminContext: APIRequestContext
+	originalConfigSnapshot: OriginalConfigSnapshot
+}>({
+	adminContext: async ({}, use) => {
+		const ctx = await makeAdminContext()
+		await use(ctx)
+		await ctx.dispose()
+	},
+	originalConfigSnapshot: async ({ request, adminContext }, use) => {
+		const response = await adminContext.get(`./ocs/v2.php/apps/libresign/api/v1/policies/system/${FOOTER_POLICY_KEY}`, {
+			failOnStatusCode: false,
+		})
+		expect(response.status(), `getSystemFooterPolicy: expected 200 but got ${response.status()}`).toBe(200)
+		const policyBody = await response.json() as {
+			ocs?: {
+				data?: {
+					policy?: {
+						value?: string | null
+					}
+				}
+			}
+		}
+
+		await use({
+			identifyMethods: await getAppConfig(request, 'libresign', 'identify_methods'),
+			signatureEngine: await getAppConfig(request, 'libresign', 'signature_engine'),
+			tsaUrl: await getAppConfig(request, 'libresign', 'tsa_url'),
+			footerPolicy: policyBody.ocs?.data?.policy?.value ?? null,
+		})
+	},
+})
+
+test.setTimeout(120_000)
+
+test.afterEach(async ({ page, adminContext, originalConfigSnapshot }) => {
+	await restoreAppConfig(page.request, 'identify_methods', originalConfigSnapshot.identifyMethods)
+	await restoreAppConfig(page.request, 'signature_engine', originalConfigSnapshot.signatureEngine)
+	await restoreAppConfig(page.request, 'tsa_url', originalConfigSnapshot.tsaUrl)
+	await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, originalConfigSnapshot.footerPolicy ?? FOOTER_DISABLED_VALUE, true)
+})
 
 async function addEmailSigner(
 	page: Page,
@@ -27,32 +92,49 @@ async function addEmailSigner(
 	await page.getByRole('button', { name: 'Save' }).click()
 }
 
-test('request signatures from two signers in sequential order', async ({ page }) => {
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
 
-	await configureOpenSsl(page.request, 'LibreSign Test', {
-		C: 'BR',
-		OU: ['Organization Unit'],
-		ST: 'Rio de Janeiro',
-		O: 'LibreSign',
-		L: 'Rio de Janeiro',
+async function restoreAppConfig(
+	requestContext: APIRequestContext,
+	key: string,
+	value: string | null,
+): Promise<void> {
+	if (value === null) {
+		await deleteAppConfig(requestContext, 'libresign', key)
+		return
+	}
+
+	await setAppConfig(requestContext, 'libresign', key, value)
+}
+
+test('request signatures from two signers in sequential order', async ({ page, adminContext }) => {
+	await test.step('configure signing environment', async () => {
+		await login(
+			page.request,
+			process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+			process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+		)
+
+		await configureOpenSsl(page.request, 'LibreSign Test', {
+			C: 'BR',
+			OU: ['Organization Unit'],
+			ST: 'Rio de Janeiro',
+			O: 'LibreSign',
+			L: 'Rio de Janeiro',
+		})
+
+		await setAppConfig(
+			page.request,
+			'libresign',
+			'identify_methods',
+			JSON.stringify([
+				{ name: 'account', enabled: false, mandatory: false },
+				{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
+			]),
+		)
+		await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
+		await deleteAppConfig(page.request, 'libresign', 'tsa_url')
+		await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE, true)
 	})
-
-	await setAppConfig(
-		page.request,
-		'libresign',
-		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: false, mandatory: false },
-			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
-		]),
-	)
-	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
-	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()

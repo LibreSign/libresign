@@ -191,6 +191,26 @@ class AccountTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testGetSettingsDisablesAccountWhenAnotherMethodIsEnabled(): void {
+		$this->identifyService
+			->expects($this->exactly(2))
+			->method('getSavedSettings')
+			->willReturn([
+				[
+					'name' => 'email',
+					'enabled' => true,
+					'mandatory' => true,
+					'signatureMethods' => [
+						'emailToken' => ['enabled' => true],
+					],
+				],
+			]);
+
+		$settings = $this->getClass()->getSettings();
+
+		$this->assertFalse($settings['enabled']);
+	}
+
 	private function createSignatureMethod(string $name, bool $enabled): ISignatureMethod {
 		return new class($name, $enabled) implements ISignatureMethod {
 			private string $name;
@@ -220,19 +240,41 @@ class AccountTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function createAccountWithMockSignatureMethods(array $signatureMethods): Account {
-		$accountMock = new class($this->identifyService, $this->userManager, $this->eventDispatcher, $this->identifyMethodMapper, $this->userSession, $this->urlGenerator, $this->root, $this->hasher, $this->timeFactory, $this->logger, $this->sessionService, $this->mailService, ) extends Account {
-			private array $mockSignatureMethods = [];
-
-			public function setMockSignatureMethods(array $methods): void {
-				$this->mockSignatureMethods = $methods;
+		return new class($this->identifyService, $this->userManager, $this->eventDispatcher, $this->identifyMethodMapper, $this->userSession, $this->urlGenerator, $this->root, $this->hasher, $this->timeFactory, $this->logger, $this->sessionService, $this->mailService, $signatureMethods) extends Account {
+			public function __construct(
+				IdentifyService $identifyService,
+				IUserManager $userManager,
+				IEventDispatcher $eventDispatcher,
+				IdentifyMethodMapper $identifyMethodMapper,
+				IUserSession $userSession,
+				IURLGenerator $urlGenerator,
+				IRootFolder $root,
+				IHasher $hasher,
+				ITimeFactory $timeFactory,
+				LoggerInterface $logger,
+				SessionService $sessionService,
+				MailService $mailService,
+				private array $mockSignatureMethods,
+			) {
+				parent::__construct(
+					$identifyService,
+					$userManager,
+					$eventDispatcher,
+					$identifyMethodMapper,
+					$userSession,
+					$urlGenerator,
+					$root,
+					$hasher,
+					$timeFactory,
+					$logger,
+					$sessionService,
+					$mailService,
+				);
 			}
 
 			public function getSignatureMethods(): array {
 				return $this->mockSignatureMethods;
 			}
 		};
-
-		$accountMock->setMockSignatureMethods($signatureMethods);
-		return $accountMock;
 	}
 }

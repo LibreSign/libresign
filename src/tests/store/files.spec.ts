@@ -10,6 +10,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
 import { generateOCSResponse } from '../test-helpers'
+import { usePoliciesStore } from '../../store/policies'
 
 type AxiosMock = Mock & {
 	get: Mock
@@ -363,6 +364,23 @@ describe('files store - critical business rules', () => {
 				uuid: 'file-uuid',
 				status: 1,
 				signatureFlow: 'parallel',
+				signers: [
+					{ me: false, signingOrder: 1, signed: [] },
+					{ me: true, signingOrder: 2, signed: [], sign_request_uuid: 'sign-request-uuid' },
+				],
+			}
+
+			expect(store.canSign()).toBe(true)
+		})
+
+		it('in none flow, signing keeps parallel behavior', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				uuid: 'file-uuid',
+				status: 1,
+				signatureFlow: 'none',
 				signers: [
 					{ me: false, signingOrder: 1, signed: [] },
 					{ me: true, signingOrder: 2, signed: [], sign_request_uuid: 'sign-request-uuid' },
@@ -1204,14 +1222,14 @@ describe('files store - critical business rules', () => {
 				}])
 			})
 
-		it('maps numeric signatureFlow to ordered_numeric', async () => {
+		it('sends canonical signature_flow override from selected file', async () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
 				nodeId: 99,
 				name: 'contract.pdf',
-				signatureFlow: 2,
+				signatureFlow: 'ordered_numeric',
 				signers: [],
 				settings: { path: '/files/contract.pdf' },
 			}
@@ -1222,9 +1240,102 @@ describe('files store - critical business rules', () => {
 			await store.saveOrUpdateSignatureRequest({ status: 1 })
 
 			const config = axiosMock.mock.calls[0][0]
-			expect(config.data.signatureFlow).toBe('ordered_numeric')
+			expect(config.data.policy.overrides.signature_flow).toBe('ordered_numeric')
 			expect(config.data.file.nodeId).toBe(99)
 			expect(config.data.file.settings).toEqual({ path: '/files/contract.pdf' })
+		})
+
+		it('omits signatureFlow when policy blocks request overrides', async () => {
+			const store = useFilesStore()
+			const policiesStore = usePoliciesStore()
+			policiesStore.setPolicies({
+				signature_flow: {
+					policyKey: 'signature_flow',
+					effectiveValue: 'ordered_numeric',
+					sourceScope: 'global',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: ['ordered_numeric'],
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					blockedBy: 'global',
+				},
+			})
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				nodeId: 99,
+				name: 'contract.pdf',
+				signatureFlow: 'ordered_numeric',
+				signers: [],
+			}
+			axiosMock.mockResolvedValue({
+				data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'ordered_numeric', signers: [] } } },
+			})
+
+			await store.saveOrUpdateSignatureRequest({ status: 1 })
+
+			const config = axiosMock.mock.calls[0][0]
+			expect(config.data.policy).toBeUndefined()
+		})
+
+		it('sends footerPolicy when footer request override is allowed', async () => {
+			const store = useFilesStore()
+			const footerPolicyValue = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Footer A</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}'
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				nodeId: 99,
+				name: 'contract.pdf',
+				signatureFlow: 'parallel',
+				signers: [],
+			}
+			axiosMock.mockResolvedValue({
+				data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
+			})
+
+			await store.saveOrUpdateSignatureRequest({ status: 1, policy: { overrides: { add_footer: footerPolicyValue } } })
+
+			const config = axiosMock.mock.calls[0][0]
+			expect(config.data.policy.overrides.add_footer).toBe(footerPolicyValue)
+		})
+
+		it('omits footerPolicy when policy blocks add_footer request overrides', async () => {
+			const store = useFilesStore()
+			const policiesStore = usePoliciesStore()
+			const footerPolicyValue = '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Footer B</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}'
+			policiesStore.setPolicies({
+				add_footer: {
+					policyKey: 'add_footer',
+					effectiveValue: footerPolicyValue,
+					sourceScope: 'global',
+					visible: true,
+					editableByCurrentActor: false,
+					allowedValues: [],
+					canSaveAsUserDefault: false,
+					canUseAsRequestOverride: false,
+					preferenceWasCleared: false,
+					blockedBy: 'global',
+				},
+			})
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				nodeId: 99,
+				name: 'contract.pdf',
+				signatureFlow: 'parallel',
+				signers: [],
+			}
+			axiosMock.mockResolvedValue({
+				data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
+			})
+
+			await store.saveOrUpdateSignatureRequest({ status: 1, policy: { overrides: { add_footer: footerPolicyValue } } })
+
+			const config = axiosMock.mock.calls[0][0]
+			expect(config.data.policy?.overrides?.add_footer).toBeUndefined()
+			expect(config.data.policy?.overrides?.signature_flow).toBe('parallel')
 		})
 
 		it('sorts ordered_numeric signers by signingOrder', async () => {

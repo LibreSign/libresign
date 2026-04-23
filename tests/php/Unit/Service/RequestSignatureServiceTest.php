@@ -30,6 +30,7 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\FilePolicyApplier;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
@@ -77,6 +78,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private EnvelopeFileRelocator&MockObject $envelopeFileRelocator;
 	private FileUploadHelper&MockObject $uploadHelper;
 	private SignRequestService&MockObject $signRequestService;
+	private FilePolicyApplier&MockObject $filePolicyApplier;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -111,6 +113,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->envelopeFileRelocator = $this->createMock(EnvelopeFileRelocator::class);
 		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
+		$this->filePolicyApplier = $this->createMock(FilePolicyApplier::class);
 	}
 
 	private function getService(array $methods = []): RequestSignatureService|MockObject {
@@ -142,6 +145,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->envelopeFileRelocator,
 					$this->uploadHelper,
 					$this->signRequestService,
+					$this->filePolicyApplier,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -173,6 +177,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->envelopeFileRelocator,
 			$this->uploadHelper,
 			$this->signRequestService,
+			$this->filePolicyApplier,
 		);
 	}
 
@@ -187,7 +192,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->with($this->callback(function (array $payload): bool {
 				return $payload['name'] === 'My File'
 					&& $payload['status'] === \OCA\Libresign\Enum\FileStatus::DRAFT->value
-					&& $payload['settings'] === ['path' => '/docs'];
+					&& $payload['settings'] === ['path' => '/docs']
+					&& $payload['policyOverrides'] === ['signature_flow' => 'parallel']
+					&& $payload['policyActiveContext'] === ['type' => 'group', 'id' => 'finance'];
 			}))
 			->willReturn($fileEntity);
 
@@ -199,6 +206,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'name' => 'My File',
 			'userManager' => $this->user,
 			'settings' => ['path' => '/docs'],
+			'policyOverrides' => ['signature_flow' => 'parallel'],
+			'policyActiveContext' => ['type' => 'group', 'id' => 'finance'],
 		]);
 
 		$this->assertSame($fileEntity, $result['file']);
@@ -215,6 +224,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 		$service->expects($this->once())
 			->method('saveEnvelope')
+			->with($this->callback(function (array $payload): bool {
+				return $payload['policyOverrides'] === ['signature_flow' => 'parallel']
+					&& $payload['policyActiveContext'] === ['type' => 'group', 'id' => 'finance'];
+			}))
 			->willReturn([
 				'envelope' => $envelope,
 				'files' => [$fileA, $fileB],
@@ -228,6 +241,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'name' => 'Envelope',
 			'userManager' => $this->user,
 			'settings' => [],
+			'policyOverrides' => ['signature_flow' => 'parallel'],
+			'policyActiveContext' => ['type' => 'group', 'id' => 'finance'],
 		]);
 
 		$this->assertSame($envelope, $result['file']);
@@ -477,6 +492,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->envelopeFileRelocator,
 				$this->uploadHelper,
 				$this->signRequestService,
+				$this->filePolicyApplier,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -549,6 +565,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->envelopeFileRelocator,
 				$this->uploadHelper,
 				$this->signRequestService,
+				$this->filePolicyApplier,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -827,7 +844,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'signers' => [],
 			'status' => \OCA\Libresign\Enum\FileStatus::DRAFT->value,
 			'visibleElements' => [],
-			'signatureFlow' => null,
 		]);
 
 		$this->assertSame($envelope, $result['envelope']);

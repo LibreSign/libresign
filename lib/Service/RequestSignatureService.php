@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -16,7 +15,6 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -27,6 +25,7 @@ use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\Policy\FilePolicyApplier;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
@@ -67,6 +66,7 @@ class RequestSignatureService {
 		protected EnvelopeFileRelocator $envelopeFileRelocator,
 		protected FileUploadHelper $uploadHelper,
 		protected SignRequestService $signRequestService,
+		protected FilePolicyApplier $filePolicyApplier,
 	) {
 	}
 
@@ -88,6 +88,8 @@ class RequestSignatureService {
 				'userManager' => $data['userManager'],
 				'status' => FileStatus::DRAFT->value,
 				'settings' => $data['settings'],
+				'policyOverrides' => $data['policyOverrides'] ?? [],
+				'policyActiveContext' => $data['policyActiveContext'] ?? null,
 			];
 
 			if (isset($fileData['uploadedFile'])) {
@@ -114,7 +116,8 @@ class RequestSignatureService {
 			'signers' => $data['signers'] ?? [],
 			'status' => $data['status'] ?? FileStatus::DRAFT->value,
 			'visibleElements' => $data['visibleElements'] ?? [],
-			'signatureFlow' => $data['signatureFlow'] ?? null,
+			'policyOverrides' => $data['policyOverrides'] ?? [],
+			'policyActiveContext' => $data['policyActiveContext'] ?? null,
 		]);
 
 		return [
@@ -185,7 +188,13 @@ class RequestSignatureService {
 				$createdNodes[] = $node;
 
 				$fileData['node'] = $node;
-				$fileEntity = $this->createFileForEnvelope($fileData, $userManager, $envelopeSettings);
+				$fileEntity = $this->createFileForEnvelope(
+					$fileData,
+					$userManager,
+					$envelopeSettings,
+					$data['policyOverrides'] ?? [],
+					$data['policyActiveContext'] ?? null,
+				);
 				$this->envelopeService->addFileToEnvelope($envelope->getId(), $fileEntity);
 				$files[] = $fileEntity;
 			}
@@ -291,7 +300,13 @@ class RequestSignatureService {
 		}
 	}
 
-	private function createFileForEnvelope(array $fileData, ?IUser $userManager, array $settings): FileEntity {
+	private function createFileForEnvelope(
+		array $fileData,
+		?IUser $userManager,
+		array $settings,
+		array $policyOverrides = [],
+		?array $policyActiveContext = null,
+	): FileEntity {
 		if (!isset($fileData['node'])) {
 			throw new \InvalidArgumentException('Node not provided in file data');
 		}
@@ -305,6 +320,8 @@ class RequestSignatureService {
 			'userManager' => $userManager,
 			'status' => FileStatus::DRAFT->value,
 			'settings' => $settings,
+			'policyOverrides' => $policyOverrides,
+			'policyActiveContext' => $policyActiveContext,
 		]);
 	}
 
@@ -316,7 +333,7 @@ class RequestSignatureService {
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
-			$this->updateSignatureFlowIfAllowed($file, $data);
+			$this->filePolicyApplier->syncCoreFlowPolicies($file, $data);
 			if (!empty($data['name'])) {
 				$file->setName($data['name']);
 				$this->fileService->update($file);
@@ -332,7 +349,7 @@ class RequestSignatureService {
 		if (!is_null($fileId)) {
 			try {
 				$file = $this->fileMapper->getByNodeId($fileId);
-				$this->updateSignatureFlowIfAllowed($file, $data);
+				$this->filePolicyApplier->syncAllPolicies($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 			} catch (\Throwable) {
 			}
@@ -373,52 +390,10 @@ class RequestSignatureService {
 			$file->setParentFileId($data['parentFileId']);
 		}
 
-		$this->setSignatureFlow($file, $data);
-		$this->setDocMdpLevelFromGlobalConfig($file);
+		$this->filePolicyApplier->applyAll($file, $data);
 
 		$this->fileMapper->insert($file);
 		return $file;
-	}
-
-	private function updateSignatureFlowIfAllowed(FileEntity $file, array $data): void {
-		$adminFlow = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::NONE->value);
-		$adminForcedConfig = $adminFlow !== SignatureFlow::NONE->value;
-
-		if ($adminForcedConfig) {
-			$adminFlowEnum = SignatureFlow::from($adminFlow);
-			if ($file->getSignatureFlowEnum() !== $adminFlowEnum) {
-				$file->setSignatureFlowEnum($adminFlowEnum);
-				$this->fileService->update($file);
-			}
-			return;
-		}
-
-		if (isset($data['signatureFlow']) && !empty($data['signatureFlow'])) {
-			$newFlow = SignatureFlow::from($data['signatureFlow']);
-			if ($file->getSignatureFlowEnum() !== $newFlow) {
-				$file->setSignatureFlowEnum($newFlow);
-				$this->fileService->update($file);
-			}
-		}
-	}
-
-	private function setSignatureFlow(FileEntity $file, array $data): void {
-		$adminFlow = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::NONE->value);
-
-		if (isset($data['signatureFlow']) && !empty($data['signatureFlow'])) {
-			$file->setSignatureFlowEnum(SignatureFlow::from($data['signatureFlow']));
-		} elseif ($adminFlow !== SignatureFlow::NONE->value) {
-			$file->setSignatureFlowEnum(SignatureFlow::from($adminFlow));
-		} else {
-			$file->setSignatureFlowEnum(SignatureFlow::NONE);
-		}
-	}
-
-	private function setDocMdpLevelFromGlobalConfig(FileEntity $file): void {
-		if ($this->docMdpConfigService->isEnabled()) {
-			$docmdpLevel = $this->docMdpConfigService->getLevel();
-			$file->setDocmdpLevelEnum($docmdpLevel);
-		}
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {
