@@ -231,10 +231,10 @@ function getValidationErrorMessage(response: ValidationErrorResponse | undefined
 	const errors = response?.data?.ocs?.data?.errors
 	if (errors?.length) {
 		const [firstError] = errors
-		if (typeof firstError === 'string' && firstError.length > 0) {
-			return firstError
+		if (typeof firstError === 'string') {
+			return firstError || fallback
 		}
-		if (typeof firstError?.message === 'string' && firstError.message.length > 0) {
+		if (firstError?.message) {
 			return firstError.message
 		}
 	}
