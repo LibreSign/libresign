@@ -8,6 +8,9 @@
 			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
+			<NcNoteCard v-if="showMobileOrientationHint" type="warning">
+				{{ t('libresign', 'For a better signing experience on mobile, rotate your phone to landscape mode.') }}
+			</NcNoteCard>
 			<NcNoteCard v-for="(error, index) in signStore.errors"
 				:key="index"
 				:heading="error.title || ''"
@@ -433,6 +436,7 @@ const sidebarStore = useSidebarStore() as SidebarStoreContract
 const identificationDocumentStore = useIdentificationDocumentStore() as IdentificationDocumentStoreContract
 
 const loading = ref(true)
+const isMobilePortrait = ref(false)
 const user = ref<UserInfo>({
 	account: { uid: '', emailAddress: '', displayName: '' },
 	settings: { canRequestSign: false, hasSignatureFile: false, phoneNumber: '' },
@@ -472,6 +476,7 @@ const needCreateSignature = computed(() => {
 	}
 	return hasVisibleElementsForCurrentUser(visibleElementsDocument.value)
 })
+const showMobileOrientationHint = computed(() => needCreateSignature.value && isMobilePortrait.value)
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const canCreateSignature = computed(() => {
 	const capabilities = getCapabilities() as LibresignCapabilities
@@ -541,6 +546,19 @@ function onSignatureFileCreated() {
 
 function clearBlockingSignError() {
 	signStore.clearSigningErrors()
+}
+
+function updateOrientationHint() {
+	if (typeof window === 'undefined') {
+		isMobilePortrait.value = false
+		return
+	}
+
+	const isMobileViewport = window.innerWidth <= 512
+	const isPortrait = window.matchMedia?.('(orientation: portrait)').matches
+		?? window.innerHeight > window.innerWidth
+
+	isMobilePortrait.value = isMobileViewport && isPortrait
 }
 
 function saveSignature() {
@@ -728,6 +746,10 @@ function executeSigningAction(action: string) {
 }
 
 onMounted(async () => {
+	updateOrientationHint()
+	window.addEventListener('resize', updateOrientationHint, { passive: true })
+	window.addEventListener('orientationchange', updateOrientationHint)
+
 	loading.value = true
 	signatureElementsStore.signRequestUuid = signRequestUuid.value
 	signatureElementsStore.loadSignatures()
@@ -775,6 +797,8 @@ watch(signRequestUuid, (newUuid, oldUuid) => {
 })
 
 onBeforeUnmount(() => {
+	window.removeEventListener('resize', updateOrientationHint)
+	window.removeEventListener('orientationchange', updateOrientationHint)
 	resetSignMethodsState()
 	if (unwatchPendingAction) {
 		unwatchPendingAction()
@@ -792,6 +816,23 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
+.document-sign {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
+	overscroll-behavior: contain;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+}
+
+.sign-elements {
+	flex: 1;
+	overflow: hidden;
+	width: 100%;
+}
+
 .progress-indicator {
 	font-weight: bold;
 	color: var(--color-primary-element);
