@@ -204,8 +204,7 @@
             "AdminSignatureEngine": {
                 "type": "string",
                 "enum": [
-                    "JSignPdf",
-                    "PhpNative"
+                    "JSignPdf"
                 ]
             },
             "AdminSigningMode": {
