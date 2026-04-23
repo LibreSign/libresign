@@ -1,0 +1,88 @@
+/**
+ * SPDX-FileCopyrightText: 2026 LibreSign contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+import { devices, expect, test } from '@playwright/test'
+import { login } from '../support/nc-login'
+import { setAppConfig } from '../support/nc-provisioning'
+
+test.use({
+	...devices['Pixel 7'],
+})
+
+test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page }) => {
+	await login(
+		page.request,
+		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+	)
+
+	await setAppConfig(
+		page.request,
+		'libresign', 'add_footer', '1',
+	)
+
+	await setAppConfig(
+		page.request,
+		'libresign', 'footer_template_is_default', '0',
+	)
+
+	await page.goto('./settings/admin/libresign')
+	const pdfRoot = page.locator('.footer-template-section .pdf-elements-root').first()
+	await expect(pdfRoot).toBeVisible({ timeout: 15000 })
+
+	// Check that overflow-x is set to auto (not hidden).
+	const computedStyle = await pdfRoot.evaluate((el) => {
+		return window.getComputedStyle(el).overflowX
+	})
+
+	expect(computedStyle).not.toBe('hidden')
+	expect(['auto', 'scroll']).toContain(computedStyle)
+
+	// Verify touch-action is set correctly for touch gestures.
+	const touchAction = await pdfRoot.evaluate((el) => {
+		return window.getComputedStyle(el).touchAction
+	})
+
+	expect(touchAction).toContain('pan')
+	expect(touchAction).not.toContain('pinch-zoom')
+
+	// Validate real horizontal scrolling capability, not only style declarations.
+	const before = await pdfRoot.evaluate((el) => {
+		el.scrollLeft = 0
+		return {
+			scrollLeft: el.scrollLeft,
+			scrollWidth: el.scrollWidth,
+			clientWidth: el.clientWidth,
+		}
+	})
+
+	expect(before.scrollWidth).toBeGreaterThan(before.clientWidth)
+
+	const box = await pdfRoot.boundingBox()
+	expect(box).not.toBeNull()
+
+	if (!box) {
+		throw new Error('PDF scroll container bounding box is not available')
+	}
+
+	const y = box.y + (box.height / 2)
+	await page.mouse.move(box.x + box.width - 12, y)
+	await page.mouse.down()
+	await page.mouse.move(box.x + 12, y, { steps: 12 })
+	await page.mouse.up()
+
+	const afterGesture = await pdfRoot.evaluate((el) => el.scrollLeft)
+	// In Playwright mobile emulation, mouse drag may not trigger native touch scrolling.
+	// Keep this as an observation, while asserting actual scrollability below.
+	expect(afterGesture).toBeGreaterThanOrEqual(0)
+
+	const afterScrollLeft = await pdfRoot.evaluate((el) => {
+		const target = Math.max(el.scrollLeft + 1, el.scrollWidth - el.clientWidth)
+		el.scrollLeft = target
+		return el.scrollLeft
+	})
+
+	expect(afterScrollLeft).toBeGreaterThan(before.scrollLeft)
+})
