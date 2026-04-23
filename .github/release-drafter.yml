@@ -20,37 +20,6 @@ categories:
   - title: 'Added'
     labels:
       - 'feature'
-      - 'feat'
-      - 'enhancement'
-      - 'minor'
-
-  - title: 'Changed'
-    collapse-after: 4
-    labels:
-      - 'chore'
-      - 'refactor'
-      - 'improvement'
-
-  - title: 'Fixed'
-    labels:
-      - 'fix'
-      - 'bugfix'
-      - 'bug'
-      - 'patch'
-
-  - title: 'Removed'
-    labels:
-      - 'removed'
-      - 'deprecated'
-
-  - title: 'Security'
-    labels:
-      - 'security'
-
-  - title: 'Tests'
-    collapse-after: 3
-    labels:
-      - 'test'
 
   - title: 'Dependencies'
     collapse-after: 2
