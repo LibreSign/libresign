@@ -9,7 +9,7 @@
 			:init-file-names="fileNames"
 			:page-count-format="t('libresign', '{currentPage} of {totalPages}')"
 			:page-aria-label="getPageAriaLabel"
-			:auto-fit-zoom="enableAutoFitZoom"
+			:auto-fit-zoom="true"
 			:read-only="readOnly"
 			:emit-object-click="true"
 			:hide-selection-ui="readOnly"
@@ -130,7 +130,6 @@ type PdfElementsInstance = {
 	selectedDocIndex?: number
 	autoFitZoom?: boolean
 	scale?: number
-	visualScale?: number
 	commitZoom?: () => void
 }
 
@@ -160,17 +159,6 @@ const emit = defineEmits<{
 }>()
 
 const pdfElements = ref<PdfElementsInstance | null>(null)
-
-// Auto-fit can fight user zoom on touch devices; keep one-shot fit from endInit and let user control zoom afterwards.
-const enableAutoFitZoom = computed(() => {
-	const isTouchDevice = typeof window !== 'undefined'
-		&& (
-			(window.matchMedia?.('(pointer: coarse)').matches ?? false)
-			|| 'ontouchstart' in window
-			|| (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
-		)
-	return !isTouchDevice
-})
 
 const ignoreClickOutsideSelectors = computed(() => ['.action-item__popper', '.action-item'])
 
@@ -218,10 +206,6 @@ function getPageAriaLabel({ docIndex, docName, totalDocs, pageNumber, totalPages
 
 async function endInit(event: EndInitPayload) {
 	await nextTick()
-	if (!pdfElements.value?.autoFitZoom && pdfElements.value?.adjustZoomToFit) {
-		pdfElements.value.adjustZoomToFit()
-	}
-
 	await nextTick()
 	const measurement = await calculatePdfMeasurement()
 	emit('pdf-editor:end-init', { ...event, measurement })
@@ -327,8 +311,6 @@ function cancelAdding() {
 	pdfElements.value?.cancelAdding()
 }
 
-
-
 async function addSigner(signer: SignerSummaryRecord | SignerDetailRecord, visibleElement: VisibleElementRecord, options: { documentIndex?: number } = {}) {
 	if (!pdfElements.value || !visibleElement.coordinates) {
 		return
@@ -401,7 +383,6 @@ defineExpose({
 	findObjectLocation,
 	startAddingSigner,
 	cancelAdding,
-
 	addSigner,
 	waitForPageRender,
 	getTotalObjectsCount,
