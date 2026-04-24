@@ -160,29 +160,34 @@ class PdfSignatureValidationService {
 		return match ($result->state) {
 			ValidationState::SIGNATURE_VALID => [
 				'id' => 1,
+				// TRANSLATORS: User-facing status when signature cryptographic validation succeeds.
 				'label' => $this->l10n->t('Signature is valid.'),
 				'isValid' => true,
 			],
 			ValidationState::SIGNATURE_INVALID => [
 				'id' => 2,
+				// TRANSLATORS: User-facing status when signature cryptographic validation fails.
 				'label' => $this->l10n->t('Signature is invalid.'),
 				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::DIGEST_MISMATCH => [
 				'id' => 3,
+				// TRANSLATORS: User-facing status when signed digest does not match PDF content.
 				'label' => $this->l10n->t('Digest mismatch.'),
 				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::NOT_VERIFIED => [
 				'id' => 5,
+				// TRANSLATORS: User-facing status when validation could not be fully completed.
 				'label' => $this->l10n->t('Signature has not yet been verified.'),
 				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			default => [
 				'id' => 6,
+				// TRANSLATORS: Generic fallback status for unexpected signature validation failures.
 				'label' => $this->l10n->t('Unknown validation failure.'),
 				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
@@ -197,41 +202,48 @@ class PdfSignatureValidationService {
 		return match ($result->state) {
 			ValidationState::CERT_TRUSTED => [
 				'id' => 1,
+				// TRANSLATORS: User-facing status when certificate is trusted.
 				'label' => $this->l10n->t('Certificate is trusted.'),
 				'isValid' => true,
 			],
 			ValidationState::CERT_ISSUER_NOT_TRUSTED => [
 				'id' => 2,
+				// TRANSLATORS: User-facing status when issuing CA is known but not trusted.
 				'label' => $this->l10n->t("Certificate issuer isn't trusted."),
 				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_ISSUER_UNKNOWN => [
 				'id' => 3,
+				// TRANSLATORS: User-facing status when certificate issuer cannot be identified/trusted.
 				'label' => $this->l10n->t('Certificate issuer is unknown.'),
 				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_REVOKED => [
 				'id' => 4,
+				// TRANSLATORS: User-facing status when certificate is revoked.
 				'label' => $this->l10n->t('Certificate has been revoked.'),
 				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_EXPIRED => [
 				'id' => 5,
+				// TRANSLATORS: User-facing status when certificate is expired.
 				'label' => $this->l10n->t('Certificate has expired.'),
 				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_NOT_VERIFIED => [
 				'id' => 6,
+				// TRANSLATORS: User-facing status when certificate validation could not be completed.
 				'label' => $this->l10n->t('Certificate has not yet been verified.'),
 				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			default => [
 				'id' => 7,
+				// TRANSLATORS: Generic fallback status for unexpected certificate validation failures.
 				'label' => $this->l10n->t('Unknown issue with certificate or corrupted data.'),
 				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
@@ -260,28 +272,46 @@ class PdfSignatureValidationService {
 			return $this->l10n->t('Certificate validation failed: %s', [$translatedDetail]);
 		}
 
-		// TRANSLATORS: Technical validation reasons from pdf-signature-validator.
-		// Keep protocol/acronym terms like ByteRange, CRL and CA as-is.
 		return match ($reason) {
+			// TRANSLATORS: Technical term from PDF signatures. Keep "ByteRange" unchanged.
 			'No ByteRange in signature' => $this->l10n->t('No ByteRange in signature'),
+			// TRANSLATORS: Technical message for digest/hash mismatch in PDF signature verification.
 			'PDF content hash does not match signed digest' => $this->l10n->t('PDF content hash does not match signed digest'),
+			// TRANSLATORS: Certificate/public-key verification failed for signature bytes.
 			'Signature does not match certificate' => $this->l10n->t('Signature does not match certificate'),
+			// TRANSLATORS: X.509 certificate parsing failure.
 			'Failed to parse certificate' => $this->l10n->t('Failed to parse certificate'),
+			// TRANSLATORS: Signature timestamp is outside certificate validity window.
 			'Certificate was not valid at time of signature' => $this->l10n->t('Certificate was not valid at time of signature'),
+			// TRANSLATORS: Certificate validity date has ended.
 			'Certificate has expired' => $this->l10n->t('Certificate has expired'),
+			// TRANSLATORS: No certificates were found in provided certificate chain.
 			'Empty certificate chain' => $this->l10n->t('Empty certificate chain'),
+			// TRANSLATORS: Certificate does not provide a serial number field.
 			'Certificate has no serial number' => $this->l10n->t('Certificate has no serial number'),
+			// TRANSLATORS: CRL means Certificate Revocation List; keep acronym CRL unchanged.
 			'Certificate found in CRL' => $this->l10n->t('Certificate found in CRL'),
+			// TRANSLATORS: Certificate structure/content is invalid.
 			'Invalid certificate' => $this->l10n->t('Invalid certificate'),
+			// TRANSLATORS: CA means Certificate Authority; keep acronym CA unchanged.
 			'Leaf certificate is marked as CA' => $this->l10n->t('Leaf certificate is marked as CA'),
+			// TRANSLATORS: Certificate signature chain validation failed.
 			'Certificate signature validation failed' => $this->l10n->t('Certificate signature validation failed'),
+			// TRANSLATORS: Self-signed certificate is not present in trusted roots list.
 			'Self-signed certificate not in trusted roots' => $this->l10n->t('Self-signed certificate not in trusted roots'),
+			// TRANSLATORS: Root certificate must be self-signed to be considered a trust anchor.
 			'Root certificate is not self-signed' => $this->l10n->t('Root certificate is not self-signed'),
+			// TRANSLATORS: Root certificate is not present in configured trusted certificate list.
 			'Root certificate is not in trusted list' => $this->l10n->t('Root certificate is not in trusted list'),
+			// TRANSLATORS: Signature container has no binary signature payload.
 			'No binary signature' => $this->l10n->t('No binary signature'),
+			// TRANSLATORS: Signature payload has no embedded certificates.
 			'No certificates in signature' => $this->l10n->t('No certificates in signature'),
+			// TRANSLATORS: Certificate used for signing is expired.
 			'Signing certificate has expired' => $this->l10n->t('Signing certificate has expired'),
+			// TRANSLATORS: Certificate used for signing is revoked.
 			'Signing certificate has been revoked' => $this->l10n->t('Signing certificate has been revoked'),
+			// TRANSLATORS: Signature verification could not be fully completed.
 			'Signature verification incomplete' => $this->l10n->t('Signature verification incomplete'),
 			default => $reason,
 		};
