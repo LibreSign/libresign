@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\SignEngine;
 
-use LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use LibreSign\PdfSignatureValidator\Model\ValidationReason;
 use LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use LibreSign\PdfSignatureValidator\Model\ValidationState;
+use LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
