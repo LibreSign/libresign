@@ -106,6 +106,20 @@ describe('validationDocument', () => {
 		}))
 	})
 
+	it('accepts validation payload when signatureFlow is enum string and numeric fields are numeric strings', () => {
+		const normalized = toValidationDocument(createValidationPayload({
+			signatureFlow: 'none',
+			docmdpLevel: '2',
+			filesCount: '1',
+			totalPages: '1',
+			size: '10',
+			signers: [createSigner({ status: '2' })],
+		}))
+
+		expect(normalized).not.toBeNull()
+		expect(normalized?.signatureFlow).toBe('none')
+	})
+
 	it('rejects payload with invalid signer status', () => {
 		const normalized = toValidationDocument(createValidationPayload({
 			signers: [createSigner({ status: 99, statusText: 'Invalid' })],
