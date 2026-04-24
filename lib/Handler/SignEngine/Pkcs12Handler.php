@@ -320,7 +320,7 @@ class Pkcs12Handler extends SignEngineHandler {
 
 	/**
 	 * @param resource $resource
-	 * @return list<array>
+	 * @return array<int, array{field: ?string, range: ?array{offset1: int, offset2: int, length1: int, length2: int}, signature_type: ?string, covers_entire_document: bool}>
 	 */
 	private function extractNativeSignatureMetadata($resource): array {
 		rewind($resource);

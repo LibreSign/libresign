@@ -74,7 +74,7 @@ class PdfSignatureValidationService {
 	 *
 	 * @param resource $resource PDF file resource
 	 * @param ?\DateTime $signatureTime Optional time to validate against (for historic validation)
-	 * @return list<array{signatureValidation: array, certificateValidation: array}>
+	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
 	 */
 	public function validateFromResource($resource, ?DateTime $signatureTime = null): array {
 		try {
@@ -94,7 +94,7 @@ class PdfSignatureValidationService {
 	 *
 	 * @param string $pdfContent Binary PDF content
 	 * @param ?\DateTime $signatureTime Optional time to validate against (for historic validation)
-	 * @return list<array{signatureValidation: array, certificateValidation: array}>
+	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
 	 */
 	public function validateFromString(string $pdfContent, ?DateTime $signatureTime = null): array {
 		try {
@@ -114,7 +114,7 @@ class PdfSignatureValidationService {
 	 *
 	 * @param list<array> $results Results from PdfSignatureValidator
 	 * @param ?\DateTime $signatureTime
-	 * @return list<array{signatureValidation: array, certificateValidation: array}>
+	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
 	 */
 	private function mapValidationResults(array $results, ?DateTime $signatureTime = null): array {
 		$mapped = [];
