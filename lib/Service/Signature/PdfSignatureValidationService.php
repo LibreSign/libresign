@@ -70,6 +70,48 @@ class PdfSignatureValidationService {
 	}
 
 	/**
+	 * Normalize a signature validation payload by id/reason to the canonical LibreSign shape.
+	 *
+	 * @param array{id?: int|string, reason?: mixed} $validation
+	 */
+	public function localizeSignatureValidation(array $validation): array {
+		$id = (int)($validation['id'] ?? 6);
+		$reason = is_string($validation['reason'] ?? null) ? $validation['reason'] : null;
+
+		$state = match ($id) {
+			1 => ValidationState::SIGNATURE_VALID,
+			2 => ValidationState::SIGNATURE_INVALID,
+			3 => ValidationState::DIGEST_MISMATCH,
+			5 => ValidationState::NOT_VERIFIED,
+			default => ValidationState::UNKNOWN_FAILURE,
+		};
+
+		return $this->mapSignatureValidation(new ValidationResult($state, $reason));
+	}
+
+	/**
+	 * Normalize a certificate validation payload by id/reason to the canonical LibreSign shape.
+	 *
+	 * @param array{id?: int|string, reason?: mixed} $validation
+	 */
+	public function localizeCertificateValidation(array $validation): array {
+		$id = (int)($validation['id'] ?? 7);
+		$reason = is_string($validation['reason'] ?? null) ? $validation['reason'] : null;
+
+		$state = match ($id) {
+			1 => ValidationState::CERT_TRUSTED,
+			2 => ValidationState::CERT_ISSUER_NOT_TRUSTED,
+			3 => ValidationState::CERT_ISSUER_UNKNOWN,
+			4 => ValidationState::CERT_REVOKED,
+			5 => ValidationState::CERT_EXPIRED,
+			6 => ValidationState::CERT_NOT_VERIFIED,
+			default => ValidationState::UNKNOWN_FAILURE,
+		};
+
+		return $this->mapCertificateValidation(new ValidationResult($state, $reason));
+	}
+
+	/**
 	 * Validate PDF signatures from file resource.
 	 *
 	 * @param resource $resource PDF file resource
