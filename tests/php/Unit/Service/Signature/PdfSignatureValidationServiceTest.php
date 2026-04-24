@@ -81,7 +81,6 @@ final class PdfSignatureValidationServiceTest extends TestCase {
 		$service = $reflection->newInstanceWithoutConstructor();
 
 		$l10nProperty = $reflection->getProperty('l10n');
-		$l10nProperty->setAccessible(true);
 		$l10nProperty->setValue($service, $this->l10n);
 
 		return $service;
@@ -93,7 +92,6 @@ final class PdfSignatureValidationServiceTest extends TestCase {
 	private function invokePrivateMethod(PdfSignatureValidationService $service, string $method, ValidationResult $result): array {
 		$reflection = new \ReflectionClass($service);
 		$target = $reflection->getMethod($method);
-		$target->setAccessible(true);
 		/** @var array<string, mixed> $mapped */
 		$mapped = $target->invoke($service, $result);
 		return $mapped;
