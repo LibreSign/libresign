@@ -53,4 +53,33 @@ final class CertificateChainServiceTest extends TestCase {
 		$this->assertIsArray($result);
 		$this->assertArrayHasKey('chain', $result);
 	}
+
+	public function testGetCertificateChainHandlesInvalidResourceGracefully(): void {
+		$fileNode = new class() {
+			public function fopen($mode) {
+				return false;
+			}
+		};
+
+		$libreSignFile = new File();
+		$libreSignFile->setSignedNodeId(1);
+
+		$pkcs12 = $this->createMock(Pkcs12Handler::class);
+		$pkcs12->expects($this->never())->method('getCertificateChain');
+
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger
+			->expects($this->once())
+			->method('warning')
+			->with($this->stringContains('unable to open signed file stream'));
+
+		$service = new CertificateChainService($pkcs12, $logger);
+
+		$options = new FileResponseOptions();
+		$options->validateFile(true);
+
+		$result = $service->getCertificateChain($fileNode, $libreSignFile, $options);
+
+		$this->assertSame([], $result);
+	}
 }
