@@ -166,25 +166,25 @@ class PdfSignatureValidationService {
 			ValidationState::SIGNATURE_INVALID => [
 				'id' => 2,
 				'label' => $this->l10n->t('Signature is invalid.'),
-				'reason' => $this->translateReason($result->reason),
+				'reason' => $result->reason,
 				'isValid' => false,
 			],
 			ValidationState::DIGEST_MISMATCH => [
 				'id' => 3,
 				'label' => $this->l10n->t('Digest mismatch.'),
-				'reason' => $this->translateReason($result->reason),
+				'reason' => $result->reason,
 				'isValid' => false,
 			],
 			ValidationState::NOT_VERIFIED => [
 				'id' => 5,
 				'label' => $this->l10n->t('Signature has not yet been verified.'),
-				'reason' => $this->translateReason($result->reason),
+				'reason' => $result->reason,
 				'isValid' => false,
 			],
 			default => [
 				'id' => 6,
 				'label' => $this->l10n->t('Unknown validation failure.'),
-				'reason' => $this->translateReason($result->reason),
+				'reason' => $result->reason,
 				'isValid' => false,
 			],
 		};
@@ -203,48 +203,40 @@ class PdfSignatureValidationService {
 			ValidationState::CERT_ISSUER_NOT_TRUSTED => [
 				'id' => 2,
 				'label' => $this->l10n->t("Certificate issuer isn't trusted."),
-				'reason' => $this->translateReason($result->reason),
+				'reason' => $result->reason,
 				'isValid' => false,
 			],
 			ValidationState::CERT_ISSUER_UNKNOWN => [
 				'id' => 3,
 				'label' => $this->l10n->t('Certificate issuer is unknown.'),
-				'reason' => $this->translateReason($result->reason),
+				'reason' => $result->reason,
 				'isValid' => false,
 			],
 			ValidationState::CERT_REVOKED => [
 				'id' => 4,
 				'label' => $this->l10n->t('Certificate has been revoked.'),
-				'reason' => $this->translateReason($result->reason),
+				'reason' => $result->reason,
 				'isValid' => false,
 			],
 			ValidationState::CERT_EXPIRED => [
 				'id' => 5,
 				'label' => $this->l10n->t('Certificate has expired.'),
-				'reason' => $this->translateReason($result->reason),
+				'reason' => $result->reason,
 				'isValid' => false,
 			],
 			ValidationState::CERT_NOT_VERIFIED => [
 				'id' => 6,
 				'label' => $this->l10n->t('Certificate has not yet been verified.'),
-				'reason' => $this->translateReason($result->reason),
+				'reason' => $result->reason,
 				'isValid' => false,
 			],
 			default => [
 				'id' => 7,
 				'label' => $this->l10n->t('Unknown issue with certificate or corrupted data.'),
-				'reason' => $this->translateReason($result->reason),
+				'reason' => $result->reason,
 				'isValid' => false,
 			],
 		};
-	}
-
-	private function translateReason(?string $reason): ?string {
-		if ($reason === null || $reason === '') {
-			return $reason;
-		}
-
-		return $this->l10n->t($reason);
 	}
 
 	/**
