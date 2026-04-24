@@ -12,8 +12,20 @@ use LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Unit\TestCase;
+use OCP\IL10N;
+use PHPUnit\Framework\MockObject\MockObject;
 
 final class PdfSignatureValidationServiceTest extends TestCase {
+	private IL10N&MockObject $l10n;
+
+	public function setUp(): void {
+		parent::setUp();
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n
+			->method('t')
+			->willReturnCallback(static fn (string $text): string => $text);
+	}
+
 	public function testMapSignatureValidationWithEnumState(): void {
 		$service = $this->newServiceWithoutConstructor();
 		$result = $this->invokePrivateMethod(
@@ -45,6 +57,11 @@ final class PdfSignatureValidationServiceTest extends TestCase {
 		$reflection = new \ReflectionClass(PdfSignatureValidationService::class);
 		/** @var PdfSignatureValidationService $service */
 		$service = $reflection->newInstanceWithoutConstructor();
+
+		$l10nProperty = $reflection->getProperty('l10n');
+		$l10nProperty->setAccessible(true);
+		$l10nProperty->setValue($service, $this->l10n);
+
 		return $service;
 	}
 
