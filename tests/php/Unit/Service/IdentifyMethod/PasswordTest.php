@@ -20,9 +20,10 @@ use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\Password;
+use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
+use LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
 use OCP\IAppConfig;
 use OCP\IL10N;
-use OCP\ITempManager;
 use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -38,11 +39,12 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IL10N $l10n;
 	private FooterHandler&MockObject $footerHandler;
-	private ITempManager $tempManager;
 	private LoggerInterface&MockObject $logger;
 	private CaIdentifierService&MockObject $caIdentifierService;
 	private DocMdpHandler&MockObject $docMdpHandler;
 	private CrlService&MockObject $crlService;
+	private PdfSignatureValidationService&MockObject $pdfSignatureValidationService;
+	private PdfSignatureExtractor $pdfSignatureExtractor;
 
 	public function setUp(): void {
 		$this->identifyService = $this->createMock(IdentifyService::class);
@@ -51,12 +53,13 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
-		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
 		$this->crlService = $this->createMock(CrlService::class);
+		$this->pdfSignatureValidationService = $this->createMock(PdfSignatureValidationService::class);
+		$this->pdfSignatureExtractor = new PdfSignatureExtractor();
 		$this->pkcs12Handler = $this->getPkcs12Instance();
 	}
 
@@ -79,11 +82,12 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->certificateEngineFactory,
 				$this->l10n,
 				$this->footerHandler,
-				$this->tempManager,
 				$this->logger,
 				$this->caIdentifierService,
 				$this->docMdpHandler,
 				$this->crlService,
+				$this->pdfSignatureValidationService,
+				$this->pdfSignatureExtractor,
 			])
 			->onlyMethods($methods)
 			->getMock();
