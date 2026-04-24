@@ -53,6 +53,28 @@ final class PdfSignatureValidationServiceTest extends TestCase {
 		$this->assertTrue($result['isValid']);
 	}
 
+	public function testMapReasonUsesDictionaryForKnownReason(): void {
+		$service = $this->newServiceWithoutConstructor();
+		$result = $this->invokePrivateMethod(
+			$service,
+			'mapSignatureValidation',
+			new ValidationResult(ValidationState::DIGEST_MISMATCH, 'PDF content hash does not match signed digest')
+		);
+
+		$this->assertSame('PDF content hash does not match signed digest', $result['reason']);
+	}
+
+	public function testMapReasonKeepsUnknownReasonUntouched(): void {
+		$service = $this->newServiceWithoutConstructor();
+		$result = $this->invokePrivateMethod(
+			$service,
+			'mapSignatureValidation',
+			new ValidationResult(ValidationState::DIGEST_MISMATCH, 'custom runtime detail')
+		);
+
+		$this->assertSame('custom runtime detail', $result['reason']);
+	}
+
 	private function newServiceWithoutConstructor(): PdfSignatureValidationService {
 		$reflection = new \ReflectionClass(PdfSignatureValidationService::class);
 		/** @var PdfSignatureValidationService $service */

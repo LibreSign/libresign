@@ -166,25 +166,25 @@ class PdfSignatureValidationService {
 			ValidationState::SIGNATURE_INVALID => [
 				'id' => 2,
 				'label' => $this->l10n->t('Signature is invalid.'),
-				'reason' => $result->reason,
+				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::DIGEST_MISMATCH => [
 				'id' => 3,
 				'label' => $this->l10n->t('Digest mismatch.'),
-				'reason' => $result->reason,
+				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::NOT_VERIFIED => [
 				'id' => 5,
 				'label' => $this->l10n->t('Signature has not yet been verified.'),
-				'reason' => $result->reason,
+				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			default => [
 				'id' => 6,
 				'label' => $this->l10n->t('Unknown validation failure.'),
-				'reason' => $result->reason,
+				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 		};
@@ -203,39 +203,83 @@ class PdfSignatureValidationService {
 			ValidationState::CERT_ISSUER_NOT_TRUSTED => [
 				'id' => 2,
 				'label' => $this->l10n->t("Certificate issuer isn't trusted."),
-				'reason' => $result->reason,
+				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_ISSUER_UNKNOWN => [
 				'id' => 3,
 				'label' => $this->l10n->t('Certificate issuer is unknown.'),
-				'reason' => $result->reason,
+				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_REVOKED => [
 				'id' => 4,
 				'label' => $this->l10n->t('Certificate has been revoked.'),
-				'reason' => $result->reason,
+				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_EXPIRED => [
 				'id' => 5,
 				'label' => $this->l10n->t('Certificate has expired.'),
-				'reason' => $result->reason,
+				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_NOT_VERIFIED => [
 				'id' => 6,
 				'label' => $this->l10n->t('Certificate has not yet been verified.'),
-				'reason' => $result->reason,
+				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
 			default => [
 				'id' => 7,
 				'label' => $this->l10n->t('Unknown issue with certificate or corrupted data.'),
-				'reason' => $result->reason,
+				'reason' => $this->translateKnownReason($result->reason),
 				'isValid' => false,
 			],
+		};
+	}
+
+	private function translateKnownReason(?string $reason): ?string {
+		if ($reason === null || $reason === '') {
+			return $reason;
+		}
+
+		if (preg_match('/^Intermediate certificate at position (\d+) is not signed by issuer$/', $reason, $matches) === 1) {
+			return $this->l10n->t(
+				'Intermediate certificate at position %s is not signed by issuer',
+				[$matches[1]]
+			);
+		}
+
+		$prefix = 'Certificate validation failed: ';
+		if (str_starts_with($reason, $prefix)) {
+			$detail = substr($reason, strlen($prefix));
+			$translatedDetail = $this->translateKnownReason($detail) ?? $detail;
+			return $this->l10n->t('Certificate validation failed: %s', [$translatedDetail]);
+		}
+
+		return match ($reason) {
+			'No ByteRange in signature' => $this->l10n->t('No ByteRange in signature'),
+			'PDF content hash does not match signed digest' => $this->l10n->t('PDF content hash does not match signed digest'),
+			'Signature does not match certificate' => $this->l10n->t('Signature does not match certificate'),
+			'Failed to parse certificate' => $this->l10n->t('Failed to parse certificate'),
+			'Certificate was not valid at time of signature' => $this->l10n->t('Certificate was not valid at time of signature'),
+			'Certificate has expired' => $this->l10n->t('Certificate has expired'),
+			'Empty certificate chain' => $this->l10n->t('Empty certificate chain'),
+			'Certificate has no serial number' => $this->l10n->t('Certificate has no serial number'),
+			'Certificate found in CRL' => $this->l10n->t('Certificate found in CRL'),
+			'Invalid certificate' => $this->l10n->t('Invalid certificate'),
+			'Leaf certificate is marked as CA' => $this->l10n->t('Leaf certificate is marked as CA'),
+			'Certificate signature validation failed' => $this->l10n->t('Certificate signature validation failed'),
+			'Self-signed certificate not in trusted roots' => $this->l10n->t('Self-signed certificate not in trusted roots'),
+			'Root certificate is not self-signed' => $this->l10n->t('Root certificate is not self-signed'),
+			'Root certificate is not in trusted list' => $this->l10n->t('Root certificate is not in trusted list'),
+			'No binary signature' => $this->l10n->t('No binary signature'),
+			'No certificates in signature' => $this->l10n->t('No certificates in signature'),
+			'Signing certificate has expired' => $this->l10n->t('Signing certificate has expired'),
+			'Signing certificate has been revoked' => $this->l10n->t('Signing certificate has been revoked'),
+			'Signature verification incomplete' => $this->l10n->t('Signature verification incomplete'),
+			default => $reason,
 		};
 	}
 
