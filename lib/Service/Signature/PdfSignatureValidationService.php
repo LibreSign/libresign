@@ -37,11 +37,7 @@ class PdfSignatureValidationService {
 		$this->loadLibreSignCaCertificate();
 	}
 
-	/**
-	 * Load LibreSign CA certificate and set it as trusted root.
-	 */
 	private function loadLibreSignCaCertificate(): void {
-		// Try to load from config path first
 		$configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path');
 		if (!empty($configPath) && is_dir($configPath)) {
 			$caPemPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
@@ -55,7 +51,6 @@ class PdfSignatureValidationService {
 			}
 		}
 
-		// Try alternate location
 		$alternateConfig = $this->appConfig->getValueString(
 			Application::APP_ID,
 			'libresign_ca_certificate'
@@ -66,18 +61,10 @@ class PdfSignatureValidationService {
 		}
 	}
 
-	/**
-	 * Add additional trusted root certificate.
-	 */
 	public function addTrustedRoot(string $certificatePem): void {
 		$this->validator->addTrustedRoot($certificatePem);
 	}
 
-	/**
-	 * Set multiple trusted root certificates.
-	 *
-	 * @param list<string> $certificates
-	 */
 	public function setTrustedRoots(array $certificates): void {
 		$this->validator->setTrustedRoots($certificates);
 	}
@@ -153,9 +140,6 @@ class PdfSignatureValidationService {
 		return $mapped;
 	}
 
-	/**
-	 * Map signature validation result to LibreSign format.
-	 */
 	private function mapSignatureValidation(ValidationResult $result): array {
 		return match ($result->state) {
 			ValidationState::SIGNATURE_VALID => [
@@ -195,9 +179,6 @@ class PdfSignatureValidationService {
 		};
 	}
 
-	/**
-	 * Map certificate validation result to LibreSign format.
-	 */
 	private function mapCertificateValidation(ValidationResult $result): array {
 		return match ($result->state) {
 			ValidationState::CERT_TRUSTED => [
