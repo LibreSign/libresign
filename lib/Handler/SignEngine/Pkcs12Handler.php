@@ -301,11 +301,11 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		if (isset($validation['signatureValidation']) && is_array($validation['signatureValidation'])) {
-			$leaf['signature_validation'] = $this->pdfSignatureValidationService->localizeSignatureValidation($validation['signatureValidation']);
+			$leaf['signature_validation'] = $validation['signatureValidation'];
 		}
 
 		if (isset($validation['certificateValidation']) && is_array($validation['certificateValidation'])) {
-			$leaf['certificate_validation'] = $this->pdfSignatureValidationService->localizeCertificateValidation($validation['certificateValidation']);
+			$leaf['certificate_validation'] = $validation['certificateValidation'];
 		}
 
 		if (!isset($leaf['certificate_validation'])) {
