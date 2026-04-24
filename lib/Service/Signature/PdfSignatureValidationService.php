@@ -245,6 +245,7 @@ class PdfSignatureValidationService {
 		}
 
 		if (preg_match('/^Intermediate certificate at position (\d+) is not signed by issuer$/', $reason, $matches) === 1) {
+			// TRANSLATORS: %s is the numeric position of an intermediate certificate in the chain.
 			return $this->l10n->t(
 				'Intermediate certificate at position %s is not signed by issuer',
 				[$matches[1]]
@@ -255,9 +256,12 @@ class PdfSignatureValidationService {
 		if (str_starts_with($reason, $prefix)) {
 			$detail = substr($reason, strlen($prefix));
 			$translatedDetail = $this->translateKnownReason($detail) ?? $detail;
+			// TRANSLATORS: %s is a translated certificate validation detail message.
 			return $this->l10n->t('Certificate validation failed: %s', [$translatedDetail]);
 		}
 
+		// TRANSLATORS: Technical validation reasons from pdf-signature-validator.
+		// Keep protocol/acronym terms like ByteRange, CRL and CA as-is.
 		return match ($reason) {
 			'No ByteRange in signature' => $this->l10n->t('No ByteRange in signature'),
 			'PDF content hash does not match signed digest' => $this->l10n->t('PDF content hash does not match signed digest'),
