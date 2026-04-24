@@ -9,6 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\SignEngine;
 
 use LibreSign\PdfSignatureValidator\Parser\PdfSignatureExtractor;
+use LibreSign\PdfSignatureValidator\Model\ValidationReason;
+use LibreSign\PdfSignatureValidator\Model\ValidationResult;
+use LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -295,7 +298,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			$signatureValidation = $validation['signatureValidation'];
 
 			// Keep legacy OpenSSL result when native validator reports this known false-positive.
-			if (!$this->isDigestMismatchSignatureValidation($signatureValidation)) {
+			if (!$this->isDigestMismatchSignatureValidation($validation)) {
 				$leaf['signature_validation'] = $signatureValidation;
 			}
 		}
@@ -318,9 +321,15 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * signer engines can produce signatures that the native validator currently flags as digest mismatch.
 	 * In this case we preserve the legacy validation computed from the PKCS#7 signature.
 	 */
-	private function isDigestMismatchSignatureValidation(array $signatureValidation): bool {
-		return ($signatureValidation['id'] ?? null) === 3
-			&& ($signatureValidation['label'] ?? '') === 'Digest mismatch.';
+	private function isDigestMismatchSignatureValidation(array $validation): bool {
+		$rawSignatureValidation = $validation['raw']['signature'] ?? null;
+		if ($rawSignatureValidation instanceof ValidationResult) {
+			return $rawSignatureValidation->reasonCode === ValidationReason::DIGEST_MISMATCH
+				|| $rawSignatureValidation->state === ValidationState::DIGEST_MISMATCH;
+		}
+
+		$signatureValidation = $validation['signatureValidation'] ?? null;
+		return is_array($signatureValidation) && ($signatureValidation['id'] ?? null) === 3;
 	}
 
 	/**
