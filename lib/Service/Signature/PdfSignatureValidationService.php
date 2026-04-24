@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signature;
 
-use DateTime;
 use LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use LibreSign\PdfSignatureValidator\Model\ValidationState;
 use LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator;
@@ -73,13 +72,12 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from file resource.
 	 *
 	 * @param resource $resource PDF file resource
-	 * @param ?\DateTime $signatureTime Optional time to validate against (for historic validation)
 	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
 	 */
-	public function validateFromResource($resource, ?DateTime $signatureTime = null): array {
+	public function validateFromResource($resource): array {
 		try {
 			$results = $this->validator->validateFromResource($resource);
-			return $this->mapValidationResults($results, $signatureTime);
+			return $this->mapValidationResults($results);
 		} catch (\Throwable $e) {
 			$this->logger->warning('PDF signature validation failed', [
 				'error' => $e->getMessage(),
@@ -93,13 +91,12 @@ class PdfSignatureValidationService {
 	 * Validate PDF signatures from binary content.
 	 *
 	 * @param string $pdfContent Binary PDF content
-	 * @param ?\DateTime $signatureTime Optional time to validate against (for historic validation)
 	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
 	 */
-	public function validateFromString(string $pdfContent, ?DateTime $signatureTime = null): array {
+	public function validateFromString(string $pdfContent): array {
 		try {
 			$results = $this->validator->validateFromString($pdfContent);
-			return $this->mapValidationResults($results, $signatureTime);
+			return $this->mapValidationResults($results);
 		} catch (\Throwable $e) {
 			$this->logger->warning('PDF signature validation failed', [
 				'error' => $e->getMessage(),
@@ -113,10 +110,9 @@ class PdfSignatureValidationService {
 	 * Map validation results from PdfSignatureValidator to LibreSign format.
 	 *
 	 * @param list<array> $results Results from PdfSignatureValidator
-	 * @param ?\DateTime $signatureTime
 	 * @return list<array{signatureValidation: array, certificateValidation: array, raw: array{signature: ValidationResult, certificate: ValidationResult}}>
 	 */
-	private function mapValidationResults(array $results, ?DateTime $signatureTime = null): array {
+	private function mapValidationResults(array $results): array {
 		$mapped = [];
 
 		foreach ($results as $result) {
