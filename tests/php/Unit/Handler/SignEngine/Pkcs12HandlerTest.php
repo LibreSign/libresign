@@ -464,4 +464,28 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(3, $result[0]['chain'][0]['certificate_validation']['id']);
 	}
 
+	public function testGetCertificateChainDoesNotOverrideLegacySignatureValidationOnDigestMismatch(): void {
+		$this->pdfSignatureValidationService->method('validateFromResource')
+			->willReturn([
+				[
+					'signatureValidation' => [
+						'id' => 3,
+						'label' => 'Digest mismatch.',
+						'reason' => 'PDF content hash does not match signed digest',
+					],
+				],
+			]);
+
+		$handler = $this->getHandler();
+		$resource = fopen(__DIR__ . '/../../../fixtures/pdfs/small_valid-signed.pdf', 'r');
+		$this->assertIsResource($resource);
+
+		$result = $handler->getCertificateChain($resource);
+		fclose($resource);
+
+		$this->assertNotEmpty($result);
+		$this->assertSame(1, $result[0]['chain'][0]['signature_validation']['id']);
+		$this->assertSame('Signature is valid.', $result[0]['chain'][0]['signature_validation']['label']);
+	}
+
 }

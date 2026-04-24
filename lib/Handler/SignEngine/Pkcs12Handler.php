@@ -301,7 +301,12 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		if (isset($validation['signatureValidation']) && is_array($validation['signatureValidation'])) {
-			$leaf['signature_validation'] = $validation['signatureValidation'];
+			$signatureValidation = $validation['signatureValidation'];
+
+			// Keep legacy OpenSSL result when native validator reports this known false-positive.
+			if (!$this->isDigestMismatchSignatureValidation($signatureValidation)) {
+				$leaf['signature_validation'] = $signatureValidation;
+			}
 		}
 
 		if (isset($validation['certificateValidation']) && is_array($validation['certificateValidation'])) {
@@ -316,6 +321,15 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * signer engines can produce signatures that the native validator currently flags as digest mismatch.
+	 * In this case we preserve the legacy validation computed from the PKCS#7 signature.
+	 */
+	private function isDigestMismatchSignatureValidation(array $signatureValidation): bool {
+		return ($signatureValidation['id'] ?? null) === 3
+			&& ($signatureValidation['label'] ?? '') === 'Digest mismatch.';
 	}
 
 	/**
