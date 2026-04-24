@@ -301,11 +301,11 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		if (isset($validation['signatureValidation']) && is_array($validation['signatureValidation'])) {
-			$leaf['signature_validation'] = $this->getLocalizedSignatureValidation($validation['signatureValidation']);
+			$leaf['signature_validation'] = $this->pdfSignatureValidationService->localizeSignatureValidation($validation['signatureValidation']);
 		}
 
 		if (isset($validation['certificateValidation']) && is_array($validation['certificateValidation'])) {
-			$leaf['certificate_validation'] = $this->getLocalizedCertificateValidation($validation['certificateValidation']);
+			$leaf['certificate_validation'] = $this->pdfSignatureValidationService->localizeCertificateValidation($validation['certificateValidation']);
 		}
 
 		if (!isset($leaf['certificate_validation'])) {
@@ -316,74 +316,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		return $result;
-	}
-
-	/**
-	 * Keep LibreSign-side l10n compatibility regardless of upstream validator labels.
-	 */
-	private function getLocalizedSignatureValidation(array $validation): array {
-		$id = (int)($validation['id'] ?? 6);
-
-		return match ($id) {
-			1 => [
-				'id' => 1,
-				'label' => $this->l10n->t('Signature is valid.'),
-			],
-			2 => [
-				'id' => 2,
-				'label' => $this->l10n->t('Signature is invalid.'),
-			],
-			3 => [
-				'id' => 3,
-				'label' => $this->l10n->t('Digest mismatch.'),
-			],
-			5 => [
-				'id' => 5,
-				'label' => $this->l10n->t('Signature has not yet been verified.'),
-			],
-			default => [
-				'id' => 6,
-				'label' => $this->l10n->t('Unknown validation failure.'),
-			],
-		};
-	}
-
-	/**
-	 * Keep LibreSign-side l10n compatibility regardless of upstream validator labels.
-	 */
-	private function getLocalizedCertificateValidation(array $validation): array {
-		$id = (int)($validation['id'] ?? 7);
-
-		return match ($id) {
-			1 => [
-				'id' => 1,
-				'label' => $this->l10n->t('Certificate is trusted.'),
-			],
-			2 => [
-				'id' => 2,
-				'label' => $this->l10n->t("Certificate issuer isn't trusted."),
-			],
-			3 => [
-				'id' => 3,
-				'label' => $this->l10n->t('Certificate issuer is unknown.'),
-			],
-			4 => [
-				'id' => 4,
-				'label' => $this->l10n->t('Certificate has been revoked.'),
-			],
-			5 => [
-				'id' => 5,
-				'label' => $this->l10n->t('Certificate has expired'),
-			],
-			6 => [
-				'id' => 6,
-				'label' => $this->l10n->t('Certificate has not yet been verified.'),
-			],
-			default => [
-				'id' => 7,
-				'label' => $this->l10n->t('Unknown issue with certificate or corrupted data.'),
-			],
-		};
 	}
 
 	/**
