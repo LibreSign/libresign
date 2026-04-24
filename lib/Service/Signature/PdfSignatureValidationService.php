@@ -317,16 +317,10 @@ class PdfSignatureValidationService {
 		};
 	}
 
-	/**
-	 * Check if LibreSign CA is loaded.
-	 */
 	public function isLibreSignCaLoaded(): bool {
 		return !empty($this->libresignCaCertificate);
 	}
 
-	/**
-	 * Get LibreSign CA certificate (PEM format).
-	 */
 	public function getLibreSignCaCertificate(): string {
 		return $this->libresignCaCertificate;
 	}
