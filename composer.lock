@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ab5d7bacc29ec24709c086f8137c630a",
+    "content-hash": "a0127fa8dfa35f6e73a6f5cd728c9b40",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -200,16 +200,16 @@
         },
         {
             "name": "libresign/pdf-signature-validator",
-            "version": "v0.2.0",
+            "version": "v0.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/pdf-signature-validator.git",
-                "reference": "f062333024dece3a8bb51da8bf8a6259e98543c2"
+                "reference": "8288a4648c8d738fe538f182bb8a9c6a123feb1a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/pdf-signature-validator/zipball/f062333024dece3a8bb51da8bf8a6259e98543c2",
-                "reference": "f062333024dece3a8bb51da8bf8a6259e98543c2",
+                "url": "https://api.github.com/repos/LibreSign/pdf-signature-validator/zipball/8288a4648c8d738fe538f182bb8a9c6a123feb1a",
+                "reference": "8288a4648c8d738fe538f182bb8a9c6a123feb1a",
                 "shasum": ""
             },
             "require": {
@@ -239,7 +239,7 @@
             "description": "High-quality PDF signature extraction and validation primitives for LibreSign and external consumers.",
             "support": {
                 "issues": "https://github.com/LibreSign/pdf-signature-validator/issues",
-                "source": "https://github.com/LibreSign/pdf-signature-validator/tree/v0.2.0"
+                "source": "https://github.com/LibreSign/pdf-signature-validator/tree/v0.2.1"
             },
             "funding": [
                 {
@@ -247,7 +247,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-24T00:11:10+00:00"
+            "time": "2026-04-24T14:34:32+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
