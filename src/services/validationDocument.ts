@@ -64,7 +64,15 @@ function isOptionalField(record: UnknownRecord, key: string, guard: (value: unkn
 }
 
 function toNumber(value: unknown): number | null {
-	return typeof value === 'number' && Number.isFinite(value) ? value : null
+	if (typeof value === 'number' && Number.isFinite(value)) {
+		return value
+	}
+
+	if (typeof value === 'string' && /^-?\d+$/.test(value)) {
+		return Number.parseInt(value, 10)
+	}
+
+	return null
 }
 
 function isString(value: unknown): value is string {
@@ -89,6 +97,15 @@ function isSignerStatus(value: unknown): value is SignerDetailRecord['status'] {
 	return normalizedValue === SIGN_REQUEST_STATUS.DRAFT
 		|| normalizedValue === SIGN_REQUEST_STATUS.ABLE_TO_SIGN
 		|| normalizedValue === SIGN_REQUEST_STATUS.SIGNED
+}
+
+function isValidationSignatureFlow(value: unknown): boolean {
+	if (value === 'none' || value === 'parallel' || value === 'ordered_numeric') {
+		return true
+	}
+
+	const normalizedValue = toNumber(value)
+	return normalizedValue === 0 || normalizedValue === 1 || normalizedValue === 2
 }
 
 function isValidationStatusInfo(value: unknown): value is ValidationStatusInfo {
@@ -210,12 +227,12 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 		|| !isString(data.statusText)
 		|| typeof data.nodeId !== 'number'
 		|| (data.nodeType !== 'file' && data.nodeType !== 'envelope')
-		|| typeof data.signatureFlow !== 'number'
-		|| typeof data.docmdpLevel !== 'number'
-		|| typeof data.filesCount !== 'number'
+		|| !isValidationSignatureFlow(data.signatureFlow)
+		|| toNumber(data.docmdpLevel) === null
+		|| toNumber(data.filesCount) === null
 		|| !Array.isArray(data.files)
-		|| typeof data.totalPages !== 'number'
-		|| typeof data.size !== 'number'
+		|| toNumber(data.totalPages) === null
+		|| toNumber(data.size) === null
 		|| !isString(data.pdfVersion)
 		|| !isString(data.created_at)
 		|| !isRequestedBy(data.requested_by)
