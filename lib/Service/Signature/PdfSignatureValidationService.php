@@ -83,7 +83,7 @@ class PdfSignatureValidationService {
 			2 => ValidationState::SIGNATURE_INVALID,
 			3 => ValidationState::DIGEST_MISMATCH,
 			5 => ValidationState::NOT_VERIFIED,
-			default => ValidationState::UNKNOWN_FAILURE,
+			default => ValidationState::NOT_VERIFIED,
 		};
 
 		return $this->mapSignatureValidation(new ValidationResult($state, $reason));
@@ -105,7 +105,7 @@ class PdfSignatureValidationService {
 			4 => ValidationState::CERT_REVOKED,
 			5 => ValidationState::CERT_EXPIRED,
 			6 => ValidationState::CERT_NOT_VERIFIED,
-			default => ValidationState::UNKNOWN_FAILURE,
+			default => ValidationState::CERT_NOT_VERIFIED,
 		};
 
 		return $this->mapCertificateValidation(new ValidationResult($state, $reason));
