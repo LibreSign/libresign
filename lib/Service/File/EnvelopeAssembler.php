@@ -143,6 +143,9 @@ class EnvelopeAssembler {
 						$certData = $this->certificateChainService->getCertificateChain($fileNode, $childFile, $options);
 					} else {
 						$resource = $fileNode->fopen('rb');
+						if (!is_resource($resource)) {
+							throw new \RuntimeException('unable to open signed file stream');
+						}
 						$sha256 = $this->getSha256FromResource($resource);
 						rewind($resource);
 						if ($sha256 === $childFile->getSignedHash()) {
@@ -164,9 +167,16 @@ class EnvelopeAssembler {
 	}
 
 	private function getSha256FromResource($resource): string {
+		if (!is_resource($resource)) {
+			return '';
+		}
+
 		$hashContext = hash_init('sha256');
 		while (!feof($resource)) {
 			$buffer = fread($resource, 8192);
+			if ($buffer === false) {
+				break;
+			}
 			hash_update($hashContext, $buffer);
 		}
 		return hash_final($hashContext);
