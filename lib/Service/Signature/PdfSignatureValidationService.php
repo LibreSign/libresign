@@ -14,6 +14,7 @@ use LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use LibreSign\PdfSignatureValidator\Model\ValidationState;
 use OCA\Libresign\AppInfo\Application;
 use OCP\IAppConfig;
+use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -29,6 +30,7 @@ class PdfSignatureValidationService {
 
 	public function __construct(
 		private IAppConfig $appConfig,
+		private IL10N $l10n,
 		private LoggerInterface $logger,
 	) {
 		$this->validator = new PdfSignatureValidator();
@@ -158,31 +160,31 @@ class PdfSignatureValidationService {
 		return match ($result->state) {
 			ValidationState::SIGNATURE_VALID => [
 				'id' => 1,
-				'label' => 'Signature is valid.',
+				'label' => $this->l10n->t('Signature is valid.'),
 				'isValid' => true,
 			],
 			ValidationState::SIGNATURE_INVALID => [
 				'id' => 2,
-				'label' => 'Signature is invalid.',
-				'reason' => $result->reason,
+				'label' => $this->l10n->t('Signature is invalid.'),
+				'reason' => $this->translateReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::DIGEST_MISMATCH => [
 				'id' => 3,
-				'label' => 'Digest mismatch.',
-				'reason' => $result->reason,
+				'label' => $this->l10n->t('Digest mismatch.'),
+				'reason' => $this->translateReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::NOT_VERIFIED => [
 				'id' => 5,
-				'label' => 'Signature has not yet been verified.',
-				'reason' => $result->reason,
+				'label' => $this->l10n->t('Signature has not yet been verified.'),
+				'reason' => $this->translateReason($result->reason),
 				'isValid' => false,
 			],
 			default => [
 				'id' => 6,
-				'label' => 'Unknown validation failure.',
-				'reason' => $result->reason,
+				'label' => $this->l10n->t('Unknown validation failure.'),
+				'reason' => $this->translateReason($result->reason),
 				'isValid' => false,
 			],
 		};
@@ -195,46 +197,54 @@ class PdfSignatureValidationService {
 		return match ($result->state) {
 			ValidationState::CERT_TRUSTED => [
 				'id' => 1,
-				'label' => 'Certificate is trusted.',
+				'label' => $this->l10n->t('Certificate is trusted.'),
 				'isValid' => true,
 			],
 			ValidationState::CERT_ISSUER_NOT_TRUSTED => [
 				'id' => 2,
-				'label' => "Certificate issuer isn't trusted.",
-				'reason' => $result->reason,
+				'label' => $this->l10n->t("Certificate issuer isn't trusted."),
+				'reason' => $this->translateReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_ISSUER_UNKNOWN => [
 				'id' => 3,
-				'label' => 'Certificate issuer is unknown.',
-				'reason' => $result->reason,
+				'label' => $this->l10n->t('Certificate issuer is unknown.'),
+				'reason' => $this->translateReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_REVOKED => [
 				'id' => 4,
-				'label' => 'Certificate has been revoked.',
-				'reason' => $result->reason,
+				'label' => $this->l10n->t('Certificate has been revoked.'),
+				'reason' => $this->translateReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_EXPIRED => [
 				'id' => 5,
-				'label' => 'Certificate has expired.',
-				'reason' => $result->reason,
+				'label' => $this->l10n->t('Certificate has expired.'),
+				'reason' => $this->translateReason($result->reason),
 				'isValid' => false,
 			],
 			ValidationState::CERT_NOT_VERIFIED => [
 				'id' => 6,
-				'label' => 'Certificate has not yet been verified.',
-				'reason' => $result->reason,
+				'label' => $this->l10n->t('Certificate has not yet been verified.'),
+				'reason' => $this->translateReason($result->reason),
 				'isValid' => false,
 			],
 			default => [
 				'id' => 7,
-				'label' => 'Unknown issue with certificate or corrupted data.',
-				'reason' => $result->reason,
+				'label' => $this->l10n->t('Unknown issue with certificate or corrupted data.'),
+				'reason' => $this->translateReason($result->reason),
 				'isValid' => false,
 			],
 		};
+	}
+
+	private function translateReason(?string $reason): ?string {
+		if ($reason === null || $reason === '') {
+			return $reason;
+		}
+
+		return $this->l10n->t($reason);
 	}
 
 	/**
