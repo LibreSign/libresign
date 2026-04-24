@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Signature;
 
 use DateTime;
-use LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator;
 use LibreSign\PdfSignatureValidator\Model\ValidationResult;
 use LibreSign\PdfSignatureValidator\Model\ValidationState;
+use LibreSign\PdfSignatureValidator\Parser\PdfSignatureValidator;
 use OCA\Libresign\AppInfo\Application;
 use OCP\IAppConfig;
 use OCP\IL10N;
