@@ -83,7 +83,7 @@ OC.L10N.register(
     "Contact" : "連絡先",
     "Order" : "並び替え",
     "Open sidebar" : "サイドバーを開く",
-    "{seconds} seconds left" : "残り {seconds} 秒",
+    "{seconds} seconds left" : "残り{seconds}秒",
     "Cancel upload" : "アップロードをキャンセル",
     "Issued by:" : "発行元:",
     "Name:" : "名前: ",
