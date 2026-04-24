@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ecf8085cd1193a30abd69ef25963e320",
+    "content-hash": "ab5d7bacc29ec24709c086f8137c630a",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -200,11 +200,17 @@
         },
         {
             "name": "libresign/pdf-signature-validator",
-            "version": "dev-backport/7525/stable33-manual",
+            "version": "v0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/LibreSign/pdf-signature-validator.git",
+                "reference": "f062333024dece3a8bb51da8bf8a6259e98543c2"
+            },
             "dist": {
-                "type": "path",
-                "url": "../pdf-signature-validator",
-                "reference": "f8eba5ac5e43315f3856645e46e95eb21be4f742"
+                "type": "zip",
+                "url": "https://api.github.com/repos/LibreSign/pdf-signature-validator/zipball/f062333024dece3a8bb51da8bf8a6259e98543c2",
+                "reference": "f062333024dece3a8bb51da8bf8a6259e98543c2",
+                "shasum": ""
             },
             "require": {
                 "php": "^8.2",
@@ -226,60 +232,22 @@
                     "LibreSign\\PdfSignatureValidator\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "LibreSign\\PdfSignatureValidator\\Tests\\": "tests/"
-                }
-            },
-            "scripts": {
-                "bin": [
-                    "echo 'bin not installed'"
-                ],
-                "lint": [
-                    "find src tests -name '*.php' -print0 | xargs -0 -n1 php -l"
-                ],
-                "cs:check": [
-                    "php-cs-fixer fix --dry-run --diff"
-                ],
-                "cs:fix": [
-                    "php-cs-fixer fix"
-                ],
-                "phpmd": [
-                    "phpmd src,tests text phpmd.xml"
-                ],
-                "psalm": [
-                    "psalm --no-cache --threads=$(nproc)"
-                ],
-                "rector:check": [
-                    "rector --dry-run"
-                ],
-                "rector:fix": [
-                    "rector"
-                ],
-                "test:unit": [
-                    "phpunit --colors=always --fail-on-warning --fail-on-risky"
-                ],
-                "test:coverage": [
-                    "XDEBUG_MODE=coverage phpunit --coverage-text"
-                ],
-                "test:mutation": [
-                    "infection --threads=$(nproc) --skip-initial-tests"
-                ],
-                "post-install-cmd": [
-                    "@composer bin all install --ansi"
-                ],
-                "post-update-cmd": [
-                    "@composer bin all install --ansi"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "AGPL-3.0-or-later"
             ],
             "description": "High-quality PDF signature extraction and validation primitives for LibreSign and external consumers.",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/LibreSign/pdf-signature-validator/issues",
+                "source": "https://github.com/LibreSign/pdf-signature-validator/tree/v0.2.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/libresign",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-04-24T00:11:10+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -1985,7 +1953,6 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "libresign/pdf-signature-validator": 20,
         "nextcloud/ocp": 20,
         "roave/security-advisories": 20
     },
