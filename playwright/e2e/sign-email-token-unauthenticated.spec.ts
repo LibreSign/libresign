@@ -64,6 +64,30 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	const email = await waitForEmailTo(mailpit, 'signer01@libresign.coop', 'LibreSign: There is a file for you to sign')
 	const signLink = extractSignLink(email.Text)
 	if (!signLink) throw new Error('Sign link not found in email')
+
+	// Regression guard: validation payload can contain signer without email.
+	// Reuse this existing E2E flow and force `email = null` in the validate response.
+	await page.route('**/ocs/v2.php/apps/libresign/api/v1/file/validate/uuid/**', async (route) => {
+		const response = await route.fetch()
+		const payload = await response.json() as Record<string, unknown>
+		const ocs = payload.ocs as Record<string, unknown> | undefined
+		const data = ocs?.data as Record<string, unknown> | undefined
+
+		if (data && Array.isArray(data.signers) && data.signers.length > 0) {
+			const firstSigner = data.signers[0] as Record<string, unknown>
+			firstSigner.email = null
+		}
+
+		await route.fulfill({
+			status: response.status(),
+			headers: {
+				...response.headers(),
+				'content-type': 'application/json',
+			},
+			body: JSON.stringify(payload),
+		})
+	})
+
 	await page.goto(signLink);
 	await page.getByRole('button', { name: 'Sign the document.' }).click();
 	await page.getByRole('textbox', { name: 'Email' }).click();
@@ -84,6 +108,7 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await page.getByRole('button', { name: 'Sign document' }).click();
 	await page.waitForURL('**/validation/**');
 	await expect(page.getByText('This document is valid')).toBeVisible();
+	await expect(page.getByText('Failed to validate document')).not.toBeVisible();
 	await expect(page.getByText('Congratulations you have')).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Sign the document.' })).not.toBeVisible();
 });
