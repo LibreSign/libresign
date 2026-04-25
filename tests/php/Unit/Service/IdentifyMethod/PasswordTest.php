@@ -290,7 +290,8 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validTo_time_t' => $futureTimestamp,
 					'crl_validation' => CrlValidationStatus::MISSING,
 				],
-				'shouldThrow' => false,
+				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'revoked and expired certificate' => [
 				'certificateData' => [
@@ -305,7 +306,8 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validTo_time_t' => $futureTimestamp,
 					'crl_validation' => CrlValidationStatus::MISSING,
 				],
-				'shouldThrow' => false,
+				'shouldThrow' => true,
+				'expectedCode' => 422,
 			],
 			'valid certificate - old date but valid (1970s timestamp)' => [
 				'certificateData' => [
