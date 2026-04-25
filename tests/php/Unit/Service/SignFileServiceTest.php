@@ -1246,6 +1246,22 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'',
 				'',
 			],
+			'legacy AD/LDAP cert with account: prefix in CN array' => [
+				[
+					'issuer' => ['CN' => 'LibreCode CA'],
+					'subject' => ['CN' => ['account:johndoe', 'John Doe']],
+				],
+				'LibreCode CA',
+				'John Doe',
+			],
+			'legacy AD/LDAP cert with spaced account: prefix in CN array' => [
+				[
+					'issuer' => ['CN' => 'LibreCode CA'],
+					'subject' => ['CN' => ['account: johndoe', 'John Doe']],
+				],
+				'LibreCode CA',
+				'John Doe',
+			],
 		];
 	}
 
