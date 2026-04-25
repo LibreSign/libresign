@@ -21,6 +21,7 @@ use Psr\Log\LoggerInterface;
 class MailService {
 	/** @var array */
 	private $files = [];
+	private const FALLBACK_MAIL_SUBJECT = 'LibreSign: Code to sign file';
 
 	public function __construct(
 		private LoggerInterface $logger,
@@ -42,13 +43,34 @@ class MailService {
 		return $this->files[$fileId];
 	}
 
+	private function normalizeMailSubject(string $subject): string {
+		if (preg_match('/^[\x20-\x7E]+$/', $subject) === 1) {
+			return $subject;
+		}
+
+		$normalized = $subject;
+		if (class_exists(\Normalizer::class)) {
+			$normalized = \Normalizer::normalize($normalized, \Normalizer::FORM_KD) ?: $normalized;
+			$normalized = preg_replace('/\p{Mn}+/u', '', $normalized) ?: $normalized;
+		}
+
+		$ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $normalized);
+		if (!is_string($ascii) || trim($ascii) === '') {
+			return self::FALLBACK_MAIL_SUBJECT;
+		}
+
+		$ascii = preg_replace('/[^\x20-\x7E]/', '', $ascii) ?: '';
+		$ascii = trim(preg_replace('/\s+/', ' ', $ascii) ?: '');
+		return $ascii !== '' ? $ascii : self::FALLBACK_MAIL_SUBJECT;
+	}
+
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
 	public function notifySignDataUpdated(SignRequest $data, string $email, ?string $description = null): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		// TRANSLATORS The subject of the email that is sent after changes are made to the signature request that may affect something for the signer who will sign the document. Some possible reasons: URL for signature changed (when the URL expires), the person who requested the signature sent a notification
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: Changes into a file for you to sign'));
+		$emailTemplate->setSubject($this->normalizeMailSubject($this->l10n->t('LibreSign: Changes into a file for you to sign')));
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
 
@@ -84,7 +106,7 @@ class MailService {
 	 */
 	public function notifyUnsignedUser(SignRequest $data, string $email, ?string $description = null): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: There is a file for you to sign'));
+		$emailTemplate->setSubject($this->normalizeMailSubject($this->l10n->t('LibreSign: There is a file for you to sign')));
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
 
@@ -118,7 +140,7 @@ class MailService {
 	public function notifySignedUser(SignRequest $signRequest, string $email, File $libreSignFile, string $displayName): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		// TRANSLATORS The subject of the email that is sent after a document has been signed by a user. This email is sent to the person who requested the signature.
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: A file has been signed'));
+		$emailTemplate->setSubject($this->normalizeMailSubject($this->l10n->t('LibreSign: A file has been signed')));
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('File signed'), false);
 		// TRANSLATORS The text in the email that is sent after a document has been signed by a user. %s will be replaced with the name of the user who signed the document.
@@ -147,7 +169,7 @@ class MailService {
 	public function notifyCanceledRequest(SignRequest $signRequest, string $email, File $libreSignFile): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		// TRANSLATORS The subject of the email that is sent when a signature request has been canceled.
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: A signature request has been canceled'));
+		$emailTemplate->setSubject($this->normalizeMailSubject($this->l10n->t('LibreSign: A signature request has been canceled')));
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('Signature request canceled'), false);
 		// TRANSLATORS The text in the email that is sent when a signature request has been canceled. %s will be replaced with the name of the file.
@@ -169,7 +191,7 @@ class MailService {
 
 	public function sendCodeToSign(string $email, string $name, string $code): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: Code to sign file'));
+		$emailTemplate->setSubject($this->normalizeMailSubject($this->l10n->t('LibreSign: Code to sign file')));
 		$emailTemplate->addHeader();
 		$emailTemplate->addBodyText($this->l10n->t('Use this code to sign the document:'));
 		$emailTemplate->addBodyText($code);

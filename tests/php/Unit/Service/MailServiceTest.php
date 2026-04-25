@@ -15,7 +15,9 @@ use OCA\Libresign\Service\MailService;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
+use OCP\Mail\IMessage;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -112,5 +114,62 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(true);
 		$actual = $this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
 		$this->assertNull($actual);
+	}
+
+	public function testSendCodeToSignNormalizesAccentedSubjectToAscii(): void {
+		$l10n = $this->createMock(IL10N::class);
+		$l10n
+			->method('t')
+			->willReturnCallback(static fn (string $text): string
+				=> $text === 'LibreSign: Code to sign file'
+					? 'LibreSign : Code nécessaire à la signature du fichier'
+					: $text
+			);
+
+		$service = new MailService(
+			$this->logger,
+			$this->mailer,
+			$this->fileMapper,
+			$l10n,
+			$this->urlGenerator,
+			$this->appConfig
+		);
+
+		$emailTemplate = $this->createMock(IEMailTemplate::class);
+		$emailTemplate
+			->expects($this->once())
+			->method('setSubject')
+			->with('LibreSign : Code necessaire a la signature du fichier');
+		$emailTemplate
+			->expects($this->once())
+			->method('addHeader');
+		$emailTemplate
+			->expects($this->exactly(2))
+			->method('addBodyText');
+
+		$message = $this->createMock(IMessage::class);
+		$message
+			->method('setTo')
+			->willReturnSelf();
+		$message
+			->method('useTemplate')
+			->willReturnSelf();
+
+		$this->mailer
+			->expects($this->once())
+			->method('createEMailTemplate')
+			->with('settings.TestEmail')
+			->willReturn($emailTemplate);
+		$this->mailer
+			->expects($this->once())
+			->method('createMessage')
+			->willReturn($message);
+		$this->mailer
+			->expects($this->once())
+			->method('send')
+			->with($message)
+			->willReturn([]);
+
+		$service->sendCodeToSign('a@b.coop', 'John Doe', '123456');
 	}
 }
