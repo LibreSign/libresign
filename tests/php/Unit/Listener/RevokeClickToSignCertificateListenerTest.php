@@ -86,7 +86,9 @@ class RevokeClickToSignCertificateListenerTest extends TestCase {
 				$serialNumber,
 				CRLReason::SUPERSEDED,
 				$this->anything(),
-				$this->anything()
+				$this->anything(),
+				null,
+				$this->isInstanceOf(\DateTime::class),
 			)
 			->willReturn(true);
 
@@ -102,7 +104,9 @@ class RevokeClickToSignCertificateListenerTest extends TestCase {
 				$this->anything(),
 				$this->anything(),
 				$this->anything(),
-				'system'
+				'system',
+				null,
+				$this->isInstanceOf(\DateTime::class),
 			)
 			->willReturn(true);
 
@@ -122,7 +126,9 @@ class RevokeClickToSignCertificateListenerTest extends TestCase {
 					$this->stringContains('click-to-sign'),
 					$this->stringContains('revoked after document signing')
 				),
-				$this->anything()
+				$this->anything(),
+				null,
+				$this->isInstanceOf(\DateTime::class),
 			)
 			->willReturn(true);
 
@@ -153,6 +159,31 @@ class RevokeClickToSignCertificateListenerTest extends TestCase {
 				'Successfully revoked click-to-sign certificate',
 				$this->callback(fn ($ctx) => $ctx['serial'] === $serialNumber && isset($ctx['signRequestId']))
 			);
+
+		$this->listener->handle($event);
+	}
+
+	public function testRevocationDateIsSetAtLeastOneSecondInFutureToAvoidTimestampTie(): void {
+		$event = $this->createSignedEvent(true, 'OFFSET_123');
+		$beforeCall = new \DateTime();
+
+		$this->crlService->expects($this->once())
+			->method('revokeCertificate')
+			->with(
+				$this->anything(),
+				$this->anything(),
+				$this->anything(),
+				$this->anything(),
+				null,
+				$this->callback(function ($revokedAt) use ($beforeCall): bool {
+					if (!($revokedAt instanceof \DateTime)) {
+						return false;
+					}
+					$delta = $revokedAt->getTimestamp() - $beforeCall->getTimestamp();
+					return $delta >= 1;
+				})
+			)
+			->willReturn(true);
 
 		$this->listener->handle($event);
 	}
