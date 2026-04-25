@@ -59,6 +59,14 @@ class Password extends AbstractSignatureMethod {
 		if ($status === CrlValidationStatus::DISABLED) {
 			return;
 		}
+		// Backward compatibility for legacy certificates issued before CRL metadata existed.
+		if ($status === CrlValidationStatus::MISSING) {
+			$this->identifyService->getLogger()->warning('Signing allowed for certificate without revocation metadata', [
+				'status' => $status->value,
+				'signer_uid' => $this->userSession->getUser()?->getUID(),
+			]);
+			return;
+		}
 		$this->logRevocationBlockedSigning($status);
 		throw new LibresignException($this->getRevocationErrorMessage($status), 422);
 	}
