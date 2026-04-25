@@ -204,6 +204,33 @@ describe('validationDocument', () => {
 		expect(Object.prototype.hasOwnProperty.call(normalized?.signers[0] ?? {}, 'email')).toBe(false)
 	})
 
+	it('rejects payload when technical timestamp entry is mixed into signers array', () => {
+		const normalized = toValidationDocument(createValidationPayload({
+			signers: [
+				createSigner({
+					signRequestId: 638,
+					displayName: 'Daiane Alves',
+					email: null,
+					status: SIGN_REQUEST_STATUS.SIGNED,
+					statusText: 'Signed',
+					request_sign_date: '2026-04-25T18:35:29+00:00',
+				}),
+				{
+					status: SIGN_REQUEST_STATUS.SIGNED,
+					statusText: 'Signed',
+					signed: '2026-04-25T18:36:28+00:00',
+					timestamp: {
+						genTime: '2026-04-25T18:36:28+00:00',
+						policy: '1.2.3.4.1',
+					},
+					chain: [],
+				},
+			],
+		}))
+
+		expect(normalized).toBeNull()
+	})
+
 	it.each([
 		['status null', { status: null }],
 		['status outside allowed values', { status: 99 }],
