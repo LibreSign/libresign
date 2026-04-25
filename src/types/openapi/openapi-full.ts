@@ -2210,7 +2210,7 @@ export type components = {
             /** Format: int64 */
             signRequestId: number;
             displayName: string;
-            email: string;
+            email?: string | null;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             signed: string | null;
             /** Format: int64 */
@@ -2302,8 +2302,11 @@ export type components = {
             nodeId: number;
             /** @enum {string} */
             nodeType: "file" | "envelope";
-            /** Format: int64 */
-            signatureFlow: number;
+            /**
+             * Format: int64
+             * @enum {integer}
+             */
+            signatureFlow: 0 | 1 | 2;
             /** Format: int64 */
             docmdpLevel: number;
             /** Format: int64 */
