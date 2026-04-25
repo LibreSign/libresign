@@ -46,7 +46,7 @@ final class CrlDistributionPointsExtractor {
 
 		$urls = [];
 		foreach ($values as $value) {
-			preg_match_all('/URI\s*:\s*([^\s,\n]+)/i', $value, $matches);
+			preg_match_all('/URI\s*:\s*([^\s\n]+)/i', $value, $matches);
 			if (!empty($matches[1])) {
 				$urls = [...$urls, ...$matches[1]];
 			}
