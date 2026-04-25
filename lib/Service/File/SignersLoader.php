@@ -11,7 +11,6 @@ namespace OCA\Libresign\Service\File;
 use DateTimeInterface;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Service\File\CertificateSignersMergeService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Accounts\IAccountManager;
