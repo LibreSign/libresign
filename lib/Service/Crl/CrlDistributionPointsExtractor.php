@@ -25,7 +25,8 @@ final class CrlDistributionPointsExtractor {
 	 */
 	public function extractFromExtensions(array $extensions): array {
 		$hasCrlExtension = false;
-		$urls = [];
+		$orderedUrls = [];
+		$seenUrls = [];
 		foreach ($extensions as $extensionName => $extensionValue) {
 			if (!is_string($extensionName)) {
 				continue;
@@ -38,11 +39,11 @@ final class CrlDistributionPointsExtractor {
 			$hasCrlExtension = true;
 
 			if (is_string($extensionValue)) {
-				$this->appendUrlsFromText($extensionValue, $urls);
+				$this->appendUrlsFromText($extensionValue, $orderedUrls, $seenUrls);
 			} elseif (is_array($extensionValue)) {
 				foreach ($extensionValue as $extensionPart) {
 					if (is_string($extensionPart)) {
-						$this->appendUrlsFromText($extensionPart, $urls);
+						$this->appendUrlsFromText($extensionPart, $orderedUrls, $seenUrls);
 					}
 				}
 			}
@@ -52,19 +53,21 @@ final class CrlDistributionPointsExtractor {
 			return ['hasExtension' => false, 'urls' => []];
 		}
 
-		/** @var list<string> $uniqueUrls */
-		$uniqueUrls = array_values(array_unique($urls));
-
 		return [
 			'hasExtension' => true,
-			'urls' => $uniqueUrls,
+			'urls' => $orderedUrls,
 		];
 	}
 
 	/**
-	 * @param list<string> $urls
+	 * @param list<string> $orderedUrls
+	 * @param array<string, true> $seenUrls
 	 */
-	private function appendUrlsFromText(string $value, array &$urls): void {
+	private function appendUrlsFromText(string $value, array &$orderedUrls, array &$seenUrls): void {
+		if (stripos($value, 'URI') === false) {
+			return;
+		}
+
 		preg_match_all(self::URI_PATTERN, $value, $matches);
 		if (empty($matches[1])) {
 			return;
@@ -72,9 +75,12 @@ final class CrlDistributionPointsExtractor {
 
 		foreach ($matches[1] as $url) {
 			$normalizedUrl = $this->normalizeUrlToken($url);
-			if ($normalizedUrl !== '') {
-				$urls[] = $normalizedUrl;
+			if ($normalizedUrl === '' || isset($seenUrls[$normalizedUrl])) {
+				continue;
 			}
+
+			$seenUrls[$normalizedUrl] = true;
+			$orderedUrls[] = $normalizedUrl;
 		}
 	}
 
