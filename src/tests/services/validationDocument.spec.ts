@@ -106,18 +106,33 @@ describe('validationDocument', () => {
 		}))
 	})
 
-	it('accepts validation payload when signatureFlow is enum string and numeric fields are numeric strings', () => {
+	it('rejects payload with string values in numeric contract fields', () => {
 		const normalized = toValidationDocument(createValidationPayload({
-			signatureFlow: 'none',
-			docmdpLevel: '2',
+			id: '100',
+			nodeId: '100',
+			signatureFlow: 'parallel',
+			docmdpLevel: '0',
 			filesCount: '1',
 			totalPages: '1',
 			size: '10',
-			signers: [createSigner({ status: '2' })],
+			signers: [createSigner({ signRequestId: '1', status: '1' })],
+			files: [{
+				id: '100',
+				uuid: '550e8400-e29b-41d4-a716-446655440000',
+				name: 'contract.pdf',
+				status: '1',
+				statusText: 'Pending',
+				nodeId: '100',
+				totalPages: 1,
+				size: '10',
+				pdfVersion: '1.7',
+				signers: [],
+				file: '/apps/libresign/p/pdf/550e8400-e29b-41d4-a716-446655440000',
+				metadata: { extension: 'pdf', p: '1' },
+			}],
 		}))
 
-		expect(normalized).not.toBeNull()
-		expect(normalized?.signatureFlow).toBe('none')
+		expect(normalized).toBeNull()
 	})
 
 	it('rejects payload with invalid signer status', () => {
@@ -126,6 +141,67 @@ describe('validationDocument', () => {
 		}))
 
 		expect(normalized).toBeNull()
+	})
+
+	it('accepts production-shaped payload when signer email is null', () => {
+		const normalized = toValidationDocument(createValidationPayload({
+			uuid: '72a2d63b-772b-4ed7-8b79-5d5b1549fd15',
+			id: 551,
+			nodeId: 28111,
+			signatureFlow: 0,
+			docmdpLevel: 2,
+			filesCount: 1,
+			totalPages: 1,
+			size: 182873,
+			status: FILE_STATUS.SIGNED,
+			statusText: 'Signed',
+			created_at: '2026-04-23T20:46:58+00:00',
+			requested_by: { userId: 'owner', displayName: null },
+			signers: [createSigner({
+				signRequestId: 637,
+				displayName: 'External signer',
+				email: null,
+				status: SIGN_REQUEST_STATUS.SIGNED,
+				statusText: 'Signed',
+				request_sign_date: '2026-04-23T20:46:58+00:00',
+				me: false,
+			})],
+			files: [{
+				id: 551,
+				uuid: '72a2d63b-772b-4ed7-8b79-5d5b1549fd15',
+				name: 'document.pdf',
+				status: FILE_STATUS.SIGNED,
+				statusText: 'Signed',
+				nodeId: 28111,
+				totalPages: 1,
+				size: 182873,
+				pdfVersion: '1.7',
+				signers: [],
+				file: '/apps/libresign/p/pdf/72a2d63b-772b-4ed7-8b79-5d5b1549fd15',
+				metadata: {
+					extension: 'pdf',
+					p: 1,
+					d: [{ w: 595.3, h: 841.9 }],
+					pdfVersion: '1.7',
+					status_changed_at: '2026-04-23T20:57:29+00:00',
+				},
+			}],
+		}))
+
+		expect(normalized).not.toBeNull()
+		expect(normalized?.signers[0]?.email).toBeNull()
+	})
+
+	it('accepts payload when signer email is omitted', () => {
+		const signerWithoutEmail = createSigner()
+		delete signerWithoutEmail.email
+
+		const normalized = toValidationDocument(createValidationPayload({
+			signers: [signerWithoutEmail],
+		}))
+
+		expect(normalized).not.toBeNull()
+		expect(Object.prototype.hasOwnProperty.call(normalized?.signers[0] ?? {}, 'email')).toBe(false)
 	})
 
 	it.each([
