@@ -87,10 +87,9 @@ abstract class AEngineHandler implements IEngineHandler {
 		protected CaIdentifierService $caIdentifierService,
 		protected LoggerInterface $logger,
 		private CrlRevocationChecker $crlRevocationChecker,
-		?CrlDistributionPointsExtractor $crlDistributionPointsExtractor = null,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
-		$this->crlDistributionPointsExtractor = $crlDistributionPointsExtractor ?? new CrlDistributionPointsExtractor();
+		$this->crlDistributionPointsExtractor = new CrlDistributionPointsExtractor();
 	}
 
 	protected function exportToPkcs12(
