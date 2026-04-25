@@ -89,6 +89,20 @@ final class CrlDistributionPointsExtractorTest extends TestCase {
 				true,
 				['ldap://ldap.example.net/cn=CA,dc=example,dc=net?certificateRevocationList;binary'],
 			],
+			'uri-with-tabs-and-extra-whitespace' => [
+				[
+					'2.5.29.31' => "Full Name:\n\tURI\t:\t https://example.org/crl/with-tabs.crl",
+				],
+				true,
+				['https://example.org/crl/with-tabs.crl'],
+			],
+			'uri-line-with-closing-parenthesis-from-formatted-output' => [
+				[
+					'2.5.29.31' => "Distribution Point (1):\nURI:https://example.org/crl/formatted.crl)",
+				],
+				true,
+				['https://example.org/crl/formatted.crl'],
+			],
 			'multiple-supported-extension-keys-are-merged-and-deduplicated' => [
 				[
 					'2.5.29.31' => "Full Name:\nURI:https://example.org/crl/shared.crl",
@@ -117,6 +131,24 @@ final class CrlDistributionPointsExtractorTest extends TestCase {
 				],
 				true,
 				[],
+			],
+			'known-extension-with-general-names-but-no-uri' => [
+				[
+					'X509v3 CRL Distribution Points' => "Full Name:\nDNS:crl.example.org\nDirName:/C=BR/O=Example/CN=CRL Directory",
+				],
+				true,
+				[],
+			],
+			'multiple-supported-keys-preserve-first-seen-order' => [
+				[
+					'crlDistributionPoints' => "Full Name:\nURI:https://example.org/crl/first.crl",
+					'2.5.29.31' => "Full Name:\nURI:https://example.org/crl/second.crl",
+				],
+				true,
+				[
+					'https://example.org/crl/first.crl',
+					'https://example.org/crl/second.crl',
+				],
 			],
 			'unknown-extension-name-should-not-match' => [
 				[
