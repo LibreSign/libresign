@@ -213,17 +213,18 @@ abstract class AEngineHandler implements IEngineHandler {
 	 */
 	private function extractCrlUrlsFromExtensions(array $extensions): array {
 		$values = [];
+		$acceptedCrlExtensionNames = [
+			'crldistributionpoints',
+			'x509v3 crl distribution points',
+			'2.5.29.31',
+		];
 		foreach ($extensions as $extensionName => $extensionValue) {
 			if (!is_string($extensionName)) {
 				continue;
 			}
 
 			$normalizedName = strtolower(trim($extensionName));
-			$isCrlDistributionPoints =
-				$normalizedName === 'crldistributionpoints'
-				|| $normalizedName === 'x509v3 crl distribution points'
-				|| $normalizedName === '2.5.29.31'
-				|| str_contains($normalizedName, 'crl distribution points');
+			$isCrlDistributionPoints = in_array($normalizedName, $acceptedCrlExtensionNames, true);
 
 			if (!$isCrlDistributionPoints) {
 				continue;
