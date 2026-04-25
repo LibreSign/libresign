@@ -282,7 +282,8 @@ class CrlServiceTest extends TestCase {
 				$reasonText,
 				$revokedBy,
 				null,
-				5
+				5,
+				null,
 			);
 
 		$result = $this->service->revokeCertificate($serialNumber, $reason, $reasonText, $revokedBy);
