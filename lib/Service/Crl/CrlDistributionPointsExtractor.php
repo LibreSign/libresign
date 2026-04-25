@@ -48,7 +48,11 @@ final class CrlDistributionPointsExtractor {
 		foreach ($values as $value) {
 			preg_match_all('/URI\s*:\s*([^\s\n]+)/i', $value, $matches);
 			if (!empty($matches[1])) {
-				$urls = [...$urls, ...$matches[1]];
+				$normalizedUrls = array_map(
+					static fn (string $url): string => rtrim($url, ")]"),
+					$matches[1],
+				);
+				$urls = [...$urls, ...$normalizedUrls];
 			}
 		}
 
