@@ -10,50 +10,46 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Crl;
 
 final class CrlDistributionPointsExtractor {
-	/** @var list<string> */
+	/** @var array<string, true> */
 	private const ACCEPTED_EXTENSION_NAMES = [
-		'crldistributionpoints',
-		'x509v3 crl distribution points',
-		'2.5.29.31',
+		'crldistributionpoints' => true,
+		'x509v3 crl distribution points' => true,
+		'2.5.29.31' => true,
 	];
+
+	private const URI_PATTERN = '/URI\s*:\s*([^\s\n]+)/i';
 
 	/**
 	 * @param array<array-key, mixed> $extensions
 	 * @return array{hasExtension: bool, urls: list<string>}
 	 */
 	public function extractFromExtensions(array $extensions): array {
-		$values = [];
+		$hasCrlExtension = false;
+		$urls = [];
 		foreach ($extensions as $extensionName => $extensionValue) {
 			if (!is_string($extensionName)) {
 				continue;
 			}
 
 			$normalizedName = strtolower(trim($extensionName));
-			if (!in_array($normalizedName, self::ACCEPTED_EXTENSION_NAMES, true)) {
+			if (!isset(self::ACCEPTED_EXTENSION_NAMES[$normalizedName])) {
 				continue;
 			}
+			$hasCrlExtension = true;
 
 			if (is_string($extensionValue)) {
-				$values[] = $extensionValue;
+				$this->appendUrlsFromText($extensionValue, $urls);
 			} elseif (is_array($extensionValue)) {
-				$values[] = implode("\n", array_filter($extensionValue, 'is_string'));
+				foreach ($extensionValue as $extensionPart) {
+					if (is_string($extensionPart)) {
+						$this->appendUrlsFromText($extensionPart, $urls);
+					}
+				}
 			}
 		}
 
-		if (empty($values)) {
+		if (!$hasCrlExtension) {
 			return ['hasExtension' => false, 'urls' => []];
-		}
-
-		$urls = [];
-		foreach ($values as $value) {
-			preg_match_all('/URI\s*:\s*([^\s\n]+)/i', $value, $matches);
-			if (!empty($matches[1])) {
-				$normalizedUrls = array_map(
-					static fn (string $url): string => rtrim($url, ")]"),
-					$matches[1],
-				);
-				$urls = [...$urls, ...$normalizedUrls];
-			}
 		}
 
 		/** @var list<string> $uniqueUrls */
@@ -63,5 +59,26 @@ final class CrlDistributionPointsExtractor {
 			'hasExtension' => true,
 			'urls' => $uniqueUrls,
 		];
+	}
+
+	/**
+	 * @param list<string> $urls
+	 */
+	private function appendUrlsFromText(string $value, array &$urls): void {
+		preg_match_all(self::URI_PATTERN, $value, $matches);
+		if (empty($matches[1])) {
+			return;
+		}
+
+		foreach ($matches[1] as $url) {
+			$normalizedUrl = $this->normalizeUrlToken($url);
+			if ($normalizedUrl !== '') {
+				$urls[] = $normalizedUrl;
+			}
+		}
+	}
+
+	private function normalizeUrlToken(string $url): string {
+		return rtrim($url, ")]");
 	}
 }
