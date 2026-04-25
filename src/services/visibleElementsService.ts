@@ -13,7 +13,7 @@ import type {
 export type SignerLike = {
 	signRequestId?: number
 	displayName?: string
-	email?: string
+	email?: string | null
 	identifyMethods?: IdentifyMethodRecord[]
 	signed?: string | null | boolean | unknown[]
 	status?: number

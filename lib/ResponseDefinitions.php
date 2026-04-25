@@ -142,7 +142,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignSignerSummary = array{
  *     signRequestId: int,
  *     displayName: string,
- *     email: string,
+ *     email?: ?string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     signed: ?string,
  *     status: int,
@@ -394,7 +394,7 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeId: non-negative-int,
  *     nodeType: 'file'|'envelope',
- *     signatureFlow: int,
+ *     signatureFlow: 0|1|2,
  *     docmdpLevel: int,
  *     filesCount: int<0, max>,
  *     files: list<LibresignValidatedChildFile>,

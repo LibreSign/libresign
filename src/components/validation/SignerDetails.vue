@@ -284,7 +284,7 @@ type SignerModifications = {
 
 type SignerModel = {
 	displayName?: string
-	email?: string
+	email?: string | null
 	name?: string
 	remote_address?: string
 	user_agent?: string
