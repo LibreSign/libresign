@@ -60,6 +60,7 @@ class CrlService {
 		?string $reasonText = null,
 		?string $revokedBy = null,
 		?DateTime $invalidityDate = null,
+		?DateTime $revokedAt = null,
 	): bool {
 
 		try {
@@ -73,7 +74,8 @@ class CrlService {
 				$reasonText,
 				$revokedBy,
 				$invalidityDate,
-				$crlNumber
+				$crlNumber,
+				$revokedAt,
 			);
 
 			return true;
