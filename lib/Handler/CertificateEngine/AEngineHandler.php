@@ -182,23 +182,76 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	private function addCrlValidationInfo(array &$certData, string $certPem): void {
-		if (isset($certData['extensions']['crlDistributionPoints'])) {
-			preg_match_all('/URI:([^\s,\n]+)/', $certData['extensions']['crlDistributionPoints'], $matches);
-			$extractedUrls = $matches[1] ?? [];
+		$extensions = $certData['extensions'] ?? [];
+		if (is_array($extensions)) {
+			['hasExtension' => $hasCrlExtension, 'urls' => $extractedUrls] = $this->extractCrlUrlsFromExtensions($extensions);
+			if ($hasCrlExtension) {
+				$certData['crl_urls'] = $extractedUrls;
+				if (empty($extractedUrls)) {
+					$certData['crl_validation'] = CrlValidationStatus::NO_URLS;
+					return;
+				}
 
-			$certData['crl_urls'] = $extractedUrls;
-			$crlDetails = $this->crlRevocationChecker->validate($extractedUrls, $certPem);
-			$certData['crl_validation'] = $crlDetails['status'];
-			if (!empty($crlDetails['revoked_at'])) {
-				$certData['crl_revoked_at'] = $crlDetails['revoked_at'];
+				$crlDetails = $this->crlRevocationChecker->validate($extractedUrls, $certPem);
+				$certData['crl_validation'] = $crlDetails['status'];
+				if (!empty($crlDetails['revoked_at'])) {
+					$certData['crl_revoked_at'] = $crlDetails['revoked_at'];
+				}
+				return;
 			}
-		} else {
+		}
+
 			$externalValidationEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true);
 			$certData['crl_validation'] = $externalValidationEnabled
 				? CrlValidationStatus::MISSING
 				: CrlValidationStatus::DISABLED;
 			$certData['crl_urls'] = [];
+	}
+
+	/**
+	 * @return array{hasExtension: bool, urls: array<int, string>}
+	 */
+	private function extractCrlUrlsFromExtensions(array $extensions): array {
+		$values = [];
+		foreach ($extensions as $extensionName => $extensionValue) {
+			if (!is_string($extensionName)) {
+				continue;
+			}
+
+			$normalizedName = strtolower(trim($extensionName));
+			$isCrlDistributionPoints =
+				$normalizedName === 'crldistributionpoints'
+				|| $normalizedName === 'x509v3 crl distribution points'
+				|| $normalizedName === '2.5.29.31'
+				|| str_contains($normalizedName, 'crl distribution points');
+
+			if (!$isCrlDistributionPoints) {
+				continue;
+			}
+
+			if (is_string($extensionValue)) {
+				$values[] = $extensionValue;
+			} elseif (is_array($extensionValue)) {
+				$values[] = implode("\n", array_filter($extensionValue, 'is_string'));
+			}
 		}
+
+		if (empty($values)) {
+			return ['hasExtension' => false, 'urls' => []];
+		}
+
+		$urls = [];
+		foreach ($values as $value) {
+			preg_match_all('/URI\s*:\s*([^\s,\n]+)/i', $value, $matches);
+			if (!empty($matches[1])) {
+				$urls = [...$urls, ...$matches[1]];
+			}
+		}
+
+		return [
+			'hasExtension' => true,
+			'urls' => array_values(array_unique($urls)),
+		];
 	}
 
 	private static function convertArrayToUtf8($array) {
