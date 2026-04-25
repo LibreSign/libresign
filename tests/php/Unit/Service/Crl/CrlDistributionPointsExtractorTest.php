@@ -68,6 +68,38 @@ final class CrlDistributionPointsExtractorTest extends TestCase {
 					'ldap://ldap.example.org/cn=RootCA,dc=example,dc=org?certificateRevocationList;binary',
 				],
 			],
+			'rfc-structure-with-reasons-and-crl-issuer' => [
+				[
+					'2.5.29.31' => "Full Name:\n URI:http://crl.example.org/root.crl\nReasons: keyCompromise, cACompromise\nCRL Issuer:\n DirName:/C=BR/O=Example/CN=Example CRL Issuer",
+				],
+				true,
+				['http://crl.example.org/root.crl'],
+			],
+			'extension-name-is-trimmed-and-case-insensitive' => [
+				[
+					'  X509V3 CRL Distribution Points  ' => "Full Name:\n URI:https://example.org/crl/mixed-case.crl",
+				],
+				true,
+				['https://example.org/crl/mixed-case.crl'],
+			],
+			'uri-token-is-case-insensitive' => [
+				[
+					'2.5.29.31' => "Full Name:\nuri:ldap://ldap.example.net/cn=CA,dc=example,dc=net?certificateRevocationList;binary",
+				],
+				true,
+				['ldap://ldap.example.net/cn=CA,dc=example,dc=net?certificateRevocationList;binary'],
+			],
+			'multiple-supported-extension-keys-are-merged-and-deduplicated' => [
+				[
+					'2.5.29.31' => "Full Name:\nURI:https://example.org/crl/shared.crl",
+					'crlDistributionPoints' => "Full Name:\nURI:https://example.org/crl/shared.crl\nURI:https://example.org/crl/extra.crl",
+				],
+				true,
+				[
+					'https://example.org/crl/shared.crl',
+					'https://example.org/crl/extra.crl',
+				],
+			],
 			'array-extension-value-and-duplicates' => [
 				[
 					'2.5.29.31' => [
