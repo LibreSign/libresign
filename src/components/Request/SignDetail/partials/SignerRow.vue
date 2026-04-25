@@ -11,7 +11,7 @@
 		<template #icon>
 			<NcAvatar is-no-user
 				:size="44"
-				:user="signer.email"
+				:user="signer.email ?? undefined"
 				:display-name="displayName" />
 		</template>
 		<template #subname>
