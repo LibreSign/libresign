@@ -85,6 +85,6 @@ final class CrlDistributionPointsExtractor {
 	}
 
 	private function normalizeUrlToken(string $url): string {
-		return rtrim($url, ")]");
+		return rtrim($url, ')]');
 	}
 }
