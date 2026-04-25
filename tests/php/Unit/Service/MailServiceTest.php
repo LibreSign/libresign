@@ -116,7 +116,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testSendCodeToSignEncodesAccentedSubjectAsMimeHeader(): void {
+	public function testSendCodeToSignUsesLocalizedSubjectWithoutMutation(): void {
 		$l10n = $this->createMock(IL10N::class);
 		$l10n
 			->method('t')
@@ -139,12 +139,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$emailTemplate
 			->expects($this->once())
 			->method('setSubject')
-			->with($this->callback(static function (string $subject): bool {
-				if (preg_match('/^[\x20-\x7E]+$/', $subject) !== 1) {
-					return false;
-				}
-				return str_contains($subject, '=?UTF-8?B?') || str_contains($subject, '=?UTF-8?Q?');
-			}));
+			->with('LibreSign : Code nécessaire à la signature du fichier');
 		$emailTemplate
 			->expects($this->once())
 			->method('addHeader');
