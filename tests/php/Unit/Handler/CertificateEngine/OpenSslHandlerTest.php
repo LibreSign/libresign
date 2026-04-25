@@ -496,6 +496,20 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(['https://example.org/crl/issuer.crl'], $result['urls']);
 	}
 
+	public function testExtractCrlUrlsIgnoreUnknownExtensionNameWithSimilarText(): void {
+		$handler = $this->getInstance();
+
+		$method = new \ReflectionMethod('OCA\\Libresign\\Handler\\CertificateEngine\\AEngineHandler', 'extractCrlUrlsFromExtensions');
+		$method->setAccessible(true);
+
+		$result = $method->invoke($handler, [
+			'Issuer CRL Distribution Points' => "Full Name:\nURI:https://example.org/crl/issuer.crl",
+		]);
+
+		$this->assertFalse($result['hasExtension']);
+		$this->assertSame([], $result['urls']);
+	}
+
 	public function testRealCertificateRevocationInCrl(): void {
 		$this->caIdentifierService->generateCaId('openssl');
 
