@@ -948,7 +948,11 @@ class SignFileService {
 					$flattened[] = (string)$item;
 				}
 			});
-			return implode(', ', $flattened);
+			$displayValues = array_values(array_filter(
+				$flattened,
+				static fn (string $item) => !preg_match('/^account:\s*/i', $item),
+			));
+			return implode(', ', $displayValues);
 		}
 
 		return $value === null ? '' : (string)$value;
