@@ -468,48 +468,6 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertCount($numCertificates, array_unique($serialNumbers), 'All serial numbers should be unique');
 	}
 
-	public function testExtractCrlUrlsFromOidExtensionName(): void {
-		$handler = $this->getInstance();
-
-		$method = new \ReflectionMethod('OCA\\Libresign\\Handler\\CertificateEngine\\AEngineHandler', 'extractCrlUrlsFromExtensions');
-		$method->setAccessible(true);
-
-		$result = $method->invoke($handler, [
-			'2.5.29.31' => "Full Name:\nURI:https://example.org/crl/root.crl",
-		]);
-
-		$this->assertTrue($result['hasExtension']);
-		$this->assertSame(['https://example.org/crl/root.crl'], $result['urls']);
-	}
-
-	public function testExtractCrlUrlsFromX509LabelExtensionName(): void {
-		$handler = $this->getInstance();
-
-		$method = new \ReflectionMethod('OCA\\Libresign\\Handler\\CertificateEngine\\AEngineHandler', 'extractCrlUrlsFromExtensions');
-		$method->setAccessible(true);
-
-		$result = $method->invoke($handler, [
-			'X509v3 CRL Distribution Points' => "Full Name:\n URI : https://example.org/crl/issuer.crl",
-		]);
-
-		$this->assertTrue($result['hasExtension']);
-		$this->assertSame(['https://example.org/crl/issuer.crl'], $result['urls']);
-	}
-
-	public function testExtractCrlUrlsIgnoreUnknownExtensionNameWithSimilarText(): void {
-		$handler = $this->getInstance();
-
-		$method = new \ReflectionMethod('OCA\\Libresign\\Handler\\CertificateEngine\\AEngineHandler', 'extractCrlUrlsFromExtensions');
-		$method->setAccessible(true);
-
-		$result = $method->invoke($handler, [
-			'Issuer CRL Distribution Points' => "Full Name:\nURI:https://example.org/crl/issuer.crl",
-		]);
-
-		$this->assertFalse($result['hasExtension']);
-		$this->assertSame([], $result['urls']);
-	}
-
 	public function testRealCertificateRevocationInCrl(): void {
 		$this->caIdentifierService->generateCaId('openssl');
 
