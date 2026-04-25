@@ -1839,7 +1839,6 @@
                 "required": [
                     "signRequestId",
                     "displayName",
-                    "email",
                     "signed",
                     "status",
                     "statusText"
@@ -1853,7 +1852,8 @@
                         "type": "string"
                     },
                     "email": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "identifyMethods": {
                         "type": "array",
@@ -2156,7 +2156,12 @@
                     },
                     "signatureFlow": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ]
                     },
                     "docmdpLevel": {
                         "type": "integer",
