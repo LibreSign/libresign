@@ -32,6 +32,8 @@ export type ValidationModificationInfo = {
 	valid?: boolean
 }
 
+type ValidationSignatureFlow = ValidationFileRecord['signatureFlow']
+
 type ValidationMetadataDimension = {
 	w: number
 	h: number
@@ -64,15 +66,12 @@ function isOptionalField(record: UnknownRecord, key: string, guard: (value: unkn
 }
 
 function toNumber(value: unknown): number | null {
-	if (typeof value === 'number' && Number.isFinite(value)) {
-		return value
-	}
+	return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
 
-	if (typeof value === 'string' && /^-?\d+$/.test(value)) {
-		return Number.parseInt(value, 10)
-	}
-
-	return null
+function toInteger(value: unknown): number | null {
+	const normalized = toNumber(value)
+	return normalized !== null && Number.isInteger(normalized) ? normalized : null
 }
 
 function isString(value: unknown): value is string {
@@ -84,7 +83,7 @@ function isNullableString(value: unknown): value is string | null {
 }
 
 function isValidationStatus(value: unknown): value is ValidationStatus {
-	const normalizedValue = toNumber(value)
+	const normalizedValue = toInteger(value)
 	return normalizedValue === FILE_STATUS.DRAFT
 		|| normalizedValue === FILE_STATUS.ABLE_TO_SIGN
 		|| normalizedValue === FILE_STATUS.PARTIAL_SIGNED
@@ -93,19 +92,22 @@ function isValidationStatus(value: unknown): value is ValidationStatus {
 }
 
 function isSignerStatus(value: unknown): value is SignerDetailRecord['status'] {
-	const normalizedValue = toNumber(value)
+	const normalizedValue = toInteger(value)
 	return normalizedValue === SIGN_REQUEST_STATUS.DRAFT
 		|| normalizedValue === SIGN_REQUEST_STATUS.ABLE_TO_SIGN
 		|| normalizedValue === SIGN_REQUEST_STATUS.SIGNED
 }
 
-function isValidationSignatureFlow(value: unknown): boolean {
-	if (value === 'none' || value === 'parallel' || value === 'ordered_numeric') {
-		return true
+function isValidationSignatureFlow(value: unknown): value is ValidationSignatureFlow {
+	return value === 0 || value === 1 || value === 2
+}
+
+function normalizeValidationSignatureFlow(value: unknown): ValidationSignatureFlow | null {
+	if (isValidationSignatureFlow(value)) {
+		return value
 	}
 
-	const normalizedValue = toNumber(value)
-	return normalizedValue === 0 || normalizedValue === 1 || normalizedValue === 2
+	return null
 }
 
 function isValidationStatusInfo(value: unknown): value is ValidationStatusInfo {
@@ -113,7 +115,7 @@ function isValidationStatusInfo(value: unknown): value is ValidationStatusInfo {
 		return false
 	}
 
-	return isOptionalField(value, 'id', fieldValue => typeof fieldValue === 'number')
+	return isOptionalField(value, 'id', fieldValue => toInteger(fieldValue) !== null)
 		&& isOptionalField(value, 'label', isString)
 }
 
@@ -153,7 +155,7 @@ function isValidationMetadata(value: unknown): value is NonNullable<ValidationFi
 		return false
 	}
 
-	if (!isString(value.extension) || typeof value.p !== 'number') {
+	if (!isString(value.extension) || toInteger(value.p) === null) {
 		return false
 	}
 
@@ -181,9 +183,9 @@ function isSignerDetailRecord(value: unknown): value is SignerDetailRecord {
 		return false
 	}
 
-	return typeof value.signRequestId === 'number'
+	return toInteger(value.signRequestId) !== null
 		&& isString(value.displayName)
-		&& isString(value.email)
+		&& isOptionalField(value, 'email', isNullableString)
 		&& isNullableString(value.signed)
 		&& isSignerStatus(value.status)
 		&& isString(value.statusText)
@@ -203,13 +205,13 @@ function isValidatedChildFileRecord(value: unknown): value is ValidatedChildFile
 		return false
 	}
 
-	return typeof value.id === 'number'
+	return toInteger(value.id) !== null
 		&& isString(value.uuid)
 		&& isString(value.name)
 		&& isValidationStatus(value.status)
 		&& isString(value.statusText)
-		&& typeof value.nodeId === 'number'
-		&& typeof value.size === 'number'
+		&& toInteger(value.nodeId) !== null
+		&& toInteger(value.size) !== null
 		&& Array.isArray(value.signers)
 		&& isString(value.file)
 		&& isValidationMetadata(value.metadata)
@@ -220,19 +222,19 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 		return false
 	}
 	if (
-		typeof data.id !== 'number'
+		toInteger(data.id) === null
 		|| !isString(data.uuid)
 		|| !isString(data.name)
 		|| !isValidationStatus(data.status)
 		|| !isString(data.statusText)
-		|| typeof data.nodeId !== 'number'
+		|| toInteger(data.nodeId) === null
 		|| (data.nodeType !== 'file' && data.nodeType !== 'envelope')
-		|| !isValidationSignatureFlow(data.signatureFlow)
-		|| toNumber(data.docmdpLevel) === null
-		|| toNumber(data.filesCount) === null
+		|| normalizeValidationSignatureFlow(data.signatureFlow) === null
+		|| toInteger(data.docmdpLevel) === null
+		|| toInteger(data.filesCount) === null
 		|| !Array.isArray(data.files)
-		|| toNumber(data.totalPages) === null
-		|| toNumber(data.size) === null
+		|| toInteger(data.totalPages) === null
+		|| toInteger(data.size) === null
 		|| !isString(data.pdfVersion)
 		|| !isString(data.created_at)
 		|| !isRequestedBy(data.requested_by)
@@ -278,24 +280,113 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 		return null
 	}
 
+	const id = toInteger(data.id)
+	const nodeId = toInteger(data.nodeId)
+	const docmdpLevel = toInteger(data.docmdpLevel)
+	const filesCount = toInteger(data.filesCount)
+	const totalPages = toInteger(data.totalPages)
+	const size = toInteger(data.size)
+	const signatureFlow = normalizeValidationSignatureFlow(data.signatureFlow)
+
+	if (
+		id === null
+		|| nodeId === null
+		|| docmdpLevel === null
+		|| filesCount === null
+		|| totalPages === null
+		|| size === null
+		|| signatureFlow === null
+	) {
+		return null
+	}
+
+	const files = data.files.map((file) => {
+		const childId = toInteger(file.id)
+		const childNodeId = toInteger(file.nodeId)
+		const childSize = toInteger(file.size)
+		const childStatus = toInteger(file.status)
+		const metadataPages = toInteger(file.metadata.p)
+
+		if (
+			childId === null
+			|| childNodeId === null
+			|| childSize === null
+			|| childStatus === null
+			|| metadataPages === null
+		) {
+			return null
+		}
+
+		return {
+			...file,
+			id: childId,
+			nodeId: childNodeId,
+			size: childSize,
+			status: childStatus,
+			metadata: {
+				...file.metadata,
+				p: metadataPages,
+			},
+		}
+	})
+
+	if (files.some(file => file === null)) {
+		return null
+	}
+	const normalizedFiles = files.filter((file): file is ValidatedChildFileRecord => file !== null)
+
 	const metadata = isValidationMetadata(data.metadata)
 		? data.metadata
 		: {
 			...DEFAULT_VALIDATION_METADATA,
-			p: data.totalPages,
+			p: totalPages,
 		}
+
+	const metadataPages = toInteger(metadata.p)
+	if (metadataPages === null) {
+		return null
+	}
 
 	const settings = isValidationSettings(data.settings)
 		? data.settings
 		: DEFAULT_VALIDATION_SETTINGS
 
-	const signers = Array.isArray(data.signers) ? data.signers : []
+	const signers = (Array.isArray(data.signers) ? data.signers : []).map((signer) => {
+		const signRequestId = toInteger(signer.signRequestId)
+		const status = toInteger(signer.status)
+
+		if (signRequestId === null || status === null) {
+			return null
+		}
+
+		return {
+			...signer,
+			signRequestId,
+			status,
+		}
+	})
+
+	if (signers.some(signer => signer === null)) {
+		return null
+	}
+	const normalizedSigners = signers.filter((signer): signer is SignerDetailRecord => signer !== null)
 
 	return {
 		...data,
-		metadata,
+		id,
+		nodeId,
+		signatureFlow,
+		docmdpLevel,
+		filesCount,
+		totalPages,
+		size,
+		files: normalizedFiles,
+		metadata: {
+			...metadata,
+			p: metadataPages,
+		},
 		settings,
-		signers,
+		signers: normalizedSigners,
 	}
 }
 
