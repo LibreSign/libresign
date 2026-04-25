@@ -90,6 +90,7 @@ class CrlMapper extends QBMapper {
 		?string $revokedBy = null,
 		?DateTime $invalidityDate = null,
 		?int $crlNumber = null,
+		?DateTime $revokedAt = null,
 	): Crl {
 		$certificate = $this->findBySerialNumber($serialNumber);
 		return $this->revokeCertificateEntity(
@@ -98,7 +99,8 @@ class CrlMapper extends QBMapper {
 			$comment,
 			$revokedBy,
 			$invalidityDate,
-			$crlNumber
+			$crlNumber,
+			$revokedAt,
 		);
 	}
 
@@ -109,6 +111,7 @@ class CrlMapper extends QBMapper {
 		?string $revokedBy = null,
 		?DateTime $invalidityDate = null,
 		?int $crlNumber = null,
+		?DateTime $revokedAt = null,
 	): Crl {
 		if (CRLStatus::from($certificate->getStatus()) !== CRLStatus::ISSUED) {
 			throw new \InvalidArgumentException('Certificate is not in issued status');
@@ -118,7 +121,7 @@ class CrlMapper extends QBMapper {
 		$certificate->setReasonCode($reason->value);
 		$certificate->setComment($comment !== '' ? $comment : null);
 		$certificate->setRevokedBy($revokedBy);
-		$certificate->setRevokedAt(new DateTime());
+		$certificate->setRevokedAt($revokedAt ?? new DateTime());
 		$certificate->setInvalidityDate($invalidityDate);
 		$certificate->setCrlNumber($crlNumber);
 
