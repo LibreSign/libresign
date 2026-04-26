@@ -18,6 +18,22 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 12.4.4 - 2026-04-26
+
+💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
+
+🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Update translations
+
+### Fixes
+- harden signed file validation handling [#7600](https://github.com/LibreSign/libresign/pull/7600)
+- hide account identifier from signer common name [#7609](https://github.com/LibreSign/libresign/pull/7609)
+- allow signing for legacy certificates missing crl metadata [#7606](https://github.com/LibreSign/libresign/pull/7606)
+- align signer email contract with api runtime behavior [#7604](https://github.com/LibreSign/libresign/pull/7604)
+- simplify signer tsa and crl validation messaging [#7613](https://github.com/LibreSign/libresign/pull/7613)
+
 ## 12.4.3 - 2026-04-23
 
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
