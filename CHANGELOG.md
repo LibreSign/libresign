@@ -24,6 +24,9 @@ Types of changes:
 
 🏢 **ENTERPRISE SUPPORT** — Need help with migration or custom implementations? Contact us: contact@librecode.coop
 
+### Changed
+- Update translations
+
 ### Fixes
 - harden signed file validation handling [#7601](https://github.com/LibreSign/libresign/pull/7601)
 - hide account identifier from signer common name [#7610](https://github.com/LibreSign/libresign/pull/7610)
@@ -35,6 +38,9 @@ Types of changes:
 💝 **SUPPORT LIBRESIGN** — If you find this project useful, please consider supporting its development: https://github.com/sponsors/LibreSign
 
 🏢 **ENTERPRISE SUPPORT** — Need help upgrading or custom implementations? Contact us: contact@librecode.coop
+
+### Changed
+- Update translations
 
 ### Fixes
 - harden signed file validation handling [#7600](https://github.com/LibreSign/libresign/pull/7600)
