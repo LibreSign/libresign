@@ -6,6 +6,10 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import SignerDetails from '../../../components/validation/SignerDetails.vue'
+import {
+	mdiCheckCircle,
+	mdiCloseCircle,
+} from '@mdi/js'
 
 describe('SignerDetails.vue - Business Logic', () => {
 	type SignerDetailsProps = {
@@ -350,6 +354,52 @@ describe('SignerDetails.vue - Business Logic', () => {
 		it('returns icon-warning for unknown status', () => {
 			const signer = { crl_validation: 'unknown_status' }
 			expect(wrapper.vm.getCrlValidationIconClass(signer)).toBe('icon-warning')
+		})
+	})
+
+	describe('getCrlValidationIconPath method', () => {
+		it('returns mdiCloseCircle when revoked before signing', () => {
+			const signer = {
+				crl_validation: 'revoked',
+				crl_revoked_at: '2024-05-01T00:00:00Z',
+				signed: '2024-06-01T00:00:00Z',
+			}
+			expect(wrapper.vm.getCrlValidationIconPath(signer)).toBe(mdiCloseCircle)
+		})
+
+		it('returns mdiCheckCircle when revoked after signing', () => {
+			const signer = {
+				crl_validation: 'revoked',
+				crl_revoked_at: '2024-07-01T00:00:00Z',
+				signed: '2024-06-01T00:00:00Z',
+			}
+			expect(wrapper.vm.getCrlValidationIconPath(signer)).toBe(mdiCheckCircle)
+		})
+	})
+
+	describe('getCrlStatusText method', () => {
+		it('shows valid-at-signing message with revocation date when revoked after signing', () => {
+			const signer = {
+				crl_validation: 'revoked',
+				crl_revoked_at: '2024-07-01T00:00:00Z',
+				signed: '2024-06-01T00:00:00Z',
+			}
+
+			const text = wrapper.vm.getCrlStatusText(signer)
+			expect(text).toContain('Valid at signing time')
+			expect(text).toContain('revocation date:')
+		})
+
+		it('shows revoked-before-signing message with revocation date when revoked before signing', () => {
+			const signer = {
+				crl_validation: 'revoked',
+				crl_revoked_at: '2024-05-01T00:00:00Z',
+				signed: '2024-06-01T00:00:00Z',
+			}
+
+			const text = wrapper.vm.getCrlStatusText(signer)
+			expect(text).toContain('Certificate revoked before signing')
+			expect(text).toContain('revocation date:')
 		})
 	})
 
