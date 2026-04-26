@@ -380,6 +380,80 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertTrue(isset($signer->name));
 	}
 
+	public function testLoadSignersFromCertDataDoesNotAppendUnmatchedTsaEntryWhenContractSignersExist(): void {
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('Signed');
+		$this->identifyMethodService->method('resolveUid')->willReturn('email:external@example.com');
+
+		$fileData = new \stdClass();
+		$fileData->signers = [
+			(object)[
+				'signRequestId' => 638,
+				'uid' => 'whatsapp:+5521976887906',
+				'displayName' => 'Daiane Alves',
+			],
+		];
+
+		$certData = [
+			[
+				'chain' => [
+					[
+						'subject' => [
+							'UID' => 'whatsapp:+5521976887906',
+							'CN' => 'Daiane Alves',
+						],
+					],
+				],
+				'signingTime' => new DateTime('2026-04-25T18:36:27Z'),
+			],
+			[
+				'status' => 2,
+				'statusText' => 'Signed',
+				'timestamp' => [
+					'genTime' => new DateTime('2026-04-25T18:36:28Z'),
+				],
+				'chain' => [
+					[
+						'subject' => [
+							'CN' => 'www.freetsa.org',
+						],
+					],
+				],
+			],
+		];
+
+		$this->getService()->loadSignersFromCertData($fileData, $certData, 'example.com');
+
+		$this->assertCount(1, $fileData->signers);
+		$this->assertSame(638, $fileData->signers[0]->signRequestId);
+		$this->assertSame('Daiane Alves', $fileData->signers[0]->displayName);
+		$this->assertArrayHasKey('timestamp', (array)$fileData->signers[0]);
+		$this->assertSame('2026-04-25T18:36:28+00:00', $fileData->signers[0]->timestamp['genTime']);
+		$this->assertObjectNotHasProperty('tsa', $fileData);
+	}
+
+	public function testLoadSignersFromCertDataDoesNotExportTopLevelTsaWithoutTimestamp(): void {
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('Signed');
+		$this->identifyMethodService->method('resolveUid')->willReturn('email:signer@example.com');
+
+		$fileData = new \stdClass();
+
+		$certData = [
+			[
+				'chain' => [
+					[
+						'subject' => [
+							'CN' => 'Signer CN',
+						],
+					],
+				],
+			],
+		];
+
+		$this->getService()->loadSignersFromCertData($fileData, $certData, 'example.com');
+
+		$this->assertObjectNotHasProperty('tsa', $fileData);
+	}
+
 	public function testLoadSignersFromCertDataPreventsDuplicateFormattedDates(): void {
 		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('Signed');
 		$this->identifyMethodService->expects($this->never())->method('resolveUid');

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Listener;
 
+use DateTime;
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\Crl\CrlService;
@@ -47,7 +48,9 @@ class RevokeClickToSignCertificateListener implements IEventListener {
 			$serialNumber,
 			CRLReason::SUPERSEDED,
 			'Temporary certificate issued for click-to-sign. Automatically revoked after document signing.',
-			'system'
+			'system',
+			null,
+			new DateTime('+1 second'),
 		);
 
 		if ($success) {
