@@ -149,6 +149,28 @@ export async function deleteUser(
 	await ocsRequest(request, 'DELETE', `/cloud/users/${userId}`)
 }
 
+/**
+ * Forces a user's Nextcloud language via Provisioning API.
+ */
+export async function setUserLanguage(
+	request: APIRequestContext,
+	userId: string,
+	language: string,
+): Promise<void> {
+	const result = await ocsRequest(
+		request,
+		'PUT',
+		`/cloud/users/${encodeURIComponent(userId)}`,
+		undefined,
+		undefined,
+		{ key: 'language', value: language },
+	)
+
+	if (result.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to set language for user "${userId}" to "${language}": ${result.ocs.meta.message}`)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Groups and delegated administration
 // ---------------------------------------------------------------------------
