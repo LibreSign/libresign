@@ -50,6 +50,7 @@ vi.mock('../../../store/policies', () => ({
 		get policies() {
 			return mockPolicies.value
 		},
+		fetchEffectivePolicies: vi.fn(async () => {}),
 	}),
 }))
 
