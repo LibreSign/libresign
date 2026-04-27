@@ -46,7 +46,7 @@ import { t } from '@nextcloud/l10n'
 import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 
 import { usePoliciesStore } from '../../store/policies'
 
@@ -101,7 +101,11 @@ const hasEditablePolicies = computed(() => Object.values(policiesStore.policies)
 	return policyState.editableByCurrentActor === true
 }))
 
-const canManagePolicies = computed(() => isAdmin || (Boolean(config.can_manage_group_policies) && hasEditablePolicies.value))
+const canManagePolicies = computed(() => isAdmin || hasEditablePolicies.value)
+
+onMounted(() => {
+	void policiesStore.fetchEffectivePolicies()
+})
 
 function getAdminRoute() {
 	return generateUrl('settings/admin/libresign')
