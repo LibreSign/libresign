@@ -17,6 +17,10 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -79,6 +83,26 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$urlGenerator
 			->method('linkToRouteAbsolute')
 			->willReturnCallback(fn (string $route, array $params): string => 'https://example.test/' . $route . '/' . ($params['uuid'] ?? ''));
+		$policyService = $this->createMock(PolicyService::class);
+		$policyService
+			->method('resolve')
+			->willReturnCallback(function (string|\BackedEnum $policyKey): ResolvedPolicy {
+				$key = $policyKey instanceof \BackedEnum ? (string)$policyKey->value : $policyKey;
+				$value = match ($key) {
+					CollectMetadataPolicy::KEY => $this->appConfig->getValueBool(Application::APP_ID, CollectMetadataPolicy::SYSTEM_APP_CONFIG_KEY, false),
+					SignatureTextPolicy::KEY_TEMPLATE => $this->appConfig->getValueString(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE, ''),
+					SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE => $this->appConfig->getValueFloat(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE, SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE),
+					SignatureTextPolicy::KEY_SIGNATURE_FONT_SIZE => $this->appConfig->getValueFloat(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE, SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE),
+					SignatureTextPolicy::KEY_SIGNATURE_WIDTH => $this->appConfig->getValueFloat(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH, SignatureTextService::DEFAULT_SIGNATURE_WIDTH),
+					SignatureTextPolicy::KEY_SIGNATURE_HEIGHT => $this->appConfig->getValueFloat(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT, SignatureTextService::DEFAULT_SIGNATURE_HEIGHT),
+					SignatureTextPolicy::KEY_RENDER_MODE => $this->appConfig->getValueString(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE, SignerElementsService::RENDER_MODE_DEFAULT),
+					default => null,
+				};
+
+				return (new ResolvedPolicy())
+					->setPolicyKey($key)
+					->setEffectiveValue($value);
+			});
 
 		$signatureTextService = new SignatureTextService(
 			$this->appConfig,
@@ -88,6 +112,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			\OCP\Server::get(IUserSession::class),
 			$urlGenerator,
 			\OCP\Server::get(LoggerInterface::class),
+			$policyService,
 		);
 
 		// Create mock factory if initialization failed in setUpBeforeClass
