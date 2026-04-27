@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
  */
 
 use OCA\Libresign\Service\SignatureBackgroundService;
+use OCA\Libresign\Service\SignatureTextService;
 use OCP\Files\IAppData;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -23,12 +24,14 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 	private IAppData&MockObject $appData;
 	private IConfig&MockObject $config;
 	private ITempManager&MockObject $tempManager;
+	private SignatureTextService&MockObject $signatureTextService;
 
 	public function setUp(): void {
 		$this->appData = $this->createMock(IAppData::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->config = $this->createMock(IConfig::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
+		$this->signatureTextService = $this->createMock(SignatureTextService::class);
 	}
 
 
@@ -38,6 +41,7 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 			$this->appConfig,
 			$this->config,
 			$this->tempManager,
+			$this->signatureTextService,
 		);
 		return $this->service;
 	}
@@ -51,8 +55,8 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 		int $expectedWidth,
 		int $expectedHeight,
 	): void {
-		$this->appConfig->setValueFloat('libresign', 'signature_width', $configWidth);
-		$this->appConfig->setValueFloat('libresign', 'signature_height', $configHeight);
+		$this->signatureTextService->method('getFullSignatureWidth')->willReturn($configWidth);
+		$this->signatureTextService->method('getFullSignatureHeight')->willReturn($configHeight);
 		$class = $this->getClass();
 		$result = self::invokePrivate($class, 'scaleDimensions', [$inputWidth, $inputHeight]);
 		$this->assertSame(

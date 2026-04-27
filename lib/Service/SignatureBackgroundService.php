@@ -32,6 +32,7 @@ class SignatureBackgroundService {
 		private IAppConfig $appConfig,
 		private IConfig $config,
 		private ITempManager $tempManager,
+		private SignatureTextService $signatureTextService,
 	) {
 	}
 
@@ -87,8 +88,8 @@ class SignatureBackgroundService {
 	}
 
 	private function scaleDimensions(int $width, int $height): array {
-		$signatureWidth = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', SignatureTextService::DEFAULT_SIGNATURE_WIDTH);
-		$signatureHeight = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_height', SignatureTextService::DEFAULT_SIGNATURE_HEIGHT);
+		$signatureWidth = $this->signatureTextService->getFullSignatureWidth();
+		$signatureHeight = $this->signatureTextService->getFullSignatureHeight();
 
 		$maxWidth = $signatureWidth * self::SCALE_FACTOR;
 		$maxHeight = $signatureHeight * self::SCALE_FACTOR;
