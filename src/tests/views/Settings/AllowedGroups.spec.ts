@@ -96,8 +96,9 @@ describe('AllowedGroups', () => {
 		await flushPromises()
 
 		expect(saveSystemPolicyMock).toHaveBeenCalled()
-		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[0]).toBe('groups_request_sign')
-		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[1]).toBe('["admin","testGroup"]')
+		const firstPersistCall = saveSystemPolicyMock.mock.calls.at(-1) as [string, string, boolean] | undefined
+		expect(firstPersistCall?.[0]).toBe('groups_request_sign')
+		expect(firstPersistCall?.[1]).toBe('["admin","testGroup"]')
 
 		select = wrapper.findComponent({ name: 'NcSelect' })
 
@@ -106,8 +107,9 @@ describe('AllowedGroups', () => {
 		])
 		await flushPromises()
 
-		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[0]).toBe('groups_request_sign')
-		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[1]).toBe('["admin"]')
+		const secondPersistCall = saveSystemPolicyMock.mock.calls.at(-1) as [string, string, boolean] | undefined
+		expect(secondPersistCall?.[0]).toBe('groups_request_sign')
+		expect(secondPersistCall?.[1]).toBe('["admin"]')
 		expect(confirmPasswordMock).toHaveBeenCalledTimes(2)
 	})
 
