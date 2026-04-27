@@ -36,6 +36,8 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import logger from '../../logger.js'
+import { usePoliciesStore } from '../../store/policies'
+import { DEFAULT_REQUEST_SIGN_GROUPS, resolveRequestSignGroups, serializeRequestSignGroups } from './PolicyWorkbench/settings/request-sign-groups/model'
 
 import '@nextcloud/password-confirmation/style.css'
 
@@ -52,21 +54,13 @@ const groupsSelected = ref<Array<GroupRow | string>>([])
 const groups = ref<GroupRow[]>([])
 const loadingGroups = ref(false)
 const idKey = ref(0)
+const policiesStore = usePoliciesStore()
 
 async function getData() {
 	loadingGroups.value = true
-	await axios.get(
-		generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/groups_request_sign'),
-	)
-		.then(({ data }) => {
-			const selected = JSON.parse(data.ocs.data.data)
-			if (!Array.isArray(selected)) {
-				groupsSelected.value = []
-				return
-			}
-			groupsSelected.value = groups.value.filter(group => selected.indexOf(group.id) !== -1)
-		})
-		.catch((error) => logger.debug('Could not fetch groups_request_sign', { error }))
+	await policiesStore.fetchEffectivePolicies()
+	const selected = resolveRequestSignGroups(policiesStore.getEffectiveValue('groups_request_sign') ?? DEFAULT_REQUEST_SIGN_GROUPS)
+	groupsSelected.value = groups.value.filter(group => selected.includes(group.id))
 	loadingGroups.value = false
 }
 
@@ -84,9 +78,7 @@ async function saveGroups(value: Array<GroupRow | string>) {
 		return g
 	})
 
-	await axios.post(generateOcsUrl('apps/libresign/api/v1/admin/groups-request-sign/config'), {
-		groups: groupIds,
-	})
+	await policiesStore.saveSystemPolicy('groups_request_sign', serializeRequestSignGroups(groupIds), false)
 	idKey.value += 1
 }
 
