@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { collectMetadataRealDefinition } from './collect-metadata/realDefinition'
 import { docMdpRealDefinition } from './docmdp/realDefinition'
 import { identificationDocumentsRealDefinition } from './identification-documents/realDefinition'
 import { requestSignGroupsRealDefinition } from './request-sign-groups/realDefinition'
@@ -12,6 +13,7 @@ import type { RealPolicySettingDefinition } from './realTypes'
 
 export const realDefinitions = {
 	add_footer: signatureFooterRealDefinition,
+	collect_metadata: collectMetadataRealDefinition,
 	signature_flow: signatureFlowRealDefinition,
 	docmdp: docMdpRealDefinition,
 	identification_documents: identificationDocumentsRealDefinition,
