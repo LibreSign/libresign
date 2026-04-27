@@ -26,7 +26,10 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Crl\CrlService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicyValue;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
@@ -76,6 +79,7 @@ class AccountService {
 		private Pkcs12Handler $pkcs12Handler,
 		private IGroupManager $groupManager,
 		private PolicyAuthorizationService $policyAuthorizationService,
+		private PolicyService $policyService,
 		private IdDocsService $idDocsService,
 		private SignerElementsService $signerElementsService,
 		private UserElementMapper $userElementMapper,
@@ -198,8 +202,10 @@ class AccountService {
 	 * @return array<string, mixed>
 	 */
 	public function getConfig(?IUser $user = null): array {
-
-		$info['identificationDocumentsFlow'] = $this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false);
+		$resolvedIdentificationDocuments = $user
+			? $this->policyService->resolveForUser(IdentificationDocumentsPolicy::KEY, $user)
+			: $this->policyService->resolve(IdentificationDocumentsPolicy::KEY);
+		$info['identificationDocumentsFlow'] = IdentificationDocumentsPolicyValue::normalize($resolvedIdentificationDocuments->getEffectiveValue(), false);
 		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
