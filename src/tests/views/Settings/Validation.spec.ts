@@ -145,9 +145,10 @@ describe('Settings/Validation.vue', () => {
 		await input.trigger('input')
 
 		expect(saveSystemPolicyMock).toHaveBeenCalled()
-		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[0]).toBe('add_footer')
-		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[2]).toBe(false)
-		const savedPayload = String(saveSystemPolicyMock.mock.calls.at(-1)?.[1] ?? '')
+		const saveCall = saveSystemPolicyMock.mock.calls.at(-1) as [string, unknown, boolean] | undefined
+		expect(saveCall?.[0]).toBe('add_footer')
+		expect(saveCall?.[2]).toBe(false)
+		const savedPayload = String(saveCall?.[1] ?? '')
 		expect(savedPayload).toContain('https://custom.test/validation')
 	})
 
@@ -164,7 +165,8 @@ describe('Settings/Validation.vue', () => {
 		await wrapper.vm.onCustomizeFooterChange(false)
 
 		expect(saveSystemPolicyMock).toHaveBeenCalled()
-		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[0]).toBe('add_footer')
+		const customizeCall = saveSystemPolicyMock.mock.calls.at(-1) as [string, unknown, boolean] | undefined
+		expect(customizeCall?.[0]).toBe('add_footer')
 		expect(wrapper.vm.isDefaultFooterTemplate).toBe(true)
 	})
 
