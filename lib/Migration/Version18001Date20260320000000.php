@@ -10,11 +10,16 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCP\DB\ISchemaWrapper;
 use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
@@ -30,9 +35,114 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 	#[\Override]
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$this->migrateLegacyFooterSettings();
+		$this->migrateCollectMetadataType();
+		$this->migrateIdentificationDocumentsType();
 		$this->migrateDocMdpLevelType();
 		$this->migrateGroupsRequestSignType();
+		$this->migrateSignatureFlowSettings();
+		$this->migrateSignatureTextSettingsType();
 		$this->migrateIdentifyMethodsType();
+	}
+
+	private function migrateCollectMetadataType(): void {
+		$this->migrateBoolType(CollectMetadataPolicy::SYSTEM_APP_CONFIG_KEY, false);
+	}
+
+	private function migrateIdentificationDocumentsType(): void {
+		$this->migrateBoolType(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY, false);
+	}
+
+	private function migrateBoolType(string $key, bool $default): void {
+		$legacyValue = $this->readLegacyString($key);
+		if ($legacyValue === null || trim($legacyValue) === '') {
+			return;
+		}
+
+		$normalized = filter_var($legacyValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+		if ($normalized === null) {
+			return;
+		}
+
+		$this->appConfig->deleteKey(Application::APP_ID, $key);
+		$this->appConfig->setValueBool(Application::APP_ID, $key, $normalized ?? $default);
+	}
+
+	private function migrateSignatureFlowSettings(): void {
+		$currentSystemValue = $this->readLegacyString(SignatureFlowPolicy::SYSTEM_APP_CONFIG_KEY);
+		if ($currentSystemValue !== null && trim($currentSystemValue) !== '') {
+			$normalizedSystemValue = $this->normalizeSignatureFlowValue($currentSystemValue);
+			if ($normalizedSystemValue !== $currentSystemValue) {
+				$this->appConfig->deleteKey(Application::APP_ID, SignatureFlowPolicy::SYSTEM_APP_CONFIG_KEY);
+				$this->appConfig->setValueString(Application::APP_ID, SignatureFlowPolicy::SYSTEM_APP_CONFIG_KEY, $normalizedSystemValue);
+			}
+
+			return;
+		}
+
+		$legacyValue = $this->readLegacyString(SignatureFlowPolicy::KEY);
+		if ($legacyValue === null || trim($legacyValue) === '') {
+			return;
+		}
+
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			SignatureFlowPolicy::SYSTEM_APP_CONFIG_KEY,
+			$this->normalizeSignatureFlowValue($legacyValue),
+		);
+		$this->appConfig->deleteKey(Application::APP_ID, SignatureFlowPolicy::KEY);
+	}
+
+	private function normalizeSignatureFlowValue(string $value): string {
+		$normalized = strtolower(trim($value));
+
+		return match ($normalized) {
+			SignatureFlow::NONE->value,
+			'0' => SignatureFlow::NONE->value,
+			SignatureFlow::PARALLEL->value,
+			'1' => SignatureFlow::PARALLEL->value,
+			SignatureFlow::ORDERED_NUMERIC->value,
+			'2' => SignatureFlow::ORDERED_NUMERIC->value,
+			default => SignatureFlow::NONE->value,
+		};
+	}
+
+	private function migrateSignatureTextSettingsType(): void {
+		$signatureTextPolicy = new SignatureTextPolicy();
+		$renderModeDefinition = $signatureTextPolicy->get(SignatureTextPolicy::KEY_RENDER_MODE);
+
+		$floatKeys = [
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE,
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH,
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT,
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE,
+		];
+
+		foreach ($floatKeys as $key) {
+			$legacyValue = $this->readLegacyString($key);
+			if ($legacyValue === null || $legacyValue === '') {
+				continue;
+			}
+
+			if (!is_numeric(trim($legacyValue))) {
+				continue;
+			}
+
+			$this->appConfig->deleteKey(Application::APP_ID, $key);
+			$this->appConfig->setValueFloat(Application::APP_ID, $key, (float)$legacyValue);
+		}
+
+		$renderMode = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE);
+		if ($renderMode === null || $renderMode === '') {
+			return;
+		}
+
+		$normalizedRenderMode = (string)$renderModeDefinition->normalizeValue($renderMode);
+		if ($normalizedRenderMode === $renderMode) {
+			return;
+		}
+
+		$this->appConfig->deleteKey(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE);
+		$this->appConfig->setValueString(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE, $normalizedRenderMode);
 	}
 
 	private function migrateGroupsRequestSignType(): void {
