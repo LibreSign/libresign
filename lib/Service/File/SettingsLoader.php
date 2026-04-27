@@ -14,14 +14,19 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicyValue;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IUser;
 
+/**
+ * @psalm-import-type LibresignSettings from ResponseDefinitions
+ */
 class SettingsLoader {
 	public const IDENTIFICATION_DOCUMENTS_DISABLED = 0;
 	public const IDENTIFICATION_DOCUMENTS_NEED_SEND = 1;
@@ -99,6 +104,7 @@ class SettingsLoader {
 		return $this->calculateStatusFromFiles($files);
 	}
 
+	/** @return array<int, File>|null */
 	private function getIdDocFiles(?IUser $user, ?SignRequest $signRequest): ?array {
 		if ($user) {
 			return $this->idDocsMapper->getFilesOfAccount($user->getUID());
@@ -111,6 +117,7 @@ class SettingsLoader {
 		return null;
 	}
 
+	/** @param array<int, File>|null $files */
 	private function calculateStatusFromFiles(?array $files): int {
 		if (empty($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
@@ -134,28 +141,17 @@ class SettingsLoader {
 			? $this->policyService->resolveForUser(IdentificationDocumentsPolicy::KEY, $user)
 			: $this->policyService->resolve(IdentificationDocumentsPolicy::KEY);
 
-		$value = $resolved->getEffectiveValue();
-		if (is_bool($value)) {
-			return $value;
-		}
-
-		if (is_int($value)) {
-			return $value !== 0;
-		}
-
-		if (is_string($value)) {
-			return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'on'], true);
-		}
-
-		return (bool)$value;
+		return IdentificationDocumentsPolicyValue::normalize($resolved->getEffectiveValue(), false);
 	}
 
 	/**
 	 * Get user identification documents settings
 	 * These are user-specific settings, not file-specific
 	 * Always returns complete settings payload with defaults.
+	 * Canonical API shape is documented as LibresignSettings in ResponseDefinitions.
 	 *
-	 * @return array<string, mixed>
+	 * @return array<string, bool|string>
+	 * @psalm-return LibresignSettings
 	 */
 	public function getUserIdentificationSettings(?IUser $user, ?SignRequest $signRequest = null): array {
 		$status = $this->getIdentificationDocumentsStatus($user, $signRequest);
