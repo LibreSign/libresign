@@ -124,7 +124,7 @@ class SignFileService {
 		private PfxProvider $pfxProvider,
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private SignRequestService $signRequestService,
-		private ?PolicyService $policyService = null,
+		private PolicyService $policyService,
 	) {
 	}
 
@@ -1046,15 +1046,7 @@ class SignFileService {
 	}
 
 	private function isCollectMetadataEnabled(): bool {
-		if ($this->policyService !== null) {
-			try {
-				return (bool)$this->policyService->resolve(CollectMetadataPolicy::KEY)->getEffectiveValue();
-			} catch (\Throwable) {
-				// Fallback keeps legacy behavior during migration rollout.
-			}
-		}
-
-		return $this->appConfig->getValueBool(Application::APP_ID, CollectMetadataPolicy::SYSTEM_APP_CONFIG_KEY, false);
+		return (bool)$this->policyService->resolve(CollectMetadataPolicy::KEY)->getEffectiveValue();
 	}
 
 	/**
