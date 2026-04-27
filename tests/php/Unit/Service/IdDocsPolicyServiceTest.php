@@ -8,32 +8,33 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\IAppConfig;
 use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private IAppConfig&MockObject $appConfig;
+	private PolicyService&MockObject $policyService;
 	private ValidateHelper&MockObject $validateHelper;
 	private IdDocsMapper&MockObject $idDocsMapper;
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->idDocsMapper = $this->createMock(IdDocsMapper::class);
 	}
 
 	private function getService(): IdDocsPolicyService {
 		return new IdDocsPolicyService(
-			$this->appConfig,
+			$this->policyService,
 			$this->validateHelper,
 			$this->idDocsMapper,
 		);
@@ -50,10 +51,10 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(IUser::class);
 		$fileId = 123;
 
-		$this->appConfig
-			->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn($identificationDocumentsEnabled);
+		$this->policyService
+			->method('resolveForUser')
+			->with(IdentificationDocumentsPolicy::KEY, $user)
+			->willReturn((new ResolvedPolicy())->setEffectiveValue($identificationDocumentsEnabled));
 
 		$this->validateHelper
 			->method('userCanApproveValidationDocuments')

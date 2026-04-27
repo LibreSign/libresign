@@ -44,11 +44,17 @@ describe('IdentificationDocuments', () => {
 
 	it('saves groups on update:modelValue', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'identification_documents') {
-				return true
-			}
 			if (key === 'approval_group') {
 				return []
+			}
+			if (key === 'effective_policies') {
+				return {
+					policies: {
+						identification_documents: {
+							effectiveValue: true,
+						},
+					},
+				}
 			}
 			return fallback
 		})
@@ -74,7 +80,6 @@ describe('IdentificationDocuments', () => {
 			global: {
 				stubs: {
 					NcSettingsSection: { template: '<div><slot /></div>' },
-					NcCheckboxRadioSwitch: { template: '<div><slot /></div>' },
 					NcSelect: {
 						name: 'NcSelect',
 						props: ['modelValue'],
