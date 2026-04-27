@@ -23,6 +23,8 @@ use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
 use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy as SignatureTextPolicyProvider;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
 use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
@@ -114,12 +116,30 @@ class SignatureTextService {
 		$template = strip_tags((string)$template);
 		$template = trim($template);
 		$template = html_entity_decode($template);
-		$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', $signatureWidth);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', $signatureHeight);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'template_font_size', $templateFontSize);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_font_size', $signatureFontSize);
-		$this->appConfig->setValueString(Application::APP_ID, 'signature_render_mode', $renderMode);
+		if ($this->policyService !== null) {
+			try {
+				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_TEMPLATE, $template);
+				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH, $signatureWidth);
+				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT, $signatureHeight);
+				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE, $templateFontSize);
+				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE, $signatureFontSize);
+				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_RENDER_MODE, $renderMode);
+			} catch (\Throwable) {
+				$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
+				$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', $signatureWidth);
+				$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', $signatureHeight);
+				$this->appConfig->setValueFloat(Application::APP_ID, 'template_font_size', $templateFontSize);
+				$this->appConfig->setValueFloat(Application::APP_ID, 'signature_font_size', $signatureFontSize);
+				$this->appConfig->setValueString(Application::APP_ID, 'signature_render_mode', $renderMode);
+			}
+		} else {
+			$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
+			$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', $signatureWidth);
+			$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', $signatureHeight);
+			$this->appConfig->setValueFloat(Application::APP_ID, 'template_font_size', $templateFontSize);
+			$this->appConfig->setValueFloat(Application::APP_ID, 'signature_font_size', $signatureFontSize);
+			$this->appConfig->setValueString(Application::APP_ID, 'signature_render_mode', $renderMode);
+		}
 		return $this->parse($template);
 	}
 
@@ -195,6 +215,13 @@ class SignatureTextService {
 	}
 
 	public function getTemplate(): string {
+		if ($this->policyService !== null) {
+			try {
+				return (string)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE)->effectiveValue();
+			} catch (\Throwable) {
+				// Fallback keeps legacy behavior during migration rollout.
+			}
+		}
 		if ($this->appConfig->hasKey(Application::APP_ID, 'signature_text_template')) {
 			return $this->appConfig->getValueString(Application::APP_ID, 'signature_text_template');
 		}
@@ -494,15 +521,23 @@ class SignatureTextService {
 	}
 
 	public function getFullSignatureWidth(): float {
-		return $this->getSanitizedDimension('signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+		return $this->getSanitizedDimension(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH, self::DEFAULT_SIGNATURE_WIDTH);
 	}
 
 	public function getFullSignatureHeight(): float {
-		return $this->getSanitizedDimension('signature_height', self::DEFAULT_SIGNATURE_HEIGHT);
+		return $this->getSanitizedDimension(SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT, self::DEFAULT_SIGNATURE_HEIGHT);
 	}
 
 	public function getSignatureWidth(): float {
-		$current = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+		if ($this->policyService !== null) {
+			try {
+				$current = (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH)->effectiveValue();
+			} catch (\Throwable) {
+				$current = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+			}
+		} else {
+			$current = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+		}
 		if ($this->getRenderMode() === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY || !$this->getTemplate()) {
 			return $current;
 		}
@@ -514,7 +549,15 @@ class SignatureTextService {
 	}
 
 	private function getSanitizedDimension(string $key, float $default): float {
-		$value = $this->appConfig->getValueFloat(Application::APP_ID, $key, $default);
+		if ($this->policyService !== null) {
+			try {
+				$value = (float)$this->policyService->resolve($key)->effectiveValue();
+			} catch (\Throwable) {
+				$value = $this->appConfig->getValueFloat(Application::APP_ID, $key, $default);
+			}
+		} else {
+			$value = $this->appConfig->getValueFloat(Application::APP_ID, $key, $default);
+		}
 		if (!is_finite($value) || $value < self::SIGNATURE_DIMENSION_MINIMUM) {
 			$this->appConfig->setValueFloat(Application::APP_ID, $key, $default);
 			$this->logger->warning('Invalid signature dimension found in app config. Falling back to default.', [
@@ -529,10 +572,15 @@ class SignatureTextService {
 
 	public function getTemplateFontSize(): float {
 		$collectMetadata = $this->isCollectMetadataEnabled();
-		if ($collectMetadata) {
-			return $this->appConfig->getValueFloat(Application::APP_ID, 'template_font_size', self::TEMPLATE_DEFAULT_FONT_SIZE - 1);
+		$default = $collectMetadata ? self::TEMPLATE_DEFAULT_FONT_SIZE - 1 : self::TEMPLATE_DEFAULT_FONT_SIZE;
+		if ($this->policyService !== null) {
+			try {
+				return (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE)->effectiveValue();
+			} catch (\Throwable) {
+				// Fallback keeps legacy behavior during migration rollout.
+			}
 		}
-		return $this->appConfig->getValueFloat(Application::APP_ID, 'template_font_size', self::TEMPLATE_DEFAULT_FONT_SIZE);
+		return $this->appConfig->getValueFloat(Application::APP_ID, 'template_font_size', $default);
 	}
 
 	public function getDefaultTemplateFontSize(): float {
@@ -556,10 +604,24 @@ class SignatureTextService {
 	}
 
 	public function getSignatureFontSize(): float {
+		if ($this->policyService !== null) {
+			try {
+				return (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE)->effectiveValue();
+			} catch (\Throwable) {
+				// Fallback keeps legacy behavior during migration rollout.
+			}
+		}
 		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_font_size', self::SIGNATURE_DEFAULT_FONT_SIZE);
 	}
 
 	public function getRenderMode(): string {
+		if ($this->policyService !== null) {
+			try {
+				return (string)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_RENDER_MODE)->effectiveValue();
+			} catch (\Throwable) {
+				// Fallback keeps legacy behavior during migration rollout.
+			}
+		}
 		return $this->appConfig->getValueString(Application::APP_ID, 'signature_render_mode', SignerElementsService::RENDER_MODE_DEFAULT);
 	}
 
