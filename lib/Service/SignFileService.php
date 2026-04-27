@@ -1048,7 +1048,7 @@ class SignFileService {
 	private function isCollectMetadataEnabled(): bool {
 		if ($this->policyService !== null) {
 			try {
-				return (bool)$this->policyService->resolve(CollectMetadataPolicy::KEY)->effectiveValue();
+				return (bool)$this->policyService->resolve(CollectMetadataPolicy::KEY)->getEffectiveValue();
 			} catch (\Throwable) {
 				// Fallback keeps legacy behavior during migration rollout.
 			}
