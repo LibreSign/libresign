@@ -14,17 +14,14 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IUser;
-use stdClass;
 
-/**
- * @psalm-import-type LibresignSettings from ResponseDefinitions
- */
 class SettingsLoader {
 	public const IDENTIFICATION_DOCUMENTS_DISABLED = 0;
 	public const IDENTIFICATION_DOCUMENTS_NEED_SEND = 1;
@@ -34,6 +31,7 @@ class SettingsLoader {
 	public function __construct(
 		private AccountSettingsProvider $accountSettingsProvider,
 		private IdDocsPolicyService $idDocsPolicyService,
+		private PolicyService $policyService,
 		private IAppConfig $appConfig,
 		private IGroupManager $groupManager,
 		private IdDocsMapper $idDocsMapper,
@@ -42,7 +40,7 @@ class SettingsLoader {
 	}
 
 	public function loadSettings(
-		stdClass $fileData,
+		\stdClass $fileData,
 		FileResponseOptions $options,
 	): void {
 		if (!$options->isShowSettings()) {
@@ -69,7 +67,7 @@ class SettingsLoader {
 		}
 	}
 
-	private function loadApproverSignatureMethods(stdClass $fileData): void {
+	private function loadApproverSignatureMethods(\stdClass $fileData): void {
 		try {
 			$idDocs = $this->idDocsMapper->getByFileId($fileData->id);
 			$signRequestId = $idDocs->getSignRequestId();
@@ -84,7 +82,7 @@ class SettingsLoader {
 	}
 
 	public function getIdentificationDocumentsStatus(?IUser $user = null, ?SignRequest $signRequest = null): int {
-		if (!$this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false)) {
+		if (!$this->isIdentificationDocumentsEnabled($user)) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
@@ -131,12 +129,33 @@ class SettingsLoader {
 		return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 	}
 
+	private function isIdentificationDocumentsEnabled(?IUser $user): bool {
+		$resolved = $user
+			? $this->policyService->resolveForUser(IdentificationDocumentsPolicy::KEY, $user)
+			: $this->policyService->resolve(IdentificationDocumentsPolicy::KEY);
+
+		$value = $resolved->getEffectiveValue();
+		if (is_bool($value)) {
+			return $value;
+		}
+
+		if (is_int($value)) {
+			return $value !== 0;
+		}
+
+		if (is_string($value)) {
+			return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'on'], true);
+		}
+
+		return (bool)$value;
+	}
+
 	/**
 	 * Get user identification documents settings
 	 * These are user-specific settings, not file-specific
-	 * Always returns complete LibresignSettings with defaults
+	 * Always returns complete settings payload with defaults.
 	 *
-	 * @psalm-return LibresignSettings
+	 * @return array<string, mixed>
 	 */
 	public function getUserIdentificationSettings(?IUser $user, ?SignRequest $signRequest = null): array {
 		$status = $this->getIdentificationDocumentsStatus($user, $signRequest);

@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\Policy\Provider;
 
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 
@@ -20,5 +21,6 @@ final class PolicyProviders {
 		DocMdpPolicy::KEY => DocMdpPolicy::class,
 		RequestSignGroupsPolicy::KEY => RequestSignGroupsPolicy::class,
 		SignatureFlowPolicy::KEY => SignatureFlowPolicy::class,
+		IdentificationDocumentsPolicy::KEY => IdentificationDocumentsPolicy::class,
 	];
 }
