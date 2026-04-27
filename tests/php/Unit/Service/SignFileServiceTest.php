@@ -49,6 +49,8 @@ use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfSignatureDetectionService;
 use OCA\Libresign\Service\PfxProvider;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SigningCoordinatorService;
@@ -122,6 +124,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private PfxProvider $pfxProvider;
 	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
 	private SignRequestService&MockObject $signRequestService;
+	private PolicyService&MockObject $policyService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -176,6 +179,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->secureRandom,
 		);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 	}
 
 	public function testClickToSignUsesShortLivedCertificate(): void {
@@ -476,6 +480,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->pfxProvider,
 					$this->subjectAlternativeNameService,
 					$this->signRequestService,
+					$this->policyService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -520,6 +525,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pfxProvider,
 			$this->subjectAlternativeNameService,
 			$this->signRequestService,
+			$this->policyService,
 		);
 	}
 
@@ -1148,7 +1154,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[DataProvider('providerStoreUserMetadata')]
 	public function testStoreUserMetadata(bool $collectMetadata, ?array $previous, array $new, ?array $expected): void {
 		$signRequest = new \OCA\Libresign\Db\SignRequest();
-		$this->appConfig->setValueBool('libresign', 'collect_metadata', $collectMetadata);
+		$this->policyService
+			->expects($this->any())
+			->method('resolve')
+			->willReturn(
+				(new ResolvedPolicy())
+					->setEffectiveValue($collectMetadata)
+			);
 		$signRequest->setMetadata($previous);
 		$this->getService()
 			->setSignRequest($signRequest)
