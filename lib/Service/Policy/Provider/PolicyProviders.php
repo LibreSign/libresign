@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider;
 
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
@@ -17,6 +18,7 @@ use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 final class PolicyProviders {
 	/** @var array<string, class-string> */
 	public const BY_KEY = [
+		CollectMetadataPolicy::KEY => CollectMetadataPolicy::class,
 		FooterPolicy::KEY => FooterPolicy::class,
 		DocMdpPolicy::KEY => DocMdpPolicy::class,
 		RequestSignGroupsPolicy::KEY => RequestSignGroupsPolicy::class,
