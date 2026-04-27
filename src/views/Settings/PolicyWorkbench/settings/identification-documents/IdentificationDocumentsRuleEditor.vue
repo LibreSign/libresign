@@ -7,7 +7,7 @@
 	<div class="identification-documents-editor">
 		<NcCheckboxRadioSwitch
 			v-for="option in options"
-			:key="option.value"
+			:key="String(option.value)"
 			class="identification-documents-editor__option"
 			type="radio"
 			:model-value="normalizedValue === option.value"
