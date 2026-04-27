@@ -117,12 +117,12 @@ class SignatureTextService {
 		$template = html_entity_decode($template);
 		if ($this->policyService !== null) {
 			try {
-				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_TEMPLATE, $template);
-				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH, $signatureWidth);
-				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT, $signatureHeight);
-				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE, $templateFontSize);
-				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE, $signatureFontSize);
-				$this->policyService->saveSystemPolicy(SignatureTextPolicyProvider::KEY_RENDER_MODE, $renderMode);
+				$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_TEMPLATE, $template);
+				$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH, $signatureWidth);
+				$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT, $signatureHeight);
+				$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE, $templateFontSize);
+				$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE, $signatureFontSize);
+				$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_RENDER_MODE, $renderMode);
 			} catch (\Throwable) {
 				$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
 				$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', $signatureWidth);
@@ -216,7 +216,7 @@ class SignatureTextService {
 	public function getTemplate(): string {
 		if ($this->policyService !== null) {
 			try {
-				return (string)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE)->effectiveValue();
+				return (string)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE)->getEffectiveValue();
 			} catch (\Throwable) {
 				// Fallback keeps legacy behavior during migration rollout.
 			}
@@ -530,7 +530,7 @@ class SignatureTextService {
 	public function getSignatureWidth(): float {
 		if ($this->policyService !== null) {
 			try {
-				$current = (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH)->effectiveValue();
+				$current = (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH)->getEffectiveValue();
 			} catch (\Throwable) {
 				$current = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
 			}
@@ -550,7 +550,7 @@ class SignatureTextService {
 	private function getSanitizedDimension(string $key, float $default): float {
 		if ($this->policyService !== null) {
 			try {
-				$value = (float)$this->policyService->resolve($key)->effectiveValue();
+				$value = (float)$this->policyService->resolve($key)->getEffectiveValue();
 			} catch (\Throwable) {
 				$value = $this->appConfig->getValueFloat(Application::APP_ID, $key, $default);
 			}
@@ -574,7 +574,7 @@ class SignatureTextService {
 		$default = $collectMetadata ? self::TEMPLATE_DEFAULT_FONT_SIZE - 1 : self::TEMPLATE_DEFAULT_FONT_SIZE;
 		if ($this->policyService !== null) {
 			try {
-				return (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE)->effectiveValue();
+				return (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE)->getEffectiveValue();
 			} catch (\Throwable) {
 				// Fallback keeps legacy behavior during migration rollout.
 			}
@@ -593,7 +593,7 @@ class SignatureTextService {
 	private function isCollectMetadataEnabled(): bool {
 		if ($this->policyService !== null) {
 			try {
-				return (bool)$this->policyService->resolve(CollectMetadataPolicy::KEY)->effectiveValue();
+				return (bool)$this->policyService->resolve(CollectMetadataPolicy::KEY)->getEffectiveValue();
 			} catch (\Throwable) {
 				// Fallback keeps legacy behavior during migration rollout.
 			}
@@ -605,7 +605,7 @@ class SignatureTextService {
 	public function getSignatureFontSize(): float {
 		if ($this->policyService !== null) {
 			try {
-				return (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE)->effectiveValue();
+				return (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE)->getEffectiveValue();
 			} catch (\Throwable) {
 				// Fallback keeps legacy behavior during migration rollout.
 			}
@@ -616,7 +616,7 @@ class SignatureTextService {
 	public function getRenderMode(): string {
 		if ($this->policyService !== null) {
 			try {
-				return (string)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_RENDER_MODE)->effectiveValue();
+				return (string)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_RENDER_MODE)->getEffectiveValue();
 			} catch (\Throwable) {
 				// Fallback keeps legacy behavior during migration rollout.
 			}
