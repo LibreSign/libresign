@@ -15,8 +15,8 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
+use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -45,6 +45,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FooterService&MockObject $footerService;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
 	private PolicyService&MockObject $policyService;
+	private IdDocsPolicyService&MockObject $idDocsPolicyService;
 	public function setUp(): void {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->accountService = $this->createMock(AccountService::class);
@@ -58,6 +59,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->footerService = $this->createMock(FooterService::class);
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$this->policyService = $this->createMock(PolicyService::class);
+		$this->idDocsPolicyService = $this->createMock(IdDocsPolicyService::class);
 		$this->admin = new Admin(
 			$this->initialState,
 			$this->accountService,
@@ -71,6 +73,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->footerService,
 			$this->docMdpConfigService,
 			$this->policyService,
+			$this->idDocsPolicyService,
 		);
 		$this->stubGetFormDependencies();
 	}
@@ -85,11 +88,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->identifyMethodService->method('getIdentifyMethodsSettings')->willReturn([]);
 		$this->docMdpConfigService->method('getConfig')->willReturn([]);
 		$this->policyService->method('resolveKnownPolicies')->willReturn([]);
-		$this->policyService->method('resolve')->willReturn(
-			(new ResolvedPolicy())
-				->setPolicyKey('identification_documents')
-				->setEffectiveValue(false)
-		);
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->willReturn(false);
 
 		$engine = $this->createMock(OpenSslHandler::class);
 		$engine->method('getName')->willReturn('openssl');
