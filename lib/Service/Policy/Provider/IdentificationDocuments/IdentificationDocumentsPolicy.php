@@ -33,28 +33,7 @@ final class IdentificationDocumentsPolicy implements IPolicyDefinitionProvider {
 					false,
 					true,
 				],
-				normalizer: static function (mixed $rawValue): mixed {
-					if (is_bool($rawValue)) {
-						return $rawValue;
-					}
-
-					if (is_int($rawValue)) {
-						return $rawValue !== 0;
-					}
-
-					if (is_string($rawValue)) {
-						$value = strtolower(trim($rawValue));
-						if (in_array($value, ['1', 'true', 'yes', 'on'], true)) {
-							return true;
-						}
-
-						if (in_array($value, ['0', 'false', 'no', 'off', ''], true)) {
-							return false;
-						}
-					}
-
-					return (bool)$rawValue;
-				},
+				normalizer: static fn (mixed $rawValue): bool => \OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicyValue::normalize($rawValue, false),
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
