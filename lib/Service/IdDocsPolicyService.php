@@ -44,8 +44,11 @@ class IdDocsPolicyService {
 		}
 	}
 
-	private function isIdentificationDocumentsEnabled(IUser $user): bool {
-		$value = $this->policyService->resolveForUser(IdentificationDocumentsPolicy::KEY, $user)->getEffectiveValue();
+	public function isIdentificationDocumentsEnabled(?IUser $user = null): bool {
+		$resolved = $user
+			? $this->policyService->resolveForUser(IdentificationDocumentsPolicy::KEY, $user)
+			: $this->policyService->resolve(IdentificationDocumentsPolicy::KEY);
+		$value = $resolved->getEffectiveValue();
 		return IdentificationDocumentsPolicyValue::normalize($value, false);
 	}
 }

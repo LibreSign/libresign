@@ -26,11 +26,10 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\RequestSignatureService;
@@ -84,7 +83,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IGroupManager&MockObject $groupManager;
 	private ISubAdmin&MockObject $subAdmin;
 	private PolicyAuthorizationService $policyAuthorizationService;
-	private PolicyService&MockObject $policyService;
+	private IdDocsPolicyService&MockObject $idDocsPolicyService;
 	private IdDocsService&MockObject $idDocsService;
 	private SignerElementsService&MockObject $signerElementsService;
 	private UserElementMapper&MockObject $userElementMapper;
@@ -125,17 +124,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->subAdmin = $this->createMock(ISubAdmin::class);
 		$this->policyAuthorizationService = new PolicyAuthorizationService($this->groupManager, $this->subAdmin);
-		$this->policyService = $this->createMock(PolicyService::class);
-		$this->policyService->method('resolveForUser')->willReturn(
-			(new ResolvedPolicy())
-				->setPolicyKey('identification_documents')
-				->setEffectiveValue(false)
-		);
-		$this->policyService->method('resolve')->willReturn(
-			(new ResolvedPolicy())
-				->setPolicyKey('identification_documents')
-				->setEffectiveValue(false)
-		);
+		$this->idDocsPolicyService = $this->createMock(IdDocsPolicyService::class);
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->willReturn(false);
 		$this->idDocsService = $this->createMock(IdDocsService::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
@@ -171,7 +161,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->policyAuthorizationService,
-			$this->policyService,
+			$this->idDocsPolicyService,
 			$this->idDocsService,
 			$this->signerElementsService,
 			$this->userElementMapper,
