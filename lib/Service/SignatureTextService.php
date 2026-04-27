@@ -21,6 +21,8 @@ use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
 use OCA\Libresign\Vendor\Endroid\QrCode\QrCode;
 use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
 use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
 use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
@@ -50,6 +52,7 @@ class SignatureTextService {
 		private IUserSession $userSession,
 		private IURLGenerator $urlGenerator,
 		protected LoggerInterface $logger,
+		private ?PolicyService $policyService = null,
 	) {
 	}
 
@@ -217,7 +220,7 @@ class SignatureTextService {
 			// <img src="data:image/png;base64,{{ qrcode }}">
 			'{{qrcode}}' => $this->l10n->t('Base64-encoded PNG QR code for the validation URL. In HTML/Twig, use <img src="data:image/png;base64,{{ qrcode }}">. In plain-text templates, use {{ValidationURL}}.'),
 		];
-		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
+		$collectMetadata = $this->isCollectMetadataEnabled();
 		if ($collectMetadata) {
 			$list['{{SignerIP}}'] = $this->l10n->t('IP address of the person who signed the document.');
 			$list['{{SignerUserAgent}}'] = $this->l10n->t('Browser and device information of the person who signed the document.');
@@ -445,7 +448,7 @@ class SignatureTextService {
 	}
 
 	public function getDefaultTemplate(): string {
-		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
+		$collectMetadata = $this->isCollectMetadataEnabled();
 		if ($collectMetadata) {
 			// TRANSLATORS Variables enclosed in double curly braces {{variableName}} are template placeholders.
 			//
@@ -525,7 +528,7 @@ class SignatureTextService {
 	}
 
 	public function getTemplateFontSize(): float {
-		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
+		$collectMetadata = $this->isCollectMetadataEnabled();
 		if ($collectMetadata) {
 			return $this->appConfig->getValueFloat(Application::APP_ID, 'template_font_size', self::TEMPLATE_DEFAULT_FONT_SIZE - 1);
 		}
@@ -533,11 +536,23 @@ class SignatureTextService {
 	}
 
 	public function getDefaultTemplateFontSize(): float {
-		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
+		$collectMetadata = $this->isCollectMetadataEnabled();
 		if ($collectMetadata) {
 			return self::TEMPLATE_DEFAULT_FONT_SIZE - 0.2;
 		}
 		return self::TEMPLATE_DEFAULT_FONT_SIZE;
+	}
+
+	private function isCollectMetadataEnabled(): bool {
+		if ($this->policyService !== null) {
+			try {
+				return (bool)$this->policyService->resolve(CollectMetadataPolicy::KEY)->effectiveValue();
+			} catch (\Throwable) {
+				// Fallback keeps legacy behavior during migration rollout.
+			}
+		}
+
+		return $this->appConfig->getValueBool(Application::APP_ID, CollectMetadataPolicy::SYSTEM_APP_CONFIG_KEY, false);
 	}
 
 	public function getSignatureFontSize(): float {
