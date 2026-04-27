@@ -4,6 +4,7 @@
  */
 
 import { docMdpRealDefinition } from './docmdp/realDefinition'
+import { identificationDocumentsRealDefinition } from './identification-documents/realDefinition'
 import { requestSignGroupsRealDefinition } from './request-sign-groups/realDefinition'
 import { signatureFooterRealDefinition } from './signature-footer/realDefinition'
 import { signatureFlowRealDefinition } from './signature-flow/realDefinition'
@@ -13,5 +14,6 @@ export const realDefinitions = {
 	add_footer: signatureFooterRealDefinition,
 	signature_flow: signatureFlowRealDefinition,
 	docmdp: docMdpRealDefinition,
+	identification_documents: identificationDocumentsRealDefinition,
 	groups_request_sign: requestSignGroupsRealDefinition,
 } satisfies Record<string, RealPolicySettingDefinition>

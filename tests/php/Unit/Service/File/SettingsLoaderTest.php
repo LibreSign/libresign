@@ -18,17 +18,19 @@ use OCA\Libresign\Service\File\AccountSettingsProvider;
 use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
-use stdClass;
 
 final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private AccountSettingsProvider|MockObject $accountSettingsProvider;
 	private IdDocsMapper|MockObject $idDocsMapper;
 	private IdDocsPolicyService|MockObject $idDocsPolicyService;
+	private PolicyService|MockObject $policyService;
 	private IAppConfig|MockObject $appConfig;
 	private IGroupManager|MockObject $groupManager;
 
@@ -37,6 +39,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountSettingsProvider = $this->createMock(AccountSettingsProvider::class);
 		$this->idDocsMapper = $this->createMock(IdDocsMapper::class);
 		$this->idDocsPolicyService = $this->createMock(IdDocsPolicyService::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 	}
@@ -45,6 +48,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return new SettingsLoader(
 			$this->accountSettingsProvider,
 			$this->idDocsPolicyService,
+			$this->policyService,
 			$this->appConfig,
 			$this->groupManager,
 			$this->idDocsMapper,
@@ -53,7 +57,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testLoadSettingsNotShown(): void {
-		$fileData = new stdClass();
+		$fileData = new \stdClass();
 		$options = $this->createMock(FileResponseOptions::class);
 		$options->method('isShowSettings')->willReturn(false);
 
@@ -67,7 +71,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('user123');
 
-		$fileData = new stdClass();
+		$fileData = new \stdClass();
 		$fileData->id = 1;
 		$fileData->status = FileStatus::ABLE_TO_SIGN->value;
 		$fileData->settings = [];
@@ -81,8 +85,8 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'canRequestSign' => false,
 		]);
 		$this->accountSettingsProvider->method('getPhoneNumber')->with($user)->willReturn('123456789');
-
-		$this->appConfig->method('getValueBool')->willReturn(false);
+		$this->policyService->method('resolveForUser')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(false));
 
 		$service = $this->getService();
 		$service->loadSettings($fileData, $options);
@@ -93,13 +97,13 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testLoadSettingsWithoutUser(): void {
-		$fileData = new stdClass();
+		$fileData = new \stdClass();
 		$options = $this->createMock(FileResponseOptions::class);
 		$options->method('isShowSettings')->willReturn(true);
 		$options->method('getMe')->willReturn(null);
 		$options->method('isSignerIdentified')->willReturn(false);
-
-		$this->appConfig->method('getValueBool')->willReturn(false);
+		$this->policyService->method('resolve')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(false));
 
 		$service = $this->getService();
 		$service->loadSettings($fileData, $options);
@@ -114,7 +118,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('approver');
 
-		$fileData = new stdClass();
+		$fileData = new \stdClass();
 		$fileData->id = 10;
 		$fileData->status = FileStatus::ABLE_TO_SIGN->value;
 
@@ -123,9 +127,8 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$options->method('getMe')->willReturn($user);
 		$options->method('isSignerIdentified')->willReturn(false);
 
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(false);
+		$this->policyService->method('resolveForUser')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(false));
 		$this->accountSettingsProvider->method('getSettings')
 			->with($user)
 			->willReturn([
@@ -135,6 +138,8 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'isApprover' => true,
 			]);
 		$this->accountSettingsProvider->method('getPhoneNumber')->with($user)->willReturn('');
+		$this->policyService->method('resolveForUser')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(false));
 		$this->idDocsPolicyService->method('canApproverSignIdDoc')
 			->with($user, 10, FileStatus::ABLE_TO_SIGN->value)
 			->willReturn(true);
@@ -268,9 +273,10 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		array $fileStatuses,
 		int $expected,
 	): void {
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn($idDocsEnabled);
+		$this->policyService->method('resolve')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue($idDocsEnabled));
+		$this->policyService->method('resolveForUser')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue($idDocsEnabled));
 
 		if ($idDocsEnabled) {
 			$this->appConfig->method('getValueArray')
@@ -306,15 +312,14 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testLoadSettingsWithSignerIdentifiedNeedSend(): void {
-		$fileData = new stdClass();
+		$fileData = new \stdClass();
 		$options = $this->createMock(FileResponseOptions::class);
 		$options->method('isShowSettings')->willReturn(true);
 		$options->method('getMe')->willReturn(null);
 		$options->method('isSignerIdentified')->willReturn(true);
 
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(true);
+		$this->policyService->method('resolve')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
 
 		$this->idDocsMapper->method('getFilesOfAccount')->willReturn([]);
 
@@ -326,16 +331,15 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testLoadSettingsWithSignerIdentifiedNeedApproval(): void {
-		$fileData = new stdClass();
+		$fileData = new \stdClass();
 		$fileData->settings = []; // Initialize settings array
 		$options = $this->createMock(FileResponseOptions::class);
 		$options->method('isShowSettings')->willReturn(true);
 		$options->method('getMe')->willReturn(null);
 		$options->method('isSignerIdentified')->willReturn(true);
 
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(true);
+		$this->policyService->method('resolve')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
 
 		// When getMe() returns null and isSignerIdentified() is true,
 		// getIdentificationDocumentsStatus is called with empty string
@@ -348,15 +352,14 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testLoadSettingsEmptyUserIdReturnsNeedSend(): void {
-		$fileData = new stdClass();
+		$fileData = new \stdClass();
 		$options = $this->createMock(FileResponseOptions::class);
 		$options->method('isShowSettings')->willReturn(true);
 		$options->method('getMe')->willReturn(null);
 		$options->method('isSignerIdentified')->willReturn(true);
 
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn(true);
+		$this->policyService->method('resolve')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue(true));
 
 		$service = $this->getService();
 		$status = $service->getIdentificationDocumentsStatus(null);
@@ -450,9 +453,10 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		bool $expectedNeedDocs,
 		bool $expectedWaitingApproval,
 	): void {
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'identification_documents', false)
-			->willReturn($idDocsEnabled);
+		$this->policyService->method('resolve')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue($idDocsEnabled));
+		$this->policyService->method('resolveForUser')
+			->willReturn((new ResolvedPolicy())->setEffectiveValue($idDocsEnabled));
 
 		if ($idDocsEnabled) {
 			$this->appConfig->method('getValueArray')

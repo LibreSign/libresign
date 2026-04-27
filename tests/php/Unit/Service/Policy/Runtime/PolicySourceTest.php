@@ -15,6 +15,7 @@ use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -54,6 +55,7 @@ final class PolicySourceTest extends TestCase {
 					FooterPolicy::class => new FooterPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
+					IdentificationDocumentsPolicy::class => new IdentificationDocumentsPolicy(),
 					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
 				};

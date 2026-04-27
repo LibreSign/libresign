@@ -8,24 +8,24 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\IAppConfig;
 use OCP\IUser;
 
 class IdDocsPolicyService {
 	public function __construct(
-		private IAppConfig $appConfig,
+		private PolicyService $policyService,
 		private ValidateHelper $validateHelper,
 		private IdDocsMapper $idDocsMapper,
 	) {
 	}
 
 	public function canApproverSignIdDoc(IUser $user, int $fileId, int $status): bool {
-		if (!$this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false)) {
+		if (!$this->isIdentificationDocumentsEnabled($user)) {
 			return false;
 		}
 		if (!$this->validateHelper->userCanApproveValidationDocuments($user, false)) {
@@ -41,5 +41,23 @@ class IdDocsPolicyService {
 		} catch (DoesNotExistException) {
 			return false;
 		}
+	}
+
+	private function isIdentificationDocumentsEnabled(IUser $user): bool {
+		$value = $this->policyService->resolveForUser(IdentificationDocumentsPolicy::KEY, $user)->getEffectiveValue();
+
+		if (is_bool($value)) {
+			return $value;
+		}
+
+		if (is_int($value)) {
+			return $value !== 0;
+		}
+
+		if (is_string($value)) {
+			return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'on'], true);
+		}
+
+		return (bool)$value;
 	}
 }
