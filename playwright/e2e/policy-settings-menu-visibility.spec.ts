@@ -27,6 +27,7 @@ import {
 	ensureUserExists,
 	ensureUserInGroup,
 	setAppConfig,
+	setUserLanguage,
 } from '../support/nc-provisioning'
 import {
 	createAuthenticatedRequestContext,
@@ -87,6 +88,7 @@ test('group admin can access policies and start creating delegated rule when cus
 	await ensureGroupExists(page.request, GROUP_ID)
 	await ensureUserInGroup(page.request, GROUP_ADMIN, GROUP_ID)
 	await ensureSubadminOfGroup(page.request, GROUP_ADMIN, GROUP_ID)
+	await setUserLanguage(page.request, GROUP_ADMIN, 'en')
 
 	// ── 1. Admin: enable delegated customization at system layer ───────────
 	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, FOOTER_ENABLED_VALUE, true)
@@ -111,18 +113,18 @@ test('group admin can access policies and start creating delegated rule when cus
 
 	// ── 4. The editable policy card must be visible in the workbench ──────
 	const configureButton = page
-		.getByRole('button', { name: /Configure|Configurar/i })
+		.getByRole('button', { name: /^Configure(?: setting)?$/i })
 		.first()
 	await expect(configureButton, 'At least one Configure button should be visible for the group admin').toBeVisible({ timeout: 15000 })
 
 	// ── 5. Open the setting dialog ─────────────────────────────────────────
 	await configureButton.click()
 
-	const settingDialog = page.getByRole('dialog', { name: /Signature footer|Signing order|Rodape de assinatura|Ordem de assinatura/i })
+	const settingDialog = page.getByRole('dialog', { name: /Signature footer|Signing order/i })
 	await expect(settingDialog, 'Policy dialog should open on click').toBeVisible({ timeout: 10000 })
 
 	// ── 6. "Create rule" button must be available inside the dialog ───────
-	const createRuleButton = settingDialog.getByRole('button', { name: /Create rule|Criar regra/i })
+	const createRuleButton = settingDialog.getByRole('button', { name: /^Create rule$/i })
 	await expect(createRuleButton, '"Create rule" button should be enabled in the policy dialog').toBeVisible({ timeout: 10000 })
 	await expect(createRuleButton).toBeEnabled()
 
@@ -130,19 +132,19 @@ test('group admin can access policies and start creating delegated rule when cus
 	await createRuleButton.click()
 
 	const createPolicyDialog = page
-		.getByRole('dialog', { name: /What do you want to create\?|Create rule|O que voce quer criar\?|Criar regra/i })
+		.getByRole('dialog', { name: /What do you want to create\?|Create rule/i })
 		.last()
 	await expect(createPolicyDialog, 'Create-policy modal should appear after clicking Create rule').toBeVisible({ timeout: 10000 })
 
 	await createPolicyDialog.getByRole('option', { name: /^Group/ }).click()
 
-	const targetGroupsField = page.getByLabel(/Target groups|Grupos alvo/i)
+	const targetGroupsField = page.getByLabel(/Target groups/i)
 	await expect(targetGroupsField).toBeVisible({ timeout: 10000 })
-	await page.getByPlaceholder(/Search groups|Pesquisar grupos/i).fill(GROUP_ID)
+	await page.getByPlaceholder(/Search groups/i).fill(GROUP_ID)
 	await page.getByRole('option', { name: GROUP_ID }).first().click()
 
 	await Promise.any([
 		createPolicyDialog.getByRole('option', { name: /^Group/ }).waitFor({ state: 'visible', timeout: 10000 }),
-		page.getByLabel(/Target groups|Grupos alvo/i).waitFor({ state: 'visible', timeout: 10000 }),
+		page.getByLabel(/Target groups/i).waitFor({ state: 'visible', timeout: 10000 }),
 	])
 })
