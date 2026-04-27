@@ -30,7 +30,6 @@ import {
 import {
 	createAuthenticatedRequestContext,
 	getEffectivePolicy,
-	setGroupPolicyEntry,
 	setSystemPolicyEntry,
 } from '../support/policy-api'
 
@@ -85,7 +84,6 @@ test('policies nav item is visible when group admin can customize policies even 
 
 	const editablePolicy = await getEffectivePolicy(groupAdminRequestContext, POLICY_KEY)
 	expect(editablePolicy?.editableByCurrentActor).toBe(true)
-	await setGroupPolicyEntry(groupAdminRequestContext, GROUP_ID, POLICY_KEY, FOOTER_ENABLED_VALUE, true)
 
 	// ── 2. Log in as group admin ───────────────────────────────────────────
 	await login(page.request, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
