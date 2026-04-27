@@ -62,6 +62,11 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import FooterTemplateEditor from '../../components/FooterTemplateEditor.vue'
+import { usePoliciesStore } from '../../store/policies'
+import {
+	normalizeSignatureFooterPolicyConfig,
+	serializeSignatureFooterPolicyConfig,
+} from './PolicyWorkbench/settings/signature-footer/model'
 
 type SettingsResponse = {
 	data?: {
@@ -96,6 +101,7 @@ const addFooter = ref(true)
 const writeQrcodeOnFooter = ref(true)
 const isDefaultFooterTemplate = ref(isDefaultFooterTemplateState)
 const customizeFooter = ref(!isDefaultFooterTemplateState)
+const policiesStore = usePoliciesStore()
 
 const urlInput = ref<HTMLInputElement | null>(null)
 const footerTemplateEditor = ref<FooterTemplateEditorInstance | null>(null)
@@ -119,9 +125,6 @@ async function getData() {
 	await Promise.all([
 		getMakeValidationUrlPrivate(),
 		getAddFooterData(),
-		getWriteQrcodeOnFooter(),
-		getValidationUrlData(),
-		getCustomizeFooterData(),
 	])
 }
 
@@ -131,24 +134,26 @@ async function getMakeValidationUrlPrivate() {
 }
 
 async function getAddFooterData() {
-	const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/add_footer')) as SettingsResponse
-	addFooter.value = parseBooleanSetting(response.data?.ocs?.data?.data)
+	await policiesStore.fetchEffectivePolicies()
+	const effectiveValue = policiesStore.getEffectiveValue('add_footer')
+	const config = normalizeSignatureFooterPolicyConfig(effectiveValue)
+	addFooter.value = config.enabled
+	writeQrcodeOnFooter.value = config.writeQrcodeOnFooter
+	isDefaultFooterTemplate.value = !config.customizeFooterTemplate
+	customizeFooter.value = config.customizeFooterTemplate
+	placeHolderValidationUrl(config.validationSite)
 }
 
 async function getWriteQrcodeOnFooter() {
-	const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/write_qrcode_on_footer')) as SettingsResponse
-	writeQrcodeOnFooter.value = parseBooleanSetting(response.data?.ocs?.data?.data)
+	await getAddFooterData()
 }
 
 async function getValidationUrlData() {
-	const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/validation_site')) as SettingsResponse
-	placeHolderValidationUrl(String(response.data?.ocs?.data?.data ?? ''))
+	await getAddFooterData()
 }
 
 async function getCustomizeFooterData() {
-	const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/footer_template_is_default')) as SettingsResponse
-	isDefaultFooterTemplate.value = parseBooleanSetting(response.data?.ocs?.data?.data)
-	customizeFooter.value = !isDefaultFooterTemplate.value
+	await getAddFooterData()
 }
 
 function onTemplateReset() {
@@ -156,15 +161,53 @@ function onTemplateReset() {
 }
 
 function saveValidationiUrl() {
-	getOcp().AppConfig.setValue('libresign', 'validation_site', urlInput.value?.value.trim() || '')
+	void saveFooterPolicy({
+		validationSite: urlInput.value?.value.trim() || '',
+	})
 }
 
 async function toggleSetting(setting: string, value: boolean) {
 	try {
+		if (setting === 'add_footer') {
+			await saveFooterPolicy({ enabled: value })
+			return
+		}
+		if (setting === 'write_qrcode_on_footer') {
+			await saveFooterPolicy({ writeQrcodeOnFooter: value })
+			return
+		}
+		if (setting === 'footer_template_is_default') {
+			await saveFooterPolicy({ customizeFooterTemplate: !value })
+			return
+		}
+
 		await getOcp().AppConfig.setValue('libresign', setting, value ? '1' : '0')
 	} catch (error) {
 		console.error('Error toggling setting:', setting, error)
 	}
+}
+
+async function saveFooterPolicy(partial: {
+	enabled?: boolean
+	writeQrcodeOnFooter?: boolean
+	validationSite?: string
+	customizeFooterTemplate?: boolean
+}) {
+	const currentConfig = normalizeSignatureFooterPolicyConfig(policiesStore.getEffectiveValue('add_footer'))
+	const nextConfig = {
+		...currentConfig,
+		...partial,
+	}
+	const serialized = serializeSignatureFooterPolicyConfig(nextConfig)
+	const saved = await policiesStore.saveSystemPolicy('add_footer', serialized, false)
+	if (!saved) {
+		return
+	}
+	addFooter.value = nextConfig.enabled
+	writeQrcodeOnFooter.value = nextConfig.writeQrcodeOnFooter
+	customizeFooter.value = nextConfig.customizeFooterTemplate
+	isDefaultFooterTemplate.value = !nextConfig.customizeFooterTemplate
+	placeHolderValidationUrl(nextConfig.validationSite)
 }
 
 async function onMakeValidationUrlPrivateChange(value: boolean) {

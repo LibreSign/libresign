@@ -10,6 +10,26 @@ import Validation from '../../../views/Settings/Validation.vue'
 
 const axiosGetMock = vi.fn()
 const loadStateMock = vi.fn()
+const fetchEffectivePoliciesMock = vi.fn(async () => {})
+const getEffectiveValueMock = vi.fn(() => JSON.stringify({
+	enabled: false,
+	writeQrcodeOnFooter: true,
+	validationSite: 'https://example.test/validation/',
+	customizeFooterTemplate: true,
+	footerTemplate: '',
+	previewWidth: 595,
+	previewHeight: 100,
+	previewZoom: 100,
+}))
+const saveSystemPolicyMock = vi.fn(async () => ({ policyKey: 'add_footer' }))
+
+vi.mock('../../../store/policies', () => ({
+	usePoliciesStore: () => ({
+		fetchEffectivePolicies: fetchEffectivePoliciesMock,
+		getEffectiveValue: getEffectiveValueMock,
+		saveSystemPolicy: saveSystemPolicyMock,
+	}),
+}))
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
@@ -69,15 +89,13 @@ describe('Settings/Validation.vue', () => {
 	it('loads validation settings on mount', async () => {
 		axiosGetMock
 			.mockResolvedValueOnce({ data: { ocs: { data: { data: '1' } } } })
-			.mockResolvedValueOnce({ data: { ocs: { data: { data: '0' } } } })
-			.mockResolvedValueOnce({ data: { ocs: { data: { data: '1' } } } })
-			.mockResolvedValueOnce({ data: { ocs: { data: { data: 'https://example.test/validation/' } } } })
-			.mockResolvedValueOnce({ data: { ocs: { data: { data: '0' } } } })
 
 		const wrapper = createWrapper()
 		await flushPromises()
 
-		expect(axiosGetMock).toHaveBeenCalledTimes(5)
+		expect(axiosGetMock).toHaveBeenCalledTimes(1)
+		expect(fetchEffectivePoliciesMock).toHaveBeenCalledTimes(1)
+		expect(getEffectiveValueMock).toHaveBeenCalledWith('add_footer')
 		expect(wrapper.vm.makeValidationUrlPrivate).toBe(true)
 		expect(wrapper.vm.addFooter).toBe(false)
 		expect(wrapper.vm.writeQrcodeOnFooter).toBe(true)
@@ -88,6 +106,16 @@ describe('Settings/Validation.vue', () => {
 
 	it('falls back to the default validation URL placeholder', async () => {
 		axiosGetMock.mockResolvedValue({ data: { ocs: { data: { data: '' } } } })
+		getEffectiveValueMock.mockReturnValueOnce(JSON.stringify({
+			enabled: true,
+			writeQrcodeOnFooter: true,
+			validationSite: '',
+			customizeFooterTemplate: false,
+			footerTemplate: '',
+			previewWidth: 595,
+			previewHeight: 100,
+			previewZoom: 100,
+		}))
 
 		const wrapper = createWrapper()
 		await flushPromises()
@@ -96,11 +124,17 @@ describe('Settings/Validation.vue', () => {
 	})
 
 	it('trims and saves the typed validation URL', async () => {
+		getEffectiveValueMock.mockReturnValueOnce(JSON.stringify({
+			enabled: true,
+			writeQrcodeOnFooter: true,
+			validationSite: 'https://example.test/',
+			customizeFooterTemplate: false,
+			footerTemplate: '',
+			previewWidth: 595,
+			previewHeight: 100,
+			previewZoom: 100,
+		}))
 		axiosGetMock
-			.mockResolvedValueOnce({ data: { ocs: { data: { data: '1' } } } })
-			.mockResolvedValueOnce({ data: { ocs: { data: { data: '1' } } } })
-			.mockResolvedValueOnce({ data: { ocs: { data: { data: '1' } } } })
-			.mockResolvedValueOnce({ data: { ocs: { data: { data: 'https://example.test/' } } } })
 			.mockResolvedValueOnce({ data: { ocs: { data: { data: '1' } } } })
 
 		const wrapper = createWrapper()
@@ -110,7 +144,11 @@ describe('Settings/Validation.vue', () => {
 		;(input.element as HTMLInputElement).value = '  https://custom.test/validation  '
 		await input.trigger('input')
 
-		expect(appConfigSetValueMock).toHaveBeenCalledWith('libresign', 'validation_site', 'https://custom.test/validation')
+		expect(saveSystemPolicyMock).toHaveBeenCalled()
+		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[0]).toBe('add_footer')
+		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[2]).toBe(false)
+		const savedPayload = String(saveSystemPolicyMock.mock.calls.at(-1)?.[1] ?? '')
+		expect(savedPayload).toContain('https://custom.test/validation')
 	})
 
 	it('resets the footer template when customization is disabled', async () => {
@@ -123,14 +161,11 @@ describe('Settings/Validation.vue', () => {
 		wrapper.vm.customizeFooter = true
 		await wrapper.vm.$nextTick()
 
-		const footerEditor = wrapper.findComponent(FooterTemplateEditorStub)
-		const resetTemplateToDefaultMock = vi.spyOn(footerEditor.vm, 'resetTemplateToDefault')
-
 		await wrapper.vm.onCustomizeFooterChange(false)
 
-		expect(appConfigSetValueMock).toHaveBeenCalledWith('libresign', 'footer_template_is_default', '1')
+		expect(saveSystemPolicyMock).toHaveBeenCalled()
+		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[0]).toBe('add_footer')
 		expect(wrapper.vm.isDefaultFooterTemplate).toBe(true)
-		expect(resetTemplateToDefaultMock).toHaveBeenCalledTimes(1)
 	})
 
 	it('persists the private validation URL toggle through the shared setter', async () => {
