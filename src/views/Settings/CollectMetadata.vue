@@ -14,53 +14,36 @@
 	</NcSettingsSection>
 </template>
 <script setup lang="ts">
-import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
 import { t } from '@nextcloud/l10n'
-import { generateOcsUrl } from '@nextcloud/router'
 import { onMounted, ref } from 'vue'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
-
-type CollectMetadataResponse = {
-	data?: {
-		ocs?: {
-			data?: {
-				data?: unknown
-			}
-		}
-	}
-}
-
-type OcpCallbacks = {
-	success?: () => void
-}
-
-type OcpGlobal = {
-	AppConfig: {
-		setValue: (app: string, key: string, value: string, callbacks?: OcpCallbacks) => void
-	}
-}
+import { usePoliciesStore } from '../../store/policies'
 
 defineOptions({
 	name: 'CollectMetadata',
 })
 
 const collectMetadataEnabled = ref(false)
+const policiesStore = usePoliciesStore()
 
-async function getData() {
-	const responseCollectMetadata = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/collect_metadata')) as CollectMetadataResponse
-	const value = responseCollectMetadata?.data?.ocs?.data?.data
-	collectMetadataEnabled.value = ['true', true, '1', 1].includes(value as never)
+function normalizeBoolean(value: unknown): boolean {
+	return ['true', true, '1', 1].includes(value as never)
 }
 
-function saveCollectMetadata() {
-	;(globalThis as typeof globalThis & { OCP: OcpGlobal }).OCP.AppConfig.setValue('libresign', 'collect_metadata', collectMetadataEnabled.value ? '1' : '0', {
-		success: () => {
-			emit('collect-metadata:changed', undefined)
-		},
-	})
+async function getData() {
+	await policiesStore.fetchEffectivePolicies()
+	const value = policiesStore.getEffectiveValue('collect_metadata')
+	collectMetadataEnabled.value = normalizeBoolean(value)
+}
+
+async function saveCollectMetadata() {
+	const saved = await policiesStore.saveSystemPolicy('collect_metadata', collectMetadataEnabled.value, false)
+	if (saved) {
+		emit('collect-metadata:changed', undefined)
+	}
 }
 
 onMounted(() => {
