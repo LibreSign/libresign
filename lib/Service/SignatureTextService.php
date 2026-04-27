@@ -24,7 +24,6 @@ use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy as SignatureTextPolicyProvider;
-use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
 use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
