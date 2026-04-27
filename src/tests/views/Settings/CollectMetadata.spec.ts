@@ -5,16 +5,20 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
-import axios from '@nextcloud/axios'
 
 import CollectMetadata from '../../../views/Settings/CollectMetadata.vue'
 
 const emitMock = vi.fn()
+const fetchEffectivePoliciesMock = vi.fn(async () => {})
+const saveSystemPolicyMock = vi.fn(async () => ({ policyKey: 'collect_metadata' }))
+const getEffectiveValueMock = vi.fn(() => '1')
 
-vi.mock('@nextcloud/axios', () => ({
-	default: {
-		get: vi.fn(),
-	},
+vi.mock('../../../store/policies', () => ({
+	usePoliciesStore: () => ({
+		fetchEffectivePolicies: fetchEffectivePoliciesMock,
+		saveSystemPolicy: saveSystemPolicyMock,
+		getEffectiveValue: getEffectiveValueMock,
+	}),
 }))
 
 vi.mock('@nextcloud/event-bus', () => ({
@@ -22,18 +26,6 @@ vi.mock('@nextcloud/event-bus', () => ({
 }))
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
-
-vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path: string) => path),
-}))
-
-const OCP = {
-	AppConfig: {
-		setValue: vi.fn(),
-	},
-}
-
-;(globalThis as typeof globalThis & { OCP: typeof OCP }).OCP = OCP
 
 describe('CollectMetadata.vue', () => {
 	beforeEach(() => {
@@ -51,26 +43,22 @@ describe('CollectMetadata.vue', () => {
 		})
 	}
 
-	it('loads enabled state from provisioning config', async () => {
-		vi.mocked(axios.get).mockResolvedValue({
-			data: { ocs: { data: { data: '1' } } },
-		})
-
+	it('loads enabled state from effective policies', async () => {
 		const wrapper = createWrapper()
 		await flushPromises()
 
+		expect(fetchEffectivePoliciesMock).toHaveBeenCalledTimes(1)
+		expect(getEffectiveValueMock).toHaveBeenCalledWith('collect_metadata')
 		expect(wrapper.vm.collectMetadataEnabled).toBe(true)
 	})
 
-	it('persists the flag and emits a change event on success', () => {
+	it('persists the flag and emits a change event on success', async () => {
 		const wrapper = createWrapper()
 
 		wrapper.vm.collectMetadataEnabled = true
-		wrapper.vm.saveCollectMetadata()
+		await wrapper.vm.saveCollectMetadata()
 
-		expect(OCP.AppConfig.setValue).toHaveBeenCalledTimes(1)
-		const callbacks = vi.mocked(OCP.AppConfig.setValue).mock.calls[0][3]
-		callbacks?.success?.()
+		expect(saveSystemPolicyMock).toHaveBeenCalledWith('collect_metadata', true, false)
 
 		expect(emitMock).toHaveBeenCalledWith('collect-metadata:changed', undefined)
 	})
