@@ -13,11 +13,13 @@ use OCA\Libresign\Db\PermissionSetBinding;
 use OCA\Libresign\Db\PermissionSetBindingMapper;
 use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -52,11 +54,13 @@ final class PolicySourceTest extends TestCase {
 			->method('get')
 			->willReturnCallback(static function (string $class): object {
 				return match ($class) {
+					CollectMetadataPolicy::class => new CollectMetadataPolicy(),
 					FooterPolicy::class => new FooterPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
 					IdentificationDocumentsPolicy::class => new IdentificationDocumentsPolicy(),
 					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
+					SignatureTextPolicy::class => new SignatureTextPolicy(),
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
 				};
 			});
