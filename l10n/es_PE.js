@@ -13,6 +13,7 @@ OC.L10N.register(
     "Internal Server Error" : "Error interno del servidor",
     "Invalid file provided" : "Archivo proporcionado inválido",
     "File is too big" : "El archivo es demasiado grande.",
+    "Dismiss notification" : "Descartar notificación",
     "in %s" : "en %s",
     "Pending" : "Pendiente",
     "Account" : "Cuenta",
