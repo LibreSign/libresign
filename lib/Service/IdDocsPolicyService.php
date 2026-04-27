@@ -13,6 +13,7 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicyValue;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUser;
 
@@ -45,19 +46,6 @@ class IdDocsPolicyService {
 
 	private function isIdentificationDocumentsEnabled(IUser $user): bool {
 		$value = $this->policyService->resolveForUser(IdentificationDocumentsPolicy::KEY, $user)->getEffectiveValue();
-
-		if (is_bool($value)) {
-			return $value;
-		}
-
-		if (is_int($value)) {
-			return $value !== 0;
-		}
-
-		if (is_string($value)) {
-			return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'on'], true);
-		}
-
-		return (bool)$value;
+		return IdentificationDocumentsPolicyValue::normalize($value, false);
 	}
 }
