@@ -41,6 +41,8 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
@@ -122,6 +124,7 @@ class SignFileService {
 		private PfxProvider $pfxProvider,
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private SignRequestService $signRequestService,
+		private ?PolicyService $policyService = null,
 	) {
 	}
 
@@ -1030,7 +1033,7 @@ class SignFileService {
 	}
 
 	public function storeUserMetadata(array $metadata = []): self {
-		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
+		$collectMetadata = $this->isCollectMetadataEnabled();
 		if (!$collectMetadata || !$metadata) {
 			return $this;
 		}
@@ -1040,6 +1043,18 @@ class SignFileService {
 		));
 		$this->signRequestMapper->update($this->signRequest);
 		return $this;
+	}
+
+	private function isCollectMetadataEnabled(): bool {
+		if ($this->policyService !== null) {
+			try {
+				return (bool)$this->policyService->resolve(CollectMetadataPolicy::KEY)->effectiveValue();
+			} catch (\Throwable) {
+				// Fallback keeps legacy behavior during migration rollout.
+			}
+		}
+
+		return $this->appConfig->getValueBool(Application::APP_ID, CollectMetadataPolicy::SYSTEM_APP_CONFIG_KEY, false);
 	}
 
 	/**
