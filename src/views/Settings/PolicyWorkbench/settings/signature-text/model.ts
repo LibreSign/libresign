@@ -23,20 +23,32 @@ export function getDefaultSignatureTextPolicyConfig(): SignatureTextPolicyConfig
 	}
 }
 
-export function serializeSignatureTextPolicyConfig(config: Partial<SignatureTextPolicyConfig>): Record<string, unknown> {
-	return {
+export function serializeSignatureTextPolicyConfig(config: Partial<SignatureTextPolicyConfig>): string {
+	return JSON.stringify({
 		template: config.template ?? '',
 		template_font_size: config.templateFontSize ?? 9.0,
 		signature_font_size: config.signatureFontSize ?? 9.0,
 		signature_width: config.signatureWidth ?? 90.0,
 		signature_height: config.signatureHeight ?? 60.0,
 		render_mode: config.renderMode ?? 'default',
-	}
+	})
 }
 
 export function normalizeSignatureTextPolicyConfig(rawValue: unknown): SignatureTextPolicyConfig {
-	if (typeof rawValue === 'object' && rawValue !== null) {
-		const obj = rawValue as Record<string, unknown>
+	let obj: Record<string, unknown> | null = null
+
+	// Parse JSON string if needed
+	if (typeof rawValue === 'string') {
+		try {
+			obj = JSON.parse(rawValue) as Record<string, unknown>
+		} catch {
+			return getDefaultSignatureTextPolicyConfig()
+		}
+	} else if (typeof rawValue === 'object' && rawValue !== null) {
+		obj = rawValue as Record<string, unknown>
+	}
+
+	if (obj) {
 		return {
 			template: String(obj.template ?? obj.signature_text_template ?? '').trim(),
 			templateFontSize: Number(obj.template_font_size ?? obj.templateFontSize ?? 9.0),

@@ -92,7 +92,7 @@ interface Props {
 }
 
 interface Emits {
-	(e: 'update:value', value: Record<string, unknown>): void
+	(e: 'update:value', value: EffectivePolicyValue): void
 }
 
 const props = defineProps<Props>()
