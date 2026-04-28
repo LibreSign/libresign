@@ -402,10 +402,13 @@ describe('Preferences view', () => {
 	})
 
 	it('does not autosave preference updates before initialization finishes', async () => {
-		let resolveFetchEffectivePolicies: (() => void) | null = null
-		fetchEffectivePoliciesMock.mockImplementation(() => new Promise<void>((resolve) => {
-			resolveFetchEffectivePolicies = resolve
-		}))
+		let resolveFetchEffectivePolicies: () => void = () => {}
+		const pendingFetch = new Promise<void>((resolve) => {
+			resolveFetchEffectivePolicies = () => {
+				resolve()
+			}
+		})
+		fetchEffectivePoliciesMock.mockImplementation(() => pendingFetch)
 
 		const wrapper = await createWrapper()
 
@@ -415,7 +418,7 @@ describe('Preferences view', () => {
 
 		expect(saveUserPreferenceMock).not.toHaveBeenCalled()
 
-		resolveFetchEffectivePolicies?.()
+		resolveFetchEffectivePolicies()
 		await nextTick()
 		await Promise.resolve()
 
