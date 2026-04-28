@@ -19,8 +19,6 @@
 		<SettingsPolicyWorkbench />
 		<SigningMode v-if="false" />
 		<LegalInformation />
-		<IdentificationDocuments />
-		<CollectMetadata />
 		<SignatureStamp />
 		<SignatureHashAlgorithm />
 		<DefaultUserFolder />
@@ -33,13 +31,11 @@
 <script setup lang="ts">
 import CertificateEngine from './CertificateEngine.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
-import CollectMetadata from './CollectMetadata.vue'
 import CrlValidation from './CrlValidation.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
 import Envelope from './Envelope.vue'
 import ExpirationRules from './ExpirationRules.vue'
-import IdentificationDocuments from './IdentificationDocuments.vue'
 import IdentificationFactors from './IdentificationFactors.vue'
 import LegalInformation from './LegalInformation.vue'
 import Reminders from './Reminders.vue'
@@ -59,13 +55,11 @@ defineOptions({
 	components: {
 		CertificateEngine,
 		ConfigureCheck,
-		CollectMetadata,
 		CrlValidation,
 		DefaultUserFolder,
 		DownloadBinaries,
 		Envelope,
 		ExpirationRules,
-		IdentificationDocuments,
 		IdentificationFactors,
 		LegalInformation,
 		Reminders,
