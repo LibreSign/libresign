@@ -34,7 +34,7 @@ export function useSignatureTextPolicy(): { values: ComputedRef<SignatureTextVal
 	const values = computed<SignatureTextValues>(() => {
 		const signatureTextPolicy = policiesStore.policies.signature_text
 
-		// Always use policy value; fallback to defaults if not defined
+		// Use policy value when present; otherwise fallback to existing initial state values.
 		let policyValue = SIGNATURE_TEXT_DEFAULTS
 
 		if (signatureTextPolicy?.effectiveValue) {
@@ -49,6 +49,15 @@ export function useSignatureTextPolicy(): { values: ComputedRef<SignatureTextVal
 				signatureWidth: Number(decoded.signature_width ?? SIGNATURE_TEXT_DEFAULTS.signatureWidth),
 				signatureHeight: Number(decoded.signature_height ?? SIGNATURE_TEXT_DEFAULTS.signatureHeight),
 				renderMode: String(decoded.render_mode ?? SIGNATURE_TEXT_DEFAULTS.renderMode),
+			}
+		} else {
+			policyValue = {
+				template: loadState<string>('libresign', 'signature_text_template', SIGNATURE_TEXT_DEFAULTS.template),
+				templateFontSize: Number(loadState<number>('libresign', 'template_font_size', SIGNATURE_TEXT_DEFAULTS.templateFontSize)),
+				signatureFontSize: Number(loadState<number>('libresign', 'signature_font_size', SIGNATURE_TEXT_DEFAULTS.signatureFontSize)),
+				signatureWidth: Number(loadState<number>('libresign', 'signature_width', SIGNATURE_TEXT_DEFAULTS.signatureWidth)),
+				signatureHeight: Number(loadState<number>('libresign', 'signature_height', SIGNATURE_TEXT_DEFAULTS.signatureHeight)),
+				renderMode: String(loadState<string>('libresign', 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION')),
 			}
 		}
 
