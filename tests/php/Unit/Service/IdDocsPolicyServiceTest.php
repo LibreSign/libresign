@@ -10,32 +10,39 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\IGroupManager;
+use OCP\IL10N;
 use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private PolicyService&MockObject $policyService;
-	private ValidateHelper&MockObject $validateHelper;
+	private IGroupManager&MockObject $groupManager;
+	private IL10N&MockObject $l10n;
 	private IdDocsMapper&MockObject $idDocsMapper;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->policyService = $this->createMock(PolicyService::class);
-		$this->validateHelper = $this->createMock(ValidateHelper::class);
+		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->l10n = $this->createConfiguredMock(IL10N::class, [
+			't' => 'You are not allowed to approve user profile documents.',
+		]);
 		$this->idDocsMapper = $this->createMock(IdDocsMapper::class);
 	}
 
 	private function getService(): IdDocsPolicyService {
 		return new IdDocsPolicyService(
 			$this->policyService,
-			$this->validateHelper,
+			$this->groupManager,
+			$this->l10n,
 			$this->idDocsMapper,
 		);
 	}
@@ -53,13 +60,24 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->policyService
 			->method('resolveForUser')
-			->with(IdentificationDocumentsPolicy::KEY, $user)
-			->willReturn((new ResolvedPolicy())->setEffectiveValue($identificationDocumentsEnabled));
+			->willReturnCallback(static function (string $policyKey, IUser $resolvedUser) use ($user, $identificationDocumentsEnabled, $userCanApprove): ResolvedPolicy {
+				self::assertSame($user, $resolvedUser);
 
-		$this->validateHelper
-			->method('userCanApproveValidationDocuments')
-			->with($user, false)
-			->willReturn($userCanApprove);
+				if ($policyKey === IdentificationDocumentsPolicy::KEY) {
+					return (new ResolvedPolicy())->setEffectiveValue($identificationDocumentsEnabled);
+				}
+
+				if ($policyKey === ApprovalGroupsPolicy::KEY) {
+					return (new ResolvedPolicy())->setEffectiveValue($userCanApprove ? ['approvers'] : ['admin']);
+				}
+
+				self::fail('Unexpected policy key: ' . $policyKey);
+			});
+
+		$this->groupManager
+			->method('getUserGroupIds')
+			->with($user)
+			->willReturn($userCanApprove ? ['approvers'] : ['users']);
 
 		if ($identificationDocumentsEnabled && $userCanApprove && in_array($fileStatus, [FileStatus::ABLE_TO_SIGN->value, FileStatus::PARTIAL_SIGNED->value])) {
 			if ($idDocExists) {
