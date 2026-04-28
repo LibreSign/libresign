@@ -28,10 +28,12 @@ use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -959,8 +961,8 @@ class ValidateHelper {
 			return false;
 		}
 
-		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
-		if (!$authorized || !is_array($authorized) || empty($authorized)) {
+		$authorized = $this->getApprovalGroups();
+		if (empty($authorized)) {
 			$authorized = ['admin'];
 		}
 		$userGroups = $this->groupManager->getUserGroupIds($user);
@@ -971,6 +973,17 @@ class ValidateHelper {
 			return false;
 		}
 		return true;
+	}
+
+	/** @return list<string> */
+	private function getApprovalGroups(): array {
+		try {
+			$value = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
+			return ApprovalGroupsPolicyValue::decode($value);
+		} catch (AppConfigTypeConflictException) {
+			$value = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '[]');
+			return ApprovalGroupsPolicyValue::decode($value);
+		}
 	}
 
 	private function validateDocMdpPdfRestrictions(array $data): void {

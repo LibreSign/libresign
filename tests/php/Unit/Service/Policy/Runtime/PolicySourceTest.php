@@ -13,6 +13,7 @@ use OCA\Libresign\Db\PermissionSetBinding;
 use OCA\Libresign\Db\PermissionSetBindingMapper;
 use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
@@ -54,6 +55,7 @@ final class PolicySourceTest extends TestCase {
 			->method('get')
 			->willReturnCallback(static function (string $class): object {
 				return match ($class) {
+					ApprovalGroupsPolicy::class => new ApprovalGroupsPolicy(),
 					CollectMetadataPolicy::class => new CollectMetadataPolicy(),
 					FooterPolicy::class => new FooterPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),

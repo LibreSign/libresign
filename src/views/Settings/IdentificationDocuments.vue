@@ -33,7 +33,6 @@
 </template>
 <script setup lang="ts">
 import axios from '@nextcloud/axios'
-import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
 import { computed, onMounted, ref } from 'vue'
@@ -42,6 +41,7 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import logger from '../../logger.js'
+import { usePoliciesStore } from '../../store/policies'
 
 defineOptions({
 	name: 'IdentificationDocuments',
@@ -52,8 +52,7 @@ type Group = {
 	displayname: string
 }
 
-const approvalGroupState = loadState('libresign', 'approval_group', ['admin'])
-const effectivePoliciesState = loadState<{ policies?: Record<string, { effectiveValue?: unknown }> }>('libresign', 'effective_policies', { policies: {} })
+const policiesStore = usePoliciesStore()
 
 function resolveEnabledValue(value: unknown): boolean {
 	if (typeof value === 'boolean') {
@@ -71,9 +70,32 @@ function resolveEnabledValue(value: unknown): boolean {
 	return false
 }
 
-const effectivePolicies = effectivePoliciesState?.policies ?? {}
-const identificationDocumentsFlowEnabled = ref(resolveEnabledValue(effectivePolicies.identification_documents?.effectiveValue))
-const approvalGroupIds = ref<string[]>(Array.isArray(approvalGroupState) ? approvalGroupState : ['admin'])
+function resolveApprovalGroupsValue(value: unknown): string[] {
+	if (Array.isArray(value)) {
+		return value.filter((groupId): groupId is string => typeof groupId === 'string' && groupId.trim().length > 0)
+	}
+
+	if (typeof value === 'string') {
+		const trimmed = value.trim()
+		if (!trimmed) {
+			return []
+		}
+
+		try {
+			const parsed = JSON.parse(trimmed)
+			if (Array.isArray(parsed)) {
+				return parsed.filter((groupId): groupId is string => typeof groupId === 'string' && groupId.trim().length > 0)
+			}
+		} catch (error) {
+			logger.debug('Could not parse approval groups policy value', { error })
+		}
+	}
+
+	return ['admin']
+}
+
+const identificationDocumentsFlowEnabled = ref(resolveEnabledValue(policiesStore.getEffectiveValue('identification_documents')))
+const approvalGroupIds = ref<string[]>(resolveApprovalGroupsValue(policiesStore.getEffectiveValue('approval_group')))
 const approvalGroups = ref<Array<Group | string>>([])
 const groups = ref<Group[]>([])
 const loadingGroups = ref(false)
@@ -85,15 +107,19 @@ function syncApprovalGroupsFromState() {
 	approvalGroups.value = groups.value.filter((group) => approvalGroupIds.value.indexOf(group.id) !== -1)
 }
 
-function saveApprovalGroups() {
-	const listOfInputGroupsSelected = JSON.stringify(approvalGroups.value.map((group) => {
+async function saveApprovalGroups() {
+	const groupIds = approvalGroups.value.map((group) => {
 		if (typeof group === 'object') {
 			return group.id
 		}
 		return group
-	}))
-	approvalGroupIds.value = JSON.parse(listOfInputGroupsSelected)
-	OCP.AppConfig.setValue('libresign', 'approval_group', listOfInputGroupsSelected)
+	})
+
+	const normalized = Array.from(new Set(groupIds.filter((groupId): groupId is string => typeof groupId === 'string' && groupId.trim().length > 0))).sort()
+	const saved = await policiesStore.saveSystemPolicy('approval_group', JSON.stringify(normalized), false)
+	if (saved) {
+		approvalGroupIds.value = resolveApprovalGroupsValue(saved.effectiveValue)
+	}
 	idApprovalGroupsKey.value += 1
 }
 
@@ -114,6 +140,9 @@ async function searchGroup(query: string) {
 }
 
 onMounted(async () => {
+	await policiesStore.fetchEffectivePolicies()
+	identificationDocumentsFlowEnabled.value = resolveEnabledValue(policiesStore.getEffectiveValue('identification_documents'))
+	approvalGroupIds.value = resolveApprovalGroupsValue(policiesStore.getEffectiveValue('approval_group'))
 	await searchGroup('')
 	syncApprovalGroupsFromState()
 })
