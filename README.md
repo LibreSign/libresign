@@ -22,8 +22,8 @@ It gives teams clear visibility into who signed, when they signed, and how each 
 - Include internal and external signers in the same request
 - Keep a traceable record of requests, actions, and validations
 - Work directly with Nextcloud files, users, and sharing context
-- Configure certificates and identity options to match your signing process
-- Connect signing processes to other systems through API endpoints
+- Configure certificates and identity options for your signing process
+- Connect signing with other systems through APIs
 
 ## Why LibreSign
 
