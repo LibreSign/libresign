@@ -11,7 +11,6 @@ namespace OCA\Libresign\Helper;
 use InvalidArgumentException;
 use OC\AppFramework\Http;
 use OC\User\NoUserException;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
@@ -26,20 +25,17 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
-use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -72,8 +68,7 @@ class ValidateHelper {
 		private SignerElementsService $signerElementsService,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private IHasher $hasher,
-		private IAppConfig $appConfig,
-		private IGroupManager $groupManager,
+		private IdDocsPolicyService $idDocsPolicyService,
 		private IUserManager $userManager,
 		private IRootFolder $root,
 		private DocMdpValidator $docMdpValidator,
@@ -957,33 +952,7 @@ class ValidateHelper {
 	}
 
 	public function userCanApproveValidationDocuments(?IUser $user, bool $throw = true): bool {
-		if ($user == null) {
-			return false;
-		}
-
-		$authorized = $this->getApprovalGroups();
-		if (empty($authorized)) {
-			$authorized = ['admin'];
-		}
-		$userGroups = $this->groupManager->getUserGroupIds($user);
-		if (!array_intersect($userGroups, $authorized)) {
-			if ($throw) {
-				throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
-			}
-			return false;
-		}
-		return true;
-	}
-
-	/** @return list<string> */
-	private function getApprovalGroups(): array {
-		try {
-			$value = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
-			return ApprovalGroupsPolicyValue::decode($value);
-		} catch (AppConfigTypeConflictException) {
-			$value = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '[]');
-			return ApprovalGroupsPolicyValue::decode($value);
-		}
+		return $this->idDocsPolicyService->userCanApproveValidationDocuments($user, $throw);
 	}
 
 	private function validateDocMdpPdfRestrictions(array $data): void {
