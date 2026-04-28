@@ -16,7 +16,6 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
-use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
@@ -238,12 +237,6 @@ class AdminController extends AEnvironmentAwareController {
 		$engine = $this->certificateEngineFactory->getEngine();
 		/** @var LibresignEngineHandler */
 		$certificate = $engine->toArray();
-		$configureResult = $engine->configureCheck();
-		$success = array_filter(
-			$configureResult,
-			fn (ConfigureCheckHelper $config) => $config->getStatus() === 'success'
-		);
-		$certificate['generated'] = count($success) === count($configureResult);
 
 		return new DataResponse($certificate);
 	}

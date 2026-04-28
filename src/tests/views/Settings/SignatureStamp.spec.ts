@@ -44,18 +44,32 @@ vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((_app: string, key: string, defaultValue?: unknown) => {
 		const defaults: Record<string, unknown> = {
 			signature_background_type: 'default',
-			default_signature_text_template: 'Signed by {{ signerName }}',
-			default_template_font_size: 10,
-			default_signature_font_size: 18,
-			default_signature_width: 180,
-			default_signature_height: 90,
-			signature_text_template: 'Signed by {{ signerName }}',
-			signature_width: 180,
-			signature_height: 90,
-			signature_font_size: 18,
-			template_font_size: 10,
+			effective_policies: {
+				policies: {
+					signature_text: {
+						policyKey: 'signature_text',
+						effectiveValue: JSON.stringify({
+							template: 'Signed by {{ signerName }}',
+							template_font_size: 10,
+							signature_font_size: 18,
+							signature_width: 180,
+							signature_height: 90,
+							render_mode: 'GRAPHIC_AND_DESCRIPTION',
+						}),
+						sourceScope: 'system',
+						visible: true,
+						editableByCurrentActor: true,
+						allowedValues: [],
+						canSaveAsUserDefault: true,
+						canUseAsRequestOverride: true,
+						preferenceWasCleared: false,
+						blockedBy: null,
+						groupCount: 0,
+						userCount: 0,
+					},
+				},
+			},
 			signature_preview_zoom_level: 100,
-			signature_render_mode: 'GRAPHIC_AND_DESCRIPTION',
 			signature_text_template_error: '',
 			signature_text_parsed: '<p>Signed by Jane Doe</p>',
 			signature_available_variables: {
@@ -227,11 +241,11 @@ describe('SignatureStamp.vue', () => {
 	it('hides preview when background is deleted and description text is empty', () => {
 		stateOverrides = {
 			signature_background_type: 'deleted',
-			signature_render_mode: 'DESCRIPTION_ONLY',
 			signature_text_parsed: '',
 		}
 
 		const wrapper = createWrapper()
+		wrapper.vm.renderMode = 'DESCRIPTION_ONLY'
 
 		expect(wrapper.vm.displayPreview).toBe(false)
 	})

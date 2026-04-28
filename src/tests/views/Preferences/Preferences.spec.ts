@@ -149,6 +149,7 @@ describe('Preferences view', () => {
 
 	it('renders signing order section without verbose summary labels', async () => {
 		const wrapper = await createWrapper()
+		await nextTick()
 
 		expect(wrapper.text()).toContain('Signing order')
 		expect(wrapper.text()).not.toContain('Effective value')
@@ -337,6 +338,7 @@ describe('Preferences view', () => {
 		})
 
 		const wrapper = await createWrapper()
+		await nextTick()
 
 		expect(wrapper.text()).toContain('Signature footer')
 		expect(wrapper.findComponent({ name: 'SignatureFooterRuleEditor' }).exists()).toBe(true)
@@ -374,7 +376,7 @@ describe('Preferences view', () => {
 
 		expect(saveUserPreferenceMock).toHaveBeenCalledWith(
 			'add_footer',
-			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template"}',
+			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template","previewWidth":595,"previewHeight":100,"previewZoom":100}',
 		)
 	})
 
@@ -386,6 +388,75 @@ describe('Preferences view', () => {
 		await wrapper.vm.onPreferenceChange('signature_flow', 'ordered_numeric')
 
 		expect(saveUserPreferenceMock).toHaveBeenCalledWith('signature_flow', 'ordered_numeric')
+	})
+
+	it('ignores no-op preference updates emitted during editor hydration', async () => {
+		const wrapper = await createWrapper()
+		await nextTick()
+
+		saveUserPreferenceMock.mockClear()
+
+		await wrapper.vm.onPreferenceChange('signature_flow', 'parallel')
+
+		expect(saveUserPreferenceMock).not.toHaveBeenCalled()
+	})
+
+	it('does not autosave preference updates before initialization finishes', async () => {
+		let resolveFetchEffectivePolicies: (() => void) | null = null
+		fetchEffectivePoliciesMock.mockImplementation(() => new Promise<void>((resolve) => {
+			resolveFetchEffectivePolicies = resolve
+		}))
+
+		const wrapper = await createWrapper()
+
+		expect(wrapper.vm.preferencesReady).toBe(false)
+
+		await wrapper.vm.onPreferenceChange('signature_flow', 'ordered_numeric')
+
+		expect(saveUserPreferenceMock).not.toHaveBeenCalled()
+
+		resolveFetchEffectivePolicies?.()
+		await nextTick()
+		await Promise.resolve()
+
+		expect(wrapper.vm.preferencesReady).toBe(true)
+
+		await wrapper.vm.onPreferenceChange('signature_flow', 'parallel')
+		await wrapper.vm.onPreferenceChange('signature_flow', 'ordered_numeric')
+
+		expect(saveUserPreferenceMock).toHaveBeenCalledWith('signature_flow', 'ordered_numeric')
+	})
+
+	it('ignores footer updates that only normalize to the current effective value', async () => {
+		getPolicyMock.mockImplementation((key: string) => {
+			if (key === 'add_footer') {
+				return {
+					policyKey: 'add_footer',
+					effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Inherited footer template"}',
+					sourceScope: 'group',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+					groupCount: 0,
+					userCount: 0,
+				}
+			}
+
+			return null
+		})
+
+		const wrapper = await createWrapper()
+		await nextTick()
+
+		saveUserPreferenceMock.mockClear()
+
+		await wrapper.vm.onPreferenceChange('add_footer', '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Inherited footer template","previewWidth":595,"previewHeight":100,"previewZoom":100}')
+
+		expect(saveUserPreferenceMock).not.toHaveBeenCalled()
 	})
 
 	it('does not expose reset action after footer autosave when no persisted user default exists yet', async () => {
@@ -419,7 +490,7 @@ describe('Preferences view', () => {
 
 		expect(saveUserPreferenceMock).toHaveBeenCalledWith(
 			'add_footer',
-			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template"}',
+			'{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"Changed template","previewWidth":595,"previewHeight":100,"previewZoom":100}',
 		)
 		expect(wrapper.vm.isAutoSaveSavedFor('add_footer')).toBe(true)
 		expect(wrapper.vm.canUndoAutoSaveFor('add_footer')).toBe(false)
@@ -470,6 +541,7 @@ describe('Preferences view', () => {
 		})
 
 		const wrapper = await createWrapper()
+		await nextTick()
 
 		expect(wrapper.text()).toContain('Signature footer')
 		expect(wrapper.findComponent({ name: 'SignatureFooterRuleEditor' }).exists()).toBe(false)

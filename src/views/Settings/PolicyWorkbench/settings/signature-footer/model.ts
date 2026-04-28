@@ -111,11 +111,28 @@ function toInteger(value: unknown, fallback: number): number {
 export function normalizeSignatureFooterPolicyConfig(value: EffectivePolicyValue): SignatureFooterPolicyConfig {
 	const defaults = getDefaultSignatureFooterPolicyConfig()
 
+	const normalizeObjectValue = (parsedValue: Record<string, unknown>): SignatureFooterPolicyConfig => {
+		return {
+			enabled: toBoolean(parsedValue.enabled ?? parsedValue.addFooter, defaults.enabled),
+			writeQrcodeOnFooter: toBoolean(parsedValue.writeQrcodeOnFooter ?? parsedValue.write_qrcode_on_footer, defaults.writeQrcodeOnFooter),
+			validationSite: toStringValue(parsedValue.validationSite ?? parsedValue.validation_site),
+			customizeFooterTemplate: toBoolean(parsedValue.customizeFooterTemplate ?? parsedValue.customize_footer_template, defaults.customizeFooterTemplate),
+			footerTemplate: toTemplateValue(parsedValue.footerTemplate ?? parsedValue.footer_template),
+			previewWidth: toInteger(parsedValue.previewWidth ?? parsedValue.preview_width, defaults.previewWidth),
+			previewHeight: toInteger(parsedValue.previewHeight ?? parsedValue.preview_height, defaults.previewHeight),
+			previewZoom: toInteger(parsedValue.previewZoom ?? parsedValue.preview_zoom, defaults.previewZoom),
+		}
+	}
+
 	if (typeof value === 'boolean' || typeof value === 'number') {
 		return {
 			...defaults,
 			enabled: toBoolean(value, defaults.enabled),
 		}
+	}
+
+	if (value && typeof value === 'object') {
+		return normalizeObjectValue(value as Record<string, unknown>)
 	}
 
 	if (typeof value === 'string') {
@@ -127,16 +144,7 @@ export function normalizeSignatureFooterPolicyConfig(value: EffectivePolicyValue
 		try {
 			const parsedValue = JSON.parse(trimmedValue) as Record<string, unknown> | string | number | boolean | null
 			if (parsedValue && typeof parsedValue === 'object') {
-				return {
-					enabled: toBoolean(parsedValue.enabled ?? parsedValue.addFooter, defaults.enabled),
-					writeQrcodeOnFooter: toBoolean(parsedValue.writeQrcodeOnFooter ?? parsedValue.write_qrcode_on_footer, defaults.writeQrcodeOnFooter),
-					validationSite: toStringValue(parsedValue.validationSite ?? parsedValue.validation_site),
-					customizeFooterTemplate: toBoolean(parsedValue.customizeFooterTemplate ?? parsedValue.customize_footer_template, defaults.customizeFooterTemplate),
-					footerTemplate: toTemplateValue(parsedValue.footerTemplate ?? parsedValue.footer_template),
-					previewWidth: toInteger(parsedValue.previewWidth ?? parsedValue.preview_width, defaults.previewWidth),
-					previewHeight: toInteger(parsedValue.previewHeight ?? parsedValue.preview_height, defaults.previewHeight),
-					previewZoom: toInteger(parsedValue.previewZoom ?? parsedValue.preview_zoom, defaults.previewZoom),
-				}
+				return normalizeObjectValue(parsedValue)
 			}
 
 			if (typeof parsedValue === 'boolean' || typeof parsedValue === 'number' || typeof parsedValue === 'string') {
