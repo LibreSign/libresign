@@ -356,7 +356,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { useIsDarkTheme } from '@nextcloud/vue/composables/useIsDarkTheme'
 
 import CodeEditor from '../../components/CodeEditor.vue'
-import { getSignatureTextUiDefaults, useSignatureTextPolicy } from './PolicyWorkbench/settings/signature-text/useSignatureTextPolicy'
+import { useSignatureTextPolicy, type SignatureTextUiDefaults } from './PolicyWorkbench/settings/signature-text/useSignatureTextPolicy'
 
 defineOptions({
 	name: 'SignatureStamp',
@@ -364,10 +364,19 @@ defineOptions({
 
 type RenderMode = 'DESCRIPTION_ONLY' | 'GRAPHIC_AND_DESCRIPTION' | 'SIGNAME_AND_DESCRIPTION' | 'GRAPHIC_ONLY'
 
-const SIGNATURE_TEXT_DEFAULTS = getSignatureTextUiDefaults()
-
 const isDarkTheme = useIsDarkTheme()
 const { values: signatureTextValues } = useSignatureTextPolicy()
+const SIGNATURE_TEXT_DEFAULTS: SignatureTextUiDefaults = {
+	template: signatureTextValues.value.template,
+	templateFontSize: signatureTextValues.value.templateFontSize,
+	signatureFontSize: signatureTextValues.value.signatureFontSize,
+	signatureWidth: signatureTextValues.value.signatureWidth,
+	signatureHeight: signatureTextValues.value.signatureHeight,
+	renderMode: signatureTextValues.value.renderMode === 'default'
+		? 'GRAPHIC_AND_DESCRIPTION'
+		: signatureTextValues.value.renderMode,
+}
+
 const initialBackgroundType = loadState<string>('libresign', 'signature_background_type', '')
 
 const input = ref<HTMLInputElement | null>(null)

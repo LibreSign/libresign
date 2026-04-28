@@ -113,26 +113,6 @@ Feature: admin/initial_state
       """
 
       """
-    And the response should contain the initial state "libresign-default_signature_font_size" with the following values:
-      """
-      20
-      """
-    And the response should contain the initial state "libresign-default_signature_height" with the following values:
-      """
-      100
-      """
-    And the response should contain the initial state "libresign-default_signature_text_template" with the following values:
-      """
-      "Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}"
-      """
-    And the response should contain the initial state "libresign-default_signature_width" with the following values:
-      """
-      350
-      """
-    And the response should contain the initial state "libresign-default_template_font_size" with the following values:
-      """
-      10
-      """
     And the response should contain the initial state "libresign-legal_information" with the following values:
       """
 
@@ -147,14 +127,6 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-signature_background_type" with the following values:
       """
       default
-      """
-    And the response should contain the initial state "libresign-signature_font_size" with the following values:
-      """
-      20
-      """
-    And the response should contain the initial state "libresign-signature_height" with the following values:
-      """
-      100
       """
     And the response should contain the initial state "libresign-signature_preview_zoom_level" with the following values:
       """
@@ -187,22 +159,6 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-signature_engine" with the following values:
       """
       JSignPdf
-      """
-    And the response should contain the initial state "libresign-signature_render_mode" with the following values:
-      """
-      GRAPHIC_AND_DESCRIPTION
-      """
-    And the response should contain the initial state "libresign-signature_text_template" with the following values:
-      """
-      "Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}"
-      """
-    And the response should contain the initial state "libresign-signature_width" with the following values:
-      """
-      350
-      """
-    And the response should contain the initial state "libresign-template_font_size" with the following values:
-      """
-      10
       """
     And the response should contain the initial state "libresign-tsa_url" with the following values:
       """
@@ -337,14 +293,6 @@ Feature: admin/initial_state
       """
       deleted
       """
-    And the response should contain the initial state "libresign-signature_font_size" with the following values:
-      """
-      18.5
-      """
-    And the response should contain the initial state "libresign-signature_height" with the following values:
-      """
-      140
-      """
     And the response should contain the initial state "libresign-signature_preview_zoom_level" with the following values:
       """
       125
@@ -372,22 +320,6 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-signature_engine" with the following values:
       """
       PhpNative
-      """
-    And the response should contain the initial state "libresign-signature_render_mode" with the following values:
-      """
-      DESCRIPTION_ONLY
-      """
-    And the response should contain the initial state "libresign-signature_text_template" with the following values:
-      """
-      Issuer: {{IssuerCommonName}}
-      """
-    And the response should contain the initial state "libresign-signature_width" with the following values:
-      """
-      420
-      """
-    And the response should contain the initial state "libresign-template_font_size" with the following values:
-      """
-      12.5
       """
     And the response should contain the initial state "libresign-tsa_url" with the following values:
       """
@@ -485,21 +417,6 @@ Feature: admin/initial_state
     And run the command "config:app:delete libresign footer_template" with result code 0
     And run the command "config:app:delete libresign config_path" with result code 0
     And run the command "config:app:delete libresign tsa_password" with result code 0
-
-  Scenario: Invalid signature text template exposes parse error initial state
-    Given as user "admin"
-    And the following libresign app config is set
-      | signature_text_template | {% if true %}broken |
-    When sending "get" to "/settings/admin/libresign"
-    Then the response should contain the initial state "libresign-signature_text_parsed" with the following values:
-      """
-
-      """
-    And the response should contain the initial state "libresign-signature_text_template_error" with the following values:
-      """
-      Unexpected end of template .
-      """
-    And run the command "config:app:delete libresign signature_text_template" with result code 0
 
   Scenario: User preference is exposed in config initial state
     Given as user "admin"
