@@ -1,5 +1,5 @@
 <!--
- - SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ - SPDX-FileCopyrightText: 2020-2026 LibreCode coop and contributors
  - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 ![Test Status](https://github.com/LibreSign/libresign/actions/workflows/behat.yml/badge.svg?branch=main)
@@ -8,156 +8,48 @@
 [![REUSE status](https://api.reuse.software/badge/github.com/LibreSign/libresign)](https://api.reuse.software/info/github.com/LibreSign/libresign)
 [![Start contributing](https://img.shields.io/github/issues/LibreSign/libresign/good%20first%20issue?color=7057ff&label=Contribute)](https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22)
 
-# LibreSign for Nextcloud
+# LibreSign
 
-LibreSign is a digital signature application for Nextcloud that enables secure document signing workflows directly within your self-hosted environment.
+Control how your documents get signed
 
-It supports internal and external signers, certificate-based signatures, and full document lifecycle management.
+LibreSign helps you control how document signing works in your organization.
+Organizations use it with Nextcloud to run signing workflows that match internal rules, legal requirements, and daily processes.
+It gives teams clear visibility into who signed, when they signed, and how each request moved through the process.
 
-## Why LibreSign?
+## Key features
 
-- Fully self-hosted digital signature solution
-- Integrated with Nextcloud ecosystem
-- Supports internal and external signers
-- Open source (AGPL-3.0)
-- Extensible API
+- Define signing order, roles, and rules per document flow
+- Include internal and external signers in the same request
+- Keep a traceable record of requests, actions, and validations
+- Work directly with Nextcloud files, users, and sharing context
+- Configure certificates and identity options to match your signing process
+- Connect signing processes to other systems through API endpoints
 
----
-## Quick Links
+## Why LibreSign
 
-- 📖 [Full Documentation](https://github.com/LibreSign/documentation)
-- 🐛 [Report a bug](https://github.com/LibreSign/libresign/issues/new?template=bug_report.yml)
-- 💡 [Request a feature](https://github.com/LibreSign/libresign/issues/new?template=feature_request.yml)
-- 🌍 [Translations (Transifex)](https://app.transifex.com/nextcloud/nextcloud/libresign)
----
+LibreSign is for teams where signing is part of a controlled business process.
 
-## Who is this for?
-
-- 🛠 Nextcloud administrators who want to deploy a digital signature solution
-- 👤 End users who need to sign or request signatures on documents
-- 🏢 Organizations looking for a self-hosted signature workflow
-
----
-
-## Documentation
-
-Complete guides are available for:
-
-- 🔧 Administrators (installation, configuration, certificates)
-- 👥 Users (how to request and sign documents)
-- 🧪 Developers (architecture and API)
-
-👉 https://github.com/LibreSign/documentation
-
----
-
-## Installation
-
-LibreSign can be installed from the Nextcloud App Store or manually.
-
-After enabling the app, administrators must install required standalone dependencies and configure certificates.
-
-### 1️⃣ Install dependencies
-Run the following command as your web server user:
-`occ libresign:install --java --pdftk --jsignpdf`
-
-This will install:
-- Java (standalone JRE)
-- PDFtk
-- JSignPdf
-  
-All binaries are installed inside the Nextcloud `data/appdata_*/libresign` directory.
-No system-wide installation is required.
-
-### 2️⃣ Verify installation
-`sudo -u www-data php /path/to/nextcloud/occ libresign:configure:check`
-
-This command verifies:
-- Java availability
-- PDFtk setup
-- JSignPdf setup
-- OpenSSL configuration
-- Certificate environment
-
-### 3️⃣ Configure root certificate
-You can generate a certificate using OpenSSL or CFSSL.
-
-Example using OpenSSL:
-`sudo -u www-data php /path/to/nextcloud/occ libresign:configure:openssl --cn="Your Organization - Digital Signature" --o="Your Organization" --c="FR" --st="Region" --l="City"`
-
-Certificates are generated and stored inside the Nextcloud data directory: `nextcloud_data_dir/appdata_*/libresign`
-
-No additional server-level configuration is required.
-
-📖 For full configuration details, advanced setups, and troubleshooting:
-https://github.com/LibreSign/documentation
-
----
-
-
-LibreSign runs entirely inside your Nextcloud environment.
-
-All cryptographic operations are self-contained and executed server-side. No external services are required and no document data leaves your infrastructure.
-
-LibreSign manages its own internal Certificate Authority (CA), ensuring full control over keys, signatures and alignment with data protection regulations.
-
----
-
-## How it works
-
-1. A user uploads a document.
-2. The user defines signers (internal or external).
-3. Signers receive a notification or link.
-4. The document is signed and stored in Nextcloud.
-5. Signature validation and certificate verification are performed automatically.
----
-
-### Additional dependencies:
-- poppler-utils
-- System locale configured with UTF-8 charset
-
----
-
-## Integrations
-
-* [GLPI](https://github.com/LibreSign/libresign-glpi): Plugin to sign GLPI tickets
-* [Approval](https://github.com/nextcloud/approval): Approve/reject files based on workflows defined by admins
-
----
-
-## API Documentation
-
-Developer manual: https://docs.libresign.coop/developer_manual/
-
----
-
-## Security
-
-LibreSign uses certificate-based digital signatures built on a private PKI managed within your Nextcloud environment.
-
-It supports certificate revocation (CRL), trusted time-stamping (TSA), and document certification levels (DocMDP), ensuring integrity, authenticity and long-term validation of signed documents.
-
-All cryptographic operations are performed server-side and remain under your infrastructure control.
-
-For responsible disclosure and security policy, please see [SECURITY.md](SECURITY.md).
-
----
+- Define clear signing rules by role, stage, or document type
+- Keep traceability for audits, legal checks, and internal reviews
+- Align signing with existing approval and governance processes
+- Adapt workflows to how your organization works instead of following fixed external models
 
 ## Contributing
 
-LibreSign is an open source project and welcomes contributions.
+Contributions are welcome from developers, implementers, and teams that use LibreSign in production.
 
-You can contribute by:
+- Report bugs and suggest improvements: https://github.com/LibreSign/libresign/issues
+- Start with good first issues: https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
+- Read contribution guidelines: CONTRIBUTING.md
+- Help with translations: https://app.transifex.com/nextcloud/nextcloud/libresign
 
-- Opening issues for bugs and feature requests
-- Contributing code improvements
-- Improving translations on [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign)
-- Contributing to the [documentation repository](https://github.com/LibreSign/documentation)
-- Supporting the project via [GitHub Sponsors](https://github.com/sponsors/LibreSign)
+## Contributors
 
-See our [Contributing Guide](CONTRIBUTING.md) for details.
+Thanks to all the people who contribute to LibreSign:
 
----
+<a href="https://github.com/LibreSign/libresign/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=LibreSign/libresign" />
+</a>
 
 ## Screenshots
 
@@ -165,16 +57,16 @@ See our [Contributing Guide](CONTRIBUTING.md) for details.
   <img src="img/LibreSign.png" alt="LibreSign interface screenshot" width="900"/>
 </p>
 
----
+## Documentation
 
-## Contributors ✨
+- Official documentation: https://docs.libresign.coop/
+- Developer manual: https://docs.libresign.coop/developer_manual/
+- Documentation repository: https://github.com/LibreSign/documentation
 
-Thanks go to these wonderful people:
+## Sponsors
 
-<a href="https://github.com/LibreSign/libresign/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=LibreSign/libresign" />
-</a>
+If your organization depends on LibreSign, please sponsor the project.
 
-## Star history
+Sponsorship directly supports ongoing maintenance, reliable releases, better documentation, and long-term continuity for teams that rely on LibreSign in real workflows.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=libresign/libresign&type=Date)](https://www.star-history.com/#libresign/libresign&Date)
+Support LibreSign: https://github.com/sponsors/LibreSign
