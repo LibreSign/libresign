@@ -371,7 +371,8 @@ const SIGNATURE_TEXT_DEFAULTS = {
 	signatureFontSize: Number(loadState<number>('libresign', 'default_signature_font_size', 9.0)),
 	signatureWidth: Number(loadState<number>('libresign', 'default_signature_width', 90.0)),
 	signatureHeight: Number(loadState<number>('libresign', 'default_signature_height', 60.0)),
-	renderMode: loadState<string>('libresign', 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION'),
+	// Reset must use canonical default, not current effective value.
+	renderMode: 'GRAPHIC_AND_DESCRIPTION',
 }
 
 const isDarkTheme = useIsDarkTheme()
