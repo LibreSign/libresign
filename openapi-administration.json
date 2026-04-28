@@ -3,7 +3,7 @@
     "info": {
         "title": "libresign-administration",
         "version": "0.0.1",
-        "description": "✍️ Self-hosted document signer using digital certificate",
+        "description": "Control document signing workflows inside Nextcloud",
         "license": {
             "name": "agpl"
         }
