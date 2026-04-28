@@ -118,7 +118,7 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 		];
 
 		// Normalize and encode the consolidated value
-		$encodedValue = \OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue::encode($consolidatedValue);
+		$encodedValue = $this->encodeSignatureTextPolicyValue($consolidatedValue);
 
 		// Check if there's an existing consolidated value
 		$existingValue = $this->appConfig->getValueString(
@@ -158,6 +158,27 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 		foreach ($legacyKeys as $key) {
 			$this->appConfig->deleteKey(Application::APP_ID, $key);
 		}
+	}
+
+	/**
+	 * @param array<string, mixed> $rawValue
+	 */
+	private function encodeSignatureTextPolicyValue(array $rawValue): string {
+		$renderMode = strtolower(trim((string)($rawValue['render_mode'] ?? 'default')));
+		if (!in_array($renderMode, ['default', 'graphic', 'text'], true)) {
+			$renderMode = 'default';
+		}
+
+		$normalized = [
+			'template' => (string)($rawValue['template'] ?? ''),
+			'template_font_size' => max(0.1, (float)($rawValue['template_font_size'] ?? 9.0)),
+			'signature_font_size' => max(0.1, (float)($rawValue['signature_font_size'] ?? 9.0)),
+			'signature_width' => max(0.1, (float)($rawValue['signature_width'] ?? 90.0)),
+			'signature_height' => max(0.1, (float)($rawValue['signature_height'] ?? 60.0)),
+			'render_mode' => $renderMode,
+		];
+
+		return json_encode($normalized, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
 	}
 
 	private function migrateGroupsRequestSignType(): void {
