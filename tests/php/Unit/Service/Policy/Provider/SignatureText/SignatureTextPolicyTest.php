@@ -21,7 +21,8 @@ class SignatureTextPolicyTest extends TestCase {
 
 	public function testKeysReturnsAllPolicyKeys(): void {
 		$keys = $this->policy->keys();
-		$this->assertCount(6, $keys);
+		$this->assertCount(7, $keys);
+		$this->assertContains(SignatureTextPolicy::KEY, $keys);
 		$this->assertContains(SignatureTextPolicy::KEY_TEMPLATE, $keys);
 		$this->assertContains(SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE, $keys);
 		$this->assertContains(SignatureTextPolicy::KEY_SIGNATURE_WIDTH, $keys);
