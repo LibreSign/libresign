@@ -179,7 +179,7 @@ class PolicySource implements IPolicySource {
 		}
 
 		$decodedPayload = $this->deserializeStoredUserPolicyPayload($storedPayload);
-		if (!is_array($decodedPayload) || !array_key_exists('value', $decodedPayload)) {
+		if (!is_array($decodedPayload) || !array_key_exists('value', $decodedPayload) || $decodedPayload['value'] === null) {
 			return null;
 		}
 
@@ -286,7 +286,7 @@ class PolicySource implements IPolicySource {
 
 				$definition = $this->registry->get($policyKey);
 				$decodedPayload = $this->deserializeStoredUserPolicyPayload($row['configvalue']);
-				if (!is_array($decodedPayload) || !array_key_exists('value', $decodedPayload)) {
+				if (!is_array($decodedPayload) || !array_key_exists('value', $decodedPayload) || $decodedPayload['value'] === null) {
 					continue;
 				}
 

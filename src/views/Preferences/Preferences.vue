@@ -4,7 +4,7 @@
 -->
 
 <template>
-	<div class="preferences-view">
+	<div v-if="preferencesReady" class="preferences-view">
 		<NcSettingsSection
 			v-for="entry in preferenceEntries"
 			:key="entry.definition.key"
@@ -85,6 +85,7 @@ defineOptions({
 
 const policiesStore = usePoliciesStore()
 const canRequestSign = loadState<boolean>('libresign', 'can_request_sign', false)
+const preferencesReady = ref(false)
 const saving = ref(false)
 const errorMessage = ref('')
 const selectedPreferenceValues = reactive<Record<string, EffectivePolicyValue>>({})
@@ -196,10 +197,33 @@ function undoLabelFor(policyKey: string): string {
 	return t('libresign', 'Reset to default')
 }
 
+function normalizePreferenceValue(policyKey: string, value: EffectivePolicyValue): EffectivePolicyValue {
+	const definition = realDefinitions[policyKey as keyof typeof realDefinitions]
+	if (!definition) {
+		return value
+	}
+
+	return definition.normalizeDraftValue(value)
+}
+
 function onPreferenceChange(policyKey: string, value: EffectivePolicyValue): void {
-	selectedPreferenceValues[policyKey] = value
+	const normalizedNextValue = normalizePreferenceValue(policyKey, value)
+	const normalizedSelectedValue = normalizePreferenceValue(policyKey, selectedPreferenceValues[policyKey] ?? null)
+	const normalizedEffectiveValue = normalizePreferenceValue(policyKey, policiesStore.getPolicy(policyKey)?.effectiveValue ?? null)
+
+	if (!preferencesReady.value) {
+		selectedPreferenceValues[policyKey] = normalizedNextValue
+		return
+	}
+
+	if (normalizedSelectedValue === normalizedNextValue || normalizedEffectiveValue === normalizedNextValue) {
+		selectedPreferenceValues[policyKey] = normalizedNextValue
+		return
+	}
+
+	selectedPreferenceValues[policyKey] = normalizedNextValue
 	if (canSavePreferenceFor(policyKey)) {
-		void savePreferenceByKey(policyKey, value)
+		void savePreferenceByKey(policyKey, normalizedNextValue)
 	}
 }
 
@@ -269,9 +293,15 @@ async function clearPreferenceValue(policyKey: string, errorText: string): Promi
 	}
 }
 
+syncAllSelectedPreferences()
+
 onMounted(async () => {
-	await policiesStore.fetchEffectivePolicies()
-	syncAllSelectedPreferences()
+	try {
+		await policiesStore.fetchEffectivePolicies()
+		syncAllSelectedPreferences()
+	} finally {
+		preferencesReady.value = true
+	}
 })
 
 onBeforeUnmount(() => {
@@ -289,6 +319,7 @@ defineExpose({
 	savePreference,
 	selectedPreferenceValues,
 	preferenceEntries,
+	preferencesReady,
 	canUndoAutoSaveFor,
 	undoLabelFor,
 	isAutoSaveSavedFor,

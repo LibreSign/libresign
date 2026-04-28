@@ -37,21 +37,12 @@ describe('useSignatureTextPolicy', () => {
 	})
 
 	it('reads canonical UI defaults without leaking effective render mode', () => {
-		Object.assign(initialState, {
-			default_signature_text_template: 'Default template',
-			default_template_font_size: '11.5',
-			default_signature_font_size: '14.5',
-			default_signature_width: '120',
-			default_signature_height: '80',
-			signature_render_mode: 'DESCRIPTION_ONLY',
-		})
-
 		expect(getSignatureTextUiDefaults()).toEqual({
-			template: 'Default template',
-			templateFontSize: 11.5,
-			signatureFontSize: 14.5,
-			signatureWidth: 120,
-			signatureHeight: 80,
+			template: '',
+			templateFontSize: 9,
+			signatureFontSize: 9,
+			signatureWidth: 90,
+			signatureHeight: 60,
 			renderMode: 'GRAPHIC_AND_DESCRIPTION',
 		})
 	})
@@ -88,29 +79,23 @@ describe('useSignatureTextPolicy', () => {
 		})
 	})
 
-	it('falls back to legacy initial state values when no effective policy exists', () => {
+	it('falls back to policy UI defaults when no effective policy exists', () => {
 		Object.assign(initialState, {
-			signature_text_template: 'Legacy template',
-			template_font_size: '12.5',
-			signature_font_size: '16.5',
-			signature_width: '155',
-			signature_height: '95',
-			signature_render_mode: 'DESCRIPTION_ONLY',
 			signature_text_template_error: '',
-			signature_text_parsed: '<p>Legacy parsed</p>',
+			signature_text_parsed: '<p>Parsed fallback</p>',
 		})
 
 		const { values } = useSignatureTextPolicy()
 
 		expect(values.value).toEqual({
-			template: 'Legacy template',
-			templateFontSize: 12.5,
-			signatureFontSize: 16.5,
-			signatureWidth: 155,
-			signatureHeight: 95,
-			renderMode: 'DESCRIPTION_ONLY',
+			template: '',
+			templateFontSize: 9,
+			signatureFontSize: 9,
+			signatureWidth: 90,
+			signatureHeight: 60,
+			renderMode: 'GRAPHIC_AND_DESCRIPTION',
 			templateError: '',
-			parsed: '<p>Legacy parsed</p>',
+			parsed: '<p>Parsed fallback</p>',
 		})
 	})
 })

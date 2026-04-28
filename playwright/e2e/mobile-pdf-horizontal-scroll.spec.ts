@@ -5,7 +5,6 @@
 
 import { devices, expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { setAppConfig } from '../support/nc-provisioning'
 
 test.use({
 	...devices['Pixel 7'],
@@ -18,17 +17,24 @@ test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page 
 		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 	)
 
-	await setAppConfig(
-		page.request,
-		'libresign', 'add_footer', '1',
-	)
-
-	await setAppConfig(
-		page.request,
-		'libresign', 'footer_template_is_default', '0',
-	)
-
 	await page.goto('./settings/admin/libresign')
+
+	const addFooterSwitch = page.locator('.checkbox-radio-switch').filter({ hasText: /Add visible footer/i }).first()
+	await expect(addFooterSwitch).toBeVisible({ timeout: 20000 })
+	const addFooterCheckbox = addFooterSwitch.locator('input[type="checkbox"]').first()
+	if (!await addFooterCheckbox.isChecked()) {
+		await addFooterSwitch.click()
+		await expect(addFooterCheckbox).toBeChecked()
+	}
+
+	const customizeSwitch = page.locator('.checkbox-radio-switch').filter({ hasText: /Customize footer template/i }).first()
+	await expect(customizeSwitch).toBeVisible({ timeout: 20000 })
+	const customizeCheckbox = customizeSwitch.locator('input[type="checkbox"]').first()
+	if (!await customizeCheckbox.isChecked()) {
+		await customizeSwitch.click()
+		await expect(customizeCheckbox).toBeChecked()
+	}
+
 	const pdfRoot = page.locator('.footer-template-section .pdf-elements-root').first()
 	await expect(pdfRoot).toBeVisible({ timeout: 15000 })
 
