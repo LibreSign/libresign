@@ -356,7 +356,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { useIsDarkTheme } from '@nextcloud/vue/composables/useIsDarkTheme'
 
 import CodeEditor from '../../components/CodeEditor.vue'
-import { useSignatureTextPolicy } from './PolicyWorkbench/settings/signature-text/useSignatureTextPolicy'
+import { getSignatureTextUiDefaults, useSignatureTextPolicy } from './PolicyWorkbench/settings/signature-text/useSignatureTextPolicy'
 
 defineOptions({
 	name: 'SignatureStamp',
@@ -364,16 +364,7 @@ defineOptions({
 
 type RenderMode = 'DESCRIPTION_ONLY' | 'GRAPHIC_AND_DESCRIPTION' | 'SIGNAME_AND_DESCRIPTION' | 'GRAPHIC_ONLY'
 
-// Defaults used by UI reset actions.
-const SIGNATURE_TEXT_DEFAULTS = {
-	template: loadState<string>('libresign', 'default_signature_text_template', ''),
-	templateFontSize: Number(loadState<number>('libresign', 'default_template_font_size', 9.0)),
-	signatureFontSize: Number(loadState<number>('libresign', 'default_signature_font_size', 9.0)),
-	signatureWidth: Number(loadState<number>('libresign', 'default_signature_width', 90.0)),
-	signatureHeight: Number(loadState<number>('libresign', 'default_signature_height', 60.0)),
-	// Reset must use canonical default, not current effective value.
-	renderMode: 'GRAPHIC_AND_DESCRIPTION',
-}
+const SIGNATURE_TEXT_DEFAULTS = getSignatureTextUiDefaults()
 
 const isDarkTheme = useIsDarkTheme()
 const { values: signatureTextValues } = useSignatureTextPolicy()
