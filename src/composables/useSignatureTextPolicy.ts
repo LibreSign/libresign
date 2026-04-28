@@ -7,6 +7,16 @@ import { computed } from 'vue'
 import { loadState } from '@nextcloud/initial-state'
 import { usePoliciesStore } from '../store/policies'
 
+// Defaults matching backend SignatureTextPolicyValue::DEFAULTS
+const SIGNATURE_TEXT_DEFAULTS = {
+	template: '',
+	templateFontSize: 9.0,
+	signatureFontSize: 9.0,
+	signatureWidth: 90.0,
+	signatureHeight: 60.0,
+	renderMode: 'default',
+}
+
 interface SignatureTextValues {
 	template: string
 	templateFontSize: number
@@ -16,11 +26,6 @@ interface SignatureTextValues {
 	renderMode: string
 	templateError: string
 	parsed: string
-	defaultTemplate: string
-	defaultTemplateFontSize: number
-	defaultSignatureFontSize: number
-	defaultSignatureWidth: number
-	defaultSignatureHeight: number
 }
 
 export function useSignatureTextPolicy(): { values: ReturnType<typeof computed<SignatureTextValues>> } {
@@ -29,44 +34,29 @@ export function useSignatureTextPolicy(): { values: ReturnType<typeof computed<S
 	const values = computed<SignatureTextValues>(() => {
 		const signatureTextPolicy = policiesStore.policies.signature_text
 
-		// If policy exists, use its effective value
+		// Always use policy value; fallback to defaults if not defined
+		let policyValue = SIGNATURE_TEXT_DEFAULTS
+
 		if (signatureTextPolicy?.value) {
-			const value = typeof signatureTextPolicy.value === 'string'
+			const decoded = typeof signatureTextPolicy.value === 'string'
 				? JSON.parse(signatureTextPolicy.value)
 				: signatureTextPolicy.value
 
-			return {
-				template: String(value.template ?? ''),
-				templateFontSize: Number(value.template_font_size ?? 9.0),
-				signatureFontSize: Number(value.signature_font_size ?? 9.0),
-				signatureWidth: Number(value.signature_width ?? 90.0),
-				signatureHeight: Number(value.signature_height ?? 60.0),
-				renderMode: String(value.render_mode ?? 'default'),
-				templateError: loadState<string>('libresign', 'signature_text_template_error', ''),
-				parsed: loadState<string>('libresign', 'signature_text_parsed', ''),
-				defaultTemplate: loadState<string>('libresign', 'default_signature_text_template', ''),
-				defaultTemplateFontSize: loadState<number>('libresign', 'default_template_font_size', 9.0),
-				defaultSignatureFontSize: loadState<number>('libresign', 'default_signature_font_size', 9.0),
-				defaultSignatureWidth: loadState<number>('libresign', 'default_signature_width', 90.0),
-				defaultSignatureHeight: loadState<number>('libresign', 'default_signature_height', 60.0),
+			policyValue = {
+				template: String(decoded.template ?? SIGNATURE_TEXT_DEFAULTS.template),
+				templateFontSize: Number(decoded.template_font_size ?? SIGNATURE_TEXT_DEFAULTS.templateFontSize),
+				signatureFontSize: Number(decoded.signature_font_size ?? SIGNATURE_TEXT_DEFAULTS.signatureFontSize),
+				signatureWidth: Number(decoded.signature_width ?? SIGNATURE_TEXT_DEFAULTS.signatureWidth),
+				signatureHeight: Number(decoded.signature_height ?? SIGNATURE_TEXT_DEFAULTS.signatureHeight),
+				renderMode: String(decoded.render_mode ?? SIGNATURE_TEXT_DEFAULTS.renderMode),
 			}
 		}
 
-		// Fallback to legacy loadState keys (for backward compatibility during transition)
+		// Only non-policy values come from loadState (error/parsing results)
 		return {
-			template: loadState<string>('libresign', 'signature_text_template', ''),
-			templateFontSize: loadState<number>('libresign', 'template_font_size', 9.0),
-			signatureFontSize: loadState<number>('libresign', 'signature_font_size', 9.0),
-			signatureWidth: loadState<number>('libresign', 'signature_width', 90.0),
-			signatureHeight: loadState<number>('libresign', 'signature_height', 60.0),
-			renderMode: loadState<string>('libresign', 'signature_render_mode', 'default'),
+			...policyValue,
 			templateError: loadState<string>('libresign', 'signature_text_template_error', ''),
 			parsed: loadState<string>('libresign', 'signature_text_parsed', ''),
-			defaultTemplate: loadState<string>('libresign', 'default_signature_text_template', ''),
-			defaultTemplateFontSize: loadState<number>('libresign', 'default_template_font_size', 9.0),
-			defaultSignatureFontSize: loadState<number>('libresign', 'default_signature_font_size', 9.0),
-			defaultSignatureWidth: loadState<number>('libresign', 'default_signature_width', 90.0),
-			defaultSignatureHeight: loadState<number>('libresign', 'default_signature_height', 60.0),
 		}
 	})
 
