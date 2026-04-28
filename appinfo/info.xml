@@ -2,7 +2,7 @@
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>libresign</id>
 	<name>LibreSign</name>
-	<summary>✍️ Self-hosted document signer using digital certificate</summary>
+	<summary>Control document signing workflows inside Nextcloud</summary>
 	<description><![CDATA[**LibreSign helps organizations manage document signing inside Nextcloud.**
 
 It is built for teams that need clear signing rules, traceable actions, and workflows that follow internal processes and legal requirements.
