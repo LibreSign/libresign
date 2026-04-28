@@ -16,6 +16,7 @@ use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SignatureBackgroundService;
@@ -88,6 +89,9 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->identifyMethodService->method('getIdentifyMethodsSettings')->willReturn([]);
 		$this->docMdpConfigService->method('getConfig')->willReturn([]);
 		$this->policyService->method('resolveKnownPolicies')->willReturn([]);
+		$this->policyService->method('resolve')->willReturn(
+			(new ResolvedPolicy())->setEffectiveValue(['admin']),
+		);
 		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->willReturn(false);
 
 		$engine = $this->createMock(OpenSslHandler::class);
