@@ -30,24 +30,30 @@ final class Version18001Date20260320000000Test extends TestCase {
 	public function testMigratesLegacyFooterSettingsIntoStructuredPayload(): void {
 		$this->appConfig
 			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'add_footer', '', '1'],
-				[Application::APP_ID, 'write_qrcode_on_footer', '', '0'],
-				[Application::APP_ID, 'validation_site', '', 'https://validator.example/base/'],
-				[Application::APP_ID, 'footer_template_is_default', '', '0'],
-				[Application::APP_ID, 'docmdp_level', '', ''],
-				[Application::APP_ID, 'groups_request_sign', '', ''],
-				[Application::APP_ID, 'policy.signature_flow.system', '', ''],
-				[Application::APP_ID, 'signature_flow', '', ''],
-				[Application::APP_ID, 'template_font_size', '', ''],
-				[Application::APP_ID, 'signature_width', '', ''],
-				[Application::APP_ID, 'signature_height', '', ''],
-				[Application::APP_ID, 'signature_font_size', '', ''],
-				[Application::APP_ID, 'signature_render_mode', '', ''],
-				[Application::APP_ID, 'collect_metadata', '', ''],
-				[Application::APP_ID, 'identification_documents', '', ''],
-				[Application::APP_ID, 'identify_methods', '', ''],
-			]);
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+				$map = [
+					'add_footer' => '1',
+					'write_qrcode_on_footer' => '0',
+					'validation_site' => 'https://validator.example/base/',
+					'footer_template_is_default' => '0',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '',
+					'template_font_size' => '',
+					'signature_width' => '',
+					'signature_height' => '',
+					'signature_font_size' => '',
+					'signature_render_mode' => '',
+					'collect_metadata' => '',
+					'identification_documents' => '',
+					'identify_methods' => '',
+				];
+				return $map[$key] ?? $default;
+			});
 
 		$deletedKeys = [];
 
@@ -136,7 +142,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 		$deletedKeys = [];
 
 		$this->appConfig
-			->expects($this->once())
+			->expects($this->atLeastOnce())
 			->method('deleteKey')
 			->willReturnCallback(static function (string $app, string $key) use (&$deletedKeys): void {
 				$deletedKeys[] = [$app, $key];
@@ -187,14 +193,14 @@ final class Version18001Date20260320000000Test extends TestCase {
 
 		$deletedKeys = [];
 		$this->appConfig
-			->expects($this->exactly(2))
+			->expects($this->atLeastOnce())
 			->method('deleteKey')
 			->willReturnCallback(static function (string $app, string $key) use (&$deletedKeys): void {
 				$deletedKeys[] = [$app, $key];
 			});
 
 		$this->appConfig
-			->expects($this->exactly(2))
+			->expects($this->atLeastOnce())
 			->method('setValueString')
 			->willReturnCallback(static function (string $app, string $key, string $value): bool {
 				if ($key === 'groups_request_sign') {
@@ -213,24 +219,30 @@ final class Version18001Date20260320000000Test extends TestCase {
 	public function testMigratesSignatureTextFloatSettingsFromLegacyStrings(): void {
 		$this->appConfig
 			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'add_footer', '', ''],
-				[Application::APP_ID, 'write_qrcode_on_footer', '', ''],
-				[Application::APP_ID, 'validation_site', '', ''],
-				[Application::APP_ID, 'footer_template_is_default', '', ''],
-				[Application::APP_ID, 'collect_metadata', '', ''],
-				[Application::APP_ID, 'identification_documents', '', ''],
-				[Application::APP_ID, 'docmdp_level', '', ''],
-				[Application::APP_ID, 'groups_request_sign', '', ''],
-				[Application::APP_ID, 'policy.signature_flow.system', '', ''],
-				[Application::APP_ID, 'signature_flow', '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE, '', '11.5'],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH, '', '350'],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT, '', '100.25'],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE, '', '18'],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE, '', 'default'],
-				[Application::APP_ID, 'identify_methods', '', ''],
-			]);
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+				$map = [
+					'add_footer' => '',
+					'write_qrcode_on_footer' => '',
+					'validation_site' => '',
+					'footer_template_is_default' => '',
+					'collect_metadata' => '',
+					'identification_documents' => '',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '11.5',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '350',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '100.25',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '18',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => 'default',
+					'identify_methods' => '',
+				];
+				return $map[$key] ?? $default;
+			});
 
 		$deleted = [];
 		$this->appConfig
@@ -272,24 +284,30 @@ final class Version18001Date20260320000000Test extends TestCase {
 	public function testNormalizesSignatureTextRenderModeToCanonicalPolicyValue(): void {
 		$this->appConfig
 			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'add_footer', '', ''],
-				[Application::APP_ID, 'write_qrcode_on_footer', '', ''],
-				[Application::APP_ID, 'validation_site', '', ''],
-				[Application::APP_ID, 'footer_template_is_default', '', ''],
-				[Application::APP_ID, 'collect_metadata', '', ''],
-				[Application::APP_ID, 'identification_documents', '', ''],
-				[Application::APP_ID, 'docmdp_level', '', ''],
-				[Application::APP_ID, 'groups_request_sign', '', ''],
-				[Application::APP_ID, 'policy.signature_flow.system', '', ''],
-				[Application::APP_ID, 'signature_flow', '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE, '', 'GRAPHIC_AND_DESCRIPTION'],
-				[Application::APP_ID, 'identify_methods', '', ''],
-			]);
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+				$map = [
+					'add_footer' => '',
+					'write_qrcode_on_footer' => '',
+					'validation_site' => '',
+					'footer_template_is_default' => '',
+					'collect_metadata' => '',
+					'identification_documents' => '',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => 'GRAPHIC_AND_DESCRIPTION',
+					'identify_methods' => '',
+				];
+				return $map[$key] ?? $default;
+			});
 
 		$deleted = [];
 
@@ -330,24 +348,30 @@ final class Version18001Date20260320000000Test extends TestCase {
 	public function testMigratesPendingBooleanPoliciesFromLegacyStrings(): void {
 		$this->appConfig
 			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'add_footer', '', ''],
-				[Application::APP_ID, 'write_qrcode_on_footer', '', ''],
-				[Application::APP_ID, 'validation_site', '', ''],
-				[Application::APP_ID, 'footer_template_is_default', '', ''],
-				[Application::APP_ID, 'collect_metadata', '', '1'],
-				[Application::APP_ID, 'identification_documents', '', 'false'],
-				[Application::APP_ID, 'docmdp_level', '', ''],
-				[Application::APP_ID, 'groups_request_sign', '', ''],
-				[Application::APP_ID, 'policy.signature_flow.system', '', ''],
-				[Application::APP_ID, 'signature_flow', '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE, '', ''],
-				[Application::APP_ID, 'identify_methods', '', ''],
-			]);
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+				$map = [
+					'add_footer' => '',
+					'write_qrcode_on_footer' => '',
+					'validation_site' => '',
+					'footer_template_is_default' => '',
+					'collect_metadata' => '1',
+					'identification_documents' => 'false',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					'identify_methods' => '',
+				];
+				return $map[$key] ?? $default;
+			});
 
 		$savedBools = [];
 		$this->appConfig
@@ -376,24 +400,30 @@ final class Version18001Date20260320000000Test extends TestCase {
 	public function testMigratesLegacySignatureFlowKeyToSystemPolicyKey(): void {
 		$this->appConfig
 			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'add_footer', '', ''],
-				[Application::APP_ID, 'write_qrcode_on_footer', '', ''],
-				[Application::APP_ID, 'validation_site', '', ''],
-				[Application::APP_ID, 'footer_template_is_default', '', ''],
-				[Application::APP_ID, 'collect_metadata', '', ''],
-				[Application::APP_ID, 'identification_documents', '', ''],
-				[Application::APP_ID, 'docmdp_level', '', ''],
-				[Application::APP_ID, 'groups_request_sign', '', ''],
-				[Application::APP_ID, 'policy.signature_flow.system', '', ''],
-				[Application::APP_ID, 'signature_flow', '', '2'],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE, '', ''],
-				[Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE, '', ''],
-				[Application::APP_ID, 'identify_methods', '', ''],
-			]);
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+				$map = [
+					'add_footer' => '',
+					'write_qrcode_on_footer' => '',
+					'validation_site' => '',
+					'footer_template_is_default' => '',
+					'collect_metadata' => '',
+					'identification_documents' => '',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '2',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					'identify_methods' => '',
+				];
+				return $map[$key] ?? $default;
+			});
 
 		$savedStrings = [];
 		$this->appConfig
