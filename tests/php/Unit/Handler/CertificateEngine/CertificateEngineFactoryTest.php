@@ -24,15 +24,20 @@ class CertificateEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CfsslHandler&MockObject $cfsslHandler;
 	private NoneHandler&MockObject $noneHandler;
 
-	#[\Override]
-	public function tearDown(): void {
+	private function resetEngineCache(): void {
 		$ref = new \ReflectionClass(CertificateEngineFactory::class);
 		$prop = $ref->getProperty('engine');
-		$prop->setValue($ref, null);
+		$prop->setValue(null, null);
+	}
+
+	#[\Override]
+	public function tearDown(): void {
+		$this->resetEngineCache();
 	}
 
 	#[\Override]
 	public function setUp(): void {
+		$this->resetEngineCache();
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->openSslHandler = $this->createMock(OpenSslHandler::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
