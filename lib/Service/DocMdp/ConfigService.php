@@ -9,9 +9,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\DocMdp;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\DocMdpLevel;
-use OCP\IAppConfig;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCP\IL10N;
 
 /**
@@ -19,11 +19,10 @@ use OCP\IL10N;
  * @psalm-import-type LibresignDocMdpLevelOption from \OCA\Libresign\ResponseDefinitions
  */
 class ConfigService {
-	private const CONFIG_KEY_LEVEL = 'docmdp_level';
-	private const DEFAULT_LEVEL = DocMdpLevel::CERTIFIED_FORM_FILLING;
+	private const DEFAULT_LEVEL = DocMdpLevel::NOT_CERTIFIED;
 
 	public function __construct(
-		private IAppConfig $appConfig,
+		private PolicyService $policyService,
 		private IL10N $l10n,
 	) {
 	}
@@ -44,12 +43,26 @@ class ConfigService {
 	}
 
 	public function getLevel(): DocMdpLevel {
-		$level = $this->appConfig->getValueInt(Application::APP_ID, self::CONFIG_KEY_LEVEL, self::DEFAULT_LEVEL->value);
-		return DocMdpLevel::tryFrom($level) ?? self::DEFAULT_LEVEL;
+		$storedValue = $this->policyService->getSystemPolicy(DocMdpPolicy::KEY)?->getValue();
+
+		if ($storedValue instanceof DocMdpLevel) {
+			return $storedValue;
+		}
+
+		if (is_string($storedValue) && preg_match('/^\d+$/', $storedValue) === 1) {
+			$storedValue = (int)$storedValue;
+		}
+
+		if (is_int($storedValue)) {
+			return DocMdpLevel::tryFrom($storedValue) ?? self::DEFAULT_LEVEL;
+		}
+
+		return self::DEFAULT_LEVEL;
 	}
 
 	public function setLevel(DocMdpLevel $level): void {
-		$this->appConfig->setValueInt(Application::APP_ID, self::CONFIG_KEY_LEVEL, $level->value);
+		$allowChildOverride = $this->policyService->getSystemPolicy(DocMdpPolicy::KEY)?->isAllowChildOverride() ?? false;
+		$this->policyService->saveSystem(DocMdpPolicy::KEY, $level->value, $allowChildOverride);
 	}
 
 	/** @return LibresignDocMdpConfig */
