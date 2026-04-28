@@ -2005,7 +2005,7 @@ export type components = {
         };
         RootCertificateName: {
             id: string;
-            value: string;
+            value: (string | string[]) | null;
         };
         Settings: {
             canSign: boolean;
