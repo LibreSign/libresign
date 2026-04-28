@@ -18,8 +18,10 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicyValue;
+use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IUser;
@@ -91,7 +93,7 @@ class SettingsLoader {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
-		$approvalGroups = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
+		$approvalGroups = $this->getApprovalGroups();
 		if ($user && !empty($approvalGroups) && is_array($approvalGroups)) {
 			$userGroups = $this->groupManager->getUserGroupIds($user);
 			if (array_intersect($userGroups, $approvalGroups)) {
@@ -142,6 +144,17 @@ class SettingsLoader {
 			: $this->policyService->resolve(IdentificationDocumentsPolicy::KEY);
 
 		return IdentificationDocumentsPolicyValue::normalize($resolved->getEffectiveValue(), false);
+	}
+
+	/** @return list<string> */
+	private function getApprovalGroups(): array {
+		try {
+			$value = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
+			return ApprovalGroupsPolicyValue::decode($value);
+		} catch (AppConfigTypeConflictException) {
+			$value = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '[]');
+			return ApprovalGroupsPolicyValue::decode($value);
+		}
 	}
 
 	/**

@@ -6,12 +6,20 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 
-const loadStateMock = vi.fn()
 const axiosGetMock = vi.fn()
+const fetchEffectivePoliciesMock = vi.fn(async () => {})
+const getEffectiveValueMock = vi.fn((policyKey: string) => {
+	if (policyKey === 'identification_documents') {
+		return true
+	}
 
-vi.mock('@nextcloud/initial-state', () => ({
-	loadState: (...args: unknown[]) => loadStateMock(...args),
-}))
+	if (policyKey === 'approval_group') {
+		return []
+	}
+
+	return null
+})
+const saveSystemPolicyMock = vi.fn(async (_policyKey: string, value: string) => ({ effectiveValue: value }))
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
@@ -21,13 +29,13 @@ vi.mock('@nextcloud/axios', () => ({
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
-const OCP = {
-	AppConfig: {
-		setValue: vi.fn(),
-	},
-}
-
-;(globalThis as typeof globalThis & { OCP: typeof OCP }).OCP = OCP
+vi.mock('../../../store/policies', () => ({
+	usePoliciesStore: () => ({
+		fetchEffectivePolicies: fetchEffectivePoliciesMock,
+		getEffectiveValue: getEffectiveValueMock,
+		saveSystemPolicy: saveSystemPolicyMock,
+	}),
+}))
 
 let IdentificationDocuments: unknown
 
@@ -37,28 +45,13 @@ beforeAll(async () => {
 
 describe('IdentificationDocuments', () => {
 	beforeEach(() => {
-		loadStateMock.mockReset()
 		axiosGetMock.mockReset()
-		OCP.AppConfig.setValue.mockClear()
+		fetchEffectivePoliciesMock.mockClear()
+		getEffectiveValueMock.mockClear()
+		saveSystemPolicyMock.mockClear()
 	})
 
 	it('saves groups on update:modelValue', async () => {
-		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'approval_group') {
-				return []
-			}
-			if (key === 'effective_policies') {
-				return {
-					policies: {
-						identification_documents: {
-							effectiveValue: true,
-						},
-					},
-				}
-			}
-			return fallback
-		})
-
 		axiosGetMock.mockImplementation((url: string) => {
 			if (url.includes('cloud/groups/details')) {
 				return Promise.resolve({
@@ -95,6 +88,6 @@ describe('IdentificationDocuments', () => {
 		ncSelect.vm.$emit('update:modelValue', [{ id: 'grpA', displayname: 'Group A' }])
 		await flushPromises()
 
-		expect(OCP.AppConfig.setValue).toHaveBeenCalledWith('libresign', 'approval_group', '["grpA"]')
+		expect(saveSystemPolicyMock).toHaveBeenCalledWith('approval_group', '["grpA"]', false)
 	})
 })

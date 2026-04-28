@@ -12,6 +12,8 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
@@ -79,6 +81,20 @@ final class PolicyRegistryTest extends TestCase {
 		$this->assertSame(RequestSignGroupsPolicy::KEY, $definition->key());
 		$this->assertSame(
 			RequestSignGroupsPolicyValue::encode(RequestSignGroupsPolicyValue::DEFAULT_GROUPS),
+			$definition->defaultSystemValue(),
+		);
+		$this->assertSame('["admin","finance"]', $definition->normalizeValue(['finance', 'admin']));
+	}
+
+	public function testRegistryReturnsApprovalGroupsDefinition(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->with(ApprovalGroupsPolicy::class)->willReturn(new ApprovalGroupsPolicy());
+		$registry = new PolicyRegistry($container);
+		$definition = $registry->get(ApprovalGroupsPolicy::KEY);
+
+		$this->assertSame(ApprovalGroupsPolicy::KEY, $definition->key());
+		$this->assertSame(
+			ApprovalGroupsPolicyValue::encode(ApprovalGroupsPolicyValue::DEFAULT_GROUPS),
 			$definition->defaultSystemValue(),
 		);
 		$this->assertSame('["admin","finance"]', $definition->normalizeValue(['finance', 'admin']));
