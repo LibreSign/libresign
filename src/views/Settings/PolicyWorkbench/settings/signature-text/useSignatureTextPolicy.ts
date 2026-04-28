@@ -6,40 +6,49 @@
 import { computed, type ComputedRef } from 'vue'
 import { loadState } from '@nextcloud/initial-state'
 import { usePoliciesStore } from '../../../../../store/policies'
-import { getDefaultSignatureTextPolicyConfig } from './model'
+import {
+	getDefaultSignatureTextPolicyConfig,
+	normalizeSignatureTextPolicyConfig,
+	type SignatureTextPolicyConfig,
+} from './model'
 
 const SIGNATURE_TEXT_DEFAULTS = getDefaultSignatureTextPolicyConfig()
 
-interface SignatureTextValues {
-	template: string
-	templateFontSize: number
-	signatureFontSize: number
-	signatureWidth: number
-	signatureHeight: number
-	renderMode: string
+interface SignatureTextValues extends SignatureTextPolicyConfig {
 	templateError: string
 	parsed: string
 }
 
-export interface SignatureTextUiDefaults {
+export type SignatureTextUiDefaults = SignatureTextPolicyConfig
+
+function readSignatureTextState(keys: {
 	template: string
-	templateFontSize: number
-	signatureFontSize: number
-	signatureWidth: number
-	signatureHeight: number
-	renderMode: string
+	templateFontSize: string
+	signatureFontSize: string
+	signatureWidth: string
+	signatureHeight: string
+	renderMode?: string
+}, defaultRenderMode: string): SignatureTextPolicyConfig {
+	return normalizeSignatureTextPolicyConfig({
+		template: loadState<string>('libresign', keys.template, SIGNATURE_TEXT_DEFAULTS.template),
+		template_font_size: loadState<number>('libresign', keys.templateFontSize, SIGNATURE_TEXT_DEFAULTS.templateFontSize),
+		signature_font_size: loadState<number>('libresign', keys.signatureFontSize, SIGNATURE_TEXT_DEFAULTS.signatureFontSize),
+		signature_width: loadState<number>('libresign', keys.signatureWidth, SIGNATURE_TEXT_DEFAULTS.signatureWidth),
+		signature_height: loadState<number>('libresign', keys.signatureHeight, SIGNATURE_TEXT_DEFAULTS.signatureHeight),
+		render_mode: keys.renderMode
+			? loadState<string>('libresign', keys.renderMode, defaultRenderMode)
+			: defaultRenderMode,
+	})
 }
 
 export function getSignatureTextUiDefaults(): SignatureTextUiDefaults {
-	return {
-		template: loadState<string>('libresign', 'default_signature_text_template', SIGNATURE_TEXT_DEFAULTS.template),
-		templateFontSize: Number(loadState<number>('libresign', 'default_template_font_size', SIGNATURE_TEXT_DEFAULTS.templateFontSize)),
-		signatureFontSize: Number(loadState<number>('libresign', 'default_signature_font_size', SIGNATURE_TEXT_DEFAULTS.signatureFontSize)),
-		signatureWidth: Number(loadState<number>('libresign', 'default_signature_width', SIGNATURE_TEXT_DEFAULTS.signatureWidth)),
-		signatureHeight: Number(loadState<number>('libresign', 'default_signature_height', SIGNATURE_TEXT_DEFAULTS.signatureHeight)),
-		// Reset must use canonical default, not current effective value.
-		renderMode: 'GRAPHIC_AND_DESCRIPTION',
-	}
+	return readSignatureTextState({
+		template: 'default_signature_text_template',
+		templateFontSize: 'default_template_font_size',
+		signatureFontSize: 'default_signature_font_size',
+		signatureWidth: 'default_signature_width',
+		signatureHeight: 'default_signature_height',
+	}, 'GRAPHIC_AND_DESCRIPTION')
 }
 
 export function useSignatureTextPolicy(): { values: ComputedRef<SignatureTextValues> } {
@@ -48,32 +57,16 @@ export function useSignatureTextPolicy(): { values: ComputedRef<SignatureTextVal
 	const values = computed<SignatureTextValues>(() => {
 		const signatureTextPolicy = policiesStore.policies.signature_text
 
-		// Use policy value when present; otherwise fallback to existing initial state values.
-		let policyValue = SIGNATURE_TEXT_DEFAULTS
-
-		if (signatureTextPolicy?.effectiveValue) {
-			const decoded = typeof signatureTextPolicy.effectiveValue === 'string'
-				? JSON.parse(signatureTextPolicy.effectiveValue)
-				: signatureTextPolicy.effectiveValue
-
-			policyValue = {
-				template: String(decoded.template ?? SIGNATURE_TEXT_DEFAULTS.template),
-				templateFontSize: Number(decoded.template_font_size ?? SIGNATURE_TEXT_DEFAULTS.templateFontSize),
-				signatureFontSize: Number(decoded.signature_font_size ?? SIGNATURE_TEXT_DEFAULTS.signatureFontSize),
-				signatureWidth: Number(decoded.signature_width ?? SIGNATURE_TEXT_DEFAULTS.signatureWidth),
-				signatureHeight: Number(decoded.signature_height ?? SIGNATURE_TEXT_DEFAULTS.signatureHeight),
-				renderMode: String(decoded.render_mode ?? SIGNATURE_TEXT_DEFAULTS.renderMode),
-			}
-		} else {
-			policyValue = {
-				template: loadState<string>('libresign', 'signature_text_template', SIGNATURE_TEXT_DEFAULTS.template),
-				templateFontSize: Number(loadState<number>('libresign', 'template_font_size', SIGNATURE_TEXT_DEFAULTS.templateFontSize)),
-				signatureFontSize: Number(loadState<number>('libresign', 'signature_font_size', SIGNATURE_TEXT_DEFAULTS.signatureFontSize)),
-				signatureWidth: Number(loadState<number>('libresign', 'signature_width', SIGNATURE_TEXT_DEFAULTS.signatureWidth)),
-				signatureHeight: Number(loadState<number>('libresign', 'signature_height', SIGNATURE_TEXT_DEFAULTS.signatureHeight)),
-				renderMode: String(loadState<string>('libresign', 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION')),
-			}
-		}
+		const policyValue = signatureTextPolicy?.effectiveValue
+			? normalizeSignatureTextPolicyConfig(signatureTextPolicy.effectiveValue)
+			: readSignatureTextState({
+				template: 'signature_text_template',
+				templateFontSize: 'template_font_size',
+				signatureFontSize: 'signature_font_size',
+				signatureWidth: 'signature_width',
+				signatureHeight: 'signature_height',
+				renderMode: 'signature_render_mode',
+			}, 'GRAPHIC_AND_DESCRIPTION')
 
 		// Only non-policy values come from loadState (error/parsing results)
 		return {
