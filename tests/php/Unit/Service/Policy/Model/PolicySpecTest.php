@@ -75,4 +75,30 @@ final class PolicySpecTest extends TestCase {
 		$this->expectException(\InvalidArgumentException::class);
 		$spec->validateValue('parallel', new PolicyContext());
 	}
+
+	public function testValidationAllowsAnyValueWhenAllowedValuesIsEmpty(): void {
+		$spec = new PolicySpec(
+			key: 'signature_text_template',
+			defaultSystemValue: '',
+			allowedValues: [],
+		);
+
+		$spec->validateValue('any free text', new PolicyContext());
+		$spec->validateValue(12.5, new PolicyContext());
+
+		$this->addToAssertionCount(1);
+	}
+
+	public function testValidationStillRejectsValueWhenAllowedValuesIsDefined(): void {
+		$spec = new PolicySpec(
+			key: 'signature_render_mode',
+			defaultSystemValue: 'default',
+			allowedValues: ['default', 'graphic', 'text'],
+		);
+
+		$spec->validateValue('graphic', new PolicyContext());
+
+		$this->expectException(\InvalidArgumentException::class);
+		$spec->validateValue('unsupported_mode', new PolicyContext());
+	}
 }
