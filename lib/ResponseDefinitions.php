@@ -285,7 +285,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignRootCertificateName = array{
  *     id: string,
- *     value: string,
+ *     value: string|list<string>|null,
  * }
  * @psalm-type LibresignRootCertificate = array{
  *     commonName: string,
