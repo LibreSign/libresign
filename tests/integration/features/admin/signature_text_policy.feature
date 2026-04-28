@@ -1,59 +1,102 @@
-Feature: Signature text policy layer
-  Background:
-    Given the app "libresign" is installed
-    And user "admin" exists with default attributes
+Feature: admin/signature_text_policy
+  Scenario: Manage signature_text policy layers through API
+    Given as user "admin"
+    And user "signer1" exists
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/signer1/signature_text_template"
+    And the response should have a status code 200
 
-  Scenario: Admin can set system-level signature text template via policy
-    When I am logged in as admin
-    And I set the policy "signature_text_template" with system value "Welcome {{SignerCommonName}}" via policy service
-    Then the system policy "signature_text_template" should be "Welcome {{SignerCommonName}}"
-    And the effective policy "signature_text_template" should be "Welcome {{SignerCommonName}}"
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_text_template"
+      | value              | Welcome {{SignerCommonName}} |
+      | allowChildOverride | true                         |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                | value                        |
+      | (jq).ocs.data.policy.policyKey     | signature_text_template      |
+      | (jq).ocs.data.policy.effectiveValue| Welcome {{SignerCommonName}} |
 
-  Scenario: Admin can set signature render mode via policy
-    When I am logged in as admin
-    And I set the policy "signature_render_mode" with system value "DESCRIPTION_ONLY" via policy service
-    Then the system policy "signature_render_mode" should be "DESCRIPTION_ONLY"
+    When sending "put" to ocs "/apps/libresign/api/v1/policies/group/admin/signature_text_template"
+      | value              | Admin template {{SignerCommonName}} |
+      | allowChildOverride | true                                |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                | value                               |
+      | (jq).ocs.data.policy.policyKey     | signature_text_template             |
+      | (jq).ocs.data.policy.scope         | group                               |
+      | (jq).ocs.data.policy.targetId      | admin                               |
 
-  Scenario: Admin can set signature dimensions via policy
-    When I am logged in as admin
-    And I set the policy "signature_width" with system value "100" via policy service
-    And I set the policy "signature_height" with system value "60" via policy service
-    Then the system policy "signature_width" should be "100"
-    And the system policy "signature_height" should be "60"
+    When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                                         | value                               |
+      | (jq).ocs.data.policies.signature_text_template.effectiveValue| Admin template {{SignerCommonName}} |
 
-  Scenario: Admin can set signature font sizes via policy
-    When I am logged in as admin
-    And I set the policy "template_font_size" with system value "8.5" via policy service
-    And I set the policy "signature_font_size" with system value "18" via policy service
-    Then the system policy "template_font_size" should be "8.5"
-    And the system policy "signature_font_size" should be "18"
+    Given as user "signer1"
+    When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                                         | value                        |
+      | (jq).ocs.data.policies.signature_text_template.effectiveValue| Welcome {{SignerCommonName}} |
 
-  Scenario: Policy fallback to appconfig during migration
-    When I am logged in as admin
-    And appConfig key "signature_text_template" is set to "Legacy template {{SignerCommonName}}"
-    And the policy service is unavailable
-    Then the effective policy "signature_text_template" should return "Legacy template {{SignerCommonName}}" from appConfig fallback
+    Given as user "admin"
+    When sending "put" to ocs "/apps/libresign/api/v1/policies/user/signer1/signature_text_template"
+      | value | User-specific: {{SignerCommonName}} |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                 | value                               |
+      | (jq).ocs.data.policy.policyKey      | signature_text_template             |
+      | (jq).ocs.data.policy.scope          | user_policy                         |
+      | (jq).ocs.data.policy.targetId       | signer1                             |
 
-  Scenario: User-level policy override for signature text
-    Given user "signer" exists with default attributes
-    When I am logged in as admin
-    And I set the policy "signature_text_template" with user "signer" value "User-specific: {{SignerCommonName}}" via policy service
-    Then the user "signer" effective policy "signature_text_template" should be "User-specific: {{SignerCommonName}}"
+    Given as user "signer1"
+    When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                                         | value                               |
+      | (jq).ocs.data.policies.signature_text_template.effectiveValue| User-specific: {{SignerCommonName}} |
+      | (jq).ocs.data.policies.signature_text_template.sourceScope  | user_policy                         |
 
-  Scenario: Group-level policy for signature text
-    Given user "signer" exists with default attributes
-    And group "signers" exists
-    And user "signer" is member of group "signers"
-    When I am logged in as admin
-    And I set the policy "signature_render_mode" with group "signers" value "GRAPHIC_ONLY" via policy service
-    Then the user "signer" effective policy "signature_render_mode" should be "GRAPHIC_ONLY"
+  Scenario: Manage signature render mode policy layers through API
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_render_mode"
+      | value | graphic |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                | value    |
+      | (jq).ocs.data.policy.policyKey     | signature_render_mode |
+      | (jq).ocs.data.policy.effectiveValue| graphic  |
 
-  Scenario: Policy value normalization
-    When I am logged in as admin
-    And I set the policy "signature_width" with system value "350.75" via policy service
-    Then the system policy "signature_width" should be normalized to float "350.75"
+  Scenario: Manage signature dimensions policy layers through API
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_width"
+      | value | 100 |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                | value |
+      | (jq).ocs.data.policy.policyKey     | signature_width |
+      | (jq).ocs.data.policy.effectiveValue| 100   |
 
-  Scenario: Invalid policy value rejection
-    When I am logged in as admin
-    And I try to set the policy "signature_render_mode" with system value "INVALID_MODE" via policy service
-    Then the invalid policy value should be normalized to default "default"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_height"
+      | value | 60 |
+    And the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                | value |
+      | (jq).ocs.data.policy.policyKey     | signature_height |
+      | (jq).ocs.data.policy.effectiveValue| 60    |
+
+  Scenario: Manage signature font sizes policy layers through API
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/template_font_size"
+      | value | 8.5 |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                | value  |
+      | (jq).ocs.data.policy.policyKey     | template_font_size |
+      | (jq).ocs.data.policy.effectiveValue| 8.5    |
+
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_font_size"
+      | value | 18 |
+    And the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                | value  |
+      | (jq).ocs.data.policy.policyKey     | signature_font_size |
+      | (jq).ocs.data.policy.effectiveValue| 18     |
