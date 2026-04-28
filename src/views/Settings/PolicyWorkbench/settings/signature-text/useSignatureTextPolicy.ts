@@ -6,16 +6,9 @@
 import { computed, type ComputedRef } from 'vue'
 import { loadState } from '@nextcloud/initial-state'
 import { usePoliciesStore } from '../../../../../store/policies'
+import { getDefaultSignatureTextPolicyConfig } from './model'
 
-// Defaults matching backend SignatureTextPolicyValue::DEFAULTS
-const SIGNATURE_TEXT_DEFAULTS = {
-	template: '',
-	templateFontSize: 9.0,
-	signatureFontSize: 9.0,
-	signatureWidth: 90.0,
-	signatureHeight: 60.0,
-	renderMode: 'default',
-}
+const SIGNATURE_TEXT_DEFAULTS = getDefaultSignatureTextPolicyConfig()
 
 interface SignatureTextValues {
 	template: string
@@ -26,6 +19,27 @@ interface SignatureTextValues {
 	renderMode: string
 	templateError: string
 	parsed: string
+}
+
+export interface SignatureTextUiDefaults {
+	template: string
+	templateFontSize: number
+	signatureFontSize: number
+	signatureWidth: number
+	signatureHeight: number
+	renderMode: string
+}
+
+export function getSignatureTextUiDefaults(): SignatureTextUiDefaults {
+	return {
+		template: loadState<string>('libresign', 'default_signature_text_template', SIGNATURE_TEXT_DEFAULTS.template),
+		templateFontSize: Number(loadState<number>('libresign', 'default_template_font_size', SIGNATURE_TEXT_DEFAULTS.templateFontSize)),
+		signatureFontSize: Number(loadState<number>('libresign', 'default_signature_font_size', SIGNATURE_TEXT_DEFAULTS.signatureFontSize)),
+		signatureWidth: Number(loadState<number>('libresign', 'default_signature_width', SIGNATURE_TEXT_DEFAULTS.signatureWidth)),
+		signatureHeight: Number(loadState<number>('libresign', 'default_signature_height', SIGNATURE_TEXT_DEFAULTS.signatureHeight)),
+		// Reset must use canonical default, not current effective value.
+		renderMode: 'GRAPHIC_AND_DESCRIPTION',
+	}
 }
 
 export function useSignatureTextPolicy(): { values: ComputedRef<SignatureTextValues> } {
