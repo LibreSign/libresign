@@ -9,50 +9,31 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\File;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
-use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
+use OCA\Libresign\Service\IdDocsPolicyService;
 use OCP\Accounts\IAccountManager;
-use OCP\Exceptions\AppConfigTypeConflictException;
-use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IUser;
 
 class AccountSettingsProvider {
 	public function __construct(
 		private IAccountManager $accountManager,
-		private IAppConfig $appConfig,
-		private IGroupManager $groupManager,
+		private IdDocsPolicyService $idDocsPolicyService,
 		private Pkcs12Handler $pkcs12Handler,
 	) {
 	}
 
 	public function getSettings(?IUser $user = null): array {
-		$return['canRequestSign'] = $this->canRequestSign($user);
+		$canApproveIdDocs = $this->idDocsPolicyService->userCanApproveValidationDocuments($user, false);
+		$return['canRequestSign'] = $canApproveIdDocs;
 		$return['hasSignatureFile'] = $this->hasSignatureFile($user);
-		$return['isApprover'] = $this->isApprover($user);
+		$return['isApprover'] = $canApproveIdDocs;
 		return $return;
 	}
 
 	public function getPhoneNumber(IUser $user): string {
 		$userAccount = $this->accountManager->getAccount($user);
 		return $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
-	}
-
-	private function canRequestSign(?IUser $user = null): bool {
-		if (!$user) {
-			return false;
-		}
-		$authorized = $this->getApprovalGroups();
-		if (empty($authorized)) {
-			return false;
-		}
-		$userGroups = $this->groupManager->getUserGroupIds($user);
-		if (!array_intersect($userGroups, $authorized)) {
-			return false;
-		}
-		return true;
 	}
 
 	private function hasSignatureFile(?IUser $user = null): bool {
@@ -64,29 +45,6 @@ class AccountSettingsProvider {
 			return true;
 		} catch (LibresignException) {
 			return false;
-		}
-	}
-
-	private function isApprover(?IUser $user = null): bool {
-		if (!$user) {
-			return false;
-		}
-		$approvalGroups = $this->getApprovalGroups();
-		if (empty($approvalGroups)) {
-			return false;
-		}
-		$userGroups = $this->groupManager->getUserGroupIds($user);
-		return (bool)array_intersect($userGroups, $approvalGroups);
-	}
-
-	/** @return list<string> */
-	private function getApprovalGroups(): array {
-		try {
-			$value = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
-			return ApprovalGroupsPolicyValue::decode($value);
-		} catch (AppConfigTypeConflictException) {
-			$value = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '[]');
-			return ApprovalGroupsPolicyValue::decode($value);
 		}
 	}
 }
