@@ -14,7 +14,9 @@ use OCA\Libresign\Service\Policy\Model\PolicySpec;
 
 final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'signature_text';
+	public const SYSTEM_APP_CONFIG_KEY = 'signature_text';
 
+	// Legacy keys for migration purposes (will be consolidated into KEY)
 	public const KEY_TEMPLATE = 'signature_text_template';
 	public const KEY_TEMPLATE_FONT_SIZE = 'template_font_size';
 	public const KEY_SIGNATURE_WIDTH = 'signature_width';
@@ -31,14 +33,7 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 
 	#[\Override]
 	public function keys(): array {
-		return [
-			self::KEY_TEMPLATE,
-			self::KEY_TEMPLATE_FONT_SIZE,
-			self::KEY_SIGNATURE_WIDTH,
-			self::KEY_SIGNATURE_HEIGHT,
-			self::KEY_SIGNATURE_FONT_SIZE,
-			self::KEY_RENDER_MODE,
-		];
+		return [self::KEY];
 	}
 
 	#[\Override]
@@ -46,58 +41,28 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 		$normalizedKey = $this->normalizePolicyKey($policyKey);
 
 		return match ($normalizedKey) {
-			self::KEY_TEMPLATE => new PolicySpec(
-				key: self::KEY_TEMPLATE,
-				defaultSystemValue: '',
+			self::KEY => new PolicySpec(
+				key: self::KEY,
+				defaultSystemValue: SignatureTextPolicyValue::encode(SignatureTextPolicyValue::DEFAULTS),
 				allowedValues: [],
-				normalizer: static fn (mixed $rawValue): string => (string)$rawValue,
-				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_TEMPLATE,
-			),
-			self::KEY_TEMPLATE_FONT_SIZE => new PolicySpec(
-				key: self::KEY_TEMPLATE_FONT_SIZE,
-				defaultSystemValue: 9.0,
-				allowedValues: [],
-				normalizer: static fn (mixed $rawValue): float => (float)$rawValue,
-				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE,
-			),
-			self::KEY_SIGNATURE_WIDTH => new PolicySpec(
-				key: self::KEY_SIGNATURE_WIDTH,
-				defaultSystemValue: 90.0,
-				allowedValues: [],
-				normalizer: static fn (mixed $rawValue): float => (float)$rawValue,
-				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH,
-			),
-			self::KEY_SIGNATURE_HEIGHT => new PolicySpec(
-				key: self::KEY_SIGNATURE_HEIGHT,
-				defaultSystemValue: 60.0,
-				allowedValues: [],
-				normalizer: static fn (mixed $rawValue): float => (float)$rawValue,
-				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT,
-			),
-			self::KEY_SIGNATURE_FONT_SIZE => new PolicySpec(
-				key: self::KEY_SIGNATURE_FONT_SIZE,
-				defaultSystemValue: 9.0,
-				allowedValues: [],
-				normalizer: static fn (mixed $rawValue): float => (float)$rawValue,
-				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE,
-			),
-			self::KEY_RENDER_MODE => new PolicySpec(
-				key: self::KEY_RENDER_MODE,
-				defaultSystemValue: 'default',
-				allowedValues: [
-					'default',
-					'graphic',
-					'text',
-				],
-				normalizer: static fn (mixed $rawValue): string => match ((string)$rawValue) {
-					'default', 'graphic', 'text' => (string)$rawValue,
-					default => 'default',
+				normalizer: function (mixed $rawValue): string {
+					$normalized = SignatureTextPolicyValue::normalize($rawValue);
+					return SignatureTextPolicyValue::encode($normalized);
 				},
-				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_RENDER_MODE,
+				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $normalizedKey),
 		};
 	}
+
+	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
+		if ($policyKey instanceof \BackedEnum) {
+			return (string)$policyKey->value;
+		}
+
+		return $policyKey;
+	}
+}
 
 	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
 		if ($policyKey instanceof \BackedEnum) {

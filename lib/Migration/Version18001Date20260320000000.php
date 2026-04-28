@@ -107,42 +107,57 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 	}
 
 	private function migrateSignatureTextSettingsType(): void {
-		$signatureTextPolicy = new SignatureTextPolicy();
-		$renderModeDefinition = $signatureTextPolicy->get(SignatureTextPolicy::KEY_RENDER_MODE);
+		// First, consolidate individual keys into a JSON payload
+		$consolidatedValue = [
+			'template' => $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE) ?? '',
+			'template_font_size' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE) ?? 9.0),
+			'signature_font_size' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE) ?? 9.0),
+			'signature_width' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH) ?? 90.0),
+			'signature_height' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT) ?? 60.0),
+			'render_mode' => $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE) ?? 'default',
+		];
 
-		$floatKeys = [
+		// Normalize and encode the consolidated value
+		$encodedValue = \OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue::encode($consolidatedValue);
+
+		// Check if there's an existing consolidated value
+		$existingValue = $this->appConfig->getValueString(
+			Application::APP_ID,
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY,
+			'',
+		);
+
+		// Only update if we have legacy values or no existing consolidated value
+		if (!empty($existingValue) && $existingValue !== '') {
+			// Already consolidated, just clean up legacy keys
+			$this->deleteLegacySignatureTextKeys();
+			return;
+		}
+
+		// Delete all individual legacy keys
+		$this->deleteLegacySignatureTextKeys();
+
+		// Save the consolidated JSON value
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY,
+			$encodedValue,
+		);
+	}
+
+	private function deleteLegacySignatureTextKeys(): void {
+		$legacyKeys = [
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE,
 			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE,
 			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH,
 			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT,
 			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE,
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE,
 		];
 
-		foreach ($floatKeys as $key) {
-			$legacyValue = $this->readLegacyString($key);
-			if ($legacyValue === null || $legacyValue === '') {
-				continue;
-			}
-
-			if (!is_numeric(trim($legacyValue))) {
-				continue;
-			}
-
+		foreach ($legacyKeys as $key) {
 			$this->appConfig->deleteKey(Application::APP_ID, $key);
-			$this->appConfig->setValueFloat(Application::APP_ID, $key, (float)$legacyValue);
 		}
-
-		$renderMode = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE);
-		if ($renderMode === null || $renderMode === '') {
-			return;
-		}
-
-		$normalizedRenderMode = (string)$renderModeDefinition->normalizeValue($renderMode);
-		if ($normalizedRenderMode === $renderMode) {
-			return;
-		}
-
-		$this->appConfig->deleteKey(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE);
-		$this->appConfig->setValueString(Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE, $normalizedRenderMode);
 	}
 
 	private function migrateGroupsRequestSignType(): void {

@@ -25,11 +25,6 @@ final class PolicyProviders {
 		RequestSignGroupsPolicy::KEY => RequestSignGroupsPolicy::class,
 		SignatureFlowPolicy::KEY => SignatureFlowPolicy::class,
 		IdentificationDocumentsPolicy::KEY => IdentificationDocumentsPolicy::class,
-		SignatureTextPolicy::KEY_TEMPLATE => SignatureTextPolicy::class,
-		SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE => SignatureTextPolicy::class,
-		SignatureTextPolicy::KEY_SIGNATURE_WIDTH => SignatureTextPolicy::class,
-		SignatureTextPolicy::KEY_SIGNATURE_HEIGHT => SignatureTextPolicy::class,
-		SignatureTextPolicy::KEY_SIGNATURE_FONT_SIZE => SignatureTextPolicy::class,
-		SignatureTextPolicy::KEY_RENDER_MODE => SignatureTextPolicy::class,
+		SignatureTextPolicy::KEY => SignatureTextPolicy::class,
 	];
 }

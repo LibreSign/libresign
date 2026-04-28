@@ -9,6 +9,7 @@ import { identificationDocumentsRealDefinition } from './identification-document
 import { requestSignGroupsRealDefinition } from './request-sign-groups/realDefinition'
 import { signatureFooterRealDefinition } from './signature-footer/realDefinition'
 import { signatureFlowRealDefinition } from './signature-flow/realDefinition'
+import { signatureTextRealDefinition } from './signature-text/realDefinition'
 import type { RealPolicySettingDefinition } from './realTypes'
 
 export const realDefinitions = {
@@ -18,4 +19,5 @@ export const realDefinitions = {
 	docmdp: docMdpRealDefinition,
 	identification_documents: identificationDocumentsRealDefinition,
 	groups_request_sign: requestSignGroupsRealDefinition,
+	signature_text: signatureTextRealDefinition,
 } satisfies Record<string, RealPolicySettingDefinition>
