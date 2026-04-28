@@ -356,6 +356,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { useIsDarkTheme } from '@nextcloud/vue/composables/useIsDarkTheme'
 
 import CodeEditor from '../../components/CodeEditor.vue'
+import { useSignatureTextPolicy } from '../../composables/useSignatureTextPolicy'
 
 defineOptions({
 	name: 'SignatureStamp',
@@ -363,16 +364,8 @@ defineOptions({
 
 type RenderMode = 'DESCRIPTION_ONLY' | 'GRAPHIC_AND_DESCRIPTION' | 'SIGNAME_AND_DESCRIPTION' | 'GRAPHIC_ONLY'
 
-function getStringState(key: string, fallback = '') {
-	return loadState<string>('libresign', key, fallback)
-}
-
-function getNumberState(key: string, fallback = 0) {
-	return loadState<number>('libresign', key, fallback)
-}
-
 const isDarkTheme = useIsDarkTheme()
-const templateError = loadState<string>('libresign', 'signature_text_template_error', '')
+const { values: signatureTextValues } = useSignatureTextPolicy()
 const initialBackgroundType = loadState<string>('libresign', 'signature_background_type', '')
 
 const input = ref<HTMLInputElement | null>(null)
@@ -387,23 +380,23 @@ const errorMessageBackground = ref('')
 const backgroundUrl = ref(backgroundType.value !== 'deleted'
 	? generateOcsUrl('/apps/libresign/api/v1/admin/signature-background')
 	: '')
-const defaultSignatureTextTemplate = ref(getStringState('default_signature_text_template'))
-const defaultTemplateFontSize = ref<number>(getNumberState('default_template_font_size'))
-const defaultSignatureFontSize = ref<number>(getNumberState('default_signature_font_size'))
-const defaultSignatureWidth = ref<number>(getNumberState('default_signature_width'))
-const defaultSignatureHeight = ref<number>(getNumberState('default_signature_height'))
-const signatureTextTemplate = ref(getStringState('signature_text_template'))
-const signatureWidth = ref<number>(getNumberState('signature_width'))
-const signatureHeight = ref<number>(getNumberState('signature_height'))
-const signatureFontSize = ref<number>(getNumberState('signature_font_size'))
-const templateFontSize = ref<number>(getNumberState('template_font_size'))
+const defaultSignatureTextTemplate = ref(signatureTextValues.value.defaultTemplate)
+const defaultTemplateFontSize = ref<number>(signatureTextValues.value.defaultTemplateFontSize)
+const defaultSignatureFontSize = ref<number>(signatureTextValues.value.defaultSignatureFontSize)
+const defaultSignatureWidth = ref<number>(signatureTextValues.value.defaultSignatureWidth)
+const defaultSignatureHeight = ref<number>(signatureTextValues.value.defaultSignatureHeight)
+const signatureTextTemplate = ref(signatureTextValues.value.template)
+const signatureWidth = ref<number>(signatureTextValues.value.signatureWidth)
+const signatureHeight = ref<number>(signatureTextValues.value.signatureHeight)
+const signatureFontSize = ref<number>(signatureTextValues.value.signatureFontSize)
+const templateFontSize = ref<number>(signatureTextValues.value.templateFontSize)
 const isSignatureImageLoaded = ref(false)
 const templateSaved = ref(true)
-const zoomLevel = ref<number>(getNumberState('signature_preview_zoom_level', 100))
-const renderMode = ref<RenderMode>(loadState<RenderMode>('libresign', 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION'))
+const zoomLevel = ref<number>(loadState<number>('libresign', 'signature_preview_zoom_level', 100))
+const renderMode = ref<RenderMode>(signatureTextValues.value.renderMode as RenderMode)
 const dislaySuccessTemplate = ref(false)
-const errorMessageTemplate = ref<string[]>(templateError ? [templateError] : [])
-const parsed = ref(loadState<string>('libresign', 'signature_text_parsed', ''))
+const errorMessageTemplate = ref<string[]>(signatureTextValues.value.templateError ? [signatureTextValues.value.templateError] : [])
+const parsed = ref(signatureTextValues.value.parsed)
 const isRTLDirection = isRTL()
 const availableVariables = ref<Record<string, string>>(loadState<Record<string, string>>('libresign', 'signature_available_variables', {}))
 const isOverflowing = ref(false)
