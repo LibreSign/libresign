@@ -58,32 +58,36 @@ final class Version18001Date20260320000000Test extends TestCase {
 		$deletedKeys = [];
 
 		$this->appConfig
-			->expects($this->once())
+			->expects($this->atLeastOnce())
 			->method('deleteKey')
 			->willReturnCallback(static function (string $app, string $key) use (&$deletedKeys): void {
 				$deletedKeys[] = [$app, $key];
 			});
 
 		$this->appConfig
-			->expects($this->once())
+			->expects($this->atLeastOnce())
 			->method('setValueString')
-			->with(
-				Application::APP_ID,
-				'add_footer',
-				FooterPolicyValue::encode([
-					'enabled' => true,
-					'writeQrcodeOnFooter' => false,
-					'validationSite' => 'https://validator.example/base/',
-					'customizeFooterTemplate' => true,
-				]),
-			);
+			->willReturnCallback(static function (string $app, string $key, string $value): bool {
+				if ($key === 'add_footer') {
+					TestCase::assertSame(Application::APP_ID, $app);
+					TestCase::assertSame(
+						FooterPolicyValue::encode([
+							'enabled' => true,
+							'writeQrcodeOnFooter' => false,
+							'validationSite' => 'https://validator.example/base/',
+							'customizeFooterTemplate' => true,
+						]),
+						$value,
+					);
+				}
+
+				return true;
+			});
 
 		$migration = new Version18001Date20260320000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
-		self::assertSame([
-			[Application::APP_ID, 'add_footer'],
-		], $deletedKeys);
+		self::assertContains([Application::APP_ID, 'add_footer'], $deletedKeys);
 	}
 
 	public function testReadsLegacyBooleanWhenAddFooterHasTypedBoolValue(): void {
@@ -149,25 +153,29 @@ final class Version18001Date20260320000000Test extends TestCase {
 			});
 
 		$this->appConfig
-			->expects($this->once())
+			->expects($this->atLeastOnce())
 			->method('setValueString')
-			->with(
-				Application::APP_ID,
-				'add_footer',
-				FooterPolicyValue::encode([
-					'enabled' => false,
-					'writeQrcodeOnFooter' => true,
-					'validationSite' => '',
-					'customizeFooterTemplate' => false,
-				]),
-			);
+			->willReturnCallback(static function (string $app, string $key, string $value): bool {
+				if ($key === 'add_footer') {
+					TestCase::assertSame(Application::APP_ID, $app);
+					TestCase::assertSame(
+						FooterPolicyValue::encode([
+							'enabled' => false,
+							'writeQrcodeOnFooter' => true,
+							'validationSite' => '',
+							'customizeFooterTemplate' => false,
+						]),
+						$value,
+					);
+				}
+
+				return true;
+			});
 
 		$migration = new Version18001Date20260320000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
-		self::assertSame([
-			[Application::APP_ID, 'add_footer'],
-		], $deletedKeys);
+		self::assertContains([Application::APP_ID, 'add_footer'], $deletedKeys);
 	}
 
 	public function testMigratesGroupsRequestSignFromTypedArrayToCanonicalString(): void {
@@ -251,14 +259,6 @@ final class Version18001Date20260320000000Test extends TestCase {
 				$deleted[] = [$app, $key];
 			});
 
-		$savedFloats = [];
-		$this->appConfig
-			->method('setValueFloat')
-			->willReturnCallback(static function (string $app, string $key, float $value) use (&$savedFloats): bool {
-				$savedFloats[$key] = $value;
-				return true;
-			});
-
 		$savedStrings = [];
 		$this->appConfig
 			->method('setValueString')
@@ -270,10 +270,13 @@ final class Version18001Date20260320000000Test extends TestCase {
 		$migration = new Version18001Date20260320000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
-		self::assertSame(11.5, $savedFloats[SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE]);
-		self::assertSame(350.0, $savedFloats[SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH]);
-		self::assertSame(100.25, $savedFloats[SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT]);
-		self::assertSame(18.0, $savedFloats[SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE]);
+		self::assertArrayHasKey(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY, $savedStrings);
+		$decoded = json_decode($savedStrings[SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY], true);
+		self::assertIsArray($decoded);
+		self::assertSame(11.5, $decoded['template_font_size']);
+		self::assertEquals(350.0, $decoded['signature_width']);
+		self::assertSame(100.25, $decoded['signature_height']);
+		self::assertEquals(18.0, $decoded['signature_font_size']);
 		self::assertContains([Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE], $deleted);
 		self::assertContains([Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH], $deleted);
 		self::assertContains([Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT], $deleted);
@@ -321,19 +324,13 @@ final class Version18001Date20260320000000Test extends TestCase {
 		$this->appConfig
 			->method('setValueString')
 			->willReturnCallback(static function (string $app, string $key, string $value) use (&$renderModeWasNormalized): bool {
-				if ($key === SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE) {
+				if ($key === SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY) {
 					TestCase::assertSame(Application::APP_ID, $app);
-					TestCase::assertSame('default', $value);
+					$decoded = json_decode($value, true);
+					TestCase::assertIsArray($decoded);
+					TestCase::assertSame('default', $decoded['render_mode'] ?? null);
 					$renderModeWasNormalized = true;
 				}
-				return true;
-			});
-
-		$savedFloats = [];
-		$this->appConfig
-			->method('setValueFloat')
-			->willReturnCallback(static function (string $app, string $key, float $value) use (&$savedFloats): bool {
-				$savedFloats[$key] = $value;
 				return true;
 			});
 
@@ -342,7 +339,6 @@ final class Version18001Date20260320000000Test extends TestCase {
 
 		self::assertTrue($renderModeWasNormalized);
 		self::assertContains([Application::APP_ID, SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE], $deleted);
-		self::assertSame([], $savedFloats);
 	}
 
 	public function testMigratesPendingBooleanPoliciesFromLegacyStrings(): void {
