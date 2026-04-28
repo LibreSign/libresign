@@ -9,26 +9,14 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\File;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
-use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
-use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicyValue;
-use OCP\Exceptions\AppConfigTypeConflictException;
-use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IUser;
 
-/**
- * @psalm-import-type LibresignSettings from ResponseDefinitions
- */
 class SettingsLoader {
 	public const IDENTIFICATION_DOCUMENTS_DISABLED = 0;
 	public const IDENTIFICATION_DOCUMENTS_NEED_SEND = 1;
@@ -38,9 +26,6 @@ class SettingsLoader {
 	public function __construct(
 		private AccountSettingsProvider $accountSettingsProvider,
 		private IdDocsPolicyService $idDocsPolicyService,
-		private PolicyService $policyService,
-		private IAppConfig $appConfig,
-		private IGroupManager $groupManager,
 		private IdDocsMapper $idDocsMapper,
 		private IdentifyMethodService $identifyMethodService,
 	) {
@@ -89,16 +74,12 @@ class SettingsLoader {
 	}
 
 	public function getIdentificationDocumentsStatus(?IUser $user = null, ?SignRequest $signRequest = null): int {
-		if (!$this->isIdentificationDocumentsEnabled($user)) {
+		if (!$this->idDocsPolicyService->isIdentificationDocumentsEnabled($user)) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
-		$approvalGroups = $this->getApprovalGroups();
-		if ($user && !empty($approvalGroups) && is_array($approvalGroups)) {
-			$userGroups = $this->groupManager->getUserGroupIds($user);
-			if (array_intersect($userGroups, $approvalGroups)) {
-				return self::IDENTIFICATION_DOCUMENTS_APPROVED;
-			}
+		if ($user && $this->idDocsPolicyService->userCanApproveValidationDocuments($user, false)) {
+			return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 		}
 
 		$files = $this->getIdDocFiles($user, $signRequest);
@@ -138,25 +119,6 @@ class SettingsLoader {
 		return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 	}
 
-	private function isIdentificationDocumentsEnabled(?IUser $user): bool {
-		$resolved = $user
-			? $this->policyService->resolveForUser(IdentificationDocumentsPolicy::KEY, $user)
-			: $this->policyService->resolve(IdentificationDocumentsPolicy::KEY);
-
-		return IdentificationDocumentsPolicyValue::normalize($resolved->getEffectiveValue(), false);
-	}
-
-	/** @return list<string> */
-	private function getApprovalGroups(): array {
-		try {
-			$value = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
-			return ApprovalGroupsPolicyValue::decode($value);
-		} catch (AppConfigTypeConflictException) {
-			$value = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '[]');
-			return ApprovalGroupsPolicyValue::decode($value);
-		}
-	}
-
 	/**
 	 * Get user identification documents settings
 	 * These are user-specific settings, not file-specific
@@ -164,7 +126,6 @@ class SettingsLoader {
 	 * Canonical API shape is documented as LibresignSettings in ResponseDefinitions.
 	 *
 	 * @return array<string, bool|string>
-	 * @psalm-return LibresignSettings
 	 */
 	public function getUserIdentificationSettings(?IUser $user, ?SignRequest $signRequest = null): array {
 		$status = $this->getIdentificationDocumentsStatus($user, $signRequest);
