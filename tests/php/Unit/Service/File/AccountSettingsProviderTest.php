@@ -9,38 +9,33 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\File;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
+use OCA\Libresign\Service\IdDocsPolicyService;
 use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountManager;
 use OCP\Accounts\IAccountProperty;
-use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAccountManager|MockObject $accountManager;
-	private IAppConfig|MockObject $appConfig;
-	private IGroupManager|MockObject $groupManager;
+	private IdDocsPolicyService|MockObject $idDocsPolicyService;
 	private Pkcs12Handler|MockObject $pkcs12Handler;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->accountManager = $this->createMock(IAccountManager::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->idDocsPolicyService = $this->createMock(IdDocsPolicyService::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 	}
 
 	private function getService(): AccountSettingsProvider {
 		return new AccountSettingsProvider(
 			$this->accountManager,
-			$this->appConfig,
-			$this->groupManager,
+			$this->idDocsPolicyService,
 			$this->pkcs12Handler,
 		);
 	}
@@ -145,15 +140,6 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$user = $this->createMock(IUser::class);
 			$user->method('getUID')->willReturn('testuser');
 
-			$this->appConfig->method('getValueArray')
-				->with(Application::APP_ID, 'approval_group', ['admin'])
-				->willReturn($approvalGroups);
-
-			if (!empty($approvalGroups)) {
-				$this->groupManager->method('getUserGroupIds')
-					->willReturn($userGroups);
-			}
-
 			if ($hasPfx) {
 				$this->pkcs12Handler->method('getPfxOfCurrentSigner')
 					->with('testuser')
@@ -164,6 +150,10 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 					->willThrowException(new LibresignException('No signature file'));
 			}
 		}
+
+		$this->idDocsPolicyService->method('userCanApproveValidationDocuments')
+			->with($user, false)
+			->willReturn($expectedIsApprover);
 
 		$service = $this->getService();
 		$result = $service->getSettings($user);
