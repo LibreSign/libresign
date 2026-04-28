@@ -68,17 +68,10 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('certificate_policies_oid', $this->certificatePolicyService->getOid());
 		$this->initialState->provideInitialState('certificate_policies_cps', $this->certificatePolicyService->getCps());
 		$this->initialState->provideInitialState('config_path', $this->appConfig->getValueString(Application::APP_ID, 'config_path'));
-		$this->initialState->provideInitialState('default_signature_font_size', SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE);
-		$this->initialState->provideInitialState('default_signature_height', SignatureTextService::DEFAULT_SIGNATURE_HEIGHT);
-		$this->initialState->provideInitialState('default_signature_text_template', $this->signatureTextService->getDefaultTemplate());
-		$this->initialState->provideInitialState('default_signature_width', SignatureTextService::DEFAULT_SIGNATURE_WIDTH);
-		$this->initialState->provideInitialState('default_template_font_size', $this->signatureTextService->getDefaultTemplateFontSize());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information', ''));
 		$this->initialState->provideInitialState('signature_available_variables', $this->signatureTextService->getAvailableVariables());
 		$this->initialState->provideInitialState('signature_background_type', $this->signatureBackgroundService->getSignatureBackgroundType());
-		$this->initialState->provideInitialState('signature_font_size', $this->signatureTextService->getSignatureFontSize());
-		$this->initialState->provideInitialState('signature_height', $this->signatureTextService->getFullSignatureHeight());
 		$this->initialState->provideInitialState('signature_preview_zoom_level', $this->appConfig->getValueFloat(Application::APP_ID, 'signature_preview_zoom_level', 100));
 		$this->initialState->provideInitialState('footer_preview_zoom_level', $this->appConfig->getValueFloat(Application::APP_ID, 'footer_preview_zoom_level', 100));
 		$this->initialState->provideInitialState('footer_preview_width', $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_width', 595));
@@ -87,10 +80,6 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('footer_template', $this->footerService->getTemplate());
 		$this->initialState->provideInitialState('footer_template_is_default', $this->footerService->isDefaultTemplate());
 		$this->initialState->provideInitialState('signature_engine', $this->getSignatureEngineInitialState());
-		$this->initialState->provideInitialState('signature_render_mode', $this->signatureTextService->getRenderMode());
-		$this->initialState->provideInitialState('signature_text_template', $this->signatureTextService->getTemplate());
-		$this->initialState->provideInitialState('signature_width', $this->signatureTextService->getFullSignatureWidth());
-		$this->initialState->provideInitialState('template_font_size', $this->signatureTextService->getTemplateFontSize());
 		$this->initialState->provideInitialState('tsa_url', $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', ''));
 		$this->initialState->provideInitialState('tsa_policy_oid', $this->appConfig->getValueString(Application::APP_ID, 'tsa_policy_oid', ''));
 		$this->initialState->provideInitialState('tsa_auth_type', $this->appConfig->getValueString(Application::APP_ID, 'tsa_auth_type', 'none'));
