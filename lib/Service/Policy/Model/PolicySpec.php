@@ -82,6 +82,11 @@ final class PolicySpec implements IPolicyDefinition {
 			return;
 		}
 
+		// Empty allowedValues means "no explicit restriction" for this policy key.
+		if ($this->allowedValues($context) === []) {
+			return;
+		}
+
 		if (!in_array($value, $this->allowedValues($context), true)) {
 			throw new \InvalidArgumentException(sprintf('Invalid value for %s', $this->key()));
 		}
