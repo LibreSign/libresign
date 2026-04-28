@@ -63,12 +63,3 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 		return $policyKey;
 	}
 }
-
-	private function normalizePolicyKey(string|\BackedEnum $policyKey): string {
-		if ($policyKey instanceof \BackedEnum) {
-			return (string)$policyKey->value;
-		}
-
-		return $policyKey;
-	}
-}
