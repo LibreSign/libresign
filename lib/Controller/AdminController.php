@@ -225,9 +225,9 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Load certificate data
 	 *
-	 * Return all data of root certificate and a field called `generated` with a boolean value.
+	 * Return all data of the root certificate from the current engine.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignCertificateDataGenerated, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandler, array{}>
 	 *
 	 * 200: OK
 	 */
