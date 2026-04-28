@@ -23,6 +23,7 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -33,8 +34,6 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
-use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -56,8 +55,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignerElementsService&MockObject $signerElementsService;
 	private IMimeTypeDetector $mimeTypeDetector;
 	private IHasher&MockObject $hasher;
-	private IAppConfig&MockObject $appConfig;
-	private IGroupManager&MockObject $groupManager;
+	private IdDocsPolicyService&MockObject $idDocsPolicyService;
 	private IUserManager&MockObject $userManager;
 	private IRootFolder&MockObject $root;
 	private DocMdpValidator&MockObject $docMdpValidator;
@@ -80,8 +78,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->idDocsPolicyService = $this->createMock(IdDocsPolicyService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->docMdpValidator = $this->createMock(DocMdpValidator::class);
@@ -103,8 +100,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signerElementsService,
 			$this->mimeTypeDetector,
 			$this->hasher,
-			$this->appConfig,
-			$this->groupManager,
+			$this->idDocsPolicyService,
 			$this->userManager,
 			$this->root,
 			$this->docMdpValidator,
