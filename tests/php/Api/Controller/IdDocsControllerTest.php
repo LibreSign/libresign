@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
-use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -76,7 +78,11 @@ final class IdDocsControllerTest extends ApiTestCase {
 	public function testApprovalListWithSuccess():void {
 		$this->createAccount('allowapprove', 'password', 'testGroup');
 
-		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'approval_group', ['testGroup']);
+		\OCP\Server::get(PolicyService::class)->saveSystem(
+			ApprovalGroupsPolicy::KEY,
+			ApprovalGroupsPolicyValue::encode(['testGroup']),
+			false,
+		);
 
 		$this->request
 			->withPath('/api/v1/id-docs/approval/list')
