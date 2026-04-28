@@ -12,7 +12,9 @@ namespace OCA\Libresign\Service\File;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
 use OCP\Accounts\IAccountManager;
+use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IUser;
@@ -42,7 +44,7 @@ class AccountSettingsProvider {
 		if (!$user) {
 			return false;
 		}
-		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
+		$authorized = $this->getApprovalGroups();
 		if (empty($authorized)) {
 			return false;
 		}
@@ -69,11 +71,22 @@ class AccountSettingsProvider {
 		if (!$user) {
 			return false;
 		}
-		$approvalGroups = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
+		$approvalGroups = $this->getApprovalGroups();
 		if (empty($approvalGroups)) {
 			return false;
 		}
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		return (bool)array_intersect($userGroups, $approvalGroups);
+	}
+
+	/** @return list<string> */
+	private function getApprovalGroups(): array {
+		try {
+			$value = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
+			return ApprovalGroupsPolicyValue::decode($value);
+		} catch (AppConfigTypeConflictException) {
+			$value = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '[]');
+			return ApprovalGroupsPolicyValue::decode($value);
+		}
 	}
 }

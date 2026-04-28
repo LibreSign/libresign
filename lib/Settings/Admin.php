@@ -18,6 +18,8 @@ use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
@@ -96,7 +98,12 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('signing_mode', $this->getSigningModeInitialState());
 		$this->initialState->provideInitialState('worker_type', $this->getWorkerTypeInitialState());
 		$this->initialState->provideInitialState('identification_documents', $this->idDocsPolicyService->isIdentificationDocumentsEnabled());
-		$this->initialState->provideInitialState('approval_group', $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']));
+		$this->initialState->provideInitialState(
+			'approval_group',
+			ApprovalGroupsPolicyValue::decode(
+				$this->policyService->resolve(ApprovalGroupsPolicy::KEY)->getEffectiveValue(),
+			),
+		);
 		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true));
 		$this->initialState->provideInitialState('parallel_workers', $this->appConfig->getValueString(Application::APP_ID, 'parallel_workers', '4'));
 		$this->initialState->provideInitialState('show_confetti_after_signing', $this->appConfig->getValueBool(Application::APP_ID, 'show_confetti_after_signing', true));

@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Policy;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
@@ -57,6 +58,7 @@ final class PolicyServiceTest extends TestCase {
 			->method('get')
 			->willReturnCallback(static function (string $class): object {
 				return match ($class) {
+					ApprovalGroupsPolicy::class => new ApprovalGroupsPolicy(),
 					FooterPolicy::class => new FooterPolicy(),
 					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
 					DocMdpPolicy::class => new DocMdpPolicy(),
