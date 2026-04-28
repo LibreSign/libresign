@@ -5,7 +5,7 @@
 
 import { computed } from 'vue'
 import { loadState } from '@nextcloud/initial-state'
-import { usePoliciesStore } from '../store/policies'
+import { usePoliciesStore } from '../../../../../store/policies'
 
 // Defaults matching backend SignatureTextPolicyValue::DEFAULTS
 const SIGNATURE_TEXT_DEFAULTS = {
