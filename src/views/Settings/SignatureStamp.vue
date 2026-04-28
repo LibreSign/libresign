@@ -356,7 +356,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { useIsDarkTheme } from '@nextcloud/vue/composables/useIsDarkTheme'
 
 import CodeEditor from '../../components/CodeEditor.vue'
-import { useSignatureTextPolicy } from '../../composables/useSignatureTextPolicy'
+import { useSignatureTextPolicy } from './PolicyWorkbench/settings/signature-text/useSignatureTextPolicy'
 
 defineOptions({
 	name: 'SignatureStamp',
