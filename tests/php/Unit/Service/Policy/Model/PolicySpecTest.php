@@ -76,29 +76,56 @@ final class PolicySpecTest extends TestCase {
 		$spec->validateValue('parallel', new PolicyContext());
 	}
 
-	public function testValidationAllowsAnyValueWhenAllowedValuesIsEmpty(): void {
+	/**
+	 * @dataProvider provideUnconstrainedValues
+	 */
+	public function testValidationAllowsAnyValueWhenAllowedValuesIsEmpty(mixed $value): void {
 		$spec = new PolicySpec(
 			key: 'signature_text_template',
 			defaultSystemValue: '',
 			allowedValues: [],
 		);
 
-		$spec->validateValue('any free text', new PolicyContext());
-		$spec->validateValue(12.5, new PolicyContext());
+		$spec->validateValue($value, new PolicyContext());
 
 		$this->addToAssertionCount(1);
 	}
 
-	public function testValidationStillRejectsValueWhenAllowedValuesIsDefined(): void {
+	/**
+	 * @dataProvider provideConstrainedValidationCases
+	 */
+	public function testValidationAgainstDefinedAllowedValues(string $value, bool $shouldThrow): void {
 		$spec = new PolicySpec(
 			key: 'signature_render_mode',
 			defaultSystemValue: 'default',
 			allowedValues: ['default', 'graphic', 'text'],
 		);
 
-		$spec->validateValue('graphic', new PolicyContext());
+		if ($shouldThrow) {
+			$this->expectException(\InvalidArgumentException::class);
+		}
 
-		$this->expectException(\InvalidArgumentException::class);
-		$spec->validateValue('unsupported_mode', new PolicyContext());
+		$spec->validateValue($value, new PolicyContext());
+
+		if (!$shouldThrow) {
+			$this->assertTrue(true);
+		}
+	}
+
+	/** @return array<string, array{0: mixed}> */
+	public static function provideUnconstrainedValues(): array {
+		return [
+			'text value' => ['any free text'],
+			'float value' => [12.5],
+			'boolean value' => [true],
+		];
+	}
+
+	/** @return array<string, array{0: string, 1: bool}> */
+	public static function provideConstrainedValidationCases(): array {
+		return [
+			'allowed value' => ['graphic', false],
+			'disallowed value' => ['unsupported_mode', true],
+		];
 	}
 }
