@@ -364,14 +364,14 @@ defineOptions({
 
 type RenderMode = 'DESCRIPTION_ONLY' | 'GRAPHIC_AND_DESCRIPTION' | 'SIGNAME_AND_DESCRIPTION' | 'GRAPHIC_ONLY'
 
-// Policy defaults (synchronized with backend SignatureTextPolicyValue::DEFAULTS)
+// Defaults used by UI reset actions.
 const SIGNATURE_TEXT_DEFAULTS = {
-	template: '',
-	templateFontSize: 9.0,
-	signatureFontSize: 9.0,
-	signatureWidth: 90.0,
-	signatureHeight: 60.0,
-	renderMode: 'default',
+	template: loadState<string>('libresign', 'default_signature_text_template', ''),
+	templateFontSize: Number(loadState<number>('libresign', 'default_template_font_size', 9.0)),
+	signatureFontSize: Number(loadState<number>('libresign', 'default_signature_font_size', 9.0)),
+	signatureWidth: Number(loadState<number>('libresign', 'default_signature_width', 90.0)),
+	signatureHeight: Number(loadState<number>('libresign', 'default_signature_height', 60.0)),
+	renderMode: loadState<string>('libresign', 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION'),
 }
 
 const isDarkTheme = useIsDarkTheme()
@@ -398,7 +398,11 @@ const templateFontSize = ref<number>(signatureTextValues.value.templateFontSize)
 const isSignatureImageLoaded = ref(false)
 const templateSaved = ref(true)
 const zoomLevel = ref<number>(loadState<number>('libresign', 'signature_preview_zoom_level', 100))
-const renderMode = ref<RenderMode>(signatureTextValues.value.renderMode as RenderMode)
+const renderMode = ref<RenderMode>(
+	(signatureTextValues.value.renderMode === 'default'
+		? SIGNATURE_TEXT_DEFAULTS.renderMode
+		: signatureTextValues.value.renderMode) as RenderMode,
+)
 const dislaySuccessTemplate = ref(false)
 const errorMessageTemplate = ref<string[]>(signatureTextValues.value.templateError ? [signatureTextValues.value.templateError] : [])
 const parsed = ref(signatureTextValues.value.parsed)

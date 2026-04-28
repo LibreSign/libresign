@@ -88,18 +88,18 @@ import type { EffectivePolicyValue } from '../../../../../types/index'
 import { normalizeSignatureTextPolicyConfig, serializeSignatureTextPolicyConfig } from './model'
 
 interface Props {
-	value: EffectivePolicyValue
+	modelValue: EffectivePolicyValue
 }
 
 interface Emits {
-	(e: 'update:value', value: EffectivePolicyValue): void
+	(e: 'update:modelValue', value: EffectivePolicyValue): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const id = Math.random().toString(36).substring(7)
-const normalized = normalizeSignatureTextPolicyConfig(props.value)
+const normalized = normalizeSignatureTextPolicyConfig(props.modelValue)
 
 const config = reactive({
 	template: normalized.template,
@@ -112,7 +112,7 @@ const config = reactive({
 
 // Watch all fields and emit serialized value
 const emitUpdate = () => {
-	emit('update:value', serializeSignatureTextPolicyConfig(config))
+	emit('update:modelValue', serializeSignatureTextPolicyConfig(config))
 }
 
 watch(() => config.template, emitUpdate)
