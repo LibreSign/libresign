@@ -364,6 +364,16 @@ defineOptions({
 
 type RenderMode = 'DESCRIPTION_ONLY' | 'GRAPHIC_AND_DESCRIPTION' | 'SIGNAME_AND_DESCRIPTION' | 'GRAPHIC_ONLY'
 
+// Policy defaults (synchronized with backend SignatureTextPolicyValue::DEFAULTS)
+const SIGNATURE_TEXT_DEFAULTS = {
+	template: '',
+	templateFontSize: 9.0,
+	signatureFontSize: 9.0,
+	signatureWidth: 90.0,
+	signatureHeight: 60.0,
+	renderMode: 'default',
+}
+
 const isDarkTheme = useIsDarkTheme()
 const { values: signatureTextValues } = useSignatureTextPolicy()
 const initialBackgroundType = loadState<string>('libresign', 'signature_background_type', '')
@@ -380,11 +390,6 @@ const errorMessageBackground = ref('')
 const backgroundUrl = ref(backgroundType.value !== 'deleted'
 	? generateOcsUrl('/apps/libresign/api/v1/admin/signature-background')
 	: '')
-const defaultSignatureTextTemplate = ref(signatureTextValues.value.defaultTemplate)
-const defaultTemplateFontSize = ref<number>(signatureTextValues.value.defaultTemplateFontSize)
-const defaultSignatureFontSize = ref<number>(signatureTextValues.value.defaultSignatureFontSize)
-const defaultSignatureWidth = ref<number>(signatureTextValues.value.defaultSignatureWidth)
-const defaultSignatureHeight = ref<number>(signatureTextValues.value.defaultSignatureHeight)
 const signatureTextTemplate = ref(signatureTextValues.value.template)
 const signatureWidth = ref<number>(signatureTextValues.value.signatureWidth)
 const signatureHeight = ref<number>(signatureTextValues.value.signatureHeight)
@@ -422,11 +427,11 @@ const inputValue = computed<string>({
 	},
 })
 const displayResetRenderMode = computed(() => renderMode.value !== 'GRAPHIC_AND_DESCRIPTION')
-const displayResetTemplate = computed(() => signatureTextTemplate.value !== defaultSignatureTextTemplate.value)
-const displayResetTemplateFontSize = computed(() => templateFontSize.value !== defaultTemplateFontSize.value)
-const dislayResetSignatureFontSize = computed(() => signatureFontSize.value !== defaultSignatureFontSize.value)
-const displayResetSignatureWidth = computed(() => signatureWidth.value !== defaultSignatureWidth.value)
-const displayResetSignatureHeight = computed(() => signatureHeight.value !== defaultSignatureHeight.value)
+const displayResetTemplate = computed(() => signatureTextTemplate.value !== SIGNATURE_TEXT_DEFAULTS.template)
+const displayResetTemplateFontSize = computed(() => templateFontSize.value !== SIGNATURE_TEXT_DEFAULTS.templateFontSize)
+const dislayResetSignatureFontSize = computed(() => signatureFontSize.value !== SIGNATURE_TEXT_DEFAULTS.signatureFontSize)
+const displayResetSignatureWidth = computed(() => signatureWidth.value !== SIGNATURE_TEXT_DEFAULTS.signatureWidth)
+const displayResetSignatureHeight = computed(() => signatureHeight.value !== SIGNATURE_TEXT_DEFAULTS.signatureHeight)
 const parsedWithLineBreak = computed(() => String(parsed.value ?? '').replace(/\n/g, '<br>'))
 const previewSignatureImageWidth = computed(() => (renderMode.value === 'GRAPHIC_ONLY' || !parsedWithLineBreak.value)
 	? signatureWidth.value
@@ -485,7 +490,6 @@ async function refreshAfterChangeCollectMetadata() {
 	await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/signature-settings'))
 		.then(({ data }) => {
 			availableVariables.value = data.ocs.data.signature_available_variables
-			defaultSignatureTextTemplate.value = data.ocs.data.default_signature_text_template
 		})
 }
 
@@ -640,27 +644,27 @@ async function resetRenderMode() {
 }
 
 async function resetTemplate() {
-	signatureTextTemplate.value = defaultSignatureTextTemplate.value
+	signatureTextTemplate.value = SIGNATURE_TEXT_DEFAULTS.template
 	await saveTemplate()
 }
 
 async function resetTemplateFontSize() {
-	templateFontSize.value = defaultTemplateFontSize.value
+	templateFontSize.value = SIGNATURE_TEXT_DEFAULTS.templateFontSize
 	await saveTemplate()
 }
 
 async function resetSignatureFontSize() {
-	signatureFontSize.value = defaultSignatureFontSize.value
+	signatureFontSize.value = SIGNATURE_TEXT_DEFAULTS.signatureFontSize
 	await saveTemplate()
 }
 
 async function resetSignatureWidth() {
-	signatureWidth.value = defaultSignatureWidth.value
+	signatureWidth.value = SIGNATURE_TEXT_DEFAULTS.signatureWidth
 	await saveTemplate()
 }
 
 async function resetSignatureHeight() {
-	signatureHeight.value = defaultSignatureHeight.value
+	signatureHeight.value = SIGNATURE_TEXT_DEFAULTS.signatureHeight
 	await saveTemplate()
 }
 
@@ -697,11 +701,6 @@ defineExpose({
 	mimeName,
 	errorMessageBackground,
 	backgroundUrl,
-	defaultSignatureTextTemplate,
-	defaultTemplateFontSize,
-	defaultSignatureFontSize,
-	defaultSignatureWidth,
-	defaultSignatureHeight,
 	signatureTextTemplate,
 	signatureWidth,
 	signatureHeight,
