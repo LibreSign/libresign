@@ -108,4 +108,3 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 		return $policyKey;
 	}
 }
-

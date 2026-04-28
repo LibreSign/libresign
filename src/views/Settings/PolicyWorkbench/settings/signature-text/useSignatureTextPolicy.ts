@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { computed } from 'vue'
+import { computed, type ComputedRef } from 'vue'
 import { loadState } from '@nextcloud/initial-state'
 import { usePoliciesStore } from '../../../../../store/policies'
 
@@ -28,7 +28,7 @@ interface SignatureTextValues {
 	parsed: string
 }
 
-export function useSignatureTextPolicy(): { values: ReturnType<typeof computed<SignatureTextValues>> } {
+export function useSignatureTextPolicy(): { values: ComputedRef<SignatureTextValues> } {
 	const policiesStore = usePoliciesStore()
 
 	const values = computed<SignatureTextValues>(() => {
@@ -37,10 +37,10 @@ export function useSignatureTextPolicy(): { values: ReturnType<typeof computed<S
 		// Always use policy value; fallback to defaults if not defined
 		let policyValue = SIGNATURE_TEXT_DEFAULTS
 
-		if (signatureTextPolicy?.value) {
-			const decoded = typeof signatureTextPolicy.value === 'string'
-				? JSON.parse(signatureTextPolicy.value)
-				: signatureTextPolicy.value
+		if (signatureTextPolicy?.effectiveValue) {
+			const decoded = typeof signatureTextPolicy.effectiveValue === 'string'
+				? JSON.parse(signatureTextPolicy.effectiveValue)
+				: signatureTextPolicy.effectiveValue
 
 			policyValue = {
 				template: String(decoded.template ?? SIGNATURE_TEXT_DEFAULTS.template),
