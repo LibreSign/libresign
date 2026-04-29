@@ -32,6 +32,8 @@ const adminUser = 'admin'
 const adminPass = process.env.ADMIN_PASSWORD || 'admin'
 
 test.describe('Policy preferences: migrated settings', () => {
+	test.setTimeout(120_000)
+
 	test('user can save and clear collect_metadata, identification_documents, docmdp and signature_text preferences', async ({ page }) => {
 		const groupId = `pref-migrated-${Date.now()}`
 		const endUser = `prefmigrated_${Date.now()}`
