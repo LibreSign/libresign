@@ -53,7 +53,6 @@
 </template>
 <script setup lang="ts">
 import axios from '@nextcloud/axios'
-import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import { t } from '@nextcloud/l10n'
 import { onMounted, ref } from 'vue'
@@ -92,15 +91,13 @@ defineOptions({
 	name: 'Validation',
 })
 
-const isDefaultFooterTemplateState = loadState('libresign', 'footer_template_is_default', true)
-
 const paternValidadeUrl = ref('https://validador.librecode.coop/')
 const makeValidationUrlPrivate = ref(false)
 const url = ref<string | null>(null)
 const addFooter = ref(true)
 const writeQrcodeOnFooter = ref(true)
-const isDefaultFooterTemplate = ref(isDefaultFooterTemplateState)
-const customizeFooter = ref(!isDefaultFooterTemplateState)
+const isDefaultFooterTemplate = ref(true)
+const customizeFooter = ref(false)
 const policiesStore = usePoliciesStore()
 
 const urlInput = ref<HTMLInputElement | null>(null)
