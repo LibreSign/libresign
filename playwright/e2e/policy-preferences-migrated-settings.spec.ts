@@ -22,6 +22,12 @@ import {
 	setSystemPolicyEntry,
 } from '../support/policy-api'
 
+type SystemPolicySnapshot = {
+	exists: boolean
+	value: unknown
+	allowChildOverride: boolean
+}
+
 const adminUser = 'admin'
 const adminPass = process.env.ADMIN_PASSWORD || 'admin'
 
@@ -33,6 +39,11 @@ test.describe('Policy preferences: migrated settings', () => {
 
 		const adminCtx = await createAuthenticatedRequestContext(adminUser, adminPass)
 		let endUserCtx: APIRequestContext | null = null
+		const originalGroupsRequestSign = await getSystemPolicySnapshot(adminCtx, 'groups_request_sign')
+		const originalCollectMetadata = await getSystemPolicySnapshot(adminCtx, 'collect_metadata')
+		const originalIdentificationDocuments = await getSystemPolicySnapshot(adminCtx, 'identification_documents')
+		const originalDocmdp = await getSystemPolicySnapshot(adminCtx, 'docmdp')
+		const originalSignatureText = await getSystemPolicySnapshot(adminCtx, 'signature_text')
 		const signatureTextSystemValue = JSON.stringify({
 			template: 'System template',
 			template_font_size: 9,
@@ -119,6 +130,12 @@ test.describe('Policy preferences: migrated settings', () => {
 				await endUserCtx.dispose()
 			}
 
+			await restoreSystemPolicySnapshot(adminCtx, 'groups_request_sign', originalGroupsRequestSign)
+			await restoreSystemPolicySnapshot(adminCtx, 'collect_metadata', originalCollectMetadata)
+			await restoreSystemPolicySnapshot(adminCtx, 'identification_documents', originalIdentificationDocuments)
+			await restoreSystemPolicySnapshot(adminCtx, 'docmdp', originalDocmdp)
+			await restoreSystemPolicySnapshot(adminCtx, 'signature_text', originalSignatureText)
+
 			await policyRequest(adminCtx, 'DELETE', `/cloud/users/${endUser}`)
 			await policyRequest(adminCtx, 'DELETE', `/cloud/groups/${groupId}`)
 			await adminCtx.dispose()
@@ -132,6 +149,45 @@ async function sectionByTitle(page: Page, title: string): Promise<Locator> {
 	const section = heading.locator('xpath=ancestor::div[contains(@class, "settings-section")][1]')
 	await expect(section).toBeVisible()
 	return section
+}
+
+async function getSystemPolicySnapshot(
+	ctx: APIRequestContext,
+	policyKey: string,
+): Promise<SystemPolicySnapshot> {
+	const response = await policyRequest(ctx, 'GET', `/apps/libresign/api/v1/policies/system/${policyKey}`)
+	if (response.httpStatus === 404) {
+		return {
+			exists: false,
+			value: null,
+			allowChildOverride: true,
+		}
+	}
+
+	expect(response.httpStatus, `getSystemPolicySnapshot(${policyKey}): expected 200 or 404 but got ${response.httpStatus}`).toBe(200)
+
+	return {
+		exists: true,
+		value: response.data.value ?? null,
+		allowChildOverride: response.data.allowChildOverride === true,
+	}
+}
+
+async function restoreSystemPolicySnapshot(
+	ctx: APIRequestContext,
+	policyKey: string,
+	snapshot: SystemPolicySnapshot,
+): Promise<void> {
+	if (!snapshot.exists) {
+		await setSystemPolicyEntry(ctx, policyKey, null, true)
+		return
+	}
+
+	const response = await policyRequest(ctx, 'POST', `/apps/libresign/api/v1/policies/system/${policyKey}`, {
+		value: snapshot.value,
+		allowChildOverride: snapshot.allowChildOverride,
+	})
+	expect(response.httpStatus, `restoreSystemPolicySnapshot(${policyKey}): expected 200 but got ${response.httpStatus}`).toBe(200)
 }
 
 async function savePreferenceAsDisabled(page: Page, section: Locator, policyKey: string): Promise<void> {
