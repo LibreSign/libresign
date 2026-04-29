@@ -153,7 +153,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	// Enable sequential signing.
 	// The checkbox input is hidden by CSS; click the visible label text to toggle it.
 	await expect(page.getByLabel('Sign in order')).toBeVisible()
-	await page.getByText('Sign in order').click()
+	await page.getByLabel('Sign in order').check()
 	await expect(page.getByLabel('Sign in order')).toBeChecked()
 
 	// Send the signature request
@@ -177,8 +177,17 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	if (!signLink) throw new Error('Sign link not found in email')
 	await page.goto(signLink)
 	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	const firstSignResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
 	await page.getByRole('button', { name: 'Sign document' }).click()
-	await page.waitForURL('**/validation/**')
+	const firstSignResponse = await firstSignResponsePromise
+	const firstSignResponseBody = await firstSignResponse.text()
+	expect(
+		firstSignResponse.ok(),
+		`Signer 01 sign API failed with status ${firstSignResponse.status()}: ${firstSignResponseBody}`,
+	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible()
 	// Signer01 signed; signer02 is still waiting (sequential mode proof at this point)
 	await expect(page.getByText('Signer 01')).toBeVisible()
@@ -186,7 +195,6 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	await page.getByRole('button', { name: 'Expand validation status', exact: true }).click();
 	await page.getByRole('link', { name: 'Document integrity verified' }).click();
 	await page.getByRole('button', { name: 'Expand document certification', exact: true }).click();
-	await page.getByRole('link', { name: 'Document has not been' }).click();
 
 	await expect(page.getByText('Signer 02')).toBeVisible()
 	await expect(page.getByText('Not signed yet')).toBeVisible()
@@ -203,8 +211,17 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	if (!signLink02) throw new Error('Sign link for signer02 not found in email')
 	await page.goto(signLink02)
 	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	const secondSignResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
 	await page.getByRole('button', { name: 'Sign document' }).click()
-	await page.waitForURL('**/validation/**')
+	const secondSignResponse = await secondSignResponsePromise
+	const secondSignResponseBody = await secondSignResponse.text()
+	expect(
+		secondSignResponse.ok(),
+		`Signer 02 sign API failed with status ${secondSignResponse.status()}: ${secondSignResponseBody}`,
+	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible()
 
 	// Both signers must appear as signed in the final validation view.
