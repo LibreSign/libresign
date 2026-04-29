@@ -276,7 +276,6 @@ OC.L10N.register(
     "Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}\nIP: {{SignerIP}}\nUser agent: {{SignerUserAgent}}" : "Podepsáno pomocí LibreSign\n{{SignerCommonName}}\nVydavatel: {{IssuerCommonName}}\nDatum: {{ServerSignatureDate}}\nIP adresa: {{SignerIP}}\nUser agent: {{SignerUserAgent}}",
     "Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}" : "Podepsáno pomocí LibreSign\n{{SignerCommonName}}\nVydavatel: {{IssuerCommonName}}\nDatum: {{ServerSignatureDate}}",
     "LibreSign" : "LibreSign",
-    "✍️ Self-hosted document signer using digital certificate" : "✍️ Lokálně hostovaný nástroj pro podepisování dokumentů pomocí digitálního certifikátu",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplikace pro digitální podepisování, určená pro Nextcloud",
     "Name cannot be empty" : "Je třeba zadat název",
     "Name must be at least {min} characters" : "Je třeba, aby název měl alespoň {min} znaků",
