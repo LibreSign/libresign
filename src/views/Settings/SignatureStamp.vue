@@ -356,7 +356,9 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { useIsDarkTheme } from '@nextcloud/vue/composables/useIsDarkTheme'
 
 import CodeEditor from '../../components/CodeEditor.vue'
+import { usePoliciesStore } from '../../store/policies'
 import { useSignatureTextPolicy, type SignatureTextUiDefaults } from './PolicyWorkbench/settings/signature-text/useSignatureTextPolicy'
+import { serializeSignatureTextPolicyConfig } from './PolicyWorkbench/settings/signature-text/model'
 
 defineOptions({
 	name: 'SignatureStamp',
@@ -366,6 +368,7 @@ type RenderMode = 'DESCRIPTION_ONLY' | 'GRAPHIC_AND_DESCRIPTION' | 'SIGNAME_AND_
 
 const isDarkTheme = useIsDarkTheme()
 const { values: signatureTextValues } = useSignatureTextPolicy()
+const policiesStore = usePoliciesStore()
 const SIGNATURE_TEXT_DEFAULTS: SignatureTextUiDefaults = {
 	template: signatureTextValues.value.template,
 	templateFontSize: signatureTextValues.value.templateFontSize,
@@ -375,6 +378,18 @@ const SIGNATURE_TEXT_DEFAULTS: SignatureTextUiDefaults = {
 	renderMode: signatureTextValues.value.renderMode === 'default'
 		? 'GRAPHIC_AND_DESCRIPTION'
 		: signatureTextValues.value.renderMode,
+}
+
+function mapUiRenderModeToPolicyRenderMode(mode: RenderMode): string {
+	if (mode === 'GRAPHIC_ONLY') {
+		return 'graphic'
+	}
+
+	if (mode === 'DESCRIPTION_ONLY') {
+		return 'text'
+	}
+
+	return 'default'
 }
 
 const initialBackgroundType = loadState<string>('libresign', 'signature_background_type', '')
@@ -609,32 +624,46 @@ async function saveTemplate() {
 	reset()
 	templateSaved.value = false
 	resizeHeight()
-	await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), {
+	const serialized = serializeSignatureTextPolicyConfig({
 		template: signatureTextTemplate.value,
 		templateFontSize: templateFontSize.value,
 		signatureFontSize: signatureFontSize.value,
 		signatureWidth: signatureWidth.value,
 		signatureHeight: signatureHeight.value,
-		renderMode: renderMode.value,
+		renderMode: mapUiRenderModeToPolicyRenderMode(renderMode.value),
 	})
-		.then(({ data }) => {
-			parsed.value = data.ocs.data.parsed
-			checkPreviewOverflow()
-			if (data.ocs.data.templateFontSize !== templateFontSize.value) {
-				templateFontSize.value = data.ocs.data.templateFontSize
-			}
-			if (data.ocs.data.signatureFontSize !== signatureFontSize.value) {
-				signatureFontSize.value = data.ocs.data.signatureFontSize
-			}
-			dislaySuccessTemplate.value = true
-			templateSaved.value = true
-			setTimeout(() => { dislaySuccessTemplate.value = false }, 2000)
+
+	try {
+		const savedPolicy = await policiesStore.saveSystemPolicy('signature_text', serialized, false)
+		if (!savedPolicy) {
+			throw new Error(t('libresign', 'Failed to save signature text policy.'))
+		}
+
+		const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), {
+			params: {
+				template: signatureTextTemplate.value,
+			},
 		})
-		.catch(({ response }) => {
-			errorMessageTemplate.value.push(response.data.ocs.data.error)
-			parsed.value = ''
-			checkPreviewOverflow()
-		})
+
+		parsed.value = data.ocs.data.parsed
+		checkPreviewOverflow()
+		if (data.ocs.data.templateFontSize !== templateFontSize.value) {
+			templateFontSize.value = data.ocs.data.templateFontSize
+		}
+		if (data.ocs.data.signatureFontSize !== signatureFontSize.value) {
+			signatureFontSize.value = data.ocs.data.signatureFontSize
+		}
+		dislaySuccessTemplate.value = true
+		templateSaved.value = true
+		setTimeout(() => { dislaySuccessTemplate.value = false }, 2000)
+	} catch (error: unknown) {
+		const responseError = (error as { response?: { data?: { ocs?: { data?: { error?: string; message?: string } } } } })?.response
+		errorMessageTemplate.value.push(responseError?.data?.ocs?.data?.error
+			?? responseError?.data?.ocs?.data?.message
+			?? t('libresign', 'Unable to save signature text settings.'))
+		parsed.value = ''
+		checkPreviewOverflow()
+	}
 }
 
 const debouncePropertyChange = debounce(async () => {
