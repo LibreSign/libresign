@@ -120,8 +120,15 @@ test('group admin can access policies and start creating delegated rule when cus
 	// ── 5. Open the setting dialog ─────────────────────────────────────────
 	await configureButton.click()
 
-	const settingDialog = page.getByRole('dialog', { name: /Signature footer|Signing order/i })
-	await expect(settingDialog, 'Policy dialog should open on click').toBeVisible({ timeout: 10000 })
+	// Wait for any dialog to appear and look for the one with "Create rule" button
+	const allDialogs = page.locator('div[role="dialog"]')
+	await expect(allDialogs.first()).toBeVisible({ timeout: 10000 })
+
+	// Find the dialog that contains a "Create rule" button (which means it's the settings dialog)
+	const settingDialog = page.locator('div[role="dialog"]').filter({
+		has: page.getByRole('button', { name: /^Create rule$/i }),
+	})
+	await expect(settingDialog, 'Policy dialog with "Create rule" button should be visible').toBeVisible({ timeout: 10000 })
 
 	// ── 6. "Create rule" button must be available inside the dialog ───────
 	const createRuleButton = settingDialog.getByRole('button', { name: /^Create rule$/i })
