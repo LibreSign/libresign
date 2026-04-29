@@ -38,10 +38,9 @@ LibreSign is for teams where signing is part of a controlled business process.
 
 Contributions are welcome from developers, implementers, and teams that use LibreSign in production.
 
-- Report bugs and suggest improvements: https://github.com/LibreSign/libresign/issues
-- Start with good first issues: https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
-- Read contribution guidelines: CONTRIBUTING.md
-- Help with translations: https://app.transifex.com/nextcloud/nextcloud/libresign
+- Report bugs or suggest improvements: [Open an issue](https://github.com/LibreSign/libresign/issues)
+- Start with simple tasks: [Good first issues](https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+- Help with translations: [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign)
 
 ## Contributors
 
