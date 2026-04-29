@@ -12,17 +12,19 @@
 
 Control how your documents get signed
 
-LibreSign helps you control how document signing works in your organization.
-Organizations use it with Nextcloud to run signing workflows that match internal rules, legal requirements, and daily processes.
+LibreSign helps you control how document signing works across your organization.  
+Organizations use it with Nextcloud to run signing workflows that match internal rules, legal requirements, and daily processes.  
 It gives teams clear visibility into who signed, when they signed, and how each request moved through the process.
 
 ## Key features
 
 - Define signing order, roles, and rules per document flow
 - Include internal and external signers in the same request
+- Request and track signatures from start to completion
+- Send notifications and reminders to signers
 - Keep a traceable record of requests, actions, and validations
+- Validate signed documents and certificate status
 - Work directly with Nextcloud files, users, and sharing context
-- Configure certificates and identity options for your signing process
 - Integrate signing with other systems through APIs
 
 ## Why LibreSign
