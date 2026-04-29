@@ -20,6 +20,25 @@
             }
         },
         "schemas": {
+            "AccountCapabilitySettings": {
+                "type": "object",
+                "required": [
+                    "canRequestSign",
+                    "hasSignatureFile",
+                    "isApprover"
+                ],
+                "properties": {
+                    "canRequestSign": {
+                        "type": "boolean"
+                    },
+                    "hasSignatureFile": {
+                        "type": "boolean"
+                    },
+                    "isApprover": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "AccountMeResponse": {
                 "type": "object",
                 "required": [
