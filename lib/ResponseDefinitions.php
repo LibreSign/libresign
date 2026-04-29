@@ -28,6 +28,11 @@ namespace OCA\Libresign;
  *     needIdentificationDocuments: bool,
  *     identificationDocumentsWaitingApproval: bool,
  * }
+ * @psalm-type LibresignAccountCapabilitySettings = array{
+ *     canRequestSign: bool,
+ *     hasSignatureFile: bool,
+ *     isApprover: bool,
+ * }
  *
  * Request input contracts
  *

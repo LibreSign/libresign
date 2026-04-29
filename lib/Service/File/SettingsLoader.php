@@ -17,6 +17,7 @@ use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\IUser;
 
+/** @psalm-import-type LibresignSettings from \OCA\Libresign\ResponseDefinitions */
 class SettingsLoader {
 	public const IDENTIFICATION_DOCUMENTS_DISABLED = 0;
 	public const IDENTIFICATION_DOCUMENTS_NEED_SEND = 1;
@@ -125,7 +126,7 @@ class SettingsLoader {
 	 * Always returns complete settings payload with defaults.
 	 * Canonical API shape is documented as LibresignSettings in ResponseDefinitions.
 	 *
-	 * @return array<string, bool|string>
+	 * @psalm-return LibresignSettings
 	 */
 	public function getUserIdentificationSettings(?IUser $user, ?SignRequest $signRequest = null): array {
 		$status = $this->getIdentificationDocumentsStatus($user, $signRequest);
