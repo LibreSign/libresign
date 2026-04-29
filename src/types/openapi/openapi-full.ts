@@ -1360,6 +1360,11 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        AccountCapabilitySettings: {
+            canRequestSign: boolean;
+            hasSignatureFile: boolean;
+            isApprover: boolean;
+        };
         AccountMeResponse: {
             account: {
                 uid: string;

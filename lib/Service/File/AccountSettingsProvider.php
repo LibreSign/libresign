@@ -15,6 +15,7 @@ use OCA\Libresign\Service\IdDocsPolicyService;
 use OCP\Accounts\IAccountManager;
 use OCP\IUser;
 
+/** @psalm-import-type LibresignAccountCapabilitySettings from \OCA\Libresign\ResponseDefinitions */
 class AccountSettingsProvider {
 	public function __construct(
 		private IAccountManager $accountManager,
@@ -23,12 +24,15 @@ class AccountSettingsProvider {
 	) {
 	}
 
+	/** @psalm-return LibresignAccountCapabilitySettings */
 	public function getSettings(?IUser $user = null): array {
 		$canApproveIdDocs = $this->idDocsPolicyService->userCanApproveValidationDocuments($user, false);
-		$return['canRequestSign'] = $canApproveIdDocs;
-		$return['hasSignatureFile'] = $this->hasSignatureFile($user);
-		$return['isApprover'] = $canApproveIdDocs;
-		return $return;
+
+		return [
+			'canRequestSign' => $canApproveIdDocs,
+			'hasSignatureFile' => $this->hasSignatureFile($user),
+			'isApprover' => $canApproveIdDocs,
+		];
 	}
 
 	public function getPhoneNumber(IUser $user): string {
