@@ -7,7 +7,6 @@ import { test, expect, type APIRequestContext, type Locator, type Page } from '@
 import { login } from '../support/nc-login'
 import { expandSettingsMenu } from '../support/nc-navigation'
 import {
-	configureOpenSsl,
 	ensureGroupExists,
 	ensureUserExists,
 	ensureUserInGroup,
@@ -32,8 +31,6 @@ const adminUser = 'admin'
 const adminPass = process.env.ADMIN_PASSWORD || 'admin'
 
 test.describe('Policy preferences: migrated settings', () => {
-	test.setTimeout(120_000)
-
 	test('user can save and clear collect_metadata, identification_documents, docmdp and signature_text preferences', async ({ page }) => {
 		const groupId = `pref-migrated-${Date.now()}`
 		const endUser = `prefmigrated_${Date.now()}`
@@ -64,15 +61,6 @@ test.describe('Policy preferences: migrated settings', () => {
 		})
 
 		try {
-			await setAppConfig(adminCtx, 'libresign', 'certificate_engine', 'openssl')
-			await configureOpenSsl(adminCtx, 'LibreSign Test', {
-				C: 'BR',
-				OU: ['Organization Unit'],
-				ST: 'Rio de Janeiro',
-				O: 'LibreSign',
-				L: 'Rio de Janeiro',
-			})
-
 			await ensureGroupExists(page.request, groupId)
 			await ensureUserExists(page.request, endUser, endPass)
 			await ensureUserInGroup(page.request, endUser, groupId)
