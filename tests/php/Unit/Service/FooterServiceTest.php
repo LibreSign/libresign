@@ -8,26 +8,27 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\FooterService;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Tests\Unit\TestCase;
-use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class FooterServiceTest extends TestCase {
-	private IAppConfig $appConfig;
+	private PolicyService|MockObject $policyService;
 	private FooterHandler|MockObject $footerHandler;
 	private FooterService $service;
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->appConfig = $this->getMockAppConfigWithReset();
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
-		$this->service = new FooterService($this->appConfig, $this->footerHandler);
+		$this->service = new FooterService($this->policyService, $this->footerHandler);
 	}
 
 	#[DataProvider('provideIsDefaultTemplateScenarios')]
@@ -43,8 +44,6 @@ class FooterServiceTest extends TestCase {
 			'previewHeight' => 100,
 			'previewZoom' => 100,
 		]);
-
-		$this->appConfig->setValueString(Application::APP_ID, FooterPolicy::KEY, $policyValue);
 
 		// Mock FooterHandler to return the policy JSON
 		$this->footerHandler
@@ -64,6 +63,24 @@ class FooterServiceTest extends TestCase {
 	public function testSaveTemplate(): void {
 		$template = '<div>My custom template</div>';
 		$defaultPolicyValue = FooterPolicyValue::encode(FooterPolicyValue::defaults());
+		$savedValue = null;
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with(
+				FooterPolicy::KEY,
+				$this->callback(function (string $value) use (&$savedValue): bool {
+					$savedValue = $value;
+					return true;
+				}),
+				false,
+			)
+			->willReturn(new ResolvedPolicy());
+
+		$this->policyService
+			->method('getSystemPolicy')
+			->willReturn(null);
 
 		$this->footerHandler
 			->method('getEffectiveFooterPolicyAsJson')
@@ -71,10 +88,9 @@ class FooterServiceTest extends TestCase {
 
 		$this->service->saveTemplate($template);
 
-		$this->assertSame(
-			$template,
-			$this->appConfig->getValueString(Application::APP_ID, 'footer_template')
-		);
+		$normalized = FooterPolicyValue::normalize(json_decode((string)$savedValue, true));
+		$this->assertTrue($normalized['customizeFooterTemplate']);
+		$this->assertSame($template, $normalized['footerTemplate']);
 	}
 
 	public function testSaveTemplateEqualToDefaultDeletesKey(): void {
@@ -94,12 +110,25 @@ class FooterServiceTest extends TestCase {
 			->method('getEffectiveFooterPolicyAsJson')
 			->willReturn($defaultPolicyValue);
 
-		$this->service->saveTemplate($defaultTemplate);
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with(
+				FooterPolicy::KEY,
+				$this->callback(function (string $value): bool {
+					$normalized = FooterPolicyValue::normalize(json_decode($value, true));
+					return $normalized['customizeFooterTemplate'] === false
+						&& $normalized['footerTemplate'] === '';
+				}),
+				false,
+			)
+			->willReturn(new ResolvedPolicy());
 
-		$this->assertSame(
-			'',
-			$this->appConfig->getValueString(Application::APP_ID, 'footer_template', '')
-		);
+		$this->policyService
+			->method('getSystemPolicy')
+			->willReturn(null);
+
+		$this->service->saveTemplate($defaultTemplate);
 	}
 
 	public function testSaveTemplateSynchronizesFooterPolicyWhenCustomTemplateIsSaved(): void {
@@ -120,13 +149,25 @@ class FooterServiceTest extends TestCase {
 			->method('getEffectiveFooterPolicyAsJson')
 			->willReturn($defaultPolicyValue);
 
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with(
+				FooterPolicy::KEY,
+				$this->callback(function (string $value) use ($customTemplate): bool {
+					$policy = FooterPolicyValue::normalize(json_decode($value, true));
+					return $policy['customizeFooterTemplate'] === true
+						&& $policy['footerTemplate'] === $customTemplate;
+				}),
+				false,
+			)
+			->willReturn(new ResolvedPolicy());
+
+		$this->policyService
+			->method('getSystemPolicy')
+			->willReturn(null);
+
 		$this->service->saveTemplate($customTemplate);
-
-		$policyPayload = $this->appConfig->getValueString(Application::APP_ID, FooterPolicy::KEY, '');
-		$policy = FooterPolicyValue::normalize(json_decode($policyPayload, true));
-
-		$this->assertTrue($policy['customizeFooterTemplate']);
-		$this->assertSame($customTemplate, $policy['footerTemplate']);
 	}
 
 	public function testSaveTemplateSynchronizesFooterPolicyWhenTemplateIsReset(): void {
@@ -142,38 +183,36 @@ class FooterServiceTest extends TestCase {
 			'previewZoom' => 100,
 		]);
 
-		// Pre-populate with a customized policy
-		$this->appConfig->setValueString(
-			Application::APP_ID,
-			FooterPolicy::KEY,
-			FooterPolicyValue::encode([
-				'enabled' => true,
-				'writeQrcodeOnFooter' => true,
-				'validationSite' => '',
-				'customizeFooterTemplate' => true,
-				'footerTemplate' => '<div>Old Custom Footer</div>',
-				'previewWidth' => 595,
-				'previewHeight' => 100,
-				'previewZoom' => 100,
-			])
-		);
-
 		$this->footerHandler
 			->method('getEffectiveFooterPolicyAsJson')
 			->willReturn($defaultPolicyValue);
 
+		$layer = new PolicyLayer();
+		$layer->setAllowChildOverride(true);
+
+		$this->policyService
+			->method('getSystemPolicy')
+			->willReturn($layer);
+
+		$this->policyService
+			->expects($this->once())
+			->method('saveSystem')
+			->with(
+				FooterPolicy::KEY,
+				$this->callback(function (string $value): bool {
+					$policy = FooterPolicyValue::normalize(json_decode($value, true));
+					return $policy['customizeFooterTemplate'] === false
+						&& $policy['footerTemplate'] === '';
+				}),
+				true,
+			)
+			->willReturn(new ResolvedPolicy());
+
 		$this->service->saveTemplate('');
-
-		$policyPayload = $this->appConfig->getValueString(Application::APP_ID, FooterPolicy::KEY, '');
-		$policy = FooterPolicyValue::normalize(json_decode($policyPayload, true));
-
-		$this->assertFalse($policy['customizeFooterTemplate']);
-		$this->assertSame('', $policy['footerTemplate']);
 	}
 
 	public function testGetTemplate(): void {
 		$template = '<div>Custom template</div>';
-		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
 
 		$this->footerHandler
 			->expects($this->once())
@@ -184,8 +223,6 @@ class FooterServiceTest extends TestCase {
 	}
 
 	public function testGetTemplateReturnsDefaultWhenNotSet(): void {
-		$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
-
 		$defaultTemplate = '<div>Default footer template</div>';
 		$this->footerHandler
 			->expects($this->once())
@@ -197,6 +234,30 @@ class FooterServiceTest extends TestCase {
 
 	#[DataProvider('provideRenderPreviewPdfScenarios')]
 	public function testRenderPreviewPdf(?string $template, int $width, int $height, bool $shouldSaveTemplate): void {
+		if ($shouldSaveTemplate) {
+			$this->footerHandler
+				->expects($this->exactly(2))
+				->method('getEffectiveFooterPolicyAsJson')
+				->willReturn(FooterPolicyValue::encode(FooterPolicyValue::defaults()));
+
+			$this->policyService
+				->expects($this->once())
+				->method('saveSystem')
+				->willReturn(new ResolvedPolicy());
+
+			$this->policyService
+				->method('getSystemPolicy')
+				->willReturn(null);
+		} else {
+			$this->footerHandler
+				->expects($this->never())
+				->method('getEffectiveFooterPolicyAsJson');
+
+			$this->policyService
+				->expects($this->never())
+				->method('saveSystem');
+		}
+
 		$this->footerHandler
 			->expects($this->exactly(2))
 			->method('setTemplateVar')
@@ -221,13 +282,6 @@ class FooterServiceTest extends TestCase {
 		$result = $this->service->renderPreviewPdf($template, $width, $height);
 
 		$this->assertSame('PDF binary content', $result);
-
-		if ($shouldSaveTemplate) {
-			$this->assertSame(
-				$template,
-				$this->appConfig->getValueString(Application::APP_ID, 'footer_template')
-			);
-		}
 	}
 
 	public function testRenderPreviewPdfWithWriteQrcodeOverrideTrue(): void {

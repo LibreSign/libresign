@@ -8,21 +8,14 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider\Footer;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
-use OCP\IAppConfig;
 
 final class FooterPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'add_footer';
 	public const SYSTEM_APP_CONFIG_KEY = 'add_footer';
-
-	public function __construct(
-		private ?IAppConfig $appConfig = null,
-	) {
-	}
 
 	#[\Override]
 	public function keys(): array {
@@ -81,15 +74,6 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 	}
 
 	private function resolveInstanceBaseTemplate(): string {
-		if ($this->appConfig === null) {
-			return '';
-		}
-
-		$templateFromConfig = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
-		if ($templateFromConfig !== '') {
-			return $templateFromConfig;
-		}
-
 		$defaultTemplatePath = __DIR__ . '/../../../../Handler/Templates/footer.twig';
 		$defaultTemplate = @file_get_contents($defaultTemplatePath);
 

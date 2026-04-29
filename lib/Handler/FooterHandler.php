@@ -209,11 +209,6 @@ class FooterHandler {
 				return $policyTemplate;
 			}
 		}
-
-		$footerTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
-		if ($footerTemplate) {
-			return $footerTemplate;
-		}
 		return $this->getDefaultTemplate();
 	}
 
