@@ -192,7 +192,6 @@ OC.L10N.register(
     "Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}\nIP: {{SignerIP}}\nUser agent: {{SignerUserAgent}}" : "Signerad med LibreSign\n{{SignerCommonName}}\nUtfärdare: {{IssuerCommonName}}\nDatum: {{ServerSignatureDate}}\nIP: {{SignerIP}}\nAnvändaragent: {{SignerUserAgent}}",
     "Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}" : "Signerad med LibreSign\n{{SignerCommonName}}\nUtfärdare: {{IssuerCommonName}}\nDatum: {{ServerSignatureDate}}",
     "LibreSign" : "LibreSign",
-    "✍️ Self-hosted document signer using digital certificate" : "✍️ Egenhostad dokumentsignerare med digitalt certifikat",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, digital signeringsapp för Nextcloud.",
     "Name cannot be empty" : "Namn kan inte vara tom",
     "Cancel" : "Avbryt",

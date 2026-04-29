@@ -178,7 +178,6 @@ OC.L10N.register(
     "Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}\nIP: {{SignerIP}}\nUser agent: {{SignerUserAgent}}" : "Allkirjastatud LibreSigni teenuses\n{{SignerCommonName}}\nVäljaandja: {{IssuerCommonName}}\nKuupäev: {{ServerSignatureDate}}\nIP-aadress: {{SignerIP}}\nBrauseri tunnus: {{SignerUserAgent}}",
     "Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}" : "Allkirjastatud LibreSigni teenuses\n{{SignerCommonName}}\nVäljaandja: {{IssuerCommonName}}\nKuupäev: {{ServerSignatureDate}}",
     "LibreSign" : "LibreSign",
-    "✍️ Self-hosted document signer using digital certificate" : "✍️ Enda hallataud  dokumentide allkirjastamislahendust, mis kasutab digitaalseid sertifikaate",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign digiallkirjade rakendus Nextcloudi jaoks.",
     "Name cannot be empty" : "Nimi ei saada jääda tühjaks",
     "Name must be at least {min} characters" : "Nimi peab olema vähemalt {min} tähemärki pikk.",
