@@ -18,12 +18,6 @@ const FOOTER_DISABLED_VALUE = JSON.stringify({
 	validationSite: '',
 	customizeFooterTemplate: false,
 })
-const FOOTER_ENABLED_VALUE = JSON.stringify({
-	enabled: true,
-	writeQrcodeOnFooter: true,
-	validationSite: '',
-	customizeFooterTemplate: false,
-})
 
 type OriginalConfigSnapshot = {
 	identifyMethods: string | null
@@ -92,20 +86,6 @@ async function addEmailSigner(
 	await page.getByRole('button', { name: 'Save' }).click()
 }
 
-
-async function restoreAppConfig(
-	requestContext: APIRequestContext,
-	key: string,
-	value: string | null,
-): Promise<void> {
-	if (value === null) {
-		await deleteAppConfig(requestContext, 'libresign', key)
-		return
-	}
-
-	await setAppConfig(requestContext, 'libresign', key, value)
-}
-
 test('request signatures from two signers in sequential order', async ({ page, adminContext }) => {
 	await test.step('configure signing environment', async () => {
 		await login(
@@ -151,10 +131,11 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	await addEmailSigner(page, 'signer02@libresign.coop', 'Signer 02')
 
 	// Enable sequential signing.
-	// The checkbox input is hidden by CSS; click the visible label text to toggle it.
-	await expect(page.getByLabel('Sign in order')).toBeVisible()
-	await page.getByLabel('Sign in order').check()
-	await expect(page.getByLabel('Sign in order')).toBeChecked()
+	// The hidden checkbox can be covered by the styled label in CI, so force the state change.
+	const signInOrderSwitch = page.getByLabel('Sign in order')
+	await expect(signInOrderSwitch).toBeVisible()
+	await signInOrderSwitch.check({ force: true })
+	await expect(signInOrderSwitch).toBeChecked()
 
 	// Send the signature request
 	await page.getByRole('button', { name: 'Request signatures' }).click()
@@ -229,3 +210,16 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	await expect(page.getByText('Signer 02')).toBeVisible()
 	await expect(page.getByText('Not signed yet')).not.toBeVisible()
 })
+
+async function restoreAppConfig(
+	requestContext: APIRequestContext,
+	key: string,
+	value: string | null,
+): Promise<void> {
+	if (value === null) {
+		await deleteAppConfig(requestContext, 'libresign', key)
+		return
+	}
+
+	await setAppConfig(requestContext, 'libresign', key, value)
+}
