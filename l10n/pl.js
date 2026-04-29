@@ -119,7 +119,6 @@ OC.L10N.register(
     "File already signed by you" : "Plik już podpisany przez Ciebie",
     "signed" : "podpisany",
     "LibreSign" : "LibreSign",
-    "✍️ Self-hosted document signer using digital certificate" : "✍️ Samodzielnie utrzymywany podpisywacz dokumentów przy użyciu certyfikatu cyfrowego",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplikacja do podpisu cyfrowego dla Nextcloud.",
     "Name cannot be empty" : "Nazwa nie może być pusta",
     "Cancel" : "Anuluj",

@@ -148,7 +148,6 @@ OC.L10N.register(
     "File already signed by you" : "Fil allerede signert av deg",
     "signed" : "signert",
     "LibreSign" : "LibreSign",
-    "✍️ Self-hosted document signer using digital certificate" : "✍️ Selvvertet dokumentunderskriver som bruker digitalt sertifikat",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, digital signatur-app for Nextcloud.",
     "Name cannot be empty" : "Navn kan ikke være tom",
     "Cancel" : "Avbryt",
