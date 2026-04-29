@@ -8,25 +8,19 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\FooterHandler;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
-use OCP\IAppConfig;
 
 class FooterService {
 	public function __construct(
-		private IAppConfig $appConfig,
+		private PolicyService $policyService,
 		private FooterHandler $footerHandler,
 	) {
 	}
 
 	public function isDefaultTemplate(): bool {
-		$legacyCustomTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
-		if ($legacyCustomTemplate !== '') {
-			return false;
-		}
-
 		$footerPolicy = $this->getEffectiveFooterPolicy();
 		return !$footerPolicy['customizeFooterTemplate'];
 	}
@@ -40,7 +34,6 @@ class FooterService {
 		$defaultTemplateFromPolicy = $currentPolicy['footerTemplate'];
 
 		if (empty($template)) {
-			$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
 			$this->syncFooterPolicyTemplate('', false);
 			return;
 		}
@@ -48,30 +41,24 @@ class FooterService {
 		$isProvidedTemplateEqualsDefault = $template === $defaultTemplateFromPolicy;
 
 		if ($isProvidedTemplateEqualsDefault) {
-			$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
 			$this->syncFooterPolicyTemplate('', false);
 		} else {
-			$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
 			$this->syncFooterPolicyTemplate($template, true);
 		}
 	}
 
 	private function syncFooterPolicyTemplate(string $template, bool $customizeFooterTemplate): void {
 		$currentPolicy = $this->getEffectiveFooterPolicy();
-		$defaultTemplate = $currentPolicy['footerTemplate'];
-
-		$normalizedPolicy = FooterPolicyValue::normalize(
-			$this->appConfig->getValueString(Application::APP_ID, FooterPolicy::KEY, ''),
-			$defaultTemplate
-		);
+		$normalizedPolicy = FooterPolicyValue::normalize($currentPolicy);
 
 		$normalizedPolicy['customizeFooterTemplate'] = $customizeFooterTemplate;
 		$normalizedPolicy['footerTemplate'] = $customizeFooterTemplate ? $template : '';
 
-		$this->appConfig->setValueString(
-			Application::APP_ID,
+		$allowChildOverride = $this->policyService->getSystemPolicy(FooterPolicy::KEY)?->isAllowChildOverride() ?? false;
+		$this->policyService->saveSystem(
 			FooterPolicy::KEY,
-			FooterPolicyValue::encode($normalizedPolicy)
+			FooterPolicyValue::encode($normalizedPolicy),
+			$allowChildOverride,
 		);
 	}
 
