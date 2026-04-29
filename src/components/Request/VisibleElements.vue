@@ -459,13 +459,9 @@ const modal = ref(false)
 const loading = ref(false)
 const signerSelected = ref<SignerSummaryRecord | null>(null)
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
-	'is-available': false,
-	'full-signature-width': 0,
-	'full-signature-height': 0,
-}
-const width = ref(signElementsConfig['full-signature-width'])
-const height = ref(signElementsConfig['full-signature-height'])
+const signElementsConfig = capabilities.libresign?.config['sign-elements']
+const width = ref(Number(signElementsConfig?.['full-signature-width']))
+const height = ref(Number(signElementsConfig?.['full-signature-height']))
 const filePagesMap = ref<Record<number, FilePageInfo>>({})
 const elementsLoaded = ref(false)
 const fetchedFiles = ref<EditableRequestChildFile[]>([])
@@ -603,7 +599,7 @@ async function showModal() {
 	if (!canRequestSign.value) {
 		return
 	}
-	if (signElementsConfig['is-available'] === false) {
+	if (signElementsConfig?.['is-available'] === false) {
 		return
 	}
 	modal.value = true
