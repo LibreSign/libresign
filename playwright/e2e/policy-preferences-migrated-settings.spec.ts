@@ -79,7 +79,7 @@ test.describe('Policy preferences: migrated settings', () => {
 
 			await login(page.request, endUser, endPass)
 			await page.goto('/index.php/apps/libresign/f/preferences')
-			await page.waitForLoadState('networkidle')
+			await page.locator('#app-navigation-vue').waitFor({ state: 'visible' })
 			await expandSettingsMenu(page)
 
 			const collectMetadataSection = await sectionByTitle(page, 'Collect signer metadata')
