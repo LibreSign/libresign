@@ -201,6 +201,9 @@ describe('SignatureStamp.vue', () => {
 					data: {
 						signature_available_variables: { '{{ signerName }}': 'Signer name' },
 						default_signature_text_template: 'Updated default',
+						parsed: '<p>Updated</p>',
+						templateFontSize: 12,
+						signatureFontSize: 20,
 					},
 				},
 			},
@@ -210,9 +213,18 @@ describe('SignatureStamp.vue', () => {
 			data: {
 				ocs: {
 					data: {
-						parsed: '<p>Updated</p>',
-						templateFontSize: 12,
-						signatureFontSize: 20,
+						policy: {
+							policyKey: 'signature_text',
+							effectiveValue: '{"template":"Updated template"}',
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							allowedValues: [],
+							canSaveAsUserDefault: true,
+							canUseAsRequestOverride: true,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
 					},
 				},
 			},
@@ -273,13 +285,21 @@ describe('SignatureStamp.vue', () => {
 		await wrapper.vm.saveTemplate()
 		await flushPromises()
 
-		expect(axiosPostMock).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/admin/signature-text', {
-			template: 'Updated template',
-			templateFontSize: 11,
-			signatureFontSize: 19,
-			signatureWidth: 180,
-			signatureHeight: 90,
-			renderMode: 'GRAPHIC_AND_DESCRIPTION',
+		expect(axiosPostMock).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/policies/system/signature_text', {
+			allowChildOverride: false,
+			value: JSON.stringify({
+				template: 'Updated template',
+				template_font_size: 11,
+				signature_font_size: 19,
+				signature_width: 180,
+				signature_height: 90,
+				render_mode: 'default',
+			}),
+		})
+		expect(axiosGetMock).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/admin/signature-text', {
+			params: {
+				template: 'Updated template',
+			},
 		})
 		expect(wrapper.vm.parsed).toBe('<p>Updated</p>')
 		expect(wrapper.vm.templateFontSize).toBe(12)
@@ -327,8 +347,8 @@ describe('SignatureStamp.vue', () => {
 		await wrapper.vm.resetSignatureHeight()
 
 		expect(wrapper.vm.renderMode).toBe('GRAPHIC_AND_DESCRIPTION')
-		expect(wrapper.vm.signatureWidth).toBe(180)
-		expect(wrapper.vm.signatureHeight).toBe(90)
+		expect(wrapper.vm.signatureWidth).toBe(90)
+		expect(wrapper.vm.signatureHeight).toBe(60)
 	})
 
 	it('regression: signature dimension fields bind min="1" matching the backend SIGNATURE_DIMENSION_MINIMUM', () => {
@@ -350,7 +370,7 @@ describe('SignatureStamp.vue', () => {
 				data: {
 					ocs: {
 						data: {
-							error: 'Invalid signature box size. Width and height must be at least 1.',
+							message: 'Invalid signature box size. Width and height must be at least 1.',
 						},
 					},
 				},
