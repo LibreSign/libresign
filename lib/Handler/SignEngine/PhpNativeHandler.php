@@ -242,16 +242,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 	private function getTsaSettings(): array {
 		$resolved = $this->policyService->resolve(TsaPolicy::KEY)->getEffectiveValue();
 		$settings = TsaPolicyValue::decode($resolved);
-		if (!empty($settings['url'])) {
-			return $settings;
-		}
-
-		return [
-			'url' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', ''),
-			'policy_oid' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_policy_oid', ''),
-			'auth_type' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_auth_type', 'none'),
-			'username' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', ''),
-		];
+		return $settings;
 	}
 
 	private function resolveCertificationLevel(bool $noVisibleElements): ?CertificationLevel {
