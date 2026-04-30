@@ -8,28 +8,43 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCA\Libresign\Service\TsaValidationService;
-use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @internal
  */
 final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private TsaValidationService $service;
-	private IAppConfig $appConfig;
+	private PolicyService&MockObject $policyService;
+	private string $tsaPolicyValue = '';
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->appConfig = $this->getMockAppConfigWithReset();
-		$this->service = new TsaValidationService($this->appConfig);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService
+			->method('resolve')
+			->willReturnCallback(function (string|\BackedEnum $policyKey): ResolvedPolicy {
+				$key = $policyKey instanceof \BackedEnum ? (string)$policyKey->value : $policyKey;
+				$value = $key === TsaPolicy::KEY ? $this->tsaPolicyValue : null;
+
+				return (new ResolvedPolicy())
+					->setPolicyKey($key)
+					->setEffectiveValue($value);
+			});
+		$this->service = new TsaValidationService($this->policyService);
 	}
 
 	public static function provideValidTsaUrls(): array {
 		return [
 			'no TSA configured' => [''],
+			'whitespace only is normalized to disabled TSA' => ['   '],
 			'valid HTTPS URL' => ['https://freetsa.org/tsr'],
 			'localhost IP with HTTPS' => ['https://127.0.0.1:8080/tsa'],
 			'localhost hostname' => ['http://localhost:8080/tsa'],
@@ -40,7 +55,12 @@ final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 
 	#[DataProvider('provideValidTsaUrls')]
 	public function testValidateConfigurationSuccess(string $tsaUrl): void {
-		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', $tsaUrl);
+		$this->tsaPolicyValue = TsaPolicyValue::encode([
+			'url' => $tsaUrl,
+			'policy_oid' => '',
+			'auth_type' => 'none',
+			'username' => '',
+		]);
 		$this->service->validateConfiguration();
 		$this->assertTrue(true);
 	}
@@ -55,11 +75,6 @@ final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			'missing host' => [
 				'http://',
 				'Invalid TSA URL format: http://',
-				false,
-			],
-			'whitespace only' => [
-				'   ',
-				'Invalid TSA URL format',
 				false,
 			],
 			'javascript protocol' => [
@@ -87,7 +102,12 @@ final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 
 	#[DataProvider('provideInvalidTsaUrls')]
 	public function testValidateConfigurationFailure(string $tsaUrl, string $expectedMessage, bool $isRegex): void {
-		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', $tsaUrl);
+		$this->tsaPolicyValue = TsaPolicyValue::encode([
+			'url' => $tsaUrl,
+			'policy_oid' => '',
+			'auth_type' => 'none',
+			'username' => '',
+		]);
 
 		$this->expectException(LibresignException::class);
 		if ($isRegex) {
@@ -100,7 +120,12 @@ final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	}
 
 	public function testGetTsaUrlRetrievesConfiguredValue(): void {
-		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', 'https://test-tsa.example.com');
+		$this->tsaPolicyValue = TsaPolicyValue::encode([
+			'url' => 'https://test-tsa.example.com',
+			'policy_oid' => '',
+			'auth_type' => 'none',
+			'username' => '',
+		]);
 
 		$result = self::invokePrivate($this->service, 'getTsaUrl');
 

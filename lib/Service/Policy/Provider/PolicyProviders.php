@@ -12,12 +12,13 @@ use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
+use OCA\Libresign\Service\Policy\Provider\DefaultUserFolder\DefaultUserFolderPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
 use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
-use OCA\Libresign\Service\Policy\Provider\DefaultUserFolder\DefaultUserFolderPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
@@ -25,6 +26,7 @@ use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureBackground\SignatureBackgroundPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 
 final class PolicyProviders {
@@ -49,7 +51,9 @@ final class PolicyProviders {
 		SignatureFlowPolicy::KEY => SignatureFlowPolicy::class,
 		SignatureBackgroundPolicy::KEY => SignatureBackgroundPolicy::class,
 		IdentificationDocumentsPolicy::KEY => IdentificationDocumentsPolicy::class,
+		IdentifyMethodsPolicy::KEY => IdentifyMethodsPolicy::class,
 		SignatureTextPolicy::KEY => SignatureTextPolicy::class,
+		TsaPolicy::KEY => TsaPolicy::class,
 		SignatureTextPolicy::KEY_TEMPLATE => SignatureTextPolicy::class,
 		SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE => SignatureTextPolicy::class,
 		SignatureTextPolicy::KEY_SIGNATURE_WIDTH => SignatureTextPolicy::class,
