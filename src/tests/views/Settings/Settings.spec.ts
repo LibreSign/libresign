@@ -30,16 +30,14 @@ describe('Settings.vue', () => {
 					ConfigureCheck: true,
 					RootCertificateCfssl: true,
 					RootCertificateOpenSsl: true,
-					IdentificationFactors: true,
 					SigningMode: true,
-					TSA: true,
 				},
 			},
 		})
 
 		expect(wrapper.find('.support-project-stub').exists()).toBe(true)
 		expect(wrapper.findAllComponents({ name: 'SignatureEngine' })).toHaveLength(1)
-		expect(wrapper.findAllComponents({ name: 'TSA' })).toHaveLength(1)
+		expect(wrapper.findAllComponents({ name: 'SettingsPolicyWorkbench' })).toHaveLength(1)
 	})
 
 	it('does not render SigningMode because the template gate is false', () => {
@@ -54,9 +52,7 @@ describe('Settings.vue', () => {
 					ConfigureCheck: true,
 					RootCertificateCfssl: true,
 					RootCertificateOpenSsl: true,
-					IdentificationFactors: true,
 					SigningMode: { name: 'SigningMode', template: '<div class="signing-mode-stub" />' },
-					TSA: true,
 				},
 			},
 		})

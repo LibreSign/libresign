@@ -15,6 +15,7 @@ import {
 	maximumValidityRealDefinition,
 	renewalIntervalRealDefinition,
 } from './expiration-rules/realDefinitions'
+import { identifyMethodsRealDefinition } from './identify-methods/realDefinition'
 import { identificationDocumentsRealDefinition } from './identification-documents/realDefinition'
 import { legalInformationRealDefinition } from './legal-information/realDefinition'
 import { reminderRealDefinition } from './reminder/realDefinition'
@@ -24,6 +25,7 @@ import { signatureFooterRealDefinition } from './signature-footer/realDefinition
 import { signatureFlowRealDefinition } from './signature-flow/realDefinition'
 import { signatureHashAlgorithmRealDefinition } from './signature-hash-algorithm/realDefinition'
 import { signatureTextRealDefinition } from './signature-text/realDefinition'
+import { tsaRealDefinition } from './tsa/realDefinition'
 import { validationAccessRealDefinition } from './validation-access/realDefinition'
 import type { RealPolicySettingDefinition } from './realTypes'
 
@@ -42,10 +44,12 @@ export const realDefinitions = {
 	maximum_validity: maximumValidityRealDefinition,
 	renewal_interval: renewalIntervalRealDefinition,
 	expiry_in_days: expiryInDaysRealDefinition,
+	identify_methods: identifyMethodsRealDefinition,
 	identification_documents: identificationDocumentsRealDefinition,
 	reminder_settings: reminderRealDefinition,
 	groups_request_sign: requestSignGroupsRealDefinition,
 	make_validation_url_private: validationAccessRealDefinition,
 	signature_background_type: signatureBackgroundRealDefinition,
 	signature_text: signatureTextRealDefinition,
+	tsa_settings: tsaRealDefinition,
 } satisfies Record<string, RealPolicySettingDefinition>
