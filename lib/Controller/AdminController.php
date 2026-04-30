@@ -822,11 +822,6 @@ class AdminController extends AEnvironmentAwareController {
 			false,
 		);
 
-		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', $trimmedUrl);
-		$this->appConfig->setValueString(Application::APP_ID, 'tsa_policy_oid', $trimmedOid);
-		$this->appConfig->setValueString(Application::APP_ID, 'tsa_auth_type', $authType);
-		$this->appConfig->setValueString(Application::APP_ID, 'tsa_username', $username);
-
 		return new DataResponse(['status' => 'success']);
 	}
 
@@ -843,11 +838,6 @@ class AdminController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/tsa', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteTsaConfig(): DataResponse {
 		$this->policyService->saveSystem(TsaPolicy::KEY, TsaPolicyValue::defaults(), false);
-		$this->appConfig->deleteKey(Application::APP_ID, 'tsa_url');
-		$this->appConfig->deleteKey(Application::APP_ID, 'tsa_policy_oid');
-		$this->appConfig->deleteKey(Application::APP_ID, 'tsa_auth_type');
-		$this->appConfig->deleteKey(Application::APP_ID, 'tsa_username');
-		$this->appConfig->deleteKey(Application::APP_ID, 'tsa_password');
 
 		return new DataResponse(['status' => 'success']);
 	}

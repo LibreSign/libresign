@@ -136,14 +136,7 @@ class IdentifyService {
 
 		$resolved = $this->policyService->resolve(IdentifyMethodsPolicy::KEY)->getEffectiveValue();
 		$normalized = IdentifyMethodsPolicyValue::normalize($resolved);
-		if ($normalized !== []) {
-			$this->savedSettings = $normalized;
-			return $this->savedSettings;
-		}
-
-		$legacyRaw = $this->appConfig->getValueString(Application::APP_ID, IdentifyMethodsPolicy::KEY, '');
-		$this->savedSettings = IdentifyMethodsPolicyValue::normalize($legacyRaw);
-
+		$this->savedSettings = $normalized;
 		return $this->savedSettings;
 	}
 

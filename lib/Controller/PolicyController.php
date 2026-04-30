@@ -107,6 +107,13 @@ final class PolicyController extends AEnvironmentAwareController {
 				'allowedValues' => $policy?->getAllowedValues() ?? [],
 			],
 		];
+		$rawValue = $data['policy']['value'];
+		if (is_string($rawValue)) {
+			$decoded = json_decode($rawValue, true);
+			if (is_array($decoded)) {
+				$data['policy']['value'] = $decoded;
+			}
+		}
 
 		return new DataResponse($data);
 	}
