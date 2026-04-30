@@ -16,6 +16,10 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -48,6 +52,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		private SignatureTextService $signatureTextService,
 		private ITempManager $tempManager,
 		private SignatureBackgroundService $signatureBackgroundService,
+		private PolicyService $policyService,
 		protected CertificateEngineFactory $certificateEngineFactory,
 		protected JavaHelper $javaHelper,
 		private DocMdpConfigService $docMdpConfigService,
@@ -153,7 +158,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function getHashAlgorithm(string $pdfContent): string {
-		$configuredAlgorithm = $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
+		$configuredAlgorithm = (string)$this->policyService->resolve(SignatureHashAlgorithmPolicy::KEY)->getEffectiveValue();
 		/**
 		 * Need to respect the follow code:
 		 * https://github.com/intoolswetrust/jsignpdf/blob/JSignPdf_2_2_2/jsignpdf/src/main/java/net/sf/jsignpdf/types/HashAlgorithm.java#L46-L47
@@ -226,7 +231,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		if ($version >= self::MIN_PDF_VERSION_SHA256) {
 			return false;
 		}
-		$hashAlgorithm = $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
+		$hashAlgorithm = (string)$this->policyService->resolve(SignatureHashAlgorithmPolicy::KEY)->getEffectiveValue();
 		return $hashAlgorithm === 'SHA256';
 	}
 
@@ -641,23 +646,24 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function getTsaParameters(): array {
-		$tsaUrl = $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', '');
+		$tsaSettings = $this->getTsaSettings();
+		$tsaUrl = $tsaSettings['url'];
 		if (empty($tsaUrl)) {
 			return [];
 		}
 
 		$params = [
 			'--tsa-server-url' => $tsaUrl,
-			'--tsa-policy-oid' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_policy_oid', ''),
+			'--tsa-policy-oid' => $tsaSettings['policy_oid'],
 		];
 
 		if (!$params['--tsa-policy-oid']) {
 			unset($params['--tsa-policy-oid']);
 		}
 
-		$tsaAuthType = $this->appConfig->getValueString(Application::APP_ID, 'tsa_auth_type', 'none');
+		$tsaAuthType = $tsaSettings['auth_type'];
 		if ($tsaAuthType === 'basic') {
-			$tsaUsername = $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', '');
+			$tsaUsername = $tsaSettings['username'];
 			$tsaPassword = $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', '');
 
 			if (!empty($tsaUsername) && !empty($tsaPassword)) {
@@ -668,6 +674,14 @@ class JSignPdfHandler extends Pkcs12Handler {
 		}
 
 		return $params;
+	}
+
+	/**
+	 * @return array{url: string, policy_oid: string, auth_type: string, username: string}
+	 */
+	private function getTsaSettings(): array {
+		$resolved = $this->policyService->resolve(TsaPolicy::KEY)->getEffectiveValue();
+		return TsaPolicyValue::decode($resolved);
 	}
 
 	private function signWrapper(JSignPDF $jSignPDF): string {
