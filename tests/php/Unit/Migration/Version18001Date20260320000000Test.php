@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Migration;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Migration\Version18001Date20260320000000;
+use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCP\Exceptions\AppConfigTypeConflictException;
@@ -441,5 +442,64 @@ final class Version18001Date20260320000000Test extends TestCase {
 
 		self::assertSame('ordered_numeric', $savedStrings['policy.signature_flow.system']);
 		self::assertContains([Application::APP_ID, 'signature_flow'], $deleted);
+	}
+
+	public function testMigratesExpirationRulesFromStringToInt(): void {
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+
+				$map = [
+					'add_footer' => '',
+					'write_qrcode_on_footer' => '',
+					'validation_site' => '',
+					'footer_template_is_default' => '',
+					'collect_metadata' => '',
+					'identification_documents' => '',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					'identify_methods' => '',
+					ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => '600',
+					ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => '300',
+					ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS => '0',
+				];
+
+				return $map[$key] ?? $default;
+			});
+
+		$savedInts = [];
+		$this->appConfig
+			->method('setValueInt')
+			->willReturnCallback(static function (string $app, string $key, int $value) use (&$savedInts): bool {
+				$savedInts[$key] = $value;
+				return true;
+			});
+
+		$deleted = [];
+		$this->appConfig
+			->method('deleteKey')
+			->willReturnCallback(static function (string $app, string $key) use (&$deleted): void {
+				$deleted[] = [$app, $key];
+			});
+
+		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertSame(600, $savedInts[ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY]);
+		self::assertSame(300, $savedInts[ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL]);
+		self::assertSame(ExpirationRulesPolicy::DEFAULT_EXPIRY_IN_DAYS, $savedInts[ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS]);
+		self::assertContains([Application::APP_ID, ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY], $deleted);
+		self::assertContains([Application::APP_ID, ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL], $deleted);
+		self::assertContains([Application::APP_ID, ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS], $deleted);
 	}
 }
