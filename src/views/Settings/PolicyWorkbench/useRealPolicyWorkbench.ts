@@ -7,7 +7,7 @@ import axios from '@nextcloud/axios'
 import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
-import { computed, reactive, ref } from 'vue'
+import { computed, nextTick, reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 import { realDefinitions } from './settings/realDefinitions'
@@ -930,6 +930,8 @@ export function createRealPolicyWorkbenchState() {
 	}
 
 	async function saveDraft() {
+		await nextTick()
+
 		if (!editorDraft.value || !activeDefinition.value || !canSaveDraft.value) {
 			return
 		}

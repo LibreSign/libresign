@@ -80,4 +80,31 @@ final class ResolvedPolicyTest extends TestCase {
 			'blockedBy' => 'group',
 		], $policy->toArray());
 	}
+
+	/**
+	 * @dataProvider providerGetEffectiveValueAsBool
+	 */
+	public function testGetEffectiveValueAsBool(mixed $effectiveValue, bool $expected, bool $default = false): void {
+		$policy = (new ResolvedPolicy())
+			->setEffectiveValue($effectiveValue);
+
+		$this->assertSame($expected, $policy->getEffectiveValueAsBool($default));
+	}
+
+	/** @return array<string, array{0: mixed, 1: bool, 2?: bool}> */
+	public static function providerGetEffectiveValueAsBool(): array {
+		return [
+			'bool true' => [true, true],
+			'bool false' => [false, false],
+			'string true' => ['true', true],
+			'string false' => ['false', false],
+			'int 1' => [1, true],
+			'int 0' => [0, false],
+			'float non zero' => [0.5, true],
+			'float zero' => [0.0, false],
+			'invalid string uses default true' => ['not-bool', true, true],
+			'null uses default false' => [null, false],
+			'array uses default true' => [['unexpected'], true, true],
+		];
+	}
 }

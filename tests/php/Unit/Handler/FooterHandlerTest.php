@@ -100,6 +100,9 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$policyValidationSite = isset($settings['validation_site']) && is_string($settings['validation_site'])
 					? $settings['validation_site']
 					: '';
+				$customTemplate = isset($settings['footer_template']) && is_string($settings['footer_template'])
+					? trim($settings['footer_template'])
+					: '';
 				$this->appConfig->setValueString(
 					Application::APP_ID,
 					'add_footer',
@@ -107,9 +110,15 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'enabled' => (bool)$value,
 						'writeQrcodeOnFooter' => true,
 						'validationSite' => $policyValidationSite,
-						'customizeFooterTemplate' => false,
+						'customizeFooterTemplate' => $customTemplate !== '',
+						'footerTemplate' => $customTemplate,
 					]),
 				);
+				continue;
+			}
+
+			// footer_template is now part of the add_footer policy value
+			if ($key === 'footer_template') {
 				continue;
 			}
 
@@ -343,7 +352,17 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetTemplateReturnsCustomTemplate(): void {
 		$customTemplate = '<div>Custom footer template {{ uuid }}</div>';
-		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $customTemplate);
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			'add_footer',
+			FooterPolicyValue::encode([
+				'enabled' => true,
+				'writeQrcodeOnFooter' => true,
+				'validationSite' => '',
+				'customizeFooterTemplate' => true,
+				'footerTemplate' => $customTemplate,
+			]),
+		);
 		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
 
 		$template = $this->getClass()->getTemplate();
@@ -438,13 +457,9 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'enabled' => true,
 				'writeQrcodeOnFooter' => false,
 				'validationSite' => 'https://validation.example',
-				'customizeFooterTemplate' => false,
+				'customizeFooterTemplate' => true,
+				'footerTemplate' => '<div>qrcode:{{ qrcode }} validateIn:{{ validationSite }}</div>',
 			]),
-		);
-		$this->appConfig->setValueString(
-			Application::APP_ID,
-			'footer_template',
-			'<div>qrcode:{{ qrcode }} validateIn:{{ validationSite }}</div>',
 		);
 
 		$dimensions = [['w' => 595, 'h' => 100]];

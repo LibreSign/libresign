@@ -11,8 +11,9 @@ namespace OCA\Libresign\Service;
 use Exception;
 use Imagick;
 use ImagickPixel;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Files\TSimpleFile;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\SignatureBackground\SignatureBackgroundPolicy;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -33,6 +34,7 @@ class SignatureBackgroundService {
 		private IConfig $config,
 		private ITempManager $tempManager,
 		private SignatureTextService $signatureTextService,
+		private PolicyService $policyService,
 	) {
 	}
 
@@ -52,13 +54,23 @@ class SignatureBackgroundService {
 
 		$content = $this->optmizeImage(file_get_contents($tmpFile));
 
-		$this->appConfig->setValueString(Application::APP_ID, 'signature_background_type', 'custom');
+		$this->saveSystemBackgroundType('custom');
 		$target = $folder->newFile('background.png');
 		$target->putContent($content);
 	}
 
 	public function getSignatureBackgroundType(): string {
-		return $this->appConfig->getValueString(Application::APP_ID, 'signature_background_type', 'default');
+		$value = $this->policyService->resolve(SignatureBackgroundPolicy::KEY)->getEffectiveValue();
+		if (!is_string($value)) {
+			return 'default';
+		}
+
+		$normalized = trim(strtolower($value));
+		if (!in_array($normalized, ['default', 'custom', 'deleted'], true)) {
+			return 'default';
+		}
+
+		return $normalized;
 	}
 
 	public function isEnabled(): bool {
@@ -110,7 +122,7 @@ class SignatureBackgroundService {
 
 	public function delete(): void {
 		try {
-			$this->appConfig->setValueString(Application::APP_ID, 'signature_background_type', 'deleted');
+			$this->saveSystemBackgroundType('deleted');
 			$file = $this->getRootFolder()->getFile('background.png');
 			$file->delete();
 		} catch (NotFoundException|NotPermittedException) {
@@ -119,11 +131,16 @@ class SignatureBackgroundService {
 
 	public function reset(): void {
 		try {
-			$this->appConfig->deleteKey(Application::APP_ID, 'signature_background_type');
+			$this->saveSystemBackgroundType('default');
 			$file = $this->getRootFolder()->getFile('background.png');
 			$file->delete();
 		} catch (NotFoundException|NotPermittedException) {
 		}
+	}
+
+	private function saveSystemBackgroundType(string $value): void {
+		$allowChildOverride = $this->policyService->getSystemPolicy(SignatureBackgroundPolicy::KEY)?->isAllowChildOverride() ?? false;
+		$this->policyService->saveSystem(SignatureBackgroundPolicy::KEY, $value, $allowChildOverride);
 	}
 
 	public function getImage(): ISimpleFile {

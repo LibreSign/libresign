@@ -29,16 +29,19 @@ class FooterService {
 		return $this->footerHandler->getTemplate();
 	}
 
+	public function getDefaultTemplate(): string {
+		return $this->footerHandler->getDefaultTemplate();
+	}
+
 	public function saveTemplate(string $template = ''): void {
-		$currentPolicy = $this->getEffectiveFooterPolicy();
-		$defaultTemplateFromPolicy = $currentPolicy['footerTemplate'];
+		$defaultTemplate = $this->footerHandler->getDefaultTemplate();
 
 		if (empty($template)) {
 			$this->syncFooterPolicyTemplate('', false);
 			return;
 		}
 
-		$isProvidedTemplateEqualsDefault = $template === $defaultTemplateFromPolicy;
+		$isProvidedTemplateEqualsDefault = $template === $defaultTemplate;
 
 		if ($isProvidedTemplateEqualsDefault) {
 			$this->syncFooterPolicyTemplate('', false);
@@ -68,10 +71,6 @@ class FooterService {
 	}
 
 	public function renderPreviewPdf(string $template = '', int $width = 595, int $height = 50, ?bool $writeQrcodeOnFooter = null): string {
-		if (!empty($template)) {
-			$this->saveTemplate($template);
-		}
-
 		$previewUuid = sprintf(
 			'preview-%04x-%04x-%04x-%012x',
 			random_int(0, 0xffff),
@@ -81,6 +80,7 @@ class FooterService {
 		);
 
 		$handler = $this->footerHandler
+			->setTemplateOverride($template !== '' ? $template : null)
 			->setTemplateVar('uuid', $previewUuid)
 			->setTemplateVar('signers', [
 				[

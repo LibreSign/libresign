@@ -544,7 +544,15 @@ class PolicySource implements IPolicySource {
 		$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
 		$allowOverrideConfigKey = $this->getSystemAllowOverrideConfigKey($definition->getAppConfigKey());
 
-		if ($normalizedValue === $defaultValue) {
+		$valuesAreEqual = $normalizedValue === $defaultValue;
+		if (!$valuesAreEqual && is_string($normalizedValue) && is_string($defaultValue)) {
+			$d1 = json_decode($normalizedValue, true);
+			$d2 = json_decode($defaultValue, true);
+			if (is_array($d1) && is_array($d2)) {
+				$valuesAreEqual = $d1 === $d2;
+			}
+		}
+		if ($valuesAreEqual) {
 			if ($allowChildOverride) {
 				$this->writeSystemValue($definition->getAppConfigKey(), $normalizedValue);
 				$this->appConfig->setAppValueString($allowOverrideConfigKey, '1');

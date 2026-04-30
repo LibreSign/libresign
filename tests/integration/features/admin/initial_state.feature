@@ -239,7 +239,6 @@ Feature: admin/initial_state
       | footer_preview_zoom_level         | 85                                |
       | footer_preview_width              | 610                               |
       | footer_preview_height             | 80                                |
-      | footer_template                   | Custom footer for {{ uuid }}      |
       | signature_engine                  | PhpNative                         |
       | signature_render_mode             | DESCRIPTION_ONLY                  |
       | signature_text_template           | Issuer: {{IssuerCommonName}}      |
@@ -260,6 +259,11 @@ Feature: admin/initial_state
       | parallel_workers                  | 9                                 |
       | show_confetti_after_signing       | false                             |
       | crl_external_validation_enabled   | false                             |
+    And sending "post" to ocs "/apps/libresign/api/v1/admin/footer-template"
+      | template | Custom footer for {{ uuid }} |
+      | width    | 610                          |
+      | height   | 80                           |
+    And the response should have a status code 200
     And run the command "config:app:set libresign certificate_policies_oid --value=1.2.3.4.5 --type=string" with result code 0
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-config" json that match with:

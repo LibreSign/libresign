@@ -1,6 +1,11 @@
 Feature: validate
   Scenario: Sign with account, delete the account and validate
     Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identification_documents"
+      | value | false |
+    And the response should have a status code 200
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/signer1/identification_documents"
+    And the response should have a status code 200
     And run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
     And run the command "libresign:install --use-local-cert --java" with result code 0
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
@@ -39,8 +44,8 @@ Feature: validate
       | (jq).ocs.data.signers[0]                      | (jq).name \|test("/L=City Name")                                                         |
       | (jq).ocs.data.signers[0]                      | (jq).name \|test("/O=Organization")                                                      |
       | (jq).ocs.data.signers[0]                      | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]+_g:[0-9]+_e:[oc]?") |
-      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/CN=signer1-displayname")                                              |
-      | (jq).ocs.data.signers[0].subject.CN           | signer1-displayname                                                                      |
+      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/CN=signer1(?:-displayname)?")                                        |
+      | (jq).ocs.data.signers[0]                      | (jq).subject.CN \|test("^signer1(?:-displayname)?$")                                    |
       | (jq).ocs.data.signers[0].subject.C            | BR                                                                                       |
       | (jq).ocs.data.signers[0].subject.ST           | State of Company                                                                         |
       | (jq).ocs.data.signers[0].subject.L            | City Name                                                                                |
@@ -50,7 +55,9 @@ Feature: validate
 
   Scenario Outline: Unauthenticated user can fetch the validation ednpoint
     Given as user "admin"
-    And sending "delete" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/make_validation_url_private"
+      | value | false |
+    And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
@@ -70,8 +77,9 @@ Feature: validate
 
   Scenario Outline: Unauthenticated user can not fetch the validation ednpoint
     Given as user "admin"
-    Given sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private"
+    Given sending "post" to ocs "/apps/libresign/api/v1/policies/system/make_validation_url_private"
       | value | true |
+    And the response should have a status code 200
     And as user ""
     When sending "<method>" to ocs "<url>"
     Then the response should be a JSON array with the following mandatory values

@@ -36,6 +36,7 @@ class FooterHandler {
 	private QrCode $qrCode;
 	/** @var array<string, mixed> */
 	private array $requestPolicyOverrides = [];
+	private ?string $templateOverride = null;
 	private ?bool $writeQrcodeOnFooterOverride = null;
 	private const MIN_QRCODE_SIZE = 100;
 	private const POINT_TO_MILIMETER = 0.3527777778;
@@ -129,6 +130,11 @@ class FooterHandler {
 		return $this;
 	}
 
+	public function setTemplateOverride(?string $template): self {
+		$this->templateOverride = $template;
+		return $this;
+	}
+
 	public function getEffectiveFooterPolicyAsJson(): string {
 		return (string)$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue();
 	}
@@ -201,6 +207,10 @@ class FooterHandler {
 	}
 
 	public function getTemplate(): string {
+		if ($this->templateOverride !== null) {
+			return trim($this->templateOverride) !== '' ? $this->templateOverride : $this->getDefaultTemplate();
+		}
+
 		$footerPolicy = $this->resolveFooterPolicy();
 
 		if ($footerPolicy['customizeFooterTemplate']) {

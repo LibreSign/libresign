@@ -110,6 +110,10 @@ class FooterServiceTest extends TestCase {
 			->method('getEffectiveFooterPolicyAsJson')
 			->willReturn($defaultPolicyValue);
 
+		$this->footerHandler
+			->method('getDefaultTemplate')
+			->willReturn($defaultTemplate);
+
 		$this->policyService
 			->expects($this->once())
 			->method('saveSystem')
@@ -149,6 +153,10 @@ class FooterServiceTest extends TestCase {
 			->method('getEffectiveFooterPolicyAsJson')
 			->willReturn($defaultPolicyValue);
 
+		$this->footerHandler
+			->method('getDefaultTemplate')
+			->willReturn($defaultTemplate);
+
 		$this->policyService
 			->expects($this->once())
 			->method('saveSystem')
@@ -186,6 +194,10 @@ class FooterServiceTest extends TestCase {
 		$this->footerHandler
 			->method('getEffectiveFooterPolicyAsJson')
 			->willReturn($defaultPolicyValue);
+
+		$this->footerHandler
+			->method('getDefaultTemplate')
+			->willReturn($defaultTemplate);
 
 		$layer = new PolicyLayer();
 		$layer->setAllowChildOverride(true);
@@ -233,30 +245,20 @@ class FooterServiceTest extends TestCase {
 	}
 
 	#[DataProvider('provideRenderPreviewPdfScenarios')]
-	public function testRenderPreviewPdf(?string $template, int $width, int $height, bool $shouldSaveTemplate): void {
-		if ($shouldSaveTemplate) {
-			$this->footerHandler
-				->expects($this->exactly(2))
-				->method('getEffectiveFooterPolicyAsJson')
-				->willReturn(FooterPolicyValue::encode(FooterPolicyValue::defaults()));
+	public function testRenderPreviewPdf(?string $template, int $width, int $height): void {
+		$this->footerHandler
+			->expects($this->once())
+			->method('setTemplateOverride')
+			->with($template !== '' ? $template : null)
+			->willReturn($this->footerHandler);
 
-			$this->policyService
-				->expects($this->once())
-				->method('saveSystem')
-				->willReturn(new ResolvedPolicy());
+		$this->footerHandler
+			->expects($this->never())
+			->method('getEffectiveFooterPolicyAsJson');
 
-			$this->policyService
-				->method('getSystemPolicy')
-				->willReturn(null);
-		} else {
-			$this->footerHandler
-				->expects($this->never())
-				->method('getEffectiveFooterPolicyAsJson');
-
-			$this->policyService
-				->expects($this->never())
-				->method('saveSystem');
-		}
+		$this->policyService
+			->expects($this->never())
+			->method('saveSystem');
 
 		$this->footerHandler
 			->expects($this->exactly(2))
@@ -286,6 +288,12 @@ class FooterServiceTest extends TestCase {
 
 	public function testRenderPreviewPdfWithWriteQrcodeOverrideTrue(): void {
 		$this->footerHandler
+			->expects($this->once())
+			->method('setTemplateOverride')
+			->with(null)
+			->willReturn($this->footerHandler);
+
+		$this->footerHandler
 			->expects($this->exactly(2))
 			->method('setTemplateVar')
 			->willReturn($this->footerHandler);
@@ -305,6 +313,12 @@ class FooterServiceTest extends TestCase {
 	}
 
 	public function testRenderPreviewPdfWithWriteQrcodeOverrideFalse(): void {
+		$this->footerHandler
+			->expects($this->once())
+			->method('setTemplateOverride')
+			->with(null)
+			->willReturn($this->footerHandler);
+
 		$this->footerHandler
 			->expects($this->exactly(2))
 			->method('setTemplateVar')
@@ -326,6 +340,12 @@ class FooterServiceTest extends TestCase {
 
 	public function testRenderPreviewPdfWithWriteQrcodeOverrideNull(): void {
 		$this->footerHandler
+			->expects($this->once())
+			->method('setTemplateOverride')
+			->with(null)
+			->willReturn($this->footerHandler);
+
+		$this->footerHandler
 			->expects($this->exactly(2))
 			->method('setTemplateVar')
 			->willReturn($this->footerHandler);
@@ -344,14 +364,14 @@ class FooterServiceTest extends TestCase {
 
 	public static function provideRenderPreviewPdfScenarios(): array {
 		return [
-			'with custom template and default dimensions' => ['<div>Custom</div>', 595, 50, true],
-			'without template uses default' => ['', 595, 50, false],
-			'with custom dimensions' => ['<div>Test</div>', 800, 100, true],
-			'A4 width with custom height' => ['', 595, 75, false],
-			'empty string template' => ['', 595, 50, false],
-			'template with unicode characters' => ['<div>签名 подпись توقيع</div>', 595, 50, true],
-			'minimum dimensions' => ['<div>Min</div>', 1, 1, true],
-			'large dimensions' => ['', 2000, 500, false],
+			'with custom template and default dimensions' => ['<div>Custom</div>', 595, 50],
+			'without template uses default' => ['', 595, 50],
+			'with custom dimensions' => ['<div>Test</div>', 800, 100],
+			'A4 width with custom height' => ['', 595, 75],
+			'empty string template' => ['', 595, 50],
+			'template with unicode characters' => ['<div>签名 подпись توقيع</div>', 595, 50],
+			'minimum dimensions' => ['<div>Min</div>', 1, 1],
+			'large dimensions' => ['', 2000, 500],
 		];
 	}
 

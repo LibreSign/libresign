@@ -4,7 +4,9 @@ Feature: page/validate
 
   Scenario Outline: Unauthenticated user can see sign page
     Given as user "admin"
-    And sending "delete" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/make_validation_url_private"
+      | value | false |
+    And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
@@ -27,8 +29,9 @@ Feature: page/validate
 
   Scenario Outline: Unauthenticated user can not see sign page
     Given as user "admin"
-    Given sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private"
+    Given sending "post" to ocs "/apps/libresign/api/v1/policies/system/make_validation_url_private"
       | value | true |
+    And the response should have a status code 200
     And as user ""
     When sending "get" to "<url>"
     Then the response should be a JSON array with the following mandatory values

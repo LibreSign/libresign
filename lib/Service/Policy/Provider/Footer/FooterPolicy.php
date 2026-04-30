@@ -26,16 +26,15 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 
 	#[\Override]
 	public function get(string|\BackedEnum $policyKey): IPolicyDefinition {
-		$instanceBaseTemplate = $this->resolveInstanceBaseTemplate();
 		return match ($this->normalizePolicyKey($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
-				defaultSystemValue: FooterPolicyValue::encode(FooterPolicyValue::defaults($instanceBaseTemplate)),
+				defaultSystemValue: FooterPolicyValue::encode(FooterPolicyValue::defaults()),
 				allowedValues: static fn (): array => [],
-				normalizer: function (mixed $rawValue) use ($instanceBaseTemplate): mixed {
-					return FooterPolicyValue::encode(FooterPolicyValue::normalize($rawValue, $instanceBaseTemplate));
+				normalizer: static function (mixed $rawValue): mixed {
+					return FooterPolicyValue::encode(FooterPolicyValue::normalize($rawValue));
 				},
-				validator: function (mixed $value, PolicyContext $context) use ($instanceBaseTemplate): void {
+				validator: static function (mixed $value, PolicyContext $context): void {
 					if (!is_string($value) || trim($value) === '') {
 						throw new \InvalidArgumentException('Invalid value for ' . self::KEY);
 					}
@@ -46,7 +45,7 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 					}
 
 					if (!self::canManageTechnicalFooterSettings($context)) {
-						$normalized = FooterPolicyValue::normalize($decoded, $instanceBaseTemplate);
+						$normalized = FooterPolicyValue::normalize($decoded);
 						if ($normalized['validationSite'] !== '') {
 							throw new \InvalidArgumentException('Validation URL override is not allowed for this actor');
 						}
@@ -71,12 +70,5 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 
 		return ($capabilities['canManageSystemPolicies'] ?? false) === true
 			|| ($capabilities['canManageGroupPolicies'] ?? false) === true;
-	}
-
-	private function resolveInstanceBaseTemplate(): string {
-		$defaultTemplatePath = __DIR__ . '/../../../../Handler/Templates/footer.twig';
-		$defaultTemplate = @file_get_contents($defaultTemplatePath);
-
-		return is_string($defaultTemplate) ? $defaultTemplate : '';
 	}
 }

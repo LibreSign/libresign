@@ -29,6 +29,8 @@ use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Middleware\Attribute\RequireSignerUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\FileAccessService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\UuidResolverService;
 use OCP\AppFramework\Controller;
@@ -41,7 +43,6 @@ use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Middleware;
 use OCP\AppFramework\Services\IInitialState;
-use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
@@ -63,8 +64,8 @@ class InjectionMiddleware extends Middleware {
 		private FileAccessService $fileAccessService,
 		private SignFileService $signFileService,
 		private UuidResolverService $uuidResolverService,
+		private PolicyService $policyService,
 		private IL10N $l10n,
-		private IAppConfig $appConfig,
 		private IURLGenerator $urlGenerator,
 		protected ?string $userId,
 	) {
@@ -114,7 +115,9 @@ class InjectionMiddleware extends Middleware {
 		if ($this->userSession->isLoggedIn()) {
 			return;
 		}
-		$isValidationUrlPrivate = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'make_validation_url_private', false);
+		$isValidationUrlPrivate = $this->policyService
+			->resolve(ValidationAccessPolicy::KEY)
+			->getEffectiveValueAsBool();
 		if (!$isValidationUrlPrivate) {
 			return;
 		}

@@ -21,13 +21,17 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 	description: t('libresign', 'Manage footer visibility, QR code behavior, validation URL, and footer template customization.'),
 	editor: SignatureFooterRuleEditor,
 	editorProps: {
-		inheritedTemplate: loadState<string>('libresign', 'footer_template', ''),
+		inheritedTemplate: loadState<string>('libresign', 'footer_default_template', loadState<string>('libresign', 'footer_template', '')),
 		allowValidationSiteOverrideInUserScope: false,
 		preferenceAutoSave: true,
 	},
 	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
 		const policyWithInherited = policy as (EffectivePolicyState & { inheritedValue?: EffectivePolicyValue }) | null
 		if (policyWithInherited && Object.prototype.hasOwnProperty.call(policyWithInherited, 'inheritedValue')) {
+			if (policyWithInherited.sourceScope === 'global' || policyWithInherited.sourceScope === 'system') {
+				return baseEditorProps
+			}
+
 			const normalizedInherited = normalizeSignatureFooterPolicyConfig(policyWithInherited.inheritedValue ?? null)
 			const resolvedTemplate = normalizedInherited.footerTemplate.trim() !== ''
 				? normalizedInherited.footerTemplate
