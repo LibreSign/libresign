@@ -24,6 +24,8 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCA\Libresign\Service\ReminderService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -760,10 +762,9 @@ class AdminController extends AEnvironmentAwareController {
 			], Http::STATUS_BAD_REQUEST);
 		}
 
-		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', $trimmedUrl);
-
+		$trimmedOid = '';
 		if (empty($tsa_policy_oid)) {
-			$this->appConfig->deleteKey(Application::APP_ID, 'tsa_policy_oid');
+			$trimmedOid = '';
 		} else {
 			$trimmedOid = trim($tsa_policy_oid);
 			if (!preg_match('/^[0-9]+(\.[0-9]+)*$/', $trimmedOid)) {
@@ -772,11 +773,10 @@ class AdminController extends AEnvironmentAwareController {
 					'message' => 'Invalid OID format'
 				], Http::STATUS_BAD_REQUEST);
 			}
-			$this->appConfig->setValueString(Application::APP_ID, 'tsa_policy_oid', $trimmedOid);
 		}
 
 		$authType = $tsa_auth_type ?? 'none';
-		$this->appConfig->setValueString(Application::APP_ID, 'tsa_auth_type', $authType);
+		$username = '';
 
 		if ($authType === 'basic') {
 			$hasUsername = !empty($tsa_username);
@@ -799,7 +799,7 @@ class AdminController extends AEnvironmentAwareController {
 				], Http::STATUS_BAD_REQUEST);
 			}
 
-			$this->appConfig->setValueString(Application::APP_ID, 'tsa_username', trim($tsa_username));
+			$username = trim($tsa_username);
 			$this->appConfig->setValueString(
 				Application::APP_ID,
 				key: 'tsa_password',
@@ -807,9 +807,20 @@ class AdminController extends AEnvironmentAwareController {
 				sensitive: true,
 			);
 		} else {
-			$this->appConfig->deleteKey(Application::APP_ID, 'tsa_username');
+			$username = '';
 			$this->appConfig->deleteKey(Application::APP_ID, 'tsa_password');
 		}
+
+		$this->policyService->saveSystem(
+			TsaPolicy::KEY,
+			[
+				'url' => $trimmedUrl,
+				'policy_oid' => $trimmedOid,
+				'auth_type' => $authType,
+				'username' => $username,
+			],
+			false,
+		);
 
 		return new DataResponse(['status' => 'success']);
 	}
@@ -826,11 +837,8 @@ class AdminController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/tsa', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteTsaConfig(): DataResponse {
-		$fields = ['tsa_url', 'tsa_policy_oid', 'tsa_auth_type', 'tsa_username', 'tsa_password'];
-
-		foreach ($fields as $field) {
-			$this->appConfig->deleteKey(Application::APP_ID, $field);
-		}
+		$this->policyService->saveSystem(TsaPolicy::KEY, TsaPolicyValue::defaults(), false);
+		$this->appConfig->deleteKey(Application::APP_ID, 'tsa_password');
 
 		return new DataResponse(['status' => 'success']);
 	}
