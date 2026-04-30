@@ -3,17 +3,23 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
+
 import { createL10nMock } from '../../testHelpers/l10n.js'
 
 vi.mock('@nextcloud/l10n', () => createL10nMock())
 
-import Settings from '../../../views/Settings/Settings.vue'
+let Settings: unknown
+
+beforeAll(async () => {
+	const settingsModule = await import('../../../views/Settings/Settings.vue')
+	Settings = settingsModule.default
+})
 
 describe('Settings.vue', () => {
 	it('renders the main settings sections container', () => {
-		const wrapper = mount(Settings, {
+		const wrapper = mount(Settings as never, {
 			global: {
 				stubs: {
 					SupportProject: { template: '<div class="support-project-stub" />' },
@@ -25,15 +31,7 @@ describe('Settings.vue', () => {
 					RootCertificateCfssl: true,
 					RootCertificateOpenSsl: true,
 					IdentificationFactors: true,
-					ExpirationRules: true,
-					CrlValidation: true,
 					SigningMode: true,
-					AllowedGroups: true,
-					LegalInformation: true,
-					SignatureHashAlgorithm: true,
-					DefaultUserFolder: true,
-					Envelope: true,
-					Reminders: true,
 					TSA: true,
 				},
 			},
@@ -41,11 +39,11 @@ describe('Settings.vue', () => {
 
 		expect(wrapper.find('.support-project-stub').exists()).toBe(true)
 		expect(wrapper.findAllComponents({ name: 'SignatureEngine' })).toHaveLength(1)
-		expect(wrapper.findAllComponents({ name: 'Reminders' })).toHaveLength(1)
+		expect(wrapper.findAllComponents({ name: 'TSA' })).toHaveLength(1)
 	})
 
 	it('does not render SigningMode because the template gate is false', () => {
-		const wrapper = mount(Settings, {
+		const wrapper = mount(Settings as never, {
 			global: {
 				stubs: {
 					SupportProject: true,
@@ -57,15 +55,7 @@ describe('Settings.vue', () => {
 					RootCertificateCfssl: true,
 					RootCertificateOpenSsl: true,
 					IdentificationFactors: true,
-					ExpirationRules: true,
-					CrlValidation: true,
 					SigningMode: { name: 'SigningMode', template: '<div class="signing-mode-stub" />' },
-					AllowedGroups: true,
-					LegalInformation: true,
-					SignatureHashAlgorithm: true,
-					DefaultUserFolder: true,
-					Envelope: true,
-					Reminders: true,
 					TSA: true,
 				},
 			},
