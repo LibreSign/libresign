@@ -21,20 +21,21 @@ export type IdentifyMethodPolicyEntry = {
 }
 
 export function normalizeIdentifyMethodsPolicy(value: EffectivePolicyValue): IdentifyMethodPolicyEntry[] {
+	let entries: unknown = value
 	if (typeof value === 'string') {
 		const decoded = safeJsonParse(value)
 		if (Array.isArray(decoded)) {
-			value = decoded as unknown as EffectivePolicyValue
+			entries = decoded
 		}
 	}
 
-	if (!Array.isArray(value)) {
+	if (!Array.isArray(entries)) {
 		return []
 	}
 
 	const normalized: IdentifyMethodPolicyEntry[] = []
 
-	for (const rawEntry of value) {
+	for (const rawEntry of entries) {
 		if (!rawEntry || typeof rawEntry !== 'object') {
 			continue
 		}
