@@ -13,17 +13,8 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
-use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
-use OCA\Libresign\Service\IdDocsPolicyService;
-use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
-use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
-use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
-use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
-use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
-use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -45,16 +36,12 @@ class Admin implements ISettings {
 		private IInitialState $initialState,
 		private AccountService $accountService,
 		private IUserSession $userSession,
-		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private CertificatePolicyService $certificatePolicyService,
 		private IAppConfig $appConfig,
 		private SignatureTextService $signatureTextService,
-		private SignatureBackgroundService $signatureBackgroundService,
 		private FooterService $footerService,
-		private DocMdpConfigService $docMdpConfigService,
 		private PolicyService $policyService,
-		private IdDocsPolicyService $idDocsPolicyService,
 	) {
 	}
 	#[\Override]
@@ -73,10 +60,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('certificate_policies_oid', $this->certificatePolicyService->getOid());
 		$this->initialState->provideInitialState('certificate_policies_cps', $this->certificatePolicyService->getCps());
 		$this->initialState->provideInitialState('config_path', $this->appConfig->getValueString(Application::APP_ID, 'config_path'));
-		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
-		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information', ''));
 		$this->initialState->provideInitialState('signature_available_variables', $this->signatureTextService->getAvailableVariables());
-		$this->initialState->provideInitialState('signature_background_type', $this->signatureBackgroundService->getSignatureBackgroundType());
 		$this->initialState->provideInitialState('signature_preview_zoom_level', $this->appConfig->getValueFloat(Application::APP_ID, 'signature_preview_zoom_level', 100));
 		$this->initialState->provideInitialState('footer_preview_zoom_level', $this->appConfig->getValueFloat(Application::APP_ID, 'footer_preview_zoom_level', 100));
 		$this->initialState->provideInitialState('footer_preview_width', $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_width', 595));
@@ -86,12 +70,6 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('footer_template', $this->footerService->getTemplate());
 		$this->initialState->provideInitialState('footer_template_is_default', $this->footerService->isDefaultTemplate());
 		$this->initialState->provideInitialState('signature_engine', $this->getSignatureEngineInitialState());
-		$this->initialState->provideInitialState('tsa_url', $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', ''));
-		$this->initialState->provideInitialState('tsa_policy_oid', $this->appConfig->getValueString(Application::APP_ID, 'tsa_policy_oid', ''));
-		$this->initialState->provideInitialState('tsa_auth_type', $this->appConfig->getValueString(Application::APP_ID, 'tsa_auth_type', 'none'));
-		$this->initialState->provideInitialState('tsa_username', $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', ''));
-		$this->initialState->provideInitialState('tsa_password', $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', self::PASSWORD_PLACEHOLDER));
-		$this->initialState->provideInitialState('docmdp_config', $this->docMdpConfigService->getConfig());
 		$resolvedPolicies = [];
 		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
 			$resolvedPolicies[$policyKey] = $resolvedPolicy->toArray();
@@ -101,17 +79,7 @@ class Admin implements ISettings {
 		]);
 		$this->initialState->provideInitialState('signing_mode', $this->getSigningModeInitialState());
 		$this->initialState->provideInitialState('worker_type', $this->getWorkerTypeInitialState());
-		$this->initialState->provideInitialState('identification_documents', $this->idDocsPolicyService->isIdentificationDocumentsEnabled());
-		$this->initialState->provideInitialState(
-			'approval_group',
-			ApprovalGroupsPolicyValue::decode(
-				$this->policyService->resolve(ApprovalGroupsPolicy::KEY)->getEffectiveValue(),
-			),
-		);
-		$this->initialState->provideInitialState('envelope_enabled', $this->policyService->resolve(EnvelopePolicy::KEY)->getEffectiveValueAsBool(true));
 		$this->initialState->provideInitialState('parallel_workers', $this->appConfig->getValueString(Application::APP_ID, 'parallel_workers', '4'));
-		$this->initialState->provideInitialState('show_confetti_after_signing', $this->policyService->resolve(ConfettiPolicy::KEY)->getEffectiveValueAsBool(true));
-		$this->initialState->provideInitialState('crl_external_validation_enabled', $this->policyService->resolve(CrlValidationPolicy::KEY)->getEffectiveValueAsBool(true));
 		$this->initialState->provideInitialState('ldap_extension_available', function_exists('ldap_connect'));
 
 		$response = new TemplateResponse(Application::APP_ID, 'admin_settings');
