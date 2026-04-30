@@ -16,6 +16,9 @@ use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\Folder;
 use OCP\IAppConfig;
@@ -26,6 +29,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class EnvelopeServiceTest extends TestCase {
 	private FileMapper&MockObject $fileMapper;
 	private IL10N $l10n;
+	private PolicyService&MockObject $policyService;
 	private IAppConfig $appConfig;
 	private FolderService&MockObject $folderService;
 	private EnvelopeService $service;
@@ -34,12 +38,20 @@ final class EnvelopeServiceTest extends TestCase {
 		parent::setUp();
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->l10n = \OCP\Server::get(\OCP\L10N\IFactory::class)->get(Application::APP_ID);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$resolved = (new ResolvedPolicy())
+			->setPolicyKey(EnvelopePolicy::KEY)
+			->setEffectiveValue(true);
+		$this->policyService->method('resolve')
+			->with(EnvelopePolicy::KEY)
+			->willReturn($resolved);
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->folderService = $this->createMock(FolderService::class);
 
 		$this->service = new EnvelopeService(
 			$this->fileMapper,
 			$this->l10n,
+			$this->policyService,
 			$this->appConfig,
 			$this->folderService,
 		);
