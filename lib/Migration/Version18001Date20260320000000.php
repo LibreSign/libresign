@@ -12,10 +12,16 @@ use Closure;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
+use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
+use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
+use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
+use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
@@ -37,11 +43,71 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 		$this->migrateLegacyFooterSettings();
 		$this->migrateCollectMetadataType();
 		$this->migrateIdentificationDocumentsType();
+		$this->migrateEnvelopeType();
+		$this->migrateCrlValidationType();
+		$this->migrateConfettiType();
 		$this->migrateDocMdpLevelType();
 		$this->migrateGroupsRequestSignType();
 		$this->migrateSignatureFlowSettings();
 		$this->migrateSignatureTextSettingsType();
+		$this->migrateReminderSettings();
+		$this->migrateExpirationRulesType();
 		$this->migrateIdentifyMethodsType();
+	}
+
+	private function migrateExpirationRulesType(): void {
+		$this->migrateIntType(ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY, ExpirationRulesPolicy::DEFAULT_MAXIMUM_VALIDITY, false);
+		$this->migrateIntType(ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL, ExpirationRulesPolicy::DEFAULT_RENEWAL_INTERVAL, false);
+		$this->migrateIntType(ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS, ExpirationRulesPolicy::DEFAULT_EXPIRY_IN_DAYS, true);
+	}
+
+	private function migrateIntType(string $key, int $default, bool $enforcePositive): void {
+		$legacyValue = $this->readLegacyString($key);
+		if ($legacyValue === null || trim($legacyValue) === '' || !is_numeric($legacyValue)) {
+			return;
+		}
+
+		$parsed = (int)$legacyValue;
+		$normalized = $enforcePositive
+			? ($parsed > 0 ? $parsed : $default)
+			: max(0, $parsed);
+
+		$this->appConfig->deleteKey(Application::APP_ID, $key);
+		$this->appConfig->setValueInt(Application::APP_ID, $key, $normalized);
+	}
+
+	private function migrateReminderSettings(): void {
+		$existingConsolidated = $this->readLegacyString(ReminderPolicy::SYSTEM_APP_CONFIG_KEY);
+		if ($existingConsolidated !== null && trim($existingConsolidated) !== '') {
+			$this->deleteLegacyReminderKeys();
+			return;
+		}
+
+		$daysBefore = $this->readLegacyString('reminder_days_before');
+		$daysBetween = $this->readLegacyString('reminder_days_between');
+		$max = $this->readLegacyString('reminder_max');
+		$sendTimer = $this->readLegacyString('reminder_send_timer');
+
+		if ($daysBefore === null && $daysBetween === null && $max === null && $sendTimer === null) {
+			return;
+		}
+
+		$encoded = ReminderPolicyValue::encode([
+			'days_before' => $daysBefore,
+			'days_between' => $daysBetween,
+			'max' => $max,
+			'send_timer' => $sendTimer,
+		]);
+
+		$this->deleteLegacyReminderKeys();
+		$this->appConfig->setValueString(Application::APP_ID, ReminderPolicy::SYSTEM_APP_CONFIG_KEY, $encoded);
+	}
+
+	private function deleteLegacyReminderKeys(): void {
+		$this->appConfig->deleteKey(Application::APP_ID, 'reminder_days_before');
+		$this->appConfig->deleteKey(Application::APP_ID, 'reminder_days_between');
+		$this->appConfig->deleteKey(Application::APP_ID, 'reminder_max');
+		$this->appConfig->deleteKey(Application::APP_ID, 'reminder_send_timer');
 	}
 
 	private function migrateCollectMetadataType(): void {
@@ -50,6 +116,18 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 
 	private function migrateIdentificationDocumentsType(): void {
 		$this->migrateBoolType(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY, false);
+	}
+
+	private function migrateEnvelopeType(): void {
+		$this->migrateBoolType(EnvelopePolicy::SYSTEM_APP_CONFIG_KEY, true);
+	}
+
+	private function migrateCrlValidationType(): void {
+		$this->migrateBoolType(CrlValidationPolicy::SYSTEM_APP_CONFIG_KEY, true);
+	}
+
+	private function migrateConfettiType(): void {
+		$this->migrateBoolType(ConfettiPolicy::SYSTEM_APP_CONFIG_KEY, true);
 	}
 
 	private function migrateBoolType(string $key, bool $default): void {
