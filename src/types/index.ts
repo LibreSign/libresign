@@ -52,7 +52,7 @@ export type EffectivePolicyState = ApiComponents['schemas']['EffectivePolicyStat
 export type EffectivePoliciesResponse = ApiOcsResponseData<ApiOperations['policy-effective'], 200>
 export type EffectivePoliciesState = EffectivePoliciesResponse['policies']
 export type EffectivePolicyState = ApiRecordValue<EffectivePoliciesState>
-export type EffectivePolicyValue = Exclude<ApiRequestJsonBody<AdminOperations['policy-set-system']>['value'], undefined>
+export type EffectivePolicyValue = Exclude<ApiRequestJsonBody<AdminOperations['policy-set-system']>['value'], undefined> | unknown[]
 export type GroupPolicyResponse = ApiOcsResponseData<ApiOperations['policy-get-group'], 200>
 export type GroupPolicyState = GroupPolicyResponse['policy']
 
