@@ -19,6 +19,9 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlDistributionPointsExtractor;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
@@ -85,6 +88,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		protected CertificatePolicyService $certificatePolicyService,
 		protected IURLGenerator $urlGenerator,
 		protected CaIdentifierService $caIdentifierService,
+		protected PolicyService $policyService,
 		protected LoggerInterface $logger,
 		private CrlRevocationChecker $crlRevocationChecker,
 	) {
@@ -276,9 +280,9 @@ abstract class AEngineHandler implements IEngineHandler {
 
 	#[\Override]
 	public function setEngine(string $engine): void {
+		$this->configureIdentifyMethodsForEngine($engine);
 		$this->appConfig->setValueString(Application::APP_ID, 'certificate_engine', $engine);
 		$this->engine = $engine;
-		$this->configureIdentifyMethodsForEngine($engine);
 	}
 
 	/**
@@ -305,7 +309,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			'enabled' => true,
 			'mandatory' => true,
 		]];
-		$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $config);
+		$this->policyService->saveSystem(IdentifyMethodsPolicy::KEY, $config);
 	}
 
 	#[\Override]
@@ -477,7 +481,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		if ($this->leafExpiryOverrideInDays !== null) {
 			return $this->leafExpiryOverrideInDays;
 		}
-		$exp = $this->appConfig->getValueInt(Application::APP_ID, 'expiry_in_days', 365);
+		$exp = (int)$this->policyService->resolve(ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS)->getEffectiveValue();
 		return $exp > 0 ? $exp : 365;
 	}
 
