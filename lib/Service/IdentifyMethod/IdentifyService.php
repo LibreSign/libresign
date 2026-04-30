@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
@@ -134,7 +135,14 @@ class IdentifyService {
 		}
 
 		$resolved = $this->policyService->resolve(IdentifyMethodsPolicy::KEY)->getEffectiveValue();
-		$this->savedSettings = IdentifyMethodsPolicyValue::normalize($resolved);
+		$normalized = IdentifyMethodsPolicyValue::normalize($resolved);
+		if ($normalized !== []) {
+			$this->savedSettings = $normalized;
+			return $this->savedSettings;
+		}
+
+		$legacyRaw = $this->appConfig->getValueString(Application::APP_ID, IdentifyMethodsPolicy::KEY, '');
+		$this->savedSettings = IdentifyMethodsPolicyValue::normalize($legacyRaw);
 
 		return $this->savedSettings;
 	}
