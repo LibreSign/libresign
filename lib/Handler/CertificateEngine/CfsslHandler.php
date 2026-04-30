@@ -22,6 +22,7 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Process\ProcessManager;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\Files\AppData\IAppDataFactory;
@@ -58,6 +59,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		protected CertificatePolicyService $certificatePolicyService,
 		protected IURLGenerator $urlGenerator,
 		protected CaIdentifierService $caIdentifierService,
+		protected PolicyService $policyService,
 		protected CrlMapper $crlMapper,
 		protected LoggerInterface $logger,
 		CrlRevocationChecker $crlRevocationChecker,
@@ -72,6 +74,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$certificatePolicyService,
 			$urlGenerator,
 			$caIdentifierService,
+			$policyService,
 			$logger,
 			$crlRevocationChecker,
 		);
