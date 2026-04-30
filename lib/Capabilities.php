@@ -8,13 +8,13 @@ declare(strict_types=1);
 
 namespace OCA\Libresign;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\App\IAppManager;
 use OCP\Capabilities\IPublicCapability;
-use OCP\IAppConfig;
 
 /**
  * @psalm-import-type LibresignCapabilities from ResponseDefinitions
@@ -29,7 +29,7 @@ class Capabilities implements IPublicCapability {
 		protected SignatureTextService $signatureTextService,
 		protected IAppManager $appManager,
 		protected EnvelopeService $envelopeService,
-		protected IAppConfig $appConfig,
+		protected PolicyService $policyService,
 	) {
 	}
 
@@ -43,7 +43,7 @@ class Capabilities implements IPublicCapability {
 		$capabilities = [
 			'features' => self::FEATURES,
 			'config' => [
-				'show-confetti' => $this->appConfig->getValueBool(Application::APP_ID, 'show_confetti_after_signing', true),
+				'show-confetti' => $this->policyService->resolve(ConfettiPolicy::KEY)->getEffectiveValueAsBool(true),
 				'sign-elements' => [
 					'is-available' => $this->signerElementsService->isSignElementsAvailable(),
 					'can-create-signature' => $this->signerElementsService->canCreateSignature(),
