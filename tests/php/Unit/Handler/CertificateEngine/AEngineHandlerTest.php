@@ -69,6 +69,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			\OCP\Server::get(\OCA\Libresign\Service\SerialNumberService::class),
 			$this->caIdentifierService,
+			\OCP\Server::get(\OCA\Libresign\Service\Policy\PolicyService::class),
 			$this->logger,
 			\OCP\Server::get(\OCA\Libresign\Db\CrlMapper::class),
 			$this->subjectAlternativeNameService,
@@ -117,6 +118,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'name' => 'account',
 			'enabled' => true,
 			'mandatory' => true,
+			'signatureMethods' => [],
 		]];
 
 		$this->assertEquals(
