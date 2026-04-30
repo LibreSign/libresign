@@ -14,10 +14,10 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
@@ -44,9 +44,11 @@ final class PageControllerTest extends TestCase {
 	private SignerElementsService&MockObject $signerElementsService;
 	private FooterHandler&MockObject $footerHandler;
 	private IInitialState&MockObject $initialState;
+	private PolicyService&MockObject $policyService;
 	private PageController $controller;
 
 	public function setUp(): void {
+		$this->getMockAppConfigWithReset();
 		$this->request = $this->createMock(IRequest::class);
 		$this->request->method('getServerHost')->willReturn('localhost:8080');
 		$this->userSession = $this->createMock(IUserSession::class);
@@ -94,6 +96,19 @@ final class PageControllerTest extends TestCase {
 		$this->footerHandler->method('getTemplate')->willReturn('Inherited footer template');
 
 		$this->initialState = $this->createMock(IInitialState::class);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService->method('resolveKnownPolicies')->willReturn([]);
+		$this->policyService->method('resolve')->willReturn(
+			(new ResolvedPolicy())
+				->setPolicyKey('legal_information')
+				->setEffectiveValue('')
+				->setSourceScope('system')
+				->setVisible(true)
+				->setEditableByCurrentActor(true)
+				->setAllowedValues([])
+				->setCanSaveAsUserDefault(false)
+				->setCanUseAsRequestOverride(false)
+		);
 
 		$this->controller = new PageController(
 			request: $this->request,
@@ -103,9 +118,7 @@ final class PageControllerTest extends TestCase {
 			accountService: $this->accountService,
 			signFileService: $this->signFileService,
 			requestSignatureService: \OCP\Server::get(RequestSignatureService::class),
-			policyService: $this->createConfiguredMock(PolicyService::class, [
-				'resolveKnownPolicies' => [],
-			]),
+			policyService: $this->policyService,
 			footerHandler: $this->footerHandler,
 			signerElementsService: $this->signerElementsService,
 			l10n: $this->createMock(IL10N::class),
@@ -121,9 +134,6 @@ final class PageControllerTest extends TestCase {
 			validateHelper: $this->createMock(ValidateHelper::class),
 			eventDispatcher: $this->createMock(IEventDispatcher::class),
 			urlGenerator: \OCP\Server::get(IURLGenerator::class),
-			docMdpConfigService: $this->createConfiguredMock(ConfigService::class, [
-				'getConfig' => [],
-			]),
 		);
 	}
 

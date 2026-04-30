@@ -180,13 +180,9 @@ Feature: admin/initial_state
       """
       "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
       """
-    And the response should contain the initial state "libresign-docmdp_config" json that match with:
-      | key                       | value                                      |
-      | (jq).enabled              | true                                       |
-      | (jq).defaultLevel         | 2                                          |
-      | (jq).availableLevels      | (jq)length == 4 and map(.value) == [0,1,2,3] |
     And the response should contain the initial state "libresign-effective_policies" json that match with:
       | key                                             | value                                 |
+      | (jq).policies.docmdp.effectiveValue            | 2                                     |
       | (jq).policies.signature_flow.policyKey         | signature_flow                        |
       | (jq).policies.signature_flow.effectiveValue    | none                                  |
       | (jq).policies.signature_flow.allowedValues     | ["none","parallel","ordered_numeric"] |
@@ -345,13 +341,9 @@ Feature: admin/initial_state
       """
       topsecret
       """
-    And the response should contain the initial state "libresign-docmdp_config" json that match with:
-      | key                       | value                                      |
-      | (jq).enabled              | false                                      |
-      | (jq).defaultLevel         | 0                                          |
-      | (jq).availableLevels      | (jq)length == 4 and map(.value) == [0,1,2,3] |
     And the response should contain the initial state "libresign-effective_policies" json that match with:
       | key                                             | value                                 |
+      | (jq).policies.docmdp.effectiveValue            | 0                                     |
       | (jq).policies.signature_flow.policyKey         | signature_flow                        |
       | (jq).policies.signature_flow.effectiveValue    | ordered_numeric                       |
       | (jq).policies.signature_flow.allowedValues     | ["ordered_numeric"]                  |

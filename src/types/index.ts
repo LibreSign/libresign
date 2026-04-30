@@ -127,18 +127,7 @@ export type WorkerTypeState = 'local' | 'external'
 export type SignatureEngineId = 'JSignPdf' | 'PhpNative'
 export type CertificateEngineId = 'openssl' | 'cfssl' | 'none'
 
-export type AdminDocMdpLevelOption = {
-	value: number
-	label: string
-	description: string
-}
-export type AdminDocMdpConfigState = {
-	enabled: boolean
-	defaultLevel: number
-	availableLevels: AdminDocMdpLevelOption[]
-}
 export type AdminInitialState = {
-	docmdp_config: AdminDocMdpConfigState
 	signature_engine: SignatureEngineId
 	signing_mode: SigningModeState
 	worker_type: WorkerTypeState

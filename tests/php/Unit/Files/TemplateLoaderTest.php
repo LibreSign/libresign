@@ -15,7 +15,6 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
@@ -37,7 +36,6 @@ final class TemplateLoaderTest extends TestCase {
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private PolicyService&MockObject $policyService;
 	private IAppManager&MockObject $appManager;
-	private ConfigService&MockObject $docMdpConfigService;
 
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
@@ -49,7 +47,6 @@ final class TemplateLoaderTest extends TestCase {
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->appManager = $this->createMock(IAppManager::class);
-		$this->docMdpConfigService = $this->createMock(ConfigService::class);
 	}
 
 	public function testGetInitialStatePayload(): void {
@@ -86,21 +83,11 @@ final class TemplateLoaderTest extends TestCase {
 					->setCanUseAsRequestOverride(true)
 			]);
 
-		$docMdpConfig = [
-			'enabled' => true,
-			'defaultLevel' => 1,
-			'availableLevels' => [],
-		];
-		$this->docMdpConfigService
-			->method('getConfig')
-			->willReturn($docMdpConfig);
-
 		$loader = $this->getLoader();
 		$payload = self::invokePrivate($loader, 'getInitialStatePayload');
 
 		$this->assertSame([
 			'certificate_ok' => true,
-			'identify_methods' => [],
 			'effective_policies' => [
 				'policies' => [
 					'signature_flow' => [
@@ -118,7 +105,6 @@ final class TemplateLoaderTest extends TestCase {
 					],
 				],
 			],
-			'docmdp_config' => $docMdpConfig,
 			'can_request_sign' => true,
 		], $payload);
 	}
@@ -158,10 +144,6 @@ final class TemplateLoaderTest extends TestCase {
 					->setCanUseAsRequestOverride(true)
 			]);
 
-		$this->docMdpConfigService
-			->method('getConfig')
-			->willReturn([]);
-
 		$loader = $this->getLoader();
 		$payload = self::invokePrivate($loader, 'getInitialStatePayload');
 
@@ -179,7 +161,6 @@ final class TemplateLoaderTest extends TestCase {
 			$this->certificateEngineFactory,
 			$this->policyService,
 			$this->appManager,
-			$this->docMdpConfigService,
 		);
 	}
 
