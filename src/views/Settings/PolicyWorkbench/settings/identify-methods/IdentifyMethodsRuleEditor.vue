@@ -55,8 +55,8 @@ import type { EffectivePolicyValue } from '../../../../../types/index'
 import {
 	normalizeIdentifyMethodsPolicy,
 	serializeIdentifyMethodsPolicy,
-	type IdentifyMethodPolicyEntry,
 } from './model'
+import type { IdentifyMethodPolicyEntry } from './model'
 
 defineOptions({
 	name: 'IdentifyMethodsRuleEditor',
@@ -67,7 +67,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-	'update:modelValue': [value: IdentifyMethodPolicyEntry[]]
+	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
 const entries = computed(() => {

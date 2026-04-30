@@ -18,7 +18,7 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 	supportedScopes: ['system', 'group', 'user'],
 	editor: IdentifyMethodsRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => [],
+	createEmptyValue: () => serializeIdentifyMethodsPolicy([]),
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeIdentifyMethodsPolicy(normalizeIdentifyMethodsPolicy(value)),
 	hasSelectableDraftValue: () => true,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
@@ -27,7 +27,7 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 			return policyValue
 		}
 
-		return []
+		return serializeIdentifyMethodsPolicy([])
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const normalized = normalizeIdentifyMethodsPolicy(value)
