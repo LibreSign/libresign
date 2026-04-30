@@ -42,6 +42,21 @@ vi.mock('@nextcloud/initial-state', () => ({
 		if (key === 'effective_policies') {
 			return {
 				policies: {
+					identify_methods: {
+						policyKey: 'identify_methods',
+						effectiveValue: [
+							{ name: 'email', enabled: true, friendly_name: 'Email' },
+							{ name: 'phone', enabled: false, friendly_name: 'Phone' },
+						],
+						sourceScope: 'system',
+						visible: true,
+						editableByCurrentActor: true,
+						allowedValues: [],
+						canSaveAsUserDefault: false,
+						canUseAsRequestOverride: true,
+						preferenceWasCleared: false,
+						blockedBy: null,
+					},
 					signature_flow: {
 						policyKey: 'signature_flow',
 						effectiveValue: 'none',
@@ -132,6 +147,21 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 							preferenceWasCleared: false,
 							blockedBy: null,
 						},
+						identify_methods: {
+							policyKey: 'identify_methods',
+							effectiveValue: [
+								{ name: 'email', enabled: true, friendly_name: 'Email' },
+								{ name: 'phone', enabled: false, friendly_name: 'Phone' },
+							],
+							sourceScope: 'system',
+							visible: true,
+							editableByCurrentActor: true,
+							allowedValues: [],
+							canSaveAsUserDefault: false,
+							canUseAsRequestOverride: true,
+							preferenceWasCleared: false,
+							blockedBy: null,
+						},
 					},
 				},
 			},
@@ -167,6 +197,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		policiesStore.setPolicies({
 			signature_flow: createSignatureFlowPolicy(policyOverrides),
 			add_footer: createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
+			identify_methods: createEffectivePoliciesResponse().data.ocs.data.policies.identify_methods,
 		})
 		await wrapper.vm.$nextTick()
 	}
@@ -178,6 +209,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 				...createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
 				...policyOverrides,
 			},
+			identify_methods: createEffectivePoliciesResponse().data.ocs.data.policies.identify_methods,
 		})
 		await wrapper.vm.$nextTick()
 	}
