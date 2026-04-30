@@ -11,13 +11,15 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use DateTime;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
+use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicyValue;
 use OCA\Libresign\Service\ReminderService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
-use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -26,7 +28,7 @@ use Psr\Log\LoggerInterface;
 
 final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IJobList|MockObject $jobList;
-	protected IAppConfig $appConfig;
+	protected PolicyService|MockObject $policyService;
 	protected IDateTimeZone $dateTimeZone;
 	protected ITimeFactory|MockObject $time;
 	protected SignRequestMapper|MockObject $signRequestMapper;
@@ -35,7 +37,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->jobList = $this->createMock(IJobList::class);
-		$this->appConfig = $this->getMockAppConfigWithReset();
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->dateTimeZone = Server::get(IDateTimeZone::class);
 		$this->time = $this->createMock(ITimeFactory::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
@@ -48,7 +50,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			return $this->getMockBuilder(ReminderService::class)
 				->setConstructorArgs([
 					$this->jobList,
-					$this->appConfig,
+					$this->policyService,
 					$this->dateTimeZone,
 					$this->time,
 					$this->signRequestMapper,
@@ -60,7 +62,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 		return new ReminderService(
 			$this->jobList,
-			$this->appConfig,
+			$this->policyService,
 			$this->dateTimeZone,
 			$this->time,
 			$this->signRequestMapper,
@@ -336,6 +338,27 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		string $sendTimer,
 		array $expected,
 	): void {
+		$expectedSavedSettings = [
+			'days_before' => $expected['days_before'],
+			'days_between' => $expected['days_between'],
+			'max' => $expected['max'],
+			'send_timer' => $expected['send_timer'],
+		];
+
+		$this->policyService->expects($this->once())
+			->method('saveSystem')
+			->with(
+				ReminderPolicy::KEY,
+				ReminderPolicyValue::encode($expectedSavedSettings),
+				false,
+			)
+			->willReturn(new ResolvedPolicy());
+
+		$this->policyService->expects($this->once())
+			->method('getSystemPolicy')
+			->with(ReminderPolicy::KEY)
+			->willReturn(null);
+
 		// Setup fixed time for consistent testing
 		$fixedTime = new DateTime('2025-10-09 09:00:00', new \DateTimeZone('UTC'));
 		$this->time->method('getDateTime')
@@ -344,20 +367,6 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService();
 		$actual = $service->save($daysBefore, $daysBetween, $max, $sendTimer);
 		$this->assertEquals($expected, $actual);
-
-		$keys = [
-			'days_before',
-			'days_between',
-			'max',
-		];
-
-		foreach ($keys as $key) {
-			$actualConfig = $this->appConfig->getValueInt(Application::APP_ID, 'reminder_' . $key, $actual[$key]);
-			$this->assertEquals($actual[$key], $actualConfig);
-		}
-
-		$actualConfig = $this->appConfig->getValueString(Application::APP_ID, 'reminder_send_timer', $actual['send_timer']);
-		$this->assertEquals($actual['send_timer'], $actualConfig);
 	}
 
 	public static function providerSave(): array {
