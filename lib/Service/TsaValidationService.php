@@ -8,13 +8,14 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCP\IAppConfig;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 
 class TsaValidationService {
 	public function __construct(
-		private IAppConfig $appConfig,
+		private PolicyService $policyService,
 	) {
 	}
 
@@ -34,7 +35,9 @@ class TsaValidationService {
 	}
 
 	private function getTsaUrl(): string {
-		return $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', '');
+		$rawPolicyValue = $this->policyService->resolve(TsaPolicy::KEY)->getEffectiveValue();
+		$decoded = TsaPolicyValue::decode($rawPolicyValue);
+		return $decoded['url'];
 	}
 
 	private function validateTsaUrlFormat(string $tsaUrl): void {
