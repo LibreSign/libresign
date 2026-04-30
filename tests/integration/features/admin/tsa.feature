@@ -12,11 +12,13 @@ Feature: TSA Administration - Core Configuration
       | key                  | value   |
       | (jq).ocs.data.status | success |
 
-    When sending "get" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/tsa_url"
+    When sending "get" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                | value                   |
-      | (jq).ocs.data.data | <TSA_URL>               |
+      | key                                   | value     |
+      | (jq).ocs.data.policy.value.url        | <TSA_URL> |
+      | (jq).ocs.data.policy.value.policy_oid | 1.2.3.4.1 |
+      | (jq).ocs.data.policy.value.auth_type  | none      |
 
     When sending "delete" to ocs "/apps/libresign/api/v1/admin/tsa"
     Then the response should have a status code 200
