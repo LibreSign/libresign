@@ -11,12 +11,17 @@ import { subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
+import { usePoliciesStore } from './policies'
+
+const normalizeIdentifyMethods = (value) => Array.isArray(value) ? value : []
+
 const _configureCheckStore = defineStore('configureCheck', () => {
+	const policiesStore = usePoliciesStore()
 	const items = ref([])
 	const state = ref('in progress')
 	const downloadInProgress = ref(false)
 	const certificateEngine = ref(loadState('libresign', 'certificate_engine', ''))
-	const identifyMethods = ref(loadState('libresign', 'identify_methods', []))
+	const identifyMethods = ref(normalizeIdentifyMethods(policiesStore.getEffectiveValue('identify_methods')))
 	const initialized = ref(false)
 
 	const isNoneEngine = computed(() => certificateEngine.value === 'none')

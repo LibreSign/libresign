@@ -68,10 +68,27 @@ const { t, n } = vi.hoisted(() => {
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
 		if (key === 'can_request_sign') return true
-		if (key === 'identify_methods') return [
-			{ name: 'email', enabled: true, friendly_name: 'Email' },
-			{ name: 'phone', enabled: false, friendly_name: 'Phone' },
-		]
+		if (key === 'effective_policies') {
+			return {
+				policies: {
+					identify_methods: {
+						policyKey: 'identify_methods',
+						effectiveValue: [
+							{ name: 'email', enabled: true, friendly_name: 'Email' },
+							{ name: 'phone', enabled: false, friendly_name: 'Phone' },
+						],
+						sourceScope: 'system',
+						visible: true,
+						editableByCurrentActor: true,
+						allowedValues: [],
+						canSaveAsUserDefault: false,
+						canUseAsRequestOverride: true,
+						preferenceWasCleared: false,
+						blockedBy: null,
+					},
+				},
+			}
+		}
 		return defaultValue
 	}),
 }))

@@ -8,16 +8,17 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
-use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\Files\IRootFolder;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -43,6 +44,7 @@ class IdentifyService {
 		private IURLGenerator $urlGenerator,
 		private LoggerInterface $logger,
 		private FolderService $folderService,
+		private PolicyService $policyService,
 	) {
 	}
 
@@ -131,26 +133,8 @@ class IdentifyService {
 			return $this->savedSettings;
 		}
 
-		$this->getAppConfig()->clearCache(true);
-		try {
-			$this->savedSettings = $this->getAppConfig()->getValueArray(Application::APP_ID, 'identify_methods', []);
-		} catch (AppConfigTypeConflictException) {
-			// Key was stored with wrong type (e.g., string written by the provisioning API).
-			// Normalize it: read the raw string, delete the key, and re-store as array type.
-			try {
-				$raw = $this->getAppConfig()->getValueString(Application::APP_ID, 'identify_methods', '');
-			} catch (AppConfigTypeConflictException) {
-				$raw = '';
-			}
-			$this->getAppConfig()->deleteKey(Application::APP_ID, 'identify_methods');
-			$decoded = json_decode($raw, true);
-			if (is_array($decoded)) {
-				$this->getAppConfig()->setValueArray(Application::APP_ID, 'identify_methods', $decoded);
-				$this->savedSettings = $decoded;
-			} else {
-				$this->savedSettings = [];
-			}
-		}
+		$resolved = $this->policyService->resolve(IdentifyMethodsPolicy::KEY)->getEffectiveValue();
+		$this->savedSettings = IdentifyMethodsPolicyValue::normalize($resolved);
 
 		return $this->savedSettings;
 	}
@@ -205,5 +189,9 @@ class IdentifyService {
 
 	public function getFolderService(): FolderService {
 		return $this->folderService;
+	}
+
+	public function getPolicyService(): PolicyService {
+		return $this->policyService;
 	}
 }

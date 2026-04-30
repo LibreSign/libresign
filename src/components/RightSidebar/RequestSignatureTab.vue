@@ -426,7 +426,7 @@ const isLoadingFileDetail = ref(false)
 const signerToEdit = ref<IdentifySignerToEdit>({})
 const modalSrc = ref('')
 const documentData = ref<LoadedDocumentState>(loadState<LoadedDocumentState>('libresign', 'file_info', EMPTY_DOCUMENT_STATE))
-const methods = ref<IdentifyMethodConfig[]>(loadState<IdentifyMethodConfig[]>('libresign', 'identify_methods', EMPTY_IDENTIFY_METHODS))
+const methods = ref<IdentifyMethodConfig[]>(EMPTY_IDENTIFY_METHODS)
 const showConfirmRequest = ref(false)
 const showConfirmRequestSigner = ref(false)
 const selectedSigner = ref<EditableRequestSigner | null>(null)
@@ -447,6 +447,10 @@ const footerPolicy = computed(() => policiesStore.getPolicy('add_footer'))
 const canChooseSigningOrderAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('signature_flow'))
 const canChooseFooterTemplateAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('add_footer'))
 const isAdminFlowForced = computed(() => !canChooseSigningOrderAtRequestLevel.value)
+
+watch(() => policiesStore.getEffectiveValue('identify_methods'), (value) => {
+	methods.value = Array.isArray(value) ? value as IdentifyMethodConfig[] : EMPTY_IDENTIFY_METHODS
+}, { immediate: true })
 
 const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
