@@ -13,6 +13,8 @@ use OCA\Libresign\Migration\Version18001Date20260320000000;
 use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
 use OCP\Migration\IOutput;
@@ -89,6 +91,74 @@ final class Version18001Date20260320000000Test extends TestCase {
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertContains([Application::APP_ID, 'add_footer'], $deletedKeys);
+	}
+
+	public function testMigratesLegacyTsaSettingsIntoCanonicalPolicyAndDeletesLegacyKeys(): void {
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+
+				$map = [
+					'add_footer' => '',
+					'write_qrcode_on_footer' => '',
+					'validation_site' => '',
+					'footer_template_is_default' => '',
+					'collect_metadata' => '',
+					'identification_documents' => '',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '',
+					'template_font_size' => '',
+					'signature_width' => '',
+					'signature_height' => '',
+					'signature_font_size' => '',
+					'signature_render_mode' => '',
+					'identify_methods' => '',
+					TsaPolicy::SYSTEM_APP_CONFIG_KEY => '',
+					'tsa_url' => 'https://freetsa.org/tsr',
+					'tsa_policy_oid' => '1.2.840.113549.1.9.16.1.4',
+					'tsa_auth_type' => 'basic',
+					'tsa_username' => 'tsa-user',
+				];
+
+				return $map[$key] ?? $default;
+			});
+
+		$deletedKeys = [];
+		$savedStrings = [];
+
+		$this->appConfig
+			->method('deleteKey')
+			->willReturnCallback(static function (string $app, string $key) use (&$deletedKeys): void {
+				$deletedKeys[] = [$app, $key];
+			});
+
+		$this->appConfig
+			->method('setValueString')
+			->willReturnCallback(static function (string $app, string $key, string $value) use (&$savedStrings): bool {
+				$savedStrings[] = [$app, $key, $value];
+				return true;
+			});
+
+		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		$expectedTsaPayload = TsaPolicyValue::encode([
+			'url' => 'https://freetsa.org/tsr',
+			'policy_oid' => '1.2.840.113549.1.9.16.1.4',
+			'auth_type' => 'basic',
+			'username' => 'tsa-user',
+		]);
+
+		self::assertContains([Application::APP_ID, TsaPolicy::SYSTEM_APP_CONFIG_KEY, $expectedTsaPayload], $savedStrings);
+		self::assertContains([Application::APP_ID, 'tsa_url'], $deletedKeys);
+		self::assertContains([Application::APP_ID, 'tsa_policy_oid'], $deletedKeys);
+		self::assertContains([Application::APP_ID, 'tsa_auth_type'], $deletedKeys);
+		self::assertContains([Application::APP_ID, 'tsa_username'], $deletedKeys);
 	}
 
 	public function testReadsLegacyBooleanWhenAddFooterHasTypedBoolValue(): void {
