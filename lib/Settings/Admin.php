@@ -79,6 +79,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('footer_preview_width', $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_width', 595));
 		$this->initialState->provideInitialState('footer_preview_height', $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_height', 100));
 		$this->initialState->provideInitialState('footer_template_variables', $this->footerService->getTemplateVariablesMetadata());
+		$this->initialState->provideInitialState('footer_default_template', $this->footerService->getDefaultTemplate());
 		$this->initialState->provideInitialState('footer_template', $this->footerService->getTemplate());
 		$this->initialState->provideInitialState('footer_template_is_default', $this->footerService->isDefaultTemplate());
 		$this->initialState->provideInitialState('signature_engine', $this->getSignatureEngineInitialState());

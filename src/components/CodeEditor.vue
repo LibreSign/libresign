@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import CodeMirror from 'vue-codemirror6'
 import { twig } from '@ssddanbrown/codemirror-lang-twig'
 import { EditorView, lineNumbers } from '@codemirror/view'
@@ -54,7 +54,12 @@ const emit = defineEmits<{
 }>()
 
 const editorId = `code-editor-${Math.random().toString(36).slice(2, 11)}`
-const internalValue = ref(props.modelValue)
+const internalValue = computed({
+	get: () => props.modelValue,
+	set: (newValue: string) => {
+		emit('update:modelValue', newValue)
+	},
+})
 
 const extensions = computed(() => {
 	return [
@@ -71,18 +76,6 @@ const extensions = computed(() => {
 			indentWithTab,
 		]),
 	]
-})
-
-watch(() => props.modelValue, (newValue) => {
-	if (newValue !== internalValue.value) {
-		internalValue.value = newValue
-	}
-})
-
-watch(internalValue, (newValue) => {
-	if (newValue !== props.modelValue) {
-		emit('update:modelValue', newValue)
-	}
 })
 
 defineExpose({

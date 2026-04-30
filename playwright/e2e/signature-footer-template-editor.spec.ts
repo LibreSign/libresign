@@ -4,232 +4,305 @@
  */
 
 import { expect, test } from '@playwright/test'
-import type { Page } from '@playwright/test'
+import type { Locator, Page, Request, Response } from '@playwright/test'
 import { login } from '../support/nc-login'
+import { configureOpenSsl } from '../support/nc-provisioning'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
-async function waitForFooterTemplateRequest(page: Page, action: () => Promise<void>) {
-	const requestPromise = page.waitForRequest((request) => {
-		return request.method() === 'POST'
-			&& request.url().includes('/apps/libresign/api/v1/admin/footer-template')
-	})
+const PREVIEW_URL_PATTERN = /admin\/footer-template\/preview-pdf/
+const SYSTEM_FOOTER_POLICY_URL = '/apps/libresign/api/v1/policies/system/add_footer'
 
-	await action()
-	const request = await requestPromise
-	return request.postDataJSON() as {
-		template: string
-		width: number
-		height: number
-	}
-}
-
-test('signature footer template editor updates preview and controls correctly', async ({ page }) => {
+async function bootstrapLibreSignAdmin(page: Page) {
 	await login(
 		page.request,
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
 		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 	)
 
-	await page.goto('./settings/admin/libresign')
-
-	const addFooterSwitch = page.locator('.checkbox-radio-switch').filter({ hasText: /Add visible footer with signature details/i }).first()
-	await expect(addFooterSwitch).toBeVisible({ timeout: 20000 })
-
-	const customizeSwitch = page.locator('.checkbox-radio-switch').filter({ hasText: /Customize footer template/i }).first()
-	let customizeVisible = await customizeSwitch.isVisible().catch(() => false)
-	if (!customizeVisible) {
-		await addFooterSwitch.click()
-		customizeVisible = await customizeSwitch.isVisible().catch(() => false)
-	}
-	test.skip(!customizeVisible, 'Customize footer template control is not available in this environment.')
-	await customizeSwitch.click()
-
-	const editorSection = page.locator('.footer-template-section').first()
-	await expect(editorSection).toBeVisible({ timeout: 20000 })
-
-	const templateEditor = editorSection.getByRole('textbox', { name: 'Footer template' }).first()
-	const initialTemplate = `<div>Playwright bootstrap ${Date.now()}</div>`
-	await waitForFooterTemplateRequest(page, async () => {
-		await templateEditor.click()
-		await templateEditor.press('Control+a')
-		await templateEditor.fill(initialTemplate)
+	await page.request.delete('./ocs/v2.php/apps/libresign/api/v1/policies/user/add_footer', {
+		headers: {
+			'OCS-ApiRequest': 'true',
+			Accept: 'application/json',
+		},
 	})
 
-	await expect(editorSection.locator('.footer-preview')).toBeVisible({ timeout: 15000 })
-	await expect(editorSection.locator('.footer-preview__loading')).toBeHidden({ timeout: 15000 })
-	await expect(editorSection.getByText(/Page 1 of 1\./i)).toBeVisible({ timeout: 15000 })
+	await configureOpenSsl(page.request, 'LibreSign Test', {
+		C: 'BR',
+		OU: ['Organization Unit'],
+		ST: 'Rio de Janeiro',
+		O: 'LibreSign',
+		L: 'Rio de Janeiro',
+	})
+}
 
-	const zoomField = editorSection.getByRole('spinbutton', { name: 'Zoom level' }).first()
+async function clickSwitch(switchContainer: Locator): Promise<void> {
+	await switchContainer.locator('.checkbox-radio-switch__content').click()
+}
+
+async function captureNextPreviewRequest(page: Page): Promise<Request> {
+	return page.waitForRequest(
+		(request) => request.method() === 'POST' && PREVIEW_URL_PATTERN.test(request.url()),
+		{ timeout: 15000 },
+	)
+}
+
+async function waitForSystemFooterPolicySave(page: Page, action: () => Promise<void>): Promise<{ request: Request, response: Response }> {
+	const responsePromise = page.waitForResponse((response) => {
+		return ['POST', 'PUT', 'PATCH'].includes(response.request().method())
+			&& response.url().includes(SYSTEM_FOOTER_POLICY_URL)
+	})
+
+	await action()
+	const response = await responsePromise
+	return {
+		request: response.request(),
+		response,
+	}
+}
+
+async function openFooterPolicyEditor(page: Page): Promise<Locator> {
+	await page.goto('./settings/admin/libresign')
+
+	const footerCard = page.getByRole('button', { name: /Signature footer/i }).first()
+	await expect(footerCard).toBeVisible({ timeout: 20000 })
+	await footerCard.click()
+
+	const dialog = page.getByRole('dialog').filter({ hasText: /Signature footer/i }).first()
+	await expect(dialog).toBeVisible({ timeout: 10000 })
+	return dialog
+}
+
+async function openSystemRuleEditor(dialog: Locator): Promise<Locator> {
+	const changeButton = dialog.getByRole('button', { name: /^Change$/i }).first()
+	if (await changeButton.isVisible().catch(() => false)) {
+		await changeButton.click()
+	} else {
+		const createButton = dialog.getByRole('button', { name: /Create rule/i }).first()
+		await expect(createButton).toBeVisible({ timeout: 5000 })
+		await createButton.click()
+		const everyoneOption = dialog.page().locator('[role="option"]').filter({ hasText: /Everyone/i }).first()
+		if (await everyoneOption.isVisible().catch(() => false)) {
+			await everyoneOption.click()
+		}
+	}
+
+	const ruleDialog = dialog.page().getByRole('dialog', { name: /Edit rule|Create rule/i }).last()
+	await expect(ruleDialog).toBeVisible({ timeout: 10000 })
+	return ruleDialog
+}
+
+async function ensureCheckboxEnabled(scope: Locator, label: string, triggerPreview = false): Promise<void> {
+	const switchContainer = scope.locator('.checkbox-radio-switch').filter({ hasText: new RegExp(label, 'i') }).first()
+	await expect(switchContainer).toBeVisible({ timeout: 10000 })
+	const checkbox = switchContainer.locator('input[type="checkbox"]').first()
+	if (!await checkbox.isChecked().catch(() => false)) {
+		const previewRequest = triggerPreview ? captureNextPreviewRequest(scope.page()) : null
+		await clickSwitch(switchContainer)
+		if (previewRequest) {
+			await previewRequest
+		}
+	}
+	await expect(checkbox).toBeChecked()
+}
+
+async function getFooterEditorContext(scope: Locator): Promise<{
+	ruleDialog: Locator
+	editorField: Locator
+	preview: Locator
+}> {
+	await ensureCheckboxEnabled(scope, 'Add visible footer with signature details')
+	await ensureCheckboxEnabled(scope, 'Customize footer template', true)
+
+	const editorField = scope.locator('.code-editor .cm-content[contenteditable="true"]').first()
+	await expect(editorField).toBeVisible({ timeout: 10000 })
+
+	const preview = scope.locator('.signature-footer-rule-editor__preview').first()
+	await expect(preview).toBeVisible({ timeout: 15000 })
+
+	return {
+		ruleDialog: scope,
+		editorField,
+		preview,
+	}
+}
+
+async function replaceCodeMirrorContent(editorField: Locator, value: string): Promise<void> {
+	await editorField.click()
+	await editorField.press('Control+a')
+	await editorField.fill(value)
+}
+
+async function saveRule(ruleDialog: Locator): Promise<{ request: Request, response: Response }> {
+	const saveButton = ruleDialog.getByRole('button', { name: /Create rule|Save changes|Save policy rule changes|Save rule changes/i }).last()
+	await expect(saveButton).toBeVisible({ timeout: 10000 })
+	await expect(saveButton).toBeEnabled({ timeout: 10000 })
+	return waitForSystemFooterPolicySave(ruleDialog.page(), async () => {
+		await saveButton.click()
+	})
+}
+
+async function getPersistedSystemFooterPolicy(page: Page): Promise<{ customizeFooterTemplate: boolean, footerTemplate: string }> {
+	const response = await page.request.get('./ocs/v2.php/apps/libresign/api/v1/policies/system/add_footer', {
+		headers: {
+			'OCS-ApiRequest': 'true',
+			Accept: 'application/json',
+		},
+	})
+	const payload = await response.json() as {
+		ocs?: {
+			data?: {
+				policy?: {
+					value?: string
+				}
+			}
+		}
+	}
+	return JSON.parse(payload.ocs?.data?.policy?.value ?? '{}') as { customizeFooterTemplate: boolean, footerTemplate: string }
+}
+
+test('signature footer template editor updates preview and controls correctly', async ({ page }) => {
+	await bootstrapLibreSignAdmin(page)
+
+	const dialog = await openFooterPolicyEditor(page)
+	const ruleDialog = await openSystemRuleEditor(dialog)
+	const { editorField, preview } = await getFooterEditorContext(ruleDialog)
+
+	const initialTemplate = `<div>Playwright bootstrap ${Date.now()}</div>`
+	const initialPreviewRequest = captureNextPreviewRequest(page)
+	await replaceCodeMirrorContent(editorField, initialTemplate)
+	const initialPayload = initialPreviewRequest.then((request) => request.postDataJSON() as {
+		template: string
+		width: number
+		height: number
+	})
+
+	await expect(preview.locator('.pdf-elements-root')).toBeVisible({ timeout: 15000 })
+	await expect(preview.getByText(/Preview/i)).toBeVisible({ timeout: 15000 })
+	await expect((await initialPayload).template).toContain('Playwright bootstrap')
+
+	const zoomField = ruleDialog.getByRole('spinbutton', { name: 'Zoom level' }).first()
 	await expect(zoomField).toHaveValue('100')
-
-	await editorSection.getByRole('button', { name: 'Increase zoom level' }).click()
+	await ruleDialog.getByRole('button', { name: 'Increase zoom level' }).click()
 	await expect(zoomField).toHaveValue('110')
-
-	await editorSection.getByRole('button', { name: 'Decrease zoom level' }).click()
+	await ruleDialog.getByRole('button', { name: 'Decrease zoom level' }).click()
 	await expect(zoomField).toHaveValue('100')
-
 	await zoomField.fill('140')
 	await zoomField.press('Tab')
 	await expect(zoomField).toHaveValue('140')
 
-	const widthField = editorSection.getByRole('spinbutton', { name: 'Width' }).first()
-	const widthPayload = await waitForFooterTemplateRequest(page, async () => {
-		await widthField.fill('620')
-		await widthField.press('Tab')
-	})
+	const widthField = ruleDialog.getByRole('spinbutton', { name: 'Width' }).first()
+	const widthRequest = captureNextPreviewRequest(page)
+	await widthField.fill('620')
+	await widthField.press('Tab')
+	const widthPayload = await widthRequest.then((request) => request.postDataJSON() as { width: number })
 	await expect(widthField).toHaveValue('620')
 	await expect(widthPayload.width).toBe(620)
 
-	const heightField = editorSection.getByRole('spinbutton', { name: 'Height' }).first()
-	const heightPayload = await waitForFooterTemplateRequest(page, async () => {
-		await heightField.fill('130')
-		await heightField.press('Tab')
-	})
+	const heightField = ruleDialog.getByRole('spinbutton', { name: 'Height' }).first()
+	const heightRequest = captureNextPreviewRequest(page)
+	await heightField.fill('130')
+	await heightField.press('Tab')
+	const heightPayload = await heightRequest.then((request) => request.postDataJSON() as { height: number })
 	await expect(heightField).toHaveValue('130')
 	await expect(heightPayload.height).toBe(130)
 
 	const uniqueTemplate = `<div>Playwright footer ${Date.now()}</div>`
-	const templatePayload = await waitForFooterTemplateRequest(page, async () => {
-		await templateEditor.click()
-		await templateEditor.press('Control+a')
-		await templateEditor.fill(uniqueTemplate)
-	})
+	const templateRequest = captureNextPreviewRequest(page)
+	await replaceCodeMirrorContent(editorField, uniqueTemplate)
+	const templatePayload = await templateRequest.then((request) => request.postDataJSON() as { template: string })
 	await expect(templatePayload.template).toContain('Playwright footer')
-	await expect(editorSection.locator('.footer-preview__loading')).toBeHidden({ timeout: 15000 })
-	await expect(editorSection.getByText(/Page 1 of 1\./i)).toBeVisible({ timeout: 15000 })
 })
 
-test('footer template persists customization after reset and reload', async ({ page }) => {
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
+test('footer template persists customization after save and reload', async ({ page }) => {
+	await bootstrapLibreSignAdmin(page)
 
-	await page.goto('./settings/admin/libresign')
-
-	const addFooterSwitch = page.locator('.checkbox-radio-switch').filter({ hasText: /Add visible footer with signature details/i }).first()
-	await expect(addFooterSwitch).toBeVisible({ timeout: 20000 })
-
-	const customizeSwitch = page.locator('.checkbox-radio-switch').filter({ hasText: /Customize footer template/i }).first()
-	let customizeVisible = await customizeSwitch.isVisible().catch(() => false)
-	if (!customizeVisible) {
-		await addFooterSwitch.click()
-		customizeVisible = await customizeSwitch.isVisible().catch(() => false)
-	}
-	test.skip(!customizeVisible, 'Customize footer template control is not available in this environment.')
-
-	// Enable customize footer template
-	const isChecked = await customizeSwitch.evaluate(el => (el as HTMLInputElement).checked)
-	if (!isChecked) {
-		await customizeSwitch.click()
-	}
-
-	const editorSection = page.locator('.footer-template-section').first()
-	await expect(editorSection).toBeVisible({ timeout: 20000 })
-
-	const templateEditor = editorSection.getByRole('textbox', { name: 'Footer template' }).first()
 	const customTemplate = `<div style="color:red">Reset test ${Date.now()}</div>`
-	await waitForFooterTemplateRequest(page, async () => {
-		await templateEditor.click()
-		await templateEditor.press('Control+a')
-		await templateEditor.fill(customTemplate)
+	const capturedSavePayloads: string[] = []
+	page.on('request', (request) => {
+		if (['POST', 'PUT', 'PATCH'].includes(request.method()) && request.url().includes(SYSTEM_FOOTER_POLICY_URL)) {
+			const payload = request.postDataJSON() as { value?: string }
+			capturedSavePayloads.push(String(payload.value ?? ''))
+		}
 	})
+	let dialog = await openFooterPolicyEditor(page)
+	let ruleDialog = await openSystemRuleEditor(dialog)
+	let editorContext = await getFooterEditorContext(ruleDialog)
 
-	await expect(editorSection.locator('.footer-preview')).toBeVisible({ timeout: 15000 })
-	await expect(editorSection.locator('.footer-preview__loading')).toBeHidden({ timeout: 15000 })
+	const savePreviewRequest = captureNextPreviewRequest(page)
+	await replaceCodeMirrorContent(editorContext.editorField, customTemplate)
+	await savePreviewRequest
+	const { request: saveRequest, response: saveResponse } = await saveRule(ruleDialog)
+	await expect(saveResponse.status()).toBe(200)
+	const savePayload = saveRequest.postDataJSON() as { value?: string }
+	const decodedValue = JSON.parse(savePayload.value ?? '{}') as { footerTemplate?: string }
+	expect(decodedValue.footerTemplate ?? '').toBe(customTemplate)
+	const persistedAfterSave = await getPersistedSystemFooterPolicy(page)
+	expect(capturedSavePayloads.map((payload) => JSON.parse(payload).footerTemplate ?? '')).toContain(customTemplate)
+	expect(persistedAfterSave.customizeFooterTemplate).toBe(true)
+	expect(persistedAfterSave.footerTemplate).toBe(customTemplate)
 
-	// Click reset button
-	const resetButton = editorSection.getByRole('button', { name: 'Reset to default' })
-	await expect(resetButton).toBeVisible({ timeout: 10000 })
-
-	const resetRequestPromise = page.waitForRequest((request) => {
-		return request.method() === 'POST'
-			&& request.url().includes('/apps/libresign/api/v1/admin/footer-template')
-	})
-	await resetButton.click()
-	await resetRequestPromise
-
-	// Template should be cleared/reset after clicking reset button
-	const resetTemplate = await templateEditor.inputValue()
-	await expect(resetTemplate).toBe('')
-
-	// Reload the page to verify reset persists
 	await page.reload()
-	await expect(editorSection).toBeVisible({ timeout: 20000 })
+	const persistedAfterReload = await getPersistedSystemFooterPolicy(page)
+	expect(persistedAfterReload.customizeFooterTemplate).toBe(true)
+	expect(persistedAfterReload.footerTemplate).toBe(customTemplate)
+	dialog = await openFooterPolicyEditor(page)
+	ruleDialog = await openSystemRuleEditor(dialog)
+	editorContext = await getFooterEditorContext(ruleDialog)
 
-	// After reload, customize checkbox should be unchecked (reset state)
-	const customizeAfterReload = page.locator('.checkbox-radio-switch').filter({ hasText: /Customize footer template/i }).first()
-	const customizeCheckedAfterReload = await customizeAfterReload.evaluate(el => (el as HTMLInputElement).checked)
-	await expect(customizeCheckedAfterReload).toBe(false)
-
-	// Template editor should be empty or hidden
-	const templateAfterReload = await templateEditor.inputValue().catch(() => '')
-	await expect(templateAfterReload).toBe('')
+	await expect.poll(async () => {
+		const text = await editorContext.editorField.textContent()
+		return (text ?? '').trim()
+	}, { timeout: 10000 }).toContain(customTemplate)
 })
 
-test('footer template reset reverts to default after page reload', async ({ page }) => {
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
+test('footer template reset reverts to inherited default after save and reload', async ({ page }) => {
+	await bootstrapLibreSignAdmin(page)
 
-	await page.goto('./settings/admin/libresign')
-
-	const addFooterSwitch = page.locator('.checkbox-radio-switch').filter({ hasText: /Add visible footer with signature details/i }).first()
-	await expect(addFooterSwitch).toBeVisible({ timeout: 20000 })
-
-	const customizeSwitch = page.locator('.checkbox-radio-switch').filter({ hasText: /Customize footer template/i }).first()
-	let customizeVisible = await customizeSwitch.isVisible().catch(() => false)
-	if (!customizeVisible) {
-		await addFooterSwitch.click()
-		customizeVisible = await customizeSwitch.isVisible().catch(() => false)
-	}
-	test.skip(!customizeVisible, 'Customize footer template control is not available in this environment.')
-
-	// Step 1: Enable customize and save a custom template
-	const isChecked = await customizeSwitch.evaluate(el => (el as HTMLInputElement).checked)
-	if (!isChecked) {
-		await customizeSwitch.click()
-	}
-
-	const editorSection = page.locator('.footer-template-section').first()
-	await expect(editorSection).toBeVisible({ timeout: 20000 })
-
-	const templateEditor = editorSection.getByRole('textbox', { name: 'Footer template' }).first()
 	const customTemplate = `<div>CUSTOM_${Date.now()}</div>`
-	await waitForFooterTemplateRequest(page, async () => {
-		await templateEditor.click()
-		await templateEditor.press('Control+a')
-		await templateEditor.fill(customTemplate)
-	})
+	let dialog = await openFooterPolicyEditor(page)
+	let ruleDialog = await openSystemRuleEditor(dialog)
+	let editorContext = await getFooterEditorContext(ruleDialog)
 
-	// Verify template was saved
-	await expect(editorSection.locator('.footer-preview__loading')).toBeHidden({ timeout: 15000 })
+	const savePreviewRequest = captureNextPreviewRequest(page)
+	await replaceCodeMirrorContent(editorContext.editorField, customTemplate)
+	await savePreviewRequest
+	await saveRule(ruleDialog)
+	const persistedAfterCustomSave = await getPersistedSystemFooterPolicy(page)
+	expect(persistedAfterCustomSave.customizeFooterTemplate).toBe(true)
+	expect(persistedAfterCustomSave.footerTemplate).toBe(customTemplate)
 
-	// Step 2: Reset
-	const resetButton = editorSection.getByRole('button', { name: 'Reset to default' })
-	await resetButton.click()
-	const resetRequest = await page.waitForRequest((request) => {
-		return request.method() === 'POST'
-			&& request.url().includes('/apps/libresign/api/v1/admin/footer-template')
-	})
+	dialog = await openFooterPolicyEditor(page)
+	ruleDialog = await openSystemRuleEditor(dialog)
+	editorContext = await getFooterEditorContext(ruleDialog)
+	const persistedBeforeReset = await getPersistedSystemFooterPolicy(page)
+	expect(persistedBeforeReset.customizeFooterTemplate).toBe(true)
+	expect(persistedBeforeReset.footerTemplate).toBe(customTemplate)
 
-	// Step 3: Reload and verify state
+	const resetButton = ruleDialog.getByRole('button', { name: 'Reset template to inherited default' }).first()
+	if (await resetButton.isVisible().catch(() => false)) {
+		const resetPreviewRequest = captureNextPreviewRequest(page)
+		await resetButton.click()
+		await resetPreviewRequest
+	} else {
+		const customizeSwitch = ruleDialog.locator('.checkbox-radio-switch').filter({ hasText: /Customize footer template/i }).first()
+		await expect(customizeSwitch).toBeVisible({ timeout: 10000 })
+		const customizeCheckbox = customizeSwitch.locator('input[type="checkbox"]').first()
+		if (await customizeCheckbox.isChecked().catch(() => false)) {
+			await clickSwitch(customizeSwitch)
+		}
+		await expect(customizeCheckbox).not.toBeChecked()
+	}
+	await saveRule(ruleDialog)
+	const persistedAfterReset = await getPersistedSystemFooterPolicy(page)
+	expect(persistedAfterReset.customizeFooterTemplate).toBe(false)
+	expect(persistedAfterReset.footerTemplate).toBe('')
+
 	await page.reload()
-	await expect(editorSection).toBeVisible({ timeout: 20000 })
-
-	// Customize should be OFF after reload
-	const customizeAfterReload = page.locator('.checkbox-radio-switch').filter({ hasText: /Customize footer template/i }).first()
-	const customizeCheckbox = customizeAfterReload.locator('input[type="checkbox"]').first()
-	await expect(customizeCheckbox).not.toBeChecked()
-
-	// Step 4: Enable customize again
-	await customizeAfterReload.click()
-
-	// Step 5: Verify template is back to default (empty)
-	const templateAgain = await templateEditor.inputValue()
-	await expect(templateAgain).toBe('')
+	dialog = await openFooterPolicyEditor(page)
+	ruleDialog = await openSystemRuleEditor(dialog)
+	const customizeSwitchAfterReload = ruleDialog.locator('.checkbox-radio-switch').filter({ hasText: /Customize footer template/i }).first()
+	await expect(customizeSwitchAfterReload).toBeVisible({ timeout: 10000 })
+	const customizeCheckboxAfterReload = customizeSwitchAfterReload.locator('input[type="checkbox"]').first()
+	await expect(customizeCheckboxAfterReload).not.toBeChecked()
 })

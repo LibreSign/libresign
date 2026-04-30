@@ -7,10 +7,10 @@ import { test, expect, type APIRequestContext, type Locator, type Page } from '@
 import { login } from '../support/nc-login'
 import { expandSettingsMenu } from '../support/nc-navigation'
 import {
+	configureOpenSsl,
 	ensureGroupExists,
 	ensureUserExists,
 	ensureUserInGroup,
-	setAppConfig,
 } from '../support/nc-provisioning'
 import {
 	clearUserPolicyPreference,
@@ -61,6 +61,15 @@ test.describe('Policy preferences: migrated settings', () => {
 		})
 
 		try {
+			await login(page.request, adminUser, adminPass)
+			await configureOpenSsl(page.request, 'LibreSign Test', {
+				C: 'BR',
+				OU: ['Organization Unit'],
+				ST: 'Rio de Janeiro',
+				O: 'LibreSign',
+				L: 'Rio de Janeiro',
+			})
+
 			await ensureGroupExists(page.request, groupId)
 			await ensureUserExists(page.request, endUser, endPass)
 			await ensureUserInGroup(page.request, endUser, groupId)
