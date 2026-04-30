@@ -26,6 +26,8 @@ use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPol
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCP\DB\ISchemaWrapper;
 use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
@@ -53,6 +55,41 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 		$this->migrateReminderSettings();
 		$this->migrateExpirationRulesType();
 		$this->migrateIdentifyMethodsType();
+		$this->migrateTsaSettings();
+	}
+
+	private function migrateTsaSettings(): void {
+		$existingConsolidated = $this->readLegacyString(TsaPolicy::SYSTEM_APP_CONFIG_KEY);
+		if ($existingConsolidated !== null && trim($existingConsolidated) !== '') {
+			$this->deleteLegacyTsaNonSensitiveKeys();
+			return;
+		}
+
+		$tsaUrl = $this->readLegacyString('tsa_url');
+		$tsaPolicyOid = $this->readLegacyString('tsa_policy_oid');
+		$tsaAuthType = $this->readLegacyString('tsa_auth_type');
+		$tsaUsername = $this->readLegacyString('tsa_username');
+
+		if ($tsaUrl === null && $tsaPolicyOid === null && $tsaAuthType === null && $tsaUsername === null) {
+			return;
+		}
+
+		$encoded = TsaPolicyValue::encode([
+			'url' => $tsaUrl ?? '',
+			'policy_oid' => $tsaPolicyOid ?? '',
+			'auth_type' => $tsaAuthType ?? 'none',
+			'username' => $tsaUsername ?? '',
+		]);
+
+		$this->deleteLegacyTsaNonSensitiveKeys();
+		$this->appConfig->setValueString(Application::APP_ID, TsaPolicy::SYSTEM_APP_CONFIG_KEY, $encoded);
+	}
+
+	private function deleteLegacyTsaNonSensitiveKeys(): void {
+		$this->appConfig->deleteKey(Application::APP_ID, 'tsa_url');
+		$this->appConfig->deleteKey(Application::APP_ID, 'tsa_policy_oid');
+		$this->appConfig->deleteKey(Application::APP_ID, 'tsa_auth_type');
+		$this->appConfig->deleteKey(Application::APP_ID, 'tsa_username');
 	}
 
 	private function migrateExpirationRulesType(): void {
