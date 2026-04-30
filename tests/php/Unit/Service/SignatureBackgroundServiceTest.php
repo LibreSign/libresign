@@ -9,6 +9,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\Files\IAppData;
@@ -25,6 +26,7 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 	private IConfig&MockObject $config;
 	private ITempManager&MockObject $tempManager;
 	private SignatureTextService&MockObject $signatureTextService;
+	private PolicyService&MockObject $policyService;
 
 	#[\Override]
 	public function setUp(): void {
@@ -33,6 +35,7 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 		$this->config = $this->createMock(IConfig::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 	}
 
 	private function getClass(): SignatureBackgroundService {
@@ -42,6 +45,7 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 			$this->config,
 			$this->tempManager,
 			$this->signatureTextService,
+			$this->policyService,
 		);
 		return $this->service;
 	}

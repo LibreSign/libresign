@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Runtime;
 
+use OC\AppFramework\Services\AppConfig as ScopedAppConfig;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\PermissionSet;
 use OCA\Libresign\Db\PermissionSetBinding;
 use OCA\Libresign\Db\PermissionSetBindingMapper;
@@ -20,31 +22,44 @@ use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureBackground\SignatureBackgroundPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
+use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\AppFramework\Services\IAppConfig as ScopedIAppConfig;
 use OCP\DB\IResult;
 use OCP\DB\QueryBuilder\IExpressionBuilder;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IAppConfig as CoreIAppConfig;
+use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
 final class PolicySourceTest extends TestCase {
-	private IAppConfig&MockObject $appConfig;
+	private ScopedIAppConfig $appConfig;
+	private CoreIAppConfig $coreAppConfig;
+	private IConfig&MockObject $config;
 	private PermissionSetMapper&MockObject $permissionSetMapper;
 	private PermissionSetBindingMapper&MockObject $bindingMapper;
 	private IDBConnection&MockObject $db;
 	private IL10N&MockObject $l10n;
 	private PolicyRegistry $registry;
 
-	protected function setUp(): void {
+	public function setUp(): void {
 		parent::setUp();
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->config = $this->createMock(IConfig::class);
+		$this->coreAppConfig = self::getMockAppConfigWithReset();
+		$this->coreAppConfig->deleteApp(Application::APP_ID);
+		$this->appConfig = new ScopedAppConfig(
+			$this->config,
+			$this->coreAppConfig,
+			Application::APP_ID,
+		);
 		$this->permissionSetMapper = $this->createMock(PermissionSetMapper::class);
 		$this->bindingMapper = $this->createMock(PermissionSetBindingMapper::class);
 		$this->db = $this->createMock(IDBConnection::class);
@@ -63,6 +78,8 @@ final class PolicySourceTest extends TestCase {
 					IdentificationDocumentsPolicy::class => new IdentificationDocumentsPolicy(),
 					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
 					SignatureTextPolicy::class => new SignatureTextPolicy(),
+					ValidationAccessPolicy::class => new ValidationAccessPolicy(),
+					SignatureBackgroundPolicy::class => new SignatureBackgroundPolicy(),
 					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
 				};
 			});
@@ -70,28 +87,8 @@ final class PolicySourceTest extends TestCase {
 	}
 
 	public function testLoadSystemPolicyReturnsForcedLayerWhenAppConfigIsSet(): void {
-		$calls = 0;
-		$this->appConfig
-			->expects($this->once())
-			->method('hasAppKey')
-			->with('policy.signature_flow.system')
-			->willReturn(true);
-
-		$this->appConfig
-			->expects($this->exactly(2))
-			->method('getAppValueString')
-			->willReturnCallback(static function (string $key, string $default) use (&$calls): string {
-				$calls += 1;
-				if ($key === 'policy.signature_flow.system' && $default === 'none') {
-					return 'ordered_numeric';
-				}
-
-				if ($key === 'policy.signature_flow.system.allow_child_override' && $default === '0') {
-					return '0';
-				}
-
-				throw new \RuntimeException('Unexpected app config key request: ' . $key);
-			});
+		$this->setStoredAppConfigString('policy.signature_flow.system', 'ordered_numeric');
+		$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', '0');
 
 		$source = $this->getSource();
 		$layer = $source->loadSystemPolicy('signature_flow');
@@ -101,20 +98,9 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('ordered_numeric', $layer->getValue());
 		$this->assertFalse($layer->isAllowChildOverride());
 		$this->assertSame(['ordered_numeric'], $layer->getAllowedValues());
-		$this->assertSame(2, $calls);
 	}
 
 	public function testLoadSystemPolicyReturnsInheritableLayerWhenAppConfigMatchesDefault(): void {
-		$this->appConfig
-			->expects($this->once())
-			->method('hasAppKey')
-			->with('policy.signature_flow.system')
-			->willReturn(false);
-
-		$this->appConfig
-			->expects($this->never())
-			->method('getAppValueString');
-
 		$source = $this->getSource();
 		$layer = $source->loadSystemPolicy('signature_flow');
 
@@ -169,10 +155,10 @@ final class PolicySourceTest extends TestCase {
 	}
 
 	public function testLoadUserPreferenceReturnsLayerFromUserConfig(): void {
-		$this->appConfig
+		$this->config
 			->expects($this->once())
 			->method('getUserValue')
-			->with('john', 'policy.signature_flow', '')
+			->with('john', Application::APP_ID, 'policy.signature_flow', '')
 			->willReturn('"parallel"');
 
 		$source = $this->getSource();
@@ -184,20 +170,20 @@ final class PolicySourceTest extends TestCase {
 	}
 
 	public function testSaveUserPreferenceNormalizesAndPersistsUserConfigValue(): void {
-		$this->appConfig
+		$this->config
 			->expects($this->once())
 			->method('setUserValue')
-			->with('john', 'policy.signature_flow', '"ordered_numeric"');
+			->with('john', Application::APP_ID, 'policy.signature_flow', '"ordered_numeric"', null);
 
 		$source = $this->getSource();
 		$source->saveUserPreference('signature_flow', PolicyContext::fromUserId('john'), 'ordered_numeric');
 	}
 
 	public function testLoadUserPolicyReturnsExplicitAssignedLayerFromUserConfig(): void {
-		$this->appConfig
+		$this->config
 			->expects($this->once())
 			->method('getUserValue')
-			->with('john', 'policy.signature_flow.assigned', '')
+			->with('john', Application::APP_ID, 'policy.signature_flow.assigned', '')
 			->willReturn('{"value":"ordered_numeric","allowChildOverride":false}');
 
 		$source = $this->getSource();
@@ -211,116 +197,135 @@ final class PolicySourceTest extends TestCase {
 	}
 
 	public function testSaveUserPolicyPersistsAssignedUserPayload(): void {
-		$this->appConfig
+		$this->config
 			->expects($this->once())
 			->method('setUserValue')
-			->with('john', 'policy.signature_flow.assigned', '{"value":"ordered_numeric","allowChildOverride":true}');
+			->with('john', Application::APP_ID, 'policy.signature_flow.assigned', '{"value":"ordered_numeric","allowChildOverride":true}', null);
 
 		$source = $this->getSource();
 		$source->saveUserPolicy('signature_flow', PolicyContext::fromUserId('john'), 'ordered_numeric', true);
 	}
 
 	public function testClearUserPolicyDeletesAssignedUserConfig(): void {
-		$this->appConfig
+		$this->config
 			->expects($this->once())
 			->method('deleteUserValue')
-			->with('john', 'policy.signature_flow.assigned');
+			->with('john', Application::APP_ID, 'policy.signature_flow.assigned');
 
 		$source = $this->getSource();
 		$source->clearUserPolicy('signature_flow', PolicyContext::fromUserId('john'));
 	}
 
 	public function testClearUserPreferenceDeletesUserConfig(): void {
-		$this->appConfig
+		$this->config
 			->expects($this->once())
 			->method('deleteUserValue')
-			->with('john', 'policy.signature_flow');
+			->with('john', Application::APP_ID, 'policy.signature_flow');
 
 		$source = $this->getSource();
 		$source->clearUserPreference('signature_flow', PolicyContext::fromUserId('john'));
 	}
 
 	public function testSaveSystemPolicyDeletesAppConfigWhenValueMatchesDefault(): void {
-		$deletedKeys = [];
-		$this->appConfig
-			->expects($this->exactly(2))
-			->method('deleteAppValue')
-			->willReturnCallback(static function (string $key) use (&$deletedKeys): bool {
-				$deletedKeys[] = $key;
-				return true;
-			});
+		$this->setStoredAppConfigString('policy.signature_flow.system', 'ordered_numeric');
+		$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
 
 		$source = $this->getSource();
 		$source->saveSystemPolicy('signature_flow', 'none');
 
-		$this->assertSame(['policy.signature_flow.system', 'policy.signature_flow.system.allow_child_override'], $deletedKeys);
+		$this->assertAppConfigMissing('policy.signature_flow.system');
+		$this->assertAppConfigMissing('policy.signature_flow.system.allow_child_override');
 	}
 
 	public function testSaveSystemPolicyPersistsExplicitDefaultWhenAllowChildOverrideIsTrue(): void {
-		$savedValues = [];
-		$this->appConfig
-			->expects($this->exactly(2))
-			->method('setAppValueString')
-			->willReturnCallback(static function (string $key, string $value) use (&$savedValues): bool {
-				$savedValues[$key] = $value;
-				return true;
-			});
-
-		$this->appConfig
-			->expects($this->never())
-			->method('deleteAppValue');
-
 		$source = $this->getSource();
 		$source->saveSystemPolicy('signature_flow', 'none', true);
 
-		$this->assertSame([
-			'policy.signature_flow.system' => 'none',
-			'policy.signature_flow.system.allow_child_override' => '1',
-		], $savedValues);
+		$this->assertStoredAppConfigString('policy.signature_flow.system', 'none');
+		$this->assertStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
 	}
 
 	public function testSaveSystemPolicyNormalizesAndPersistsAppConfigValue(): void {
-		$savedValues = [];
-		$this->appConfig
-			->expects($this->exactly(2))
-			->method('setAppValueString')
-			->willReturnCallback(static function (string $key, string $value) use (&$savedValues): bool {
-				$savedValues[$key] = $value;
-				return true;
-			});
-
 		$source = $this->getSource();
 		$source->saveSystemPolicy('signature_flow', 'ordered_numeric', true);
 
-		$this->assertSame([
-			'policy.signature_flow.system' => 'ordered_numeric',
-			'policy.signature_flow.system.allow_child_override' => '1',
-		], $savedValues);
+		$this->assertStoredAppConfigString('policy.signature_flow.system', 'ordered_numeric');
+		$this->assertStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
+	}
+
+	/**
+	 * @dataProvider providerSaveSystemPolicyBusinessRules
+	 */
+	public function testSaveSystemPolicyBusinessRulesWithDataProvider(
+		string $policyKey,
+		string $inputValue,
+		bool $allowChildOverride,
+		bool $expectDelete,
+		string $expectedValue,
+		string $expectedAppConfigKey,
+		string $expectedAllowOverrideValue,
+	): void {
+		$source = $this->getSource();
+
+		if ($expectDelete) {
+			$source->saveSystemPolicy($policyKey, $inputValue, $allowChildOverride);
+
+			$this->assertAppConfigMissing($expectedAppConfigKey);
+			$this->assertAppConfigMissing($expectedAppConfigKey . '.allow_child_override');
+			return;
+		}
+
+		$source->saveSystemPolicy($policyKey, $inputValue, $allowChildOverride);
+
+		$this->assertStoredAppConfigString($expectedAppConfigKey, $expectedValue);
+		$this->assertStoredAppConfigString($expectedAppConfigKey . '.allow_child_override', $expectedAllowOverrideValue);
+	}
+
+	/** @return array<string, array{0: string, 1: string, 2: bool, 3: bool, 4: string, 5: string, 6: string}> */
+	public static function providerSaveSystemPolicyBusinessRules(): array {
+		return [
+			'deletes_when_value_matches_default_and_override_disabled' => [
+				SignatureFlowPolicy::KEY,
+				'none',
+				false,
+				true,
+				'none',
+				'policy.signature_flow.system',
+				'0',
+			],
+			'persists_explicit_default_when_override_enabled' => [
+				SignatureFlowPolicy::KEY,
+				'none',
+				true,
+				false,
+				'none',
+				'policy.signature_flow.system',
+				'1',
+			],
+			'deletes_when_json_is_semantically_equal_to_default' => [
+				ApprovalGroupsPolicy::KEY,
+				'[ "admin" ]',
+				false,
+				true,
+				'["admin"]',
+				ApprovalGroupsPolicy::SYSTEM_APP_CONFIG_KEY,
+				'0',
+			],
+			'persists_when_value_differs_from_default' => [
+				SignatureFlowPolicy::KEY,
+				'ordered_numeric',
+				false,
+				false,
+				'ordered_numeric',
+				'policy.signature_flow.system',
+				'0',
+			],
+		];
 	}
 
 	public function testLoadSystemPolicyRespectsPersistedAllowChildOverride(): void {
-		$calls = 0;
-		$this->appConfig
-			->expects($this->once())
-			->method('hasAppKey')
-			->with('policy.signature_flow.system')
-			->willReturn(true);
-
-		$this->appConfig
-			->expects($this->exactly(2))
-			->method('getAppValueString')
-			->willReturnCallback(static function (string $key, string $default) use (&$calls): string {
-				$calls += 1;
-				if ($key === 'policy.signature_flow.system' && $default === 'none') {
-					return 'ordered_numeric';
-				}
-
-				if ($key === 'policy.signature_flow.system.allow_child_override' && $default === '0') {
-					return '1';
-				}
-
-				throw new \RuntimeException('Unexpected app config key request: ' . $key);
-			});
+		$this->setStoredAppConfigString('policy.signature_flow.system', 'ordered_numeric');
+		$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
 
 		$source = $this->getSource();
 		$layer = $source->loadSystemPolicy('signature_flow');
@@ -330,30 +335,11 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('global', $layer->getScope());
 		$this->assertTrue($layer->isAllowChildOverride());
 		$this->assertSame([], $layer->getAllowedValues());
-		$this->assertSame(2, $calls);
 	}
 
 	public function testLoadSystemPolicyTreatsPersistedDefaultAsExplicitWhenAllowChildOverrideIsSet(): void {
-		$this->appConfig
-			->expects($this->once())
-			->method('hasAppKey')
-			->with('policy.signature_flow.system')
-			->willReturn(true);
-
-		$this->appConfig
-			->expects($this->exactly(2))
-			->method('getAppValueString')
-			->willReturnCallback(static function (string $key, string $default): string {
-				if ($key === 'policy.signature_flow.system' && $default === 'none') {
-					return 'none';
-				}
-
-				if ($key === 'policy.signature_flow.system.allow_child_override' && $default === '0') {
-					return '1';
-				}
-
-				throw new \RuntimeException('Unexpected app config key request: ' . $key);
-			});
+		$this->setStoredAppConfigString('policy.signature_flow.system', 'none');
+		$this->setStoredAppConfigString('policy.signature_flow.system.allow_child_override', '1');
 
 		$source = $this->getSource();
 		$layer = $source->loadSystemPolicy('signature_flow');
@@ -366,28 +352,8 @@ final class PolicySourceTest extends TestCase {
 	}
 
 	public function testLoadSystemPolicyReturnsDocMdpLayerFromTypedIntConfig(): void {
-		$this->appConfig
-			->expects($this->once())
-			->method('hasAppKey')
-			->with('docmdp_level')
-			->willReturn(true);
-
-		$this->appConfig
-			->expects($this->once())
-			->method('getAppValueInt')
-			->with('docmdp_level', 0)
-			->willReturn(2);
-
-		$this->appConfig
-			->expects($this->once())
-			->method('getAppValueString')
-			->willReturnCallback(static function (string $key, string $default): string {
-				if ($key === 'docmdp_level.allow_child_override' && $default === '0') {
-					return '0';
-				}
-
-				throw new \RuntimeException('Unexpected app config key request: ' . $key);
-			});
+		$this->setStoredAppConfigInt('docmdp_level', 2);
+		$this->setStoredAppConfigString('docmdp_level.allow_child_override', '0');
 
 		$source = $this->getSource();
 		$layer = $source->loadSystemPolicy(DocMdpPolicy::KEY);
@@ -400,49 +366,16 @@ final class PolicySourceTest extends TestCase {
 	}
 
 	public function testSaveSystemPolicyPersistsDocMdpLevelAsTypedInt(): void {
-		$this->appConfig
-			->expects($this->once())
-			->method('setAppValueInt')
-			->with('docmdp_level', 2)
-			->willReturn(true);
-
-		$this->appConfig
-			->expects($this->once())
-			->method('setAppValueString')
-			->with('docmdp_level.allow_child_override', '0')
-			->willReturn(true);
-
 		$source = $this->getSource();
 		$source->saveSystemPolicy(DocMdpPolicy::KEY, 2, false);
+
+		$this->assertStoredAppConfigInt('docmdp_level', 2);
+		$this->assertStoredAppConfigString('docmdp_level.allow_child_override', '0');
 	}
 
 	public function testLoadSystemPolicyNormalizesLegacyTypedArrayForGroupsRequestSign(): void {
-		$this->appConfig
-			->expects($this->once())
-			->method('hasAppKey')
-			->with('groups_request_sign')
-			->willReturn(true);
-
-		$this->appConfig
-			->expects($this->exactly(2))
-			->method('getAppValueString')
-			->willReturnCallback(static function (string $key, string $default): string {
-				if ($key === 'groups_request_sign' && $default === '["admin"]') {
-					throw new \OCP\Exceptions\AppConfigTypeConflictException('array stored');
-				}
-
-				if ($key === 'groups_request_sign.allow_child_override' && $default === '0') {
-					return '0';
-				}
-
-				throw new \RuntimeException('Unexpected app config key request: ' . $key);
-			});
-
-		$this->appConfig
-			->expects($this->once())
-			->method('getAppValueArray')
-			->with('groups_request_sign', [])
-			->willReturn(['finance', 'admin']);
+		$this->setStoredAppConfigArray('groups_request_sign', ['finance', 'admin']);
+		$this->setStoredAppConfigString('groups_request_sign.allow_child_override', '0');
 
 		$source = $this->getSource();
 		$layer = $source->loadSystemPolicy('groups_request_sign');
@@ -826,6 +759,30 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame(3, $result['signature_flow']['userCount']);
 		$this->assertSame(0, $result['docmdp']['groupCount']);
 		$this->assertSame(0, $result['docmdp']['userCount']);
+	}
+
+	private function setStoredAppConfigString(string $key, string $value): void {
+		$this->coreAppConfig->setValueString(Application::APP_ID, $key, $value);
+	}
+
+	private function setStoredAppConfigInt(string $key, int $value): void {
+		$this->coreAppConfig->setValueInt(Application::APP_ID, $key, $value);
+	}
+
+	private function setStoredAppConfigArray(string $key, array $value): void {
+		$this->coreAppConfig->setValueArray(Application::APP_ID, $key, $value);
+	}
+
+	private function assertStoredAppConfigString(string $key, string $expectedValue): void {
+		$this->assertSame($expectedValue, $this->coreAppConfig->getValueString(Application::APP_ID, $key, ''));
+	}
+
+	private function assertStoredAppConfigInt(string $key, int $expectedValue): void {
+		$this->assertSame($expectedValue, $this->coreAppConfig->getValueInt(Application::APP_ID, $key, -1));
+	}
+
+	private function assertAppConfigMissing(string $key): void {
+		$this->assertFalse($this->coreAppConfig->hasKey(Application::APP_ID, $key));
 	}
 
 	private function getSource(): PolicySource {

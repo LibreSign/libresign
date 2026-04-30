@@ -14,12 +14,10 @@
 		<RootCertificateOpenSsl />
 		<IdentificationFactors />
 		<ExpirationRules />
-		<Validation />
 		<CrlValidation />
 		<SettingsPolicyWorkbench />
 		<SigningMode v-if="false" />
 		<LegalInformation />
-		<SignatureStamp />
 		<SignatureHashAlgorithm />
 		<DefaultUserFolder />
 		<Envelope />
@@ -44,11 +42,9 @@ import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureEngine from './SignatureEngine.vue'
 import SettingsPolicyWorkbench from './PolicyWorkbench/RealPolicyWorkbench.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
-import SignatureStamp from './SignatureStamp.vue'
 import SigningMode from './SigningMode.vue'
 import SupportProject from './SupportProject.vue'
 import TSA from './TSA.vue'
-import Validation from './Validation.vue'
 
 defineOptions({
 	name: 'Settings',
@@ -68,11 +64,9 @@ defineOptions({
 		SettingsPolicyWorkbench,
 		SignatureEngine,
 		SignatureHashAlgorithm,
-		SignatureStamp,
 		SigningMode,
 		SupportProject,
 		TSA,
-		Validation,
 	},
 })
 </script>

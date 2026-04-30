@@ -40,6 +40,31 @@ final class ResolvedPolicy {
 		return $this->effectiveValue;
 	}
 
+	public function getEffectiveValueAsBool(bool $default = false): bool {
+		if (is_bool($this->effectiveValue)) {
+			return $this->effectiveValue;
+		}
+
+		if ($this->effectiveValue === null) {
+			return $default;
+		}
+
+		if (is_int($this->effectiveValue)) {
+			return $this->effectiveValue !== 0;
+		}
+
+		if (is_float($this->effectiveValue)) {
+			return $this->effectiveValue !== 0.0;
+		}
+
+		if (is_string($this->effectiveValue)) {
+			$parsed = filter_var($this->effectiveValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+			return $parsed ?? $default;
+		}
+
+		return $default;
+	}
+
 	public function setInheritedValue(mixed $inheritedValue): self {
 		$this->inheritedValue = $inheritedValue;
 		return $this;

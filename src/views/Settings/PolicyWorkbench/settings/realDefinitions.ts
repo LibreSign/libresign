@@ -8,9 +8,11 @@ import { collectMetadataRealDefinition } from './collect-metadata/realDefinition
 import { docMdpRealDefinition } from './docmdp/realDefinition'
 import { identificationDocumentsRealDefinition } from './identification-documents/realDefinition'
 import { requestSignGroupsRealDefinition } from './request-sign-groups/realDefinition'
+import { signatureBackgroundRealDefinition } from './signature-background/realDefinition'
 import { signatureFooterRealDefinition } from './signature-footer/realDefinition'
 import { signatureFlowRealDefinition } from './signature-flow/realDefinition'
 import { signatureTextRealDefinition } from './signature-text/realDefinition'
+import { validationAccessRealDefinition } from './validation-access/realDefinition'
 import type { RealPolicySettingDefinition } from './realTypes'
 
 export const realDefinitions = {
@@ -21,5 +23,7 @@ export const realDefinitions = {
 	docmdp: docMdpRealDefinition,
 	identification_documents: identificationDocumentsRealDefinition,
 	groups_request_sign: requestSignGroupsRealDefinition,
+	make_validation_url_private: validationAccessRealDefinition,
+	signature_background_type: signatureBackgroundRealDefinition,
 	signature_text: signatureTextRealDefinition,
 } satisfies Record<string, RealPolicySettingDefinition>
