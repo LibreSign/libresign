@@ -9,10 +9,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Crl;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\CrlValidationStatus;
 use OCA\Libresign\Service\Crl\Ldap\LdapCrlDownloader;
-use OCP\IAppConfig;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
@@ -34,7 +34,7 @@ class CrlRevocationChecker {
 
 	public function __construct(
 		private IConfig $config,
-		private IAppConfig $appConfig,
+		private PolicyService $policyService,
 		private IURLGenerator $urlGenerator,
 		private ITempManager $tempManager,
 		private LoggerInterface $logger,
@@ -62,7 +62,7 @@ class CrlRevocationChecker {
 	 * @return array{status: CrlValidationStatus, revoked_at?: string}
 	 */
 	private function validateFromUrlsWithDetails(array $crlUrls, string $certPem): array {
-		$externalValidationEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true);
+		$externalValidationEnabled = $this->policyService->resolve(CrlValidationPolicy::KEY)->getEffectiveValueAsBool(true);
 
 		if (empty($crlUrls)) {
 			// When external validation is disabled, treat an empty distribution-point
