@@ -14,7 +14,6 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\App\IAppManager;
@@ -39,7 +38,6 @@ class TemplateLoader implements IEventListener {
 		private CertificateEngineFactory $certificateEngineFactory,
 		private PolicyService $policyService,
 		private IAppManager $appManager,
-		private ConfigService $docMdpConfigService,
 	) {
 	}
 
@@ -69,11 +67,9 @@ class TemplateLoader implements IEventListener {
 
 		return [
 			'certificate_ok' => $this->certificateEngineFactory->getEngine()->isSetupOk(),
-			'identify_methods' => $this->identifyMethodService->getIdentifyMethodsSettings(),
 			'effective_policies' => [
 				'policies' => $resolvedPolicies,
 			],
-			'docmdp_config' => $this->docMdpConfigService->getConfig(),
 			'can_request_sign' => $this->canRequestSign(),
 		];
 	}
