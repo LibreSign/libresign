@@ -20,6 +20,9 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
+use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
+use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
@@ -105,10 +108,10 @@ class Admin implements ISettings {
 				$this->policyService->resolve(ApprovalGroupsPolicy::KEY)->getEffectiveValue(),
 			),
 		);
-		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true));
+		$this->initialState->provideInitialState('envelope_enabled', $this->policyService->resolve(EnvelopePolicy::KEY)->getEffectiveValueAsBool(true));
 		$this->initialState->provideInitialState('parallel_workers', $this->appConfig->getValueString(Application::APP_ID, 'parallel_workers', '4'));
-		$this->initialState->provideInitialState('show_confetti_after_signing', $this->appConfig->getValueBool(Application::APP_ID, 'show_confetti_after_signing', true));
-		$this->initialState->provideInitialState('crl_external_validation_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true));
+		$this->initialState->provideInitialState('show_confetti_after_signing', $this->policyService->resolve(ConfettiPolicy::KEY)->getEffectiveValueAsBool(true));
+		$this->initialState->provideInitialState('crl_external_validation_enabled', $this->policyService->resolve(CrlValidationPolicy::KEY)->getEffectiveValueAsBool(true));
 		$this->initialState->provideInitialState('ldap_extension_available', function_exists('ldap_connect'));
 
 		$response = new TemplateResponse(Application::APP_ID, 'admin_settings');
