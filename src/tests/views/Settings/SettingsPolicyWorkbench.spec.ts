@@ -371,9 +371,9 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).toContain('Custom rules:none')
 		expect(text).not.toContain('Custom rules active')
 
-		// Validate POC settings are NOT present
-		expect(text).not.toContain('Confetti')
-		expect(text).not.toContain('Identification factors')
+		// Validate migrated settings are present in the workbench catalog
+		expect(text).toContain('Confetti animation')
+		expect(text).toContain('Identification factors')
 	})
 
 	it('closes the rule actions menu after clicking edit', async () => {
