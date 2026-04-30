@@ -69,19 +69,11 @@ final class PolicySourceTest extends TestCase {
 		$container
 			->method('get')
 			->willReturnCallback(static function (string $class): object {
-				return match ($class) {
-					ApprovalGroupsPolicy::class => new ApprovalGroupsPolicy(),
-					CollectMetadataPolicy::class => new CollectMetadataPolicy(),
-					FooterPolicy::class => new FooterPolicy(),
-					SignatureFlowPolicy::class => new SignatureFlowPolicy(),
-					DocMdpPolicy::class => new DocMdpPolicy(),
-					IdentificationDocumentsPolicy::class => new IdentificationDocumentsPolicy(),
-					RequestSignGroupsPolicy::class => new RequestSignGroupsPolicy(),
-					SignatureTextPolicy::class => new SignatureTextPolicy(),
-					ValidationAccessPolicy::class => new ValidationAccessPolicy(),
-					SignatureBackgroundPolicy::class => new SignatureBackgroundPolicy(),
-					default => throw new \RuntimeException('Unexpected provider class: ' . $class),
-				};
+				if (!\class_exists($class)) {
+					throw new \RuntimeException('Unexpected provider class: ' . $class);
+				}
+
+				return new $class();
 			});
 		$this->registry = new PolicyRegistry($container);
 	}

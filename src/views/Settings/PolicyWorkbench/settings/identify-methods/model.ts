@@ -64,8 +64,8 @@ export function normalizeIdentifyMethodsPolicy(value: EffectivePolicyValue): Ide
 	return normalized
 }
 
-export function serializeIdentifyMethodsPolicy(entries: IdentifyMethodPolicyEntry[]): IdentifyMethodPolicyEntry[] {
-	return entries.map((entry) => {
+export function serializeIdentifyMethodsPolicy(entries: IdentifyMethodPolicyEntry[]): string {
+	const normalizedEntries = entries.map((entry) => {
 		const signatureMethods: Record<string, IdentifyMethodSignatureMethod> = {}
 
 		for (const [signatureMethodName, signatureMethod] of Object.entries(entry.signatureMethods)) {
@@ -98,6 +98,8 @@ export function serializeIdentifyMethodsPolicy(entries: IdentifyMethodPolicyEntr
 
 		return normalizedEntry
 	})
+
+	return JSON.stringify(normalizedEntries)
 }
 
 function normalizeSignatureMethods(value: unknown): Record<string, IdentifyMethodSignatureMethod> {
