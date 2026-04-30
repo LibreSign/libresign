@@ -5,10 +5,11 @@
 
 import { t } from '@nextcloud/l10n'
 
+import IdentifyMethodsRuleEditor from './IdentifyMethodsRuleEditor.vue'
+
+import { normalizeIdentifyMethodsPolicy, serializeIdentifyMethodsPolicy } from './model'
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
-import IdentifyMethodsRuleEditor from './IdentifyMethodsRuleEditor.vue'
-import { normalizeIdentifyMethodsPolicy, serializeIdentifyMethodsPolicy } from './model'
 
 export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 	key: 'identify_methods',
@@ -17,8 +18,8 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 	supportedScopes: ['system', 'group', 'user'],
 	editor: IdentifyMethodsRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => [] as unknown as EffectivePolicyValue,
-	normalizeDraftValue: (value: EffectivePolicyValue) => serializeIdentifyMethodsPolicy(normalizeIdentifyMethodsPolicy(value)) as unknown as EffectivePolicyValue,
+	createEmptyValue: () => [],
+	normalizeDraftValue: (value: EffectivePolicyValue) => serializeIdentifyMethodsPolicy(normalizeIdentifyMethodsPolicy(value)),
 	hasSelectableDraftValue: () => true,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
@@ -26,7 +27,7 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 			return policyValue
 		}
 
-		return [] as unknown as EffectivePolicyValue
+		return []
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const normalized = normalizeIdentifyMethodsPolicy(value)
