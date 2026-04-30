@@ -14,6 +14,7 @@ use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\FooterService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -39,6 +40,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureTextService&MockObject $signatureTextService;
 	private FooterService&MockObject $footerService;
 	private PolicyService&MockObject $policyService;
+	private IdentifyMethodService&MockObject $identifyMethodService;
 	public function setUp(): void {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->accountService = $this->createMock(AccountService::class);
@@ -49,6 +51,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
 		$this->footerService = $this->createMock(FooterService::class);
 		$this->policyService = $this->createMock(PolicyService::class);
+		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->admin = new Admin(
 			$this->initialState,
 			$this->accountService,
@@ -59,6 +62,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signatureTextService,
 			$this->footerService,
 			$this->policyService,
+			$this->identifyMethodService,
 		);
 		$this->stubGetFormDependencies();
 	}
@@ -72,8 +76,9 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userSession->method('getUser')->willReturn($this->createMock(IUser::class));
 		$this->policyService->method('resolveKnownPolicies')->willReturn([]);
 		$this->policyService->method('resolve')->willReturn(
-			(new ResolvedPolicy())->setEffectiveValue(['admin']),
+			(new ResolvedPolicy())->setEffectiveValue(''),
 		);
+		$this->identifyMethodService->method('getIdentifyMethodsSettings')->willReturn([]);
 
 		$engine = $this->createMock(OpenSslHandler::class);
 		$engine->method('getName')->willReturn('openssl');
