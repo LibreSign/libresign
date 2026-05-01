@@ -197,6 +197,7 @@ OC.L10N.register(
     "Sign" : "Podpiši",
     "Upload cancelled" : "Pošiljanje je bilo preklicano",
     "Saved" : "Shranjeno",
+    "_{count} selected_::_{count} selected_" : ["{count} izbrana","{count} izbrani","{count} izbranih","{count} izbranih"],
     "Select all" : "Izberi vse",
     "Open file" : "Odpri datoteko",
     "Add file" : "Dodaj datoteko",
