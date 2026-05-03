@@ -3498,7 +3498,9 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @description Policy value to persist for the group. */
-                    value?: (boolean | number | string) | null;
+                    value?: (boolean | number | string | {
+                        [key: string]: Record<string, never>;
+                    }) | null;
                     /**
                      * @description Whether users and requests below this group may override the group default.
                      * @default false
@@ -3618,7 +3620,9 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @description Policy value to persist as the current user's default. */
-                    value?: (boolean | number | string) | null;
+                    value?: (boolean | number | string | {
+                        [key: string]: Record<string, never>;
+                    }) | null;
                 };
             };
         };

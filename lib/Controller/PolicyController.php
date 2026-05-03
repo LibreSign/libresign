@@ -175,7 +175,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * Save a system-level policy value
 	 *
 	 * @param string $policyKey Policy identifier to persist at the system layer.
-	 * @param null|bool|int|float|string $value Policy value to persist. Null resets the policy to its default system value.
+	 * @param null|bool|int|float|string|array<string, mixed> $value Policy value to persist. Null resets the policy to its default system value.
 	 * @param bool $allowChildOverride Whether lower layers may override this system default.
 	 * @return DataResponse<Http::STATUS_OK, LibresignSystemPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
@@ -183,8 +183,8 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 400: Invalid policy value
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/policies/system/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
-	public function setSystem(string $policyKey, null|bool|int|float|string $value = null, bool $allowChildOverride = false): DataResponse {
-		$value = $this->readScalarParam('value', $value);
+	public function setSystem(string $policyKey, null|bool|int|float|string|array $value = null, bool $allowChildOverride = false): DataResponse {
+		$value = $this->readPolicyValueParam('value', $value);
 		$allowChildOverride = $this->readBoolParam('allowChildOverride', $allowChildOverride);
 
 		try {
@@ -212,7 +212,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * @param string $groupId Group identifier that receives the policy binding.
 	 * @param string $policyKey Policy identifier to persist at the group layer.
-	 * @param null|bool|int|float|string $value Policy value to persist for the group.
+	 * @param null|bool|int|float|string|array<string, mixed> $value Policy value to persist for the group.
 	 * @param bool $allowChildOverride Whether users and requests below this group may override the group default.
 	 * @return DataResponse<Http::STATUS_OK, LibresignGroupPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
@@ -222,12 +222,12 @@ final class PolicyController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
-	public function setGroup(string $groupId, string $policyKey, null|bool|int|float|string $value = null, bool $allowChildOverride = false): DataResponse {
+	public function setGroup(string $groupId, string $policyKey, null|bool|int|float|string|array $value = null, bool $allowChildOverride = false): DataResponse {
 		if (!$this->canManageGroupPolicy($groupId)) {
 			return $this->forbiddenGroupPolicyResponse();
 		}
 
-		$value = $this->readScalarParam('value', $value);
+		$value = $this->readPolicyValueParam('value', $value);
 		$allowChildOverride = $this->readBoolParam('allowChildOverride', $allowChildOverride);
 
 		try {
@@ -297,7 +297,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * Save a user policy preference
 	 *
 	 * @param string $policyKey Policy identifier to persist for the current user.
-	 * @param null|bool|int|float|string $value Policy value to persist as the current user's default.
+	 * @param null|bool|int|float|string|array<string, mixed> $value Policy value to persist as the current user's default.
 	 * @return DataResponse<Http::STATUS_OK, LibresignSystemPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -305,8 +305,8 @@ final class PolicyController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/user/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
-	public function setUserPreference(string $policyKey, null|bool|int|float|string $value = null): DataResponse {
-		$value = $this->readScalarParam('value', $value);
+	public function setUserPreference(string $policyKey, null|bool|int|float|string|array $value = null): DataResponse {
+		$value = $this->readPolicyValueParam('value', $value);
 
 		try {
 			$this->requestSignGroupsPolicyGuard->assertUserScopeSupported($policyKey);
@@ -333,7 +333,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * @param string $userId Target user identifier that receives the policy assignment.
 	 * @param string $policyKey Policy identifier to persist for the target user.
-	 * @param null|bool|int|float|string $value Policy value to persist as assigned target user policy.
+	 * @param null|bool|int|float|string|array<string, mixed> $value Policy value to persist as assigned target user policy.
 	 * @param bool $allowChildOverride Whether the target user may still override the assigned value in personal preferences.
 	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
@@ -342,12 +342,12 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
-	public function setUserPolicyForUser(string $userId, string $policyKey, null|bool|int|float|string $value = null, bool $allowChildOverride = false): DataResponse {
+	public function setUserPolicyForUser(string $userId, string $policyKey, null|bool|int|float|string|array $value = null, bool $allowChildOverride = false): DataResponse {
 		if (!$this->canManageUserPolicy($userId)) {
 			return $this->forbiddenUserPolicyResponse();
 		}
 
-		$value = $this->readScalarParam('value', $value);
+		$value = $this->readPolicyValueParam('value', $value);
 		$allowChildOverride = $this->readBoolParam('allowChildOverride', $allowChildOverride);
 
 		try {
@@ -544,9 +544,9 @@ final class PolicyController extends AEnvironmentAwareController {
 		return [];
 	}
 
-	private function readScalarParam(string $key, null|bool|int|float|string $default): null|bool|int|float|string {
+	private function readPolicyValueParam(string $key, null|bool|int|float|string|array $default): null|bool|int|float|string|array {
 		$value = $this->request->getParams()[$key] ?? $default;
-		if (!is_scalar($value) && $value !== null) {
+		if (!is_scalar($value) && !is_array($value) && $value !== null) {
 			return $default;
 		}
 
