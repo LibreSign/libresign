@@ -63,10 +63,6 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('certificate_policies_cps', $this->certificatePolicyService->getCps());
 		$this->initialState->provideInitialState('config_path', $this->appConfig->getValueString(Application::APP_ID, 'config_path'));
 		$this->initialState->provideInitialState('signature_available_variables', $this->signatureTextService->getAvailableVariables());
-		$this->initialState->provideInitialState('signature_preview_zoom_level', $this->appConfig->getValueFloat(Application::APP_ID, 'signature_preview_zoom_level', 100));
-		$this->initialState->provideInitialState('footer_preview_zoom_level', $this->appConfig->getValueFloat(Application::APP_ID, 'footer_preview_zoom_level', 100));
-		$this->initialState->provideInitialState('footer_preview_width', $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_width', 595));
-		$this->initialState->provideInitialState('footer_preview_height', $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_height', 100));
 		$this->initialState->provideInitialState('footer_template_variables', $this->footerService->getTemplateVariablesMetadata());
 		$this->initialState->provideInitialState('footer_default_template', $this->footerService->getDefaultTemplate());
 		$this->initialState->provideInitialState('footer_template', $this->footerService->getTemplate());

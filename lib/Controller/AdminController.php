@@ -853,11 +853,14 @@ class AdminController extends AEnvironmentAwareController {
 	 */
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/footer-template', requirements: ['apiVersion' => '(v1)'])]
 	public function getFooterTemplate(): DataResponse {
+		$previewSettings = $this->footerService->getPreviewSettings();
+
 		return new DataResponse([
 			'template' => $this->footerService->getTemplate(),
 			'isDefault' => $this->footerService->isDefaultTemplate(),
-			'preview_width' => $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_width', 595),
-			'preview_height' => $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_height', 100),
+			'preview_width' => $previewSettings['preview_width'],
+			'preview_height' => $previewSettings['preview_height'],
+			'preview_zoom' => $previewSettings['preview_zoom'],
 		]);
 	}
 
@@ -877,7 +880,7 @@ class AdminController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template', requirements: ['apiVersion' => '(v1)'])]
 	public function saveFooterTemplate(string $template = '', int $width = 595, int $height = 50) {
 		try {
-			$this->footerService->saveTemplate($template);
+			$this->footerService->saveTemplate($template, $width, $height);
 			$pdf = $this->footerService->renderPreviewPdf('', $width, $height);
 
 			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');

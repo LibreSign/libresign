@@ -187,11 +187,6 @@ type PdfPreviewRef = {
 	scale: number
 }
 
-type AppConfigApi = {
-	deleteKey: (app: string, key: string) => void
-	setValue: (app: string, key: string, value: string | number) => void
-}
-
 const DEFAULT_PREVIEW_WIDTH = 595
 const DEFAULT_PREVIEW_HEIGHT = 100
 
@@ -202,7 +197,7 @@ const isDefaultTemplate = ref(loadState('libresign', 'footer_template_is_default
 const pdfPreviewFile = ref<File | null>(null)
 const loadingPreview = ref(false)
 const pdfKey = ref(0)
-const zoomLevel = ref(loadState('libresign', 'footer_preview_zoom_level', 100))
+const zoomLevel = ref(100)
 const previewWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
 const previewHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
 const originalWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
@@ -231,8 +226,6 @@ function estimateContainerHeightForFirstRender(height: number, zoom: number): nu
 	}
 	return Math.max(160, Math.round((height * zoom) / 100) + 24)
 }
-
-const appConfig = (globalThis as typeof globalThis & { OCP?: { AppConfig: AppConfigApi } }).OCP?.AppConfig
 
 ensurePdfWorker()
 
@@ -295,18 +288,9 @@ function resetDimensionsToOriginal() {
 function resetDimensions() {
 	previewWidth.value = DEFAULT_PREVIEW_WIDTH
 	previewHeight.value = DEFAULT_PREVIEW_HEIGHT
-	appConfig?.deleteKey('libresign', 'footer_preview_width')
-	appConfig?.deleteKey('libresign', 'footer_preview_height')
 }
 
 function saveDimensions() {
-	if (Number(previewWidth.value) === DEFAULT_PREVIEW_WIDTH && Number(previewHeight.value) === DEFAULT_PREVIEW_HEIGHT) {
-		appConfig?.deleteKey('libresign', 'footer_preview_width')
-		appConfig?.deleteKey('libresign', 'footer_preview_height')
-	} else {
-		appConfig?.setValue('libresign', 'footer_preview_width', previewWidth.value)
-		appConfig?.setValue('libresign', 'footer_preview_height', previewHeight.value)
-	}
 	saveFooterTemplate()
 }
 
@@ -386,6 +370,7 @@ onMounted(() => {
 				const template = response.data.ocs.data.template
 				const width = response.data.ocs.data.preview_width
 				const height = response.data.ocs.data.preview_height
+				const zoom = response.data.ocs.data.preview_zoom ?? 100
 
 				footerTemplate.value = template
 				originalTemplate.value = template
@@ -394,6 +379,7 @@ onMounted(() => {
 				originalHeight.value = height
 				previewWidth.value = width
 				originalWidth.value = width
+				zoomLevel.value = zoom
 				saveFooterTemplate()
 		})
 })
