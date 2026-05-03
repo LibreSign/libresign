@@ -8,11 +8,13 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider\IdentifyMethods;
 
+use OCA\Libresign\Service\IdentifyMethodService;
+
 final class IdentifyMethodsPolicyValue {
 	/**
 	 * @return list<array<string, mixed>>
 	 */
-	public static function normalize(mixed $rawValue): array {
+	public static function normalize(mixed $rawValue, ?IdentifyMethodService $identifyMethodService = null): array {
 		if (is_string($rawValue)) {
 			$decoded = json_decode($rawValue, true);
 			if (is_array($decoded)) {
@@ -80,6 +82,18 @@ final class IdentifyMethodsPolicyValue {
 			}
 
 			$normalized[] = $normalizedEntry;
+		}
+
+		// Enrich friendly_name from identify method services if not present and service is available
+		if ($identifyMethodService !== null) {
+			$settings = $identifyMethodService->getIdentifyMethodsSettings();
+			$friendlyNames = array_column($settings, 'friendly_name', 'name');
+			foreach ($normalized as &$entry) {
+				if (!isset($entry['friendly_name']) && isset($entry['name'], $friendlyNames[$entry['name']])) {
+					$entry['friendly_name'] = $friendlyNames[$entry['name']];
+				}
+			}
+			unset($entry);
 		}
 
 		return $normalized;
