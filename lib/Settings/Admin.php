@@ -83,7 +83,6 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('signing_mode', $this->getSigningModeInitialState());
 		$this->initialState->provideInitialState('worker_type', $this->getWorkerTypeInitialState());
 		$this->initialState->provideInitialState('parallel_workers', $this->appConfig->getValueString(Application::APP_ID, 'parallel_workers', '4'));
-		$this->initialState->provideInitialState('crl_external_validation_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'crl_external_validation_enabled', true));
 		$this->initialState->provideInitialState('ldap_extension_available', function_exists('ldap_connect'));
 
 		$response = new TemplateResponse(Application::APP_ID, 'admin_settings');
