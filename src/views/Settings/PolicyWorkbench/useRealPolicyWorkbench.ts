@@ -1010,7 +1010,7 @@ export function createRealPolicyWorkbenchState() {
 			&& editorDraft.value.ruleId === ruleId
 
 		if (ruleId === 'system-default' || (inheritedSystemRuleId !== null && ruleId === inheritedSystemRuleId)) {
-			await policiesStore.saveSystemPolicy(policyKey, null as unknown as EffectivePolicyValue, false)
+			await policiesStore.saveSystemPolicy(policyKey, null, false)
 			explicitSystemRule.value = null
 			highlightedRuleId.value = null
 			await policiesStore.fetchEffectivePolicies()
