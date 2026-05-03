@@ -4,6 +4,7 @@
  */
 
 import type { APIRequestContext } from '@playwright/test'
+import { ensureLibresignAppEnabled } from './nc-provisioning'
 
 /**
  * Login to Nextcloud via API (no browser form involved).
@@ -25,15 +26,36 @@ export async function login(
 	user: string,
 	password: string,
 ): Promise<void> {
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+	await ensureLibresignAppEnabled(request, adminUser, adminPassword)
+
 	// Ensure a previous authenticated session does not leak across persona switches.
 	await request.get('./logout', {
 		failOnStatusCode: false,
 		maxRedirects: 0,
 	}).catch(() => {})
 
-	const tokenResponse = await request.get('./csrftoken', {
-		failOnStatusCode: true,
-	})
+	let tokenResponse: Awaited<ReturnType<APIRequestContext['get']>> | null = null
+	let lastTokenError: Error | null = null
+	for (let attempt = 1; attempt <= 5; attempt++) {
+		try {
+			tokenResponse = await request.get('./csrftoken', {
+				failOnStatusCode: true,
+				timeout: 20000,
+			})
+			break
+		} catch (error) {
+			lastTokenError = error instanceof Error ? error : new Error(String(error))
+			if (attempt < 5) {
+				await new Promise((resolve) => setTimeout(resolve, attempt * 250))
+			}
+		}
+	}
+
+	if (!tokenResponse) {
+		throw lastTokenError ?? new Error('Failed to fetch csrftoken')
+	}
 
 	const { token: requesttoken } = await tokenResponse.json() as { token: string }
 
