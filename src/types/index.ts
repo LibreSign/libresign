@@ -132,10 +132,7 @@ export type AdminInitialState = {
 	signing_mode: SigningModeState
 	worker_type: WorkerTypeState
 	parallel_workers: string
-	show_confetti_after_signing: boolean
-	crl_external_validation_enabled: boolean
 	ldap_extension_available: boolean
-	envelope_enabled: boolean
 }
 
 export type RuntimeFileSettingsRecord = FileSettings & Partial<SettingsRecord>

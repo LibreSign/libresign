@@ -162,6 +162,7 @@ Feature: admin/initial_state
       | (jq)(.policies.approval_group.effectiveValue \| fromjson \| .[0]) | admin                           |
       | (jq).policies.envelope_enabled.effectiveValue               | true                                  |
       | (jq).policies.show_confetti_after_signing.effectiveValue    | true                                  |
+      | (jq).policies.crl_external_validation_enabled.effectiveValue | true                                 |
       | (jq).policies.tsa_settings.policyKey                                      | tsa_settings |
       | (jq).policies.tsa_settings.sourceScope                                    | system       |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).auth_type          | none         |
@@ -176,10 +177,6 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-parallel_workers" with the following values:
       """
       "4"
-      """
-    And the response should contain the initial state "libresign-crl_external_validation_enabled" with the following values:
-      """
-      true
       """
     And run the command "user:setting admin libresign files_list_sorting_mode --delete" with result code 0
     And run the command "user:setting admin libresign files_list_sorting_direction --delete" with result code 0
@@ -292,6 +289,7 @@ Feature: admin/initial_state
       | (jq)(.policies.approval_group.effectiveValue \| fromjson \| .[1]) | staff                           |
       | (jq).policies.envelope_enabled.effectiveValue               | false                                 |
       | (jq).policies.show_confetti_after_signing.effectiveValue    | false                                 |
+      | (jq).policies.crl_external_validation_enabled.effectiveValue | false                                |
       | (jq).policies.tsa_settings.policyKey                                      | tsa_settings                 |
       | (jq).policies.tsa_settings.sourceScope                                    | global                       |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).url                | https://tsa.example.test/tsr |
@@ -309,10 +307,6 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-parallel_workers" with the following values:
       """
       "9"
-      """
-    And the response should contain the initial state "libresign-crl_external_validation_enabled" with the following values:
-      """
-      false
       """
     And the following libresign app config is set
       | certificate_engine                | openssl                  |
