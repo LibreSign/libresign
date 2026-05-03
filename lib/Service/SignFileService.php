@@ -29,6 +29,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Events\SignedEventFactory;
+use OCA\Libresign\Exception\FooterStampUnavailableException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
@@ -1386,7 +1387,12 @@ class SignFileService {
 
 			try {
 				$pdfContent = $this->pdf->applyStamp($input, $stamp);
-			} catch (RuntimeException $e) {
+			} catch (FooterStampUnavailableException $e) {
+				$this->logger->warning('Using original PDF because footer stamping is unavailable.', [
+					'exception' => $e,
+				]);
+				$pdfContent = $originalContent;
+			} catch (RuntimeException|LibresignException $e) {
 				throw new LibresignException($e->getMessage());
 			}
 		} else {

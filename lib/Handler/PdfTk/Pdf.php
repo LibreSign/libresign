@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\PdfTk;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Exception\FooterStampUnavailableException;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Vendor\mikehaertl\pdftk\Command;
 use OCA\Libresign\Vendor\mikehaertl\pdftk\Pdf as BasePdf;
@@ -45,17 +45,16 @@ class Pdf extends BasePdf {
 	protected function configureCommand(): void {
 		$this->javaPath = $this->javaHelper->getJavaPath();
 		if ($this->javaPath === '') {
-			throw new RuntimeException('Java path not set.');
+			throw new FooterStampUnavailableException('Java path not set.');
 		}
 
 		$this->pdftkPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
 		if ($this->pdftkPath === '') {
-			throw new RuntimeException('PDFtk path not set.');
+			throw new FooterStampUnavailableException('PDFtk path not set.');
 		}
 
-
 		if (!file_exists($this->javaPath) || !file_exists($this->pdftkPath)) {
-			throw new LibresignException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
+			throw new FooterStampUnavailableException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
 		}
 
 		$cmd = sprintf('%s -jar %s', escapeshellcmd($this->javaPath), escapeshellarg($this->pdftkPath));
