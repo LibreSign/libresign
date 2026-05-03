@@ -70,10 +70,6 @@ Feature: admin/initial_state
       | signature_background_type         | default                  |
       | signature_font_size               | 20                       |
       | signature_height                  | 100                      |
-      | signature_preview_zoom_level      | 100                      |
-      | footer_preview_zoom_level         | 100                      |
-      | footer_preview_width              | 595                      |
-      | footer_preview_height             | 100                      |
       | signature_engine                  | JSignPdf                 |
       | signature_render_mode             | GRAPHIC_AND_DESCRIPTION  |
       | signature_width                   | 350                      |
@@ -118,22 +114,6 @@ Feature: admin/initial_state
       | (jq)has("{{ServerSignatureDate}}")     | true  |
       | (jq)has("{{SignerCommonName}}")        | true  |
       | (jq)has("{{SignerIP}}")                | false |
-    And the response should contain the initial state "libresign-signature_preview_zoom_level" with the following values:
-      """
-      100
-      """
-    And the response should contain the initial state "libresign-footer_preview_zoom_level" with the following values:
-      """
-      100
-      """
-    And the response should contain the initial state "libresign-footer_preview_width" with the following values:
-      """
-      595
-      """
-    And the response should contain the initial state "libresign-footer_preview_height" with the following values:
-      """
-      100
-      """
     And the response should contain the initial state "libresign-footer_template_variables" json that match with:
       | key                             | value                           |
       | (jq).direction.type             | string                          |
@@ -163,6 +143,9 @@ Feature: admin/initial_state
       | (jq).policies.envelope_enabled.effectiveValue               | true                                  |
       | (jq).policies.show_confetti_after_signing.effectiveValue    | true                                  |
       | (jq).policies.crl_external_validation_enabled.effectiveValue | true                                 |
+      | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewWidth | 595                           |
+      | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewHeight | 100                          |
+      | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewZoom | 100                             |
       | (jq).policies.tsa_settings.policyKey                                      | tsa_settings |
       | (jq).policies.tsa_settings.sourceScope                                    | system       |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).auth_type          | none         |
@@ -191,10 +174,6 @@ Feature: admin/initial_state
       | signature_background_type         | deleted                           |
       | signature_font_size               | 18.5                              |
       | signature_height                  | 140                               |
-      | signature_preview_zoom_level      | 125                               |
-      | footer_preview_zoom_level         | 85                                |
-      | footer_preview_width              | 610                               |
-      | footer_preview_height             | 80                                |
       | signature_engine                  | PhpNative                         |
       | signature_render_mode             | DESCRIPTION_ONLY                  |
       | signature_text_template           | Issuer: {{IssuerCommonName}}      |
@@ -248,22 +227,6 @@ Feature: admin/initial_state
       """
       Issuer: Acme Cooperative
       """
-    And the response should contain the initial state "libresign-signature_preview_zoom_level" with the following values:
-      """
-      125
-      """
-    And the response should contain the initial state "libresign-footer_preview_zoom_level" with the following values:
-      """
-      85
-      """
-    And the response should contain the initial state "libresign-footer_preview_width" with the following values:
-      """
-      610
-      """
-    And the response should contain the initial state "libresign-footer_preview_height" with the following values:
-      """
-      80
-      """
     And the response should contain the initial state "libresign-footer_template" with the following values:
       """
       Custom footer for {{ uuid }}
@@ -290,6 +253,9 @@ Feature: admin/initial_state
       | (jq).policies.envelope_enabled.effectiveValue               | false                                 |
       | (jq).policies.show_confetti_after_signing.effectiveValue    | false                                 |
       | (jq).policies.crl_external_validation_enabled.effectiveValue | false                                |
+      | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewWidth | 610                           |
+      | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewHeight | 80                           |
+      | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewZoom | 100                            |
       | (jq).policies.tsa_settings.policyKey                                      | tsa_settings                 |
       | (jq).policies.tsa_settings.sourceScope                                    | global                       |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).url                | https://tsa.example.test/tsr |
@@ -316,10 +282,6 @@ Feature: admin/initial_state
       | signature_background_type         | default                  |
       | signature_font_size               | 20                       |
       | signature_height                  | 100                      |
-      | signature_preview_zoom_level      | 100                      |
-      | footer_preview_zoom_level         | 100                      |
-      | footer_preview_width              | 595                      |
-      | footer_preview_height             | 100                      |
       | signature_engine                  | JSignPdf                 |
       | signature_render_mode             | GRAPHIC_AND_DESCRIPTION  |
       | signature_width                   | 350                      |
