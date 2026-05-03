@@ -679,7 +679,9 @@ export type components = {
             /** Format: int64 */
             userCount: number;
         };
-        EffectivePolicyValue: (boolean | number | string) | null;
+        EffectivePolicyValue: (boolean | number | string | {
+            [key: string]: Record<string, never>;
+        }) | null;
         EngineHandler: {
             configPath: string;
             cfsslUri?: string;
@@ -709,6 +711,8 @@ export type components = {
             preview_width: number;
             /** Format: int64 */
             preview_height: number;
+            /** Format: int64 */
+            preview_zoom: number;
         };
         HasRootCertResponse: {
             hasRootCert: boolean;

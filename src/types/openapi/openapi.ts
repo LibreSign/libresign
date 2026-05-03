@@ -1003,7 +1003,9 @@ export type components = {
             /** Format: int64 */
             userCount: number;
         };
-        EffectivePolicyValue: (boolean | number | string) | null;
+        EffectivePolicyValue: (boolean | number | string | {
+            [key: string]: Record<string, never>;
+        }) | null;
         ErrorItem: {
             message: string;
             title?: string;

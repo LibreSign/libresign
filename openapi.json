@@ -773,6 +773,12 @@
                     },
                     {
                         "type": "string"
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
+                        }
                     }
                 ]
             },

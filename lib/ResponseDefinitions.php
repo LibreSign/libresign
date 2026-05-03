@@ -377,7 +377,7 @@ namespace OCA\Libresign;
  *
  * Validation and progress contracts
  *
- * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string|array<array-key, mixed>
+ * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string|array<string, mixed>
  * @psalm-type LibresignEffectivePolicyState = array{
  *     policyKey: string,
  *     effectiveValue: LibresignEffectivePolicyValue,
