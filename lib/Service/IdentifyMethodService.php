@@ -361,6 +361,14 @@ class IdentifyMethodService {
 
 	/**
 	 * Resolve UID from certificate chain data
+@@		if ($this->xmpp->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsSettings[] = $this->xmpp->getSettings();
+		}
+		return $this->identifyMethodsSettings;
+	}
+
+	/**
+	 * Resolve UID from certificate chain data
 	 *
 	 * Extracts and resolves the identifier from certificate subject or extensions.
 	 * Supports fallbacks for older LibreSign versions and converts to standard
