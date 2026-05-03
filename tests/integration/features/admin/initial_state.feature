@@ -60,6 +60,8 @@ Feature: admin/initial_state
     And run the command "config:app:delete libresign footer_template" with result code 0
     And run the command "config:app:delete libresign config_path" with result code 0
     And run the command "config:app:delete libresign tsa_password" with result code 0
+    And sending "delete" to ocs "/apps/libresign/api/v1/admin/tsa"
+    And the response should have a status code 200
     And the following libresign app config is set
       | certificate_engine                | openssl                  |
       | certificate_policies_oid          |                          |
@@ -76,10 +78,6 @@ Feature: admin/initial_state
       | signature_render_mode             | GRAPHIC_AND_DESCRIPTION  |
       | signature_width                   | 350                      |
       | template_font_size                | 10                       |
-      | tsa_url                           |                          |
-      | tsa_policy_oid                    |                          |
-      | tsa_auth_type                     | none                     |
-      | tsa_username                      |                          |
       | docmdp_level                      | 2                        |
       | policy.signature_flow.system      | none                     |
       | signing_mode                      | sync                     |
@@ -113,10 +111,6 @@ Feature: admin/initial_state
       """
 
       """
-    And the response should contain the initial state "libresign-legal_information" with the following values:
-      """
-
-      """
     And the response should contain the initial state "libresign-signature_available_variables" json that match with:
       | key                                     | value |
       | (jq)has("{{DocumentUUID}}")            | true  |
@@ -124,10 +118,6 @@ Feature: admin/initial_state
       | (jq)has("{{ServerSignatureDate}}")     | true  |
       | (jq)has("{{SignerCommonName}}")        | true  |
       | (jq)has("{{SignerIP}}")                | false |
-    And the response should contain the initial state "libresign-signature_background_type" with the following values:
-      """
-      default
-      """
     And the response should contain the initial state "libresign-signature_preview_zoom_level" with the following values:
       """
       100
@@ -160,32 +150,21 @@ Feature: admin/initial_state
       """
       JSignPdf
       """
-    And the response should contain the initial state "libresign-tsa_url" with the following values:
-      """
-
-      """
-    And the response should contain the initial state "libresign-tsa_policy_oid" with the following values:
-      """
-
-      """
-    And the response should contain the initial state "libresign-tsa_auth_type" with the following values:
-      """
-      none
-      """
-    And the response should contain the initial state "libresign-tsa_username" with the following values:
-      """
-
-      """
-    And the response should contain the initial state "libresign-tsa_password" with the following values:
-      """
-      "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
-      """
     And the response should contain the initial state "libresign-effective_policies" json that match with:
-      | key                                             | value                                 |
-      | (jq).policies.docmdp.effectiveValue            | 2                                     |
-      | (jq).policies.signature_flow.policyKey         | signature_flow                        |
-      | (jq).policies.signature_flow.effectiveValue    | none                                  |
-      | (jq).policies.signature_flow.allowedValues     | ["none","parallel","ordered_numeric"] |
+      | key                                                         | value                                 |
+      | (jq).policies.docmdp.effectiveValue                         | 2                                     |
+      | (jq).policies.legal_information.effectiveValue              |                                       |
+      | (jq).policies.signature_flow.policyKey                      | signature_flow                        |
+      | (jq).policies.signature_flow.effectiveValue                 | none                                  |
+      | (jq).policies.signature_flow.allowedValues                  | ["none","parallel","ordered_numeric"] |
+      | (jq).policies.signature_background_type.effectiveValue      | default                               |
+      | (jq).policies.identification_documents.effectiveValue       | false                                 |
+      | (jq)(.policies.approval_group.effectiveValue \| fromjson \| .[0]) | admin                           |
+      | (jq).policies.envelope_enabled.effectiveValue               | true                                  |
+      | (jq).policies.show_confetti_after_signing.effectiveValue    | true                                  |
+      | (jq).policies.tsa_settings.policyKey                                      | tsa_settings |
+      | (jq).policies.tsa_settings.sourceScope                                    | system       |
+      | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).auth_type          | none         |
     And the response should contain the initial state "libresign-signing_mode" with the following values:
       """
       sync
@@ -194,25 +173,9 @@ Feature: admin/initial_state
       """
       local
       """
-    And the response should contain the initial state "libresign-identification_documents" with the following values:
-      """
-      false
-      """
-    And the response should contain the initial state "libresign-approval_group" with the following values:
-      """
-      ["admin"]
-      """
-    And the response should contain the initial state "libresign-envelope_enabled" with the following values:
-      """
-      true
-      """
     And the response should contain the initial state "libresign-parallel_workers" with the following values:
       """
       "4"
-      """
-    And the response should contain the initial state "libresign-show_confetti_after_signing" with the following values:
-      """
-      true
       """
     And the response should contain the initial state "libresign-crl_external_validation_enabled" with the following values:
       """
@@ -240,10 +203,6 @@ Feature: admin/initial_state
       | signature_text_template           | Issuer: {{IssuerCommonName}}      |
       | signature_width                   | 420                               |
       | template_font_size                | 12.5                              |
-      | tsa_url                           | https://tsa.example.test/tsr      |
-      | tsa_policy_oid                    | 1.2.3                             |
-      | tsa_auth_type                     | basic                             |
-      | tsa_username                      | signer                            |
       | tsa_password                      | topsecret                         |
       | docmdp_level                      | 0                                 |
       | policy.signature_flow.system      | ordered_numeric                   |
@@ -255,6 +214,13 @@ Feature: admin/initial_state
       | parallel_workers                  | 9                                 |
       | show_confetti_after_signing       | false                             |
       | crl_external_validation_enabled   | false                             |
+    And sending "post" to ocs "/apps/libresign/api/v1/admin/tsa"
+      | tsa_url        | https://tsa.example.test/tsr |
+      | tsa_policy_oid | 1.2.3                        |
+      | tsa_auth_type  | basic                        |
+      | tsa_username   | signer                       |
+      | tsa_password   | topsecret                    |
+    And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/admin/footer-template"
       | template | Custom footer for {{ uuid }} |
       | width    | 610                          |
@@ -281,17 +247,9 @@ Feature: admin/initial_state
       """
       "/tmp"
       """
-    And the response should contain the initial state "libresign-legal_information" with the following values:
-      """
-      Custom legal information
-      """
     And the response should contain the initial state "libresign-signature_text_parsed" with the following values:
       """
       Issuer: Acme Cooperative
-      """
-    And the response should contain the initial state "libresign-signature_background_type" with the following values:
-      """
-      deleted
       """
     And the response should contain the initial state "libresign-signature_preview_zoom_level" with the following values:
       """
@@ -321,32 +279,25 @@ Feature: admin/initial_state
       """
       PhpNative
       """
-    And the response should contain the initial state "libresign-tsa_url" with the following values:
-      """
-      "https:\/\/tsa.example.test\/tsr"
-      """
-    And the response should contain the initial state "libresign-tsa_policy_oid" with the following values:
-      """
-      1.2.3
-      """
-    And the response should contain the initial state "libresign-tsa_auth_type" with the following values:
-      """
-      basic
-      """
-    And the response should contain the initial state "libresign-tsa_username" with the following values:
-      """
-      signer
-      """
-    And the response should contain the initial state "libresign-tsa_password" with the following values:
-      """
-      topsecret
-      """
     And the response should contain the initial state "libresign-effective_policies" json that match with:
-      | key                                             | value                                 |
-      | (jq).policies.docmdp.effectiveValue            | 0                                     |
-      | (jq).policies.signature_flow.policyKey         | signature_flow                        |
-      | (jq).policies.signature_flow.effectiveValue    | ordered_numeric                       |
-      | (jq).policies.signature_flow.allowedValues     | ["ordered_numeric"]                  |
+      | key                                                         | value                                 |
+      | (jq).policies.docmdp.effectiveValue                         | 0                                     |
+      | (jq).policies.legal_information.effectiveValue              | Custom legal information              |
+      | (jq).policies.signature_flow.policyKey                      | signature_flow                        |
+      | (jq).policies.signature_flow.effectiveValue                 | ordered_numeric                       |
+      | (jq).policies.signature_flow.allowedValues                  | ["ordered_numeric"]                  |
+      | (jq).policies.signature_background_type.effectiveValue      | deleted                               |
+      | (jq).policies.identification_documents.effectiveValue       | true                                  |
+      | (jq)(.policies.approval_group.effectiveValue \| fromjson \| .[0]) | admin                           |
+      | (jq)(.policies.approval_group.effectiveValue \| fromjson \| .[1]) | staff                           |
+      | (jq).policies.envelope_enabled.effectiveValue               | false                                 |
+      | (jq).policies.show_confetti_after_signing.effectiveValue    | false                                 |
+      | (jq).policies.tsa_settings.policyKey                                      | tsa_settings                 |
+      | (jq).policies.tsa_settings.sourceScope                                    | global                       |
+      | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).url                | https://tsa.example.test/tsr |
+      | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).policy_oid         | 1.2.3                        |
+      | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).auth_type          | basic                        |
+      | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).username           | signer                       |
     And the response should contain the initial state "libresign-signing_mode" with the following values:
       """
       async
@@ -355,25 +306,9 @@ Feature: admin/initial_state
       """
       external
       """
-    And the response should contain the initial state "libresign-identification_documents" with the following values:
-      """
-      true
-      """
-    And the response should contain the initial state "libresign-approval_group" with the following values:
-      """
-      ["admin","staff"]
-      """
-    And the response should contain the initial state "libresign-envelope_enabled" with the following values:
-      """
-      false
-      """
     And the response should contain the initial state "libresign-parallel_workers" with the following values:
       """
       "9"
-      """
-    And the response should contain the initial state "libresign-show_confetti_after_signing" with the following values:
-      """
-      false
       """
     And the response should contain the initial state "libresign-crl_external_validation_enabled" with the following values:
       """
@@ -395,10 +330,6 @@ Feature: admin/initial_state
       | signature_render_mode             | GRAPHIC_AND_DESCRIPTION  |
       | signature_width                   | 350                      |
       | template_font_size                | 10                       |
-      | tsa_url                           |                          |
-      | tsa_policy_oid                    |                          |
-      | tsa_auth_type                     | none                     |
-      | tsa_username                      |                          |
       | docmdp_level                      | 2                        |
       | policy.signature_flow.system      | none                     |
       | signing_mode                      | sync                     |
@@ -409,6 +340,8 @@ Feature: admin/initial_state
       | parallel_workers                  | 4                        |
       | show_confetti_after_signing       | true                     |
       | crl_external_validation_enabled   | true                     |
+    And sending "delete" to ocs "/apps/libresign/api/v1/admin/tsa"
+    And the response should have a status code 200
     And run the command "config:app:delete libresign signature_text_template" with result code 0
     And run the command "config:app:delete libresign footer_template" with result code 0
     And run the command "config:app:delete libresign config_path" with result code 0
