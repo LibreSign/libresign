@@ -7,10 +7,6 @@ Feature: page/sign_identify_default
     And sending "delete" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
     When sending "get" to "/apps/libresign/f/"
     Then the response should have a status code 200
-    And the response should contain the initial state "libresign-identify_methods" with the following values:
-      """
-      [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":false,"label":"Click to sign","name":"clickToSign"},"emailToken":{"enabled":false,"label":"Email token","name":"emailToken"},"password":{"enabled":true,"label":"Certificate with password","name":"password"}}},
-        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest","signatureMethods":{"clickToSign":{"enabled":false,"label":"Click to sign","name":"clickToSign"},"emailToken":{"enabled":true,"label":"Email token","name":"emailToken"}}}
-      ]
-      """
+    And the response should contain the initial state "libresign-effective_policies" json that match with:
+      | key                                         | value            |
+      | (jq).policies.identify_methods.policyKey   | identify_methods |

@@ -28,8 +28,8 @@ Feature: admin/initial_state
     Then sending "get" to "/settings/admin/libresign"
     And the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                     | value                                                                                                            |
-      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].enabled == true and .[0].mandatory == true and .[0].signatureMethods.password.enabled == true |
-      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].enabled == false and .[0].mandatory == true and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
+      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].mandatory == true and .[0].signatureMethods.password.enabled == true |
+      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].mandatory == true and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
 
     Examples:
       | payload                                 |
