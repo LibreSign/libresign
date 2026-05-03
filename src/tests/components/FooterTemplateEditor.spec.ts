@@ -12,11 +12,6 @@ const axiosGetMock = vi.fn()
 const axiosPostMock = vi.fn()
 const ensurePdfWorkerMock = vi.fn()
 
-const appConfigMock = {
-	deleteKey: vi.fn(),
-	setValue: vi.fn(),
-}
-
 const clipboardWriteTextMock = vi.fn()
 
 vi.mock('debounce', () => ({
@@ -32,9 +27,6 @@ vi.mock('@nextcloud/axios', () => ({
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((_app: string, key: string, defaultValue: unknown) => {
-		if (key === 'footer_preview_zoom_level') {
-			return 100
-		}
 		if (key === 'footer_template_variables') {
 			return {
 				signerName: { description: 'Signer', type: 'string', example: 'Alice' },
@@ -135,8 +127,6 @@ describe('FooterTemplateEditor.vue', () => {
 		axiosGetMock.mockReset()
 		axiosPostMock.mockReset()
 		ensurePdfWorkerMock.mockReset()
-		appConfigMock.deleteKey.mockReset()
-		appConfigMock.setValue.mockReset()
 		clipboardWriteTextMock.mockReset()
 
 		axiosGetMock.mockResolvedValue({
@@ -146,13 +136,12 @@ describe('FooterTemplateEditor.vue', () => {
 						template: 'Footer {{ signerName }}',
 						preview_height: 120,
 						preview_width: 640,
+						preview_zoom: 100,
 					},
 				},
 			},
 		})
 		axiosPostMock.mockResolvedValue({ data: new Blob(['pdf'], { type: 'application/pdf' }) })
-
-		vi.stubGlobal('OCP', { AppConfig: appConfigMock })
 		vi.stubGlobal('navigator', {
 			clipboard: {
 				writeText: clipboardWriteTextMock,
@@ -182,7 +171,7 @@ describe('FooterTemplateEditor.vue', () => {
 		expect(wrapper.vm.isCopied('signerName')).toBe(true)
 	})
 
-	it('resets dimensions and clears the stored app config values', async () => {
+	it('resets dimensions to default values', async () => {
 		const wrapper = createWrapper()
 		await flushPromises()
 
@@ -192,8 +181,6 @@ describe('FooterTemplateEditor.vue', () => {
 
 		expect(wrapper.vm.previewWidth).toBe(wrapper.vm.DEFAULT_PREVIEW_WIDTH)
 		expect(wrapper.vm.previewHeight).toBe(wrapper.vm.DEFAULT_PREVIEW_HEIGHT)
-		expect(appConfigMock.deleteKey).toHaveBeenCalledWith('libresign', 'footer_preview_width')
-		expect(appConfigMock.deleteKey).toHaveBeenCalledWith('libresign', 'footer_preview_height')
 	})
 
 	it('updates zoom level through the zoom controls logic', async () => {
@@ -239,8 +226,6 @@ describe('FooterTemplateEditor.vue', () => {
 		wrapper.vm.saveDimensions()
 		await flushPromises()
 
-		expect(appConfigMock.setValue).toHaveBeenCalledWith('libresign', 'footer_preview_width', 700)
-		expect(appConfigMock.setValue).toHaveBeenCalledWith('libresign', 'footer_preview_height', 150)
 		expect(axiosPostMock).toHaveBeenLastCalledWith(
 			'/ocs/v2.php/apps/libresign/api/v1/admin/footer-template',
 			{
