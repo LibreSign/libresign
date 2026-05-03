@@ -84,10 +84,8 @@ final class IdentifyMethodsPolicyValue {
 			$normalized[] = $normalizedEntry;
 		}
 
-		// Enrich friendly_name from identify method services if not present and service is available
 		if ($identifyMethodService !== null) {
-			$settings = $identifyMethodService->getIdentifyMethodsSettings();
-			$friendlyNames = array_column($settings, 'friendly_name', 'name');
+			$friendlyNames = $identifyMethodService->getFriendlyNamesMap();
 			foreach ($normalized as &$entry) {
 				if (!isset($entry['friendly_name']) && isset($entry['name'], $friendlyNames[$entry['name']])) {
 					$entry['friendly_name'] = $friendlyNames[$entry['name']];

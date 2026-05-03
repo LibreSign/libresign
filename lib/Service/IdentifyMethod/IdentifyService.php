@@ -133,7 +133,7 @@ class IdentifyService {
 			return $this->savedSettings;
 		}
 
-		$resolved = $this->policyService->resolve(IdentifyMethodsPolicy::KEY)->getEffectiveValue();
+		$resolved = $this->getPolicyService()->resolve(IdentifyMethodsPolicy::KEY)->getEffectiveValue();
 		$normalized = IdentifyMethodsPolicyValue::normalize($resolved);
 		$this->savedSettings = $normalized;
 		return $this->savedSettings;
