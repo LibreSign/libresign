@@ -56,8 +56,10 @@ Feature: TSA Integration - End-to-End Workflow
       | (jq).ocs.data.signers[0].timestamp.cnHints.commonName \|test("LibreSign Local TSA") | true  |
 
   Scenario: TSA error handling - Invalid server
-    Given run the command "config:app:set libresign tsa_url --value=https://invalid-tsa-server.example.com/tsr --type=string" with result code 0
-    And run the command "config:app:set libresign tsa_auth_type --value=none --type=string" with result code 0
+    Given sending "post" to ocs "/apps/libresign/api/v1/admin/tsa"
+      | tsa_url       | https://invalid-tsa-server.example.com/tsr |
+      | tsa_auth_type | none                                       |
+    And the response should have a status code 200
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
@@ -79,6 +81,6 @@ Feature: TSA Integration - End-to-End Workflow
       | (jq).ocs.data.action | 2000  |
 
   Scenario: Clean up TSA configuration after tests
-    Given run the command "config:app:delete libresign tsa_url" with result code 0
-    And run the command "config:app:delete libresign tsa_policy_oid" with result code 0
-    And run the command "config:app:delete libresign tsa_auth_type" with result code 0
+    Given as user "admin"
+    And sending "delete" to ocs "/apps/libresign/api/v1/admin/tsa"
+    And the response should have a status code 200
