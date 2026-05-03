@@ -603,6 +603,16 @@ class PolicySource implements IPolicySource {
 				return $this->appConfig->getAppValueString($key, $defaultValue ? '1' : '0');
 			}
 
+			if (is_array($defaultValue)) {
+				// Value was stored as a scalar (e.g., by Nextcloud provisioning API).
+				// Return the raw string so the policy normalizer can decode it.
+				try {
+					return $this->appConfig->getAppValueString($key, '');
+				} catch (AppConfigTypeConflictException) {
+					return $defaultValue;
+				}
+			}
+
 			throw $exception;
 		}
 	}
