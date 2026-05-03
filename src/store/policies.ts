@@ -13,6 +13,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import type {
 	EffectivePolicyState,
 	EffectivePolicyValue,
+	PolicyWriteValue,
 	EffectivePoliciesResponse,
 	EffectivePoliciesState,
 	GroupPolicyResponse,
@@ -114,7 +115,7 @@ const _policiesStore = defineStore('policies', () => {
 
 	const saveSystemPolicy = async (
 		policyKey: string,
-		value: EffectivePolicyValue,
+		value: PolicyWriteValue,
 		allowChildOverride?: boolean,
 	): Promise<EffectivePolicyState | null> => {
 		const payload: SystemPolicyWritePayload & { allowChildOverride?: boolean } = { value }
@@ -181,7 +182,7 @@ const _policiesStore = defineStore('policies', () => {
 	const saveGroupPolicy = async (
 		groupId: string,
 		policyKey: string,
-		value: EffectivePolicyValue,
+		value: PolicyWriteValue,
 		allowChildOverride: boolean,
 	): Promise<GroupPolicyState | null> => {
 		const payload: GroupPolicyWritePayload = { value, allowChildOverride }
@@ -211,7 +212,7 @@ const _policiesStore = defineStore('policies', () => {
 		return policy
 	}
 
-	const saveUserPreference = async (policyKey: string, value: EffectivePolicyValue): Promise<EffectivePolicyState | null> => {
+	const saveUserPreference = async (policyKey: string, value: PolicyWriteValue): Promise<EffectivePolicyState | null> => {
 		const payload: SystemPolicyWritePayload = { value }
 		const response = await axios.put<{ ocs?: { data?: SystemPolicyWriteResponse } }>(
 			generateOcsUrl(`/apps/libresign/api/v1/policies/user/${policyKey}`),
@@ -252,7 +253,7 @@ const _policiesStore = defineStore('policies', () => {
 	const saveUserPolicyForUser = async (
 		userId: string,
 		policyKey: string,
-		value: EffectivePolicyValue,
+		value: PolicyWriteValue,
 		allowChildOverride: boolean,
 	): Promise<UserPolicyState | null> => {
 		const payload: SystemPolicyWritePayload & { allowChildOverride: boolean } = {
