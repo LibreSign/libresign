@@ -1099,6 +1099,12 @@
                     },
                     {
                         "type": "string"
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
+                        }
                     }
                 ]
             },
@@ -1601,7 +1607,8 @@
                     "template",
                     "isDefault",
                     "preview_width",
-                    "preview_height"
+                    "preview_height",
+                    "preview_zoom"
                 ],
                 "properties": {
                     "template": {
@@ -1615,6 +1622,10 @@
                         "format": "int64"
                     },
                     "preview_height": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "preview_zoom": {
                         "type": "integer",
                         "format": "int64"
                     }
