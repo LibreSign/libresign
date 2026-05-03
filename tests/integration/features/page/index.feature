@@ -10,10 +10,12 @@ Feature: page/sign_identify_default
     When sending "get" to "/apps/libresign/f/"
     Then the response should have a status code 200
     And the response should contain the initial state "libresign-effective_policies" json that match with:
-      | key                                                                                                                                    | value            |
-      | (jq).policies.identify_methods.policyKey                                                                                              | identify_methods |
-      | (jq)(.policies.identify_methods.sourceScope \| test("^(system\|global)$"))                                                         | true             |
-      | (jq)(.policies.identify_methods.effectiveValue \| if type=="string" then fromjson else . end \| type)                            | array            |
-      | (jq)(.policies.identify_methods.effectiveValue \| if type=="string" then fromjson else . end \| length)                          | 2                |
-      | (jq)(.policies.identify_methods.effectiveValue \| if type=="string" then fromjson else . end \| any(.name == "account"))        | true             |
-      | (jq)(.policies.identify_methods.effectiveValue \| if type=="string" then fromjson else . end \| any(.name == "email"))          | true             |
+      | key                                                                                                                                                           | value            |
+      | (jq).policies.identify_methods.policyKey                                                                                                                      | identify_methods |
+      | (jq)(.policies.identify_methods.sourceScope \| test("^(system\|global)$"))                                                                                   | true             |
+      | (jq)(.policies.identify_methods.effectiveValue \| if type=="string" then fromjson else . end \| type)                                                       | array            |
+      | (jq)(.policies.identify_methods.effectiveValue \| if type=="string" then fromjson else . end \| length)                                                     | 2                |
+      | (jq)(.policies.identify_methods.effectiveValue \| if type=="string" then fromjson else . end \| map(select(.name == "account")) \| .[0].enabled)           | true             |
+      | (jq)(.policies.identify_methods.effectiveValue \| if type=="string" then fromjson else . end \| map(select(.name == "account")) \| .[0].mandatory)         | true             |
+      | (jq)(.policies.identify_methods.effectiveValue \| if type=="string" then fromjson else . end \| map(select(.name == "email")) \| .[0].enabled)             | true             |
+      | (jq)(.policies.identify_methods.effectiveValue \| if type=="string" then fromjson else . end \| map(select(.name == "email")) \| .[0].mandatory)           | false            |
