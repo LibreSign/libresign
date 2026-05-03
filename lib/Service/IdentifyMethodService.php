@@ -359,12 +359,17 @@ class IdentifyMethodService {
 		return $this->identifyMethodsSettings;
 	}
 
-	/**
-	 * Resolve UID from certificate chain data
-@@		if ($this->xmpp->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsSettings[] = $this->xmpp->getSettings();
-		}
-		return $this->identifyMethodsSettings;
+	/** @return array<string, string> */
+	public function getFriendlyNamesMap(): array {
+		return [
+			$this->account->getName() => $this->account->getFriendlyName(),
+			$this->email->getName() => $this->email->getFriendlyName(),
+			$this->signal->getName() => $this->signal->getFriendlyName(),
+			$this->sms->getName() => $this->sms->getFriendlyName(),
+			$this->telegram->getName() => $this->telegram->getFriendlyName(),
+			$this->Whatsapp->getName() => $this->Whatsapp->getFriendlyName(),
+			$this->xmpp->getName() => $this->xmpp->getFriendlyName(),
+		];
 	}
 
 	/**
