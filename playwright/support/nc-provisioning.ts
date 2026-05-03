@@ -35,6 +35,77 @@ type AppConfigResponse = {
 	data?: string
 }
 
+let libresignAppEnablePromise: Promise<void> | null = null
+
+function buildOcsHeaders(adminUser: string, adminPassword: string): Record<string, string> {
+	const auth = 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64')
+	return {
+		'OCS-ApiRequest': 'true',
+		Accept: 'application/json',
+		Authorization: auth,
+	}
+}
+
+export async function ensureLibresignAppEnabled(
+	request: APIRequestContext,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+): Promise<void> {
+	if (libresignAppEnablePromise) {
+		await libresignAppEnablePromise
+		return
+	}
+
+	libresignAppEnablePromise = (async () => {
+		let lastError: Error | null = null
+
+		for (let attempt = 1; attempt <= 6; attempt++) {
+			try {
+				const response = await request.post('./ocs/v2.php/cloud/apps/libresign?format=json', {
+					headers: buildOcsHeaders(adminUser, adminPassword),
+					failOnStatusCode: false,
+				})
+
+				if (!response.ok()) {
+					const body = await response.text()
+					if ([502, 503, 504].includes(response.status()) && attempt < 6) {
+						await new Promise((resolve) => setTimeout(resolve, attempt * 250))
+						continue
+					}
+					throw new Error(`Failed to enable LibreSign app: ${response.status()} ${body}`)
+				}
+
+				const rawBody = await response.text()
+				if (!rawBody) {
+					return
+				}
+
+				const body = JSON.parse(rawBody) as OcsResponse<unknown>
+				if (body.ocs.meta.statuscode !== 200) {
+					throw new Error(`Failed to enable LibreSign app: ${body.ocs.meta.message}`)
+				}
+
+				return
+			} catch (error) {
+				lastError = error instanceof Error ? error : new Error(String(error))
+				if (attempt < 6) {
+					await new Promise((resolve) => setTimeout(resolve, attempt * 250))
+					continue
+				}
+			}
+		}
+
+		throw lastError ?? new Error('Failed to enable LibreSign app')
+	})()
+
+	try {
+		await libresignAppEnablePromise
+	} catch (error) {
+		libresignAppEnablePromise = null
+		throw error
+	}
+}
+
 function toStringList(data: unknown): string[] {
 	if (Array.isArray(data)) {
 		return data.filter((item): item is string => typeof item === 'string')
@@ -59,13 +130,12 @@ async function ocsRequest<T = unknown>(
 	body?: Record<string, string>,
 	jsonBody?: unknown,
 ): Promise<OcsResponse<T>> {
-	const url = `./ocs/v2.php${path}`
-	const auth = 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64')
-	const headers: Record<string, string> = {
-		'OCS-ApiRequest': 'true',
-		Accept: 'application/json',
-		Authorization: auth,
+	if (path.startsWith('/apps/libresign/')) {
+		await ensureLibresignAppEnabled(request, adminUser, adminPassword)
 	}
+
+	const url = `./ocs/v2.php${path}`
+	const headers: Record<string, string> = buildOcsHeaders(adminUser, adminPassword)
 	if (jsonBody !== undefined) {
 		headers['Content-Type'] = 'application/json'
 	} else if (body !== undefined) {

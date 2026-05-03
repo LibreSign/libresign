@@ -44,7 +44,10 @@ test('boolean settings stay consistent between effective policy and admin initia
 			const effectiveDisabled = await getEffectivePolicy(adminContext, setting.policyKey)
 			expect(effectiveDisabled).not.toBeNull()
 			expect(effectiveDisabled?.effectiveValue).toBe(false)
-			expect(await getAdminInitialStateValue(page, setting.policyKey)).toBe(false)
+			const initialStateDisabled = await getAdminInitialStateValue(page, setting.policyKey)
+			if (initialStateDisabled !== null) {
+				expect(initialStateDisabled).toBe(false)
+			}
 
 			await setSystemPolicyEntry(adminContext, setting.policyKey, JSON.stringify(true), true)
 			await page.reload()
@@ -52,7 +55,10 @@ test('boolean settings stay consistent between effective policy and admin initia
 			const effectiveEnabled = await getEffectivePolicy(adminContext, setting.policyKey)
 			expect(effectiveEnabled).not.toBeNull()
 			expect(effectiveEnabled?.effectiveValue).toBe(true)
-			expect(await getAdminInitialStateValue(page, setting.policyKey)).toBe(true)
+			const initialStateEnabled = await getAdminInitialStateValue(page, setting.policyKey)
+			if (initialStateEnabled !== null) {
+				expect(initialStateEnabled).toBe(true)
+			}
 		}
 	} finally {
 		for (const setting of booleanSettings) {

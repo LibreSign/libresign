@@ -4,38 +4,22 @@
  */
 
 import { devices, expect, test } from '@playwright/test'
-import { login } from '../support/nc-login'
+import {
+	bootstrapLibreSignAdmin,
+	ensureFooterTemplateEnabled,
+	openSystemFooterRuleEditor,
+} from '../support/footer-policy-workbench'
 
 test.use({
 	...devices['Pixel 7'],
 })
 
 test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page }) => {
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
+	await bootstrapLibreSignAdmin(page)
+	const ruleDialog = await openSystemFooterRuleEditor(page)
+	await ensureFooterTemplateEnabled(ruleDialog)
 
-	await page.goto('./settings/admin/libresign')
-
-	const addFooterSwitch = page.locator('.checkbox-radio-switch').filter({ hasText: /Add visible footer/i }).first()
-	await expect(addFooterSwitch).toBeVisible({ timeout: 20000 })
-	const addFooterCheckbox = addFooterSwitch.locator('input[type="checkbox"]').first()
-	if (!await addFooterCheckbox.isChecked()) {
-		await addFooterSwitch.click()
-		await expect(addFooterCheckbox).toBeChecked()
-	}
-
-	const customizeSwitch = page.locator('.checkbox-radio-switch').filter({ hasText: /Customize footer template/i }).first()
-	await expect(customizeSwitch).toBeVisible({ timeout: 20000 })
-	const customizeCheckbox = customizeSwitch.locator('input[type="checkbox"]').first()
-	if (!await customizeCheckbox.isChecked()) {
-		await customizeSwitch.click()
-		await expect(customizeCheckbox).toBeChecked()
-	}
-
-	const pdfRoot = page.locator('.footer-template-section .pdf-elements-root').first()
+	const pdfRoot = ruleDialog.locator('.signature-footer-rule-editor__preview .pdf-elements-root').first()
 	await expect(pdfRoot).toBeVisible({ timeout: 15000 })
 
 	// Check that overflow-x is set to auto (not hidden).

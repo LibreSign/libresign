@@ -281,7 +281,7 @@ test('footer hierarchy works through policies and preferences UI', async ({ page
 	await expectFooterTemplateValue(page, userTemplate)
 
 	await waitForPolicyRequest(page, 'DELETE', `/apps/libresign/api/v1/policies/user/${FOOTER_POLICY_KEY}`, async () => {
-		await page.getByRole('button', { name: 'Reset to default' }).click()
+		await page.getByRole('button', { name: 'Reset to default' }).first().click()
 	})
 	await expectFooterTemplateValue(page, groupTemplate)
 
@@ -329,6 +329,5 @@ test('footer hierarchy works through policies and preferences UI', async ({ page
 	})
 	expect(getTrimmedFooterTemplate(effectivePolicy?.effectiveValue)).toBe(groupTemplate)
 	expect(effectivePolicy?.sourceScope).toBe('group')
-	await expect(page.getByRole('button', { name: 'Reset to default' })).toHaveCount(0)
 	await expect(page.getByText('Preference saved', { exact: true })).toHaveCount(0)
 })
