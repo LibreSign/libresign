@@ -361,6 +361,7 @@ namespace OCA\Libresign;
  *     isDefault: bool,
  *     preview_width: int,
  *     preview_height: int,
+ *     preview_zoom: int,
  * }
  * @psalm-type LibresignActiveSigningItem = array{
  *     id: int,
@@ -376,7 +377,7 @@ namespace OCA\Libresign;
  *
  * Validation and progress contracts
  *
- * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string
+ * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string|array<array-key, mixed>
  * @psalm-type LibresignEffectivePolicyState = array{
  *     policyKey: string,
  *     effectiveValue: LibresignEffectivePolicyValue,
