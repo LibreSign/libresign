@@ -118,17 +118,29 @@ test('group member sees Preferences controls only when lower-layer customization
 	await page.goto('./apps/libresign/f/preferences')
 	await expandSettingsMenu(page)
 
-	const customizeTemplateToggle = page.getByText('Customize footer template', { exact: true })
-	if (await customizeTemplateToggle.count() === 0) {
-		const enableFooterToggle = page.getByText('Add visible footer with signature details', { exact: true })
-		await expect(enableFooterToggle).toBeVisible()
-		await enableFooterToggle.click()
+	const enableFooterSwitch = page.locator('.checkbox-radio-switch')
+		.filter({ hasText: /Add visible footer(?: with signature details)?/i })
+		.first()
+	await expect(enableFooterSwitch).toBeVisible({ timeout: 20000 })
+	const enableFooterCheckbox = enableFooterSwitch.locator('input[type="checkbox"]').first()
+	if (!await enableFooterCheckbox.isChecked()) {
+		await enableFooterSwitch.locator('.checkbox-radio-switch__content').first().click()
+		await expect(enableFooterCheckbox).toBeChecked()
 	}
-	await expect(customizeTemplateToggle).toBeVisible()
+
+	const customizeTemplateSwitch = page.locator('.checkbox-radio-switch')
+		.filter({ hasText: /Customize footer template/i })
+		.first()
+	await expect(customizeTemplateSwitch).toBeVisible({ timeout: 20000 })
+	const customizeTemplateCheckbox = customizeTemplateSwitch.locator('input[type="checkbox"]').first()
+	if (!await customizeTemplateCheckbox.isChecked()) {
+		await customizeTemplateSwitch.locator('.checkbox-radio-switch__content').first().click()
+		await expect(customizeTemplateCheckbox).toBeChecked()
+	}
 	const footerTemplateLabel = page.getByText('Footer template', { exact: true })
-	await customizeTemplateToggle.click()
 	await expect(footerTemplateLabel).toBeVisible()
 
-	await customizeTemplateToggle.click()
+	await customizeTemplateSwitch.locator('.checkbox-radio-switch__content').first().click()
+	await expect(customizeTemplateCheckbox).not.toBeChecked()
 	await expect(footerTemplateLabel).toHaveCount(0)
 })

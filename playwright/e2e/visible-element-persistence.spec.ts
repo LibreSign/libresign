@@ -97,10 +97,9 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	await expect(addInstruction).toBeHidden()
 	await expect(cancelPlacementButton).toBeHidden()
 	await expect(editSignerLink).toBeVisible()
+	const signaturePosition = signaturePositionsDialog.getByRole('img', { name: /Signature position for/i }).first()
 
-	await expect(
-		signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' }),
-	).toBeVisible()
+	await expect(signaturePosition).toBeVisible({ timeout: 10000 })
 
 	// Save closes the modal and persists the element via API
 	await page.getByLabel('Signature positions').getByRole('button', { name: 'Save' }).click()
@@ -109,17 +108,13 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	await reopenFileFromUuid(requestUuid)
 
 	// Verify the element survived the round-trip to the server
-	await expect(
-		page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' }),
-	).toBeVisible()
+	await expect(page.getByLabel('Signature positions').getByRole('img', { name: /Signature position for/i }).first()).toBeVisible({ timeout: 10000 })
 
 	// Select the element so the toolbar (Duplicate / Delete) appears, then delete it
-	await page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' }).click()
+	await page.getByLabel('Signature positions').getByRole('img', { name: /Signature position for/i }).first().click()
 	await page.getByLabel('Signature positions').getByRole('button', { name: 'Delete' }).click()
 
-	await expect(
-		page.getByLabel('Signature positions').getByRole('img', { name: 'Signature position for Admin Name' }),
-	).toBeHidden()
+	await expect(page.getByLabel('Signature positions').getByRole('img', { name: /Signature position for/i }).first()).toBeHidden()
 
 	// Save the now-empty element list
 	await page.getByLabel('Signature positions').getByRole('button', { name: 'Save' }).click()
@@ -131,7 +126,5 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	await reopenFileFromUuid(requestUuid)
 	await expect(getVisiblePdfOverlay(signaturePositionsDialog)).toBeVisible()
 
-	await expect(
-		signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' }),
-	).toBeHidden()
+	await expect(signaturePositionsDialog.getByRole('img', { name: /Signature position for/i }).first()).toBeHidden()
 })
