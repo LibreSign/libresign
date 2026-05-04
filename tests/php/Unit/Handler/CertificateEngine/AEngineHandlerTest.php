@@ -119,6 +119,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'enabled' => true,
 			'mandatory' => true,
 			'signatureMethods' => [],
+			'friendly_name' => 'Account',
 		]];
 
 		$this->assertEquals(
