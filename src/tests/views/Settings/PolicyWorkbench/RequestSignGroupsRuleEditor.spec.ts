@@ -8,7 +8,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { createL10nMock } from '../../../testHelpers/l10n.js'
 
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', async () => {
+	const { createL10nMock } = await import('../../../testHelpers/l10n.js')
+	return createL10nMock()
+})
 
 const { currentUserState, initialConfigState, axiosGet } = vi.hoisted(() => ({
 	currentUserState: {
