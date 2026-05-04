@@ -15,8 +15,10 @@ use OCA\Libresign\Db\PermissionSetBinding;
 use OCA\Libresign\Db\PermissionSetBindingMapper;
 use OCA\Libresign\Db\PermissionSetMapper;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
@@ -59,9 +61,13 @@ final class PolicySourceTest extends TestCase {
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnArgument(0);
 		$container = $this->createMock(ContainerInterface::class);
+		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$container
 			->method('get')
-			->willReturnCallback(static function (string $class): object {
+			->willReturnCallback(static function (string $class) use ($identifyMethodService): object {
+				if ($class === IdentifyMethodsPolicy::class) {
+					return new IdentifyMethodsPolicy($identifyMethodService);
+				}
 				if (!\class_exists($class)) {
 					throw new \RuntimeException('Unexpected provider class: ' . $class);
 				}
