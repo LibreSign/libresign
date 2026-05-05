@@ -19,6 +19,7 @@
  */
 
 import { expect, test as base, type APIRequestContext } from '@playwright/test'
+import { randomBytes } from 'node:crypto'
 import { login } from '../support/nc-login'
 import { expandSettingsMenu } from '../support/nc-navigation'
 import {
@@ -59,7 +60,7 @@ const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
 const GROUP_ADMIN_PASSWORD = '123456'
 
-const TEST_NAMESPACE = Math.random().toString(36).slice(2, 10)
+const TEST_NAMESPACE = randomBytes(6).toString('hex')
 const GROUP_ID = `policy-menu-visibility-group-${TEST_NAMESPACE}`
 const GROUP_ADMIN = `policy-menu-visibility-admin-${TEST_NAMESPACE}`
 
