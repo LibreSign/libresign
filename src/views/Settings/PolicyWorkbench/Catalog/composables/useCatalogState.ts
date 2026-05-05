@@ -5,8 +5,8 @@
 
 import { computed, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
-import { useUserConfigStore } from '../../../../store/userconfig.js'
-import type { RealPolicySettingCategory } from '../settings/realTypes'
+import { useUserConfigStore } from '../../../../../store/userconfig.js'
+import type { RealPolicySettingCategory } from '../../settings/realTypes'
 
 const CATALOG_LAYOUT_CONFIG_KEY = 'policy_workbench_catalog_compact_view'
 const CATALOG_COLLAPSED_CONFIG_KEY = 'policy_workbench_catalog_collapsed'
