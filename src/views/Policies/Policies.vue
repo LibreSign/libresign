@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import RealPolicyWorkbench from '../Settings/PolicyWorkbench/RealPolicyWorkbench.vue'
+import RealPolicyWorkbench from '../Settings/PolicyWorkbench/Catalog/Catalog.vue'
 
 defineOptions({
 	name: 'Policies',
