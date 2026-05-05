@@ -369,3 +369,104 @@ test('back to top returns to search toolbar instead of absolute page top', async
 
 	expect(errorCollector.all(), 'No JavaScript errors should happen while using back-to-top').toEqual([])
 })
+
+test('active category chip tracks the section with visible cards while scrolling', async ({ page }) => {
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+
+	await login(page.request, adminUser, adminPassword)
+	await setUserLanguage(page.request, adminUser, 'en')
+
+	await page.setViewportSize({ width: 1365, height: 950 })
+
+	const errorCollector = collectJavascriptErrors(page)
+
+	await page.goto('./settings/admin/libresign')
+
+	const searchField = page.getByRole('textbox', { name: /Search settings/i }).first()
+	await expect(searchField).toBeVisible({ timeout: 20000 })
+
+	const collapseButton = await getCatalogCollapseButton(page)
+	if (/Expand settings categories/i.test((await collapseButton.getAttribute('aria-label')) ?? '')) {
+		await Promise.all([
+			waitForUserConfigSave(page, 'policy_workbench_catalog_collapsed'),
+			collapseButton.click(),
+		])
+	}
+
+	const viewButton = await getCatalogViewButton(page)
+	if (/Switch to card view/i.test((await viewButton.getAttribute('aria-label')) ?? '')) {
+		await Promise.all([
+			waitForUserConfigSave(page, 'policy_workbench_catalog_compact_view'),
+			viewButton.click(),
+		])
+	}
+
+	await page.evaluate(() => {
+		const appContent = document.querySelector('#app-content') as HTMLElement | null
+		if (!appContent) {
+			return
+		}
+
+		const target = Math.round((appContent.scrollHeight - appContent.clientHeight) * 0.75)
+		appContent.scrollTo({ top: target, behavior: 'auto' })
+		appContent.dispatchEvent(new Event('scroll'))
+	})
+
+	await expect.poll(async () => {
+		return page.evaluate(() => {
+			const appContent = document.querySelector('#app-content') as HTMLElement | null
+			return appContent?.scrollTop ?? 0
+		})
+	}, { timeout: 10000 }).toBeGreaterThan(400)
+
+	await expect.poll(async () => {
+		return page.evaluate(() => {
+			const topCutoff = 140
+			const bottomCutoff = window.innerHeight
+
+			const sectionWithVisibleCard = Array.from(document.querySelectorAll('.policy-workbench__category-section')).find((section) => {
+				const cards = Array.from(section.querySelectorAll<HTMLElement>('.policy-workbench__setting-tile, .policy-workbench__settings-row'))
+				return cards.some((card) => {
+					const rect = card.getBoundingClientRect()
+					return rect.top >= topCutoff && rect.bottom <= bottomCutoff && rect.bottom > rect.top
+				})
+			}) as HTMLElement | undefined
+
+			const expectedSectionTitle = sectionWithVisibleCard?.querySelector('.policy-workbench__category-title')?.textContent?.trim() ?? null
+			const activeChipLabel = document.querySelector('.policy-workbench__category-chip--active')?.textContent?.trim() ?? null
+
+			return {
+				expectedSectionTitle,
+				activeChipLabel,
+				isSynced: Boolean(expectedSectionTitle && activeChipLabel && expectedSectionTitle === activeChipLabel),
+			}
+		})
+	}, { timeout: 10000 }).toMatchObject({ isSynced: true })
+
+	const syncResult = await page.evaluate(() => {
+		const topCutoff = 140
+		const bottomCutoff = window.innerHeight
+
+		const sectionWithVisibleCard = Array.from(document.querySelectorAll('.policy-workbench__category-section')).find((section) => {
+			const cards = Array.from(section.querySelectorAll<HTMLElement>('.policy-workbench__setting-tile, .policy-workbench__settings-row'))
+			return cards.some((card) => {
+				const rect = card.getBoundingClientRect()
+				return rect.top >= topCutoff && rect.bottom <= bottomCutoff && rect.bottom > rect.top
+			})
+		}) as HTMLElement | undefined
+
+		const expectedSectionTitle = sectionWithVisibleCard?.querySelector('.policy-workbench__category-title')?.textContent?.trim() ?? null
+		const activeChipLabel = document.querySelector('.policy-workbench__category-chip--active')?.textContent?.trim() ?? null
+
+		return {
+			expectedSectionTitle,
+			activeChipLabel,
+		}
+	})
+
+	expect(syncResult.expectedSectionTitle).not.toBeNull()
+	expect(syncResult.activeChipLabel).toBe(syncResult.expectedSectionTitle)
+
+	expect(errorCollector.all(), 'No JavaScript errors should happen while syncing active chip on scroll').toEqual([])
+})
