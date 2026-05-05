@@ -79,7 +79,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { t } from '@nextcloud/l10n'
-import type { EffectivePolicyValue } from '../../../types/index'
+import type { EffectivePolicyValue } from '@/types'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
