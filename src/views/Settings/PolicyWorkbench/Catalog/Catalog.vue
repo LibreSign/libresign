@@ -547,10 +547,10 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import { usePoliciesStore } from '../../../../store/policies'
 import { useUserConfigStore } from '../../../../store/userconfig.js'
-import { realDefinitions } from '../settings/realDefinitions'
-import type { RealPolicySettingCategory } from '../settings/realTypes'
 import PolicyRuleEditorPanel from '../PolicyRuleEditorPanel.vue'
 import { createRealPolicyWorkbenchState } from '../useRealPolicyWorkbench'
+import { useCatalogCrudTable } from './composables/useCatalogCrudTable'
+import { useCatalogPresentation } from './composables/useCatalogPresentation'
 import { useCatalogState } from './composables/useCatalogState'
 import { useCatalogInteractions } from './composables/useCatalogInteractions'
 import { useNavigation } from './composables/useNavigation'
@@ -573,10 +573,6 @@ const isRemovingRule = ref(false)
 const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)
 const openRuleActionsKey = ref<string | null>(null)
-const crudSearch = ref('')
-const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
-const crudPage = ref(1)
-const scopeFilterOpen = ref(false)
 const isRtl = ref(false)
 
 // Initialize catalog state composable
@@ -593,87 +589,39 @@ const {
 	getFilter: () => catalogState.settingsFilter.value,
 	onOpenSetting: (key) => state.openSetting(key as never),
 })
+const {
+	filteredSettingSummaries,
+	visibleCategorySections,
+	effectiveCatalogLayout,
+	hasActiveFilter,
+	hasVisibleCategorySections,
+	showCategoryNavigation,
+	catalogViewButtonLabel,
+	catalogCollapseButtonLabel,
+} = useCatalogPresentation({
+	visibleSettingSummaries: computed(() => state.visibleSettingSummaries),
+	settingsFilter: catalogState.settingsFilter,
+	catalogLayout: catalogState.catalogLayout,
+	isCatalogCollapsed: catalogState.isCatalogCollapsed,
+	isSmallViewport,
+})
+const {
+	crudSearch,
+	crudScopeFilter,
+	crudPage,
+	scopeFilterOpen,
+	crudPageCount,
+	pagedCrudRows,
+	activeScopeFilterChip,
+	crudScopeLabel,
+	onCrudSearchChange,
+	setCrudScopeFilter,
+} = useCatalogCrudTable({
+	state,
+	summarizeRuleValue,
+})
 
-const CRUD_PAGE_SIZE = 20
 const REMOVAL_FEEDBACK_DURATION_MS = 6000
-
-const CATEGORY_ORDER: RealPolicySettingCategory[] = [
-	'who-can-sign',
-	'how-signing-works',
-	'signer-experience',
-	'what-gets-recorded',
-	'time-and-limits',
-	'trust-and-verification',
-	'system-behavior',
-]
-
-const categoryLabel = (category: RealPolicySettingCategory): string => {
-	switch (category) {
-	case 'who-can-sign':
-		return t('libresign', 'Who can sign documents')
-	case 'how-signing-works':
-		return t('libresign', 'How signing works')
-	case 'signer-experience':
-		return t('libresign', 'What the signer sees')
-	case 'what-gets-recorded':
-		return t('libresign', 'What gets recorded')
-	case 'time-and-limits':
-		return t('libresign', 'Time and limits')
-	case 'trust-and-verification':
-		return t('libresign', 'Trust and verification')
-	case 'system-behavior':
-		return t('libresign', 'System behavior')
-	default:
-		return t('libresign', 'Other')
-	}
-}
-
-const categoryBySettingKey = computed<Record<string, RealPolicySettingCategory>>(() => {
-	const map: Record<string, RealPolicySettingCategory> = {}
-	for (const definition of Object.values(realDefinitions)) {
-		map[definition.key] = definition.category ?? 'system-behavior'
-	}
-
-	return map
-})
-
-const filteredSettingSummaries = computed(() => {
-	const normalized = catalogState.settingsFilter.value.trim().toLowerCase()
-	if (!normalized) {
-		return state.visibleSettingSummaries
-	}
-
-	return state.visibleSettingSummaries.filter((summary) => {
-		return [summary.title, summary.context ?? '', summary.description, summary.defaultSummary]
-			.some((value) => value.toLowerCase().includes(normalized))
-	})
-})
-
-const visibleCategorySections = computed<Array<{
-	key: RealPolicySettingCategory,
-	id: string,
-	label: string,
-	summaries: typeof filteredSettingSummaries.value,
-}>>(() => {
-	const grouped = new Map<RealPolicySettingCategory, typeof filteredSettingSummaries.value>()
-	for (const category of CATEGORY_ORDER) {
-		grouped.set(category, [])
-	}
-
-	for (const summary of filteredSettingSummaries.value) {
-		const category = categoryBySettingKey.value[summary.key] ?? 'system-behavior'
-		grouped.get(category)?.push(summary)
-	}
-
-	return CATEGORY_ORDER
-		.map((category) => ({
-			key: category,
-			id: `policy-category-${category}`,
-			label: categoryLabel(category),
-			summaries: grouped.get(category) ?? [],
-		}))
-		.filter((category) => category.summaries.length > 0)
-})
 
 const navigation = useNavigation(visibleCategorySections)
 
@@ -688,20 +636,6 @@ const activeEditorProps = computed<Record<string, unknown>>(() => {
 
 	return state.activeDefinition.resolveEditorProps?.(activePolicy, baseEditorProps) ?? baseEditorProps
 })
-const effectiveCatalogLayout = computed(() => isSmallViewport.value ? 'cards' : catalogState.catalogLayout.value)
-const hasActiveFilter = computed(() => catalogState.settingsFilter.value.trim().length > 0)
-const hasVisibleCategorySections = computed(() => visibleCategorySections.value.length > 0)
-const showCategoryNavigation = computed(() => hasVisibleCategorySections.value)
-const catalogViewButtonLabel = computed(() => {
-	return effectiveCatalogLayout.value === 'cards'
-		? t('libresign', 'Switch to compact view')
-		: t('libresign', 'Switch to card view')
-})
-const catalogCollapseButtonLabel = computed(() => {
-	return catalogState.isCatalogCollapsed.value
-		? t('libresign', 'Expand settings categories')
-		: t('libresign', 'Collapse settings categories')
-})
 
 const selectedTargetOptions = computed(() => {
 	if (!state.editorDraft) {
@@ -711,93 +645,6 @@ const selectedTargetOptions = computed(() => {
 	return state.availableTargets.filter((option) => state.editorDraft?.targetIds.includes(option.id))
 })
 
-type CrudScope = 'system' | 'group' | 'user'
-type CrudRow = {
-	key: string,
-	ruleId: string | null,
-	scope: CrudScope,
-	targetLabel: string,
-	valueLabel: string,
-	canRemove: boolean,
-}
-
-const filteredCrudRows = computed<CrudRow[]>(() => {
-	const rows: CrudRow[] = []
-	const systemRule = state.inheritedSystemRule
-	if (systemRule && state.hasGlobalDefault) {
-		rows.push({
-			key: systemRule.id,
-			ruleId: systemRule.id,
-			scope: 'system',
-			targetLabel: t('libresign', 'Default (everyone)'),
-			valueLabel: state.summary?.currentBaseValue ?? t('libresign', 'Not configured'),
-			canRemove: Boolean(systemRule.id),
-		})
-	}
-
-	for (const rule of state.visibleGroupRules) {
-		rows.push({
-			key: rule.id,
-			ruleId: rule.id,
-			scope: 'group',
-			targetLabel: state.resolveTargetLabel('group', rule.targetId || ''),
-			valueLabel: summarizeRuleValue(rule.value),
-			canRemove: true,
-		})
-	}
-
-	for (const rule of state.visibleUserRules) {
-		rows.push({
-			key: rule.id,
-			ruleId: rule.id,
-			scope: 'user',
-			targetLabel: state.resolveTargetLabel('user', rule.targetId || ''),
-			valueLabel: summarizeRuleValue(rule.value),
-			canRemove: true,
-		})
-	}
-
-	const scopePriority: Record<CrudScope, number> = {
-		user: 0,
-		group: 1,
-		system: 2,
-	}
-
-	rows.sort((left, right) => {
-		const priorityDiff = scopePriority[left.scope] - scopePriority[right.scope]
-		if (priorityDiff !== 0) {
-			return priorityDiff
-		}
-
-		return left.targetLabel.localeCompare(right.targetLabel)
-	})
-
-	const normalized = crudSearch.value.trim().toLowerCase()
-
-	return rows.filter((row) => {
-		if (crudScopeFilter.value !== 'all' && row.scope !== crudScopeFilter.value) {
-			return false
-		}
-
-		if (!normalized) {
-			return true
-		}
-
-		const scope = crudScopeLabel(row.scope).toLowerCase()
-		return [scope, row.targetLabel.toLowerCase(), row.valueLabel.toLowerCase()]
-			.some((value) => value.includes(normalized))
-	})
-})
-
-const crudPageCount = computed(() => Math.max(1, Math.ceil(filteredCrudRows.value.length / CRUD_PAGE_SIZE)))
-const pagedCrudRows = computed(() => {
-	if (crudPage.value > crudPageCount.value) {
-		crudPage.value = crudPageCount.value
-	}
-
-	const start = (crudPage.value - 1) * CRUD_PAGE_SIZE
-	return filteredCrudRows.value.slice(start, start + CRUD_PAGE_SIZE)
-})
 
 const ruleDialogTitle = computed(() => {
 	if (!state.editorDraft) {
@@ -964,16 +811,6 @@ const createScopeOptions = computed<Array<{
 	})
 })
 
-const activeScopeFilterChip = computed(() => {
-	if (crudScopeFilter.value === 'all') {
-		return ''
-	}
-
-	return t('libresign', 'Scope: {scope}', {
-		scope: crudScopeLabel(crudScopeFilter.value),
-	})
-})
-
 const defaultSourceLabel = computed(() => {
 	return state.hasGlobalDefault
 		? t('libresign', 'custom')
@@ -1132,33 +969,6 @@ function resolveSignatureFlowMode(value: unknown): 'parallel' | 'ordered_numeric
 	}
 
 	return null
-}
-
-function crudScopeLabel(scope: CrudScope) {
-	if (scope === 'system') {
-		return t('libresign', 'Everyone')
-	}
-
-	if (scope === 'group') {
-		return t('libresign', 'Group')
-	}
-
-	return t('libresign', 'User')
-}
-
-function onCrudSearchChange(value: string | number) {
-	crudSearch.value = String(value ?? '')
-	crudPage.value = 1
-}
-
-function setCrudScopeFilter(value: 'all' | 'system' | 'group' | 'user', selected: boolean) {
-	if (!selected) {
-		return
-	}
-
-	crudScopeFilter.value = value
-	crudPage.value = 1
-	scopeFilterOpen.value = false
 }
 
 function requestCreateRule() {
