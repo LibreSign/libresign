@@ -16,7 +16,7 @@
 					:label="t('libresign', 'Search settings')"
 					:placeholder="t('libresign', 'Search by setting name, summary, description, or context')"
 					@keydown.esc.prevent="catalogState.clearSettingsFilter"
-					@update:modelValue="(value: string | number) => catalogState.onSettingsFilterChange(String(value))" />
+					@update:modelValue="onSettingsFilterModelValueChange" />
 				<div class="policy-workbench__catalog-foot">
 					<NcButton
 						variant="tertiary"
@@ -1053,6 +1053,10 @@ function formatOverrideSummary(groupCount?: number, userCount?: number) {
 
 function toggleCatalogLayout() {
 	catalogState.toggleCatalogLayout()
+}
+
+function onSettingsFilterModelValueChange(value: string | number) {
+	catalogState.onSettingsFilterChange(String(value))
 }
 
 function toggleCatalogCollapsed() {
