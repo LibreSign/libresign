@@ -322,6 +322,7 @@ export function useNavigation(
 
 		scrollSyncRaf.value = window.requestAnimationFrame(() => {
 			scrollSyncRaf.value = null
+			syncActiveCategory()
 			updateBackToTopVisibility()
 		})
 	}
