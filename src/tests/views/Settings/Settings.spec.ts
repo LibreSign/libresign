@@ -6,9 +6,7 @@
 import { mount } from '@vue/test-utils'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { createL10nMock } from '../../testHelpers/l10n.js'
-
-vi.mock('@nextcloud/l10n', () => createL10nMock())
+vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 let Settings: unknown
 
