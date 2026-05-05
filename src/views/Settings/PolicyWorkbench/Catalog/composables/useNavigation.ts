@@ -259,6 +259,22 @@ export function useNavigation(
 		})
 	}
 
+	function scrollCurrentContainerToTop() {
+		scrollContainer.value = getPrimaryScrollContainer()
+		if (scrollContainer.value instanceof Window) {
+			window.scrollTo({
+				top: 0,
+				behavior: 'smooth',
+			})
+			return
+		}
+
+		scrollContainer.value.scrollTo({
+			top: 0,
+			behavior: 'smooth',
+		})
+	}
+
 	function scrollToCategory(category: RealPolicySettingCategory, event?: MouseEvent) {
 		;(event?.currentTarget as HTMLElement | null)?.blur()
 		const target = categorySectionElements.get(category) ?? document.getElementById(`policy-category-${category}`)
@@ -286,18 +302,7 @@ export function useNavigation(
 	function scrollToCatalogToolbar() {
 		const toolbar = catalogToolbarRef.value
 		if (!toolbar) {
-			scrollContainer.value = getPrimaryScrollContainer()
-			if (scrollContainer.value instanceof Window) {
-				window.scrollTo({
-					top: 0,
-					behavior: 'smooth',
-				})
-			} else {
-				scrollContainer.value.scrollTo({
-					top: 0,
-					behavior: 'smooth',
-				})
-			}
+			scrollCurrentContainerToTop()
 			return
 		}
 
@@ -320,10 +325,7 @@ export function useNavigation(
 		}
 
 		if (typeof scrollContainer.value.getBoundingClientRect !== 'function') {
-			scrollContainer.value.scrollTo({
-				top: 0,
-				behavior: 'smooth',
-			})
+			scrollCurrentContainerToTop()
 			focusCatalogSearchInput()
 			return
 		}
