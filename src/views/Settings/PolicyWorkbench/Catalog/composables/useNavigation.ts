@@ -80,9 +80,6 @@ export function useNavigation(
 
 	function categoryActivationLinePx() {
 		const stickyContainer = categoryChipsScroller.value?.closest('.policy-workbench__category-nav-sticky') as HTMLElement | null
-		if (stickyContainer) {
-			return stickyContainer.getBoundingClientRect().bottom + CHIP_STICKY_GAP_PX
-		}
 
 		const headerHeight = scrollContainer.value instanceof Window
 			? (() => {
@@ -93,7 +90,13 @@ export function useNavigation(
 			})()
 			: 0
 
-		const stickyHeight = stickyContainer?.getBoundingClientRect().height ?? 0
+		const stickyHeight = stickyContainer instanceof HTMLElement
+			? stickyContainer.getBoundingClientRect().height
+			: 0
+
+		if (stickyContainer instanceof HTMLElement) {
+			return stickyContainer.getBoundingClientRect().bottom + CHIP_STICKY_GAP_PX
+		}
 
 		return headerHeight + stickyHeight + CHIP_STICKY_GAP_PX
 	}
