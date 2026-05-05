@@ -4,7 +4,7 @@
  */
 
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import type { RealPolicySettingCategory } from '../settings/realTypes'
+import type { RealPolicySettingCategory } from '../../settings/realTypes'
 
 const BACK_TO_TOP_VISIBLE_AT_PX = 420
 const CHIP_STICKY_GAP_PX = 8

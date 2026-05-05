@@ -545,12 +545,12 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-import { usePoliciesStore } from '../../../store/policies'
-import { useUserConfigStore } from '../../../store/userconfig.js'
-import { realDefinitions } from './settings/realDefinitions'
-import type { RealPolicySettingCategory } from './settings/realTypes'
-import PolicyRuleEditorPanel from './PolicyRuleEditorPanel.vue'
-import { createRealPolicyWorkbenchState } from './composables/useRealPolicyWorkbench'
+import { usePoliciesStore } from '../../../../store/policies'
+import { useUserConfigStore } from '../../../../store/userconfig.js'
+import { realDefinitions } from '../settings/realDefinitions'
+import type { RealPolicySettingCategory } from '../settings/realTypes'
+import PolicyRuleEditorPanel from '../PolicyRuleEditorPanel.vue'
+import { createRealPolicyWorkbenchState } from '../useRealPolicyWorkbench'
 import { useCatalogState } from './composables/useCatalogState'
 import { useNavigation } from './composables/useNavigation'
 
@@ -583,36 +583,6 @@ const isRtl = ref(false)
 
 // Initialize catalog state composable
 const catalogState = useCatalogState()
-
-// Create computed ref for visible category sections to pass to useNavigation
-const visibleCategorySections = computed<Array<{
-	key: RealPolicySettingCategory,
-	id: string,
-	label: string,
-	summaries: typeof filteredSettingSummaries.value,
-}>>(() => {
-	const grouped = new Map<RealPolicySettingCategory, typeof filteredSettingSummaries.value>()
-	for (const category of CATEGORY_ORDER) {
-		grouped.set(category, [])
-	}
-
-	for (const summary of filteredSettingSummaries.value) {
-		const category = categoryBySettingKey.value[summary.key] ?? 'system-behavior'
-		grouped.get(category)?.push(summary)
-	}
-
-	return CATEGORY_ORDER
-		.map((category) => ({
-			key: category,
-			id: `policy-category-${category}`,
-			label: categoryLabel(category),
-			summaries: grouped.get(category) ?? [],
-		}))
-		.filter((category) => category.summaries.length > 0)
-})
-
-// Initialize navigation composable with ref wrapper
-const navigation = useNavigation({ value: visibleCategorySections.value as any })
 
 const CRUD_PAGE_SIZE = 20
 const DRAG_OPEN_THRESHOLD_PX = 6
@@ -696,6 +666,8 @@ const visibleCategorySections = computed<Array<{
 		}))
 		.filter((category) => category.summaries.length > 0)
 })
+
+const navigation = useNavigation(visibleCategorySections)
 
 const activeEditor = computed(() => state.activeDefinition?.editor ?? null)
 const activeEditorProps = computed<Record<string, unknown>>(() => {
@@ -1245,14 +1217,6 @@ function requestBackToCreateScope() {
 	selectedCreateScope.value = null
 }
 
-function onCrudSearchChange(value: string | number) {
-	crudSearch.value = String(value ?? '')
-	crudPage.value = 1
-}
-	const selection = window.getSelection()
-	return !!selection && selection.type === 'Range' && selection.toString().trim().length > 0
-}
-
 function markSelectionGesture(surface: 'cards' | 'list', key: string) {
 	if (!hasActiveTextSelection()) {
 		return
@@ -1337,11 +1301,6 @@ function openSettingFromAction(key: string, event: MouseEvent) {
 function openSettingFromKeyboard(key: string) {
 	clearCatalogFocusOnClose.value = false
 	state.openSetting(key as never)
-}
-
-function onCrudSearchChange(value: string | number) {
-	crudSearch.value = String(value ?? '')
-	crudPage.value = 1
 }
 
 function hasActiveTextSelection() {
