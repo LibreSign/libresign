@@ -51,7 +51,7 @@ vi.mock('../../../store/policies', () => ({
 	}),
 }))
 
-import RealPolicyWorkbench from '../../../views/Settings/PolicyWorkbench/RealPolicyWorkbench.vue'
+import RealPolicyWorkbench from '../../../views/Settings/PolicyWorkbench/Catalog/Catalog.vue'
 
 function mountWorkbench() {
 	return mount(RealPolicyWorkbench, {
