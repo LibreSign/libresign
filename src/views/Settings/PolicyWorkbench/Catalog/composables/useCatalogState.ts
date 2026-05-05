@@ -60,17 +60,15 @@ export function useCatalogState() {
 
 	function toggleCatalogLayout() {
 		catalogLayout.value = catalogLayout.value === 'cards' ? 'compact' : 'cards'
-		userConfigStore.update({
-			[CATALOG_LAYOUT_CONFIG_KEY]: catalogLayout.value === 'compact',
-		})
+		void userConfigStore.update(CATALOG_LAYOUT_CONFIG_KEY, catalogLayout.value === 'compact')
 	}
 
 	function toggleCatalogCollapsed() {
-		isCatalogCollapsed.value = !isCatalogCollapsed.value
-		userConfigStore.update({
-			[CATALOG_COLLAPSED_CONFIG_KEY]: isCatalogCollapsed.value,
-		})
-		syncCatalogCollapsedFromSections()
+		const collapsed = !isCatalogCollapsed.value
+		isCatalogCollapsed.value = collapsed
+		setAllCategoriesCollapsed(collapsed)
+		void userConfigStore.update(CATALOG_COLLAPSED_CONFIG_KEY, collapsed)
+		persistCategoryCollapsedState()
 	}
 
 	function toggleCategoryCollapsed(category: RealPolicySettingCategory) {
@@ -86,16 +84,12 @@ export function useCatalogState() {
 		const allCollapsed = CATEGORY_ORDER.every(cat => categoryCollapsedState.value[cat])
 		if (allCollapsed !== isCatalogCollapsed.value) {
 			isCatalogCollapsed.value = allCollapsed
-			userConfigStore.update({
-				[CATALOG_COLLAPSED_CONFIG_KEY]: allCollapsed,
-			})
+			void userConfigStore.update(CATALOG_COLLAPSED_CONFIG_KEY, allCollapsed)
 		}
 	}
 
 	function persistCategoryCollapsedState() {
-		userConfigStore.update({
-			[CATALOG_SECTION_COLLAPSED_CONFIG_KEY]: categoryCollapsedState.value,
-		})
+		void userConfigStore.update(CATALOG_SECTION_COLLAPSED_CONFIG_KEY, categoryCollapsedState.value)
 	}
 
 	function isCategoryExpanded(category: RealPolicySettingCategory): boolean {

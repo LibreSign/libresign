@@ -75,9 +75,9 @@
 					:class="{ 'policy-workbench__category-chip--active': navigation.activeCategory.value === category.key }"
 					:aria-current="navigation.activeCategory.value === category.key ? 'location' : undefined"
 					:aria-label="t('libresign', 'Go to {category}', { category: category.label })"
-					@click="navigation.scrollToCategory(category.key, $event)"
-					@keydown.enter.prevent="navigation.scrollToCategory(category.key)"
-					@keydown.space.prevent="navigation.scrollToCategory(category.key)">
+					@click="handleCategoryChipNavigation(category.key, $event)"
+					@keydown.enter.prevent="handleCategoryChipNavigation(category.key)"
+					@keydown.space.prevent="handleCategoryChipNavigation(category.key)">
 					<NcChip :text="category.label" no-close />
 				</button>
 			</div>
@@ -554,6 +554,7 @@ import { useCatalogPresentation } from './composables/useCatalogPresentation'
 import { useCatalogState } from './composables/useCatalogState'
 import { useCatalogInteractions } from './composables/useCatalogInteractions'
 import { useNavigation } from './composables/useNavigation'
+import type { RealPolicySettingCategory } from '../settings/realTypes'
 
 defineOptions({
 	name: 'RealPolicyWorkbench',
@@ -1056,6 +1057,14 @@ function toggleCatalogLayout() {
 
 function toggleCatalogCollapsed() {
 	catalogState.toggleCatalogCollapsed()
+}
+
+function handleCategoryChipNavigation(category: RealPolicySettingCategory, event?: MouseEvent) {
+	if (!catalogState.isCategoryExpanded(category)) {
+		catalogState.toggleCategoryCollapsed(category)
+	}
+
+	navigation.scrollToCategory(category, event)
 }
 
 function updateViewportMode() {
