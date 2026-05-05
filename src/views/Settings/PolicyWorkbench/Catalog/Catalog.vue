@@ -16,7 +16,7 @@
 					:label="t('libresign', 'Search settings')"
 					:placeholder="t('libresign', 'Search by setting name, summary, description, or context')"
 					@keydown.esc.prevent="catalogState.clearSettingsFilter"
-					@update:modelValue="catalogState.onSettingsFilterChange" />
+					@update:modelValue="(value: string | number) => catalogState.onSettingsFilterChange(String(value))" />
 				<div class="policy-workbench__catalog-foot">
 					<NcButton
 						variant="tertiary"
@@ -1035,12 +1035,12 @@ function requestBackToCreateScope() {
 	selectedCreateScope.value = null
 }
 
-function hasActiveOverrides(groupCount: number, userCount: number) {
-	return groupCount > 0 || userCount > 0
+function hasActiveOverrides(groupCount?: number, userCount?: number) {
+	return (groupCount ?? 0) > 0 || (userCount ?? 0) > 0
 }
 
-function formatOverrideSummary(groupCount: number, userCount: number) {
-	if (groupCount === 0 && userCount === 0) {
+function formatOverrideSummary(groupCount?: number, userCount?: number) {
+	if ((groupCount ?? 0) === 0 && (userCount ?? 0) === 0) {
 		return t('libresign', 'none')
 	}
 

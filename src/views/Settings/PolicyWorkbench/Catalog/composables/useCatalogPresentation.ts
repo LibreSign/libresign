@@ -18,6 +18,8 @@ type SettingSummary = {
 	context?: string | null,
 	description: string,
 	defaultSummary: string,
+	groupCount?: number,
+	userCount?: number,
 }
 
 const CATEGORY_ORDER: RealPolicySettingCategory[] = [
