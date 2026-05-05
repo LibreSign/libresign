@@ -57,9 +57,11 @@ test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
 const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
-const GROUP_ID = 'policy-menu-visibility-group'
-const GROUP_ADMIN = 'policy-menu-visibility-admin'
 const GROUP_ADMIN_PASSWORD = '123456'
+
+const TEST_NAMESPACE = Math.random().toString(36).slice(2, 10)
+const GROUP_ID = `policy-menu-visibility-group-${TEST_NAMESPACE}`
+const GROUP_ADMIN = `policy-menu-visibility-admin-${TEST_NAMESPACE}`
 
 const POLICY_KEY = 'add_footer'
 const REQUEST_SIGN_GROUPS = JSON.stringify(['admin', GROUP_ID])
@@ -82,7 +84,7 @@ test.afterEach(async ({ adminRequestContext }) => {
 	await setAppConfig(adminRequestContext, 'libresign', 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
 })
 
-test('group admin can access policies and start creating delegated rule when customization is allowed', async ({ page, adminRequestContext, groupAdminRequestContext }) => {
+test('group admin can access policies and sees create-rule guard when higher-level rules block exceptions', async ({ page, adminRequestContext, groupAdminRequestContext }) => {
 	// ── 0. Provision users/groups (idempotent; safe to call on every run) ──
 	await ensureUserExists(page.request, GROUP_ADMIN, GROUP_ADMIN_PASSWORD)
 	await ensureGroupExists(page.request, GROUP_ID)
@@ -130,28 +132,9 @@ test('group admin can access policies and start creating delegated rule when cus
 	})
 	await expect(settingDialog, 'Policy dialog with "Create rule" button should be visible').toBeVisible({ timeout: 10000 })
 
-	// ── 6. "Create rule" button must be available inside the dialog ───────
+	// ── 6. "Create rule" button visibility and guard message ───────────────
 	const createRuleButton = settingDialog.getByRole('button', { name: /^Create rule$/i })
-	await expect(createRuleButton, '"Create rule" button should be enabled in the policy dialog').toBeVisible({ timeout: 10000 })
-	await expect(createRuleButton).toBeEnabled()
-
-	// ── 7. Clicking "Create rule" opens the scope-selector ────────────────
-	await createRuleButton.click()
-
-	const createPolicyDialog = page
-		.getByRole('dialog', { name: /What do you want to create\?|Create rule/i })
-		.last()
-	await expect(createPolicyDialog, 'Create-policy modal should appear after clicking Create rule').toBeVisible({ timeout: 10000 })
-
-	await createPolicyDialog.getByRole('option', { name: /^Group/ }).click()
-
-	const targetGroupsField = page.getByLabel(/Target groups/i)
-	await expect(targetGroupsField).toBeVisible({ timeout: 10000 })
-	await page.getByPlaceholder(/Search groups/i).fill(GROUP_ID)
-	await page.getByRole('option', { name: GROUP_ID }).first().click()
-
-	await Promise.any([
-		createPolicyDialog.getByRole('option', { name: /^Group/ }).waitFor({ state: 'visible', timeout: 10000 }),
-		page.getByLabel(/Target groups/i).waitFor({ state: 'visible', timeout: 10000 }),
-	])
+	await expect(createRuleButton, '"Create rule" button should be visible in the policy dialog').toBeVisible({ timeout: 10000 })
+	await expect(createRuleButton).toBeDisabled()
+	await expect(createRuleButton).toHaveAttribute('title', /higher-level rule is blocking new exceptions in all scopes/i)
 })

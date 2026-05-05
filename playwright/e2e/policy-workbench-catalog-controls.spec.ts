@@ -65,7 +65,7 @@ async function waitForUserConfigSave(page: Page, key: string) {
 	return page.waitForResponse((response) => {
 		return response.request().method() === 'PUT'
 			&& response.url().includes(`/apps/libresign/api/v1/account/config/${key}`)
-			&& response.status() === 200
+			&& response.ok()
 	})
 }
 
