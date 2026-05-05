@@ -15,6 +15,16 @@ import { generateOcsUrl } from '@nextcloud/router'
  * 	locale?: string
  * 	files_list_grid_view?: boolean
  * 	policy_workbench_catalog_compact_view?: boolean
+ * 	policy_workbench_catalog_collapsed?: boolean
+ * 	policy_workbench_category_collapsed_state?: {
+ * 		'who-can-sign'?: boolean
+ * 		'how-signing-works'?: boolean
+ * 		'signer-experience'?: boolean
+ * 		'what-gets-recorded'?: boolean
+ * 		'time-and-limits'?: boolean
+ * 		'trust-and-verification'?: boolean
+ * 		'system-behavior'?: boolean
+ * 	}
  * 	files_list_signer_identify_tab?: string
  * 	crl_filters?: { serialNumber?: string, status?: string | null, owner?: string }
  * 	crl_sort?: { sortBy?: string | null, sortOrder?: 'ASC' | 'DESC' | null }

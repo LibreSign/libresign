@@ -9,10 +9,20 @@ export type RealPolicyScope = 'system' | 'group' | 'user'
 export type RealPolicyResolutionMode = 'precedence' | 'merge' | 'conflict_requires_selection'
 export type RealPolicyEditorDialogLayout = 'default' | 'wide'
 
+export type RealPolicySettingCategory =
+	| 'who-can-sign'
+	| 'how-signing-works'
+	| 'signer-experience'
+	| 'what-gets-recorded'
+	| 'time-and-limits'
+	| 'trust-and-verification'
+	| 'system-behavior'
+
 export interface RealPolicySettingDefinition {
 	key: string
 	title: string
 	context?: string
+	category?: RealPolicySettingCategory
 	description: string
 	supportedScopes?: ReadonlyArray<RealPolicyScope>
 	editor: unknown

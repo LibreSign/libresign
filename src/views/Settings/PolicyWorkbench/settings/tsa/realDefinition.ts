@@ -12,7 +12,8 @@ import { DEFAULT_TSA_SETTINGS, normalizeTsaSettings, serializeTsaSettings } from
 
 export const tsaRealDefinition: RealPolicySettingDefinition = {
 	key: 'tsa_settings',
-	title: t('libresign', 'Timestamp Authority (TSA)'),
+	title: t('libresign', 'Timestamp Authority'),
+	context: t('libresign', 'TSA'),
 	description: t('libresign', 'Timestamp Authority (TSA) settings for digitally signing documents.'),
 	supportedScopes: ['system'],
 	editor: TsaRuleEditor,
