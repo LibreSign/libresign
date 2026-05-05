@@ -212,6 +212,8 @@ class AccountService {
 		$info['files_list_sorting_mode'] = $this->getUserConfigByKey('files_list_sorting_mode', $user) ?: 'name';
 		$info['files_list_sorting_direction'] = $this->getUserConfigByKey('files_list_sorting_direction', $user) ?: 'asc';
 		$info['policy_workbench_catalog_compact_view'] = $this->getUserConfigByKey('policy_workbench_catalog_compact_view', $user) === '1';
+		$info['policy_workbench_catalog_collapsed'] = $this->getUserConfigByKey('policy_workbench_catalog_collapsed', $user) === '1';
+		$info['policy_workbench_category_collapsed_state'] = $this->getUserConfigJsonByKey('policy_workbench_category_collapsed_state', $user);
 		$info['can_manage_group_policies'] = $this->policyAuthorizationService->canUserManageGroupPolicies($user);
 		$info['manageable_policy_group_ids'] = $this->policyAuthorizationService->getManageablePolicyGroupIds($user);
 
@@ -273,6 +275,23 @@ class AccountService {
 			return '';
 		}
 		return $this->userConfig->getValueString($user->getUID(), Application::APP_ID, $key);
+	}
+
+	/**
+	 * @return array<string, mixed>|null
+	 */
+	private function getUserConfigJsonByKey(string $key, ?IUser $user = null): ?array {
+		if (!$user) {
+			return null;
+		}
+
+		$value = $this->userConfig->getValueString($user->getUID(), Application::APP_ID, $key, '');
+		if (empty($value)) {
+			return null;
+		}
+
+		$decoded = json_decode($value, true);
+		return is_array($decoded) ? $decoded : null;
 	}
 
 	private function getUserConfigIdDocsFilters(?IUser $user = null): array {
