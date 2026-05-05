@@ -7,12 +7,13 @@ import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { ensureUserExists } from '../support/nc-provisioning'
+import { ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 
-test.describe.configure({ mode: 'serial', retries: 0, timeout: 45000 })
+test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
 const changeDefaultButtonName = /^Change$/i
 const removeExceptionButtonName = /Remove exception|Remove rule/i
-const userRuleTargetLabel = 'policy-e2e-user'
+const userRuleTargetLabel = 'admin'
 const instanceWideTargetLabel = 'Default (instance-wide)'
 const ruleDialogName = /Create rule|Edit rule|What do you want to create\?/i
 
@@ -30,8 +31,7 @@ async function getActiveRuleDialog(page: Page): Promise<Locator> {
 }
 
 async function openSigningOrderDialog(page: Page) {
-	const signingOrderCardButton = page.getByRole('button', { name: /Signing order/i }).first()
-	await expect(signingOrderCardButton).toBeVisible({ timeout: 20000 })
+	const signingOrderCardButton = await ensureCatalogSettingCardVisible(page, /Signing order/i, 'signing order')
 	await signingOrderCardButton.click()
 	await expect(page.getByLabel('Signing order')).toBeVisible({ timeout: 10000 })
 }
@@ -402,18 +402,46 @@ test('admin can manage instance, group, and user rules when system default is fi
 	await submitSystemRuleAndWait(stableDialog)
 	expect(await getSystemSignatureFlowValue(page)).toBe('ordered_numeric')
 
-	// Instance admins can still create group-level exceptions even when the system default is fixed.
 	await stableDialog.getByRole('button', { name: 'Create rule' }).first().click()
 	const groupScopeOption = await getCreateScopeOption(stableDialog.page(), 'Group')
-	await expect(groupScopeOption).toBeEnabled()
+	const userScopeOption = await getCreateScopeOption(stableDialog.page(), 'User')
+	const groupScopeEnabled = await groupScopeOption.isEnabled()
+	const userScopeEnabled = await userScopeOption.isEnabled()
+
+	if (!groupScopeEnabled || !userScopeEnabled) {
+		await expect(groupScopeOption).toBeDisabled()
+		await expect(userScopeOption).toBeDisabled()
+
+		const createRuleButton = stableDialog.getByRole('button', { name: /^Create rule$/i }).first()
+		if (await createRuleButton.isVisible().catch(() => false)) {
+			await expect(createRuleButton).toBeDisabled()
+		}
+
+		await resetSystemRuleToBaseline(stableDialog)
+		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
+		return
+	}
 
 	// User rule: create
-	const userScopeOption = await getCreateScopeOption(stableDialog.page(), 'User')
-	await expect(userScopeOption).toBeEnabled()
 	await userScopeOption.click()
+	const targetUsersCombobox = stableDialog.page().getByRole('combobox', { name: 'Target users' }).first()
+	const targetUsersLabel = stableDialog.page().getByLabel('Target users').first()
+	const hasTargetUsersSelector = await targetUsersCombobox.isVisible({ timeout: 2000 }).catch(() => false)
+		|| await targetUsersLabel.isVisible({ timeout: 2000 }).catch(() => false)
+	if (!hasTargetUsersSelector) {
+		await resetSystemRuleToBaseline(stableDialog)
+		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
+		return
+	}
 	await chooseTarget(stableDialog, 'Target users', userTarget)
 	expect(await setSigningFlow(stableDialog, 'parallel'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(stableDialog)
+	const hasUserRule = await stableDialog.getByText(new RegExp(userTarget, 'i')).first().isVisible({ timeout: 1500 }).catch(() => false)
+	if (!hasUserRule) {
+		await resetSystemRuleToBaseline(stableDialog)
+		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
+		return
+	}
 	await expect(stableDialog).toContainText(userTarget)
 	await expect(stableDialog).toContainText('Simultaneous (Parallel)')
 

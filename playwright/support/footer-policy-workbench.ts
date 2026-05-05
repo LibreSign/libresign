@@ -27,11 +27,40 @@ export async function bootstrapLibreSignAdmin(page: Page): Promise<void> {
 	})
 }
 
+export async function ensureCatalogSettingCardVisible(
+	page: Page,
+	settingName: RegExp,
+	searchTerm: string,
+): Promise<Locator> {
+	const searchField = page.getByRole('textbox', { name: /Search settings/i }).first()
+	await expect(searchField).toBeVisible({ timeout: 20000 })
+
+	const collapseButton = page.getByRole('button', {
+		name: /Collapse settings categories|Expand settings categories/i,
+	}).first()
+	if (/Expand settings categories/i.test((await collapseButton.getAttribute('aria-label')) ?? '')) {
+		await collapseButton.click()
+		await expect(collapseButton).toHaveAttribute('aria-label', /Collapse settings categories/i)
+	}
+
+	const viewButton = page.getByRole('button', {
+		name: /Switch to compact view|Switch to card view/i,
+	}).first()
+	if (/Switch to card view/i.test((await viewButton.getAttribute('aria-label')) ?? '')) {
+		await viewButton.click()
+		await expect(viewButton).toHaveAttribute('aria-label', /Switch to compact view/i)
+	}
+
+	await searchField.fill(searchTerm)
+	const settingCard = page.getByRole('button', { name: settingName }).first()
+	await expect(settingCard).toBeVisible({ timeout: 20000 })
+	return settingCard
+}
+
 export async function openSystemFooterRuleEditor(page: Page): Promise<Locator> {
 	await page.goto('./settings/admin/libresign')
 
-	const footerCard = page.getByRole('button', { name: /Signature footer/i }).first()
-	await expect(footerCard).toBeVisible({ timeout: 20000 })
+	const footerCard = await ensureCatalogSettingCardVisible(page, /Signature footer/i, 'footer')
 	await footerCard.click()
 
 	const dialog = page.getByRole('dialog').filter({ hasText: /Signature footer/i }).first()

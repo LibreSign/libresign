@@ -6,6 +6,7 @@
 import { expect, test } from '@playwright/test'
 import type { Locator, Page, Request } from '@playwright/test'
 import { login } from '../support/nc-login'
+import { ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -34,9 +35,7 @@ async function clickSwitch(switchContainer: Locator): Promise<void> {
 async function openFooterPolicyEditor(page: Page) {
 	await page.goto('./settings/admin/libresign')
 
-	// Wait for the Policy Workbench section to load
-	const footerCard = page.getByRole('button', { name: /Signature footer/i }).first()
-	await expect(footerCard).toBeVisible({ timeout: 20000 })
+	const footerCard = await ensureCatalogSettingCardVisible(page, /Signature footer/i, 'footer')
 	await footerCard.click()
 
 	// Expect the footer settings dialog to appear
