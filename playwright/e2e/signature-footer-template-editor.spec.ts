@@ -7,6 +7,7 @@ import { expect, test } from '@playwright/test'
 import type { Locator, Page, Request, Response } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl } from '../support/nc-provisioning'
+import { ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -64,8 +65,7 @@ async function waitForSystemFooterPolicySave(page: Page, action: () => Promise<v
 async function openFooterPolicyEditor(page: Page): Promise<Locator> {
 	await page.goto('./settings/admin/libresign')
 
-	const footerCard = page.getByRole('button', { name: /Signature footer/i }).first()
-	await expect(footerCard).toBeVisible({ timeout: 20000 })
+	const footerCard = await ensureCatalogSettingCardVisible(page, /Signature footer/i, 'footer')
 	await footerCard.click()
 
 	const dialog = page.getByRole('dialog').filter({ hasText: /Signature footer/i }).first()
