@@ -271,19 +271,76 @@ export function useNavigation(
 		scrollElementToViewportOffset(target)
 	}
 
-	function scrollToTop() {
+	function focusCatalogSearchInput() {
+		const toolbar = catalogToolbarRef.value
+		if (!toolbar) {
+			return
+		}
+
+		const searchInput = toolbar.querySelector('input, textarea')
+		if (searchInput instanceof HTMLInputElement || searchInput instanceof HTMLTextAreaElement) {
+			searchInput.focus({ preventScroll: true })
+		}
+	}
+
+	function scrollToCatalogToolbar() {
+		const toolbar = catalogToolbarRef.value
+		if (!toolbar) {
+			scrollContainer.value = getPrimaryScrollContainer()
+			if (scrollContainer.value instanceof Window) {
+				window.scrollTo({
+					top: 0,
+					behavior: 'smooth',
+				})
+			} else {
+				scrollContainer.value.scrollTo({
+					top: 0,
+					behavior: 'smooth',
+				})
+			}
+			return
+		}
+
 		scrollContainer.value = getPrimaryScrollContainer()
+
 		if (scrollContainer.value instanceof Window) {
+			const rootStyles = window.getComputedStyle(document.documentElement)
+			const rawHeaderHeight = rootStyles.getPropertyValue('--header-height').trim()
+			const parsedHeaderHeight = Number.parseFloat(rawHeaderHeight)
+			const headerHeight = Number.isFinite(parsedHeaderHeight) ? parsedHeaderHeight : 50
+			const toolbarTop = window.scrollY + toolbar.getBoundingClientRect().top
+			const nextTop = Math.max(0, Math.round(toolbarTop - headerHeight - CATEGORY_SCROLL_ALIGNMENT_GAP_PX))
+
 			window.scrollTo({
-				top: 0,
+				top: nextTop,
 				behavior: 'smooth',
 			})
-		} else {
+			focusCatalogSearchInput()
+			return
+		}
+
+		if (typeof scrollContainer.value.getBoundingClientRect !== 'function') {
 			scrollContainer.value.scrollTo({
 				top: 0,
 				behavior: 'smooth',
 			})
+			focusCatalogSearchInput()
+			return
 		}
+
+		const containerRect = scrollContainer.value.getBoundingClientRect()
+		const toolbarTopInContainer = toolbar.getBoundingClientRect().top - containerRect.top
+		const nextTop = Math.max(0, Math.round(scrollContainer.value.scrollTop + toolbarTopInContainer - CATEGORY_SCROLL_ALIGNMENT_GAP_PX))
+
+		scrollContainer.value.scrollTo({
+			top: nextTop,
+			behavior: 'smooth',
+		})
+		focusCatalogSearchInput()
+	}
+
+	function scrollToTop() {
+		scrollToCatalogToolbar()
 	}
 
 	function removeScrollListener() {
