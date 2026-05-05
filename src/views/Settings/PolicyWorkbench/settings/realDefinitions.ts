@@ -30,26 +30,39 @@ import { validationAccessRealDefinition } from './validation-access/realDefiniti
 import type { RealPolicySettingDefinition } from './realTypes'
 
 export const realDefinitions = {
-	approval_group: approvalGroupsRealDefinition,
-	add_footer: signatureFooterRealDefinition,
-	collect_metadata: collectMetadataRealDefinition,
-	show_confetti_after_signing: confettiRealDefinition,
-	crl_external_validation_enabled: crlValidationRealDefinition,
-	signature_flow: signatureFlowRealDefinition,
-	signature_hash_algorithm: signatureHashAlgorithmRealDefinition,
-	docmdp: docMdpRealDefinition,
-	envelope_enabled: envelopeRealDefinition,
-	default_user_folder: defaultUserFolderRealDefinition,
-	legal_information: legalInformationRealDefinition,
-	maximum_validity: maximumValidityRealDefinition,
-	renewal_interval: renewalIntervalRealDefinition,
-	expiry_in_days: expiryInDaysRealDefinition,
-	identify_methods: identifyMethodsRealDefinition,
-	identification_documents: identificationDocumentsRealDefinition,
-	reminder_settings: reminderRealDefinition,
-	groups_request_sign: requestSignGroupsRealDefinition,
-	make_validation_url_private: validationAccessRealDefinition,
-	signature_background_type: signatureBackgroundRealDefinition,
-	signature_text: signatureTextRealDefinition,
-	tsa_settings: tsaRealDefinition,
+	// 1. Who can sign & request
+	groups_request_sign: { ...requestSignGroupsRealDefinition, category: 'who-can-sign' },
+	approval_group: { ...approvalGroupsRealDefinition, category: 'who-can-sign' },
+	identification_documents: { ...identificationDocumentsRealDefinition, category: 'who-can-sign' },
+	identify_methods: { ...identifyMethodsRealDefinition, category: 'who-can-sign' },
+
+	// 2. How signing works
+	signature_flow: { ...signatureFlowRealDefinition, category: 'how-signing-works' },
+	envelope_enabled: { ...envelopeRealDefinition, category: 'how-signing-works' },
+
+	// 3. What the signer sees
+	add_footer: { ...signatureFooterRealDefinition, category: 'signer-experience' },
+	signature_text: { ...signatureTextRealDefinition, category: 'signer-experience' },
+	signature_background_type: { ...signatureBackgroundRealDefinition, category: 'signer-experience' },
+	show_confetti_after_signing: { ...confettiRealDefinition, category: 'signer-experience' },
+
+	// 4. What gets recorded
+	collect_metadata: { ...collectMetadataRealDefinition, category: 'what-gets-recorded' },
+	legal_information: { ...legalInformationRealDefinition, category: 'what-gets-recorded' },
+
+	// 5. Time & limits
+	expiry_in_days: { ...expiryInDaysRealDefinition, category: 'time-and-limits' },
+	maximum_validity: { ...maximumValidityRealDefinition, category: 'time-and-limits' },
+	renewal_interval: { ...renewalIntervalRealDefinition, category: 'time-and-limits' },
+	reminder_settings: { ...reminderRealDefinition, category: 'time-and-limits' },
+
+	// 6. Trust & verification
+	signature_hash_algorithm: { ...signatureHashAlgorithmRealDefinition, category: 'trust-and-verification' },
+	docmdp: { ...docMdpRealDefinition, category: 'trust-and-verification' },
+	tsa_settings: { ...tsaRealDefinition, category: 'trust-and-verification' },
+	crl_external_validation_enabled: { ...crlValidationRealDefinition, category: 'trust-and-verification' },
+
+	// 7. System behavior
+	default_user_folder: { ...defaultUserFolderRealDefinition, category: 'system-behavior' },
+	make_validation_url_private: { ...validationAccessRealDefinition, category: 'system-behavior' },
 } satisfies Record<string, RealPolicySettingDefinition>
