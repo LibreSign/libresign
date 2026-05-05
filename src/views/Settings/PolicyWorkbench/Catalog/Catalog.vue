@@ -10,7 +10,7 @@
 		:description="t('libresign', 'Configure how signing works.')">
 
 		<div class="policy-workbench__catalog-toolbar">
-			<div ref="navigation.catalogToolbarRef" class="policy-workbench__catalog-search">
+			<div :ref="navigation.catalogToolbarRef" class="policy-workbench__catalog-search">
 				<NcTextField
 					:model-value="catalogState.settingsFilter.value"
 					:label="t('libresign', 'Search settings')"
@@ -62,7 +62,7 @@
 			v-if="showCategoryNavigation"
 			class="policy-workbench__category-nav-sticky">
 			<div
-				ref="navigation.categoryChipsScroller"
+				:ref="navigation.categoryChipsScroller"
 				class="policy-workbench__category-nav"
 				:class="{ 'policy-workbench__category-nav--rtl': isRtl }"
 				role="navigation"

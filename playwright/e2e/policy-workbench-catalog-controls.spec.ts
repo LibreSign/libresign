@@ -299,3 +299,73 @@ test('search temporarily expands result sections without persisting section stat
 
 	expect(errorCollector.all(), 'No JavaScript errors should happen while showing filtered results').toEqual([])
 })
+
+test('back to top returns to search toolbar instead of absolute page top', async ({ page }) => {
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+
+	await login(page.request, adminUser, adminPassword)
+	await setUserLanguage(page.request, adminUser, 'en')
+
+	await page.setViewportSize({ width: 1365, height: 950 })
+
+	const errorCollector = collectJavascriptErrors(page)
+
+	await page.goto('./settings/admin/libresign')
+
+	const searchField = page.getByRole('textbox', { name: /Search settings/i }).first()
+	await expect(searchField).toBeVisible({ timeout: 20000 })
+
+	const collapseButton = await getCatalogCollapseButton(page)
+	if (/Expand settings categories/i.test((await collapseButton.getAttribute('aria-label')) ?? '')) {
+		await Promise.all([
+			waitForUserConfigSave(page, 'policy_workbench_catalog_collapsed'),
+			collapseButton.click(),
+		])
+	}
+
+	const viewButton = await getCatalogViewButton(page)
+	if (/Switch to card view/i.test((await viewButton.getAttribute('aria-label')) ?? '')) {
+		await Promise.all([
+			waitForUserConfigSave(page, 'policy_workbench_catalog_compact_view'),
+			viewButton.click(),
+		])
+	}
+
+	await page.evaluate(() => {
+		const appContent = document.querySelector('#app-content') as HTMLElement | null
+		if (!appContent) {
+			return
+		}
+
+		appContent.scrollTo({ top: 3500, behavior: 'auto' })
+		appContent.dispatchEvent(new Event('scroll'))
+	})
+
+	await expect.poll(async () => {
+		return page.evaluate(() => {
+			const appContent = document.querySelector('#app-content') as HTMLElement | null
+			return appContent?.scrollTop ?? 0
+		})
+	}, { timeout: 10000 }).toBeGreaterThan(800)
+
+	const backToTopButton = page.locator('.policy-workbench__back-to-top').first()
+	await expect(backToTopButton).toBeVisible({ timeout: 10000 })
+	await backToTopButton.click()
+
+	await expect(searchField).toBeFocused({ timeout: 10000 })
+
+	const afterScroll = await page.evaluate(() => {
+		const appContent = document.querySelector('#app-content') as HTMLElement | null
+		const toolbar = document.querySelector('.policy-workbench__catalog-search') as HTMLElement | null
+		return {
+			appContentScrollTop: appContent?.scrollTop ?? 0,
+			toolbarTop: toolbar?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY,
+		}
+	})
+
+	expect(afterScroll.appContentScrollTop, 'Back-to-top should not jump to absolute page top').toBeGreaterThan(100)
+	expect(afterScroll.toolbarTop, 'Search toolbar should be brought near the top of the viewport').toBeLessThan(250)
+
+	expect(errorCollector.all(), 'No JavaScript errors should happen while using back-to-top').toEqual([])
+})
