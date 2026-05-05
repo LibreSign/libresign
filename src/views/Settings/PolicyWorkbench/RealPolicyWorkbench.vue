@@ -5,11 +5,12 @@
 
 <template>
 	<NcSettingsSection
+		class="policy-workbench__section"
 		:name="t('libresign', 'Document signing settings')"
 		:description="t('libresign', 'Configure how signing works.')">
 
 		<div class="policy-workbench__catalog-toolbar">
-			<div class="policy-workbench__catalog-search">
+			<div ref="catalogToolbarRef" class="policy-workbench__catalog-search">
 				<NcTextField
 					:model-value="settingsFilter"
 					:label="t('libresign', 'Search settings')"
@@ -30,7 +31,7 @@
 				</div>
 			</div>
 
-			<div class="policy-workbench__catalog-view-switch" role="group" :aria-label="t('libresign', 'Select settings layout')">
+			<div class="policy-workbench__catalog-view-switch" role="group" :aria-label="t('libresign', 'Catalog controls')">
 				<NcButton
 					:aria-label="catalogViewButtonLabel"
 					:title="catalogViewButtonLabel"
@@ -42,91 +43,190 @@
 						<NcIconSvgWrapper v-else :path="mdiViewGridOutline" />
 					</template>
 				</NcButton>
+
+				<NcButton
+					:aria-label="catalogCollapseButtonLabel"
+					:title="catalogCollapseButtonLabel"
+					:disabled="!hasVisibleCategorySections"
+					class="policy-workbench__catalog-collapse-button"
+					@click="toggleCatalogCollapsed">
+					<template #icon>
+						<NcIconSvgWrapper v-if="isCatalogCollapsed" :path="mdiChevronDown" />
+						<NcIconSvgWrapper v-else :path="mdiChevronUp" />
+					</template>
+				</NcButton>
 			</div>
 		</div>
 
-		<div v-if="effectiveCatalogLayout === 'cards'" class="policy-workbench__settings-grid">
-			<article
-				v-for="summary in filteredSettingSummaries"
-				:key="summary.key"
-				class="policy-workbench__setting-tile"
-				tabindex="0"
-				role="button"
-				@pointerdown="trackPress('cards', summary.key, $event)"
-				@mouseup="markSelectionGesture('cards', summary.key)"
-				@click="openSettingFromPointer('cards', summary.key, $event)"
-				@keydown.enter.prevent="openSettingFromKeyboard(summary.key)"
-				@keydown.space.prevent="openSettingFromKeyboard(summary.key)">
-				<div class="policy-workbench__setting-body">
-					<div class="policy-workbench__setting-header">
-						<div>
-							<h3 class="policy-workbench__setting-title">
-								<span v-html="highlightText(summary.title)"></span>
-								<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
-							</h3>
-							<p class="policy-workbench__setting-description" v-html="highlightText(summary.description)"></p>
-						</div>
-					</div>
-
-					<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge">
-						{{ t('libresign', 'Custom rules active') }}
-					</p>
-
-					<ul class="policy-workbench__setting-stats">
-						<li>
-							<strong>{{ t('libresign', 'Default') }}:</strong>
-							<span :title="summary.defaultSummary" v-html="highlightText(summary.defaultSummary)"></span>
-						</li>
-						<li>
-							<strong>{{ t('libresign', 'Custom rules') }}:</strong>
-							<span>{{ formatOverrideSummary(summary.groupCount, summary.userCount) }}</span>
-						</li>
-					</ul>
-				</div>
-
-				<div class="policy-workbench__setting-footer">
-					<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="openSettingFromAction(summary.key, $event)">
-						{{ t('libresign', 'Configure') }}
-					</NcButton>
-				</div>
-			</article>
+		<div
+			v-if="showCategoryNavigation"
+			class="policy-workbench__category-nav-sticky">
+			<div
+				ref="categoryChipsScroller"
+				class="policy-workbench__category-nav"
+				:class="{ 'policy-workbench__category-nav--rtl': isRtl }"
+				role="navigation"
+				:aria-label="t('libresign', 'Jump to settings category')">
+				<button
+					v-for="category in visibleCategorySections"
+					:key="category.key"
+					type="button"
+					class="policy-workbench__category-chip"
+					:class="{ 'policy-workbench__category-chip--active': activeCategory === category.key }"
+					:aria-current="activeCategory === category.key ? 'location' : undefined"
+					:aria-label="t('libresign', 'Go to {category}', { category: category.label })"
+					@click="scrollToCategory(category.key, $event)"
+					@keydown.enter.prevent="scrollToCategory(category.key)"
+					@keydown.space.prevent="scrollToCategory(category.key)">
+					<NcChip :text="category.label" no-close />
+				</button>
+			</div>
 		</div>
 
-		<div v-else class="policy-workbench__settings-list" role="list">
-			<article
-				v-for="summary in filteredSettingSummaries"
-				:key="summary.key"
-				class="policy-workbench__settings-row"
-				role="button"
-				tabindex="0"
-				@pointerdown="trackPress('list', summary.key, $event)"
-				@mouseup="markSelectionGesture('list', summary.key)"
-				@click="openSettingFromPointer('list', summary.key, $event)"
-				@keydown.enter.prevent="openSettingFromKeyboard(summary.key)"
-				@keydown.space.prevent="openSettingFromKeyboard(summary.key)">
-				<div class="policy-workbench__settings-row-main">
-					<h3 class="policy-workbench__setting-title">
-						<span v-html="highlightText(summary.title)"></span>
-						<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
+		<div class="policy-workbench__category-sections">
+			<template v-if="effectiveCatalogLayout === 'cards'">
+				<section
+					v-for="category in visibleCategorySections"
+					:id="category.id"
+					:key="`cards-${category.key}`"
+					:ref="setCategorySectionRef(category.key)"
+					class="policy-workbench__category-section"
+					:class="{ 'policy-workbench__category-section--active': activeCategory === category.key }"
+					:data-category-key="category.key">
+					<h3 class="policy-workbench__category-heading">
+						<button
+							type="button"
+							class="policy-workbench__category-toggle"
+							:aria-controls="`policy-category-content-${category.key}`"
+							:aria-expanded="String(isCategoryExpanded(category.key))"
+							@click="toggleCategoryCollapsed(category.key)">
+							<NcIconSvgWrapper
+								class="policy-workbench__category-toggle-icon"
+								:path="isCategoryExpanded(category.key) ? mdiChevronUp : mdiChevronDown"
+								:size="18" />
+							<span class="policy-workbench__category-title">{{ category.label }}</span>
+						</button>
 					</h3>
-					<p v-html="highlightText(summary.description)"></p>
-					<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge policy-workbench__origin-badge--inline">
-						{{ t('libresign', 'Custom rules active') }}
-					</p>
-				</div>
+					<div
+						:id="`policy-category-content-${category.key}`"
+						v-show="isCategoryExpanded(category.key)"
+						class="policy-workbench__category-content">
+						<div class="policy-workbench__settings-grid">
+						<article
+							v-for="summary in category.summaries"
+							:key="summary.key"
+							class="policy-workbench__setting-tile"
+							tabindex="0"
+							role="button"
+							@pointerdown="trackPress('cards', summary.key, $event)"
+							@mouseup="markSelectionGesture('cards', summary.key)"
+							@click="openSettingFromPointer('cards', summary.key, $event)"
+							@keydown.enter.prevent="openSettingFromKeyboard(summary.key)"
+							@keydown.space.prevent="openSettingFromKeyboard(summary.key)">
+							<div class="policy-workbench__setting-body">
+								<div class="policy-workbench__setting-header">
+									<div>
+										<h3 class="policy-workbench__setting-title">
+											<span v-html="highlightText(summary.title)"></span>
+											<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
+										</h3>
+										<p class="policy-workbench__setting-description" v-html="highlightText(summary.description)"></p>
+									</div>
+								</div>
 
-				<div class="policy-workbench__settings-row-stats">
-					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--default" :title="summary.defaultSummary">
-						<strong>{{ t('libresign', 'Default') }}:</strong>
-						<span v-html="highlightText(summary.defaultSummary)"></span>
-					</span>
-					<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ t('libresign', 'Custom rules') }}:</strong> {{ formatOverrideSummary(summary.groupCount, summary.userCount) }}</span>
-				</div>
+								<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge">
+									{{ t('libresign', 'Custom rules active') }}
+								</p>
 
-				<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="openSettingFromAction(summary.key, $event)">
-					{{ t('libresign', 'Configure') }}
-				</NcButton>
-			</article>
+								<ul class="policy-workbench__setting-stats">
+									<li>
+										<strong>{{ t('libresign', 'Default') }}:</strong>
+										<span :title="summary.defaultSummary" v-html="highlightText(summary.defaultSummary)"></span>
+									</li>
+									<li>
+										<strong>{{ t('libresign', 'Custom rules') }}:</strong>
+										<span>{{ formatOverrideSummary(summary.groupCount, summary.userCount) }}</span>
+									</li>
+								</ul>
+							</div>
+
+							<div class="policy-workbench__setting-footer">
+								<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="openSettingFromAction(summary.key, $event)">
+									{{ t('libresign', 'Configure') }}
+								</NcButton>
+							</div>
+						</article>
+						</div>
+					</div>
+				</section>
+			</template>
+
+			<template v-else>
+				<section
+					v-for="category in visibleCategorySections"
+					:id="category.id"
+					:key="`list-${category.key}`"
+					:ref="setCategorySectionRef(category.key)"
+					class="policy-workbench__category-section"
+					:class="{ 'policy-workbench__category-section--active': activeCategory === category.key }"
+					:data-category-key="category.key">
+					<h3 class="policy-workbench__category-heading">
+						<button
+							type="button"
+							class="policy-workbench__category-toggle"
+							:aria-controls="`policy-category-content-${category.key}`"
+							:aria-expanded="String(isCategoryExpanded(category.key))"
+							@click="toggleCategoryCollapsed(category.key)">
+							<NcIconSvgWrapper
+								class="policy-workbench__category-toggle-icon"
+								:path="isCategoryExpanded(category.key) ? mdiChevronUp : mdiChevronDown"
+								:size="18" />
+							<span class="policy-workbench__category-title">{{ category.label }}</span>
+						</button>
+					</h3>
+					<div
+						:id="`policy-category-content-${category.key}`"
+						v-show="isCategoryExpanded(category.key)"
+						class="policy-workbench__category-content">
+						<div class="policy-workbench__settings-list" role="list">
+						<article
+							v-for="summary in category.summaries"
+							:key="summary.key"
+							class="policy-workbench__settings-row"
+							role="button"
+							tabindex="0"
+							@pointerdown="trackPress('list', summary.key, $event)"
+							@mouseup="markSelectionGesture('list', summary.key)"
+							@click="openSettingFromPointer('list', summary.key, $event)"
+							@keydown.enter.prevent="openSettingFromKeyboard(summary.key)"
+							@keydown.space.prevent="openSettingFromKeyboard(summary.key)">
+							<div class="policy-workbench__settings-row-main">
+								<h3 class="policy-workbench__setting-title">
+									<span v-html="highlightText(summary.title)"></span>
+									<span v-if="summary.context" class="policy-workbench__setting-context">(<span v-html="highlightText(summary.context)"></span>)</span>
+								</h3>
+								<p v-html="highlightText(summary.description)"></p>
+								<p v-if="hasActiveOverrides(summary.groupCount, summary.userCount)" class="policy-workbench__origin-badge policy-workbench__origin-badge--inline">
+									{{ t('libresign', 'Custom rules active') }}
+								</p>
+							</div>
+
+							<div class="policy-workbench__settings-row-stats">
+								<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--default" :title="summary.defaultSummary">
+									<strong>{{ t('libresign', 'Default') }}:</strong>
+									<span v-html="highlightText(summary.defaultSummary)"></span>
+								</span>
+								<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ t('libresign', 'Custom rules') }}:</strong> {{ formatOverrideSummary(summary.groupCount, summary.userCount) }}</span>
+							</div>
+
+							<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="t('libresign', 'Configure setting')" @click.stop="openSettingFromAction(summary.key, $event)">
+								{{ t('libresign', 'Configure') }}
+							</NcButton>
+						</article>
+						</div>
+					</div>
+				</section>
+			</template>
 		</div>
 
 		<NcNoteCard v-if="filteredSettingSummaries.length === 0" type="info">
@@ -142,6 +242,22 @@
 				</div>
 			</div>
 		</NcNoteCard>
+
+		<Teleport to="body">
+			<Transition name="policy-workbench-back-to-top">
+				<NcButton
+					v-if="showBackToTop"
+					class="policy-workbench__back-to-top"
+					variant="secondary"
+					:aria-label="t('libresign', 'Back to top')"
+					@click="scrollToTop">
+					<template #icon>
+						<NcIconSvgWrapper :path="mdiArrowUp" :size="18" />
+					</template>
+					{{ t('libresign', 'Back to top') }}
+				</NcButton>
+			</Transition>
+		</Teleport>
 
 		<NcDialog
 			v-if="state.activeDefinition"
@@ -400,8 +516,11 @@
 
 <script setup lang="ts">
 import {
+	mdiArrowUp,
 	mdiAccountMultipleOutline,
 	mdiAccountOutline,
+	mdiChevronDown,
+	mdiChevronUp,
 	mdiCheckCircleOutline,
 	mdiDelete,
 	mdiFilterVariant,
@@ -412,7 +531,7 @@ import {
 	mdiPlus,
 	mdiViewGridOutline,
 } from '@mdi/js'
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -428,6 +547,8 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import { usePoliciesStore } from '../../../store/policies'
 import { useUserConfigStore } from '../../../store/userconfig.js'
+import { realDefinitions } from './settings/realDefinitions'
+import type { RealPolicySettingCategory } from './settings/realTypes'
 import PolicyRuleEditorPanel from './PolicyRuleEditorPanel.vue'
 import { createRealPolicyWorkbenchState } from './useRealPolicyWorkbench'
 
@@ -458,12 +579,83 @@ const crudSearch = ref('')
 const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
 const crudPage = ref(1)
 const scopeFilterOpen = ref(false)
+const isCatalogCollapsed = ref(false)
+const categoryCollapsedState = ref<Record<RealPolicySettingCategory, boolean>>({
+	'who-can-sign': false,
+	'how-signing-works': false,
+	'signer-experience': false,
+	'what-gets-recorded': false,
+	'time-and-limits': false,
+	'trust-and-verification': false,
+	'system-behavior': false,
+})
 const CRUD_PAGE_SIZE = 20
 
 const DRAG_OPEN_THRESHOLD_PX = 6
 const SELECTION_GUARD_WINDOW_MS = 400
 const CATALOG_LAYOUT_CONFIG_KEY = 'policy_workbench_catalog_compact_view'
+const CATALOG_COLLAPSED_CONFIG_KEY = 'policy_workbench_catalog_collapsed'
+const CATALOG_SECTION_COLLAPSED_CONFIG_KEY = 'policy_workbench_category_collapsed_state'
 const REMOVAL_FEEDBACK_DURATION_MS = 6000
+const BACK_TO_TOP_VISIBLE_AT_PX = 420
+const CHIP_STICKY_GAP_PX = 8
+const CATEGORY_SWITCH_HYSTERESIS_PX = 28
+const CATEGORY_SCROLL_ALIGNMENT_GAP_PX = 12
+const SECTION_OBSERVER_BOTTOM_MARGIN_PERCENT = 45
+
+const CATEGORY_ORDER: RealPolicySettingCategory[] = [
+	'who-can-sign',
+	'how-signing-works',
+	'signer-experience',
+	'what-gets-recorded',
+	'time-and-limits',
+	'trust-and-verification',
+	'system-behavior',
+]
+
+const categoryChipsScroller = ref<HTMLElement | null>(null)
+const activeCategory = ref<RealPolicySettingCategory | null>(null)
+const showBackToTop = ref(false)
+const isRtl = ref(false)
+const categorySectionElements = new Map<RealPolicySettingCategory, HTMLElement>()
+const scrollSyncRaf = ref<number | null>(null)
+const activeCategorySyncRaf = ref<number | null>(null)
+const navigationLockUntil = ref<number>(0)
+const NAVIGATION_LOCK_MS = 900
+const sectionObserver = ref<IntersectionObserver | null>(null)
+const scrollContainer = ref<Window | HTMLElement>(window)
+const scrollListenerTarget = ref<Window | HTMLElement | null>(null)
+const catalogToolbarRef = ref<HTMLElement | null>(null)
+
+const categoryLabel = (category: RealPolicySettingCategory): string => {
+	switch (category) {
+	case 'who-can-sign':
+		return t('libresign', 'Who can sign documents')
+	case 'how-signing-works':
+		return t('libresign', 'How signing works')
+	case 'signer-experience':
+		return t('libresign', 'What the signer sees')
+	case 'what-gets-recorded':
+		return t('libresign', 'What gets recorded')
+	case 'time-and-limits':
+		return t('libresign', 'Time and limits')
+	case 'trust-and-verification':
+		return t('libresign', 'Trust and verification')
+	case 'system-behavior':
+		return t('libresign', 'System behavior')
+	default:
+		return t('libresign', 'Other')
+	}
+}
+
+const categoryBySettingKey = computed<Record<string, RealPolicySettingCategory>>(() => {
+	const map: Record<string, RealPolicySettingCategory> = {}
+	for (const definition of Object.values(realDefinitions)) {
+		map[definition.key] = definition.category ?? 'system-behavior'
+	}
+
+	return map
+})
 
 const filteredSettingSummaries = computed(() => {
 	const normalized = settingsFilter.value.trim().toLowerCase()
@@ -475,6 +667,32 @@ const filteredSettingSummaries = computed(() => {
 		return [summary.title, summary.context ?? '', summary.description, summary.defaultSummary]
 			.some((value) => value.toLowerCase().includes(normalized))
 	})
+})
+
+const visibleCategorySections = computed<Array<{
+	key: RealPolicySettingCategory,
+	id: string,
+	label: string,
+	summaries: typeof filteredSettingSummaries.value,
+}>>(() => {
+	const grouped = new Map<RealPolicySettingCategory, typeof filteredSettingSummaries.value>()
+	for (const category of CATEGORY_ORDER) {
+		grouped.set(category, [])
+	}
+
+	for (const summary of filteredSettingSummaries.value) {
+		const category = categoryBySettingKey.value[summary.key] ?? 'system-behavior'
+		grouped.get(category)?.push(summary)
+	}
+
+	return CATEGORY_ORDER
+		.map((category) => ({
+			key: category,
+			id: `policy-category-${category}`,
+			label: categoryLabel(category),
+			summaries: grouped.get(category) ?? [],
+		}))
+		.filter((category) => category.summaries.length > 0)
 })
 
 const activeEditor = computed(() => state.activeDefinition?.editor ?? null)
@@ -490,10 +708,17 @@ const activeEditorProps = computed<Record<string, unknown>>(() => {
 })
 const effectiveCatalogLayout = computed(() => isSmallViewport.value ? 'cards' : catalogLayout.value)
 const hasActiveFilter = computed(() => settingsFilter.value.trim().length > 0)
+const hasVisibleCategorySections = computed(() => visibleCategorySections.value.length > 0)
+const showCategoryNavigation = computed(() => hasVisibleCategorySections.value)
 const catalogViewButtonLabel = computed(() => {
 	return effectiveCatalogLayout.value === 'cards'
 		? t('libresign', 'Switch to compact view')
 		: t('libresign', 'Switch to card view')
+})
+const catalogCollapseButtonLabel = computed(() => {
+	return isCatalogCollapsed.value
+		? t('libresign', 'Expand settings categories')
+		: t('libresign', 'Collapse settings categories')
 })
 
 const selectedTargetOptions = computed(() => {
@@ -1117,6 +1342,426 @@ function clearSettingsFilter() {
 	settingsFilter.value = ''
 }
 
+function setCategorySectionRef(category: RealPolicySettingCategory) {
+	return (element: Element | null) => {
+		if (element instanceof HTMLElement) {
+			categorySectionElements.set(category, element)
+			return
+		}
+
+		categorySectionElements.delete(category)
+	}
+}
+
+function isScrollableContainer(element: HTMLElement): boolean {
+	const styles = window.getComputedStyle(element)
+	const overflowY = styles.overflowY
+	if (overflowY !== 'auto' && overflowY !== 'scroll') {
+		return false
+	}
+
+	return element.scrollHeight > element.clientHeight
+}
+
+function resolveScrollContainer(): Window | HTMLElement {
+	const section = categorySectionElements.get(visibleCategorySections.value[0]?.key ?? 'who-can-sign')
+	const start = section ?? categoryChipsScroller.value
+	if (!start) {
+		return window
+	}
+
+	let current: HTMLElement | null = start.parentElement
+	while (current) {
+		if (isScrollableContainer(current)) {
+			return current
+		}
+
+		current = current.parentElement
+	}
+
+	return window
+}
+
+function getPrimaryScrollContainer(): Window | HTMLElement {
+	const appContent = document.querySelector('#app-content')
+	if (appContent instanceof HTMLElement && appContent.scrollHeight > (appContent.clientHeight + 1)) {
+		return appContent
+	}
+
+	return resolveScrollContainer()
+}
+
+function removeScrollListener() {
+	if (!scrollListenerTarget.value) {
+		return
+	}
+
+	scrollListenerTarget.value.removeEventListener('scroll', requestCategoryNavigationSync)
+	scrollListenerTarget.value = null
+}
+
+function attachScrollListener() {
+	removeScrollListener()
+	scrollContainer.value = getPrimaryScrollContainer()
+	scrollListenerTarget.value = scrollContainer.value
+	scrollListenerTarget.value.addEventListener('scroll', requestCategoryNavigationSync, { passive: true })
+}
+
+function updateBackToTopVisibility() {
+	scrollContainer.value = getPrimaryScrollContainer()
+
+	const offset = scrollContainer.value instanceof Window
+		? window.scrollY
+		: scrollContainer.value.scrollTop
+
+	if (offset <= BACK_TO_TOP_VISIBLE_AT_PX) {
+		showBackToTop.value = false
+		return
+	}
+
+	const toolbar = catalogToolbarRef.value
+	if (!toolbar) {
+		showBackToTop.value = offset > BACK_TO_TOP_VISIBLE_AT_PX
+		return
+	}
+
+	if (scrollContainer.value instanceof Window) {
+		const toolbarRect = toolbar.getBoundingClientRect()
+		const thresholdTop = headerOffsetPx() + 4
+		showBackToTop.value = toolbarRect.bottom <= thresholdTop
+		return
+	}
+
+	const toolbarRect = toolbar.getBoundingClientRect()
+	if (typeof (scrollContainer.value as HTMLElement).getBoundingClientRect !== 'function') {
+		showBackToTop.value = offset > BACK_TO_TOP_VISIBLE_AT_PX
+		return
+	}
+	const containerRect = scrollContainer.value.getBoundingClientRect()
+	const toolbarBottomInContainer = toolbarRect.bottom - containerRect.top
+	showBackToTop.value = toolbarBottomInContainer <= 4
+}
+function headerOffsetPx() {
+	const headerHeight = scrollContainer.value instanceof Window
+		? (() => {
+			const rootStyles = window.getComputedStyle(document.documentElement)
+			const rawHeaderHeight = rootStyles.getPropertyValue('--header-height').trim()
+			const parsedHeaderHeight = Number.parseFloat(rawHeaderHeight)
+			return Number.isFinite(parsedHeaderHeight) ? parsedHeaderHeight : 50
+		})()
+		: 0
+	const stickyContainer = categoryChipsScroller.value?.closest('.policy-workbench__category-nav-sticky') as HTMLElement | null
+	const stickyHeight = stickyContainer?.getBoundingClientRect().height ?? 0
+
+	return headerHeight + stickyHeight + CHIP_STICKY_GAP_PX
+}
+
+function observerTopOffsetPx() {
+	const activationLine = categoryActivationLinePx()
+	if (scrollContainer.value instanceof Window) {
+		return Math.max(0, Math.round(activationLine))
+	}
+
+	if (typeof (scrollContainer.value as HTMLElement).getBoundingClientRect !== 'function') {
+		return Math.max(0, Math.round(activationLine))
+	}
+
+	const containerRect = scrollContainer.value.getBoundingClientRect()
+	return Math.max(0, Math.round(activationLine - containerRect.top))
+}
+
+function categoryActivationLinePx() {
+	const stickyContainer = categoryChipsScroller.value?.closest('.policy-workbench__category-nav-sticky') as HTMLElement | null
+	if (stickyContainer) {
+		return stickyContainer.getBoundingClientRect().bottom + CHIP_STICKY_GAP_PX
+	}
+
+	return headerOffsetPx() + CHIP_STICKY_GAP_PX
+}
+
+function pickCategoryByGeometry(): RealPolicySettingCategory | null {
+	const sections = visibleCategorySections.value
+	if (sections.length === 0) {
+		return null
+	}
+
+	const activationLine = categoryActivationLinePx()
+	const sectionTops = new Map<RealPolicySettingCategory, number>()
+
+	for (const section of sections) {
+		const element = categorySectionElements.get(section.key)
+		if (element) {
+			sectionTops.set(section.key, element.getBoundingClientRect().top)
+		}
+	}
+
+	const currentIndex = activeCategory.value
+		? sections.findIndex((section) => section.key === activeCategory.value)
+		: -1
+
+	if (currentIndex < 0) {
+		let nextActive = sections[0].key
+		for (const section of sections) {
+			const top = sectionTops.get(section.key)
+			if (typeof top !== 'number') {
+				continue
+			}
+
+			if (top <= activationLine) {
+				nextActive = section.key
+				continue
+			}
+
+			break
+		}
+
+		return nextActive
+	}
+
+	let resolvedIndex = currentIndex
+
+	while (resolvedIndex < (sections.length - 1)) {
+		const nextSection = sections[resolvedIndex + 1]
+		const nextTop = sectionTops.get(nextSection.key)
+		if (typeof nextTop !== 'number' || nextTop > (activationLine - CATEGORY_SWITCH_HYSTERESIS_PX)) {
+			break
+		}
+
+		resolvedIndex += 1
+	}
+
+	while (resolvedIndex > 0) {
+		const currentSection = sections[resolvedIndex]
+		const currentTop = sectionTops.get(currentSection.key)
+		if (typeof currentTop !== 'number' || currentTop <= (activationLine + CATEGORY_SWITCH_HYSTERESIS_PX)) {
+			break
+		}
+
+		resolvedIndex -= 1
+	}
+
+	return sections[resolvedIndex]?.key ?? sections[0].key
+}
+
+function syncActiveCategory() {
+	if (Date.now() < navigationLockUntil.value) {
+		return
+	}
+	activeCategory.value = pickCategoryByGeometry()
+}
+
+function requestActiveCategorySync() {
+	if (activeCategorySyncRaf.value !== null) {
+		return
+	}
+
+	activeCategorySyncRaf.value = window.requestAnimationFrame(() => {
+		activeCategorySyncRaf.value = null
+		syncActiveCategory()
+	})
+}
+
+function reconnectSectionObserver() {
+	sectionObserver.value?.disconnect()
+	sectionObserver.value = null
+
+	const sections = visibleCategorySections.value
+	if (sections.length === 0) {
+		activeCategory.value = null
+		return
+	}
+
+	scrollContainer.value = getPrimaryScrollContainer()
+	const topOffset = observerTopOffsetPx()
+	const rootHeight = scrollContainer.value instanceof Window
+		? window.innerHeight
+		: scrollContainer.value.clientHeight
+	const bottomOffset = Math.round(rootHeight * (SECTION_OBSERVER_BOTTOM_MARGIN_PERCENT / 100))
+
+	sectionObserver.value = new IntersectionObserver(() => {
+		requestActiveCategorySync()
+	}, {
+		root: scrollContainer.value instanceof Window ? null : scrollContainer.value,
+		rootMargin: `-${topOffset}px 0px -${bottomOffset}px 0px`,
+		threshold: [0, 0.01, 0.1, 0.25, 0.5, 0.75, 1],
+	})
+
+	for (const section of sections) {
+		const element = categorySectionElements.get(section.key)
+		if (element) {
+			sectionObserver.value.observe(element)
+		}
+	}
+
+	syncActiveCategory()
+}
+
+function syncCategoryNavigationState() {
+	updateBackToTopVisibility()
+}
+
+function requestCategoryNavigationSync() {
+	if (scrollSyncRaf.value !== null) {
+		return
+	}
+
+	scrollSyncRaf.value = window.requestAnimationFrame(() => {
+		scrollSyncRaf.value = null
+		syncCategoryNavigationState()
+	})
+}
+
+function scrollElementToViewportOffset(target: HTMLElement) {
+	scrollContainer.value = getPrimaryScrollContainer()
+	const desiredViewportTop = categoryActivationLinePx() + CATEGORY_SCROLL_ALIGNMENT_GAP_PX
+	const targetRect = target.getBoundingClientRect()
+
+	if (scrollContainer.value instanceof Window) {
+		const nextTop = Math.max(0, Math.round(window.scrollY + targetRect.top - desiredViewportTop))
+		window.scrollTo({
+			top: nextTop,
+			behavior: 'smooth',
+		})
+		return
+	}
+
+	const nextTop = Math.max(0, Math.round(scrollContainer.value.scrollTop + targetRect.top - desiredViewportTop))
+	scrollContainer.value.scrollTo({
+		top: nextTop,
+		behavior: 'smooth',
+	})
+}
+
+function scrollToCategory(category: RealPolicySettingCategory, event?: MouseEvent) {
+	;(event?.currentTarget as HTMLElement | null)?.blur()
+	const target = categorySectionElements.get(category) ?? document.getElementById(`policy-category-${category}`)
+	if (!target) {
+		return
+	}
+
+	if (categoryCollapsedState.value[category]) {
+		categoryCollapsedState.value = {
+			...categoryCollapsedState.value,
+			[category]: false,
+		}
+		persistCategoryCollapsedState()
+		syncCatalogCollapsedFromSections()
+	}
+
+	activeCategory.value = category
+	navigationLockUntil.value = Date.now() + NAVIGATION_LOCK_MS
+	scrollElementToViewportOffset(target)
+}
+
+function setAllCategoriesCollapsed(collapsed: boolean) {
+	const nextState: Record<RealPolicySettingCategory, boolean> = {
+		...categoryCollapsedState.value,
+	}
+
+	for (const category of CATEGORY_ORDER) {
+		nextState[category] = collapsed
+	}
+
+	categoryCollapsedState.value = nextState
+}
+
+function normalizeCategoryCollapsedConfig(value: unknown): Record<RealPolicySettingCategory, boolean> {
+	const currentState = categoryCollapsedState.value
+	if (!value || typeof value !== 'object' || Array.isArray(value)) {
+		return {
+			...currentState,
+		}
+	}
+
+	const raw = value as Record<string, unknown>
+	const normalized: Record<RealPolicySettingCategory, boolean> = {
+		...currentState,
+	}
+
+	for (const category of CATEGORY_ORDER) {
+		normalized[category] = Boolean(raw[category])
+	}
+
+	return normalized
+}
+
+function persistCategoryCollapsedState() {
+	const payload = CATEGORY_ORDER.reduce<Record<string, boolean>>((accumulator, category) => {
+		accumulator[category] = Boolean(categoryCollapsedState.value[category])
+		return accumulator
+	}, {})
+
+	void userConfigStore.update(CATALOG_SECTION_COLLAPSED_CONFIG_KEY, payload)
+}
+
+function isCategoryExpanded(category: RealPolicySettingCategory) {
+	if (hasActiveFilter.value) {
+		return true
+	}
+
+	return !Boolean(categoryCollapsedState.value[category])
+}
+
+function syncCatalogCollapsedFromSections() {
+	const allCollapsed = CATEGORY_ORDER.every((category) => Boolean(categoryCollapsedState.value[category]))
+	if (isCatalogCollapsed.value === allCollapsed) {
+		return
+	}
+
+	isCatalogCollapsed.value = allCollapsed
+	void userConfigStore.update(CATALOG_COLLAPSED_CONFIG_KEY, allCollapsed)
+}
+
+function toggleCategoryCollapsed(category: RealPolicySettingCategory) {
+	const currentlyCollapsed = Boolean(categoryCollapsedState.value[category])
+	categoryCollapsedState.value = {
+		...categoryCollapsedState.value,
+		[category]: !currentlyCollapsed,
+	}
+	persistCategoryCollapsedState()
+
+	if (!currentlyCollapsed) {
+		if (activeCategory.value === category) {
+			const fallback = visibleCategorySections.value.find((section) => section.key !== category)
+			activeCategory.value = fallback?.key ?? null
+		}
+	} else {
+		activeCategory.value = category
+	}
+
+	syncCatalogCollapsedFromSections()
+	void nextTick(() => {
+		reconnectSectionObserver()
+		syncCategoryNavigationState()
+	})
+}
+
+function scrollToTop() {
+	const toolbar = catalogToolbarRef.value
+	if (toolbar) {
+		toolbar.scrollIntoView({
+			behavior: 'smooth',
+			block: 'start',
+			inline: 'nearest',
+		})
+		return
+	}
+
+	const targetContainer = getPrimaryScrollContainer()
+	if (targetContainer instanceof Window) {
+		window.scrollTo({
+			top: 0,
+			behavior: 'smooth',
+		})
+		return
+	}
+
+	targetContainer.scrollTo({
+		top: 0,
+		behavior: 'smooth',
+	})
+}
+
 function escapeRegExp(value: string) {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -1167,8 +1812,33 @@ function toggleCatalogLayout() {
 	void userConfigStore.update(CATALOG_LAYOUT_CONFIG_KEY, nextLayout === 'compact')
 }
 
+function toggleCatalogCollapsed() {
+	if (!hasVisibleCategorySections.value) {
+		return
+	}
+
+	isCatalogCollapsed.value = !isCatalogCollapsed.value
+	setAllCategoriesCollapsed(isCatalogCollapsed.value)
+	persistCategoryCollapsedState()
+	if (isCatalogCollapsed.value) {
+		activeCategory.value = null
+		showBackToTop.value = false
+	} else if (!activeCategory.value && visibleCategorySections.value.length > 0) {
+		activeCategory.value = visibleCategorySections.value[0]?.key ?? null
+	}
+
+	void userConfigStore.update(CATALOG_COLLAPSED_CONFIG_KEY, isCatalogCollapsed.value)
+	void nextTick(() => {
+		attachScrollListener()
+		reconnectSectionObserver()
+		syncCategoryNavigationState()
+	})
+}
+
 function updateViewportMode() {
 	isSmallViewport.value = window.innerWidth <= 960
+	reconnectSectionObserver()
+	requestCategoryNavigationSync()
 }
 
 async function handleSaveDraft() {
@@ -1366,15 +2036,27 @@ function requestCloseSetting() {
 onMounted(async () => {
 	updateViewportMode()
 	catalogLayout.value = userConfigStore.policy_workbench_catalog_compact_view ? 'compact' : 'cards'
+	isCatalogCollapsed.value = Boolean(userConfigStore.policy_workbench_catalog_collapsed)
+	categoryCollapsedState.value = normalizeCategoryCollapsedConfig(userConfigStore.policy_workbench_category_collapsed_state)
+	if (!userConfigStore.policy_workbench_category_collapsed_state) {
+		setAllCategoriesCollapsed(isCatalogCollapsed.value)
+	}
+	syncCatalogCollapsedFromSections()
+	isRtl.value = document.documentElement.dir.toLowerCase() === 'rtl'
 	window.addEventListener('resize', updateViewportMode, { passive: true })
 	await policiesStore.fetchEffectivePolicies()
 	if (state.viewMode === 'group-admin') {
 		void state.probeGroupAccess()
 	}
+	await nextTick()
+	attachScrollListener()
+	reconnectSectionObserver()
+	syncCategoryNavigationState()
 })
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', updateViewportMode)
+	removeScrollListener()
 	if (saveFeedbackTimeout.value !== null) {
 		window.clearTimeout(saveFeedbackTimeout.value)
 	}
@@ -1387,10 +2069,48 @@ onBeforeUnmount(() => {
 	openRuleActionsKey.value = null
 	showCreateScopeDialog.value = false
 	selectedCreateScope.value = null
+	if (scrollSyncRaf.value !== null) {
+		window.cancelAnimationFrame(scrollSyncRaf.value)
+		scrollSyncRaf.value = null
+	}
+	if (activeCategorySyncRaf.value !== null) {
+		window.cancelAnimationFrame(activeCategorySyncRaf.value)
+		activeCategorySyncRaf.value = null
+	}
+	sectionObserver.value?.disconnect()
+	sectionObserver.value = null
+	categorySectionElements.clear()
 })
+
+watch(activeCategory, () => {
+	const focused = document.activeElement as HTMLElement | null
+	if (focused?.classList.contains('policy-workbench__category-chip')) {
+		focused.blur()
+	}
+})
+
+watch(
+	() => [visibleCategorySections.value.map((section) => section.key).join(','), effectiveCatalogLayout.value, isCatalogCollapsed.value],
+	() => {
+		if (!activeCategory.value && visibleCategorySections.value.length > 0) {
+			activeCategory.value = visibleCategorySections.value[0]?.key ?? null
+		}
+
+		void nextTick(() => {
+			attachScrollListener()
+			reconnectSectionObserver()
+			syncCategoryNavigationState()
+		})
+	},
+)
 </script>
 
 <style scoped lang="scss">
+.policy-workbench__section {
+	width: calc(100% - var(--default-grid-baseline, 8px) * 14);
+	max-width: none;
+}
+
 .policy-workbench {
 	&__catalog-toolbar {
 		margin-top: 1.1rem;
@@ -1417,6 +2137,156 @@ onBeforeUnmount(() => {
 		}
 	}
 
+	&__category-nav-sticky {
+		position: sticky;
+		top: 0.5rem;
+		z-index: 4;
+		margin-top: 0.55rem;
+		margin-bottom: 1.15rem;
+		padding: 0.45rem 0;
+		background: color-mix(in srgb, var(--color-main-background) 92%, transparent);
+		backdrop-filter: blur(6px);
+		border-radius: 12px;
+		border: 1px solid color-mix(in srgb, var(--color-border) 58%, transparent);
+		box-shadow: 0 6px 18px color-mix(in srgb, var(--color-box-shadow) 10%, transparent);
+	}
+
+	&__category-nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem 0.6rem;
+		padding: 0.1rem;
+		align-items: center;
+
+		&--rtl {
+			direction: rtl;
+		}
+	}
+
+	&__category-chip {
+		appearance: none;
+		background: none;
+		border: none;
+		padding: 0;
+		margin: 0;
+		cursor: pointer;
+		border-radius: 999px;
+		position: relative;
+		outline: none;
+
+		&::after {
+			content: '';
+			position: absolute;
+			inset-inline: 0.9rem;
+			bottom: -0.1rem;
+			height: 2px;
+			border-radius: 2px;
+			background: color-mix(in srgb, var(--color-primary-element) 62%, transparent);
+			opacity: 0;
+			transform: scaleX(0.4);
+			transition: opacity 0.18s ease, transform 0.18s ease;
+		}
+
+		:deep(.nc-chip) {
+			background: color-mix(in srgb, var(--color-background-dark) 20%, var(--color-main-background));
+			border: 1px solid color-mix(in srgb, var(--color-border-maxcontrast) 22%, transparent);
+			transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+		}
+
+		&:hover :deep(.nc-chip),
+		&:focus-visible :deep(.nc-chip) {
+			background: color-mix(in srgb, var(--color-primary-element) 10%, var(--color-main-background));
+			border-color: color-mix(in srgb, var(--color-primary-element) 42%, var(--color-border-maxcontrast));
+			box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-element) 12%, transparent);
+		}
+
+		&:focus-visible {
+			outline: 2px solid color-mix(in srgb, var(--color-primary-element) 65%, white 35%);
+			outline-offset: 2px;
+		}
+
+		&:hover::after,
+		&:focus-visible::after {
+			opacity: 0.5;
+			transform: scaleX(1);
+		}
+
+		&--active :deep(.nc-chip) {
+			background: color-mix(in srgb, var(--color-primary-element) 12%, var(--color-main-background));
+			border-color: color-mix(in srgb, var(--color-primary-element) 46%, var(--color-border-maxcontrast));
+			box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary-element) 18%, transparent);
+		}
+
+		&--active::after {
+			opacity: 1;
+			transform: scaleX(1);
+		}
+	}
+
+	&__category-sections {
+		display: flex;
+		flex-direction: column;
+		gap: 2.4rem;
+	}
+
+	&__category-heading {
+		margin: 0;
+		display: block;
+	}
+
+	&__category-toggle {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		gap: 0.45rem;
+		background: none;
+		border: none;
+		padding: 0.2rem 0;
+		margin: 0;
+		cursor: pointer;
+		text-align: start;
+		color: inherit;
+
+		&:focus-visible {
+			outline: 2px solid color-mix(in srgb, var(--color-primary-element) 62%, white 38%);
+			outline-offset: 3px;
+			border-radius: 6px;
+		}
+	}
+
+	&__category-toggle-icon {
+		color: var(--color-text-maxcontrast);
+	}
+
+	&__category-content {
+		margin-top: 0.8rem;
+	}
+
+	&__category-section {
+		scroll-margin-top: 5rem;
+		padding-top: 1rem;
+		border-top: 1px solid color-mix(in srgb, var(--color-border-maxcontrast) 26%, transparent);
+
+		&:first-child {
+			padding-top: 0;
+			border-top: none;
+		}
+
+		&--active {
+			transition: background-color 0.2s ease;
+		}
+	}
+
+	&__category-title {
+		margin: 0;
+		font-size: 1.08rem;
+		font-weight: 800;
+		line-height: 1.3;
+		letter-spacing: 0.005em;
+		text-transform: none;
+		color: color-mix(in srgb, var(--color-main-text) 88%, var(--color-text-maxcontrast));
+	}
+
 	&__clear-filter-button {
 		&--hidden {
 			visibility: hidden;
@@ -1441,6 +2311,12 @@ onBeforeUnmount(() => {
 		}
 	}
 
+	&__catalog-collapse-button {
+		:deep(.button-vue__text) {
+			display: none;
+		}
+	}
+
 	&__catalog-meta {
 		margin: 0;
 		font-size: 0.86rem;
@@ -1457,8 +2333,9 @@ onBeforeUnmount(() => {
 	&__settings-grid {
 		margin-top: 1rem;
 		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
 		gap: 1rem;
+		align-items: stretch;
 	}
 
 	&__settings-list {
@@ -1499,16 +2376,18 @@ onBeforeUnmount(() => {
 		}
 
 		h3 {
-			overflow-wrap: anywhere;
+			overflow-wrap: break-word;
+			word-break: normal;
+			hyphens: auto;
 		}
 
 		p:not(.policy-workbench__origin-badge) {
 			margin-top: 0.25rem;
 			color: var(--color-text-maxcontrast);
-			display: -webkit-box;
-			-webkit-box-orient: vertical;
-			-webkit-line-clamp: 2;
-			overflow: hidden;
+			line-height: 1.4;
+			overflow-wrap: break-word;
+			word-break: normal;
+			hyphens: auto;
 		}
 	}
 
@@ -1516,16 +2395,18 @@ onBeforeUnmount(() => {
 		margin: 0;
 		display: inline-flex;
 		align-self: flex-start;
+		align-items: center;
 		padding: 0.2rem 0.55rem;
 		border-radius: 999px;
 		font-size: 0.76rem;
 		font-weight: 600;
+		line-height: 1.25;
 		color: var(--color-primary-element);
 		border: 1px solid color-mix(in srgb, var(--color-primary-element) 28%, var(--color-border-maxcontrast));
 		background: color-mix(in srgb, var(--color-primary-element) 16%, var(--color-main-background));
 
 		&--inline {
-			margin-top: 0.5rem;
+			margin-top: 0.45rem;
 		}
 	}
 
@@ -1542,7 +2423,7 @@ onBeforeUnmount(() => {
 	&__settings-row-stat {
 		min-width: 0;
 		white-space: normal;
-		overflow-wrap: anywhere;
+		overflow-wrap: break-word;
 
 		&--default {
 			display: flex;
@@ -1559,9 +2440,10 @@ onBeforeUnmount(() => {
 			span {
 				display: block;
 				min-width: 0;
-				white-space: nowrap;
-				overflow: hidden;
-				text-overflow: ellipsis;
+				white-space: normal;
+				overflow-wrap: break-word;
+				word-break: normal;
+				hyphens: auto;
 			}
 		}
 
@@ -1584,7 +2466,6 @@ onBeforeUnmount(() => {
 		justify-content: space-between;
 		gap: 1rem;
 		min-height: 240px;
-		height: 100%;
 		cursor: pointer;
 		transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
@@ -1613,8 +2494,9 @@ onBeforeUnmount(() => {
 		}
 
 		h3 {
-			overflow-wrap: anywhere;
-			word-break: break-word;
+			overflow-wrap: break-word;
+			word-break: normal;
+			hyphens: auto;
 		}
 	}
 
@@ -1640,11 +2522,11 @@ onBeforeUnmount(() => {
 	&__setting-description {
 		margin: 0;
 		color: var(--color-text-maxcontrast);
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
-		overflow: hidden;
+		line-height: 1.4;
 		min-height: calc(1.4em * 2);
+		overflow-wrap: break-word;
+		word-break: normal;
+		hyphens: auto;
 	}
 
 	&__setting-footer {
@@ -1680,10 +2562,6 @@ onBeforeUnmount(() => {
 	}
 
 	@media (max-width: 960px) {
-		&__settings-grid {
-			grid-template-columns: minmax(0, 1fr);
-		}
-
 		&__settings-row {
 			grid-template-columns: minmax(0, 1fr);
 		}
@@ -2989,6 +3867,18 @@ onBeforeUnmount(() => {
 			}
 		}
 
+		&__category-nav-sticky {
+			top: 0.3rem;
+		}
+
+		&__category-sections {
+			gap: 1.8rem;
+		}
+
+		&__category-title {
+			font-size: 1rem;
+		}
+
 		&__empty-state-actions {
 			width: 100%;
 
@@ -3175,5 +4065,31 @@ onBeforeUnmount(() => {
 			font-size: 0.8rem;
 		}
 	}
+}
+</style>
+
+<!-- Global styles for teleported elements (outside scoped component tree) -->
+<style>
+.policy-workbench__back-to-top {
+	position: fixed !important;
+	inset-inline-end: 1.25rem;
+	bottom: 1.25rem;
+	z-index: 9999;
+}
+
+.policy-workbench__back-to-top .button-vue {
+	border-radius: 999px;
+	box-shadow: 0 6px 20px color-mix(in srgb, var(--color-box-shadow) 22%, transparent);
+}
+
+.policy-workbench-back-to-top-enter-active,
+.policy-workbench-back-to-top-leave-active {
+	transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.policy-workbench-back-to-top-enter-from,
+.policy-workbench-back-to-top-leave-to {
+	opacity: 0;
+	transform: translateY(0.5rem);
 }
 </style>
