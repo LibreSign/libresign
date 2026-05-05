@@ -231,6 +231,47 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertTrue($config['policy_workbench_catalog_compact_view']);
 	}
 
+	public function testGetConfigIncludesPolicyWorkbenchCollapsedPreferences(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('preference-user');
+
+		$storedCollapsedState = [
+			'who-can-sign' => true,
+			'how-signing-works' => true,
+			'signer-experience' => false,
+			'what-gets-recorded' => false,
+			'time-and-limits' => true,
+			'trust-and-verification' => false,
+			'system-behavior' => true,
+		];
+
+		$this->userConfig
+			->expects($this->atLeastOnce())
+			->method('getValueString')
+			->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = '') use ($storedCollapsedState): string {
+				if ($uid !== 'preference-user' || $appId !== Application::APP_ID) {
+					return $default;
+				}
+
+				if ($key === 'policy_workbench_catalog_collapsed') {
+					return '1';
+				}
+
+				if ($key === 'policy_workbench_category_collapsed_state') {
+					return json_encode($storedCollapsedState);
+				}
+
+				return $default;
+			});
+
+		$config = $this->getService()->getConfig($user);
+
+		$this->assertArrayHasKey('policy_workbench_catalog_collapsed', $config);
+		$this->assertTrue($config['policy_workbench_catalog_collapsed']);
+		$this->assertArrayHasKey('policy_workbench_category_collapsed_state', $config);
+		$this->assertSame($storedCollapsedState, $config['policy_workbench_category_collapsed_state']);
+	}
+
 	#[DataProvider('provideValidateCertificateDataCases')]
 	public function testValidateCertificateDataUsingDataProvider($arguments, $expectedErrorMessage):void {
 		if (is_callable($arguments)) {
