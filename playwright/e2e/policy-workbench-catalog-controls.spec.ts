@@ -422,8 +422,10 @@ test('active category chip tracks the section with visible cards while scrolling
 
 	await expect.poll(async () => {
 		return page.evaluate(() => {
-			const topCutoff = 140
-			const bottomCutoff = window.innerHeight
+			const stickyNav = document.querySelector('.policy-workbench__category-nav-sticky') as HTMLElement | null
+			const appContent = document.querySelector('#app-content') as HTMLElement | null
+			const topCutoff = (stickyNav?.getBoundingClientRect().bottom ?? 140) + 12
+			const bottomCutoff = appContent?.getBoundingClientRect().bottom ?? window.innerHeight
 
 			const sectionWithVisibleCard = Array.from(document.querySelectorAll('.policy-workbench__category-section')).find((section) => {
 				const cards = Array.from(section.querySelectorAll<HTMLElement>('.policy-workbench__setting-tile, .policy-workbench__settings-row'))
@@ -439,14 +441,17 @@ test('active category chip tracks the section with visible cards while scrolling
 			return {
 				expectedSectionTitle,
 				activeChipLabel,
+				hasFullyVisibleCard: Boolean(expectedSectionTitle),
 				isSynced: Boolean(expectedSectionTitle && activeChipLabel && expectedSectionTitle === activeChipLabel),
 			}
 		})
-	}, { timeout: 10000 }).toMatchObject({ isSynced: true })
+	}, { timeout: 10000 }).toMatchObject({ hasFullyVisibleCard: true, isSynced: true })
 
 	const syncResult = await page.evaluate(() => {
-		const topCutoff = 140
-		const bottomCutoff = window.innerHeight
+		const stickyNav = document.querySelector('.policy-workbench__category-nav-sticky') as HTMLElement | null
+		const appContent = document.querySelector('#app-content') as HTMLElement | null
+		const topCutoff = (stickyNav?.getBoundingClientRect().bottom ?? 140) + 12
+		const bottomCutoff = appContent?.getBoundingClientRect().bottom ?? window.innerHeight
 
 		const sectionWithVisibleCard = Array.from(document.querySelectorAll('.policy-workbench__category-section')).find((section) => {
 			const cards = Array.from(section.querySelectorAll<HTMLElement>('.policy-workbench__setting-tile, .policy-workbench__settings-row'))
