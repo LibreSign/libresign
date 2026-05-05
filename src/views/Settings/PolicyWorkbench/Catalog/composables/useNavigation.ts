@@ -13,6 +13,41 @@ const CATEGORY_SCROLL_ALIGNMENT_GAP_PX = 12
 const SECTION_OBSERVER_BOTTOM_MARGIN_PERCENT = 45
 const NAVIGATION_LOCK_MS = 900
 
+type RectBounds = {
+	top: number
+	bottom: number
+}
+
+type CategoryCardVisibility = {
+	key: RealPolicySettingCategory
+	cardRects: RectBounds[]
+}
+
+export function pickCategoryWithFullyVisibleCard(
+	categories: CategoryCardVisibility[],
+	viewportTop: number,
+	viewportBottom: number,
+): RealPolicySettingCategory | null {
+	let selectedCategory: RealPolicySettingCategory | null = null
+	let selectedTop = Number.POSITIVE_INFINITY
+
+	for (const category of categories) {
+		for (const rect of category.cardRects) {
+			const isFullyVisible = rect.top >= viewportTop && rect.bottom <= viewportBottom && rect.bottom > rect.top
+			if (!isFullyVisible) {
+				continue
+			}
+
+			if (rect.top < selectedTop) {
+				selectedTop = rect.top
+				selectedCategory = category.key
+			}
+		}
+	}
+
+	return selectedCategory
+}
+
 export function useNavigation(
 	visibleCategorySections: { value: Array<{ key: RealPolicySettingCategory }> },
 ) {
@@ -115,7 +150,60 @@ export function useNavigation(
 		return Math.max(0, Math.round(activationLine - containerRect.top))
 	}
 
+	function categoryDetectionViewportBounds(): RectBounds {
+		const top = categoryActivationLinePx() + CATEGORY_SCROLL_ALIGNMENT_GAP_PX
+		if (scrollContainer.value instanceof Window) {
+			return { top, bottom: window.innerHeight }
+		}
+
+		if (typeof scrollContainer.value.getBoundingClientRect === 'function') {
+			return {
+				top,
+				bottom: scrollContainer.value.getBoundingClientRect().bottom,
+			}
+		}
+
+		return { top, bottom: top + 1 }
+	}
+
+	function collectCategoryCardRects(): CategoryCardVisibility[] {
+		const categories: CategoryCardVisibility[] = []
+
+		for (const section of visibleCategorySectionsValue.value) {
+			const sectionElement = categorySectionElements.get(section.key)
+			if (!sectionElement) {
+				continue
+			}
+
+			const cards = sectionElement.querySelectorAll<HTMLElement>('.policy-workbench__setting-tile, .policy-workbench__settings-row')
+			const cardRects = Array.from(cards).map((card) => {
+				const rect = card.getBoundingClientRect()
+				return {
+					top: rect.top,
+					bottom: rect.bottom,
+				}
+			})
+
+			categories.push({
+				key: section.key,
+				cardRects,
+			})
+		}
+
+		return categories
+	}
+
 	function pickCategoryByGeometry(): RealPolicySettingCategory {
+		const viewport = categoryDetectionViewportBounds()
+		const byFullyVisibleCard = pickCategoryWithFullyVisibleCard(
+			collectCategoryCardRects(),
+			viewport.top,
+			viewport.bottom,
+		)
+		if (byFullyVisibleCard) {
+			return byFullyVisibleCard
+		}
+
 		const activationLine = categoryActivationLinePx()
 		let lastPassedIndex = -1
 
