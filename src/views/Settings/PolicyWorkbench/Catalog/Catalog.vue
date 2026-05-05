@@ -98,18 +98,18 @@
 							type="button"
 							class="policy-workbench__category-toggle"
 							:aria-controls="`policy-category-content-${category.key}`"
-							:aria-expanded="String(catalogState.isCategoryExpanded(category.key))"
+							:aria-expanded="String(isCategoryExpandedForRender(category.key))"
 							@click="catalogState.toggleCategoryCollapsed(category.key)">
 							<NcIconSvgWrapper
 								class="policy-workbench__category-toggle-icon"
-								:path="catalogState.isCategoryExpanded(category.key) ? mdiChevronUp : mdiChevronDown"
+								:path="isCategoryExpandedForRender(category.key) ? mdiChevronUp : mdiChevronDown"
 								:size="18" />
 							<span class="policy-workbench__category-title">{{ category.label }}</span>
 						</button>
 					</h3>
 					<div
 						:id="`policy-category-content-${category.key}`"
-						v-show="catalogState.isCategoryExpanded(category.key)"
+						v-show="isCategoryExpandedForRender(category.key)"
 						class="policy-workbench__category-content">
 						<div class="policy-workbench__settings-grid">
 						<article
@@ -175,18 +175,18 @@
 							type="button"
 							class="policy-workbench__category-toggle"
 							:aria-controls="`policy-category-content-${category.key}`"
-							:aria-expanded="String(catalogState.isCategoryExpanded(category.key))"
+							:aria-expanded="String(isCategoryExpandedForRender(category.key))"
 							@click="catalogState.toggleCategoryCollapsed(category.key)">
 							<NcIconSvgWrapper
 								class="policy-workbench__category-toggle-icon"
-								:path="catalogState.isCategoryExpanded(category.key) ? mdiChevronUp : mdiChevronDown"
+								:path="isCategoryExpandedForRender(category.key) ? mdiChevronUp : mdiChevronDown"
 								:size="18" />
 							<span class="policy-workbench__category-title">{{ category.label }}</span>
 						</button>
 					</h3>
 					<div
 						:id="`policy-category-content-${category.key}`"
-						v-show="catalogState.isCategoryExpanded(category.key)"
+						v-show="isCategoryExpandedForRender(category.key)"
 						class="policy-workbench__category-content">
 						<div class="policy-workbench__settings-list" role="list">
 						<article
@@ -1063,8 +1063,17 @@ function toggleCatalogCollapsed() {
 	catalogState.toggleCatalogCollapsed()
 }
 
+function isCategoryExpandedForRender(category: RealPolicySettingCategory): boolean {
+	if (hasActiveFilter.value) {
+		// Search results must be visible even when the persisted state is collapsed.
+		return true
+	}
+
+	return catalogState.isCategoryExpanded(category)
+}
+
 function handleCategoryChipNavigation(category: RealPolicySettingCategory, event?: MouseEvent) {
-	if (!catalogState.isCategoryExpanded(category)) {
+	if (!hasActiveFilter.value && !catalogState.isCategoryExpanded(category)) {
 		catalogState.toggleCategoryCollapsed(category)
 	}
 

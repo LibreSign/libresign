@@ -252,3 +252,50 @@ test('catalog collapse and per-category expanded state persist after reload', as
 
 	expect(errorCollector.all(), 'No JavaScript errors should happen while persisting catalog state').toEqual([])
 })
+
+test('search temporarily expands result sections without persisting section state', async ({ page }) => {
+	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+
+	await login(page.request, adminUser, adminPassword)
+	await setUserLanguage(page.request, adminUser, 'en')
+
+	await page.setViewportSize({ width: 1365, height: 950 })
+
+	const errorCollector = collectJavascriptErrors(page)
+
+	await page.goto('./settings/admin/libresign')
+
+	const searchField = page.getByRole('textbox', { name: /Search settings/i }).first()
+	await expect(searchField).toBeVisible({ timeout: 20000 })
+
+	const collapseButton = await getCatalogCollapseButton(page)
+	if (/Collapse settings categories/i.test((await collapseButton.getAttribute('aria-label')) ?? '')) {
+		await Promise.all([
+			waitForUserConfigSave(page, 'policy_workbench_catalog_collapsed'),
+			collapseButton.click(),
+		])
+	}
+	await expect(collapseButton).toHaveAttribute('aria-label', /Expand settings categories/i)
+
+	const collapsedStateSaves: string[] = []
+	page.on('request', (request) => {
+		if (request.method() === 'PUT' && request.url().includes('/apps/libresign/api/v1/account/config/policy_workbench_category_collapsed_state')) {
+			collapsedStateSaves.push(request.url())
+		}
+	})
+
+	await searchField.fill('signing')
+
+	const signingWorksToggle = page.locator('#policy-category-how-signing-works .policy-workbench__category-toggle').first()
+	await expect(signingWorksToggle).toBeVisible({ timeout: 10000 })
+	await expect(signingWorksToggle).toHaveAttribute('aria-expanded', 'true')
+
+	await page.waitForTimeout(400)
+	expect(collapsedStateSaves, 'Search-driven expansion must not persist section collapsed state').toHaveLength(0)
+
+	await searchField.fill('')
+	await expect(signingWorksToggle).toHaveAttribute('aria-expanded', 'false')
+
+	expect(errorCollector.all(), 'No JavaScript errors should happen while showing filtered results').toEqual([])
+})
