@@ -6,7 +6,7 @@
 import { mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useNavigation } from '../../../../views/Settings/PolicyWorkbench/Catalog/composables/useNavigation'
+import { pickCategoryWithFullyVisibleCard, useNavigation } from '../../../../views/Settings/PolicyWorkbench/Catalog/composables/useNavigation'
 
 function createRect(top: number): DOMRect {
 	return {
@@ -23,6 +23,47 @@ function createRect(top: number): DOMRect {
 }
 
 describe('useNavigation', () => {
+	it('prefers the section with a fully visible card over one with only partial cards', () => {
+		const selected = pickCategoryWithFullyVisibleCard([
+			{
+				key: 'signer-experience',
+				cardRects: [{ top: 80, bottom: 150 }],
+			},
+			{
+				key: 'what-gets-recorded',
+				cardRects: [{ top: 170, bottom: 240 }],
+			},
+		], 160, 320)
+
+		expect(selected).toBe('what-gets-recorded')
+	})
+
+	it('accounts for sticky chips area by requiring card top below viewport top cutoff', () => {
+		const selected = pickCategoryWithFullyVisibleCard([
+			{
+				key: 'signer-experience',
+				cardRects: [{ top: 110, bottom: 180 }],
+			},
+			{
+				key: 'what-gets-recorded',
+				cardRects: [{ top: 142, bottom: 212 }],
+			},
+		], 140, 320)
+
+		expect(selected).toBe('what-gets-recorded')
+	})
+
+	it('returns null when no card is fully visible', () => {
+		const selected = pickCategoryWithFullyVisibleCard([
+			{
+				key: 'what-gets-recorded',
+				cardRects: [{ top: 130, bottom: 230 }],
+			},
+		], 150, 220)
+
+		expect(selected).toBeNull()
+	})
+
 	function createHarness() {
 		const Harness = defineComponent({
 			setup(_, { expose }) {
