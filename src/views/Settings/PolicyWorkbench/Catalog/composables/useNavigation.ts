@@ -268,6 +268,21 @@ export function useNavigation(
 		scrollElementToViewportOffset(target)
 	}
 
+	function scrollToTop() {
+		scrollContainer.value = getPrimaryScrollContainer()
+		if (scrollContainer.value instanceof Window) {
+			window.scrollTo({
+				top: 0,
+				behavior: 'smooth',
+			})
+		} else {
+			scrollContainer.value.scrollTo({
+				top: 0,
+				behavior: 'smooth',
+			})
+		}
+	}
+
 	function removeScrollListener() {
 		if (!scrollListenerTarget.value) {
 			return
@@ -313,9 +328,11 @@ export function useNavigation(
 		// Methods
 		setCategorySectionRef,
 		scrollToCategory,
+		scrollToTop,
 		reconnectSectionObserver,
 		attachScrollListener,
 		removeScrollListener,
 		updateBackToTopVisibility,
+		requestCategoryNavigationSync,
 	}
 }

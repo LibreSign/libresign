@@ -10,13 +10,13 @@
 		:description="t('libresign', 'Configure how signing works.')">
 
 		<div class="policy-workbench__catalog-toolbar">
-			<div ref="catalogToolbarRef" class="policy-workbench__catalog-search">
+			<div ref="navigation.catalogToolbarRef" class="policy-workbench__catalog-search">
 				<NcTextField
-					:model-value="settingsFilter"
+					:model-value="catalogState.settingsFilter.value"
 					:label="t('libresign', 'Search settings')"
 					:placeholder="t('libresign', 'Search by setting name, summary, description, or context')"
-					@keydown.esc.prevent="clearSettingsFilter"
-					@update:modelValue="onSettingsFilterChange" />
+					@keydown.esc.prevent="catalogState.clearSettingsFilter"
+					@update:modelValue="catalogState.onSettingsFilterChange" />
 				<div class="policy-workbench__catalog-foot">
 					<NcButton
 						variant="tertiary"
@@ -25,7 +25,7 @@
 						:aria-label="t('libresign', 'Clear settings filter')"
 						:disabled="!hasActiveFilter"
 						:tabindex="hasActiveFilter ? undefined : -1"
-						@click="clearSettingsFilter">
+						@click="catalogState.clearSettingsFilter">
 						{{ t('libresign', 'Clear filter') }}
 					</NcButton>
 				</div>
@@ -51,7 +51,7 @@
 					class="policy-workbench__catalog-collapse-button"
 					@click="toggleCatalogCollapsed">
 					<template #icon>
-						<NcIconSvgWrapper v-if="isCatalogCollapsed" :path="mdiChevronDown" />
+						<NcIconSvgWrapper v-if="catalogState.isCatalogCollapsed.value" :path="mdiChevronDown" />
 						<NcIconSvgWrapper v-else :path="mdiChevronUp" />
 					</template>
 				</NcButton>
@@ -62,7 +62,7 @@
 			v-if="showCategoryNavigation"
 			class="policy-workbench__category-nav-sticky">
 			<div
-				ref="categoryChipsScroller"
+				ref="navigation.categoryChipsScroller"
 				class="policy-workbench__category-nav"
 				:class="{ 'policy-workbench__category-nav--rtl': isRtl }"
 				role="navigation"
@@ -72,12 +72,12 @@
 					:key="category.key"
 					type="button"
 					class="policy-workbench__category-chip"
-					:class="{ 'policy-workbench__category-chip--active': activeCategory === category.key }"
-					:aria-current="activeCategory === category.key ? 'location' : undefined"
+					:class="{ 'policy-workbench__category-chip--active': navigation.activeCategory.value === category.key }"
+					:aria-current="navigation.activeCategory.value === category.key ? 'location' : undefined"
 					:aria-label="t('libresign', 'Go to {category}', { category: category.label })"
-					@click="scrollToCategory(category.key, $event)"
-					@keydown.enter.prevent="scrollToCategory(category.key)"
-					@keydown.space.prevent="scrollToCategory(category.key)">
+					@click="navigation.scrollToCategory(category.key, $event)"
+					@keydown.enter.prevent="navigation.scrollToCategory(category.key)"
+					@keydown.space.prevent="navigation.scrollToCategory(category.key)">
 					<NcChip :text="category.label" no-close />
 				</button>
 			</div>
@@ -89,27 +89,27 @@
 					v-for="category in visibleCategorySections"
 					:id="category.id"
 					:key="`cards-${category.key}`"
-					:ref="setCategorySectionRef(category.key)"
+					:ref="navigation.setCategorySectionRef(category.key)"
 					class="policy-workbench__category-section"
-					:class="{ 'policy-workbench__category-section--active': activeCategory === category.key }"
+					:class="{ 'policy-workbench__category-section--active': navigation.activeCategory.value === category.key }"
 					:data-category-key="category.key">
 					<h3 class="policy-workbench__category-heading">
 						<button
 							type="button"
 							class="policy-workbench__category-toggle"
 							:aria-controls="`policy-category-content-${category.key}`"
-							:aria-expanded="String(isCategoryExpanded(category.key))"
-							@click="toggleCategoryCollapsed(category.key)">
+							:aria-expanded="String(catalogState.isCategoryExpanded(category.key))"
+							@click="catalogState.toggleCategoryCollapsed(category.key)">
 							<NcIconSvgWrapper
 								class="policy-workbench__category-toggle-icon"
-								:path="isCategoryExpanded(category.key) ? mdiChevronUp : mdiChevronDown"
+								:path="catalogState.isCategoryExpanded(category.key) ? mdiChevronUp : mdiChevronDown"
 								:size="18" />
 							<span class="policy-workbench__category-title">{{ category.label }}</span>
 						</button>
 					</h3>
 					<div
 						:id="`policy-category-content-${category.key}`"
-						v-show="isCategoryExpanded(category.key)"
+						v-show="catalogState.isCategoryExpanded(category.key)"
 						class="policy-workbench__category-content">
 						<div class="policy-workbench__settings-grid">
 						<article
@@ -166,27 +166,27 @@
 					v-for="category in visibleCategorySections"
 					:id="category.id"
 					:key="`list-${category.key}`"
-					:ref="setCategorySectionRef(category.key)"
+					:ref="navigation.setCategorySectionRef(category.key)"
 					class="policy-workbench__category-section"
-					:class="{ 'policy-workbench__category-section--active': activeCategory === category.key }"
+					:class="{ 'policy-workbench__category-section--active': navigation.activeCategory.value === category.key }"
 					:data-category-key="category.key">
 					<h3 class="policy-workbench__category-heading">
 						<button
 							type="button"
 							class="policy-workbench__category-toggle"
 							:aria-controls="`policy-category-content-${category.key}`"
-							:aria-expanded="String(isCategoryExpanded(category.key))"
-							@click="toggleCategoryCollapsed(category.key)">
+							:aria-expanded="String(catalogState.isCategoryExpanded(category.key))"
+							@click="catalogState.toggleCategoryCollapsed(category.key)">
 							<NcIconSvgWrapper
 								class="policy-workbench__category-toggle-icon"
-								:path="isCategoryExpanded(category.key) ? mdiChevronUp : mdiChevronDown"
+								:path="catalogState.isCategoryExpanded(category.key) ? mdiChevronUp : mdiChevronDown"
 								:size="18" />
 							<span class="policy-workbench__category-title">{{ category.label }}</span>
 						</button>
 					</h3>
 					<div
 						:id="`policy-category-content-${category.key}`"
-						v-show="isCategoryExpanded(category.key)"
+						v-show="catalogState.isCategoryExpanded(category.key)"
 						class="policy-workbench__category-content">
 						<div class="policy-workbench__settings-list" role="list">
 						<article
@@ -233,10 +233,10 @@
 			<div class="policy-workbench__empty-state">
 				<p>{{ t('libresign', 'No settings match this search. Try fewer keywords or clear the filter.') }}</p>
 				<div class="policy-workbench__empty-state-actions">
-					<NcButton variant="secondary" :aria-label="t('libresign', 'Clear settings filter')" :disabled="!hasActiveFilter" @click="clearSettingsFilter">
+					<NcButton variant="secondary" :aria-label="t('libresign', 'Clear settings filter')" :disabled="!hasActiveFilter" @click="catalogState.clearSettingsFilter">
 						{{ t('libresign', 'Clear filter') }}
 					</NcButton>
-					<NcButton variant="tertiary" :aria-label="t('libresign', 'Show all settings')" @click="clearSettingsFilter">
+					<NcButton variant="tertiary" :aria-label="t('libresign', 'Show all settings')" @click="catalogState.clearSettingsFilter">
 						{{ t('libresign', 'Show all settings') }}
 					</NcButton>
 				</div>
@@ -246,11 +246,11 @@
 		<Teleport to="body">
 			<Transition name="policy-workbench-back-to-top">
 				<NcButton
-					v-if="showBackToTop"
+					v-if="navigation.showBackToTop.value"
 					class="policy-workbench__back-to-top"
 					variant="secondary"
 					:aria-label="t('libresign', 'Back to top')"
-					@click="scrollToTop">
+					@click="navigation.scrollToTop()">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiArrowUp" :size="18" />
 					</template>
@@ -550,7 +550,9 @@ import { useUserConfigStore } from '../../../store/userconfig.js'
 import { realDefinitions } from './settings/realDefinitions'
 import type { RealPolicySettingCategory } from './settings/realTypes'
 import PolicyRuleEditorPanel from './PolicyRuleEditorPanel.vue'
-import { createRealPolicyWorkbenchState } from './useRealPolicyWorkbench'
+import { createRealPolicyWorkbenchState } from './composables/useRealPolicyWorkbench'
+import { useCatalogState } from './composables/useCatalogState'
+import { useNavigation } from './composables/useNavigation'
 
 defineOptions({
 	name: 'RealPolicyWorkbench',
@@ -559,9 +561,7 @@ defineOptions({
 const policiesStore = usePoliciesStore()
 const userConfigStore = useUserConfigStore()
 const state = reactive(createRealPolicyWorkbenchState())
-const settingsFilter = ref('')
 const isSmallViewport = ref(false)
-const catalogLayout = ref<'cards' | 'compact'>('cards')
 const saveStatus = ref<'idle' | 'saving' | 'saved'>('idle')
 const saveFeedbackTimeout = ref<number | null>(null)
 const pendingRemoval = ref<{ ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string, help: string } | null>(null)
@@ -579,29 +579,45 @@ const crudSearch = ref('')
 const crudScopeFilter = ref<'all' | 'system' | 'group' | 'user'>('all')
 const crudPage = ref(1)
 const scopeFilterOpen = ref(false)
-const isCatalogCollapsed = ref(false)
-const categoryCollapsedState = ref<Record<RealPolicySettingCategory, boolean>>({
-	'who-can-sign': false,
-	'how-signing-works': false,
-	'signer-experience': false,
-	'what-gets-recorded': false,
-	'time-and-limits': false,
-	'trust-and-verification': false,
-	'system-behavior': false,
-})
-const CRUD_PAGE_SIZE = 20
+const isRtl = ref(false)
 
+// Initialize catalog state composable
+const catalogState = useCatalogState()
+
+// Create computed ref for visible category sections to pass to useNavigation
+const visibleCategorySections = computed<Array<{
+	key: RealPolicySettingCategory,
+	id: string,
+	label: string,
+	summaries: typeof filteredSettingSummaries.value,
+}>>(() => {
+	const grouped = new Map<RealPolicySettingCategory, typeof filteredSettingSummaries.value>()
+	for (const category of CATEGORY_ORDER) {
+		grouped.set(category, [])
+	}
+
+	for (const summary of filteredSettingSummaries.value) {
+		const category = categoryBySettingKey.value[summary.key] ?? 'system-behavior'
+		grouped.get(category)?.push(summary)
+	}
+
+	return CATEGORY_ORDER
+		.map((category) => ({
+			key: category,
+			id: `policy-category-${category}`,
+			label: categoryLabel(category),
+			summaries: grouped.get(category) ?? [],
+		}))
+		.filter((category) => category.summaries.length > 0)
+})
+
+// Initialize navigation composable with ref wrapper
+const navigation = useNavigation({ value: visibleCategorySections.value as any })
+
+const CRUD_PAGE_SIZE = 20
 const DRAG_OPEN_THRESHOLD_PX = 6
 const SELECTION_GUARD_WINDOW_MS = 400
-const CATALOG_LAYOUT_CONFIG_KEY = 'policy_workbench_catalog_compact_view'
-const CATALOG_COLLAPSED_CONFIG_KEY = 'policy_workbench_catalog_collapsed'
-const CATALOG_SECTION_COLLAPSED_CONFIG_KEY = 'policy_workbench_category_collapsed_state'
 const REMOVAL_FEEDBACK_DURATION_MS = 6000
-const BACK_TO_TOP_VISIBLE_AT_PX = 420
-const CHIP_STICKY_GAP_PX = 8
-const CATEGORY_SWITCH_HYSTERESIS_PX = 28
-const CATEGORY_SCROLL_ALIGNMENT_GAP_PX = 12
-const SECTION_OBSERVER_BOTTOM_MARGIN_PERCENT = 45
 
 const CATEGORY_ORDER: RealPolicySettingCategory[] = [
 	'who-can-sign',
@@ -612,20 +628,6 @@ const CATEGORY_ORDER: RealPolicySettingCategory[] = [
 	'trust-and-verification',
 	'system-behavior',
 ]
-
-const categoryChipsScroller = ref<HTMLElement | null>(null)
-const activeCategory = ref<RealPolicySettingCategory | null>(null)
-const showBackToTop = ref(false)
-const isRtl = ref(false)
-const categorySectionElements = new Map<RealPolicySettingCategory, HTMLElement>()
-const scrollSyncRaf = ref<number | null>(null)
-const activeCategorySyncRaf = ref<number | null>(null)
-const navigationLockUntil = ref<number>(0)
-const NAVIGATION_LOCK_MS = 900
-const sectionObserver = ref<IntersectionObserver | null>(null)
-const scrollContainer = ref<Window | HTMLElement>(window)
-const scrollListenerTarget = ref<Window | HTMLElement | null>(null)
-const catalogToolbarRef = ref<HTMLElement | null>(null)
 
 const categoryLabel = (category: RealPolicySettingCategory): string => {
 	switch (category) {
@@ -658,7 +660,7 @@ const categoryBySettingKey = computed<Record<string, RealPolicySettingCategory>>
 })
 
 const filteredSettingSummaries = computed(() => {
-	const normalized = settingsFilter.value.trim().toLowerCase()
+	const normalized = catalogState.settingsFilter.value.trim().toLowerCase()
 	if (!normalized) {
 		return state.visibleSettingSummaries
 	}
@@ -706,8 +708,8 @@ const activeEditorProps = computed<Record<string, unknown>>(() => {
 
 	return state.activeDefinition.resolveEditorProps?.(activePolicy, baseEditorProps) ?? baseEditorProps
 })
-const effectiveCatalogLayout = computed(() => isSmallViewport.value ? 'cards' : catalogLayout.value)
-const hasActiveFilter = computed(() => settingsFilter.value.trim().length > 0)
+const effectiveCatalogLayout = computed(() => isSmallViewport.value ? 'cards' : catalogState.catalogLayout.value)
+const hasActiveFilter = computed(() => catalogState.settingsFilter.value.trim().length > 0)
 const hasVisibleCategorySections = computed(() => visibleCategorySections.value.length > 0)
 const showCategoryNavigation = computed(() => hasVisibleCategorySections.value)
 const catalogViewButtonLabel = computed(() => {
@@ -716,7 +718,7 @@ const catalogViewButtonLabel = computed(() => {
 		: t('libresign', 'Switch to card view')
 })
 const catalogCollapseButtonLabel = computed(() => {
-	return isCatalogCollapsed.value
+	return catalogState.isCatalogCollapsed.value
 		? t('libresign', 'Expand settings categories')
 		: t('libresign', 'Collapse settings categories')
 })
@@ -1243,11 +1245,10 @@ function requestBackToCreateScope() {
 	selectedCreateScope.value = null
 }
 
-function onSettingsFilterChange(value: string | number) {
-	settingsFilter.value = String(value ?? '')
+function onCrudSearchChange(value: string | number) {
+	crudSearch.value = String(value ?? '')
+	crudPage.value = 1
 }
-
-function hasActiveTextSelection() {
 	const selection = window.getSelection()
 	return !!selection && selection.type === 'Range' && selection.toString().trim().length > 0
 }
@@ -1338,428 +1339,14 @@ function openSettingFromKeyboard(key: string) {
 	state.openSetting(key as never)
 }
 
-function clearSettingsFilter() {
-	settingsFilter.value = ''
+function onCrudSearchChange(value: string | number) {
+	crudSearch.value = String(value ?? '')
+	crudPage.value = 1
 }
 
-function setCategorySectionRef(category: RealPolicySettingCategory) {
-	return (element: Element | null) => {
-		if (element instanceof HTMLElement) {
-			categorySectionElements.set(category, element)
-			return
-		}
-
-		categorySectionElements.delete(category)
-	}
-}
-
-function isScrollableContainer(element: HTMLElement): boolean {
-	const styles = window.getComputedStyle(element)
-	const overflowY = styles.overflowY
-	if (overflowY !== 'auto' && overflowY !== 'scroll') {
-		return false
-	}
-
-	return element.scrollHeight > element.clientHeight
-}
-
-function resolveScrollContainer(): Window | HTMLElement {
-	const section = categorySectionElements.get(visibleCategorySections.value[0]?.key ?? 'who-can-sign')
-	const start = section ?? categoryChipsScroller.value
-	if (!start) {
-		return window
-	}
-
-	let current: HTMLElement | null = start.parentElement
-	while (current) {
-		if (isScrollableContainer(current)) {
-			return current
-		}
-
-		current = current.parentElement
-	}
-
-	return window
-}
-
-function getPrimaryScrollContainer(): Window | HTMLElement {
-	const appContent = document.querySelector('#app-content')
-	if (appContent instanceof HTMLElement && appContent.scrollHeight > (appContent.clientHeight + 1)) {
-		return appContent
-	}
-
-	return resolveScrollContainer()
-}
-
-function removeScrollListener() {
-	if (!scrollListenerTarget.value) {
-		return
-	}
-
-	scrollListenerTarget.value.removeEventListener('scroll', requestCategoryNavigationSync)
-	scrollListenerTarget.value = null
-}
-
-function attachScrollListener() {
-	removeScrollListener()
-	scrollContainer.value = getPrimaryScrollContainer()
-	scrollListenerTarget.value = scrollContainer.value
-	scrollListenerTarget.value.addEventListener('scroll', requestCategoryNavigationSync, { passive: true })
-}
-
-function updateBackToTopVisibility() {
-	scrollContainer.value = getPrimaryScrollContainer()
-
-	const offset = scrollContainer.value instanceof Window
-		? window.scrollY
-		: scrollContainer.value.scrollTop
-
-	if (offset <= BACK_TO_TOP_VISIBLE_AT_PX) {
-		showBackToTop.value = false
-		return
-	}
-
-	const toolbar = catalogToolbarRef.value
-	if (!toolbar) {
-		showBackToTop.value = offset > BACK_TO_TOP_VISIBLE_AT_PX
-		return
-	}
-
-	if (scrollContainer.value instanceof Window) {
-		const toolbarRect = toolbar.getBoundingClientRect()
-		const thresholdTop = headerOffsetPx() + 4
-		showBackToTop.value = toolbarRect.bottom <= thresholdTop
-		return
-	}
-
-	const toolbarRect = toolbar.getBoundingClientRect()
-	if (typeof (scrollContainer.value as HTMLElement).getBoundingClientRect !== 'function') {
-		showBackToTop.value = offset > BACK_TO_TOP_VISIBLE_AT_PX
-		return
-	}
-	const containerRect = scrollContainer.value.getBoundingClientRect()
-	const toolbarBottomInContainer = toolbarRect.bottom - containerRect.top
-	showBackToTop.value = toolbarBottomInContainer <= 4
-}
-function headerOffsetPx() {
-	const headerHeight = scrollContainer.value instanceof Window
-		? (() => {
-			const rootStyles = window.getComputedStyle(document.documentElement)
-			const rawHeaderHeight = rootStyles.getPropertyValue('--header-height').trim()
-			const parsedHeaderHeight = Number.parseFloat(rawHeaderHeight)
-			return Number.isFinite(parsedHeaderHeight) ? parsedHeaderHeight : 50
-		})()
-		: 0
-	const stickyContainer = categoryChipsScroller.value?.closest('.policy-workbench__category-nav-sticky') as HTMLElement | null
-	const stickyHeight = stickyContainer?.getBoundingClientRect().height ?? 0
-
-	return headerHeight + stickyHeight + CHIP_STICKY_GAP_PX
-}
-
-function observerTopOffsetPx() {
-	const activationLine = categoryActivationLinePx()
-	if (scrollContainer.value instanceof Window) {
-		return Math.max(0, Math.round(activationLine))
-	}
-
-	if (typeof (scrollContainer.value as HTMLElement).getBoundingClientRect !== 'function') {
-		return Math.max(0, Math.round(activationLine))
-	}
-
-	const containerRect = scrollContainer.value.getBoundingClientRect()
-	return Math.max(0, Math.round(activationLine - containerRect.top))
-}
-
-function categoryActivationLinePx() {
-	const stickyContainer = categoryChipsScroller.value?.closest('.policy-workbench__category-nav-sticky') as HTMLElement | null
-	if (stickyContainer) {
-		return stickyContainer.getBoundingClientRect().bottom + CHIP_STICKY_GAP_PX
-	}
-
-	return headerOffsetPx() + CHIP_STICKY_GAP_PX
-}
-
-function pickCategoryByGeometry(): RealPolicySettingCategory | null {
-	const sections = visibleCategorySections.value
-	if (sections.length === 0) {
-		return null
-	}
-
-	const activationLine = categoryActivationLinePx()
-	const sectionTops = new Map<RealPolicySettingCategory, number>()
-
-	for (const section of sections) {
-		const element = categorySectionElements.get(section.key)
-		if (element) {
-			sectionTops.set(section.key, element.getBoundingClientRect().top)
-		}
-	}
-
-	const currentIndex = activeCategory.value
-		? sections.findIndex((section) => section.key === activeCategory.value)
-		: -1
-
-	if (currentIndex < 0) {
-		let nextActive = sections[0].key
-		for (const section of sections) {
-			const top = sectionTops.get(section.key)
-			if (typeof top !== 'number') {
-				continue
-			}
-
-			if (top <= activationLine) {
-				nextActive = section.key
-				continue
-			}
-
-			break
-		}
-
-		return nextActive
-	}
-
-	let resolvedIndex = currentIndex
-
-	while (resolvedIndex < (sections.length - 1)) {
-		const nextSection = sections[resolvedIndex + 1]
-		const nextTop = sectionTops.get(nextSection.key)
-		if (typeof nextTop !== 'number' || nextTop > (activationLine - CATEGORY_SWITCH_HYSTERESIS_PX)) {
-			break
-		}
-
-		resolvedIndex += 1
-	}
-
-	while (resolvedIndex > 0) {
-		const currentSection = sections[resolvedIndex]
-		const currentTop = sectionTops.get(currentSection.key)
-		if (typeof currentTop !== 'number' || currentTop <= (activationLine + CATEGORY_SWITCH_HYSTERESIS_PX)) {
-			break
-		}
-
-		resolvedIndex -= 1
-	}
-
-	return sections[resolvedIndex]?.key ?? sections[0].key
-}
-
-function syncActiveCategory() {
-	if (Date.now() < navigationLockUntil.value) {
-		return
-	}
-	activeCategory.value = pickCategoryByGeometry()
-}
-
-function requestActiveCategorySync() {
-	if (activeCategorySyncRaf.value !== null) {
-		return
-	}
-
-	activeCategorySyncRaf.value = window.requestAnimationFrame(() => {
-		activeCategorySyncRaf.value = null
-		syncActiveCategory()
-	})
-}
-
-function reconnectSectionObserver() {
-	sectionObserver.value?.disconnect()
-	sectionObserver.value = null
-
-	const sections = visibleCategorySections.value
-	if (sections.length === 0) {
-		activeCategory.value = null
-		return
-	}
-
-	scrollContainer.value = getPrimaryScrollContainer()
-	const topOffset = observerTopOffsetPx()
-	const rootHeight = scrollContainer.value instanceof Window
-		? window.innerHeight
-		: scrollContainer.value.clientHeight
-	const bottomOffset = Math.round(rootHeight * (SECTION_OBSERVER_BOTTOM_MARGIN_PERCENT / 100))
-
-	sectionObserver.value = new IntersectionObserver(() => {
-		requestActiveCategorySync()
-	}, {
-		root: scrollContainer.value instanceof Window ? null : scrollContainer.value,
-		rootMargin: `-${topOffset}px 0px -${bottomOffset}px 0px`,
-		threshold: [0, 0.01, 0.1, 0.25, 0.5, 0.75, 1],
-	})
-
-	for (const section of sections) {
-		const element = categorySectionElements.get(section.key)
-		if (element) {
-			sectionObserver.value.observe(element)
-		}
-	}
-
-	syncActiveCategory()
-}
-
-function syncCategoryNavigationState() {
-	updateBackToTopVisibility()
-}
-
-function requestCategoryNavigationSync() {
-	if (scrollSyncRaf.value !== null) {
-		return
-	}
-
-	scrollSyncRaf.value = window.requestAnimationFrame(() => {
-		scrollSyncRaf.value = null
-		syncCategoryNavigationState()
-	})
-}
-
-function scrollElementToViewportOffset(target: HTMLElement) {
-	scrollContainer.value = getPrimaryScrollContainer()
-	const desiredViewportTop = categoryActivationLinePx() + CATEGORY_SCROLL_ALIGNMENT_GAP_PX
-	const targetRect = target.getBoundingClientRect()
-
-	if (scrollContainer.value instanceof Window) {
-		const nextTop = Math.max(0, Math.round(window.scrollY + targetRect.top - desiredViewportTop))
-		window.scrollTo({
-			top: nextTop,
-			behavior: 'smooth',
-		})
-		return
-	}
-
-	const nextTop = Math.max(0, Math.round(scrollContainer.value.scrollTop + targetRect.top - desiredViewportTop))
-	scrollContainer.value.scrollTo({
-		top: nextTop,
-		behavior: 'smooth',
-	})
-}
-
-function scrollToCategory(category: RealPolicySettingCategory, event?: MouseEvent) {
-	;(event?.currentTarget as HTMLElement | null)?.blur()
-	const target = categorySectionElements.get(category) ?? document.getElementById(`policy-category-${category}`)
-	if (!target) {
-		return
-	}
-
-	if (categoryCollapsedState.value[category]) {
-		categoryCollapsedState.value = {
-			...categoryCollapsedState.value,
-			[category]: false,
-		}
-		persistCategoryCollapsedState()
-		syncCatalogCollapsedFromSections()
-	}
-
-	activeCategory.value = category
-	navigationLockUntil.value = Date.now() + NAVIGATION_LOCK_MS
-	scrollElementToViewportOffset(target)
-}
-
-function setAllCategoriesCollapsed(collapsed: boolean) {
-	const nextState: Record<RealPolicySettingCategory, boolean> = {
-		...categoryCollapsedState.value,
-	}
-
-	for (const category of CATEGORY_ORDER) {
-		nextState[category] = collapsed
-	}
-
-	categoryCollapsedState.value = nextState
-}
-
-function normalizeCategoryCollapsedConfig(value: unknown): Record<RealPolicySettingCategory, boolean> {
-	const currentState = categoryCollapsedState.value
-	if (!value || typeof value !== 'object' || Array.isArray(value)) {
-		return {
-			...currentState,
-		}
-	}
-
-	const raw = value as Record<string, unknown>
-	const normalized: Record<RealPolicySettingCategory, boolean> = {
-		...currentState,
-	}
-
-	for (const category of CATEGORY_ORDER) {
-		normalized[category] = Boolean(raw[category])
-	}
-
-	return normalized
-}
-
-function persistCategoryCollapsedState() {
-	const payload = CATEGORY_ORDER.reduce<Record<string, boolean>>((accumulator, category) => {
-		accumulator[category] = Boolean(categoryCollapsedState.value[category])
-		return accumulator
-	}, {})
-
-	void userConfigStore.update(CATALOG_SECTION_COLLAPSED_CONFIG_KEY, payload)
-}
-
-function isCategoryExpanded(category: RealPolicySettingCategory) {
-	if (hasActiveFilter.value) {
-		return true
-	}
-
-	return !Boolean(categoryCollapsedState.value[category])
-}
-
-function syncCatalogCollapsedFromSections() {
-	const allCollapsed = CATEGORY_ORDER.every((category) => Boolean(categoryCollapsedState.value[category]))
-	if (isCatalogCollapsed.value === allCollapsed) {
-		return
-	}
-
-	isCatalogCollapsed.value = allCollapsed
-	void userConfigStore.update(CATALOG_COLLAPSED_CONFIG_KEY, allCollapsed)
-}
-
-function toggleCategoryCollapsed(category: RealPolicySettingCategory) {
-	const currentlyCollapsed = Boolean(categoryCollapsedState.value[category])
-	categoryCollapsedState.value = {
-		...categoryCollapsedState.value,
-		[category]: !currentlyCollapsed,
-	}
-	persistCategoryCollapsedState()
-
-	if (!currentlyCollapsed) {
-		if (activeCategory.value === category) {
-			const fallback = visibleCategorySections.value.find((section) => section.key !== category)
-			activeCategory.value = fallback?.key ?? null
-		}
-	} else {
-		activeCategory.value = category
-	}
-
-	syncCatalogCollapsedFromSections()
-	void nextTick(() => {
-		reconnectSectionObserver()
-		syncCategoryNavigationState()
-	})
-}
-
-function scrollToTop() {
-	const toolbar = catalogToolbarRef.value
-	if (toolbar) {
-		toolbar.scrollIntoView({
-			behavior: 'smooth',
-			block: 'start',
-			inline: 'nearest',
-		})
-		return
-	}
-
-	const targetContainer = getPrimaryScrollContainer()
-	if (targetContainer instanceof Window) {
-		window.scrollTo({
-			top: 0,
-			behavior: 'smooth',
-		})
-		return
-	}
-
-	targetContainer.scrollTo({
-		top: 0,
-		behavior: 'smooth',
-	})
+function hasActiveTextSelection() {
+	const selection = window.getSelection()
+	return !!selection && selection.type === 'Range' && selection.toString().trim().length > 0
 }
 
 function escapeRegExp(value: string) {
@@ -1776,7 +1363,7 @@ function escapeHtml(value: string) {
 }
 
 function highlightText(value: string) {
-	const query = settingsFilter.value.trim()
+	const query = catalogState.settingsFilter.value.trim()
 	const safeValue = escapeHtml(value)
 	if (!query) {
 		return safeValue
@@ -1802,43 +1389,17 @@ function formatOverrideSummary(groupCount: number, userCount: number) {
 }
 
 function toggleCatalogLayout() {
-	if (isSmallViewport.value) {
-		catalogLayout.value = 'cards'
-		return
-	}
-
-	const nextLayout = effectiveCatalogLayout.value === 'cards' ? 'compact' : 'cards'
-	catalogLayout.value = nextLayout
-	void userConfigStore.update(CATALOG_LAYOUT_CONFIG_KEY, nextLayout === 'compact')
+	catalogState.toggleCatalogLayout()
 }
 
 function toggleCatalogCollapsed() {
-	if (!hasVisibleCategorySections.value) {
-		return
-	}
-
-	isCatalogCollapsed.value = !isCatalogCollapsed.value
-	setAllCategoriesCollapsed(isCatalogCollapsed.value)
-	persistCategoryCollapsedState()
-	if (isCatalogCollapsed.value) {
-		activeCategory.value = null
-		showBackToTop.value = false
-	} else if (!activeCategory.value && visibleCategorySections.value.length > 0) {
-		activeCategory.value = visibleCategorySections.value[0]?.key ?? null
-	}
-
-	void userConfigStore.update(CATALOG_COLLAPSED_CONFIG_KEY, isCatalogCollapsed.value)
-	void nextTick(() => {
-		attachScrollListener()
-		reconnectSectionObserver()
-		syncCategoryNavigationState()
-	})
+	catalogState.toggleCatalogCollapsed()
 }
 
 function updateViewportMode() {
 	isSmallViewport.value = window.innerWidth <= 960
-	reconnectSectionObserver()
-	requestCategoryNavigationSync()
+	navigation.reconnectSectionObserver()
+	navigation.requestCategoryNavigationSync()
 }
 
 async function handleSaveDraft() {
@@ -2035,13 +1596,13 @@ function requestCloseSetting() {
 
 onMounted(async () => {
 	updateViewportMode()
-	catalogLayout.value = userConfigStore.policy_workbench_catalog_compact_view ? 'compact' : 'cards'
-	isCatalogCollapsed.value = Boolean(userConfigStore.policy_workbench_catalog_collapsed)
-	categoryCollapsedState.value = normalizeCategoryCollapsedConfig(userConfigStore.policy_workbench_category_collapsed_state)
+	catalogState.catalogLayout.value = userConfigStore.policy_workbench_catalog_compact_view ? 'compact' : 'cards'
+	catalogState.isCatalogCollapsed.value = Boolean(userConfigStore.policy_workbench_catalog_collapsed)
+	catalogState.categoryCollapsedState.value = catalogState.normalizeCategoryCollapsedConfig(userConfigStore.policy_workbench_category_collapsed_state as Record<string, unknown> | undefined)
 	if (!userConfigStore.policy_workbench_category_collapsed_state) {
-		setAllCategoriesCollapsed(isCatalogCollapsed.value)
+		catalogState.setAllCategoriesCollapsed(catalogState.isCatalogCollapsed.value)
 	}
-	syncCatalogCollapsedFromSections()
+	catalogState.syncCatalogCollapsedFromSections()
 	isRtl.value = document.documentElement.dir.toLowerCase() === 'rtl'
 	window.addEventListener('resize', updateViewportMode, { passive: true })
 	await policiesStore.fetchEffectivePolicies()
@@ -2049,14 +1610,13 @@ onMounted(async () => {
 		void state.probeGroupAccess()
 	}
 	await nextTick()
-	attachScrollListener()
-	reconnectSectionObserver()
-	syncCategoryNavigationState()
+	navigation.attachScrollListener()
+	navigation.reconnectSectionObserver()
+	navigation.updateBackToTopVisibility()
 })
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', updateViewportMode)
-	removeScrollListener()
 	if (saveFeedbackTimeout.value !== null) {
 		window.clearTimeout(saveFeedbackTimeout.value)
 	}
@@ -2069,20 +1629,9 @@ onBeforeUnmount(() => {
 	openRuleActionsKey.value = null
 	showCreateScopeDialog.value = false
 	selectedCreateScope.value = null
-	if (scrollSyncRaf.value !== null) {
-		window.cancelAnimationFrame(scrollSyncRaf.value)
-		scrollSyncRaf.value = null
-	}
-	if (activeCategorySyncRaf.value !== null) {
-		window.cancelAnimationFrame(activeCategorySyncRaf.value)
-		activeCategorySyncRaf.value = null
-	}
-	sectionObserver.value?.disconnect()
-	sectionObserver.value = null
-	categorySectionElements.clear()
 })
 
-watch(activeCategory, () => {
+watch(navigation.activeCategory, () => {
 	const focused = document.activeElement as HTMLElement | null
 	if (focused?.classList.contains('policy-workbench__category-chip')) {
 		focused.blur()
@@ -2090,16 +1639,16 @@ watch(activeCategory, () => {
 })
 
 watch(
-	() => [visibleCategorySections.value.map((section) => section.key).join(','), effectiveCatalogLayout.value, isCatalogCollapsed.value],
+	() => [visibleCategorySections.value.map((section) => section.key).join(','), effectiveCatalogLayout.value, catalogState.isCatalogCollapsed.value],
 	() => {
-		if (!activeCategory.value && visibleCategorySections.value.length > 0) {
-			activeCategory.value = visibleCategorySections.value[0]?.key ?? null
+		if (!navigation.activeCategory.value && visibleCategorySections.value.length > 0) {
+			navigation.activeCategory.value = visibleCategorySections.value[0]?.key ?? null
 		}
 
 		void nextTick(() => {
-			attachScrollListener()
-			reconnectSectionObserver()
-			syncCategoryNavigationState()
+			navigation.attachScrollListener()
+			navigation.reconnectSectionObserver()
+			navigation.updateBackToTopVisibility()
 		})
 	},
 )

@@ -10,6 +10,7 @@ import type { RealPolicySettingCategory } from '../settings/realTypes'
 
 const CATALOG_LAYOUT_CONFIG_KEY = 'policy_workbench_catalog_compact_view'
 const CATALOG_COLLAPSED_CONFIG_KEY = 'policy_workbench_catalog_collapsed'
+const CATALOG_SECTION_COLLAPSED_CONFIG_KEY = 'policy_workbench_category_collapsed_state'
 const CATEGORY_ORDER: RealPolicySettingCategory[] = [
 	'who-can-sign',
 	'how-signing-works',
@@ -93,12 +94,57 @@ export function useCatalogState() {
 
 	function persistCategoryCollapsedState() {
 		userConfigStore.update({
-			[CATEGORY_ORDER[0] ? `${CATALOG_SECTION_COLLAPSED_CONFIG_KEY}` : 'temp']: categoryCollapsedState.value,
+			[CATALOG_SECTION_COLLAPSED_CONFIG_KEY]: categoryCollapsedState.value,
 		})
 	}
 
 	function isCategoryExpanded(category: RealPolicySettingCategory): boolean {
 		return !categoryCollapsedState.value[category]
+	}
+
+	function normalizeCategoryCollapsedConfig(config?: Record<string, unknown>): Record<RealPolicySettingCategory, boolean> {
+		if (!config || typeof config !== 'object') {
+			return {
+				'who-can-sign': false,
+				'how-signing-works': false,
+				'signer-experience': false,
+				'what-gets-recorded': false,
+				'time-and-limits': false,
+				'trust-and-verification': false,
+				'system-behavior': false,
+			}
+		}
+
+		const result: Record<RealPolicySettingCategory, boolean> = {
+			'who-can-sign': false,
+			'how-signing-works': false,
+			'signer-experience': false,
+			'what-gets-recorded': false,
+			'time-and-limits': false,
+			'trust-and-verification': false,
+			'system-behavior': false,
+		}
+
+		for (const category of CATEGORY_ORDER) {
+			if (category in config) {
+				const value = config[category]
+				result[category] = Boolean(value)
+			}
+		}
+
+		return result
+	}
+
+	function setAllCategoriesCollapsed(collapsed: boolean) {
+		categoryCollapsedState.value = {
+			'who-can-sign': collapsed,
+			'how-signing-works': collapsed,
+			'signer-experience': collapsed,
+			'what-gets-recorded': collapsed,
+			'time-and-limits': collapsed,
+			'trust-and-verification': collapsed,
+			'system-behavior': collapsed,
+		}
 	}
 
 	return {
@@ -120,9 +166,9 @@ export function useCatalogState() {
 		toggleCatalogCollapsed,
 		toggleCategoryCollapsed,
 		isCategoryExpanded,
+		normalizeCategoryCollapsedConfig,
+		setAllCategoriesCollapsed,
 		syncCatalogCollapsedFromSections,
 		persistCategoryCollapsedState,
 	}
 }
-
-const CATALOG_SECTION_COLLAPSED_CONFIG_KEY = 'policy_workbench_category_collapsed_state'
