@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "347262bc75027c88fa21b011f732aa31",
+    "content-hash": "82c0dec0ec5466d5595b09e6cc9c87bf",
     "packages": [],
     "packages-dev": [
         {
@@ -57,16 +57,16 @@
         },
         {
             "name": "nextcloud/rector",
-            "version": "v0.4.1",
+            "version": "v0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-libraries/rector.git",
-                "reference": "9c5c78cc323537ec6dba5b3cd9c422ff9524d8cf"
+                "reference": "27bff78af53633d9b77ed8af17b27af73e8f67e9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-libraries/rector/zipball/9c5c78cc323537ec6dba5b3cd9c422ff9524d8cf",
-                "reference": "9c5c78cc323537ec6dba5b3cd9c422ff9524d8cf",
+                "url": "https://api.github.com/repos/nextcloud-libraries/rector/zipball/27bff78af53633d9b77ed8af17b27af73e8f67e9",
+                "reference": "27bff78af53633d9b77ed8af17b27af73e8f67e9",
                 "shasum": ""
             },
             "require": {
@@ -116,17 +116,17 @@
             ],
             "support": {
                 "issues": "https://github.com/nextcloud-libraries/rector/issues",
-                "source": "https://github.com/nextcloud-libraries/rector/tree/v0.4.1"
+                "source": "https://github.com/nextcloud-libraries/rector/tree/v0.5.0"
             },
-            "time": "2025-03-31T15:27:10+00:00"
+            "time": "2026-04-28T08:20:44+00:00"
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.51",
+            "version": "2.1.52",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/dc3b523c45e714c70de2ac5113b958223b55dc59",
-                "reference": "dc3b523c45e714c70de2ac5113b958223b55dc59",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/08a34f8db7ca4daabff74a474fe13c0e56e2b4e5",
+                "reference": "08a34f8db7ca4daabff74a474fe13c0e56e2b4e5",
                 "shasum": ""
             },
             "require": {
@@ -171,7 +171,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-21T18:22:01+00:00"
+            "time": "2026-04-28T12:17:53+00:00"
         },
         {
             "name": "psr/clock",
