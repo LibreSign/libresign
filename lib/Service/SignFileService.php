@@ -929,15 +929,29 @@ class SignFileService {
 	private function buildBaseSignatureParams(array $certificateData): array {
 		$issuerCommonName = $this->normalizeCertificateFieldToString($certificateData['issuer']['CN'] ?? '');
 		$signerCommonName = $this->normalizeCertificateFieldToString($certificateData['subject']['CN'] ?? '');
+		$documentUuid = $this->libreSignFile?->getUuid() ?? '';
+		$validationUrl = $documentUuid ? $this->buildValidationUrl($documentUuid) : '';
 
 		return [
-			'DocumentUUID' => $this->libreSignFile?->getUuid(),
+			'DocumentUUID' => $documentUuid,
 			'IssuerCommonName' => $issuerCommonName,
 			'SignerCommonName' => $signerCommonName,
 			'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
+			'ValidationURL' => $validationUrl,
 			'LocalSignerSignatureDateTime' => (new DateTime('now', new \DateTimeZone('UTC')))
 				->format(DateTimeInterface::ATOM)
 		];
+	}
+
+	private function buildValidationUrl(string $uuid): string {
+		$validationSite = trim($this->appConfig->getValueString(Application::APP_ID, 'validation_site', ''));
+		if ($validationSite !== '') {
+			return rtrim($validationSite, '/') . '/' . $uuid;
+		}
+
+		return $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', [
+			'uuid' => $uuid,
+		]);
 	}
 
 	private function normalizeCertificateFieldToString(mixed $value): string {

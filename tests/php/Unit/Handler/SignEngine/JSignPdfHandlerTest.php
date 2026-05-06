@@ -26,6 +26,7 @@ use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IRequest;
 use OCP\ITempManager;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -74,12 +75,18 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function getInstance(array $methods = []): JSignPdfHandler|MockObject {
+		$urlGenerator = $this->createMock(IURLGenerator::class);
+		$urlGenerator
+			->method('linkToRouteAbsolute')
+			->willReturnCallback(fn (string $route, array $params): string => 'https://example.test/' . $route . '/' . ($params['uuid'] ?? ''));
+
 		$signatureTextService = new SignatureTextService(
 			$this->appConfig,
 			\OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID),
 			\OCP\Server::get(IDateTimeZone::class),
 			\OCP\Server::get(IRequest::class),
 			\OCP\Server::get(IUserSession::class),
+			$urlGenerator,
 			\OCP\Server::get(LoggerInterface::class),
 		);
 
