@@ -5769,7 +5769,9 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object"
+                                                }
                                             }
                                         }
                                     }
@@ -5797,7 +5799,9 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object"
+                                                }
                                             }
                                         }
                                     }
@@ -5825,7 +5829,9 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object"
+                                                }
                                             }
                                         }
                                     }
@@ -5996,7 +6002,9 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object"
+                                                }
                                             }
                                         }
                                     }
@@ -6024,7 +6032,9 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object"
+                                                }
                                             }
                                         }
                                     }
@@ -6052,7 +6062,9 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object"
+                                                }
                                             }
                                         }
                                     }
@@ -6945,7 +6957,9 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object"
+                                                }
                                             }
                                         }
                                     }
