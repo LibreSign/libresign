@@ -1214,6 +1214,11 @@ export type components = {
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
         };
+        DynamicMetadataRecord: {
+            [key: string]: components["schemas"]["DynamicMetadataScalar"];
+        };
+        DynamicMetadataScalar: (string | number | boolean) | null;
+        DynamicMetadataValue: components["schemas"]["DynamicMetadataScalar"] | components["schemas"]["DynamicMetadataScalar"][] | components["schemas"]["DynamicMetadataRecord"] | components["schemas"]["DynamicMetadataRecord"][];
         ErrorItem: {
             message: string;
             title?: string;
@@ -1289,7 +1294,7 @@ export type components = {
             settings?: components["schemas"]["Settings"];
         };
         FileRuntimeMetadata: components["schemas"]["ValidateMetadata"] | {
-            [key: string]: Record<string, never>;
+            [key: string]: components["schemas"]["DynamicMetadataValue"];
         };
         FileSummary: {
             /** Format: int64 */
@@ -1409,9 +1414,11 @@ export type components = {
             status?: number;
         };
         Notify: {
-            date: string;
+            /** Format: int64 */
+            date: number;
             /** @enum {string} */
             method: "activity" | "notify" | "mail";
+            description?: string;
         };
         OCSMeta: {
             status: string;
@@ -1535,6 +1542,12 @@ export type components = {
             emailToken?: components["schemas"]["SignatureMethodEmailToken"];
             password?: components["schemas"]["SignatureMethodPassword"];
         };
+        SignerCertificateInfo: {
+            serialNumber?: string;
+            serialNumberHex?: string;
+            hash?: string;
+            subject?: components["schemas"]["DynamicMetadataValue"];
+        };
         SignerDetail: components["schemas"]["SignerSummary"] & {
             description: string | null;
             subject?: string;
@@ -1561,7 +1574,13 @@ export type components = {
             visibleElements: components["schemas"]["VisibleElement"][];
             signatureMethods?: components["schemas"]["SignatureMethods"];
             uid?: string;
-            metadata?: Record<string, never>;
+            metadata?: components["schemas"]["SignerMetadata"];
+        };
+        SignerMetadata: {
+            "remote-address"?: string;
+            "user-agent"?: string;
+            notify?: components["schemas"]["Notify"][];
+            certificate_info?: components["schemas"]["SignerCertificateInfo"];
         };
         SignerSummary: {
             /** Format: int64 */
