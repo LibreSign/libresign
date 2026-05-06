@@ -4064,9 +4064,7 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {
-                                                    "type": "object"
-                                                }
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -11811,9 +11809,7 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {
-                                                    "type": "object"
-                                                }
+                                                "data": {}
                                             }
                                         }
                                     }
