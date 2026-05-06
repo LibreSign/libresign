@@ -54,6 +54,7 @@ type ViewerModule = typeof import('../../../utils/viewer.js')
 type EnvelopeValidationVm = {
 	isTouchDevice: boolean
 	documentStatus: string
+	envelopeFilesCount: number | null
 	$nextTick: () => Promise<void>
 	toggleDetail: (signerIndex: number) => void
 	toggleFileDetail: (fileIndex: number) => void
@@ -383,6 +384,41 @@ describe('EnvelopeValidation', () => {
 			})
 
 			expect(wrapper.vm.documentStatus).toBe('Draft')
+		})
+	})
+
+	describe('RULE: envelopeFilesCount shows robust documents count', () => {
+		it('keeps 0 as a valid count instead of hiding it', async () => {
+			wrapper = createWrapper({
+				document: {
+					filesCount: 0,
+					files: [],
+				},
+			})
+
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.vm.envelopeFilesCount).toBe(0)
+			expect(wrapper.text()).toContain('Number of documents:')
+			expect(wrapper.text()).toContain('0')
+		})
+
+		it('falls back to files length when filesCount is missing', async () => {
+			wrapper = createWrapper({
+				document: {
+					filesCount: undefined as unknown as number,
+					files: [
+						{ id: 1, status: '3', name: 'first.pdf' },
+						{ id: 2, status: '1', name: 'second.pdf' },
+					],
+				},
+			})
+
+			await wrapper.vm.$nextTick()
+
+			expect(wrapper.vm.envelopeFilesCount).toBe(2)
+			expect(wrapper.text()).toContain('Number of documents:')
+			expect(wrapper.text()).toContain('2')
 		})
 	})
 

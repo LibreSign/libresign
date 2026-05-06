@@ -29,10 +29,10 @@
 						{{ documentStatus }}
 					</template>
 				</NcListItem>
-				<NcListItem v-if="document.filesCount" class="extra" compact>
+				<NcListItem v-if="envelopeFilesCount !== null" class="extra" compact>
 					<template #name>
 						<strong>{{ t('libresign', 'Number of documents:') }}</strong>
-						{{ document.filesCount }}
+						{{ envelopeFilesCount }}
 					</template>
 				</NcListItem>
 				<NcListItem v-if="document.signedDate" class="extra" compact>
@@ -161,6 +161,13 @@
 <script setup lang="ts">
 import { n, t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcAvatar from '@nextcloud/vue/components/NcAvatar'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import NcListItem from '@nextcloud/vue/components/NcListItem'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcRichText from '@nextcloud/vue/components/NcRichText'
 import { computed, ref, watch } from 'vue'
 
 import {
@@ -215,6 +222,15 @@ const fileOpenState = ref<Record<number, boolean>>({})
 const signerOpenState = ref<Record<number, boolean>>({})
 
 const documentStatus = computed(() => getStatusLabel(props.document.status))
+const envelopeFilesCount = computed(() => {
+	if (typeof props.document.filesCount === 'number') {
+		return props.document.filesCount
+	}
+	if (Array.isArray(props.document.files)) {
+		return props.document.files.length
+	}
+	return null
+})
 
 function resetDisclosureState() {
 	fileOpenState.value = {}
@@ -274,6 +290,7 @@ watch(() => props.document, () => {
 defineExpose({
 	isTouchDevice,
 	documentStatus,
+	envelopeFilesCount,
 	isSignerOpen,
 	isFileOpen,
 	getFileStatusText,
