@@ -733,6 +733,34 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertMatchesRegularExpression('/^"\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2} [A-Z]{3,4}"$/', $actual);
 	}
 
+	public function testGetSignatureTextWithTwigDateFilterWithoutTimezone(): void {
+		$this->appConfig->setValueString(
+			'libresign',
+			'signature_text_template',
+			'{{ ServerSignatureDate|date("d/m/Y") }}'
+		);
+		$this->appConfig->setValueString('libresign', 'signature_render_mode', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY);
+
+		$jSignPdfHandler = $this->getInstance();
+		$actual = $jSignPdfHandler->getSignatureText();
+
+		$this->assertMatchesRegularExpression('/^"\d{2}\/\d{2}\/\d{4}"$/', $actual);
+	}
+
+	public function testGetSignatureTextGraphicOnlyWithTwigDateFilterAlwaysReturnsEmpty(): void {
+		$this->appConfig->setValueString(
+			'libresign',
+			'signature_text_template',
+			'{{ ServerSignatureDate|date("d/m/Y H:i:s T", "Europe/Paris") }}'
+		);
+		$this->appConfig->setValueString('libresign', 'signature_render_mode', SignerElementsService::RENDER_MODE_GRAPHIC_ONLY);
+
+		$jSignPdfHandler = $this->getInstance();
+		$actual = $jSignPdfHandler->getSignatureText();
+
+		$this->assertSame('""', $actual);
+	}
+
 	public static function providerGetSignatureText(): array {
 		return [
 			['FAKE_RENDER_MODE', '',     '""'],
@@ -740,7 +768,10 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['FAKE_RENDER_MODE', "a\na", "\"a\na\""],
 			['FAKE_RENDER_MODE', 'a"a',  '"a\"a"'],
 			['FAKE_RENDER_MODE', 'a$a',  '"a\$a"'],
+			// Plain {{ServerSignatureDate}} (no spaces) preserves JSign placeholder
 			['FAKE_RENDER_MODE', '{{ServerSignatureDate}}', '"\${timestamp}"'],
+			// Plain {{ ServerSignatureDate }} (with spaces) also preserves JSign placeholder
+			['FAKE_RENDER_MODE', '{{ ServerSignatureDate }}', '"\${timestamp}"'],
 			['GRAPHIC_ONLY',     '',     '""'],
 			['GRAPHIC_ONLY',     'a',    '""'],
 			['GRAPHIC_ONLY',     "a\na", '""'],

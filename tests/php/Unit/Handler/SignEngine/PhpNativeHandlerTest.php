@@ -420,6 +420,47 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertStringNotContainsString('() Tj', $xObject->stream);
 	}
 
+	/**
+	 * Regression: ServerSignatureDate must be passed to signatureTextService->parse()
+	 * as a valid ISO 8601 (ATOM) string so that Twig's |date() filter can parse it.
+	 * Before the fix the value was "Y.m.d H:i:s UTC" which Twig's date filter
+	 * would fail to parse reliably across PHP versions.
+	 */
+	public function testBuildXObjectPassesAtomFormatServerSignatureDateToParseContext(): void {
+		$capturedContext = null;
+
+		$signatureTextService = $this->createMock(SignatureTextService::class);
+		$signatureTextService->method('getRenderMode')
+			->willReturn(SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY);
+		$signatureTextService->method('parse')
+			->willReturnCallback(function (string $template = '', array $context = []) use (&$capturedContext): array {
+				$capturedContext = $context;
+				return ['parsed' => 'Signed by', 'templateFontSize' => 10.0];
+			});
+		$signatureTextService->method('getTemplateFontSize')->willReturn(10.0);
+		$signatureTextService->method('getSignatureFontSize')->willReturn(20.0);
+
+		$handler = new PhpNativeHandler(
+			$this->appConfig,
+			$this->docMdpConfigService,
+			$signatureTextService,
+			$this->signatureBackgroundService,
+			$this->certificateEngineFactory,
+		);
+
+		$this->callPrivateMethod($handler, 'buildXObject', 100, 50, SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY);
+
+		$this->assertArrayHasKey('ServerSignatureDate', $capturedContext);
+		$serverSignatureDate = $capturedContext['ServerSignatureDate'];
+
+		// Must be parseable as a valid date by PHP (required for Twig |date() filter)
+		$parsed = \DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $serverSignatureDate);
+		$this->assertNotFalse(
+			$parsed,
+			"ServerSignatureDate must be a valid ATOM/ISO 8601 string, got: {$serverSignatureDate}"
+		);
+	}
+
 	private function getHandler(): PhpNativeHandler {
 		return $this->getHandlerWithMode(SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY);
 	}
