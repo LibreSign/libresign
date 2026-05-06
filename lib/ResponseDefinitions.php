@@ -132,8 +132,9 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignIdentifyAccountsResponse = list<LibresignIdentifyAccount>
  * @psalm-type LibresignNotify = array{
- *     date: string,
+ *     date: non-negative-int,
  *     method: "activity"|"notify"|"mail",
+ *     description?: string,
  * }
  * @psalm-type LibresignRequestedBy = array{
  *     userId: string,
@@ -151,8 +152,9 @@ namespace OCA\Libresign;
  * @psalm-type LibresignSignerMetadata = array{
  *     remote-address?: string,
  *     user-agent?: string,
+ *     notify?: LibresignNotify[],
  *     certificate_info?: LibresignSignerCertificateInfo,
- * }|array<string, LibresignDynamicMetadataValue>
+ * }
  * @psalm-type LibresignSignerSummary = array{
  *     signRequestId: int,
  *     displayName: string,
