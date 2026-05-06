@@ -17,6 +17,7 @@ use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -30,6 +31,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	private IDateTimeZone $dateTimeZone;
 	private IRequest&MockObject $request;
 	private IUserSession&MockObject $userSession;
+	private IURLGenerator&MockObject $urlGenerator;
 	private LoggerInterface&MockObject $logger;
 
 
@@ -39,6 +41,10 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
 		$this->request = $this->createMock(IRequest::class);
 		$this->userSession = $this->createMock(IUserSession::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->urlGenerator
+			->method('linkToRouteAbsolute')
+			->willReturnCallback(fn (string $route, array $params): string => 'https://example.test/' . $route . '/' . ($params['uuid'] ?? ''));
 		$this->logger = $this->createMock(LoggerInterface::class);
 	}
 
@@ -49,6 +55,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			$this->dateTimeZone,
 			$this->request,
 			$this->userSession,
+			$this->urlGenerator,
 			$this->logger,
 		);
 		return $this->service;
@@ -60,6 +67,9 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 
 		$actual = $this->getClass()->getAvailableVariables();
 		$this->assertArrayHasKey('{{SignerIP}}', $actual);
+		$this->assertArrayHasKey('{{SignerUserAgent}}', $actual);
+		$this->assertArrayHasKey('{{qrcode}}', $actual);
+		$this->assertArrayHasKey('{{ValidationURL}}', $actual);
 
 		$template = $this->getClass()->getDefaultTemplate();
 		$this->assertStringContainsString('IP', $template);
@@ -71,6 +81,9 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 
 		$actual = $this->getClass()->getAvailableVariables();
 		$this->assertArrayNotHasKey('{{SignerIP}}', $actual);
+		$this->assertArrayNotHasKey('{{SignerUserAgent}}', $actual);
+		$this->assertArrayHasKey('{{qrcode}}', $actual);
+		$this->assertArrayHasKey('{{ValidationURL}}', $actual);
 
 		$template = $this->getClass()->getDefaultTemplate();
 		$this->assertStringNotContainsString('IP', $template);
@@ -128,6 +141,21 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 				"John Doe\n\nsigned the document on 2025-03-31T23:53:47+00:00",
 			],
 		];
+	}
+
+	public function testParseShouldGenerateQrcodeAsBase64FromValidationUrl(): void {
+		$actual = $this->getClass()->parse('{{qrcode}}', [
+			'DocumentUUID' => 'abc-123',
+			'ValidationURL' => 'https://validator.example/abc-123',
+		]);
+
+		$this->assertNotEmpty($actual['parsed']);
+		$this->assertMatchesRegularExpression('/^[A-Za-z0-9+\/=]+$/', $actual['parsed']);
+		$this->assertNotEquals('https://validator.example/abc-123', $actual['parsed']);
+
+		$decoded = base64_decode($actual['parsed'], true);
+		$this->assertNotFalse($decoded);
+		$this->assertStringStartsWith("\x89PNG\r\n\x1A\n", $decoded);
 	}
 
 	#[DataProvider('providerSplitAndGetLongestHalfLength')]
