@@ -54,7 +54,7 @@
     "@vuelidate/core": "^2.0.3",
     "@vuelidate/validators": "^2.0.4",
     "@vueuse/core": "^14.2.1",
-    "@vueuse/integrations": "^14.2.1",
+    "@vueuse/integrations": "^14.3.0",
     "blueimp-md5": "^2.19.0",
     "codemirror": "^6.0.2",
     "debounce": "^3.0.0",
