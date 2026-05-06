@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Files;
 
+use OCA\Files\Event\LoadSidebar;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Files\TemplateLoader;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
@@ -140,5 +142,57 @@ final class TemplateLoaderTest extends TestCase {
 			$this->appManager,
 			$this->docMdpConfigService,
 		);
+	}
+
+	/**
+	 * Regression test for https://github.com/LibreSign/libresign/issues/7632
+	 *
+	 * The `icons` CSS style must NOT be registered separately because:
+	 * 1. It does not exist as a standalone CSS file in the Vite build output.
+	 * 2. Its content (.icon-libresign) is already bundled inside `libresign-tab`.
+	 * Loading a non-existent file causes a 404 on every page load with the
+	 * files sidebar, and any unscoped `list-style` rule in that file would
+	 * bleed into other Nextcloud apps (e.g. Notes, Markdown).
+	 */
+	public function testHandleDoesNotRegisterIconsStyleSeparately(): void {
+		$this->appManager
+			->method('isEnabledForUser')
+			->with('libresign')
+			->willReturn(true);
+
+		$engine = $this->createMock(IEngineHandler::class);
+		$engine->method('isSetupOk')->willReturn(true);
+		$this->certificateEngineFactory
+			->method('getEngine')
+			->willReturn($engine);
+		$this->identifyMethodService
+			->method('getIdentifyMethodsSettings')
+			->willReturn([]);
+		$this->appConfig
+			->method('getValueString')
+			->willReturn('none');
+		$this->docMdpConfigService
+			->method('getConfig')
+			->willReturn([]);
+		$user = $this->createMock(IUser::class);
+		$this->userSession
+			->method('getUser')
+			->willReturn($user);
+
+		$stylesBefore = \OC_Util::$styles;
+		$loader = $this->getLoader();
+		$loader->handle(new LoadSidebar());
+		$stylesAfter = \OC_Util::$styles;
+
+		$newStyles = array_diff($stylesAfter, $stylesBefore);
+		$iconsStylePath = Application::APP_ID . '/css/icons';
+
+		foreach ($newStyles as $style) {
+			$this->assertStringNotContainsString(
+				$iconsStylePath,
+				$style,
+				'The "icons" CSS must not be registered separately — it is already bundled in libresign-tab and loading it would cause a 404 and potential global CSS leaks (issue #7632).'
+			);
+		}
 	}
 }
