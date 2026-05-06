@@ -1118,7 +1118,7 @@ export type components = {
         };
         ConfigValueResponse: {
             key: string;
-            value: Record<string, never>;
+            value: string | null;
         };
         Coordinate: {
             /** Format: int64 */
@@ -1190,10 +1190,9 @@ export type components = {
             /** Format: int64 */
             status: number;
             statusText: string;
-            nodeType: string;
-            metadata: {
-                [key: string]: Record<string, never>;
-            };
+            /** @enum {string} */
+            nodeType: "file" | "envelope";
+            metadata: components["schemas"]["FileRuntimeMetadata"];
             /** Format: int64 */
             size: number;
             /** Format: int64 */
@@ -1211,7 +1210,7 @@ export type components = {
             name: string;
             /** @enum {string} */
             nodeType: "file" | "envelope";
-            metadata: components["schemas"]["ValidateMetadata"];
+            metadata: components["schemas"]["FileRuntimeMetadata"];
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
         };
@@ -1279,7 +1278,7 @@ export type components = {
             /** Format: int64 */
             signersCount: number;
             file: string;
-            metadata: components["schemas"]["ValidateMetadata"];
+            metadata: components["schemas"]["FileRuntimeMetadata"];
             /** Format: int64 */
             size: number;
             signers: components["schemas"]["SignerSummary"][];
@@ -1288,6 +1287,9 @@ export type components = {
             pagination: components["schemas"]["Pagination"];
             data: (components["schemas"]["FileSummary"] | components["schemas"]["DetailedFile"])[];
             settings?: components["schemas"]["Settings"];
+        };
+        FileRuntimeMetadata: components["schemas"]["ValidateMetadata"] | {
+            [key: string]: Record<string, never>;
         };
         FileSummary: {
             /** Format: int64 */
@@ -1302,14 +1304,14 @@ export type components = {
             /** @enum {string} */
             nodeType: "file" | "envelope";
             created_at: string;
-            metadata: components["schemas"]["ValidateMetadata"];
+            metadata: components["schemas"]["FileRuntimeMetadata"];
             /** Format: int64 */
             docmdpLevel: number;
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
             /** Format: int64 */
             signersCount: number;
-            signers: unknown[];
+            signers: components["schemas"]["SignerSummary"][];
             requested_by: components["schemas"]["RequestedBy"];
             /** Format: int64 */
             filesCount: number;
