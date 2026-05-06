@@ -645,7 +645,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Delete certificate policy of this instance
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Not found
