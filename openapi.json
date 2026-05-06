@@ -1379,7 +1379,9 @@
                 ],
                 "properties": {
                     "date": {
-                        "type": "string"
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "method": {
                         "type": "string",
@@ -1388,6 +1390,9 @@
                             "notify",
                             "mail"
                         ]
+                    },
+                    "description": {
+                        "type": "string"
                     }
                 }
             },
@@ -1916,28 +1921,24 @@
                 ]
             },
             "SignerMetadata": {
-                "anyOf": [
-                    {
-                        "type": "object",
-                        "properties": {
-                            "remote-address": {
-                                "type": "string"
-                            },
-                            "user-agent": {
-                                "type": "string"
-                            },
-                            "certificate_info": {
-                                "$ref": "#/components/schemas/SignerCertificateInfo"
-                            }
+                "type": "object",
+                "properties": {
+                    "remote-address": {
+                        "type": "string"
+                    },
+                    "user-agent": {
+                        "type": "string"
+                    },
+                    "notify": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Notify"
                         }
                     },
-                    {
-                        "type": "object",
-                        "additionalProperties": {
-                            "$ref": "#/components/schemas/DynamicMetadataValue"
-                        }
+                    "certificate_info": {
+                        "$ref": "#/components/schemas/SignerCertificateInfo"
                     }
-                ]
+                }
             },
             "SignerSummary": {
                 "type": "object",

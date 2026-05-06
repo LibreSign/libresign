@@ -2018,9 +2018,11 @@ export type components = {
             status?: number;
         };
         Notify: {
-            date: string;
+            /** Format: int64 */
+            date: number;
             /** @enum {string} */
             method: "activity" | "notify" | "mail";
+            description?: string;
         };
         OCSMeta: {
             status: string;
@@ -2222,9 +2224,8 @@ export type components = {
         SignerMetadata: {
             "remote-address"?: string;
             "user-agent"?: string;
+            notify?: components["schemas"]["Notify"][];
             certificate_info?: components["schemas"]["SignerCertificateInfo"];
-        } | {
-            [key: string]: components["schemas"]["DynamicMetadataValue"];
         };
         SignerSummary: {
             /** Format: int64 */
