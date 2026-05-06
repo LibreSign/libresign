@@ -948,6 +948,69 @@
                     }
                 }
             },
+            "DynamicMetadataValue": {
+                "nullable": true,
+                "anyOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "nullable": true,
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                {
+                                    "type": "number",
+                                    "format": "double"
+                                },
+                                {
+                                    "type": "boolean"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": {
+                            "nullable": true,
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                {
+                                    "type": "number",
+                                    "format": "double"
+                                },
+                                {
+                                    "type": "boolean"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
             "EngineHandler": {
                 "type": "object",
                 "required": [
@@ -1302,7 +1365,7 @@
                     {
                         "type": "object",
                         "additionalProperties": {
-                            "type": "object"
+                            "$ref": "#/components/schemas/DynamicMetadataValue"
                         }
                     }
                 ]
@@ -2352,6 +2415,23 @@
                     }
                 }
             },
+            "SignerCertificateInfo": {
+                "type": "object",
+                "properties": {
+                    "serialNumber": {
+                        "type": "string"
+                    },
+                    "serialNumberHex": {
+                        "type": "string"
+                    },
+                    "hash": {
+                        "type": "string"
+                    },
+                    "subject": {
+                        "type": "string"
+                    }
+                }
+            },
             "SignerDetail": {
                 "allOf": [
                     {
@@ -2442,8 +2522,32 @@
                                 "type": "string"
                             },
                             "metadata": {
-                                "type": "object"
+                                "$ref": "#/components/schemas/SignerMetadata"
                             }
+                        }
+                    }
+                ]
+            },
+            "SignerMetadata": {
+                "anyOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "remote-address": {
+                                "type": "string"
+                            },
+                            "user-agent": {
+                                "type": "string"
+                            },
+                            "certificate_info": {
+                                "$ref": "#/components/schemas/SignerCertificateInfo"
+                            }
+                        }
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/DynamicMetadataValue"
                         }
                     }
                 ]
@@ -7089,7 +7193,9 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object"
+                                                }
                                             }
                                         }
                                     }
@@ -7351,7 +7457,9 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object"
+                                                }
                                             }
                                         }
                                     }

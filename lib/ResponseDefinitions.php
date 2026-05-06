@@ -139,6 +139,18 @@ namespace OCA\Libresign;
  *     userId: string,
  *     displayName: ?string,
  * }
+ * @psalm-type LibresignDynamicMetadataValue = string|int|float|bool|null|list<string|int|float|bool|null>|array<string, string|int|float|bool|null>
+ * @psalm-type LibresignSignerCertificateInfo = array{
+ *     serialNumber?: string,
+ *     serialNumberHex?: string,
+ *     hash?: string,
+ *     subject?: string,
+ * }
+ * @psalm-type LibresignSignerMetadata = array{
+ *     remote-address?: string,
+ *     user-agent?: string,
+ *     certificate_info?: LibresignSignerCertificateInfo,
+ * }|array<string, LibresignDynamicMetadataValue>
  * @psalm-type LibresignSignerSummary = array{
  *     signRequestId: int,
  *     displayName: string,
@@ -167,7 +179,7 @@ namespace OCA\Libresign;
  *     visibleElements: LibresignVisibleElement[],
  *     signatureMethods?: LibresignSignatureMethods,
  *     uid?: string,
- *     metadata?: mixed,
+ *     metadata?: LibresignSignerMetadata,
  * }
  *
  * Shared feedback and action contracts
@@ -363,7 +375,7 @@ namespace OCA\Libresign;
  *     pdfVersion?: string,
  *     status_changed_at?: string,
  * }
- * @psalm-type LibresignFileRuntimeMetadata = LibresignValidateMetadata|array<string, mixed>
+ * @psalm-type LibresignFileRuntimeMetadata = LibresignValidateMetadata|array<string, LibresignDynamicMetadataValue>
  * @psalm-type LibresignValidationPageResolution = array{
  *     w: float,
  *     h: float,
