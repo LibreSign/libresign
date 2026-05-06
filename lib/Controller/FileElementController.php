@@ -119,7 +119,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 *
 	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param integer $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignErrorsResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignErrorsResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when delete visible element or file not found
