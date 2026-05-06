@@ -3943,7 +3943,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
+                            data: Record<string, never>;
                         };
                     };
                 };

@@ -8140,7 +8140,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                    "type": "object"
                                                 }
                                             }
                                         }
