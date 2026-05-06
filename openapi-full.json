@@ -425,7 +425,8 @@
                         "type": "string"
                     },
                     "value": {
-                        "type": "object"
+                        "type": "string",
+                        "nullable": true
                     }
                 }
             },
@@ -815,13 +816,14 @@
                         "type": "string"
                     },
                     "nodeType": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "file",
+                            "envelope"
+                        ]
                     },
                     "metadata": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "object"
-                        }
+                        "$ref": "#/components/schemas/FileRuntimeMetadata"
                     },
                     "size": {
                         "type": "integer",
@@ -890,7 +892,7 @@
                                 ]
                             },
                             "metadata": {
-                                "$ref": "#/components/schemas/ValidateMetadata"
+                                "$ref": "#/components/schemas/FileRuntimeMetadata"
                             },
                             "signatureFlow": {
                                 "type": "string",
@@ -1250,7 +1252,7 @@
                         "type": "string"
                     },
                     "metadata": {
-                        "$ref": "#/components/schemas/ValidateMetadata"
+                        "$ref": "#/components/schemas/FileRuntimeMetadata"
                     },
                     "size": {
                         "type": "integer",
@@ -1292,6 +1294,19 @@
                         "$ref": "#/components/schemas/Settings"
                     }
                 }
+            },
+            "FileRuntimeMetadata": {
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/ValidateMetadata"
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
+                        }
+                    }
+                ]
             },
             "FileSummary": {
                 "type": "object",
@@ -1347,7 +1362,7 @@
                         "type": "string"
                     },
                     "metadata": {
-                        "$ref": "#/components/schemas/ValidateMetadata"
+                        "$ref": "#/components/schemas/FileRuntimeMetadata"
                     },
                     "docmdpLevel": {
                         "type": "integer",
@@ -1367,7 +1382,9 @@
                     },
                     "signers": {
                         "type": "array",
-                        "maxItems": 0
+                        "items": {
+                            "$ref": "#/components/schemas/SignerSummary"
+                        }
                     },
                     "requested_by": {
                         "$ref": "#/components/schemas/RequestedBy"
