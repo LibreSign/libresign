@@ -15,6 +15,12 @@ use ImagickDraw;
 use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
+use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
+use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
+use OCA\Libresign\Vendor\Endroid\QrCode\QrCode;
+use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
+use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
 use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
 use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
@@ -22,6 +28,7 @@ use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
@@ -34,12 +41,14 @@ class SignatureTextService {
 	public const FRONT_SIZE_MAX = 30;
 	public const DEFAULT_SIGNATURE_WIDTH = 350;
 	public const DEFAULT_SIGNATURE_HEIGHT = 100;
+	private const QRCODE_SIZE = 100;
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private IDateTimeZone $dateTimeZone,
 		private IRequest $request,
 		private IUserSession $userSession,
+		private IURLGenerator $urlGenerator,
 		protected LoggerInterface $logger,
 	) {
 	}
@@ -137,8 +146,10 @@ class SignatureTextService {
 		}
 		if (empty($context)) {
 			$date = new \DateTime('now', new \DateTimeZone('UTC'));
+			$documentUuid = UUIDUtil::getUUID();
+			$validationUrl = $this->buildValidationUrl($documentUuid);
 			$context = [
-				'DocumentUUID' => UUIDUtil::getUUID(),
+				'DocumentUUID' => $documentUuid,
 				'IssuerCommonName' => 'Acme Cooperative',
 				'LocalSignerSignatureDateOnly' => ($date)->format('Y-m-d'),
 				'LocalSignerSignatureDateTime' => ($date)->format(DateTimeInterface::ATOM),
@@ -148,7 +159,16 @@ class SignatureTextService {
 				'SignerCommonName' => $this->userSession?->getUser()?->getDisplayName() ?? 'John Doe',
 				'SignerEmail' => $this->userSession?->getUser()?->getEMailAddress() ?? 'john.doe@libresign.coop',
 				'SignerUserAgent' => $this->request->getHeader('User-Agent'),
+				'ValidationURL' => $validationUrl,
+				'qrcode' => $this->getQrCodeImageBase64($validationUrl),
 			];
+		}
+
+		if (!isset($context['ValidationURL']) && isset($context['DocumentUUID']) && is_string($context['DocumentUUID']) && $context['DocumentUUID'] !== '') {
+			$context['ValidationURL'] = $this->buildValidationUrl($context['DocumentUUID']);
+		}
+		if (!isset($context['qrcode']) && isset($context['ValidationURL']) && is_string($context['ValidationURL'])) {
+			$context['qrcode'] = $this->getQrCodeImageBase64($context['ValidationURL']);
 		}
 		try {
 			$twigEnvironment = new Environment(
@@ -189,6 +209,13 @@ class SignatureTextService {
 			'{{SignerCommonName}}' => $this->l10n->t('Common Name (CN) used to identify the document signer.'),
 			'{{SignerEmail}}' => $this->l10n->t('The signer\'s email is optional and can be left blank.'),
 			'{{SignerIdentifier}}' => $this->l10n->t('Unique information used to identify the signer (such as email, phone number, or username).'),
+			'{{ValidationURL}}' => $this->l10n->t('Validation URL of the signed document.'),
+			// TRANSLATORS This sentence is a description shown in the list of
+			// available template variables.
+			// Keep placeholder names unchanged: {{ qrcode }} and {{ValidationURL}}.
+			// Keep this HTML snippet unchanged:
+			// <img src="data:image/png;base64,{{ qrcode }}">
+			'{{qrcode}}' => $this->l10n->t('Base64-encoded PNG QR code for the validation URL. In HTML/Twig, use <img src="data:image/png;base64,{{ qrcode }}">. In plain-text templates, use {{ValidationURL}}.'),
 		];
 		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
 		if ($collectMetadata) {
@@ -196,6 +223,24 @@ class SignatureTextService {
 			$list['{{SignerUserAgent}}'] = $this->l10n->t('Browser and device information of the person who signed the document.');
 		}
 		return $list;
+	}
+
+	private function getQrCodeImageBase64(string $text): string {
+		$qrCode = new QrCode(
+			data: $text,
+			encoding: new Encoding('UTF-8'),
+			errorCorrectionLevel: ErrorCorrectionLevel::Low,
+			size: self::QRCODE_SIZE,
+			margin: 4,
+			roundBlockSizeMode: RoundBlockSizeMode::Margin,
+			foregroundColor: new Color(0, 0, 0),
+			backgroundColor: new Color(255, 255, 255)
+		);
+
+		$writer = new PngWriter();
+		$result = $writer->write($qrCode);
+
+		return base64_encode($result->getString());
 	}
 
 	public function signerNameImage(
@@ -505,5 +550,16 @@ class SignatureTextService {
 
 	public function isEnabled(): bool {
 		return !empty($this->getTemplate());
+	}
+
+	private function buildValidationUrl(string $uuid): string {
+		$validationSite = trim($this->appConfig->getValueString(Application::APP_ID, 'validation_site', ''));
+		if ($validationSite !== '') {
+			return rtrim($validationSite, '/') . '/' . $uuid;
+		}
+
+		return $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', [
+			'uuid' => $uuid,
+		]);
 	}
 }
