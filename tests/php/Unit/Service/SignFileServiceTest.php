@@ -12,6 +12,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use bovigo\vfs\vfsStream;
 use DateTime;
 use OC\User\NoUserException;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
@@ -147,6 +148,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->secureRandom = \OCP\Server::get(\OCP\Security\ISecureRandom::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->urlGenerator
+			->method('linkToRouteAbsolute')
+			->willReturnCallback(fn (string $route, array $params): string => 'https://example.test/' . $route . '/' . ($params['uuid'] ?? ''));
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
@@ -1213,9 +1217,37 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals($expectedIssuerCN, $actual['IssuerCommonName']);
 		$this->assertEquals($expectedSignerCN, $actual['SignerCommonName']);
 		$this->assertEquals('uuid', $actual['DocumentUUID']);
+		$this->assertEquals('https://example.test/libresign.page.validationFileWithShortUrl/uuid', $actual['ValidationURL']);
 		$this->assertArrayHasKey('DocumentUUID', $actual);
+		$this->assertArrayHasKey('ValidationURL', $actual);
+		$this->assertArrayNotHasKey('qrcode', $actual);
 		$this->assertArrayHasKey('LocalSignerTimezone', $actual);
 		$this->assertArrayHasKey('LocalSignerSignatureDateTime', $actual);
+	}
+
+	public function testGetSignatureParamsUsesCustomValidationSite(): void {
+		$service = $this->getService(['readCertificate']);
+
+		$this->appConfig->setValueString(Application::APP_ID, 'validation_site', 'https://validator.example/path/');
+
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setUuid('uuid');
+		$service->setLibreSignFile($libreSignFile);
+
+		$service->method('readCertificate')->willReturn([
+			'issuer' => ['CN' => 'LibreCode'],
+			'subject' => ['CN' => 'Jane Doe'],
+		]);
+
+		$signRequest = $this->createSignRequestMock([
+			'getId' => 171,
+			'getMetadata' => [],
+		]);
+		$service->setSignRequest($signRequest);
+
+		$actual = $this->invokePrivate($service, 'getSignatureParams');
+		$this->assertEquals('https://validator.example/path/uuid', $actual['ValidationURL']);
+		$this->assertArrayNotHasKey('qrcode', $actual);
 	}
 
 	public static function providerGetSignatureParamsCommonName(): array {
