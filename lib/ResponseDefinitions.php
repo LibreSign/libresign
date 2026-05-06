@@ -363,6 +363,7 @@ namespace OCA\Libresign;
  *     pdfVersion?: string,
  *     status_changed_at?: string,
  * }
+ * @psalm-type LibresignFileRuntimeMetadata = LibresignValidateMetadata|array<string, mixed>
  * @psalm-type LibresignValidationPageResolution = array{
  *     w: float,
  *     h: float,
@@ -465,11 +466,11 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeType: 'file'|'envelope',
  *     created_at: string,
- *     metadata: LibresignValidateMetadata,
+ *     metadata: LibresignFileRuntimeMetadata,
  *     docmdpLevel: int,
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  *     signersCount: int,
- *     signers: list<empty>,
+ *     signers: list<LibresignSignerSummary>,
  *     requested_by: LibresignRequestedBy,
  *     filesCount: int<0, max>,
  *     canSign: bool,
@@ -485,7 +486,7 @@ namespace OCA\Libresign;
  *     docmdpLevel: int,
  *     signersCount: int,
  *     file: string,
- *     metadata: LibresignValidateMetadata,
+ *     metadata: LibresignFileRuntimeMetadata,
  *     size: non-negative-int,
  *     signers: list<LibresignSignerSummary>,
  * }
@@ -499,8 +500,8 @@ namespace OCA\Libresign;
  *     name: string,
  *     status: int,
  *     statusText: string,
- *     nodeType: string,
- *     metadata: array<string, mixed>,
+ *     nodeType: 'file'|'envelope',
+ *     metadata: LibresignFileRuntimeMetadata,
  *     size: non-negative-int,
  *     docmdpLevel: int,
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
@@ -513,7 +514,7 @@ namespace OCA\Libresign;
  *     message: string,
  *     name: non-falsy-string,
  *     nodeType: 'file'|'envelope',
- *     metadata: LibresignValidateMetadata,
+ *     metadata: LibresignFileRuntimeMetadata,
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  * }
  * @psalm-type LibresignFileListResponse = array{
@@ -593,7 +594,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignConfigValueResponse = array{
  *     key: string,
- *     value: mixed,
+ *     value: ?string,
  * }
  * @psalm-type LibresignIdDocsUploadErrorResponse = array{
  *     file: ?int,
