@@ -139,12 +139,14 @@ namespace OCA\Libresign;
  *     userId: string,
  *     displayName: ?string,
  * }
- * @psalm-type LibresignDynamicMetadataValue = string|int|float|bool|null|list<string|int|float|bool|null>|array<string, string|int|float|bool|null>
+ * @psalm-type LibresignDynamicMetadataScalar = string|int|float|bool|null
+ * @psalm-type LibresignDynamicMetadataRecord = array<string, LibresignDynamicMetadataScalar>
+ * @psalm-type LibresignDynamicMetadataValue = LibresignDynamicMetadataScalar|list<LibresignDynamicMetadataScalar>|LibresignDynamicMetadataRecord|list<LibresignDynamicMetadataRecord>
  * @psalm-type LibresignSignerCertificateInfo = array{
  *     serialNumber?: string,
  *     serialNumberHex?: string,
  *     hash?: string,
- *     subject?: string,
+ *     subject?: LibresignDynamicMetadataValue,
  * }
  * @psalm-type LibresignSignerMetadata = array{
  *     remote-address?: string,
