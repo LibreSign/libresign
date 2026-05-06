@@ -2932,7 +2932,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: Record<string, never>;
+                            data: unknown;
                         };
                     };
                 };
@@ -6163,7 +6163,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: Record<string, never>;
+                            data: unknown;
                         };
                     };
                 };
