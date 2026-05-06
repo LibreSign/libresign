@@ -1781,6 +1781,9 @@ export type components = {
             label: string;
             description: string;
         };
+        DynamicMetadataValue: (string | number | boolean | ((string | number | boolean) | null)[] | {
+            [key: string]: (string | number | boolean) | null;
+        }) | null;
         EngineHandler: {
             configPath: string;
             cfsslUri?: string;
@@ -1875,7 +1878,7 @@ export type components = {
             settings?: components["schemas"]["Settings"];
         };
         FileRuntimeMetadata: components["schemas"]["ValidateMetadata"] | {
-            [key: string]: Record<string, never>;
+            [key: string]: components["schemas"]["DynamicMetadataValue"];
         };
         FileSummary: {
             /** Format: int64 */
@@ -2180,6 +2183,12 @@ export type components = {
             signatureHeight: number;
             renderMode: string;
         };
+        SignerCertificateInfo: {
+            serialNumber?: string;
+            serialNumberHex?: string;
+            hash?: string;
+            subject?: string;
+        };
         SignerDetail: components["schemas"]["SignerSummary"] & {
             description: string | null;
             subject?: string;
@@ -2206,7 +2215,14 @@ export type components = {
             visibleElements: components["schemas"]["VisibleElement"][];
             signatureMethods?: components["schemas"]["SignatureMethods"];
             uid?: string;
-            metadata?: Record<string, never>;
+            metadata?: components["schemas"]["SignerMetadata"];
+        };
+        SignerMetadata: {
+            "remote-address"?: string;
+            "user-agent"?: string;
+            certificate_info?: components["schemas"]["SignerCertificateInfo"];
+        } | {
+            [key: string]: components["schemas"]["DynamicMetadataValue"];
         };
         SignerSummary: {
             /** Format: int64 */
@@ -4261,7 +4277,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: unknown;
+                            data: Record<string, never>;
                         };
                     };
                 };
@@ -4310,7 +4326,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: unknown;
+                            data: Record<string, never>;
                         };
                     };
                 };
