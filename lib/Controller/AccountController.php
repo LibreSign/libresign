@@ -140,7 +140,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string $signPassword The password that will be used to encrypt the certificate file
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
 	 *
 	 * 200: Settings saved
 	 * 401: Failure to create PFX file
