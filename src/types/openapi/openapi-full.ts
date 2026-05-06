@@ -1781,9 +1781,11 @@ export type components = {
             label: string;
             description: string;
         };
-        DynamicMetadataValue: (string | number | boolean | ((string | number | boolean) | null)[] | {
-            [key: string]: (string | number | boolean) | null;
-        }) | null;
+        DynamicMetadataRecord: {
+            [key: string]: components["schemas"]["DynamicMetadataScalar"];
+        };
+        DynamicMetadataScalar: (string | number | boolean) | null;
+        DynamicMetadataValue: components["schemas"]["DynamicMetadataScalar"] | components["schemas"]["DynamicMetadataScalar"][] | components["schemas"]["DynamicMetadataRecord"] | components["schemas"]["DynamicMetadataRecord"][];
         EngineHandler: {
             configPath: string;
             cfsslUri?: string;
@@ -2187,7 +2189,7 @@ export type components = {
             serialNumber?: string;
             serialNumberHex?: string;
             hash?: string;
-            subject?: string;
+            subject?: components["schemas"]["DynamicMetadataValue"];
         };
         SignerDetail: components["schemas"]["SignerSummary"] & {
             description: string | null;

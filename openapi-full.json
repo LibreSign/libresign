@@ -949,7 +949,13 @@
                     }
                 }
             },
-            "DynamicMetadataValue": {
+            "DynamicMetadataRecord": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/DynamicMetadataScalar"
+                }
+            },
+            "DynamicMetadataScalar": {
                 "nullable": true,
                 "anyOf": [
                     {
@@ -965,49 +971,27 @@
                     },
                     {
                         "type": "boolean"
+                    }
+                ]
+            },
+            "DynamicMetadataValue": {
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/DynamicMetadataScalar"
                     },
                     {
                         "type": "array",
                         "items": {
-                            "nullable": true,
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "integer",
-                                    "format": "int64"
-                                },
-                                {
-                                    "type": "number",
-                                    "format": "double"
-                                },
-                                {
-                                    "type": "boolean"
-                                }
-                            ]
+                            "$ref": "#/components/schemas/DynamicMetadataScalar"
                         }
                     },
                     {
-                        "type": "object",
-                        "additionalProperties": {
-                            "nullable": true,
-                            "anyOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "integer",
-                                    "format": "int64"
-                                },
-                                {
-                                    "type": "number",
-                                    "format": "double"
-                                },
-                                {
-                                    "type": "boolean"
-                                }
-                            ]
+                        "$ref": "#/components/schemas/DynamicMetadataRecord"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DynamicMetadataRecord"
                         }
                     }
                 ]
@@ -2429,7 +2413,7 @@
                         "type": "string"
                     },
                     "subject": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/DynamicMetadataValue"
                     }
                 }
             },
