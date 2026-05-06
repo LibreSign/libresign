@@ -53,7 +53,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 * Add identification documents to user profile
 	 *
 	 * @param LibresignIdDocs[] $files The list of files to add to profile
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignIdDocsUploadErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignIdDocsUploadErrorResponse, array{}>
 	 *
 	 * 200: Certificate saved with success
 	 * 401: No file provided or other problem with provided file
@@ -73,7 +73,9 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 			} else {
 				throw new Exception('Invalid data');
 			}
-			return new DataResponse([], Http::STATUS_OK);
+			return new DataResponse([
+				'message' => $this->l10n->t('ID documents uploaded with success.'),
+			], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			$exceptionData = json_decode($exception->getMessage());
 			if (isset($exceptionData->file)) {
@@ -102,7 +104,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 * @param int $nodeId the nodeId of file to be delete
 	 * @param string|null $uuid Sign request UUID for unauthenticated access
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessagesResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessagesResponse, array{}>
 	 *
 	 * 200: File deleted with success
 	 * 401: Failure to delete file from account
@@ -122,7 +124,9 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 			} else {
 				throw new Exception('Invalid data');
 			}
-			return new DataResponse([], Http::STATUS_OK);
+			return new DataResponse([
+				'message' => $this->l10n->t('ID document deleted with success.'),
+			], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			return new DataResponse(
 				[

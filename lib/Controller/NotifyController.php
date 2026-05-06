@@ -10,7 +10,6 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\NotifyService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -22,8 +21,8 @@ use OCP\IRequest;
 use OCP\IUserSession;
 
 /**
- * @psalm-import-type LibresignDangerMessagesResponse from ResponseDefinitions
- * @psalm-import-type LibresignMessageResponse from ResponseDefinitions
+ * @psalm-import-type LibresignDangerMessagesResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
  */
 
 class NotifyController extends AEnvironmentAwareController {
@@ -113,7 +112,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 * @param integer $objectId The identifier value of LibreSign file
 	 * @param string $subject The subject of notification
 	 * @param integer $timestamp Timestamp of notification to dismiss
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -132,6 +131,8 @@ class NotifyController extends AEnvironmentAwareController {
 			$this->userSession->getUser(),
 			$timestamp
 		);
-		return new DataResponse();
+		return new DataResponse([
+			'message' => $this->l10n->t('Notification dismissed with success.'),
+		], Http::STATUS_OK);
 	}
 }
