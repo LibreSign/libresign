@@ -582,10 +582,35 @@ class JSignPdfHandler extends Pkcs12Handler {
 	private function parseSignatureText(): array {
 		if (!$this->parsedSignatureText) {
 			$params = $this->getSignatureParams();
-			$params['ServerSignatureDate'] = '${timestamp}';
+			$template = $this->signatureTextService->getTemplate();
+			$params['ServerSignatureDate'] = $this->shouldUseJSignTimestampPlaceholder($template)
+				? '${timestamp}'
+				: (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
+					->format(\DateTimeInterface::ATOM);
 			$this->parsedSignatureText = $this->signatureTextService->parse(context: $params);
 		}
 		return $this->parsedSignatureText;
+	}
+
+	private function shouldUseJSignTimestampPlaceholder(string $template): bool {
+		if (!preg_match_all('/{{\s*(.*?)\s*}}/s', $template, $matches)) {
+			return true;
+		}
+
+		$hasPlainServerSignatureDate = false;
+		foreach ($matches[1] as $expression) {
+			if (!str_contains($expression, 'ServerSignatureDate')) {
+				continue;
+			}
+			if (trim($expression) === 'ServerSignatureDate') {
+				$hasPlainServerSignatureDate = true;
+				continue;
+			}
+			// Any transformation (for example Twig date filter) requires a real date value.
+			return false;
+		}
+
+		return $hasPlainServerSignatureDate;
 	}
 
 	public function getSignatureText(): string {
