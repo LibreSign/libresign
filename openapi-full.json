@@ -11798,7 +11798,9 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object"
+                                                }
                                             }
                                         }
                                     }
