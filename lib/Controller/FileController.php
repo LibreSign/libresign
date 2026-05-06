@@ -344,7 +344,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param boolean $forceIcon Force to generate a new thumbnail
 	 * @param string $mode To force a given mimetype for the file
 	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array{}, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 *
 	 * 200: OK
 	 * 303: Redirect
@@ -400,7 +400,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param boolean $forceIcon Force to generate a new thumbnail
 	 * @param string $mode To force a given mimetype for the file
 	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array{}, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 *
 	 * 200: OK
 	 * 303: Redirect
@@ -447,7 +447,7 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array{}, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 */
 	private function fetchPreview(
 		Node $node,
