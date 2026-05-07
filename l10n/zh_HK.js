@@ -274,7 +274,6 @@ OC.L10N.register(
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "簽署者發送簽名請求的日期（不包括時間，按其本地時區）。",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "簽署者發送簽名請求的日期和時間（按其本地時區）。",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "簽署者發送簽名請求時的時區（按其本地時區）。",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "簽名在伺服器上應用的日期和時間。無法使用 Twig 格式化。",
     "Common Name (CN) used to identify the document signer." : "用於識別檔案簽署者的通用名稱（CN）。",
     "The signer's email is optional and can be left blank." : "簽署者的電子郵件是可選的，可以留空。",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "用於識別簽署者的唯一信息（例如電子郵件、電話號碼或用戶名）。",

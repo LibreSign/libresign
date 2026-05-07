@@ -272,7 +272,6 @@
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Data em que o signatário enviou a solicitação de assinatura (sem hora, no fuso horário local dele).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Data e hora em que o signatário enviou a solicitação de assinatura (no fuso horário local dele).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Fuso horário do signatário quando enviou a solicitação de assinatura (no fuso horário local dele).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "Data e hora em que a assinatura foi aplicada no servidor. Não pode ser formatado usando Twig.",
     "Common Name (CN) used to identify the document signer." : "Nome Comum (CN) usado para identificar o signatário do documento.",
     "The signer's email is optional and can be left blank." : "O e-mail do signatário é opcional e pode ser deixado em branco.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Informações únicas usadas para identificar o signatário (como e-mail, número de telefone ou nome de usuário).",
