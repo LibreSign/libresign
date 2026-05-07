@@ -272,7 +272,6 @@
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "An dáta ar sheol an sínitheoir an t-iarratas le síniú (gan am, ina chrios ama áitiúil).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Dáta agus am a sheol an sínitheoir an t-iarratas chun síniú (ina gcrios ama áitiúil).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Crios ama an tsínitheora nuair a seoladh an t-iarratas chun síniú (ina gcrios ama áitiúil).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "Dáta agus am ar cuireadh an síniú i bhfeidhm ar an bhfreastalaí. Ní féidir é a fhormáidiú le Twig.",
     "Common Name (CN) used to identify the document signer." : "Ainm Coiteann (CN) a úsáidtear chun sínitheoir an doiciméid a shainaithint.",
     "The signer's email is optional and can be left blank." : "Tá ríomhphost an tsínitheora roghnach agus is féidir é a fhágáil bán.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Faisnéis uathúil a úsáidtear chun an sínitheoir a aithint (amhail ríomhphost, uimhir theileafóin nó ainm úsáideora).",

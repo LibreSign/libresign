@@ -265,7 +265,6 @@
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "İmzalayanın imzalama isteğini gönderdiği tarih (saat olmadan, kendi yerel saat diliminde).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "İmzalayanın isteği imzalanmak üzere gönderdiği tarih ve saat (kendi yerel saat diliminde).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "İmzalama iisteği gönderildiğinde imzalayanın saat dilimi (kendi yerel saat diliminde).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "İmzanın sunucuda uygulandığı tarih ve saat. Twig kullanılarak biçimlendirilemez.",
     "Common Name (CN) used to identify the document signer." : "Belgeyi imzalayanı tanımlamak için kullanılan ortak ad (CN).",
     "The signer's email is optional and can be left blank." : "İmzalayanın e-posta adresi isteğe bağlıdır ve boş bırakılabilir.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "İmzalayanı tanımlamak için kullanılan benzersiz bilgiler (e-posta adresi, telefon numarası veya kullanıcı adı gibi).",

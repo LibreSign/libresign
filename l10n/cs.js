@@ -267,7 +267,6 @@ OC.L10N.register(
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Datum, kdy podepisující odeslal požadavek na podepsání (bez času, v jeho místním časovém pásmu).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Datum a čas, kdy podepisující odeslal požadavek na podepsání (v jeho místním časovém pásmu).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Časové pásmo, ve kterém se podepisující nacházel v okamžiku odeslání požadavku na podepsání (v jeho místním časovém pásmu).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "Datum a čas, kdy byl podpis uplatněn na serveru. Není možné formátovat pomocí Twig.",
     "Common Name (CN) used to identify the document signer." : "Běžné jméno (CN), sloužící pro identifikaci toho, kdo dokument podepsal.",
     "The signer's email is optional and can be left blank." : "E-mail podepisujícího je volitelný a je možné ho ponechat nevyplněný.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Neopakující se údaj sloužící k identifikaci podepisujícího (jako například e-mail, telefonní číslo nebo uživatelské jméno).",

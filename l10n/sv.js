@@ -183,7 +183,6 @@ OC.L10N.register(
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Datum då undertecknaren skickade begäran om signering (utan tid, i deras lokala tidszon).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Datum och tid då undertecknaren skickade begäran om signering (i deras lokala tidszon).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Undertecknarens tidszon vid tidpunkten för begäran om signering (i deras lokala tidszon).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "Datum och tid då signaturen tillämpades på servern. Kan inte formateras med Twig.",
     "Common Name (CN) used to identify the document signer." : "Common Name (CN) som används för att identifiera dokumentsigneraren.",
     "The signer's email is optional and can be left blank." : "Undertecknarens e-postadress är valfri och kan lämnas tom.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Unik information som används för att identifiera undertecknaren (t.ex. e-postadress, telefonnummer eller användarnamn).",

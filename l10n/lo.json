@@ -187,7 +187,6 @@
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "ວັນທີທີ່ຜູ້ເຊັນສົ່ງຄຳຮ້ອງຂໍເຊັນ (ບໍ່ມີເວລາ, ໃນເຂດເວລາທ້ອງຖິ່ນຂອງພວກເຂົາ).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "ວັນທີ ແລະ ເວລາທີ່ຜູ້ເຊັນສົ່ງຄຳຮ້ອງຂໍເຊັນ (ໃນເຂດເວລາທ້ອງຖິ່ນຂອງພວກເຂົາ).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "ເຂດເວລາຂອງຜູ້ເຊັນເມື່ອສົ່ງຄຳຮ້ອງຂໍເຊັນ (ໃນເຂດເວລາທ້ອງຖິ່ນຂອງພວກເຂົາ).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "ວັນທີ ແລະ ເວລາທີ່ລາຍເຊັນຖືກນຳໃຊ້ຢູ່ເທິງເຊີບເວີ. ບໍ່ສາມາດຈັດຮູບແບບໂດຍໃຊ້ Twig ໄດ້.",
     "Common Name (CN) used to identify the document signer." : "ຊື່ທົ່ວໄປ (CN) ທີ່ໃຊ້ເພື່ອລະບຸຕົວຕົນຜູ້ເຊັນເອກະສານ.",
     "The signer's email is optional and can be left blank." : "ອີເມວຂອງຜູ້ເຊັນເປັນທາງເລືອກ ແລະ ສາມາດປະໄວ້ຫວ່າງໄດ້.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "ຂໍ້ມູນທີ່ບໍ່ຊ້ຳກັນທີ່ໃຊ້ເພື່ອລະບຸຕົວຕົນຜູ້ເຊັນ (ເຊັ່ນ: ອີເມວ, ເບີໂທລະສັບ, ຫຼື ຊື່ຜູ້ໃຊ້).",
