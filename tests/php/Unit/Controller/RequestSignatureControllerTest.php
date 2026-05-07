@@ -93,7 +93,7 @@ final class RequestSignatureControllerTest extends TestCase {
 			->with($file, [], $this->user)
 			->willReturn(['ok' => true]);
 
-		$response = $this->controller->request(
+		$response = $this->controller->requestSignature(
 			signers: [[
 				'identifyMethods' => [[
 					'method' => 'email',
@@ -152,7 +152,7 @@ final class RequestSignatureControllerTest extends TestCase {
 			->with($file, [], $this->user)
 			->willReturn(['ok' => true]);
 
-		$response = $this->controller->updateSign(
+		$response = $this->controller->updateSignatureRequest(
 			signers: [[
 				'identifyMethods' => [[
 					'method' => 'email',
