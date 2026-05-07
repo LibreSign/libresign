@@ -443,7 +443,7 @@ class FileService {
 		$this->fileData->created_at = $this->file->getCreatedAt()->format(DateTimeInterface::ATOM);
 		$this->fileData->statusText = $this->fileMapper->getTextOfStatus($this->file->getStatus());
 		$this->fileData->nodeId = $this->file->getNodeId();
-		$this->fileData->signatureFlow = $this->file->getSignatureFlow();
+		$this->fileData->signatureFlow = SignatureFlow::fromNumeric($this->file->getSignatureFlow())->value;
 		$this->fileData->docmdpLevel = $this->file->getDocmdpLevel();
 		$this->fileData->nodeType = $this->file->getNodeType();
 
