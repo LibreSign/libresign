@@ -164,7 +164,7 @@ describe('Signers', () => {
 
 		it('returns true for numeric value 2', () => {
 			filesStore.selectedFile = {
-				signatureFlow: 2,
+				signatureFlow: 'ordered_numeric',
 				signers: [],
 			}
 			wrapper = createWrapper()
@@ -174,7 +174,7 @@ describe('Signers', () => {
 
 		it('returns false for numeric value 1 (parallel)', () => {
 			filesStore.selectedFile = {
-				signatureFlow: 1,
+				signatureFlow: 'parallel',
 				signers: [],
 			}
 			wrapper = createWrapper()
@@ -184,7 +184,7 @@ describe('Signers', () => {
 
 		it('returns false for numeric value 0 (none)', () => {
 			filesStore.selectedFile = {
-				signatureFlow: 0,
+				signatureFlow: 'none',
 				signers: [],
 			}
 			wrapper = createWrapper()
