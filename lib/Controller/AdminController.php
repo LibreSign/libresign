@@ -269,7 +269,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * This will disable hate limit to current session.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
 	 */

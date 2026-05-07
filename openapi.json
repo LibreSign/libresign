@@ -622,6 +622,53 @@
                     }
                 ]
             },
+            "DynamicMetadataRecord": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/DynamicMetadataScalar"
+                }
+            },
+            "DynamicMetadataScalar": {
+                "nullable": true,
+                "anyOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            },
+            "DynamicMetadataValue": {
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/DynamicMetadataScalar"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DynamicMetadataScalar"
+                        }
+                    },
+                    {
+                        "$ref": "#/components/schemas/DynamicMetadataRecord"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DynamicMetadataRecord"
+                        }
+                    }
+                ]
+            },
             "ErrorItem": {
                 "type": "object",
                 "required": [
@@ -904,7 +951,7 @@
                     {
                         "type": "object",
                         "additionalProperties": {
-                            "type": "object"
+                            "$ref": "#/components/schemas/DynamicMetadataValue"
                         }
                     }
                 ]
@@ -1332,7 +1379,9 @@
                 ],
                 "properties": {
                     "date": {
-                        "type": "string"
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "method": {
                         "type": "string",
@@ -1341,6 +1390,9 @@
                             "notify",
                             "mail"
                         ]
+                    },
+                    "description": {
+                        "type": "string"
                     }
                 }
             },
@@ -1755,6 +1807,23 @@
                     }
                 }
             },
+            "SignerCertificateInfo": {
+                "type": "object",
+                "properties": {
+                    "serialNumber": {
+                        "type": "string"
+                    },
+                    "serialNumberHex": {
+                        "type": "string"
+                    },
+                    "hash": {
+                        "type": "string"
+                    },
+                    "subject": {
+                        "$ref": "#/components/schemas/DynamicMetadataValue"
+                    }
+                }
+            },
             "SignerDetail": {
                 "allOf": [
                     {
@@ -1845,11 +1914,31 @@
                                 "type": "string"
                             },
                             "metadata": {
-                                "type": "object"
+                                "$ref": "#/components/schemas/SignerMetadata"
                             }
                         }
                     }
                 ]
+            },
+            "SignerMetadata": {
+                "type": "object",
+                "properties": {
+                    "remote-address": {
+                        "type": "string"
+                    },
+                    "user-agent": {
+                        "type": "string"
+                    },
+                    "notify": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Notify"
+                        }
+                    },
+                    "certificate_info": {
+                        "$ref": "#/components/schemas/SignerCertificateInfo"
+                    }
+                }
             },
             "SignerSummary": {
                 "type": "object",

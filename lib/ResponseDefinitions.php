@@ -132,12 +132,28 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignIdentifyAccountsResponse = list<LibresignIdentifyAccount>
  * @psalm-type LibresignNotify = array{
- *     date: string,
+ *     date: non-negative-int,
  *     method: "activity"|"notify"|"mail",
+ *     description?: string,
  * }
  * @psalm-type LibresignRequestedBy = array{
  *     userId: string,
  *     displayName: ?string,
+ * }
+ * @psalm-type LibresignDynamicMetadataScalar = string|int|float|bool|null
+ * @psalm-type LibresignDynamicMetadataRecord = array<string, LibresignDynamicMetadataScalar>
+ * @psalm-type LibresignDynamicMetadataValue = LibresignDynamicMetadataScalar|list<LibresignDynamicMetadataScalar>|LibresignDynamicMetadataRecord|list<LibresignDynamicMetadataRecord>
+ * @psalm-type LibresignSignerCertificateInfo = array{
+ *     serialNumber?: string,
+ *     serialNumberHex?: string,
+ *     hash?: string,
+ *     subject?: LibresignDynamicMetadataValue,
+ * }
+ * @psalm-type LibresignSignerMetadata = array{
+ *     remote-address?: string,
+ *     user-agent?: string,
+ *     notify?: LibresignNotify[],
+ *     certificate_info?: LibresignSignerCertificateInfo,
  * }
  * @psalm-type LibresignSignerSummary = array{
  *     signRequestId: int,
@@ -167,7 +183,7 @@ namespace OCA\Libresign;
  *     visibleElements: LibresignVisibleElement[],
  *     signatureMethods?: LibresignSignatureMethods,
  *     uid?: string,
- *     metadata?: mixed,
+ *     metadata?: LibresignSignerMetadata,
  * }
  *
  * Shared feedback and action contracts
@@ -363,7 +379,7 @@ namespace OCA\Libresign;
  *     pdfVersion?: string,
  *     status_changed_at?: string,
  * }
- * @psalm-type LibresignFileRuntimeMetadata = LibresignValidateMetadata|array<string, mixed>
+ * @psalm-type LibresignFileRuntimeMetadata = LibresignValidateMetadata|array<string, LibresignDynamicMetadataValue>
  * @psalm-type LibresignValidationPageResolution = array{
  *     w: float,
  *     h: float,
