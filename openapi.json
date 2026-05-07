@@ -1245,7 +1245,16 @@
                 ],
                 "properties": {
                     "method": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "account",
+                            "email",
+                            "signal",
+                            "sms",
+                            "telegram",
+                            "whatsapp",
+                            "xmpp"
+                        ]
                     },
                     "value": {
                         "type": "string"
@@ -1569,7 +1578,18 @@
                 ],
                 "properties": {
                     "status": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "NOT_LIBRESIGN_FILE",
+                            "DRAFT",
+                            "ABLE_TO_SIGN",
+                            "PARTIAL_SIGNED",
+                            "SIGNED",
+                            "DELETED",
+                            "SIGNING_IN_PROGRESS",
+                            "ERROR",
+                            "UNKNOWN"
+                        ]
                     },
                     "statusCode": {
                         "type": "integer",
@@ -2261,12 +2281,11 @@
                         ]
                     },
                     "signatureFlow": {
-                        "type": "integer",
-                        "format": "int64",
+                        "type": "string",
                         "enum": [
-                            0,
-                            1,
-                            2
+                            "none",
+                            "parallel",
+                            "ordered_numeric"
                         ]
                     },
                     "docmdpLevel": {
