@@ -158,6 +158,24 @@
                     }
                 }
             },
+            "CertificateDataGenerated": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/EngineHandler"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "generated"
+                        ],
+                        "properties": {
+                            "generated": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                ]
+            },
             "CertificateEngineConfigResponse": {
                 "type": "object",
                 "required": [
@@ -193,24 +211,6 @@
                         "type": "string"
                     }
                 }
-            },
-            "CetificateDataGenerated": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/EngineHandler"
-                    },
-                    {
-                        "type": "object",
-                        "required": [
-                            "generated"
-                        ],
-                        "properties": {
-                            "generated": {
-                                "type": "boolean"
-                            }
-                        }
-                    }
-                ]
             },
             "ConfigureCheck": {
                 "type": "object",
@@ -277,7 +277,11 @@
                         "type": "string"
                     },
                     "status": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "issued",
+                            "revoked"
+                        ]
                     },
                     "certificate_type": {
                         "type": "string"
@@ -1315,7 +1319,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/CetificateDataGenerated"
+                                                    "$ref": "#/components/schemas/CertificateDataGenerated"
                                                 }
                                             }
                                         }
