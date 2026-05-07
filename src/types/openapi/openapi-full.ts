@@ -443,7 +443,7 @@ export type paths = {
             cookie?: never;
         };
         /** List files of unauthenticated account */
-        get: operations["id_docs-list-of-unauthenticated-signer"];
+        get: operations["id_docs-list-unauthenticated-signer-documents"];
         put?: never;
         /** Add identification documents to user profile */
         post: operations["id_docs-add-files"];
@@ -612,7 +612,7 @@ export type paths = {
         get?: never;
         put?: never;
         /** Sign a file using file Id */
-        post: operations["sign_file-sign-using-file-id"];
+        post: operations["sign_file-sign-by-file-id"];
         /**
          * Delete sign request
          * @description You can only request exclusion as any sign
@@ -633,7 +633,7 @@ export type paths = {
         get?: never;
         put?: never;
         /** Sign a file using file UUID */
-        post: operations["sign_file-sign-using-uuid"];
+        post: operations["sign_file-sign-by-signer-uuid"];
         delete?: never;
         options?: never;
         head?: never;
@@ -667,7 +667,7 @@ export type paths = {
         get?: never;
         put?: never;
         /** Get code to sign the document using UUID */
-        post: operations["sign_file-get-code-using-uuid"];
+        post: operations["sign_file-request-code-by-signer-uuid"];
         delete?: never;
         options?: never;
         head?: never;
@@ -684,7 +684,7 @@ export type paths = {
         get?: never;
         put?: never;
         /** Get code to sign the document using FileID */
-        post: operations["sign_file-get-code-using-file-id"];
+        post: operations["sign_file-request-code-by-file-id"];
         delete?: never;
         options?: never;
         head?: never;
@@ -717,7 +717,7 @@ export type paths = {
             cookie?: never;
         };
         /** Get preview of signature elements of */
-        get: operations["signature_elements-get-signature-element-preview"];
+        get: operations["signature_elements-preview-signature-element"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1647,7 +1647,7 @@ export type components = {
         };
         IdDocsApprovalListResponse: {
             pagination: components["schemas"]["Pagination"];
-            data: components["schemas"]["File"][] | null;
+            data: components["schemas"]["File"][];
         };
         IdDocsListResponse: {
             pagination: components["schemas"]["Pagination"];
@@ -3532,7 +3532,7 @@ export interface operations {
             };
         };
     };
-    "id_docs-list-of-unauthenticated-signer": {
+    "id_docs-list-unauthenticated-signer-documents": {
         parameters: {
             query?: {
                 /** @description User ID to filter by */
@@ -4045,11 +4045,8 @@ export interface operations {
                     uuid?: string | null;
                     /** @description Visible elements on document */
                     visibleElements?: components["schemas"]["VisibleElement"][] | null;
-                    /**
-                     * @description File object. Supports nodeId, url, base64 or path when creating a new request.
-                     * @default []
-                     */
-                    file?: (components["schemas"]["NewFile"] | unknown[]) | null;
+                    /** @description File object. Supports nodeId, url, base64 or path when creating a new request. */
+                    file?: components["schemas"]["NewFile"];
                     /**
                      * Format: int64
                      * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
@@ -4165,7 +4162,7 @@ export interface operations {
             };
         };
     };
-    "sign_file-sign-using-file-id": {
+    "sign_file-sign-by-file-id": {
         parameters: {
             query?: never;
             header: {
@@ -4300,7 +4297,7 @@ export interface operations {
             };
         };
     };
-    "sign_file-sign-using-uuid": {
+    "sign_file-sign-by-signer-uuid": {
         parameters: {
             query?: never;
             header: {
@@ -4408,7 +4405,7 @@ export interface operations {
             };
         };
     };
-    "sign_file-get-code-using-uuid": {
+    "sign_file-request-code-by-signer-uuid": {
         parameters: {
             query?: never;
             header: {
@@ -4468,7 +4465,7 @@ export interface operations {
             };
         };
     };
-    "sign_file-get-code-using-file-id": {
+    "sign_file-request-code-by-file-id": {
         parameters: {
             query?: never;
             header: {
@@ -4625,7 +4622,7 @@ export interface operations {
             };
         };
     };
-    "signature_elements-get-signature-element-preview": {
+    "signature_elements-preview-signature-element": {
         parameters: {
             query?: never;
             header: {
