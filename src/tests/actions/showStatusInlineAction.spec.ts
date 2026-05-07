@@ -87,11 +87,11 @@ describe('showStatusInlineAction', () => {
 
 	afterEach(() => {
 		// Clean up all mocks after each test
-		vi.unmock('@nextcloud/files')
-		vi.unmock('@nextcloud/initial-state')
-		vi.unmock('@nextcloud/l10n')
-		vi.unmock('../../constants.js')
-		vi.unmock('../../utils/fileStatus.js')
+		vi.doUnmock('@nextcloud/files')
+		vi.doUnmock('@nextcloud/initial-state')
+		vi.doUnmock('@nextcloud/l10n')
+		vi.doUnmock('../../constants.js')
+		vi.doUnmock('../../utils/fileStatus.js')
 	})
 
 	it('has correct id', () => {
