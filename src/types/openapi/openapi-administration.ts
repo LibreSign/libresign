@@ -261,7 +261,7 @@ export type paths = {
          * Update OID
          * @description This endpoint requires admin access
          */
-        post: operations["admin-updateoid"];
+        post: operations["admin-update-oid"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1402,7 +1402,7 @@ export interface operations {
             };
         };
     };
-    "admin-updateoid": {
+    "admin-update-oid": {
         parameters: {
             query?: never;
             header: {
