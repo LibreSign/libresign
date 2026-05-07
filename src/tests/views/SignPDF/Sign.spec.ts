@@ -1404,7 +1404,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				id: 1,
 				type: 'signature',
 				file: { url: '/sig.png', nodeId: 11623 },
-				starred: 0,
+				starred: false,
 				createdAt: '2024-01-01',
 			}
 
@@ -1464,7 +1464,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				id: 1,
 				type: 'signature',
 				file: { url: '/sig.png', nodeId: 11623 },
-				starred: 0,
+				starred: false,
 				createdAt: '2024-01-01',
 			}
 
@@ -1522,7 +1522,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				id: 0,
 				type: '',
 				file: { url: '', nodeId: 0 },
-				starred: 0,
+				starred: false,
 				createdAt: '', // Empty createdAt means no signature
 			}
 
@@ -1560,7 +1560,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				id: 1,
 				type: 'signature',
 				file: { url: '/sig.png', nodeId: 11623 },
-				starred: 0,
+				starred: false,
 				createdAt: '2024-01-01', // Now has a createdAt, signature exists
 			}
 
@@ -1606,7 +1606,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				id: 0,
 				type: '',
 				file: { url: '', nodeId: 0 },
-				starred: 0,
+				starred: false,
 				createdAt: '',
 			}
 
