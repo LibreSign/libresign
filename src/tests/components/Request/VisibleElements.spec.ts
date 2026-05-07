@@ -705,7 +705,7 @@ describe('VisibleElements Component - Business Rules', () => {
 			expect(wrapper.vm.documentNameWithExtension).toBe('contract.pdf')
 		})
 
-		it('handles missing metadata', () => {
+		it('handles missing metadata for document name', () => {
 			filesStore.files[1].name = 'contract'
 			delete filesStore.files[1].metadata
 
