@@ -25,7 +25,11 @@ type TranslationParams = {
 
 type Signer = {
 	email: string
-	identifyMethods?: Array<{ method: string; value: string; mandatory: number }>
+	identifyMethods?: Array<{
+		method: 'account' | 'email' | 'signal' | 'sms' | 'telegram' | 'whatsapp' | 'xmpp'
+		value: string
+		mandatory: number
+	}>
 	localKey?: string
 	signRequestId?: number
 }
@@ -1204,14 +1208,14 @@ describe('files store - critical business rules', () => {
 				}])
 			})
 
-		it('maps numeric signatureFlow to ordered_numeric', async () => {
+		it('sends ordered_numeric signatureFlow unchanged', async () => {
 			const store = useFilesStore()
 			store.selectedFileId = 1
 			store.files[1] = {
 				id: 1,
 				nodeId: 99,
 				name: 'contract.pdf',
-				signatureFlow: 2,
+				signatureFlow: 'ordered_numeric',
 				signers: [],
 				settings: { path: '/files/contract.pdf' },
 			}
