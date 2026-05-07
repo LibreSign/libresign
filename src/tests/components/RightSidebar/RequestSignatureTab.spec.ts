@@ -291,18 +291,6 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.showViewOrderButton).toBe(true)
 		})
 
-		it('shows when signature flow is ordered_numeric', async () => {
-			await updateFile({
-				signatureFlow: 'ordered_numeric',
-				signers: [
-					{ email: 'test1@example.com', signingOrder: 1, signed: [] },
-					{ email: 'test2@example.com', signingOrder: 2, signed: [] },
-				],
-			})
-
-			expect(wrapper.vm.showViewOrderButton).toBe(true)
-		})
-
 		it('hides when signature flow is parallel', async () => {
 			await updateFile({
 				signatureFlow: 'parallel',
@@ -489,12 +477,6 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 
 		it('allows editing when flow is ordered_numeric', () => {
-			expect(wrapper.vm.canEditSigningOrder(wrapper.vm.filesStore.files[1]!.signers[0]!)).toBe(true)
-		})
-
-		it('allows editing when flow is ordered_numeric', async () => {
-			await updateFile({ signatureFlow: 'ordered_numeric' })
-
 			expect(wrapper.vm.canEditSigningOrder(wrapper.vm.filesStore.files[1]!.signers[0]!)).toBe(true)
 		})
 
@@ -963,12 +945,6 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	})
 
 	describe('RULE: syncPreserveOrderWithFile on file change', () => {
-		it('enables preserve order for ordered_numeric flow', async () => {
-			await updateFile({ signatureFlow: 'ordered_numeric' })
-			wrapper.vm.syncPreserveOrderWithFile()
-			expect(wrapper.vm.preserveOrder).toBe(true)
-		})
-
 		it('enables preserve order for ordered_numeric flow', async () => {
 			await updateFile({ signatureFlow: 'ordered_numeric' })
 			wrapper.vm.syncPreserveOrderWithFile()
