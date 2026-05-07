@@ -169,7 +169,7 @@ describe('showStatusInlineAction', () => {
 	})
 
 	describe('iconSvgInline', () => {
-		it('returns empty string when no nodes', () => {
+		it('returns empty string icon when no nodes', () => {
 			const result = action.iconSvgInline({ nodes: [] })
 			expect(result).toBe('')
 		})
