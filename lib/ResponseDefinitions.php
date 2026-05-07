@@ -623,7 +623,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignIdDocsApprovalListResponse = array{
  *     pagination: LibresignPagination,
- *     data: null|list<LibresignFile>,
+ *     data: list<LibresignFile>,
  * }
  * @psalm-type LibresignCreateToSignPdfReference = array{
  *     url: string,
