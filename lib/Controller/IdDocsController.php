@@ -73,7 +73,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 			} else {
 				throw new Exception('Invalid data');
 			}
-			return new DataResponse([], Http::STATUS_OK);
+			return new DataResponse();
 		} catch (\Exception $exception) {
 			$exceptionData = json_decode($exception->getMessage());
 			if (isset($exceptionData->file)) {
@@ -122,7 +122,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 			} else {
 				throw new Exception('Invalid data');
 			}
-			return new DataResponse([], Http::STATUS_OK);
+			return new DataResponse();
 		} catch (\Exception $exception) {
 			return new DataResponse(
 				[
