@@ -90,10 +90,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null, $async);
 	}
 
-	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
-		return $this->signByFileId($fileId, $method, $elements, $identifyValue, $token, $async);
-	}
-
 	/**
 	 * Sign a file using file UUID
 	 *
@@ -117,10 +113,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function signBySignerUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
 		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async);
-	}
-
-	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
-		return $this->signBySignerUuid($uuid, $method, $elements, $identifyValue, $token, $async);
 	}
 
 	/**
@@ -306,10 +298,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		return $this->getCode($signRequest);
 	}
 
-	public function getCodeUsingUuid(string $uuid, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
-		return $this->requestCodeBySignerUuid($uuid, $identifyMethod, $signMethod, $identify);
-	}
-
 	/**
 	 * Get code to sign the document using FileID
 	 *
@@ -335,10 +323,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
 		return $this->getCode($signRequest);
-	}
-
-	public function getCodeUsingFileId(int $fileId, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
-		return $this->requestCodeByFileId($fileId, $identifyMethod, $signMethod, $identify);
 	}
 
 	/**
