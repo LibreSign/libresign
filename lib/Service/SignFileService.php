@@ -45,6 +45,7 @@ use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -969,7 +970,10 @@ class SignFileService {
 	}
 
 	private function buildValidationUrl(string $uuid): string {
-		$validationSite = trim($this->appConfig->getValueString(Application::APP_ID, 'validation_site', ''));
+		$footerPolicy = FooterPolicyValue::normalize(
+			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
+		);
+		$validationSite = trim($footerPolicy['validationSite']);
 		if ($validationSite !== '') {
 			return rtrim($validationSite, '/') . '/' . $uuid;
 		}

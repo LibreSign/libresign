@@ -51,6 +51,9 @@ use OCA\Libresign\Service\PdfSignatureDetectionService;
 use OCA\Libresign\Service\PfxProvider;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SigningCoordinatorService;
@@ -125,6 +128,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
 	private SignRequestService&MockObject $signRequestService;
 	private PolicyService&MockObject $policyService;
+	/** @var array<string, mixed> */
+	private array $policyValues = [];
 
 	public function setUp(): void {
 		parent::setUp();
@@ -180,6 +185,18 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
 		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyValues = [
+			CollectMetadataPolicy::KEY => false,
+			FooterPolicy::KEY => FooterPolicyValue::encode(FooterPolicyValue::defaults()),
+		];
+		$this->policyService
+			->method('resolve')
+			->willReturnCallback(function (string|\BackedEnum $policyKey): ResolvedPolicy {
+				$key = $policyKey instanceof \BackedEnum ? (string)$policyKey->value : $policyKey;
+				return (new ResolvedPolicy())
+					->setPolicyKey($key)
+					->setEffectiveValue($this->policyValues[$key] ?? null);
+			});
 	}
 
 	public function testClickToSignUsesShortLivedCertificate(): void {
@@ -1154,13 +1171,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[DataProvider('providerStoreUserMetadata')]
 	public function testStoreUserMetadata(bool $collectMetadata, ?array $previous, array $new, ?array $expected): void {
 		$signRequest = new \OCA\Libresign\Db\SignRequest();
-		$this->policyService
-			->expects($this->any())
-			->method('resolve')
-			->willReturn(
-				(new ResolvedPolicy())
-					->setEffectiveValue($collectMetadata)
-			);
+		$this->policyValues[CollectMetadataPolicy::KEY] = $collectMetadata;
 		$signRequest->setMetadata($previous);
 		$this->getService()
 			->setSignRequest($signRequest)
@@ -1241,7 +1252,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetSignatureParamsUsesCustomValidationSite(): void {
 		$service = $this->getService(['readCertificate']);
 
-		$this->appConfig->setValueString(Application::APP_ID, 'validation_site', 'https://validator.example/path/');
+		$this->policyValues[FooterPolicy::KEY] = FooterPolicyValue::encode([
+			...FooterPolicyValue::defaults(),
+			'validationSite' => 'https://validator.example/path/',
+		]);
 
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		$libreSignFile->setUuid('uuid');

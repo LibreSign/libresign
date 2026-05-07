@@ -109,7 +109,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 
 		$signatureTextService = new SignatureTextService(
-			$this->appConfig,
 			\OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID),
 			\OCP\Server::get(IDateTimeZone::class),
 			\OCP\Server::get(IRequest::class),

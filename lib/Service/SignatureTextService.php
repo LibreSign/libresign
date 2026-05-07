@@ -14,15 +14,17 @@ use Imagick;
 use ImagickDraw;
 use ImagickPixel;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy as SignatureTextPolicyProvider;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
 use OCA\Libresign\Vendor\Endroid\QrCode\QrCode;
 use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
 use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
-use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy as SignatureTextPolicyProvider;
 use OCA\Libresign\Vendor\Twig\Environment;
 use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
 use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
@@ -550,7 +552,10 @@ class SignatureTextService {
 	}
 
 	private function buildValidationUrl(string $uuid): string {
-		$validationSite = trim($this->appConfig->getValueString(Application::APP_ID, 'validation_site', ''));
+		$footerPolicy = FooterPolicyValue::normalize(
+			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
+		);
+		$validationSite = trim($footerPolicy['validationSite']);
 		if ($validationSite !== '') {
 			return rtrim($validationSite, '/') . '/' . $uuid;
 		}
