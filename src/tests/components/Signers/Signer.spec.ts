@@ -23,7 +23,7 @@ type FileSigner = {
 }
 
 type SelectedFile = {
-	signatureFlow?: string | number
+	signatureFlow?: string
 	signers: FileSigner[]
 }
 
@@ -142,23 +142,23 @@ describe('Signer', () => {
 		vi.clearAllMocks()
 	})
 
-	describe('RULE: signatureFlow maps numeric values to string constants', () => {
+	describe('RULE: signatureFlow uses string contract values only', () => {
 		it('returns ordered_numeric for value 2', () => {
-			filesStore.selectedFile = { signatureFlow: 2, signers: [{}] }
+			filesStore.selectedFile = { signatureFlow: 'ordered_numeric', signers: [{}] }
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
 		})
 
 		it('returns parallel for value 1', () => {
-			filesStore.selectedFile = { signatureFlow: 1, signers: [{}] }
+			filesStore.selectedFile = { signatureFlow: 'parallel', signers: [{}] }
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
 
 		it('returns none for value 0', () => {
-			filesStore.selectedFile = { signatureFlow: 0, signers: [{}] }
+			filesStore.selectedFile = { signatureFlow: 'none', signers: [{}] }
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.signatureFlow).toBe('none')
