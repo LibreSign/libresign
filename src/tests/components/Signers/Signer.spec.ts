@@ -143,21 +143,21 @@ describe('Signer', () => {
 	})
 
 	describe('RULE: signatureFlow uses string contract values only', () => {
-		it('returns ordered_numeric for value 2', () => {
+		it('returns ordered_numeric for ordered_numeric flow', () => {
 			filesStore.selectedFile = { signatureFlow: 'ordered_numeric', signers: [{}] }
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
 		})
 
-		it('returns parallel for value 1', () => {
+		it('returns parallel for parallel flow', () => {
 			filesStore.selectedFile = { signatureFlow: 'parallel', signers: [{}] }
 			wrapper = createWrapper()
 
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
 
-		it('returns none for value 0', () => {
+		it('returns none for none flow', () => {
 			filesStore.selectedFile = { signatureFlow: 'none', signers: [{}] }
 			wrapper = createWrapper()
 
