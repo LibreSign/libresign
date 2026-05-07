@@ -86,8 +86,12 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
+	public function signByFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
 		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null, $async);
+	}
+
+	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
+		return $this->signByFileId($fileId, $method, $elements, $identifyValue, $token, $async);
 	}
 
 	/**
@@ -111,8 +115,12 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
+	public function signBySignerUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
 		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async);
+	}
+
+	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
+		return $this->signBySignerUuid($uuid, $method, $elements, $identifyValue, $token, $async);
 	}
 
 	/**
@@ -289,13 +297,17 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}/code', requirements: ['apiVersion' => '(v1)'])]
-	public function getCodeUsingUuid(string $uuid, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
+	public function requestCodeBySignerUuid(string $uuid, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId($uuid);
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
 		return $this->getCode($signRequest);
+	}
+
+	public function getCodeUsingUuid(string $uuid, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
+		return $this->requestCodeBySignerUuid($uuid, $identifyMethod, $signMethod, $identify);
 	}
 
 	/**
@@ -316,13 +328,17 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}/code', requirements: ['apiVersion' => '(v1)'])]
-	public function getCodeUsingFileId(int $fileId, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
+	public function requestCodeByFileId(int $fileId, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
 		return $this->getCode($signRequest);
+	}
+
+	public function getCodeUsingFileId(int $fileId, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
+		return $this->requestCodeByFileId($fileId, $identifyMethod, $signMethod, $identify);
 	}
 
 	/**
