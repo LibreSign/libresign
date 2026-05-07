@@ -54,7 +54,7 @@ class SignerElementsService {
 				'nodeId' => $element->getNodeId()
 			],
 			'userId' => $element->getUserId(),
-			'starred' => $element->getStarred() ? 1 : 0,
+			'starred' => (bool)$element->getStarred(),
 			'createdAt' => $element->getCreatedAt()->format('Y-m-d H:i:s'),
 		];
 	}
@@ -80,7 +80,7 @@ class SignerElementsService {
 					]),
 					'nodeId' => $element->getNodeId()
 				],
-				'starred' => $element->getStarred() ? 1 : 0,
+				'starred' => (bool)$element->getStarred(),
 				'userId' => $element->getUserId(),
 				'createdAt' => $element->getCreatedAt()->format('Y-m-d H:i:s'),
 			];
@@ -128,7 +128,7 @@ class SignerElementsService {
 					]),
 					'nodeId' => $fileElement->getId(),
 				],
-				'starred' => 0,
+				'starred' => false,
 				'createdAt' => (new \DateTime())->setTimestamp((int)$timestamp)->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
 			];
 		}
