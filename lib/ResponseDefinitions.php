@@ -579,7 +579,7 @@ namespace OCA\Libresign;
  *         nodeId: int,
  *     },
  *     userId: string,
- *     starred: 0|1,
+ *     starred: bool,
  *     createdAt: string,
  * }
  * @psalm-type LibresignUserElementsResponse = array{
