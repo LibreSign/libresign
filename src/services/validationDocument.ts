@@ -99,7 +99,7 @@ function isSignerStatus(value: unknown): value is SignerDetailRecord['status'] {
 }
 
 function isValidationSignatureFlow(value: unknown): value is ValidationSignatureFlow {
-	return value === 0 || value === 1 || value === 2
+	return value === 'none' || value === 'parallel' || value === 'ordered_numeric'
 }
 
 function normalizeValidationSignatureFlow(value: unknown): ValidationSignatureFlow | null {
