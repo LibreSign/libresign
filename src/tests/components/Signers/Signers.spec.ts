@@ -162,7 +162,7 @@ describe('Signers', () => {
 			expect(wrapper.vm.isOrderedNumeric).toBe(false)
 		})
 
-		it('returns true for numeric value 2', () => {
+		it('returns true for ordered_numeric flow', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'ordered_numeric',
 				signers: [],
@@ -172,7 +172,7 @@ describe('Signers', () => {
 			expect(wrapper.vm.isOrderedNumeric).toBe(true)
 		})
 
-		it('returns false for numeric value 1 (parallel)', () => {
+		it('returns false for parallel flow', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'parallel',
 				signers: [],
@@ -182,7 +182,7 @@ describe('Signers', () => {
 			expect(wrapper.vm.isOrderedNumeric).toBe(false)
 		})
 
-		it('returns false for numeric value 0 (none)', () => {
+		it('returns false for none flow', () => {
 			filesStore.selectedFile = {
 				signatureFlow: 'none',
 				signers: [],
