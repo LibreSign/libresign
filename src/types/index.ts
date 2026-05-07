@@ -45,7 +45,7 @@ type ApiOcsResponseData<TOperation, TStatusCode extends keyof ApiOperationRespon
 	= ApiOcsJsonData<ApiOperationResponses<TOperation>[TStatusCode]>
 
 export type SignatureFlowMode = ApiComponents['schemas']['DetailedFileResponse']['signatureFlow']
-export type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
+export type SignatureFlowValue = SignatureFlowMode
 export type NewFilePayload = ApiComponents['schemas']['NewFile']
 export type IdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
 export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']
