@@ -45,7 +45,7 @@ use OCP\ISession;
 use UnexpectedValueException;
 
 /**
- * @psalm-import-type LibresignCetificateDataGenerated from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignCertificateDataGenerated from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignCertificateEngineConfigResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignCertificatePolicyResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignConfigureCheck from \OCA\Libresign\ResponseDefinitions
@@ -225,7 +225,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * Return all data of root certificate and a field called `generated` with a boolean value.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignCetificateDataGenerated, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignCertificateDataGenerated, array{}>
 	 *
 	 * 200: OK
 	 */
