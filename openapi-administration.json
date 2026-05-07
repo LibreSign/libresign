@@ -2460,7 +2460,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate-policy/oid": {
             "post": {
-                "operationId": "admin-updateoid",
+                "operationId": "admin-update-oid",
                 "summary": "Update OID",
                 "description": "This endpoint requires admin access",
                 "tags": [
@@ -3748,7 +3748,7 @@
                 "summary": "List CRL entries with pagination and filters",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "crl_api"
+                    "crl"
                 ],
                 "security": [
                     {
@@ -3924,7 +3924,7 @@
                 "summary": "Revoke a certificate by serial number",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "crl_api"
+                    "crl"
                 ],
                 "security": [
                     {
