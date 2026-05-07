@@ -2071,12 +2071,7 @@
                         "type": "string"
                     },
                     "starred": {
-                        "type": "integer",
-                        "format": "int64",
-                        "enum": [
-                            0,
-                            1
-                        ]
+                        "type": "boolean"
                     },
                     "createdAt": {
                         "type": "string"
