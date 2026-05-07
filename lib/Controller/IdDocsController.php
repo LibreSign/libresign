@@ -184,15 +184,6 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 		}
 	}
 
-	public function listOfUnauthenticatedSigner(
-		?string $userId = null,
-		?int $signRequestId = null,
-		?int $page = null,
-		?int $length = null,
-	): DataResponse {
-		return $this->listUnauthenticatedSignerDocuments($userId, $signRequestId, $page, $length);
-	}
-
 	/**
 	 * List files that need to be approved
 	 *
