@@ -775,7 +775,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[RequireManager]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function deleteAllRequestSignatureUsingFileId(int $fileId, bool $deleteFile = true): DataResponse {
+	public function deleteFile(int $fileId, bool $deleteFile = true): DataResponse {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
