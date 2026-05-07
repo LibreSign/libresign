@@ -39,6 +39,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[\Override]
 	public function setUp(): void {
+		parent::setUp();
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
@@ -473,6 +474,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->docMdpConfigService,
 			$signatureTextService,
 			$this->signatureBackgroundService,
+			$this->policyService,
 			$this->certificateEngineFactory,
 		);
 
