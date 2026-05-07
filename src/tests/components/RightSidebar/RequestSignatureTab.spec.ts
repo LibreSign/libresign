@@ -324,7 +324,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.showSaveButton).toBe(true)
 		})
 
-		it('hides when user cannot save', async () => {
+		it('hides save button when user cannot save', async () => {
 			await updateFile({
 				status: FILE_STATUS.SIGNED,
 				signers: [{ email: 'test@example.com', signed: ['sig'] }],
@@ -361,7 +361,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.showRequestButton).toBe(false)
 		})
 
-		it('hides when user cannot save', async () => {
+		it('hides request button when user cannot save', async () => {
 			filesStore.canRequestSign = false
 			await updateFile({
 				status: FILE_STATUS.DRAFT,
