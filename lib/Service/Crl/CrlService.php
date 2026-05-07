@@ -13,6 +13,7 @@ use DateTime;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CertificateEngineType;
 use OCA\Libresign\Enum\CRLReason;
+use OCA\Libresign\Enum\CRLStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\Certificate\FileService;
 use Psr\Log\LoggerInterface;
@@ -328,7 +329,7 @@ class CrlService {
 			'id' => $entity->getId(),
 			'serial_number' => $entity->getSerialNumber(),
 			'owner' => $entity->getOwner(),
-			'status' => $entity->getStatus(),
+			'status' => CRLStatus::from($entity->getStatus())->value,
 			'certificate_type' => $entity->getCertificateType(),
 			'engine' => $entity->getEngine(),
 			'instance_id' => $entity->getInstanceId(),
