@@ -408,11 +408,6 @@ const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
 	let flow = file?.signatureFlow
 
-	if (typeof flow === 'number') {
-		const flowMap: Record<number, string> = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-		return flowMap[flow]
-	}
-
 	if (flow && flow !== 'none') {
 		return flow
 	}
@@ -452,7 +447,7 @@ const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
 })
 
 function normalizeSignatureFlow(flow: unknown): SignatureFlowValue | null {
-	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric' || flow === 0 || flow === 1 || flow === 2) {
+	if (flow === 'none' || flow === 'parallel' || flow === 'ordered_numeric') {
 		return flow
 	}
 	return null
@@ -803,7 +798,7 @@ function syncPreserveOrderWithFile() {
 
 	const flow = file.signatureFlow
 	const normalizedFlow = normalizeSignatureFlow(flow)
-	preserveOrder.value = (normalizedFlow === 'ordered_numeric' || normalizedFlow === 2) && !isAdminFlowForced.value
+	preserveOrder.value = normalizedFlow === 'ordered_numeric' && !isAdminFlowForced.value
 }
 
 async function ensureCurrentFileDetail(force = false) {
