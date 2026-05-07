@@ -194,10 +194,6 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		return $response;
 	}
 
-	public function getSignatureElementPreview(int $nodeId) {
-		return $this->previewSignatureElement($nodeId);
-	}
-
 	/**
 	 * Get signature element of signer
 	 *
