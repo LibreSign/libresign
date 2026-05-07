@@ -11,7 +11,6 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use DateTime;
 use OC\User\NoUserException;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;

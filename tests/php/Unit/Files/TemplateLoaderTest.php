@@ -188,11 +188,8 @@ final class TemplateLoaderTest extends TestCase {
 		$this->identifyMethodService
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('none');
-		$this->docMdpConfigService
-			->method('getConfig')
+		$this->policyService
+			->method('resolveKnownPolicies')
 			->willReturn([]);
 		$user = $this->createMock(IUser::class);
 		$this->userSession
