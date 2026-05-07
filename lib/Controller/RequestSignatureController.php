@@ -20,6 +20,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -76,8 +77,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
-	public function request(
+	public function requestSignature(
 		array $signers = [],
 		string $name = '',
 		array $settings = [],
@@ -145,8 +147,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
-	public function updateSign(
+	public function updateSignatureRequest(
 		?array $signers = [],
 		?string $uuid = null,
 		?array $visibleElements = null,
@@ -289,8 +292,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}', requirements: ['apiVersion' => '(v1)'])]
-	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $signRequestId): DataResponse {
+	public function removeSigner(int $fileId, int $signRequestId): DataResponse {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -332,8 +336,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function deleteAllRequestSignatureUsingFileId(int $fileId): DataResponse {
+	public function deleteSignatureRequest(int $fileId): DataResponse {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
