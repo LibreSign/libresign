@@ -125,6 +125,19 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		}
 	}
 
+	public function request(
+		array $signers = [],
+		string $name = '',
+		array $settings = [],
+		array $file = [],
+		array $files = [],
+		?string $callback = null,
+		?int $status = 1,
+		?string $signatureFlow = null,
+	): DataResponse {
+		return $this->requestSignature($signers, $name, $settings, $file, $files, $callback, $status, $signatureFlow);
+	}
+
 	/**
 	 * Updates signatures data
 	 *
@@ -133,7 +146,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignNewSigner[]|null $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format.
 	 * @param string|null $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
-	 * @param LibresignNewFile|array<empty>|null $file File object. Supports nodeId, url, base64 or path when creating a new request.
+	 * @param LibresignNewFile|null $file File object. Supports nodeId, url, base64 or path when creating a new request.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
 	 * @param string|null $name The name of file to sign
@@ -153,7 +166,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		?array $signers = [],
 		?string $uuid = null,
 		?array $visibleElements = null,
-		?array $file = [],
+		?array $file = null,
 		?int $status = null,
 		?string $signatureFlow = null,
 		?string $name = null,
@@ -163,6 +176,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		try {
 			$user = $this->userSession->getUser();
 			$signers = is_array($signers) ? $signers : [];
+			$file = is_array($file) ? $file : [];
 
 			if (empty($uuid)) {
 				return $this->createSignatureRequest(
@@ -211,6 +225,30 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+	}
+
+	public function updateSign(
+		?array $signers = [],
+		?string $uuid = null,
+		?array $visibleElements = null,
+		?array $file = null,
+		?int $status = null,
+		?string $signatureFlow = null,
+		?string $name = null,
+		array $settings = [],
+		array $files = [],
+	): DataResponse {
+		return $this->updateSignatureRequest(
+			$signers,
+			$uuid,
+			$visibleElements,
+			$file,
+			$status,
+			$signatureFlow,
+			$name,
+			$settings,
+			$files,
+		);
 	}
 
 	/**
