@@ -1614,11 +1614,7 @@ export type components = {
                 nodeId: number;
             };
             userId: string;
-            /**
-             * Format: int64
-             * @enum {integer}
-             */
-            starred: 0 | 1;
+            starred: boolean;
             createdAt: string;
         };
         UserElementsMessageResponse: {
