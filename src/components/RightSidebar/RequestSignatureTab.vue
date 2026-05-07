@@ -355,11 +355,11 @@ type PollingStatusData = {
 	statusText?: string
 	progress?: components['schemas']['ProgressPayload']
 }
-type RequestSignatureErrorData = operations['request_signature-request']['responses'][422]['content']['application/json']['ocs']['data']
-type UpdateSignatureErrorData = operations['request_signature-update-sign']['responses'][422]['content']['application/json']['ocs']['data']
+type RequestSignatureErrorData = operations['request_signature-request-signature']['responses'][422]['content']['application/json']['ocs']['data']
+type UpdateSignatureErrorData = operations['request_signature-update-signature-request']['responses'][422]['content']['application/json']['ocs']['data']
 type DeleteRequestSignatureErrorData =
-	| operations['request_signature-delete-one-request-signature-using-file-id']['responses'][401]['content']['application/json']['ocs']['data']
-	| operations['request_signature-delete-one-request-signature-using-file-id']['responses'][422]['content']['application/json']['ocs']['data']
+	| operations['request_signature-remove-signer']['responses'][401]['content']['application/json']['ocs']['data']
+	| operations['request_signature-remove-signer']['responses'][422]['content']['application/json']['ocs']['data']
 type NotifySignerErrorData = operations['notify-signer']['responses'][401]['content']['application/json']['ocs']['data']
 type NotifySignerSuccess = operations['notify-signer']['responses'][200]['content']['application/json']
 type OcsErrorData = RequestSignatureErrorData | UpdateSignatureErrorData | DeleteRequestSignatureErrorData | NotifySignerErrorData
