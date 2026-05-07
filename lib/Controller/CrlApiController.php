@@ -14,6 +14,7 @@ use OCA\Libresign\Service\Crl\CrlService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -51,6 +52,7 @@ class CrlApiController extends AEnvironmentAwareController {
 	 * 200: CRL entries retrieved successfully
 	 */
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['crl'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/crl/list', requirements: ['apiVersion' => '(v1)'])]
 	public function list(
 		?int $page = null,
@@ -98,6 +100,7 @@ class CrlApiController extends AEnvironmentAwareController {
 	 * 404: Certificate not found
 	 */
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['crl'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/crl/revoke', requirements: ['apiVersion' => '(v1)'])]
 	public function revoke(
 		string $serialNumber,
