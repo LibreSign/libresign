@@ -152,7 +152,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
-	public function listOfUnauthenticatedSigner(
+	public function listUnauthenticatedSignerDocuments(
 		?string $userId = null,
 		?int $signRequestId = null,
 		?int $page = null,
@@ -182,6 +182,15 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 				Http::STATUS_NOT_FOUND
 			);
 		}
+	}
+
+	public function listOfUnauthenticatedSigner(
+		?string $userId = null,
+		?int $signRequestId = null,
+		?int $page = null,
+		?int $length = null,
+	): DataResponse {
+		return $this->listUnauthenticatedSignerDocuments($userId, $signRequestId, $page, $length);
 	}
 
 	/**
