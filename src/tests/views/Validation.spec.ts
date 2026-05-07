@@ -380,7 +380,7 @@ describe('Validation.vue - Business Logic', () => {
 			expect(wrapper.vm.getValidityStatusAtSigning(signer)).toBe('unknown')
 		})
 
-		it('returns unknown when valid_to is missing', () => {
+		it('returns unknown when valid_to is missing at signing', () => {
 			const signer = {
 				signed: '2024-06-01T00:00:00Z',
 				valid_from: '2024-01-01T00:00:00Z',
