@@ -666,7 +666,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 422: Validation error
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate-policy/oid', requirements: ['apiVersion' => '(v1)'])]
-	public function updateOID(string $oid): DataResponse {
+	public function updateOid(string $oid): DataResponse {
 		try {
 			$this->certificatePolicyService->updateOid($oid);
 			return new DataResponse(
