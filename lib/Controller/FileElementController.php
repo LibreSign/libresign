@@ -57,7 +57,7 @@ class FileElementController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file-element/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function post(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+	public function createVisibleElement(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
 			'type' => $type,
@@ -108,8 +108,8 @@ class FileElementController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
-	public function patch(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
-		return $this->post($uuid, $signRequestId, $elementId, $fileId, $type, $metadata, $coordinates);
+	public function updateVisibleElement(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+		return $this->createVisibleElement($uuid, $signRequestId, $elementId, $fileId, $type, $metadata, $coordinates);
 	}
 
 	/**
@@ -127,7 +127,7 @@ class FileElementController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
-	public function delete(string $uuid, int $elementId): DataResponse {
+	public function deleteVisibleElement(string $uuid, int $elementId): DataResponse {
 		try {
 			$this->validateHelper->validateExistingFile([
 				'uuid' => $uuid,
