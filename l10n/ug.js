@@ -220,7 +220,6 @@ OC.L10N.register(
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "ئىمزا قويغۇچىنىڭ ئىمزا قويۇش تەلىپىنى ئەۋەتكەن ۋاقتى (ۋاقىت كۆرسىتىلمىگەن، يەرلىك ۋاقىت رايونى بويىچە).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "ئىمزا قويغۇچىنىڭ ئىمزا قويۇش تەلىپىنى ئەۋەتكەن ۋاقتى ۋە كۈنى (ئۆزىنىڭ يەرلىك ۋاقتى بويىچە).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "ئىمزا قويغۇچىنىڭ ئىمزا قويۇش تەلىپى ئەۋەتىلگەن ۋاقىتتىكى ۋاقىت رايونى (ئۆزىنىڭ يەرلىك ۋاقىت رايونىدا).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "ئىمزا سېرۋېردا قوللىنىلغان ۋاقىت ۋە كۈن. Twig ئارقىلىق فورماتلىغىلى بولمايدۇ.",
     "Common Name (CN) used to identify the document signer." : "ھۆججەتكە ئىمزا قويغۇچىنى ئېنىقلاش ئۈچۈن ئىشلىتىلىدىغان ئورتاق ئىسىم (CN).",
     "The signer's email is optional and can be left blank." : "ئىمزا قويغۇچىنىڭ ئېلخەت ئادرېسى ئىختىيارىي بولۇپ، بوش قالدۇرۇلسىمۇ بولىدۇ.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "ئىمزا قويغۇچىنىڭ كىملىكىنى ئېنىقلاش ئۈچۈن ئىشلىتىلىدىغان بىردىنبىر ئۇچۇرلار (مەسىلەن، ئېلخەت، تېلېفون نومۇرى ياكى ئىشلەتكۈچى ئىسمى).",

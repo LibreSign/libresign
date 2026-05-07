@@ -189,7 +189,6 @@ OC.L10N.register(
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Дата, коли підписант надіслав запит на підписання (без часу, у своєму часовому поясі).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Дата і час, коли підписант надіслав запит на підписання (у своєму часовому поясі).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Часовий пояс підписанта під час надсилання запиту на підпис (у його місцевому часовому поясі).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "Дата і час, коли підпис було застосовано на сервері. Не може бути відформатовано за допомогою Twig.",
     "Common Name (CN) used to identify the document signer." : "Загальне ім'я (CN) використовується для ідентифікації підписанта документа.",
     "The signer's email is optional and can be left blank." : "Електронна пошта підписанта не є обов'язковою і може бути залишена порожньою.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Унікальна інформація, що використовується для ідентифікації підписанта (наприклад, електронна пошта, номер телефону або ім'я користувача).",

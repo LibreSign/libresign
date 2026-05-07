@@ -220,7 +220,6 @@ OC.L10N.register(
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Date when the signer sent the request to sign (without time, in their local time zone).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Date and time when the signer sent the request to sign (in their local time zone).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Time zone of signer when sent the request to sign (in their local time zone).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "Date and time when the signature was applied on the server. Cannot be formatted using Twig.",
     "Common Name (CN) used to identify the document signer." : "Common Name (CN) used to identify the document signer.",
     "The signer's email is optional and can be left blank." : "The signer's email is optional and can be left blank.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Unique information used to identify the signer (such as email, phone number, or username).",

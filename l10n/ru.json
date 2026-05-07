@@ -272,7 +272,6 @@
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Дата отправки подписантом запроса на подписание (без времени, в его часовом поясе).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Дата и время отправки подписантом запроса на подписание (в его часовом поясе).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Часовой пояс подписанта при отправке запроса на подписание.",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "Дата и время проставления подписи на сервере. Не может быть отформатировано с помощью Twig.",
     "Common Name (CN) used to identify the document signer." : "Общее имя (CN), используемое для идентификации подписанта документа.",
     "The signer's email is optional and can be left blank." : "Адрес электронной почты подписанта необязателен и может быть оставлен пустым.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Уникальная информация, используемая для идентификации подписанта (например, электронная почта, номер телефона или имя пользователя).",

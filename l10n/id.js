@@ -247,7 +247,6 @@ OC.L10N.register(
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Tanggal saat penandatangan mengirim permintaan untuk menandatangani (tanpa waktu, dalam zona waktu lokal mereka).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Tanggal dan waktu saat penandatangan mengirim permintaan untuk menandatangani (dalam zona waktu lokal mereka).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Zona waktu penandatangan saat mengirim permintaan untuk menandatangani (dalam zona waktu lokal mereka).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "Tanggal dan waktu saat tanda tangan diterapkan di server. Tidak dapat diformat menggunakan Twig.",
     "Common Name (CN) used to identify the document signer." : "Nama Umum (CN) yang digunakan untuk mengidentifikasi penandatangan dokumen.",
     "The signer's email is optional and can be left blank." : "Email penandatangan bersifat opsional dan boleh dikosongkan.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Informasi unik yang digunakan untuk mengidentifikasi penandatangan (seperti email, nomor telepon, atau nama pengguna).",

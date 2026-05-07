@@ -187,7 +187,6 @@ OC.L10N.register(
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Ημερομηνία που ο υπογράφων έστειλε το αίτημα υπογραφής (χωρίς ώρα, στη τοπική ζώνη ώρας τους).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Ημερομηνία και ώρα που ο υπογράφων έστειλε το αίτημα υπογραφής (στη τοπική ζώνη ώρας τους).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Ζώνη ώρας του υπογράφοντα όταν στάλθηκε το αίτημα υπογραφής (στη τοπική ζώνη ώρας τους).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "Ημερομηνία και ώρα που εφαρμόστηκε η υπογραφή στον διακομιστή. Δεν μπορεί να μορφοποιηθεί χρησιμοποιώντας Twig.",
     "Common Name (CN) used to identify the document signer." : "Κοινό Όνομα (CN) που χρησιμοποιείται για την ταυτοποίηση του υπογράφοντος του εγγράφου.",
     "The signer's email is optional and can be left blank." : "Το email του υπογράφοντος είναι προαιρετικό και μπορεί να μείνει κενό.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Μοναδικές πληροφορίες που χρησιμοποιούνται για την ταυτοποίηση του υπογράφοντος (όπως email, αριθμός τηλεφώνου ή όνομα χρήστη).",

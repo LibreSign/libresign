@@ -197,7 +197,6 @@ OC.L10N.register(
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Fecha en la cual el firmante envió la solicitud para firmar (sin hora, en su zona horaria local).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Fecha y hora en la cual el firmante envió la solicitud para firmar (en su zona horaria local).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Zona horaria del firmante que envió la solicitud para firmar (en su zona horaria local).",
-    "Date and time when the signature was applied on the server. Cannot be formatted using Twig." : "Fecha y hora en la cual la firma fue aplicada en el servidor. No puede ser formateada utilizando Twig.",
     "Common Name (CN) used to identify the document signer." : "Nombre común (CN) utilizado para identificar al firmante del documento.",
     "The signer's email is optional and can be left blank." : "El correo electrónico del firmante es opcional y puede ser dejado en blanco.",
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Información única que se utilizó para identificar al firmante (tal como el correo electrónico, número telefónico o, nombre de usuario).",
