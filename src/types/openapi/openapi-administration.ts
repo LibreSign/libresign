@@ -528,6 +528,9 @@ export type components = {
             };
             version: string;
         };
+        CertificateDataGenerated: components["schemas"]["EngineHandler"] & {
+            generated: boolean;
+        };
         CertificateEngineConfigResponse: {
             engine: string;
             identify_methods: components["schemas"]["IdentifyMethodSetting"][];
@@ -536,9 +539,6 @@ export type components = {
             /** @enum {string} */
             status: "success";
             CPS: string;
-        };
-        CetificateDataGenerated: components["schemas"]["EngineHandler"] & {
-            generated: boolean;
         };
         ConfigureCheck: {
             message: string;
@@ -553,7 +553,8 @@ export type components = {
             id: number;
             serial_number: string;
             owner: string;
-            status: string;
+            /** @enum {string} */
+            status: "issued" | "revoked";
             certificate_type: string;
             engine: string;
             instance_id: string | null;
@@ -919,7 +920,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["CetificateDataGenerated"];
+                            data: components["schemas"]["CertificateDataGenerated"];
                         };
                     };
                 };
