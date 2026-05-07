@@ -1119,7 +1119,6 @@
                     },
                     "data": {
                         "type": "array",
-                        "nullable": true,
                         "items": {
                             "$ref": "#/components/schemas/File"
                         }
@@ -5993,7 +5992,7 @@
                 }
             },
             "get": {
-                "operationId": "id_docs-list-of-unauthenticated-signer",
+                "operationId": "id_docs-list-unauthenticated-signer-documents",
                 "summary": "List files of unauthenticated account",
                 "tags": [
                     "id_docs"
@@ -7121,18 +7120,9 @@
                                         }
                                     },
                                     "file": {
+                                        "$ref": "#/components/schemas/NewFile",
                                         "nullable": true,
-                                        "default": [],
-                                        "description": "File object. Supports nodeId, url, base64 or path when creating a new request.",
-                                        "anyOf": [
-                                            {
-                                                "$ref": "#/components/schemas/NewFile"
-                                            },
-                                            {
-                                                "type": "array",
-                                                "maxItems": 0
-                                            }
-                                        ]
+                                        "description": "File object. Supports nodeId, url, base64 or path when creating a new request."
                                     },
                                     "status": {
                                         "type": "integer",
@@ -7561,7 +7551,7 @@
                 }
             },
             "post": {
-                "operationId": "sign_file-sign-using-file-id",
+                "operationId": "sign_file-sign-by-file-id",
                 "summary": "Sign a file using file Id",
                 "tags": [
                     "signing"
@@ -7717,7 +7707,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/uuid/{uuid}": {
             "post": {
-                "operationId": "sign_file-sign-using-uuid",
+                "operationId": "sign_file-sign-by-signer-uuid",
                 "summary": "Sign a file using file UUID",
                 "tags": [
                     "signing"
@@ -7963,7 +7953,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/uuid/{uuid}/code": {
             "post": {
-                "operationId": "sign_file-get-code-using-uuid",
+                "operationId": "sign_file-request-code-by-signer-uuid",
                 "summary": "Get code to sign the document using UUID",
                 "tags": [
                     "signing"
@@ -8107,7 +8097,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/code": {
             "post": {
-                "operationId": "sign_file-get-code-using-file-id",
+                "operationId": "sign_file-request-code-by-file-id",
                 "summary": "Get code to sign the document using FileID",
                 "tags": [
                     "signing"
@@ -8480,7 +8470,7 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/preview/{nodeId}": {
             "get": {
-                "operationId": "signature_elements-get-signature-element-preview",
+                "operationId": "signature_elements-preview-signature-element",
                 "summary": "Get preview of signature elements of",
                 "tags": [
                     "signature_elements"
