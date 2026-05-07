@@ -1604,6 +1604,9 @@ export type components = {
             };
             version: string;
         };
+        CertificateDataGenerated: components["schemas"]["EngineHandler"] & {
+            generated: boolean;
+        };
         CertificateEngineConfigResponse: {
             engine: string;
             identify_methods: components["schemas"]["IdentifyMethodSetting"][];
@@ -1624,9 +1627,6 @@ export type components = {
             /** @enum {string} */
             status: "success";
             CPS: string;
-        };
-        CetificateDataGenerated: components["schemas"]["EngineHandler"] & {
-            generated: boolean;
         };
         ConfigValueResponse: {
             key: string;
@@ -1693,7 +1693,8 @@ export type components = {
             id: number;
             serial_number: string;
             owner: string;
-            status: string;
+            /** @enum {string} */
+            status: "issued" | "revoked";
             certificate_type: string;
             engine: string;
             instance_id: string | null;
@@ -1971,7 +1972,8 @@ export type components = {
         };
         IdentifyAccountsResponse: components["schemas"]["IdentifyAccount"][];
         IdentifyMethod: {
-            method: string;
+            /** @enum {string} */
+            method: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
             value: string;
             /** Format: int64 */
             mandatory: number;
@@ -2079,7 +2081,8 @@ export type components = {
             signers?: components["schemas"]["ProgressSigner"][];
         };
         ProgressResponse: {
-            status: string;
+            /** @enum {string} */
+            status: "NOT_LIBRESIGN_FILE" | "DRAFT" | "ABLE_TO_SIGN" | "PARTIAL_SIGNED" | "SIGNED" | "DELETED" | "SIGNING_IN_PROGRESS" | "ERROR" | "UNKNOWN";
             /** Format: int64 */
             statusCode: number;
             statusText: string;
@@ -2323,11 +2326,8 @@ export type components = {
             nodeId: number;
             /** @enum {string} */
             nodeType: "file" | "envelope";
-            /**
-             * Format: int64
-             * @enum {integer}
-             */
-            signatureFlow: 0 | 1 | 2;
+            /** @enum {string} */
+            signatureFlow: "none" | "parallel" | "ordered_numeric";
             /** Format: int64 */
             docmdpLevel: number;
             /** Format: int64 */
@@ -5691,7 +5691,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["CetificateDataGenerated"];
+                            data: components["schemas"]["CertificateDataGenerated"];
                         };
                     };
                 };
