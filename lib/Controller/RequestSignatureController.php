@@ -125,19 +125,6 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		}
 	}
 
-	public function request(
-		array $signers = [],
-		string $name = '',
-		array $settings = [],
-		array $file = [],
-		array $files = [],
-		?string $callback = null,
-		?int $status = 1,
-		?string $signatureFlow = null,
-	): DataResponse {
-		return $this->requestSignature($signers, $name, $settings, $file, $files, $callback, $status, $signatureFlow);
-	}
-
 	/**
 	 * Updates signatures data
 	 *
@@ -227,33 +214,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		}
 	}
 
-	public function updateSign(
-		?array $signers = [],
-		?string $uuid = null,
-		?array $visibleElements = null,
-		?array $file = null,
-		?int $status = null,
-		?string $signatureFlow = null,
-		?string $name = null,
-		array $settings = [],
-		array $files = [],
-	): DataResponse {
-		return $this->updateSignatureRequest(
-			$signers,
-			$uuid,
-			$visibleElements,
-			$file,
-			$status,
-			$signatureFlow,
-			$name,
-			$settings,
-			$files,
-		);
-	}
-
 	/**
 	 * Internal method to handle signature request creation logic
-	 * Used by both request() and updateSign() when creating new requests
+	 * Used by both requestSignature() and updateSignatureRequest() when creating new requests
 	 *
 	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>
 	 * @throws LibresignException
