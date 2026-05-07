@@ -161,7 +161,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
-	public function getSignatureElementPreview(int $nodeId) {
+	public function previewSignatureElement(int $nodeId) {
 		try {
 			$node = $this->accountService->getFileByNodeId($nodeId);
 			if ($this->preview->isAvailable($node)) {
@@ -192,6 +192,10 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 			'Content-Type' => $preview->getMimeType(),
 		]);
 		return $response;
+	}
+
+	public function getSignatureElementPreview(int $nodeId) {
+		return $this->previewSignatureElement($nodeId);
 	}
 
 	/**
