@@ -428,6 +428,7 @@ class FileListService {
 			'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
 				'method' => $identifyMethod->getIdentifierKey(),
 				'value' => $identifyMethod->getIdentifierValue(),
+				'requirement' => self::mapRequirementFromMandatory($identifyMethod->getMandatory()),
 				'mandatory' => $identifyMethod->getMandatory(),
 			], array_values($identifyMethodsOfSigner)),
 		];
@@ -510,6 +511,7 @@ class FileListService {
 			'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
 				'method' => $identifyMethod->getIdentifierKey(),
 				'value' => $identifyMethod->getIdentifierValue(),
+				'requirement' => self::mapRequirementFromMandatory($identifyMethod->getMandatory()),
 				'mandatory' => $identifyMethod->getMandatory(),
 			], array_values($identifyMethodsOfSigner)),
 		];
@@ -879,6 +881,7 @@ class FileListService {
 					'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
 						'method' => $identifyMethod->getIdentifierKey(),
 						'value' => $identifyMethod->getIdentifierValue(),
+						'requirement' => self::mapRequirementFromMandatory($identifyMethod->getMandatory()),
 						'mandatory' => $identifyMethod->getMandatory(),
 					], array_values($identifyMethodsOfSigner)),
 					'signed' => $signer->getSigned()?->format(\DateTimeInterface::ATOM),
@@ -910,7 +913,6 @@ class FileListService {
 		if ($nodeId === null || $file->getUserId() === '') {
 			return 0;
 		}
-
 		try {
 			$fileNode = $this->root->getUserFolder($file->getUserId())->getFirstNodeById($nodeId);
 			if ($fileNode instanceof NodeFile && method_exists($fileNode, 'getSize')) {
@@ -921,5 +923,9 @@ class FileListService {
 		}
 
 		return 0;
+	}
+
+	private static function mapRequirementFromMandatory(int $mandatory): string {
+		return $mandatory === 1 ? 'required' : 'optional';
 	}
 }

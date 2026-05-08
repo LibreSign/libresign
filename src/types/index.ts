@@ -45,10 +45,12 @@ type ApiRequestJsonBody<TOperation> = ApiJsonBody<ApiOperationRequestBody<TOpera
 type ApiOcsResponseData<TOperation, TStatusCode extends keyof ApiOperationResponses<TOperation>>
 	= ApiOcsJsonData<ApiOperationResponses<TOperation>[TStatusCode]>
 
+type ApiRecordValue<TRecord> = TRecord extends Record<string, infer TValue>
+	? TValue
+	: never
+
 export type SignatureFlowMode = ApiComponents['schemas']['DetailedFileResponse']['signatureFlow']
 export type SignatureFlowValue = SignatureFlowMode
-export type EffectivePolicyValue = ApiComponents['schemas']['EffectivePolicyValue']
-export type EffectivePolicyState = ApiComponents['schemas']['EffectivePolicyState']
 export type EffectivePoliciesResponse = ApiOcsResponseData<ApiOperations['policy-effective'], 200>
 export type EffectivePoliciesState = EffectivePoliciesResponse['policies']
 export type EffectivePolicyState = ApiRecordValue<EffectivePoliciesState>

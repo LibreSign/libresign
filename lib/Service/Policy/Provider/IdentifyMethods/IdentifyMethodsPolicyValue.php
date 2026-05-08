@@ -15,10 +15,21 @@ final class IdentifyMethodsPolicyValue {
 	 * @return list<array<string, mixed>>
 	 */
 	public static function normalize(mixed $rawValue, ?IdentifyMethodService $identifyMethodService = null): array {
+		$sharedMinimumTotalVerifiedFactors = null;
 		if (is_string($rawValue)) {
 			$decoded = json_decode($rawValue, true);
 			if (is_array($decoded)) {
-				$rawValue = $decoded;
+				if (array_is_list($decoded)) {
+					$rawValue = $decoded;
+				} elseif (isset($decoded['factors']) && is_array($decoded['factors'])) {
+					$rawValue = $decoded['factors'];
+					$sharedMinimumTotalVerifiedFactors = self::normalizeMinimumTotalVerifiedFactors($decoded['minimumTotalVerifiedFactors'] ?? null);
+				}
+			}
+		} elseif (is_array($rawValue) && !array_is_list($rawValue)) {
+			if (isset($rawValue['factors']) && is_array($rawValue['factors'])) {
+				$sharedMinimumTotalVerifiedFactors = self::normalizeMinimumTotalVerifiedFactors($rawValue['minimumTotalVerifiedFactors'] ?? null);
+				$rawValue = $rawValue['factors'];
 			}
 		}
 
@@ -41,21 +52,52 @@ final class IdentifyMethodsPolicyValue {
 
 			$signatureMethods = [];
 			if (isset($entry['signatureMethods']) && is_array($entry['signatureMethods'])) {
-				foreach ($entry['signatureMethods'] as $signatureMethodName => $signatureMethodConfig) {
-					if (!is_string($signatureMethodName) || trim($signatureMethodName) === '' || !is_array($signatureMethodConfig)) {
+				$isList = array_is_list($entry['signatureMethods']);
+				if ($isList) {
+					foreach ($entry['signatureMethods'] as $signatureMethodName) {
+						if (!is_string($signatureMethodName) || trim($signatureMethodName) === '') {
+							continue;
+						}
+						$signatureMethods[$signatureMethodName] = ['enabled' => false];
+					}
+				} else {
+					foreach ($entry['signatureMethods'] as $signatureMethodName => $signatureMethodConfig) {
+						if (!is_string($signatureMethodName) || trim($signatureMethodName) === '') {
+							continue;
+						}
+
+						if (is_string($signatureMethodConfig)) {
+							$signatureMethods[$signatureMethodName] = [
+								'enabled' => false,
+								'label' => $signatureMethodConfig,
+							];
+							continue;
+						}
+
+						if (!is_array($signatureMethodConfig)) {
+							continue;
+						}
+
+						$normalizedSignatureMethod = [];
+						if (array_key_exists('enabled', $signatureMethodConfig)) {
+							$normalizedSignatureMethod['enabled'] = (bool)$signatureMethodConfig['enabled'];
+						}
+
+						if (isset($signatureMethodConfig['label']) && is_string($signatureMethodConfig['label'])) {
+							$normalizedSignatureMethod['label'] = $signatureMethodConfig['label'];
+						}
+
+						$signatureMethods[$signatureMethodName] = $normalizedSignatureMethod;
+					}
+				}
+			}
+
+			if ($signatureMethods === [] && isset($entry['availableSignatureMethods']) && is_array($entry['availableSignatureMethods'])) {
+				foreach ($entry['availableSignatureMethods'] as $signatureMethodName) {
+					if (!is_string($signatureMethodName) || trim($signatureMethodName) === '') {
 						continue;
 					}
-
-					$normalizedSignatureMethod = [];
-					if (array_key_exists('enabled', $signatureMethodConfig)) {
-						$normalizedSignatureMethod['enabled'] = (bool)$signatureMethodConfig['enabled'];
-					}
-
-					if (isset($signatureMethodConfig['label']) && is_string($signatureMethodConfig['label'])) {
-						$normalizedSignatureMethod['label'] = $signatureMethodConfig['label'];
-					}
-
-					$signatureMethods[$signatureMethodName] = $normalizedSignatureMethod;
+					$signatureMethods[$signatureMethodName] = ['enabled' => false];
 				}
 			}
 
@@ -73,7 +115,17 @@ final class IdentifyMethodsPolicyValue {
 				$normalizedEntry['can_create_account'] = (bool)$entry['can_create_account'];
 			}
 
-			if (array_key_exists('mandatory', $entry)) {
+			$minimumTotalVerifiedFactors = self::normalizeMinimumTotalVerifiedFactors($entry['minimumTotalVerifiedFactors'] ?? null)
+				?? $sharedMinimumTotalVerifiedFactors;
+			if ($minimumTotalVerifiedFactors !== null) {
+				$normalizedEntry['minimumTotalVerifiedFactors'] = $minimumTotalVerifiedFactors;
+			}
+
+			$requirement = self::normalizeRequirement($entry['requirement'] ?? null, $entry['mandatory'] ?? null);
+			if ($requirement !== null) {
+				$normalizedEntry['requirement'] = $requirement;
+				$normalizedEntry['mandatory'] = $requirement === 'required';
+			} elseif (array_key_exists('mandatory', $entry)) {
 				$normalizedEntry['mandatory'] = (bool)$entry['mandatory'];
 			}
 
@@ -92,6 +144,31 @@ final class IdentifyMethodsPolicyValue {
 				}
 			}
 			unset($entry);
+		}
+
+		return $normalized;
+	}
+
+	private static function normalizeRequirement(mixed $requirement, mixed $mandatory): ?string {
+		if ($requirement === 'required' || $requirement === 'optional') {
+			return $requirement;
+		}
+
+		if ($mandatory === null) {
+			return null;
+		}
+
+		return (bool)$mandatory ? 'required' : 'optional';
+	}
+
+	private static function normalizeMinimumTotalVerifiedFactors(mixed $value): ?int {
+		if (!is_numeric($value)) {
+			return null;
+		}
+
+		$normalized = (int)$value;
+		if ($normalized < 1) {
+			return null;
 		}
 
 		return $normalized;

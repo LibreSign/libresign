@@ -28,6 +28,8 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -406,7 +408,6 @@ class ValidateHelper {
 				throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
 			}
 		} catch (\Throwable) {
-			($signRequest->getFileId());
 			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
 		}
 	}
@@ -864,6 +865,153 @@ class ValidateHelper {
 		$identifyMethod = $this->resolveIdentifyMethod($signRequest, $identifyMethodName, $identifyValue);
 		$identifyMethod->setCodeSentByUser($token);
 		$identifyMethod->validateToSign();
+		$this->validateRuntimeIdentifyMethodRequirements($signRequest);
+	}
+
+	private function validateRuntimeIdentifyMethodRequirements(SignRequest $signRequest): void {
+		if (!$signRequest->getId()) {
+			return;
+		}
+
+		$methodsByName = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+		if (empty($methodsByName)) {
+			return;
+		}
+
+		$requiredFactors = 0;
+		$identifiedRequiredFactors = 0;
+		$identifiedFactors = 0;
+		$hasOptionalFactor = false;
+		$methodNames = [];
+
+		foreach ($methodsByName as $methods) {
+			foreach ($methods as $identifyMethod) {
+				$entity = $identifyMethod->getEntity();
+				$methodName = $entity->getIdentifierKey();
+				$methodNames[$methodName] = true;
+
+				$isRequired = $entity->getMandatory() === 1;
+				$isIdentified = $entity->getIdentifiedAtDate() !== null;
+
+				if (!$isRequired) {
+					$hasOptionalFactor = true;
+				}
+
+				if ($isRequired) {
+					$requiredFactors++;
+					if ($isIdentified) {
+						$identifiedRequiredFactors++;
+					}
+				}
+
+				if ($isIdentified) {
+					$identifiedFactors++;
+				}
+			}
+		}
+
+		if ($identifiedRequiredFactors < $requiredFactors) {
+			throw new LibresignException($this->l10n->t('You need to complete all required identification factors before signing.'));
+		}
+
+		$minimumTotalVerifiedFactors = $this->resolveMinimumTotalVerifiedFactors(
+			$signRequest,
+			array_keys($methodNames),
+			$hasOptionalFactor,
+		);
+		if ($minimumTotalVerifiedFactors === null) {
+			return;
+		}
+
+		$requiredVerifiedFactors = max($requiredFactors, $minimumTotalVerifiedFactors);
+		if ($identifiedFactors < $requiredVerifiedFactors) {
+			throw new LibresignException(
+				$this->l10n->t('You need to complete at least %s identification factors before signing.', [$requiredVerifiedFactors])
+			);
+		}
+	}
+
+	/**
+	 * @param list<string> $methodNames
+	 */
+	private function resolveMinimumTotalVerifiedFactors(SignRequest $signRequest, array $methodNames, bool $hasOptionalFactor): ?int {
+		// Compatibility gate: legacy requests only had mandatory factors,
+		// so minimum-based runtime enforcement is enabled only when optional factors exist.
+		if (!$hasOptionalFactor) {
+			return null;
+		}
+
+		$methodSet = array_fill_keys($methodNames, true);
+
+		$minimumFromSnapshot = $this->resolveMinimumTotalVerifiedFactorsFromPolicySnapshot($signRequest, $methodSet);
+		if ($minimumFromSnapshot !== null) {
+			return $minimumFromSnapshot;
+		}
+
+		$minimum = null;
+		foreach ($this->identifyMethodService->getIdentifyMethodsSettings() as $setting) {
+			if (!is_array($setting) || empty($setting['name']) || !isset($methodSet[$setting['name']])) {
+				continue;
+			}
+			if (!array_key_exists('minimumTotalVerifiedFactors', $setting) || !is_numeric($setting['minimumTotalVerifiedFactors'])) {
+				continue;
+			}
+
+			$candidate = (int)$setting['minimumTotalVerifiedFactors'];
+			if ($candidate < 1) {
+				continue;
+			}
+
+			$minimum = $minimum === null ? $candidate : max($minimum, $candidate);
+		}
+
+		return $minimum;
+	}
+
+	/**
+	 * @param array<string, true> $methodSet
+	 */
+	private function resolveMinimumTotalVerifiedFactorsFromPolicySnapshot(SignRequest $signRequest, array $methodSet): ?int {
+		try {
+			$file = $this->fileMapper->getById($signRequest->getFileId());
+		} catch (\Throwable) {
+			return null;
+		}
+
+		$metadata = $file->getMetadata() ?? [];
+		if (!isset($metadata['policy_snapshot']) || !is_array($metadata['policy_snapshot'])) {
+			return null;
+		}
+
+		$entry = $metadata['policy_snapshot'][IdentifyMethodsPolicy::KEY] ?? null;
+		if (!is_array($entry) || !array_key_exists('effectiveValue', $entry)) {
+			return null;
+		}
+
+		$normalized = IdentifyMethodsPolicyValue::normalize($entry['effectiveValue']);
+		if (empty($normalized)) {
+			return null;
+		}
+
+		$minimum = null;
+		foreach ($normalized as $setting) {
+			if (!is_array($setting) || empty($setting['name']) || !isset($methodSet[$setting['name']])) {
+				continue;
+			}
+
+			if (!array_key_exists('minimumTotalVerifiedFactors', $setting) || !is_numeric($setting['minimumTotalVerifiedFactors'])) {
+				continue;
+			}
+
+			$candidate = (int)$setting['minimumTotalVerifiedFactors'];
+			if ($candidate < 1) {
+				continue;
+			}
+
+			$minimum = $minimum === null ? $candidate : max($minimum, $candidate);
+		}
+
+		return $minimum;
 	}
 
 	private function resolveIdentifyMethod(SignRequest $signRequest, string $methodName, ?string $identifyValue): IIdentifyMethod {

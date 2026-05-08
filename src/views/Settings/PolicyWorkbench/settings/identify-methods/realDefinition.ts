@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 
 import IdentifyMethodsRuleEditor from './IdentifyMethodsRuleEditor.vue'
@@ -11,6 +12,12 @@ import { normalizeIdentifyMethodsPolicy, serializeIdentifyMethodsPolicy } from '
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 
+const initialIdentifyMethods = serializeIdentifyMethodsPolicy(
+	normalizeIdentifyMethodsPolicy(
+		loadState<unknown>('libresign', 'identify_methods', []) as EffectivePolicyValue,
+	),
+)
+
 export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 	key: 'identify_methods',
 	title: t('libresign', 'Identification factors'),
@@ -18,7 +25,7 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 	supportedScopes: ['system', 'group', 'user'],
 	editor: IdentifyMethodsRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => serializeIdentifyMethodsPolicy([]),
+	createEmptyValue: () => initialIdentifyMethods,
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeIdentifyMethodsPolicy(normalizeIdentifyMethodsPolicy(value)),
 	hasSelectableDraftValue: () => true,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
