@@ -229,7 +229,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * Return all data of root certificate and a field called `generated` with a boolean value.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignCetificateDataGenerated, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignCertificateDataGenerated, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -237,7 +237,7 @@ class AdminController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/certificate', requirements: ['apiVersion' => '(v1)'])]
 	public function loadCertificate(): DataResponse {
 		$engine = $this->certificateEngineFactory->getEngine();
-		/** @var LibresignCetificateDataGenerated */
+		/** @var LibresignCertificateDataGenerated */
 		$certificate = $engine->toArray();
 
 		return new DataResponse($certificate);
