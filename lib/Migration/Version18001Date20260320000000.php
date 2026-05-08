@@ -20,6 +20,7 @@ use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
@@ -366,13 +367,60 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 			return;
 		}
 
-		$this->appConfig->deleteKey(Application::APP_ID, 'identify_methods');
-		$decoded = json_decode($legacyValue, true);
-		if (!is_array($decoded)) {
+		$normalized = $this->normalizeIdentifyMethodsLegacyPayload($legacyValue);
+		if ($normalized === null) {
 			return;
 		}
 
-		$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $decoded);
+		$this->appConfig->deleteKey(Application::APP_ID, 'identify_methods');
+		$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $normalized);
+	}
+
+	/**
+	 * @return list<array<string, mixed>>|null
+	 */
+	private function normalizeIdentifyMethodsLegacyPayload(mixed $rawValue): ?array {
+		$decoded = $this->decodeIdentifyMethodsLegacyPayload($rawValue);
+		if ($decoded === null) {
+			return null;
+		}
+
+		$prepared = [];
+		foreach ($decoded as $entry) {
+			if (!is_array($entry)) {
+				continue;
+			}
+
+			if (isset($entry['signatureMethodEnabled']) && is_array($entry['signatureMethodEnabled'])) {
+				$entry['signatureMethodEnabled'] = $this->normalizeLegacySignatureMethodEnabled($entry['signatureMethodEnabled']);
+			}
+
+			$prepared[] = $entry;
+		}
+
+		return IdentifyMethodsPolicyValue::normalize($prepared);
+	}
+
+	/**
+	 * @return list<array<string, mixed>>|null
+	 */
+	private function decodeIdentifyMethodsLegacyPayload(mixed $rawValue): ?array {
+		if (is_string($rawValue)) {
+			$decoded = json_decode($rawValue, true);
+			return is_array($decoded) ? $decoded : null;
+		}
+
+		return is_array($rawValue) ? $rawValue : null;
+	}
+
+	private function normalizeLegacySignatureMethodEnabled(array $value): ?string {
+		foreach ($value as $signatureMethodName) {
+			if (is_string($signatureMethodName) && trim($signatureMethodName) !== '') {
+				return $signatureMethodName;
+			}
+		}
+
+		return null;
 	}
 
 	private function readLegacyString(string $key): ?string {

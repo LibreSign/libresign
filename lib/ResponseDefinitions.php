@@ -50,6 +50,7 @@ namespace OCA\Libresign;
  *     identifyMethods: list<array{
  *         method: string,
  *         value: string,
+ *         requirement?: LibresignIdentifyMethodRequirement,
  *         mandatory: non-negative-int,
  *     }>,
  *     displayName?: string,
@@ -75,6 +76,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignIdentifyMethod = array{
  *     method: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
  *     value: string,
+ *     requirement?: LibresignIdentifyMethodRequirement,
  *     mandatory: non-negative-int,
  * }
  * @psalm-type LibresignCoordinate = array{
@@ -118,11 +120,14 @@ namespace OCA\Libresign;
  *     emailToken?: LibresignSignatureMethodEmailToken,
  *     password?: LibresignSignatureMethodPassword,
  * }
+ * @psalm-type LibresignIdentifyMethodRequirement = 'required'|'optional'
  * @psalm-type LibresignIdentifyMethodSetting = array{
  *     name: string,
  *     friendly_name: string,
  *     enabled: bool,
+ *     requirement?: LibresignIdentifyMethodRequirement,
  *     mandatory: bool,
+ *     minimumTotalVerifiedFactors?: positive-int,
  *     signatureMethods?: LibresignSignatureMethods,
  * }
  * @psalm-type LibresignIdentifyAccount = array{
@@ -449,10 +454,15 @@ namespace OCA\Libresign;
  *     effectiveValue: int,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignPolicySnapshotIdentifyMethodsEntry = array{
+ *     effectiveValue: list<LibresignIdentifyMethodSetting>,
+ *     sourceScope: string,
+ * }
  * @psalm-type LibresignValidatePolicySnapshot = array{
  *     docmdp?: LibresignPolicySnapshotNumericEntry,
  *     signature_flow?: LibresignPolicySnapshotEntry,
  *     add_footer?: LibresignPolicySnapshotEntry,
+ *     identify_methods?: LibresignPolicySnapshotIdentifyMethodsEntry,
  * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,

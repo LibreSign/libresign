@@ -844,8 +844,20 @@ export function createRealPolicyWorkbenchState() {
 				value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
 			}
 		} else if (scope === 'group') {
+			if (activeDefinition.value.key === 'identify_methods') {
+				const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
+				if (baselineRuleValue !== null && baselineRuleValue !== undefined) {
+					value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
+				}
+			}
 			targetIds = []
 		} else if (scope === 'user') {
+			if (activeDefinition.value.key === 'identify_methods') {
+				const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
+				if (baselineRuleValue !== null && baselineRuleValue !== undefined) {
+					value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
+				}
+			}
 			targetIds = []
 		}
 

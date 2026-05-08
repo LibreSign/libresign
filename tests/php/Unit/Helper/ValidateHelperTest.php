@@ -28,6 +28,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -278,6 +279,235 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectException(LibresignException::class);
 
 		$this->getValidateHelper()->validateSigner($uuid);
+	}
+
+	public function testValidateCredentialsRequiresAllRequiredFactors(): void {
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setId(55);
+		$signRequest->setSigned(null);
+
+		$emailEntity = new \OCA\Libresign\Db\IdentifyMethod();
+		$emailEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+		$emailEntity->setIdentifierValue('signer@example.com');
+		$emailEntity->setMandatory(1);
+
+		$accountEntity = new \OCA\Libresign\Db\IdentifyMethod();
+		$accountEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
+		$accountEntity->setIdentifierValue('signer-user');
+		$accountEntity->setMandatory(1);
+
+		$emailMethod = $this->createMock(IIdentifyMethod::class);
+		$emailMethod->method('getEntity')->willReturn($emailEntity);
+		$emailMethod->method('setCodeSentByUser');
+		$emailMethod->method('validateToSign')->willReturnCallback(function () use ($emailEntity): void {
+			$emailEntity->setIdentifiedAtDate(new \DateTime('now', new \DateTimeZone('UTC')));
+		});
+
+		$accountMethod = $this->createMock(IIdentifyMethod::class);
+		$accountMethod->method('getEntity')->willReturn($accountEntity);
+
+		$methodsByName = [
+			IdentifyMethodService::IDENTIFY_EMAIL => [$emailMethod],
+			IdentifyMethodService::IDENTIFY_ACCOUNT => [$accountMethod],
+		];
+
+		$this->identifyMethodService
+			->method('getIdentifyMethodsFromSignRequestId')
+			->with(55)
+			->willReturn($methodsByName);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('You need to complete all required identification factors before signing.');
+
+		$this->getValidateHelper()->validateCredentials(
+			$signRequest,
+			IdentifyMethodService::IDENTIFY_EMAIL,
+			'signer@example.com',
+			'123456',
+		);
+	}
+
+	public function testValidateCredentialsEnforcesMinimumWhenOptionalFactorsExist(): void {
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setId(56);
+		$signRequest->setSigned(null);
+
+		$emailEntity = new \OCA\Libresign\Db\IdentifyMethod();
+		$emailEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+		$emailEntity->setIdentifierValue('signer@example.com');
+		$emailEntity->setMandatory(1);
+
+		$smsEntity = new \OCA\Libresign\Db\IdentifyMethod();
+		$smsEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_SMS);
+		$smsEntity->setIdentifierValue('+5511999999999');
+		$smsEntity->setMandatory(0);
+
+		$emailMethod = $this->createMock(IIdentifyMethod::class);
+		$emailMethod->method('getEntity')->willReturn($emailEntity);
+		$emailMethod->method('setCodeSentByUser');
+		$emailMethod->method('validateToSign')->willReturnCallback(function () use ($emailEntity): void {
+			$emailEntity->setIdentifiedAtDate(new \DateTime('now', new \DateTimeZone('UTC')));
+		});
+
+		$smsMethod = $this->createMock(IIdentifyMethod::class);
+		$smsMethod->method('getEntity')->willReturn($smsEntity);
+
+		$methodsByName = [
+			IdentifyMethodService::IDENTIFY_EMAIL => [$emailMethod],
+			IdentifyMethodService::IDENTIFY_SMS => [$smsMethod],
+		];
+
+		$this->identifyMethodService
+			->method('getIdentifyMethodsFromSignRequestId')
+			->with(56)
+			->willReturn($methodsByName);
+		$this->identifyMethodService
+			->method('getIdentifyMethodsSettings')
+			->willReturn([
+				['name' => IdentifyMethodService::IDENTIFY_EMAIL, 'enabled' => true, 'mandatory' => true, 'requirement' => 'required'],
+				['name' => IdentifyMethodService::IDENTIFY_SMS, 'enabled' => true, 'mandatory' => false, 'requirement' => 'optional', 'minimumTotalVerifiedFactors' => 2],
+			]);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('You need to complete at least %s identification factors before signing.');
+
+		$this->getValidateHelper()->validateCredentials(
+			$signRequest,
+			IdentifyMethodService::IDENTIFY_EMAIL,
+			'signer@example.com',
+			'123456',
+		);
+	}
+
+	public function testValidateCredentialsAllowsSigningWhenMinimumIsSatisfied(): void {
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setId(57);
+		$signRequest->setSigned(null);
+
+		$emailEntity = new \OCA\Libresign\Db\IdentifyMethod();
+		$emailEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+		$emailEntity->setIdentifierValue('signer@example.com');
+		$emailEntity->setMandatory(1);
+
+		$smsEntity = new \OCA\Libresign\Db\IdentifyMethod();
+		$smsEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_SMS);
+		$smsEntity->setIdentifierValue('+5511999999999');
+		$smsEntity->setMandatory(0);
+		$smsEntity->setIdentifiedAtDate(new \DateTime('now', new \DateTimeZone('UTC')));
+
+		$emailMethod = $this->createMock(IIdentifyMethod::class);
+		$emailMethod->method('getEntity')->willReturn($emailEntity);
+		$emailMethod->method('setCodeSentByUser');
+		$emailMethod->expects($this->once())->method('validateToSign')->willReturnCallback(function () use ($emailEntity): void {
+			$emailEntity->setIdentifiedAtDate(new \DateTime('now', new \DateTimeZone('UTC')));
+		});
+
+		$smsMethod = $this->createMock(IIdentifyMethod::class);
+		$smsMethod->method('getEntity')->willReturn($smsEntity);
+
+		$methodsByName = [
+			IdentifyMethodService::IDENTIFY_EMAIL => [$emailMethod],
+			IdentifyMethodService::IDENTIFY_SMS => [$smsMethod],
+		];
+
+		$this->identifyMethodService
+			->method('getIdentifyMethodsFromSignRequestId')
+			->with(57)
+			->willReturn($methodsByName);
+		$this->identifyMethodService
+			->method('getIdentifyMethodsSettings')
+			->willReturn([
+				['name' => IdentifyMethodService::IDENTIFY_EMAIL, 'enabled' => true, 'mandatory' => true, 'requirement' => 'required'],
+				['name' => IdentifyMethodService::IDENTIFY_SMS, 'enabled' => true, 'mandatory' => false, 'requirement' => 'optional', 'minimumTotalVerifiedFactors' => 2],
+			]);
+
+		$this->getValidateHelper()->validateCredentials(
+			$signRequest,
+			IdentifyMethodService::IDENTIFY_EMAIL,
+			'signer@example.com',
+			'123456',
+		);
+		$this->assertTrue(true);
+	}
+
+	public function testValidateCredentialsUsesIdentifyMethodsPolicySnapshotForMinimumFactors(): void {
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setId(58);
+		$signRequest->setFileId(501);
+		$signRequest->setSigned(null);
+
+		$file = new \OCA\Libresign\Db\File();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				IdentifyMethodsPolicy::KEY => [
+					'effectiveValue' => [
+						[
+							'name' => IdentifyMethodService::IDENTIFY_EMAIL,
+							'enabled' => true,
+							'requirement' => 'required',
+							'mandatory' => true,
+						],
+						[
+							'name' => IdentifyMethodService::IDENTIFY_SMS,
+							'enabled' => true,
+							'requirement' => 'optional',
+							'mandatory' => false,
+							'minimumTotalVerifiedFactors' => 2,
+						],
+					],
+					'sourceScope' => 'group',
+				],
+			],
+		]);
+		$this->fileMapper
+			->method('getById')
+			->with(501)
+			->willReturn($file);
+
+		$emailEntity = new \OCA\Libresign\Db\IdentifyMethod();
+		$emailEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+		$emailEntity->setIdentifierValue('signer@example.com');
+		$emailEntity->setMandatory(1);
+
+		$smsEntity = new \OCA\Libresign\Db\IdentifyMethod();
+		$smsEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_SMS);
+		$smsEntity->setIdentifierValue('+5511999999999');
+		$smsEntity->setMandatory(0);
+		$smsEntity->setIdentifiedAtDate(new \DateTime('now', new \DateTimeZone('UTC')));
+
+		$emailMethod = $this->createMock(IIdentifyMethod::class);
+		$emailMethod->method('getEntity')->willReturn($emailEntity);
+		$emailMethod->method('setCodeSentByUser');
+		$emailMethod->expects($this->once())->method('validateToSign')->willReturnCallback(function () use ($emailEntity): void {
+			$emailEntity->setIdentifiedAtDate(new \DateTime('now', new \DateTimeZone('UTC')));
+		});
+
+		$smsMethod = $this->createMock(IIdentifyMethod::class);
+		$smsMethod->method('getEntity')->willReturn($smsEntity);
+
+		$this->identifyMethodService
+			->method('getIdentifyMethodsFromSignRequestId')
+			->with(58)
+			->willReturn([
+				IdentifyMethodService::IDENTIFY_EMAIL => [$emailMethod],
+				IdentifyMethodService::IDENTIFY_SMS => [$smsMethod],
+			]);
+
+		// Snapshot must be authoritative for runtime checks.
+		$this->identifyMethodService
+			->method('getIdentifyMethodsSettings')
+			->willReturn([
+				['name' => IdentifyMethodService::IDENTIFY_EMAIL, 'enabled' => true, 'mandatory' => true, 'requirement' => 'required'],
+				['name' => IdentifyMethodService::IDENTIFY_SMS, 'enabled' => true, 'mandatory' => false, 'requirement' => 'optional', 'minimumTotalVerifiedFactors' => 3],
+			]);
+
+		$this->getValidateHelper()->validateCredentials(
+			$signRequest,
+			IdentifyMethodService::IDENTIFY_EMAIL,
+			'signer@example.com',
+			'123456',
+		);
+		$this->assertTrue(true);
 	}
 
 	public function testValidateFileWithoutAllNecessaryData():void {

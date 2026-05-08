@@ -84,6 +84,7 @@ class EnvelopeAssembler {
 					$identifyMethodsArray[] = [
 						'method' => $entity->getIdentifierKey(),
 						'value' => $entity->getIdentifierValue(),
+						'requirement' => self::mapRequirementFromMandatory($entity->getMandatory()),
 						'mandatory' => $entity->getMandatory(),
 					];
 					$signerUid ??= $entity->getUniqueIdentifier();
@@ -164,6 +165,10 @@ class EnvelopeAssembler {
 		}
 
 		return $fileData;
+	}
+
+	private static function mapRequirementFromMandatory(int $mandatory): string {
+		return $mandatory === 1 ? 'required' : 'optional';
 	}
 
 	private function getSha256FromResource($resource): string {

@@ -98,6 +98,7 @@ class SignersLoader {
 					$fileData->signers[$index]->identifyMethods[] = [
 						'method' => $entity->getIdentifierKey(),
 						'value' => $entity->getIdentifierValue(),
+						'requirement' => self::mapRequirementFromMandatory($entity->getMandatory()),
 						'mandatory' => $entity->getMandatory(),
 					];
 
@@ -226,6 +227,10 @@ class SignersLoader {
 
 	public function reset(): void {
 		$this->signersLibreSignLoaded = false;
+	}
+
+	private static function mapRequirementFromMandatory(int $mandatory): string {
+		return $mandatory === 1 ? 'required' : 'optional';
 	}
 
 }

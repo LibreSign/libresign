@@ -149,7 +149,7 @@ final class RequestSignatureControllerTest extends TestCase {
 			->with($file, [], $this->user)
 			->willReturn(['ok' => true]);
 
-		$response = $this->controller->request(
+		$response = $this->controller->requestSignature(
 			signers: [[
 				'identifyMethods' => [[
 					'method' => 'email',
@@ -196,7 +196,7 @@ final class RequestSignatureControllerTest extends TestCase {
 			->method('formatFileWithChildren')
 			->willReturn(['ok' => true]);
 
-		$response = $this->controller->request(
+		$response = $this->controller->requestSignature(
 			signers: [[
 				'identifyMethods' => [[
 					'method' => 'email',
@@ -227,7 +227,7 @@ final class RequestSignatureControllerTest extends TestCase {
 			->method('save')
 			->willThrowException(new LibresignException('You are not allowed to use this policy context.', Http::STATUS_UNPROCESSABLE_ENTITY));
 
-		$response = $this->controller->request(
+		$response = $this->controller->requestSignature(
 			signers: [[
 				'identifyMethods' => [[
 					'method' => 'email',

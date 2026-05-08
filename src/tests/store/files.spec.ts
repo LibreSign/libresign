@@ -24,9 +24,11 @@ type TranslationParams = {
 	date?: string
 }
 
+type IdentifyMethodName = 'account' | 'email' | 'signal' | 'sms' | 'telegram' | 'whatsapp' | 'xmpp'
+
 type Signer = {
 	email: string
-	identifyMethods?: Array<{ method: string; value: string; mandatory: number }>
+	identifyMethods?: Array<{ method: IdentifyMethodName; value: string; mandatory: number }>
 	localKey?: string
 	signRequestId?: number
 }

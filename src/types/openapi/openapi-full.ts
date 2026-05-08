@@ -1866,11 +1866,16 @@ export type components = {
             /** Format: int64 */
             mandatory: number;
         };
+        /** @enum {string} */
+        IdentifyMethodRequirement: "required" | "optional";
         IdentifyMethodSetting: {
             name: string;
             friendly_name: string;
             enabled: boolean;
+            requirement?: components["schemas"]["IdentifyMethodRequirement"];
             mandatory: boolean;
+            /** Format: int64 */
+            minimumTotalVerifiedFactors?: number;
             signatureMethods?: components["schemas"]["SignatureMethods"];
         };
         InfoMessage: {

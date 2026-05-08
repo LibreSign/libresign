@@ -350,6 +350,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 				'name' => $this->name,
 				'friendly_name' => $this->getFriendlyName(),
 				'enabled' => true,
+				'requirement' => 'required',
 				'mandatory' => true,
 				'signatureMethods' => $this->signatureMethodsToArray(),
 			],
@@ -358,6 +359,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$this->removeKeysThatDontExists($default);
 		$this->overrideImmutable($immutable);
 		$this->settings = $this->applyDefault($this->settings, $default);
+		if (!isset($this->settings['requirement'])) {
+			$this->settings['requirement'] = !empty($this->settings['mandatory']) ? 'required' : 'optional';
+		}
+		$this->settings['mandatory'] = $this->settings['requirement'] === 'required';
 		return $this->settings;
 	}
 
