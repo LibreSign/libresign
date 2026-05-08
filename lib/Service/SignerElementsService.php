@@ -47,14 +47,14 @@ class SignerElementsService {
 			'id' => $element->getId(),
 			'type' => $element->getType(),
 			'file' => [
-				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.getSignatureElementPreview', [
+				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.previewSignatureElement', [
 					'apiVersion' => 'v1',
 					'nodeId' => $element->getNodeId(),
 				]),
 				'nodeId' => $element->getNodeId()
 			],
 			'userId' => $element->getUserId(),
-			'starred' => $element->getStarred() ? 1 : 0,
+			'starred' => (bool)$element->getStarred(),
 			'createdAt' => $element->getCreatedAt()->format('Y-m-d H:i:s'),
 		];
 	}
@@ -74,13 +74,13 @@ class SignerElementsService {
 				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.getSignatureElementPreview', [
+					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.previewSignatureElement', [
 						'apiVersion' => 'v1',
 						'nodeId' => $element->getNodeId(),
 					]),
 					'nodeId' => $element->getNodeId()
 				],
-				'starred' => $element->getStarred() ? 1 : 0,
+				'starred' => (bool)$element->getStarred(),
 				'userId' => $element->getUserId(),
 				'createdAt' => $element->getCreatedAt()->format('Y-m-d H:i:s'),
 			];
@@ -121,14 +121,14 @@ class SignerElementsService {
 			$return[] = [
 				'type' => $type,
 				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.getSignatureElementPreview', [
+					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.previewSignatureElement', [
 						'apiVersion' => 'v1',
 						'nodeId' => $fileElement->getId(),
 						'mtime' => $fileElement->getMTime(),
 					]),
 					'nodeId' => $fileElement->getId(),
 				],
-				'starred' => 0,
+				'starred' => false,
 				'createdAt' => (new \DateTime())->setTimestamp((int)$timestamp)->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
 			];
 		}

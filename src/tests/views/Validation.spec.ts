@@ -380,7 +380,7 @@ describe('Validation.vue - Business Logic', () => {
 			expect(wrapper.vm.getValidityStatusAtSigning(signer)).toBe('unknown')
 		})
 
-		it('returns unknown when valid_to is missing', () => {
+		it('returns unknown when valid_to is missing at signing', () => {
 			const signer = {
 				signed: '2024-06-01T00:00:00Z',
 				valid_from: '2024-01-01T00:00:00Z',
@@ -682,7 +682,7 @@ describe('Validation.vue - Business Logic', () => {
 			statusText: 'Pending',
 			nodeId: 100,
 			nodeType: 'file',
-			signatureFlow: 0,
+			signatureFlow: 'none',
 			docmdpLevel: 0,
 			filesCount: 1,
 			files: [{
@@ -878,7 +878,7 @@ describe('Validation.vue - Business Logic', () => {
 			statusText: 'Pending',
 			nodeId: 100,
 			nodeType: 'file',
-			signatureFlow: 0,
+			signatureFlow: 'none',
 			docmdpLevel: 0,
 			filesCount: 1,
 			files: [{
@@ -1042,7 +1042,7 @@ describe('Validation.vue - Business Logic', () => {
 			statusText: 'Pending',
 			nodeId: 100,
 			nodeType: 'file',
-			signatureFlow: 0,
+			signatureFlow: 'none',
 			docmdpLevel: 0,
 			filesCount: 1,
 			files: [{

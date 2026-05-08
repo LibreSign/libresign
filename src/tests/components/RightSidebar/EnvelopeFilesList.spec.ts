@@ -235,7 +235,7 @@ describe('EnvelopeFilesList', () => {
 			expect(wrapper.vm.canAddFile).toBe(false)
 		})
 
-		it('returns false when no envelope', () => {
+		it('returns false when no envelope for canAddFile', () => {
 			getCapabilitiesMock.mockReturnValue({
 				libresign: { config: { envelope: { 'is-available': true } } },
 			})
@@ -560,7 +560,7 @@ describe('EnvelopeFilesList', () => {
 			vi.useRealTimers()
 		})
 
-		it('shows error message on failure', async () => {
+		it('shows update error message on failure', async () => {
 			filesStore.rename = vi.fn().mockResolvedValue(false)
 			filesStore.selectedFile = { uuid: 'abc' }
 			wrapper = createWrapper()

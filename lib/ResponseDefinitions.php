@@ -68,7 +68,7 @@ namespace OCA\Libresign;
  * Identity and signer contracts
  *
  * @psalm-type LibresignIdentifyMethod = array{
- *     method: string,
+ *     method: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
  *     value: string,
  *     mandatory: non-negative-int,
  * }
@@ -301,7 +301,7 @@ namespace OCA\Libresign;
  *     policySection: LibresignPolicySection[],
  *     rootCert: LibresignRootCertificate,
  * }
- * @psalm-type LibresignCetificateDataGenerated = LibresignEngineHandler&array{
+ * @psalm-type LibresignCertificateDataGenerated = LibresignEngineHandler&array{
  *     generated: boolean,
  * }
  * @psalm-type LibresignEngineHandlerResponse = array{
@@ -411,7 +411,7 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeId: non-negative-int,
  *     nodeType: 'file'|'envelope',
- *     signatureFlow: 0|1|2,
+ *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  *     docmdpLevel: int,
  *     filesCount: int<0, max>,
  *     files: list<LibresignValidatedChildFile>,
@@ -462,7 +462,7 @@ namespace OCA\Libresign;
  *     signers?: list<LibresignProgressSigner>,
  * }
  * @psalm-type LibresignProgressResponse = array{
- *     status: string,
+ *     status: 'NOT_LIBRESIGN_FILE'|'DRAFT'|'ABLE_TO_SIGN'|'PARTIAL_SIGNED'|'SIGNED'|'DELETED'|'SIGNING_IN_PROGRESS'|'ERROR'|'UNKNOWN',
  *     statusCode: int,
  *     statusText: string,
  *     fileId: int,
@@ -579,7 +579,7 @@ namespace OCA\Libresign;
  *         nodeId: int,
  *     },
  *     userId: string,
- *     starred: 0|1,
+ *     starred: bool,
  *     createdAt: string,
  * }
  * @psalm-type LibresignUserElementsResponse = array{
@@ -623,7 +623,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignIdDocsApprovalListResponse = array{
  *     pagination: LibresignPagination,
- *     data: null|list<LibresignFile>,
+ *     data: list<LibresignFile>,
  * }
  * @psalm-type LibresignCreateToSignPdfReference = array{
  *     url: string,
@@ -654,7 +654,7 @@ namespace OCA\Libresign;
  *     id: int,
  *     serial_number: string,
  *     owner: string,
- *     status: string,
+ *     status: 'issued'|'revoked',
  *     certificate_type: string,
  *     engine: string,
  *     instance_id: ?string,

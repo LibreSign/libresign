@@ -45,7 +45,7 @@ type ApiOcsResponseData<TOperation, TStatusCode extends keyof ApiOperationRespon
 	= ApiOcsJsonData<ApiOperationResponses<TOperation>[TStatusCode]>
 
 export type SignatureFlowMode = ApiComponents['schemas']['DetailedFileResponse']['signatureFlow']
-export type SignatureFlowValue = SignatureFlowMode | 0 | 1 | 2
+export type SignatureFlowValue = SignatureFlowMode
 export type NewFilePayload = ApiComponents['schemas']['NewFile']
 export type IdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
 export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']
@@ -80,10 +80,10 @@ export type FileListResponseData = ApiOcsResponseData<ApiOperations['file-list']
 export type FileListEntry = FileListResponseData['data'][number]
 export type FileValidationResponse = ApiOcsResponseData<ApiOperations['file-validate-uuid'], 200>
 export type FileValidationSigner = NonNullable<FileValidationResponse['signers']>[number]
-export type RequestSignatureCreatePayload = ApiRequestJsonBody<ApiOperations['request_signature-request']>
-export type RequestSignatureUpdatePayload = ApiRequestJsonBody<ApiOperations['request_signature-update-sign']>
+export type RequestSignatureCreatePayload = ApiRequestJsonBody<ApiOperations['request_signature-request-signature']>
+export type RequestSignatureUpdatePayload = ApiRequestJsonBody<ApiOperations['request_signature-update-signature-request']>
 export type RequestSignaturePayload = RequestSignatureCreatePayload | RequestSignatureUpdatePayload
-export type RequestSignatureResponse = ApiOcsResponseData<ApiOperations['request_signature-update-sign'], 200>
+export type RequestSignatureResponse = ApiOcsResponseData<ApiOperations['request_signature-update-signature-request'], 200>
 export type RequestSignatureSignerPayload = NonNullable<RequestSignatureUpdatePayload['signers']>[number]
 export type RequestSignatureSignerResponse = NonNullable<RequestSignatureResponse['signers']>[number]
 export type RequestSignatureVisibleElementPayload = NonNullable<RequestSignatureUpdatePayload['visibleElements']>[number]

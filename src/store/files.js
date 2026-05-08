@@ -728,7 +728,7 @@ const _filesStore = defineStore('files', () => {
 		}
 
 		const flow = selectedFile?.signatureFlow
-		const isOrderedNumeric = flow === 'ordered_numeric' || flow === 2
+		const isOrderedNumeric = flow === 'ordered_numeric'
 		if (!isOrderedNumeric) {
 			return true
 		}
@@ -1205,10 +1205,6 @@ const _filesStore = defineStore('files', () => {
 		const requestVisibleElements = serializeVisibleElements(visibleElements)
 
 		let flowValue = signatureFlow || selectedFile.signatureFlow
-		if (typeof flowValue === 'number') {
-			const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-			flowValue = flowMap[flowValue] || 'parallel'
-		}
 
 		const config = {
 			url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),

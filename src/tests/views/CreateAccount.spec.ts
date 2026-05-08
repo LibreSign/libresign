@@ -211,13 +211,13 @@ describe('CreateAccount.vue - Business Logic', () => {
 	})
 
 	describe('confirmPasswordError computed property', () => {
-		it('returns empty string when password is not filled', () => {
+		it('returns empty string when password is not filled for confirmPasswordError', () => {
 			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: '', passwordConfirm: 'test' })
 			expect(vm.confirmPasswordError).toBe('')
 		})
 
-		it('returns empty string when passwordConfirm is not filled', () => {
+		it('returns empty string when passwordConfirm is not filled for confirmPasswordError', () => {
 			const vm = wrapper.vm as CreateAccountVm
 			wrapper.setData({ password: 'test', passwordConfirm: '' })
 			expect(vm.confirmPasswordError).toBe('')

@@ -39,7 +39,7 @@ function createValidationPayload(patch: Record<string, unknown> = {}): Record<st
 		statusText: 'Pending',
 		nodeId: 100,
 		nodeType: 'file',
-		signatureFlow: 0,
+		signatureFlow: 'none',
 		docmdpLevel: 0,
 		filesCount: 1,
 		files: [{
@@ -73,6 +73,7 @@ describe('validationDocument', () => {
 
 		expect(normalized).not.toBeNull()
 		expect(normalized?.uuid).toBe('550e8400-e29b-41d4-a716-446655440000')
+		expect(normalized?.signatureFlow).toBe('none')
 		expect(normalized?.metadata).toEqual({ extension: 'pdf', p: 1 })
 		expect(normalized?.settings).toEqual(expect.objectContaining({
 			canSign: false,
@@ -135,6 +136,14 @@ describe('validationDocument', () => {
 		expect(normalized).toBeNull()
 	})
 
+	it('rejects legacy numeric signatureFlow payloads', () => {
+		const normalized = toValidationDocument(createValidationPayload({
+			signatureFlow: 2,
+		}))
+
+		expect(normalized).toBeNull()
+	})
+
 	it('rejects payload with invalid signer status', () => {
 		const normalized = toValidationDocument(createValidationPayload({
 			signers: [createSigner({ status: 99, statusText: 'Invalid' })],
@@ -148,7 +157,7 @@ describe('validationDocument', () => {
 			uuid: '72a2d63b-772b-4ed7-8b79-5d5b1549fd15',
 			id: 551,
 			nodeId: 28111,
-			signatureFlow: 0,
+			signatureFlow: 'none',
 			docmdpLevel: 2,
 			filesCount: 1,
 			totalPages: 1,
