@@ -602,6 +602,13 @@
                     }
                 }
             },
+            "IdentifyMethodRequirement": {
+                "type": "string",
+                "enum": [
+                    "required",
+                    "optional"
+                ]
+            },
             "IdentifyMethodSetting": {
                 "type": "object",
                 "required": [
@@ -620,8 +627,16 @@
                     "enabled": {
                         "type": "boolean"
                     },
+                    "requirement": {
+                        "$ref": "#/components/schemas/IdentifyMethodRequirement"
+                    },
                     "mandatory": {
                         "type": "boolean"
+                    },
+                    "minimumTotalVerifiedFactors": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 1
                     },
                     "signatureMethods": {
                         "$ref": "#/components/schemas/SignatureMethods"

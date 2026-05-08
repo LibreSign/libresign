@@ -1635,6 +1635,7 @@ class SignFileService {
 	public function getAvailableIdentifyMethodsFromSettings(): array {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsSettings();
 		$return = array_map(fn (array $identifyMethod): array => [
+			'requirement' => $identifyMethod['mandatory'] ? 'required' : 'optional',
 			'mandatory' => $identifyMethod['mandatory'],
 			'identifiedAtDate' => null,
 			'validateCode' => false,

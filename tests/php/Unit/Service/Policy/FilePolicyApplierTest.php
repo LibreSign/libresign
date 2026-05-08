@@ -17,6 +17,7 @@ use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -44,11 +45,20 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testApplyAllAppliesAllRegisteredFilePolicies(): void {
 		$file = new FileEntity();
+		$identifyMethodsPolicyValue = [
+			[
+				'name' => 'email',
+				'enabled' => true,
+				'requirement' => 'required',
+				'mandatory' => true,
+				'minimumTotalVerifiedFactors' => 2,
+			],
+		];
 
 		$this->policyService
-			->expects($this->exactly(3))
+			->expects($this->exactly(4))
 			->method('resolveForUser')
-			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
+			->willReturnCallback(function (string $policyKey) use ($identifyMethodsPolicyValue): ResolvedPolicy {
 				return match ($policyKey) {
 					SignatureFlowPolicy::KEY => $this->createResolvedPolicy(
 						SignatureFlowPolicy::KEY,
@@ -64,6 +74,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						FooterPolicy::KEY,
 						'{"enabled":true}',
 						'system',
+					),
+					IdentifyMethodsPolicy::KEY => $this->createResolvedPolicy(
+						IdentifyMethodsPolicy::KEY,
+						$identifyMethodsPolicyValue,
+						'group',
 					),
 					default => throw new \RuntimeException('Unexpected policy key: ' . $policyKey),
 				};
@@ -87,6 +102,10 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'effectiveValue' => '{"enabled":true}',
 			'sourceScope' => 'system',
 		], $metadata['policy_snapshot'][FooterPolicy::KEY] ?? null);
+		$this->assertSame([
+			'effectiveValue' => $identifyMethodsPolicyValue,
+			'sourceScope' => 'group',
+		], $metadata['policy_snapshot'][IdentifyMethodsPolicy::KEY] ?? null);
 	}
 
 	public function testSyncCoreFlowPoliciesSkipsNonCoreProviders(): void {
@@ -145,11 +164,22 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'effectiveValue' => '{"enabled":false}',
 					'sourceScope' => 'system',
 				],
+				IdentifyMethodsPolicy::KEY => [
+					'effectiveValue' => [
+						[
+							'name' => 'email',
+							'enabled' => true,
+							'requirement' => 'required',
+							'mandatory' => true,
+						],
+					],
+					'sourceScope' => 'system',
+				],
 			],
 		]);
 
 		$this->policyService
-			->expects($this->exactly(3))
+			->expects($this->exactly(4))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -166,6 +196,18 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					FooterPolicy::KEY => $this->createResolvedPolicy(
 						FooterPolicy::KEY,
 						'{"enabled":false}',
+						'system',
+					),
+					IdentifyMethodsPolicy::KEY => $this->createResolvedPolicy(
+						IdentifyMethodsPolicy::KEY,
+						[
+							[
+								'name' => 'email',
+								'enabled' => true,
+								'requirement' => 'required',
+								'mandatory' => true,
+							],
+						],
 						'system',
 					),
 					default => throw new \RuntimeException('Unexpected policy key: ' . $policyKey),

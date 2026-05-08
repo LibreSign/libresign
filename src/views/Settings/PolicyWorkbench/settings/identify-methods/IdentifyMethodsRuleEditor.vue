@@ -21,6 +21,13 @@
 			</NcCheckboxRadioSwitch>
 
 			<div v-if="identifyMethod.enabled" class="identify-methods-editor__method-details">
+				<fieldset class="identify-methods-editor__sub-section">
+					<NcCheckboxRadioSwitch :model-value="isRequired(identifyMethod)"
+						@update:modelValue="onRequirementToggle(index, $event)">
+						{{ t('libresign', 'Required identification factor') }}
+					</NcCheckboxRadioSwitch>
+				</fieldset>
+
 				<fieldset v-if="identifyMethod.name === 'email'" class="identify-methods-editor__sub-section">
 					<NcCheckboxRadioSwitch :model-value="Boolean(identifyMethod.can_create_account)"
 						@update:modelValue="onCanCreateAccountToggle(index, $event)">
@@ -74,14 +81,13 @@ const entries = computed(() => {
 	const normalized = normalizeIdentifyMethodsPolicy(props.modelValue)
 	return ensureSignatureMethodSelection(normalized)
 })
-
 function onMethodToggle(index: number, enabled: boolean): void {
 	const nextEntries = [...entries.value]
 	nextEntries[index] = {
 		...nextEntries[index],
 		enabled,
 	}
-	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries).filter((entry) => entry.enabled)))
+	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries)))
 }
 
 function onCanCreateAccountToggle(index: number, canCreateAccount: boolean): void {
@@ -90,7 +96,17 @@ function onCanCreateAccountToggle(index: number, canCreateAccount: boolean): voi
 		...nextEntries[index],
 		can_create_account: canCreateAccount,
 	}
-	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries).filter((entry) => entry.enabled)))
+	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries)))
+}
+
+function onRequirementToggle(index: number, required: boolean): void {
+	const nextEntries = [...entries.value]
+	nextEntries[index] = {
+		...nextEntries[index],
+		requirement: required ? 'required' : 'optional',
+		mandatory: required,
+	}
+	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries)))
 }
 
 function onSignatureMethodChange(index: number, signatureMethodName: string): void {
@@ -99,7 +115,11 @@ function onSignatureMethodChange(index: number, signatureMethodName: string): vo
 		...nextEntries[index],
 		signatureMethodEnabled: signatureMethodName,
 	}
-	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries).filter((entry) => entry.enabled)))
+	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries)))
+}
+
+function isRequired(entry: IdentifyMethodPolicyEntry): boolean {
+	return entry.requirement === 'required' || Boolean(entry.mandatory)
 }
 
 function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): IdentifyMethodPolicyEntry[] {
