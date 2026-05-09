@@ -175,6 +175,7 @@ OC.L10N.register(
     "Password Creation" : "Slaptažodžio kūrimas",
     "Enter a password" : "Enter a password",
     "Expired" : "Nebegalioja",
+    "Unspecified" : "Nenurodyta",
     "Filters" : "Filtrai",
     "Owner" : "Savininkas",
     "Clear filters" : "Išvalyti filtrus",
