@@ -139,7 +139,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 			},
 		]))
 
-		expect(wrapper.text()).toContain('Verification method')
+		expect(wrapper.text()).toContain('Confirmation method')
 		expect(wrapper.text()).toContain('One-click confirmation')
 		expect(wrapper.text()).toContain('Email code')
 		expect(wrapper.text()).toContain('Telegram code')
@@ -210,7 +210,8 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 			},
 		]))
 
-		expect(wrapper.text()).toContain('Only enabled factor')
+		expect(wrapper.text()).toContain('Always required')
+		expect(wrapper.find('.identify-methods-editor__required-badge').exists()).toBe(true)
 		expect(wrapper.find('.identify-methods-editor__requirement-switch').exists()).toBe(false)
 	})
 })
