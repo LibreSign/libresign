@@ -13,6 +13,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
@@ -134,8 +135,20 @@ class IdentifyService {
 		}
 
 		$resolved = $this->getPolicyService()->resolve(IdentifyMethodsPolicy::KEY)->getEffectiveValue();
-		$normalized = IdentifyMethodsPolicyValue::normalize($resolved);
-		$this->savedSettings = $normalized;
+		$normalizedPayload = IdentifyMethodsPolicyValue::normalize($resolved);
+		$settings = IdentifyMethodsPolicyValue::extractFactors($normalizedPayload);
+		$globalCanCreateAccount = IdentifyMethodsPolicyValue::resolveGlobalCanCreateAccount($normalizedPayload);
+
+		if ($globalCanCreateAccount !== null) {
+			foreach ($settings as &$setting) {
+				if (($setting['name'] ?? null) === IdentifyMethodService::IDENTIFY_EMAIL) {
+					$setting['can_create_account'] = $globalCanCreateAccount;
+				}
+			}
+			unset($setting);
+		}
+
+		$this->savedSettings = $settings;
 		return $this->savedSettings;
 	}
 
