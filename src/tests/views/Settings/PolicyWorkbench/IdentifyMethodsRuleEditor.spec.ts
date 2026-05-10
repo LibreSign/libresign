@@ -211,11 +211,10 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 			},
 		]))
 
-		const requirementLock = wrapper.find('.identify-methods-editor__requirement-lock')
-		expect(requirementLock.exists()).toBe(true)
-		expect(requirementLock.attributes('title')).toBe('At least one identification factor must remain required.')
-		expect(wrapper.text()).toContain('Always required')
-		expect(wrapper.find('.identify-methods-editor__required-badge').exists()).toBe(true)
-		expect(wrapper.find('.identify-methods-editor__requirement-switch--locked').exists()).toBe(true)
+		const lockedSwitch = wrapper.find('.identify-methods-editor__requirement-switch--locked')
+		expect(lockedSwitch.exists()).toBe(true)
+		expect(lockedSwitch.attributes('title')).toBe('At least one identification factor must remain required.')
+		expect(wrapper.find('.identify-methods-editor__requirement-switch').exists()).toBe(true)
+		expect(wrapper.find('.identify-methods-editor__required-badge').exists()).toBe(false)
 	})
 })
