@@ -11,6 +11,7 @@ import { computed, nextTick, reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 import { realDefinitions } from './settings/realDefinitions'
+import { normalizeIdentifyMethodsPolicy } from './settings/identify-methods/model'
 import type { RealPolicyResolutionMode } from './settings/realTypes'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
@@ -146,6 +147,14 @@ function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
 		value: draft.value,
 		allowChildOverride: draft.allowChildOverride,
 	})
+}
+
+function shouldUseIdentifyMethodsBaseline(value: EffectivePolicyValue | null | undefined): boolean {
+	if (value === null || value === undefined) {
+		return false
+	}
+
+	return normalizeIdentifyMethodsPolicy(value).length > 0
 }
 
 export function createRealPolicyWorkbenchState() {
@@ -513,6 +522,10 @@ export function createRealPolicyWorkbenchState() {
 			return false
 		}
 
+		if (editorMode.value === 'create' && editorDraft.value.scope !== 'system') {
+			return true
+		}
+
 		if (!isDraftDirty.value
 			&& editorMode.value === 'create'
 			&& editorDraft.value.scope === 'system'
@@ -840,13 +853,17 @@ export function createRealPolicyWorkbenchState() {
 			}
 		} else if (scope === 'system') {
 			const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
-			if (baselineRuleValue !== null && baselineRuleValue !== undefined) {
+			if (
+				baselineRuleValue !== null
+				&& baselineRuleValue !== undefined
+				&& (activeDefinition.value.key !== 'identify_methods' || shouldUseIdentifyMethodsBaseline(baselineRuleValue))
+			) {
 				value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
 			}
 		} else if (scope === 'group') {
 			if (activeDefinition.value.key === 'identify_methods') {
 				const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
-				if (baselineRuleValue !== null && baselineRuleValue !== undefined) {
+				if (shouldUseIdentifyMethodsBaseline(baselineRuleValue)) {
 					value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
 				}
 			}
@@ -854,7 +871,7 @@ export function createRealPolicyWorkbenchState() {
 		} else if (scope === 'user') {
 			if (activeDefinition.value.key === 'identify_methods') {
 				const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
-				if (baselineRuleValue !== null && baselineRuleValue !== undefined) {
+				if (shouldUseIdentifyMethodsBaseline(baselineRuleValue)) {
 					value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
 				}
 			}
@@ -868,6 +885,15 @@ export function createRealPolicyWorkbenchState() {
 			value,
 			allowChildOverride,
 		}
+
+		if (
+			activeDefinition.value.key === 'identify_methods'
+			&& !ruleId
+			&& !shouldUseIdentifyMethodsBaseline(editorDraft.value.value)
+		) {
+			editorDraft.value.value = activeDefinition.value.createEmptyValue()
+		}
+
 		editorInitialSnapshot.value = toDraftSnapshot(editorDraft.value)
 		editorInitialTouchVersion.value = draftTouchVersion.value
 
