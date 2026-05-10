@@ -39,7 +39,10 @@
 					@update:modelValue="$emit('update-value', $event)" />
 			</div>
 
-			<div v-if="showAllowOverrideSwitch && allowOverrideMutable" class="policy-workbench__global-behavior">
+			<div
+				v-if="showAllowOverrideSwitch && allowOverrideMutable"
+				class="policy-workbench__global-behavior"
+				:class="{ 'policy-workbench__global-behavior--identify-methods': isIdentifyMethodsEditor }">
 				<NcCheckboxRadioSwitch
 					type="switch"
 					:model-value="editorDraft.allowChildOverride"
@@ -158,6 +161,15 @@ const allowOverrideTitle = computed(() => {
 
 	return t('libresign', 'Allow lower-level customization')
 })
+
+const isIdentifyMethodsEditor = computed(() => {
+	if (!props.activeEditor || typeof props.activeEditor !== 'object') {
+		return false
+	}
+
+	const editorName = (props.activeEditor as { name?: string }).name
+	return editorName === 'IdentifyMethodsRuleEditor'
+})
 </script>
 
 <style scoped lang="scss">
@@ -253,6 +265,12 @@ const allowOverrideTitle = computed(() => {
 	display: flex;
 	flex-direction: column;
 	gap: 0.16rem;
+}
+
+.policy-workbench__global-behavior--identify-methods {
+	margin-top: 0.08rem;
+	padding-top: 0;
+	border-top: 0;
 }
 
 .policy-workbench__global-behavior-label {
