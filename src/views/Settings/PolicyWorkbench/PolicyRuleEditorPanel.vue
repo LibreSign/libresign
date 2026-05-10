@@ -39,19 +39,20 @@
 					@update:modelValue="$emit('update-value', $event)" />
 			</div>
 
-			<NcCheckboxRadioSwitch
-				v-if="showAllowOverrideSwitch && allowOverrideMutable"
-				type="switch"
-				:model-value="editorDraft.allowChildOverride"
-				:disabled="saveStatus === 'saving' || !allowOverrideMutable"
-				@update:modelValue="$emit('update-allow-override', $event)">
-				<div class="policy-workbench__switch-copy">
-					<span>{{ allowOverrideTitle }}</span>
-					<p>
-						{{ allowOverrideDescription }}
-					</p>
-				</div>
-			</NcCheckboxRadioSwitch>
+			<div v-if="showAllowOverrideSwitch && allowOverrideMutable" class="policy-workbench__global-behavior">
+				<NcCheckboxRadioSwitch
+					type="switch"
+					:model-value="editorDraft.allowChildOverride"
+					:disabled="saveStatus === 'saving' || !allowOverrideMutable"
+					@update:modelValue="$emit('update-allow-override', $event)">
+					<div class="policy-workbench__switch-copy">
+						<span>{{ allowOverrideTitle }}</span>
+						<p>
+							{{ allowOverrideDescription }}
+						</p>
+					</div>
+				</NcCheckboxRadioSwitch>
+			</div>
 
 			<NcNoteCard v-if="duplicateMessage" type="error">
 				{{ duplicateMessage }}
@@ -173,31 +174,34 @@ const allowOverrideTitle = computed(() => {
 .policy-workbench__editor-panel-content {
 	display: flex;
 	flex-direction: column;
-	gap: 0.85rem;
+	gap: 0.5rem;
 	overflow: visible;
 }
 
 .policy-workbench__editor-header {
 	display: flex;
 	flex-direction: column;
-	gap: 0.4rem;
+	gap: 0.22rem;
 
 	p {
 		margin: 0;
+		font-size: 0.85rem;
 	}
 }
 
 .policy-workbench__label {
-	font-size: 0.78rem;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
+	font-size: 0.74rem;
+	font-weight: 500;
+	text-transform: none;
+	letter-spacing: 0;
 	color: var(--color-text-maxcontrast);
+	opacity: 0.85;
 }
 
 .policy-workbench__field {
 	display: flex;
 	flex-direction: column;
-	gap: 0.45rem;
+	gap: 0.28rem;
 }
 
 .policy-workbench__setting-surface {
@@ -213,7 +217,7 @@ const allowOverrideTitle = computed(() => {
 	flex-direction: row;
 	justify-content: flex-end;
 	align-items: center;
-	gap: 0.75rem;
+	gap: 0.5rem;
 	flex-wrap: wrap;
 
 	:deep(.button-vue) {
@@ -226,20 +230,46 @@ const allowOverrideTitle = computed(() => {
 .policy-workbench__switch-copy {
 	display: flex;
 	flex-direction: column;
-	gap: 0.25rem;
+	gap: 0.12rem;
+
+	span {
+		font-size: 0.82rem;
+		font-weight: 500;
+		color: var(--color-main-text);
+	}
 
 	p {
 		margin: 0;
-		font-size: 0.84rem;
+		font-size: 0.77rem;
 		color: var(--color-text-maxcontrast);
+		opacity: 0.8;
 	}
 }
 
-.policy-workbench__precedence-hint {
-	margin: 0.2rem 0 0;
-	font-size: 0.82rem;
+.policy-workbench__global-behavior {
+	margin-top: 0.28rem;
+	padding-top: 0.48rem;
+	border-top: 1px solid color-mix(in srgb, var(--color-border) 48%, transparent);
+	display: flex;
+	flex-direction: column;
+	gap: 0.16rem;
+}
+
+.policy-workbench__global-behavior-label {
+	margin: 0;
+	font-size: 0.74rem;
 	font-weight: 600;
-	color: var(--color-main-text);
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	color: var(--color-text-maxcontrast);
+}
+
+.policy-workbench__precedence-hint {
+	margin: 0.08rem 0 0;
+	font-size: 0.75rem;
+	font-weight: 400;
+	color: var(--color-text-maxcontrast);
+	opacity: 0.8;
 }
 
 @media (max-width: 640px) {
