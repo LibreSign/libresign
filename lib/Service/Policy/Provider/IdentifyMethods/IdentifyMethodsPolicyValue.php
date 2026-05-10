@@ -12,9 +12,10 @@ use OCA\Libresign\Service\IdentifyMethodService;
 
 final class IdentifyMethodsPolicyValue {
 	/**
-	 * @return list<array<string, mixed>>
+	 * @return array{factors: list<array<string, mixed>>, can_create_account?: bool}
 	 */
 	public static function normalize(mixed $rawValue, ?IdentifyMethodService $identifyMethodService = null): array {
+		$globalCanCreateAccount = null;
 		$sharedMinimumTotalVerifiedFactors = null;
 		if (is_string($rawValue)) {
 			$decoded = json_decode($rawValue, true);
@@ -25,20 +26,50 @@ final class IdentifyMethodsPolicyValue {
 					$rawValue = $decoded['factors'];
 					$sharedMinimumTotalVerifiedFactors = self::normalizeMinimumTotalVerifiedFactors($decoded['minimumTotalVerifiedFactors'] ?? null);
 				}
+				if (array_key_exists('can_create_account', $decoded)) {
+					$globalCanCreateAccount = (bool)$decoded['can_create_account'];
+				}
 			}
 		} elseif (is_array($rawValue) && !array_is_list($rawValue)) {
-			if (isset($rawValue['factors']) && is_array($rawValue['factors'])) {
-				$sharedMinimumTotalVerifiedFactors = self::normalizeMinimumTotalVerifiedFactors($rawValue['minimumTotalVerifiedFactors'] ?? null);
-				$rawValue = $rawValue['factors'];
+			$candidate = $rawValue;
+			if (isset($candidate['factors']) && is_array($candidate['factors'])) {
+				$sharedMinimumTotalVerifiedFactors = self::normalizeMinimumTotalVerifiedFactors($candidate['minimumTotalVerifiedFactors'] ?? null);
+				$rawValue = $candidate['factors'];
+			}
+			if (array_key_exists('can_create_account', $candidate)) {
+				$globalCanCreateAccount = (bool)$candidate['can_create_account'];
 			}
 		}
 
 		if (!is_array($rawValue)) {
-			return [];
+			return [
+				'factors' => [],
+			];
 		}
 
 		$normalized = [];
+		$legacyGlobalCanCreateAccount = $globalCanCreateAccount;
 		foreach ($rawValue as $entry) {
+			if (is_string($entry)) {
+				$name = trim($entry);
+				if ($name === '') {
+					continue;
+				}
+
+				$normalizedEntry = [
+					'name' => $name,
+					'enabled' => true,
+					'signatureMethods' => [],
+				];
+
+				if ($sharedMinimumTotalVerifiedFactors !== null) {
+					$normalizedEntry['minimumTotalVerifiedFactors'] = $sharedMinimumTotalVerifiedFactors;
+				}
+
+				$normalized[] = $normalizedEntry;
+				continue;
+			}
+
 			if (!is_array($entry)) {
 				continue;
 			}
@@ -112,7 +143,9 @@ final class IdentifyMethodsPolicyValue {
 			}
 
 			if (array_key_exists('can_create_account', $entry)) {
-				$normalizedEntry['can_create_account'] = (bool)$entry['can_create_account'];
+				if ($legacyGlobalCanCreateAccount === null) {
+					$legacyGlobalCanCreateAccount = (bool)$entry['can_create_account'];
+				}
 			}
 
 			$minimumTotalVerifiedFactors = self::normalizeMinimumTotalVerifiedFactors($entry['minimumTotalVerifiedFactors'] ?? null)
@@ -146,7 +179,44 @@ final class IdentifyMethodsPolicyValue {
 			unset($entry);
 		}
 
-		return $normalized;
+		$payload = [
+			'factors' => $normalized,
+		];
+		if ($legacyGlobalCanCreateAccount !== null) {
+			$payload['can_create_account'] = $legacyGlobalCanCreateAccount;
+		}
+
+		return $payload;
+	}
+
+	/**
+	 * @return list<array<string, mixed>>
+	 */
+	public static function extractFactors(array $normalizedPayload): array {
+		if (isset($normalizedPayload['factors']) && is_array($normalizedPayload['factors'])) {
+			return array_values(array_filter($normalizedPayload['factors'], static fn (mixed $entry): bool => is_array($entry)));
+		}
+
+		if (array_is_list($normalizedPayload)) {
+			return array_values(array_filter($normalizedPayload, static fn (mixed $entry): bool => is_array($entry)));
+		}
+
+		return [];
+	}
+
+	public static function resolveGlobalCanCreateAccount(array $normalizedPayload): ?bool {
+		if (array_key_exists('can_create_account', $normalizedPayload)) {
+			return (bool)$normalizedPayload['can_create_account'];
+		}
+
+		$factors = self::extractFactors($normalizedPayload);
+		foreach ($factors as $entry) {
+			if (array_key_exists('can_create_account', $entry)) {
+				return (bool)$entry['can_create_account'];
+			}
+		}
+
+		return null;
 	}
 
 	private static function normalizeRequirement(mixed $requirement, mixed $mandatory): ?string {
