@@ -37,9 +37,9 @@ function createWrapper(modelValue: EffectivePolicyValue) {
 			stubs: {
 				NcCheckboxRadioSwitch: {
 					name: 'NcCheckboxRadioSwitch',
-					props: ['modelValue', 'type', 'name', 'value'],
+					props: ['modelValue', 'type', 'name', 'value', 'disabled'],
 					emits: ['update:modelValue'],
-					template: '<button class="switch-stub" @click="$emit(\'update:modelValue\', !modelValue)"><slot /></button>',
+					template: '<button class="switch-stub" :disabled="disabled" @click="$emit(\'update:modelValue\', !modelValue)"><slot /></button>',
 				},
 			},
 		},
@@ -170,6 +170,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 			},
 		]))
 
+		expect(wrapper.text()).toContain('Rule settings')
 		expect(wrapper.text()).toContain('Automatically create account')
 		expect(wrapper.findAll('.identify-methods-editor__global-onboarding')).toHaveLength(1)
 	})
@@ -190,7 +191,7 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 		expect(wrapper.text()).not.toContain('newGatewayToken')
 	})
 
-	it('hides required switch when only one factor is enabled', () => {
+	it('shows locked required switch with explanation when only one factor is enabled', () => {
 		const wrapper = createWrapper(JSON.stringify([
 			{
 				name: 'email',
@@ -210,8 +211,11 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 			},
 		]))
 
+		const requirementLock = wrapper.find('.identify-methods-editor__requirement-lock')
+		expect(requirementLock.exists()).toBe(true)
+		expect(requirementLock.attributes('title')).toBe('At least one identification factor must remain required.')
 		expect(wrapper.text()).toContain('Always required')
 		expect(wrapper.find('.identify-methods-editor__required-badge').exists()).toBe(true)
-		expect(wrapper.find('.identify-methods-editor__requirement-switch').exists()).toBe(false)
+		expect(wrapper.find('.identify-methods-editor__requirement-switch--locked').exists()).toBe(true)
 	})
 })
