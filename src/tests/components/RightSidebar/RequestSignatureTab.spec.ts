@@ -192,6 +192,18 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	const updateMethods = async (methods: unknown[]) => {
 		await setVmState({ methods })
 	}
+	const updateIdentifyMethodsPolicy = async (effectiveValue: unknown) => {
+		const policiesStore = usePoliciesStore()
+		policiesStore.setPolicies({
+			signature_flow: createSignatureFlowPolicy(),
+			add_footer: createEffectivePoliciesResponse().data.ocs.data.policies.add_footer,
+			identify_methods: {
+				...createEffectivePoliciesResponse().data.ocs.data.policies.identify_methods,
+				effectiveValue,
+			},
+		})
+		await wrapper.vm.$nextTick()
+	}
 	const updatePolicies = async (policyOverrides: Record<string, unknown>) => {
 		const policiesStore = usePoliciesStore()
 		policiesStore.setPolicies({
@@ -225,6 +237,8 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			return { data: { ocs: { data: null } } } as Awaited<ReturnType<typeof axios.get>>
 		})
 		filesStore = useFilesStore()
+		const policiesStore = usePoliciesStore()
+		policiesStore.setPolicies(createEffectivePoliciesResponse().data.ocs.data.policies)
 
 		await filesStore.addFile({
 			id: 1,
@@ -320,6 +334,22 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await updateFile({ nodeType: 'envelope' })
 
 			expect(wrapper.vm.isEnvelope).toBe(true)
+		})
+
+		it('normalizes identify_methods when policy arrives in object payload format', async () => {
+			await updateIdentifyMethodsPolicy({
+				minimumTotalVerifiedFactors: '2',
+				factors: [
+					{
+						name: 'email',
+						signatureMethods: ['emailToken'],
+					},
+				],
+			})
+
+			expect(wrapper.vm.methods).toHaveLength(1)
+			expect(wrapper.vm.methods[0].name).toBe('email')
+			expect(wrapper.vm.methods[0].enabled).toBe(true)
 		})
 
 		it('returns false for regular file', async () => {
