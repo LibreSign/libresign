@@ -1342,6 +1342,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		state.startEditor({ scope: 'system' })
 		expect(state.editorDraft).not.toBeNull()
+		expect(state.canSaveDraft).toBe(true)
 		const parsedDraftValue = JSON.parse(String(state.editorDraft?.value)) as { factors: Array<{ name?: string }> }
 		expect(parsedDraftValue.factors).toHaveLength(1)
 		expect(parsedDraftValue.factors[0]?.name).toBe('email')
