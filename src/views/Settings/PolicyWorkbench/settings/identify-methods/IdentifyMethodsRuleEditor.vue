@@ -354,32 +354,22 @@ function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): I
 }
 
 .identify-methods-editor__global-onboarding {
-	margin-left: 0;
 	padding: 0.18rem 0 0;
-	display: flex;
-	flex-direction: column;
-	gap: 0;
 	border-top: 1px solid color-mix(in srgb, var(--color-border) 48%, transparent);
 
 	:deep(.checkbox-radio-switch) {
 		--checkbox-padding: 0.28rem 0;
 		margin: 0;
 	}
-
-	:deep(.checkbox-content) {
-		display: flex;
-		flex-direction: column;
-		gap: 0.12rem;
-	}
 }
 
 .identify-methods-editor__onboarding-content {
 	display: flex;
 	flex-direction: column;
-	gap: 0.12rem;
+	gap: 0.1rem;
 
 	span {
-		font-size: 0.82rem;
+		font-size: 0.85rem;
 		font-weight: 500;
 		color: var(--color-main-text);
 	}
