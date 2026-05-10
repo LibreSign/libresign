@@ -526,6 +526,15 @@ export function createRealPolicyWorkbenchState() {
 			return true
 		}
 
+		if (
+			editorMode.value === 'create'
+			&& editorDraft.value.scope === 'system'
+			&& activeDefinition.value?.key === 'identify_methods'
+			&& !shouldUseIdentifyMethodsBaseline(inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value)
+		) {
+			return true
+		}
+
 		if (!isDraftDirty.value
 			&& editorMode.value === 'create'
 			&& editorDraft.value.scope === 'system'
