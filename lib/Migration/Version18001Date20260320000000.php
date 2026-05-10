@@ -377,7 +377,7 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 	}
 
 	/**
-	 * @return list<array<string, mixed>>|null
+	 * @return array<string, mixed>|null
 	 */
 	private function normalizeIdentifyMethodsLegacyPayload(mixed $rawValue): ?array {
 		$decoded = $this->decodeIdentifyMethodsLegacyPayload($rawValue);
@@ -385,24 +385,37 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 			return null;
 		}
 
-		$prepared = [];
-		foreach ($decoded as $entry) {
-			if (!is_array($entry)) {
-				continue;
-			}
-
-			if (isset($entry['signatureMethodEnabled']) && is_array($entry['signatureMethodEnabled'])) {
-				$entry['signatureMethodEnabled'] = $this->normalizeLegacySignatureMethodEnabled($entry['signatureMethodEnabled']);
-			}
-
-			$prepared[] = $entry;
-		}
+		$prepared = $this->normalizeLegacyIdentifyMethodsSignatureMethodEnabled($decoded);
 
 		return IdentifyMethodsPolicyValue::normalize($prepared);
 	}
 
+	private function normalizeLegacyIdentifyMethodsSignatureMethodEnabled(mixed $payload): mixed {
+		if (!is_array($payload)) {
+			return $payload;
+		}
+
+		if (array_is_list($payload)) {
+			$normalized = [];
+			foreach ($payload as $entry) {
+				$normalized[] = $this->normalizeLegacyIdentifyMethodsSignatureMethodEnabled($entry);
+			}
+			return $normalized;
+		}
+
+		if (isset($payload['signatureMethodEnabled']) && is_array($payload['signatureMethodEnabled'])) {
+			$payload['signatureMethodEnabled'] = $this->normalizeLegacySignatureMethodEnabled($payload['signatureMethodEnabled']);
+		}
+
+		if (isset($payload['factors']) && is_array($payload['factors'])) {
+			$payload['factors'] = $this->normalizeLegacyIdentifyMethodsSignatureMethodEnabled($payload['factors']);
+		}
+
+		return $payload;
+	}
+
 	/**
-	 * @return list<array<string, mixed>>|null
+	 * @return array<mixed>|null
 	 */
 	private function decodeIdentifyMethodsLegacyPayload(mixed $rawValue): ?array {
 		if (is_string($rawValue)) {
