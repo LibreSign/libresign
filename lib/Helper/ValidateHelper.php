@@ -17,7 +17,6 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdDocsMapper;
-use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
@@ -27,9 +26,8 @@ use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
-use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -41,7 +39,6 @@ use OCP\Files\NotPermittedException;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\Security\IHasher;
 
 class ValidateHelper {
 	/** @var \OCP\Files\File[] */
@@ -64,17 +61,16 @@ class ValidateHelper {
 		private FileElementMapper $fileElementMapper,
 		private IdDocsMapper $idDocsMapper,
 		private UserElementMapper $userElementMapper,
-		private IdentifyMethodMapper $identifyMethodMapper,
 		private IdentifyMethodService $identifyMethodService,
 		private SequentialSigningService $sequentialSigningService,
 		private SignerElementsService $signerElementsService,
 		private IMimeTypeDetector $mimeTypeDetector,
-		private IHasher $hasher,
 		private IdDocsPolicyService $idDocsPolicyService,
 		private IUserManager $userManager,
 		private IRootFolder $root,
 		private DocMdpValidator $docMdpValidator,
 		private RequestSignAuthorizationService $requestSignAuthorizationService,
+		private RuntimeRequirementValidator $runtimeRequirementValidator,
 	) {
 	}
 
@@ -865,153 +861,7 @@ class ValidateHelper {
 		$identifyMethod = $this->resolveIdentifyMethod($signRequest, $identifyMethodName, $identifyValue);
 		$identifyMethod->setCodeSentByUser($token);
 		$identifyMethod->validateToSign();
-		$this->validateRuntimeIdentifyMethodRequirements($signRequest);
-	}
-
-	private function validateRuntimeIdentifyMethodRequirements(SignRequest $signRequest): void {
-		if (!$signRequest->getId()) {
-			return;
-		}
-
-		$methodsByName = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-		if (empty($methodsByName)) {
-			return;
-		}
-
-		$requiredFactors = 0;
-		$identifiedRequiredFactors = 0;
-		$identifiedFactors = 0;
-		$hasOptionalFactor = false;
-		$methodNames = [];
-
-		foreach ($methodsByName as $methods) {
-			foreach ($methods as $identifyMethod) {
-				$entity = $identifyMethod->getEntity();
-				$methodName = $entity->getIdentifierKey();
-				$methodNames[$methodName] = true;
-
-				$isRequired = $entity->getMandatory() === 1;
-				$isIdentified = $entity->getIdentifiedAtDate() !== null;
-
-				if (!$isRequired) {
-					$hasOptionalFactor = true;
-				}
-
-				if ($isRequired) {
-					$requiredFactors++;
-					if ($isIdentified) {
-						$identifiedRequiredFactors++;
-					}
-				}
-
-				if ($isIdentified) {
-					$identifiedFactors++;
-				}
-			}
-		}
-
-		if ($identifiedRequiredFactors < $requiredFactors) {
-			throw new LibresignException($this->l10n->t('You need to complete all required identification factors before signing.'));
-		}
-
-		$minimumTotalVerifiedFactors = $this->resolveMinimumTotalVerifiedFactors(
-			$signRequest,
-			array_keys($methodNames),
-			$hasOptionalFactor,
-		);
-		if ($minimumTotalVerifiedFactors === null) {
-			return;
-		}
-
-		$requiredVerifiedFactors = max($requiredFactors, $minimumTotalVerifiedFactors);
-		if ($identifiedFactors < $requiredVerifiedFactors) {
-			throw new LibresignException(
-				$this->l10n->t('You need to complete at least %s identification factors before signing.', [$requiredVerifiedFactors])
-			);
-		}
-	}
-
-	/**
-	 * @param list<string> $methodNames
-	 */
-	private function resolveMinimumTotalVerifiedFactors(SignRequest $signRequest, array $methodNames, bool $hasOptionalFactor): ?int {
-		// Compatibility gate: legacy requests only had mandatory factors,
-		// so minimum-based runtime enforcement is enabled only when optional factors exist.
-		if (!$hasOptionalFactor) {
-			return null;
-		}
-
-		$methodSet = array_fill_keys($methodNames, true);
-
-		$minimumFromSnapshot = $this->resolveMinimumTotalVerifiedFactorsFromPolicySnapshot($signRequest, $methodSet);
-		if ($minimumFromSnapshot !== null) {
-			return $minimumFromSnapshot;
-		}
-
-		$minimum = null;
-		foreach ($this->identifyMethodService->getIdentifyMethodsSettings() as $setting) {
-			if (!is_array($setting) || empty($setting['name']) || !isset($methodSet[$setting['name']])) {
-				continue;
-			}
-			if (!array_key_exists('minimumTotalVerifiedFactors', $setting) || !is_numeric($setting['minimumTotalVerifiedFactors'])) {
-				continue;
-			}
-
-			$candidate = (int)$setting['minimumTotalVerifiedFactors'];
-			if ($candidate < 1) {
-				continue;
-			}
-
-			$minimum = $minimum === null ? $candidate : max($minimum, $candidate);
-		}
-
-		return $minimum;
-	}
-
-	/**
-	 * @param array<string, true> $methodSet
-	 */
-	private function resolveMinimumTotalVerifiedFactorsFromPolicySnapshot(SignRequest $signRequest, array $methodSet): ?int {
-		try {
-			$file = $this->fileMapper->getById($signRequest->getFileId());
-		} catch (\Throwable) {
-			return null;
-		}
-
-		$metadata = $file->getMetadata() ?? [];
-		if (!isset($metadata['policy_snapshot']) || !is_array($metadata['policy_snapshot'])) {
-			return null;
-		}
-
-		$entry = $metadata['policy_snapshot'][IdentifyMethodsPolicy::KEY] ?? null;
-		if (!is_array($entry) || !array_key_exists('effectiveValue', $entry)) {
-			return null;
-		}
-
-		$normalized = IdentifyMethodsPolicyValue::normalize($entry['effectiveValue']);
-		if (empty($normalized)) {
-			return null;
-		}
-
-		$minimum = null;
-		foreach ($normalized as $setting) {
-			if (!is_array($setting) || empty($setting['name']) || !isset($methodSet[$setting['name']])) {
-				continue;
-			}
-
-			if (!array_key_exists('minimumTotalVerifiedFactors', $setting) || !is_numeric($setting['minimumTotalVerifiedFactors'])) {
-				continue;
-			}
-
-			$candidate = (int)$setting['minimumTotalVerifiedFactors'];
-			if ($candidate < 1) {
-				continue;
-			}
-
-			$minimum = $minimum === null ? $candidate : max($minimum, $candidate);
-		}
-
-		return $minimum;
+		$this->runtimeRequirementValidator->validate($signRequest);
 	}
 
 	private function resolveIdentifyMethod(SignRequest $signRequest, string $methodName, ?string $identifyValue): IIdentifyMethod {
