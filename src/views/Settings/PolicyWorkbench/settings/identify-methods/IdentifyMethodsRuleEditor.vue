@@ -9,66 +9,58 @@
 			{{ t('libresign', 'No identification methods available.') }}
 		</div>
 
-		<div class="identify-methods-editor__methods-grid">
-			<div v-for="(identifyMethod, index) in entries"
-				:key="identifyMethod.name"
-				class="identify-methods-editor__method"
-				:class="{ 'identify-methods-editor__method--disabled': !identifyMethod.enabled }">
-				<div class="identify-methods-editor__method-header">
-					<NcCheckboxRadioSwitch type="switch"
-						class="identify-methods-editor__method-main-toggle"
-						:model-value="identifyMethod.enabled"
-						@update:modelValue="onMethodToggle(index, $event)">
-						{{ identifyMethod.friendly_name ?? identifyMethod.name }}
+		<div v-for="(identifyMethod, index) in entries"
+			:key="identifyMethod.name"
+			class="identify-methods-editor__method"
+			:class="{ 'identify-methods-editor__method--disabled': !identifyMethod.enabled }">
+			<div class="identify-methods-editor__method-header">
+				<NcCheckboxRadioSwitch type="switch"
+					class="identify-methods-editor__method-main-toggle"
+					:model-value="identifyMethod.enabled"
+					@update:modelValue="onMethodToggle(index, $event)">
+					{{ identifyMethod.friendly_name ?? identifyMethod.name }}
+				</NcCheckboxRadioSwitch>
+
+				<div v-if="identifyMethod.enabled" class="identify-methods-editor__requirement-area">
+					<NcCheckboxRadioSwitch
+						v-if="canAdjustRequirement"
+						type="switch"
+						class="identify-methods-editor__requirement-switch"
+						:model-value="isRequired(identifyMethod)"
+						@update:modelValue="onRequirementToggle(index, $event)">
+						{{ t('libresign', 'Required to sign') }}
 					</NcCheckboxRadioSwitch>
 
-					<div v-if="identifyMethod.enabled" class="identify-methods-editor__requirement-area">
+					<NcCheckboxRadioSwitch
+						v-else
+						type="switch"
+						class="identify-methods-editor__requirement-switch identify-methods-editor__requirement-switch--locked"
+						:model-value="true"
+						:disabled="true"
+						:title="t('libresign', 'At least one identification factor must remain required.')">
+						{{ t('libresign', 'Required to sign') }}
+					</NcCheckboxRadioSwitch>
+				</div>
+			</div>
+
+			<div v-if="identifyMethod.enabled" class="identify-methods-editor__method-details">
+				<fieldset v-if="Object.keys(identifyMethod.signatureMethods).length > 0" class="identify-methods-editor__sub-section">
+					<legend>{{ t('libresign', 'Confirmation method') }}</legend>
+					<div class="identify-methods-editor__verification-options" role="radiogroup" :aria-label="t('libresign', 'Confirmation method')">
 						<NcCheckboxRadioSwitch
-							v-if="canAdjustRequirement"
-							type="switch"
-							class="identify-methods-editor__requirement-switch"
-							:model-value="isRequired(identifyMethod)"
-							@update:modelValue="onRequirementToggle(index, $event)">
-							{{ t('libresign', 'Required to sign') }}
+							v-for="(signatureMethod, signatureMethodName) in identifyMethod.signatureMethods"
+							:key="signatureMethodName"
+							type="radio"
+							:name="`verification-method-${identifyMethod.name}-${index}`"
+							:value="signatureMethodName"
+							:model-value="identifyMethod.signatureMethodEnabled"
+							class="identify-methods-editor__verification-switch"
+							:class="{ 'identify-methods-editor__verification-switch--selected': identifyMethod.signatureMethodEnabled === signatureMethodName }"
+							@update:modelValue="onSignatureMethodChange(index, String($event))">
+							{{ getVerificationMethodLabel(identifyMethod.name, signatureMethodName, signatureMethod.label) }}
 						</NcCheckboxRadioSwitch>
-
-						<div
-							v-else
-							class="identify-methods-editor__requirement-lock"
-							:title="t('libresign', 'At least one identification factor must remain required.')">
-							<NcCheckboxRadioSwitch
-								type="switch"
-								class="identify-methods-editor__requirement-switch identify-methods-editor__requirement-switch--locked"
-								:model-value="true"
-								:disabled="true">
-								{{ t('libresign', 'Required to sign') }}
-							</NcCheckboxRadioSwitch>
-							<span class="identify-methods-editor__required-badge">
-								{{ t('libresign', 'Always required') }}
-							</span>
-						</div>
 					</div>
-				</div>
-
-				<div v-if="identifyMethod.enabled" class="identify-methods-editor__method-details">
-					<fieldset v-if="Object.keys(identifyMethod.signatureMethods).length > 0" class="identify-methods-editor__sub-section">
-						<legend>{{ t('libresign', 'Confirmation method') }}</legend>
-						<div class="identify-methods-editor__verification-options" role="radiogroup" :aria-label="t('libresign', 'Confirmation method')">
-							<NcCheckboxRadioSwitch
-								v-for="(signatureMethod, signatureMethodName) in identifyMethod.signatureMethods"
-								:key="signatureMethodName"
-								type="radio"
-								:name="`verification-method-${identifyMethod.name}-${index}`"
-								:value="signatureMethodName"
-								:model-value="identifyMethod.signatureMethodEnabled"
-								class="identify-methods-editor__verification-switch"
-								:class="{ 'identify-methods-editor__verification-switch--selected': identifyMethod.signatureMethodEnabled === signatureMethodName }"
-								@update:modelValue="onSignatureMethodChange(index, String($event))">
-								{{ getVerificationMethodLabel(identifyMethod.name, signatureMethodName, signatureMethod.label) }}
-							</NcCheckboxRadioSwitch>
-						</div>
-					</fieldset>
-				</div>
+				</fieldset>
 			</div>
 		</div>
 
@@ -259,12 +251,6 @@ function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): I
 	font-size: 0.9rem;
 }
 
-.identify-methods-editor__methods-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(15.2rem, 1fr));
-	gap: 0.2rem;
-}
-
 .identify-methods-editor__method {
 	display: flex;
 	flex-direction: column;
@@ -279,12 +265,8 @@ function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): I
 .identify-methods-editor__method--disabled {
 	opacity: 0.52;
 	background-color: transparent;
-}
-
-@media (max-width: 640px) {
-	.identify-methods-editor__methods-grid {
-		grid-template-columns: 1fr;
-	}
+	min-height: 2.1rem;
+	justify-content: center;
 }
 
 .identify-methods-editor__method-header {
@@ -328,30 +310,11 @@ function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): I
 }
 
 .identify-methods-editor__requirement-switch--locked {
-	:deep(.checkbox-content) {
-		opacity: 0.62;
-	}
-}
-
-.identify-methods-editor__requirement-lock {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.12rem;
 	cursor: help;
-}
 
-.identify-methods-editor__required-badge {
-	display: inline-flex;
-	align-items: center;
-	padding: 0.08rem 0.4rem;
-	border-radius: 10px;
-	font-size: 0.66rem;
-	font-weight: 500;
-	letter-spacing: 0.015em;
-	background-color: color-mix(in srgb, var(--color-text-maxcontrast) 11%, transparent);
-	color: var(--color-text-maxcontrast);
-	white-space: nowrap;
-	user-select: none;
+	:deep(.checkbox-content) {
+		opacity: 0.55;
+	}
 }
 
 .identify-methods-editor__method-details {
