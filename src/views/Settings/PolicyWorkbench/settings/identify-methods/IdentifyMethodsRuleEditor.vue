@@ -11,7 +11,8 @@
 
 		<div v-for="(identifyMethod, index) in entries"
 			:key="identifyMethod.name"
-			class="identify-methods-editor__method">
+			class="identify-methods-editor__method"
+			:class="{ 'identify-methods-editor__method--disabled': !identifyMethod.enabled }">
 			<div class="identify-methods-editor__method-header">
 				<NcCheckboxRadioSwitch type="switch"
 					class="identify-methods-editor__method-main-toggle"
@@ -27,19 +28,19 @@
 						class="identify-methods-editor__requirement-switch"
 						:model-value="isRequired(identifyMethod)"
 						@update:modelValue="onRequirementToggle(index, $event)">
-						{{ t('libresign', 'Required') }}
-					</NcCheckboxRadioSwitch>
+					{{ t('libresign', 'Required to sign') }}
+				</NcCheckboxRadioSwitch>
 
-					<p v-else class="identify-methods-editor__required-helper">
-						{{ t('libresign', 'Only enabled factor') }}
-					</p>
+					<span v-else class="identify-methods-editor__required-badge">
+						{{ t('libresign', 'Always required') }}
+					</span>
 				</div>
 			</div>
 
 			<div v-if="identifyMethod.enabled" class="identify-methods-editor__method-details">
 				<fieldset v-if="Object.keys(identifyMethod.signatureMethods).length > 0" class="identify-methods-editor__sub-section">
-					<legend>{{ t('libresign', 'Verification method') }}</legend>
-					<div class="identify-methods-editor__verification-options" role="radiogroup" :aria-label="t('libresign', 'Verification method')">
+					<legend>{{ t('libresign', 'Confirmation method') }}</legend>
+					<div class="identify-methods-editor__verification-options" role="radiogroup" :aria-label="t('libresign', 'Confirmation method')">
 						<NcCheckboxRadioSwitch
 							v-for="(signatureMethod, signatureMethodName) in identifyMethod.signatureMethods"
 							:key="signatureMethodName"
@@ -242,11 +243,17 @@ function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): I
 .identify-methods-editor__method {
 	display: flex;
 	flex-direction: column;
-	gap: 0.14rem;
-	padding: 0.3rem 0.42rem;
+	gap: 0.1rem;
+	padding: 0.28rem 0.42rem;
 	border: 1px solid var(--color-border);
 	border-radius: 8px;
 	background-color: color-mix(in srgb, var(--color-main-background) 92%, var(--color-background-darker));
+	transition: opacity 0.15s ease;
+}
+
+.identify-methods-editor__method--disabled {
+	opacity: 0.52;
+	background-color: transparent;
 }
 
 .identify-methods-editor__method-header {
@@ -289,12 +296,18 @@ function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): I
 	}
 }
 
-.identify-methods-editor__required-helper {
-	margin: 0;
-	font-size: 0.72rem;
-	font-weight: 400;
+.identify-methods-editor__required-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.1rem 0.44rem;
+	border-radius: 10px;
+	font-size: 0.68rem;
+	font-weight: 500;
+	letter-spacing: 0.015em;
+	background-color: color-mix(in srgb, var(--color-text-maxcontrast) 11%, transparent);
 	color: var(--color-text-maxcontrast);
-	opacity: 0.75;
+	white-space: nowrap;
+	user-select: none;
 }
 
 .identify-methods-editor__method-details {
@@ -306,29 +319,29 @@ function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): I
 .identify-methods-editor__sub-section {
 	display: flex;
 	flex-direction: column;
-	gap: 0.08rem;
+	gap: 0.04rem;
 	border: 0;
 	margin: 0 0 0 0.95rem;
 	padding: 0;
 
 	:deep(.checkbox-radio-switch) {
-		margin: 0.02rem 0;
+		margin: 0;
 	}
 }
 
 .identify-methods-editor__sub-section legend {
 	padding: 0;
-	margin-bottom: 0.02rem;
+	margin-bottom: 0;
 	font-weight: 500;
-	font-size: 0.75rem;
+	font-size: 0.74rem;
 	color: var(--color-text-maxcontrast);
-	opacity: 0.82;
+	opacity: 0.78;
 }
 
 .identify-methods-editor__verification-options {
 	display: flex;
 	flex-direction: column;
-	gap: 0.12rem;
+	gap: 0.06rem;
 }
 
 .identify-methods-editor__verification-switch {
@@ -354,8 +367,9 @@ function ensureSignatureMethodSelection(entries: IdentifyMethodPolicyEntry[]): I
 }
 
 .identify-methods-editor__global-onboarding {
-	padding: 0.18rem 0 0;
-	border-top: 1px solid color-mix(in srgb, var(--color-border) 48%, transparent);
+	padding: 0.32rem 0 0;
+	margin-top: 0.14rem;
+	border-top: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
 
 	:deep(.checkbox-radio-switch) {
 		--checkbox-padding: 0.28rem 0;
