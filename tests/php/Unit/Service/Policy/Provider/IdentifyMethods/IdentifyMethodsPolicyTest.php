@@ -53,21 +53,23 @@ final class IdentifyMethodsPolicyTest extends TestCase {
 		]);
 
 		$this->assertSame([
-			[
-				'name' => 'email',
-				'enabled' => true,
-				'signatureMethods' => [
-					'email' => [
-						'enabled' => true,
-						'label' => 'Email token',
+			'factors' => [
+				[
+					'name' => 'email',
+					'enabled' => true,
+					'signatureMethods' => [
+						'email' => [
+							'enabled' => true,
+							'label' => 'Email token',
+						],
+						'clickToSign' => [
+							'enabled' => false,
+						],
 					],
-					'clickToSign' => [
-						'enabled' => false,
-					],
+					'friendly_name' => 'Email',
 				],
-				'friendly_name' => 'Email',
-				'can_create_account' => false,
 			],
+			'can_create_account' => false,
 		], $normalized);
 	}
 }
