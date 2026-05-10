@@ -350,6 +350,10 @@ import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
 import { useSigningOrder } from '../../composables/useSigningOrder.js'
 import {
+	normalizeIdentifyMethodsPolicy,
+	type IdentifyMethodPolicyEntry,
+} from '../../views/Settings/PolicyWorkbench/settings/identify-methods/model'
+import {
 	buildFooterTemplateSourceOptions,
 	resolveFooterPolicyPayloadForRequest,
 	type FooterTemplateSource,
@@ -363,7 +367,6 @@ import {
 import type { components, operations } from '../../types/openapi/openapi'
 import type {
 	IdentifyMethodRecord,
-	IdentifyMethodSetting as IdentifyMethodConfig,
 	LibresignCapabilities as RequestSignatureTabCapabilities,
 } from '../../types/index'
 
@@ -419,14 +422,14 @@ const userConfigStore = useUserConfigStore() as ReturnType<typeof useUserConfigS
 const { normalizeSigningOrders, recalculateSigningOrders } = useSigningOrder()
 const capabilities = getCapabilities() as RequestSignatureTabCapabilities
 const EMPTY_DOCUMENT_STATE: LoadedDocumentState = {}
-const EMPTY_IDENTIFY_METHODS: IdentifyMethodConfig[] = []
+const EMPTY_IDENTIFY_METHODS: IdentifyMethodPolicyEntry[] = []
 
 const hasLoading = ref(false)
 const isLoadingFileDetail = ref(false)
 const signerToEdit = ref<IdentifySignerToEdit>({})
 const modalSrc = ref('')
 const documentData = ref<LoadedDocumentState>(loadState<LoadedDocumentState>('libresign', 'file_info', EMPTY_DOCUMENT_STATE))
-const methods = ref<IdentifyMethodConfig[]>(EMPTY_IDENTIFY_METHODS)
+const methods = ref<IdentifyMethodPolicyEntry[]>(EMPTY_IDENTIFY_METHODS)
 const showConfirmRequest = ref(false)
 const showConfirmRequestSigner = ref(false)
 const selectedSigner = ref<EditableRequestSigner | null>(null)
@@ -449,7 +452,7 @@ const canChooseFooterTemplateAtRequestLevel = computed(() => policiesStore.canUs
 const isAdminFlowForced = computed(() => !canChooseSigningOrderAtRequestLevel.value)
 
 watch(() => policiesStore.getEffectiveValue('identify_methods'), (value) => {
-	methods.value = Array.isArray(value) ? value as IdentifyMethodConfig[] : EMPTY_IDENTIFY_METHODS
+	methods.value = normalizeIdentifyMethodsPolicy(value)
 }, { immediate: true })
 
 const signatureFlow = computed(() => {
@@ -610,7 +613,7 @@ function toIdentifySignerToEdit(signer: EditableRequestSigner): IdentifySignerTo
 	}
 }
 
-function getMethodConfig(methodName: string | undefined): IdentifyMethodConfig | undefined {
+function getMethodConfig(methodName: string | undefined): IdentifyMethodPolicyEntry | undefined {
 	if (!methodName) {
 		return undefined
 	}
