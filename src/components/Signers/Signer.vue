@@ -65,7 +65,11 @@ import NcListItem from '@nextcloud/vue/components/NcListItem'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
 import { usePoliciesStore } from '../../store/policies'
-import type { IdentifyMethodSetting, SignatureFlowMode } from '../../types/index'
+import {
+	normalizeIdentifyMethodsPolicy,
+	type IdentifyMethodPolicyEntry,
+} from '../../views/Settings/PolicyWorkbench/settings/identify-methods/model'
+import type { SignatureFlowMode } from '../../types/index'
 defineOptions({
 	name: 'Signer',
 })
@@ -101,9 +105,9 @@ const policiesStore = usePoliciesStore()
 const listItem = ref<any | null>(null)
 
 const canRequestSign = loadState('libresign', 'can_request_sign', false)
-const methods = computed<IdentifyMethodSetting[]>(() => {
+const methods = computed<IdentifyMethodPolicyEntry[]>(() => {
 	const value = policiesStore.getEffectiveValue('identify_methods')
-	return Array.isArray(value) ? value as IdentifyMethodSetting[] : []
+	return normalizeIdentifyMethodsPolicy(value)
 })
 
 const signatureFlow = computed(() => {
