@@ -687,4 +687,226 @@ final class Version18001Date20260320000000Test extends TestCase {
 		self::assertArrayNotHasKey('identify_methods', $savedArrays);
 		self::assertNotContains([Application::APP_ID, 'identify_methods'], $deleted);
 	}
+
+	public function testMigratesIdentifyMethodsLegacyStringList(): void {
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+
+				$map = [
+					'add_footer' => '',
+					'write_qrcode_on_footer' => '',
+					'validation_site' => '',
+					'footer_template_is_default' => '',
+					'collect_metadata' => '',
+					'identification_documents' => '',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					'identify_methods' => '["email","sms"]',
+				];
+
+				return $map[$key] ?? $default;
+			});
+
+		$deleted = [];
+		$this->appConfig
+			->method('deleteKey')
+			->willReturnCallback(static function (string $app, string $key) use (&$deleted): void {
+				$deleted[] = [$app, $key];
+			});
+
+		$savedArrays = [];
+		$this->appConfig
+			->method('setValueArray')
+			->willReturnCallback(static function (string $app, string $key, array $value) use (&$savedArrays): bool {
+				$savedArrays[$key] = $value;
+				return true;
+			});
+
+		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertSame([
+			[
+				'name' => 'email',
+				'enabled' => true,
+				'signatureMethods' => [],
+			],
+			[
+				'name' => 'sms',
+				'enabled' => true,
+				'signatureMethods' => [],
+			],
+		], $savedArrays['identify_methods']);
+		self::assertContains([Application::APP_ID, 'identify_methods'], $deleted);
+	}
+
+	public function testMigratesIdentifyMethodsLegacyObjectWithFactorsAndSharedMinimum(): void {
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+
+				$map = [
+					'add_footer' => '',
+					'write_qrcode_on_footer' => '',
+					'validation_site' => '',
+					'footer_template_is_default' => '',
+					'collect_metadata' => '',
+					'identification_documents' => '',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					'identify_methods' => '{"minimumTotalVerifiedFactors":"2","factors":[{"name":"email","signatureMethods":["emailToken"]},{"name":"sms","enabled":false,"signatureMethods":["smsToken"]}]}',
+				];
+
+				return $map[$key] ?? $default;
+			});
+
+		$deleted = [];
+		$this->appConfig
+			->method('deleteKey')
+			->willReturnCallback(static function (string $app, string $key) use (&$deleted): void {
+				$deleted[] = [$app, $key];
+			});
+
+		$savedArrays = [];
+		$this->appConfig
+			->method('setValueArray')
+			->willReturnCallback(static function (string $app, string $key, array $value) use (&$savedArrays): bool {
+				$savedArrays[$key] = $value;
+				return true;
+			});
+
+		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertSame([
+			[
+				'name' => 'email',
+				'enabled' => true,
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => false],
+				],
+				'minimumTotalVerifiedFactors' => 2,
+			],
+			[
+				'name' => 'sms',
+				'enabled' => false,
+				'signatureMethods' => [
+					'smsToken' => ['enabled' => false],
+				],
+				'minimumTotalVerifiedFactors' => 2,
+			],
+		], $savedArrays['identify_methods']);
+		self::assertContains([Application::APP_ID, 'identify_methods'], $deleted);
+	}
+
+	public function testMigratesIdentifyMethodsLegacyObjectWithFactorsAndSignatureMethodEnabledList(): void {
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+
+				$map = [
+					'add_footer' => '',
+					'write_qrcode_on_footer' => '',
+					'validation_site' => '',
+					'footer_template_is_default' => '',
+					'collect_metadata' => '',
+					'identification_documents' => '',
+					'docmdp_level' => '',
+					'groups_request_sign' => '',
+					'policy.signature_flow.system' => '',
+					'signature_flow' => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE => '',
+					SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE => '',
+					'identify_methods' => '{"factors":[{"name":"email","signatureMethods":["emailToken"],"signatureMethodEnabled":["emailToken"]}]}',
+				];
+
+				return $map[$key] ?? $default;
+			});
+
+		$savedArrays = [];
+		$this->appConfig
+			->method('setValueArray')
+			->willReturnCallback(static function (string $app, string $key, array $value) use (&$savedArrays): bool {
+				$savedArrays[$key] = $value;
+				return true;
+			});
+
+		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertSame([
+			[
+				'name' => 'email',
+				'enabled' => true,
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => false],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		], $savedArrays['identify_methods']);
+	}
+
+	public function testDoesNotRewriteIdentifyMethodsWhenStoredAsTypedArray(): void {
+		$this->appConfig
+			->method('getValueString')
+			->willReturnCallback(static function (string $app, string $key, string $default): string {
+				if ($app !== Application::APP_ID) {
+					return $default;
+				}
+
+				if ($key === 'identify_methods') {
+					throw new AppConfigTypeConflictException('array stored');
+				}
+
+				return '';
+			});
+
+		$deleted = [];
+		$this->appConfig
+			->method('deleteKey')
+			->willReturnCallback(static function (string $app, string $key) use (&$deleted): void {
+				$deleted[] = [$app, $key];
+			});
+
+		$savedArrays = [];
+		$this->appConfig
+			->method('setValueArray')
+			->willReturnCallback(static function (string $app, string $key, array $value) use (&$savedArrays): bool {
+				$savedArrays[$key] = $value;
+				return true;
+			});
+
+		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
+
+		self::assertArrayNotHasKey('identify_methods', $savedArrays);
+		self::assertNotContains([Application::APP_ID, 'identify_methods'], $deleted);
+	}
 }
