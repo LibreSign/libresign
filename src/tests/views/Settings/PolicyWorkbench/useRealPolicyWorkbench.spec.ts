@@ -19,6 +19,24 @@ const { configState } = vi.hoisted(() => ({
 	},
 }))
 
+const { identifyMethodsInitialState } = vi.hoisted(() => ({
+	identifyMethodsInitialState: [
+		{
+			name: 'email',
+			friendly_name: 'Email',
+			enabled: true,
+			requirement: 'required',
+			mandatory: true,
+			signatureMethods: {
+				emailToken: {
+					enabled: true,
+					label: 'Email token',
+				},
+			},
+		},
+	],
+}))
+
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: vi.fn(() => currentUserState),
 }))
@@ -27,6 +45,10 @@ vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((_app, key: string, defaultValue: unknown) => {
 		if (key === 'config') {
 			return configState
+		}
+
+		if (key === 'identify_methods') {
+			return identifyMethodsInitialState
 		}
 
 		return defaultValue
@@ -1261,5 +1283,67 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(state.editorDraft).toBeNull()
 		expect(state.duplicateMessage).toBe('This setting cannot be configured at this scope.')
+	})
+
+	it('keeps identify_methods create draft populated when baseline policy value is empty', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'identify_methods') {
+				return {
+					effectiveValue: '[]',
+					sourceScope: 'system',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('identify_methods')
+		await Promise.resolve()
+		await Promise.resolve()
+
+		state.startEditor({ scope: 'group' })
+		expect(state.editorDraft).not.toBeNull()
+		const parsedDraftValue = JSON.parse(String(state.editorDraft?.value)) as { factors: Array<{ name?: string }> }
+		expect(parsedDraftValue.factors).toHaveLength(1)
+		expect(parsedDraftValue.factors[0]?.name).toBe('email')
+	})
+
+	it('keeps identify_methods system create draft populated when baseline policy value is empty', async () => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === 'identify_methods') {
+				return {
+					effectiveValue: '[]',
+					sourceScope: 'system',
+					visible: true,
+					editableByCurrentActor: true,
+					allowedValues: [],
+					blockedBy: null,
+					canSaveAsUserDefault: true,
+					canUseAsRequestOverride: true,
+					preferenceWasCleared: false,
+				}
+			}
+
+			return { effectiveValue: 'parallel', sourceScope: 'system' }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('identify_methods')
+		await Promise.resolve()
+		await Promise.resolve()
+
+		state.startEditor({ scope: 'system' })
+		expect(state.editorDraft).not.toBeNull()
+		const parsedDraftValue = JSON.parse(String(state.editorDraft?.value)) as { factors: Array<{ name?: string }> }
+		expect(parsedDraftValue.factors).toHaveLength(1)
+		expect(parsedDraftValue.factors[0]?.name).toBe('email')
 	})
 })
