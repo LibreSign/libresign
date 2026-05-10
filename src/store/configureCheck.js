@@ -12,8 +12,9 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import { usePoliciesStore } from './policies'
+import { normalizeIdentifyMethodsPolicy } from '../views/Settings/PolicyWorkbench/settings/identify-methods/model'
 
-const normalizeIdentifyMethods = (value) => Array.isArray(value) ? value : []
+const normalizeIdentifyMethods = (value) => normalizeIdentifyMethodsPolicy(value)
 
 const _configureCheckStore = defineStore('configureCheck', () => {
 	const policiesStore = usePoliciesStore()
@@ -31,7 +32,7 @@ const _configureCheckStore = defineStore('configureCheck', () => {
 	}
 
 	const setIdentifyMethods = (methods) => {
-		identifyMethods.value = methods
+		identifyMethods.value = normalizeIdentifyMethods(methods)
 	}
 
 	const isConfigureOk = (engine) => {
