@@ -12,11 +12,21 @@ import { normalizeIdentifyMethodsPolicy, serializeIdentifyMethodsPolicy } from '
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 
-const initialIdentifyMethods = serializeIdentifyMethodsPolicy(
-	normalizeIdentifyMethodsPolicy(
+function getInitialIdentifyMethods(): string {
+	const normalized = normalizeIdentifyMethodsPolicy(
 		loadState<unknown>('libresign', 'identify_methods', []) as EffectivePolicyValue,
-	),
-)
+	)
+
+	const permissiveDefaults = normalized.map((entry) => ({
+		...entry,
+		requirement: 'optional' as const,
+		mandatory: false,
+	}))
+
+	return serializeIdentifyMethodsPolicy(
+		permissiveDefaults,
+	)
+}
 
 export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 	key: 'identify_methods',
@@ -25,9 +35,12 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 	supportedScopes: ['system', 'group', 'user'],
 	editor: IdentifyMethodsRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => initialIdentifyMethods,
+	createEmptyValue: () => getInitialIdentifyMethods(),
 	normalizeDraftValue: (value: EffectivePolicyValue) => serializeIdentifyMethodsPolicy(normalizeIdentifyMethodsPolicy(value)),
-	hasSelectableDraftValue: () => true,
+	hasSelectableDraftValue: (value: EffectivePolicyValue) => {
+		const normalized = normalizeIdentifyMethodsPolicy(value)
+		return normalized.some((entry) => entry.enabled)
+	},
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
