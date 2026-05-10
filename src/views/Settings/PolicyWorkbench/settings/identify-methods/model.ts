@@ -16,7 +16,6 @@ export type IdentifyMethodPolicyEntry = {
 	name: string
 	friendly_name?: string
 	enabled: boolean
-	can_create_account?: boolean
 	requirement?: IdentifyMethodRequirement
 	mandatory?: boolean
 	minimumTotalVerifiedFactors?: number
@@ -24,9 +23,19 @@ export type IdentifyMethodPolicyEntry = {
 	signatureMethodEnabled?: string
 }
 
-export function normalizeIdentifyMethodsPolicy(value: EffectivePolicyValue): IdentifyMethodPolicyEntry[] {
+export type IdentifyMethodsPolicyGlobalSettings = {
+	canCreateAccount?: boolean
+}
+
+export type IdentifyMethodsPolicyConfig = {
+	factors: IdentifyMethodPolicyEntry[]
+	global: IdentifyMethodsPolicyGlobalSettings
+}
+
+export function normalizeIdentifyMethodsPolicyConfig(value: EffectivePolicyValue): IdentifyMethodsPolicyConfig {
 	let entries: unknown = value
 	let sharedMinimumTotalVerifiedFactors: number | undefined
+	let globalCanCreateAccount: boolean | undefined
 	if (typeof value === 'string') {
 		const decoded = safeJsonParse(value)
 		if (Array.isArray(decoded)) {
@@ -37,6 +46,9 @@ export function normalizeIdentifyMethodsPolicy(value: EffectivePolicyValue): Ide
 				entries = candidate.factors
 				sharedMinimumTotalVerifiedFactors = normalizeMinimumTotalVerifiedFactors(candidate.minimumTotalVerifiedFactors)
 			}
+			if (candidate.can_create_account !== undefined) {
+				globalCanCreateAccount = Boolean(candidate.can_create_account)
+			}
 		}
 	} else if (value && typeof value === 'object' && !Array.isArray(value)) {
 		const candidate = value as Record<string, unknown>
@@ -44,15 +56,39 @@ export function normalizeIdentifyMethodsPolicy(value: EffectivePolicyValue): Ide
 			entries = candidate.factors
 			sharedMinimumTotalVerifiedFactors = normalizeMinimumTotalVerifiedFactors(candidate.minimumTotalVerifiedFactors)
 		}
+		if (candidate.can_create_account !== undefined) {
+			globalCanCreateAccount = Boolean(candidate.can_create_account)
+		}
 	}
 
 	if (!Array.isArray(entries)) {
-		return []
+		return {
+			factors: [],
+			global: {
+				canCreateAccount: globalCanCreateAccount,
+			},
+		}
 	}
 
 	const normalized: IdentifyMethodPolicyEntry[] = []
+	let legacyGlobalCanCreateAccount = globalCanCreateAccount
 
 	for (const rawEntry of entries) {
+		if (typeof rawEntry === 'string') {
+			const name = rawEntry.trim()
+			if (!name) {
+				continue
+			}
+
+			normalized.push({
+				name,
+				enabled: true,
+				minimumTotalVerifiedFactors: sharedMinimumTotalVerifiedFactors,
+				signatureMethods: {},
+			})
+			continue
+		}
+
 		if (!rawEntry || typeof rawEntry !== 'object') {
 			continue
 		}
@@ -63,13 +99,16 @@ export function normalizeIdentifyMethodsPolicy(value: EffectivePolicyValue): Ide
 			continue
 		}
 
+		if (legacyGlobalCanCreateAccount === undefined && candidate.can_create_account !== undefined) {
+			legacyGlobalCanCreateAccount = Boolean(candidate.can_create_account)
+		}
+
 		const signatureMethods = normalizeSignatureMethods(candidate.signatureMethods, candidate.availableSignatureMethods)
 
 		normalized.push({
 			name,
 			friendly_name: typeof candidate.friendly_name === 'string' ? candidate.friendly_name : undefined,
-			enabled: Boolean(candidate.enabled),
-			can_create_account: candidate.can_create_account === undefined ? undefined : Boolean(candidate.can_create_account),
+			enabled: candidate.enabled === undefined ? true : Boolean(candidate.enabled),
 			requirement: normalizeRequirement(candidate.requirement, candidate.mandatory),
 			mandatory: candidate.mandatory === undefined ? undefined : Boolean(candidate.mandatory),
 			minimumTotalVerifiedFactors: normalizeMinimumTotalVerifiedFactors(candidate.minimumTotalVerifiedFactors)
@@ -81,10 +120,22 @@ export function normalizeIdentifyMethodsPolicy(value: EffectivePolicyValue): Ide
 		})
 	}
 
-	return normalized
+	return {
+		factors: normalized,
+		global: {
+			canCreateAccount: legacyGlobalCanCreateAccount,
+		},
+	}
 }
 
-export function serializeIdentifyMethodsPolicy(entries: IdentifyMethodPolicyEntry[]): string {
+export function normalizeIdentifyMethodsPolicy(value: EffectivePolicyValue): IdentifyMethodPolicyEntry[] {
+	return normalizeIdentifyMethodsPolicyConfig(value).factors
+}
+
+export function serializeIdentifyMethodsPolicy(
+	entries: IdentifyMethodPolicyEntry[],
+	globalSettings: IdentifyMethodsPolicyGlobalSettings = {},
+): string {
 	const normalizedEntries = entries.map((entry) => {
 		const signatureMethods: Record<string, IdentifyMethodSignatureMethod> = {}
 
@@ -102,10 +153,6 @@ export function serializeIdentifyMethodsPolicy(entries: IdentifyMethodPolicyEntr
 
 		if (typeof entry.friendly_name === 'string') {
 			normalizedEntry.friendly_name = entry.friendly_name
-		}
-
-		if (entry.can_create_account !== undefined) {
-			normalizedEntry.can_create_account = Boolean(entry.can_create_account)
 		}
 
 		if (entry.requirement) {
@@ -129,7 +176,15 @@ export function serializeIdentifyMethodsPolicy(entries: IdentifyMethodPolicyEntr
 		return normalizedEntry
 	})
 
-	return JSON.stringify(normalizedEntries)
+	const payload: Record<string, unknown> = {
+		factors: normalizedEntries,
+	}
+
+	if (globalSettings.canCreateAccount !== undefined) {
+		payload.can_create_account = Boolean(globalSettings.canCreateAccount)
+	}
+
+	return JSON.stringify(payload)
 }
 
 function normalizeSignatureMethods(value: unknown, legacyAvailableSignatureMethods?: unknown): Record<string, IdentifyMethodSignatureMethod> {
@@ -186,6 +241,20 @@ function normalizeRequirement(requirement: unknown, mandatory: unknown): Identif
 }
 
 function normalizeMinimumTotalVerifiedFactors(value: unknown): number | undefined {
+	if (typeof value === 'string') {
+		const trimmedValue = value.trim()
+		if (trimmedValue.length === 0) {
+			return undefined
+		}
+
+		const parsedValue = Number(trimmedValue)
+		if (!Number.isFinite(parsedValue)) {
+			return undefined
+		}
+
+		value = parsedValue
+	}
+
 	if (typeof value !== 'number' || !Number.isFinite(value)) {
 		return undefined
 	}
