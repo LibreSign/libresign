@@ -139,7 +139,63 @@ describe('configureCheck store - essential business rules', () => {
 
 			expect(result.success).toBe(true)
 			expect(store.certificateEngine).toBe('openssl')
-			expect(store.identifyMethods).toEqual(['email', 'sms'])
+			expect(store.identifyMethods).toEqual([
+				{
+					name: 'email',
+					enabled: true,
+					signatureMethods: {},
+				},
+				{
+					name: 'sms',
+					enabled: true,
+					signatureMethods: {},
+				},
+			])
+		})
+
+		it('saveCertificateEngine normalizes object-shaped identify_methods payloads', async () => {
+			axiosMock.post.mockResolvedValue(generateOCSResponse({
+				payload: {
+					identify_methods: {
+						minimumTotalVerifiedFactors: '2',
+						factors: [
+							{ name: 'email', signatureMethods: ['emailToken'] },
+							{ name: 'sms', enabled: false, signatureMethods: ['smsToken'] },
+						],
+					},
+				},
+			}))
+
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
+				payload: [
+					{ resource: 'java', status: 'success' },
+					{ resource: 'jsignpdf', status: 'success' },
+					{ resource: 'cfssl', status: 'success' },
+				],
+			}))
+
+			const store = useConfigureCheckStore()
+			const result = await store.saveCertificateEngine('openssl')
+
+			expect(result.success).toBe(true)
+			expect(store.identifyMethods).toEqual([
+				{
+					name: 'email',
+					enabled: true,
+					signatureMethods: {
+						emailToken: { enabled: false },
+					},
+					minimumTotalVerifiedFactors: 2,
+				},
+				{
+					name: 'sms',
+					enabled: false,
+					signatureMethods: {
+						smsToken: { enabled: false },
+					},
+					minimumTotalVerifiedFactors: 2,
+				},
+			])
 		})
 	})
 
