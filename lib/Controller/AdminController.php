@@ -961,6 +961,31 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Persist groups allowed to request signatures as a typed array config.
+	 *
+	 * @param list<string> $groups
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{ }>
+	 *
+	 * 200: Configuration saved successfully
+	 * 500: Internal server error
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/groups-request-sign/config', requirements: ['apiVersion' => '(v1)'])]
+	public function setGroupsRequestSignConfig(array $groups = []): DataResponse {
+		try {
+			$normalizedGroups = array_values(array_map(static fn (mixed $group): string => (string)$group, $groups));
+			$this->appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', $normalizedGroups);
+
+			return new DataResponse([
+				'message' => $this->l10n->t('Settings saved'),
+			]);
+		} catch (\Exception $e) {
+			return new DataResponse([
+				'error' => $e->getMessage(),
+			], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
 	 * Set signature flow configuration
 	 *
 	 * @param bool $enabled Whether to force a signature flow for all documents
