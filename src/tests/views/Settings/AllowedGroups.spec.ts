@@ -107,4 +107,53 @@ describe('AllowedGroups', () => {
 		expect(OCP.AppConfig.setValue).toHaveBeenCalledWith('libresign', 'groups_request_sign', '["admin"]')
 		expect(confirmPasswordMock).toHaveBeenCalledTimes(2)
 	})
+
+	it('persists groups using escaped unicode for special characters', async () => {
+		axiosGetMock.mockImplementation((url: string) => {
+			if (url.includes('cloud/groups/details')) {
+				return Promise.resolve({
+					data: {
+						ocs: {
+							data: {
+								groups: [
+									{ id: 'admin', displayname: 'admin' },
+									{ id: 'SÖ', displayname: 'SÖ' },
+								],
+							},
+						},
+					},
+				})
+			}
+
+			if (url.includes('groups_request_sign')) {
+				return Promise.resolve({ data: { ocs: { data: { data: '["admin"]' } } } })
+			}
+
+			return Promise.resolve({ data: { ocs: { data: {} } } })
+		})
+
+		const wrapper = mount(AllowedGroups as never, {
+			global: {
+				stubs: {
+					NcSettingsSection: { template: '<div><slot /></div>' },
+					NcSelect: {
+						name: 'NcSelect',
+						props: ['modelValue'],
+						emits: ['update:modelValue', 'search-change'],
+						template: '<div class="nc-select-stub" />',
+					},
+				},
+			},
+		})
+		await flushPromises()
+
+		const select = wrapper.findComponent({ name: 'NcSelect' })
+		select.vm.$emit('update:modelValue', [
+			{ id: 'admin', displayname: 'admin' },
+			{ id: 'SÖ', displayname: 'SÖ' },
+		])
+		await flushPromises()
+
+		expect(OCP.AppConfig.setValue).toHaveBeenCalledWith('libresign', 'groups_request_sign', '["admin","S\\u00d6"]')
+	})
 })
