@@ -457,12 +457,21 @@ class FileController extends AEnvironmentAwareController {
 		bool $forceIcon,
 		string $mode,
 		bool $mimeFallback = false,
-	) : Http\Response {
+	): Http\Response {
 		if (!($node instanceof File) || (!$forceIcon && !$this->preview->isAvailable($node))) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 		if (!$node->isReadable()) {
 			return new DataResponse([], Http::STATUS_FORBIDDEN);
+		}
+
+		// Avoid expensive external preview generators for PDFs when a mime fallback is explicitly requested.
+		if ($mimeFallback && $node->getMimeType() === 'application/pdf') {
+			$mimeFallbackResponse = $this->getMimeFallbackResponse($node->getMimeType());
+			if ($mimeFallbackResponse !== null) {
+				/** @var Http\RedirectResponse<Http::STATUS_SEE_OTHER, array{}> $mimeFallbackResponse */
+				return $mimeFallbackResponse;
+			}
 		}
 
 		$storage = $node->getStorage();
@@ -483,17 +492,41 @@ class FileController extends AEnvironmentAwareController {
 			$response->cacheFor(3600 * 24, false, true);
 			return $response;
 		} catch (NotFoundException) {
-			// If we have no preview enabled, we can redirect to the mime icon if any
-			if ($mimeFallback) {
-				if ($url = $this->mimeIconProvider->getMimeIconUrl($node->getMimeType())) {
-					return new RedirectResponse($url);
-				}
+			$mimeFallbackResponse = $mimeFallback ? $this->getMimeFallbackResponse($node->getMimeType()) : null;
+			if ($mimeFallbackResponse !== null) {
+				/** @var Http\RedirectResponse<Http::STATUS_SEE_OTHER, array{}> $mimeFallbackResponse */
+				return $mimeFallbackResponse;
 			}
 
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		} catch (\InvalidArgumentException) {
 			return new DataResponse([], Http::STATUS_BAD_REQUEST);
+		} catch (\Throwable $e) {
+			$this->logger->warning('Failed to generate LibreSign thumbnail preview', [
+				'nodeId' => $node->getId(),
+				'mimeType' => $node->getMimeType(),
+				'exception' => $e,
+			]);
+
+			$mimeFallbackResponse = $mimeFallback ? $this->getMimeFallbackResponse($node->getMimeType()) : null;
+			if ($mimeFallbackResponse !== null) {
+				/** @var Http\RedirectResponse<Http::STATUS_SEE_OTHER, array{}> $mimeFallbackResponse */
+				return $mimeFallbackResponse;
+			}
+
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
+	}
+
+	private function getMimeFallbackResponse(string $mimeType): ?\OCP\AppFramework\Http\RedirectResponse {
+		$url = $this->mimeIconProvider->getMimeIconUrl($mimeType);
+		if ($url) {
+			/** @var \OCP\AppFramework\Http\RedirectResponse<Http::STATUS_SEE_OTHER, array{}> $response */
+			$response = new RedirectResponse($url, Http::STATUS_SEE_OTHER);
+			return $response;
+		}
+
+		return null;
 	}
 
 	/**
