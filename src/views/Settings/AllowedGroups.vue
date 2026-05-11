@@ -83,7 +83,10 @@ async function saveGroups(value: Array<GroupRow | string>) {
 		}
 		return g
 	}))
-	OCP.AppConfig.setValue('libresign', 'groups_request_sign', listOfInputGroupsSelected)
+
+	await axios.post(generateOcsUrl('apps/libresign/api/v1/admin/groups-request-sign/config'), {
+		groups: listOfInputGroupsSelected,
+	})
 	idKey.value += 1
 }
 
