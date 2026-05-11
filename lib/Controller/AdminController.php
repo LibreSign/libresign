@@ -976,7 +976,7 @@ class AdminController extends AEnvironmentAwareController {
 			$decoded = json_decode($groups, true);
 			if (!is_array($decoded)) {
 				return new DataResponse([
-					'error' => $this->l10n->t('Invalid groups payload.'),
+					'error' => 'Invalid groups payload.',
 				], Http::STATUS_BAD_REQUEST);
 			}
 
