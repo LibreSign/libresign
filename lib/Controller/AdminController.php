@@ -961,10 +961,14 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Persist groups allowed to request signatures as typed app config array.
+	 * Persist groups allowed to request signatures as typed app config array
 	 *
 	 * @param string $groups JSON array string
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 *
+	 * 200: Settings saved
+	 * 400: Invalid groups payload
+	 * 500: Internal server error
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/groups-request-sign/config', requirements: ['apiVersion' => '(v1)'])]
 	public function setGroupsRequestSignConfig(string $groups = '[]'): DataResponse {
