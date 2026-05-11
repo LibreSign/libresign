@@ -7,12 +7,13 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 
 const axiosGetMock = vi.fn()
+const axiosPostMock = vi.fn(() => Promise.resolve({ data: { ocs: { data: {} } } }))
 const generateOcsUrlMock = vi.fn((path: string) => path)
-const confirmPasswordMock = vi.fn(() => Promise.resolve())
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
-		get: (...args: unknown[]) => axiosGetMock(...args),
+		get: axiosGetMock,
+		post: axiosPostMock,
 	},
 }))
 
@@ -20,19 +21,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: (...args: unknown[]) => generateOcsUrlMock(...(args as [string])),
 }))
 
-vi.mock('@nextcloud/password-confirmation', () => ({
-	confirmPassword: () => confirmPasswordMock(),
-}))
-
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
-
-const OCP = {
-	AppConfig: {
-		setValue: vi.fn(),
-	},
-}
-
-;(globalThis as typeof globalThis & { OCP: typeof OCP }).OCP = OCP
 
 let AllowedGroups: unknown
 
@@ -43,9 +32,8 @@ beforeAll(async () => {
 describe('AllowedGroups', () => {
 	beforeEach(() => {
 		axiosGetMock.mockReset()
+		axiosPostMock.mockClear()
 		generateOcsUrlMock.mockClear()
-		confirmPasswordMock.mockClear()
-		OCP.AppConfig.setValue.mockClear()
 	})
 
 	it('persists when adding and removing groups', async () => {
@@ -95,7 +83,9 @@ describe('AllowedGroups', () => {
 		])
 		await flushPromises()
 
-		expect(OCP.AppConfig.setValue).toHaveBeenCalledWith('libresign', 'groups_request_sign', '["admin","testGroup"]')
+		expect(axiosPostMock).toHaveBeenCalledWith('apps/libresign/api/v1/admin/groups-request-sign/config', {
+			groups: ['admin', 'testGroup'],
+		})
 
 		select = wrapper.findComponent({ name: 'NcSelect' })
 
@@ -104,11 +94,12 @@ describe('AllowedGroups', () => {
 		])
 		await flushPromises()
 
-		expect(OCP.AppConfig.setValue).toHaveBeenCalledWith('libresign', 'groups_request_sign', '["admin"]')
-		expect(confirmPasswordMock).toHaveBeenCalledTimes(2)
+		expect(axiosPostMock).toHaveBeenCalledWith('apps/libresign/api/v1/admin/groups-request-sign/config', {
+			groups: ['admin'],
+		})
 	})
 
-	it('persists groups using escaped unicode for special characters', async () => {
+	it('persists groups with special characters via typed admin endpoint', async () => {
 		axiosGetMock.mockImplementation((url: string) => {
 			if (url.includes('cloud/groups/details')) {
 				return Promise.resolve({
@@ -154,6 +145,8 @@ describe('AllowedGroups', () => {
 		])
 		await flushPromises()
 
-		expect(OCP.AppConfig.setValue).toHaveBeenCalledWith('libresign', 'groups_request_sign', '["admin","S\\u00d6"]')
+		expect(axiosPostMock).toHaveBeenCalledWith('apps/libresign/api/v1/admin/groups-request-sign/config', {
+			groups: ['admin', 'SÖ'],
+		})
 	})
 })
