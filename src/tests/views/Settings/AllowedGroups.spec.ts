@@ -108,7 +108,7 @@ describe('AllowedGroups', () => {
 		expect(confirmPasswordMock).toHaveBeenCalledTimes(2)
 	})
 
-	it('persists groups using escaped unicode for special characters', async () => {
+	it('passes special characters unchanged to the generic app config helper', async () => {
 		axiosGetMock.mockImplementation((url: string) => {
 			if (url.includes('cloud/groups/details')) {
 				return Promise.resolve({
@@ -154,6 +154,6 @@ describe('AllowedGroups', () => {
 		])
 		await flushPromises()
 
-		expect(OCP.AppConfig.setValue).toHaveBeenCalledWith('libresign', 'groups_request_sign', '["admin","S\\u00d6"]')
+		expect(OCP.AppConfig.setValue).toHaveBeenCalledWith('libresign', 'groups_request_sign', '["admin","SÖ"]')
 	})
 })
