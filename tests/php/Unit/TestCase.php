@@ -46,15 +46,10 @@ namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response as MockWebServerResponse;
-use OC\Memcache\Factory as CacheFactory;
-use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
-use OCA\Libresign\Db\signRequestMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\RequestSignatureService;
-use OCA\Libresign\Tests\lib\AllConfigOverwrite;
-use OCA\Libresign\Tests\lib\AppConfigOverwrite;
-use OCA\Libresign\Tests\lib\ConfigOverwrite;
 use OCP\IAppConfig;
 use OCP\IConfig;
 
@@ -64,55 +59,30 @@ class TestCase extends \Test\TestCase {
 
 	protected static MockWebServer $server;
 	private RequestSignatureService $requestSignatureService;
-	private signRequestMapper $signRequestMapper;
+	private SignRequestMapper $signRequestMapper;
 	private array $users = [];
 
 	public static function getMockAppConfig(): IAppConfig {
-		\OC::$server->registerParameter('appName', 'libresign');
-		$service = \OCP\Server::get(\OCP\IAppConfig::class);
-		if (!$service instanceof AppConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IAppConfig::class, fn (): AppConfigOverwrite => new AppConfigOverwrite(
-				\OCP\Server::get(\OCP\IDBConnection::class),
-				\OCP\Server::get(\OCP\IConfig::class),
-				\OCP\Server::get(\OC\Config\ConfigManager::class),
-				\OCP\Server::get(\OC\Config\PresetManager::class),
-				\OCP\Server::get(\Psr\Log\LoggerInterface::class),
-				\OCP\Server::get(\OCP\Security\ICrypto::class),
-				\OCP\Server::get(CacheFactory::class),
-			));
-			$service = \OCP\Server::get(\OCP\IAppConfig::class);
-		}
-		return $service;
+		return \OCP\Server::get(IAppConfig::class);
 	}
 
 	public static function getMockAppConfigWithReset(): IAppConfig {
 		$appConfig = self::getMockAppConfig();
-		if ($appConfig instanceof AppConfigOverwrite) {
+		if (method_exists($appConfig, 'reset')) {
 			$appConfig->reset();
 		}
 		return $appConfig;
 	}
 
 	public function mockConfig($config):void {
-		$service = \OCP\Server::get(\OCP\IConfig::class);
-		if (!$service instanceof AllConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IConfig::class, function ():AllConfigOverwrite {
-				$configOverwrite = new ConfigOverwrite(\OC::$configDir);
-				$systemConfig = new SystemConfig($configOverwrite);
-				return new AllConfigOverwrite($systemConfig);
-			});
-			$service = \OCP\Server::get(\OCP\IConfig::class);
-		}
-		if (is_subclass_of($service, IConfig::class)) {
-			foreach ($config as $app => $keys) {
-				foreach ($keys as $key => $value) {
-					if (is_array($value) || is_object($value)) {
-						$value = json_encode($value);
-					}
-					$service->setAppValue($app, $key, $value);
+		$service = \OCP\Server::get(IConfig::class);
+		foreach ($config as $app => $keys) {
+			foreach ($keys as $key => $value) {
+				if (is_array($value) || is_object($value)) {
+					$value = json_encode($value);
 				}
+				$service->setAppValue($app, $key, (string)$value);
 			}
-			return;
 		}
 	}
 
@@ -352,7 +322,11 @@ class TestCase extends \Test\TestCase {
 			if (!file_exists($sourcePath)) {
 				continue;
 			}
-			$newDest = $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathname();
+			$subIterator = $iterator->getSubIterator();
+			if (!$subIterator instanceof \RecursiveDirectoryIterator) {
+				continue;
+			}
+			$newDest = $dest . DIRECTORY_SEPARATOR . $subIterator->getSubPathname();
 			if (!file_exists($newDest)) {
 				if ($item->isDir()) {
 					if (!is_dir($newDest)) {
