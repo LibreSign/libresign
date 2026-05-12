@@ -6,8 +6,13 @@ Feature: admin/groups_request_sign
       | groups | ["admin","editors"] |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                   | value         |
+      | key                   | value          |
       | (jq).ocs.data.message | Settings saved |
+    When sending "get" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/groups_request_sign"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                | value               |
+      | (jq).ocs.data.data | ["admin","editors"] |
 
   Scenario: Save a non-ASCII group ID via the endpoint
     Given as user "admin"
@@ -15,6 +20,11 @@ Feature: admin/groups_request_sign
       | groups | ["admin","SÖ"] |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                   | value         |
+      | key                   | value          |
       | (jq).ocs.data.message | Settings saved |
+    When sending "get" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/groups_request_sign"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                | value          |
+      | (jq).ocs.data.data | ["admin","SÖ"] |
 
