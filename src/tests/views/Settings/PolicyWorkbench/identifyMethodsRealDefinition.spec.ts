@@ -48,7 +48,6 @@ describe('identifyMethodsRealDefinition', () => {
 			name: 'email',
 			enabled: true,
 			requirement: 'optional',
-			mandatory: false,
 		})
 	})
 })
