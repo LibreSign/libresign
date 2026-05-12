@@ -4,7 +4,7 @@ Feature: file-thumbnail
     And user "signer1" exists
     And user "nonsigner" exists
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true}] |
+      | value | (string)[{"name":"account","enabled":true,"requirement":"required"}] |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]}] |
