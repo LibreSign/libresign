@@ -38,12 +38,12 @@ describe('identify-methods model compatibility', () => {
 		expect(Object.keys(normalized[0].signatureMethods)).toEqual(['clickToSign', 'password'])
 	})
 
-	it('derives canonical requirement from legacy mandatory flag', () => {
+	it('uses canonical requirement from payload', () => {
 		const normalized = normalizeIdentifyMethodsPolicy([
 			{
 				name: 'email',
 				enabled: true,
-				mandatory: true,
+				requirement: 'required',
 				signatureMethods: ['emailToken'],
 			},
 		] as never)
@@ -52,7 +52,7 @@ describe('identify-methods model compatibility', () => {
 		expect(normalized[0].requirement).toBe('required')
 	})
 
-	it('preserves canonical requirement during serialization while mirroring mandatory for compatibility', () => {
+	it('preserves canonical requirement during serialization', () => {
 		const serialized = serializeIdentifyMethodsPolicy([
 			{
 				name: 'whatsapp',
@@ -72,7 +72,6 @@ describe('identify-methods model compatibility', () => {
 					name: 'whatsapp',
 					enabled: true,
 					requirement: 'optional',
-					mandatory: false,
 					minimumTotalVerifiedFactors: 2,
 					signatureMethods: {
 						whatsappToken: { enabled: true },
@@ -133,7 +132,7 @@ describe('identify-methods model compatibility', () => {
 				{
 					name: 'email',
 					enabled: true,
-					mandatory: true,
+					requirement: 'required',
 					signatureMethods: ['emailToken'],
 				},
 			],
@@ -181,7 +180,6 @@ describe('identify-methods model compatibility', () => {
 				signatureMethods: {},
 				friendly_name: undefined,
 				requirement: undefined,
-				mandatory: undefined,
 				minimumTotalVerifiedFactors: undefined,
 				signatureMethodEnabled: undefined,
 			},
@@ -191,7 +189,6 @@ describe('identify-methods model compatibility', () => {
 				signatureMethods: {},
 				friendly_name: undefined,
 				requirement: undefined,
-				mandatory: undefined,
 				minimumTotalVerifiedFactors: undefined,
 				signatureMethodEnabled: undefined,
 			},
