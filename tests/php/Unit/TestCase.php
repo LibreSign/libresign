@@ -59,6 +59,8 @@ use OCP\IAppConfig;
 use OCP\IConfig;
 
 class TestCase extends \Test\TestCase {
+	private const TEST_DIR_MODE = 0750;
+
 	protected static MockWebServer $server;
 	private RequestSignatureService $requestSignatureService;
 	private signRequestMapper $signRequestMapper;
@@ -182,7 +184,7 @@ class TestCase extends \Test\TestCase {
 		$instanceId = \OC_Util::getInstanceId();
 		$dir = '../../data/appdata_' . $instanceId . '/dav/defaultContact';
 		if (!is_dir($dir)) {
-			mkdir($dir, 0777, true);
+			mkdir($dir, self::TEST_DIR_MODE, true);
 		}
 
 		$file = $dir . '/defaultContact.vcf';
@@ -281,7 +283,7 @@ class TestCase extends \Test\TestCase {
 			return;
 		}
 		if (!is_dir($appPath)) {
-			mkdir($appPath, 0777, true);
+			mkdir($appPath, self::TEST_DIR_MODE, true);
 		}
 		$this->recursiveCopy($cachePath, $appPath);
 	}
@@ -289,7 +291,7 @@ class TestCase extends \Test\TestCase {
 	private function getFullLiresignAppFolder(): string {
 		$path = '../../data/appdata_' . \OC_Util::getInstanceId() . '/libresign';
 		if (!is_dir($path)) {
-			mkdir($path, 0777, true);
+			mkdir($path, self::TEST_DIR_MODE, true);
 			$user = fileowner(__FILE__);
 			chown($path, $user);
 			@chgrp($path, $user);
@@ -318,7 +320,7 @@ class TestCase extends \Test\TestCase {
 			return;
 		}
 		if (!is_dir($dest)) {
-			@mkdir($dest, 0777, true);
+			@mkdir($dest, self::TEST_DIR_MODE, true);
 			if (!is_dir($dest)) {
 				return;
 			}
@@ -338,7 +340,7 @@ class TestCase extends \Test\TestCase {
 				if (!file_exists($newDest)) {
 					if ($item->isDir()) {
 						if (!is_dir($newDest)) {
-							@mkdir($newDest, 0777, true);
+							@mkdir($newDest, self::TEST_DIR_MODE, true);
 							if (!is_dir($newDest)) {
 								continue;
 							}
@@ -346,7 +348,7 @@ class TestCase extends \Test\TestCase {
 					} elseif (is_file($sourcePath)) {
 						$newDestFolder = dirname($newDest);
 						if (!is_dir($newDestFolder)) {
-							@mkdir($newDestFolder, 0777, true);
+							@mkdir($newDestFolder, self::TEST_DIR_MODE, true);
 							if (!is_dir($newDestFolder)) {
 								continue;
 							}
