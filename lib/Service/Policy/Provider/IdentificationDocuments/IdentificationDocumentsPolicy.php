@@ -28,12 +28,26 @@ final class IdentificationDocumentsPolicy implements IPolicyDefinitionProvider {
 		return match ($this->normalizePolicyKey($policyKey)) {
 			self::KEY => new PolicySpec(
 				key: self::KEY,
-				defaultSystemValue: false,
-				allowedValues: [
-					false,
-					true,
+				defaultSystemValue: [
+					'enabled' => false,
+					'approvers' => ['admin'],
 				],
-				normalizer: static fn (mixed $rawValue): bool => \OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicyValue::normalize($rawValue, false),
+				allowedValues: static fn (): array => [],
+				normalizer: static fn (mixed $rawValue): array => \OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicyValue::normalize($rawValue, false),
+				validator: static function (mixed $value): void {
+					if (!is_array($value)) {
+						throw new \InvalidArgumentException('Invalid value for ' . self::KEY);
+					}
+					if (!array_key_exists('enabled', $value)) {
+						throw new \InvalidArgumentException('Missing "enabled" key in ' . self::KEY);
+					}
+					if (!array_key_exists('approvers', $value)) {
+						throw new \InvalidArgumentException('Missing "approvers" key in ' . self::KEY);
+					}
+					if (!is_array($value['approvers'])) {
+						throw new \InvalidArgumentException('Approvers must be an array');
+					}
+				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . $this->normalizePolicyKey($policyKey)),
