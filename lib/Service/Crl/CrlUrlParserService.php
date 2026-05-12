@@ -18,21 +18,13 @@ class CrlUrlParserService {
 	}
 
 	public function parseUrl(string $crlUrl): ?array {
-		$templateUrl = $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList', [
-			'instanceId' => 'INSTANCEID',
-			'generation' => 999999,
-			'engineType' => 'ENGINETYPE',
-		]);
+		$path = parse_url($crlUrl, PHP_URL_PATH);
+		if (!is_string($path)) {
+			return null;
+		}
 
-		$patternUrl = str_replace('INSTANCEID', '([a-z0-9]+)', $templateUrl);
-		$patternUrl = str_replace('999999', '(\d+)', $patternUrl);
-		$patternUrl = str_replace('ENGINETYPE', '([a-z])', $patternUrl);
-		$escapedPattern = str_replace([':', '/', '.'], ['\:', '\/', '\.'], $patternUrl);
-		$escapedPattern = str_replace('\/index\.php', '', $escapedPattern);
-		$escapedPattern = str_replace('\/apps\/', '(?:\/index\.php)?\/apps\/', $escapedPattern);
-		$pattern = '/^' . $escapedPattern . '$/i';
-
-		if (!preg_match($pattern, $crlUrl, $matches)) {
+		$pattern = '#^/(?:index\.php/)?apps/libresign/crl/libresign_([A-Za-z0-9]+)_(\d+)_([a-z])\.crl$#';
+		if (!preg_match($pattern, $path, $matches)) {
 			return null;
 		}
 
