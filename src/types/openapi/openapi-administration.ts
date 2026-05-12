@@ -1818,10 +1818,10 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description JSON array string
+                     * @description List of group IDs allowed to request signatures
                      * @default []
                      */
-                    groups?: string;
+                    groups?: string[];
                 };
             };
         };
@@ -1836,20 +1836,6 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Invalid groups payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };

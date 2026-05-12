@@ -77,15 +77,15 @@ async function saveGroups(value: Array<GroupRow | string>) {
 
 	await confirmPassword()
 
-	const listOfInputGroupsSelected = JSON.stringify(groupsSelected.value.map((g) => {
+	const groupIds = groupsSelected.value.map((g) => {
 		if (typeof g === 'object') {
 			return g.id
 		}
 		return g
-	}))
+	})
 
 	await axios.post(generateOcsUrl('apps/libresign/api/v1/admin/groups-request-sign/config'), {
-		groups: listOfInputGroupsSelected,
+		groups: groupIds,
 	})
 	idKey.value += 1
 }
