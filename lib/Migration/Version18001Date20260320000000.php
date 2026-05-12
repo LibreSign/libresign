@@ -20,6 +20,7 @@ use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicyValue;
@@ -153,7 +154,63 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 	}
 
 	private function migrateIdentificationDocumentsType(): void {
-		$this->migrateBoolType(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY, false);
+		/**
+		 * Consolidate legacy identification_documents (bool) and approval_group (array)
+		 * into unified payload {enabled: bool, approvers: string[]}
+		 */
+		$existingConsolidated = $this->readLegacyString(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY);
+
+		// Try to parse existing consolidated value
+		if ($existingConsolidated !== null && trim($existingConsolidated) !== '') {
+			$decoded = json_decode($existingConsolidated, true);
+			if (is_array($decoded) && isset($decoded['enabled'], $decoded['approvers'])) {
+				// Already consolidated, just clean up legacy approval_group
+				$this->appConfig->deleteKey(Application::APP_ID, 'approval_group');
+				return;
+			}
+		}
+
+		// Read legacy values
+		$legacyIdDocs = $this->readLegacyBool(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY, false);
+		$legacyApprovalGroup = $this->readLegacyApprovalGroup();
+
+		// Build unified payload
+		$consolidatedValue = [
+			'enabled' => $legacyIdDocs,
+			'approvers' => !empty($legacyApprovalGroup) ? $legacyApprovalGroup : ['admin'],
+		];
+
+		// Save unified payload
+		$this->appConfig->setValueArray(
+			Application::APP_ID,
+			IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY,
+			$consolidatedValue
+		);
+
+		// Clean up legacy approval_group
+		$this->appConfig->deleteKey(Application::APP_ID, 'approval_group');
+	}
+
+	private function readLegacyApprovalGroup(): array {
+		try {
+			$rawValue = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '');
+			if ($rawValue === '' || $rawValue === '[]') {
+				return [];
+			}
+
+			$decoded = json_decode($rawValue, true);
+			if (is_array($decoded)) {
+				return array_filter(
+					array_map('strval', $decoded),
+					static fn (string $v): bool => $v !== ''
+				) ?: [];
+			}
+
+			return [];
+		} catch (AppConfigTypeConflictException) {
+			// Try as array directly
+			return $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', []);
+		}
 	}
 
 	private function migrateEnvelopeType(): void {
