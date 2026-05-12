@@ -5,13 +5,19 @@
 
 import { t } from '@nextcloud/l10n'
 
-import type { EffectivePolicyValue } from '../../../../../types/index'
-import type { RealPolicySettingDefinition } from '../realTypes'
 import IdentificationDocumentsRuleEditor from './IdentificationDocumentsRuleEditor.vue'
 
-interface IdentificationDocumentsPayload {
+import type { EffectivePolicyValue } from '../../../../../types/index'
+import type { RealPolicySettingDefinition } from '../realTypes'
+
+export interface IdentificationDocumentsPayload {
 	enabled: boolean
 	approvers: string[]
+}
+
+const DEFAULT_IDENTIFICATION_DOCUMENTS_PAYLOAD: IdentificationDocumentsPayload = {
+	enabled: false,
+	approvers: ['admin'],
 }
 
 function isIdentificationDocumentsPayload(value: unknown): value is IdentificationDocumentsPayload {
@@ -28,10 +34,7 @@ function normalizeToPayload(value: EffectivePolicyValue): IdentificationDocument
 	}
 
 	// Default fallback
-	return {
-		enabled: false,
-		approvers: ['admin'],
-	}
+	return DEFAULT_IDENTIFICATION_DOCUMENTS_PAYLOAD
 }
 
 function resolveIdentificationDocuments(value: EffectivePolicyValue): boolean | null {
@@ -46,10 +49,8 @@ export const identificationDocumentsRealDefinition: RealPolicySettingDefinition 
 	supportedScopes: ['system', 'group', 'user'],
 	editor: IdentificationDocumentsRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => ({ enabled: false, approvers: ['admin'] }),
-	normalizeDraftValue: (value: EffectivePolicyValue) => {
-		return normalizeToPayload(value)
-	},
+	createEmptyValue: () => DEFAULT_IDENTIFICATION_DOCUMENTS_PAYLOAD,
+	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeToPayload(value),
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveIdentificationDocuments(value) !== null,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
@@ -57,7 +58,7 @@ export const identificationDocumentsRealDefinition: RealPolicySettingDefinition 
 			return normalizeToPayload(policyValue)
 		}
 
-		return { enabled: false, approvers: ['admin'] }
+		return DEFAULT_IDENTIFICATION_DOCUMENTS_PAYLOAD
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveIdentificationDocuments(value)
