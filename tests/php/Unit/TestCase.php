@@ -60,6 +60,7 @@ use OCP\IConfig;
 
 class TestCase extends \Test\TestCase {
 	private const TEST_DIR_MODE = 0750;
+	private const TEST_FILE_MODE = 0640;
 
 	protected static MockWebServer $server;
 	private RequestSignatureService $requestSignatureService;
@@ -190,6 +191,7 @@ class TestCase extends \Test\TestCase {
 		$file = $dir . '/defaultContact.vcf';
 		if (!file_exists($file)) {
 			file_put_contents($file, "BEGIN:VCARD\nVERSION:3.0\nFN:Default Contact\nEND:VCARD\n");
+			@chmod($file, self::TEST_FILE_MODE);
 		}
 	}
 
@@ -310,9 +312,14 @@ class TestCase extends \Test\TestCase {
 		}
 		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', (string)\OCP\Server::get(\OCP\ITempManager::class)->getTempBaseDir(), $appPath);
 		if (!file_exists($cachePath)) {
-			mkdir($cachePath);
+			mkdir($cachePath, self::TEST_DIR_MODE, true);
 		}
 		$this->recursiveCopy($appPath, $cachePath);
+	}
+
+	private function normalizeCopiedFileMode(int $sourcePerms): int {
+		$execBits = $sourcePerms & 0111;
+		return self::TEST_FILE_MODE | $execBits;
 	}
 
 	private function recursiveCopy(string $source, string $dest): void {
@@ -360,11 +367,15 @@ class TestCase extends \Test\TestCase {
 				}
 				$sourcePerms = @fileperms($sourcePath);
 				$destPerms = @fileperms($newDest);
-				if (!is_int($sourcePerms) || !is_int($destPerms)) {
-					continue;
+				if ($item->isDir()) {
+					$expectedMode = self::TEST_DIR_MODE;
+				} elseif (is_int($sourcePerms)) {
+					$expectedMode = $this->normalizeCopiedFileMode($sourcePerms);
+				} else {
+					$expectedMode = self::TEST_FILE_MODE;
 				}
-				if ($sourcePerms !== $destPerms) {
-					@chmod($newDest, $sourcePerms);
+				if (!is_int($destPerms) || (($destPerms & 0777) !== $expectedMode)) {
+					@chmod($newDest, $expectedMode);
 				}
 			}
 		} catch (\UnexpectedValueException) {
