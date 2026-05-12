@@ -314,22 +314,59 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function recursiveCopy(string $source, string $dest): void {
-		foreach (
-			$iterator = new \RecursiveIteratorIterator(
-				new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
-				\RecursiveIteratorIterator::SELF_FIRST) as $item
-		) {
-			$newDest = $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathname();
-			if (!file_exists($newDest)) {
-				if ($item->isDir()) {
-					mkdir($newDest);
-				} else {
-					copy($item->getPathname(), $newDest);
+		if (!is_dir($source)) {
+			return;
+		}
+		if (!is_dir($dest)) {
+			@mkdir($dest, 0777, true);
+			if (!is_dir($dest)) {
+				return;
+			}
+		}
+
+		try {
+			foreach (
+				$iterator = new \RecursiveIteratorIterator(
+					new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
+					\RecursiveIteratorIterator::SELF_FIRST) as $item
+			) {
+				$sourcePath = $item->getPathname();
+				if (!file_exists($sourcePath)) {
+					continue;
+				}
+				$newDest = $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathname();
+				if (!file_exists($newDest)) {
+					if ($item->isDir()) {
+						if (!is_dir($newDest)) {
+							@mkdir($newDest, 0777, true);
+							if (!is_dir($newDest)) {
+								continue;
+							}
+						}
+					} elseif (is_file($sourcePath)) {
+						$newDestFolder = dirname($newDest);
+						if (!is_dir($newDestFolder)) {
+							@mkdir($newDestFolder, 0777, true);
+							if (!is_dir($newDestFolder)) {
+								continue;
+							}
+						}
+						if (!@copy($sourcePath, $newDest)) {
+							continue;
+						}
+					}
+				}
+				$sourcePerms = @fileperms($sourcePath);
+				$destPerms = @fileperms($newDest);
+				if (!is_int($sourcePerms) || !is_int($destPerms)) {
+					continue;
+				}
+				if ($sourcePerms !== $destPerms) {
+					@chmod($newDest, $sourcePerms);
 				}
 			}
-			if (fileperms($item->getPathname()) !== fileperms($newDest)) {
-				chmod($newDest, fileperms($item->getPathname()));
-			}
+		} catch (\UnexpectedValueException) {
+			// Source tree can be mutated by tests while copying; ignore transient paths.
 		}
 	}
 
