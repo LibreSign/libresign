@@ -16,7 +16,7 @@ Feature: TSA Integration - End-to-End Workflow
       | tsa_auth_type  | none      |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
+      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file  | {"url":"<BASE_URL>/apps/libresign/develop/pdf"}                    |
@@ -61,7 +61,7 @@ Feature: TSA Integration - End-to-End Workflow
       | tsa_auth_type | none                                       |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
+      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file  | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | signers | [{"identifyMethods": [{"method": "account", "value": "signer1"}]}] |
