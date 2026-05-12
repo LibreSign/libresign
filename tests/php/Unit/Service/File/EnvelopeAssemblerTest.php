@@ -296,7 +296,6 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'method' => IdentifyMethodService::IDENTIFY_EMAIL,
 					'value' => 'signer@example.com',
 					'requirement' => 'required',
-					'mandatory' => 1,
 				],
 			],
 			$result->signers[0]->identifyMethods
