@@ -243,7 +243,7 @@ async function saveSigner() {
 		identifyMethods: [
 			{
 					method: identifyMethod.value,
-				mandatory: 0,
+					requirement: 'optional',
 					value: identify.value,
 			},
 		],
