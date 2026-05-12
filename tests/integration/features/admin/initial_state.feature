@@ -41,7 +41,7 @@ Feature: admin/initial_state
     Given as user "admin"
     And run the command "config:app:set libresign identify_methods --value=[] --type=array" with result code 0
     When sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":false,"mandatory":false}] |
+      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":false,"requirement":"optional"}] |
     Then sending "get" to "/settings/admin/libresign"
     And the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                 | value                                                                                                       |
@@ -135,11 +135,11 @@ Feature: admin/initial_state
       | (jq).policies.docmdp.effectiveValue                         | 2                                     |
       | (jq).policies.legal_information.effectiveValue              |                                       |
       | (jq).policies.signature_flow.policyKey                      | signature_flow                        |
-      | (jq).policies.signature_flow.effectiveValue                 | none                                  |
+      | (jq).policies.signature_flow.effectiveValue                 | parallel                              |
       | (jq).policies.signature_flow.allowedValues                  | ["none","parallel","ordered_numeric"] |
       | (jq).policies.signature_background_type.effectiveValue      | default                               |
-      | (jq).policies.identification_documents.effectiveValue       | false                                 |
-      | (jq)(.policies.approval_group.effectiveValue \| fromjson \| .[0]) | admin                           |
+      | (jq).policies.identification_documents.effectiveValue.enabled       | false                        |
+      | (jq).policies.identification_documents.effectiveValue.approvers[0]    | admin                        |
       | (jq).policies.envelope_enabled.effectiveValue               | true                                  |
       | (jq).policies.show_confetti_after_signing.effectiveValue    | true                                  |
       | (jq).policies.crl_external_validation_enabled.effectiveValue | true                                 |
@@ -190,6 +190,9 @@ Feature: admin/initial_state
       | parallel_workers                  | 9                                 |
       | show_confetti_after_signing       | false                             |
       | crl_external_validation_enabled   | false                             |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identification_documents"
+      | value | {"enabled":true,"approvers":["admin","staff"]} |
+    And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/admin/tsa"
       | tsa_url        | https://tsa.example.test/tsr |
       | tsa_policy_oid | 1.2.3                        |
@@ -247,9 +250,9 @@ Feature: admin/initial_state
       | (jq).policies.signature_flow.effectiveValue                 | ordered_numeric                       |
       | (jq).policies.signature_flow.allowedValues                  | ["ordered_numeric"]                  |
       | (jq).policies.signature_background_type.effectiveValue      | deleted                               |
-      | (jq).policies.identification_documents.effectiveValue       | true                                  |
-      | (jq)(.policies.approval_group.effectiveValue \| fromjson \| .[0]) | admin                           |
-      | (jq)(.policies.approval_group.effectiveValue \| fromjson \| .[1]) | staff                           |
+      | (jq).policies.identification_documents.effectiveValue.enabled       | true                         |
+      | (jq).policies.identification_documents.effectiveValue.approvers[0]    | admin                        |
+      | (jq).policies.identification_documents.effectiveValue.approvers[1]    | staff                        |
       | (jq).policies.envelope_enabled.effectiveValue               | false                                 |
       | (jq).policies.show_confetti_after_signing.effectiveValue    | false                                 |
       | (jq).policies.crl_external_validation_enabled.effectiveValue | false                                |
