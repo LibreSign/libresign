@@ -12,12 +12,12 @@ use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyV
 use PHPUnit\Framework\TestCase;
 
 final class IdentifyMethodsPolicyValueTest extends TestCase {
-	public function testDerivesCanonicalRequirementFromLegacyMandatory(): void {
+	public function testPreservesCanonicalRequirementFromPayload(): void {
 		$normalized = IdentifyMethodsPolicyValue::normalize([
 			[
 				'name' => 'email',
 				'enabled' => true,
-				'mandatory' => true,
+				'requirement' => 'required',
 				'signatureMethods' => ['emailToken'],
 			],
 		]);
@@ -31,19 +31,17 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 						'emailToken' => ['enabled' => false],
 					],
 					'requirement' => 'required',
-					'mandatory' => true,
 				],
 			],
 		], $normalized);
 	}
 
-	public function testPreservesCanonicalRequirementAndKeepsCompatibilityMirror(): void {
+	public function testPreservesCanonicalRequirementWithoutLegacyMirror(): void {
 		$normalized = IdentifyMethodsPolicyValue::normalize([
 			[
 				'name' => 'whatsapp',
 				'enabled' => true,
 				'requirement' => 'optional',
-				'mandatory' => true,
 				'minimumTotalVerifiedFactors' => 2,
 				'signatureMethods' => [
 					'whatsappToken' => ['enabled' => true],
@@ -61,7 +59,6 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 					],
 					'minimumTotalVerifiedFactors' => 2,
 					'requirement' => 'optional',
-					'mandatory' => false,
 				],
 			],
 		], $normalized);
@@ -74,7 +71,7 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 				[
 					'name' => 'email',
 					'enabled' => true,
-					'mandatory' => true,
+					'requirement' => 'required',
 					'signatureMethods' => ['emailToken'],
 				],
 			],
@@ -90,7 +87,6 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 					],
 					'minimumTotalVerifiedFactors' => 2,
 					'requirement' => 'required',
-					'mandatory' => true,
 				],
 			],
 		], $normalized);
