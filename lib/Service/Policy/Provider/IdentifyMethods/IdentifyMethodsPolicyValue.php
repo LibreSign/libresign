@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Policy\Provider\IdentifyMethods;
 
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Service\IdentifyMethodService;
 
 final class IdentifyMethodsPolicyValue {
@@ -154,12 +155,9 @@ final class IdentifyMethodsPolicyValue {
 				$normalizedEntry['minimumTotalVerifiedFactors'] = $minimumTotalVerifiedFactors;
 			}
 
-			$requirement = self::normalizeRequirement($entry['requirement'] ?? null, $entry['mandatory'] ?? null);
+			$requirement = IdentifyMethodRequirement::tryFrom((string)($entry['requirement'] ?? ''));
 			if ($requirement !== null) {
-				$normalizedEntry['requirement'] = $requirement;
-				$normalizedEntry['mandatory'] = $requirement === 'required';
-			} elseif (array_key_exists('mandatory', $entry)) {
-				$normalizedEntry['mandatory'] = (bool)$entry['mandatory'];
+				$normalizedEntry['requirement'] = $requirement->value;
 			}
 
 			if (isset($entry['signatureMethodEnabled']) && is_string($entry['signatureMethodEnabled'])) {
@@ -217,18 +215,6 @@ final class IdentifyMethodsPolicyValue {
 		}
 
 		return null;
-	}
-
-	private static function normalizeRequirement(mixed $requirement, mixed $mandatory): ?string {
-		if ($requirement === 'required' || $requirement === 'optional') {
-			return $requirement;
-		}
-
-		if ($mandatory === null) {
-			return null;
-		}
-
-		return (bool)$mandatory ? 'required' : 'optional';
 	}
 
 	private static function normalizeMinimumTotalVerifiedFactors(mixed $value): ?int {
