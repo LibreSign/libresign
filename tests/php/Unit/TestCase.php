@@ -46,10 +46,12 @@ namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response as MockWebServerResponse;
+use OC\Memcache\Factory as CacheFactory;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\RequestSignatureService;
+use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCP\IAppConfig;
 use OCP\IConfig;
 
@@ -75,13 +77,25 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function mockConfig($config):void {
-		$service = \OCP\Server::get(IConfig::class);
+		$appConfig = self::getMockAppConfig();
 		foreach ($config as $app => $keys) {
 			foreach ($keys as $key => $value) {
+				if (is_bool($value)) {
+					$appConfig->setValueBool($app, $key, $value);
+					continue;
+				}
+				if (is_int($value)) {
+					$appConfig->setValueInt($app, $key, $value);
+					continue;
+				}
+				if (is_float($value)) {
+					$appConfig->setValueFloat($app, $key, $value);
+					continue;
+				}
 				if (is_array($value) || is_object($value)) {
 					$value = json_encode($value);
 				}
-				$service->setAppValue($app, $key, (string)$value);
+				$appConfig->setValueString($app, $key, (string)$value);
 			}
 		}
 	}
@@ -121,6 +135,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function setUp(): void {
+		$this->ensureAppConfigOverwrite();
 		static::getMockAppConfig();
 		$this->suppressMailDelivery();
 		$this->mockConfig([
@@ -149,6 +164,23 @@ class TestCase extends \Test\TestCase {
 		$mailService->method('sendCodeToSign')->willReturnCallback(static function (): void {
 		});
 		$this->overwriteService(\OCA\Libresign\Service\MailService::class, $mailService);
+	}
+
+	private function ensureAppConfigOverwrite(): void {
+		$service = self::getMockAppConfig();
+		if ($service instanceof AppConfigOverwrite) {
+			return;
+		}
+
+		$this->overwriteService(IAppConfig::class, new AppConfigOverwrite(
+			\OCP\Server::get(\OCP\IDBConnection::class),
+			\OCP\Server::get(IConfig::class),
+			\OCP\Server::get(\OC\Config\ConfigManager::class),
+			\OCP\Server::get(\OC\Config\PresetManager::class),
+			\OCP\Server::get(\Psr\Log\LoggerInterface::class),
+			\OCP\Server::get(\OCP\Security\ICrypto::class),
+			\OCP\Server::get(CacheFactory::class),
+		));
 	}
 
 	private function ensureDavDefaultContactFixture(): void {
