@@ -1035,6 +1035,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider datavalidateIfIdentifyMethodExists
 	 */
 	public function testValidateIfIdentifyMethodExists(string $identifyMethod, bool $throwException): void {
+		$this->identifyMethodService
+			->method('exists')
+			->willReturn(!$throwException);
 		if ($throwException) {
 			$this->expectException(LibresignException::class);
 		}
