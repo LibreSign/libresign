@@ -963,24 +963,16 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Persist groups allowed to request signatures as typed app config array
 	 *
-	 * @param string $groups JSON array string
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 * @param list<string> $groups List of group IDs allowed to request signatures
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: Settings saved
-	 * 400: Invalid groups payload
 	 * 500: Internal server error
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/groups-request-sign/config', requirements: ['apiVersion' => '(v1)'])]
-	public function setGroupsRequestSignConfig(string $groups = '[]'): DataResponse {
+	public function setGroupsRequestSignConfig(array $groups = []): DataResponse {
 		try {
-			$decoded = json_decode($groups, true);
-			if (!is_array($decoded)) {
-				return new DataResponse([
-					'error' => 'Invalid groups payload.',
-				], Http::STATUS_BAD_REQUEST);
-			}
-
-			$normalizedGroups = array_values(array_map(static fn (mixed $group): string => (string)$group, $decoded));
+			$normalizedGroups = array_values(array_map(static fn (mixed $group): string => (string)$group, $groups));
 			$this->appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', $normalizedGroups);
 
 			return new DataResponse([
