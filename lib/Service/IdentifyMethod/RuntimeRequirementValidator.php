@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
@@ -46,7 +47,7 @@ class RuntimeRequirementValidator {
 	}
 
 	/**
-	 * @return array<string, list<IIdentifyMethod>>
+	 * @return array<string, array<IIdentifyMethod>>
 	 */
 	private function getMethodsByName(SignRequest $signRequest): array {
 		if (!$signRequest->getId()) {
@@ -80,7 +81,7 @@ class RuntimeRequirementValidator {
 				$methodName = $entity->getIdentifierKey();
 				$methodNames[$methodName] = true;
 
-				$isRequired = $entity->getMandatory() === 1;
+				$isRequired = $entity->getRequirement() === IdentifyMethodRequirement::REQUIRED->value;
 				$isIdentified = $entity->getIdentifiedAtDate() !== null;
 
 				if (!$isRequired) {
@@ -111,7 +112,7 @@ class RuntimeRequirementValidator {
 
 	/**
 	 * Pure logic: validates that all required factors are identified.
-	 * @param array{requiredFactors:int, identifiedRequiredFactors:int} $summary
+	 * @param array{requiredFactors:int, identifiedRequiredFactors:int, identifiedFactors:int, hasOptionalFactor:bool, methodNames:list<string>} $summary
 	 * @throws LibresignException
 	 */
 	public function validateRequiredFactorsCompleted(array $summary): void {
@@ -122,7 +123,7 @@ class RuntimeRequirementValidator {
 
 	/**
 	 * Pure logic: validates that total identified factors meet minimum requirement.
-	 * @param array{requiredFactors:int, identifiedFactors:int} $summary
+	 * @param array{requiredFactors:int, identifiedRequiredFactors:int, identifiedFactors:int, hasOptionalFactor:bool, methodNames:list<string>} $summary
 	 * @param int $minimumTotalVerifiedFactors
 	 * @throws LibresignException
 	 */
@@ -149,8 +150,7 @@ class RuntimeRequirementValidator {
 	 * @param list<string> $methodNames
 	 */
 	private function resolveMinimumTotalVerifiedFactors(SignRequest $signRequest, array $methodNames, bool $hasOptionalFactor): ?int {
-		// Compatibility gate: legacy requests only had mandatory factors,
-		// so minimum-based runtime enforcement is enabled only when optional factors exist.
+		// Runtime minimum enforcement is enabled only when optional factors exist.
 		if (!$hasOptionalFactor) {
 			return null;
 		}
