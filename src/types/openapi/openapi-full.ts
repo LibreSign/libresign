@@ -1857,8 +1857,7 @@ export type components = {
             /** @enum {string} */
             method: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
             value: string;
-            /** Format: int64 */
-            mandatory: number;
+            requirement: components["schemas"]["IdentifyMethodRequirement"];
         };
         /** @enum {string} */
         IdentifyMethodRequirement: "required" | "optional";
@@ -1866,8 +1865,7 @@ export type components = {
             name: string;
             friendly_name: string;
             enabled: boolean;
-            requirement?: components["schemas"]["IdentifyMethodRequirement"];
-            mandatory: boolean;
+            requirement: components["schemas"]["IdentifyMethodRequirement"];
             /** Format: int64 */
             minimumTotalVerifiedFactors?: number;
             signatureMethods?: components["schemas"]["SignatureMethods"];
@@ -1894,8 +1892,7 @@ export type components = {
             identifyMethods: {
                 method: string;
                 value: string;
-                /** Format: int64 */
-                mandatory: number;
+                requirement: components["schemas"]["IdentifyMethodRequirement"];
             }[];
             displayName?: string;
             description?: string;
@@ -1935,6 +1932,10 @@ export type components = {
         };
         PolicySnapshotEntry: {
             effectiveValue: string;
+            sourceScope: string;
+        };
+        PolicySnapshotIdentifyMethodsEntry: {
+            effectiveValue: components["schemas"]["IdentifyMethodSetting"][];
             sourceScope: string;
         };
         PolicySnapshotNumericEntry: {
@@ -2215,6 +2216,7 @@ export type components = {
             docmdp?: components["schemas"]["PolicySnapshotNumericEntry"];
             signature_flow?: components["schemas"]["PolicySnapshotEntry"];
             add_footer?: components["schemas"]["PolicySnapshotEntry"];
+            identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
