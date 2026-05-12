@@ -14,13 +14,12 @@ import type { RealPolicySettingDefinition } from '../realTypes'
 
 function getInitialIdentifyMethods(): string {
 	const normalized = normalizeIdentifyMethodsPolicy(
-		loadState<unknown>('libresign', 'identify_methods', []) as EffectivePolicyValue,
+		loadState<EffectivePolicyValue>('libresign', 'identify_methods', []),
 	)
 
 	const permissiveDefaults = normalized.map((entry) => ({
 		...entry,
 		requirement: 'optional' as const,
-		mandatory: false,
 	}))
 
 	return serializeIdentifyMethodsPolicy(
@@ -41,6 +40,7 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 		const normalized = normalizeIdentifyMethodsPolicy(value)
 		return normalized.some((entry) => entry.enabled)
 	},
+	isBaselineSeedable: (value: EffectivePolicyValue) => normalizeIdentifyMethodsPolicy(value).length > 0,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
