@@ -615,7 +615,7 @@
                     "name",
                     "friendly_name",
                     "enabled",
-                    "mandatory"
+                    "requirement"
                 ],
                 "properties": {
                     "name": {
@@ -629,9 +629,6 @@
                     },
                     "requirement": {
                         "$ref": "#/components/schemas/IdentifyMethodRequirement"
-                    },
-                    "mandatory": {
-                        "type": "boolean"
                     },
                     "minimumTotalVerifiedFactors": {
                         "type": "integer",
