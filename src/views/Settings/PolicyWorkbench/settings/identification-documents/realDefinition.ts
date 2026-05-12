@@ -23,24 +23,13 @@ function isIdentificationDocumentsPayload(value: unknown): value is Identificati
 }
 
 function normalizeToPayload(value: EffectivePolicyValue): IdentificationDocumentsPayload {
-	// Already structured payload
 	if (isIdentificationDocumentsPayload(value)) {
 		return value
 	}
 
-	// Legacy boolean-based values
-	let enabled = false
-	if (typeof value === 'boolean') {
-		enabled = value
-	} else if (typeof value === 'number') {
-		enabled = value === 1
-	} else if (typeof value === 'string') {
-		const normalized = value.trim().toLowerCase()
-		enabled = ['1', 'true'].includes(normalized)
-	}
-
+	// Default fallback
 	return {
-		enabled,
+		enabled: false,
 		approvers: ['admin'],
 	}
 }
