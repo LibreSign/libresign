@@ -28,6 +28,7 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\FooterStampUnavailableException;
 use OCA\Libresign\Exception\LibresignException;
@@ -1636,8 +1637,8 @@ class SignFileService {
 	public function getAvailableIdentifyMethodsFromSettings(): array {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsSettings();
 		$return = array_map(fn (array $identifyMethod): array => [
-			'requirement' => $identifyMethod['mandatory'] ? 'required' : 'optional',
-			'mandatory' => $identifyMethod['mandatory'],
+			'requirement' => IdentifyMethodRequirement::tryFrom((string)($identifyMethod['requirement'] ?? ''))?->value
+				?? IdentifyMethodRequirement::OPTIONAL->value,
 			'identifiedAtDate' => null,
 			'validateCode' => false,
 			'method' => $identifyMethod['name'],
