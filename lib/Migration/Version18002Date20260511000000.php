@@ -11,7 +11,6 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use OCA\Libresign\AppInfo\Application;
-use OCP\DB\ISchemaWrapper;
 use OCP\Exceptions\AppConfigTypeConflictException;
 use OCP\IAppConfig;
 use OCP\IDBConnection;
@@ -29,16 +28,11 @@ class Version18002Date20260511000000 extends SimpleMigrationStep {
 	 * @param IOutput $output
 	 * @param Closure(): ISchemaWrapper $schemaClosure
 	 * @param array $options
-	 * @return null|ISchemaWrapper
 	 */
 	#[\Override]
-	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
-		$schema = $schemaClosure();
-
+	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$this->ensureArrayConfig('groups_request_sign', ['admin']);
 		$this->ensureArrayConfig('approval_group', ['admin']);
-
-		return $schema;
 	}
 
 	/**
