@@ -13,6 +13,7 @@ use InvalidArgumentException;
 use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -350,8 +351,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 				'name' => $this->name,
 				'friendly_name' => $this->getFriendlyName(),
 				'enabled' => true,
-				'requirement' => 'required',
-				'mandatory' => true,
+				'requirement' => IdentifyMethodRequirement::REQUIRED->value,
 				'signatureMethods' => $this->signatureMethodsToArray(),
 			],
 			$default
@@ -360,9 +360,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$this->overrideImmutable($immutable);
 		$this->settings = $this->applyDefault($this->settings, $default);
 		if (!isset($this->settings['requirement'])) {
-			$this->settings['requirement'] = !empty($this->settings['mandatory']) ? 'required' : 'optional';
+			$this->settings['requirement'] = IdentifyMethodRequirement::REQUIRED->value;
 		}
-		$this->settings['mandatory'] = $this->settings['requirement'] === 'required';
 		return $this->settings;
 	}
 
