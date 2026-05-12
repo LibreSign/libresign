@@ -21,27 +21,40 @@ final class IdentificationDocumentsPolicyValueTest extends TestCase {
 
 	public static function provideNormalizeCases(): array {
 		return [
-			'bool true' => [true, false, ['enabled' => true, 'approvers' => ['admin']]],
-			'bool false' => [false, true, ['enabled' => false, 'approvers' => ['admin']]],
-			'int one' => [1, false, ['enabled' => true, 'approvers' => ['admin']]],
-			'int zero' => [0, true, ['enabled' => false, 'approvers' => ['admin']]],
-			'string true' => ['true', false, ['enabled' => true, 'approvers' => ['admin']]],
-			'string one' => ['1', false, ['enabled' => true, 'approvers' => ['admin']]],
-			'string false' => ['false', true, ['enabled' => false, 'approvers' => ['admin']]],
-			'array with structure' => [
+			'structured payload enabled' => [
+				['enabled' => true, 'approvers' => ['admin']],
+				false,
+				['enabled' => true, 'approvers' => ['admin']],
+			],
+			'structured payload with custom approvers' => [
 				['enabled' => true, 'approvers' => ['group1', 'group2']],
 				false,
 				['enabled' => true, 'approvers' => ['group1', 'group2']],
 			],
-			'array with empty approvers defaults' => [
+			'structured payload disabled' => [
+				['enabled' => false, 'approvers' => ['admin']],
+				false,
+				['enabled' => false, 'approvers' => ['admin']],
+			],
+			'structured payload with empty approvers defaults' => [
 				['enabled' => true, 'approvers' => []],
 				false,
 				['enabled' => true, 'approvers' => ['admin']],
 			],
-			'array filters empty strings' => [
+			'structured payload filters empty strings' => [
 				['enabled' => true, 'approvers' => ['group1', '', 'group2', '']],
 				false,
 				['enabled' => true, 'approvers' => ['group1', 'group2']],
+			],
+			'non-array falls back to default' => [
+				'invalid',
+				false,
+				['enabled' => false, 'approvers' => ['admin']],
+			],
+			'null falls back to default' => [
+				null,
+				true,
+				['enabled' => true, 'approvers' => ['admin']],
 			],
 		];
 	}
@@ -54,10 +67,21 @@ final class IdentificationDocumentsPolicyValueTest extends TestCase {
 
 	public static function provideIsEnabledCases(): array {
 		return [
-			'bool true' => [true, false, true],
-			'bool false' => [false, false, false],
-			'array enabled true' => [['enabled' => true, 'approvers' => ['admin']], false, true],
-			'array enabled false' => [['enabled' => false, 'approvers' => ['admin']], false, false],
+			'array enabled true' => [
+				['enabled' => true, 'approvers' => ['admin']],
+				false,
+				true,
+			],
+			'array enabled false' => [
+				['enabled' => false, 'approvers' => ['admin']],
+				false,
+				false,
+			],
+			'invalid type uses default' => [
+				'invalid',
+				true,
+				true,
+			],
 		];
 	}
 
@@ -69,13 +93,16 @@ final class IdentificationDocumentsPolicyValueTest extends TestCase {
 
 	public static function provideGetApproversCases(): array {
 		return [
-			'bool defaults to admin' => [true, ['admin']],
 			'array with custom approvers' => [
 				['enabled' => true, 'approvers' => ['group1', 'group2']],
 				['group1', 'group2'],
 			],
-			'array with empty approvers' => [
+			'array with empty approvers defaults' => [
 				['enabled' => true, 'approvers' => []],
+				['admin'],
+			],
+			'invalid type defaults to admin' => [
+				'invalid',
 				['admin'],
 			],
 		];
