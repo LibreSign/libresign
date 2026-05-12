@@ -211,7 +211,7 @@
 				<NcAppSidebarTab v-for="method in enabledMethods"
 					:id="`tab-${method.name}`"
 					:key="method.name"
-					:name="method.friendly_name">
+					:name="method.friendly_name ?? method.name">
 					<template #icon>
 						<NcIconSvgWrapper :size="20"
 							:svg="getSvgIcon(method.name)" />
