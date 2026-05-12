@@ -54,7 +54,11 @@ export type SignatureFlowValue = SignatureFlowMode
 export type EffectivePoliciesResponse = ApiOcsResponseData<ApiOperations['policy-effective'], 200>
 export type EffectivePoliciesState = EffectivePoliciesResponse['policies']
 export type EffectivePolicyState = ApiRecordValue<EffectivePoliciesState>
-export type EffectivePolicyValue = Exclude<EffectivePolicyState['effectiveValue'], undefined>
+type OpenApiEffectivePolicyValue = Exclude<EffectivePolicyState['effectiveValue'], undefined>
+type OpenApiEffectivePolicyObjectValue = Extract<NonNullable<OpenApiEffectivePolicyValue>, { [key: string]: Record<string, never> }>
+type OpenApiEffectivePolicyPrimitiveValue = Exclude<NonNullable<OpenApiEffectivePolicyValue>, OpenApiEffectivePolicyObjectValue>
+export type EffectivePolicyObjectValue = object
+export type EffectivePolicyValue = OpenApiEffectivePolicyPrimitiveValue | EffectivePolicyObjectValue | null
 export type PolicyWriteValue = Exclude<ApiRequestJsonBody<AdminOperations['policy-set-system']>['value'], undefined>
 export type GroupPolicyResponse = ApiOcsResponseData<ApiOperations['policy-get-group'], 200>
 export type GroupPolicyState = GroupPolicyResponse['policy']
@@ -82,7 +86,12 @@ export type SystemPolicyWritePayload = ApiRequestJsonBody<AdminOperations['polic
 export type SystemPolicyWriteResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 200>
 export type SystemPolicyWriteErrorResponse = ApiOcsResponseData<AdminOperations['policy-set-system'], 400>
 export type NewFilePayload = ApiComponents['schemas']['NewFile']
-export type IdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
+type OpenApiIdentifyMethodRecord = ApiComponents['schemas']['IdentifyMethod']
+export type IdentifyMethodRequirement = 'required' | 'optional'
+export type IdentifyMethodRecord = Omit<OpenApiIdentifyMethodRecord, 'mandatory'> & {
+	mandatory?: number
+	requirement?: IdentifyMethodRequirement
+}
 export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']
 export type VisibleElementRecord = ApiComponents['schemas']['VisibleElement']
 export type FileSettings = ApiComponents['schemas']['FolderSettings']
@@ -92,8 +101,14 @@ export type FileDetailRecord = ApiComponents['schemas']['DetailedFile']
 export type ValidationFileRecord = ApiComponents['schemas']['ValidatedFile']
 export type FileSummaryRecord = ApiComponents['schemas']['FileSummary']
 export type FileListItemRecord = ApiComponents['schemas']['FileListItem']
-export type SignerDetailRecord = ApiComponents['schemas']['SignerDetail']
-export type SignerSummaryRecord = ApiComponents['schemas']['SignerSummary']
+type OpenApiSignerDetailRecord = ApiComponents['schemas']['SignerDetail']
+export type SignerDetailRecord = Omit<OpenApiSignerDetailRecord, 'identifyMethods'> & {
+	identifyMethods?: IdentifyMethodRecord[]
+}
+type OpenApiSignerSummaryRecord = ApiComponents['schemas']['SignerSummary']
+export type SignerSummaryRecord = Omit<OpenApiSignerSummaryRecord, 'identifyMethods'> & {
+	identifyMethods?: IdentifyMethodRecord[]
+}
 export type ValidatedChildFileRecord = ApiComponents['schemas']['ValidatedChildFile']
 export type LoadedValidationDocument = ValidationFileRecord
 export type LoadedValidationFileDocument = LoadedValidationDocument & {
@@ -107,7 +122,10 @@ export type UserElementRecord = ApiComponents['schemas']['UserElement']
 export type SignActionResponseRecord = ApiComponents['schemas']['SignActionResponse']
 export type SigningJobRecord = ApiComponents['schemas']['SigningJob']
 export type FileUuidReferenceRecord = ApiComponents['schemas']['FileUuidReference']
-export type RequestSignerRecord = ApiComponents['schemas']['NewSigner']
+type OpenApiRequestSignerRecord = ApiComponents['schemas']['NewSigner']
+export type RequestSignerRecord = Omit<OpenApiRequestSignerRecord, 'identifyMethods'> & {
+	identifyMethods?: IdentifyMethodRecord[]
+}
 export type ValidationMetadataRecord = ApiComponents['schemas']['ValidateMetadata']
 export type RequestedByRecord = ApiComponents['schemas']['RequestedBy']
 export type SettingsRecord = ApiComponents['schemas']['Settings']
@@ -119,7 +137,10 @@ export type RequestSignatureCreatePayload = ApiRequestJsonBody<ApiOperations['re
 export type RequestSignatureUpdatePayload = ApiRequestJsonBody<ApiOperations['request_signature-update-signature-request']>
 export type RequestSignaturePayload = RequestSignatureCreatePayload | RequestSignatureUpdatePayload
 export type RequestSignatureResponse = ApiOcsResponseData<ApiOperations['request_signature-update-signature-request'], 200>
-export type RequestSignatureSignerPayload = NonNullable<RequestSignatureUpdatePayload['signers']>[number]
+type OpenApiRequestSignatureSignerPayload = NonNullable<RequestSignatureUpdatePayload['signers']>[number]
+export type RequestSignatureSignerPayload = Omit<OpenApiRequestSignatureSignerPayload, 'identifyMethods'> & {
+	identifyMethods?: IdentifyMethodRecord[]
+}
 export type RequestSignatureSignerResponse = NonNullable<RequestSignatureResponse['signers']>[number]
 export type RequestSignatureVisibleElementPayload = NonNullable<RequestSignatureUpdatePayload['visibleElements']>[number]
 export type FileStatus = FileListEntry['status']
