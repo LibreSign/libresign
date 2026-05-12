@@ -77,7 +77,6 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 			name: 'email',
 			enabled: true,
 			requirement: 'required',
-			mandatory: true,
 			signatureMethods: {
 				emailToken: { enabled: true },
 			},
@@ -85,13 +84,12 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 		})
 	})
 
-	it('allows disabling required without enforcing any mandatory factor', async () => {
+	it('allows disabling required without enforcing any extra factor', async () => {
 		const wrapper = createWrapper(JSON.stringify([
 			{
 				name: 'account',
 				enabled: true,
 				requirement: 'required',
-				mandatory: true,
 				signatureMethods: {
 					clickToSign: { enabled: true },
 				},
@@ -117,7 +115,6 @@ describe('IdentifyMethodsRuleEditor.vue', () => {
 			name: 'account',
 			enabled: true,
 			requirement: 'optional',
-			mandatory: false,
 			signatureMethods: {
 				clickToSign: { enabled: true },
 			},
