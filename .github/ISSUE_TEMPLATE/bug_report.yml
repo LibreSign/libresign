@@ -3,6 +3,7 @@
 
 name: Bug report
 description: Create a report to help us improve
+type: Bug
 labels: [ 'bug' ]
 assignees: 'your-username'
 
