@@ -208,7 +208,7 @@ describe('useRealPolicyWorkbench', () => {
 		const state = createRealPolicyWorkbenchState()
 		const keys = state.visibleSettingSummaries.map((summary) => summary.key)
 
-		expect(keys).toContain('approval_group')
+		expect(keys).toContain('identification_documents')
 		expect(keys).toContain('signature_flow')
 		expect(keys).toContain('docmdp')
 	})
@@ -1206,7 +1206,7 @@ describe('useRealPolicyWorkbench', () => {
 		const keys = state.visibleSettingSummaries.map((summary) => summary.key)
 
 		expect(keys).toContain('add_footer')
-		expect(keys).toContain('approval_group')
+		expect(keys).toContain('identification_documents')
 		expect(keys).toContain('docmdp')
 		expect(keys).toContain('groups_request_sign')
 		expect(keys).toContain('signature_flow')
