@@ -28,7 +28,7 @@ type IdentifyMethodName = 'account' | 'email' | 'signal' | 'sms' | 'telegram' | 
 
 type Signer = {
 	email: string
-	identifyMethods?: Array<{ method: IdentifyMethodName; value: string; mandatory: number }>
+	identifyMethods?: Array<{ method: IdentifyMethodName; value: string; requirement: 'required' | 'optional' }>
 	localKey?: string
 	signRequestId?: number
 }
@@ -1171,7 +1171,7 @@ describe('files store - critical business rules', () => {
 					signatureFlow: 'parallel',
 					signers: [{
 						email: 'signer@example.com',
-						identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 0 }],
+						identifyMethods: [{ method: 'email', value: 'signer@example.com', requirement: 'optional' }],
 						localKey: 'draft-signer:1',
 						statusText: 'Draft',
 					}],
@@ -1184,7 +1184,7 @@ describe('files store - critical business rules', () => {
 
 				const config = axiosMock.mock.calls[0][0]
 				expect(config.data.signers).toEqual([{
-					identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 0 }],
+					identifyMethods: [{ method: 'email', value: 'signer@example.com', requirement: 'optional' }],
 				}])
 			})
 
@@ -1196,7 +1196,7 @@ describe('files store - critical business rules', () => {
 					name: 'contract.pdf',
 					signatureFlow: 'parallel',
 					signers: [{
-						identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 1 }],
+						identifyMethods: [{ method: 'email', value: 'signer@example.com', requirement: 'required' }],
 						displayName: 'Signer',
 						description: 'Needs review',
 						notify: 0,
@@ -1216,7 +1216,7 @@ describe('files store - critical business rules', () => {
 
 				const config = axiosMock.mock.calls[0][0]
 				expect(config.data.signers).toEqual([{
-					identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 1 }],
+					identifyMethods: [{ method: 'email', value: 'signer@example.com', requirement: 'required' }],
 					displayName: 'Signer',
 					description: 'Needs review',
 					notify: 0,
@@ -1376,7 +1376,7 @@ describe('files store - critical business rules', () => {
 				signatureFlow: 'parallel',
 				settings: { path: '/files/contract.pdf' },
 				visibleElements: [{ id: 77 }],
-				signers: [{ identifyMethods: [{ method: 'email', value: 'signer01@libresign.coop', mandatory: 0 }], signRequestId: 10 }],
+				signers: [{ identifyMethods: [{ method: 'email', value: 'signer01@libresign.coop', requirement: 'optional' }], signRequestId: 10 }],
 			}
 			axiosMock.mockResolvedValue({
 				data: {
@@ -1385,7 +1385,7 @@ describe('files store - critical business rules', () => {
 							id: 1,
 							uuid: 'file-uuid',
 							signatureFlow: 'parallel',
-							signers: [{ identifyMethods: [{ method: 'email', value: 'signer01@libresign.coop', mandatory: 0 }], signRequestId: 10 }],
+							signers: [{ identifyMethods: [{ method: 'email', value: 'signer01@libresign.coop', requirement: 'optional' }], signRequestId: 10 }],
 						},
 					},
 				},
@@ -1448,7 +1448,7 @@ describe('files store - critical business rules', () => {
 					id: tempId,
 					nodeId,
 					name: 'test.pdf',
-					signers: [{ email: 'signer@example.com', identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 0 }] }],
+					signers: [{ email: 'signer@example.com', identifyMethods: [{ method: 'email', value: 'signer@example.com', requirement: 'optional' }] }],
 					signatureFlow: 'parallel',
 				}
 				store.selectedFileId = tempId
@@ -1494,7 +1494,7 @@ describe('files store - critical business rules', () => {
 					id: 7,
 					nodeId: 12345,
 					name: 'test.pdf',
-					signers: [{ email: 'signer@example.com', identifyMethods: [{ method: 'email', value: 'signer@example.com', mandatory: 0 }] }],
+					signers: [{ email: 'signer@example.com', identifyMethods: [{ method: 'email', value: 'signer@example.com', requirement: 'optional' }] }],
 					signatureFlow: 'parallel',
 				}
 				store.selectedFileId = 7
