@@ -87,9 +87,9 @@ const options = [
 const groupsLoading = ref(false)
 const availableGroups = ref<GroupOption[]>([])
 
-const draft = ref<IdentificationDocumentsPayload>(() => {
-	if (typeof props.modelValue === 'object' && props.modelValue !== null && 'enabled' in props.modelValue) {
-		const payload = props.modelValue as Record<string, unknown>
+function createDraftFromValue(value: EffectivePolicyValue): IdentificationDocumentsPayload {
+	if (typeof value === 'object' && value !== null && 'enabled' in value) {
+		const payload = value as Record<string, unknown>
 		return {
 			enabled: typeof payload.enabled === 'boolean' ? payload.enabled : false,
 			approvers: Array.isArray(payload.approvers) ? (payload.approvers as string[]) : ['admin'],
@@ -100,7 +100,9 @@ const draft = ref<IdentificationDocumentsPayload>(() => {
 		enabled: false,
 		approvers: ['admin'],
 	}
-}())
+}
+
+const draft = ref<IdentificationDocumentsPayload>(createDraftFromValue(props.modelValue))
 
 const groupOptions = computed(() => {
 	return availableGroups.value.map(group => ({
