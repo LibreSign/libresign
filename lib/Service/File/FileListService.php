@@ -16,6 +16,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
@@ -428,8 +429,7 @@ class FileListService {
 			'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
 				'method' => $identifyMethod->getIdentifierKey(),
 				'value' => $identifyMethod->getIdentifierValue(),
-				'requirement' => self::mapRequirementFromMandatory($identifyMethod->getMandatory()),
-				'mandatory' => $identifyMethod->getMandatory(),
+				'requirement' => $identifyMethod->getRequirement(),
 			], array_values($identifyMethodsOfSigner)),
 		];
 
@@ -511,8 +511,7 @@ class FileListService {
 			'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
 				'method' => $identifyMethod->getIdentifierKey(),
 				'value' => $identifyMethod->getIdentifierValue(),
-				'requirement' => self::mapRequirementFromMandatory($identifyMethod->getMandatory()),
-				'mandatory' => $identifyMethod->getMandatory(),
+				'requirement' => $identifyMethod->getRequirement(),
 			], array_values($identifyMethodsOfSigner)),
 		];
 
@@ -551,7 +550,7 @@ class FileListService {
 		}
 
 		foreach ($identifyMethodsOfSigner as $identifyMethod) {
-			if (!$identifyMethod->getMandatory()) {
+			if ($identifyMethod->getRequirement() !== IdentifyMethodRequirement::REQUIRED->value) {
 				continue;
 			}
 			if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
@@ -867,7 +866,7 @@ class FileListService {
 					return $carry;
 				}, '');
 				$displayName = array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
-					if (!$carry && $identifyMethod->getMandatory()) {
+					if (!$carry && $identifyMethod->getRequirement() === IdentifyMethodRequirement::REQUIRED->value) {
 						return $identifyMethod->getIdentifierValue();
 					}
 					return $carry;
@@ -881,8 +880,7 @@ class FileListService {
 					'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
 						'method' => $identifyMethod->getIdentifierKey(),
 						'value' => $identifyMethod->getIdentifierValue(),
-						'requirement' => self::mapRequirementFromMandatory($identifyMethod->getMandatory()),
-						'mandatory' => $identifyMethod->getMandatory(),
+						'requirement' => $identifyMethod->getRequirement(),
 					], array_values($identifyMethodsOfSigner)),
 					'signed' => $signer->getSigned()?->format(\DateTimeInterface::ATOM),
 					'status' => $signer->getSigned() ? 1 : 0,
@@ -923,9 +921,5 @@ class FileListService {
 		}
 
 		return 0;
-	}
-
-	private static function mapRequirementFromMandatory(int $mandatory): string {
-		return $mandatory === 1 ? 'required' : 'optional';
 	}
 }
