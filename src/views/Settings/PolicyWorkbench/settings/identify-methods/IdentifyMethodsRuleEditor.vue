@@ -161,7 +161,6 @@ function onRequirementToggle(index: number, required: boolean): void {
 	nextEntries[index] = {
 		...nextEntries[index],
 		requirement: required ? 'required' : 'optional',
-		mandatory: required,
 	}
 	emit('update:modelValue', serializeIdentifyMethodsPolicy(ensureSignatureMethodSelection(nextEntries), policyConfig.value.global))
 }
@@ -183,7 +182,7 @@ function onGlobalCanCreateAccountToggle(canCreateAccount: boolean): void {
 }
 
 function isRequired(entry: IdentifyMethodPolicyEntry): boolean {
-	return entry.requirement === 'required' || Boolean(entry.mandatory)
+	return entry.requirement === 'required'
 }
 
 function getVerificationMethodLabel(identifyMethodName: string, signatureMethodName: string, fallbackLabel?: string): string {
