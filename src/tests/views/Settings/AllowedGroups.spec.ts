@@ -90,7 +90,7 @@ describe('AllowedGroups', () => {
 		await flushPromises()
 
 		expect(axiosPostMock).toHaveBeenCalledWith('apps/libresign/api/v1/admin/groups-request-sign/config', {
-			groups: '["admin","testGroup"]',
+			groups: ['admin', 'testGroup'],
 		})
 
 		select = wrapper.findComponent({ name: 'NcSelect' })
@@ -101,7 +101,7 @@ describe('AllowedGroups', () => {
 		await flushPromises()
 
 		expect(axiosPostMock).toHaveBeenCalledWith('apps/libresign/api/v1/admin/groups-request-sign/config', {
-			groups: '["admin"]',
+			groups: ['admin'],
 		})
 		expect(confirmPasswordMock).toHaveBeenCalledTimes(2)
 	})
@@ -153,7 +153,7 @@ describe('AllowedGroups', () => {
 		await flushPromises()
 
 		expect(axiosPostMock).toHaveBeenCalledWith('apps/libresign/api/v1/admin/groups-request-sign/config', {
-			groups: '["admin","SÖ"]',
+			groups: ['admin', 'SÖ'],
 		})
 	})
 })
