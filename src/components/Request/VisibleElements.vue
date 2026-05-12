@@ -182,7 +182,11 @@ function isIdentifyMethodRecord(value: unknown): value is IdentifyMethodRecord {
 	return candidate !== null
 		&& typeof candidate.method === 'string'
 		&& typeof candidate.value === 'string'
-		&& typeof candidate.mandatory === 'number'
+		&& (
+			candidate.requirement === undefined
+			|| candidate.requirement === 'required'
+			|| candidate.requirement === 'optional'
+		)
 }
 
 function normalizeVisibleElement(element: unknown): VisibleElementRecord | null {
