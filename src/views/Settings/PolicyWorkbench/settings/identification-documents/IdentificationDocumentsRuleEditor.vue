@@ -87,32 +87,20 @@ const options = [
 const groupsLoading = ref(false)
 const availableGroups = ref<GroupOption[]>([])
 
-const draft = ref<IdentificationDocumentsPayload>(normalizeDraft(props.modelValue))
-
-function normalizeDraft(value: EffectivePolicyValue): IdentificationDocumentsPayload {
-	if (typeof value === 'object' && value !== null && 'enabled' in value) {
-		const payload = value as Record<string, unknown>
+const draft = ref<IdentificationDocumentsPayload>(() => {
+	if (typeof props.modelValue === 'object' && props.modelValue !== null && 'enabled' in props.modelValue) {
+		const payload = props.modelValue as Record<string, unknown>
 		return {
 			enabled: typeof payload.enabled === 'boolean' ? payload.enabled : false,
 			approvers: Array.isArray(payload.approvers) ? (payload.approvers as string[]) : ['admin'],
 		}
 	}
 
-	// Legacy boolean-based values
-	let enabled = false
-	if (typeof value === 'boolean') {
-		enabled = value
-	} else if (typeof value === 'number') {
-		enabled = value === 1
-	} else if (typeof value === 'string') {
-		enabled = ['1', 'true'].includes(value.trim().toLowerCase())
-	}
-
 	return {
-		enabled,
+		enabled: false,
 		approvers: ['admin'],
 	}
-}
+}())
 
 const groupOptions = computed(() => {
 	return availableGroups.value.map(group => ({
