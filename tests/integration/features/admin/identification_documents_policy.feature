@@ -6,17 +6,18 @@ Feature: admin/identification_documents_policy
     And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identification_documents"
-      | value              | false |
-      | allowChildOverride | true  |
+      | value              | {"enabled":false,"approvers":["admin"]} |
+      | allowChildOverride | true                                |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                               | value                    |
-      | (jq).ocs.data.policy.policyKey    | identification_documents |
-      | (jq).ocs.data.policy.effectiveValue| false                   |
+      | key                                        | value                    |
+      | (jq).ocs.data.policy.policyKey             | identification_documents |
+      | (jq).ocs.data.policy.effectiveValue.enabled| false                    |
+      | (jq).ocs.data.policy.effectiveValue.approvers[0] | admin              |
 
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/admin/identification_documents"
-      | value              | true |
-      | allowChildOverride | true |
+      | value              | {"enabled":true,"approvers":["admin"]} |
+      | allowChildOverride | true                               |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                               | value                    |
@@ -27,19 +28,19 @@ Feature: admin/identification_documents_policy
     When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                                           | value |
-      | (jq).ocs.data.policies.identification_documents.effectiveValue | true  |
+      | key                                                                   | value |
+      | (jq).ocs.data.policies.identification_documents.effectiveValue.enabled | true  |
 
     Given as user "signer1"
     When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                                           | value |
-      | (jq).ocs.data.policies.identification_documents.effectiveValue | false |
+      | key                                                                   | value |
+      | (jq).ocs.data.policies.identification_documents.effectiveValue.enabled | false |
 
     Given as user "admin"
     When sending "put" to ocs "/apps/libresign/api/v1/policies/user/signer1/identification_documents"
-      | value | true |
+      | value | {"enabled":true,"approvers":["admin"]} |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                        | value                    |
@@ -51,19 +52,19 @@ Feature: admin/identification_documents_policy
     When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                                           | value |
-      | (jq).ocs.data.policies.identification_documents.effectiveValue | true  |
-      | (jq).ocs.data.policies.identification_documents.sourceScope    | user_policy |
+      | key                                                                   | value       |
+      | (jq).ocs.data.policies.identification_documents.effectiveValue.enabled | true        |
+      | (jq).ocs.data.policies.identification_documents.sourceScope            | user_policy |
 
   Scenario: Identification document approval visibility follows policy and role
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identification_documents"
-      | value | true |
+      | value | {"enabled":true,"approvers":["admin"]} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}}}] |
+      | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}] |
     And the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
