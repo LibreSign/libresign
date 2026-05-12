@@ -9,35 +9,45 @@ import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 import IdentificationDocumentsRuleEditor from './IdentificationDocumentsRuleEditor.vue'
 
-function resolveIdentificationDocuments(value: EffectivePolicyValue): boolean | null {
-	if (typeof value === 'boolean') {
+interface IdentificationDocumentsPayload {
+	enabled: boolean
+	approvers: string[]
+}
+
+function isIdentificationDocumentsPayload(value: unknown): value is IdentificationDocumentsPayload {
+	if (typeof value !== 'object' || value === null) {
+		return false
+	}
+	const obj = value as Record<string, unknown>
+	return typeof obj.enabled === 'boolean' && Array.isArray(obj.approvers)
+}
+
+function normalizeToPayload(value: EffectivePolicyValue): IdentificationDocumentsPayload {
+	// Already structured payload
+	if (isIdentificationDocumentsPayload(value)) {
 		return value
 	}
 
-	if (typeof value === 'number') {
-		if (value === 1) {
-			return true
-		}
-
-		if (value === 0) {
-			return false
-		}
-
-		return null
-	}
-
-	if (typeof value === 'string') {
+	// Legacy boolean-based values
+	let enabled = false
+	if (typeof value === 'boolean') {
+		enabled = value
+	} else if (typeof value === 'number') {
+		enabled = value === 1
+	} else if (typeof value === 'string') {
 		const normalized = value.trim().toLowerCase()
-		if (['1', 'true'].includes(normalized)) {
-			return true
-		}
-
-		if (['0', 'false', ''].includes(normalized)) {
-			return false
-		}
+		enabled = ['1', 'true'].includes(normalized)
 	}
 
-	return null
+	return {
+		enabled,
+		approvers: ['admin'],
+	}
+}
+
+function resolveIdentificationDocuments(value: EffectivePolicyValue): boolean | null {
+	const payload = normalizeToPayload(value)
+	return payload.enabled
 }
 
 export const identificationDocumentsRealDefinition: RealPolicySettingDefinition = {
@@ -47,19 +57,18 @@ export const identificationDocumentsRealDefinition: RealPolicySettingDefinition 
 	supportedScopes: ['system', 'group', 'user'],
 	editor: IdentificationDocumentsRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => false,
+	createEmptyValue: () => ({ enabled: false, approvers: ['admin'] }),
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
-		const resolved = resolveIdentificationDocuments(value)
-		return resolved ?? false
+		return normalizeToPayload(value)
 	},
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => resolveIdentificationDocuments(value) !== null,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
-			return policyValue
+			return normalizeToPayload(policyValue)
 		}
 
-		return false
+		return { enabled: false, approvers: ['admin'] }
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const resolved = resolveIdentificationDocuments(value)
