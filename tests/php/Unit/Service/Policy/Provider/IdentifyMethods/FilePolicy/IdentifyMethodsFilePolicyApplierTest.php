@@ -44,7 +44,6 @@ final class IdentifyMethodsFilePolicyApplierTest extends \OCA\Libresign\Tests\Un
 				'name' => 'email',
 				'enabled' => true,
 				'requirement' => 'required',
-				'mandatory' => true,
 				'minimumTotalVerifiedFactors' => 2,
 			],
 		];
@@ -76,7 +75,6 @@ final class IdentifyMethodsFilePolicyApplierTest extends \OCA\Libresign\Tests\Un
 				'name' => 'sms',
 				'enabled' => true,
 				'requirement' => 'optional',
-				'mandatory' => false,
 				'minimumTotalVerifiedFactors' => 2,
 			],
 		];
