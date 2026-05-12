@@ -11,7 +11,6 @@ import { computed, nextTick, reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 import { realDefinitions } from './settings/realDefinitions'
-import { normalizeIdentifyMethodsPolicy } from './settings/identify-methods/model'
 import type { RealPolicyResolutionMode } from './settings/realTypes'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
@@ -147,14 +146,6 @@ function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
 		value: draft.value,
 		allowChildOverride: draft.allowChildOverride,
 	})
-}
-
-function shouldUseIdentifyMethodsBaseline(value: EffectivePolicyValue | null | undefined): boolean {
-	if (value === null || value === undefined) {
-		return false
-	}
-
-	return normalizeIdentifyMethodsPolicy(value).length > 0
 }
 
 export function createRealPolicyWorkbenchState() {
@@ -529,10 +520,11 @@ export function createRealPolicyWorkbenchState() {
 		if (
 			editorMode.value === 'create'
 			&& editorDraft.value.scope === 'system'
-			&& activeDefinition.value?.key === 'identify_methods'
-			&& !shouldUseIdentifyMethodsBaseline(inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value)
 		) {
-			return true
+			const baselineForSave = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
+			if (!shouldUseBaselineForCreate('system', baselineForSave)) {
+				return true
+			}
 		}
 
 		if (!isDraftDirty.value
@@ -822,6 +814,19 @@ export function createRealPolicyWorkbenchState() {
 		return inheritedSystemRule.value?.id === ruleId ? inheritedSystemRule.value : null
 	}
 
+	function shouldUseBaselineForCreate(scope: PolicyScope, baselineValue: EffectivePolicyValue | null | undefined): baselineValue is EffectivePolicyValue {
+		if (baselineValue === null || baselineValue === undefined) {
+			return false
+		}
+
+		const seedable = activeDefinition.value?.isBaselineSeedable?.(baselineValue)
+		if (scope === 'system') {
+			return seedable ?? true
+		}
+
+		return seedable ?? false
+	}
+
 	function startEditor({ scope, ruleId }: { scope: PolicyScope, ruleId?: string }) {
 		if (!activeDefinition.value) {
 			return
@@ -862,27 +867,19 @@ export function createRealPolicyWorkbenchState() {
 			}
 		} else if (scope === 'system') {
 			const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
-			if (
-				baselineRuleValue !== null
-				&& baselineRuleValue !== undefined
-				&& (activeDefinition.value.key !== 'identify_methods' || shouldUseIdentifyMethodsBaseline(baselineRuleValue))
-			) {
+			if (shouldUseBaselineForCreate('system', baselineRuleValue)) {
 				value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
 			}
 		} else if (scope === 'group') {
-			if (activeDefinition.value.key === 'identify_methods') {
-				const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
-				if (shouldUseIdentifyMethodsBaseline(baselineRuleValue)) {
-					value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
-				}
+			const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
+			if (shouldUseBaselineForCreate('group', baselineRuleValue)) {
+				value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
 			}
 			targetIds = []
 		} else if (scope === 'user') {
-			if (activeDefinition.value.key === 'identify_methods') {
-				const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
-				if (shouldUseIdentifyMethodsBaseline(baselineRuleValue)) {
-					value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
-				}
+			const baselineRuleValue = inheritedSystemRule.value?.value ?? systemDefaultRule.value?.value
+			if (shouldUseBaselineForCreate('user', baselineRuleValue)) {
+				value = activeDefinition.value.normalizeDraftValue(baselineRuleValue)
 			}
 			targetIds = []
 		}
@@ -896,9 +893,8 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		if (
-			activeDefinition.value.key === 'identify_methods'
-			&& !ruleId
-			&& !shouldUseIdentifyMethodsBaseline(editorDraft.value.value)
+			!ruleId
+			&& !shouldUseBaselineForCreate(scope, editorDraft.value.value)
 		) {
 			editorDraft.value.value = activeDefinition.value.createEmptyValue()
 		}
