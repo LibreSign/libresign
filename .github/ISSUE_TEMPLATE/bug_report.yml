@@ -48,19 +48,59 @@ body:
       placeholder: Press the button below to add screenshots.
       description: If applicable, add screenshots to help explain your problem.
 
-  - type: textarea
-    id: environment
+  - type: input
+    id: operational-system
     attributes:
-      label: Environment information
-      description: Please complete the following infomation
-      placeholder: |
-        - OS: [e.g. Linux Debian, Docker]
-        - Browser [e.g. chrome, safari]
-        - LibreSign Version [e.g. 3.2.1]
-        - Nextcloud Server Version [e.g. 24.0.1]
-        - Logs (get the entries from nextcloud.log related with LibreSign i.e `tail -f data/nextcloud.log|grep libresign`)
+      label: Operational System
+      description: |
+        e.g. Linux, Debian, Docker. If Docker, what's the used image or the base image.
     validations:
       required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser Type and Version
+      description: e.g. Chrome 148.0.7778.97, Safari 26.3.1
+    validations:
+      required: false
+
+  - type: input
+    id: libresign-version
+    attributes:
+      label: Libresign Version
+      description: e.g. 3.2.1
+    validations:
+      required: true
+
+  - type: input
+    id: nextcloud-version
+    attributes:
+      label: Nextcloud Server Version
+      description: e.g. 24.0.1
+    validations:
+        required: false
+
+  - type: textarea
+    id: nextcloud-logs
+    attributes:
+      label: Logs from Nextcloud Server
+      placeholder: |
+        Get the enrties from nextcloud.log related with LibreSign i.e `tail -f data/nextcloud.log|grep libresign`
+    validations:
+      required: true
+
+  - type: textarea
+    id: developer-logs
+    attributes:
+      label: Logs from Developers tools
+      placeholder: |
+        - JavaScript errors
+        - List of API requests to LibreSign endpoints (would be good to apply filter)
+        - Status code of requests to LibreSign API
+        - Or any additional logs or console output that might help diagnose the issue
+    validations:
+      required: false
 
   - type: textarea
     id: additional
