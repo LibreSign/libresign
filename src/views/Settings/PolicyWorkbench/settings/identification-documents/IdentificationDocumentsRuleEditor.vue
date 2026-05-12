@@ -21,14 +21,14 @@
 
 		<!-- Approvers section - visible only when enabled -->
 		<div v-if="draft.enabled" class="identification-documents-editor__approvers-section">
-			<label>{{ $t('libresign', 'Approver groups') }}</label>
+			<label>{{ t('libresign', 'Approver groups') }}</label>
 			<p class="identification-documents-editor__help-text">
-				{{ $t('libresign', 'Select which groups can approve identification documents.') }}
+				{{ t('libresign', 'Select which groups can approve identification documents.') }}
 			</p>
 			<NcSelect
 				v-model="draft.approvers"
 				:options="groupOptions"
-				:placeholder="$t('libresign', 'Select groups...')"
+				:placeholder="t('libresign', 'Select groups...')"
 				multiple
 				track-by="id"
 				label="displayName"
