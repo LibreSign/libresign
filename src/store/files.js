@@ -913,7 +913,7 @@ const _filesStore = defineStore('files', () => {
 							return {
 								method: method.method,
 								value: method.value,
-								mandatory: method.mandatory,
+								requirement: method.requirement || 'optional',
 							}
 						})
 						.filter(Boolean)
