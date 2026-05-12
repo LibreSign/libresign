@@ -10,8 +10,8 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\Account;
