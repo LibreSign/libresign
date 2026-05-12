@@ -9,6 +9,7 @@ vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 import { mount } from '@vue/test-utils'
 import { t } from '@nextcloud/l10n'
 import IdentificationDocumentsRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/identification-documents/IdentificationDocumentsRuleEditor.vue'
+import type { IdentificationDocumentsPayload } from '../../../../../../views/Settings/PolicyWorkbench/settings/identification-documents/realDefinition'
 
 const globalMountOptions = {
 	global: {
@@ -23,7 +24,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
 			...globalMountOptions,
 			props: {
-				modelValue: { enabled: false, approvers: ['admin'] },
+				modelValue: { enabled: false, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
 			},
 		})
 
@@ -35,7 +36,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
 			...globalMountOptions,
 			props: {
-				modelValue: { enabled: true, approvers: ['admin'] },
+				modelValue: { enabled: true, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
 			},
 		})
 
@@ -47,7 +48,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
 			...globalMountOptions,
 			props: {
-				modelValue: { enabled: false, approvers: ['admin'] },
+				modelValue: { enabled: false, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
 			},
 		})
 
@@ -59,7 +60,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
 			...globalMountOptions,
 			props: {
-				modelValue: { enabled: false, approvers: ['admin'] },
+				modelValue: { enabled: false, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
 			},
 		})
 
@@ -81,7 +82,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
 			...globalMountOptions,
 			props: {
-				modelValue: { enabled: true, approvers: ['custom_group'] },
+				modelValue: { enabled: true, approvers: ['custom_group'] } satisfies IdentificationDocumentsPayload,
 			},
 		})
 
@@ -103,7 +104,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
 			...globalMountOptions,
 			props: {
-				modelValue: { enabled: true, approvers: ['admin'] },
+				modelValue: { enabled: true, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
 				scope: 'system',
 			},
 		})
@@ -120,7 +121,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
 			...globalMountOptions,
 			props: {
-				modelValue: payload,
+				modelValue: payload satisfies IdentificationDocumentsPayload,
 			},
 		})
 
