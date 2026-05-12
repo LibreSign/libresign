@@ -23,15 +23,15 @@ class CrlUrlParserService {
 			return null;
 		}
 
-		$pattern = '#^/(?:index\.php/)?apps/libresign/crl/libresign_([A-Za-z0-9]+)_(\d+)_([a-z])\.crl$#';
+		$pattern = '#^/(?:index\.php/)?apps/libresign/crl/libresign_(?P<instanceId>[A-Za-z0-9]+)_(?P<generation>\d+)_(?P<engineType>[a-z])\.crl$#';
 		if (!preg_match($pattern, $path, $matches)) {
 			return null;
 		}
 
 		return [
-			'instanceId' => $matches[1],
-			'generation' => (int)$matches[2],
-			'engineType' => $matches[3],
+			'instanceId' => $matches['instanceId'],
+			'generation' => (int)$matches['generation'],
+			'engineType' => $matches['engineType'],
 		];
 	}
 
