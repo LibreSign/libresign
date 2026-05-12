@@ -13,14 +13,11 @@ import { generateOcsUrl } from '@nextcloud/router'
 import type {
 	EffectivePolicyState,
 	EffectivePolicyValue,
-	PolicyWriteValue,
 	EffectivePoliciesResponse,
 	EffectivePoliciesState,
 	GroupPolicyResponse,
 	GroupPolicyState,
-	GroupPolicyWritePayload,
 	GroupPolicyWriteResponse,
-	SystemPolicyWritePayload,
 	SystemPolicyResponse,
 	SystemPolicyState,
 	SystemPolicyWriteResponse,
@@ -96,6 +93,18 @@ function sanitizePolicies(rawPolicies: Record<string, unknown>): EffectivePolici
 	return nextPolicies
 }
 
+interface PolicyRequestPayload {
+	value: EffectivePolicyValue
+}
+
+interface SystemPolicyRequestPayload extends PolicyRequestPayload {
+	allowChildOverride?: boolean
+}
+
+interface GroupPolicyRequestPayload extends PolicyRequestPayload {
+	allowChildOverride: boolean
+}
+
 const _policiesStore = defineStore('policies', () => {
 	const initialPolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
 	const policies = ref<EffectivePoliciesState>(sanitizePolicies(initialPolicies.policies ?? {}))
@@ -115,10 +124,10 @@ const _policiesStore = defineStore('policies', () => {
 
 	const saveSystemPolicy = async (
 		policyKey: string,
-		value: PolicyWriteValue,
+		value: EffectivePolicyValue,
 		allowChildOverride?: boolean,
 	): Promise<EffectivePolicyState | null> => {
-		const payload: SystemPolicyWritePayload & { allowChildOverride?: boolean } = { value }
+		const payload: SystemPolicyRequestPayload & { allowChildOverride?: boolean } = { value }
 		if (typeof allowChildOverride === 'boolean') {
 			payload.allowChildOverride = allowChildOverride
 		}
@@ -182,10 +191,10 @@ const _policiesStore = defineStore('policies', () => {
 	const saveGroupPolicy = async (
 		groupId: string,
 		policyKey: string,
-		value: PolicyWriteValue,
+		value: EffectivePolicyValue,
 		allowChildOverride: boolean,
 	): Promise<GroupPolicyState | null> => {
-		const payload: GroupPolicyWritePayload = { value, allowChildOverride }
+		const payload: GroupPolicyRequestPayload = { value, allowChildOverride }
 		const response = await axios.put<{ ocs?: { data?: GroupPolicyWriteResponse } }>(
 			generateOcsUrl(`/apps/libresign/api/v1/policies/group/${groupId}/${policyKey}`),
 			payload,
@@ -212,8 +221,8 @@ const _policiesStore = defineStore('policies', () => {
 		return policy
 	}
 
-	const saveUserPreference = async (policyKey: string, value: PolicyWriteValue): Promise<EffectivePolicyState | null> => {
-		const payload: SystemPolicyWritePayload = { value }
+	const saveUserPreference = async (policyKey: string, value: EffectivePolicyValue): Promise<EffectivePolicyState | null> => {
+		const payload: SystemPolicyRequestPayload = { value }
 		const response = await axios.put<{ ocs?: { data?: SystemPolicyWriteResponse } }>(
 			generateOcsUrl(`/apps/libresign/api/v1/policies/user/${policyKey}`),
 			payload,
@@ -253,10 +262,10 @@ const _policiesStore = defineStore('policies', () => {
 	const saveUserPolicyForUser = async (
 		userId: string,
 		policyKey: string,
-		value: PolicyWriteValue,
+		value: EffectivePolicyValue,
 		allowChildOverride: boolean,
 	): Promise<UserPolicyState | null> => {
-		const payload: SystemPolicyWritePayload & { allowChildOverride: boolean } = {
+		const payload: SystemPolicyRequestPayload & { allowChildOverride: boolean } = {
 			value,
 			allowChildOverride,
 		}
