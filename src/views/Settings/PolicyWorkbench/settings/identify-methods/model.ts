@@ -17,7 +17,6 @@ export type IdentifyMethodPolicyEntry = {
 	friendly_name?: string
 	enabled: boolean
 	requirement?: IdentifyMethodRequirement
-	mandatory?: boolean
 	minimumTotalVerifiedFactors?: number
 	signatureMethods: Record<string, IdentifyMethodSignatureMethod>
 	signatureMethodEnabled?: string
@@ -109,8 +108,7 @@ export function normalizeIdentifyMethodsPolicyConfig(value: EffectivePolicyValue
 			name,
 			friendly_name: typeof candidate.friendly_name === 'string' ? candidate.friendly_name : undefined,
 			enabled: candidate.enabled === undefined ? true : Boolean(candidate.enabled),
-			requirement: normalizeRequirement(candidate.requirement, candidate.mandatory),
-			mandatory: candidate.mandatory === undefined ? undefined : Boolean(candidate.mandatory),
+			requirement: normalizeRequirement(candidate.requirement),
 			minimumTotalVerifiedFactors: normalizeMinimumTotalVerifiedFactors(candidate.minimumTotalVerifiedFactors)
 				?? sharedMinimumTotalVerifiedFactors,
 			signatureMethods,
@@ -157,9 +155,6 @@ export function serializeIdentifyMethodsPolicy(
 
 		if (entry.requirement) {
 			normalizedEntry.requirement = entry.requirement
-			normalizedEntry.mandatory = entry.requirement === 'required'
-		} else if (entry.mandatory !== undefined) {
-			normalizedEntry.mandatory = Boolean(entry.mandatory)
 		}
 
 		if (entry.minimumTotalVerifiedFactors !== undefined) {
@@ -228,16 +223,12 @@ function normalizeSignatureMethods(value: unknown, legacyAvailableSignatureMetho
 	return signatureMethods
 }
 
-function normalizeRequirement(requirement: unknown, mandatory: unknown): IdentifyMethodRequirement | undefined {
+function normalizeRequirement(requirement: unknown): IdentifyMethodRequirement | undefined {
 	if (requirement === 'required' || requirement === 'optional') {
 		return requirement
 	}
 
-	if (mandatory === undefined) {
-		return undefined
-	}
-
-	return Boolean(mandatory) ? 'required' : 'optional'
+	return undefined
 }
 
 function normalizeMinimumTotalVerifiedFactors(value: unknown): number | undefined {
