@@ -182,7 +182,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function ensureDavDefaultContactFixture(): void {
-		$instanceId = \OC_Util::getInstanceId();
+		$instanceId = $this->getInstanceId();
 		$dir = '../../data/appdata_' . $instanceId . '/dav/defaultContact';
 		if (!is_dir($dir)) {
 			mkdir($dir, self::TEST_DIR_MODE, true);
@@ -291,7 +291,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function getFullLiresignAppFolder(): string {
-		$path = '../../data/appdata_' . \OC_Util::getInstanceId() . '/libresign';
+		$path = '../../data/appdata_' . $this->getInstanceId() . '/libresign';
 		if (!is_dir($path)) {
 			mkdir($path, self::TEST_DIR_MODE, true);
 			$user = fileowner(__FILE__);
@@ -299,6 +299,14 @@ class TestCase extends \Test\TestCase {
 			@chgrp($path, $user);
 		}
 		return realpath($path);
+	}
+
+	private function getInstanceId(): string {
+		$instanceId = \OCP\Server::get(IConfig::class)->getSystemValueString('instanceid', '');
+		if ($instanceId === '') {
+			throw new \RuntimeException('Missing Nextcloud instanceid from system config.');
+		}
+		return $instanceId;
 	}
 
 	private function backupBinaries(): void {
