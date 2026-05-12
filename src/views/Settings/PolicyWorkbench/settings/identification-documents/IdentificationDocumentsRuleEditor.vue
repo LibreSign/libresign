@@ -10,34 +10,65 @@
 			:key="String(option.value)"
 			class="identification-documents-editor__option"
 			type="radio"
-			:model-value="normalizedValue === option.value"
+			:model-value="draft.enabled === option.value"
 			name="identification-documents-editor"
-			@update:modelValue="onChange(option.value, $event)">
+			@update:modelValue="updateEnabled(option.value, $event)">
 			<div class="identification-documents-editor__copy">
 				<strong>{{ option.label }}</strong>
 				<p>{{ option.description }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
+
+		<!-- Approvers section - visible only when enabled -->
+		<div v-if="draft.enabled" class="identification-documents-editor__approvers-section">
+			<label>{{ $t('libresign', 'Approver groups') }}</label>
+			<p class="identification-documents-editor__help-text">
+				{{ $t('libresign', 'Select which groups can approve identification documents.') }}
+			</p>
+			<NcSelect
+				v-model="draft.approvers"
+				:options="groupOptions"
+				:placeholder="$t('libresign', 'Select groups...')"
+				multiple
+				track-by="id"
+				label="displayName"
+				:clearable="false"
+				:loading="groupsLoading"
+			/>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import NcSelect from '@nextcloud/vue/components/NcSelect'
 import type { EffectivePolicyValue } from '../../../../../types/index'
 
 defineOptions({
 	name: 'IdentificationDocumentsRuleEditor',
 })
 
+interface IdentificationDocumentsPayload {
+	enabled: boolean
+	approvers: string[]
+}
+
+interface GroupOption {
+	id: string
+	displayName: string
+}
+
 const props = defineProps<{
 	modelValue: EffectivePolicyValue
+	scope?: 'system' | 'group' | 'user'
+	targetId?: string
 }>()
 
 const emit = defineEmits<{
-	'update:modelValue': [value: EffectivePolicyValue]
+	'update:modelValue': [value: IdentificationDocumentsPayload]
 }>()
 
 const options = [
@@ -53,28 +84,86 @@ const options = [
 	},
 ]
 
-const normalizedValue = computed<boolean | null>(() => {
-	if (typeof props.modelValue === 'boolean') {
-		return props.modelValue
+const groupsLoading = ref(false)
+const availableGroups = ref<GroupOption[]>([])
+
+const draft = ref<IdentificationDocumentsPayload>(normalizeDraft(props.modelValue))
+
+function normalizeDraft(value: EffectivePolicyValue): IdentificationDocumentsPayload {
+	if (typeof value === 'object' && value !== null && 'enabled' in value) {
+		const payload = value as Record<string, unknown>
+		return {
+			enabled: typeof payload.enabled === 'boolean' ? payload.enabled : false,
+			approvers: Array.isArray(payload.approvers) ? (payload.approvers as string[]) : ['admin'],
+		}
 	}
 
-	if (props.modelValue === '1' || props.modelValue === 'true') {
-		return true
+	// Legacy boolean-based values
+	let enabled = false
+	if (typeof value === 'boolean') {
+		enabled = value
+	} else if (typeof value === 'number') {
+		enabled = value === 1
+	} else if (typeof value === 'string') {
+		enabled = ['1', 'true'].includes(value.trim().toLowerCase())
 	}
 
-	if (props.modelValue === '0' || props.modelValue === 'false') {
-		return false
+	return {
+		enabled,
+		approvers: ['admin'],
 	}
+}
 
-	return null
+const groupOptions = computed(() => {
+	return availableGroups.value.map(group => ({
+		id: group.id,
+		displayName: group.displayName,
+	}))
 })
 
-function onChange(value: boolean, selected?: unknown) {
+function updateEnabled(enabled: boolean, selected?: unknown) {
 	if (selected === false) {
 		return
 	}
 
-	emit('update:modelValue', value)
+	draft.value.enabled = enabled
+
+	// Reset approvers to default if disabling
+	if (!enabled) {
+		draft.value.approvers = ['admin']
+	}
+
+	emitChange()
+}
+
+function emitChange() {
+	emit('update:modelValue', draft.value)
+}
+
+onMounted(async () => {
+	// Load available groups based on scope
+	await loadGroups()
+})
+
+async function loadGroups() {
+	groupsLoading.value = true
+	try {
+		// For now, we'll use a placeholder implementation
+		// In production, this would call an API to fetch groups
+		const systemGroups: GroupOption[] = [
+			{ id: 'admin', displayName: t('libresign', 'Admin') },
+			{ id: 'approvers', displayName: t('libresign', 'Approvers') },
+		]
+
+		if (props.scope === 'user') {
+			// Users don't need group selection
+			availableGroups.value = []
+		} else {
+			availableGroups.value = systemGroups
+		}
+	} finally {
+		groupsLoading.value = false
+	}
 }
 </script>
 
@@ -86,6 +175,26 @@ function onChange(value: boolean, selected?: unknown) {
 
 	&__copy p {
 		margin: 0.35rem 0 0;
+		color: var(--color-text-maxcontrast);
+	}
+
+	&__approvers-section {
+		margin-top: 1.5rem;
+		padding: 1rem;
+		border: 1px solid var(--color-border);
+		border-radius: 4px;
+		background-color: var(--color-background-hover);
+
+		& label {
+			display: block;
+			font-weight: 600;
+			margin-bottom: 0.25rem;
+		}
+	}
+
+	&__help-text {
+		margin: 0.25rem 0 0.75rem;
+		font-size: 0.9rem;
 		color: var(--color-text-maxcontrast);
 	}
 
