@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\ResponseDefinitions;
@@ -82,7 +83,7 @@ class IdentifyMethodService {
 		return $this;
 	}
 
-	public function getInstanceOfIdentifyMethod(string $name, ?string $identifyValue = null): IIdentifyMethod {
+	public function getInstanceOfIdentifyMethod(string $name, ?string $identifyValue = null, ?string $requirement = null): IIdentifyMethod {
 		if ($identifyValue && isset($this->identifyMethods[$name])) {
 			foreach ($this->identifyMethods[$name] as $identifyMethod) {
 				if ($identifyMethod->getEntity()->getIdentifierValue() === $identifyValue) {
@@ -97,7 +98,7 @@ class IdentifyMethodService {
 		if (!$entity->getId()) {
 			$entity->setIdentifierKey($name);
 			$entity->setIdentifierValue($identifyValue);
-			$entity->setMandatory($this->isMandatoryMethod($name) ? 1 : 0);
+			$entity->setRequirement($requirement ?? $this->resolveMethodRequirement($name));
 		}
 		if ($identifyValue && $this->isRequest) {
 			$identifyMethod->validateToRequest();
@@ -142,17 +143,16 @@ class IdentifyMethodService {
 		return $identifyMethod;
 	}
 
-	private function setEntityData(string $method, string $identifyValue): void {
-		// @todo Replace by enum when PHP 8.1 is the minimum version acceptable
-		// at server. Check file lib/versioncheck.php of server repository
-		if (!in_array($method, IdentifyMethodService::IDENTIFY_METHODS)) {
-			// TRANSLATORS When is requested to a person to sign a file, is
-			// necessary identify what is the identification method. The
-			// identification method is used to define how will be the sign
-			// flow.
-			throw new LibresignException($this->l10n->t('Invalid identification method'));
+	public function exists(string $name): bool {
+		$className = 'OCA\\Libresign\\Service\\IdentifyMethod\\' . ucfirst($name);
+		if (class_exists($className)) {
+			return true;
 		}
-		$identifyMethod = $this->getInstanceOfIdentifyMethod($method, $identifyValue);
+		return class_exists('OCA\\Libresign\\Service\\IdentifyMethod\\SignatureMethod\\' . ucfirst($name));
+	}
+
+	private function setEntityData(string $method, string $identifyValue, ?string $requirement = null): void {
+		$identifyMethod = $this->getInstanceOfIdentifyMethod($method, $identifyValue, $requirement);
 		$identifyMethod->validateToRequest();
 	}
 
@@ -161,18 +161,22 @@ class IdentifyMethodService {
 			if (!is_array($identifyMethod) || !isset($identifyMethod['method'], $identifyMethod['value'])) {
 				continue;
 			}
-			$this->setEntityData($identifyMethod['method'], $identifyMethod['value']);
+			$requirement = isset($identifyMethod['requirement']) && is_string($identifyMethod['requirement'])
+				? $identifyMethod['requirement']
+				: null;
+			$this->setEntityData($identifyMethod['method'], $identifyMethod['value'], $requirement);
 		}
 	}
 
-	private function isMandatoryMethod(string $methodName): bool {
+	private function resolveMethodRequirement(string $methodName): string {
 		$settings = $this->getIdentifyMethodsSettings();
 		foreach ($settings as $setting) {
 			if ($setting['name'] === $methodName) {
-				return $setting['mandatory'];
+				$requirement = IdentifyMethodRequirement::tryFrom((string)($setting['requirement'] ?? ''));
+				return $requirement?->value ?? IdentifyMethodRequirement::OPTIONAL->value;
 			}
 		}
-		return false;
+		return IdentifyMethodRequirement::OPTIONAL->value;
 	}
 
 	/**
