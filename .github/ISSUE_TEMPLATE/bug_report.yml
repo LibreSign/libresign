@@ -53,7 +53,7 @@ body:
     id: operational-system
     attributes:
       label: Operational System
-      description: |
+      placeholder: |
         e.g. Linux, Debian, Docker. If Docker, what's the used image or the base image.
     validations:
       required: true
@@ -62,7 +62,7 @@ body:
     id: browser
     attributes:
       label: Browser Type and Version
-      description: e.g. Chrome 148.0.7778.97, Safari 26.3.1
+      placeholder: e.g. Chrome 148.0.7778.97, Safari 26.3.1
     validations:
       required: false
 
@@ -70,7 +70,7 @@ body:
     id: libresign-version
     attributes:
       label: Libresign Version
-      description: e.g. 3.2.1
+      placeholder: e.g. 3.2.1
     validations:
       required: true
 
@@ -78,7 +78,7 @@ body:
     id: nextcloud-version
     attributes:
       label: Nextcloud Server Version
-      description: e.g. 24.0.1
+      placeholder: e.g. 24.0.1
     validations:
         required: false
 
