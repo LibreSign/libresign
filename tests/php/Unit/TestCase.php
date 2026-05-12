@@ -341,53 +341,51 @@ class TestCase extends \Test\TestCase {
 			}
 		}
 
-		try {
-			foreach (
-				$iterator = new \RecursiveIteratorIterator(
-					new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
-					\RecursiveIteratorIterator::SELF_FIRST) as $item
-			) {
-				$sourcePath = $item->getPathname();
-				if (!file_exists($sourcePath)) {
-					continue;
-				}
-				$newDest = $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathname();
-				if (!file_exists($newDest)) {
-					if ($item->isDir()) {
+		$iterator = new \RecursiveIteratorIterator(
+			new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
+			\RecursiveIteratorIterator::SELF_FIRST,
+			\RecursiveIteratorIterator::CATCH_GET_CHILD,
+		);
+
+		foreach ($iterator as $item) {
+			$sourcePath = $item->getPathname();
+			if (!file_exists($sourcePath)) {
+				continue;
+			}
+			$newDest = $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathname();
+			if (!file_exists($newDest)) {
+				if ($item->isDir()) {
+					if (!is_dir($newDest)) {
+						@mkdir($newDest, self::TEST_DIR_MODE, true);
 						if (!is_dir($newDest)) {
-							@mkdir($newDest, self::TEST_DIR_MODE, true);
-							if (!is_dir($newDest)) {
-								continue;
-							}
-						}
-					} elseif (is_file($sourcePath)) {
-						$newDestFolder = dirname($newDest);
-						if (!is_dir($newDestFolder)) {
-							@mkdir($newDestFolder, self::TEST_DIR_MODE, true);
-							if (!is_dir($newDestFolder)) {
-								continue;
-							}
-						}
-						if (!@copy($sourcePath, $newDest)) {
 							continue;
 						}
 					}
-				}
-				$sourcePerms = @fileperms($sourcePath);
-				$destPerms = @fileperms($newDest);
-				if ($item->isDir()) {
-					$expectedMode = self::TEST_DIR_MODE;
-				} elseif (is_int($sourcePerms)) {
-					$expectedMode = $this->normalizeCopiedFileMode($sourcePerms);
-				} else {
-					$expectedMode = self::TEST_FILE_MODE;
-				}
-				if (!is_int($destPerms) || (($destPerms & 0777) !== $expectedMode)) {
-					@chmod($newDest, $expectedMode);
+				} elseif (is_file($sourcePath)) {
+					$newDestFolder = dirname($newDest);
+					if (!is_dir($newDestFolder)) {
+						@mkdir($newDestFolder, self::TEST_DIR_MODE, true);
+						if (!is_dir($newDestFolder)) {
+							continue;
+						}
+					}
+					if (!@copy($sourcePath, $newDest)) {
+						continue;
+					}
 				}
 			}
-		} catch (\UnexpectedValueException) {
-			// Source tree can be mutated by tests while copying; ignore transient paths.
+			$sourcePerms = @fileperms($sourcePath);
+			$destPerms = @fileperms($newDest);
+			if ($item->isDir()) {
+				$expectedMode = self::TEST_DIR_MODE;
+			} elseif (is_int($sourcePerms)) {
+				$expectedMode = $this->normalizeCopiedFileMode($sourcePerms);
+			} else {
+				$expectedMode = self::TEST_FILE_MODE;
+			}
+			if (!is_int($destPerms) || (($destPerms & 0777) !== $expectedMode)) {
+				@chmod($newDest, $expectedMode);
+			}
 		}
 	}
 
