@@ -723,8 +723,7 @@ export type components = {
             name: string;
             friendly_name: string;
             enabled: boolean;
-            requirement?: components["schemas"]["IdentifyMethodRequirement"];
-            mandatory: boolean;
+            requirement: components["schemas"]["IdentifyMethodRequirement"];
             /** Format: int64 */
             minimumTotalVerifiedFactors?: number;
             signatureMethods?: components["schemas"]["SignatureMethods"];
