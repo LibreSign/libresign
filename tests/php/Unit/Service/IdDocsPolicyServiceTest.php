@@ -49,7 +49,7 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('provideCanApproverSignIdDocScenarios')]
 	public function testCanApproverSignIdDoc(
-		bool $identificationDocumentsEnabled,
+		array $identificationDocumentsValue,
 		bool $userCanApprove,
 		int $fileStatus,
 		bool $idDocExists,
@@ -60,11 +60,11 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->policyService
 			->method('resolveForUser')
-			->willReturnCallback(static function (string $policyKey, IUser $resolvedUser) use ($user, $identificationDocumentsEnabled, $userCanApprove): ResolvedPolicy {
+			->willReturnCallback(static function (string $policyKey, IUser $resolvedUser) use ($user, $identificationDocumentsValue, $userCanApprove): ResolvedPolicy {
 				self::assertSame($user, $resolvedUser);
 
 				if ($policyKey === IdentificationDocumentsPolicy::KEY) {
-					return (new ResolvedPolicy())->setEffectiveValue($identificationDocumentsEnabled);
+					return (new ResolvedPolicy())->setEffectiveValue($identificationDocumentsValue);
 				}
 
 				if ($policyKey === ApprovalGroupsPolicy::KEY) {
@@ -79,6 +79,7 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->with($user)
 			->willReturn($userCanApprove ? ['approvers'] : ['users']);
 
+		$identificationDocumentsEnabled = $identificationDocumentsValue['enabled'] ?? false;
 		if ($identificationDocumentsEnabled && $userCanApprove && in_array($fileStatus, [FileStatus::ABLE_TO_SIGN->value, FileStatus::PARTIAL_SIGNED->value])) {
 			if ($idDocExists) {
 				$this->idDocsMapper
@@ -98,63 +99,93 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame($expectedResult, $result);
 	}
 
+	#[DataProvider('provideGetApproverGroupsScenarios')]
+	public function testGetApproverGroups(
+		array $identificationDocumentsValue,
+		array $expectedApprovers,
+	): void {
+		$this->policyService
+			->method('resolve')
+			->with(IdentificationDocumentsPolicy::KEY)
+			->willReturn(
+				(new ResolvedPolicy())->setEffectiveValue($identificationDocumentsValue)
+			);
+
+		$result = $this->getService()->getApproverGroups();
+
+		$this->assertSame($expectedApprovers, $result);
+	}
+
 	public static function provideCanApproverSignIdDocScenarios(): array {
 		return [
 			'feature disabled' => [
-				'identificationDocumentsEnabled' => false,
+				'identificationDocumentsValue' => ['enabled' => false, 'approvers' => ['admin']],
 				'userCanApprove' => true,
 				'fileStatus' => FileStatus::ABLE_TO_SIGN->value,
 				'idDocExists' => true,
 				'expectedResult' => false,
 			],
 			'user cannot approve' => [
-				'identificationDocumentsEnabled' => true,
+				'identificationDocumentsValue' => ['enabled' => true, 'approvers' => ['approvers']],
 				'userCanApprove' => false,
 				'fileStatus' => FileStatus::ABLE_TO_SIGN->value,
 				'idDocExists' => true,
 				'expectedResult' => false,
 			],
 			'file status is draft' => [
-				'identificationDocumentsEnabled' => true,
+				'identificationDocumentsValue' => ['enabled' => true, 'approvers' => ['approvers']],
 				'userCanApprove' => true,
 				'fileStatus' => FileStatus::DRAFT->value,
 				'idDocExists' => true,
 				'expectedResult' => false,
 			],
 			'file status is deleted' => [
-				'identificationDocumentsEnabled' => true,
+				'identificationDocumentsValue' => ['enabled' => true, 'approvers' => ['approvers']],
 				'userCanApprove' => true,
 				'fileStatus' => FileStatus::DELETED->value,
 				'idDocExists' => true,
 				'expectedResult' => false,
 			],
 			'file is not an id doc' => [
-				'identificationDocumentsEnabled' => true,
+				'identificationDocumentsValue' => ['enabled' => true, 'approvers' => ['approvers']],
 				'userCanApprove' => true,
 				'fileStatus' => FileStatus::ABLE_TO_SIGN->value,
 				'idDocExists' => false,
 				'expectedResult' => false,
 			],
 			'all conditions met with ABLE_TO_SIGN' => [
-				'identificationDocumentsEnabled' => true,
+				'identificationDocumentsValue' => ['enabled' => true, 'approvers' => ['approvers']],
 				'userCanApprove' => true,
 				'fileStatus' => FileStatus::ABLE_TO_SIGN->value,
 				'idDocExists' => true,
 				'expectedResult' => true,
 			],
 			'all conditions met with PARTIAL_SIGNED' => [
-				'identificationDocumentsEnabled' => true,
+				'identificationDocumentsValue' => ['enabled' => true, 'approvers' => ['approvers']],
 				'userCanApprove' => true,
 				'fileStatus' => FileStatus::PARTIAL_SIGNED->value,
 				'idDocExists' => true,
 				'expectedResult' => true,
 			],
 			'file is already signed' => [
-				'identificationDocumentsEnabled' => true,
+				'identificationDocumentsValue' => ['enabled' => true, 'approvers' => ['approvers']],
 				'userCanApprove' => true,
 				'fileStatus' => FileStatus::SIGNED->value,
 				'idDocExists' => true,
 				'expectedResult' => false,
+			],
+		];
+	}
+
+	public static function provideGetApproverGroupsScenarios(): array {
+		return [
+			'returns custom approvers' => [
+				'identificationDocumentsValue' => ['enabled' => true, 'approvers' => ['group1', 'group2']],
+				'expectedApprovers' => ['group1', 'group2'],
+			],
+			'returns default approvers' => [
+				'identificationDocumentsValue' => ['enabled' => false, 'approvers' => ['admin']],
+				'expectedApprovers' => ['admin'],
 			],
 		];
 	}
