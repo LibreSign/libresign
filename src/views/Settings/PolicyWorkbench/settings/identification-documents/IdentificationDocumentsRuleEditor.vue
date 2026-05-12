@@ -25,15 +25,20 @@
 			<p class="identification-documents-editor__help-text">
 				{{ t('libresign', 'Select which groups can approve identification documents.') }}
 			</p>
+			<p v-if="!groupsLoading && groupOptions.length === 0" class="identification-documents-editor__empty-state">
+				{{ t('libresign', 'No groups available for this scope. Keep the default approver group or choose another scope.') }}
+			</p>
 			<NcSelect
 				v-model="draft.approvers"
 				:options="groupOptions"
 				:placeholder="t('libresign', 'Select groups...')"
+				:aria-label-combobox="t('libresign', 'Select approver groups')"
 				multiple
 				track-by="id"
 				label="displayName"
 				:clearable="false"
 				:loading="groupsLoading"
+				@update:model-value="updateApprovers"
 			/>
 		</div>
 	</div>
@@ -130,6 +135,11 @@ function emitChange() {
 	emit('update:modelValue', draft.value)
 }
 
+function updateApprovers(approvers: string[]) {
+	draft.value.approvers = approvers.length > 0 ? approvers : ['admin']
+	emitChange()
+}
+
 onMounted(async () => {
 	// Load available groups based on scope
 	await loadGroups()
@@ -185,6 +195,12 @@ async function loadGroups() {
 	&__help-text {
 		margin: 0.25rem 0 0.75rem;
 		font-size: 0.9rem;
+		color: var(--color-text-maxcontrast);
+	}
+
+	&__empty-state {
+		margin: 0 0 0.75rem;
+		font-size: 0.85rem;
 		color: var(--color-text-maxcontrast);
 	}
 
