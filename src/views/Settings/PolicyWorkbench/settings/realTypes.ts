@@ -33,6 +33,7 @@ export interface RealPolicySettingDefinition {
 	createEmptyValue: () => EffectivePolicyValue
 	normalizeDraftValue: (value: EffectivePolicyValue) => EffectivePolicyValue
 	hasSelectableDraftValue: (value: EffectivePolicyValue) => boolean
+	isBaselineSeedable?: (value: EffectivePolicyValue) => boolean
 	normalizeAllowChildOverride: (scope: RealPolicyScope, allowChildOverride: boolean) => boolean
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => EffectivePolicyValue
 	summarizeValue: (value: EffectivePolicyValue) => string
