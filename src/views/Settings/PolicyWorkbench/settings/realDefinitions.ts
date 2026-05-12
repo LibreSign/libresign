@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { approvalGroupsRealDefinition } from './approval-groups/realDefinition'
 import { collectMetadataRealDefinition } from './collect-metadata/realDefinition'
 import { confettiRealDefinition } from './confetti/realDefinition'
 import { crlValidationRealDefinition } from './crl-validation/realDefinition'
@@ -32,7 +31,6 @@ import type { RealPolicySettingDefinition } from './realTypes'
 export const realDefinitions = {
 	// 1. Who can sign & request
 	groups_request_sign: { ...requestSignGroupsRealDefinition, category: 'who-can-sign' },
-	approval_group: { ...approvalGroupsRealDefinition, category: 'who-can-sign' },
 	identification_documents: { ...identificationDocumentsRealDefinition, category: 'who-can-sign' },
 	identify_methods: { ...identifyMethodsRealDefinition, category: 'who-can-sign' },
 
