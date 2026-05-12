@@ -26,7 +26,7 @@ final class IdentificationDocumentsPolicyValue {
 			];
 		}
 
-		$enabled = (bool) ($rawValue['enabled'] ?? $enabledDefault);
+		$enabled = (bool)($rawValue['enabled'] ?? $enabledDefault);
 		$approvers = self::DEFAULT_APPROVERS;
 
 		if (isset($rawValue['approvers']) && is_array($rawValue['approvers'])) {

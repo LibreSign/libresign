@@ -395,4 +395,3 @@ final class RuntimeRequirementValidatorTest extends \OCA\Libresign\Tests\Unit\Te
 		return $identifyMethod;
 	}
 }
-
