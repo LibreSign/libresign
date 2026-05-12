@@ -10,53 +10,43 @@ namespace OCA\Libresign\Service\Policy\Provider\IdentificationDocuments;
 
 final class IdentificationDocumentsPolicyValue {
 	/** @var list<string> */
-	private const TRUE_VALUES = ['1', 'true'];
-
-	/** @var list<string> */
-	private const FALSE_VALUES = ['0', 'false', ''];
-
-	/** @var list<string> */
 	private const DEFAULT_APPROVERS = ['admin'];
 
 	/**
-	 * Normalize mixed value to unified payload structure.
+	 * Normalize payload structure.
+	 * Expected format: {enabled: bool, approvers: string[]}
 	 *
 	 * @return array{enabled: bool, approvers: list<string>}
 	 */
 	public static function normalize(mixed $rawValue, bool $enabledDefault = false): array {
-		$enabled = $enabledDefault;
+		if (!is_array($rawValue)) {
+			return [
+				'enabled' => $enabledDefault,
+				'approvers' => self::DEFAULT_APPROVERS,
+			];
+		}
+
+		$enabled = (bool) ($rawValue['enabled'] ?? $enabledDefault);
 		$approvers = self::DEFAULT_APPROVERS;
 
-		// Extract enabled from various formats
-		if (is_bool($rawValue)) {
-			$enabled = $rawValue;
-		} elseif (is_int($rawValue)) {
-			$enabled = $rawValue === 1;
-		} elseif (is_string($rawValue)) {
-			$value = strtolower(trim($rawValue));
-			$enabled = in_array($value, self::TRUE_VALUES, true);
-		} elseif (is_array($rawValue)) {
-			// Already structured payload
-			$enabled = (bool) ($rawValue['enabled'] ?? $enabledDefault);
-			if (isset($rawValue['approvers']) && is_array($rawValue['approvers'])) {
-				$approvers = array_filter(
-					array_map('strval', $rawValue['approvers']),
-					static fn (string $v): bool => $v !== ''
-				);
-				if (!empty($approvers)) {
-					$approvers = array_values($approvers);
-				}
+		if (isset($rawValue['approvers']) && is_array($rawValue['approvers'])) {
+			$filtered = array_filter(
+				array_map('strval', $rawValue['approvers']),
+				static fn (string $v): bool => $v !== ''
+			);
+			if (!empty($filtered)) {
+				$approvers = array_values($filtered);
 			}
 		}
 
 		return [
 			'enabled' => $enabled,
-			'approvers' => !empty($approvers) ? $approvers : self::DEFAULT_APPROVERS,
+			'approvers' => $approvers,
 		];
 	}
 
 	/**
-	 * Get enabled flag from normalized or raw value.
+	 * Get enabled flag from payload.
 	 */
 	public static function isEnabled(mixed $rawValue, bool $default = false): bool {
 		$normalized = self::normalize($rawValue, $default);
@@ -64,7 +54,7 @@ final class IdentificationDocumentsPolicyValue {
 	}
 
 	/**
-	 * Get approvers from normalized or raw value.
+	 * Get approvers from payload.
 	 *
 	 * @return list<string>
 	 */
