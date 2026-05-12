@@ -53,6 +53,7 @@ body:
     id: operational-system
     attributes:
       label: Operational System
+      description: Specify the operating system where the bug occurs.
       placeholder: |
         e.g. Linux, Debian, Docker. If Docker, what's the used image or the base image.
     validations:
@@ -62,6 +63,7 @@ body:
     id: browser
     attributes:
       label: Browser Type and Version
+      description: Only required if the issue is related to the Web interface.
       placeholder: e.g. Chrome 148.0.7778.97, Safari 26.3.1
     validations:
       required: false
@@ -70,6 +72,7 @@ body:
     id: libresign-version
     attributes:
       label: Libresign Version
+      description: The version of the LibreSign installed.
       placeholder: e.g. 3.2.1
     validations:
       required: true
@@ -78,6 +81,7 @@ body:
     id: nextcloud-version
     attributes:
       label: Nextcloud Server Version
+      description: Optional. Useful if you are using a specific or outdated stable version.
       placeholder: e.g. 24.0.1
     validations:
         required: false
@@ -86,6 +90,7 @@ body:
     id: nextcloud-logs
     attributes:
       label: Logs from Nextcloud Server
+      description: Entries from Nextcloud logs related with LibreSign.
       placeholder: |
         Get the enrties from nextcloud.log related with LibreSign i.e `tail -f data/nextcloud.log|grep libresign`
     validations:
@@ -95,11 +100,11 @@ body:
     id: developer-logs
     attributes:
       label: Logs from Developers tools
+      description: Any additional logs or console output that might help diagnose the issue.
       placeholder: |
         - JavaScript errors
         - List of API requests to LibreSign endpoints (would be good to apply filter)
         - Status code of requests to LibreSign API
-        - Or any additional logs or console output that might help diagnose the issue
     validations:
       required: false
 
