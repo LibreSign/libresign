@@ -50,8 +50,7 @@ namespace OCA\Libresign;
  *     identifyMethods: list<array{
  *         method: string,
  *         value: string,
- *         requirement?: LibresignIdentifyMethodRequirement,
- *         mandatory: non-negative-int,
+ *         requirement: LibresignIdentifyMethodRequirement,
  *     }>,
  *     displayName?: string,
  *     description?: string,
@@ -76,8 +75,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignIdentifyMethod = array{
  *     method: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
  *     value: string,
- *     requirement?: LibresignIdentifyMethodRequirement,
- *     mandatory: non-negative-int,
+ *     requirement: LibresignIdentifyMethodRequirement,
  * }
  * @psalm-type LibresignCoordinate = array{
  *     page?: int,
@@ -125,8 +123,7 @@ namespace OCA\Libresign;
  *     name: string,
  *     friendly_name: string,
  *     enabled: bool,
- *     requirement?: LibresignIdentifyMethodRequirement,
- *     mandatory: bool,
+ *     requirement: LibresignIdentifyMethodRequirement,
  *     minimumTotalVerifiedFactors?: positive-int,
  *     signatureMethods?: LibresignSignatureMethods,
  * }
