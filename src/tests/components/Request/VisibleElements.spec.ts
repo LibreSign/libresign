@@ -853,7 +853,7 @@ describe('VisibleElements Component - Business Rules', () => {
 					file: '/path/to/doc1.pdf',
 					metadata: { p: 2, d: [{ w: 80, h: 100 }, { w: 80, h: 100 }] },
 					signers: [
-						{ signRequestId: 101, identifyMethods: [{ method: 'email', value: 'a', mandatory: 0 }] },
+						{ signRequestId: 101, identifyMethods: [{ method: 'email', value: 'a', requirement: 'optional' }] } as any,
 					],
 				},
 				{
@@ -862,7 +862,7 @@ describe('VisibleElements Component - Business Rules', () => {
 					file: '/path/to/doc2.pdf',
 					metadata: { p: 1, d: [{ w: 160, h: 200 }] },
 					signers: [
-						{ signRequestId: 202, identifyMethods: [{ method: 'email', value: 'b', mandatory: 0 }] },
+						{ signRequestId: 202, identifyMethods: [{ method: 'email', value: 'b', requirement: 'optional' }] } as any,
 					],
 				},
 			]
