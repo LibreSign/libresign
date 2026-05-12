@@ -44,26 +44,6 @@
     <UndefinedDocblockClass>
       <code><![CDATA[$share]]></code>
       <code><![CDATA[$storage]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, LibresignFileListResponse, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, LibresignValidatedFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>]]></code>
-    </UndefinedDocblockClass>
-  </file>
-  <file src="lib/Controller/FileProgressController.php">
-    <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, LibresignProgressResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignStatusMessageResponse, array{}>]]></code>
-    </UndefinedDocblockClass>
-  </file>
-  <file src="lib/Controller/IdDocsController.php">
-    <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, LibresignIdDocsApprovalListResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, LibresignIdDocsListResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>]]></code>
-    </UndefinedDocblockClass>
-  </file>
-  <file src="lib/Controller/RequestSignatureController.php">
-    <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>]]></code>
-      <code><![CDATA[LibresignNewSigner[]]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Dav/SignatureStatusPlugin.php">
@@ -140,21 +120,6 @@
       <code><![CDATA[$this->newUserMail]]></code>
       <code><![CDATA[private]]></code>
     </UndefinedClass>
-  </file>
-  <file src="lib/Service/File/FileListService.php">
-    <UndefinedDocblockClass>
-      <code><![CDATA[LibresignDetailedFileResponse]]></code>
-      <code><![CDATA[LibresignSignerDetail]]></code>
-      <code><![CDATA[array{data: list<LibresignFileSummary|LibresignDetailedFile>, pagination: LibresignPagination}]]></code>
-      <code><![CDATA[list<LibresignDetailedFile>]]></code>
-      <code><![CDATA[list<LibresignFileListItem>]]></code>
-    </UndefinedDocblockClass>
-  </file>
-  <file src="lib/Service/FileService.php">
-    <UndefinedDocblockClass>
-      <code><![CDATA[list<LibresignSignerDetail>]]></code>
-      <code><![CDATA[list<LibresignSignerSummary>]]></code>
-    </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/IdentifyMethod/SignatureMethod/TokenService.php">
     <UndefinedClass>
