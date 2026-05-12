@@ -26,7 +26,6 @@ const { identifyMethodsInitialState } = vi.hoisted(() => ({
 			friendly_name: 'Email',
 			enabled: true,
 			requirement: 'required',
-			mandatory: true,
 			signatureMethods: {
 				emailToken: {
 					enabled: true,
@@ -799,7 +798,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(saveUserPolicyForUser).toHaveBeenNthCalledWith(2, 'user3', 'signature_flow', 'parallel', true)
 	})
 
-	it('supports mandatory user policy by disabling child override at user scope', async () => {
+	it('supports strict user policy by disabling child override at user scope', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
 		state.startEditor({ scope: 'user' })
