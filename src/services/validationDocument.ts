@@ -355,7 +355,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 		const signRequestId = toInteger(signer.signRequestId)
 		const status = toInteger(signer.status)
 
-		if (signRequestId === null || status === null) {
+		if (signRequestId === null || status === null || !isSignerStatus(status)) {
 			return null
 		}
 
@@ -369,7 +369,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 	if (signers.some(signer => signer === null)) {
 		return null
 	}
-	const normalizedSigners = signers.filter((signer): signer is SignerDetailRecord => signer !== null)
+	const normalizedSigners = signers.filter((signer): signer is NonNullable<typeof signer> => signer !== null)
 
 	return {
 		...data,
