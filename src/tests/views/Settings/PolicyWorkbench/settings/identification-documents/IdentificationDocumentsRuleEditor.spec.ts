@@ -7,11 +7,21 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 import { mount } from '@vue/test-utils'
+import { t } from '@nextcloud/l10n'
 import IdentificationDocumentsRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/identification-documents/IdentificationDocumentsRuleEditor.vue'
+
+const globalMountOptions = {
+	global: {
+		mocks: {
+			$t: t,
+		},
+	},
+}
 
 describe('IdentificationDocumentsRuleEditor', () => {
 	it('renders toggle buttons for enabled/disabled', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
+			...globalMountOptions,
 			props: {
 				modelValue: { enabled: false, approvers: ['admin'] },
 			},
@@ -23,6 +33,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 
 	it('shows approvers section when enabled', async () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
+			...globalMountOptions,
 			props: {
 				modelValue: { enabled: true, approvers: ['admin'] },
 			},
@@ -34,6 +45,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 
 	it('hides approvers section when disabled', async () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
+			...globalMountOptions,
 			props: {
 				modelValue: { enabled: false, approvers: ['admin'] },
 			},
@@ -45,6 +57,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 
 	it('emits normalized payload when toggle changes', async () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
+			...globalMountOptions,
 			props: {
 				modelValue: { enabled: false, approvers: ['admin'] },
 			},
@@ -66,6 +79,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 
 	it('resets approvers to default when disabling', async () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
+			...globalMountOptions,
 			props: {
 				modelValue: { enabled: true, approvers: ['custom_group'] },
 			},
@@ -87,6 +101,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 
 	it('respects scope prop for group visibility', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
+			...globalMountOptions,
 			props: {
 				modelValue: { enabled: true, approvers: ['admin'] },
 				scope: 'system',
@@ -103,6 +118,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 		}
 
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
+			...globalMountOptions,
 			props: {
 				modelValue: payload,
 			},
