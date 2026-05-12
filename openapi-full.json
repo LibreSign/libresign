@@ -1894,7 +1894,7 @@
                 "required": [
                     "method",
                     "value",
-                    "mandatory"
+                    "requirement"
                 ],
                 "properties": {
                     "method": {
@@ -1912,10 +1912,8 @@
                     "value": {
                         "type": "string"
                     },
-                    "mandatory": {
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                    "requirement": {
+                        "$ref": "#/components/schemas/IdentifyMethodRequirement"
                     }
                 }
             },
@@ -1932,7 +1930,7 @@
                     "name",
                     "friendly_name",
                     "enabled",
-                    "mandatory"
+                    "requirement"
                 ],
                 "properties": {
                     "name": {
@@ -1946,9 +1944,6 @@
                     },
                     "requirement": {
                         "$ref": "#/components/schemas/IdentifyMethodRequirement"
-                    },
-                    "mandatory": {
-                        "type": "boolean"
                     },
                     "minimumTotalVerifiedFactors": {
                         "type": "integer",
@@ -2035,7 +2030,7 @@
                             "required": [
                                 "method",
                                 "value",
-                                "mandatory"
+                                "requirement"
                             ],
                             "properties": {
                                 "method": {
@@ -2044,10 +2039,8 @@
                                 "value": {
                                     "type": "string"
                                 },
-                                "mandatory": {
-                                    "type": "integer",
-                                    "format": "int64",
-                                    "minimum": 0
+                                "requirement": {
+                                    "$ref": "#/components/schemas/IdentifyMethodRequirement"
                                 }
                             }
                         }
@@ -2185,6 +2178,24 @@
                 "properties": {
                     "effectiveValue": {
                         "type": "string"
+                    },
+                    "sourceScope": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySnapshotIdentifyMethodsEntry": {
+                "type": "object",
+                "required": [
+                    "effectiveValue",
+                    "sourceScope"
+                ],
+                "properties": {
+                    "effectiveValue": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/IdentifyMethodSetting"
+                        }
                     },
                     "sourceScope": {
                         "type": "string"
@@ -3179,6 +3190,9 @@
                     },
                     "add_footer": {
                         "$ref": "#/components/schemas/PolicySnapshotEntry"
+                    },
+                    "identify_methods": {
+                        "$ref": "#/components/schemas/PolicySnapshotIdentifyMethodsEntry"
                     }
                 }
             },
