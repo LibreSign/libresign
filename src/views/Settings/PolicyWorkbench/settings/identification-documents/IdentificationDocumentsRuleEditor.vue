@@ -50,15 +50,16 @@ import { t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSelect from '@nextcloud/vue/components/NcSelect'
-import type { EffectivePolicyValue } from '../../../../../types/index'
+import type { IdentificationDocumentsPayload } from './realDefinition'
 
 defineOptions({
 	name: 'IdentificationDocumentsRuleEditor',
 })
 
-interface IdentificationDocumentsPayload {
-	enabled: boolean
-	approvers: string[]
+interface Props {
+	modelValue: IdentificationDocumentsPayload
+	scope?: 'system' | 'group' | 'user'
+	targetId?: string
 }
 
 interface GroupOption {
@@ -66,11 +67,7 @@ interface GroupOption {
 	displayName: string
 }
 
-const props = defineProps<{
-	modelValue: EffectivePolicyValue
-	scope?: 'system' | 'group' | 'user'
-	targetId?: string
-}>()
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
 	'update:modelValue': [value: IdentificationDocumentsPayload]
@@ -92,18 +89,10 @@ const options = [
 const groupsLoading = ref(false)
 const availableGroups = ref<GroupOption[]>([])
 
-function createDraftFromValue(value: EffectivePolicyValue): IdentificationDocumentsPayload {
-	if (typeof value === 'object' && value !== null && 'enabled' in value) {
-		const payload = value as Record<string, unknown>
-		return {
-			enabled: typeof payload.enabled === 'boolean' ? payload.enabled : false,
-			approvers: Array.isArray(payload.approvers) ? (payload.approvers as string[]) : ['admin'],
-		}
-	}
-
+function createDraftFromValue(value: IdentificationDocumentsPayload): IdentificationDocumentsPayload {
 	return {
-		enabled: false,
-		approvers: ['admin'],
+		enabled: value.enabled,
+		approvers: Array.isArray(value.approvers) ? value.approvers : ['admin'],
 	}
 }
 
