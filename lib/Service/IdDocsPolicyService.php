@@ -54,7 +54,20 @@ class IdDocsPolicyService {
 			? $this->policyService->resolveForUser(IdentificationDocumentsPolicy::KEY, $user)
 			: $this->policyService->resolve(IdentificationDocumentsPolicy::KEY);
 		$value = $resolved->getEffectiveValue();
-		return IdentificationDocumentsPolicyValue::normalize($value, false);
+		return IdentificationDocumentsPolicyValue::isEnabled($value, false);
+	}
+
+	/**
+	 * Get approver group IDs for identification documents flow.
+	 *
+	 * @return list<string>
+	 */
+	public function getApproverGroups(?IUser $user = null): array {
+		$resolved = $user
+			? $this->policyService->resolveForUser(IdentificationDocumentsPolicy::KEY, $user)
+			: $this->policyService->resolve(IdentificationDocumentsPolicy::KEY);
+		$value = $resolved->getEffectiveValue();
+		return IdentificationDocumentsPolicyValue::getApprovers($value);
 	}
 
 	public function userCanApproveValidationDocuments(?IUser $user, bool $throw = true): bool {
