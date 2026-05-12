@@ -33,6 +33,7 @@ namespace OCA\Libresign;
  *     hasSignatureFile: bool,
  *     isApprover: bool,
  * }
+ * @psalm-type LibresignIdentifyMethodRequirement = 'required'|'optional'
  *
  * Request input contracts
  *
@@ -118,7 +119,6 @@ namespace OCA\Libresign;
  *     emailToken?: LibresignSignatureMethodEmailToken,
  *     password?: LibresignSignatureMethodPassword,
  * }
- * @psalm-type LibresignIdentifyMethodRequirement = 'required'|'optional'
  * @psalm-type LibresignIdentifyMethodSetting = array{
  *     name: string,
  *     friendly_name: string,
