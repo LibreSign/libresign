@@ -974,11 +974,7 @@ export type components = {
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
         };
-        DynamicMetadataRecord: {
-            [key: string]: components["schemas"]["DynamicMetadataScalar"] | components["schemas"]["DynamicMetadataScalar"][];
-        };
-        DynamicMetadataScalar: (string | number | boolean) | null;
-        DynamicMetadataValue: components["schemas"]["DynamicMetadataScalar"] | components["schemas"]["DynamicMetadataScalar"][] | components["schemas"]["DynamicMetadataRecord"] | components["schemas"]["DynamicMetadataRecord"][];
+        DynamicMetadataValue: Record<string, never>;
         EffectivePoliciesResponse: {
             policies: {
                 [key: string]: components["schemas"]["EffectivePolicyState"];

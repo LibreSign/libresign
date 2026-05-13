@@ -622,62 +622,8 @@
                     }
                 ]
             },
-            "DynamicMetadataRecord": {
-                "type": "object",
-                "additionalProperties": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/components/schemas/DynamicMetadataScalar"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/DynamicMetadataScalar"
-                            }
-                        }
-                    ]
-                }
-            },
-            "DynamicMetadataScalar": {
-                "nullable": true,
-                "anyOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
-            },
             "DynamicMetadataValue": {
-                "anyOf": [
-                    {
-                        "$ref": "#/components/schemas/DynamicMetadataScalar"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/DynamicMetadataScalar"
-                        }
-                    },
-                    {
-                        "$ref": "#/components/schemas/DynamicMetadataRecord"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/DynamicMetadataRecord"
-                        }
-                    }
-                ]
+                "type": "object"
             },
             "EffectivePoliciesResponse": {
                 "type": "object",
