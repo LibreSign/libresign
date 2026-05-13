@@ -968,11 +968,7 @@ export type components = {
         DetailedFileResponse: components["schemas"]["DetailedFile"] & {
             message: string;
         };
-        DynamicMetadataRecord: {
-            [key: string]: components["schemas"]["DynamicMetadataScalar"] | components["schemas"]["DynamicMetadataScalar"][];
-        };
-        DynamicMetadataScalar: (string | number | boolean) | null;
-        DynamicMetadataValue: components["schemas"]["DynamicMetadataScalar"] | components["schemas"]["DynamicMetadataScalar"][] | components["schemas"]["DynamicMetadataRecord"] | components["schemas"]["DynamicMetadataRecord"][];
+        DynamicMetadataValue: Record<string, never>;
         EffectivePoliciesResponse: {
             policies: {
                 [key: string]: components["schemas"]["EffectivePolicyState"];
