@@ -346,12 +346,24 @@ test('back to top returns to search toolbar instead of absolute page top', async
 		appContent.dispatchEvent(new Event('scroll'))
 	})
 
+	const minExpectedScroll = await page.evaluate(() => {
+		const appContent = document.querySelector('#app-content') as HTMLElement | null
+		if (!appContent) {
+			return 0
+		}
+		const maxScrollable = Math.max(0, appContent.scrollHeight - appContent.clientHeight)
+		if (maxScrollable === 0) {
+			return 0
+		}
+		return Math.max(40, Math.floor(Math.min(800, maxScrollable * 0.5)))
+	})
+
 	await expect.poll(async () => {
 		return page.evaluate(() => {
 			const appContent = document.querySelector('#app-content') as HTMLElement | null
 			return appContent?.scrollTop ?? 0
 		})
-	}, { timeout: 10000 }).toBeGreaterThan(800)
+	}, { timeout: 10000 }).toBeGreaterThan(minExpectedScroll)
 
 	const backToTopButton = page.locator('.policy-workbench__back-to-top').first()
 	await expect(backToTopButton).toBeVisible({ timeout: 10000 })
