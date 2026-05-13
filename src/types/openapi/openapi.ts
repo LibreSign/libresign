@@ -969,10 +969,10 @@ export type components = {
             message: string;
         };
         DynamicMetadataRecord: {
-            [key: string]: Record<string, never>;
+            [key: string]: components["schemas"]["DynamicMetadataScalar"] | components["schemas"]["DynamicMetadataScalar"][];
         };
         DynamicMetadataScalar: (string | number | boolean) | null;
-        DynamicMetadataValue: Record<string, never>;
+        DynamicMetadataValue: components["schemas"]["DynamicMetadataScalar"] | components["schemas"]["DynamicMetadataScalar"][] | components["schemas"]["DynamicMetadataRecord"] | components["schemas"]["DynamicMetadataRecord"][];
         EffectivePoliciesResponse: {
             policies: {
                 [key: string]: components["schemas"]["EffectivePolicyState"];
