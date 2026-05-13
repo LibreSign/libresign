@@ -968,6 +968,10 @@ export type components = {
         DetailedFileResponse: components["schemas"]["DetailedFile"] & {
             message: string;
         };
+        DynamicMetadataRecord: {
+            [key: string]: Record<string, never>;
+        };
+        DynamicMetadataScalar: (string | number | boolean) | null;
         DynamicMetadataValue: Record<string, never>;
         EffectivePoliciesResponse: {
             policies: {
