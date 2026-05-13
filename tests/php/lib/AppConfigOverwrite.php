@@ -78,12 +78,29 @@ class AppConfigOverwrite extends AppConfig {
 	}
 
 	public function getValueArray(string $app, string $key, array $default = [], bool $lazy = false): array {
-		return $this->getOverwrite(
+		$value = $this->getOverwrite(
 			$app,
 			$key,
 			$default,
 			fn () => parent::getValueArray($app, $key, $default),
 		);
+
+		if (is_array($value)) {
+			return $value;
+		}
+
+		if ($value === null || $value === false || $value === '') {
+			return $default;
+		}
+
+		if (is_string($value)) {
+			$decoded = json_decode($value, true);
+			if (is_array($decoded)) {
+				return $decoded;
+			}
+		}
+
+		return $default;
 	}
 
 	public function setValueArray(string $app, string $key, array $value, bool $lazy = false, bool $sensitive = false): bool {

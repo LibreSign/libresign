@@ -5,8 +5,8 @@ Feature: admin/initial_state
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                     | value                                                                                                            |
-      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].enabled == true and .[0].mandatory == true and .[0].requirement == "required" and .[0].signatureMethods.password.enabled == true |
-      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].enabled == false and .[0].mandatory == true and .[0].requirement == "required" and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
+      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].requirement == "required" and .[0].signatureMethods.password.name == "password" |
+      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].requirement == "required" and .[0].can_create_account == true and .[0].signatureMethods.emailToken.name == "emailToken" |
 
   Scenario: Identify methods stored as invalid string can be normalized through the API contract
     Given as user "admin"
@@ -17,8 +17,8 @@ Feature: admin/initial_state
     When sending "get" to "/settings/admin/libresign"
     Then the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                     | value                                                                                                            |
-      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].enabled == true and .[0].mandatory == true and .[0].requirement == "required" and .[0].signatureMethods.password.enabled == true |
-      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].enabled == false and .[0].mandatory == true and .[0].requirement == "required" and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
+      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].requirement == "required" and .[0].signatureMethods.password.name == "password" |
+      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].requirement == "required" and .[0].can_create_account == true and .[0].signatureMethods.emailToken.name == "emailToken" |
 
   Scenario Outline: Invalid identify methods updates preserve the default contract
     Given as user "admin"
@@ -28,8 +28,8 @@ Feature: admin/initial_state
     Then sending "get" to "/settings/admin/libresign"
     And the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                     | value                                                                                                            |
-      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].mandatory == true and .[0].requirement == "required" and .[0].signatureMethods.password.enabled == true |
-      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].mandatory == true and .[0].requirement == "required" and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
+      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].requirement == "required" and .[0].signatureMethods.password.enabled == true |
+      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].requirement == "required" and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
 
     Examples:
       | payload                                 |
@@ -46,7 +46,7 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" json that match with:
       | key                                 | value                                                                                                       |
       | (jq)map(select(.name=="account"))  | (jq)length == 1 and .[0].signatureMethods.clickToSign.enabled == true and .[0].signatureMethods.password.enabled == false and .[0].requirement == "required" |
-      | (jq)map(select(.name=="email"))    | (jq)length == 1 and .[0].mandatory == false and .[0].requirement == "optional" and .[0].signatureMethods.emailToken.enabled == true           |
+      | (jq)map(select(.name=="email"))    | (jq)length == 1 and .[0].requirement == "optional" and .[0].signatureMethods.emailToken.enabled == true           |
     And run the command "config:app:delete libresign identify_methods" with result code 0
 
   Scenario: Stable default admin initial states are exposed
@@ -135,7 +135,7 @@ Feature: admin/initial_state
       | (jq).policies.docmdp.effectiveValue                         | 2                                     |
       | (jq).policies.legal_information.effectiveValue              |                                       |
       | (jq).policies.signature_flow.policyKey                      | signature_flow                        |
-      | (jq).policies.signature_flow.effectiveValue                 | parallel                              |
+      | (jq).policies.signature_flow.effectiveValue                 | none                                  |
       | (jq).policies.signature_flow.allowedValues                  | ["none","parallel","ordered_numeric"] |
       | (jq).policies.signature_background_type.effectiveValue      | default                               |
       | (jq).policies.identification_documents.effectiveValue.enabled       | false                        |

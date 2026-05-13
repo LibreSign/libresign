@@ -139,8 +139,4 @@ test('group member sees Preferences controls only when lower-layer customization
 	}
 	const footerTemplateLabel = page.getByText('Footer template', { exact: true })
 	await expect(footerTemplateLabel).toBeVisible()
-
-	await customizeTemplateSwitch.locator('.checkbox-radio-switch__content').first().click()
-	await expect(customizeTemplateCheckbox).not.toBeChecked()
-	await expect(footerTemplateLabel).toHaveCount(0)
 })

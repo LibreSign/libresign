@@ -448,6 +448,14 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
+		$savedArrays = [];
+		$this->appConfig
+			->method('setValueArray')
+			->willReturnCallback(static function (string $app, string $key, array $value) use (&$savedArrays): bool {
+				$savedArrays[$key] = $value;
+				return true;
+			});
+
 		$deleted = [];
 		$this->appConfig
 			->method('deleteKey')
@@ -459,9 +467,12 @@ final class Version18001Date20260320000000Test extends TestCase {
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame(true, $savedBools['collect_metadata']);
-		self::assertSame(false, $savedBools['identification_documents']);
+		self::assertSame([
+			'enabled' => false,
+			'approvers' => ['admin'],
+		], $savedArrays['identification_documents']);
 		self::assertContains([Application::APP_ID, 'collect_metadata'], $deleted);
-		self::assertContains([Application::APP_ID, 'identification_documents'], $deleted);
+		self::assertContains([Application::APP_ID, 'approval_group'], $deleted);
 	}
 
 	public function testMigratesLegacySignatureFlowKeyToSystemPolicyKey(): void {
@@ -622,15 +633,15 @@ final class Version18001Date20260320000000Test extends TestCase {
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame([
-			[
-				'name' => 'email',
-				'enabled' => true,
-				'signatureMethods' => [
-					'emailToken' => ['enabled' => false],
+			'factors' => [
+				[
+					'name' => 'email',
+					'enabled' => true,
+					'signatureMethods' => [
+						'emailToken' => ['enabled' => false],
+					],
+					'signatureMethodEnabled' => 'emailToken',
 				],
-				'requirement' => 'required',
-				'mandatory' => true,
-				'signatureMethodEnabled' => 'emailToken',
 			],
 		], $savedArrays['identify_methods']);
 		self::assertContains([Application::APP_ID, 'identify_methods'], $deleted);
@@ -737,15 +748,17 @@ final class Version18001Date20260320000000Test extends TestCase {
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame([
-			[
-				'name' => 'email',
-				'enabled' => true,
-				'signatureMethods' => [],
-			],
-			[
-				'name' => 'sms',
-				'enabled' => true,
-				'signatureMethods' => [],
+			'factors' => [
+				[
+					'name' => 'email',
+					'enabled' => true,
+					'signatureMethods' => [],
+				],
+				[
+					'name' => 'sms',
+					'enabled' => true,
+					'signatureMethods' => [],
+				],
 			],
 		], $savedArrays['identify_methods']);
 		self::assertContains([Application::APP_ID, 'identify_methods'], $deleted);
@@ -800,21 +813,23 @@ final class Version18001Date20260320000000Test extends TestCase {
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame([
-			[
-				'name' => 'email',
-				'enabled' => true,
-				'signatureMethods' => [
-					'emailToken' => ['enabled' => false],
+			'factors' => [
+				[
+					'name' => 'email',
+					'enabled' => true,
+					'signatureMethods' => [
+						'emailToken' => ['enabled' => false],
+					],
+					'minimumTotalVerifiedFactors' => 2,
 				],
-				'minimumTotalVerifiedFactors' => 2,
-			],
-			[
-				'name' => 'sms',
-				'enabled' => false,
-				'signatureMethods' => [
-					'smsToken' => ['enabled' => false],
+				[
+					'name' => 'sms',
+					'enabled' => false,
+					'signatureMethods' => [
+						'smsToken' => ['enabled' => false],
+					],
+					'minimumTotalVerifiedFactors' => 2,
 				],
-				'minimumTotalVerifiedFactors' => 2,
 			],
 		], $savedArrays['identify_methods']);
 		self::assertContains([Application::APP_ID, 'identify_methods'], $deleted);
@@ -862,13 +877,15 @@ final class Version18001Date20260320000000Test extends TestCase {
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame([
-			[
-				'name' => 'email',
-				'enabled' => true,
-				'signatureMethods' => [
-					'emailToken' => ['enabled' => false],
+			'factors' => [
+				[
+					'name' => 'email',
+					'enabled' => true,
+					'signatureMethods' => [
+						'emailToken' => ['enabled' => false],
+					],
+					'signatureMethodEnabled' => 'emailToken',
 				],
-				'signatureMethodEnabled' => 'emailToken',
 			],
 		], $savedArrays['identify_methods']);
 	}

@@ -140,7 +140,7 @@ class TestCase extends \Test\TestCase {
 		$this->suppressMailDelivery();
 		$this->mockConfig([
 			'dav' => [
-				'enableDefaultContact' => 'false',
+				'enableDefaultContact' => false,
 			],
 		]);
 		$this->ensureDavDefaultContactFixture();

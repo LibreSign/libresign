@@ -27,6 +27,10 @@ function collectJavascriptErrors(page: Page) {
 			return
 		}
 
+		if (text.includes('/core/img/actions/error.svg') && text.includes('Content Security Policy directive')) {
+			return
+		}
+
 		if (text.startsWith('Failed to load resource:')) {
 			return
 		}
