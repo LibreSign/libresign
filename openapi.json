@@ -622,6 +622,31 @@
                     }
                 ]
             },
+            "DynamicMetadataRecord": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "object"
+                }
+            },
+            "DynamicMetadataScalar": {
+                "nullable": true,
+                "anyOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            },
             "DynamicMetadataValue": {
                 "type": "object"
             },

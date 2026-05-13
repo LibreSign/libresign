@@ -974,6 +974,10 @@ export type components = {
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
         };
+        DynamicMetadataRecord: {
+            [key: string]: Record<string, never>;
+        };
+        DynamicMetadataScalar: (string | number | boolean) | null;
         DynamicMetadataValue: Record<string, never>;
         EffectivePoliciesResponse: {
             policies: {
