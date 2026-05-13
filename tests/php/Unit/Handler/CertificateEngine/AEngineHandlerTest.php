@@ -113,13 +113,14 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$instance->setEngine('none');
 
 		$savedIdentifyMethods = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods');
-		$expected = [[
-			'name' => 'account',
-			'enabled' => true,
-			'mandatory' => true,
-			'signatureMethods' => [],
-			'friendly_name' => 'Account',
-		]];
+		$expected = [
+			'factors' => [[
+				'name' => 'account',
+				'enabled' => true,
+				'signatureMethods' => [],
+				'friendly_name' => 'Account',
+			]],
+		];
 
 		$this->assertEquals(
 			$expected,
