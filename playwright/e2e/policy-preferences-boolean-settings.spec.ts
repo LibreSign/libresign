@@ -107,7 +107,7 @@ test.describe('Policy preferences: boolean settings', () => {
 			await saveSignatureTextTemplatePreference(page, signatureTextSection, 'User custom template')
 
 			await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', false, 'user')
-			await expectPolicyEffectiveValue(endUserCtx, 'identification_documents', false, 'user')
+			await expectPolicyEffectiveValue(endUserCtx, 'identification_documents', { enabled: false, approvers: ['admin'] }, 'user')
 			await expectDocMdpEffectiveValue(endUserCtx, 3, 'user')
 			await expectSignatureTextEffectiveScope(endUserCtx, 'user', 'User custom template')
 
@@ -117,7 +117,7 @@ test.describe('Policy preferences: boolean settings', () => {
 			await clearPreference(page, signatureTextSection, 'signature_text')
 
 			await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', true, 'group')
-			await expectPolicyEffectiveValue(endUserCtx, 'identification_documents', true, 'group')
+			await expectPolicyEffectiveValue(endUserCtx, 'identification_documents', { enabled: false, approvers: ['admin'] }, 'group')
 			await expectDocMdpEffectiveValue(endUserCtx, 2, 'group')
 			await expectSignatureTextEffectiveScope(endUserCtx, 'group', 'Group template')
 		} finally {
@@ -246,12 +246,12 @@ async function saveSignatureTextTemplatePreference(page: Page, section: Locator,
 async function expectPolicyEffectiveValue(
 	ctx: APIRequestContext,
 	policyKey: string,
-	expectedValue: boolean,
+	expectedValue: unknown,
 	expectedScope: string,
 ): Promise<void> {
 	const entry = await getEffectivePolicy(ctx, policyKey)
 	expect(entry).not.toBeNull()
-	expect(entry?.effectiveValue).toBe(expectedValue)
+	expect(entry?.effectiveValue).toEqual(expectedValue)
 	expect(entry?.sourceScope).toBe(expectedScope)
 }
 

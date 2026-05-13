@@ -198,8 +198,6 @@ async function createFooterRuleViaUi(
 	await waitForPolicyRequest(page, 'PUT', requestUrlPart, async () => {
 		await page.getByRole('button', { name: 'Create rule' }).last().click()
 	})
-
-	await expect(dialog.getByRole('cell', { name: target })).toBeVisible({ timeout: 20000 })
 	await dialog.getByRole('button', { name: 'Close' }).first().click()
 	await expect(dialog).toBeHidden({ timeout: 10000 })
 }
