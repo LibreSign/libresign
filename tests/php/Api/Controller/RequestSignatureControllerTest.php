@@ -67,7 +67,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 					[
 						'identifyMethods' => [[
 							'method' => 'email',
-							'mandatory' => 0,
+							'requirement' => 'optional',
 							'value' => 'user@test.coop',
 						]],
 					],
@@ -122,7 +122,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 				[
 					'identifyMethods' => [[
 						'method' => 'email',
-						'mandatory' => 0,
+						'requirement' => 'optional',
 						'value' => 'person@test.coop',
 					]],
 				],
@@ -143,7 +143,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 					[
 						'identifyMethods' => [[
 							'method' => 'email',
-							'mandatory' => 0,
+							'requirement' => 'optional',
 							'value' => 'user@test.coop',
 						]],
 					],
