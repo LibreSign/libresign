@@ -975,7 +975,17 @@
             "DynamicMetadataRecord": {
                 "type": "object",
                 "additionalProperties": {
-                    "type": "object"
+                    "anyOf": [
+                        {
+                            "$ref": "#/components/schemas/DynamicMetadataScalar"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/DynamicMetadataScalar"
+                            }
+                        }
+                    ]
                 }
             },
             "DynamicMetadataScalar": {
@@ -998,7 +1008,26 @@
                 ]
             },
             "DynamicMetadataValue": {
-                "type": "object"
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/DynamicMetadataScalar"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DynamicMetadataScalar"
+                        }
+                    },
+                    {
+                        "$ref": "#/components/schemas/DynamicMetadataRecord"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DynamicMetadataRecord"
+                        }
+                    }
+                ]
             },
             "EffectivePoliciesResponse": {
                 "type": "object",
