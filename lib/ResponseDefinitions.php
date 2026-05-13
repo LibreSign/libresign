@@ -148,8 +148,8 @@ namespace OCA\Libresign;
  *     displayName: ?string,
  * }
  * @psalm-type LibresignDynamicMetadataScalar = string|int|float|bool|null
- * @psalm-type LibresignDynamicMetadataRecord = array<string, mixed>
- * @psalm-type LibresignDynamicMetadataValue = mixed
+ * @psalm-type LibresignDynamicMetadataRecord = array<string, LibresignDynamicMetadataScalar|list<LibresignDynamicMetadataScalar>>
+ * @psalm-type LibresignDynamicMetadataValue = LibresignDynamicMetadataScalar|list<LibresignDynamicMetadataScalar>|LibresignDynamicMetadataRecord|list<LibresignDynamicMetadataRecord>
  * @psalm-type LibresignSignerCertificateInfo = array{
  *     serialNumber?: string,
  *     serialNumberHex?: string,
