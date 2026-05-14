@@ -81,9 +81,13 @@ test('delete pending signature request', async ({ page }) => {
 	// Confirm the deletion in the dialog
 	await expect(page.getByRole('dialog', { name: 'Confirm' })).toBeVisible()
 	await expect(page.getByText('The signature request will be deleted. Do you confirm this action?')).toBeVisible()
-	await page.getByRole('button', { name: 'Ok' }).click()
+	await Promise.all([
+		page.waitForResponse((response) => response.request().method() === 'DELETE' && response.url().includes('/apps/libresign/api/v1/file/file_id/') && response.ok()),
+		page.getByRole('button', { name: 'Ok' }).click(),
+	])
 
-	// The specific row we deleted must disappear from the list
-	await expect(targetRow).toBeHidden()
+	// The list updates asynchronously after the backend deletion completes.
+	await page.reload()
+	await expect(targetRow).toBeHidden({ timeout: 20000 })
 })
 
