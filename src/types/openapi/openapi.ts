@@ -1104,6 +1104,10 @@ export type components = {
             };
             version: string;
         };
+        CertificateDistinguishedName: {
+            [key: string]: components["schemas"]["CertificateDistinguishedNameValue"];
+        };
+        CertificateDistinguishedNameValue: string | string[];
         CertificatePfxData: {
             name: string;
             subject: string;
@@ -1546,7 +1550,7 @@ export type components = {
             serialNumber?: string;
             serialNumberHex?: string;
             hash?: string;
-            subject?: components["schemas"]["DynamicMetadataValue"];
+            subject?: components["schemas"]["CertificateDistinguishedName"];
         };
         SignerDetail: components["schemas"]["SignerSummary"] & {
             description: string | null;
