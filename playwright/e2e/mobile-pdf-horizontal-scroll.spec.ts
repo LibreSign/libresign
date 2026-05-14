@@ -22,6 +22,11 @@ test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page 
 	const pdfRoot = ruleDialog.locator('.signature-footer-rule-editor__preview .pdf-elements-root').first()
 	await expect(pdfRoot).toBeVisible({ timeout: 15000 })
 
+	const widthField = ruleDialog.getByRole('spinbutton', { name: 'Width' }).first()
+	await expect(widthField).toBeVisible({ timeout: 10000 })
+	await widthField.fill('900')
+	await widthField.press('Tab')
+
 	// Check that overflow-x is set to auto (not hidden).
 	const computedStyle = await pdfRoot.evaluate((el) => {
 		return window.getComputedStyle(el).overflowX
@@ -39,6 +44,13 @@ test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page 
 	expect(touchAction).not.toContain('pinch-zoom')
 
 	// Validate real horizontal scrolling capability, not only style declarations.
+	await expect.poll(async () => {
+		return pdfRoot.evaluate((el) => el.scrollWidth > el.clientWidth)
+	}, {
+		timeout: 15000,
+		message: 'Expected footer preview to become horizontally scrollable after widening the preview',
+	}).toBe(true)
+
 	const before = await pdfRoot.evaluate((el) => {
 		el.scrollLeft = 0
 		return {
@@ -47,8 +59,6 @@ test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page 
 			clientWidth: el.clientWidth,
 		}
 	})
-
-	expect(before.scrollWidth).toBeGreaterThan(before.clientWidth)
 
 	const box = await pdfRoot.boundingBox()
 	expect(box).not.toBeNull()
