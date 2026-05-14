@@ -41,18 +41,18 @@ class Version18002Date20260511000000 extends SimpleMigrationStep {
 	private function ensureArrayConfig(string $key, array $default): void {
 		$configValue = $this->getRawConfigValue($key);
 		if ($configValue === null) {
-			$this->appConfig->setValueString(Application::APP_ID, $key, json_encode($default, JSON_UNESCAPED_UNICODE));
+			$this->appConfig->setValueArray(Application::APP_ID, $key, $default);
 			return;
 		}
 
 		$normalized = $this->normalizeConfigValue($configValue, $default);
-		$this->forceStringType($key);
+		$this->forceArrayType($key);
 
 		try {
-			$this->appConfig->setValueString(Application::APP_ID, $key, json_encode($normalized, JSON_UNESCAPED_UNICODE));
+			$this->appConfig->setValueArray(Application::APP_ID, $key, $normalized);
 		} catch (AppConfigTypeConflictException) {
-			$this->forceStringType($key);
-			$this->appConfig->setValueString(Application::APP_ID, $key, json_encode($normalized, JSON_UNESCAPED_UNICODE));
+			$this->forceArrayType($key);
+			$this->appConfig->setValueArray(Application::APP_ID, $key, $normalized);
 		}
 	}
 
@@ -72,10 +72,10 @@ class Version18002Date20260511000000 extends SimpleMigrationStep {
 		return (string)$result;
 	}
 
-	private function forceStringType(string $key): void {
+	private function forceArrayType(string $key): void {
 		$qb = $this->connection->getQueryBuilder();
 		$qb->update('appconfig')
-			->set('type', $qb->createNamedParameter(IAppConfig::VALUE_STRING))
+			->set('type', $qb->createNamedParameter(IAppConfig::VALUE_ARRAY))
 			->where($qb->expr()->eq('appid', $qb->createNamedParameter(Application::APP_ID)))
 			->andWhere($qb->expr()->eq('configkey', $qb->createNamedParameter($key)))
 			->executeStatement();
