@@ -1333,10 +1333,6 @@ export type components = {
         CertificateDataGenerated: components["schemas"]["EngineHandler"] & {
             generated: boolean;
         };
-        CertificateDistinguishedName: {
-            [key: string]: components["schemas"]["CertificateDistinguishedNameValue"];
-        };
-        CertificateDistinguishedNameValue: string | string[];
         CertificateEngineConfigResponse: {
             engine: string;
             identify_methods: components["schemas"]["IdentifyMethodSetting"][];
@@ -1924,7 +1920,7 @@ export type components = {
             serialNumber?: string;
             serialNumberHex?: string;
             hash?: string;
-            subject?: components["schemas"]["CertificateDistinguishedName"];
+            subject?: components["schemas"]["DynamicMetadataValue"];
         };
         SignerDetail: components["schemas"]["SignerSummary"] & {
             description: string | null;
