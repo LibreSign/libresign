@@ -73,6 +73,36 @@ async function waitForUserConfigSave(page: Page, key: string) {
 	})
 }
 
+async function scrollAppContentToRatio(page: Page, ratio: number) {
+	const getMaxScrollable = async () => {
+		return page.evaluate(() => {
+			const appContent = document.querySelector('#app-content') as HTMLElement | null
+			if (!appContent) {
+				return 0
+			}
+
+			return Math.max(0, appContent.scrollHeight - appContent.clientHeight)
+		})
+	}
+
+	await expect.poll(getMaxScrollable, { timeout: 10000 }).toBeGreaterThan(400)
+
+	const scrollTarget = await page.evaluate((value) => {
+		const appContent = document.querySelector('#app-content') as HTMLElement | null
+		if (!appContent) {
+			return 0
+		}
+
+		const maxScroll = Math.max(0, appContent.scrollHeight - appContent.clientHeight)
+		const target = Math.round(maxScroll * value)
+		appContent.scrollTo({ top: target, behavior: 'auto' })
+		appContent.dispatchEvent(new Event('scroll'))
+		return target
+	}, ratio)
+
+	return { scrollTarget }
+}
+
 test('catalog controls keep behavior, layout, and JS health', async ({ page }) => {
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
@@ -336,27 +366,8 @@ test('back to top returns to search toolbar instead of absolute page top', async
 		])
 	}
 
-	await page.evaluate(() => {
-		const appContent = document.querySelector('#app-content') as HTMLElement | null
-		if (!appContent) {
-			return
-		}
-
-		appContent.scrollTo({ top: 3500, behavior: 'auto' })
-		appContent.dispatchEvent(new Event('scroll'))
-	})
-
-	const minExpectedScroll = await page.evaluate(() => {
-		const appContent = document.querySelector('#app-content') as HTMLElement | null
-		if (!appContent) {
-			return 0
-		}
-		const maxScrollable = Math.max(0, appContent.scrollHeight - appContent.clientHeight)
-		if (maxScrollable === 0) {
-			return 0
-		}
-		return Math.max(40, Math.floor(Math.min(800, maxScrollable * 0.5)))
-	})
+	const { scrollTarget } = await scrollAppContentToRatio(page, 0.75)
+	const minExpectedScroll = Math.max(40, Math.floor(scrollTarget * 0.5))
 
 	await expect.poll(async () => {
 		return page.evaluate(() => {
@@ -418,16 +429,7 @@ test('active category chip tracks the section with visible cards while scrolling
 		])
 	}
 
-	await page.evaluate(() => {
-		const appContent = document.querySelector('#app-content') as HTMLElement | null
-		if (!appContent) {
-			return
-		}
-
-		const target = Math.round((appContent.scrollHeight - appContent.clientHeight) * 0.75)
-		appContent.scrollTo({ top: target, behavior: 'auto' })
-		appContent.dispatchEvent(new Event('scroll'))
-	})
+	await scrollAppContentToRatio(page, 0.75)
 
 	await expect.poll(async () => {
 		return page.evaluate(() => {
