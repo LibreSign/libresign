@@ -67,11 +67,19 @@ test('updates files list status after signing with native engine', async ({ page
 		.first()
 	await firstRow.getByRole('button', { name: 'Actions' }).click()
 	await page.getByRole('menuitem', { name: 'Rename' }).click()
-	await page.getByLabel('File name').fill(uniqueName)
-	await page.getByLabel('File name').press('Enter')
+	const fileNameInput = page.getByLabel('File name')
+	await fileNameInput.fill(uniqueName)
+	await fileNameInput.press('Enter')
+	await expect(fileNameInput).toBeHidden({ timeout: 10000 })
+
+	const filesSearch = page.getByRole('searchbox', { name: /Search here/i }).first()
+	if (await filesSearch.isVisible({ timeout: 2000 }).catch(() => false)) {
+		await filesSearch.fill(uniqueName)
+	}
 
 	const targetRow = page.locator('[data-cy-files-list-tbody] tr.files-list__row')
 		.filter({ hasText: uniqueName })
+	await expect(targetRow).toBeVisible({ timeout: 20000 })
 	await expect(targetRow.locator('.status-chip__text')).toHaveText('Ready to sign')
 
 	await targetRow.getByRole('button', { name: 'Actions' }).click()
@@ -94,5 +102,9 @@ test('updates files list status after signing with native engine', async ({ page
 	await expect(page.getByText('This document is valid')).toBeVisible()
 
 	await page.locator('#fileslist').getByRole('link', { name: 'Files' }).click()
+	if (await filesSearch.isVisible({ timeout: 2000 }).catch(() => false)) {
+		await filesSearch.fill(uniqueName)
+	}
+	await expect(targetRow).toBeVisible({ timeout: 20000 })
 	await expect(targetRow.locator('.status-chip__text')).toHaveText('Signed')
 })
