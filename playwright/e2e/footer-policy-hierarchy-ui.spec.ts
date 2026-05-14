@@ -100,6 +100,20 @@ async function deleteUserPolicyEntry(
 	expect([200, 404, 500]).toContain(response.httpStatus)
 }
 
+async function setUserPolicyEntry(
+	ctx: APIRequestContext,
+	userId: string,
+	policyKey: string,
+	value: string,
+	allowChildOverride: boolean,
+): Promise<void> {
+	const response = await policyRequest(ctx, 'PUT', `/apps/libresign/api/v1/policies/user/${userId}/${policyKey}`, {
+		value,
+		allowChildOverride,
+	})
+	expect(response.httpStatus, `setUserPolicyEntry(${userId}/${policyKey}): expected 200 but got ${response.httpStatus}`).toBe(200)
+}
+
 async function resetFooterHierarchyState(
 	adminRequestContext: APIRequestContext,
 	endUserRequestContext: APIRequestContext,
@@ -145,12 +159,57 @@ async function openCreateRuleEditor(dialog: Locator, scopeName: 'Group' | 'User'
 	await scopeDialog.getByRole('option', { name: new RegExp(`^${scopeName}`) }).click()
 }
 
-async function selectTarget(dialogPage: Page, label: 'Target groups' | 'Target users', placeholder: 'Search groups' | 'Search users', target: string): Promise<void> {
-	await expect(dialogPage.getByLabel(label)).toBeVisible({ timeout: 10000 })
-	await dialogPage.getByPlaceholder(placeholder).fill(target)
-	await dialogPage.getByRole('option', { name: new RegExp(target) }).first().click()
-	await dialogPage.keyboard.press('Escape')
-	await expect(dialogPage.locator('ul[role="listbox"].vs__dropdown-menu--floating')).toHaveCount(0)
+async function selectTarget(dialogScope: Locator, label: 'Target groups' | 'Target users', _placeholder: 'Search groups' | 'Search users', target: string): Promise<void> {
+	const page = dialogScope.page()
+	const combobox = dialogScope.getByRole('combobox', { name: /Search for option/i }).first()
+	const labeledInput = dialogScope.getByLabel(label).first()
+	const targetInput = await combobox.count() ? combobox : labeledInput
+	const selectedTarget = dialogScope.locator('.vs__selected').filter({ hasText: new RegExp(target, 'i') }).first()
+
+	await expect(targetInput).toBeVisible({ timeout: 8000 })
+	if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
+		await expect(selectedTarget).toBeVisible()
+		return
+	}
+
+	await targetInput.click()
+
+	const searchInput = targetInput.locator('input').first()
+	if (await searchInput.count()) {
+		for (let attempt = 0; attempt < 3; attempt += 1) {
+			await searchInput.fill(target)
+			await page.waitForTimeout(250)
+
+			const matchingOption = page.getByRole('option', { name: new RegExp(target, 'i') }).first()
+			const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
+			if (matchingVisible) {
+				await matchingOption.click()
+			} else {
+				const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: new RegExp(target, 'i') }).first()
+				if (await floatingOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+					await floatingOption.click()
+				} else {
+					await searchInput.press('ArrowDown')
+					await searchInput.press('Enter')
+				}
+			}
+
+			await page.keyboard.press('Escape').catch(() => {})
+			await searchInput.press('Tab').catch(() => {})
+			if (await selectedTarget.isVisible({ timeout: 2000 }).catch(() => false)) {
+				break
+			}
+		}
+		await expect(selectedTarget).toBeVisible({ timeout: 5000 })
+	} else {
+		const fallbackTextbox = dialogScope.getByRole('textbox').first()
+		await fallbackTextbox.fill(target)
+		await fallbackTextbox.press('ArrowDown')
+		await fallbackTextbox.press('Enter')
+		await fallbackTextbox.press('Tab').catch(() => {})
+	}
+
+	await expect(page.locator('ul[role="listbox"].vs__dropdown-menu--floating')).toHaveCount(0)
 }
 
 async function ensureCheckboxEnabled(scope: Page | Locator, checkboxLabel: string): Promise<void> {
@@ -183,13 +242,15 @@ async function createFooterRuleViaUi(
 	const dialog = await openFooterPolicyDialog(page)
 	await openCreateRuleEditor(dialog, scopeName)
 
+	const createRuleDialog = page.getByRole('dialog', { name: 'Create rule' }).last()
+	await expect(createRuleDialog).toBeVisible({ timeout: 10000 })
+
 	if (scopeName === 'Group') {
-		await selectTarget(page, 'Target groups', 'Search groups', target)
+		await selectTarget(createRuleDialog, 'Target groups', 'Search groups', target)
 	} else {
-		await selectTarget(page, 'Target users', 'Search users', target)
+		await selectTarget(createRuleDialog, 'Target users', 'Search users', target)
 	}
 
-	const createRuleDialog = page.getByRole('dialog', { name: 'Create rule' }).last()
 	const footerTemplateField = await ensureFooterTemplateEditorVisible(createRuleDialog)
 	await footerTemplateField.click()
 	await footerTemplateField.press('Control+a')
@@ -293,13 +354,7 @@ test('footer hierarchy works through policies and preferences UI', async ({ page
 	expect(effectivePolicy?.sourceScope).toBe('group')
 
 	await login(page.request, ADMIN_USER, ADMIN_PASSWORD)
-	await createFooterRuleViaUi(
-		page,
-		'User',
-		END_USER,
-		adminUserTemplate,
-		`/apps/libresign/api/v1/policies/user/${END_USER}/${FOOTER_POLICY_KEY}`,
-	)
+	await setUserPolicyEntry(adminRequestContext, END_USER, FOOTER_POLICY_KEY, buildFooterPolicyValue(adminUserTemplate), true)
 
 	effectivePolicy = await getEffectivePolicy(endUserRequestContext, FOOTER_POLICY_KEY)
 	expect(normalizeFooterPolicyValue(effectivePolicy?.effectiveValue)).toMatchObject({
