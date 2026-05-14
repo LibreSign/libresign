@@ -88,8 +88,7 @@ class SettingsLoader {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
-		$configValue = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '["admin"]');
-		$approvalGroups = json_decode($configValue, true);
+		$approvalGroups = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
 		if ($user && !empty($approvalGroups) && is_array($approvalGroups)) {
 			$userGroups = $this->groupManager->getUserGroupIds($user);
 			if (array_intersect($userGroups, $approvalGroups)) {
