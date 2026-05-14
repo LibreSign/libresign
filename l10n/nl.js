@@ -301,6 +301,7 @@ OC.L10N.register(
     "Define a password and sign the document." : "Definieer een wachtwoord en onderteken het document.",
     "Sign the document." : "Teken het document",
     "Unable to sign." : "Signeren was niet mogelijk.",
+    "Forgot password?" : "Wachtwoord vergeten?",
     "Partial" : "Gedeeltelijk",
     "Complete" : "Afgerond",
     "This document is valid" : "Dit document is geldig",
