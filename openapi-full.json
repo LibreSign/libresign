@@ -331,6 +331,25 @@
                     }
                 ]
             },
+            "CertificateDistinguishedName": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/CertificateDistinguishedNameValue"
+                }
+            },
+            "CertificateDistinguishedNameValue": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            },
             "CertificateEngineConfigResponse": {
                 "type": "object",
                 "required": [
@@ -2441,7 +2460,7 @@
                         "type": "string"
                     },
                     "subject": {
-                        "$ref": "#/components/schemas/DynamicMetadataValue"
+                        "$ref": "#/components/schemas/CertificateDistinguishedName"
                     }
                 }
             },
