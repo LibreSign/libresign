@@ -86,13 +86,15 @@ test('sign herself with drawn signature', async ({ page }) => {
 	).toBeVisible()
 
 	await page.getByRole('button', { name: 'Save' }).click();
+	await expect(signaturePositionsDialog).toBeHidden()
 	await page.getByRole('button', { name: 'Request signatures' }).click();
 	await page.getByRole('button', { name: 'Send' }).click();
 	await page.getByRole('button', { name: 'Sign document' }).click();
+	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15000 })
 
 	await expect(
 		page.getByLabel('PDF document to sign').getByRole('img', { name: 'Signature position for Admin Name' })
-	).toBeVisible()
+	).toBeVisible({ timeout: 15000 })
 
 	await page.getByRole('button', { name: 'Define your signature.' }).click();
 
