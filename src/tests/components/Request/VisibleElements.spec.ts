@@ -919,6 +919,95 @@ describe('VisibleElements Component - Business Rules', () => {
 			expect(result[1].signRequestId).toBe(202)
 			expect(result[1].coordinates.page).toBe(1)
 		})
+
+		it('falls back to the only file signer when placed object lacks signer identifiers', () => {
+			filesStore.files[1].id = 1
+			filesStore.files[1].name = 'contract'
+			filesStore.files[1].metadata = { p: 1, d: [{ w: 120, h: 200 }] }
+			filesStore.files[1].signers = [
+				{
+					signRequestId: 501,
+					displayName: 'Admin Name',
+					email: 'admin@email.tld',
+					identifyMethods: [{ method: 'account', value: 'admin', requirement: 'required' }],
+				} as any,
+			]
+
+			wrapper.vm.buildFilePagesMap()
+			Object.defineProperty(wrapper.vm.$, 'refs', {
+				value: {
+					pdfEditor: {
+						$refs: {
+							pdfElements: {
+								getAllObjects: () => ([{
+									signer: {
+										displayName: 'Admin Name',
+										email: 'admin@email.tld',
+									},
+									pageNumber: 1,
+									x: 10,
+									y: 20,
+									width: 30,
+									height: 40,
+								}]),
+							},
+						},
+					},
+				},
+				configurable: true,
+			})
+
+			const result = wrapper.vm.buildVisibleElements()
+
+			expect(result).toHaveLength(1)
+			expect(result[0].signRequestId).toBe(501)
+			expect(result[0].fileId).toBe(1)
+		})
+
+		it('falls back to raw pdfDocuments objects when getAllObjects is empty', () => {
+			filesStore.files[1].id = 1
+			filesStore.files[1].name = 'contract'
+			filesStore.files[1].metadata = { p: 1, d: [{ w: 120, h: 200 }] }
+			filesStore.files[1].signers = [
+				{
+					signRequestId: 601,
+					displayName: 'Admin Name',
+					identifyMethods: [{ method: 'account', value: 'admin', requirement: 'required' }],
+				} as any,
+			]
+
+			wrapper.vm.buildFilePagesMap()
+			Object.defineProperty(wrapper.vm.$, 'refs', {
+				value: {
+					pdfEditor: {
+						$refs: {
+							pdfElements: {
+								getAllObjects: () => [],
+								pdfDocuments: [{
+									allObjects: [[{
+										signer: {
+											displayName: 'Admin Name',
+											identifyMethods: [{ method: 'account', value: 'admin' }],
+										},
+										x: 10,
+										y: 20,
+										width: 30,
+										height: 40,
+									}]],
+								}],
+							},
+						},
+					},
+				},
+				configurable: true,
+			})
+
+			const result = wrapper.vm.buildVisibleElements()
+
+			expect(result).toHaveLength(1)
+			expect(result[0].signRequestId).toBe(601)
+			expect(result[0].coordinates.page).toBe(1)
+		})
 	})
 
 	describe('RULE: save handles success and error', () => {
