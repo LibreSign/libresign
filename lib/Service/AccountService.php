@@ -361,8 +361,7 @@ class AccountService {
 		if (!$user) {
 			return false;
 		}
-		$configValue = $this->appConfig->getValueString(Application::APP_ID, 'groups_request_sign', '["admin"]');
-		$authorized = json_decode($configValue, true);
+		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'groups_request_sign', ['admin']);
 		if (empty($authorized)) {
 			return false;
 		}
