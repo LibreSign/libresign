@@ -13,7 +13,6 @@ test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
 const changeDefaultButtonName = /^Change$/i
 const removeExceptionButtonName = /Remove exception|Remove rule/i
-const userRuleTargetLabel = 'admin'
 const instanceWideTargetLabel = 'Default (instance-wide)'
 const ruleDialogName = /Create rule|Edit rule|What do you want to create\?/i
 
@@ -238,47 +237,62 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 	const combobox = root.getByRole('combobox', { name: ariaLabel }).first()
 	const labeledInput = root.getByLabel(ariaLabel).first()
 	const targetInput = await combobox.count() ? combobox : labeledInput
+	const selectedTarget = root.locator('.vs__selected').filter({ hasText: new RegExp(optionText, 'i') }).first()
+	const submitButton = root.getByRole('button', {
+		name: /Create rule|Create policy rule|Save changes|Save policy rule changes|Save rule changes/i,
+	}).last()
+
+	const isSelectionConfirmed = async () => {
+		if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
+			return true
+		}
+		if (await submitButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+			return submitButton.isEnabled().catch(() => false)
+		}
+		return false
+	}
 
 	await expect(targetInput).toBeVisible({ timeout: 8000 })
 	await targetInput.click()
 
+	if (await isSelectionConfirmed()) {
+		return
+	}
+
 	const searchInput = targetInput.locator('input').first()
 	if (await searchInput.count()) {
-		await searchInput.fill(optionText)
-		await page.waitForTimeout(250)
-		const matchingOption = page.getByRole('option', { name: new RegExp(optionText, 'i') }).first()
-		const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
-		if (matchingVisible) {
-			await matchingOption.click()
-			await searchInput.press('Tab').catch(() => {})
-			return
-		}
+		for (let attempt = 0; attempt < 3; attempt += 1) {
+			await searchInput.fill(optionText)
+			await page.waitForTimeout(250)
 
-		const exactTextOption = page.getByText(new RegExp(`^${optionText}$`, 'i')).last()
-		const exactTextVisible = await exactTextOption.waitFor({ state: 'visible', timeout: 1500 }).then(() => true).catch(() => false)
-		if (exactTextVisible) {
-			await exactTextOption.click()
-			await searchInput.press('Tab').catch(() => {})
-			return
-		}
+			const matchingOption = page.getByRole('option', { name: new RegExp(optionText, 'i') }).first()
+			const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
+			if (matchingVisible) {
+				await matchingOption.click()
+			} else {
+				const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: new RegExp(optionText, 'i') }).first()
+				if (await floatingOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+					await floatingOption.click()
+				} else {
+					await searchInput.press('ArrowDown')
+					await searchInput.press('Enter')
+				}
+			}
 
-		const anyOption = page.getByRole('option').first()
-		const anyVisible = await anyOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
-		if (anyVisible) {
-			await anyOption.click()
+			await page.keyboard.press('Escape').catch(() => {})
 			await searchInput.press('Tab').catch(() => {})
-			return
+			if (await isSelectionConfirmed()) {
+				break
+			}
 		}
-
-		await searchInput.press('ArrowDown')
-		await searchInput.press('Enter')
-		await searchInput.press('Tab').catch(() => {})
+		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	} else {
 		const fallbackTextbox = root.getByRole('textbox').first()
 		await fallbackTextbox.fill(optionText)
 		await fallbackTextbox.press('ArrowDown')
 		await fallbackTextbox.press('Enter')
 		await fallbackTextbox.press('Tab').catch(() => {})
+		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	}
 }
 
@@ -376,7 +390,7 @@ test('system default persists across edit cycles and can be reset to the system 
 })
 
 test('admin can manage instance, group, and user rules when system default is fixed', async ({ page }) => {
-	const userTarget = userRuleTargetLabel
+	const userTarget = `policy-system-default-user-${Date.now()}`
 
 	await ensureUserExists(page.request, userTarget)
 
