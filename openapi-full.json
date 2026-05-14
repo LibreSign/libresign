@@ -2417,7 +2417,7 @@
                         "type": "string"
                     },
                     "subject": {
-                        "$ref": "#/components/schemas/DynamicMetadataValue"
+                        "$ref": "#/components/schemas/CertificateDistinguishedName"
                     }
                 }
             },
