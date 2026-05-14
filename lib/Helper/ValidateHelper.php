@@ -505,7 +505,8 @@ class ValidateHelper {
 	}
 
 	public function canRequestSign(IUser $user): void {
-		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'groups_request_sign', ['admin']);
+		$configValue = $this->appConfig->getValueString(Application::APP_ID, 'groups_request_sign', '["admin"]');
+		$authorized = json_decode($configValue, true);
 		if (empty($authorized)) {
 			$authorized = ['admin'];
 		}
@@ -971,7 +972,8 @@ class ValidateHelper {
 			return false;
 		}
 
-		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
+		$configValue = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '["admin"]');
+		$authorized = json_decode($configValue, true);
 		if (!$authorized || !is_array($authorized) || empty($authorized)) {
 			$authorized = ['admin'];
 		}

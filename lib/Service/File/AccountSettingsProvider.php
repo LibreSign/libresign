@@ -42,7 +42,8 @@ class AccountSettingsProvider {
 		if (!$user) {
 			return false;
 		}
-		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
+		$configValue = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '["admin"]');
+		$authorized = json_decode($configValue, true);
 		if (empty($authorized)) {
 			return false;
 		}
@@ -69,7 +70,8 @@ class AccountSettingsProvider {
 		if (!$user) {
 			return false;
 		}
-		$approvalGroups = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
+		$configValue = $this->appConfig->getValueString(Application::APP_ID, 'approval_group', '["admin"]');
+		$approvalGroups = json_decode($configValue, true);
 		if (empty($approvalGroups)) {
 			return false;
 		}

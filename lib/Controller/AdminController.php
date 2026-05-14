@@ -973,7 +973,7 @@ class AdminController extends AEnvironmentAwareController {
 	public function setGroupsRequestSignConfig(array $groups = []): DataResponse {
 		try {
 			$normalizedGroups = array_values(array_map(static fn (mixed $group): string => (string)$group, $groups));
-			$this->appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', $normalizedGroups);
+			$this->appConfig->setValueString(Application::APP_ID, 'groups_request_sign', json_encode($normalizedGroups, JSON_UNESCAPED_UNICODE));
 
 			return new DataResponse([
 				'message' => $this->l10n->t('Settings saved'),
