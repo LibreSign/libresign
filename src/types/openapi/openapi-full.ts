@@ -2211,7 +2211,7 @@ export type components = {
             serialNumber?: string;
             serialNumberHex?: string;
             hash?: string;
-            subject?: components["schemas"]["CertificateDistinguishedName"];
+            subject?: components["schemas"]["DynamicMetadataValue"];
         };
         SignerDetail: components["schemas"]["SignerSummary"] & {
             description: string | null;
