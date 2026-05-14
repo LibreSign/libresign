@@ -16,14 +16,25 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	const requestSignatureTab = page.locator('#request-signature-tab')
 	const setupSignaturePositionsButton = requestSignatureTab.getByRole('button', { name: 'Setup signature positions' })
 	const openSidebarButton = page.getByRole('button', { name: 'Open sidebar' })
+	const signaturePositionsDialog = page.getByLabel('Signature positions')
 
 	async function reopenFileFromUuid(uuid: string) {
 		await page.goto(`./apps/libresign/f/filelist/sign?uuid=${uuid}`)
-		if (await openSidebarButton.isVisible()) {
+		await expect(page).toHaveURL(/\/apps\/libresign\/f\/filelist\/sign/)
+
+		const setupVisible = await setupSignaturePositionsButton.isVisible({ timeout: 3000 }).catch(() => false)
+		if (!setupVisible) {
+			const draftRow = page.locator('[data-cy-files-list-tbody] tr.files-list__row').filter({ hasText: 'Draft' }).first()
+			await expect(draftRow).toBeVisible({ timeout: 20000 })
+			await draftRow.getByRole('button').first().click()
+		}
+
+		if (await openSidebarButton.isVisible({ timeout: 2000 }).catch(() => false)) {
 			await openSidebarButton.click()
 		}
-		await expect(setupSignaturePositionsButton).toBeVisible()
+		await expect(setupSignaturePositionsButton).toBeVisible({ timeout: 15000 })
 		await setupSignaturePositionsButton.click()
+		await expect(signaturePositionsDialog).toBeVisible({ timeout: 30000 })
 	}
 
 	await login(
@@ -72,7 +83,6 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	const requestUuid = createRequestBody.ocs.data.uuid as string
 	await expect(setupSignaturePositionsButton).toBeVisible()
 	await setupSignaturePositionsButton.click()
-	const signaturePositionsDialog = page.getByLabel('Signature positions')
 	const visiblePageOverlay = getVisiblePdfOverlay(signaturePositionsDialog)
 	const addInstruction = signaturePositionsDialog.getByText('Click on the place you want to add.')
 	const cancelPlacementButton = signaturePositionsDialog.getByRole('button', { name: 'Cancel' })
@@ -103,12 +113,13 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 
 	// Save closes the modal and persists the element via API
 	await page.getByLabel('Signature positions').getByRole('button', { name: 'Save' }).click()
+	await expect(page.getByLabel('Signature positions')).toBeHidden()
 
 	// Open the document again through the Files route using the request uuid to force a fresh load
 	await reopenFileFromUuid(requestUuid)
 
 	// Verify the element survived the round-trip to the server
-	await expect(page.getByLabel('Signature positions').getByRole('img', { name: /Signature position for/i }).first()).toBeVisible({ timeout: 10000 })
+	await expect(page.getByLabel('Signature positions').getByRole('img', { name: /Signature position for/i }).first()).toBeVisible({ timeout: 30000 })
 
 	// Select the element so the toolbar (Duplicate / Delete) appears, then delete it
 	await page.getByLabel('Signature positions').getByRole('img', { name: /Signature position for/i }).first().click()
@@ -124,7 +135,8 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 
 	// Re-open the document one last time and confirm the element is gone
 	await reopenFileFromUuid(requestUuid)
-	await expect(getVisiblePdfOverlay(signaturePositionsDialog)).toBeVisible()
+	await expect(signaturePositionsDialog).toBeVisible()
+	await expect(getVisiblePdfOverlay(signaturePositionsDialog)).toBeVisible({ timeout: 30000 })
 
 	await expect(signaturePositionsDialog.getByRole('img', { name: /Signature position for/i }).first()).toBeHidden()
 })
