@@ -27,6 +27,15 @@ test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page 
 	await widthField.fill('900')
 	await widthField.press('Tab')
 
+	// Wait for CSS changes to be applied after width change
+	await expect.poll(async () => {
+		const style = await pdfRoot.evaluate((el) => window.getComputedStyle(el).overflowX)
+		return style && style !== ''
+	}, {
+		timeout: 5000,
+		message: 'Expected overflow-x style to be applied to pdf-elements-root',
+	}).toBe(true)
+
 	// Check that overflow-x is set to auto (not hidden).
 	const computedStyle = await pdfRoot.evaluate((el) => {
 		return window.getComputedStyle(el).overflowX
