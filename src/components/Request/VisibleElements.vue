@@ -157,6 +157,9 @@ type PdfObject = {
 
 type PdfElementsRef = {
 	getAllObjects: (docIndex: number) => PdfObject[]
+	pdfDocuments?: Array<{
+		allObjects?: PdfObject[][]
+	}>
 	selectPage?: (docIndex: number, pageIndex: number) => void
 	selectedDocIndex?: number
 	selectedPageIndex?: number
@@ -493,7 +496,7 @@ const fallbackDocumentFile = computed<EditableRequestChildFile | null>(() => {
 		return null
 	}
 
-	return getFileUrl(toVisibleElementsFile(normalizedFile)) ? normalizedFile : null
+	return normalizedFile
 })
 function hasRenderablePdfFiles(files: EditableRequestChildFile[]): boolean {
 	return files.some((file) => getFileUrl(toVisibleElementsFile(file)) !== null)
@@ -508,6 +511,21 @@ const documentFiles = computed<EditableRequestChildFile[]>(() => {
 	}
 
 	return fallbackDocumentFile.value ? [fallbackDocumentFile.value] : []
+})
+const documentFileForMapping = computed<EditableRequestChildFile | null>(() => normalizeEditableRequestFile({
+	id: document.value.id,
+	name: document.value.name,
+	file: document.value.file ?? null,
+	metadata: document.value.metadata,
+	signers: document.value.signers,
+	visibleElements: document.value.visibleElements,
+}))
+const documentFilesForMapping = computed<EditableRequestChildFile[]>(() => {
+	if (documentFiles.value.length > 0) {
+		return documentFiles.value
+	}
+
+	return documentFileForMapping.value ? [documentFileForMapping.value] : []
 })
 const visibleElementsDocument = computed<DocumentLike>(() => toVisibleElementsDocument(document.value))
 const visibleElementsFiles = computed<FileLike[]>(() => documentFiles.value.map(toVisibleElementsFile))
@@ -675,7 +693,7 @@ async function fetchFiles() {
 function buildFilePagesMap() {
 	filePagesMap.value = {}
 
-	const filesToProcess = documentFiles.value
+	const filesToProcess = documentFilesForMapping.value
 
 	let currentPage = 1
 	filesToProcess.forEach((file, index) => {
@@ -707,7 +725,7 @@ function closeModal() {
 }
 
 function getPageHeightForFile(fileId: number, page: number) {
-	const filesToSearch = documentFiles.value
+	const filesToSearch = documentFilesForMapping.value
 	const fileInfo = filesToSearch.find(file => file.id === fileId)
 	return fileInfo?.metadata?.d?.[page - 1]?.h
 }
@@ -937,7 +955,7 @@ function getPdfObjectsForDocument(docIndex: number): PdfObject[] {
 
 function buildVisibleElements() {
 	const visibleElements: EditableVisibleElementPayload[] = []
-	const currentFiles = documentFiles.value
+	const currentFiles = documentFilesForMapping.value
 	const numDocuments = currentFiles.length
 
 	for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
@@ -994,7 +1012,7 @@ function buildVisibleElements() {
 				return
 			}
 			const signRequestId = resolveVisibleElementSignRequestId(object, fileInfo)
-			if (!Number.isFinite(signRequestId) || signRequestId <= 0) {
+			if (signRequestId === null) {
 				return
 			}
 
