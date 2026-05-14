@@ -832,6 +832,8 @@ async function goToSign() {
 
 async function save() {
 	loading.value = true
+	await nextTick()
+	await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
 	const visibleElements = buildVisibleElements()
 
 	try {
@@ -854,16 +856,109 @@ const handleShowVisibleElements: EventHandler<NextcloudEvent> = () => {
 	void showModal()
 }
 
+function resolveVisibleElementSignRequestId(
+	object: PdfObject,
+	fileInfo: EditableRequestChildFile,
+): number | null {
+	const directSignRequestId = Number(object.signer?.signRequestId)
+	if (Number.isFinite(directSignRequestId) && directSignRequestId > 0) {
+		return directSignRequestId
+	}
+
+	const existingElementSignRequestId = Number(object.visibleElement?.signRequestId)
+	if (Number.isFinite(existingElementSignRequestId) && existingElementSignRequestId > 0) {
+		return existingElementSignRequestId
+	}
+
+	if (!Array.isArray(fileInfo.signers) || fileInfo.signers.length === 0) {
+		return null
+	}
+
+	const envIdentifyMethods = Array.isArray(object.signer?.identifyMethods) ? object.signer.identifyMethods : []
+	const envIdMethods = envIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
+	if (envIdMethods.length > 0) {
+		const candidate = fileInfo.signers.find((signer) => {
+			const childIdentifyMethods = Array.isArray(signer.identifyMethods) ? signer.identifyMethods : []
+			const childIdMethods = childIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
+			return childIdMethods === envIdMethods
+		})
+		const candidateSignRequestId = Number(candidate?.signRequestId)
+		if (Number.isFinite(candidateSignRequestId) && candidateSignRequestId > 0) {
+			return candidateSignRequestId
+		}
+	}
+
+	const objectEmail = typeof object.signer?.email === 'string' ? object.signer.email : ''
+	const objectDisplayName = typeof object.signer?.displayName === 'string' ? object.signer.displayName : ''
+	const matchedSigner = fileInfo.signers.find((signer) => {
+		if (objectEmail && signer.email === objectEmail) {
+			return true
+		}
+		return objectDisplayName.length > 0 && signer.displayName === objectDisplayName
+	})
+	const matchedSignRequestId = Number(matchedSigner?.signRequestId)
+	if (Number.isFinite(matchedSignRequestId) && matchedSignRequestId > 0) {
+		return matchedSignRequestId
+	}
+
+	if (fileInfo.signers.length === 1) {
+		const singleSignerId = Number(fileInfo.signers[0]?.signRequestId)
+		if (Number.isFinite(singleSignerId) && singleSignerId > 0) {
+			return singleSignerId
+		}
+	}
+
+	return null
+}
+
+function getPdfObjectsForDocument(docIndex: number): PdfObject[] {
+	const pdfElements = getPdfElements()
+	const resolvedObjects = pdfElements?.getAllObjects?.(docIndex)
+	if (Array.isArray(resolvedObjects) && resolvedObjects.length > 0) {
+		return resolvedObjects as PdfObject[]
+	}
+
+	const rawPages = pdfElements?.pdfDocuments?.[docIndex]?.allObjects
+	if (!Array.isArray(rawPages)) {
+		return []
+	}
+
+	return rawPages.flatMap((pageObjects: unknown, pageIndex: number) => {
+		if (!Array.isArray(pageObjects)) {
+			return []
+		}
+		return pageObjects.map((object) => ({
+			...(object as PdfObject),
+			pageIndex,
+			pageNumber: pageIndex + 1,
+		}))
+	})
+}
+
 function buildVisibleElements() {
 	const visibleElements: EditableVisibleElementPayload[] = []
 	const currentFiles = documentFiles.value
-	const pdfElements = getPdfElements()
 	const numDocuments = currentFiles.length
 
 	for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
-		const objects = pdfElements?.getAllObjects(docIndex) || []
+		const objects = getPdfObjectsForDocument(docIndex)
 		objects.forEach((object: PdfObject) => {
 			if (!object.signer) return
+
+			if (object.visibleElement?.fileId !== undefined
+				&& object.visibleElement?.signRequestId !== undefined
+				&& object.visibleElement?.coordinates) {
+				visibleElements.push({
+					type: 'signature',
+					fileId: object.visibleElement.fileId,
+					signRequestId: object.visibleElement.signRequestId,
+					...(object.visibleElement.elementId !== undefined ? { elementId: object.visibleElement.elementId } : {}),
+					coordinates: {
+						...object.visibleElement.coordinates,
+					},
+				})
+				return
+			}
 
 			let globalPageNumber = object.pageNumber
 			const pageInfos = Object.keys(filePagesMap.value).map((page) => filePagesMap.value[Number(page)])
@@ -895,18 +990,11 @@ function buildVisibleElements() {
 			const pageNumber = globalPageNumber - pageInfo.startPage + 1
 
 			const fileInfo = currentFiles.find((file) => file.id === targetFileId)
-			if (!fileInfo || !Array.isArray(fileInfo.signers)) {
+			if (!fileInfo) {
 				return
 			}
-			const envIdentifyMethods = Array.isArray(object.signer.identifyMethods) ? object.signer.identifyMethods : []
-			const envIdMethods = envIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
-			const candidate = fileInfo.signers.find((signer) => {
-				const childIdentifyMethods = Array.isArray(signer.identifyMethods) ? signer.identifyMethods : []
-				const childIdMethods = childIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
-				return childIdMethods === envIdMethods
-			})
-			const signRequestId = Number(candidate?.signRequestId)
-			if (!Number.isFinite(signRequestId)) {
+			const signRequestId = resolveVisibleElementSignRequestId(object, fileInfo)
+			if (!Number.isFinite(signRequestId) || signRequestId <= 0) {
 				return
 			}
 
