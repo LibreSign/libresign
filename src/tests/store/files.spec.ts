@@ -1398,6 +1398,36 @@ describe('files store - critical business rules', () => {
 			expect(store.files[1].visibleElements).toEqual([{ id: 77 }])
 		})
 
+		it('uses PATCH when the selected draft only has an existing uuid', async () => {
+			const store = useFilesStore()
+			store.selectedFileId = -1
+			store.files[-1] = {
+				id: -1,
+				uuid: 'existing-request-uuid',
+				name: 'contract.pdf',
+				signers: [{ identifyMethods: [{ method: 'email', value: 'signer01@libresign.coop', requirement: 'optional' }] }],
+				signatureFlow: 'parallel',
+			}
+			axiosMock.mockResolvedValue({
+				data: {
+					ocs: {
+						data: {
+							id: 1,
+							uuid: 'existing-request-uuid',
+							signatureFlow: 'parallel',
+							signers: [],
+						},
+					},
+				},
+			})
+
+			await store.saveOrUpdateSignatureRequest({})
+
+			const config = axiosMock.mock.calls[0][0]
+			expect(config.method).toBe('patch')
+			expect(config.data.uuid).toBe('existing-request-uuid')
+		})
+
 		it('replaces envelope nodeId when server returns new id', async () => {
 			const store = useFilesStore()
 			store.selectedFileId = 10
