@@ -73,15 +73,55 @@ async function waitForUserConfigSave(page: Page, key: string) {
 	})
 }
 
+async function getPrimaryScrollTop(page: Page) {
+	return page.evaluate(() => {
+		const appContent = document.querySelector('#app-content')
+		if (appContent instanceof HTMLElement && appContent.scrollHeight > (appContent.clientHeight + 1)) {
+			return appContent.scrollTop
+		}
+
+		const toolbar = document.querySelector('.policy-workbench__catalog-search')
+		let current = toolbar instanceof HTMLElement ? toolbar.parentElement : null
+		while (current) {
+			const styles = window.getComputedStyle(current)
+			const isScrollable = (styles.overflowY === 'auto' || styles.overflowY === 'scroll')
+				&& current.scrollHeight > (current.clientHeight + 1)
+			if (isScrollable) {
+				return current.scrollTop
+			}
+
+			current = current.parentElement
+		}
+
+		const root = document.scrollingElement as HTMLElement | null
+		return window.scrollY || root?.scrollTop || 0
+	})
+}
+
 async function scrollAppContentToRatio(page: Page, ratio: number) {
 	const getMaxScrollable = async () => {
 		return page.evaluate(() => {
-			const appContent = document.querySelector('#app-content') as HTMLElement | null
-			if (!appContent) {
-				return 0
+			const appContent = document.querySelector('#app-content')
+			if (appContent instanceof HTMLElement && appContent.scrollHeight > (appContent.clientHeight + 1)) {
+				return Math.max(0, appContent.scrollHeight - appContent.clientHeight)
 			}
 
-			return Math.max(0, appContent.scrollHeight - appContent.clientHeight)
+			const toolbar = document.querySelector('.policy-workbench__catalog-search')
+			let current = toolbar instanceof HTMLElement ? toolbar.parentElement : null
+			while (current) {
+				const styles = window.getComputedStyle(current)
+				const isScrollable = (styles.overflowY === 'auto' || styles.overflowY === 'scroll')
+					&& current.scrollHeight > (current.clientHeight + 1)
+				if (isScrollable) {
+					return Math.max(0, current.scrollHeight - current.clientHeight)
+				}
+
+				current = current.parentElement
+			}
+
+			const root = document.scrollingElement as HTMLElement | null
+			const rootScrollHeight = root?.scrollHeight ?? document.documentElement.scrollHeight
+			return Math.max(0, rootScrollHeight - window.innerHeight)
 		})
 	}
 
@@ -92,15 +132,38 @@ async function scrollAppContentToRatio(page: Page, ratio: number) {
 	})
 
 	const scrollTarget = await page.evaluate((value) => {
-		const appContent = document.querySelector('#app-content') as HTMLElement | null
-		if (!appContent) {
-			return 0
+		const appContent = document.querySelector('#app-content')
+		if (appContent instanceof HTMLElement && appContent.scrollHeight > (appContent.clientHeight + 1)) {
+			const maxScroll = Math.max(0, appContent.scrollHeight - appContent.clientHeight)
+			const target = Math.round(maxScroll * value)
+			appContent.scrollTo({ top: target, behavior: 'auto' })
+			appContent.dispatchEvent(new Event('scroll'))
+			return target
 		}
 
-		const maxScroll = Math.max(0, appContent.scrollHeight - appContent.clientHeight)
+		const toolbar = document.querySelector('.policy-workbench__catalog-search')
+		let current = toolbar instanceof HTMLElement ? toolbar.parentElement : null
+		while (current) {
+			const styles = window.getComputedStyle(current)
+			const isScrollable = (styles.overflowY === 'auto' || styles.overflowY === 'scroll')
+				&& current.scrollHeight > (current.clientHeight + 1)
+			if (isScrollable) {
+				const maxScroll = Math.max(0, current.scrollHeight - current.clientHeight)
+				const target = Math.round(maxScroll * value)
+				current.scrollTo({ top: target, behavior: 'auto' })
+				current.dispatchEvent(new Event('scroll'))
+				return target
+			}
+
+			current = current.parentElement
+		}
+
+		const root = document.scrollingElement as HTMLElement | null
+		const rootScrollHeight = root?.scrollHeight ?? document.documentElement.scrollHeight
+		const maxScroll = Math.max(0, rootScrollHeight - window.innerHeight)
 		const target = Math.round(maxScroll * value)
-		appContent.scrollTo({ top: target, behavior: 'auto' })
-		appContent.dispatchEvent(new Event('scroll'))
+		window.scrollTo({ top: target, behavior: 'auto' })
+		window.dispatchEvent(new Event('scroll'))
 		return target
 	}, ratio)
 
@@ -374,10 +437,7 @@ test('back to top returns to search toolbar instead of absolute page top', async
 	const minExpectedScroll = Math.max(40, Math.floor(scrollTarget * 0.5))
 
 	await expect.poll(async () => {
-		return page.evaluate(() => {
-			const appContent = document.querySelector('#app-content') as HTMLElement | null
-			return appContent?.scrollTop ?? 0
-		})
+		return getPrimaryScrollTop(page)
 	}, { timeout: 10000 }).toBeGreaterThan(minExpectedScroll)
 
 	const backToTopButton = page.locator('.policy-workbench__back-to-top').first()
@@ -387,15 +447,14 @@ test('back to top returns to search toolbar instead of absolute page top', async
 	await expect(searchField).toBeFocused({ timeout: 10000 })
 
 	const afterScroll = await page.evaluate(() => {
-		const appContent = document.querySelector('#app-content') as HTMLElement | null
 		const toolbar = document.querySelector('.policy-workbench__catalog-search') as HTMLElement | null
 		return {
-			appContentScrollTop: appContent?.scrollTop ?? 0,
 			toolbarTop: toolbar?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY,
 		}
 	})
+	const containerScrollTop = await getPrimaryScrollTop(page)
 
-	expect(afterScroll.appContentScrollTop, 'Back-to-top should not jump to absolute page top').toBeGreaterThan(100)
+	expect(containerScrollTop, 'Back-to-top should not jump to absolute page top').toBeGreaterThan(100)
 	expect(afterScroll.toolbarTop, 'Search toolbar should be brought near the top of the viewport').toBeLessThan(250)
 
 	expect(errorCollector.all(), 'No JavaScript errors should happen while using back-to-top').toEqual([])
@@ -436,10 +495,7 @@ test('active category chip tracks the section with visible cards while scrolling
 	await scrollAppContentToRatio(page, 0.75)
 
 	await expect.poll(async () => {
-		return page.evaluate(() => {
-			const appContent = document.querySelector('#app-content') as HTMLElement | null
-			return appContent?.scrollTop ?? 0
-		})
+		return getPrimaryScrollTop(page)
 	}, { timeout: 10000 }).toBeGreaterThan(400)
 
 	await expect.poll(async () => {
