@@ -1233,7 +1233,7 @@ const _filesStore = defineStore('files', () => {
 
 		const config = {
 			url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
-			method: uuid || selectedFile.id ? 'patch' : 'post',
+			method: uuid || selectedFile.id || selectedFile.uuid ? 'patch' : 'post',
 			data: {
 				name: selectedFile?.name,
 				signers: requestSigners,
