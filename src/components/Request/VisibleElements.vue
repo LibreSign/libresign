@@ -510,6 +510,20 @@ const documentFiles = computed<EditableRequestChildFile[]>(() => {
 		return document.value.files
 	}
 
+	// Special handling for empty files array:
+	// If files exists as an empty array, check if there's a renderable fallback
+	// If fallback is renderable, use it; otherwise return empty to trigger fetch
+	if (Array.isArray(document.value.files) && document.value.files.length === 0 && fallbackDocumentFile.value) {
+		const fallbackUrl = getFileUrl(toVisibleElementsFile(fallbackDocumentFile.value))
+		if (fallbackUrl !== null) {
+			// Fallback is renderable, use it
+			return [fallbackDocumentFile.value]
+		}
+		// Fallback exists but is not renderable, return empty to trigger fetch
+		return []
+	}
+
+	// Default: use fallback if available, otherwise empty
 	return fallbackDocumentFile.value ? [fallbackDocumentFile.value] : []
 })
 const documentFileForMapping = computed<EditableRequestChildFile | null>(() => normalizeEditableRequestFile({
