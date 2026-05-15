@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "683fc6c9ae20a480af7b531acfea05bb",
+    "content-hash": "4e7c1fe2e3ed2a4289c5dc67199ce847",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -488,16 +488,16 @@
         },
         {
             "name": "nextcloud/ocp",
-            "version": "dev-master",
+            "version": "dev-stable34",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "134c1cdd11e8ed6c8814a370a4ab03e567bd9659"
+                "reference": "72de02fbad95545055983d050e564fe39128992d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/134c1cdd11e8ed6c8814a370a4ab03e567bd9659",
-                "reference": "134c1cdd11e8ed6c8814a370a4ab03e567bd9659",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/72de02fbad95545055983d050e564fe39128992d",
+                "reference": "72de02fbad95545055983d050e564fe39128992d",
                 "shasum": ""
             },
             "require": {
@@ -508,11 +508,10 @@
                 "psr/http-client": "^1.0.3",
                 "psr/log": "^3.0.2"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "34.0.0-dev"
+                    "dev-stable34": "34.0.0-dev"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -532,9 +531,9 @@
             "description": "Composer package containing Nextcloud's public OCP API and the unstable NCU API",
             "support": {
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
-                "source": "https://github.com/nextcloud-deps/ocp/tree/master"
+                "source": "https://github.com/nextcloud-deps/ocp/tree/stable34"
             },
-            "time": "2026-04-23T01:28:52+00:00"
+            "time": "2026-05-15T08:43:27+00:00"
         },
         {
             "name": "psr/clock",
