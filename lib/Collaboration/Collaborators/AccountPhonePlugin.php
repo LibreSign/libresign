@@ -11,6 +11,7 @@ namespace OCA\Libresign\Collaboration\Collaborators;
 use OC\KnownUser\KnownUserService;
 use OCA\Libresign\Service\Identify\SearchNormalizer;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Accounts\IAccountManager;
 use OCP\Collaboration\Collaborators\ISearchPlugin;
 use OCP\Collaboration\Collaborators\ISearchResult;
@@ -22,7 +23,6 @@ use OCP\IUserSession;
 
 class AccountPhonePlugin implements ISearchPlugin {
 	public const TYPE_SIGNER_ACCOUNT_PHONE = 51;
-	private const PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -44,7 +44,7 @@ class AccountPhonePlugin implements ISearchPlugin {
 		$method = $this->searchContext->getMethod();
 		$search = trim((string)$search);
 
-		if ($search === '' || !in_array($method, self::PHONE_BASED_METHODS, true)) {
+		if ($search === '' || !in_array($method, IdentifyMethodService::IDENTIFY_PHONE_METHODS, true)) {
 			return false;
 		}
 

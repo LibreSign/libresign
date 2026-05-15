@@ -53,6 +53,10 @@ class SubjectAlternativeNameServiceTest extends TestCase {
 				'input' => 'whatsapp:+444555666',
 				'expected' => ['method' => 'whatsapp', 'value' => '+444555666'],
 			],
+			'whatsappbusiness format' => [
+				'input' => 'whatsappbusiness:+444555666',
+				'expected' => ['method' => 'whatsappbusiness', 'value' => '+444555666'],
+			],
 			'xmpp format' => [
 				'input' => 'xmpp:user@xmpp.server.com',
 				'expected' => ['method' => 'xmpp', 'value' => 'user@xmpp.server.com'],
@@ -165,6 +169,11 @@ class SubjectAlternativeNameServiceTest extends TestCase {
 				'method' => 'whatsapp',
 				'value' => '+444555666',
 				'expected' => 'whatsapp:+444555666',
+			],
+			'whatsappbusiness method' => [
+				'method' => 'whatsappbusiness',
+				'value' => '+444555666',
+				'expected' => 'whatsappbusiness:+444555666',
 			],
 			'xmpp method' => [
 				'method' => 'xmpp',

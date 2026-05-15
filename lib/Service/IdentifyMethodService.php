@@ -21,6 +21,7 @@ use OCA\Libresign\Service\IdentifyMethod\Signal;
 use OCA\Libresign\Service\IdentifyMethod\Sms;
 use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
+use OCA\Libresign\Service\IdentifyMethod\Whatsappbusiness;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
 use OCP\IL10N;
 use OCP\IUserManager;
@@ -35,7 +36,23 @@ class IdentifyMethodService {
 	public const IDENTIFY_TELEGRAM = 'telegram';
 	public const IDENTIFY_SMS = 'sms';
 	public const IDENTIFY_WHATSAPP = 'whatsapp';
+	public const IDENTIFY_WHATSAPP_BUSINESS = 'whatsappbusiness';
 	public const IDENTIFY_XMPP = 'xmpp';
+	public const IDENTIFY_PHONE_METHODS = [
+		self::IDENTIFY_WHATSAPP,
+		self::IDENTIFY_WHATSAPP_BUSINESS,
+		self::IDENTIFY_SMS,
+		self::IDENTIFY_TELEGRAM,
+		self::IDENTIFY_SIGNAL,
+	];
+	public const IDENTIFY_TWOFACTOR_GATEWAY_METHODS = [
+		self::IDENTIFY_SMS,
+		self::IDENTIFY_SIGNAL,
+		self::IDENTIFY_TELEGRAM,
+		self::IDENTIFY_WHATSAPP,
+		self::IDENTIFY_WHATSAPP_BUSINESS,
+		self::IDENTIFY_XMPP,
+	];
 	public const IDENTIFY_PASSWORD = 'password';
 	public const IDENTIFY_CLICK_TO_SIGN = 'clickToSign';
 	public const IDENTIFY_METHODS = [
@@ -45,6 +62,7 @@ class IdentifyMethodService {
 		self::IDENTIFY_TELEGRAM,
 		self::IDENTIFY_SMS,
 		self::IDENTIFY_WHATSAPP,
+		self::IDENTIFY_WHATSAPP_BUSINESS,
 		self::IDENTIFY_XMPP,
 		self::IDENTIFY_PASSWORD,
 		self::IDENTIFY_CLICK_TO_SIGN,
@@ -68,6 +86,7 @@ class IdentifyMethodService {
 		private Sms $sms,
 		private Telegram $telegram,
 		private Whatsapp $Whatsapp,
+		private Whatsappbusiness $whatsappbusiness,
 		private Xmpp $xmpp,
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 	) {
@@ -149,6 +168,13 @@ class IdentifyMethodService {
 			return true;
 		}
 		return class_exists('OCA\\Libresign\\Service\\IdentifyMethod\\SignatureMethod\\' . ucfirst($name));
+	}
+
+	public static function resolveTwofactorGatewayName(string $identifyMethod): string {
+		return match ($identifyMethod) {
+			self::IDENTIFY_WHATSAPP => 'gowhatsapp',
+			default => strtolower($identifyMethod),
+		};
 	}
 
 	private function setEntityData(string $method, string $identifyValue, ?string $requirement = null): void {
@@ -357,6 +383,9 @@ class IdentifyMethodService {
 		if ($this->Whatsapp->isTwofactorGatewayEnabled()) {
 			$this->identifyMethodsSettings[] = $this->Whatsapp->getSettings();
 		}
+		if ($this->whatsappbusiness->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsSettings[] = $this->whatsappbusiness->getSettings();
+		}
 		if ($this->xmpp->isTwofactorGatewayEnabled()) {
 			$this->identifyMethodsSettings[] = $this->xmpp->getSettings();
 		}
@@ -372,6 +401,7 @@ class IdentifyMethodService {
 			$this->sms->getName() => $this->sms->getFriendlyName(),
 			$this->telegram->getName() => $this->telegram->getFriendlyName(),
 			$this->Whatsapp->getName() => $this->Whatsapp->getFriendlyName(),
+			$this->whatsappbusiness->getName() => $this->whatsappbusiness->getFriendlyName(),
 			$this->xmpp->getName() => $this->xmpp->getFriendlyName(),
 		];
 	}

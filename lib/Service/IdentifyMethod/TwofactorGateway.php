@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SessionService;
 use OCA\TwoFactorGateway\Provider\Gateway\Factory;
 use OCP\App\IAppManager;
@@ -82,10 +83,7 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 	}
 
 	private function getGatewayName(): string {
-		return match ($this->getId()) {
-			'whatsapp' => 'gowhatsapp',
-			default => strtolower($this->getId()),
-		};
+		return IdentifyMethodService::resolveTwofactorGatewayName($this->getId());
 	}
 
 	#[\Override]
