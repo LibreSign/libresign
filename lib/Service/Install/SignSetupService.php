@@ -70,10 +70,17 @@ class SignSetupService {
 
 	public function getArchitectures(): array {
 		$appInfo = $this->appManager->getAppInfo(Application::APP_ID);
-		if (empty($appInfo['dependencies']['architecture'])) {
+		$architectures = $appInfo['dependencies']['architecture'] ?? null;
+		if (empty($architectures)) {
 			throw new \Exception('dependencies>architecture not found at info.xml');
 		}
-		return $appInfo['dependencies']['architecture'];
+		if (is_string($architectures)) {
+			return [$architectures];
+		}
+		if (!is_array($architectures)) {
+			throw new \Exception('dependencies>architecture has invalid format at info.xml');
+		}
+		return array_values(array_map(static fn (mixed $architecture): string => (string)$architecture, $architectures));
 	}
 
 	public function setPrivateKey(PrivateKey $privateKey): void {
