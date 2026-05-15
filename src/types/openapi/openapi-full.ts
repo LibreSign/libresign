@@ -927,11 +927,7 @@ export type paths = {
         delete: operations["admin-signature-background-delete"];
         options?: never;
         head?: never;
-        /**
-         * Reset the background image to be the default of LibreSign
-         * @description This endpoint requires admin access
-         */
-        patch: operations["admin-signature-background-reset"];
+        patch?: never;
         trace?: never;
     };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-text": {
@@ -968,8 +964,9 @@ export type paths = {
         get?: never;
         put?: never;
         /**
-         * Update certificate policy of this instance
-         * @description This endpoint requires admin access
+         * Update or delete certificate policy of this instance
+         * @description **POST**: Upload a new PDF file as certificate policy. To delete, use DELETE method. **DELETE**: Remove the currently set certificate policy (reset to defaults).
+         *     This endpoint requires admin access
          */
         post: operations["admin-save-certificate-policy"];
         /**
@@ -1041,12 +1038,7 @@ export type paths = {
          *     This endpoint requires admin access
          */
         post: operations["admin-set-tsa-config"];
-        /**
-         * Delete TSA configuration
-         * @description Delete all TSA configuration fields from the application settings.
-         *     This endpoint requires admin access
-         */
-        delete: operations["admin-delete-tsa-config"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -5575,36 +5567,6 @@ export interface operations {
             };
         };
     };
-    "admin-signature-background-reset": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Image reseted to default */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SuccessStatusResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
     "admin-signature-text-get": {
         parameters: {
             query?: {
@@ -5762,7 +5724,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Not found */
+            /** @description Upload or validation error */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -5801,7 +5763,24 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: Record<string, never>;
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["FailureStatusResponse"];
                         };
                     };
                 };
@@ -5994,36 +5973,6 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorStatusResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-delete-tsa-config": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SuccessStatusResponse"];
                         };
                     };
                 };
