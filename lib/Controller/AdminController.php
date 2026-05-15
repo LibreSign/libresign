@@ -10,6 +10,7 @@ namespace OCA\Libresign\Controller;
 
 use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Controller\Traits\UploadValidator;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
@@ -67,6 +68,8 @@ use UnexpectedValueException;
  * @psalm-import-type LibresignFooterTemplateResponse from \OCA\Libresign\ResponseDefinitions
  */
 class AdminController extends AEnvironmentAwareController {
+	use UploadValidator;
+
 	private IEventSource $eventSource;
 	public function __construct(
 		IRequest $request,
@@ -321,29 +324,9 @@ class AdminController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
 	public function signatureBackgroundSave(): DataResponse {
 		$image = $this->request->getUploadedFile('image');
-		$phpFileUploadErrors = [
-			UPLOAD_ERR_OK => $this->l10n->t('The file was uploaded'),
-			UPLOAD_ERR_INI_SIZE => $this->l10n->t('The uploaded file exceeds the upload_max_filesize directive in php.ini'),
-			UPLOAD_ERR_FORM_SIZE => $this->l10n->t('The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form'),
-			UPLOAD_ERR_PARTIAL => $this->l10n->t('The file was only partially uploaded'),
-			UPLOAD_ERR_NO_FILE => $this->l10n->t('No file was uploaded'),
-			UPLOAD_ERR_NO_TMP_DIR => $this->l10n->t('Missing a temporary folder'),
-			UPLOAD_ERR_CANT_WRITE => $this->l10n->t('Could not write file to disk'),
-			UPLOAD_ERR_EXTENSION => $this->l10n->t('A PHP extension stopped the file upload'),
-		];
-		if (empty($image)) {
-			$error = $this->l10n->t('No file uploaded');
-		} elseif (!empty($image) && array_key_exists('error', $image) && $image['error'] !== UPLOAD_ERR_OK) {
-			$error = $phpFileUploadErrors[$image['error']];
-		}
-		if ($error !== null) {
-			return new DataResponse(
-				[
-					'message' => $error,
-					'status' => 'failure',
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+		$uploadError = $this->validateUploadedFile($image, 'image');
+		if ($uploadError !== null) {
+			return $uploadError;
 		}
 		try {
 			$this->signatureBackgroundService->updateImage($image['tmp_name']);
@@ -385,23 +368,6 @@ class AdminController extends AEnvironmentAwareController {
 		$response->addHeader('Content-Disposition', 'attachment; filename="background.png"');
 		$response->addHeader('Content-Type', 'image/png');
 		return $response;
-	}
-
-	/**
-	 * Reset the background image to be the default of LibreSign
-	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignSuccessStatusResponse, array{}>
-	 *
-	 * 200: Image reseted to default
-	 */
-	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
-	public function signatureBackgroundReset(): DataResponse {
-		$this->signatureBackgroundService->reset();
-		return new DataResponse(
-			[
-				'status' => 'success',
-			]
-		);
 	}
 
 	/**
@@ -501,39 +467,23 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Update certificate policy of this instance
+	 * Update or delete certificate policy of this instance
+	 *
+	 * **POST**: Upload a new PDF file as certificate policy. To delete, use DELETE method.
+	 * **DELETE**: Remove the currently set certificate policy (reset to defaults).
 	 *
 	 * @return DataResponse<Http::STATUS_OK, LibresignCertificatePolicyResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignFailureStatusResponse, array{}>
 	 *
 	 * 200: OK
-	 * 422: Not found
+	 * 422: Upload or validation error
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate-policy', requirements: ['apiVersion' => '(v1)'])]
 	public function saveCertificatePolicy(): DataResponse {
+		// Handle POST method - upload PDF
 		$pdf = $this->request->getUploadedFile('pdf');
-		$phpFileUploadErrors = [
-			UPLOAD_ERR_OK => $this->l10n->t('The file was uploaded'),
-			UPLOAD_ERR_INI_SIZE => $this->l10n->t('The uploaded file exceeds the upload_max_filesize directive in php.ini'),
-			UPLOAD_ERR_FORM_SIZE => $this->l10n->t('The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form'),
-			UPLOAD_ERR_PARTIAL => $this->l10n->t('The file was only partially uploaded'),
-			UPLOAD_ERR_NO_FILE => $this->l10n->t('No file was uploaded'),
-			UPLOAD_ERR_NO_TMP_DIR => $this->l10n->t('Missing a temporary folder'),
-			UPLOAD_ERR_CANT_WRITE => $this->l10n->t('Could not write file to disk'),
-			UPLOAD_ERR_EXTENSION => $this->l10n->t('A PHP extension stopped the file upload'),
-		];
-		if (empty($pdf)) {
-			$error = $this->l10n->t('No file uploaded');
-		} elseif (!empty($pdf) && array_key_exists('error', $pdf) && $pdf['error'] !== UPLOAD_ERR_OK) {
-			$error = $phpFileUploadErrors[$pdf['error']];
-		}
-		if ($error !== null) {
-			return new DataResponse(
-				[
-					'message' => $error,
-					'status' => 'failure',
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+		$uploadError = $this->validateUploadedFile($pdf, 'pdf');
+		if ($uploadError !== null) {
+			return $uploadError;
 		}
 		try {
 			$cps = $this->certificatePolicyService->updateFile($pdf['tmp_name']);
@@ -557,15 +507,25 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Delete certificate policy of this instance
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignFailureStatusResponse, array{}>
 	 *
 	 * 200: OK
-	 * 404: Not found
+	 * 422: Error
 	 */
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/certificate-policy', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteCertificatePolicy(): DataResponse {
-		$this->certificatePolicyService->deleteFile();
-		return new DataResponse();
+		try {
+			$this->certificatePolicyService->deleteFile();
+		} catch (\Exception $e) {
+			return new DataResponse(
+				[
+					'message' => $e->getMessage(),
+					'status' => 'failure',
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		return new DataResponse(['status' => 'success']);
 	}
 
 	/**
@@ -664,7 +624,8 @@ class AdminController extends AEnvironmentAwareController {
 		?string $tsa_password = null,
 	): DataResponse {
 		if (empty($tsa_url)) {
-			return $this->deleteTsaConfig();
+			$this->resetTsaConfig();
+			return new DataResponse(['status' => 'success']);
 		}
 
 		$trimmedUrl = trim($tsa_url);
@@ -740,20 +701,10 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Delete TSA configuration
-	 *
-	 * Delete all TSA configuration fields from the application settings.
-	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignSuccessStatusResponse, array{}>
-	 *
-	 * 200: OK
+	 * Reset TSA configuration to defaults (internal helper)
 	 */
-	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/tsa', requirements: ['apiVersion' => '(v1)'])]
-	public function deleteTsaConfig(): DataResponse {
+	private function resetTsaConfig(): void {
 		$this->policyService->saveSystem(TsaPolicy::KEY, TsaPolicyValue::defaults(), false);
-
-		return new DataResponse(['status' => 'success']);
 	}
 
 	/**
