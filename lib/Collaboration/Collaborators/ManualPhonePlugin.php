@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Collaboration\Collaborators;
 
 use OCA\Libresign\Service\Identify\SignerSearchContext;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Collaboration\Collaborators\ISearchPlugin;
 use OCP\Collaboration\Collaborators\ISearchResult;
 use OCP\Collaboration\Collaborators\SearchResultType;
@@ -17,7 +18,6 @@ use OCP\IPhoneNumberUtil;
 
 class ManualPhonePlugin implements ISearchPlugin {
 	public const TYPE_SIGNER_MANUAL_PHONE = 53;
-	private const PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
 
 	public function __construct(
 		private IConfig $config,
@@ -34,7 +34,7 @@ class ManualPhonePlugin implements ISearchPlugin {
 		$method = $this->searchContext->getMethod();
 		$search = trim((string)$search);
 
-		if ($search === '' || !in_array($method, self::PHONE_BASED_METHODS, true)) {
+		if ($search === '' || !in_array($method, IdentifyMethodService::IDENTIFY_PHONE_METHODS, true)) {
 			return false;
 		}
 

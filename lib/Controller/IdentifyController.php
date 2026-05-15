@@ -51,7 +51,7 @@ class IdentifyController extends AEnvironmentAwareController {
 	 * Used to identify who can sign the document. The return of this endpoint is related with Administration Settiongs > LibreSign > Identify method.
 	 *
 	 * @param string $search search params
-	 * @param string $method filter by method (email, account, sms, signal, telegram, whatsapp, xmpp)
+	 * @param string $method filter by method (email, account, sms, signal, telegram, whatsapp, whatsappbusiness, xmpp)
 	 * @param int $page the number of page to return. Default: 1
 	 * @param int $limit Total of elements to return. Default: 25
 	 * @return DataResponse<Http::STATUS_OK, LibresignIdentifyAccountsResponse, array{}>

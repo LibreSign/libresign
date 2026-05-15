@@ -14,11 +14,10 @@ use OCA\Libresign\Collaboration\Collaborators\ManualPhonePlugin;
 use OCA\Libresign\Collaboration\Collaborators\SignerPlugin;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Share\IShare;
 
 class ShareTypeResolver {
-	private const PHONE_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
-
 	public function __construct(
 		private Email $identifyEmailMethod,
 		private Account $identifyAccountMethod,
@@ -30,7 +29,7 @@ class ShareTypeResolver {
 		$isAllMethods = $normalizedMethod === '' || $normalizedMethod === 'all';
 		$includeAccount = $isAllMethods || $normalizedMethod === 'account';
 		$includeEmail = $isAllMethods || $normalizedMethod === 'email';
-		$includePhone = $isAllMethods || in_array($normalizedMethod, self::PHONE_METHODS, true);
+		$includePhone = $isAllMethods || in_array($normalizedMethod, IdentifyMethodService::IDENTIFY_PHONE_METHODS, true);
 
 		$shareTypes = [];
 		if ($includeEmail) {

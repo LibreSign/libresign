@@ -104,6 +104,7 @@ const methodIconMap: Record<string, keyof typeof iconMap> = {
 	sms: 'svgSms',
 	telegram: 'svgTelegram',
 	whatsapp: 'svgWhatsapp',
+	whatsappbusiness: 'svgWhatsapp',
 	xmpp: 'svgXmpp',
 }
 

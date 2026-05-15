@@ -260,6 +260,24 @@ class ResultFormatterTest extends TestCase {
 		$this->assertEquals('signal', $result[0]['iconName']);
 	}
 
+	public function testFormatWhatsappBusinessPhoneMethodUsesWhatsappIcon(): void {
+		$list = [
+			[
+				'value' => ['shareWith' => '+5521987776666', 'shareType' => AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE],
+				'label' => 'WhatsApp Business User',
+				'shareWithDisplayNameUnique' => '+5521987776666',
+				'method' => 'whatsappbusiness',
+			],
+		];
+
+		$result = $this->formatter->formatForNcSelect($list);
+
+		$this->assertCount(1, $result);
+		$this->assertEquals('+5521987776666', $result[0]['identify']);
+		$this->assertEquals('whatsappbusiness', $result[0]['method']);
+		$this->assertEquals('whatsapp', $result[0]['iconName']);
+	}
+
 	public function testFormatMultiplePhoneTypesCorrectly(): void {
 		$list = [
 			[

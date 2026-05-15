@@ -72,6 +72,7 @@ class SearchNormalizerTest extends TestCase {
 
 			// All phone methods work identically
 			['21987776666', 'whatsapp', 'BR', '+5521987776666', 'WhatsApp normalizes'],
+			['21987776666', 'whatsappbusiness', 'BR', '+5521987776666', 'WhatsApp Business normalizes'],
 			['21987776666', 'sms', 'BR', '+5521987776666', 'SMS normalizes'],
 			['21987776666', 'telegram', 'BR', '+5521987776666', 'Telegram normalizes'],
 			['21987776666', 'signal', 'BR', '+5521987776666', 'Signal normalizes'],
@@ -132,6 +133,7 @@ class SearchNormalizerTest extends TestCase {
 
 			// All phone methods work identically
 			['21987776666', 'whatsapp', 'BR', '+5521987776666', 'WhatsApp normalizes'],
+			['21987776666', 'whatsappbusiness', 'BR', '+5521987776666', 'WhatsApp Business normalizes'],
 			['21987776666', 'sms', 'BR', '+5521987776666', 'SMS normalizes'],
 			['21987776666', 'telegram', 'BR', '+5521987776666', 'Telegram normalizes'],
 			['21987776666', 'signal', 'BR', '+5521987776666', 'Signal normalizes'],

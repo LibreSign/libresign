@@ -16,6 +16,7 @@ use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\TwoFactorGateway\Provider\Gateway\Factory;
 use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
@@ -68,7 +69,7 @@ class TwofactorGatewayListener implements IEventListener {
 			if ($entity->isDeletedAccount()) {
 				return;
 			}
-			if (!in_array($entity->getIdentifierKey(), ['sms', 'signal', 'telegram', 'whatsapp', 'xmpp'], true)) {
+			if (!in_array($entity->getIdentifierKey(), IdentifyMethodService::IDENTIFY_TWOFACTOR_GATEWAY_METHODS, true)) {
 				return;
 			}
 			if (!$this->appManager->isEnabledForAnyone('twofactor_gateway')) {
@@ -98,7 +99,7 @@ class TwofactorGatewayListener implements IEventListener {
 
 			/** @var Factory */
 			$gatewayFactory = Server::get(Factory::class);
-			$gatewayName = $this->getGatewayName($entity->getIdentifierKey());
+			$gatewayName = IdentifyMethodService::resolveTwofactorGatewayName($entity->getIdentifierKey());
 			$gateway = $gatewayFactory->get($gatewayName);
 			try {
 				$gateway->send($identifier, $message);
@@ -115,16 +116,6 @@ class TwofactorGatewayListener implements IEventListener {
 		}
 	}
 
-	/**
-	 * @todo Make compatible with GoWhatsapp and WhatsApp gateways
-	 */
-	private function getGatewayName(string $identifierKey): string {
-		return match ($identifierKey) {
-			'whatsapp' => 'gowhatsapp',
-			default => strtolower($identifierKey),
-		};
-	}
-
 	protected function sendSignedNotification(
 		SignRequest $signRequest,
 		IIdentifyMethod $identifyMethod,
@@ -135,7 +126,7 @@ class TwofactorGatewayListener implements IEventListener {
 			if ($entity->isDeletedAccount()) {
 				return;
 			}
-			if (!in_array($entity->getIdentifierKey(), ['sms', 'signal', 'telegram', 'whatsapp', 'xmpp'], true)) {
+			if (!in_array($entity->getIdentifierKey(), IdentifyMethodService::IDENTIFY_TWOFACTOR_GATEWAY_METHODS, true)) {
 				return;
 			}
 			if (!$this->appManager->isEnabledForAnyone('twofactor_gateway')) {
@@ -159,7 +150,7 @@ class TwofactorGatewayListener implements IEventListener {
 
 			/** @var Factory */
 			$gatewayFactory = Server::get(Factory::class);
-			$gatewayName = $this->getGatewayName($entity->getIdentifierKey());
+			$gatewayName = IdentifyMethodService::resolveTwofactorGatewayName($entity->getIdentifierKey());
 			$gateway = $gatewayFactory->get($gatewayName);
 			try {
 				$gateway->send($identifier, $message);

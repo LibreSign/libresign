@@ -8,12 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Identify;
 
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\IConfig;
 use OCP\IPhoneNumberUtil;
 
 class SearchNormalizer {
-	private const PHONE_BASED_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
-
 	public function __construct(
 		private IConfig $config,
 		private IPhoneNumberUtil $phoneNumberUtil,
@@ -21,7 +20,7 @@ class SearchNormalizer {
 	}
 
 	public function normalize(string $search, string $method): string {
-		if (!in_array($method, self::PHONE_BASED_METHODS, true)) {
+		if (!in_array($method, IdentifyMethodService::IDENTIFY_PHONE_METHODS, true)) {
 			return $search;
 		}
 
@@ -40,7 +39,7 @@ class SearchNormalizer {
 	}
 
 	public function tryNormalizePhoneNumber(string $phoneNumber, string $method): ?string {
-		if (!in_array($method, self::PHONE_BASED_METHODS, true)) {
+		if (!in_array($method, IdentifyMethodService::IDENTIFY_PHONE_METHODS, true)) {
 			return null;
 		}
 

@@ -1050,6 +1050,7 @@ function getSvgIcon(name: string) {
 		sms: svgSms,
 		telegram: svgTelegram,
 		whatsapp: svgWhatsapp,
+		whatsappbusiness: svgWhatsapp,
 		xmpp: svgXmpp,
 	}
 	return iconByMethod[name] || svgAccount

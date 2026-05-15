@@ -129,6 +129,27 @@ class IdentifyControllerTest extends TestCase {
 		$this->assertSame([], $response->getData());
 	}
 
+	public function testSearchWithWhatsappBusinessMethodDoesNotRequestAccountOrEmailShareTypes(): void {
+		$expectedShareTypes = [
+			SignerPlugin::TYPE_SIGNER,
+			AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE,
+			ContactPhonePlugin::TYPE_SIGNER_CONTACT_PHONE,
+			ManualPhonePlugin::TYPE_SIGNER_MANUAL_PHONE,
+		];
+
+		$this->shareTypeResolver
+			->expects($this->once())
+			->method('resolve')
+			->with('whatsappbusiness')
+			->willReturn($expectedShareTypes);
+
+		$response = $this->controller->search('a', 'whatsappbusiness');
+		$shareTypes = $this->collaboratorSearch->lastSearchCall['shareTypes'];
+
+		$this->assertSame($expectedShareTypes, $shareTypes);
+		$this->assertSame([], $response->getData());
+	}
+
 	public function testSearchWithEmailMethodRequestsEmailShareTypeAndNotUserShareType(): void {
 		$expectedShareTypes = [
 			SignerPlugin::TYPE_SIGNER,

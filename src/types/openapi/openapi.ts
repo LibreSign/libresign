@@ -1164,7 +1164,7 @@ export type components = {
              */
             shareType: 0 | 4;
             /** @enum {string} */
-            method?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
+            method?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "whatsappbusiness" | "xmpp";
             /** @enum {string} */
             iconName?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
             acceptsEmailNotifications?: boolean;
@@ -1172,7 +1172,7 @@ export type components = {
         IdentifyAccountsResponse: components["schemas"]["IdentifyAccount"][];
         IdentifyMethod: {
             /** @enum {string} */
-            method: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
+            method: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "whatsappbusiness" | "xmpp";
             value: string;
             requirement: components["schemas"]["IdentifyMethodRequirement"];
         };
@@ -3220,7 +3220,7 @@ export interface operations {
             query?: {
                 /** @description search params */
                 search?: string;
-                /** @description filter by method (email, account, sms, signal, telegram, whatsapp, xmpp) */
+                /** @description filter by method (email, account, sms, signal, telegram, whatsapp, whatsappbusiness, xmpp) */
                 method?: string;
                 /** @description the number of page to return. Default: 1 */
                 page?: number;

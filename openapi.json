@@ -1341,6 +1341,7 @@
                             "sms",
                             "telegram",
                             "whatsapp",
+                            "whatsappbusiness",
                             "xmpp"
                         ]
                     },
@@ -1384,6 +1385,7 @@
                             "sms",
                             "telegram",
                             "whatsapp",
+                            "whatsappbusiness",
                             "xmpp"
                         ]
                     },
@@ -6705,7 +6707,7 @@
                     {
                         "name": "method",
                         "in": "query",
-                        "description": "filter by method (email, account, sms, signal, telegram, whatsapp, xmpp)",
+                        "description": "filter by method (email, account, sms, signal, telegram, whatsapp, whatsappbusiness, xmpp)",
                         "schema": {
                             "type": "string",
                             "default": ""
