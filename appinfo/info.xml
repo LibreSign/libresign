@@ -25,7 +25,7 @@ If your organization uses LibreSign, support its development:
 For enterprise support, contact LibreCode:
 https://libresign.coop
 	]]></description>
-	<version>14.0.0-dev.1</version>
+	<version>15.0.0-dev.1</version>
 	<licence>agpl</licence>
 	<author mail="contact@librecode.coop" homepage="https://librecode.coop">LibreCode</author>
 	<types>
@@ -50,7 +50,7 @@ https://libresign.coop
 	<donation type="stripe" title="Donate via Stripe">https://buy.stripe.com/eVqfZibhx8QO3LseWc2kw00</donation>
 	<dependencies>
 		<lib>openssl</lib>
-		<nextcloud min-version="34" max-version="34"/>
+		<nextcloud min-version="35" max-version="35"/>
 		<architecture>x86_64</architecture>
 		<architecture>aarch64</architecture>
 	</dependencies>
