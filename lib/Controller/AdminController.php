@@ -11,14 +11,12 @@ namespace OCA\Libresign\Controller;
 use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
-use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
@@ -85,7 +83,6 @@ class AdminController extends AEnvironmentAwareController {
 		private ValidateService $validateService,
 		private ReminderService $reminderService,
 		private FooterService $footerService,
-		private DocMdpConfigService $docMdpConfigService,
 		private PolicyService $policyService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileMapper $fileMapper,
@@ -262,26 +259,7 @@ class AdminController extends AEnvironmentAwareController {
 		);
 	}
 
-	/**
-	 * Disable hate limit to current session
-	 *
-	 * This will disable hate limit to current session.
-	 *
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
-	 *
-	 * 200: OK
-	 */
-	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/disable-hate-limit', requirements: ['apiVersion' => '(v1)'])]
-	public function disableHateLimit(): DataResponse {
-		$this->session->set('app_api', true);
 
-		// TODO: Remove after drop support NC29
-		// deprecated since AppAPI 2.8.0
-		$this->session->set('app_api_system', true);
-
-		return new DataResponse();
-	}
 
 	/**
 	 * @IgnoreOpenAPI
@@ -512,70 +490,6 @@ class AdminController extends AEnvironmentAwareController {
 				$return,
 				Http::STATUS_OK
 			);
-		} catch (LibresignException $th) {
-			return new DataResponse(
-				[
-					'error' => $th->getMessage(),
-				],
-				Http::STATUS_BAD_REQUEST
-			);
-		}
-	}
-
-	/**
-	 * Get signature settings
-	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureTemplateSettingsResponse, array{}>
-	 *
-	 * 200: OK
-	 */
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signature-settings', requirements: ['apiVersion' => '(v1)'])]
-	public function getSignatureSettings(): DataResponse {
-		$response = [
-			'signature_available_variables' => $this->signatureTextService->getAvailableVariables(),
-			'default_signature_text_template' => $this->signatureTextService->getDefaultTemplate(),
-		];
-		return new DataResponse($response);
-	}
-
-	/**
-	 * Convert signer name as image
-	 *
-	 * @param int $width Image width,
-	 * @param int $height Image height
-	 * @param string $text Text to be added to image
-	 * @param float $fontSize Font size of text
-	 * @param bool $isDarkTheme Color of text, white if is tark theme and black if not
-	 * @param string $align Align of text: left, center or right
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'inline; filename="signer-name.png"', Content-Type: 'image/png'}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
-	 *
-	 * 200: OK
-	 * 400: Bad request
-	 */
-	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signer-name', requirements: ['apiVersion' => '(v1)'])]
-	public function signerName(
-		int $width,
-		int $height,
-		string $text,
-		float $fontSize,
-		bool $isDarkTheme,
-		string $align,
-	):  FileDisplayResponse|DataResponse {
-		try {
-			$blob = $this->signatureTextService->signerNameImage(
-				width: $width,
-				height: $height,
-				text: $text,
-				fontSize: $fontSize,
-				isDarkTheme: $isDarkTheme,
-				align: $align,
-			);
-			$file = new InMemoryFile('signer-name.png', $blob);
-			return new FileDisplayResponse($file, Http::STATUS_OK, [
-				'Content-Disposition' => 'inline; filename="signer-name.png"',
-				'Content-Type' => 'image/png',
-			]);
 		} catch (LibresignException $th) {
 			return new DataResponse(
 				[
@@ -966,68 +880,6 @@ class AdminController extends AEnvironmentAwareController {
 			$this->appConfig->deleteKey(Application::APP_ID, $key);
 		} else {
 			$this->appConfig->setValueString(Application::APP_ID, $key, $value);
-		}
-	}
-
-	/**
-	 * Persist groups allowed to request signatures as typed app config array
-	 *
-	 * @param list<string> $groups List of group IDs allowed to request signatures
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
-	 *
-	 * 200: Settings saved
-	 * 500: Internal server error
-	 */
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/groups-request-sign/config', requirements: ['apiVersion' => '(v1)'])]
-	public function setGroupsRequestSignConfig(array $groups = []): DataResponse {
-		try {
-			$normalizedGroups = array_values(array_map(static fn (mixed $group): string => (string)$group, $groups));
-			$this->appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', $normalizedGroups);
-
-			return new DataResponse([
-				'message' => $this->l10n->t('Settings saved'),
-			]);
-		} catch (\Exception $e) {
-			return new DataResponse([
-				'error' => $e->getMessage(),
-			], Http::STATUS_INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	/**
-	 * Configure DocMDP signature restrictions
-	 *
-	 * @param bool $enabled Whether to enable DocMDP restrictions
-	 * @param int $defaultLevel DocMDP level: 1 (no changes), 2 (fill forms), 3 (add annotations)
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
-	 *
-	 * 200: Configuration saved successfully
-	 * 400: Invalid DocMDP level provided
-	 * 500: Internal server error
-	 */
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/docmdp/config', requirements: ['apiVersion' => '(v1)'])]
-	public function setDocMdpConfig(bool $enabled, int $defaultLevel = 2): DataResponse {
-		try {
-			$this->docMdpConfigService->setEnabled($enabled);
-
-			if ($enabled) {
-				$level = DocMdpLevel::tryFrom($defaultLevel);
-				if ($level === null) {
-					return new DataResponse([
-						'error' => $this->l10n->t('Invalid DocMDP level'),
-					], Http::STATUS_BAD_REQUEST);
-				}
-
-				$this->docMdpConfigService->setLevel($level);
-			}
-
-			return new DataResponse([
-				'message' => $this->l10n->t('Settings saved'),
-			]);
-		} catch (\Exception $e) {
-			return new DataResponse([
-				'error' => $e->getMessage(),
-			], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 
