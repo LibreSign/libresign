@@ -365,6 +365,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/groups-request-sign/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Persist groups allowed to request signatures as typed app config array
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-set-groups-request-sign-config"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-flow/config": {
         parameters: {
             query?: never;
@@ -1762,6 +1782,60 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-set-groups-request-sign-config": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description List of group IDs allowed to request signatures
+                     * @default []
+                     */
+                    groups?: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Settings saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
