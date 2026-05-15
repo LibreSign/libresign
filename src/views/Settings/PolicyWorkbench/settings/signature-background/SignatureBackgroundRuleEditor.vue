@@ -31,18 +31,20 @@
 			</NcButton>
 
 			<NcButton
+				v-if="normalizedValue !== 'default'"
 				variant="tertiary"
 				:aria-label="t('libresign', 'Reset to default')"
-				@click="resetBackground">
+				@click="() => setValue('default')">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
 				</template>
 			</NcButton>
 
 			<NcButton
+				v-if="normalizedValue !== 'deleted'"
 				variant="tertiary"
 				:aria-label="t('libresign', 'Remove background')"
-				@click="removeBackground">
+				@click="() => setValue('deleted')">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 				</template>
@@ -145,50 +147,14 @@ async function onChangeBackground(event: Event) {
 	formData.append('image', file)
 
 	showLoading.value = true
-	await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), formData)
-		.then(() => {
-			setValue('custom')
-		})
-		.catch(({ response }) => {
-			errorMessage.value = response.data.ocs.data?.message
-		})
-		.finally(() => {
-			showLoading.value = false
-		})
-}
-
-async function resetBackground() {
-	errorMessage.value = ''
-	showLoading.value = true
-	await axios.patch(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), {})
-		.then(() => {
-			setValue('default')
-		})
-		.catch(({ response }) => {
-			errorMessage.value = response.data.ocs.data?.message
-		})
-		.finally(() => {
-			showLoading.value = false
-		})
-}
-
-async function removeBackground() {
-	errorMessage.value = ''
-	showLoading.value = true
-	await axios.delete(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), {
-		data: {
-			value: 'backgroundColor',
-		},
-	})
-		.then(() => {
-			setValue('deleted')
-		})
-		.catch(({ response }) => {
-			errorMessage.value = response.data.ocs.data?.message
-		})
-		.finally(() => {
-			showLoading.value = false
-		})
+	try {
+		await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), formData)
+		setValue('custom')
+	} catch ({ response }: any) {
+		errorMessage.value = response?.data?.ocs?.data?.message || 'Upload failed'
+	} finally {
+		showLoading.value = false
+	}
 }
 
 function onChange(value: 'default' | 'custom' | 'deleted', selected?: unknown) {
@@ -197,12 +163,12 @@ function onChange(value: 'default' | 'custom' | 'deleted', selected?: unknown) {
 	}
 
 	if (value === 'default') {
-		void resetBackground()
+		setValue('default')
 		return
 	}
 
 	if (value === 'deleted') {
-		void removeBackground()
+		setValue('deleted')
 		return
 	}
 
