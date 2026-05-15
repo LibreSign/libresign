@@ -74,7 +74,7 @@ namespace OCA\Libresign;
  * Identity and signer contracts
  *
  * @psalm-type LibresignIdentifyMethod = array{
- *     method: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
+ *     method: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'whatsappbusiness'|'xmpp',
  *     value: string,
  *     requirement: LibresignIdentifyMethodRequirement,
  * }
@@ -133,7 +133,7 @@ namespace OCA\Libresign;
  *     displayName: string,
  *     subname: string,
  *     shareType: 0|4,
- *     method?: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
+ *     method?: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'whatsappbusiness'|'xmpp',
  *     iconName?: 'account'|'email'|'signal'|'sms'|'telegram'|'whatsapp'|'xmpp',
  *     acceptsEmailNotifications?: boolean,
  * }
