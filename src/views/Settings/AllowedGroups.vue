@@ -77,13 +77,16 @@ async function saveGroups(value: Array<GroupRow | string>) {
 
 	await confirmPassword()
 
-	const listOfInputGroupsSelected = JSON.stringify(groupsSelected.value.map((g) => {
+	const groupIds = groupsSelected.value.map((g) => {
 		if (typeof g === 'object') {
 			return g.id
 		}
 		return g
-	}))
-	OCP.AppConfig.setValue('libresign', 'groups_request_sign', listOfInputGroupsSelected)
+	})
+
+	await axios.post(generateOcsUrl('apps/libresign/api/v1/admin/groups-request-sign/config'), {
+		groups: groupIds,
+	})
 	idKey.value += 1
 }
 
