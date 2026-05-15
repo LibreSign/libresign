@@ -27,3 +27,4 @@ Feature: admin/groups_request_sign
     And the response should be a JSON array with the following mandatory values
       | key                          | value          |
       | (jq).ocs.data.data\|fromjson | ["admin","SÖ"] |
+
