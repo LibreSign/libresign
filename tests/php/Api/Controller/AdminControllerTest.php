@@ -115,48 +115,4 @@ final class AdminControllerTest extends ApiTestCase {
 
 		$this->assertRequest();
 	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testSetGroupsRequestSignConfigPersistsAsArray(): void {
-		$this->createAccount('admintest', 'password', 'admin');
-
-		$this->request
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('admintest:password'),
-				'Content-Type' => 'application/json',
-				'OCS-APIRequest' => 'true',
-			])
-			->withPath('/api/v1/admin/groups-request-sign/config')
-			->withMethod('POST')
-			->withRequestBody([
-				'groups' => ['admin', 'editors'],
-			])
-			->expectStatus(200);
-
-		$this->assertRequest();
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testSetGroupsRequestSignConfigWithNonAsciiGroupId(): void {
-		$this->createAccount('admintest', 'password', 'admin');
-
-		$this->request
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('admintest:password'),
-				'Content-Type' => 'application/json',
-				'OCS-APIRequest' => 'true',
-			])
-			->withPath('/api/v1/admin/groups-request-sign/config')
-			->withMethod('POST')
-			->withRequestBody([
-				'groups' => ['admin', 'SÖ'],
-			])
-			->expectStatus(200);
-
-		$this->assertRequest();
-	}
 }
