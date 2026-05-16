@@ -9,12 +9,14 @@ import { t } from '@nextcloud/l10n'
 import IdentifyMethodsRuleEditor from './IdentifyMethodsRuleEditor.vue'
 
 import { normalizeIdentifyMethodsPolicy, serializeIdentifyMethodsPolicy } from './model'
-import type { EffectivePolicyValue } from '../../../../../types/index'
+import type { EffectivePoliciesResponse, EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 
 function getInitialIdentifyMethods(): string {
+	const effectivePolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
+	const identifyMethodsPolicyValue = effectivePolicies.policies?.identify_methods?.effectiveValue
 	const normalized = normalizeIdentifyMethodsPolicy(
-		loadState<EffectivePolicyValue>('libresign', 'identify_methods', []),
+		identifyMethodsPolicyValue ?? [],
 	)
 
 	const permissiveDefaults = normalized.map((entry) => ({

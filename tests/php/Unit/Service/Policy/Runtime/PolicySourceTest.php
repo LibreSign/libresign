@@ -20,6 +20,8 @@ use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyManagedValue;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCA\Libresign\Tests\Unit\TestCase;
@@ -62,11 +64,15 @@ final class PolicySourceTest extends TestCase {
 		$this->l10n->method('t')->willReturnArgument(0);
 		$container = $this->createMock(ContainerInterface::class);
 		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$coreAppConfig = $this->coreAppConfig;
 		$container
 			->method('get')
-			->willReturnCallback(static function (string $class) use ($identifyMethodService): object {
+			->willReturnCallback(static function (string $class) use ($identifyMethodService, $coreAppConfig): object {
 				if ($class === IdentifyMethodsPolicy::class) {
 					return new IdentifyMethodsPolicy($identifyMethodService);
+				}
+				if ($class === TsaPolicy::class) {
+					return new TsaPolicy(new TsaPolicyManagedValue($coreAppConfig));
 				}
 				if (!\class_exists($class)) {
 					throw new \RuntimeException('Unexpected provider class: ' . $class);

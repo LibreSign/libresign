@@ -559,8 +559,12 @@ class PolicySource implements IPolicySource {
 				return;
 			}
 
-			$this->appConfig->deleteAppValue($definition->getAppConfigKey());
-			$this->appConfig->deleteAppValue($allowOverrideConfigKey);
+			if ($this->appConfig->hasAppKey($definition->getAppConfigKey())) {
+				$this->appConfig->deleteAppValue($definition->getAppConfigKey());
+			}
+			if ($this->appConfig->hasAppKey($allowOverrideConfigKey)) {
+				$this->appConfig->deleteAppValue($allowOverrideConfigKey);
+			}
 			return;
 		}
 

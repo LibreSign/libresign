@@ -13,7 +13,6 @@
 		<RootCertificateCfssl />
 		<RootCertificateOpenSsl />
 		<SettingsPolicyWorkbench />
-		<SigningMode v-if="false" />
 	</div>
 </template>
 
@@ -25,7 +24,6 @@ import SettingsPolicyWorkbench from './PolicyWorkbench/Catalog/Catalog.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureEngine from './SignatureEngine.vue'
-import SigningMode from './SigningMode.vue'
 import SupportProject from './SupportProject.vue'
 
 defineOptions({
@@ -38,7 +36,6 @@ defineOptions({
 		RootCertificateOpenSsl,
 		SettingsPolicyWorkbench,
 		SignatureEngine,
-		SigningMode,
 		SupportProject,
 	},
 })

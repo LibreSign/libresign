@@ -146,16 +146,11 @@ export type RequestSignatureVisibleElementPayload = NonNullable<RequestSignature
 export type FileStatus = FileListEntry['status']
 export type FileStatusText = FileListEntry['statusText']
 export type SelectedFileView = Pick<FileListEntry, 'id' | 'nodeId' | 'name' | 'status' | 'statusText'>
-export type SigningModeState = 'sync' | 'async'
-export type WorkerTypeState = 'local' | 'external'
 export type SignatureEngineId = 'JSignPdf' | 'PhpNative'
 export type CertificateEngineId = 'openssl' | 'cfssl' | 'none'
 
 export type AdminInitialState = {
 	signature_engine: SignatureEngineId
-	signing_mode: SigningModeState
-	worker_type: WorkerTypeState
-	parallel_workers: string
 	ldap_extension_available: boolean
 }
 
