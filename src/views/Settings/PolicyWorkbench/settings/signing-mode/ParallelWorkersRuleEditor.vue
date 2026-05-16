@@ -44,9 +44,9 @@ watch(() => props.modelValue, (value) => {
 	localValue.value = String(resolveParallelWorkers(value))
 })
 
-function onInputChange(value: string) {
-	localValue.value = value
-	const parsed = Number.parseInt(value, 10)
+function onInputChange(value: string | number) {
+	localValue.value = String(value)
+	const parsed = Number.parseInt(String(value), 10)
 	if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= 32) {
 		emit('update:modelValue', parsed)
 	}
