@@ -11514,8 +11514,8 @@
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate-policy": {
             "post": {
                 "operationId": "admin-save-certificate-policy",
-                "summary": "Update or delete certificate policy of this instance",
-                "description": "**POST**: Upload a new PDF file as certificate policy. To delete, use DELETE method. **DELETE**: Remove the currently set certificate policy (reset to defaults).\nThis endpoint requires admin access",
+                "summary": "Upload new certificate policy PDF for this instance",
+                "description": "This endpoint requires admin access",
                 "tags": [
                     "admin"
                 ],
