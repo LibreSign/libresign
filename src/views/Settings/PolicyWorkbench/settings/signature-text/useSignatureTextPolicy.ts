@@ -4,7 +4,6 @@
  */
 
 import { computed, type ComputedRef } from 'vue'
-import { loadState } from '@nextcloud/initial-state'
 import { usePoliciesStore } from '../../../../../store/policies'
 import {
 	getDefaultSignatureTextPolicyConfig,
@@ -15,8 +14,6 @@ import {
 const SIGNATURE_TEXT_DEFAULTS = getDefaultSignatureTextPolicyConfig()
 
 interface SignatureTextValues extends SignatureTextPolicyConfig {
-	templateError: string
-	parsed: string
 }
 
 export type SignatureTextUiDefaults = SignatureTextPolicyConfig
@@ -34,16 +31,9 @@ export function useSignatureTextPolicy(): { values: ComputedRef<SignatureTextVal
 	const values = computed<SignatureTextValues>(() => {
 		const signatureTextPolicy = policiesStore.policies.signature_text
 
-		const policyValue = signatureTextPolicy?.effectiveValue
+		return signatureTextPolicy?.effectiveValue
 			? normalizeSignatureTextPolicyConfig(signatureTextPolicy.effectiveValue)
 			: getSignatureTextUiDefaults()
-
-		// Only non-policy values come from loadState (error/parsing results)
-		return {
-			...policyValue,
-			templateError: loadState<string>('libresign', 'signature_text_template_error', ''),
-			parsed: loadState<string>('libresign', 'signature_text_parsed', ''),
-		}
 	})
 
 	return { values }

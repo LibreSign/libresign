@@ -135,30 +135,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-text": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get parsed signature text service
-         * @description This endpoint requires admin access
-         */
-        get: operations["admin-signature-text-get"];
-        put?: never;
-        /**
-         * Save signature text service
-         * @description This endpoint requires admin access
-         */
-        post: operations["admin-signature-text-save"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate-policy": {
         parameters: {
             query?: never;
@@ -204,51 +180,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/reminder": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get reminder settings
-         * @description This endpoint requires admin access
-         */
-        get: operations["admin-reminder-fetch"];
-        put?: never;
-        /**
-         * Save reminder
-         * @description This endpoint requires admin access
-         */
-        post: operations["admin-reminder-save"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/tsa": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Set TSA configuration values with proper sensitive data handling
-         * @description Only saves configuration if tsa_url is provided. Automatically manages username/password fields based on authentication type.
-         *     This endpoint requires admin access
-         */
-        post: operations["admin-set-tsa-config"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/footer-template": {
         parameters: {
             query?: never;
@@ -269,27 +200,6 @@ export type paths = {
          *     This endpoint requires admin access
          */
         post: operations["admin-save-footer-template"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing-mode/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Set signing mode configuration
-         * @description Configure whether document signing should be synchronous or asynchronous
-         *     This endpoint requires admin access
-         */
-        post: operations["admin-set-signing-mode-config"];
         delete?: never;
         options?: never;
         head?: never;
@@ -561,11 +471,6 @@ export type components = {
         ErrorResponse: {
             error: string;
         };
-        ErrorStatusResponse: {
-            /** @enum {string} */
-            status: "error";
-            message: string;
-        };
         FailureStatusResponse: {
             /** @enum {string} */
             status: "failure";
@@ -574,6 +479,14 @@ export type components = {
         FooterTemplateResponse: {
             template: string;
             isDefault: boolean;
+            template_variables: {
+                [key: string]: {
+                    description?: string;
+                    type?: string;
+                    example?: string;
+                    default?: string;
+                };
+            };
             /** Format: int64 */
             preview_width: number;
             /** Format: int64 */
@@ -612,16 +525,6 @@ export type components = {
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
         };
-        ReminderSettings: {
-            /** Format: int64 */
-            days_before: number;
-            /** Format: int64 */
-            days_between: number;
-            /** Format: int64 */
-            max: number;
-            send_timer: string;
-            next_run?: string;
-        };
         RootCertificate: {
             commonName: string;
             names: components["schemas"]["RootCertificateName"][];
@@ -653,19 +556,6 @@ export type components = {
             clickToSign?: components["schemas"]["SignatureMethod"];
             emailToken?: components["schemas"]["SignatureMethodEmailToken"];
             password?: components["schemas"]["SignatureMethodPassword"];
-        };
-        SignatureTextSettingsResponse: {
-            template: string;
-            parsed: string;
-            /** Format: double */
-            templateFontSize: number;
-            /** Format: double */
-            signatureFontSize: number;
-            /** Format: double */
-            signatureWidth: number;
-            /** Format: double */
-            signatureHeight: number;
-            renderMode: string;
         };
         SuccessStatusResponse: {
             /** @enum {string} */
@@ -1046,135 +936,6 @@ export interface operations {
             };
         };
     };
-    "admin-signature-text-get": {
-        parameters: {
-            query?: {
-                /** @description Template to signature text */
-                template?: string;
-                /** @description Context for parsing the template */
-                context?: string;
-            };
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SignatureTextSettingsResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Bad request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-signature-text-save": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Template to signature text */
-                    template: string;
-                    /**
-                     * Format: double
-                     * @description Font size used when print the parsed text of this template at PDF file
-                     * @default 10
-                     */
-                    templateFontSize?: number;
-                    /**
-                     * Format: double
-                     * @description Font size used when the signature mode is SIGNAME_AND_DESCRIPTION
-                     * @default 20
-                     */
-                    signatureFontSize?: number;
-                    /**
-                     * Format: double
-                     * @description Signature box width, minimum 1
-                     * @default 350
-                     */
-                    signatureWidth?: number;
-                    /**
-                     * Format: double
-                     * @description Signature box height, minimum 1
-                     * @default 100
-                     */
-                    signatureHeight?: number;
-                    /**
-                     * @description Signature render mode
-                     * @default GRAPHIC_AND_DESCRIPTION
-                     */
-                    renderMode?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SignatureTextSettingsResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Bad request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
     "admin-save-certificate-policy": {
         parameters: {
             query?: never;
@@ -1317,147 +1078,6 @@ export interface operations {
             };
         };
     };
-    "admin-reminder-fetch": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ReminderSettings"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-reminder-save": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /**
-                     * Format: int64
-                     * @description First reminder after (days)
-                     */
-                    daysBefore: number;
-                    /**
-                     * Format: int64
-                     * @description Days between reminders
-                     */
-                    daysBetween: number;
-                    /**
-                     * Format: int64
-                     * @description Max reminders per signer
-                     */
-                    max: number;
-                    /** @description Send time (HH:mm) */
-                    sendTimer: string;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ReminderSettings"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-set-tsa-config": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** @description TSA server URL (required for saving) */
-                    tsa_url?: string | null;
-                    /** @description TSA policy OID */
-                    tsa_policy_oid?: string | null;
-                    /** @description Authentication type (none|basic), defaults to 'none' */
-                    tsa_auth_type?: string | null;
-                    /** @description Username for basic authentication */
-                    tsa_username?: string | null;
-                    /** @description Password for basic authentication (stored as sensitive data) */
-                    tsa_password?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SuccessStatusResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Validation error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorStatusResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
     "admin-get-footer-template": {
         parameters: {
             query?: never;
@@ -1535,73 +1155,6 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-set-signing-mode-config": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Signing mode: "sync" or "async" */
-                    mode: string;
-                    /** @description Worker type when async: "local" or "external" (optional) */
-                    workerType?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Settings saved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Invalid parameters */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };

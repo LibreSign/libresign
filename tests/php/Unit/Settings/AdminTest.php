@@ -14,10 +14,8 @@ use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\FooterService;
-use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
@@ -37,10 +35,8 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private CertificatePolicyService&MockObject $certificatePolicyService;
 	private IAppConfig $appConfig;
-	private SignatureTextService&MockObject $signatureTextService;
 	private FooterService&MockObject $footerService;
 	private PolicyService&MockObject $policyService;
-	private IdentifyMethodService&MockObject $identifyMethodService;
 	public function setUp(): void {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->accountService = $this->createMock(AccountService::class);
@@ -48,10 +44,8 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->certificatePolicyService = $this->createMock(CertificatePolicyService::class);
 		$this->appConfig = static::getMockAppConfigWithReset();
-		$this->signatureTextService = $this->createMock(SignatureTextService::class);
 		$this->footerService = $this->createMock(FooterService::class);
 		$this->policyService = $this->createMock(PolicyService::class);
-		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->admin = new Admin(
 			$this->initialState,
 			$this->accountService,
@@ -59,10 +53,8 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->certificateEngineFactory,
 			$this->certificatePolicyService,
 			$this->appConfig,
-			$this->signatureTextService,
 			$this->footerService,
 			$this->policyService,
-			$this->identifyMethodService,
 		);
 		$this->stubGetFormDependencies();
 	}
@@ -78,7 +70,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->policyService->method('resolve')->willReturn(
 			(new ResolvedPolicy())->setEffectiveValue(''),
 		);
-		$this->identifyMethodService->method('getIdentifyMethodsSettings')->willReturn([]);
 
 		$engine = $this->createMock(OpenSslHandler::class);
 		$engine->method('getName')->willReturn('openssl');
@@ -86,17 +77,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->certificatePolicyService->method('getOid')->willReturn('');
 		$this->certificatePolicyService->method('getCps')->willReturn('');
-
-		$this->signatureTextService->method('parse')->willReturn(['parsed' => '']);
-		$this->signatureTextService->method('getDefaultTemplate')->willReturn('');
-		$this->signatureTextService->method('getDefaultTemplateFontSize')->willReturn(10.0);
-		$this->signatureTextService->method('getAvailableVariables')->willReturn([]);
-		$this->signatureTextService->method('getRenderMode')->willReturn('description_only');
-		$this->signatureTextService->method('getTemplate')->willReturn('');
-		$this->signatureTextService->method('getTemplateFontSize')->willReturn(10.0);
-		$this->signatureTextService->method('getSignatureFontSize')->willReturn(10.0);
-		$this->signatureTextService->method('getFullSignatureHeight')->willReturn(100.0);
-		$this->signatureTextService->method('getFullSignatureWidth')->willReturn(350.0);
 
 		$this->footerService->method('getTemplateVariablesMetadata')->willReturn([]);
 		$this->footerService->method('getTemplate')->willReturn('');

@@ -61,7 +61,10 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 
 	private function migrateTsaSettings(): void {
 		$existingConsolidated = $this->readLegacyString(TsaPolicy::SYSTEM_APP_CONFIG_KEY);
+		$legacyTsaPassword = $this->readLegacyString('tsa_password');
+		$existingPolicyPassword = $this->readLegacyString(TsaPolicy::PASSWORD_APP_CONFIG_KEY);
 		if ($existingConsolidated !== null && trim($existingConsolidated) !== '') {
+			$this->migrateTsaPassword($legacyTsaPassword, $existingPolicyPassword);
 			$this->deleteLegacyTsaNonSensitiveKeys();
 			return;
 		}
@@ -82,8 +85,26 @@ class Version18001Date20260320000000 extends SimpleMigrationStep {
 			'username' => $tsaUsername ?? '',
 		]);
 
+		$this->migrateTsaPassword($legacyTsaPassword, $existingPolicyPassword);
 		$this->deleteLegacyTsaNonSensitiveKeys();
 		$this->appConfig->setValueString(Application::APP_ID, TsaPolicy::SYSTEM_APP_CONFIG_KEY, $encoded);
+	}
+
+	private function migrateTsaPassword(?string $legacyTsaPassword, ?string $existingPolicyPassword): void {
+		if (($existingPolicyPassword === null || trim($existingPolicyPassword) === '')
+			&& $legacyTsaPassword !== null
+			&& trim($legacyTsaPassword) !== '') {
+			$this->appConfig->setValueString(
+				Application::APP_ID,
+				TsaPolicy::PASSWORD_APP_CONFIG_KEY,
+				$legacyTsaPassword,
+				sensitive: true,
+			);
+		}
+
+		if ($legacyTsaPassword !== null) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'tsa_password');
+		}
 	}
 
 	private function deleteLegacyTsaNonSensitiveKeys(): void {

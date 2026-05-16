@@ -90,7 +90,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 
-import type { EffectivePolicyValue } from '../../../../../types/index'
+import type { EffectivePoliciesResponse, EffectivePolicyValue } from '../../../../../types/index'
 import {
 	normalizeIdentifyMethodsPolicyConfig,
 	normalizeIdentifyMethodsPolicy,
@@ -117,8 +117,9 @@ const entries = computed(() => {
 	return ensureSignatureMethodSelection(normalized)
 })
 
+const effectivePolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
 const identifyMethodsCatalog = normalizeIdentifyMethodsPolicy(
-	loadState<EffectivePolicyValue>('libresign', 'identify_methods', []),
+	effectivePolicies.policies?.identify_methods?.effectiveValue ?? [],
 )
 
 const signatureMethodLabelsByMethod = new Map<string, Map<string, string>>()

@@ -15,6 +15,12 @@ use OCA\Libresign\Service\Policy\Model\PolicySpec;
 final class TsaPolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'tsa_settings';
 	public const SYSTEM_APP_CONFIG_KEY = self::KEY;
+	public const PASSWORD_APP_CONFIG_KEY = self::SYSTEM_APP_CONFIG_KEY . '.password';
+
+	public function __construct(
+		private TsaPolicyManagedValue $managedValue,
+	) {
+	}
 
 	#[\Override]
 	public function keys(): array {
@@ -30,7 +36,7 @@ final class TsaPolicy implements IPolicyDefinitionProvider {
 				key: self::KEY,
 				defaultSystemValue: TsaPolicyValue::encode(TsaPolicyValue::defaults()),
 				allowedValues: static fn (): array => [],
-				normalizer: static fn (mixed $rawValue): string => TsaPolicyValue::encode($rawValue),
+				normalizer: fn (mixed $rawValue): string => $this->managedValue->normalizeForPersistence($rawValue),
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
 				supportsUserPreference: false,
 			),

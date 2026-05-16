@@ -328,8 +328,6 @@ namespace OCA\Libresign;
  *     send_timer: string,
  *     next_run?: string,
  * }
- * @psalm-type LibresignAdminSigningMode = 'sync'|'async'
- * @psalm-type LibresignAdminWorkerType = 'local'|'external'
  * @psalm-type LibresignAdminSignatureEngine = 'JSignPdf'|'PhpNative'
  * @psalm-type LibresignDocMdpLevelOption = array{
  *     value: int,
@@ -341,19 +339,6 @@ namespace OCA\Libresign;
  *     defaultLevel: int,
  *     availableLevels: list<LibresignDocMdpLevelOption>,
  * }
- * @psalm-type LibresignSignatureTextSettingsResponse = array{
- *     template: string,
- *     parsed: string,
- *     templateFontSize: float,
- *     signatureFontSize: float,
- *     signatureWidth: float,
- *     signatureHeight: float,
- *     renderMode: string,
- * }
- * @psalm-type LibresignSignatureTemplateSettingsResponse = array{
- *     default_signature_text_template: string,
- *     signature_available_variables: array<string, string>,
- * }
  * @psalm-type LibresignCertificatePolicyResponse = array{
  *     status: 'success',
  *     CPS: string,
@@ -361,6 +346,12 @@ namespace OCA\Libresign;
  * @psalm-type LibresignFooterTemplateResponse = array{
  *     template: string,
  *     isDefault: bool,
+ *     template_variables: array<string, array{
+ *         description?: string,
+ *         type?: string,
+ *         example?: string,
+ *         default?: string,
+ *     }>,
  *     preview_width: int,
  *     preview_height: int,
  *     preview_zoom: int,

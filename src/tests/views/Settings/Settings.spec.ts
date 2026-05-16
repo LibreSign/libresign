@@ -28,7 +28,6 @@ describe('Settings.vue', () => {
 					ConfigureCheck: true,
 					RootCertificateCfssl: true,
 					RootCertificateOpenSsl: true,
-					SigningMode: true,
 				},
 			},
 		})
@@ -38,7 +37,7 @@ describe('Settings.vue', () => {
 		expect(wrapper.findAllComponents({ name: 'SettingsPolicyWorkbench' })).toHaveLength(1)
 	})
 
-	it('does not render SigningMode because the template gate is false', () => {
+	it('keeps PolicyWorkbench as the settings policy entry point', () => {
 		const wrapper = mount(Settings as never, {
 			global: {
 				stubs: {
@@ -50,11 +49,10 @@ describe('Settings.vue', () => {
 					ConfigureCheck: true,
 					RootCertificateCfssl: true,
 					RootCertificateOpenSsl: true,
-					SigningMode: { name: 'SigningMode', template: '<div class="signing-mode-stub" />' },
 				},
 			},
 		})
 
-		expect(wrapper.find('.signing-mode-stub').exists()).toBe(false)
+		expect(wrapper.findAllComponents({ name: 'SettingsPolicyWorkbench' })).toHaveLength(1)
 	})
 })

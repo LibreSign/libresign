@@ -203,7 +203,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'username' => $username,
 			]),
 		);
-		$this->appConfig->setValueString('libresign', 'tsa_password', $password);
+		$this->appConfig->setValueString('libresign', TsaPolicy::PASSWORD_APP_CONFIG_KEY, $password);
 
 		$handler = $this->getHandler();
 		$result = $this->callPrivateMethod($handler, 'buildTimestampOptions');

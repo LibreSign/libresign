@@ -226,7 +226,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		$authType = $tsaSettings['auth_type'];
 		if ($authType === 'basic') {
 			$username = $tsaSettings['username'] ?: null;
-			$password = $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', '') ?: null;
+			$password = $this->appConfig->getValueString(Application::APP_ID, TsaPolicy::PASSWORD_APP_CONFIG_KEY, '') ?: null;
 		}
 
 		return new TimestampOptionsDto(

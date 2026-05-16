@@ -56,11 +56,11 @@ Feature: admin/initial_state
     And run the command "user:setting admin libresign files_list_sorting_direction --delete" with result code 0
     And run the command "user:setting admin libresign files_list_sorting_mode name" with result code 0
     And run the command "user:setting admin libresign files_list_sorting_direction asc" with result code 0
-    And run the command "config:app:delete libresign signature_text_template" with result code 0
     And run the command "config:app:delete libresign footer_template" with result code 0
     And run the command "config:app:delete libresign config_path" with result code 0
-    And run the command "config:app:delete libresign tsa_password" with result code 0
-    And sending "delete" to ocs "/apps/libresign/api/v1/admin/tsa"
+    And run the command "config:app:delete libresign policy.tsa_settings.password" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
+      | value | (string){"url":"","policy_oid":"","auth_type":"none","username":""} |
     And the response should have a status code 200
     And the following libresign app config is set
       | certificate_engine                | openssl                  |
@@ -76,12 +76,9 @@ Feature: admin/initial_state
       | template_font_size                | 10                       |
       | docmdp_level                      | 2                        |
       | policy.signature_flow.system      | none                     |
-      | signing_mode                      | sync                     |
-      | worker_type                       | local                    |
       | identification_documents          | false                    |
       | approval_group                    | ["admin"]                |
       | envelope_enabled                  | true                     |
-      | parallel_workers                  | 4                        |
       | show_confetti_after_signing       | true                     |
       | crl_external_validation_enabled   | true                     |
     When sending "get" to "/settings/admin/libresign"
@@ -107,21 +104,6 @@ Feature: admin/initial_state
       """
 
       """
-    And the response should contain the initial state "libresign-signature_available_variables" json that match with:
-      | key                                     | value |
-      | (jq)has("{{DocumentUUID}}")            | true  |
-      | (jq)has("{{IssuerCommonName}}")        | true  |
-      | (jq)has("{{ServerSignatureDate}}")     | true  |
-      | (jq)has("{{SignerCommonName}}")        | true  |
-      | (jq)has("{{SignerIP}}")                | false |
-    And the response should contain the initial state "libresign-footer_template_variables" json that match with:
-      | key                             | value                           |
-      | (jq).direction.type             | string                          |
-      | (jq).linkToSite.default         | https://libresign.coop          |
-      | (jq).signedBy.default           | Digitally signed by LibreSign.  |
-      | (jq).validateIn.default         | Validate in %s.                 |
-      | (jq).signers.type               | array                           |
-      | (jq).uuid.type                  | string                          |
     And the response should contain the initial state "libresign-footer_template_is_default" with the following values:
       """
       true
@@ -149,18 +131,6 @@ Feature: admin/initial_state
       | (jq).policies.tsa_settings.policyKey                                      | tsa_settings |
       | (jq).policies.tsa_settings.sourceScope                                    | system       |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).auth_type          | none         |
-    And the response should contain the initial state "libresign-signing_mode" with the following values:
-      """
-      sync
-      """
-    And the response should contain the initial state "libresign-worker_type" with the following values:
-      """
-      local
-      """
-    And the response should contain the initial state "libresign-parallel_workers" with the following values:
-      """
-      "4"
-      """
     And run the command "user:setting admin libresign files_list_sorting_mode --delete" with result code 0
     And run the command "user:setting admin libresign files_list_sorting_direction --delete" with result code 0
 
@@ -179,26 +149,19 @@ Feature: admin/initial_state
       | signature_text_template           | Issuer: {{IssuerCommonName}}      |
       | signature_width                   | 420                               |
       | template_font_size                | 12.5                              |
-      | tsa_password                      | topsecret                         |
+      | policy.tsa_settings.password      | topsecret                         |
       | docmdp_level                      | 0                                 |
       | policy.signature_flow.system      | ordered_numeric                   |
-      | signing_mode                      | async                             |
-      | worker_type                       | external                          |
       | identification_documents          | true                              |
       | approval_group                    | ["admin","staff"]               |
       | envelope_enabled                  | false                             |
-      | parallel_workers                  | 9                                 |
       | show_confetti_after_signing       | false                             |
       | crl_external_validation_enabled   | false                             |
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identification_documents"
       | value | {"enabled":true,"approvers":["admin","staff"]} |
     And the response should have a status code 200
-    And sending "post" to ocs "/apps/libresign/api/v1/admin/tsa"
-      | tsa_url        | https://tsa.example.test/tsr |
-      | tsa_policy_oid | 1.2.3                        |
-      | tsa_auth_type  | basic                        |
-      | tsa_username   | signer                       |
-      | tsa_password   | topsecret                    |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
+      | value | (string){"url":"https://tsa.example.test/tsr","policy_oid":"1.2.3","auth_type":"basic","username":"signer","password":"topsecret"} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/admin/footer-template"
       | template | Custom footer for {{ uuid }} |
@@ -225,10 +188,6 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-config_path" with the following values:
       """
       "/tmp"
-      """
-    And the response should contain the initial state "libresign-signature_text_parsed" with the following values:
-      """
-      Issuer: Acme Cooperative
       """
     And the response should contain the initial state "libresign-footer_template" with the following values:
       """
@@ -265,18 +224,6 @@ Feature: admin/initial_state
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).policy_oid         | 1.2.3                        |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).auth_type          | basic                        |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).username           | signer                       |
-    And the response should contain the initial state "libresign-signing_mode" with the following values:
-      """
-      async
-      """
-    And the response should contain the initial state "libresign-worker_type" with the following values:
-      """
-      external
-      """
-    And the response should contain the initial state "libresign-parallel_workers" with the following values:
-      """
-      "9"
-      """
     And the following libresign app config is set
       | certificate_engine                | openssl                  |
       | certificate_policies_oid          |                          |
@@ -291,20 +238,17 @@ Feature: admin/initial_state
       | template_font_size                | 10                       |
       | docmdp_level                      | 2                        |
       | policy.signature_flow.system      | none                     |
-      | signing_mode                      | sync                     |
-      | worker_type                       | local                    |
       | identification_documents          | false                    |
       | approval_group                    | ["admin"]                |
       | envelope_enabled                  | true                     |
-      | parallel_workers                  | 4                        |
       | show_confetti_after_signing       | true                     |
       | crl_external_validation_enabled   | true                     |
-    And sending "delete" to ocs "/apps/libresign/api/v1/admin/tsa"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
+      | value | (string){"url":"","policy_oid":"","auth_type":"none","username":""} |
     And the response should have a status code 200
-    And run the command "config:app:delete libresign signature_text_template" with result code 0
     And run the command "config:app:delete libresign footer_template" with result code 0
     And run the command "config:app:delete libresign config_path" with result code 0
-    And run the command "config:app:delete libresign tsa_password" with result code 0
+    And run the command "config:app:delete libresign policy.tsa_settings.password" with result code 0
 
   Scenario: User preference is exposed in config initial state
     Given as user "admin"

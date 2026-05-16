@@ -25,20 +25,6 @@ vi.mock('@nextcloud/axios', () => ({
 	},
 }))
 
-vi.mock('@nextcloud/initial-state', () => ({
-	loadState: vi.fn((_app: string, key: string, defaultValue: unknown) => {
-		if (key === 'footer_template_variables') {
-			return {
-				signerName: { description: 'Signer', type: 'string', example: 'Alice' },
-			}
-		}
-		if (key === 'footer_template_is_default') {
-			return true
-		}
-		return defaultValue
-	}),
-}))
-
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path: string) => `/ocs/v2.php${path}`),
 }))
@@ -134,6 +120,9 @@ describe('FooterTemplateEditor.vue', () => {
 				ocs: {
 					data: {
 						template: 'Footer {{ signerName }}',
+						template_variables: {
+							signerName: { description: 'Signer', type: 'string', example: 'Alice' },
+						},
 						preview_height: 120,
 						preview_width: 640,
 						preview_zoom: 100,

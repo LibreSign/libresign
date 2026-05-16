@@ -8,12 +8,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 const { identifyMethodsState } = vi.hoisted(() => ({
-	identifyMethodsState: [] as unknown[],
+	identifyMethodsState: {
+		policies: {
+			identify_methods: {
+				effectiveValue: [] as unknown[],
+			},
+		},
+	},
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((_app, key: string, defaultValue: unknown) => {
-		if (key === 'identify_methods') {
+		if (key === 'effective_policies') {
 			return identifyMethodsState
 		}
 
@@ -25,14 +31,14 @@ import { identifyMethodsRealDefinition } from '../../../../views/Settings/Policy
 
 describe('identifyMethodsRealDefinition', () => {
 	beforeEach(() => {
-		identifyMethodsState.length = 0
+		identifyMethodsState.policies.identify_methods.effectiveValue = []
 	})
 
-	it('reads identify_methods from initial state at create-time, not module-load time', () => {
+	it('reads identify_methods from effective policies at create-time, not module-load time', () => {
 		const first = JSON.parse(String(identifyMethodsRealDefinition.createEmptyValue()))
 		expect(first.factors).toEqual([])
 
-		identifyMethodsState.push({
+		identifyMethodsState.policies.identify_methods.effectiveValue.push({
 			name: 'email',
 			enabled: true,
 			requirement: 'required',
