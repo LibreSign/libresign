@@ -298,6 +298,7 @@ OC.L10N.register(
     "Please define your sign password" : "请定义你的签名密码",
     "Define a password and sign the document." : "定义密码并签署文档",
     "Sign the document." : "签署文档",
+    "Forgot password?" : "忘记密码？",
     "Expiring soon" : "即将超期",
     "Partial" : "局部测光",
     "Complete" : "完成",
