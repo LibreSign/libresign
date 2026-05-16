@@ -7,24 +7,30 @@ import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: vi.fn(() => ([
-		{
-			name: 'account',
-			enabled: true,
-			signatureMethods: {
-				clickToSign: { enabled: true, label: 'One-click confirmation' },
-				emailToken: { enabled: false, label: 'Email code' },
-				telegramToken: { enabled: false, label: 'Telegram code' },
+	loadState: vi.fn(() => ({
+		policies: {
+			identify_methods: {
+				effectiveValue: [
+					{
+						name: 'account',
+						enabled: true,
+						signatureMethods: {
+							clickToSign: { enabled: true, label: 'One-click confirmation' },
+							emailToken: { enabled: false, label: 'Email code' },
+							telegramToken: { enabled: false, label: 'Telegram code' },
+						},
+					},
+					{
+						name: 'telegram',
+						enabled: true,
+						signatureMethods: {
+							telegramToken: { enabled: true, label: 'Telegram code' },
+						},
+					},
+				],
 			},
 		},
-		{
-			name: 'telegram',
-			enabled: true,
-			signatureMethods: {
-				telegramToken: { enabled: true, label: 'Telegram code' },
-			},
-		},
-	])),
+	})),
 }))
 
 import IdentifyMethodsRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/identify-methods/IdentifyMethodsRuleEditor.vue'
