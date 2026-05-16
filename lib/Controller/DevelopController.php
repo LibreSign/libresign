@@ -42,6 +42,7 @@ class DevelopController extends Controller {
 	 *
 	 * 200: PDF returned
 	 * 404: Debug mode not enabled
+	 * @psalm-suppress InvalidReturnType
 	 */
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -56,6 +57,7 @@ class DevelopController extends Controller {
 			'Content-Disposition' => 'inline; filename="file.pdf"',
 			'Content-Type' => 'application/pdf',
 		]);
+		/** @psalm-suppress InvalidReturnStatement */
 		return $response;
 	}
 
