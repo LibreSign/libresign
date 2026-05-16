@@ -25,9 +25,9 @@ trait UploadValidator {
 	 *
 	 * @param array<string, mixed>|null $uploadedFile File array from IRequest::getUploadedFile()
 	 * @param string $context Description for error messages (e.g., 'image', 'pdf')
-	 * @return null|DataResponse DataResponse with error if invalid, null if valid
+	 * @return DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string, status: 'failure'}, array<never, never>>|null DataResponse with error if invalid, null if valid
 	 */
-	private function validateUploadedFile(?array $uploadedFile, string $context): ?DataResponse {
+	private function validateUploadedFile(?array $uploadedFile, string $context): DataResponse|null {
 		$phpFileUploadErrors = [
 			UPLOAD_ERR_OK => $this->l10n->t('The file was uploaded'),
 			UPLOAD_ERR_INI_SIZE => $this->l10n->t('The uploaded file exceeds the upload_max_filesize directive in php.ini'),
