@@ -46,8 +46,14 @@ vi.mock('@nextcloud/initial-state', () => ({
 			return configState
 		}
 
-		if (key === 'identify_methods') {
-			return identifyMethodsInitialState
+		if (key === 'effective_policies') {
+			return {
+				policies: {
+					identify_methods: {
+						effectiveValue: identifyMethodsInitialState,
+					},
+				},
+			}
 		}
 
 		return defaultValue
@@ -210,6 +216,9 @@ describe('useRealPolicyWorkbench', () => {
 		expect(keys).toContain('identification_documents')
 		expect(keys).toContain('signature_flow')
 		expect(keys).toContain('docmdp')
+		expect(keys).toContain('signing_mode')
+		expect(keys).toContain('worker_type')
+		expect(keys).toContain('parallel_workers')
 	})
 
 	it('keeps override counts isolated per setting after opening and closing dialogs', async () => {

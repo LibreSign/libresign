@@ -9,14 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Settings;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\FooterService;
-use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
@@ -25,11 +22,6 @@ use OCP\IUserSession;
 use OCP\Settings\ISettings;
 use OCP\Util;
 
-/**
- * @psalm-import-type LibresignAdminSignatureEngine from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignAdminSigningMode from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignAdminWorkerType from \OCA\Libresign\ResponseDefinitions
- */
 class Admin implements ISettings {
 	public const PASSWORD_PLACEHOLDER = '••••••••';
 
@@ -40,10 +32,8 @@ class Admin implements ISettings {
 		private CertificateEngineFactory $certificateEngineFactory,
 		private CertificatePolicyService $certificatePolicyService,
 		private IAppConfig $appConfig,
-		private SignatureTextService $signatureTextService,
 		private FooterService $footerService,
 		private PolicyService $policyService,
-		private IdentifyMethodService $identifyMethodService,
 	) {
 	}
 	#[\Override]
@@ -51,24 +41,11 @@ class Admin implements ISettings {
 		Util::addScript(Application::APP_ID, 'libresign-settings');
 		Util::addStyle(Application::APP_ID, 'libresign-settings');
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig($this->userSession->getUser()));
-		try {
-			$signatureParsed = $this->signatureTextService->parse();
-			$this->initialState->provideInitialState('signature_text_parsed', $signatureParsed['parsed']);
-		} catch (LibresignException $e) {
-			$this->initialState->provideInitialState('signature_text_parsed', '');
-			$this->initialState->provideInitialState('signature_text_template_error', $e->getMessage());
-		}
 		$this->initialState->provideInitialState('certificate_engine', $this->certificateEngineFactory->getEngine()->getName());
 		$this->initialState->provideInitialState('certificate_policies_oid', $this->certificatePolicyService->getOid());
 		$this->initialState->provideInitialState('certificate_policies_cps', $this->certificatePolicyService->getCps());
 		$this->initialState->provideInitialState('config_path', $this->appConfig->getValueString(Application::APP_ID, 'config_path'));
-		$this->initialState->provideInitialState('signature_available_variables', $this->signatureTextService->getAvailableVariables());
-		$this->initialState->provideInitialState('footer_template_variables', $this->footerService->getTemplateVariablesMetadata());
-		$this->initialState->provideInitialState('footer_default_template', $this->footerService->getDefaultTemplate());
-		$this->initialState->provideInitialState('footer_template', $this->footerService->getTemplate());
-		$this->initialState->provideInitialState('footer_template_is_default', $this->footerService->isDefaultTemplate());
 		$this->initialState->provideInitialState('signature_engine', $this->getSignatureEngineInitialState());
-		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
 		$resolvedPolicies = [];
 		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {
 			$resolvedPolicies[$policyKey] = $resolvedPolicy->toArray();
@@ -76,9 +53,6 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('effective_policies', [
 			'policies' => $resolvedPolicies,
 		]);
-		$this->initialState->provideInitialState('signing_mode', $this->getSigningModeInitialState());
-		$this->initialState->provideInitialState('worker_type', $this->getWorkerTypeInitialState());
-		$this->initialState->provideInitialState('parallel_workers', $this->appConfig->getValueString(Application::APP_ID, 'parallel_workers', '4'));
 		$this->initialState->provideInitialState('ldap_extension_available', function_exists('ldap_connect'));
 
 		$response = new TemplateResponse(Application::APP_ID, 'admin_settings');
@@ -106,31 +80,12 @@ class Admin implements ISettings {
 		return 100;
 	}
 
-	/** @return LibresignAdminSignatureEngine */
 	private function getSignatureEngineInitialState(): string {
 		$engine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'JSignPdf');
 		if ($engine === 'PhpNative') {
 			return $engine;
 		}
 		return 'JSignPdf';
-	}
-
-	/** @return LibresignAdminSigningMode */
-	private function getSigningModeInitialState(): string {
-		$mode = $this->appConfig->getValueString(Application::APP_ID, 'signing_mode', 'sync');
-		if ($mode === 'async') {
-			return $mode;
-		}
-		return 'sync';
-	}
-
-	/** @return LibresignAdminWorkerType */
-	private function getWorkerTypeInitialState(): string {
-		$workerType = $this->appConfig->getValueString(Application::APP_ID, 'worker_type', 'local');
-		if ($workerType === 'external') {
-			return $workerType;
-		}
-		return 'local';
 	}
 
 }
