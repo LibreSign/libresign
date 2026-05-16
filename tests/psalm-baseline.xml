@@ -29,14 +29,7 @@
       <code><![CDATA[Base]]></code>
     </MissingDependency>
   </file>
-  <file src="lib/Controller/DevelopController.php">
-    <InvalidReturnStatement>
-      <code><![CDATA[$response]]></code>
-    </InvalidReturnStatement>
-    <InvalidReturnType>
-      <code><![CDATA[FileDisplayResponse<Http::STATUS_OK, array{Content-Type: 'application/pdf',Content-Disposition: 'inline; filename="file.pdf"'}>|DataResponse<Http::STATUS_NOT_FOUND, array<empty>, array{}>]]></code>
-    </InvalidReturnType>
-  </file>
+
   <file src="lib/Controller/FileController.php">
     <UndefinedClass>
       <code><![CDATA[SharedStorage]]></code>
