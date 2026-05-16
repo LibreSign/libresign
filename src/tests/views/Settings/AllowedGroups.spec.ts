@@ -159,7 +159,8 @@ describe('AllowedGroups', () => {
 		])
 		await flushPromises()
 
-		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[0]).toBe('groups_request_sign')
-		expect(saveSystemPolicyMock.mock.calls.at(-1)?.[1]).toBe('["admin","SÖ"]')
+		const lastCall = saveSystemPolicyMock.mock.calls.at(-1) as any
+		expect(lastCall?.[0]).toBe('groups_request_sign')
+		expect(lastCall?.[1]).toBe('["admin","SÖ"]')
 	})
 })
