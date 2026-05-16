@@ -373,10 +373,7 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Update or delete certificate policy of this instance
-	 *
-	 * **POST**: Upload a new PDF file as certificate policy. To delete, use DELETE method.
-	 * **DELETE**: Remove the currently set certificate policy (reset to defaults).
+	 * Upload new certificate policy PDF for this instance
 	 *
 	 * @return DataResponse<Http::STATUS_OK, LibresignCertificatePolicyResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignFailureStatusResponse, array{}>
 	 *

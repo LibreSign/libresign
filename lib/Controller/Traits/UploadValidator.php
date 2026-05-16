@@ -27,7 +27,7 @@ trait UploadValidator {
 	 * @param string $context Description for error messages (e.g., 'image', 'pdf')
 	 * @return DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string, status: 'failure'}, array<never, never>>|null DataResponse with error if invalid, null if valid
 	 */
-	private function validateUploadedFile(?array $uploadedFile, string $context): DataResponse|null {
+	private function validateUploadedFile(?array $uploadedFile, string $context): ?DataResponse {
 		$phpFileUploadErrors = [
 			UPLOAD_ERR_OK => $this->l10n->t('The file was uploaded'),
 			UPLOAD_ERR_INI_SIZE => $this->l10n->t('The uploaded file exceeds the upload_max_filesize directive in php.ini'),
