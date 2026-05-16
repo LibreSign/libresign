@@ -145,9 +145,8 @@ export type paths = {
         get?: never;
         put?: never;
         /**
-         * Update or delete certificate policy of this instance
-         * @description **POST**: Upload a new PDF file as certificate policy. To delete, use DELETE method. **DELETE**: Remove the currently set certificate policy (reset to defaults).
-         *     This endpoint requires admin access
+         * Upload new certificate policy PDF for this instance
+         * @description This endpoint requires admin access
          */
         post: operations["admin-save-certificate-policy"];
         /**
