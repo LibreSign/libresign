@@ -11,7 +11,19 @@ vi.mock('@nextcloud/l10n', () => ({
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: (_app: string, _key: string, fallback: unknown) => fallback,
+	loadState: (_app: string, key: string, fallback: unknown) => {
+		if (key === 'effective_policies') {
+			return {
+				policies: {
+					add_footer: {
+						effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"SYSTEM_DEFAULT_TEMPLATE","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+					},
+				},
+			}
+		}
+
+		return fallback
+	},
 }))
 
 import { signatureFooterRealDefinition } from '../../../../views/Settings/PolicyWorkbench/settings/signature-footer/realDefinition'

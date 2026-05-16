@@ -9,16 +9,16 @@
     "packages-dev": [
         {
             "name": "kubawerlos/php-cs-fixer-custom-fixers",
-            "version": "v3.37.0",
+            "version": "v3.37.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kubawerlos/php-cs-fixer-custom-fixers.git",
-                "reference": "c31fb2aa359dcb25fb48cc6f600810ad284343be"
+                "reference": "678df979ce743466b42ddb6eea46b3f4c9a7bade"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kubawerlos/php-cs-fixer-custom-fixers/zipball/c31fb2aa359dcb25fb48cc6f600810ad284343be",
-                "reference": "c31fb2aa359dcb25fb48cc6f600810ad284343be",
+                "url": "https://api.github.com/repos/kubawerlos/php-cs-fixer-custom-fixers/zipball/678df979ce743466b42ddb6eea46b3f4c9a7bade",
+                "reference": "678df979ce743466b42ddb6eea46b3f4c9a7bade",
                 "shasum": ""
             },
             "require": {
@@ -28,7 +28,7 @@
                 "php": "^7.4 || ^8.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.6.24 || ^10.5.51 || ^11.5.44"
+                "phpunit/phpunit": "^9.6.34 || ^10.5.63 || ^11.5.55"
             },
             "type": "library",
             "autoload": {
@@ -49,7 +49,7 @@
             "description": "A set of custom fixers for PHP CS Fixer",
             "support": {
                 "issues": "https://github.com/kubawerlos/php-cs-fixer-custom-fixers/issues",
-                "source": "https://github.com/kubawerlos/php-cs-fixer-custom-fixers/tree/v3.37.0"
+                "source": "https://github.com/kubawerlos/php-cs-fixer-custom-fixers/tree/v3.37.2"
             },
             "funding": [
                 {
@@ -57,7 +57,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-16T16:49:13+00:00"
+            "time": "2026-05-12T16:22:19+00:00"
         },
         {
             "name": "nextcloud/coding-standard",
@@ -106,16 +106,16 @@
         },
         {
             "name": "php-cs-fixer/shim",
-            "version": "v3.95.1",
+            "version": "v3.95.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHP-CS-Fixer/shim.git",
-                "reference": "f81ccf51ca60cc9dd21358ffba0e79ebd2ebb78a"
+                "reference": "319bd80c8db64ab5f7b79a19178299045bdb9957"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHP-CS-Fixer/shim/zipball/f81ccf51ca60cc9dd21358ffba0e79ebd2ebb78a",
-                "reference": "f81ccf51ca60cc9dd21358ffba0e79ebd2ebb78a",
+                "url": "https://api.github.com/repos/PHP-CS-Fixer/shim/zipball/319bd80c8db64ab5f7b79a19178299045bdb9957",
+                "reference": "319bd80c8db64ab5f7b79a19178299045bdb9957",
                 "shasum": ""
             },
             "require": {
@@ -152,9 +152,9 @@
             "description": "A tool to automatically fix PHP code style",
             "support": {
                 "issues": "https://github.com/PHP-CS-Fixer/shim/issues",
-                "source": "https://github.com/PHP-CS-Fixer/shim/tree/v3.95.1"
+                "source": "https://github.com/PHP-CS-Fixer/shim/tree/v3.95.2"
             },
-            "time": "2026-04-12T17:00:34+00:00"
+            "time": "2026-05-15T09:21:09+00:00"
         }
     ],
     "aliases": [],

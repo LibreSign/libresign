@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
-use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\Traits\UploadValidator;
 use OCA\Libresign\Db\FileMapper;
@@ -22,13 +21,7 @@ use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
-use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
-use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
-use OCA\Libresign\Service\ReminderService;
 use OCA\Libresign\Service\SignatureBackgroundService;
-use OCA\Libresign\Service\SignatureTextService;
-use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -57,12 +50,9 @@ use UnexpectedValueException;
  * @psalm-import-type LibresignEngineHandler from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignIdentifyMethodSetting from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignSignatureTextSettingsResponse from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignSignatureTemplateSettingsResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignSuccessStatusResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignFailureStatusResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignActiveSigningsResponse from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignReminderSettings from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignRootCertificate from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignFooterTemplateResponse from \OCA\Libresign\ResponseDefinitions
  */
@@ -77,15 +67,12 @@ class AdminController extends AEnvironmentAwareController {
 		private InstallService $installService,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private IEventSourceFactory $eventSourceFactory,
-		private SignatureTextService $signatureTextService,
-		private IL10N $l10n,
+		protected IL10N $l10n,
 		protected ISession $session,
 		private SignatureBackgroundService $signatureBackgroundService,
 		private CertificatePolicyService $certificatePolicyService,
 		private ValidateService $validateService,
-		private ReminderService $reminderService,
 		private FooterService $footerService,
-		private PolicyService $policyService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileMapper $fileMapper,
 	) {
@@ -387,85 +374,6 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Save signature text service
-	 *
-	 * @param string $template Template to signature text
-	 * @param float $templateFontSize Font size used when print the parsed text of this template at PDF file
-	 * @param float $signatureFontSize Font size used when the signature mode is SIGNAME_AND_DESCRIPTION
-	 * @param float $signatureWidth Signature box width, minimum 1
-	 * @param float $signatureHeight Signature box height, minimum 1
-	 * @param string $renderMode Signature render mode
-	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureTextSettingsResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
-	 *
-	 * 200: OK
-	 * 400: Bad request
-	 */
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-text', requirements: ['apiVersion' => '(v1)'])]
-	public function signatureTextSave(
-		string $template,
-		/** @todo openapi package don't evaluate SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE */
-		float $templateFontSize = 10,
-		/** @todo openapi package don't evaluate SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE */
-		float $signatureFontSize = 20,
-		/** @todo openapi package don't evaluate SignatureTextService::DEFAULT_SIGNATURE_WIDTH */
-		float $signatureWidth = 350,
-		/** @todo openapi package don't evaluate SignatureTextService::DEFAULT_SIGNATURE_HEIGHT */
-		float $signatureHeight = 100,
-		string $renderMode = 'GRAPHIC_AND_DESCRIPTION',
-	): DataResponse {
-		try {
-			$return = $this->signatureTextService->save(
-				$template,
-				$templateFontSize,
-				$signatureFontSize,
-				$signatureWidth,
-				$signatureHeight,
-				$renderMode,
-			);
-			return new DataResponse(
-				$return,
-				Http::STATUS_OK
-			);
-		} catch (LibresignException $th) {
-			return new DataResponse(
-				[
-					'error' => $th->getMessage(),
-				],
-				Http::STATUS_BAD_REQUEST
-			);
-		}
-	}
-
-	/**
-	 * Get parsed signature text service
-	 *
-	 * @param string $template Template to signature text
-	 * @param string $context Context for parsing the template
-	 * @return DataResponse<Http::STATUS_OK, LibresignSignatureTextSettingsResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
-	 *
-	 * 200: OK
-	 * 400: Bad request
-	 */
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signature-text', requirements: ['apiVersion' => '(v1)'])]
-	public function signatureTextGet(string $template = '', string $context = ''): DataResponse {
-		$context = json_decode($context, true) ?? [];
-		try {
-			$return = $this->signatureTextService->parse($template, $context);
-			return new DataResponse(
-				$return,
-				Http::STATUS_OK
-			);
-		} catch (LibresignException $th) {
-			return new DataResponse(
-				[
-					'error' => $th->getMessage(),
-				],
-				Http::STATUS_BAD_REQUEST
-			);
-		}
-	}
-
-	/**
 	 * Update or delete certificate policy of this instance
 	 *
 	 * **POST**: Upload a new PDF file as certificate policy. To delete, use DELETE method.
@@ -557,156 +465,6 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Get reminder settings
-	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignReminderSettings, array{}>
-	 *
-	 * 200: OK
-	 */
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/reminder', requirements: ['apiVersion' => '(v1)'])]
-	public function reminderFetch(): DataResponse {
-		$response = $this->reminderService->getSettings();
-		if ($response['next_run'] instanceof \DateTime) {
-			$response['next_run'] = $response['next_run']->format(DateTimeInterface::ATOM);
-		}
-		return new DataResponse($response);
-	}
-
-	/**
-	 * Save reminder
-	 *
-	 * @param int $daysBefore First reminder after (days)
-	 * @param int $daysBetween Days between reminders
-	 * @param int $max Max reminders per signer
-	 * @param string $sendTimer Send time (HH:mm)
-	 * @return DataResponse<Http::STATUS_OK, LibresignReminderSettings, array{}>
-	 *
-	 * 200: OK
-	 */
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/reminder', requirements: ['apiVersion' => '(v1)'])]
-	public function reminderSave(
-		int $daysBefore,
-		int $daysBetween,
-		int $max,
-		string $sendTimer,
-	): DataResponse {
-		$response = $this->reminderService->save($daysBefore, $daysBetween, $max, $sendTimer);
-		if ($response['next_run'] instanceof \DateTime) {
-			$response['next_run'] = $response['next_run']->format(DateTimeInterface::ATOM);
-		}
-		return new DataResponse($response);
-	}
-
-	/**
-	 * Set TSA configuration values with proper sensitive data handling
-	 *
-	 * Only saves configuration if tsa_url is provided. Automatically manages
-	 * username/password fields based on authentication type.
-	 *
-	 * @param string|null $tsa_url TSA server URL (required for saving)
-	 * @param string|null $tsa_policy_oid TSA policy OID
-	 * @param string|null $tsa_auth_type Authentication type (none|basic), defaults to 'none'
-	 * @param string|null $tsa_username Username for basic authentication
-	 * @param string|null $tsa_password Password for basic authentication (stored as sensitive data)
-	 * @return DataResponse<Http::STATUS_OK, LibresignSuccessStatusResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorStatusResponse, array{}>
-	 *
-	 * 200: OK
-	 * 400: Validation error
-	 */
-	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/tsa', requirements: ['apiVersion' => '(v1)'])]
-	public function setTsaConfig(
-		?string $tsa_url = null,
-		?string $tsa_policy_oid = null,
-		?string $tsa_auth_type = null,
-		?string $tsa_username = null,
-		?string $tsa_password = null,
-	): DataResponse {
-		if (empty($tsa_url)) {
-			$this->resetTsaConfig();
-			return new DataResponse(['status' => 'success']);
-		}
-
-		$trimmedUrl = trim($tsa_url);
-		if (!filter_var($trimmedUrl, FILTER_VALIDATE_URL)
-			|| !in_array(parse_url($trimmedUrl, PHP_URL_SCHEME), ['http', 'https'])) {
-			return new DataResponse([
-				'status' => 'error',
-				'message' => 'Invalid URL format'
-			], Http::STATUS_BAD_REQUEST);
-		}
-
-		$trimmedOid = '';
-		if (empty($tsa_policy_oid)) {
-			$trimmedOid = '';
-		} else {
-			$trimmedOid = trim($tsa_policy_oid);
-			if (!preg_match('/^[0-9]+(\.[0-9]+)*$/', $trimmedOid)) {
-				return new DataResponse([
-					'status' => 'error',
-					'message' => 'Invalid OID format'
-				], Http::STATUS_BAD_REQUEST);
-			}
-		}
-
-		$authType = $tsa_auth_type ?? 'none';
-		$username = '';
-
-		if ($authType === 'basic') {
-			$hasUsername = !empty($tsa_username);
-			$hasPassword = !empty($tsa_password) && $tsa_password !== Admin::PASSWORD_PLACEHOLDER;
-
-			if (!$hasUsername && !$hasPassword) {
-				return new DataResponse([
-					'status' => 'error',
-					'message' => 'Username and password are required for basic authentication'
-				], Http::STATUS_BAD_REQUEST);
-			} elseif (!$hasUsername) {
-				return new DataResponse([
-					'status' => 'error',
-					'message' => 'Username is required'
-				], Http::STATUS_BAD_REQUEST);
-			} elseif (!$hasPassword) {
-				return new DataResponse([
-					'status' => 'error',
-					'message' => 'Password is required'
-				], Http::STATUS_BAD_REQUEST);
-			}
-
-			$username = trim($tsa_username);
-			$this->appConfig->setValueString(
-				Application::APP_ID,
-				key: 'tsa_password',
-				value: $tsa_password,
-				sensitive: true,
-			);
-		} else {
-			$username = '';
-			$this->appConfig->deleteKey(Application::APP_ID, 'tsa_password');
-		}
-
-		$this->policyService->saveSystem(
-			TsaPolicy::KEY,
-			[
-				'url' => $trimmedUrl,
-				'policy_oid' => $trimmedOid,
-				'auth_type' => $authType,
-				'username' => $username,
-			],
-			false,
-		);
-
-		return new DataResponse(['status' => 'success']);
-	}
-
-	/**
-	 * Reset TSA configuration to defaults (internal helper)
-	 */
-	private function resetTsaConfig(): void {
-		$this->policyService->saveSystem(TsaPolicy::KEY, TsaPolicyValue::defaults(), false);
-	}
-
-	/**
 	 * Get footer template
 	 *
 	 * Returns the current footer template if set, otherwise returns the default template.
@@ -722,6 +480,7 @@ class AdminController extends AEnvironmentAwareController {
 		return new DataResponse([
 			'template' => $this->footerService->getTemplate(),
 			'isDefault' => $this->footerService->isDefaultTemplate(),
+			'template_variables' => $this->footerService->getTemplateVariablesMetadata(),
 			'preview_width' => $previewSettings['preview_width'],
 			'preview_height' => $previewSettings['preview_height'],
 			'preview_zoom' => $previewSettings['preview_zoom'],
@@ -781,55 +540,6 @@ class AdminController extends AEnvironmentAwareController {
 			return new DataResponse([
 				'error' => $e->getMessage(),
 			], Http::STATUS_BAD_REQUEST);
-		}
-	}
-
-	/**
-	 * Set signing mode configuration
-	 *
-	 * Configure whether document signing should be synchronous or asynchronous
-	 *
-	 * @param string $mode Signing mode: "sync" or "async"
-	 * @param string|null $workerType Worker type when async: "local" or "external" (optional)
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
-	 *
-	 * 200: Settings saved
-	 * 400: Invalid parameters
-	 * 500: Internal server error
-	 */
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signing-mode/config', requirements: ['apiVersion' => '(v1)'])]
-	public function setSigningModeConfig(string $mode, ?string $workerType = null): DataResponse {
-		try {
-			if (!in_array($mode, ['sync', 'async'], true)) {
-				return new DataResponse([
-					'error' => $this->l10n->t('Invalid signing mode. Use "sync" or "async".'),
-				], Http::STATUS_BAD_REQUEST);
-			}
-
-			if ($workerType !== null && !in_array($workerType, ['local', 'external'], true)) {
-				return new DataResponse([
-					'error' => $this->l10n->t('Invalid worker type. Use "local" or "external".'),
-				], Http::STATUS_BAD_REQUEST);
-			}
-
-			$this->saveOrDeleteConfig('signing_mode', $mode, 'sync');
-			$this->saveOrDeleteConfig('worker_type', $workerType, 'local');
-
-			return new DataResponse([
-				'message' => $this->l10n->t('Settings saved'),
-			]);
-		} catch (\Exception $e) {
-			return new DataResponse([
-				'error' => $e->getMessage(),
-			], Http::STATUS_INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	private function saveOrDeleteConfig(string $key, ?string $value, string $default): void {
-		if ($value === $default) {
-			$this->appConfig->deleteKey(Application::APP_ID, $key);
-		} else {
-			$this->appConfig->setValueString(Application::APP_ID, $key, $value);
 		}
 	}
 

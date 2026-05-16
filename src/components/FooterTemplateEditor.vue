@@ -134,12 +134,11 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
-import { nextTick, onMounted, ref, computed } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 
 import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
-import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -193,7 +192,7 @@ const DEFAULT_PREVIEW_HEIGHT = 100
 const footerDescription = t('libresign', 'Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/')
 const footerTemplate = ref('')
 const originalTemplate = ref('')
-const isDefaultTemplate = ref(loadState('libresign', 'footer_template_is_default', true))
+const isDefaultTemplate = ref(true)
 const pdfPreviewFile = ref<File | null>(null)
 const loadingPreview = ref(false)
 const pdfKey = ref(0)
@@ -204,7 +203,7 @@ const originalWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
 const originalHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
 const containerHeight = ref<number | null>(null)
 const showVariablesDialog = ref(false)
-const templateVariables = ref<Record<string, TemplateVariableMeta>>(loadState('libresign', 'footer_template_variables', {}))
+const templateVariables = ref<Record<string, TemplateVariableMeta>>({})
 const copiedVariable = ref<string | null>(null)
 
 const pdfContainer = ref<HTMLElement | null>(null)
@@ -375,6 +374,7 @@ onMounted(() => {
 				footerTemplate.value = template
 				originalTemplate.value = template
 				isDefaultTemplate.value = response.data.ocs.data.isDefault ?? true
+				templateVariables.value = response.data.ocs.data.template_variables ?? {}
 				previewHeight.value = height
 				originalHeight.value = height
 				previewWidth.value = width

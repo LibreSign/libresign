@@ -23,6 +23,11 @@ import { signatureBackgroundRealDefinition } from './signature-background/realDe
 import { signatureFooterRealDefinition } from './signature-footer/realDefinition'
 import { signatureFlowRealDefinition } from './signature-flow/realDefinition'
 import { signatureHashAlgorithmRealDefinition } from './signature-hash-algorithm/realDefinition'
+import {
+	parallelWorkersRealDefinition,
+	signingModeRealDefinition,
+	workerTypeRealDefinition,
+} from './signing-mode/realDefinitions'
 import { signatureTextRealDefinition } from './signature-text/realDefinition'
 import { tsaRealDefinition } from './tsa/realDefinition'
 import { validationAccessRealDefinition } from './validation-access/realDefinition'
@@ -63,4 +68,7 @@ export const realDefinitions = {
 	// 7. System behavior
 	default_user_folder: { ...defaultUserFolderRealDefinition, category: 'system-behavior' },
 	make_validation_url_private: { ...validationAccessRealDefinition, category: 'system-behavior' },
+	signing_mode: { ...signingModeRealDefinition, category: 'system-behavior' },
+	worker_type: { ...workerTypeRealDefinition, category: 'system-behavior' },
+	parallel_workers: { ...parallelWorkersRealDefinition, category: 'system-behavior' },
 } satisfies Record<string, RealPolicySettingDefinition>

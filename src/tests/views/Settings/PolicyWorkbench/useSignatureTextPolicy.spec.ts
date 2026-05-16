@@ -5,17 +5,10 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { initialState, policiesState } = vi.hoisted(() => ({
-	initialState: {} as Record<string, unknown>,
+const { policiesState } = vi.hoisted(() => ({
 	policiesState: {
 		policies: {} as Record<string, { effectiveValue?: unknown }>,
 	},
-}))
-
-vi.mock('@nextcloud/initial-state', () => ({
-	loadState: vi.fn((_app: string, key: string, defaultValue?: unknown) => {
-		return key in initialState ? initialState[key] : defaultValue
-	}),
 }))
 
 vi.mock('../../../../store/policies', () => ({
@@ -29,10 +22,6 @@ import {
 
 describe('useSignatureTextPolicy', () => {
 	beforeEach(() => {
-		for (const key of Object.keys(initialState)) {
-			delete initialState[key]
-		}
-
 		policiesState.policies = {}
 	})
 
@@ -60,10 +49,6 @@ describe('useSignatureTextPolicy', () => {
 				}),
 			},
 		}
-		Object.assign(initialState, {
-			signature_text_template_error: 'Template error',
-			signature_text_parsed: '<p>Parsed</p>',
-		})
 
 		const { values } = useSignatureTextPolicy()
 
@@ -74,17 +59,10 @@ describe('useSignatureTextPolicy', () => {
 			signatureWidth: 101,
 			signatureHeight: 66,
 			renderMode: 'SIGNAME_AND_DESCRIPTION',
-			templateError: 'Template error',
-			parsed: '<p>Parsed</p>',
 		})
 	})
 
 	it('falls back to policy UI defaults when no effective policy exists', () => {
-		Object.assign(initialState, {
-			signature_text_template_error: '',
-			signature_text_parsed: '<p>Parsed fallback</p>',
-		})
-
 		const { values } = useSignatureTextPolicy()
 
 		expect(values.value).toEqual({
@@ -94,8 +72,6 @@ describe('useSignatureTextPolicy', () => {
 			signatureWidth: 90,
 			signatureHeight: 60,
 			renderMode: 'GRAPHIC_AND_DESCRIPTION',
-			templateError: '',
-			parsed: '<p>Parsed fallback</p>',
 		})
 	})
 })

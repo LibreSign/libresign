@@ -664,7 +664,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		$tsaAuthType = $tsaSettings['auth_type'];
 		if ($tsaAuthType === 'basic') {
 			$tsaUsername = $tsaSettings['username'];
-			$tsaPassword = $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', '');
+			$tsaPassword = $this->appConfig->getValueString(Application::APP_ID, TsaPolicy::PASSWORD_APP_CONFIG_KEY, '');
 
 			if (!empty($tsaUsername) && !empty($tsaPassword)) {
 				$params['--tsa-authentication'] = 'PASSWORD';
