@@ -11,7 +11,7 @@ import {
 	ensureGroupExists,
 	ensureUserExists,
 	ensureUserInGroup,
-	setAppConfig,
+	setSystemPolicy,
 } from '../support/nc-provisioning'
 import {
 	clearUserPolicyPreference,
@@ -77,7 +77,7 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 	await ensureUserExists(page.request, END_USER, DEFAULT_TEST_PASSWORD)
 	await ensureGroupExists(page.request, GROUP_ID)
 	await ensureUserInGroup(page.request, END_USER, GROUP_ID)
-	await setAppConfig(adminRequestContext, 'libresign', 'groups_request_sign', REQUEST_SIGN_GROUPS)
+	await setSystemPolicy(adminRequestContext, 'groups_request_sign', REQUEST_SIGN_GROUPS)
 	await configureOpenSsl(adminRequestContext, 'LibreSign Test', {
 		C: 'BR',
 		OU: ['Organization Unit'],
@@ -90,7 +90,7 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 
 test.afterEach(async ({ adminRequestContext, endUserRequestContext }) => {
 	await resetPolicyPreferencesState(adminRequestContext, endUserRequestContext)
-	await setAppConfig(adminRequestContext, 'libresign', 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
+	await setSystemPolicy(adminRequestContext, 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
 })
 
 test('group member sees Preferences controls only when lower-layer customization is allowed', async ({ page, adminRequestContext, endUserRequestContext }) => {

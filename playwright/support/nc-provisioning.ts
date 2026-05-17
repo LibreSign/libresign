@@ -390,6 +390,67 @@ export async function deleteAppConfig(
 }
 
 // ---------------------------------------------------------------------------
+// LibreSign Policy helpers
+// ---------------------------------------------------------------------------
+
+type SystemPolicyResponse = {
+	policy?: {
+		policyKey?: string
+		value?: string | null
+		effectiveValue?: unknown
+	}
+}
+
+/**
+ * Sets a system-level LibreSign policy via the policy API.
+ * Equivalent to: POST /apps/libresign/api/v1/policies/system/{policyKey}
+ */
+export async function setSystemPolicy(
+	request: APIRequestContext,
+	policyKey: string,
+	value: string,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+): Promise<void> {
+	const result = await ocsRequest(
+		request,
+		'POST',
+		`/apps/libresign/api/v1/policies/system/${policyKey}`,
+		adminUser,
+		adminPassword,
+		{ value },
+	)
+	if (result.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to set policy ${policyKey}: ${result.ocs.meta.message}`)
+	}
+}
+
+/**
+ * Reads the stored value of a system-level LibreSign policy.
+ * Returns null when the policy has no explicit stored value.
+ */
+export async function getSystemPolicyValue(
+	request: APIRequestContext,
+	policyKey: string,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+): Promise<string | null> {
+	const result = await ocsRequest<SystemPolicyResponse>(
+		request,
+		'GET',
+		`/apps/libresign/api/v1/policies/system/${policyKey}`,
+		adminUser,
+		adminPassword,
+	)
+	if (result.ocs.meta.statuscode !== 200) {
+		return null
+	}
+	return typeof result.ocs.data?.policy?.value === 'string'
+		? result.ocs.data.policy.value
+		: null
+}
+
+// ---------------------------------------------------------------------------
 // LibreSign-specific helpers
 // ---------------------------------------------------------------------------
 
@@ -457,4 +518,27 @@ export async function configureOpenSsl(
 	}
 
 	await clearSignatureElements(request)
+}
+
+/**
+ * Sets the certificate engine via the LibreSign admin API.
+ * Equivalent to: POST /apps/libresign/api/v1/admin/certificate/engine
+ */
+export async function setCertificateEngine(
+	request: APIRequestContext,
+	engine: string,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+): Promise<void> {
+	const result = await ocsRequest(
+		request,
+		'POST',
+		'/apps/libresign/api/v1/admin/certificate/engine',
+		adminUser,
+		adminPassword,
+		{ engine },
+	)
+	if (result.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to set certificate engine to "${engine}": ${result.ocs.meta.message}`)
+	}
 }

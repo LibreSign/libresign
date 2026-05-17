@@ -5,7 +5,7 @@
 
 import { expect, test, type Page } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { useFooterPolicyGuard } from '../support/system-policies'
 
 useFooterPolicyGuard()
@@ -36,10 +36,9 @@ test('updates files list status after signing with native engine', async ({ page
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
-	await setAppConfig(
+	await setCertificateEngine(page.request, 'PhpNative')
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } } },

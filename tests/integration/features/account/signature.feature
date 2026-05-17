@@ -258,7 +258,7 @@ Feature: account/signature
     Given run the command "config:app:set guests whitelist --value=libresign" with result code 0
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)[{"name":"email","enabled":true,"requirement":"required","can_create_account":false}] |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |

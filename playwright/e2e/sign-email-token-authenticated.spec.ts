@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig, deleteAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteAppConfig, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
 import { useFooterPolicyGuard } from '../support/system-policies'
 
@@ -35,16 +35,15 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: false, mandatory: false },
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
-	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
+	await setCertificateEngine(page.request, 'PhpNative')
 	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()

@@ -27,7 +27,7 @@ import {
 	ensureSubadminOfGroup,
 	ensureUserExists,
 	ensureUserInGroup,
-	setAppConfig,
+	setSystemPolicy,
 	setUserLanguage,
 } from '../support/nc-provisioning'
 import {
@@ -76,13 +76,13 @@ const FOOTER_ENABLED_VALUE = JSON.stringify({
 
 
 test.beforeEach(async ({ adminRequestContext }) => {
-	await setAppConfig(adminRequestContext, 'libresign', 'groups_request_sign', REQUEST_SIGN_GROUPS)
+	await setSystemPolicy(adminRequestContext, 'groups_request_sign', REQUEST_SIGN_GROUPS)
 })
 
 
 test.afterEach(async ({ adminRequestContext }) => {
 	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, null, true)
-	await setAppConfig(adminRequestContext, 'libresign', 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
+	await setSystemPolicy(adminRequestContext, 'groups_request_sign', DEFAULT_REQUEST_SIGN_GROUPS)
 })
 
 test('group admin can access policies and sees create-rule guard when higher-level rules block exceptions', async ({ page, adminRequestContext, groupAdminRequestContext }) => {
