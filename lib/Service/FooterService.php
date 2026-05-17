@@ -121,4 +121,9 @@ class FooterService {
 	public function getTemplateVariablesMetadata(): array {
 		return $this->footerHandler->getTemplateVariablesMetadata();
 	}
+
+	public function isPreviewAllowed(): bool {
+		$footerPolicy = $this->getEffectiveFooterPolicy();
+		return (bool)$footerPolicy['enabled'];
+	}
 }
