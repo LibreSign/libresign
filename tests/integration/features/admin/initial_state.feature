@@ -1,56 +1,72 @@
 Feature: admin/initial_state
   Scenario: Default identify methods are exposed in admin initial state
     Given as user "admin"
-    And run the command "config:app:delete libresign identify_methods" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[] |
+    And the response should have a status code 200
     When sending "get" to "/settings/admin/libresign"
-    Then the response should contain the initial state "libresign-identify_methods" json that match with:
-      | key                                     | value                                                                                                            |
-      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].requirement == "required" and .[0].signatureMethods.password.name == "password" |
-      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].requirement == "required" and .[0].can_create_account == true and .[0].signatureMethods.emailToken.name == "emailToken" |
+    Then the response should contain the initial state "libresign-effective_policies" json that match with:
+      | key | value |
+      | (jq).policies.identify_methods.policyKey | identify_methods |
+      | (jq).policies.identify_methods.effectiveValue.factors\|length | 0 |
 
   Scenario: Identify methods stored as invalid string can be normalized through the API contract
     Given as user "admin"
     And run the command "config:app:set libresign identify_methods --value=invalid --type=string" with result code 0
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)[{"name":"account","fake":null}] |
     And the response should have a status code 200
     When sending "get" to "/settings/admin/libresign"
-    Then the response should contain the initial state "libresign-identify_methods" json that match with:
-      | key                                     | value                                                                                                            |
-      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].requirement == "required" and .[0].signatureMethods.password.name == "password" |
-      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].requirement == "required" and .[0].can_create_account == true and .[0].signatureMethods.emailToken.name == "emailToken" |
+    Then the response should contain the initial state "libresign-effective_policies" json that match with:
+      | key | value |
+      | (jq).policies.identify_methods.policyKey | identify_methods |
+      | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "account")) \| length) | 1 |
 
   Scenario Outline: Invalid identify methods updates preserve the default contract
     Given as user "admin"
-    And run the command "config:app:set libresign identify_methods --value=[] --type=array" with result code 0
-    When sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[] |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)<payload> |
     Then sending "get" to "/settings/admin/libresign"
-    And the response should contain the initial state "libresign-identify_methods" json that match with:
-      | key                                     | value                                                                                                            |
-      | (jq)map(select(.name=="account"))      | (jq)length == 1 and .[0].requirement == "required" and .[0].signatureMethods.password.enabled == true |
-      | (jq)map(select(.name=="email"))        | (jq)length == 1 and .[0].requirement == "required" and .[0].can_create_account == true and .[0].signatureMethods.emailToken.enabled == true |
+    And the response should contain the initial state "libresign-effective_policies" json that match with:
+      | key | value |
+      | (jq).policies.identify_methods.policyKey | identify_methods |
+      | (jq).policies.identify_methods.effectiveValue.factors\|type | array |
+      | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "<expected_factor_name>")) \| length) | 1 |
 
     Examples:
-      | payload                                 |
-      | [{"name":"account","fake":null}]   |
-      | [{"name":"account","enabled":"string"}] |
-      | [{"name":"email","test_url":"immutable"}] |
+      | payload                                 | expected_factor_name |
+      | [{"name":"account","fake":null}]   | account |
+      | [{"name":"account","enabled":"string"}] | account |
+      | [{"name":"email","test_url":"immutable"}] | email |
 
   Scenario: Updated identify methods are exposed in admin initial state
     Given as user "admin"
-    And run the command "config:app:set libresign identify_methods --value=[] --type=array" with result code 0
-    When sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[] |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}},{"name":"email","enabled":false,"requirement":"optional"}] |
     Then sending "get" to "/settings/admin/libresign"
-    And the response should contain the initial state "libresign-identify_methods" json that match with:
-      | key                                 | value                                                                                                       |
-      | (jq)map(select(.name=="account"))  | (jq)length == 1 and .[0].signatureMethods.clickToSign.enabled == true and .[0].signatureMethods.password.enabled == false and .[0].requirement == "required" |
-      | (jq)map(select(.name=="email"))    | (jq)length == 1 and .[0].requirement == "optional" and .[0].signatureMethods.emailToken.enabled == true           |
-    And run the command "config:app:delete libresign identify_methods" with result code 0
+    And the response should contain the initial state "libresign-effective_policies" json that match with:
+      | key | value |
+      | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "account")) \| .[0].signatureMethods.clickToSign.enabled) | true |
+      | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "account")) \| .[0].signatureMethods \| has("password")) | false |
+      | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "account")) \| .[0].requirement) | required |
+      | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "email")) \| .[0].enabled) | false |
+      | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "email")) \| .[0].requirement) | optional |
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[] |
+    And the response should have a status code 200
 
   Scenario: Stable default admin initial states are exposed
     Given as user "admin"
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/signature_flow"
+    And the response should have a status code 200
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/admin/signature_flow"
+    And the response should have a status code 200
     And run the command "user:setting admin libresign policy_workbench_catalog_compact_view --delete" with result code 0
     And run the command "user:setting admin libresign files_list_sorting_mode --delete" with result code 0
     And run the command "user:setting admin libresign files_list_sorting_direction --delete" with result code 0
@@ -104,10 +120,6 @@ Feature: admin/initial_state
       """
 
       """
-    And the response should contain the initial state "libresign-footer_template_is_default" with the following values:
-      """
-      true
-      """
     And the response should contain the initial state "libresign-signature_engine" with the following values:
       """
       JSignPdf
@@ -128,6 +140,8 @@ Feature: admin/initial_state
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewWidth | 595                           |
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewHeight | 100                          |
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewZoom | 100                             |
+      | (jq)(.policies.add_footer.effectiveValue \| fromjson).customizeFooterTemplate | false                   |
+      | (jq)(.policies.add_footer.effectiveValue \| fromjson).footerTemplate |                                  |
       | (jq).policies.tsa_settings.policyKey                                      | tsa_settings |
       | (jq).policies.tsa_settings.sourceScope                                    | system       |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).auth_type          | none         |
@@ -161,9 +175,9 @@ Feature: admin/initial_state
       | value | {"enabled":true,"approvers":["admin","staff"]} |
     And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"
-      | value | (string){"url":"https://tsa.example.test/tsr","policy_oid":"1.2.3","auth_type":"basic","username":"signer","password":"topsecret"} |
+      | value | (string){"url":"https://tsa.example.test/tsr","policy_oid":"1.2.3","auth_type":"none","username":""} |
     And the response should have a status code 200
-    And sending "post" to ocs "/apps/libresign/api/v1/admin/footer-template"
+    And sending "post" to ocs "/apps/libresign/api/v1/footer-template"
       | template | Custom footer for {{ uuid }} |
       | width    | 610                          |
       | height   | 80                           |
@@ -189,14 +203,6 @@ Feature: admin/initial_state
       """
       "/tmp"
       """
-    And the response should contain the initial state "libresign-footer_template" with the following values:
-      """
-      Custom footer for {{ uuid }}
-      """
-    And the response should contain the initial state "libresign-footer_template_is_default" with the following values:
-      """
-      false
-      """
     And the response should contain the initial state "libresign-signature_engine" with the following values:
       """
       PhpNative
@@ -218,12 +224,13 @@ Feature: admin/initial_state
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewWidth | 610                           |
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewHeight | 80                           |
       | (jq)(.policies.add_footer.effectiveValue \| fromjson).previewZoom | 100                            |
+      | (jq)(.policies.add_footer.effectiveValue \| fromjson).customizeFooterTemplate | true                    |
+      | (jq)(.policies.add_footer.effectiveValue \| fromjson).footerTemplate | Custom footer for {{ uuid }}     |
       | (jq).policies.tsa_settings.policyKey                                      | tsa_settings                 |
       | (jq).policies.tsa_settings.sourceScope                                    | global                       |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).url                | https://tsa.example.test/tsr |
       | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).policy_oid         | 1.2.3                        |
-      | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).auth_type          | basic                        |
-      | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).username           | signer                       |
+      | (jq)(.policies.tsa_settings.effectiveValue \| fromjson).auth_type          | none                         |
     And the following libresign app config is set
       | certificate_engine                | openssl                  |
       | certificate_policies_oid          |                          |

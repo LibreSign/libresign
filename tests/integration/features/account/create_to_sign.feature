@@ -2,7 +2,7 @@ Feature: account/create_to_sign
   Background:
     Given as user "admin"
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)[{"name":"email","enabled":true,"requirement":"required","can_create_account":true}] |
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
