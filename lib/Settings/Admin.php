@@ -12,7 +12,6 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
-use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -32,7 +31,6 @@ class Admin implements ISettings {
 		private CertificateEngineFactory $certificateEngineFactory,
 		private CertificatePolicyService $certificatePolicyService,
 		private IAppConfig $appConfig,
-		private FooterService $footerService,
 		private PolicyService $policyService,
 	) {
 	}

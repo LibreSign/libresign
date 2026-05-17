@@ -16,17 +16,14 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
-use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
-use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
-use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\IAppConfig;
@@ -53,7 +50,6 @@ use UnexpectedValueException;
  * @psalm-import-type LibresignFailureStatusResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignActiveSigningsResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignRootCertificate from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignFooterTemplateResponse from \OCA\Libresign\ResponseDefinitions
  */
 class AdminController extends AEnvironmentAwareController {
 	use UploadValidator;
@@ -71,7 +67,6 @@ class AdminController extends AEnvironmentAwareController {
 		private SignatureBackgroundService $signatureBackgroundService,
 		private CertificatePolicyService $certificatePolicyService,
 		private ValidateService $validateService,
-		private FooterService $footerService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileMapper $fileMapper,
 	) {
@@ -457,85 +452,6 @@ class AdminController extends AEnvironmentAwareController {
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
-		}
-	}
-
-	/**
-	 * Get footer template
-	 *
-	 * Returns the current footer template if set, otherwise returns the default template.
-	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignFooterTemplateResponse, array{}>
-	 *
-	 * 200: OK
-	 */
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/footer-template', requirements: ['apiVersion' => '(v1)'])]
-	public function getFooterTemplate(): DataResponse {
-		$previewSettings = $this->footerService->getPreviewSettings();
-
-		return new DataResponse([
-			'template' => $this->footerService->getTemplate(),
-			'isDefault' => $this->footerService->isDefaultTemplate(),
-			'template_variables' => $this->footerService->getTemplateVariablesMetadata(),
-			'preview_width' => $previewSettings['preview_width'],
-			'preview_height' => $previewSettings['preview_height'],
-			'preview_zoom' => $previewSettings['preview_zoom'],
-		]);
-	}
-
-	/**
-	 * Save footer template and render preview
-	 *
-	 * Saves the footer template and returns the rendered PDF preview.
-	 *
-	 * @param string $template The Twig template to save (empty to reset to default)
-	 * @param int $width Width of preview in points (default: 595 - A4 width)
-	 * @param int $height Height of preview in points (default: 50)
-	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
-	 *
-	 * 200: OK
-	 * 400: Bad request
-	 */
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template', requirements: ['apiVersion' => '(v1)'])]
-	public function saveFooterTemplate(string $template = '', int $width = 595, int $height = 50) {
-		try {
-			$this->footerService->saveTemplate($template, $width, $height);
-			$pdf = $this->footerService->renderPreviewPdf('', $width, $height);
-
-			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');
-		} catch (\Exception $e) {
-			return new DataResponse([
-				'error' => $e->getMessage(),
-			], Http::STATUS_BAD_REQUEST);
-		}
-	}
-
-	/**
-	 * Preview footer template as PDF
-	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 *
-	 * @param string $template Template to preview
-	 * @param int $width Width of preview in points (default: 595 - A4 width)
-	 * @param int $height Height of preview in points (default: 50)
-	 * @param ?bool $writeQrcodeOnFooter Whether to force QR code rendering in footer preview (null uses policy)
-	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
-	 *
-	 * 200: OK
-	 * 400: Bad request
-	 */
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
-	public function footerTemplatePreviewPdf(string $template = '', int $width = 595, int $height = 50, ?bool $writeQrcodeOnFooter = null) {
-		try {
-			$pdf = $this->footerService->renderPreviewPdf($template ?: null, $width, $height, $writeQrcodeOnFooter);
-			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');
-		} catch (\Exception $e) {
-			return new DataResponse([
-				'error' => $e->getMessage(),
-			], Http::STATUS_BAD_REQUEST);
 		}
 	}
 
