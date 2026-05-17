@@ -195,7 +195,7 @@ class ResultFilterTest extends TestCase {
 
 		$this->assertSame(
 			$expectedMethods,
-			array_map(static fn (array $item): string => (string) $item['method'], $result),
+			array_map(static fn (array $item): string => (string)$item['method'], $result),
 		);
 	}
 
