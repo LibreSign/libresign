@@ -182,6 +182,23 @@ class ResultFilterTest extends TestCase {
 		$this->assertSame('Valid', $result[0]['label']);
 	}
 
+	#[DataProvider('providerExcludeNotAllowed')]
+	public function testExcludeNotAllowed(
+		array $items,
+		array $allowedMethods,
+		array $expectedMethods,
+	): void {
+		$filter = new ResultFilter();
+
+		$result = $filter->excludeNotAllowed($items, $allowedMethods);
+		$result = array_values($result);
+
+		$this->assertSame(
+			$expectedMethods,
+			array_map(static fn (array $item): string => (string) $item['method'], $result),
+		);
+	}
+
 	public static function providerScoreAndSelectBestResult(): array {
 		return [
 			'numeric label vs custom label' => [
@@ -268,6 +285,53 @@ class ResultFilterTest extends TestCase {
 				],
 				'expectedLabel' => 'Mobile User',
 				'expectedShareWith' => 'phone',
+			],
+		];
+	}
+
+	public static function providerExcludeNotAllowed(): array {
+		return [
+			'keeps only methods in allowed list' => [
+				'items' => [
+					['method' => 'email', 'value' => ['shareWith' => 'a@example.com']],
+					['method' => 'account', 'value' => ['shareWith' => 'admin']],
+					['method' => 'telegram', 'value' => ['shareWith' => '+5511999999999']],
+				],
+				'allowedMethods' => ['email', 'account'],
+				'expectedMethods' => ['email', 'account'],
+			],
+			'returns all valid methods when allowed list is empty' => [
+				'items' => [
+					['method' => 'email', 'value' => ['shareWith' => 'a@example.com']],
+					['method' => 'account', 'value' => ['shareWith' => 'admin']],
+				],
+				'allowedMethods' => [],
+				'expectedMethods' => ['email', 'account'],
+			],
+			'drops entries without method or with empty method' => [
+				'items' => [
+					['value' => ['shareWith' => 'missing']],
+					['method' => '', 'value' => ['shareWith' => 'empty']],
+					['method' => 'email', 'value' => ['shareWith' => 'a@example.com']],
+				],
+				'allowedMethods' => ['email', 'account'],
+				'expectedMethods' => ['email'],
+			],
+			'normalizes allowed methods by trimming and dropping non-strings' => [
+				'items' => [
+					['method' => 'email', 'value' => ['shareWith' => 'a@example.com']],
+					['method' => 'account', 'value' => ['shareWith' => 'admin']],
+				],
+				'allowedMethods' => [' email ', 42, null, '   '],
+				'expectedMethods' => ['email'],
+			],
+			'returns empty when normalized allowed methods do not contain item methods' => [
+				'items' => [
+					['method' => 'email', 'value' => ['shareWith' => 'a@example.com']],
+					['method' => 'account', 'value' => ['shareWith' => 'admin']],
+				],
+				'allowedMethods' => ['signal'],
+				'expectedMethods' => [],
 			],
 		];
 	}
