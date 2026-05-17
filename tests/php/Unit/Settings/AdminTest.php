@@ -13,7 +13,6 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
-use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Settings\Admin;
@@ -35,7 +34,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private CertificatePolicyService&MockObject $certificatePolicyService;
 	private IAppConfig $appConfig;
-	private FooterService&MockObject $footerService;
 	private PolicyService&MockObject $policyService;
 	#[\Override]
 	public function setUp(): void {
@@ -45,7 +43,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->certificatePolicyService = $this->createMock(CertificatePolicyService::class);
 		$this->appConfig = static::getMockAppConfigWithReset();
-		$this->footerService = $this->createMock(FooterService::class);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->admin = new Admin(
 			$this->initialState,
@@ -54,7 +51,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->certificateEngineFactory,
 			$this->certificatePolicyService,
 			$this->appConfig,
-			$this->footerService,
 			$this->policyService,
 		);
 		$this->stubGetFormDependencies();
@@ -78,11 +74,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->certificatePolicyService->method('getOid')->willReturn('');
 		$this->certificatePolicyService->method('getCps')->willReturn('');
-
-		$this->footerService->method('getTemplateVariablesMetadata')->willReturn([]);
-		$this->footerService->method('getDefaultTemplate')->willReturn('');
-		$this->footerService->method('getTemplate')->willReturn('');
-		$this->footerService->method('isDefaultTemplate')->willReturn(true);
 	}
 
 	public function testGetSessionReturningAppId():void {
