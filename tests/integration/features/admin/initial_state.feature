@@ -1,6 +1,10 @@
 Feature: admin/initial_state
   Scenario: Default identify methods are exposed in admin initial state
     Given as user "admin"
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/identify_methods"
+    And the response should have a status code 200
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/admin/identify_methods"
+    And the response should have a status code 200
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)[] |
     And the response should have a status code 200

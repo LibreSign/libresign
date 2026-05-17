@@ -19,6 +19,8 @@ use OCA\Libresign\Service\Identify\ResultFormatter;
 use OCA\Libresign\Service\Identify\SearchNormalizer;
 use OCA\Libresign\Service\Identify\ShareTypeResolver;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\Collaboration\Collaborators\ISearch;
 use OCP\IRequest;
 use OCP\Share\IShare;
@@ -53,6 +55,7 @@ class IdentifyControllerTest extends TestCase {
 	private ResultFilter&MockObject $resultFilter;
 	private ResultFormatter&MockObject $resultFormatter;
 	private ResultEnricher&MockObject $resultEnricher;
+	private PolicyService&MockObject $policyService;
 	private IdentifyController $controller;
 
 	protected function setUp(): void {
@@ -64,6 +67,7 @@ class IdentifyControllerTest extends TestCase {
 		$this->resultFilter = $this->createMock(ResultFilter::class);
 		$this->resultFormatter = $this->createMock(ResultFormatter::class);
 		$this->resultEnricher = $this->createMock(ResultEnricher::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 
 		$this->controller = new IdentifyController(
 			$this->request,
@@ -74,6 +78,7 @@ class IdentifyControllerTest extends TestCase {
 			$this->resultFilter,
 			$this->resultFormatter,
 			$this->resultEnricher,
+			$this->policyService,
 		);
 
 		$this->searchNormalizer
@@ -88,7 +93,17 @@ class IdentifyControllerTest extends TestCase {
 			->willReturnCallback(fn (array $value): array => $value);
 		$this->resultFilter
 			->method('excludeNotAllowed')
-			->willReturnCallback(fn (array $value): array => $value);
+			->willReturnCallback(fn (array $value, ...$_): array => $value);
+
+		$this->policyService
+			->method('resolve')
+			->willReturn(
+				(new ResolvedPolicy())->setEffectiveValue([
+					['name' => 'whatsapp', 'enabled' => true],
+					['name' => 'whatsappbusiness', 'enabled' => true],
+					['name' => 'email', 'enabled' => true],
+				]),
+			);
 
 		$this->resultFormatter
 			->method('formatForNcSelect')

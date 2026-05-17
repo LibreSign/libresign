@@ -39,8 +39,8 @@ Feature: admin/certificate_engine_switch
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                                                  | value |
-      | (jq).ocs.data\|map(select(.resource=="openssl-configure"))[0].status | error |
-    # Verify has-root-cert returns false
+      | (jq).ocs.data\|map(select(.resource=="certificate-engine"))[0].status | error |
+    # Verify has-root-cert returns false when engine is none
     And sending "get" to ocs "/apps/libresign/api/v1/setting/has-root-cert"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
