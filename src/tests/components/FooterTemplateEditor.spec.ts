@@ -143,7 +143,7 @@ describe('FooterTemplateEditor.vue', () => {
 		await flushPromises()
 
 		expect(ensurePdfWorkerMock).toHaveBeenCalledTimes(1)
-		expect(axiosGetMock).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/admin/footer-template')
+		expect(axiosGetMock).toHaveBeenCalledWith('/ocs/v2.php/apps/libresign/api/v1/footer-template')
 		expect(wrapper.vm.footerTemplate).toBe('Footer {{ signerName }}')
 		expect(wrapper.vm.previewWidth).toBe(640)
 		expect(wrapper.vm.previewHeight).toBe(120)
@@ -216,7 +216,7 @@ describe('FooterTemplateEditor.vue', () => {
 		await flushPromises()
 
 		expect(axiosPostMock).toHaveBeenLastCalledWith(
-			'/ocs/v2.php/apps/libresign/api/v1/admin/footer-template',
+					'/ocs/v2.php/apps/libresign/api/v1/footer-template',
 			{
 				template: 'Custom footer',
 				width: 700,
@@ -240,7 +240,7 @@ describe('FooterTemplateEditor.vue', () => {
 		expect(wrapper.vm.loadingPreview).toBe(true)
 		expect(wrapper.vm.pdfPreviewFile).toBeInstanceOf(File)
 		expect(axiosPostMock).toHaveBeenLastCalledWith(
-			'/ocs/v2.php/apps/libresign/api/v1/admin/footer-template',
+					'/ocs/v2.php/apps/libresign/api/v1/footer-template',
 			{
 				template: 'Updated template',
 				width: 595,
@@ -357,7 +357,7 @@ describe('FooterTemplateEditor.vue', () => {
 			await flushPromises()
 
 			expect(axiosPostMock).toHaveBeenCalledWith(
-				'/ocs/v2.php/apps/libresign/api/v1/admin/footer-template',
+						'/ocs/v2.php/apps/libresign/api/v1/footer-template',
 				expect.objectContaining({
 					template: '',
 					width: 640,

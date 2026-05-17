@@ -260,7 +260,7 @@ function onTemplateChange() {
 
 function resetTemplateToDefault() {
 	axios.post(
-		generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
+		generateOcsUrl('/apps/libresign/api/v1/footer-template'),
 		{
 			template: '',
 			width: Number(previewWidth.value),
@@ -295,7 +295,7 @@ function saveDimensions() {
 
 function saveFooterTemplate() {
 	axios.post(
-		generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
+		generateOcsUrl('/apps/libresign/api/v1/footer-template'),
 		{
 			template: footerTemplate.value,
 			width: Number(previewWidth.value),
@@ -364,7 +364,7 @@ const debouncedUpdateScale = debounce(updateScale, 300)
 const debouncedSaveDimensions = debounce(saveDimensions, 500)
 
 onMounted(() => {
-	axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
+	axios.get(generateOcsUrl('/apps/libresign/api/v1/footer-template'))
 		.then(response => {
 				const template = response.data.ocs.data.template
 				const width = response.data.ocs.data.preview_width

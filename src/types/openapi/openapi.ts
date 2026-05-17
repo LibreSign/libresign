@@ -182,23 +182,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/footer-template/preview-pdf": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Preview footer template as PDF */
-        post: operations["admin-footer-template-preview-pdf"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/validate/uuid/{uuid}": {
         parameters: {
             query?: never;
@@ -429,6 +412,23 @@ export type paths = {
         get: operations["file_progress-check-progress-by-uuid"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/footer-template/preview-pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview footer template as PDF */
+        post: operations["footer_template-preview-pdf"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2081,69 +2081,6 @@ export interface operations {
             };
         };
     };
-    "admin-footer-template-preview-pdf": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /**
-                     * @description Template to preview
-                     * @default
-                     */
-                    template?: string;
-                    /**
-                     * Format: int64
-                     * @description Width of preview in points (default: 595 - A4 width)
-                     * @default 595
-                     */
-                    width?: number;
-                    /**
-                     * Format: int64
-                     * @description Height of preview in points (default: 50)
-                     * @default 50
-                     */
-                    height?: number;
-                    /** @description Whether to force QR code rendering in footer preview (null uses policy) */
-                    writeQrcodeOnFooter?: boolean | null;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/pdf": string;
-                };
-            };
-            /** @description Bad request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
     "file-validate-uuid": {
         parameters: {
             query?: {
@@ -2999,6 +2936,69 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["StatusMessageResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "footer_template-preview-pdf": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Template to preview
+                     * @default
+                     */
+                    template?: string;
+                    /**
+                     * Format: int64
+                     * @description Width of preview in points (default: 595 - A4 width)
+                     * @default 595
+                     */
+                    width?: number;
+                    /**
+                     * Format: int64
+                     * @description Height of preview in points (default: 50)
+                     * @default 50
+                     */
+                    height?: number;
+                    /** @description Whether to force QR code rendering in footer preview (null uses policy) */
+                    writeQrcodeOnFooter?: boolean | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };

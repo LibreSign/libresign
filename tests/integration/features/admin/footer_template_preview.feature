@@ -1,7 +1,7 @@
 Feature: admin/footer_template_preview
   Scenario: Saving footer template returns a non-empty PDF preview
     Given as user "admin"
-    When sending "post" to ocs "/apps/libresign/api/v1/admin/footer-template"
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
       | template | <table><tr><td>Preview from Behat</td></tr></table> |
       | width    | 595                                                 |
       | height   | 120                                                 |
@@ -10,9 +10,22 @@ Feature: admin/footer_template_preview
     And the response body should not be empty
     And the response body should match the regular expression "^%PDF"
 
+  Scenario: Non-admin user cannot save footer template
+    Given as user "signer1"
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
+      | template | <p>Should be denied</p> |
+      | width    | 595 |
+      | height   | 100 |
+    Then the response should have a status code 403
+
+  Scenario: Non-admin user cannot read footer template
+    Given as user "signer1"
+    When sending "get" to ocs "/apps/libresign/api/v1/footer-template"
+    Then the response should have a status code 403
+
   Scenario: Footer preview endpoint returns non-empty PDF with a minimal template
     Given as user "admin"
-    When sending "post" to ocs "/apps/libresign/api/v1/admin/footer-template/preview-pdf"
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template/preview-pdf"
       | template | <p>Preview endpoint</p> |
       | width    | 595 |
       | height   | 100 |
@@ -21,10 +34,34 @@ Feature: admin/footer_template_preview
     And the response body should not be empty
     And the response body should match the regular expression "^%PDF"
 
+  Scenario: Non-admin user can preview footer template through dedicated endpoint
+    Given as user "signer1"
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template/preview-pdf"
+      | template | <p>Signer preview</p> |
+      | width    | 595 |
+      | height   | 100 |
+    Then the response should have a status code 200
+    And the response header "Content-Type" should contain "application/pdf"
+    And the response body should not be empty
+    And the response body should match the regular expression "^%PDF"
+
+  Scenario: User with disabled add_footer policy cannot preview footer template
+    Given as user "signer1"
+    And sending "put" to ocs "/apps/libresign/api/v1/policies/user/add_footer"
+      | value | false |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template/preview-pdf"
+      | template | <p>Signer preview denied</p> |
+      | width    | 595 |
+      | height   | 100 |
+    Then the response should have a status code 403
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/add_footer"
+    And the response should have a status code 200
+
   Scenario: Reset footer template clears customization and allows a new template
     Given as user "admin"
     And run the command "config:app:delete libresign footer_template" with result code 0
-    When sending "post" to ocs "/apps/libresign/api/v1/admin/footer-template"
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
       | template | <div>BEHAT_FOOTER_TEMPLATE_A</div> |
       | width    | 595 |
       | height   | 100 |
@@ -39,13 +76,13 @@ Feature: admin/footer_template_preview
       | (jq).ocs.data.policies.add_footer.effectiveValue\|fromjson\|.footerTemplate | <div>BEHAT_FOOTER_TEMPLATE_A</div> |
 
     # API contract: reset is performed by sending an empty template
-    When sending "post" to ocs "/apps/libresign/api/v1/admin/footer-template"
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
       | template | |
       | width    | 595 |
       | height   | 100 |
     Then the response should have a status code 200
 
-    When sending "get" to ocs "/apps/libresign/api/v1/admin/footer-template"
+    When sending "get" to ocs "/apps/libresign/api/v1/footer-template"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key | value |
@@ -60,7 +97,7 @@ Feature: admin/footer_template_preview
       | (jq).ocs.data.policies.add_footer.effectiveValue\|fromjson\|.customizeFooterTemplate | false |
       | (jq).ocs.data.policies.add_footer.effectiveValue\|fromjson\|.footerTemplate | |
 
-    When sending "post" to ocs "/apps/libresign/api/v1/admin/footer-template"
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
       | template | <div>BEHAT_FOOTER_TEMPLATE_B</div> |
       | width    | 595 |
       | height   | 100 |

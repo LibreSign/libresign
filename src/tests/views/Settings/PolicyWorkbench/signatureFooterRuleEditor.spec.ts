@@ -709,7 +709,7 @@ describe('SignatureFooterRuleEditor.vue', () => {
 
 		expect(axiosPostMock).toHaveBeenCalled()
 		expect(axiosPostMock).toHaveBeenCalledWith(
-			'/apps/libresign/api/v1/admin/footer-template/preview-pdf',
+			'/apps/libresign/api/v1/footer-template/preview-pdf',
 			expect.objectContaining({
 				width: 720,
 				height: 140,
