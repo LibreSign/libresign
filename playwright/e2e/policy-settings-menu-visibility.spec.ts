@@ -76,6 +76,7 @@ const FOOTER_ENABLED_VALUE = JSON.stringify({
 
 
 test.beforeEach(async ({ adminRequestContext }) => {
+	await ensureGroupExists(adminRequestContext, GROUP_ID)
 	await setSystemPolicy(adminRequestContext, 'groups_request_sign', REQUEST_SIGN_GROUPS)
 })
 

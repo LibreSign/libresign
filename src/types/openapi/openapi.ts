@@ -418,6 +418,30 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/footer-template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get footer template
+         * @description Returns the current footer template if set, otherwise returns the default template.
+         */
+        get: operations["footer_template-get-footer-template"];
+        put?: never;
+        /**
+         * Save footer template and render preview
+         * @description Saves the footer template and returns the rendered PDF preview.
+         */
+        post: operations["footer_template-save-footer-template"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/footer-template/preview-pdf": {
         parameters: {
             query?: never;
@@ -1118,6 +1142,24 @@ export type components = {
             };
             /** Format: int64 */
             envelopeFolderId?: number;
+        };
+        FooterTemplateResponse: {
+            template: string;
+            isDefault: boolean;
+            template_variables: {
+                [key: string]: {
+                    description?: string;
+                    type?: string;
+                    example?: string;
+                    default?: string;
+                };
+            };
+            /** Format: int64 */
+            preview_width: number;
+            /** Format: int64 */
+            preview_height: number;
+            /** Format: int64 */
+            preview_zoom: number;
         };
         GroupPolicyResponse: {
             policy: components["schemas"]["GroupPolicyState"];
@@ -2936,6 +2978,125 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["StatusMessageResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "footer_template-get-footer-template": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["FooterTemplateResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "footer_template-save-footer-template": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description The Twig template to save (empty to reset to default)
+                     * @default
+                     */
+                    template?: string;
+                    /**
+                     * Format: int64
+                     * @description Width of preview in points (default: 595 - A4 width)
+                     * @default 595
+                     */
+                    width?: number;
+                    /**
+                     * Format: int64
+                     * @description Height of preview in points (default: 50)
+                     * @default 50
+                     */
+                    height?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };

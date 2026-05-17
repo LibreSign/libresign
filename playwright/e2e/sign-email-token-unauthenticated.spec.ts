@@ -35,6 +35,8 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 		]),
 	)
 	await setCertificateEngine(page.request, 'openssl')
+	await page.goto('./apps/libresign')
+	await page.getByRole('button', { name: 'Upload from URL' }).click()
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).click();
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('http://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf');
 	await page.getByRole('button', { name: 'Send' }).click();
