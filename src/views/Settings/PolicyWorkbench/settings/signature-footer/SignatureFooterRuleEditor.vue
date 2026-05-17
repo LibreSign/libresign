@@ -322,7 +322,7 @@ async function updatePreview(template: string): Promise<void> {
 	const requestId = ++previewRequestId
 	try {
 		const response = await axios.post(
-			generateOcsUrl('/apps/libresign/api/v1/admin/footer-template/preview-pdf'),
+			generateOcsUrl('/apps/libresign/api/v1/footer-template/preview-pdf'),
 			{
 				template,
 				width: previewWidth.value,
