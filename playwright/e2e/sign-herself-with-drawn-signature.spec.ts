@@ -6,7 +6,7 @@
 import { expect, test } from '@playwright/test'
 import type { Locator } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 
 function getVisiblePdfOverlay(dialog: Locator) {
 	return dialog.locator('.overlay:visible').first()
@@ -27,9 +27,8 @@ test('sign herself with drawn signature', async ({ page }) => {
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } } },

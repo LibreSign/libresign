@@ -5,7 +5,7 @@
 
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteUserPfx, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteUserPfx, setSystemPolicy } from '../support/nc-provisioning'
 
 test('sign herself with pkcs12 certificate', async ({ page }) => {
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
@@ -21,9 +21,8 @@ test('sign herself with pkcs12 certificate', async ({ page }) => {
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { password: { enabled: true } } },

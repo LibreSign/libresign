@@ -5,7 +5,7 @@
 
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteUserPfx, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteUserPfx, setSystemPolicy } from '../support/nc-provisioning'
 
 async function prepareSignFlow(page: Parameters<typeof test>[1] extends (args: infer T) => any ? T['page'] : never, adminUser: string) {
 	await page.goto('./apps/libresign')
@@ -41,9 +41,8 @@ async function bootstrapAdminCertificate(page: Parameters<typeof test>[1] extend
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { password: { enabled: true } } },
@@ -51,9 +50,8 @@ async function bootstrapAdminCertificate(page: Parameters<typeof test>[1] extend
 		]),
 	)
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'crl_external_validation_enabled',
 		'1',
 	)
@@ -102,9 +100,8 @@ test('switches from blocked (enabled) to normal (disabled) without extra scenari
 	await expect(page.locator('.button-wrapper').getByText('Certificate revocation status could not be verified').first()).toBeVisible()
 	await page.screenshot({ path: '/tmp/playwright-results/non-retriable-blocked-ui.png', fullPage: true })
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'crl_external_validation_enabled',
 		'0',
 	)

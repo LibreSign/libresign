@@ -5,7 +5,7 @@
 
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo } from '../support/mailpit'
 
 /**
@@ -29,9 +29,8 @@ test('admin can send a reminder to a pending signer', async ({ page }) => {
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: false, mandatory: false },

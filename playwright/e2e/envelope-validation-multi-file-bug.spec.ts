@@ -7,7 +7,7 @@
 
 import { expect, test } from '@playwright/test'
 import type { APIRequestContext, Page } from '@playwright/test'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, extractSignLink, waitForEmailTo } from '../support/mailpit'
 
 type EnvelopeSigningScenario = {
@@ -78,10 +78,9 @@ async function enableEnvelopeScenario(request: APIRequestContext) {
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(request, 'libresign', 'envelope_enabled', '1')
-	await setAppConfig(
+	await setSystemPolicy(request, 'envelope_enabled', '1')
+	await setSystemPolicy(
 		request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: false, mandatory: false },

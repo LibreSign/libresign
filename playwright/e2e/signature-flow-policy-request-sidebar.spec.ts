@@ -11,7 +11,7 @@ import {
 	ensureSubadminOfGroup,
 	ensureUserExists,
 	ensureUserInGroup,
-	setAppConfig,
+	setSystemPolicy,
 } from '../support/nc-provisioning'
 import {
 	clearUserPolicyPreference,
@@ -71,7 +71,7 @@ test.afterEach(async ({ adminRequestContext, groupAdminRequestContext }) => {
 	await clearUserPolicyPreference(adminRequestContext, POLICY_KEY, [200, 401, 500])
 	await clearUserPolicyPreference(groupAdminRequestContext, POLICY_KEY, [200, 401, 500])
 	await setSystemPolicyEntry(adminRequestContext, POLICY_KEY, 'none', true)
-	await setAppConfig(adminRequestContext, 'libresign', 'groups_request_sign', JSON.stringify(['admin']))
+	await setSystemPolicy(adminRequestContext, 'groups_request_sign', JSON.stringify(['admin']))
 })
 
 test('request sidebar persists signature flow preference through policies endpoint', async ({ page, adminRequestContext }) => {
@@ -85,9 +85,8 @@ test('request sidebar persists signature flow preference through policies endpoi
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		adminRequestContext,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: false, mandatory: false },
@@ -139,9 +138,8 @@ for (const systemFlow of ['ordered_numeric', 'parallel'] as const) {
 			L: 'Rio de Janeiro',
 		})
 
-		await setAppConfig(
+		await setSystemPolicy(
 			adminRequestContext,
-			'libresign',
 			'identify_methods',
 			JSON.stringify([
 				{ name: 'account', enabled: false, mandatory: false },
@@ -149,9 +147,8 @@ for (const systemFlow of ['ordered_numeric', 'parallel'] as const) {
 			]),
 		)
 
-		await setAppConfig(
+		await setSystemPolicy(
 			adminRequestContext,
-			'libresign',
 			'groups_request_sign',
 			JSON.stringify(['admin', GROUP_ADMIN_GROUP]),
 		)

@@ -6,7 +6,7 @@
 import type { APIRequestContext, Page } from '@playwright/test'
 import { expect, test as base } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteAppConfig, getAppConfig, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteAppConfig, getAppConfig, setCertificateEngine, getSystemPolicyValue, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
 import { makeAdminContext } from '../support/system-policies'
 import { setSystemPolicyEntry } from '../support/policy-api'
@@ -51,7 +51,7 @@ const test = base.extend<{
 		}
 
 		await use({
-			identifyMethods: await getAppConfig(request, 'libresign', 'identify_methods'),
+			identifyMethods: await getSystemPolicyValue(request, 'identify_methods'),
 			signatureEngine: await getAppConfig(request, 'libresign', 'signature_engine'),
 			tsaUrl: await getAppConfig(request, 'libresign', 'tsa_url'),
 			footerPolicy: policyBody.ocs?.data?.policy?.value ?? null,
@@ -62,8 +62,10 @@ const test = base.extend<{
 test.setTimeout(120_000)
 
 test.afterEach(async ({ page, adminContext, originalConfigSnapshot }) => {
-	await restoreAppConfig(page.request, 'identify_methods', originalConfigSnapshot.identifyMethods)
-	await restoreAppConfig(page.request, 'signature_engine', originalConfigSnapshot.signatureEngine)
+	await setSystemPolicy(page.request, 'identify_methods', originalConfigSnapshot.identifyMethods ?? '[]')
+	if (originalConfigSnapshot.signatureEngine !== null) {
+		await setCertificateEngine(page.request, originalConfigSnapshot.signatureEngine)
+	}
 	await restoreAppConfig(page.request, 'tsa_url', originalConfigSnapshot.tsaUrl)
 	await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, originalConfigSnapshot.footerPolicy ?? FOOTER_DISABLED_VALUE, true)
 })
@@ -102,16 +104,15 @@ test('request signatures from two signers in sequential order', async ({ page, a
 			L: 'Rio de Janeiro',
 		})
 
-		await setAppConfig(
+		await setSystemPolicy(
 			page.request,
-			'libresign',
 			'identify_methods',
 			JSON.stringify([
 				{ name: 'account', enabled: false, mandatory: false },
 				{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
 			]),
 		)
-		await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
+		await setCertificateEngine(page.request, 'PhpNative')
 		await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 		await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE, true)
 	})

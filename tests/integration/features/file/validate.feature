@@ -12,7 +12,7 @@ Feature: validate
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "config:app:set libresign certificate_engine --value=openssl" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}] |
     And user "signer1" exists
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"

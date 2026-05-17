@@ -5,7 +5,7 @@ Feature: page/sign_identify_default
   Scenario: Open sign file with all data valid
     Given as user "admin"
     And run the command "config:app:set libresign identify_methods --value=[] --type=array" with result code 0
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"requirement":"required"},{"name":"email","enabled":true,"requirement":"optional"}] |
     When sending "get" to "/apps/libresign/f/"
     Then the response should have a status code 200
