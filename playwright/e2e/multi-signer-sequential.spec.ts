@@ -112,7 +112,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 				{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
 			]),
 		)
-		await setCertificateEngine(page.request, 'PhpNative')
+			await setCertificateEngine(page.request, 'openssl')
 		await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 		await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE, true)
 	})
