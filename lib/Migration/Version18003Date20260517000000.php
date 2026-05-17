@@ -35,7 +35,7 @@ use OCP\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
-class Version18001Date20260320000000 extends SimpleMigrationStep {
+class Version18003Date20260517000000 extends SimpleMigrationStep {
 	public function __construct(
 		private IAppConfig $appConfig,
 	) {
