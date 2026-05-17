@@ -35,12 +35,20 @@ final class FooterTemplateController extends AEnvironmentAwareController {
 	 *
 	 * Returns the current footer template if set, otherwise returns the default template.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignFooterTemplateResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignFooterTemplateResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 403: Forbidden
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/footer-template', requirements: ['apiVersion' => '(v1)'])]
 	public function getFooterTemplate(): DataResponse {
+		if (!$this->footerService->isPreviewAllowed()) {
+			return new DataResponse([
+				'error' => 'Footer template is disabled by policy for the current user.',
+			], Http::STATUS_FORBIDDEN);
+		}
+
 		$previewSettings = $this->footerService->getPreviewSettings();
 
 		return new DataResponse([
@@ -67,8 +75,15 @@ final class FooterTemplateController extends AEnvironmentAwareController {
 	 * 400: Bad request
 	 * 403: Forbidden
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/footer-template', requirements: ['apiVersion' => '(v1)'])]
 	public function saveFooterTemplate(string $template = '', int $width = 595, int $height = 50) {
+		if (!$this->footerService->isPreviewAllowed()) {
+			return new DataResponse([
+				'error' => 'Footer template is disabled by policy for the current user.',
+			], Http::STATUS_FORBIDDEN);
+		}
+
 		try {
 			$this->footerService->saveTemplate($template, $width, $height);
 			$pdf = $this->footerService->renderPreviewPdf('', $width, $height);

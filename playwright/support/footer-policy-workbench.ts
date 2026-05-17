@@ -5,7 +5,7 @@
 
 import { expect, type Locator, type Page } from '@playwright/test'
 import { login } from './nc-login'
-import { configureOpenSsl } from './nc-provisioning'
+import { configureOpenSsl, setSystemPolicy } from './nc-provisioning'
 
 async function clickSwitchContent(switchContainer: Locator): Promise<void> {
 	await switchContainer.locator('.checkbox-radio-switch__content').first().click()
@@ -17,6 +17,8 @@ export async function bootstrapLibreSignAdmin(page: Page): Promise<void> {
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
 		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 	)
+
+	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify(['admin']))
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
 		C: 'BR',

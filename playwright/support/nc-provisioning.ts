@@ -418,6 +418,7 @@ export async function setSystemPolicy(
 		`/apps/libresign/api/v1/policies/system/${policyKey}`,
 		adminUser,
 		adminPassword,
+		undefined,
 		{ value },
 	)
 	if (result.ocs.meta.statuscode !== 200) {
@@ -536,6 +537,7 @@ export async function setCertificateEngine(
 		'/apps/libresign/api/v1/admin/certificate/engine',
 		adminUser,
 		adminPassword,
+		undefined,
 		{ engine },
 	)
 	if (result.ocs.meta.statuscode !== 200) {

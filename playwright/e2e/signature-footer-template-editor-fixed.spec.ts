@@ -14,9 +14,11 @@ import {
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
-async function waitForFooterTemplateRequest(page: Page, action: () => Promise<void>) {
+const FOOTER_PREVIEW_PATH = '/apps/libresign/api/v1/footer-template/preview-pdf'
+
+const waitForFooterTemplateRequest = async (page: Page, action: () => Promise<void>) => {
 	const requestPromise = page.waitForRequest((request) => {
-		return request.method() === 'POST' && request.url().includes('/admin/footer-template/preview-pdf')
+		return request.method() === 'POST' && request.url().includes(FOOTER_PREVIEW_PATH)
 	})
 
 	await action()
@@ -28,7 +30,7 @@ async function waitForFooterTemplateRequest(page: Page, action: () => Promise<vo
 	}
 }
 
-async function saveRule(page: Page, ruleDialog: Locator): Promise<void> {
+const saveRule = async (page: Page, ruleDialog: Locator): Promise<void> => {
 	const saveButton = ruleDialog.getByRole('button', { name: /Create rule|Save changes|Save policy rule changes|Save rule changes/i }).last()
 	await expect(saveButton).toBeVisible({ timeout: 10000 })
 	await expect(saveButton).toBeEnabled({ timeout: 10000 })
@@ -91,7 +93,7 @@ test('signature footer template editor updates preview and controls correctly', 
 		await fillTemplateEditor(ruleDialog, uniqueTemplate)
 	})
 	await expect(templatePayload.template).toContain('Playwright footer')
-	await expect(previewSection.locator('.pdf-elements-root')).toBeVisible({ timeout: 15000 })
+	await expect(previewSection.locator('.signature-footer-rule-editor__preview-frame')).toBeVisible({ timeout: 15000 })
 })
 
 test('footer template reset removes customization after page reload', async ({ page }) => {

@@ -6,12 +6,12 @@
 import { expect, test } from '@playwright/test'
 import type { Locator, Page, Request, Response } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl } from '../support/nc-provisioning'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
-const PREVIEW_URL_PATTERN = /admin\/footer-template\/preview-pdf/
+const PREVIEW_URL_PATTERN = /footer-template\/preview-pdf/
 const SYSTEM_FOOTER_POLICY_URL = '/apps/libresign/api/v1/policies/system/add_footer'
 
 async function bootstrapLibreSignAdmin(page: Page) {
@@ -27,6 +27,8 @@ async function bootstrapLibreSignAdmin(page: Page) {
 			Accept: 'application/json',
 		},
 	})
+
+	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify(['admin']))
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
 		C: 'BR',
@@ -189,7 +191,7 @@ test('signature footer template editor updates preview and controls correctly', 
 		height: number
 	})
 
-	await expect(preview.locator('.pdf-elements-root')).toBeVisible({ timeout: 15000 })
+	await expect(preview.locator('.signature-footer-rule-editor__preview-frame')).toBeVisible({ timeout: 15000 })
 	await expect(preview.getByText(/Preview/i)).toBeVisible({ timeout: 15000 })
 	await expect((await initialPayload).template).toContain('Playwright bootstrap')
 

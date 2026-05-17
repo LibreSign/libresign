@@ -19,7 +19,7 @@ test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page 
 	const ruleDialog = await openSystemFooterRuleEditor(page)
 	await ensureFooterTemplateEnabled(ruleDialog)
 
-	const pdfRoot = ruleDialog.locator('.signature-footer-rule-editor__preview .pdf-elements-root').first()
+	const pdfRoot = ruleDialog.locator('.signature-footer-rule-editor__preview .signature-footer-rule-editor__preview-frame').first()
 	await expect(pdfRoot).toBeVisible({ timeout: 15000 })
 
 	const widthField = ruleDialog.getByRole('spinbutton', { name: 'Width' }).first()

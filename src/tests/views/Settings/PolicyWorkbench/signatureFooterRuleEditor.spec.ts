@@ -773,4 +773,65 @@ describe('SignatureFooterRuleEditor.vue', () => {
 			previewZoom: 140,
 		})
 	})
+
+	it('uses non-admin preview route in user scope when template preview is enabled', async () => {
+		mount(SignatureFooterRuleEditor, {
+			props: {
+				modelValue: asModelValue({
+					enabled: true,
+					writeQrcodeOnFooter: true,
+					validationSite: '',
+					customizeFooterTemplate: true,
+					footerTemplate: 'User footer template',
+					previewWidth: 595,
+					previewHeight: 100,
+					previewZoom: 100,
+				}),
+				editorScope: 'user',
+				allowValidationSiteOverrideInUserScope: true,
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: {
+						name: 'NcCheckboxRadioSwitch',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<div class="switch-stub" @click="$emit(\'update:modelValue\', !modelValue)"><slot /></div>',
+					},
+					NcTextField: {
+						name: 'NcTextField',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<input class="text-field-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+					},
+					NcButton: {
+						name: 'NcButton',
+						emits: ['click'],
+						template: '<button class="button-stub" @click="$emit(\'click\')"><slot /></button>',
+					},
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+					CodeEditor: {
+						name: 'CodeEditor',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<div class="code-editor-wrapper-stub"><div class="code-editor-header-stub"><slot name="label-actions" /></div><textarea class="code-editor-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>',
+					},
+				},
+			},
+		})
+
+		await nextTick()
+		await Promise.resolve()
+
+		expect(axiosPostMock).toHaveBeenCalledWith(
+			'/apps/libresign/api/v1/footer-template/preview-pdf',
+			expect.objectContaining({
+				template: 'User footer template',
+			}),
+			expect.objectContaining({ responseType: 'blob' }),
+		)
+	})
 })
