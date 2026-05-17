@@ -36,7 +36,7 @@ test('updates files list status after signing with native engine', async ({ page
 		L: 'Rio de Janeiro',
 	})
 
-	await setCertificateEngine(page.request, 'PhpNative')
+		await setCertificateEngine(page.request, 'openssl')
 	await setSystemPolicy(
 		page.request,
 		'identify_methods',

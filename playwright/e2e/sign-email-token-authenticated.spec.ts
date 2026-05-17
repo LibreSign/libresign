@@ -43,7 +43,7 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
-	await setCertificateEngine(page.request, 'PhpNative')
+		await setCertificateEngine(page.request, 'openssl')
 	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
