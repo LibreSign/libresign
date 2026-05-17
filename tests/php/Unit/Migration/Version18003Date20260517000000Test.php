@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Migration;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Migration\Version18001Date20260320000000;
+use OCA\Libresign\Migration\Version18003Date20260517000000;
 use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
@@ -21,7 +21,7 @@ use OCP\Migration\IOutput;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-final class Version18001Date20260320000000Test extends TestCase {
+final class Version18003Date20260517000000Test extends TestCase {
 	private IAppConfig&MockObject $appConfig;
 
 	#[\Override]
@@ -87,7 +87,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertContains([Application::APP_ID, 'add_footer'], $deletedKeys);
@@ -144,7 +144,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		$expectedTsaPayload = TsaPolicyValue::encode([
@@ -243,7 +243,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertContains([Application::APP_ID, 'add_footer'], $deletedKeys);
@@ -289,7 +289,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertContains([Application::APP_ID, 'groups_request_sign'], $deletedKeys);
@@ -338,7 +338,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertArrayHasKey(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY, $savedStrings);
@@ -405,7 +405,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertTrue($renderModeWasNormalized);
@@ -463,7 +463,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				$deleted[] = [$app, $key];
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame(true, $savedBools['collect_metadata']);
@@ -518,7 +518,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				$deleted[] = [$app, $key];
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame('ordered_numeric', $savedStrings['policy.signature_flow.system']);
@@ -573,7 +573,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				$deleted[] = [$app, $key];
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame(600, $savedInts[ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY]);
@@ -629,7 +629,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame([
@@ -692,7 +692,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertArrayNotHasKey('identify_methods', $savedArrays);
@@ -744,7 +744,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame([
@@ -809,7 +809,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame([
@@ -873,7 +873,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertSame([
@@ -920,7 +920,7 @@ final class Version18001Date20260320000000Test extends TestCase {
 				return true;
 			});
 
-		$migration = new Version18001Date20260320000000($this->appConfig);
+		$migration = new Version18003Date20260517000000($this->appConfig);
 		$migration->preSchemaChange($this->createMock(IOutput::class), static fn () => null, []);
 
 		self::assertArrayNotHasKey('identify_methods', $savedArrays);
