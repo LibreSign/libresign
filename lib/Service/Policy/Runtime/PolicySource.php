@@ -622,6 +622,18 @@ class PolicySource implements IPolicySource {
 	}
 
 	private function writeSystemValue(string $key, mixed $value): void {
+		try {
+			$this->setSystemValueByType($key, $value);
+		} catch (AppConfigTypeConflictException) {
+			if ($this->appConfig->hasAppKey($key)) {
+				$this->appConfig->deleteAppValue($key);
+			}
+
+			$this->setSystemValueByType($key, $value);
+		}
+	}
+
+	private function setSystemValueByType(string $key, mixed $value): void {
 		if (is_int($value)) {
 			$this->appConfig->setAppValueInt($key, $value);
 			return;
