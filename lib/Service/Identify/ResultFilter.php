@@ -54,7 +54,22 @@ class ResultFilter {
 		return array_filter($list, fn ($result) => strlen((string)($result['value']['shareWith'] ?? '')) > 0);
 	}
 
-	public function excludeNotAllowed(array $list): array {
-		return array_filter($list, fn ($result) => isset($result['method']) && !empty($result['method']));
+	public function excludeNotAllowed(array $list, array $allowedMethods = []): array {
+		$allowedMethods = array_values(array_filter(array_map(
+			static fn (mixed $method): string => is_string($method) ? trim($method) : '',
+			$allowedMethods,
+		), static fn (string $method): bool => $method !== ''));
+
+		return array_filter($list, static function (array $result) use ($allowedMethods): bool {
+			if (!isset($result['method']) || empty($result['method'])) {
+				return false;
+			}
+
+			if ($allowedMethods === []) {
+				return true;
+			}
+
+			return in_array((string)$result['method'], $allowedMethods, true);
+		});
 	}
 }
