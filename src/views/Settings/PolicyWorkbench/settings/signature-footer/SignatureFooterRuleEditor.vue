@@ -182,6 +182,7 @@ let previewRequestId = 0
 const DEFAULT_PREVIEW_WIDTH = 595
 const DEFAULT_PREVIEW_HEIGHT = 100
 const DEFAULT_PREVIEW_ZOOM = 100
+const FOOTER_TEMPLATE_PREVIEW_PATH = '/apps/libresign/api/v1/footer-template/preview-pdf'
 
 const value = computed<SignatureFooterPolicyConfig>(() => {
 	const normalized = normalizeSignatureFooterPolicyConfig(props.modelValue)
@@ -322,7 +323,7 @@ async function updatePreview(template: string): Promise<void> {
 	const requestId = ++previewRequestId
 	try {
 		const response = await axios.post(
-			generateOcsUrl('/apps/libresign/api/v1/footer-template/preview-pdf'),
+			generateOcsUrl(FOOTER_TEMPLATE_PREVIEW_PATH),
 			{
 				template,
 				width: previewWidth.value,

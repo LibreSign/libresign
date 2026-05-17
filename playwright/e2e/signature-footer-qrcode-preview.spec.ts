@@ -6,11 +6,12 @@
 import { expect, test } from '@playwright/test'
 import type { Locator, Page, Request } from '@playwright/test'
 import { login } from '../support/nc-login'
+import { setSystemPolicy } from '../support/nc-provisioning'
 import { ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
-const PREVIEW_URL_PATTERN = /admin\/footer-template\/preview-pdf/
+const PREVIEW_URL_PATTERN = /footer-template\/preview-pdf/
 
 async function captureNextPreviewRequest(page: Page): Promise<Request> {
 	return page.waitForRequest(
@@ -72,6 +73,7 @@ test('toggleing writeQrcodeOnFooter sends correct flag to preview API and QR cod
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
 		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 	)
+	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify(['admin']))
 
 	const dialog = await openFooterPolicyEditor(page)
 	const ruleDialog = await clickChangeOrCreateRule(dialog)
@@ -137,6 +139,7 @@ test('preview request always includes writeQrcodeOnFooter when template is custo
 		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
 		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
 	)
+	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify(['admin']))
 
 	const dialog = await openFooterPolicyEditor(page)
 	const ruleDialog = await clickChangeOrCreateRule(dialog)

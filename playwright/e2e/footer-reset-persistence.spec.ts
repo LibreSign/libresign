@@ -16,7 +16,7 @@ test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
 async function waitForFooterTemplateRequest(page: Page, action: () => Promise<void>) {
 	const requestPromise = page.waitForRequest((request) => {
-		return request.method() === 'POST' && request.url().includes('/admin/footer-template/preview-pdf')
+		return request.method() === 'POST' && /footer-template\/preview-pdf/.test(request.url())
 	})
 
 	await action()
