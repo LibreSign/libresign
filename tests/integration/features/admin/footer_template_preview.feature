@@ -11,7 +11,8 @@ Feature: admin/footer_template_preview
     And the response body should match the regular expression "^%PDF"
 
   Scenario: Non-admin user cannot save footer template
-    Given as user "signer1"
+    Given user "signer1" exists
+    And as user "signer1"
     When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
       | template | <p>Should be denied</p> |
       | width    | 595 |
@@ -19,7 +20,8 @@ Feature: admin/footer_template_preview
     Then the response should have a status code 403
 
   Scenario: Non-admin user cannot read footer template
-    Given as user "signer1"
+    Given user "signer1" exists
+    And as user "signer1"
     When sending "get" to ocs "/apps/libresign/api/v1/footer-template"
     Then the response should have a status code 403
 
@@ -35,7 +37,8 @@ Feature: admin/footer_template_preview
     And the response body should match the regular expression "^%PDF"
 
   Scenario: Non-admin user can preview footer template through dedicated endpoint
-    Given as user "signer1"
+    Given user "signer1" exists
+    And as user "signer1"
     When sending "post" to ocs "/apps/libresign/api/v1/footer-template/preview-pdf"
       | template | <p>Signer preview</p> |
       | width    | 595 |
@@ -46,7 +49,8 @@ Feature: admin/footer_template_preview
     And the response body should match the regular expression "^%PDF"
 
   Scenario: User with disabled add_footer policy cannot preview footer template
-    Given as user "signer1"
+    Given user "signer1" exists
+    And as user "signer1"
     And sending "put" to ocs "/apps/libresign/api/v1/policies/user/add_footer"
       | value | false |
     And the response should have a status code 200
