@@ -14,7 +14,6 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
-use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\SignRequestStatus;
@@ -23,21 +22,21 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
-use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\Security\IHasher;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -49,17 +48,16 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileElementMapper&MockObject $fileElementMapper;
 	private IdDocsMapper&MockObject $idDocsMapper;
 	private UserElementMapper&MockObject $userElementMapper;
-	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private SequentialSigningService&MockObject $sequentialSigningService;
 	private SignerElementsService&MockObject $signerElementsService;
 	private IMimeTypeDetector $mimeTypeDetector;
-	private IHasher&MockObject $hasher;
-	private IAppConfig&MockObject $appConfig;
-	private IGroupManager&MockObject $groupManager;
+	private IdDocsPolicyService&MockObject $idDocsPolicyService;
 	private IUserManager&MockObject $userManager;
 	private IRootFolder&MockObject $root;
 	private DocMdpValidator&MockObject $docMdpValidator;
+	private RequestSignAuthorizationService&MockObject $requestSignAuthorizationService;
+	private RuntimeRequirementValidator&MockObject $runtimeRequirementValidator;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -72,17 +70,16 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->idDocsMapper = $this->createMock(IdDocsMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
-		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
-		$this->hasher = $this->createMock(IHasher::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->idDocsPolicyService = $this->createMock(IdDocsPolicyService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->docMdpValidator = $this->createMock(DocMdpValidator::class);
+		$this->requestSignAuthorizationService = $this->createMock(RequestSignAuthorizationService::class);
+		$this->runtimeRequirementValidator = $this->createMock(RuntimeRequirementValidator::class);
 	}
 
 	private function getValidateHelper(): ValidateHelper {
@@ -94,29 +91,103 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementMapper,
 			$this->idDocsMapper,
 			$this->userElementMapper,
-			$this->identifyMethodMapper,
 			$this->identifyMethodService,
 			$this->sequentialSigningService,
 			$this->signerElementsService,
 			$this->mimeTypeDetector,
-			$this->hasher,
-			$this->appConfig,
-			$this->groupManager,
+			$this->idDocsPolicyService,
 			$this->userManager,
 			$this->root,
 			$this->docMdpValidator,
+			$this->requestSignAuthorizationService,
+			$this->runtimeRequirementValidator,
 		);
 		return $validateHelper;
 	}
 
-	public function testValidateIdentifySignersCallsDocMdpValidator(): void {
-		$signatureMethod = $this->createMock(ISignatureMethod::class);
+	private function createSignRequestEntity(
+		int $id,
+		int $fileId,
+		SignRequestStatus $status = SignRequestStatus::ABLE_TO_SIGN,
+		?int $signingOrder = null,
+	): \OCA\Libresign\Db\SignRequest {
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setId($id);
+		$signRequest->setFileId($fileId);
+		$signRequest->setStatusEnum($status);
+		if ($signingOrder !== null) {
+			$signRequest->setSigningOrder($signingOrder);
+		}
+		return $signRequest;
+	}
+
+	private function createLibresignFile(
+		?int $id = null,
+		string $nodeType = 'file',
+		?string $userId = null,
+	): \OCA\Libresign\Db\File {
+		$file = new \OCA\Libresign\Db\File();
+		if ($id !== null) {
+			$file->setId($id);
+		}
+		$file->setNodeType($nodeType);
+		if ($userId !== null) {
+			$file->setUserId($userId);
+		}
+		return $file;
+	}
+
+	private function createFileElementEntity(
+		int $id,
+		?int $signRequestId = null,
+		?int $fileId = null,
+		?string $type = null,
+	): \OCA\Libresign\Db\FileElement {
+		$fileElement = new \OCA\Libresign\Db\FileElement();
+		$fileElement->setId($id);
+		if ($signRequestId !== null) {
+			$fileElement->setSignRequestId($signRequestId);
+		}
+		if ($fileId !== null) {
+			$fileElement->setFileId($fileId);
+		}
+		if ($type !== null) {
+			$fileElement->setType($type);
+		}
+		return $fileElement;
+	}
+
+	private function createUserMock(string $uid): IUser&MockObject {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn($uid);
+		return $user;
+	}
+
+	private function mockIdentifyMethodWithSignatureMethods(array $signatureMethods = []): void {
 		$identifyMethod = $this->createMock(IIdentifyMethod::class);
-		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('getSignatureMethods')->willReturn($signatureMethods);
 		$identifyMethod->method('validateToRequest');
+
 		$this->identifyMethodService
 			->method('getInstanceOfIdentifyMethod')
 			->willReturn($identifyMethod);
+	}
+
+	private function mockSignRequestByUuid(string $uuid, \OCA\Libresign\Db\SignRequest $signRequest, ?\OCA\Libresign\Db\File $file = null): void {
+		$this->signRequestMapper
+			->method('getByUuid')
+			->with($uuid)
+			->willReturn($signRequest);
+		if ($file !== null) {
+			$this->fileMapper
+				->method('getById')
+				->willReturn($file);
+		}
+	}
+
+	public function testValidateIdentifySignersCallsDocMdpValidator(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$this->mockIdentifyMethodWithSignatureMethods([$signatureMethod]);
 
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$this->fileMapper
@@ -146,12 +217,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateIdentifySignersSkipsPdfValidationWithoutUuid(): void {
 		$signatureMethod = $this->createMock(ISignatureMethod::class);
-		$identifyMethod = $this->createMock(IIdentifyMethod::class);
-		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
-		$identifyMethod->method('validateToRequest');
-		$this->identifyMethodService
-			->method('getInstanceOfIdentifyMethod')
-			->willReturn($identifyMethod);
+		$this->mockIdentifyMethodWithSignatureMethods([$signatureMethod]);
 
 		$data = [
 			'signers' => [
@@ -178,21 +244,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		bool $expectsBlock,
 	): void {
 		$uuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-		$signRequest = new \OCA\Libresign\Db\SignRequest();
-		$file = new \OCA\Libresign\Db\File();
+		$signRequest = $this->createSignRequestEntity(99, 10, SignRequestStatus::ABLE_TO_SIGN, 3);
+		$file = $this->createLibresignFile();
 
-		$this->signRequestMapper
-			->method('getByUuid')
-			->with($uuid)
-			->willReturn($signRequest);
-		$this->fileMapper
-			->method('getById')
-			->willReturn($file);
-
-		$signRequest->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
-		$signRequest->setId(99);
-		$signRequest->setFileId(10);
-		$signRequest->setSigningOrder(3);
+		$this->mockSignRequestByUuid($uuid, $signRequest, $file);
 
 		$this->identifyMethodService
 			->method('getIdentifyMethodsFromSignRequestId')
@@ -230,18 +285,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateSignerAllowsDraftWhenFileHasIdDocs(): void {
 		$uuid = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-		$signRequest = new \OCA\Libresign\Db\SignRequest();
-		$signRequest->setStatusEnum(SignRequestStatus::DRAFT);
-		$signRequest->setId(10);
-		$signRequest->setFileId(20);
+		$signRequest = $this->createSignRequestEntity(10, 20, SignRequestStatus::DRAFT);
+		$file = $this->createLibresignFile();
 
-		$file = new \OCA\Libresign\Db\File();
-
-		$this->signRequestMapper->method('getByUuid')
-			->with($uuid)
-			->willReturn($signRequest);
-		$this->fileMapper->method('getById')
-			->willReturn($file);
+		$this->mockSignRequestByUuid($uuid, $signRequest, $file);
 
 		$idDocs = new IdDocs();
 		$this->idDocsMapper->method('getByFileId')
@@ -258,18 +305,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateSignerBlocksDraftWhenFileHasNoIdDocs(): void {
 		$uuid = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
-		$signRequest = new \OCA\Libresign\Db\SignRequest();
-		$signRequest->setStatusEnum(SignRequestStatus::DRAFT);
-		$signRequest->setId(11);
-		$signRequest->setFileId(21);
+		$signRequest = $this->createSignRequestEntity(11, 21, SignRequestStatus::DRAFT);
+		$file = $this->createLibresignFile();
 
-		$file = new \OCA\Libresign\Db\File();
-
-		$this->signRequestMapper->method('getByUuid')
-			->with($uuid)
-			->willReturn($signRequest);
-		$this->fileMapper->method('getById')
-			->willReturn($file);
+		$this->mockSignRequestByUuid($uuid, $signRequest, $file);
 
 		$this->idDocsMapper->method('getByFileId')
 			->with(21)
@@ -419,24 +458,26 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testCanRequestSignWithoutUserManager():void {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
+		$this->requestSignAuthorizationService
+			->expects($this->once())
+			->method('canRequestSign')
+			->with($user)
+			->willReturn(false);
+
 		$this->getValidateHelper()->canRequestSign($user);
 	}
 
 	public function testCanRequestSignWithoutPermission():void {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
-		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('["admin"]');
-		$this->groupManager
-			->method('getUserGroupIds')
-			->willReturn([]);
 		$user = $this->createMock(\OCP\IUser::class);
+		$this->requestSignAuthorizationService
+			->expects($this->once())
+			->method('canRequestSign')
+			->with($user)
+			->willReturn(false);
+
 		$this->getValidateHelper()->canRequestSign($user);
 	}
 
@@ -804,33 +845,28 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('canCreateSignature')
 			->willReturn($canCreateSignature);
 
-		$signRequest = new \OCA\Libresign\Db\SignRequest();
-		$signRequest->setId($signRequestId);
-		$signRequest->setFileId(20);
+		$signRequest = $this->createSignRequestEntity($signRequestId, 20);
 
-		$nonEnvelopeFile = new \OCA\Libresign\Db\File();
-		$nonEnvelopeFile->setNodeType('file');
+		$nonEnvelopeFile = $this->createLibresignFile(nodeType: 'file');
 		$this->fileMapper->method('getById')->willReturn($nonEnvelopeFile);
 
 		if ($fileElement !== null) {
-			$fileElementEntity = new \OCA\Libresign\Db\FileElement();
-			$fileElementEntity->setId($fileElement['id']);
-			$fileElementEntity->setSignRequestId($fileElement['signRequestId']);
+			$fileElementEntity = $this->createFileElementEntity(
+				$fileElement['id'],
+				$fileElement['signRequestId'],
+			);
 			$this->fileElementMapper->method('getById')->willReturn($fileElementEntity);
 		}
 
 		if (!empty($fileElements)) {
 			$fileElementEntities = [];
 			foreach ($fileElements as $fe) {
-				$entity = new \OCA\Libresign\Db\FileElement();
-				$entity->setId($fe['id']);
-				if (isset($fe['signRequestId'])) {
-					$entity->setSignRequestId($fe['signRequestId']);
-				}
-				if (isset($fe['type'])) {
-					$entity->setType($fe['type']);
-				}
-				$fileElementEntities[] = $entity;
+				$fileElementEntities[] = $this->createFileElementEntity(
+					$fe['id'],
+					$fe['signRequestId'] ?? null,
+					null,
+					$fe['type'] ?? null,
+				);
 			}
 			$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn($fileElementEntities);
 		}
@@ -843,46 +879,25 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			}
 		}
 
-		$user = $hasUser ? $this->createMock(IUser::class) : null;
-		if ($hasUser && $user !== null) {
-			$user->method('getUID')->willReturn('user1');
-		}
+		$user = $hasUser ? $this->createUserMock('user1') : null;
 
 		$this->getValidateHelper()->validateVisibleElementsRelation($visibleElements, $signRequest, $user);
 	}
 
 	public function testValidateVisibleElementsRelationAcceptsEnvelopeChildElements(): void {
-		// Envelope signRequest (id=898) references envelope file (id=831)
-		$envelopeSignRequest = new \OCA\Libresign\Db\SignRequest();
-		$envelopeSignRequest->setId(898);
-		$envelopeSignRequest->setFileId(831);
-
-		// Child signRequest (id=899) references child file (id=832)
-		$childSignRequest = new \OCA\Libresign\Db\SignRequest();
-		$childSignRequest->setId(899);
-		$childSignRequest->setFileId(832);
-
-		// File 831 is an envelope
-		$envelopeFile = new \OCA\Libresign\Db\File();
-		$envelopeFile->setId(831);
-		$envelopeFile->setNodeType('envelope');
+		$envelopeSignRequest = $this->createSignRequestEntity(898, 831);
+		$childSignRequest = $this->createSignRequestEntity(899, 832);
+		$envelopeFile = $this->createLibresignFile(831, 'envelope');
 		$this->fileMapper->method('getById')->willReturn($envelopeFile);
 
-		// getByEnvelopeChildrenAndIdentifyMethod returns child signRequests
 		$this->signRequestMapper
 			->method('getByEnvelopeChildrenAndIdentifyMethod')
 			->with(831, 898)
 			->willReturn([$childSignRequest]);
 
-		// documentElementId=224 belongs to child signRequest 899
-		$fileElement = new \OCA\Libresign\Db\FileElement();
-		$fileElement->setId(224);
-		$fileElement->setSignRequestId(899);
-		$fileElement->setFileId(832);
-		$fileElement->setType('signature');
+		$fileElement = $this->createFileElementEntity(224, 899, 832, 'signature');
 		$this->fileElementMapper->method('getById')->willReturn($fileElement);
 
-		// getByFileIdAndSignRequestId for envelope returns empty, for child returns the element
 		$this->fileElementMapper
 			->method('getByFileIdAndSignRequestId')
 			->willReturnCallback(function (int $fileId, ?int $signRequestId) use ($fileElement): array {
@@ -900,9 +915,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['documentElementId' => 224, 'profileNodeId' => 11623],
 		];
 
-		// Should NOT throw — envelope child signRequest 899 is a valid owner of documentElement 224
 		$this->getValidateHelper()->validateVisibleElementsRelation($visibleElements, $envelopeSignRequest, null);
-		$this->assertTrue(true, 'Envelope child elements should be accepted');
+		$this->assertTrue(true);
 	}
 
 	public static function dataValidateAuthenticatedUserIsOwnerOfPdfVisibleElement(): array {
@@ -939,19 +953,13 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->expectExceptionMessage('does not belong to user');
 		}
 
-		$fileElement = new \OCA\Libresign\Db\FileElement();
-		$fileElement->setId($fileElementId);
-		$fileElement->setSignRequestId($signRequestId);
+		$fileElement = $this->createFileElementEntity($fileElementId, $signRequestId);
 		$this->fileElementMapper->method('getById')->willReturn($fileElement);
 
-		$signRequest = new \OCA\Libresign\Db\SignRequest();
-		$signRequest->setId($signRequestId);
-		$signRequest->setFileId($fileId);
+		$signRequest = $this->createSignRequestEntity($signRequestId, $fileId);
 		$this->signRequestMapper->method('getById')->willReturn($signRequest);
 
-		$file = new \OCA\Libresign\Db\File();
-		$file->setId($fileId);
-		$file->setUserId($fileOwner);
+		$file = $this->createLibresignFile($fileId, 'file', $fileOwner);
 		$this->fileMapper->method('getById')->willReturn($file);
 
 		$this->getValidateHelper()->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($fileElementId, $authenticatedUser);
@@ -1026,6 +1034,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider datavalidateIfIdentifyMethodExists
 	 */
 	public function testValidateIfIdentifyMethodExists(string $identifyMethod, bool $throwException): void {
+		$this->identifyMethodService
+			->method('exists')
+			->willReturn(!$throwException);
 		if ($throwException) {
 			$this->expectException(LibresignException::class);
 		}
@@ -1047,13 +1058,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testValidateIdentifyMethodForRequestWithNoSignatureMethods(): void {
-		$identifyMethod = $this->createMock(IIdentifyMethod::class);
-		$identifyMethod->method('getSignatureMethods')->willReturn([]);
-		$identifyMethod->method('validateToRequest');
-
-		$this->identifyMethodService
-			->method('getInstanceOfIdentifyMethod')
-			->willReturn($identifyMethod);
+		$this->mockIdentifyMethodWithSignatureMethods([]);
 
 		$validateHelper = $this->getValidateHelper();
 
@@ -1066,13 +1071,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateIdentifyMethodForRequestWithValidSignatureMethods(): void {
 		$signatureMethod = $this->createMock(ISignatureMethod::class);
-		$identifyMethod = $this->createMock(IIdentifyMethod::class);
-		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
-		$identifyMethod->method('validateToRequest');
-
-		$this->identifyMethodService
-			->method('getInstanceOfIdentifyMethod')
-			->willReturn($identifyMethod);
+		$this->mockIdentifyMethodWithSignatureMethods([$signatureMethod]);
 
 		$validateHelper = $this->getValidateHelper();
 

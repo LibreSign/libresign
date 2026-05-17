@@ -5,7 +5,7 @@
 
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 
 test('delete pending signature request', async ({ page }) => {
 	await login(
@@ -22,9 +22,8 @@ test('delete pending signature request', async ({ page }) => {
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } } },
@@ -33,6 +32,7 @@ test('delete pending signature request', async ({ page }) => {
 	)
 
 	await page.goto('./apps/libresign')
+	await expect(page.getByRole('button', { name: 'Upload from URL' })).toBeVisible({ timeout: 20000 })
 	await page.getByRole('button', { name: 'Upload from URL' }).click()
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
@@ -58,7 +58,7 @@ test('delete pending signature request', async ({ page }) => {
 	// The most recently uploaded document is first — rename it to a unique name
 	// so it can be unambiguously identified regardless of other documents in the list.
 	// NcActionButton inside NcActions renders as role="menuitem", not role="button".
-	const uniqueName = `delete-pending-test-${Date.now()}`
+	const uniqueName = `delete-pending-test-${Date.now()}.pdf`
 	const firstRow = page.locator('[data-cy-files-list-tbody] tr.files-list__row')
 		.filter({ hasText: 'small_valid' })
 		.first()
@@ -70,6 +70,7 @@ test('delete pending signature request', async ({ page }) => {
 	// Find the row by its unique name and assert the status
 	const targetRow = page.locator('[data-cy-files-list-tbody] tr.files-list__row')
 		.filter({ hasText: uniqueName })
+	await expect(targetRow).toBeVisible({ timeout: 20000 })
 	await expect(targetRow.locator('.status-chip__text')).toHaveText('Ready to sign')
 
 	// Delete it
@@ -79,9 +80,13 @@ test('delete pending signature request', async ({ page }) => {
 	// Confirm the deletion in the dialog
 	await expect(page.getByRole('dialog', { name: 'Confirm' })).toBeVisible()
 	await expect(page.getByText('The signature request will be deleted. Do you confirm this action?')).toBeVisible()
-	await page.getByRole('button', { name: 'Ok' }).click()
+	await Promise.all([
+		page.waitForResponse((response) => response.request().method() === 'DELETE' && response.url().includes('/apps/libresign/api/v1/file/file_id/') && response.ok()),
+		page.getByRole('button', { name: 'Ok' }).click(),
+	])
 
-	// The specific row we deleted must disappear from the list
-	await expect(targetRow).toBeHidden()
+	// The list updates asynchronously after the backend deletion completes.
+	await page.reload()
+	await expect(targetRow).toBeHidden({ timeout: 20000 })
 })
 

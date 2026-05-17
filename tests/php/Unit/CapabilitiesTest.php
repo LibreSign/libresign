@@ -9,13 +9,14 @@ namespace OCA\Libresign\Tests\Unit;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Capabilities;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\App\IAppManager;
-use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -25,14 +26,15 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureTextService&MockObject $signatureTextService;
 	private IAppManager&MockObject $appManager;
 	private EnvelopeService&MockObject $envelopeService;
-	private IAppConfig&MockObject $appConfig;
+	private PolicyService&MockObject $policyService;
 
 	public function setUp(): void {
+		parent::setUp();
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
 		$this->appManager = $this->createMock(IAppManager::class);
 		$this->envelopeService = $this->createMock(EnvelopeService::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 	}
 
 
@@ -42,13 +44,19 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signatureTextService,
 			$this->appManager,
 			$this->envelopeService,
-			$this->appConfig,
+			$this->policyService,
 		);
 		return $this->capabilities;
 	}
 
 	#[DataProvider('providerSignElementsIsAvailable')]
 	public function testSignElementsIsAvailable($isEnabled, $expected): void {
+		$resolved = (new ResolvedPolicy())
+			->setPolicyKey(ConfettiPolicy::KEY)
+			->setEffectiveValue(true);
+		$this->policyService->method('resolve')
+			->with(ConfettiPolicy::KEY)
+			->willReturn($resolved);
 		$this->signerElementsService->method('isSignElementsAvailable')->willReturn($isEnabled);
 		$capabilities = $this->getClass()->getCapabilities();
 		$this->assertEquals($expected, $capabilities['libresign']['config']['sign-elements']['is-available']);
@@ -63,9 +71,12 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('providerShowConfetti')]
 	public function testShowConfetti(bool $configValue, bool $expected): void {
-		$this->appConfig->method('getValueBool')
-			->with(Application::APP_ID, 'show_confetti_after_signing', true)
-			->willReturn($configValue);
+		$resolved = (new ResolvedPolicy())
+			->setPolicyKey(ConfettiPolicy::KEY)
+			->setEffectiveValue($configValue);
+		$this->policyService->method('resolve')
+			->with(ConfettiPolicy::KEY)
+			->willReturn($resolved);
 		$capabilities = $this->getClass()->getCapabilities();
 		$this->assertEquals($expected, $capabilities['libresign']['config']['show-confetti']);
 	}

@@ -12,6 +12,9 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -31,6 +34,10 @@ use OCP\L10N\IFactory;
 
 class FooterHandler {
 	private QrCode $qrCode;
+	/** @var array<string, mixed> */
+	private array $requestPolicyOverrides = [];
+	private ?string $templateOverride = null;
+	private ?bool $writeQrcodeOnFooterOverride = null;
 	private const MIN_QRCODE_SIZE = 100;
 	private const POINT_TO_MILIMETER = 0.3527777778;
 
@@ -41,17 +48,17 @@ class FooterHandler {
 		private IL10N $l10n,
 		private IFactory $l10nFactory,
 		private ITempManager $tempManager,
+		private PolicyService $policyService,
 		private TemplateVariables $templateVars,
 	) {
 	}
 
-	public function getFooter(array $dimensions): string {
-		$add_footer = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'add_footer', true);
-		if (!$add_footer) {
+	public function getFooter(array $dimensions, bool $forceEnabled = false): string {
+		if (!$forceEnabled && !$this->isFooterEnabled()) {
 			return '';
 		}
 
-		$htmlFooter = $this->getRenderedHtmlFooter();
+		$htmlFooter = $this->getRenderedHtmlFooter($forceEnabled);
 		foreach ($dimensions as $dimension) {
 			if (!isset($pdf)) {
 				$pdf = new Mpdf([
@@ -94,14 +101,14 @@ class FooterHandler {
 		return $metadata;
 	}
 
-	private function getRenderedHtmlFooter(): string {
+	private function getRenderedHtmlFooter(bool $forceEnabled = false): string {
 		try {
 			$twigEnvironment = new Environment(
 				new FilesystemLoader(),
 			);
 			return $twigEnvironment
 				->createTemplate($this->getTemplate())
-				->render($this->prepareTemplateVars());
+				->render($this->prepareTemplateVars($forceEnabled));
 		} catch (SyntaxError $e) {
 			throw new LibresignException($e->getMessage());
 		}
@@ -112,7 +119,36 @@ class FooterHandler {
 		return $this;
 	}
 
-	private function prepareTemplateVars(): array {
+	/** @param array<string, mixed> $requestPolicyOverrides */
+	public function setRequestPolicyOverrides(array $requestPolicyOverrides): self {
+		$this->requestPolicyOverrides = $requestPolicyOverrides;
+		return $this;
+	}
+
+	public function setWriteQrcodeOnFooterOverride(?bool $value): self {
+		$this->writeQrcodeOnFooterOverride = $value;
+		return $this;
+	}
+
+	public function setTemplateOverride(?string $template): self {
+		$this->templateOverride = $template;
+		return $this;
+	}
+
+	public function getEffectiveFooterPolicyAsJson(): string {
+		return (string)$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue();
+	}
+
+	/** @return array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate: string, previewWidth: int, previewHeight: int, previewZoom: int} */
+	private function resolveFooterPolicy(): array {
+		return FooterPolicyValue::normalize(
+			$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue()
+		);
+	}
+
+	private function prepareTemplateVars(bool $forceEnabled = false): array {
+		$footerPolicy = $this->resolveFooterPolicy();
+
 		if (!$this->templateVars->getSignedBy()) {
 			$this->templateVars->setSignedBy(
 				$this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digitally signed by LibreSign.'))
@@ -132,7 +168,7 @@ class FooterHandler {
 		}
 
 		if (!$this->templateVars->getValidationSite() && $this->templateVars->getUuid()) {
-			$validationSite = $this->appConfig->getValueString(Application::APP_ID, 'validation_site');
+			$validationSite = $footerPolicy['validationSite'];
 			if ($validationSite) {
 				$this->templateVars->setValidationSite(
 					rtrim($validationSite, '/') . '/' . $this->templateVars->getUuid()
@@ -155,7 +191,8 @@ class FooterHandler {
 			}
 		}
 
-		if ($this->appConfig->getValueBool(Application::APP_ID, 'write_qrcode_on_footer', true) && $this->templateVars->getValidationSite()) {
+		$shouldWriteQrcode = $this->writeQrcodeOnFooterOverride ?? $footerPolicy['writeQrcodeOnFooter'];
+		if ($shouldWriteQrcode && $this->templateVars->getValidationSite()) {
 			$this->templateVars->setQrcode($this->getQrCodeImageBase64($this->templateVars->getValidationSite()));
 		}
 
@@ -170,9 +207,17 @@ class FooterHandler {
 	}
 
 	public function getTemplate(): string {
-		$footerTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
-		if ($footerTemplate) {
-			return $footerTemplate;
+		if ($this->templateOverride !== null) {
+			return trim($this->templateOverride) !== '' ? $this->templateOverride : $this->getDefaultTemplate();
+		}
+
+		$footerPolicy = $this->resolveFooterPolicy();
+
+		if ($footerPolicy['customizeFooterTemplate']) {
+			$policyTemplate = trim((string)($footerPolicy['footerTemplate'] ?? ''));
+			if ($policyTemplate !== '') {
+				return $policyTemplate;
+			}
 		}
 		return $this->getDefaultTemplate();
 	}
@@ -203,5 +248,11 @@ class FooterHandler {
 
 	public function getTemplateVariablesMetadata(): array {
 		return $this->templateVars->getVariablesMetadata();
+	}
+
+	private function isFooterEnabled(): bool {
+		return FooterPolicyValue::isEnabled(
+			$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue()
+		);
 	}
 }

@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Handler;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Helper\JavaHelper;
 use OCP\IAppConfig;
@@ -90,7 +89,7 @@ final class PdfTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', '/fake/path');
 		$pdf = $this->getInstance();
 
-		$this->expectException(LibresignException::class);
+		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessageMatches('/set up/');
 
 		$pdf->applyStamp('/tmp/input.pdf', '/tmp/stamp.pdf');

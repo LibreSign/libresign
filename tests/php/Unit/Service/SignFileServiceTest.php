@@ -9,10 +9,8 @@ namespace OCA\Libresign\Tests\Unit\Service;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use bovigo\vfs\vfsStream;
 use DateTime;
 use OC\User\NoUserException;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
@@ -50,6 +48,11 @@ use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfSignatureDetectionService;
 use OCA\Libresign\Service\PfxProvider;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SigningCoordinatorService;
@@ -123,6 +126,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private PfxProvider $pfxProvider;
 	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
 	private SignRequestService&MockObject $signRequestService;
+	private PolicyService&MockObject $policyService;
+	/** @var array<string, mixed> */
+	private array $policyValues = [];
 
 	public function setUp(): void {
 		parent::setUp();
@@ -177,6 +183,19 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->secureRandom,
 		);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyValues = [
+			CollectMetadataPolicy::KEY => false,
+			FooterPolicy::KEY => FooterPolicyValue::encode(FooterPolicyValue::defaults()),
+		];
+		$this->policyService
+			->method('resolve')
+			->willReturnCallback(function (string|\BackedEnum $policyKey): ResolvedPolicy {
+				$key = $policyKey instanceof \BackedEnum ? (string)$policyKey->value : $policyKey;
+				return (new ResolvedPolicy())
+					->setPolicyKey($key)
+					->setEffectiveValue($this->policyValues[$key] ?? null);
+			});
 	}
 
 	public function testClickToSignUsesShortLivedCertificate(): void {
@@ -477,6 +496,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->pfxProvider,
 					$this->subjectAlternativeNameService,
 					$this->signRequestService,
+					$this->policyService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -521,6 +541,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pfxProvider,
 			$this->subjectAlternativeNameService,
 			$this->signRequestService,
+			$this->policyService,
 		);
 	}
 
@@ -1149,7 +1170,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[DataProvider('providerStoreUserMetadata')]
 	public function testStoreUserMetadata(bool $collectMetadata, ?array $previous, array $new, ?array $expected): void {
 		$signRequest = new \OCA\Libresign\Db\SignRequest();
-		$this->appConfig->setValueBool('libresign', 'collect_metadata', $collectMetadata);
+		$this->policyValues[CollectMetadataPolicy::KEY] = $collectMetadata;
 		$signRequest->setMetadata($previous);
 		$this->getService()
 			->setSignRequest($signRequest)
@@ -1230,7 +1251,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetSignatureParamsUsesCustomValidationSite(): void {
 		$service = $this->getService(['readCertificate']);
 
-		$this->appConfig->setValueString(Application::APP_ID, 'validation_site', 'https://validator.example/path/');
+		$this->policyValues[FooterPolicy::KEY] = FooterPolicyValue::encode([
+			...FooterPolicyValue::defaults(),
+			'validationSite' => 'https://validator.example/path/',
+		]);
 
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		$libreSignFile->setUuid('uuid');
@@ -1616,7 +1640,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				throw new NotFoundException();
 			});
 
-		vfsStream::setup('home');
+		\bovigo\vfs\vfsStream::setup('home');
 		$this->tempManager->method('getTemporaryFile')
 			->willReturnCallback(function ($postFix) {
 				preg_match('/.*(\d+).*/', $postFix, $matches);
@@ -2710,6 +2734,150 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'delete with error' => [true, new \Exception('Delete failed')],
 			'no file' => [false, null],
 		];
+	}
+
+	public function testCreateSignedFileRunsAsOwnerAndRestoresSession(): void {
+		$service = $this->getService();
+
+		$currentUser = $this->createMock(\OCP\IUser::class);
+		$currentUser->method('getUID')->willReturn('signer1');
+
+		$owner = $this->createMock(\OCP\IUser::class);
+		$owner->method('getUID')->willReturn('admin');
+
+		$originalFile = $this->createMock(\OCP\Files\File::class);
+		$originalFile->method('getExtension')->willReturn('pdf');
+		$originalFile->method('getPath')->willReturn('/admin/files/LibreSign/Document.pdf');
+		$originalFile->method('getOwner')->willReturn($owner);
+		$originalFile->method('getParentId')->willReturn(101);
+
+		$libreSignFile = new File();
+		$libreSignFile->setId(61);
+		$service->setLibreSignFile($libreSignFile);
+
+		$createdFile = $this->createMock(\OCP\Files\File::class);
+		$parentFolder = $this->createMock(\OCP\Files\Folder::class);
+		$parentFolder->expects($this->once())
+			->method('newFile')
+			->with('Document.signed_61.pdf', 'signed-content')
+			->willReturn($createdFile);
+
+		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder->expects($this->once())
+			->method('getFirstNodeById')
+			->with(101)
+			->willReturn($parentFolder);
+
+		$this->root->expects($this->once())
+			->method('getUserFolder')
+			->with('admin')
+			->willReturn($userFolder);
+
+		$this->userSession->expects($this->once())
+			->method('getUser')
+			->willReturn($currentUser);
+		$this->userSession->expects($this->exactly(2))
+			->method('setVolatileActiveUser')
+			->with($this->callback(static function ($user) use ($owner, $currentUser): bool {
+				static $calls = 0;
+				$calls++;
+
+				return match ($calls) {
+					1 => $user === $owner,
+					2 => $user === $currentUser,
+					default => false,
+				};
+			}));
+
+		$result = self::invokePrivate($service, 'createSignedFile', [$originalFile, 'signed-content']);
+
+		$this->assertSame($createdFile, $result);
+	}
+
+	public function testSignSequentiallyRunsEngineSignAsOwnerAndRestoresSession(): void {
+		$service = $this->getService([
+			'validateDocMdpAllowsSignatures',
+			'getEngine',
+			'computeHash',
+			'updateSignRequest',
+			'updateLibreSignFile',
+			'dispatchSignedEvent',
+		]);
+
+		$currentUser = $this->createMock(\OCP\IUser::class);
+		$currentUser->method('getUID')->willReturn('signer1');
+
+		$owner = $this->createMock(\OCP\IUser::class);
+		$owner->method('getUID')->willReturn('admin');
+
+		$fileToSign = $this->createMock(\OCP\Files\File::class);
+		$fileToSign->method('getOwner')->willReturn($owner);
+
+		$signedFile = $this->createMock(\OCP\Files\File::class);
+		$signedFile->method('getId')->willReturn(77);
+
+		$engine = $this->createMock(SignEngineHandler::class);
+		$engine->expects($this->once())
+			->method('sign')
+			->willReturn($signedFile);
+		$engine->expects($this->once())
+			->method('getLastSignedDate')
+			->willReturn(new DateTime('2026-04-02T03:11:54+00:00'));
+
+		$libreSignFile = new File();
+		$libreSignFile->setId(61);
+		$libreSignFile->setStatus(FileStatus::ABLE_TO_SIGN->value);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(62);
+
+		$service->setLibreSignFile($libreSignFile);
+		$service->setSignRequest($signRequest);
+
+		$service->expects($this->once())
+			->method('validateDocMdpAllowsSignatures');
+		$service->expects($this->exactly(2))
+			->method('getEngine')
+			->willReturnCallback(function () use ($service, $fileToSign, $engine) {
+				$fileToSignProperty = new \ReflectionProperty(SignFileService::class, 'fileToSign');
+				$fileToSignProperty->setValue($service, $fileToSign);
+				return $engine;
+			});
+		$service->expects($this->once())
+			->method('computeHash')
+			->with($signedFile)
+			->willReturn('hash');
+		$service->expects($this->once())
+			->method('updateSignRequest')
+			->with('hash');
+		$service->expects($this->once())
+			->method('updateLibreSignFile')
+			->with($libreSignFile, 77, 'hash');
+		$service->expects($this->once())
+			->method('dispatchSignedEvent');
+
+		$this->userSession->expects($this->once())
+			->method('getUser')
+			->willReturn($currentUser);
+		$this->userSession->expects($this->exactly(2))
+			->method('setVolatileActiveUser')
+			->with($this->callback(static function ($user) use ($owner, $currentUser): bool {
+				static $calls = 0;
+				$calls++;
+
+				return match ($calls) {
+					1 => $user === $owner,
+					2 => $user === $currentUser,
+					default => false,
+				};
+			}));
+
+		$result = self::invokePrivate($service, 'signSequentially', [[[
+			'file' => $libreSignFile,
+			'signRequest' => $signRequest,
+		]]]);
+
+		$this->assertInstanceOf(DateTime::class, $result);
 	}
 
 	#[DataProvider('cleanupUnsignedSignedFileProvider')]

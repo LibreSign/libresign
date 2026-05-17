@@ -182,23 +182,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/footer-template/preview-pdf": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Preview footer template as PDF */
-        post: operations["admin-footer-template-preview-pdf"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/validate/uuid/{uuid}": {
         parameters: {
             query?: never;
@@ -435,6 +418,23 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/footer-template/preview-pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview footer template as PDF */
+        post: operations["footer_template-preview-pdf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/id-docs": {
         parameters: {
             query?: never;
@@ -553,6 +553,60 @@ export type paths = {
         post?: never;
         /** Dismiss a specific notification */
         delete: operations["notify-notification-dismiss"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/effective": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Effective policies bootstrap */
+        get: operations["policy-effective"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/group/{groupId}/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a group-level policy value */
+        get: operations["policy-get-group"];
+        /** Save a group-level policy value */
+        put: operations["policy-set-group"];
+        post?: never;
+        /** Clear a group-level policy value */
+        delete: operations["policy-clear-group"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save a user policy preference */
+        put: operations["policy-set-user-preference"];
+        post?: never;
+        /** Clear a user policy preference */
+        delete: operations["policy-clear-user-preference"];
         options?: never;
         head?: never;
         patch?: never;
@@ -848,27 +902,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/disable-hate-limit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Disable hate limit to current session
-         * @description This will disable hate limit to current session.
-         *     This endpoint requires admin access
-         */
-        get: operations["admin-disable-hate-limit"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-background": {
         parameters: {
             query?: never;
@@ -894,74 +927,6 @@ export type paths = {
         delete: operations["admin-signature-background-delete"];
         options?: never;
         head?: never;
-        /**
-         * Reset the background image to be the default of LibreSign
-         * @description This endpoint requires admin access
-         */
-        patch: operations["admin-signature-background-reset"];
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-text": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get parsed signature text service
-         * @description This endpoint requires admin access
-         */
-        get: operations["admin-signature-text-get"];
-        put?: never;
-        /**
-         * Save signature text service
-         * @description This endpoint requires admin access
-         */
-        post: operations["admin-signature-text-save"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get signature settings
-         * @description This endpoint requires admin access
-         */
-        get: operations["admin-get-signature-settings"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signer-name": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Convert signer name as image
-         * @description This endpoint requires admin access
-         */
-        get: operations["admin-signer-name"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -975,7 +940,7 @@ export type paths = {
         get?: never;
         put?: never;
         /**
-         * Update certificate policy of this instance
+         * Upload new certificate policy PDF for this instance
          * @description This endpoint requires admin access
          */
         post: operations["admin-save-certificate-policy"];
@@ -1003,163 +968,6 @@ export type paths = {
          * @description This endpoint requires admin access
          */
         post: operations["admin-update-oid"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/reminder": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get reminder settings
-         * @description This endpoint requires admin access
-         */
-        get: operations["admin-reminder-fetch"];
-        put?: never;
-        /**
-         * Save reminder
-         * @description This endpoint requires admin access
-         */
-        post: operations["admin-reminder-save"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/tsa": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Set TSA configuration values with proper sensitive data handling
-         * @description Only saves configuration if tsa_url is provided. Automatically manages username/password fields based on authentication type.
-         *     This endpoint requires admin access
-         */
-        post: operations["admin-set-tsa-config"];
-        /**
-         * Delete TSA configuration
-         * @description Delete all TSA configuration fields from the application settings.
-         *     This endpoint requires admin access
-         */
-        delete: operations["admin-delete-tsa-config"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/footer-template": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get footer template
-         * @description Returns the current footer template if set, otherwise returns the default template.
-         *     This endpoint requires admin access
-         */
-        get: operations["admin-get-footer-template"];
-        put?: never;
-        /**
-         * Save footer template and render preview
-         * @description Saves the footer template and returns the rendered PDF preview.
-         *     This endpoint requires admin access
-         */
-        post: operations["admin-save-footer-template"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing-mode/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Set signing mode configuration
-         * @description Configure whether document signing should be synchronous or asynchronous
-         *     This endpoint requires admin access
-         */
-        post: operations["admin-set-signing-mode-config"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/groups-request-sign/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Persist groups allowed to request signatures as typed app config array
-         * @description This endpoint requires admin access
-         */
-        post: operations["admin-set-groups-request-sign-config"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-flow/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Set signature flow configuration
-         * @description This endpoint requires admin access
-         */
-        post: operations["admin-set-signature-flow-config"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/docmdp/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Configure DocMDP signature restrictions
-         * @description This endpoint requires admin access
-         */
-        post: operations["admin-set-doc-mdp-config"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1226,6 +1034,84 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/footer-template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get footer template
+         * @description Returns the current footer template if set, otherwise returns the default template.
+         *     This endpoint requires admin access
+         */
+        get: operations["footer_template-get-footer-template"];
+        put?: never;
+        /**
+         * Save footer template and render preview
+         * @description Saves the footer template and returns the rendered PDF preview.
+         *     This endpoint requires admin access
+         */
+        post: operations["footer_template-save-footer-template"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/system/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read explicit system policy configuration
+         * @description This endpoint requires admin access
+         */
+        get: operations["policy-get-system"];
+        put?: never;
+        /**
+         * Save a system-level policy value
+         * @description This endpoint requires admin access
+         */
+        post: operations["policy-set-system"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{userId}/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an explicit user-level policy for a target user (admin scope)
+         * @description This endpoint requires admin access
+         */
+        get: operations["policy-get-user-policy-for-user"];
+        /**
+         * Save an explicit user policy for a target user (admin scope)
+         * @description This endpoint requires admin access
+         */
+        put: operations["policy-set-user-policy-for-user"];
+        post?: never;
+        /**
+         * Clear an explicit user policy for a target user (admin scope)
+         * @description This endpoint requires admin access
+         */
+        delete: operations["policy-clear-user-policy-for-user"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -1250,6 +1136,11 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        AccountCapabilitySettings: {
+            canRequestSign: boolean;
+            hasSignatureFile: boolean;
+            isApprover: boolean;
+        };
         AccountMeResponse: {
             account: {
                 uid: string;
@@ -1300,10 +1191,6 @@ export type components = {
         };
         /** @enum {string} */
         AdminSignatureEngine: "JSignPdf" | "PhpNative";
-        /** @enum {string} */
-        AdminSigningMode: "sync" | "async";
-        /** @enum {string} */
-        AdminWorkerType: "local" | "external";
         Capabilities: {
             features: string[];
             config: {
@@ -1509,10 +1396,37 @@ export type components = {
             description: string;
         };
         DynamicMetadataRecord: {
-            [key: string]: components["schemas"]["DynamicMetadataScalar"];
+            [key: string]: Record<string, never>;
         };
         DynamicMetadataScalar: (string | number | boolean) | null;
-        DynamicMetadataValue: components["schemas"]["DynamicMetadataScalar"] | components["schemas"]["DynamicMetadataScalar"][] | components["schemas"]["DynamicMetadataRecord"] | components["schemas"]["DynamicMetadataRecord"][];
+        DynamicMetadataValue: Record<string, never>;
+        EffectivePoliciesResponse: {
+            policies: {
+                [key: string]: components["schemas"]["EffectivePolicyState"];
+            };
+        };
+        EffectivePolicyResponse: {
+            policy: components["schemas"]["EffectivePolicyState"];
+        };
+        EffectivePolicyState: {
+            policyKey: string;
+            effectiveValue: components["schemas"]["EffectivePolicyValue"];
+            sourceScope: string;
+            visible: boolean;
+            editableByCurrentActor: boolean;
+            allowedValues: components["schemas"]["EffectivePolicyValue"][];
+            canSaveAsUserDefault: boolean;
+            canUseAsRequestOverride: boolean;
+            preferenceWasCleared: boolean;
+            blockedBy: string | null;
+            /** Format: int64 */
+            groupCount: number;
+            /** Format: int64 */
+            userCount: number;
+        };
+        EffectivePolicyValue: (boolean | number | string | {
+            [key: string]: Record<string, never>;
+        }) | null;
         EngineHandler: {
             configPath: string;
             cfsslUri?: string;
@@ -1652,11 +1566,39 @@ export type components = {
         FooterTemplateResponse: {
             template: string;
             isDefault: boolean;
+            template_variables: {
+                [key: string]: {
+                    description?: string;
+                    type?: string;
+                    example?: string;
+                    default?: string;
+                };
+            };
             /** Format: int64 */
             preview_width: number;
             /** Format: int64 */
             preview_height: number;
+            /** Format: int64 */
+            preview_zoom: number;
         };
+        GroupPolicyResponse: {
+            policy: components["schemas"]["GroupPolicyState"];
+        };
+        GroupPolicyState: {
+            policyKey: string;
+            /** @enum {string} */
+            scope: "group";
+            targetId: string;
+            value: components["schemas"]["EffectivePolicyValue"];
+            allowChildOverride: boolean;
+            visibleToChild: boolean;
+            allowedValues: components["schemas"]["EffectivePolicyValue"][];
+        };
+        GroupPolicyWriteRequest: {
+            value: components["schemas"]["EffectivePolicyValue"];
+            allowChildOverride: boolean;
+        };
+        GroupPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["GroupPolicyResponse"];
         HasRootCertResponse: {
             hasRootCert: boolean;
         };
@@ -1691,7 +1633,7 @@ export type components = {
              */
             shareType: 0 | 4;
             /** @enum {string} */
-            method?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
+            method?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "whatsappbusiness" | "xmpp";
             /** @enum {string} */
             iconName?: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
             acceptsEmailNotifications?: boolean;
@@ -1699,16 +1641,19 @@ export type components = {
         IdentifyAccountsResponse: components["schemas"]["IdentifyAccount"][];
         IdentifyMethod: {
             /** @enum {string} */
-            method: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "xmpp";
+            method: "account" | "email" | "signal" | "sms" | "telegram" | "whatsapp" | "whatsappbusiness" | "xmpp";
             value: string;
-            /** Format: int64 */
-            mandatory: number;
+            requirement: components["schemas"]["IdentifyMethodRequirement"];
         };
+        /** @enum {string} */
+        IdentifyMethodRequirement: "required" | "optional";
         IdentifyMethodSetting: {
             name: string;
             friendly_name: string;
             enabled: boolean;
-            mandatory: boolean;
+            requirement: components["schemas"]["IdentifyMethodRequirement"];
+            /** Format: int64 */
+            minimumTotalVerifiedFactors?: number;
             signatureMethods?: components["schemas"]["SignatureMethods"];
         };
         InfoMessage: {
@@ -1733,8 +1678,7 @@ export type components = {
             identifyMethods: {
                 method: string;
                 value: string;
-                /** Format: int64 */
-                mandatory: number;
+                requirement: components["schemas"]["IdentifyMethodRequirement"];
             }[];
             displayName?: string;
             description?: string;
@@ -1771,6 +1715,19 @@ export type components = {
         PolicySection: {
             OID: string;
             CPS: string;
+        };
+        PolicySnapshotEntry: {
+            effectiveValue: string;
+            sourceScope: string;
+        };
+        PolicySnapshotIdentifyMethodsEntry: {
+            effectiveValue: components["schemas"]["IdentifyMethodSetting"][];
+            sourceScope: string;
+        };
+        PolicySnapshotNumericEntry: {
+            /** Format: int64 */
+            effectiveValue: number;
+            sourceScope: string;
         };
         ProgressError: {
             message: string;
@@ -1849,7 +1806,7 @@ export type components = {
         };
         RootCertificateName: {
             id: string;
-            value: string;
+            value: (string | string[]) | null;
         };
         Settings: {
             canSign: boolean;
@@ -1896,25 +1853,6 @@ export type components = {
             clickToSign?: components["schemas"]["SignatureMethod"];
             emailToken?: components["schemas"]["SignatureMethodEmailToken"];
             password?: components["schemas"]["SignatureMethodPassword"];
-        };
-        SignatureTemplateSettingsResponse: {
-            default_signature_text_template: string;
-            signature_available_variables: {
-                [key: string]: string;
-            };
-        };
-        SignatureTextSettingsResponse: {
-            template: string;
-            parsed: string;
-            /** Format: double */
-            templateFontSize: number;
-            /** Format: double */
-            signatureFontSize: number;
-            /** Format: double */
-            signatureWidth: number;
-            /** Format: double */
-            signatureHeight: number;
-            renderMode: string;
         };
         SignerCertificateInfo: {
             serialNumber?: string;
@@ -1980,6 +1918,22 @@ export type components = {
             /** @enum {string} */
             status: "success";
         };
+        SystemPolicyResponse: {
+            policy: components["schemas"]["SystemPolicyState"];
+        };
+        SystemPolicyState: {
+            policyKey: string;
+            /** @enum {string} */
+            scope: "system" | "global";
+            value: components["schemas"]["EffectivePolicyValue"];
+            allowChildOverride: boolean;
+            visibleToChild: boolean;
+            allowedValues: components["schemas"]["EffectivePolicyValue"][];
+        };
+        SystemPolicyWriteRequest: {
+            value: components["schemas"]["EffectivePolicyValue"];
+        };
+        SystemPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["EffectivePolicyResponse"];
         UserElement: {
             /** Format: int64 */
             id: number;
@@ -2000,6 +1954,18 @@ export type components = {
         UserElementsResponse: {
             elements: components["schemas"]["UserElement"][];
         };
+        UserPolicyResponse: {
+            policy: components["schemas"]["UserPolicyState"];
+        };
+        UserPolicyState: {
+            policyKey: string;
+            /** @enum {string} */
+            scope: "user_policy";
+            targetId: string;
+            value: components["schemas"]["EffectivePolicyValue"];
+            allowChildOverride: boolean;
+        };
+        UserPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["UserPolicyResponse"];
         ValidateMetadata: {
             extension: string;
             /** Format: int64 */
@@ -2011,8 +1977,15 @@ export type components = {
                 h: number;
             }[];
             original_file_deleted?: boolean;
+            policy_snapshot?: components["schemas"]["ValidatePolicySnapshot"];
             pdfVersion?: string;
             status_changed_at?: string;
+        };
+        ValidatePolicySnapshot: {
+            docmdp?: components["schemas"]["PolicySnapshotNumericEntry"];
+            signature_flow?: components["schemas"]["PolicySnapshotEntry"];
+            add_footer?: components["schemas"]["PolicySnapshotEntry"];
+            identify_methods?: components["schemas"]["PolicySnapshotIdentifyMethodsEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */
@@ -2624,67 +2597,6 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-footer-template-preview-pdf": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /**
-                     * @description Template to preview
-                     * @default
-                     */
-                    template?: string;
-                    /**
-                     * Format: int64
-                     * @description Width of preview in points (default: 595 - A4 width)
-                     * @default 595
-                     */
-                    width?: number;
-                    /**
-                     * Format: int64
-                     * @description Height of preview in points (default: 50)
-                     * @default 50
-                     */
-                    height?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/pdf": string;
-                };
-            };
-            /** @description Bad request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -3552,6 +3464,83 @@ export interface operations {
             };
         };
     };
+    "footer_template-preview-pdf": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Template to preview
+                     * @default
+                     */
+                    template?: string;
+                    /**
+                     * Format: int64
+                     * @description Width of preview in points (default: 595 - A4 width)
+                     * @default 595
+                     */
+                    width?: number;
+                    /**
+                     * Format: int64
+                     * @description Height of preview in points (default: 50)
+                     * @default 50
+                     */
+                    height?: number;
+                    /** @description Whether to force QR code rendering in footer preview (null uses policy) */
+                    writeQrcodeOnFooter?: boolean | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
     "id_docs-list-unauthenticated-signer-documents": {
         parameters: {
             query?: {
@@ -3767,7 +3756,7 @@ export interface operations {
             query?: {
                 /** @description search params */
                 search?: string;
-                /** @description filter by method (email, account, sms, signal, telegram, whatsapp, xmpp) */
+                /** @description filter by method (email, account, sms, signal, telegram, whatsapp, whatsappbusiness, xmpp) */
                 method?: string;
                 /** @description the number of page to return. Default: 1 */
                 page?: number;
@@ -3957,6 +3946,309 @@ export interface operations {
             };
         };
     };
+    "policy-effective": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["EffectivePoliciesResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-get-group": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Group identifier that receives the policy binding. */
+                groupId: string;
+                /** @description Policy identifier to read for the selected group. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["GroupPolicyResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-group": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Group identifier that receives the policy binding. */
+                groupId: string;
+                /** @description Policy identifier to persist at the group layer. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Policy value to persist for the group. */
+                    value?: (boolean | number | string | {
+                        [key: string]: Record<string, never>;
+                    }) | null;
+                    /**
+                     * @description Whether users and requests below this group may override the group default.
+                     * @default false
+                     */
+                    allowChildOverride?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["GroupPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-clear-group": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Group identifier that receives the policy binding. */
+                groupId: string;
+                /** @description Policy identifier to clear for the selected group. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["GroupPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-user-preference": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to persist for the current user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Policy value to persist as the current user's default. */
+                    value?: (boolean | number | string | {
+                        [key: string]: Record<string, never>;
+                    }) | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SystemPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-clear-user-preference": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to clear for the current user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SystemPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description User-scope not supported */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
     "request_signature-request-signature": {
         parameters: {
             query?: never;
@@ -4005,8 +4297,10 @@ export interface operations {
                      * @default 1
                      */
                     status?: number | null;
-                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration */
-                    signatureFlow?: string | null;
+                    /** @description Structured policy payload with request-level overrides and active context. */
+                    policy?: {
+                        [key: string]: Record<string, never>;
+                    } | null;
                 };
             };
         };
@@ -4072,8 +4366,10 @@ export interface operations {
                      * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
                      */
                     status?: number | null;
-                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration */
-                    signatureFlow?: string | null;
+                    /** @description Structured policy payload with request-level overrides and active context. */
+                    policy?: {
+                        [key: string]: Record<string, never>;
+                    } | null;
                     /** @description The name of file to sign */
                     name?: string | null;
                     /**
@@ -5080,36 +5376,6 @@ export interface operations {
             };
         };
     };
-    "admin-disable-hate-limit": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: Record<string, never>;
-                        };
-                    };
-                };
-            };
-        };
-    };
     "admin-signature-background-get": {
         parameters: {
             query?: never;
@@ -5209,248 +5475,6 @@ export interface operations {
             };
         };
     };
-    "admin-signature-background-reset": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Image reseted to default */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SuccessStatusResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-signature-text-get": {
-        parameters: {
-            query?: {
-                /** @description Template to signature text */
-                template?: string;
-                /** @description Context for parsing the template */
-                context?: string;
-            };
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SignatureTextSettingsResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Bad request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-signature-text-save": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Template to signature text */
-                    template: string;
-                    /**
-                     * Format: double
-                     * @description Font size used when print the parsed text of this template at PDF file
-                     * @default 10
-                     */
-                    templateFontSize?: number;
-                    /**
-                     * Format: double
-                     * @description Font size used when the signature mode is SIGNAME_AND_DESCRIPTION
-                     * @default 20
-                     */
-                    signatureFontSize?: number;
-                    /**
-                     * Format: double
-                     * @description Signature box width, minimum 1
-                     * @default 350
-                     */
-                    signatureWidth?: number;
-                    /**
-                     * Format: double
-                     * @description Signature box height, minimum 1
-                     * @default 100
-                     */
-                    signatureHeight?: number;
-                    /**
-                     * @description Signature render mode
-                     * @default GRAPHIC_AND_DESCRIPTION
-                     */
-                    renderMode?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SignatureTextSettingsResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Bad request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-get-signature-settings": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SignatureTemplateSettingsResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-signer-name": {
-        parameters: {
-            query: {
-                /** @description Image width, */
-                width: number;
-                /** @description Image height */
-                height: number;
-                /** @description Text to be added to image */
-                text: string;
-                /** @description Font size of text */
-                fontSize: number;
-                /** @description Color of text, white if is tark theme and black if not */
-                isDarkTheme: 0 | 1;
-                /** @description Align of text: left, center or right */
-                align: string;
-            };
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    "Content-Disposition"?: "inline; filename=\"signer-name.png\"";
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/png": string;
-                };
-            };
-            /** @description Bad request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
     "admin-save-certificate-policy": {
         parameters: {
             query?: never;
@@ -5479,7 +5503,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Not found */
+            /** @description Upload or validation error */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -5518,7 +5542,24 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: Record<string, never>;
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["FailureStatusResponse"];
                         };
                     };
                 };
@@ -5570,527 +5611,6 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["FailureStatusResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-reminder-fetch": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ReminderSettings"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-reminder-save": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /**
-                     * Format: int64
-                     * @description First reminder after (days)
-                     */
-                    daysBefore: number;
-                    /**
-                     * Format: int64
-                     * @description Days between reminders
-                     */
-                    daysBetween: number;
-                    /**
-                     * Format: int64
-                     * @description Max reminders per signer
-                     */
-                    max: number;
-                    /** @description Send time (HH:mm) */
-                    sendTimer: string;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ReminderSettings"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-set-tsa-config": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** @description TSA server URL (required for saving) */
-                    tsa_url?: string | null;
-                    /** @description TSA policy OID */
-                    tsa_policy_oid?: string | null;
-                    /** @description Authentication type (none|basic), defaults to 'none' */
-                    tsa_auth_type?: string | null;
-                    /** @description Username for basic authentication */
-                    tsa_username?: string | null;
-                    /** @description Password for basic authentication (stored as sensitive data) */
-                    tsa_password?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SuccessStatusResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Validation error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorStatusResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-delete-tsa-config": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["SuccessStatusResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-get-footer-template": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["FooterTemplateResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-save-footer-template": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /**
-                     * @description The Twig template to save (empty to reset to default)
-                     * @default
-                     */
-                    template?: string;
-                    /**
-                     * Format: int64
-                     * @description Width of preview in points (default: 595 - A4 width)
-                     * @default 595
-                     */
-                    width?: number;
-                    /**
-                     * Format: int64
-                     * @description Height of preview in points (default: 50)
-                     * @default 50
-                     */
-                    height?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/pdf": string;
-                };
-            };
-            /** @description Bad request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-set-signing-mode-config": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Signing mode: "sync" or "async" */
-                    mode: string;
-                    /** @description Worker type when async: "local" or "external" (optional) */
-                    workerType?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Settings saved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Invalid parameters */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-set-groups-request-sign-config": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /**
-                     * @description List of group IDs allowed to request signatures
-                     * @default []
-                     */
-                    groups?: string[];
-                };
-            };
-        };
-        responses: {
-            /** @description Settings saved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-set-signature-flow-config": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Whether to force a signature flow for all documents */
-                    enabled: boolean;
-                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric' (only used when enabled is true) */
-                    mode?: string | null;
-                };
-            };
-        };
-        responses: {
-            /** @description Configuration saved successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Invalid signature flow mode provided */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "admin-set-doc-mdp-config": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Whether to enable DocMDP restrictions */
-                    enabled: boolean;
-                    /**
-                     * Format: int64
-                     * @description DocMDP level: 1 (no changes), 2 (fill forms), 3 (add annotations)
-                     * @default 2
-                     */
-                    defaultLevel?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Configuration saved successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Invalid DocMDP level provided */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
@@ -6259,6 +5779,389 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["CrlRevokeResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "footer_template-get-footer-template": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["FooterTemplateResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "footer_template-save-footer-template": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description The Twig template to save (empty to reset to default)
+                     * @default
+                     */
+                    template?: string;
+                    /**
+                     * Format: int64
+                     * @description Width of preview in points (default: 595 - A4 width)
+                     * @default 595
+                     */
+                    width?: number;
+                    /**
+                     * Format: int64
+                     * @description Height of preview in points (default: 50)
+                     * @default 50
+                     */
+                    height?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-get-system": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to read from the system layer. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SystemPolicyResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-system": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to persist at the system layer. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Policy value to persist. Null resets the policy to its default system value. */
+                    value?: (boolean | number | string | {
+                        [key: string]: Record<string, never>;
+                    }) | null;
+                    /**
+                     * @description Whether lower layers may override this system default.
+                     * @default false
+                     */
+                    allowChildOverride?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["SystemPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-get-user-policy-for-user": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy assignment. */
+                userId: string;
+                /** @description Policy identifier to read for the selected user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserPolicyResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-set-user-policy-for-user": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy assignment. */
+                userId: string;
+                /** @description Policy identifier to persist for the target user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Policy value to persist as assigned target user policy. */
+                    value?: (boolean | number | string | {
+                        [key: string]: Record<string, never>;
+                    }) | null;
+                    /**
+                     * @description Whether the target user may still override the assigned value in personal preferences.
+                     * @default false
+                     */
+                    allowChildOverride?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid policy value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-clear-user-policy-for-user": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Target user identifier that receives the policy assignment removal. */
+                userId: string;
+                /** @description Policy identifier to clear for the target user. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserPolicyWriteResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description User-scope not supported */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };

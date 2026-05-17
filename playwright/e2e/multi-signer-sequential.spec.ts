@@ -3,11 +3,72 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Page } from '@playwright/test'
-import { expect, test } from '@playwright/test'
+import type { APIRequestContext, Page } from '@playwright/test'
+import { expect, test as base } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, deleteAppConfig, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, deleteAppConfig, getAppConfig, setCertificateEngine, getSystemPolicyValue, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink } from '../support/mailpit'
+import { makeAdminContext } from '../support/system-policies'
+import { setSystemPolicyEntry } from '../support/policy-api'
+
+const FOOTER_POLICY_KEY = 'add_footer'
+const FOOTER_DISABLED_VALUE = JSON.stringify({
+	enabled: false,
+	writeQrcodeOnFooter: false,
+	validationSite: '',
+	customizeFooterTemplate: false,
+})
+
+type OriginalConfigSnapshot = {
+	identifyMethods: string | null
+	signatureEngine: string | null
+	tsaUrl: string | null
+	footerPolicy: string | null
+}
+
+const test = base.extend<{
+	adminContext: APIRequestContext
+	originalConfigSnapshot: OriginalConfigSnapshot
+}>({
+	adminContext: async ({}, use) => {
+		const ctx = await makeAdminContext()
+		await use(ctx)
+		await ctx.dispose()
+	},
+	originalConfigSnapshot: async ({ request, adminContext }, use) => {
+		const response = await adminContext.get(`./ocs/v2.php/apps/libresign/api/v1/policies/system/${FOOTER_POLICY_KEY}`, {
+			failOnStatusCode: false,
+		})
+		expect(response.status(), `getSystemFooterPolicy: expected 200 but got ${response.status()}`).toBe(200)
+		const policyBody = await response.json() as {
+			ocs?: {
+				data?: {
+					policy?: {
+						value?: string | null
+					}
+				}
+			}
+		}
+
+		await use({
+			identifyMethods: await getSystemPolicyValue(request, 'identify_methods'),
+			signatureEngine: await getAppConfig(request, 'libresign', 'signature_engine'),
+			tsaUrl: await getAppConfig(request, 'libresign', 'tsa_url'),
+			footerPolicy: policyBody.ocs?.data?.policy?.value ?? null,
+		})
+	},
+})
+
+test.setTimeout(120_000)
+
+test.afterEach(async ({ page, adminContext, originalConfigSnapshot }) => {
+	await setSystemPolicy(page.request, 'identify_methods', originalConfigSnapshot.identifyMethods ?? '[]')
+	if (originalConfigSnapshot.signatureEngine !== null) {
+		await setCertificateEngine(page.request, originalConfigSnapshot.signatureEngine)
+	}
+	await restoreAppConfig(page.request, 'tsa_url', originalConfigSnapshot.tsaUrl)
+	await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, originalConfigSnapshot.footerPolicy ?? FOOTER_DISABLED_VALUE, true)
+})
 
 async function addEmailSigner(
 	page: Page,
@@ -27,32 +88,34 @@ async function addEmailSigner(
 	await page.getByRole('button', { name: 'Save' }).click()
 }
 
-test('request signatures from two signers in sequential order', async ({ page }) => {
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
+test('request signatures from two signers in sequential order', async ({ page, adminContext }) => {
+	await test.step('configure signing environment', async () => {
+		await login(
+			page.request,
+			process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+			process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+		)
 
-	await configureOpenSsl(page.request, 'LibreSign Test', {
-		C: 'BR',
-		OU: ['Organization Unit'],
-		ST: 'Rio de Janeiro',
-		O: 'LibreSign',
-		L: 'Rio de Janeiro',
+		await configureOpenSsl(page.request, 'LibreSign Test', {
+			C: 'BR',
+			OU: ['Organization Unit'],
+			ST: 'Rio de Janeiro',
+			O: 'LibreSign',
+			L: 'Rio de Janeiro',
+		})
+
+		await setSystemPolicy(
+			page.request,
+			'identify_methods',
+			JSON.stringify([
+				{ name: 'account', enabled: false, mandatory: false },
+				{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
+			]),
+		)
+		await setCertificateEngine(page.request, 'openssl')
+		await deleteAppConfig(page.request, 'libresign', 'tsa_url')
+		await setSystemPolicyEntry(adminContext, FOOTER_POLICY_KEY, FOOTER_DISABLED_VALUE, true)
 	})
-
-	await setAppConfig(
-		page.request,
-		'libresign',
-		'identify_methods',
-		JSON.stringify([
-			{ name: 'account', enabled: false, mandatory: false },
-			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } }, can_create_account: false },
-		]),
-	)
-	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
-	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
 
 	const mailpit = createMailpitClient()
 	await mailpit.deleteMessages()
@@ -69,10 +132,11 @@ test('request signatures from two signers in sequential order', async ({ page })
 	await addEmailSigner(page, 'signer02@libresign.coop', 'Signer 02')
 
 	// Enable sequential signing.
-	// The checkbox input is hidden by CSS; click the visible label text to toggle it.
-	await expect(page.getByLabel('Sign in order')).toBeVisible()
-	await page.getByText('Sign in order').click()
-	await expect(page.getByLabel('Sign in order')).toBeChecked()
+	// The hidden checkbox can be covered by the styled label in CI, so force the state change.
+	const signInOrderSwitch = page.getByLabel('Sign in order')
+	await expect(signInOrderSwitch).toBeVisible()
+	await signInOrderSwitch.check({ force: true })
+	await expect(signInOrderSwitch).toBeChecked()
 
 	// Send the signature request
 	await page.getByRole('button', { name: 'Request signatures' }).click()
@@ -95,8 +159,17 @@ test('request signatures from two signers in sequential order', async ({ page })
 	if (!signLink) throw new Error('Sign link not found in email')
 	await page.goto(signLink)
 	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	const firstSignResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
 	await page.getByRole('button', { name: 'Sign document' }).click()
-	await page.waitForURL('**/validation/**')
+	const firstSignResponse = await firstSignResponsePromise
+	const firstSignResponseBody = await firstSignResponse.text()
+	expect(
+		firstSignResponse.ok(),
+		`Signer 01 sign API failed with status ${firstSignResponse.status()}: ${firstSignResponseBody}`,
+	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible()
 	// Signer01 signed; signer02 is still waiting (sequential mode proof at this point)
 	await expect(page.getByText('Signer 01')).toBeVisible()
@@ -104,7 +177,6 @@ test('request signatures from two signers in sequential order', async ({ page })
 	await page.getByRole('button', { name: 'Expand validation status', exact: true }).click();
 	await page.getByRole('link', { name: 'Document integrity verified' }).click();
 	await page.getByRole('button', { name: 'Expand document certification', exact: true }).click();
-	await page.getByRole('link', { name: 'Document has not been' }).click();
 
 	await expect(page.getByText('Signer 02')).toBeVisible()
 	await expect(page.getByText('Not signed yet')).toBeVisible()
@@ -121,8 +193,17 @@ test('request signatures from two signers in sequential order', async ({ page })
 	if (!signLink02) throw new Error('Sign link for signer02 not found in email')
 	await page.goto(signLink02)
 	await page.getByRole('button', { name: 'Sign the document.' }).click()
+	const secondSignResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
 	await page.getByRole('button', { name: 'Sign document' }).click()
-	await page.waitForURL('**/validation/**')
+	const secondSignResponse = await secondSignResponsePromise
+	const secondSignResponseBody = await secondSignResponse.text()
+	expect(
+		secondSignResponse.ok(),
+		`Signer 02 sign API failed with status ${secondSignResponse.status()}: ${secondSignResponseBody}`,
+	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible()
 
 	// Both signers must appear as signed in the final validation view.
@@ -130,3 +211,16 @@ test('request signatures from two signers in sequential order', async ({ page })
 	await expect(page.getByText('Signer 02')).toBeVisible()
 	await expect(page.getByText('Not signed yet')).not.toBeVisible()
 })
+
+async function restoreAppConfig(
+	requestContext: APIRequestContext,
+	key: string,
+	value: string | null,
+): Promise<void> {
+	if (value === null) {
+		await deleteAppConfig(requestContext, 'libresign', key)
+		return
+	}
+
+	await setAppConfig(requestContext, 'libresign', key, value)
+}

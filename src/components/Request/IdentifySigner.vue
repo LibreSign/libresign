@@ -104,6 +104,7 @@ const methodIconMap: Record<string, keyof typeof iconMap> = {
 	sms: 'svgSms',
 	telegram: 'svgTelegram',
 	whatsapp: 'svgWhatsapp',
+	whatsappbusiness: 'svgWhatsapp',
 	xmpp: 'svgXmpp',
 }
 
@@ -243,7 +244,7 @@ async function saveSigner() {
 		identifyMethods: [
 			{
 					method: identifyMethod.value,
-				mandatory: 0,
+					requirement: 'optional',
 					value: identify.value,
 			},
 		],

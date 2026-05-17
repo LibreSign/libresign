@@ -17,6 +17,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { useFilesSortingStore } from './filesSorting.js'
 import { useFiltersStore } from './filters.js'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
+import { usePoliciesStore } from './policies'
 import { useSidebarStore } from './sidebar.js'
 import { FILE_STATUS } from '../constants.js'
 import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
@@ -164,7 +165,10 @@ import { getSigningRouteUuid } from '../utils/signRequestUuid.ts'
  * 	signers?: EditableSignerDraft[] | null
  * 	uuid?: string | null
  * 	status?: number | null
- * 	signatureFlow?: SignatureFlowValue | null
+ * 	policy?: {
+ * 		overrides?: Record<string, string | number | Record<string, unknown>>
+ * 		activeContext?: { type: 'group', id: string }
+ * 	}
  * }} SaveSignatureRequestOptions
  */
 
@@ -909,7 +913,7 @@ const _filesStore = defineStore('files', () => {
 							return {
 								method: method.method,
 								value: method.value,
-								mandatory: method.mandatory,
+								requirement: method.requirement || 'optional',
 							}
 						})
 						.filter(Boolean)
@@ -1197,24 +1201,45 @@ const _filesStore = defineStore('files', () => {
 	 * @param {SaveSignatureRequestOptions} [payload]
 	 * @returns {Promise<SaveSignatureRequestResponse>}
 	 */
-	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, signatureFlow = null } = {}) {
+	async function saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, policy = null } = {}) {
 		const store = getStore()
+		const policiesStore = usePoliciesStore()
 		const currentFileKey = selectedFileId.value
 		const selectedFile = getFile()
 		const requestSigners = serializeRequestSigners(signers || selectedFile?.signers || [])
 		const requestVisibleElements = serializeVisibleElements(visibleElements)
+		const canUseSignatureFlowOverride = policiesStore.canUseRequestOverride('signature_flow')
+		const canUseFooterOverride = policiesStore.canUseRequestOverride('add_footer')
 
-		let flowValue = signatureFlow || selectedFile.signatureFlow
+		const rawPolicyOverrides = policy?.overrides && typeof policy.overrides === 'object' && !Array.isArray(policy.overrides)
+			? policy.overrides
+			: {}
+		const policyOverrides = Object.fromEntries(
+			Object.entries(rawPolicyOverrides).filter(([key]) => key !== 'signature_flow' && key !== 'add_footer')
+		)
+		const requestedSignatureFlow = rawPolicyOverrides.signature_flow ?? selectedFile?.signatureFlow ?? null
+		if (canUseSignatureFlowOverride && (requestedSignatureFlow === 'none' || requestedSignatureFlow === 'parallel' || requestedSignatureFlow === 'ordered_numeric')) {
+			policyOverrides.signature_flow = requestedSignatureFlow
+		}
+		const requestedFooterPolicy = rawPolicyOverrides.add_footer
+		if (canUseFooterOverride && typeof requestedFooterPolicy === 'string' && requestedFooterPolicy.trim() !== '') {
+			policyOverrides.add_footer = requestedFooterPolicy
+		}
+
+		const policyPayload = {
+			...(Object.keys(policyOverrides).length > 0 ? { overrides: policyOverrides } : {}),
+			...(policy?.activeContext ? { activeContext: policy.activeContext } : {}),
+		}
 
 		const config = {
 			url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
-			method: uuid || selectedFile.id ? 'patch' : 'post',
+			method: uuid || selectedFile.id || selectedFile.uuid ? 'patch' : 'post',
 			data: {
 				name: selectedFile?.name,
 				signers: requestSigners,
 				visibleElements: requestVisibleElements,
 				status,
-				signatureFlow: flowValue,
+				...(Object.keys(policyPayload).length > 0 ? { policy: policyPayload } : {}),
 			},
 		}
 

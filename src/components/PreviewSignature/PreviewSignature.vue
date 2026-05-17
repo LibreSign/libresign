@@ -63,12 +63,9 @@ const loading = ref(true)
 const isLoaded = ref(false)
 const imageData = ref('')
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
-	'signature-width': 0,
-	'signature-height': 0,
-}
-const width = ref(`${signElementsConfig['signature-width']}px`)
-const height = ref(`${signElementsConfig['signature-height']}px`)
+const signElementsConfig = capabilities.libresign?.config['sign-elements']
+const width = ref(`${Number(signElementsConfig?.['signature-width'])}px`)
+const height = ref(`${Number(signElementsConfig?.['signature-height'])}px`)
 
 function arrayBufferToBase64(data: ArrayBuffer) {
 	const bytes = new Uint8Array(data)

@@ -160,10 +160,7 @@ const emit = defineEmits<{
 }>()
 
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
-	'signature-width': 0,
-	'signature-height': 0,
-}
+const signElementsConfig = capabilities.libresign?.config['sign-elements']
 
 const file = ref<HTMLInputElement | null>(null)
 const cropper = ref<CropperInstance | null>(null)
@@ -179,8 +176,8 @@ const zoomLevel = ref(1)
 const zoomMin = 0.1
 const zoomMax = 8
 const zoomStep = 0.1
-const stencilBaseWidth = signElementsConfig['signature-width']
-const stencilBaseHeight = signElementsConfig['signature-height']
+const stencilBaseWidth = Number(signElementsConfig?.['signature-width'])
+const stencilBaseHeight = Number(signElementsConfig?.['signature-height'])
 
 const hasImage = computed(() => !!image.value)
 const canSave = computed(() => hasImage.value && imageData.value.length > 0)

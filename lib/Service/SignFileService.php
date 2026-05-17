@@ -28,7 +28,9 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Events\SignedEventFactory;
+use OCA\Libresign\Exception\FooterStampUnavailableException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
@@ -41,6 +43,10 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
+use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -121,6 +127,7 @@ class SignFileService {
 		private PfxProvider $pfxProvider,
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private SignRequestService $signRequestService,
+		private PolicyService $policyService,
 	) {
 	}
 
@@ -594,6 +601,22 @@ class SignFileService {
 		return $args;
 	}
 
+	private function runWithVolatileActiveUser(?IUser $user, callable $callback): mixed {
+		$currentUser = $this->userSession->getUser();
+
+		if ($user === null || $currentUser?->getUID() === $user->getUID()) {
+			return $callback();
+		}
+
+		$this->userSession->setVolatileActiveUser($user);
+
+		try {
+			return $callback();
+		} finally {
+			$this->userSession->setVolatileActiveUser($currentUser);
+		}
+	}
+
 	/**
 	 * @return DateTimeInterface|null Last signed date
 	 */
@@ -614,7 +637,11 @@ class SignFileService {
 			$this->validateDocMdpAllowsSignatures();
 
 			try {
-				$signedFile = $this->getEngine()->sign();
+				$engine = $this->getEngine();
+				$signedFile = $this->runWithVolatileActiveUser(
+					$this->fileToSign?->getOwner(),
+					fn (): File => $engine->sign(),
+				);
 			} catch (LibresignException|Exception $e) {
 				$this->cleanupUnsignedSignedFile();
 				$this->recordSignatureAttempt($e);
@@ -944,7 +971,10 @@ class SignFileService {
 	}
 
 	private function buildValidationUrl(string $uuid): string {
-		$validationSite = trim($this->appConfig->getValueString(Application::APP_ID, 'validation_site', ''));
+		$footerPolicy = FooterPolicyValue::normalize(
+			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
+		);
+		$validationSite = trim($footerPolicy['validationSite']);
 		if ($validationSite !== '') {
 			return rtrim($validationSite, '/') . '/' . $uuid;
 		}
@@ -1009,7 +1039,7 @@ class SignFileService {
 	}
 
 	public function storeUserMetadata(array $metadata = []): self {
-		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
+		$collectMetadata = $this->isCollectMetadataEnabled();
 		if (!$collectMetadata || !$metadata) {
 			return $this;
 		}
@@ -1019,6 +1049,10 @@ class SignFileService {
 		));
 		$this->signRequestMapper->update($this->signRequest);
 		return $this;
+	}
+
+	private function isCollectMetadataEnabled(): bool {
+		return (bool)$this->policyService->resolve(CollectMetadataPolicy::KEY)->getEffectiveValue();
 	}
 
 	/**
@@ -1339,6 +1373,7 @@ class SignFileService {
 			return $this->createSignedFile($originalFile, $originalContent);
 		}
 		$metadata = $this->footerHandler->getMetadata($originalFile, $this->libreSignFile);
+		$this->footerHandler->setRequestPolicyOverrides($this->resolveFooterPolicyRequestOverridesFromFileMetadata());
 		$footer = $this->footerHandler
 			->setTemplateVar('uuid', $this->libreSignFile->getUuid())
 			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
@@ -1357,13 +1392,45 @@ class SignFileService {
 
 			try {
 				$pdfContent = $this->pdf->applyStamp($input, $stamp);
-			} catch (RuntimeException $e) {
+			} catch (FooterStampUnavailableException $e) {
+				$this->logger->warning('Using original PDF because footer stamping is unavailable.', [
+					'exception' => $e,
+				]);
+				$pdfContent = $originalContent;
+			} catch (RuntimeException|LibresignException $e) {
 				throw new LibresignException($e->getMessage());
 			}
 		} else {
 			$pdfContent = $originalContent;
 		}
 		return $this->createSignedFile($originalFile, $pdfContent);
+	}
+
+	/** @return array<string, string> */
+	private function resolveFooterPolicyRequestOverridesFromFileMetadata(): array {
+		$metadata = $this->libreSignFile->getMetadata();
+		if (!is_array($metadata)) {
+			return [];
+		}
+
+		$policySnapshot = $metadata['policy_snapshot'] ?? null;
+		if (!is_array($policySnapshot)) {
+			return [];
+		}
+
+		$footerSnapshot = $policySnapshot[FooterPolicy::KEY] ?? null;
+		if (!is_array($footerSnapshot)) {
+			return [];
+		}
+
+		$effectiveValue = $footerSnapshot['effectiveValue'] ?? null;
+		if (!is_string($effectiveValue) || trim($effectiveValue) === '') {
+			return [];
+		}
+
+		return [
+			FooterPolicy::KEY => $effectiveValue,
+		];
 	}
 
 	protected function getSignedFile(): ?File {
@@ -1457,7 +1524,8 @@ class SignFileService {
 			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
 			basename($originalFile->getPath())
 		);
-		$owner = $originalFile->getOwner()->getUID();
+		$owner = $originalFile->getOwner();
+		$ownerUid = $owner->getUID();
 
 		$fileId = $this->libreSignFile->getId();
 		$extension = $originalFile->getExtension();
@@ -1465,9 +1533,12 @@ class SignFileService {
 
 		try {
 			/** @var \OCP\Files\Folder */
-			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($originalFile->getParentId());
+			$parentFolder = $this->root->getUserFolder($ownerUid)->getFirstNodeById($originalFile->getParentId());
 
-			$this->createdSignedFile = $parentFolder->newFile($uniqueFilename, $content);
+			$this->createdSignedFile = $this->runWithVolatileActiveUser(
+				$owner,
+				fn (): File => $parentFolder->newFile($uniqueFilename, $content),
+			);
 
 			return $this->createdSignedFile;
 		} catch (NotPermittedException) {
@@ -1566,7 +1637,8 @@ class SignFileService {
 	public function getAvailableIdentifyMethodsFromSettings(): array {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsSettings();
 		$return = array_map(fn (array $identifyMethod): array => [
-			'mandatory' => $identifyMethod['mandatory'],
+			'requirement' => IdentifyMethodRequirement::tryFrom((string)($identifyMethod['requirement'] ?? ''))?->value
+				?? IdentifyMethodRequirement::OPTIONAL->value,
 			'identifiedAtDate' => null,
 			'validateCode' => false,
 			'method' => $identifyMethod['name'],

@@ -98,7 +98,7 @@ class SignersLoader {
 					$fileData->signers[$index]->identifyMethods[] = [
 						'method' => $entity->getIdentifierKey(),
 						'value' => $entity->getIdentifierValue(),
-						'mandatory' => $entity->getMandatory(),
+						'requirement' => $entity->getRequirement(),
 					];
 
 					switch ($type) {

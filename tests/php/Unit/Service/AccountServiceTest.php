@@ -26,9 +26,12 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
+use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
@@ -44,6 +47,7 @@ use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
+use OCP\Group\ISubAdmin;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -77,6 +81,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ValidateHelper&MockObject $validateHelper;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IGroupManager&MockObject $groupManager;
+	private ISubAdmin&MockObject $subAdmin;
+	private PolicyAuthorizationService $policyAuthorizationService;
+	private IdDocsPolicyService&MockObject $idDocsPolicyService;
 	private IdDocsService&MockObject $idDocsService;
 	private SignerElementsService&MockObject $signerElementsService;
 	private UserElementMapper&MockObject $userElementMapper;
@@ -87,6 +94,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private Pkcs12Handler&MockObject $pkcs12Handler;
 	private FileUploadHelper&MockObject $uploadHelper;
 	private CrlService&MockObject $crlService;
+	private RequestSignAuthorizationService&MockObject $requestSignAuthorizationService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -114,6 +122,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->subAdmin = $this->createMock(ISubAdmin::class);
+		$this->policyAuthorizationService = new PolicyAuthorizationService($this->groupManager, $this->subAdmin);
+		$this->idDocsPolicyService = $this->createMock(IdDocsPolicyService::class);
+		$this->idDocsPolicyService->method('isIdentificationDocumentsEnabled')->willReturn(false);
 		$this->idDocsService = $this->createMock(IdDocsService::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
@@ -122,6 +134,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->timeFactory = $this->createMock(TimeFactory::class);
 		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
 		$this->crlService = $this->createMock(CrlService::class);
+		$this->requestSignAuthorizationService = $this->createMock(RequestSignAuthorizationService::class);
 	}
 
 	private function getService(): AccountService {
@@ -147,6 +160,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->pkcs12Handler,
 			$this->groupManager,
+			$this->policyAuthorizationService,
+			$this->idDocsPolicyService,
 			$this->idDocsService,
 			$this->signerElementsService,
 			$this->userElementMapper,
@@ -154,7 +169,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->clientService,
 			$this->timeFactory,
 			$this->uploadHelper,
-			$this->crlService
+			$this->crlService,
+			$this->requestSignAuthorizationService,
 		);
 	}
 
@@ -177,6 +193,83 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->with('admin');
 
 		$this->getService()->deletePfx($user);
+	}
+
+	public function testGetConfigSetsCanManageGroupPoliciesForSubAdmin(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('subadmin-user');
+
+		$this->groupManager->method('isAdmin')->with('subadmin-user')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($user)->willReturn(true);
+
+		$config = $this->getService()->getConfig($user);
+
+		$this->assertArrayHasKey('can_manage_group_policies', $config);
+		$this->assertTrue($config['can_manage_group_policies']);
+	}
+
+	public function testGetConfigIncludesPolicyWorkbenchCatalogCompactViewPreference(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('preference-user');
+
+		$this->userConfig
+			->expects($this->atLeastOnce())
+			->method('getValueString')
+			->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = ''): string {
+				if ($uid === 'preference-user'
+					&& $appId === Application::APP_ID
+					&& $key === 'policy_workbench_catalog_compact_view') {
+					return '1';
+				}
+
+				return $default;
+			});
+
+		$config = $this->getService()->getConfig($user);
+
+		$this->assertArrayHasKey('policy_workbench_catalog_compact_view', $config);
+		$this->assertTrue($config['policy_workbench_catalog_compact_view']);
+	}
+
+	public function testGetConfigIncludesPolicyWorkbenchCollapsedPreferences(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('preference-user');
+
+		$storedCollapsedState = [
+			'who-can-sign' => true,
+			'how-signing-works' => true,
+			'signer-experience' => false,
+			'what-gets-recorded' => false,
+			'time-and-limits' => true,
+			'trust-and-verification' => false,
+			'system-behavior' => true,
+		];
+
+		$this->userConfig
+			->expects($this->atLeastOnce())
+			->method('getValueString')
+			->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = '') use ($storedCollapsedState): string {
+				if ($uid !== 'preference-user' || $appId !== Application::APP_ID) {
+					return $default;
+				}
+
+				if ($key === 'policy_workbench_catalog_collapsed') {
+					return '1';
+				}
+
+				if ($key === 'policy_workbench_category_collapsed_state') {
+					return json_encode($storedCollapsedState);
+				}
+
+				return $default;
+			});
+
+		$config = $this->getService()->getConfig($user);
+
+		$this->assertArrayHasKey('policy_workbench_catalog_collapsed', $config);
+		$this->assertTrue($config['policy_workbench_catalog_collapsed']);
+		$this->assertArrayHasKey('policy_workbench_category_collapsed_state', $config);
+		$this->assertSame($storedCollapsedState, $config['policy_workbench_category_collapsed_state']);
 	}
 
 	#[DataProvider('provideValidateCertificateDataCases')]
@@ -348,39 +441,48 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanRequestSignWithUnexistentUser():void {
+		$this->requestSignAuthorizationService
+			->expects($this->once())
+			->method('canRequestSign')
+			->with(null)
+			->willReturn(false);
+
 		$actual = $this->getService()->canRequestSign();
 		$this->assertFalse($actual);
 	}
 
 	public function testCanRequestSignWithoutGroups():void {
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
+		$this->requestSignAuthorizationService
+			->expects($this->once())
+			->method('canRequestSign')
+			->with($user)
+			->willReturn(false);
+
 		$actual = $this->getService()->canRequestSign($user);
 		$this->assertFalse($actual);
 	}
 
 	public function testCanRequestSignWithUserOutOfAuthorizedGroups():void {
-		$this->appConfig
-			->method('getValueArray')
-			->willReturn(['admin']);
-		$this->groupManager
-			->method('getUserGroupIds')
-			->willReturn([]);
 		$user = $this->createMock(\OCP\IUser::class);
+		$this->requestSignAuthorizationService
+			->expects($this->once())
+			->method('canRequestSign')
+			->with($user)
+			->willReturn(false);
+
 		$actual = $this->getService()->canRequestSign($user);
 		$this->assertFalse($actual);
 	}
 
 	public function testCanRequestSignWithSuccess():void {
-		$this->appConfig
-			->method('getValueArray')
-			->willReturn(['admin']);
-		$this->groupManager
-			->method('getUserGroupIds')
-			->willReturn(['admin']);
 		$user = $this->createMock(\OCP\IUser::class);
+		$this->requestSignAuthorizationService
+			->expects($this->once())
+			->method('canRequestSign')
+			->with($user)
+			->willReturn(true);
+
 		$actual = $this->getService()->canRequestSign($user);
 		$this->assertTrue($actual);
 	}
@@ -389,14 +491,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('testuser');
 
-		$this->appConfig
-			->method('getValueArray')
-			->with(Application::APP_ID, 'groups_request_sign', ['admin'])
-			->willReturn(['admin']);
-		$this->groupManager
-			->method('getUserGroupIds')
+		$this->requestSignAuthorizationService
+			->method('canRequestSign')
 			->with($user)
-			->willReturn(['admin']);
+			->willReturn(true);
 		$this->pkcs12Handler
 			->method('getPfxOfCurrentSigner')
 			->with('testuser')
@@ -907,5 +1005,32 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($rootFolder);
 
 		$this->getService()->deleteSignatureElement(null, 'session999', 200);
+	}
+
+	public function testGetConfigIncludesManageablePolicyGroupIds(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('manageable-user');
+
+		$this->groupManager->method('isAdmin')->with('manageable-user')->willReturn(false);
+		$group = $this->createMock(\OCP\IGroup::class);
+		$group->method('getGID')->willReturn('finance');
+		$this->subAdmin->method('getSubAdminsGroups')->with($user)->willReturn([$group]);
+
+		$config = $this->getService()->getConfig($user);
+
+		$this->assertArrayHasKey('manageable_policy_group_ids', $config);
+		$this->assertSame(['finance'], $config['manageable_policy_group_ids']);
+	}
+
+	public function testGetConfigIncludesCanManageGroupPoliciesForInstanceAdmin(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('instance-admin');
+
+		$this->groupManager->method('isAdmin')->with('instance-admin')->willReturn(true);
+
+		$config = $this->getService()->getConfig($user);
+
+		$this->assertArrayHasKey('can_manage_group_policies', $config);
+		$this->assertTrue($config['can_manage_group_policies']);
 	}
 }

@@ -12,6 +12,7 @@ import { mdiCheckCircle, mdiClockOutline, mdiCircleOutline } from '@mdi/js'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
 import Signer from '../../../components/Signers/Signer.vue'
 import { useFilesStore } from '../../../store/files.js'
+import { usePoliciesStore } from '../../../store/policies'
 
 type FileSigner = {
 	signed?: boolean
@@ -68,10 +69,27 @@ const { t, n } = vi.hoisted(() => {
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
 		if (key === 'can_request_sign') return true
-		if (key === 'identify_methods') return [
-			{ name: 'email', enabled: true, friendly_name: 'Email' },
-			{ name: 'phone', enabled: false, friendly_name: 'Phone' },
-		]
+		if (key === 'effective_policies') {
+			return {
+				policies: {
+					identify_methods: {
+						policyKey: 'identify_methods',
+						effectiveValue: [
+							{ name: 'email', enabled: true, friendly_name: 'Email' },
+							{ name: 'phone', enabled: false, friendly_name: 'Phone' },
+						],
+						sourceScope: 'system',
+						visible: true,
+						editableByCurrentActor: true,
+						allowedValues: [],
+						canSaveAsUserDefault: false,
+						canUseAsRequestOverride: true,
+						preferenceWasCleared: false,
+						blockedBy: null,
+					},
+				},
+			}
+		}
 		return defaultValue
 	}),
 }))
@@ -122,6 +140,24 @@ describe('Signer', () => {
 		}) as unknown as SignerWrapper
 	}
 
+	const updateIdentifyMethodsPolicy = (effectiveValue: unknown) => {
+		const policiesStore = usePoliciesStore()
+		policiesStore.setPolicies({
+			identify_methods: {
+				policyKey: 'identify_methods',
+				effectiveValue,
+				sourceScope: 'system',
+				visible: true,
+				editableByCurrentActor: true,
+				allowedValues: [],
+				canSaveAsUserDefault: false,
+				canUseAsRequestOverride: true,
+				preferenceWasCleared: false,
+				blockedBy: null,
+			},
+		})
+	}
+
 	beforeEach(() => {
 		pinia = createPinia()
 		setActivePinia(pinia)
@@ -142,8 +178,8 @@ describe('Signer', () => {
 		vi.clearAllMocks()
 	})
 
-	describe('RULE: signatureFlow uses string contract values only', () => {
-		it('returns ordered_numeric for ordered_numeric flow', () => {
+	describe('RULE: signatureFlow uses canonical string values', () => {
+		it('returns ordered_numeric when already canonical', () => {
 			filesStore.selectedFile = { signatureFlow: 'ordered_numeric', signers: [{}] }
 			wrapper = createWrapper()
 
@@ -156,14 +192,6 @@ describe('Signer', () => {
 
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
-
-		it('returns none for none flow', () => {
-			filesStore.selectedFile = { signatureFlow: 'none', signers: [{}] }
-			wrapper = createWrapper()
-
-			expect(wrapper.vm.signatureFlow).toBe('none')
-		})
-
 		it('defaults to parallel when undefined', () => {
 			filesStore.selectedFile = { signers: [{}] }
 			wrapper = createWrapper()
@@ -171,11 +199,11 @@ describe('Signer', () => {
 			expect(wrapper.vm.signatureFlow).toBe('parallel')
 		})
 
-		it('uses string value directly when already string', () => {
-			filesStore.selectedFile = { signatureFlow: 'ordered_numeric', signers: [{}] }
+		it('returns none when file flow is none', () => {
+			filesStore.selectedFile = { signatureFlow: 'none', signers: [{}] }
 			wrapper = createWrapper()
 
-			expect(wrapper.vm.signatureFlow).toBe('ordered_numeric')
+			expect(wrapper.vm.signatureFlow).toBe('none')
 		})
 	})
 
@@ -254,6 +282,25 @@ describe('Signer', () => {
 
 	describe('RULE: isMethodDisabled checks if identification method is disabled', () => {
 		it('returns true when method is disabled', () => {
+			filesStore.selectedFile = {
+				signers: [
+					{ identifyMethods: [{ method: 'phone' }] },
+				],
+			}
+			wrapper = createWrapper({ signerIndex: 0 })
+
+			expect(wrapper.vm.isMethodDisabled).toBe(true)
+		})
+
+		it('accepts object-shaped identify_methods payloads when checking disabled methods', () => {
+			updateIdentifyMethodsPolicy({
+				minimumTotalVerifiedFactors: '2',
+				factors: [
+					{ name: 'email', signatureMethods: ['emailToken'] },
+					{ name: 'phone', enabled: false, signatureMethods: ['smsToken'] },
+				],
+			})
+
 			filesStore.selectedFile = {
 				signers: [
 					{ identifyMethods: [{ method: 'phone' }] },

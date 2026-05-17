@@ -4,33 +4,37 @@
  */
 
 import { devices, expect, test } from '@playwright/test'
-import { login } from '../support/nc-login'
-import { setAppConfig } from '../support/nc-provisioning'
+import {
+	bootstrapLibreSignAdmin,
+	ensureFooterTemplateEnabled,
+	openSystemFooterRuleEditor,
+} from '../support/footer-policy-workbench'
 
 test.use({
 	...devices['Pixel 7'],
 })
 
 test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page }) => {
-	await login(
-		page.request,
-		process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
-		process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
-	)
+	await bootstrapLibreSignAdmin(page)
+	const ruleDialog = await openSystemFooterRuleEditor(page)
+	await ensureFooterTemplateEnabled(ruleDialog)
 
-	await setAppConfig(
-		page.request,
-		'libresign', 'add_footer', '1',
-	)
-
-	await setAppConfig(
-		page.request,
-		'libresign', 'footer_template_is_default', '0',
-	)
-
-	await page.goto('./settings/admin/libresign')
-	const pdfRoot = page.locator('.footer-template-section .pdf-elements-root').first()
+	const pdfRoot = ruleDialog.locator('.signature-footer-rule-editor__preview .pdf-elements-root').first()
 	await expect(pdfRoot).toBeVisible({ timeout: 15000 })
+
+	const widthField = ruleDialog.getByRole('spinbutton', { name: 'Width' }).first()
+	await expect(widthField).toBeVisible({ timeout: 10000 })
+	await widthField.fill('900')
+	await widthField.press('Tab')
+
+	// Wait for CSS changes to be applied after width change
+	await expect.poll(async () => {
+		const style = await pdfRoot.evaluate((el) => window.getComputedStyle(el).overflowX)
+		return style && style !== ''
+	}, {
+		timeout: 5000,
+		message: 'Expected overflow-x style to be applied to pdf-elements-root',
+	}).toBe(true)
 
 	// Check that overflow-x is set to auto (not hidden).
 	const computedStyle = await pdfRoot.evaluate((el) => {
@@ -49,6 +53,13 @@ test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page 
 	expect(touchAction).not.toContain('pinch-zoom')
 
 	// Validate real horizontal scrolling capability, not only style declarations.
+	await expect.poll(async () => {
+		return pdfRoot.evaluate((el) => el.scrollWidth > el.clientWidth)
+	}, {
+		timeout: 15000,
+		message: 'Expected footer preview to become horizontally scrollable after widening the preview',
+	}).toBe(true)
+
 	const before = await pdfRoot.evaluate((el) => {
 		el.scrollLeft = 0
 		return {
@@ -57,8 +68,6 @@ test('PDF viewer allows horizontal scrolling on mobile viewport', async ({ page 
 			clientWidth: el.clientWidth,
 		}
 	})
-
-	expect(before.scrollWidth).toBeGreaterThan(before.clientWidth)
 
 	const box = await pdfRoot.boundingBox()
 	expect(box).not.toBeNull()

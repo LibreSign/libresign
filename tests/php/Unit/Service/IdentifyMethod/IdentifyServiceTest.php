@@ -16,6 +16,9 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -36,6 +39,7 @@ final class IdentifyServiceTest extends TestCase {
 	private IEventDispatcher&MockObject $eventDispatcher;
 	private IRootFolder&MockObject $rootFolder;
 	private IAppConfig&MockObject $appConfig;
+	private PolicyService&MockObject $policyService;
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IL10N&MockObject $l10n;
 	private FileMapper&MockObject $fileMapper;
@@ -55,6 +59,7 @@ final class IdentifyServiceTest extends TestCase {
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->rootFolder = $this->createMock(IRootFolder::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
@@ -79,6 +84,7 @@ final class IdentifyServiceTest extends TestCase {
 			$this->urlGenerator,
 			$this->logger,
 			$this->folderService,
+			$this->policyService,
 		);
 	}
 
@@ -152,5 +158,43 @@ final class IdentifyServiceTest extends TestCase {
 			}));
 
 		$this->service->save($identifyMethod);
+	}
+
+	public function testGetSavedSettingsReturnsEmptyArrayWhenPolicyValueIsInvalid(): void {
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey(IdentifyMethodsPolicy::KEY)
+			->setEffectiveValue('invalid');
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolve')
+			->with(IdentifyMethodsPolicy::KEY)
+			->willReturn($resolvedPolicy);
+
+		$this->assertSame([], $this->service->getSavedSettings());
+	}
+
+	public function testGetSavedSettingsReloadsAppConfigBeforeReading(): void {
+		$expected = [[
+			'name' => 'account',
+			'enabled' => true,
+			'signatureMethods' => [],
+		]];
+		$resolvedPolicy = (new ResolvedPolicy())
+			->setPolicyKey(IdentifyMethodsPolicy::KEY)
+			->setEffectiveValue([
+				[
+					'name' => 'account',
+					'enabled' => true,
+				],
+			]);
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolve')
+			->with(IdentifyMethodsPolicy::KEY)
+			->willReturn($resolvedPolicy);
+
+		$this->assertSame($expected, $this->service->getSavedSettings());
 	}
 }

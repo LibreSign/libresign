@@ -11,14 +11,12 @@ namespace OCA\Libresign\Helper;
 use InvalidArgumentException;
 use OC\AppFramework\Http;
 use OC\User\NoUserException;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdDocsMapper;
-use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
@@ -26,8 +24,11 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -35,12 +36,9 @@ use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
-use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\Security\IHasher;
 
 class ValidateHelper {
 	/** @var \OCP\Files\File[] */
@@ -63,17 +61,16 @@ class ValidateHelper {
 		private FileElementMapper $fileElementMapper,
 		private IdDocsMapper $idDocsMapper,
 		private UserElementMapper $userElementMapper,
-		private IdentifyMethodMapper $identifyMethodMapper,
 		private IdentifyMethodService $identifyMethodService,
 		private SequentialSigningService $sequentialSigningService,
 		private SignerElementsService $signerElementsService,
 		private IMimeTypeDetector $mimeTypeDetector,
-		private IHasher $hasher,
-		private IAppConfig $appConfig,
-		private IGroupManager $groupManager,
+		private IdDocsPolicyService $idDocsPolicyService,
 		private IUserManager $userManager,
 		private IRootFolder $root,
 		private DocMdpValidator $docMdpValidator,
+		private RequestSignAuthorizationService $requestSignAuthorizationService,
+		private RuntimeRequirementValidator $runtimeRequirementValidator,
 	) {
 	}
 
@@ -407,7 +404,6 @@ class ValidateHelper {
 				throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
 			}
 		} catch (\Throwable) {
-			($signRequest->getFileId());
 			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
 		}
 	}
@@ -505,21 +501,7 @@ class ValidateHelper {
 	}
 
 	public function canRequestSign(IUser $user): void {
-		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'groups_request_sign', ['admin']);
-		if (empty($authorized)) {
-			$authorized = ['admin'];
-		}
-		if (!is_array($authorized)) {
-			throw new LibresignException(
-				json_encode([
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [['message' => $this->l10n->t('You are not allowed to request signing')]],
-				]),
-				Http::STATUS_UNPROCESSABLE_ENTITY,
-			);
-		}
-		$userGroups = $this->groupManager->getUserGroupIds($user);
-		if (!array_intersect($userGroups, $authorized)) {
+		if (!$this->requestSignAuthorizationService->canRequestSign($user)) {
 			throw new LibresignException(
 				json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
@@ -879,6 +861,7 @@ class ValidateHelper {
 		$identifyMethod = $this->resolveIdentifyMethod($signRequest, $identifyMethodName, $identifyValue);
 		$identifyMethod->setCodeSentByUser($token);
 		$identifyMethod->validateToSign();
+		$this->runtimeRequirementValidator->validate($signRequest);
 	}
 
 	private function resolveIdentifyMethod(SignRequest $signRequest, string $methodName, ?string $identifyValue): IIdentifyMethod {
@@ -950,7 +933,7 @@ class ValidateHelper {
 	}
 
 	public function validateIfIdentifyMethodExists(string $identifyMethod): void {
-		if (!in_array($identifyMethod, IdentifyMethodService::IDENTIFY_METHODS)) {
+		if (!$this->identifyMethodService->exists($identifyMethod)) {
 			// TRANSLATORS When is requested to a person to sign a file, is
 			// necessary identify what is the identification method. The
 			// identification method is used to define how will be the sign
@@ -967,22 +950,7 @@ class ValidateHelper {
 	}
 
 	public function userCanApproveValidationDocuments(?IUser $user, bool $throw = true): bool {
-		if ($user == null) {
-			return false;
-		}
-
-		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
-		if (!$authorized || !is_array($authorized) || empty($authorized)) {
-			$authorized = ['admin'];
-		}
-		$userGroups = $this->groupManager->getUserGroupIds($user);
-		if (!array_intersect($userGroups, $authorized)) {
-			if ($throw) {
-				throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
-			}
-			return false;
-		}
-		return true;
+		return $this->idDocsPolicyService->userCanApproveValidationDocuments($user, $throw);
 	}
 
 	private function validateDocMdpPdfRestrictions(array $data): void {

@@ -64,7 +64,12 @@ import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
-import type { IdentifyMethodSetting, SignatureFlowMode } from '../../types/index'
+import { usePoliciesStore } from '../../store/policies'
+import {
+	normalizeIdentifyMethodsPolicy,
+	type IdentifyMethodPolicyEntry,
+} from '../../views/Settings/PolicyWorkbench/settings/identify-methods/model'
+import type { SignatureFlowMode } from '../../types/index'
 defineOptions({
 	name: 'Signer',
 })
@@ -96,10 +101,14 @@ const emit = defineEmits<{
 }>()
 
 const filesStore = useFilesStore()
+const policiesStore = usePoliciesStore()
 const listItem = ref<any | null>(null)
 
 const canRequestSign = loadState('libresign', 'can_request_sign', false)
-const methods = loadState<IdentifyMethodSetting[]>('libresign', 'identify_methods', [])
+const methods = computed<IdentifyMethodPolicyEntry[]>(() => {
+	const value = policiesStore.getEffectiveValue('identify_methods')
+	return normalizeIdentifyMethodsPolicy(value)
+})
 
 const signatureFlow = computed(() => {
 	const file = filesStore.getFile()
@@ -132,7 +141,7 @@ const isMethodDisabled = computed(() => {
 		return false
 	}
 	const signerMethod = signer.value.identifyMethods[0].method
-	const methodConfig = methods.find(m => m.name === signerMethod)
+	const methodConfig = methods.value.find(m => m.name === signerMethod)
 	return methodConfig ? !methodConfig.enabled : false
 })
 
@@ -141,7 +150,7 @@ const disabledMethodLabel = computed(() => {
 		return ''
 	}
 	const signerMethod = signer.value.identifyMethods[0].method
-	const methodConfig = methods.find(m => m.name === signerMethod)
+	const methodConfig = methods.value.find(m => m.name === signerMethod)
 	return methodConfig?.friendly_name || signerMethod
 })
 

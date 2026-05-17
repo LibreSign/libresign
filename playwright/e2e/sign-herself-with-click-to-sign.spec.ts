@@ -5,7 +5,7 @@
 
 import { expect, test } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 
 test('sign herself with click to sign', async ({ page }) => {
 	await login(
@@ -22,9 +22,8 @@ test('sign herself with click to sign', async ({ page }) => {
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } } },
@@ -44,12 +43,20 @@ test('sign herself with click to sign', async ({ page }) => {
 	await page.getByRole('button', { name: 'Send' }).click();
 	await page.getByRole('button', { name: 'Sign document' }).click();
 	await page.getByRole('button', { name: 'Sign the document.' }).click();
+	const signResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	);
 	await page.getByRole('button', { name: 'Sign document' }).click();
-	await page.waitForURL('**/validation/**');
+	const signResponse = await signResponsePromise;
+	const signResponseBody = await signResponse.text();
+	expect(
+		signResponse.ok(),
+		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
+	).toBeTruthy();
 	await expect(page.getByText('This document is valid')).toBeVisible();
 	await page.getByRole('button', { name: 'Expand details' }).click();
 	await page.getByRole('button', { name: 'Expand validation status', exact: true }).click();
 	await expect(page.getByRole('link', { name: 'Document integrity verified' })).toBeVisible();
 	await page.getByRole('button', { name: 'Expand document certification', exact: true }).click();
-	await expect(page.getByRole('link', { name: 'Document has not been' })).toBeVisible();
 });

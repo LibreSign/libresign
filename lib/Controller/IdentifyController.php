@@ -20,6 +20,9 @@ use OCA\Libresign\Service\Identify\ResultFormatter;
 use OCA\Libresign\Service\Identify\SearchNormalizer;
 use OCA\Libresign\Service\Identify\ShareTypeResolver;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
+use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -41,6 +44,7 @@ class IdentifyController extends AEnvironmentAwareController {
 		private ResultFilter $resultFilter,
 		private ResultFormatter $resultFormatter,
 		private ResultEnricher $resultEnricher,
+		private PolicyService $policyService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -51,7 +55,7 @@ class IdentifyController extends AEnvironmentAwareController {
 	 * Used to identify who can sign the document. The return of this endpoint is related with Administration Settiongs > LibreSign > Identify method.
 	 *
 	 * @param string $search search params
-	 * @param string $method filter by method (email, account, sms, signal, telegram, whatsapp, xmpp)
+	 * @param string $method filter by method (email, account, sms, signal, telegram, whatsapp, whatsappbusiness, xmpp)
 	 * @param int $page the number of page to return. Default: 1
 	 * @param int $limit Total of elements to return. Default: 25
 	 * @return DataResponse<Http::STATUS_OK, LibresignIdentifyAccountsResponse, array{}>
@@ -84,15 +88,51 @@ class IdentifyController extends AEnvironmentAwareController {
 		$result = $this->resultFilter->excludeEmpty($result);
 
 		$return = $this->resultFormatter->formatForNcSelect($result);
+		$return = $this->resultFormatter->replaceShareTypeWithMethod($return);
+		$return = $this->resultFilter->excludeNotAllowed($return, $this->resolveAllowedMethods($method));
 		$return = $this->resultEnricher->addHerselfAccount($return, $search, $method);
 		$return = $this->resultEnricher->addHerselfEmail($return, $search, $method);
-		$return = $this->resultFormatter->replaceShareTypeWithMethod($return);
 		$return = $this->resultEnricher->addEmailNotificationPreference($return);
 		$return = $this->resultFilter->excludeNotAllowed($return);
 		/** @var LibresignIdentifyAccountsResponse $return */
 		$return = array_values($return);
 
 		return new DataResponse($return);
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function resolveAllowedMethods(string $requestedMethod): array {
+		$resolved = $this->policyService->resolve(IdentifyMethodsPolicy::KEY)->getEffectiveValue();
+		$settings = IdentifyMethodsPolicyValue::extractFactors(IdentifyMethodsPolicyValue::normalize($resolved));
+
+		$enabledMethods = [];
+		foreach ($settings as $setting) {
+			if (!is_array($setting)) {
+				continue;
+			}
+
+			$name = isset($setting['name']) && is_string($setting['name']) ? trim($setting['name']) : '';
+			$enabled = !empty($setting['enabled']);
+			if ($name === '' || !$enabled) {
+				continue;
+			}
+
+			$enabledMethods[] = $name;
+		}
+
+		$enabledMethods = array_values(array_unique($enabledMethods));
+		$requestedMethod = strtolower(trim($requestedMethod));
+		if ($requestedMethod === '' || $requestedMethod === 'all') {
+			return $enabledMethods;
+		}
+
+		if (in_array($requestedMethod, $enabledMethods, true)) {
+			return [$requestedMethod];
+		}
+
+		return [];
 	}
 
 	private function registerPlugin(): void {

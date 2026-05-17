@@ -7,20 +7,26 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
+import { ref, nextTick } from 'vue'
 import type { TranslationFunction } from '../../test-types'
 
 type SettingsComponent = typeof import('../../../components/Settings/Settings.vue').default
 type AuthModule = typeof import('@nextcloud/auth')
+type InitialStateModule = typeof import('@nextcloud/initial-state')
 
 const t: TranslationFunction = (_app, text) => text
 
 let Settings: SettingsComponent
 let auth: AuthModule
+let initialState: InitialStateModule
 let getCurrentUserMock: MockedFunction<typeof import('@nextcloud/auth').getCurrentUser>
+let loadStateMock: MockedFunction<typeof import('@nextcloud/initial-state').loadState>
+const mockPolicies = ref<Record<string, unknown>>({})
 
 type SettingsVm = {
 	getAdminRoute: () => string
 	isAdmin: boolean
+	canManagePreferences: boolean
 }
 
 type SettingsWrapper = VueWrapper<SettingsVm>
@@ -33,13 +39,26 @@ vi.mock('@nextcloud/auth', () => ({
 	})),
 }))
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: vi.fn((app, key, defaults) => defaults),
+}))
 vi.mock('@nextcloud/router', () => ({
 	generateUrl: vi.fn((url) => `/admin/${url}`),
+}))
+vi.mock('../../../store/policies', () => ({
+	usePoliciesStore: () => ({
+		get policies() {
+			return mockPolicies.value
+		},
+		fetchEffectivePolicies: vi.fn(async () => {}),
+	}),
 }))
 
 beforeAll(async () => {
 	auth = await import('@nextcloud/auth')
+	initialState = await import('@nextcloud/initial-state')
 	getCurrentUserMock = auth.getCurrentUser as MockedFunction<typeof auth.getCurrentUser>
+	loadStateMock = initialState.loadState as MockedFunction<typeof initialState.loadState>
 	;({ default: Settings } = await import('../../../components/Settings/Settings.vue'))
 })
 
@@ -82,9 +101,31 @@ describe('Settings', () => {
 		return item
 	}
 
-	const createWrapper = (isAdmin = false): SettingsWrapper => {
+	const createWrapper = (
+		isAdmin = false,
+		canManagePolicies = false,
+		canRequestSign = true,
+		effectivePolicies: Record<string, unknown> = {
+			signature_flow: {
+				canSaveAsUserDefault: true,
+			},
+		},
+	): SettingsWrapper => {
 		const user = { isAdmin } as ReturnType<typeof auth.getCurrentUser>
 		getCurrentUserMock.mockReturnValue(user)
+		mockPolicies.value = effectivePolicies
+		loadStateMock.mockImplementation((app, key, defaults) => {
+			if (key === 'config') {
+				return {
+					...(defaults as Record<string, unknown>),
+					can_manage_group_policies: canManagePolicies,
+				}
+			}
+			if (key === 'can_request_sign') {
+				return canRequestSign
+			}
+			return defaults
+		})
 
 		return mount(Settings, {
 			global: {
@@ -111,6 +152,8 @@ describe('Settings', () => {
 			wrapper = null
 		}
 		vi.clearAllMocks()
+		mockPolicies.value = {}
+		loadStateMock.mockImplementation((app, key, defaults) => defaults)
 	})
 
 	describe('RULE: Account navigation item always displays', () => {
@@ -301,7 +344,7 @@ describe('Settings', () => {
 			wrapper = createUnauthenticatedWrapper()
 			const items = getItems()
 
-			// Account + Rate = 2
+			// Account + Preferences + Rate = 3
 			expect(items.length).toBe(2)
 		})
 	})
@@ -311,16 +354,200 @@ describe('Settings', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
-			// Account + Rate = 2
-			expect(items.length).toBe(2)
+			// Account + Preferences + Rate = 3
+			expect(items.length).toBe(3)
 		})
 
 		it('shows 3 items for admin', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
-			// Account + Administration + Rate = 3
-			expect(items.length).toBe(3)
+			// Account + Preferences + Policies + Administration + Rate = 5
+			expect(items.length).toBe(5)
+		})
+	})
+
+	describe('RULE: Preferences item follows personal preference capability', () => {
+		it('shows Preferences for non-admin users', () => {
+			wrapper = createWrapper(false)
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+
+			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
+		})
+
+		it('shows Preferences for admin users', () => {
+			wrapper = createWrapper(true)
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+
+			expect(preferencesItem).toBeTruthy()
+		})
+
+		it('renders the preferences icon', () => {
+			wrapper = createWrapper(false)
+
+			expect(getWrapper().find('.preferences-icon').exists()).toBe(true)
+		})
+
+		it('hides Preferences when no policy allows saving personal preferences', () => {
+			wrapper = createWrapper(false, false, true, {
+				signature_flow: {
+					canSaveAsUserDefault: false,
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Preferences')).toBeUndefined()
+		})
+
+		it('shows Preferences when add_footer allows saving personal preferences', () => {
+			wrapper = createWrapper(false, false, true, {
+				signature_flow: {
+					canSaveAsUserDefault: false,
+				},
+				add_footer: {
+					canSaveAsUserDefault: true,
+				},
+			})
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+
+			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
+		})
+
+		it('updates Preferences visibility after policy state changes', async () => {
+			wrapper = createWrapper(false, false, true, {
+				signature_flow: {
+					canSaveAsUserDefault: false,
+				},
+			})
+			expect(findItemByName(getItems(), 'Preferences')).toBeUndefined()
+
+			mockPolicies.value = {
+				signature_flow: {
+					canSaveAsUserDefault: true,
+				},
+			}
+			await nextTick()
+
+			const preferencesItem = expectItem(findItemByName(getItems(), 'Preferences'))
+			expect(preferencesItem.props('to')).toEqual({ name: 'Preferences' })
+		})
+
+		it('hides Preferences when user cannot request signatures', () => {
+			wrapper = createWrapper(false, false, false, {
+				signature_flow: {
+					canSaveAsUserDefault: true,
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Preferences')).toBeUndefined()
+		})
+	})
+
+	describe('RULE: Policies item follows policy-management capability in the app menu', () => {
+		it('hides Policies for non-admin users', () => {
+			wrapper = createWrapper(false)
+			const items = getItems()
+
+			expect(findItemByName(items, 'Policies')).toBeUndefined()
+		})
+
+		it('shows Policies for admin users', () => {
+			wrapper = createWrapper(true)
+			const items = getItems()
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+
+			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('hides Policies for non-admin users with group policy capability but no editable policies', () => {
+			wrapper = createWrapper(false, true, true, {
+				signature_flow: {
+					editableByCurrentActor: false,
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Policies')).toBeUndefined()
+		})
+
+		it('shows Policies for non-admin users with group policy capability and editable policy even without delegated rules', () => {
+			wrapper = createWrapper(false, true, true, {
+				add_footer: {
+					groupCount: 0,
+					userCount: 0,
+					editableByCurrentActor: true,
+				},
+			})
+			const items = getItems()
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+
+			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('shows Policies for non-admin users with group policy capability and delegated policies', () => {
+			wrapper = createWrapper(false, true, true, {
+				signature_flow: {
+					groupCount: 1,
+					userCount: 0,
+					editableByCurrentActor: true,
+				},
+			})
+			const items = getItems()
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+
+			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('hides Policies for non-admin users with delegated rules that are not editable', () => {
+			wrapper = createWrapper(false, true, true, {
+				add_footer: {
+					groupCount: 1,
+					userCount: 0,
+					editableByCurrentActor: false,
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Policies')).toBeUndefined()
+		})
+
+		it('hides Policies for non-admin users when only system-level policies exist', () => {
+			wrapper = createWrapper(false, true, true, {
+				docmdp: {
+					groupCount: 0,
+					userCount: 0,
+				},
+			})
+			const items = getItems()
+
+			expect(findItemByName(items, 'Policies')).toBeUndefined()
+		})
+
+		it('updates Policies visibility after the policies store receives delegated counts', async () => {
+			wrapper = createWrapper(false, true)
+			expect(findItemByName(getItems(), 'Policies')).toBeUndefined()
+
+			mockPolicies.value = {
+				add_footer: {
+					groupCount: 1,
+					userCount: 0,
+					editableByCurrentActor: true,
+				},
+			}
+			await nextTick()
+
+			const policiesItem = expectItem(findItemByName(getItems(), 'Policies'))
+			expect(policiesItem.props('to')).toEqual({ name: 'Policies' })
+		})
+
+		it('renders the policies icon for admin users', () => {
+			wrapper = createWrapper(true)
+
+			expect(getWrapper().find('.policies-icon').exists()).toBe(true)
 		})
 	})
 
@@ -349,6 +576,18 @@ describe('Settings', () => {
 
 			expect(adminItem.props('name')).toBeTruthy()
 			expect(adminItem.props('href')).toBeTruthy()
+		})
+
+		it('does not use fallback icon prop when custom icon slot is present', () => {
+			wrapper = createWrapper(true)
+			const items = getItems()
+			const preferencesItem = expectItem(findItemByName(items, 'Preferences'))
+			const policiesItem = expectItem(findItemByName(items, 'Policies'))
+			const adminItem = expectItem(findItemByName(items, 'Administration'))
+
+			expect(preferencesItem.props('icon')).toBeUndefined()
+			expect(policiesItem.props('icon')).toBeUndefined()
+			expect(adminItem.props('icon')).toBeUndefined()
 		})
 	})
 
@@ -397,7 +636,17 @@ describe('Settings', () => {
 			const items = getItems()
 			const secondItem = expectItemAt(items, 1)
 
-			expect(secondItem.props('name')).toContain('Administration')
+			expect(secondItem.props('name')).toContain('Preferences')
+		})
+
+		it('renders Policies before Administration for admin users', () => {
+			wrapper = createWrapper(true)
+			const items = getItems()
+			const thirdItem = expectItemAt(items, 2)
+			const fourthItem = expectItemAt(items, 3)
+
+			expect(thirdItem.props('name')).toContain('Policies')
+			expect(fourthItem.props('name')).toContain('Administration')
 		})
 
 		it('renders Rate last', async () => {
@@ -430,13 +679,15 @@ describe('Settings', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
-			expect(items).toHaveLength(2)
+			expect(items).toHaveLength(3)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
+			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
 			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
 			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
+			expect(hasPreferences).toBe(true)
 			expect(hasRate).toBe(true)
 			expect(hasAdmin).toBe(false)
 		})
@@ -445,15 +696,75 @@ describe('Settings', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
-			expect(items).toHaveLength(3)
+			expect(items).toHaveLength(5)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
+			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
+			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
 			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
 			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
+			expect(hasPreferences).toBe(true)
+			expect(hasPolicies).toBe(true)
 			expect(hasRate).toBe(true)
 			expect(hasAdmin).toBe(true)
+		})
+
+		it('hides policies entry for group manager without editable policies', () => {
+			wrapper = createWrapper(false, true)
+			const items = getItems()
+
+			expect(items).toHaveLength(3)
+
+			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
+			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
+			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
+			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
+			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
+
+			expect(hasAccount).toBe(true)
+			expect(hasPreferences).toBe(true)
+			expect(hasPolicies).toBe(false)
+			expect(hasRate).toBe(true)
+			expect(hasAdmin).toBe(false)
+		})
+
+		it('hides preferences entry when the user cannot change anything personally', () => {
+			wrapper = createWrapper(false, false, true, {
+				signature_flow: {
+					canSaveAsUserDefault: false,
+				},
+			})
+			const items = getItems()
+
+			expect(items).toHaveLength(2)
+
+			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
+			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
+
+			expect(hasPreferences).toBe(false)
+			expect(hasPolicies).toBe(false)
+		})
+
+		it('shows policies entry for group manager with editable policies', () => {
+			wrapper = createWrapper(false, true, true, {
+				signature_flow: {
+					canSaveAsUserDefault: true,
+					editableByCurrentActor: true,
+					groupCount: 1,
+					userCount: 0,
+				},
+			})
+			const items = getItems()
+
+			expect(items).toHaveLength(4)
+
+			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
+			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
+
+			expect(hasPolicies).toBe(true)
+			expect(hasAdmin).toBe(false)
 		})
 	})
 

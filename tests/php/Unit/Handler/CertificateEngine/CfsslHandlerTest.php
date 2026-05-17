@@ -15,6 +15,7 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Crl\CrlRevocationChecker;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Process\ProcessManager;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
@@ -234,6 +235,7 @@ class CfsslHandlerTest extends TestCase {
 		$certificatePolicyService = \OCP\Server::get(CertificatePolicyService::class);
 		$urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
+		$policyService = \OCP\Server::get(PolicyService::class);
 		$crlMapper = \OCP\Server::get(CrlMapper::class);
 		$logger = \OCP\Server::get(LoggerInterface::class);
 		$crlRevocationChecker = $this->createMock(CrlRevocationChecker::class);
@@ -251,6 +253,7 @@ class CfsslHandlerTest extends TestCase {
 			$certificatePolicyService,
 			$urlGenerator,
 			$caIdentifierService,
+			$policyService,
 			$crlMapper,
 			$logger,
 			$crlRevocationChecker,

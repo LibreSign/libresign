@@ -16,6 +16,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Service\FileAccessService;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\UuidResolverService;
 use OCP\AppFramework\Controller;
@@ -23,7 +24,6 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
-use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IServerContainer;
@@ -50,8 +50,8 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileAccessService&MockObject $fileAccessService;
 	private SignFileService&MockObject $signFileService;
 	private UuidResolverService&MockObject $uuidResolverService;
+	private PolicyService&MockObject $policyService;
 	private IL10N&MockObject $l10n;
-	private IAppConfig&MockObject $appConfig;
 	private IURLGenerator&MockObject $urlGenerator;
 	private ?string $userId = null;
 
@@ -65,7 +65,6 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 
 		$this->initialStateService = new InitialStateService(
@@ -77,6 +76,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileAccessService = $this->createMock(FileAccessService::class);
 		$this->signFileService = $this->createMock(SignFileService::class);
 		$this->uuidResolverService = $this->createMock(UuidResolverService::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->userId = null;
 	}
@@ -94,8 +94,8 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileAccessService,
 			$this->signFileService,
 			$this->uuidResolverService,
+			$this->policyService,
 			$this->l10n,
-			$this->appConfig,
 			$this->urlGenerator,
 			$this->userId,
 		);

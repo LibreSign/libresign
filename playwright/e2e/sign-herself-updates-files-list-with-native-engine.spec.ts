@@ -5,7 +5,10 @@
 
 import { expect, test, type Page } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
+import { useFooterPolicyGuard } from '../support/system-policies'
+
+useFooterPolicyGuard()
 
 async function sortByCreatedAtDescending(page: Page) {
 	const createdAtTh = page.getByRole('columnheader', { name: 'Created at' })
@@ -33,10 +36,9 @@ test('updates files list status after signing with native engine', async ({ page
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(page.request, 'libresign', 'signature_engine', 'PhpNative')
-	await setAppConfig(
+	await setCertificateEngine(page.request, 'openssl')
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } } },
@@ -64,11 +66,19 @@ test('updates files list status after signing with native engine', async ({ page
 		.first()
 	await firstRow.getByRole('button', { name: 'Actions' }).click()
 	await page.getByRole('menuitem', { name: 'Rename' }).click()
-	await page.getByLabel('File name').fill(uniqueName)
-	await page.getByLabel('File name').press('Enter')
+	const fileNameInput = page.getByLabel('File name')
+	await fileNameInput.fill(uniqueName)
+	await fileNameInput.press('Enter')
+	await expect(fileNameInput).toBeHidden({ timeout: 10000 })
+
+	const filesSearch = page.getByRole('searchbox', { name: /Search here/i }).first()
+	if (await filesSearch.isVisible({ timeout: 2000 }).catch(() => false)) {
+		await filesSearch.fill(uniqueName)
+	}
 
 	const targetRow = page.locator('[data-cy-files-list-tbody] tr.files-list__row')
 		.filter({ hasText: uniqueName })
+	await expect(targetRow).toBeVisible({ timeout: 20000 })
 	await expect(targetRow.locator('.status-chip__text')).toHaveText('Ready to sign')
 
 	await targetRow.getByRole('button', { name: 'Actions' }).click()
@@ -77,10 +87,23 @@ test('updates files list status after signing with native engine', async ({ page
 	const signButton = page.getByRole('button', { name: 'Sign the document.' })
 	await expect(signButton).toBeVisible()
 	await signButton.click()
+	const signResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
 	await page.getByRole('button', { name: 'Sign document' }).click()
-	await page.waitForURL('**/validation/**')
+	const signResponse = await signResponsePromise
+	const signResponseBody = await signResponse.text()
+	expect(
+		signResponse.ok(),
+		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
+	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible()
 
 	await page.locator('#fileslist').getByRole('link', { name: 'Files' }).click()
+	if (await filesSearch.isVisible({ timeout: 2000 }).catch(() => false)) {
+		await filesSearch.fill(uniqueName)
+	}
+	await expect(targetRow).toBeVisible({ timeout: 20000 })
 	await expect(targetRow.locator('.status-chip__text')).toHaveText('Signed')
 })

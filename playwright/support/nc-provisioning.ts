@@ -27,6 +27,100 @@ type SignatureElementResponse = {
 	}>
 }
 
+type HasRootCertResponse = {
+	hasRootCert?: boolean
+}
+
+type AppConfigResponse = {
+	data?: string
+}
+
+let libresignAppEnablePromise: Promise<void> | null = null
+
+function buildOcsHeaders(adminUser: string, adminPassword: string): Record<string, string> {
+	const auth = 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64')
+	return {
+		'OCS-ApiRequest': 'true',
+		Accept: 'application/json',
+		Authorization: auth,
+	}
+}
+
+export async function ensureLibresignAppEnabled(
+	request: APIRequestContext,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+): Promise<void> {
+	if (libresignAppEnablePromise) {
+		await libresignAppEnablePromise
+		return
+	}
+
+	libresignAppEnablePromise = (async () => {
+		let lastError: Error | null = null
+
+		for (let attempt = 1; attempt <= 6; attempt++) {
+			try {
+				const response = await request.post('./ocs/v2.php/cloud/apps/libresign?format=json', {
+					headers: buildOcsHeaders(adminUser, adminPassword),
+					failOnStatusCode: false,
+				})
+
+				if (!response.ok()) {
+					const body = await response.text()
+					if ([502, 503, 504].includes(response.status()) && attempt < 6) {
+						await new Promise((resolve) => setTimeout(resolve, attempt * 250))
+						continue
+					}
+					throw new Error(`Failed to enable LibreSign app: ${response.status()} ${body}`)
+				}
+
+				const rawBody = await response.text()
+				if (!rawBody) {
+					return
+				}
+
+				const body = JSON.parse(rawBody) as OcsResponse<unknown>
+				if (body.ocs.meta.statuscode !== 200) {
+					throw new Error(`Failed to enable LibreSign app: ${body.ocs.meta.message}`)
+				}
+
+				return
+			} catch (error) {
+				lastError = error instanceof Error ? error : new Error(String(error))
+				if (attempt < 6) {
+					await new Promise((resolve) => setTimeout(resolve, attempt * 250))
+					continue
+				}
+			}
+		}
+
+		throw lastError ?? new Error('Failed to enable LibreSign app')
+	})()
+
+	try {
+		await libresignAppEnablePromise
+	} catch (error) {
+		libresignAppEnablePromise = null
+		throw error
+	}
+}
+
+function toStringList(data: unknown): string[] {
+	if (Array.isArray(data)) {
+		return data.filter((item): item is string => typeof item === 'string')
+	}
+
+	if (data && typeof data === 'object') {
+		const nested = data as { groups?: unknown[] }
+		if (Array.isArray(nested.groups)) {
+			return nested.groups.filter((item): item is string => typeof item === 'string')
+		}
+	}
+
+	return []
+}
+
 async function ocsRequest<T = unknown>(
 	request: APIRequestContext,
 	method: 'GET' | 'POST' | 'PUT' | 'DELETE',
@@ -36,15 +130,16 @@ async function ocsRequest<T = unknown>(
 	body?: Record<string, string>,
 	jsonBody?: unknown,
 ): Promise<OcsResponse<T>> {
-	const url = `./ocs/v2.php${path}`
-	const auth = 'Basic ' + Buffer.from(`${adminUser}:${adminPassword}`).toString('base64')
-	const headers: Record<string, string> = {
-		'OCS-ApiRequest': 'true',
-		Accept: 'application/json',
-		Authorization: auth,
+	if (path.startsWith('/apps/libresign/')) {
+		await ensureLibresignAppEnabled(request, adminUser, adminPassword)
 	}
+
+	const url = `./ocs/v2.php${path}`
+	const headers: Record<string, string> = buildOcsHeaders(adminUser, adminPassword)
 	if (jsonBody !== undefined) {
 		headers['Content-Type'] = 'application/json'
+	} else if (body !== undefined) {
+		headers['Content-Type'] = 'application/x-www-form-urlencoded'
 	}
 	const response = await request[method.toLowerCase() as 'get' | 'post' | 'put' | 'delete'](url, {
 		headers,
@@ -124,6 +219,117 @@ export async function deleteUser(
 	await ocsRequest(request, 'DELETE', `/cloud/users/${userId}`)
 }
 
+/**
+ * Forces a user's Nextcloud language via Provisioning API.
+ */
+export async function setUserLanguage(
+	request: APIRequestContext,
+	userId: string,
+	language: string,
+): Promise<void> {
+	const result = await ocsRequest(
+		request,
+		'PUT',
+		`/cloud/users/${encodeURIComponent(userId)}`,
+		undefined,
+		undefined,
+		{ key: 'language', value: language },
+	)
+
+	if (result.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to set language for user "${userId}" to "${language}": ${result.ocs.meta.message}`)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Groups and delegated administration
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates a group if it does not exist.
+ */
+export async function ensureGroupExists(
+	request: APIRequestContext,
+	groupId: string,
+): Promise<void> {
+	const check = await ocsRequest(request, 'GET', `/cloud/groups?search=${encodeURIComponent(groupId)}`)
+	const groups = toStringList(check.ocs.data)
+	if (groups.includes(groupId)) {
+		return
+	}
+
+	const create = await ocsRequest(request, 'POST', '/cloud/groups', undefined, undefined, {
+		groupid: groupId,
+	})
+	if (create.ocs.meta.statuscode !== 200 && create.ocs.meta.statuscode !== 102) {
+		throw new Error(`Failed to create group "${groupId}": ${create.ocs.meta.message}`)
+	}
+}
+
+/**
+ * Adds a user to a group.
+ */
+export async function ensureUserInGroup(
+	request: APIRequestContext,
+	userId: string,
+	groupId: string,
+): Promise<void> {
+	const groupsResponse = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/groups`)
+	const groups = toStringList(groupsResponse.ocs.data)
+	if (groups.includes(groupId)) {
+		return
+	}
+
+	const add = await ocsRequest(
+		request,
+		'POST',
+		`/cloud/users/${encodeURIComponent(userId)}/groups`,
+		undefined,
+		undefined,
+		{ groupid: groupId },
+	)
+	if (add.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to add user "${userId}" to group "${groupId}": ${add.ocs.meta.message}`)
+	}
+
+	const verify = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/groups`)
+	if (!toStringList(verify.ocs.data).includes(groupId)) {
+		throw new Error(`User "${userId}" is not in group "${groupId}" after assignment.`)
+	}
+}
+
+/**
+ * Grants subadmin rights for a specific group.
+ */
+export async function ensureSubadminOfGroup(
+	request: APIRequestContext,
+	userId: string,
+	groupId: string,
+): Promise<void> {
+	const subadmins = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/subadmins`)
+	const groups = toStringList(subadmins.ocs.data)
+	if (groups.includes(groupId)) {
+		return
+	}
+
+	const grant = await ocsRequest(
+		request,
+		'POST',
+		`/cloud/users/${encodeURIComponent(userId)}/subadmins`,
+		undefined,
+		undefined,
+		{ groupid: groupId },
+	)
+	if (grant.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to grant subadmin for user "${userId}" in group "${groupId}": ${grant.ocs.meta.message}`)
+	}
+
+	const verify = await ocsRequest(request, 'GET', `/cloud/users/${encodeURIComponent(userId)}/subadmins`)
+	if (!toStringList(verify.ocs.data).includes(groupId)) {
+		throw new Error(`User "${userId}" was not granted subadmin rights for group "${groupId}".`)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // App config  (equivalent to `occ config:app:set`)
 // ---------------------------------------------------------------------------
@@ -151,6 +357,26 @@ export async function setAppConfig(
 	}
 }
 
+export async function getAppConfig(
+	request: APIRequestContext,
+	appId: string,
+	key: string,
+): Promise<string | null> {
+	const result = await ocsRequest<AppConfigResponse>(
+		request,
+		'GET',
+		`/apps/provisioning_api/api/v1/config/apps/${appId}/${key}`,
+	)
+
+	if (result.ocs.meta.statuscode === 404) {
+		return null
+	}
+
+	return typeof result.ocs.data?.data === 'string'
+		? result.ocs.data.data
+		: null
+}
+
 /**
  * Deletes an app config value.
  * Equivalent to: `occ config:app:delete <appId> <key>`
@@ -161,6 +387,67 @@ export async function deleteAppConfig(
 	key: string,
 ): Promise<void> {
 	await ocsRequest(request, 'DELETE', `/apps/provisioning_api/api/v1/config/apps/${appId}/${key}`)
+}
+
+// ---------------------------------------------------------------------------
+// LibreSign Policy helpers
+// ---------------------------------------------------------------------------
+
+type SystemPolicyResponse = {
+	policy?: {
+		policyKey?: string
+		value?: string | null
+		effectiveValue?: unknown
+	}
+}
+
+/**
+ * Sets a system-level LibreSign policy via the policy API.
+ * Equivalent to: POST /apps/libresign/api/v1/policies/system/{policyKey}
+ */
+export async function setSystemPolicy(
+	request: APIRequestContext,
+	policyKey: string,
+	value: string,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+): Promise<void> {
+	const result = await ocsRequest(
+		request,
+		'POST',
+		`/apps/libresign/api/v1/policies/system/${policyKey}`,
+		adminUser,
+		adminPassword,
+		{ value },
+	)
+	if (result.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to set policy ${policyKey}: ${result.ocs.meta.message}`)
+	}
+}
+
+/**
+ * Reads the stored value of a system-level LibreSign policy.
+ * Returns null when the policy has no explicit stored value.
+ */
+export async function getSystemPolicyValue(
+	request: APIRequestContext,
+	policyKey: string,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+): Promise<string | null> {
+	const result = await ocsRequest<SystemPolicyResponse>(
+		request,
+		'GET',
+		`/apps/libresign/api/v1/policies/system/${policyKey}`,
+		adminUser,
+		adminPassword,
+	)
+	if (result.ocs.meta.statuscode !== 200) {
+		return null
+	}
+	return typeof result.ocs.data?.policy?.value === 'string'
+		? result.ocs.data.policy.value
+		: null
 }
 
 // ---------------------------------------------------------------------------
@@ -197,6 +484,17 @@ export async function configureOpenSsl(
 	commonName: string,
 	names: OpenSslCertNames = {},
 ): Promise<void> {
+	const rootCertCheck = await ocsRequest<HasRootCertResponse>(
+		request,
+		'GET',
+		'/apps/libresign/api/v1/setting/has-root-cert',
+	)
+
+	if (rootCertCheck.ocs.data?.hasRootCert) {
+		await clearSignatureElements(request)
+		return
+	}
+
 	const normalised: OpenSslCertNames = { ...names }
 	if (typeof normalised.OU === 'string') {
 		normalised.OU = [normalised.OU]
@@ -220,4 +518,27 @@ export async function configureOpenSsl(
 	}
 
 	await clearSignatureElements(request)
+}
+
+/**
+ * Sets the certificate engine via the LibreSign admin API.
+ * Equivalent to: POST /apps/libresign/api/v1/admin/certificate/engine
+ */
+export async function setCertificateEngine(
+	request: APIRequestContext,
+	engine: string,
+	adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin',
+	adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin',
+): Promise<void> {
+	const result = await ocsRequest(
+		request,
+		'POST',
+		'/apps/libresign/api/v1/admin/certificate/engine',
+		adminUser,
+		adminPassword,
+		{ engine },
+	)
+	if (result.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to set certificate engine to "${engine}": ${result.ocs.meta.message}`)
+	}
 }

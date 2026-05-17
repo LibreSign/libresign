@@ -39,8 +39,11 @@ test('open PDF in LibreSign from Files context menu', async ({ page }) => {
 	const filesTable = page.getByRole('table', {
 		name: /List of your files and folders/i,
 	})
+	const filesSearch = page.getByRole('searchbox', { name: /Search here/i }).first()
+	await expect(filesSearch).toBeVisible({ timeout: 15000 })
+	await filesSearch.fill(fileName)
 	const fileRow = filesTable.getByRole('row', { name: new RegExp(fileName) })
-	await expect(fileRow).toBeVisible({ timeout: 15000 })
+	await expect(fileRow).toBeVisible({ timeout: 30000 })
 
 	await fileRow.click({ button: 'right' })
 

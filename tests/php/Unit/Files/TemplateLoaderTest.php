@@ -15,12 +15,12 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
-use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -34,9 +34,8 @@ final class TemplateLoaderTest extends TestCase {
 	private ValidateHelper&MockObject $validateHelper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
-	private IAppConfig&MockObject $appConfig;
+	private PolicyService&MockObject $policyService;
 	private IAppManager&MockObject $appManager;
-	private ConfigService&MockObject $docMdpConfigService;
 
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
@@ -46,9 +45,8 @@ final class TemplateLoaderTest extends TestCase {
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->policyService = $this->createMock(PolicyService::class);
 		$this->appManager = $this->createMock(IAppManager::class);
-		$this->docMdpConfigService = $this->createMock(ConfigService::class);
 	}
 
 	public function testGetInitialStatePayload(): void {
@@ -62,10 +60,6 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
 
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('none');
-
 		$this->validateHelper
 			->method('canRequestSign');
 
@@ -74,23 +68,43 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getUser')
 			->willReturn($user);
 
-		$docMdpConfig = [
-			'enabled' => true,
-			'defaultLevel' => 1,
-			'availableLevels' => [],
-		];
-		$this->docMdpConfigService
-			->method('getConfig')
-			->willReturn($docMdpConfig);
+		$this->policyService
+			->method('resolveKnownPolicies')
+			->willReturn([
+				'signature_flow'
+				=> (new ResolvedPolicy())
+					->setPolicyKey('signature_flow')
+					->setEffectiveValue('parallel')
+					->setSourceScope('group')
+					->setVisible(true)
+					->setEditableByCurrentActor(true)
+					->setAllowedValues(['parallel', 'ordered_numeric'])
+					->setCanSaveAsUserDefault(true)
+					->setCanUseAsRequestOverride(true)
+			]);
 
 		$loader = $this->getLoader();
 		$payload = self::invokePrivate($loader, 'getInitialStatePayload');
 
 		$this->assertSame([
 			'certificate_ok' => true,
-			'identify_methods' => [],
-			'signature_flow' => 'none',
-			'docmdp_config' => $docMdpConfig,
+			'effective_policies' => [
+				'policies' => [
+					'signature_flow' => [
+						'policyKey' => 'signature_flow',
+						'effectiveValue' => 'parallel',
+						'inheritedValue' => null,
+						'sourceScope' => 'group',
+						'visible' => true,
+						'editableByCurrentActor' => true,
+						'allowedValues' => ['parallel', 'ordered_numeric'],
+						'canSaveAsUserDefault' => true,
+						'canUseAsRequestOverride' => true,
+						'preferenceWasCleared' => false,
+						'blockedBy' => null,
+					],
+				],
+			],
 			'can_request_sign' => true,
 		], $payload);
 	}
@@ -106,10 +120,6 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
 
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('none');
-
 		$this->validateHelper
 			->method('canRequestSign')
 			->willThrowException(new \OCA\Libresign\Exception\LibresignException('no'));
@@ -119,9 +129,20 @@ final class TemplateLoaderTest extends TestCase {
 			->method('getUser')
 			->willReturn($user);
 
-		$this->docMdpConfigService
-			->method('getConfig')
-			->willReturn([]);
+		$this->policyService
+			->method('resolveKnownPolicies')
+			->willReturn([
+				'signature_flow'
+				=> (new ResolvedPolicy())
+					->setPolicyKey('signature_flow')
+					->setEffectiveValue('none')
+					->setSourceScope('system')
+					->setVisible(true)
+					->setEditableByCurrentActor(true)
+					->setAllowedValues(['none', 'parallel', 'ordered_numeric'])
+					->setCanSaveAsUserDefault(true)
+					->setCanUseAsRequestOverride(true)
+			]);
 
 		$loader = $this->getLoader();
 		$payload = self::invokePrivate($loader, 'getInitialStatePayload');
@@ -138,9 +159,8 @@ final class TemplateLoaderTest extends TestCase {
 			$this->validateHelper,
 			$this->identifyMethodService,
 			$this->certificateEngineFactory,
-			$this->appConfig,
+			$this->policyService,
 			$this->appManager,
-			$this->docMdpConfigService,
 		);
 	}
 
@@ -168,11 +188,8 @@ final class TemplateLoaderTest extends TestCase {
 		$this->identifyMethodService
 			->method('getIdentifyMethodsSettings')
 			->willReturn([]);
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('none');
-		$this->docMdpConfigService
-			->method('getConfig')
+		$this->policyService
+			->method('resolveKnownPolicies')
 			->willReturn([]);
 		$user = $this->createMock(IUser::class);
 		$this->userSession

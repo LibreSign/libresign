@@ -17,6 +17,7 @@ use OCA\Libresign\Service\IdentifyMethod\Signal;
 use OCA\Libresign\Service\IdentifyMethod\Sms;
 use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
+use OCA\Libresign\Service\IdentifyMethod\Whatsappbusiness;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SubjectAlternativeNameService;
@@ -39,6 +40,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	private Sms&MockObject $sms;
 	private Telegram&MockObject $telegram;
 	private Whatsapp&MockObject $whatsapp;
+	private Whatsappbusiness&MockObject $whatsappbusiness;
 	private Xmpp&MockObject $xmpp;
 	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
 
@@ -54,6 +56,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$this->sms = $this->createMock(Sms::class);
 		$this->telegram = $this->createMock(Telegram::class);
 		$this->whatsapp = $this->createMock(Whatsapp::class);
+		$this->whatsappbusiness = $this->createMock(Whatsappbusiness::class);
 		$this->xmpp = $this->createMock(Xmpp::class);
 		$this->subjectAlternativeNameService = $this->createMock(SubjectAlternativeNameService::class);
 
@@ -67,6 +70,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			$this->sms,
 			$this->telegram,
 			$this->whatsapp,
+			$this->whatsappbusiness,
 			$this->xmpp,
 			$this->subjectAlternativeNameService,
 		);
@@ -241,6 +245,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 				$this->sms,
 				$this->telegram,
 				$this->whatsapp,
+				$this->whatsappbusiness,
 				$this->xmpp,
 				$this->subjectAlternativeNameService,
 			])
@@ -314,6 +319,19 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			'signatureMethodEnabled' => 'smsToken',
 		];
 
+		$whatsappBusinessSettingsData = [
+			'name' => 'whatsappbusiness',
+			'friendly_name' => 'WhatsApp Business',
+			'enabled' => true,
+			'mandatory' => true,
+			'signatureMethods' => [
+				'clickToSign' => ['name' => 'clickToSign', 'enabled' => false],
+				'whatsappToken' => ['name' => 'whatsappToken', 'enabled' => true],
+			],
+			'test_url' => '/settings/user/security',
+			'signatureMethodEnabled' => 'whatsappToken',
+		];
+
 		return [
 			'whatsapp twofactor enabled' => [
 				$whatsappSettingsData,
@@ -322,6 +340,16 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			],
 			'whatsapp twofactor disabled' => [
 				$whatsappSettingsData,
+				false,
+				null,
+			],
+			'whatsappbusiness twofactor enabled' => [
+				$whatsappBusinessSettingsData,
+				true,
+				$whatsappBusinessSettingsData,
+			],
+			'whatsappbusiness twofactor disabled' => [
+				$whatsappBusinessSettingsData,
 				false,
 				null,
 			],
@@ -355,6 +383,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 				$this->sms,
 				$this->telegram,
 				$this->whatsapp,
+				$this->whatsappbusiness,
 				$this->xmpp,
 				$this->subjectAlternativeNameService,
 			])
@@ -399,6 +428,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 				$this->sms,
 				$this->telegram,
 				$this->whatsapp,
+				$this->whatsappbusiness,
 				$this->xmpp,
 				$this->subjectAlternativeNameService,
 			])

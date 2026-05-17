@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\Account;
@@ -20,6 +21,7 @@ use OCA\Libresign\Service\IdentifyMethod\Signal;
 use OCA\Libresign\Service\IdentifyMethod\Sms;
 use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
+use OCA\Libresign\Service\IdentifyMethod\Whatsappbusiness;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
 use OCP\IL10N;
 use OCP\IUserManager;
@@ -34,7 +36,23 @@ class IdentifyMethodService {
 	public const IDENTIFY_TELEGRAM = 'telegram';
 	public const IDENTIFY_SMS = 'sms';
 	public const IDENTIFY_WHATSAPP = 'whatsapp';
+	public const IDENTIFY_WHATSAPP_BUSINESS = 'whatsappbusiness';
 	public const IDENTIFY_XMPP = 'xmpp';
+	public const IDENTIFY_PHONE_METHODS = [
+		self::IDENTIFY_WHATSAPP,
+		self::IDENTIFY_WHATSAPP_BUSINESS,
+		self::IDENTIFY_SMS,
+		self::IDENTIFY_TELEGRAM,
+		self::IDENTIFY_SIGNAL,
+	];
+	public const IDENTIFY_TWOFACTOR_GATEWAY_METHODS = [
+		self::IDENTIFY_SMS,
+		self::IDENTIFY_SIGNAL,
+		self::IDENTIFY_TELEGRAM,
+		self::IDENTIFY_WHATSAPP,
+		self::IDENTIFY_WHATSAPP_BUSINESS,
+		self::IDENTIFY_XMPP,
+	];
 	public const IDENTIFY_PASSWORD = 'password';
 	public const IDENTIFY_CLICK_TO_SIGN = 'clickToSign';
 	public const IDENTIFY_METHODS = [
@@ -44,6 +62,7 @@ class IdentifyMethodService {
 		self::IDENTIFY_TELEGRAM,
 		self::IDENTIFY_SMS,
 		self::IDENTIFY_WHATSAPP,
+		self::IDENTIFY_WHATSAPP_BUSINESS,
 		self::IDENTIFY_XMPP,
 		self::IDENTIFY_PASSWORD,
 		self::IDENTIFY_CLICK_TO_SIGN,
@@ -67,6 +86,7 @@ class IdentifyMethodService {
 		private Sms $sms,
 		private Telegram $telegram,
 		private Whatsapp $Whatsapp,
+		private Whatsappbusiness $whatsappbusiness,
 		private Xmpp $xmpp,
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 	) {
@@ -82,7 +102,7 @@ class IdentifyMethodService {
 		return $this;
 	}
 
-	public function getInstanceOfIdentifyMethod(string $name, ?string $identifyValue = null): IIdentifyMethod {
+	public function getInstanceOfIdentifyMethod(string $name, ?string $identifyValue = null, ?string $requirement = null): IIdentifyMethod {
 		if ($identifyValue && isset($this->identifyMethods[$name])) {
 			foreach ($this->identifyMethods[$name] as $identifyMethod) {
 				if ($identifyMethod->getEntity()->getIdentifierValue() === $identifyValue) {
@@ -97,7 +117,7 @@ class IdentifyMethodService {
 		if (!$entity->getId()) {
 			$entity->setIdentifierKey($name);
 			$entity->setIdentifierValue($identifyValue);
-			$entity->setMandatory($this->isMandatoryMethod($name) ? 1 : 0);
+			$entity->setRequirement($requirement ?? $this->resolveMethodRequirement($name));
 		}
 		if ($identifyValue && $this->isRequest) {
 			$identifyMethod->validateToRequest();
@@ -142,17 +162,23 @@ class IdentifyMethodService {
 		return $identifyMethod;
 	}
 
-	private function setEntityData(string $method, string $identifyValue): void {
-		// @todo Replace by enum when PHP 8.1 is the minimum version acceptable
-		// at server. Check file lib/versioncheck.php of server repository
-		if (!in_array($method, IdentifyMethodService::IDENTIFY_METHODS)) {
-			// TRANSLATORS When is requested to a person to sign a file, is
-			// necessary identify what is the identification method. The
-			// identification method is used to define how will be the sign
-			// flow.
-			throw new LibresignException($this->l10n->t('Invalid identification method'));
+	public function exists(string $name): bool {
+		$className = 'OCA\\Libresign\\Service\\IdentifyMethod\\' . ucfirst($name);
+		if (class_exists($className)) {
+			return true;
 		}
-		$identifyMethod = $this->getInstanceOfIdentifyMethod($method, $identifyValue);
+		return class_exists('OCA\\Libresign\\Service\\IdentifyMethod\\SignatureMethod\\' . ucfirst($name));
+	}
+
+	public static function resolveTwofactorGatewayName(string $identifyMethod): string {
+		return match ($identifyMethod) {
+			self::IDENTIFY_WHATSAPP => 'gowhatsapp',
+			default => strtolower($identifyMethod),
+		};
+	}
+
+	private function setEntityData(string $method, string $identifyValue, ?string $requirement = null): void {
+		$identifyMethod = $this->getInstanceOfIdentifyMethod($method, $identifyValue, $requirement);
 		$identifyMethod->validateToRequest();
 	}
 
@@ -161,18 +187,22 @@ class IdentifyMethodService {
 			if (!is_array($identifyMethod) || !isset($identifyMethod['method'], $identifyMethod['value'])) {
 				continue;
 			}
-			$this->setEntityData($identifyMethod['method'], $identifyMethod['value']);
+			$requirement = isset($identifyMethod['requirement']) && is_string($identifyMethod['requirement'])
+				? $identifyMethod['requirement']
+				: null;
+			$this->setEntityData($identifyMethod['method'], $identifyMethod['value'], $requirement);
 		}
 	}
 
-	private function isMandatoryMethod(string $methodName): bool {
+	private function resolveMethodRequirement(string $methodName): string {
 		$settings = $this->getIdentifyMethodsSettings();
 		foreach ($settings as $setting) {
 			if ($setting['name'] === $methodName) {
-				return $setting['mandatory'];
+				$requirement = IdentifyMethodRequirement::tryFrom((string)($setting['requirement'] ?? ''));
+				return $requirement?->value ?? IdentifyMethodRequirement::OPTIONAL->value;
 			}
 		}
-		return false;
+		return IdentifyMethodRequirement::OPTIONAL->value;
 	}
 
 	/**
@@ -353,10 +383,27 @@ class IdentifyMethodService {
 		if ($this->Whatsapp->isTwofactorGatewayEnabled()) {
 			$this->identifyMethodsSettings[] = $this->Whatsapp->getSettings();
 		}
+		if ($this->whatsappbusiness->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsSettings[] = $this->whatsappbusiness->getSettings();
+		}
 		if ($this->xmpp->isTwofactorGatewayEnabled()) {
 			$this->identifyMethodsSettings[] = $this->xmpp->getSettings();
 		}
 		return $this->identifyMethodsSettings;
+	}
+
+	/** @return array<string, string> */
+	public function getFriendlyNamesMap(): array {
+		return [
+			$this->account->getName() => $this->account->getFriendlyName(),
+			$this->email->getName() => $this->email->getFriendlyName(),
+			$this->signal->getName() => $this->signal->getFriendlyName(),
+			$this->sms->getName() => $this->sms->getFriendlyName(),
+			$this->telegram->getName() => $this->telegram->getFriendlyName(),
+			$this->Whatsapp->getName() => $this->Whatsapp->getFriendlyName(),
+			$this->whatsappbusiness->getName() => $this->whatsappbusiness->getFriendlyName(),
+			$this->xmpp->getName() => $this->xmpp->getFriendlyName(),
+		];
 	}
 
 	/**

@@ -11,6 +11,9 @@ namespace OCA\Libresign\Handler\SignEngine;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -36,6 +39,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		private DocMdpConfigService $docMdpConfigService,
 		private SignatureTextService $signatureTextService,
 		private SignatureBackgroundService $signatureBackgroundService,
+		private PolicyService $policyService,
 		protected CertificateEngineFactory $certificateEngineFactory,
 	) {
 	}
@@ -211,17 +215,18 @@ class PhpNativeHandler extends Pkcs12Handler {
 	}
 
 	private function buildTimestampOptions(): ?TimestampOptionsDto {
-		$tsaUrl = $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', '');
+		$tsaSettings = $this->getTsaSettings();
+		$tsaUrl = $tsaSettings['url'];
 		if (empty($tsaUrl)) {
 			return null;
 		}
 
 		$username = null;
 		$password = null;
-		$authType = $this->appConfig->getValueString(Application::APP_ID, 'tsa_auth_type', 'none');
+		$authType = $tsaSettings['auth_type'];
 		if ($authType === 'basic') {
-			$username = $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', '') ?: null;
-			$password = $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', '') ?: null;
+			$username = $tsaSettings['username'] ?: null;
+			$password = $this->appConfig->getValueString(Application::APP_ID, TsaPolicy::PASSWORD_APP_CONFIG_KEY, '') ?: null;
 		}
 
 		return new TimestampOptionsDto(
@@ -229,6 +234,15 @@ class PhpNativeHandler extends Pkcs12Handler {
 			username: $username,
 			password: $password,
 		);
+	}
+
+	/**
+	 * @return array{url: string, policy_oid: string, auth_type: string, username: string}
+	 */
+	private function getTsaSettings(): array {
+		$resolved = $this->policyService->resolve(TsaPolicy::KEY)->getEffectiveValue();
+		$settings = TsaPolicyValue::decode($resolved);
+		return $settings;
 	}
 
 	private function resolveCertificationLevel(bool $noVisibleElements): ?CertificationLevel {

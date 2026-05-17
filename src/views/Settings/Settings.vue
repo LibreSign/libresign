@@ -12,55 +12,31 @@
 		<ConfigureCheck />
 		<RootCertificateCfssl />
 		<RootCertificateOpenSsl />
-		<IdentificationFactors />
-		<ExpirationRules />
-		<Validation />
-		<CrlValidation />
-		<DocMDP />
-		<SignatureFlow />
-		<SigningMode v-if="false" />
-		<AllowedGroups />
-		<LegalInformation />
-		<IdentificationDocuments />
-		<CollectMetadata />
-		<SignatureStamp />
-		<SignatureHashAlgorithm />
-		<DefaultUserFolder />
-		<Envelope />
-		<Reminders />
-		<TSA />
-		<Confetti />
+		<SettingsPolicyWorkbench />
 	</div>
 </template>
 
 <script setup lang="ts">
-import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
-import CollectMetadata from './CollectMetadata.vue'
-import Confetti from './Confetti.vue'
-import CrlValidation from './CrlValidation.vue'
-import DefaultUserFolder from './DefaultUserFolder.vue'
-import DocMDP from './DocMDP.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
-import Envelope from './Envelope.vue'
-import ExpirationRules from './ExpirationRules.vue'
-import IdentificationDocuments from './IdentificationDocuments.vue'
-import IdentificationFactors from './IdentificationFactors.vue'
-import LegalInformation from './LegalInformation.vue'
-import Reminders from './Reminders.vue'
+import SettingsPolicyWorkbench from './PolicyWorkbench/Catalog/Catalog.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureEngine from './SignatureEngine.vue'
-import SignatureFlow from './SignatureFlow.vue'
-import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
-import SignatureStamp from './SignatureStamp.vue'
-import SigningMode from './SigningMode.vue'
 import SupportProject from './SupportProject.vue'
-import TSA from './TSA.vue'
-import Validation from './Validation.vue'
 
 defineOptions({
 	name: 'Settings',
+	components: {
+		CertificateEngine,
+		ConfigureCheck,
+		DownloadBinaries,
+		RootCertificateCfssl,
+		RootCertificateOpenSsl,
+		SettingsPolicyWorkbench,
+		SignatureEngine,
+		SupportProject,
+	},
 })
 </script>

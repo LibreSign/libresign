@@ -9,10 +9,15 @@ namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\PhpNativeHandler;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
+use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -30,13 +35,29 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureTextService&MockObject $signatureTextService;
 	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
+	private PolicyService&MockObject $policyService;
 
 	public function setUp(): void {
+		parent::setUp();
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
 		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService
+			->method('resolve')
+			->willReturnCallback(function (string|\BackedEnum $policyKey): ResolvedPolicy {
+				$key = $policyKey instanceof \BackedEnum ? (string)$policyKey->value : $policyKey;
+				$value = match ($key) {
+					TsaPolicy::KEY => $this->appConfig->getValueString(Application::APP_ID, TsaPolicy::SYSTEM_APP_CONFIG_KEY, ''),
+					default => null,
+				};
+
+				return (new ResolvedPolicy())
+					->setPolicyKey($key)
+					->setEffectiveValue($value);
+			});
 	}
 
 	public function testBuildAppearanceSkipsBackgroundWhenDisabled(): void {
@@ -172,10 +193,17 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		?string $expectedUsername,
 		?string $expectedPassword,
 	): void {
-		$this->appConfig->setValueString('libresign', 'tsa_url', $tsaUrl);
-		$this->appConfig->setValueString('libresign', 'tsa_auth_type', $authType);
-		$this->appConfig->setValueString('libresign', 'tsa_username', $username);
-		$this->appConfig->setValueString('libresign', 'tsa_password', $password);
+		$this->appConfig->setValueString(
+			Application::APP_ID,
+			TsaPolicy::SYSTEM_APP_CONFIG_KEY,
+			TsaPolicyValue::encode([
+				'url' => $tsaUrl,
+				'policy_oid' => '',
+				'auth_type' => $authType,
+				'username' => $username,
+			]),
+		);
+		$this->appConfig->setValueString('libresign', TsaPolicy::PASSWORD_APP_CONFIG_KEY, $password);
 
 		$handler = $this->getHandler();
 		$result = $this->callPrivateMethod($handler, 'buildTimestampOptions');
@@ -445,6 +473,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->docMdpConfigService,
 			$signatureTextService,
 			$this->signatureBackgroundService,
+			$this->policyService,
 			$this->certificateEngineFactory,
 		);
 
@@ -483,6 +512,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->docMdpConfigService,
 			$this->signatureTextService,
 			$this->signatureBackgroundService,
+			$this->policyService,
 			$this->certificateEngineFactory,
 		);
 	}

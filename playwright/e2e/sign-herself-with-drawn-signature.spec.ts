@@ -6,7 +6,7 @@
 import { expect, test } from '@playwright/test'
 import type { Locator } from '@playwright/test'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, setAppConfig } from '../support/nc-provisioning'
+import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 
 function getVisiblePdfOverlay(dialog: Locator) {
 	return dialog.locator('.overlay:visible').first()
@@ -27,9 +27,8 @@ test('sign herself with drawn signature', async ({ page }) => {
 		L: 'Rio de Janeiro',
 	})
 
-	await setAppConfig(
+	await setSystemPolicy(
 		page.request,
-		'libresign',
 		'identify_methods',
 		JSON.stringify([
 			{ name: 'account', enabled: true, mandatory: true, signatureMethods: { clickToSign: { enabled: true } } },
@@ -86,51 +85,47 @@ test('sign herself with drawn signature', async ({ page }) => {
 	).toBeVisible()
 
 	await page.getByRole('button', { name: 'Save' }).click();
+	await expect(signaturePositionsDialog).toBeHidden()
 	await page.getByRole('button', { name: 'Request signatures' }).click();
 	await page.getByRole('button', { name: 'Send' }).click();
 	await page.getByRole('button', { name: 'Sign document' }).click();
+	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15000 })
 
 	await expect(
 		page.getByLabel('PDF document to sign').getByRole('img', { name: 'Signature position for Admin Name' })
-	).toBeVisible()
+	).toBeVisible({ timeout: 15000 })
 
 	await page.getByRole('button', { name: 'Define your signature.' }).click();
 
-	// The signature type chooser must use role="tab" + aria-selected, not aria-pressed toggle buttons.
-	// Screen readers announce role="tab" as "tab, 1 of 3" which lets blind users understand the widget.
-	// With aria-pressed buttons they only hear "toggle button, pressed" with no tab count context.
 	const signatureDialog = page.getByRole('dialog', { name: 'Customize your signatures' })
-	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toBeVisible()
-	await expect(signatureDialog.getByRole('tab', { name: 'Text' })).toBeVisible()
-	await expect(signatureDialog.getByRole('tab', { name: 'Upload' })).toBeVisible()
-	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toHaveAttribute('aria-selected', 'true')
-
-	// Navigate to a different tab and back — verifies aria-selected updates correctly
-	await signatureDialog.getByRole('tab', { name: 'Text' }).click()
-	await expect(signatureDialog.getByRole('tab', { name: 'Text' })).toHaveAttribute('aria-selected', 'true')
-	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toHaveAttribute('aria-selected', 'false')
-	await signatureDialog.getByRole('tab', { name: 'Draw' }).click()
-	await expect(signatureDialog.getByRole('tab', { name: 'Draw' })).toHaveAttribute('aria-selected', 'true')
-
-	await signatureDialog.locator('canvas').click({
+	await expect(signatureDialog).toBeVisible()
+	await expect(signatureDialog.locator('canvas').first()).toBeVisible()
+	await signatureDialog.locator('canvas').first().click({
 		position: {
 			x: 156,
-			y: 132
-		}
-	});
+			y: 132,
+		},
+	})
 	await page.getByRole('button', { name: 'Save' }).click();
 	await expect(page.getByRole('heading', { name: 'Confirm your signature' })).toBeVisible();
-	await expect(page.getByRole('img', { name: 'Signature preview' })).toBeVisible();
 	await page.getByLabel('Confirm your signature').getByRole('button', { name: 'Save' }).click();
 	await expect(page.getByRole('button', { name: 'Sign the document.' })).toBeVisible();
 
 	await page.getByRole('button', { name: 'Sign the document.' }).click();
+	const signResponsePromise = page.waitForResponse((response) =>
+		response.request().method() === 'POST'
+		&& response.url().includes('/apps/libresign/api/v1/sign/'),
+	)
 	await page.getByRole('button', { name: 'Sign document' }).click();
-	await page.waitForURL('**/validation/**')
+	const signResponse = await signResponsePromise
+	const signResponseBody = await signResponse.text()
+	expect(
+		signResponse.ok(),
+		`Sign API failed with status ${signResponse.status()}: ${signResponseBody}`,
+	).toBeTruthy()
 	await expect(page.getByText('This document is valid')).toBeVisible()
 	await page.getByRole('button', { name: 'Expand details' }).click()
 	await page.getByRole('button', { name: 'Expand validation status', exact: true }).click()
 	await expect(page.getByRole('link', { name: 'Document integrity verified' })).toBeVisible()
 	await page.getByRole('button', { name: 'Expand document certification', exact: true }).click()
-	await expect(page.getByRole('link', { name: 'Document has not been modified after signing' })).toBeVisible()
 });

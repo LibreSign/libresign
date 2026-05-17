@@ -157,6 +157,9 @@ type PdfObject = {
 
 type PdfElementsRef = {
 	getAllObjects: (docIndex: number) => PdfObject[]
+	pdfDocuments?: Array<{
+		allObjects?: PdfObject[][]
+	}>
 	selectPage?: (docIndex: number, pageIndex: number) => void
 	selectedDocIndex?: number
 	selectedPageIndex?: number
@@ -182,7 +185,11 @@ function isIdentifyMethodRecord(value: unknown): value is IdentifyMethodRecord {
 	return candidate !== null
 		&& typeof candidate.method === 'string'
 		&& typeof candidate.value === 'string'
-		&& typeof candidate.mandatory === 'number'
+		&& (
+			candidate.requirement === undefined
+			|| candidate.requirement === 'required'
+			|| candidate.requirement === 'optional'
+		)
 }
 
 function normalizeVisibleElement(element: unknown): VisibleElementRecord | null {
@@ -459,13 +466,9 @@ const modal = ref(false)
 const loading = ref(false)
 const signerSelected = ref<SignerSummaryRecord | null>(null)
 const capabilities = getCapabilities() as LibresignCapabilities
-const signElementsConfig = capabilities.libresign?.config['sign-elements'] ?? {
-	'is-available': false,
-	'full-signature-width': 0,
-	'full-signature-height': 0,
-}
-const width = ref(signElementsConfig['full-signature-width'])
-const height = ref(signElementsConfig['full-signature-height'])
+const signElementsConfig = capabilities.libresign?.config['sign-elements']
+const width = ref(Number(signElementsConfig?.['full-signature-width']))
+const height = ref(Number(signElementsConfig?.['full-signature-height']))
 const filePagesMap = ref<Record<number, FilePageInfo>>({})
 const elementsLoaded = ref(false)
 const fetchedFiles = ref<EditableRequestChildFile[]>([])
@@ -493,7 +496,7 @@ const fallbackDocumentFile = computed<EditableRequestChildFile | null>(() => {
 		return null
 	}
 
-	return getFileUrl(toVisibleElementsFile(normalizedFile)) ? normalizedFile : null
+	return normalizedFile
 })
 function hasRenderablePdfFiles(files: EditableRequestChildFile[]): boolean {
 	return files.some((file) => getFileUrl(toVisibleElementsFile(file)) !== null)
@@ -507,7 +510,36 @@ const documentFiles = computed<EditableRequestChildFile[]>(() => {
 		return document.value.files
 	}
 
+	// Special handling for empty files array:
+	// If files exists as an empty array, check if there's a renderable fallback
+	// If fallback is renderable, use it; otherwise return empty to trigger fetch
+	if (Array.isArray(document.value.files) && document.value.files.length === 0 && fallbackDocumentFile.value) {
+		const fallbackUrl = getFileUrl(toVisibleElementsFile(fallbackDocumentFile.value))
+		if (fallbackUrl !== null) {
+			// Fallback is renderable, use it
+			return [fallbackDocumentFile.value]
+		}
+		// Fallback exists but is not renderable, return empty to trigger fetch
+		return []
+	}
+
+	// Default: use fallback if available, otherwise empty
 	return fallbackDocumentFile.value ? [fallbackDocumentFile.value] : []
+})
+const documentFileForMapping = computed<EditableRequestChildFile | null>(() => normalizeEditableRequestFile({
+	id: document.value.id,
+	name: document.value.name,
+	file: document.value.file ?? null,
+	metadata: document.value.metadata,
+	signers: document.value.signers,
+	visibleElements: document.value.visibleElements,
+}))
+const documentFilesForMapping = computed<EditableRequestChildFile[]>(() => {
+	if (documentFiles.value.length > 0) {
+		return documentFiles.value
+	}
+
+	return documentFileForMapping.value ? [documentFileForMapping.value] : []
 })
 const visibleElementsDocument = computed<DocumentLike>(() => toVisibleElementsDocument(document.value))
 const visibleElementsFiles = computed<FileLike[]>(() => documentFiles.value.map(toVisibleElementsFile))
@@ -603,7 +635,7 @@ async function showModal() {
 	if (!canRequestSign.value) {
 		return
 	}
-	if (signElementsConfig['is-available'] === false) {
+	if (signElementsConfig?.['is-available'] === false) {
 		return
 	}
 	modal.value = true
@@ -675,7 +707,7 @@ async function fetchFiles() {
 function buildFilePagesMap() {
 	filePagesMap.value = {}
 
-	const filesToProcess = documentFiles.value
+	const filesToProcess = documentFilesForMapping.value
 
 	let currentPage = 1
 	filesToProcess.forEach((file, index) => {
@@ -707,7 +739,7 @@ function closeModal() {
 }
 
 function getPageHeightForFile(fileId: number, page: number) {
-	const filesToSearch = documentFiles.value
+	const filesToSearch = documentFilesForMapping.value
 	const fileInfo = filesToSearch.find(file => file.id === fileId)
 	return fileInfo?.metadata?.d?.[page - 1]?.h
 }
@@ -832,6 +864,8 @@ async function goToSign() {
 
 async function save() {
 	loading.value = true
+	await nextTick()
+	await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
 	const visibleElements = buildVisibleElements()
 
 	try {
@@ -854,16 +888,109 @@ const handleShowVisibleElements: EventHandler<NextcloudEvent> = () => {
 	void showModal()
 }
 
+function resolveVisibleElementSignRequestId(
+	object: PdfObject,
+	fileInfo: EditableRequestChildFile,
+): number | null {
+	const directSignRequestId = Number(object.signer?.signRequestId)
+	if (Number.isFinite(directSignRequestId) && directSignRequestId > 0) {
+		return directSignRequestId
+	}
+
+	const existingElementSignRequestId = Number(object.visibleElement?.signRequestId)
+	if (Number.isFinite(existingElementSignRequestId) && existingElementSignRequestId > 0) {
+		return existingElementSignRequestId
+	}
+
+	if (!Array.isArray(fileInfo.signers) || fileInfo.signers.length === 0) {
+		return null
+	}
+
+	const envIdentifyMethods = Array.isArray(object.signer?.identifyMethods) ? object.signer.identifyMethods : []
+	const envIdMethods = envIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
+	if (envIdMethods.length > 0) {
+		const candidate = fileInfo.signers.find((signer) => {
+			const childIdentifyMethods = Array.isArray(signer.identifyMethods) ? signer.identifyMethods : []
+			const childIdMethods = childIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
+			return childIdMethods === envIdMethods
+		})
+		const candidateSignRequestId = Number(candidate?.signRequestId)
+		if (Number.isFinite(candidateSignRequestId) && candidateSignRequestId > 0) {
+			return candidateSignRequestId
+		}
+	}
+
+	const objectEmail = typeof object.signer?.email === 'string' ? object.signer.email : ''
+	const objectDisplayName = typeof object.signer?.displayName === 'string' ? object.signer.displayName : ''
+	const matchedSigner = fileInfo.signers.find((signer) => {
+		if (objectEmail && signer.email === objectEmail) {
+			return true
+		}
+		return objectDisplayName.length > 0 && signer.displayName === objectDisplayName
+	})
+	const matchedSignRequestId = Number(matchedSigner?.signRequestId)
+	if (Number.isFinite(matchedSignRequestId) && matchedSignRequestId > 0) {
+		return matchedSignRequestId
+	}
+
+	if (fileInfo.signers.length === 1) {
+		const singleSignerId = Number(fileInfo.signers[0]?.signRequestId)
+		if (Number.isFinite(singleSignerId) && singleSignerId > 0) {
+			return singleSignerId
+		}
+	}
+
+	return null
+}
+
+function getPdfObjectsForDocument(docIndex: number): PdfObject[] {
+	const pdfElements = getPdfElements()
+	const resolvedObjects = pdfElements?.getAllObjects?.(docIndex)
+	if (Array.isArray(resolvedObjects) && resolvedObjects.length > 0) {
+		return resolvedObjects as PdfObject[]
+	}
+
+	const rawPages = pdfElements?.pdfDocuments?.[docIndex]?.allObjects
+	if (!Array.isArray(rawPages)) {
+		return []
+	}
+
+	return rawPages.flatMap((pageObjects: unknown, pageIndex: number) => {
+		if (!Array.isArray(pageObjects)) {
+			return []
+		}
+		return pageObjects.map((object) => ({
+			...(object as PdfObject),
+			pageIndex,
+			pageNumber: pageIndex + 1,
+		}))
+	})
+}
+
 function buildVisibleElements() {
 	const visibleElements: EditableVisibleElementPayload[] = []
-	const currentFiles = documentFiles.value
-	const pdfElements = getPdfElements()
+	const currentFiles = documentFilesForMapping.value
 	const numDocuments = currentFiles.length
 
 	for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
-		const objects = pdfElements?.getAllObjects(docIndex) || []
+		const objects = getPdfObjectsForDocument(docIndex)
 		objects.forEach((object: PdfObject) => {
 			if (!object.signer) return
+
+			if (object.visibleElement?.fileId !== undefined
+				&& object.visibleElement?.signRequestId !== undefined
+				&& object.visibleElement?.coordinates) {
+				visibleElements.push({
+					type: 'signature',
+					fileId: object.visibleElement.fileId,
+					signRequestId: object.visibleElement.signRequestId,
+					...(object.visibleElement.elementId !== undefined ? { elementId: object.visibleElement.elementId } : {}),
+					coordinates: {
+						...object.visibleElement.coordinates,
+					},
+				})
+				return
+			}
 
 			let globalPageNumber = object.pageNumber
 			const pageInfos = Object.keys(filePagesMap.value).map((page) => filePagesMap.value[Number(page)])
@@ -895,18 +1022,11 @@ function buildVisibleElements() {
 			const pageNumber = globalPageNumber - pageInfo.startPage + 1
 
 			const fileInfo = currentFiles.find((file) => file.id === targetFileId)
-			if (!fileInfo || !Array.isArray(fileInfo.signers)) {
+			if (!fileInfo) {
 				return
 			}
-			const envIdentifyMethods = Array.isArray(object.signer.identifyMethods) ? object.signer.identifyMethods : []
-			const envIdMethods = envIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
-			const candidate = fileInfo.signers.find((signer) => {
-				const childIdentifyMethods = Array.isArray(signer.identifyMethods) ? signer.identifyMethods : []
-				const childIdMethods = childIdentifyMethods.map((method: IdentifyMethodRecord) => `${method.method}:${method.value}`).sort().join('|')
-				return childIdMethods === envIdMethods
-			})
-			const signRequestId = Number(candidate?.signRequestId)
-			if (!Number.isFinite(signRequestId)) {
+			const signRequestId = resolveVisibleElementSignRequestId(object, fileInfo)
+			if (signRequestId === null) {
 				return
 			}
 

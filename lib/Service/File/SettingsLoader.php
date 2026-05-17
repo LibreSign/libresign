@@ -9,22 +9,15 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\File;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IUser;
-use stdClass;
 
-/**
- * @psalm-import-type LibresignSettings from ResponseDefinitions
- */
+/** @psalm-import-type LibresignSettings from \OCA\Libresign\ResponseDefinitions */
 class SettingsLoader {
 	public const IDENTIFICATION_DOCUMENTS_DISABLED = 0;
 	public const IDENTIFICATION_DOCUMENTS_NEED_SEND = 1;
@@ -34,15 +27,13 @@ class SettingsLoader {
 	public function __construct(
 		private AccountSettingsProvider $accountSettingsProvider,
 		private IdDocsPolicyService $idDocsPolicyService,
-		private IAppConfig $appConfig,
-		private IGroupManager $groupManager,
 		private IdDocsMapper $idDocsMapper,
 		private IdentifyMethodService $identifyMethodService,
 	) {
 	}
 
 	public function loadSettings(
-		stdClass $fileData,
+		\stdClass $fileData,
 		FileResponseOptions $options,
 	): void {
 		if (!$options->isShowSettings()) {
@@ -69,7 +60,7 @@ class SettingsLoader {
 		}
 	}
 
-	private function loadApproverSignatureMethods(stdClass $fileData): void {
+	private function loadApproverSignatureMethods(\stdClass $fileData): void {
 		try {
 			$idDocs = $this->idDocsMapper->getByFileId($fileData->id);
 			$signRequestId = $idDocs->getSignRequestId();
@@ -84,16 +75,12 @@ class SettingsLoader {
 	}
 
 	public function getIdentificationDocumentsStatus(?IUser $user = null, ?SignRequest $signRequest = null): int {
-		if (!$this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false)) {
+		if (!$this->idDocsPolicyService->isIdentificationDocumentsEnabled($user)) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
-		$approvalGroups = $this->appConfig->getValueArray(Application::APP_ID, 'approval_group', ['admin']);
-		if ($user && !empty($approvalGroups) && is_array($approvalGroups)) {
-			$userGroups = $this->groupManager->getUserGroupIds($user);
-			if (array_intersect($userGroups, $approvalGroups)) {
-				return self::IDENTIFICATION_DOCUMENTS_APPROVED;
-			}
+		if ($user && $this->idDocsPolicyService->userCanApproveValidationDocuments($user, false)) {
+			return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 		}
 
 		$files = $this->getIdDocFiles($user, $signRequest);
@@ -101,6 +88,7 @@ class SettingsLoader {
 		return $this->calculateStatusFromFiles($files);
 	}
 
+	/** @return array<int, File>|null */
 	private function getIdDocFiles(?IUser $user, ?SignRequest $signRequest): ?array {
 		if ($user) {
 			return $this->idDocsMapper->getFilesOfAccount($user->getUID());
@@ -113,6 +101,7 @@ class SettingsLoader {
 		return null;
 	}
 
+	/** @param array<int, File>|null $files */
 	private function calculateStatusFromFiles(?array $files): int {
 		if (empty($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
@@ -134,7 +123,8 @@ class SettingsLoader {
 	/**
 	 * Get user identification documents settings
 	 * These are user-specific settings, not file-specific
-	 * Always returns complete LibresignSettings with defaults
+	 * Always returns complete settings payload with defaults.
+	 * Canonical API shape is documented as LibresignSettings in ResponseDefinitions.
 	 *
 	 * @psalm-return LibresignSettings
 	 */

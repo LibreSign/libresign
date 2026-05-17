@@ -10,6 +10,8 @@ namespace OCA\Libresign\Service\Identify;
 
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
+use OCP\Config\IUserConfig;
+use OCP\IAppConfig;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
@@ -20,6 +22,8 @@ class ResultEnricher {
 		private IUserManager $userManager,
 		private Email $identifyEmailMethod,
 		private Account $identifyAccountMethod,
+		private IAppConfig $appConfig,
+		private IUserConfig $userConfig,
 	) {
 	}
 
@@ -128,21 +132,34 @@ class ResultEnricher {
 	}
 
 	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
-		if (!class_exists(\OCA\Activity\UserSettings::class)) {
-			return false;
-		}
-		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
+		$key = sprintf('notify_email_%s', $type);
 
-		$adminSetting = $activityUserSettings->getAdminSetting('email', $type);
-		if (!$adminSetting) {
+		$adminSetting = $this->appConfig->getValueString('activity', $key, '1');
+		if (!$this->isTruthySetting($adminSetting)) {
 			return true;
 		}
 
-		$userSetting = $activityUserSettings->getUserSetting($userId, 'email', $type);
-		if (!$userSetting) {
+		$userSetting = $this->userConfig->getValueString($userId, 'activity', $key, '');
+		if (!$this->isTruthySetting($userSetting)) {
 			return true;
 		}
 
 		return false;
+	}
+
+	private function isTruthySetting(mixed $value): bool {
+		if (is_bool($value)) {
+			return $value;
+		}
+
+		if (is_int($value) || is_float($value)) {
+			return (int)$value === 1;
+		}
+
+		if (!is_string($value)) {
+			return false;
+		}
+
+		return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'on'], true);
 	}
 }

@@ -7,14 +7,15 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 
 const axiosGetMock = vi.fn()
-const axiosPostMock = vi.fn(() => Promise.resolve({ data: { ocs: { data: {} } } }))
 const generateOcsUrlMock = vi.fn((path: string) => path)
 const confirmPasswordMock = vi.fn(() => Promise.resolve())
+const fetchEffectivePoliciesMock = vi.fn(async () => {})
+const getEffectiveValueMock = vi.fn(() => '["admin"]')
+const saveSystemPolicyMock = vi.fn(async () => ({ policyKey: 'groups_request_sign' }))
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
 		get: axiosGetMock,
-		post: axiosPostMock,
 	},
 }))
 
@@ -28,6 +29,13 @@ vi.mock('@nextcloud/password-confirmation', () => ({
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
+vi.mock('../../../store/policies', () => ({
+	usePoliciesStore: () => ({
+		fetchEffectivePolicies: fetchEffectivePoliciesMock,
+		getEffectiveValue: getEffectiveValueMock,
+		saveSystemPolicy: saveSystemPolicyMock,
+	}),
+}))
 let AllowedGroups: unknown
 
 beforeAll(async () => {
@@ -37,9 +45,11 @@ beforeAll(async () => {
 describe('AllowedGroups', () => {
 	beforeEach(() => {
 		axiosGetMock.mockReset()
-		axiosPostMock.mockClear()
 		generateOcsUrlMock.mockClear()
 		confirmPasswordMock.mockClear()
+		fetchEffectivePoliciesMock.mockClear()
+		getEffectiveValueMock.mockClear()
+		saveSystemPolicyMock.mockClear()
 	})
 
 	it('persists when adding and removing groups', async () => {
@@ -57,10 +67,6 @@ describe('AllowedGroups', () => {
 						},
 					},
 				})
-			}
-
-			if (url.includes('groups_request_sign')) {
-				return Promise.resolve({ data: { ocs: { data: { data: '["admin"]' } } } })
 			}
 
 			return Promise.resolve({ data: { ocs: { data: {} } } })
@@ -89,9 +95,10 @@ describe('AllowedGroups', () => {
 		])
 		await flushPromises()
 
-		expect(axiosPostMock).toHaveBeenCalledWith('apps/libresign/api/v1/admin/groups-request-sign/config', {
-			groups: ['admin', 'testGroup'],
-		})
+		expect(saveSystemPolicyMock).toHaveBeenCalled()
+		const firstPersistCall = saveSystemPolicyMock.mock.calls.at(-1) as [string, string, boolean] | undefined
+		expect(firstPersistCall?.[0]).toBe('groups_request_sign')
+		expect(firstPersistCall?.[1]).toBe('["admin","testGroup"]')
 
 		select = wrapper.findComponent({ name: 'NcSelect' })
 
@@ -100,13 +107,13 @@ describe('AllowedGroups', () => {
 		])
 		await flushPromises()
 
-		expect(axiosPostMock).toHaveBeenCalledWith('apps/libresign/api/v1/admin/groups-request-sign/config', {
-			groups: ['admin'],
-		})
+		const secondPersistCall = saveSystemPolicyMock.mock.calls.at(-1) as [string, string, boolean] | undefined
+		expect(secondPersistCall?.[0]).toBe('groups_request_sign')
+		expect(secondPersistCall?.[1]).toBe('["admin"]')
 		expect(confirmPasswordMock).toHaveBeenCalledTimes(2)
 	})
 
-	it('sends special characters through typed admin endpoint payload', async () => {
+	it('saves special characters preserving policy serialization', async () => {
 		axiosGetMock.mockImplementation((url: string) => {
 			if (url.includes('cloud/groups/details')) {
 				return Promise.resolve({
@@ -152,8 +159,8 @@ describe('AllowedGroups', () => {
 		])
 		await flushPromises()
 
-		expect(axiosPostMock).toHaveBeenCalledWith('apps/libresign/api/v1/admin/groups-request-sign/config', {
-			groups: ['admin', 'SÖ'],
-		})
+		const lastCall = saveSystemPolicyMock.mock.calls.at(-1) as any
+		expect(lastCall?.[0]).toBe('groups_request_sign')
+		expect(lastCall?.[1]).toBe('["admin","SÖ"]')
 	})
 })
