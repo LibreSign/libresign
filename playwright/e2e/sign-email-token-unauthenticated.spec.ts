@@ -34,11 +34,7 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 			{ name: 'email', enabled: true, mandatory: true, signatureMethods: { emailToken: { enabled: true } }, can_create_account: false },
 		]),
 	)
-	await setCertificateEngine(page.request, 'PhpNative')
-	await deleteAppConfig(page.request, 'libresign', 'tsa_url')
-
-	await page.goto('./apps/libresign')
-	await page.getByRole('button', { name: 'Upload from URL' }).click();
+		await setCertificateEngine(page.request, 'openssl')
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).click();
 	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('http://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf');
 	await page.getByRole('button', { name: 'Send' }).click();
