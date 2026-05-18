@@ -160,6 +160,8 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
 import { normalizeSignatureTextPolicyConfig, serializeSignatureTextPolicyConfig } from './model'
 
+type BackgroundType = 'default' | 'custom' | 'deleted'
+
 const props = defineProps({
 	modelValue: {
 		type: [String, Number, Boolean, Object, Array],
@@ -169,7 +171,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const backgroundOptions = [
+const backgroundOptions: Array<{
+	value: BackgroundType
+	label: string
+	description: string
+}> = [
 	{
 		value: 'default',
 		label: t('libresign', 'Default background'),
@@ -189,7 +195,7 @@ const backgroundOptions = [
 
 const id = Math.random().toString(36).substring(7)
 const normalized = normalizeSignatureTextPolicyConfig(props.modelValue)
-const input = ref(null)
+const input = ref<HTMLInputElement | null>(null)
 const showLoading = ref(false)
 const errorMessage = ref('')
 
@@ -220,7 +226,7 @@ watch(() => config.renderMode, emitUpdate)
  *
  * @param value
  */
-function setBackgroundType(value) {
+function setBackgroundType(value: BackgroundType): void {
 	errorMessage.value = ''
 	config.backgroundType = value
 }
@@ -242,8 +248,9 @@ function activateLocalFilePicker() {
  *
  * @param event
  */
-async function onChangeBackground(event) {
-	const file = event?.target?.files?.[0]
+async function onChangeBackground(event: Event): Promise<void> {
+	const target = event.target
+	const file = target instanceof HTMLInputElement ? target.files?.[0] : undefined
 	if (!file) {
 		return
 	}
@@ -255,8 +262,10 @@ async function onChangeBackground(event) {
 	try {
 		await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), formData)
 		setBackgroundType('custom')
-	} catch (error) {
-		const response = /** @type {any} */(error)?.response
+	} catch (error: unknown) {
+		const response = error && typeof error === 'object' && 'response' in error
+			? (error as { response?: { data?: { ocs?: { data?: { message?: string } } } } }).response
+			: undefined
 		errorMessage.value = response?.data?.ocs?.data?.message || 'Upload failed'
 	} finally {
 		showLoading.value = false
@@ -268,7 +277,7 @@ async function onChangeBackground(event) {
  * @param value
  * @param selected
  */
-function onBackgroundTypeChange(value, selected) {
+function onBackgroundTypeChange(value: BackgroundType, selected: boolean): void {
 	if (selected === false) {
 		return
 	}
