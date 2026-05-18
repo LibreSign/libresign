@@ -185,6 +185,50 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		];
 	}
 
+	public function testGetDefaultIdentifyMethodsPolicy(): void {
+		$this->account->method('getDefaultSettings')->willReturn([
+			'name' => 'account',
+			'enabled' => true,
+			'requirement' => 'required',
+			'signatureMethods' => [
+				'clickToSign' => ['enabled' => false],
+				'password' => ['enabled' => true],
+			],
+		]);
+		$this->email->method('getDefaultSettings')->willReturn([
+			'name' => 'email',
+			'enabled' => false,
+			'requirement' => 'optional',
+			'signatureMethods' => [
+				'emailToken' => ['enabled' => true],
+			],
+		]);
+
+		$result = $this->service->getDefaultIdentifyMethodsPolicy();
+
+		self::assertSame([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'requirement' => 'required',
+				'signatureMethods' => [
+					'clickToSign' => ['enabled' => false],
+					'password' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'password',
+			],
+			[
+				'name' => 'email',
+				'enabled' => false,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+				'signatureMethodEnabled' => 'emailToken',
+			],
+		], $result);
+	}
+
 	#[DataProvider('providerGetFirstAvailableMethod')]
 	public function testGetFirstAvailableMethod(?string $expectedKey, array $methodsData): void {
 		$matrix = $this->buildMatrix($methodsData);

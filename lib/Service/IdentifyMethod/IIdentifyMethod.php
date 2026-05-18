@@ -25,6 +25,7 @@ interface IIdentifyMethod {
 	public function getSignatureMethods(): array;
 	public function signatureMethodsToArray(): array;
 	public function getSettings(): array;
+	public function getDefaultSettings(): array;
 	public function willNotifyUser(bool $willNotify): void;
 	public function notify(): bool;
 	public function validateToRequest(): void;
