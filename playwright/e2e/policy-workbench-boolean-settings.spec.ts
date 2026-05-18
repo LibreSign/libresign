@@ -22,7 +22,7 @@ const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
 
 const booleanSettings: BooleanWorkbenchSetting[] = [
-	{ policyKey: 'envelope_enabled', title: 'Envelope feature' },
+	{ policyKey: 'envelope_enabled', title: 'Signing envelopes' },
 	{ policyKey: 'crl_external_validation_enabled', title: 'External CRL validation' },
 	{ policyKey: 'show_confetti_after_signing', title: 'Confetti animation' },
 ]

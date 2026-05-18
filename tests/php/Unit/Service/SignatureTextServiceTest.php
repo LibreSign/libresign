@@ -18,6 +18,7 @@ use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy as SignatureTextPolicyProvider;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\IDateTimeZone;
@@ -57,12 +58,15 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->policyValues = [
 			CollectMetadataPolicy::KEY => false,
 			FooterPolicy::KEY => FooterPolicyValue::encode(FooterPolicyValue::defaults()),
-			SignatureTextPolicyProvider::KEY_TEMPLATE => '',
-			SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE => SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE,
-			SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE => SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE,
-			SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH => SignatureTextService::DEFAULT_SIGNATURE_WIDTH,
-			SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT => SignatureTextService::DEFAULT_SIGNATURE_HEIGHT,
-			SignatureTextPolicyProvider::KEY_RENDER_MODE => SignerElementsService::RENDER_MODE_DEFAULT,
+			SignatureTextPolicyProvider::KEY => SignatureTextPolicyValue::encode([
+				'template' => '',
+				'template_font_size' => SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE,
+				'signature_font_size' => SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE,
+				'signature_width' => SignatureTextService::DEFAULT_SIGNATURE_WIDTH,
+				'signature_height' => SignatureTextService::DEFAULT_SIGNATURE_HEIGHT,
+				'background_type' => 'default',
+				'render_mode' => SignerElementsService::RENDER_MODE_DEFAULT,
+			]),
 		];
 
 		$this->policyService
@@ -329,8 +333,15 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	}
 
 	public function testGetFullSignatureDimensionsShouldFallbackToDefaultsWhenConfigIsInvalid(): void {
-		$this->policyValues[SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH] = 0.0;
-		$this->policyValues[SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT] = -1.0;
+		$this->policyValues[SignatureTextPolicyProvider::KEY] = SignatureTextPolicyValue::encode([
+			'template' => '',
+			'template_font_size' => SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE,
+			'signature_font_size' => SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE,
+			'signature_width' => 0.0,
+			'signature_height' => -1.0,
+			'background_type' => 'default',
+			'render_mode' => SignerElementsService::RENDER_MODE_DEFAULT,
+		]);
 
 		$class = $this->getClass();
 

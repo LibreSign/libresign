@@ -11,30 +11,41 @@ import { t } from '@nextcloud/l10n'
 import IdentificationDocumentsRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/identification-documents/IdentificationDocumentsRuleEditor.vue'
 import type { IdentificationDocumentsPayload } from '../../../../../../views/Settings/PolicyWorkbench/settings/identification-documents/realDefinition'
 
-const globalMountOptions = {
-	global: {
-		mocks: {
-			$t: t,
+function makeMountOptions(switchValue = true) {
+	return {
+		global: {
+			mocks: {
+				$t: t,
+			},
+			stubs: {
+				NcCheckboxRadioSwitch: {
+					template: '<button class="identification-documents-editor__switch-stub" @click="$emit(\'update:modelValue\', switchValue)"><slot /></button>',
+					data: () => ({ switchValue }),
+				},
+				NcSelect: {
+					template: '<div class="identification-documents-editor__select-stub" />',
+				},
+			},
 		},
-	},
+	}
 }
 
 describe('IdentificationDocumentsRuleEditor', () => {
-	it('renders toggle buttons for enabled/disabled', () => {
+	it('renders switch control', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
-			...globalMountOptions,
+			...makeMountOptions(),
 			props: {
 				modelValue: { enabled: false, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
 			},
 		})
 
-		const options = wrapper.findAll('.identification-documents-editor__option')
-		expect(options).toHaveLength(2)
+		expect(wrapper.find('.identification-documents-editor__switch-stub').exists()).toBe(true)
+		expect(wrapper.text()).toContain('Enable identification documents flow')
 	})
 
 	it('shows approvers section when enabled', async () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
-			...globalMountOptions,
+			...makeMountOptions(),
 			props: {
 				modelValue: { enabled: true, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
 			},
@@ -46,7 +57,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 
 	it('hides approvers section when disabled', async () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
-			...globalMountOptions,
+			...makeMountOptions(),
 			props: {
 				modelValue: { enabled: false, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
 			},
@@ -58,15 +69,13 @@ describe('IdentificationDocumentsRuleEditor', () => {
 
 	it('emits normalized payload when toggle changes', async () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
-			...globalMountOptions,
+			...makeMountOptions(true),
 			props: {
 				modelValue: { enabled: false, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
 			},
 		})
 
-		const radioOptions = wrapper.findAll('input[name="identification-documents-editor"]')
-		// Click the "Enabled" option
-		await radioOptions[0].setValue(true)
+		await wrapper.find('.identification-documents-editor__switch-stub').trigger('click')
 
 		const emitted = wrapper.emitted('update:modelValue')
 		expect(emitted).toBeDefined()
@@ -80,15 +89,13 @@ describe('IdentificationDocumentsRuleEditor', () => {
 
 	it('resets approvers to default when disabling', async () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
-			...globalMountOptions,
+			...makeMountOptions(false),
 			props: {
 				modelValue: { enabled: true, approvers: ['custom_group'] } satisfies IdentificationDocumentsPayload,
 			},
 		})
 
-		const radioOptions = wrapper.findAll('input[name="identification-documents-editor"]')
-		// Click the "Disabled" option
-		await radioOptions[1].setValue(true)
+		await wrapper.find('.identification-documents-editor__switch-stub').trigger('click')
 
 		const emitted = wrapper.emitted('update:modelValue')
 		expect(emitted).toBeDefined()
@@ -102,7 +109,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 
 	it('respects scope prop for group visibility', () => {
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
-			...globalMountOptions,
+			...makeMountOptions(),
 			props: {
 				modelValue: { enabled: true, approvers: ['admin'] } satisfies IdentificationDocumentsPayload,
 				scope: 'system',
@@ -119,7 +126,7 @@ describe('IdentificationDocumentsRuleEditor', () => {
 		}
 
 		const wrapper = mount(IdentificationDocumentsRuleEditor, {
-			...globalMountOptions,
+			...makeMountOptions(),
 			props: {
 				modelValue: payload satisfies IdentificationDocumentsPayload,
 			},

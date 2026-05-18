@@ -42,8 +42,8 @@ function resolveEnvelopeEnabled(value: EffectivePolicyValue): boolean | null {
 
 export const envelopeRealDefinition: RealPolicySettingDefinition = {
 	key: 'envelope_enabled',
-	title: t('libresign', 'Envelope feature'),
-	description: t('libresign', 'Control whether envelope creation is available for document signing workflows.'),
+	title: t('libresign', 'Signing envelopes'),
+	description: t('libresign', 'Allow users to group multiple files into envelopes for signing.'),
 	editor: EnvelopeRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => true,

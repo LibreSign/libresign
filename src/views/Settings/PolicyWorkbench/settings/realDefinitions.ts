@@ -14,24 +14,23 @@ import {
 	maximumValidityRealDefinition,
 	renewalIntervalRealDefinition,
 } from './expiration-rules/realDefinitions'
-import { identifyMethodsRealDefinition } from './identify-methods/realDefinition'
 import { identificationDocumentsRealDefinition } from './identification-documents/realDefinition'
+import { identifyMethodsRealDefinition } from './identify-methods/realDefinition'
 import { legalInformationRealDefinition } from './legal-information/realDefinition'
+import type { RealPolicySettingDefinition } from './realTypes'
 import { reminderRealDefinition } from './reminder/realDefinition'
 import { requestSignGroupsRealDefinition } from './request-sign-groups/realDefinition'
-import { signatureBackgroundRealDefinition } from './signature-background/realDefinition'
-import { signatureFooterRealDefinition } from './signature-footer/realDefinition'
 import { signatureFlowRealDefinition } from './signature-flow/realDefinition'
+import { signatureFooterRealDefinition } from './signature-footer/realDefinition'
 import { signatureHashAlgorithmRealDefinition } from './signature-hash-algorithm/realDefinition'
+import { signatureTextRealDefinition } from './signature-text/realDefinition'
 import {
 	parallelWorkersRealDefinition,
 	signingModeRealDefinition,
 	workerTypeRealDefinition,
 } from './signing-mode/realDefinitions'
-import { signatureTextRealDefinition } from './signature-text/realDefinition'
 import { tsaRealDefinition } from './tsa/realDefinition'
 import { validationAccessRealDefinition } from './validation-access/realDefinition'
-import type { RealPolicySettingDefinition } from './realTypes'
 
 export const realDefinitions = {
 	// 1. Who can sign & request
@@ -45,8 +44,7 @@ export const realDefinitions = {
 
 	// 3. What the signer sees
 	add_footer: { ...signatureFooterRealDefinition, category: 'signer-experience' },
-	signature_text: { ...signatureTextRealDefinition, category: 'signer-experience' },
-	signature_background_type: { ...signatureBackgroundRealDefinition, category: 'signer-experience' },
+	signature_stamp: { ...signatureTextRealDefinition, category: 'signer-experience' },
 	show_confetti_after_signing: { ...confettiRealDefinition, category: 'signer-experience' },
 
 	// 4. What gets recorded

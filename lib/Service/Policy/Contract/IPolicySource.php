@@ -52,6 +52,11 @@ interface IPolicySource {
 
 	public function loadGroupPolicyConfig(string $policyKey, string $groupId): ?PolicyLayer;
 
+	/**
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	public function listGroupPoliciesByKey(string $policyKey): array;
+
 	public function saveSystemPolicy(string $policyKey, mixed $value, bool $allowChildOverride = false): void;
 
 	public function saveGroupPolicy(string $policyKey, string $groupId, mixed $value, bool $allowChildOverride): void;
@@ -59,6 +64,11 @@ interface IPolicySource {
 	public function clearGroupPolicy(string $policyKey, string $groupId): void;
 
 	public function loadUserPolicyConfig(string $policyKey, string $userId): ?PolicyLayer;
+
+	/**
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	public function listUserPoliciesByKey(string $policyKey): array;
 
 	public function saveUserPolicy(string $policyKey, PolicyContext $context, mixed $value, bool $allowChildOverride): void;
 

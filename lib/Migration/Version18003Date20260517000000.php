@@ -307,6 +307,7 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 			'signature_font_size' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE) ?? 9.0),
 			'signature_width' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH) ?? 90.0),
 			'signature_height' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT) ?? 60.0),
+			'background_type' => $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE) ?? 'default',
 			'render_mode' => $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE) ?? 'default',
 		];
 
@@ -346,6 +347,7 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT,
 			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE,
 			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE,
+			SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE,
 		];
 
 		foreach ($legacyKeys as $key) {
@@ -362,12 +364,18 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 			$renderMode = 'default';
 		}
 
+		$backgroundType = strtolower(trim((string)($rawValue['background_type'] ?? 'default')));
+		if (!in_array($backgroundType, ['default', 'custom', 'deleted'], true)) {
+			$backgroundType = 'default';
+		}
+
 		$normalized = [
 			'template' => (string)($rawValue['template'] ?? ''),
 			'template_font_size' => max(0.1, (float)($rawValue['template_font_size'] ?? 9.0)),
 			'signature_font_size' => max(0.1, (float)($rawValue['signature_font_size'] ?? 9.0)),
 			'signature_width' => max(0.1, (float)($rawValue['signature_width'] ?? 90.0)),
 			'signature_height' => max(0.1, (float)($rawValue['signature_height'] ?? 60.0)),
+			'background_type' => $backgroundType,
 			'render_mode' => $renderMode,
 		];
 

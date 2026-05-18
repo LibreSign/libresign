@@ -36,11 +36,11 @@ export const signatureFlowRealDefinition: RealPolicySettingDefinition = {
 		const flowValue = resolveSignatureFlowMode(value)
 		switch (flowValue) {
 		case 'parallel':
-			return t('libresign', 'Simultaneous (Parallel)')
+			return t('libresign', 'Parallel')
 		case 'ordered_numeric':
 			return t('libresign', 'Sequential')
 		case 'none':
-			return t('libresign', 'User choice')
+			return t('libresign', 'Using instance default')
 		default:
 			return t('libresign', 'Not configured')
 		}
