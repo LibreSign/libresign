@@ -19,6 +19,7 @@ export async function bootstrapLibreSignAdmin(page: Page): Promise<void> {
 	)
 
 	await setSystemPolicy(page.request, 'groups_request_sign', JSON.stringify(['admin']))
+	await setSystemPolicy(page.request, 'add_footer', JSON.stringify(true))
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
 		C: 'BR',
