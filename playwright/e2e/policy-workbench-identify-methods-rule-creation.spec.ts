@@ -78,9 +78,6 @@ test('identification factors rule editor shows available methods for everyone, g
 	await ensureGroupExists(page.request, GROUP_ID)
 	await ensureUserInGroup(page.request, USER_ID, GROUP_ID)
 
-	// Regression setup: explicit empty payload must no longer break rule creation.
-	await setSystemPolicy(page.request, 'identify_methods', '[]')
-
 	const dialog = await openIdentificationFactorsDialog(page)
 
 	const everyoneRuleDialog = await openScopeRuleEditor(page, dialog, 'everyone')

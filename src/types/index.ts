@@ -96,6 +96,10 @@ export type IdentifyAccountRecord = ApiComponents['schemas']['IdentifyAccount']
 export type VisibleElementRecord = ApiComponents['schemas']['VisibleElement']
 export type FileSettings = ApiComponents['schemas']['FolderSettings']
 export type IdentifyMethodSetting = AdminComponents['schemas']['IdentifyMethodSetting']
+export type IdentifyMethodsEffectivePolicyValue = {
+	factors: IdentifyMethodSetting[]
+	can_create_account?: boolean
+}
 export type ProgressPayload = ApiComponents['schemas']['ProgressPayload']
 export type FileDetailRecord = ApiComponents['schemas']['DetailedFile']
 export type ValidationFileRecord = ApiComponents['schemas']['ValidatedFile']

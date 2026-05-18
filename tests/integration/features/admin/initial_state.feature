@@ -26,6 +26,7 @@ Feature: admin/initial_state
       | key | value |
       | (jq).policies.identify_methods.policyKey | identify_methods |
       | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "account")) \| length) | 1 |
+      | (jq)(.policies.identify_methods.effectiveValue.factors[0].enabled) | true |
 
   Scenario Outline: Invalid identify methods updates preserve the default contract
     Given as user "admin"

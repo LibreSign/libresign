@@ -13,62 +13,19 @@ use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyV
 use PHPUnit\Framework\TestCase;
 
 final class IdentifyMethodsPolicyValueTest extends TestCase {
-	public function testPreservesCanonicalRequirementFromPayload(): void {
-		$normalized = IdentifyMethodsPolicyValue::normalize([
-			[
-				'name' => 'email',
-				'enabled' => true,
-				'requirement' => 'required',
-				'signatureMethods' => ['emailToken'],
-			],
-		]);
-
-		self::assertSame([
-			'factors' => [
-				[
-					'name' => 'email',
-					'enabled' => true,
-					'signatureMethods' => [
-						'emailToken' => ['enabled' => false],
-					],
-					'requirement' => 'required',
-				],
-			],
-		], $normalized);
+	/**
+	 * @dataProvider provideNormalizeCases
+	 */
+	public function testNormalizeWithDataProvider(mixed $rawValue, array $expected): void {
+		self::assertSame($expected, IdentifyMethodsPolicyValue::normalize($rawValue));
 	}
 
-	public function testPreservesCanonicalRequirementWithoutLegacyMirror(): void {
-		$normalized = IdentifyMethodsPolicyValue::normalize([
+	/**
+	 * @return iterable<string, array{0: mixed, 1: array<string, mixed>}>
+	 */
+	public static function provideNormalizeCases(): iterable {
+		yield 'preserves canonical requirement from payload' => [
 			[
-				'name' => 'whatsapp',
-				'enabled' => true,
-				'requirement' => 'optional',
-				'minimumTotalVerifiedFactors' => 2,
-				'signatureMethods' => [
-					'whatsappToken' => ['enabled' => true],
-				],
-			],
-		]);
-
-		self::assertSame([
-			'factors' => [
-				[
-					'name' => 'whatsapp',
-					'enabled' => true,
-					'signatureMethods' => [
-						'whatsappToken' => ['enabled' => true],
-					],
-					'minimumTotalVerifiedFactors' => 2,
-					'requirement' => 'optional',
-				],
-			],
-		], $normalized);
-	}
-
-	public function testNormalizesSharedMinimumTotalVerifiedFactorsFromObjectPayload(): void {
-		$normalized = IdentifyMethodsPolicyValue::normalize([
-			'minimumTotalVerifiedFactors' => 2,
-			'factors' => [
 				[
 					'name' => 'email',
 					'enabled' => true,
@@ -76,127 +33,250 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 					'signatureMethods' => ['emailToken'],
 				],
 			],
-		]);
-
-		self::assertSame([
-			'factors' => [
-				[
-					'name' => 'email',
-					'enabled' => true,
-					'signatureMethods' => [
-						'emailToken' => ['enabled' => false],
-					],
-					'minimumTotalVerifiedFactors' => 2,
-					'requirement' => 'required',
-				],
-			],
-		], $normalized);
-	}
-
-	public function testDefaultsEnabledToTrueWhenPayloadOmitsIt(): void {
-		$normalized = IdentifyMethodsPolicyValue::normalize([
 			[
-				'name' => 'email',
-				'signatureMethods' => ['emailToken'],
-			],
-		]);
-
-		self::assertSame([
-			'factors' => [
-				[
-					'name' => 'email',
-					'enabled' => true,
-					'signatureMethods' => [
-						'emailToken' => ['enabled' => false],
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'signatureMethods' => [
+							'emailToken' => ['enabled' => false],
+						],
+						'requirement' => 'required',
 					],
 				],
 			],
-		], $normalized);
-	}
+		];
 
-	public function testAcceptsSharedMinimumTotalVerifiedFactorsAsNumericString(): void {
-		$normalized = IdentifyMethodsPolicyValue::normalize([
-			'minimumTotalVerifiedFactors' => '2',
-			'factors' => [
-				[
-					'name' => 'sms',
-					'enabled' => true,
-					'signatureMethods' => ['smsToken'],
-				],
-			],
-		]);
-
-		self::assertSame([
-			'factors' => [
-				[
-					'name' => 'sms',
-					'enabled' => true,
-					'signatureMethods' => [
-						'smsToken' => ['enabled' => false],
-					],
-					'minimumTotalVerifiedFactors' => 2,
-				],
-			],
-		], $normalized);
-	}
-
-	public function testNormalizesLegacyStringListEntries(): void {
-		$normalized = IdentifyMethodsPolicyValue::normalize([
-			'email',
-			'sms',
-		]);
-
-		self::assertSame([
-			'factors' => [
-				[
-					'name' => 'email',
-					'enabled' => true,
-					'signatureMethods' => [],
-				],
-				[
-					'name' => 'sms',
-					'enabled' => true,
-					'signatureMethods' => [],
-				],
-			],
-		], $normalized);
-	}
-
-	public function testNormalizesGlobalCanCreateAccountFromLegacyFactorSettings(): void {
-		$normalized = IdentifyMethodsPolicyValue::normalize([
+		yield 'normalizes object payload and shared minimum factors' => [
 			[
-				'name' => 'email',
-				'enabled' => true,
+				'minimumTotalVerifiedFactors' => 2,
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'requirement' => 'required',
+						'signatureMethods' => ['emailToken'],
+					],
+				],
+			],
+			[
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'signatureMethods' => [
+							'emailToken' => ['enabled' => false],
+						],
+						'minimumTotalVerifiedFactors' => 2,
+						'requirement' => 'required',
+					],
+				],
+			],
+		];
+
+		yield 'accepts minimumTotalVerifiedFactors numeric string' => [
+			[
+				'minimumTotalVerifiedFactors' => '2',
+				'factors' => [
+					[
+						'name' => 'sms',
+						'enabled' => true,
+						'signatureMethods' => ['smsToken'],
+					],
+				],
+			],
+			[
+				'factors' => [
+					[
+						'name' => 'sms',
+						'enabled' => true,
+						'signatureMethods' => [
+							'smsToken' => ['enabled' => false],
+						],
+						'minimumTotalVerifiedFactors' => 2,
+					],
+				],
+			],
+		];
+
+		yield 'defaults enabled to true and supports signature methods labels' => [
+			[
+				[
+					'name' => 'email',
+					'signatureMethods' => [
+						'emailToken' => 'Email token',
+					],
+				],
+			],
+			[
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'signatureMethods' => [
+							'emailToken' => [
+								'enabled' => false,
+								'label' => 'Email token',
+							],
+						],
+					],
+				],
+			],
+		];
+
+		yield 'normalizes legacy string list entries' => [
+			['email', 'sms'],
+			[
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'signatureMethods' => [],
+					],
+					[
+						'name' => 'sms',
+						'enabled' => true,
+						'signatureMethods' => [],
+					],
+				],
+			],
+		];
+
+		yield 'falls back to available signature methods when signatureMethods is absent' => [
+			[
+				[
+					'name' => 'email',
+					'availableSignatureMethods' => ['emailToken'],
+				],
+			],
+			[
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'signatureMethods' => [
+							'emailToken' => ['enabled' => false],
+						],
+					],
+				],
+			],
+		];
+
+		yield 'normalizes can_create_account from legacy factor settings' => [
+			[
+				[
+					'name' => 'email',
+					'enabled' => true,
+					'can_create_account' => false,
+					'signatureMethods' => ['emailToken'],
+				],
+			],
+			[
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'signatureMethods' => [
+							'emailToken' => ['enabled' => false],
+						],
+					],
+				],
 				'can_create_account' => false,
-				'signatureMethods' => ['emailToken'],
 			],
-		]);
+		];
 
-		self::assertSame(false, $normalized['can_create_account']);
-		self::assertArrayNotHasKey('can_create_account', $normalized['factors'][0]);
+		yield 'supports json payload with factors and top-level can_create_account' => [
+			json_encode([
+				'can_create_account' => true,
+				'factors' => [
+					[
+						'name' => 'email',
+						'signatureMethods' => ['emailToken'],
+					],
+				],
+			], JSON_THROW_ON_ERROR),
+			[
+				'factors' => [
+					[
+						'name' => 'email',
+						'enabled' => true,
+						'signatureMethods' => [
+							'emailToken' => ['enabled' => false],
+						],
+					],
+				],
+				'can_create_account' => true,
+			],
+		];
+
+		yield 'returns empty factors when payload is empty without service' => [
+			[],
+			[
+				'factors' => [],
+			],
+		];
 	}
 
-	public function testFallsBackToCatalogWhenPayloadIsEmptyAndServiceIsAvailable(): void {
+	public function testReturnDefaultsWhenPayloadIsEmptyWithService(): void {
 		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
-		$identifyMethodService->method('getIdentifyMethodsSettings')->willReturn([
+		$identifyMethodService->method('getFriendlyNamesMap')->willReturn([
+			'account' => 'Account',
+			'email' => 'Email',
+		]);
+		$identifyMethodService->method('getDefaultIdentifyMethodsPolicy')->willReturn([
 			[
 				'name' => 'account',
 				'enabled' => true,
-				'friendly_name' => 'Account',
+				'requirement' => 'required',
 				'signatureMethods' => [
 					'clickToSign' => ['enabled' => true],
 				],
 			],
-		]);
-		$identifyMethodService->method('getFriendlyNamesMap')->willReturn([
-			'account' => 'Account',
+			[
+				'name' => 'email',
+				'enabled' => true,
+				'requirement' => 'optional',
+				'signatureMethods' => [
+					'emailToken' => ['enabled' => true],
+				],
+			],
 		]);
 
 		$normalized = IdentifyMethodsPolicyValue::normalize([], $identifyMethodService);
 
-		self::assertCount(1, $normalized['factors']);
+		self::assertCount(2, $normalized['factors']);
 		self::assertSame('account', $normalized['factors'][0]['name']);
-		self::assertSame(true, $normalized['factors'][0]['enabled']);
+		self::assertSame('email', $normalized['factors'][1]['name']);
+	}
+
+	public function testReturnsEmptyFactorsWhenPayloadIsEmptyWithoutService(): void {
+		$normalized = IdentifyMethodsPolicyValue::normalize([]);
+
+		self::assertCount(0, $normalized['factors']);
+		self::assertArrayNotHasKey('can_create_account', $normalized);
+	}
+
+	public function testKeepsProvidedFriendlyNameAndOnlyEnrichesMissingOnes(): void {
+		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$identifyMethodService->method('getFriendlyNamesMap')->willReturn([
+			'account' => 'Conta',
+			'email' => 'Email',
+		]);
+
+		$normalized = IdentifyMethodsPolicyValue::normalize([
+			[
+				'name' => 'account',
+				'friendly_name' => 'Account',
+				'signatureMethods' => [],
+			],
+			[
+				'name' => 'email',
+				'signatureMethods' => [],
+			],
+		], $identifyMethodService);
+
+		self::assertCount(2, $normalized['factors']);
 		self::assertSame('Account', $normalized['factors'][0]['friendly_name']);
+		self::assertSame('Email', $normalized['factors'][1]['friendly_name']);
 	}
 }

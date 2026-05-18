@@ -231,4 +231,13 @@ class Email extends AbstractIdentifyMethod {
 		);
 		return $this->settings;
 	}
+
+	#[\Override]
+	public function getDefaultSettings(): array {
+		$settings = parent::getDefaultSettings();
+		$settings['enabled'] = false;
+		$settings['can_create_account'] = true;
+		$settings['test_url'] = $this->identifyService->getUrlGenerator()->linkToRoute('settings.MailSettings.sendTestMail');
+		return $settings;
+	}
 }

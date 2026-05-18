@@ -13,7 +13,6 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -27,7 +26,7 @@ use OCP\IL10N;
 use OCP\IUserManager;
 
 /**
- * @psalm-import-type LibresignIdentifyMethodSetting from ResponseDefinitions
+ * @psalm-import-type LibresignIdentifyMethodSetting from \OCA\Libresign\ResponseDefinitions
  */
 class IdentifyMethodService {
 	public const IDENTIFY_ACCOUNT = 'account';
@@ -69,7 +68,9 @@ class IdentifyMethodService {
 	];
 	private bool $isRequest = true;
 	private ?IdentifyMethod $currentIdentifyMethod = null;
-	/** @var list<LibresignIdentifyMethodSetting> */
+	/**
+	 * @var list<LibresignIdentifyMethodSetting>
+	 */
 	private array $identifyMethodsSettings = [];
 	/**
 	 * @var array<string,array<IIdentifyMethod>>
@@ -362,7 +363,10 @@ class IdentifyMethodService {
 		}
 	}
 
-	/** @return list<LibresignIdentifyMethodSetting> */
+	/**
+	 * @return array
+	 * @psalm-return list<LibresignIdentifyMethodSetting>
+	 */
 	public function getIdentifyMethodsSettings(): array {
 		if ($this->identifyMethodsSettings) {
 			return $this->identifyMethodsSettings;
@@ -403,6 +407,69 @@ class IdentifyMethodService {
 			$this->Whatsapp->getName() => $this->Whatsapp->getFriendlyName(),
 			$this->whatsappbusiness->getName() => $this->whatsappbusiness->getFriendlyName(),
 			$this->xmpp->getName() => $this->xmpp->getFriendlyName(),
+		];
+	}
+
+	/**
+	 * Get default identify methods policy seed
+	 *
+	 * Returns a legitimate default configuration with account and email methods
+	 * when no policy is explicitly configured. This provides a reasonable baseline
+	 * for new rules without hardcoding payload values in this service.
+	 *
+	 * @return array Default identify methods factors array
+	 * @psalm-return list<array{
+	 *     name: string,
+	 *     enabled: bool,
+	 *     requirement: 'required'|'optional',
+	 *     signatureMethods: array<string, array{enabled: bool}>,
+	 *     signatureMethodEnabled: string
+	 * }>
+	 */
+	public function getDefaultIdentifyMethodsPolicy(): array {
+		return [
+			$this->buildDefaultPolicyFactorFromSettings($this->account->getDefaultSettings()),
+			$this->buildDefaultPolicyFactorFromSettings($this->email->getDefaultSettings()),
+		];
+	}
+
+	/**
+	 * @param LibresignIdentifyMethodSetting $settings
+	 * @return array{
+	 *     name: string,
+	 *     enabled: bool,
+	 *     requirement: 'required'|'optional',
+	 *     signatureMethods: array<string, array{enabled: bool}>,
+	 *     signatureMethodEnabled: string
+	 * }
+	 */
+	private function buildDefaultPolicyFactorFromSettings(array $settings): array {
+		$signatureMethods = [];
+		$signatureMethodEnabled = '';
+
+		foreach ($settings['signatureMethods'] ?? [] as $signatureMethodName => $signatureMethodConfig) {
+			$isEnabled = (bool)($signatureMethodConfig['enabled'] ?? false);
+			$signatureMethods[$signatureMethodName] = [
+				'enabled' => $isEnabled,
+			];
+
+			if ($signatureMethodEnabled === '' && $isEnabled) {
+				$signatureMethodEnabled = $signatureMethodName;
+			}
+		}
+
+		if ($signatureMethodEnabled === '' && !empty($signatureMethods)) {
+			$signatureMethodEnabled = (string)array_key_first($signatureMethods);
+		}
+
+		$requirement = IdentifyMethodRequirement::tryFrom((string)($settings['requirement'] ?? ''));
+
+		return [
+			'name' => $settings['name'],
+			'enabled' => (bool)($settings['enabled'] ?? true),
+			'requirement' => $requirement?->value ?? IdentifyMethodRequirement::REQUIRED->value,
+			'signatureMethods' => $signatureMethods,
+			'signatureMethodEnabled' => $signatureMethodEnabled,
 		];
 	}
 
