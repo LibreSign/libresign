@@ -71,6 +71,22 @@ final class EmailTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	public function testGetDefaultSettings(): void {
+		$settings = $this->getClass()->getDefaultSettings();
+
+		self::assertArrayHasKey('name', $settings);
+		self::assertArrayHasKey('friendly_name', $settings);
+		self::assertArrayHasKey('requirement', $settings);
+		self::assertArrayHasKey('signatureMethods', $settings);
+		self::assertSame('email', $settings['name']);
+		self::assertSame(false, $settings['enabled']);
+		self::assertSame(true, $settings['can_create_account']);
+		self::assertSame(
+			$this->identifyService->getUrlGenerator()->linkToRoute('settings.MailSettings.sendTestMail'),
+			$settings['test_url'],
+		);
+	}
+
 	#[DataProvider('providerValidateToRequest')]
 	public function testValidateToRequest(string $email, bool $isValid): void {
 		if (!$isValid) {

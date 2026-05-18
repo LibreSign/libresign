@@ -134,6 +134,26 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	#[\Override]
+	public function getDefaultSettings(): array {
+		$this->signatureMethods = [];
+		foreach ($this->availableSignatureMethods as $signatureMethodName) {
+			$signatureMethod = $this->getEmptyInstanceOfSignatureMethodByName($signatureMethodName);
+			if ($signatureMethodName === $this->defaultSignatureMethod) {
+				$signatureMethod->enable();
+			}
+			$this->signatureMethods[$signatureMethodName] = $signatureMethod;
+		}
+
+		return [
+			'name' => $this->name,
+			'friendly_name' => $this->friendlyName,
+			'enabled' => true,
+			'requirement' => IdentifyMethodRequirement::REQUIRED->value,
+			'signatureMethods' => $this->signatureMethodsToArray(),
+		];
+	}
+
+	#[\Override]
 	public function notify(): bool {
 		if (!$this->willNotify) {
 			return false;

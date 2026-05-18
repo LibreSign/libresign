@@ -11,51 +11,95 @@ const { identifyMethodsState } = vi.hoisted(() => ({
 	identifyMethodsState: {
 		policies: {
 			identify_methods: {
-				effectiveValue: [] as unknown[],
+				effectiveValue: [
+					{
+						name: 'account',
+						enabled: true,
+						requirement: 'required',
+						signatureMethods: {
+							clickToSign: { enabled: true },
+							emailToken: { enabled: false },
+							password: { enabled: false },
+						},
+						signatureMethodEnabled: 'clickToSign',
+					},
+					{
+						name: 'email',
+						enabled: true,
+						requirement: 'optional',
+						signatureMethods: {
+							emailToken: { enabled: true },
+							clickToSign: { enabled: false },
+						},
+						signatureMethodEnabled: 'emailToken',
+					},
+				] as unknown[],
 			},
 		},
 	},
 }))
 
-const { identifyMethodsCatalogState } = vi.hoisted(() => ({
-	identifyMethodsCatalogState: [] as unknown[],
-}))
-
-vi.mock('@nextcloud/initial-state', () => ({
-	loadState: vi.fn((_app, key: string, defaultValue: unknown) => {
+const { loadStateMock } = vi.hoisted(() => ({
+	loadStateMock: vi.fn((_app, key: string, defaultValue: unknown) => {
 		if (key === 'effective_policies') {
 			return identifyMethodsState
-		}
-
-		if (key === 'identify_methods_catalog') {
-			return identifyMethodsCatalogState
 		}
 
 		return defaultValue
 	}),
 }))
 
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: loadStateMock,
+}))
+
 import { identifyMethodsRealDefinition } from '../../../../views/Settings/PolicyWorkbench/settings/identify-methods/realDefinition'
 
 describe('identifyMethodsRealDefinition', () => {
 	beforeEach(() => {
-		identifyMethodsState.policies.identify_methods.effectiveValue = []
-		identifyMethodsCatalogState.splice(0, identifyMethodsCatalogState.length)
+		identifyMethodsState.policies.identify_methods.effectiveValue = [
+			{
+				name: 'account',
+				enabled: true,
+				requirement: 'required',
+				signatureMethods: {
+					clickToSign: { enabled: true },
+					emailToken: { enabled: false },
+					password: { enabled: false },
+				},
+				signatureMethodEnabled: 'clickToSign',
+			},
+			{
+				name: 'email',
+				enabled: true,
+				requirement: 'optional',
+				signatureMethods: {
+					emailToken: { enabled: true },
+					clickToSign: { enabled: false },
+				},
+				signatureMethodEnabled: 'emailToken',
+			},
+		]
+		loadStateMock.mockClear()
 	})
 
 	it('reads identify_methods from effective policies at create-time, not module-load time', () => {
 		const first = JSON.parse(String(identifyMethodsRealDefinition.createEmptyValue()))
-		expect(first.factors).toEqual([])
+		expect(first.factors).toHaveLength(2)
+		expect(first.factors[0].name).toBe('account')
+		expect(first.factors[1].name).toBe('email')
 
-		identifyMethodsState.policies.identify_methods.effectiveValue.push({
-			name: 'email',
-			enabled: true,
-			requirement: 'required',
-			signatureMethods: {
-				emailToken: { enabled: true },
+		identifyMethodsState.policies.identify_methods.effectiveValue = [
+			{
+				name: 'email',
+				enabled: true,
+				requirement: 'required',
+				signatureMethods: {
+					emailToken: { enabled: true },
+				},
+				signatureMethodEnabled: 'emailToken',
 			},
-			signatureMethodEnabled: 'emailToken',
-		})
+		]
 
 		const second = JSON.parse(String(identifyMethodsRealDefinition.createEmptyValue()))
 		expect(second.factors).toHaveLength(1)
@@ -66,23 +110,13 @@ describe('identifyMethodsRealDefinition', () => {
 		})
 	})
 
-	it('falls back to identify methods catalog when effective policy factors are empty', () => {
-		identifyMethodsCatalogState.push(
-			{
-				name: 'account',
-				enabled: true,
-				signatureMethods: {
-					clickToSign: { enabled: true },
-				},
-			},
-		)
+	it('does not read identify_methods_catalog initial state', () => {
+		identifyMethodsRealDefinition.createEmptyValue()
 
-		const value = JSON.parse(String(identifyMethodsRealDefinition.createEmptyValue()))
-		expect(value.factors).toHaveLength(1)
-		expect(value.factors[0]).toMatchObject({
-			name: 'account',
-			enabled: true,
-			requirement: 'optional',
-		})
+		expect(loadStateMock).not.toHaveBeenCalledWith(
+			'libresign',
+			'identify_methods_catalog',
+			expect.anything(),
+		)
 	})
 })

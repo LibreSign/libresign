@@ -13,7 +13,6 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
-use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Settings\Admin;
@@ -34,7 +33,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IUserSession&MockObject $userSession;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private CertificatePolicyService&MockObject $certificatePolicyService;
-	private IdentifyMethodService&MockObject $identifyMethodService;
 	private IAppConfig $appConfig;
 	private PolicyService&MockObject $policyService;
 	#[\Override]
@@ -44,7 +42,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->certificatePolicyService = $this->createMock(CertificatePolicyService::class);
-		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->appConfig = static::getMockAppConfigWithReset();
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->admin = new Admin(
@@ -54,7 +51,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->certificateEngineFactory,
 			$this->certificatePolicyService,
 			$this->appConfig,
-			$this->identifyMethodService,
 			$this->policyService,
 		);
 		$this->stubGetFormDependencies();
@@ -78,7 +74,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->certificatePolicyService->method('getOid')->willReturn('');
 		$this->certificatePolicyService->method('getCps')->willReturn('');
-		$this->identifyMethodService->method('getIdentifyMethodsSettings')->willReturn([]);
 	}
 
 	public function testGetSessionReturningAppId():void {

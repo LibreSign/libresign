@@ -9,27 +9,46 @@ import { t } from '@nextcloud/l10n'
 import IdentifyMethodsRuleEditor from './IdentifyMethodsRuleEditor.vue'
 
 import { normalizeIdentifyMethodsPolicy, serializeIdentifyMethodsPolicy } from './model'
-import type { EffectivePoliciesResponse, EffectivePolicyValue } from '../../../../../types/index'
+import type { EffectivePoliciesResponse, EffectivePolicyValue, IdentifyMethodsEffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 
-function getInitialIdentifyMethodsCatalog(): EffectivePolicyValue {
-	return loadState<EffectivePolicyValue>('libresign', 'identify_methods_catalog', [])
-}
-
-function getEffectiveIdentifyMethodsPolicyValue(): EffectivePolicyValue {
-	const effectivePolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
-	return effectivePolicies.policies?.identify_methods?.effectiveValue ?? []
-}
-
-function getCreateSeedEntries() {
-	const effectiveEntries = normalizeIdentifyMethodsPolicy(getEffectiveIdentifyMethodsPolicyValue())
-	if (effectiveEntries.length > 0) {
-		return effectiveEntries
+/**
+ * Runtime guard for the backend identify_methods effective policy payload.
+ *
+ * @param value Candidate effective policy payload.
+ */
+function isIdentifyMethodsEffectivePolicyValue(value: unknown): value is IdentifyMethodsEffectivePolicyValue {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) {
+		return false
 	}
 
-	return normalizeIdentifyMethodsPolicy(getInitialIdentifyMethodsCatalog())
+	const candidate = value as Record<string, unknown>
+	return Array.isArray(candidate.factors)
 }
 
+/**
+ * Reads identify_methods strictly from effective policies initial state.
+ */
+function getEffectiveIdentifyMethodsPolicyValue(): EffectivePolicyValue {
+	const effectivePolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
+	const effectiveValue = effectivePolicies.policies?.identify_methods?.effectiveValue
+	if (isIdentifyMethodsEffectivePolicyValue(effectiveValue)) {
+		return effectiveValue
+	}
+
+	return effectiveValue ?? null
+}
+
+/**
+ * Uses effective policy entries as the source for create-time seed values.
+ */
+function getCreateSeedEntries() {
+	return normalizeIdentifyMethodsPolicy(getEffectiveIdentifyMethodsPolicyValue())
+}
+
+/**
+ * Builds permissive defaults for the rule editor creation flow.
+ */
 function getInitialIdentifyMethods(): string {
 	const normalized = getCreateSeedEntries()
 
