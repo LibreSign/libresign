@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\IdentifyMethods;
 
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use PHPUnit\Framework\TestCase;
 
@@ -173,5 +174,29 @@ final class IdentifyMethodsPolicyValueTest extends TestCase {
 
 		self::assertSame(false, $normalized['can_create_account']);
 		self::assertArrayNotHasKey('can_create_account', $normalized['factors'][0]);
+	}
+
+	public function testFallsBackToCatalogWhenPayloadIsEmptyAndServiceIsAvailable(): void {
+		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$identifyMethodService->method('getIdentifyMethodsSettings')->willReturn([
+			[
+				'name' => 'account',
+				'enabled' => true,
+				'friendly_name' => 'Account',
+				'signatureMethods' => [
+					'clickToSign' => ['enabled' => true],
+				],
+			],
+		]);
+		$identifyMethodService->method('getFriendlyNamesMap')->willReturn([
+			'account' => 'Account',
+		]);
+
+		$normalized = IdentifyMethodsPolicyValue::normalize([], $identifyMethodService);
+
+		self::assertCount(1, $normalized['factors']);
+		self::assertSame('account', $normalized['factors'][0]['name']);
+		self::assertSame(true, $normalized['factors'][0]['enabled']);
+		self::assertSame('Account', $normalized['factors'][0]['friendly_name']);
 	}
 }

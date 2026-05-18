@@ -12,6 +12,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -31,6 +32,7 @@ class Admin implements ISettings {
 		private CertificateEngineFactory $certificateEngineFactory,
 		private CertificatePolicyService $certificatePolicyService,
 		private IAppConfig $appConfig,
+		private IdentifyMethodService $identifyMethodService,
 		private PolicyService $policyService,
 	) {
 	}
@@ -43,6 +45,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('certificate_policies_oid', $this->certificatePolicyService->getOid());
 		$this->initialState->provideInitialState('certificate_policies_cps', $this->certificatePolicyService->getCps());
 		$this->initialState->provideInitialState('config_path', $this->appConfig->getValueString(Application::APP_ID, 'config_path'));
+		$this->initialState->provideInitialState('identify_methods_catalog', $this->identifyMethodService->getIdentifyMethodsSettings());
 		$this->initialState->provideInitialState('signature_engine', $this->getSignatureEngineInitialState());
 		$resolvedPolicies = [];
 		foreach ($this->policyService->resolveKnownPolicies() as $policyKey => $resolvedPolicy) {

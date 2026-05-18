@@ -72,4 +72,31 @@ final class IdentifyMethodsPolicyTest extends TestCase {
 			'can_create_account' => false,
 		], $normalized);
 	}
+
+	public function testProviderUsesIdentifyMethodsCatalogWhenPayloadIsEmpty(): void {
+		$this->identifyMethodService
+			->method('getIdentifyMethodsSettings')
+			->willReturn([
+				[
+					'name' => 'account',
+					'enabled' => true,
+					'signatureMethods' => [
+						'clickToSign' => ['enabled' => true],
+					],
+				],
+			]);
+		$this->identifyMethodService
+			->method('getFriendlyNamesMap')
+			->willReturn([
+				'account' => 'Account',
+			]);
+
+		$provider = new IdentifyMethodsPolicy($this->identifyMethodService);
+		$definition = $provider->get(IdentifyMethodsPolicy::KEY);
+
+		$normalized = $definition->normalizeValue([]);
+
+		$this->assertSame('account', $normalized['factors'][0]['name']);
+		$this->assertSame(true, $normalized['factors'][0]['enabled']);
+	}
 }
