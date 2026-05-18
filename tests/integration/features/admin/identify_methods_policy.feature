@@ -47,6 +47,10 @@ Feature: admin/identify_methods_policy
 
   Scenario: Empty identify_methods payload still exposes available factors in effective policy
     Given as user "admin"
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/admin/identify_methods"
+    And the response should have a status code 200
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/group/admin/identify_methods"
+    And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string)[] |
       | allowChildOverride | true |
