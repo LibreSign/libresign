@@ -618,6 +618,23 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/by-policy/group/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all explicit group-level policy values for a policy key. */
+        get: operations["policy-list-group-policies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/user/{policyKey}": {
         parameters: {
             query?: never;
@@ -1105,6 +1122,26 @@ export type paths = {
          * @description This endpoint requires admin access
          */
         delete: operations["policy-clear-user-policy-for-user"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/by-policy/user/{policyKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all explicit user-level policy values for a policy key.
+         * @description This endpoint requires admin access
+         */
+        get: operations["policy-list-user-policies"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4257,6 +4294,40 @@ export interface operations {
             };
         };
     };
+    "policy-list-group-policies": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to list group rules. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                policies: components["schemas"]["GroupPolicyState"][];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
     "policy-set-user-preference": {
         parameters: {
             query?: never;
@@ -6166,6 +6237,40 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "policy-list-user-policies": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Policy identifier to list user rules. */
+                policyKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                policies: components["schemas"]["UserPolicyState"][];
+                            };
                         };
                     };
                 };
