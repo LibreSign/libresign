@@ -6,22 +6,17 @@
 <template>
 	<div class="identification-documents-editor">
 		<NcCheckboxRadioSwitch
-			v-for="option in options"
-			:key="String(option.value)"
-			class="identification-documents-editor__option"
-			type="radio"
-			:model-value="draft.enabled === option.value"
-			name="identification-documents-editor"
-			@update:modelValue="updateEnabled(option.value, $event)">
-			<div class="identification-documents-editor__copy">
-				<strong>{{ option.label }}</strong>
-				<p>{{ option.description }}</p>
+			type="switch"
+			:model-value="draft.enabled"
+			@update:modelValue="updateEnabled">
+			<div class="identification-documents-editor__switch-copy">
+				<span>{{ t('libresign', 'Enable identification documents flow') }}</span>
+				<p>{{ t('libresign', 'Request signers to submit identification documents before certificate issuance.') }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
 
-		<!-- Approvers section - visible only when enabled -->
 		<div v-if="draft.enabled" class="identification-documents-editor__approvers-section">
-			<label>{{ t('libresign', 'Approver groups') }}</label>
+			<label class="identification-documents-editor__approvers-title">{{ t('libresign', 'Approver groups') }}</label>
 			<p class="identification-documents-editor__help-text">
 				{{ t('libresign', 'Select which groups can approve identification documents.') }}
 			</p>
@@ -73,19 +68,6 @@ const emit = defineEmits<{
 	'update:modelValue': [value: IdentificationDocumentsPayload]
 }>()
 
-const options = [
-	{
-		value: true,
-		label: t('libresign', 'Enabled'),
-		description: t('libresign', 'Request signers to submit identification documents before certificate issuance.'),
-	},
-	{
-		value: false,
-		label: t('libresign', 'Disabled'),
-		description: t('libresign', 'Do not request identification documents in the signing flow.'),
-	},
-]
-
 const groupsLoading = ref(false)
 const availableGroups = ref<GroupOption[]>([])
 
@@ -105,11 +87,7 @@ const groupOptions = computed(() => {
 	}))
 })
 
-function updateEnabled(enabled: boolean, selected?: unknown) {
-	if (selected === false) {
-		return
-	}
-
+function updateEnabled(enabled: boolean) {
 	draft.value.enabled = enabled
 
 	// Reset approvers to default if disabling
@@ -162,23 +140,19 @@ async function loadGroups() {
 	flex-direction: column;
 	gap: 0.75rem;
 
-	&__copy p {
+	&__switch-copy p {
 		margin: 0.35rem 0 0;
 		color: var(--color-text-maxcontrast);
 	}
 
 	&__approvers-section {
-		margin-top: 1.5rem;
-		padding: 1rem;
-		border: 1px solid var(--color-border);
-		border-radius: 4px;
-		background-color: var(--color-background-hover);
+		margin-left: 0.25rem;
+	}
 
-		& label {
-			display: block;
-			font-weight: 600;
-			margin-bottom: 0.25rem;
-		}
+	&__approvers-title {
+		display: block;
+		font-weight: 600;
+		margin-bottom: 0.25rem;
 	}
 
 	&__help-text {
@@ -191,19 +165,6 @@ async function loadGroups() {
 		margin: 0 0 0.75rem;
 		font-size: 0.85rem;
 		color: var(--color-text-maxcontrast);
-	}
-
-	:deep(.identification-documents-editor__option.checkbox-radio-switch) {
-		width: 100%;
-	}
-
-	:deep(.identification-documents-editor__option .checkbox-radio-switch__content) {
-		width: 100%;
-		max-width: none;
-	}
-
-	:deep(.identification-documents-editor__option.checkbox-radio-switch--checked:focus-within .checkbox-radio-switch__content) {
-		background-color: transparent;
 	}
 }
 </style>
