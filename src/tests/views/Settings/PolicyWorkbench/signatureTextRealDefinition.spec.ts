@@ -20,6 +20,7 @@ describe('signatureTextRealDefinition', () => {
 			signature_font_size: 9,
 			signature_width: 90,
 			signature_height: 60,
+			background_type: 'default',
 			render_mode: 'default',
 		})
 	})
@@ -41,6 +42,7 @@ describe('signatureTextRealDefinition', () => {
 			signature_font_size: 12,
 			signature_width: 120,
 			signature_height: 66,
+			background_type: 'default',
 			render_mode: 'graphic',
 		})
 	})
