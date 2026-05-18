@@ -23,7 +23,6 @@ use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolic
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
-use OCA\Libresign\Service\Policy\Provider\SignatureBackground\SignatureBackgroundPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
@@ -53,7 +52,6 @@ final class PolicyProviders {
 		SigningModePolicy::KEY_SIGNING_MODE => SigningModePolicy::class,
 		SigningModePolicy::KEY_WORKER_TYPE => SigningModePolicy::class,
 		SigningModePolicy::KEY_PARALLEL_WORKERS => SigningModePolicy::class,
-		SignatureBackgroundPolicy::KEY => SignatureBackgroundPolicy::class,
 		IdentificationDocumentsPolicy::KEY => IdentificationDocumentsPolicy::class,
 		IdentifyMethodsPolicy::KEY => IdentifyMethodsPolicy::class,
 		SignatureTextPolicy::KEY => SignatureTextPolicy::class,

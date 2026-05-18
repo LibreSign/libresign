@@ -13,11 +13,12 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 
 final class SignatureTextPolicy implements IPolicyDefinitionProvider {
-	// Consolidated key (internal storage only)
-	public const KEY = 'signature_text';
+	// Canonical consolidated key (signature stamp)
+	public const KEY = 'signature_stamp';
 	public const SYSTEM_APP_CONFIG_KEY = 'signature_text';
+	public const SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE = 'signature_background_type';
 
-	// Legacy/exposed keys (for policy API)
+	// Exposed policy keys (for policy API)
 	public const KEY_TEMPLATE = 'signature_text_template';
 	public const KEY_TEMPLATE_FONT_SIZE = 'template_font_size';
 	public const KEY_SIGNATURE_WIDTH = 'signature_width';
@@ -25,7 +26,7 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 	public const KEY_SIGNATURE_FONT_SIZE = 'signature_font_size';
 	public const KEY_RENDER_MODE = 'signature_render_mode';
 
-	// System app config keys (where they're actually stored)
+	// System app config keys (where individual keys were previously stored)
 	public const SYSTEM_APP_CONFIG_KEY_TEMPLATE = 'signature_text_template';
 	public const SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE = 'template_font_size';
 	public const SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH = 'signature_width';
@@ -128,6 +129,7 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 			'signature_font_size' => 9.0,
 			'signature_width' => 90.0,
 			'signature_height' => 60.0,
+			'background_type' => 'default',
 			'render_mode' => 'default',
 		];
 	}
@@ -154,12 +156,15 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 			$renderMode = 'default';
 		}
 
+		$backgroundType = $this->normalizeBackgroundType($rawValue['background_type'] ?? $defaults['background_type']);
+
 		return [
 			'template' => (string)($rawValue['template'] ?? $defaults['template']),
 			'template_font_size' => max(0.1, (float)($rawValue['template_font_size'] ?? $defaults['template_font_size'])),
 			'signature_font_size' => max(0.1, (float)($rawValue['signature_font_size'] ?? $defaults['signature_font_size'])),
 			'signature_width' => max(0.1, (float)($rawValue['signature_width'] ?? $defaults['signature_width'])),
 			'signature_height' => max(0.1, (float)($rawValue['signature_height'] ?? $defaults['signature_height'])),
+			'background_type' => $backgroundType,
 			'render_mode' => $renderMode,
 		];
 	}
@@ -169,5 +174,18 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 	 */
 	private function encodeConsolidatedValue(array $value): string {
 		return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+	}
+
+	private function normalizeBackgroundType(mixed $rawValue): string {
+		if (!is_string($rawValue)) {
+			return 'default';
+		}
+
+		$normalized = trim(strtolower($rawValue));
+		if (in_array($normalized, ['default', 'custom', 'deleted'], true)) {
+			return $normalized;
+		}
+
+		return 'default';
 	}
 }

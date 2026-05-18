@@ -16,6 +16,7 @@ final class SignatureTextPolicyValue {
 		'signature_font_size' => 9.0,
 		'signature_width' => 90.0,
 		'signature_height' => 60.0,
+		'background_type' => 'default',
 		'render_mode' => 'default',
 	];
 
@@ -47,6 +48,7 @@ final class SignatureTextPolicyValue {
 			'signature_font_size' => self::normalizeFloat($rawValue['signature_font_size'] ?? $defaults['signature_font_size']),
 			'signature_width' => self::normalizeFloat($rawValue['signature_width'] ?? $defaults['signature_width']),
 			'signature_height' => self::normalizeFloat($rawValue['signature_height'] ?? $defaults['signature_height']),
+			'background_type' => self::normalizeBackgroundType($rawValue['background_type'] ?? $defaults['background_type']),
 			'render_mode' => self::normalizeRenderMode($rawValue['render_mode'] ?? $defaults['render_mode']),
 		];
 	}
@@ -72,6 +74,14 @@ final class SignatureTextPolicyValue {
 		$mode = (string)($value ?? 'default');
 		return match ($mode) {
 			'default', 'graphic', 'text' => $mode,
+			default => 'default',
+		};
+	}
+
+	private static function normalizeBackgroundType(mixed $value): string {
+		$mode = (string)($value ?? 'default');
+		return match ($mode) {
+			'default', 'custom', 'deleted' => $mode,
 			default => 'default',
 		};
 	}

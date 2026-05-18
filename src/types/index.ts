@@ -62,6 +62,9 @@ export type EffectivePolicyValue = OpenApiEffectivePolicyPrimitiveValue | Effect
 export type PolicyWriteValue = Exclude<ApiRequestJsonBody<AdminOperations['policy-set-system']>['value'], undefined>
 export type GroupPolicyResponse = ApiOcsResponseData<ApiOperations['policy-get-group'], 200>
 export type GroupPolicyState = GroupPolicyResponse['policy']
+export type GroupPolicyListResponse = {
+	policies: GroupPolicyState[]
+}
 
 type OpenApiSystemPolicyResponse = ApiOcsResponseData<AdminOperations['policy-get-system'], 200>
 type OpenApiSystemPolicyState = OpenApiSystemPolicyResponse['policy']
@@ -79,6 +82,9 @@ export type UserPolicyState = Omit<OpenApiUserPolicyState, 'value'> & {
 }
 export type UserPolicyResponse = {
 	policy: UserPolicyState
+}
+export type UserPolicyListResponse = {
+	policies: UserPolicyState[]
 }
 export type GroupPolicyWritePayload = ApiRequestJsonBody<ApiOperations['policy-set-group']>
 export type GroupPolicyWriteResponse = ApiOcsResponseData<ApiOperations['policy-set-group'], 200>

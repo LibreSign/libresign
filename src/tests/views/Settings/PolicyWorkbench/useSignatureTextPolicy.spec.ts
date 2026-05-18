@@ -1,3 +1,4 @@
+/* eslint-disable import/first */
 /*
  * SPDX-FileCopyrightText: 2026 LibreSign contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
@@ -32,19 +33,21 @@ describe('useSignatureTextPolicy', () => {
 			signatureFontSize: 9,
 			signatureWidth: 90,
 			signatureHeight: 60,
+			backgroundType: 'default',
 			renderMode: 'GRAPHIC_AND_DESCRIPTION',
 		})
 	})
 
 	it('prefers and normalizes the effective policy payload when available', () => {
 		policiesState.policies = {
-			signature_text: {
+			signature_stamp: {
 				effectiveValue: JSON.stringify({
 					template: 'Policy template',
 					template_font_size: '10.25',
 					signature_font_size: '13.75',
 					signature_width: '101',
 					signature_height: '66',
+					background_type: 'deleted',
 					render_mode: 'SIGNAME_AND_DESCRIPTION',
 				}),
 			},
@@ -58,6 +61,7 @@ describe('useSignatureTextPolicy', () => {
 			signatureFontSize: 13.75,
 			signatureWidth: 101,
 			signatureHeight: 66,
+			backgroundType: 'deleted',
 			renderMode: 'SIGNAME_AND_DESCRIPTION',
 		})
 	})
@@ -71,6 +75,7 @@ describe('useSignatureTextPolicy', () => {
 			signatureFontSize: 9,
 			signatureWidth: 90,
 			signatureHeight: 60,
+			backgroundType: 'default',
 			renderMode: 'GRAPHIC_AND_DESCRIPTION',
 		})
 	})

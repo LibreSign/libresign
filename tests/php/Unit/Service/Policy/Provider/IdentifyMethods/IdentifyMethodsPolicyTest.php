@@ -73,32 +73,12 @@ final class IdentifyMethodsPolicyTest extends TestCase {
 		], $normalized);
 	}
 
-	public function testProviderReturnsDefaultFactorsWhenPayloadIsEmpty(): void {
+	public function testProviderUsesIdentifyMethodsCatalogWhenPayloadIsEmpty(): void {
 		$this->identifyMethodService
 			->method('getFriendlyNamesMap')
 			->willReturn([
 				'account' => 'Account',
 				'email' => 'Email',
-			]);
-		$this->identifyMethodService
-			->method('getDefaultIdentifyMethodsPolicy')
-			->willReturn([
-				[
-					'name' => 'account',
-					'enabled' => true,
-					'requirement' => 'required',
-					'signatureMethods' => [
-						'clickToSign' => ['enabled' => true],
-					],
-				],
-				[
-					'name' => 'email',
-					'enabled' => true,
-					'requirement' => 'optional',
-					'signatureMethods' => [
-						'emailToken' => ['enabled' => true],
-					],
-				],
 			]);
 
 		$provider = new IdentifyMethodsPolicy($this->identifyMethodService);
@@ -106,9 +86,8 @@ final class IdentifyMethodsPolicyTest extends TestCase {
 
 		$normalized = $definition->normalizeValue([]);
 
-		$this->assertCount(2, $normalized['factors']);
 		$this->assertSame('account', $normalized['factors'][0]['name']);
 		$this->assertSame('email', $normalized['factors'][1]['name']);
-		$this->assertArrayNotHasKey('can_create_account', $normalized);
+		$this->assertSame(true, $normalized['factors'][0]['enabled']);
 	}
 }

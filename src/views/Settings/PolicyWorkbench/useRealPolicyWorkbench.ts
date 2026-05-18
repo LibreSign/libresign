@@ -542,8 +542,8 @@ export function createRealPolicyWorkbenchState() {
 		hydratePersistedRulesRequestId.value = currentRequestId
 
 		await Promise.all([
-			loadTargets('group', '', true),
-			loadTargets('user', '', true),
+			loadTargets('group', ''),
+			loadTargets('user', ''),
 		])
 
 		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies] = await Promise.all([
@@ -554,52 +554,88 @@ export function createRealPolicyWorkbenchState() {
 				})
 				return null
 			}),
-			Promise.all(groups.value.map(async (group) => {
-				try {
-					const persistedPolicy = await policiesStore.fetchGroupPolicy(group.id, policyKey)
-					if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
-						return null
-					}
-
-					return {
-						id: `group-${group.id}-persisted`,
-						scope: 'group' as const,
-						targetId: group.id,
-						allowChildOverride: persistedPolicy.allowChildOverride,
-						value: persistedPolicy.value,
-					}
-				} catch (error) {
-					logger.debug('Could not load persisted group policy for target', {
+			(typeof policiesStore.fetchGroupPoliciesByPolicyKey === 'function'
+				? policiesStore.fetchGroupPoliciesByPolicyKey(policyKey).then((policies) => {
+					return policies
+						.filter((policy) => policy.value !== null && policy.value !== undefined)
+						.map((policy) => ({
+							id: `group-${policy.targetId}-persisted`,
+							scope: 'group' as const,
+							targetId: policy.targetId,
+							allowChildOverride: policy.allowChildOverride,
+							value: policy.value,
+						}))
+				}).catch((error) => {
+					logger.debug('Could not bulk load persisted group policies for workbench', {
 						error,
 						policyKey,
-						groupId: group.id,
 					})
-					return null
-				}
-			})),
-			Promise.all(users.value.map(async (user) => {
-				try {
-					const persistedPolicy = await policiesStore.fetchUserPolicyForUser(user.id, policyKey)
-					if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
+					return []
+				})
+				: Promise.all(groups.value.map(async (group) => {
+					try {
+						const persistedPolicy = await policiesStore.fetchGroupPolicy(group.id, policyKey)
+						if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
+							return null
+						}
+
+						return {
+							id: `group-${group.id}-persisted`,
+							scope: 'group' as const,
+							targetId: group.id,
+							allowChildOverride: persistedPolicy.allowChildOverride,
+							value: persistedPolicy.value,
+						}
+					} catch (error) {
+						logger.debug('Could not load persisted group policy for target', {
+							error,
+							policyKey,
+							groupId: group.id,
+						})
 						return null
 					}
-
-					return {
-						id: `user-${user.id}-persisted`,
-						scope: 'user' as const,
-						targetId: user.id,
-						allowChildOverride: persistedPolicy.allowChildOverride,
-						value: persistedPolicy.value,
-					}
-				} catch (error) {
-					logger.debug('Could not load persisted user policy for target', {
+				})).then((records) => records.filter((record): record is NonNullable<typeof record> => record !== null))),
+			(typeof policiesStore.fetchUserPoliciesByPolicyKey === 'function'
+				? policiesStore.fetchUserPoliciesByPolicyKey(policyKey).then((policies) => {
+					return policies
+						.filter((policy) => policy.value !== null && policy.value !== undefined)
+						.map((policy) => ({
+							id: `user-${policy.targetId}-persisted`,
+							scope: 'user' as const,
+							targetId: policy.targetId,
+							allowChildOverride: policy.allowChildOverride,
+							value: policy.value,
+						}))
+				}).catch((error) => {
+					logger.debug('Could not bulk load persisted user policies for workbench', {
 						error,
 						policyKey,
-						userId: user.id,
 					})
-					return null
-				}
-			})),
+					return []
+				})
+				: Promise.all(users.value.map(async (user) => {
+					try {
+						const persistedPolicy = await policiesStore.fetchUserPolicyForUser(user.id, policyKey)
+						if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
+							return null
+						}
+
+						return {
+							id: `user-${user.id}-persisted`,
+							scope: 'user' as const,
+							targetId: user.id,
+							allowChildOverride: persistedPolicy.allowChildOverride,
+							value: persistedPolicy.value,
+						}
+					} catch (error) {
+						logger.debug('Could not load persisted user policy for target', {
+							error,
+							policyKey,
+							userId: user.id,
+						})
+						return null
+					}
+				})).then((records) => records.filter((record): record is NonNullable<typeof record> => record !== null))),
 		])
 
 		if (currentRequestId !== hydratePersistedRulesRequestId.value || activeSettingKey.value !== policyKey) {

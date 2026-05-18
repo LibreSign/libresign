@@ -13,7 +13,7 @@ vi.mock('@nextcloud/l10n', () => createL10nMock())
 import SignatureFlowScalarRuleEditor from '../../../../views/Settings/PolicyWorkbench/settings/signature-flow/SignatureFlowScalarRuleEditor.vue'
 
 describe('SignatureFlowScalarRuleEditor.vue', () => {
-	it('shows three explicit options and emits the selected scalar value', async () => {
+	it('shows explicit options plus inherited-default info and emits the selected scalar value', async () => {
 		const wrapper = mount(SignatureFlowScalarRuleEditor, {
 			props: {
 				modelValue: 'parallel',
@@ -27,18 +27,18 @@ describe('SignatureFlowScalarRuleEditor.vue', () => {
 			},
 		})
 
-		expect(wrapper.text()).toContain('Simultaneous (Parallel)')
+		expect(wrapper.text()).toContain('Parallel')
 		expect(wrapper.text()).toContain('Sequential')
-		expect(wrapper.text()).toContain('User choice')
-		expect(wrapper.text()).toContain('Users can choose between simultaneous or sequential signing.')
+		expect(wrapper.text()).toContain('Using instance default')
+		expect(wrapper.text()).toContain('Users can choose the signing order unless an explicit rule is configured.')
 
 		const switches = wrapper.findAll('.switch')
-		expect(switches).toHaveLength(3)
-		await switches[2].trigger('click')
+		expect(switches).toHaveLength(2)
+		await switches[1].trigger('click')
 
 		const emissions = wrapper.emitted('update:modelValue')
 		expect(emissions).toBeTruthy()
-		expect(emissions?.[0]?.[0]).toBe('none')
+		expect(emissions?.[0]?.[0]).toBe('ordered_numeric')
 	})
 
 	it('emits selected value even when radio update payload is omitted', async () => {
@@ -56,12 +56,12 @@ describe('SignatureFlowScalarRuleEditor.vue', () => {
 		})
 
 		const switches = wrapper.findAll('.switch-no-payload')
-		expect(switches).toHaveLength(3)
-		await switches[1].trigger('click')
+		expect(switches).toHaveLength(2)
+		await switches[0].trigger('click')
 
 		const emissions = wrapper.emitted('update:modelValue')
 		expect(emissions).toBeTruthy()
-		expect(emissions?.[0]?.[0]).toBe('ordered_numeric')
+		expect(emissions?.[0]?.[0]).toBe('parallel')
 	})
 
 	it('starts with no option selected when draft value is empty', () => {
@@ -80,33 +80,26 @@ describe('SignatureFlowScalarRuleEditor.vue', () => {
 		})
 
 		const selectedStates = wrapper.findAll('.switch-state').map((node) => node.attributes('data-selected'))
-		expect(selectedStates).toEqual(['false', 'false', 'false'])
+		expect(selectedStates).toEqual(['false', 'false'])
 	})
 
-	it('disables default option and shows helper copy for instance rule creation', async () => {
+	it('shows inherited-default info without presenting it as a selectable option', () => {
 		const wrapper = mount(SignatureFlowScalarRuleEditor, {
 			props: {
 				modelValue: 'none',
-				editorScope: 'system',
-				editorMode: 'create',
 			},
 			global: {
 				stubs: {
 					NcCheckboxRadioSwitch: {
-						props: ['disabled'],
-						template: '<div class="switch-disabled" :data-disabled="disabled ? \'true\' : \'false\'" @click="!disabled && $emit(\'update:modelValue\', true)"><slot /></div>',
+						template: '<div class="switch-disabled"><slot /></div>',
 					},
 				},
 			},
 		})
 
-		expect(wrapper.text()).toContain('already matches the default')
-
-		const switches = wrapper.findAll('.switch-disabled')
-		expect(switches).toHaveLength(3)
-		expect(switches[2]?.attributes('data-disabled')).toBe('true')
-
-		await switches[2]?.trigger('click')
-		expect(wrapper.emitted('update:modelValue')).toBeFalsy()
+		expect(wrapper.text()).toContain('Using instance default')
+		expect(wrapper.text()).toContain('Users can choose the signing order unless an explicit rule is configured.')
+		expect(wrapper.text()).not.toContain('User choice')
+		expect(wrapper.findAll('.switch-disabled')).toHaveLength(2)
 	})
 })

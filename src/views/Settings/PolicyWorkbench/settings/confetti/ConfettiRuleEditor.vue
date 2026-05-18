@@ -6,16 +6,13 @@
 <template>
 	<div class="confetti-editor">
 		<NcCheckboxRadioSwitch
-			v-for="option in options"
-			:key="String(option.value)"
-			class="confetti-editor__option"
-			type="radio"
-			:model-value="normalizedValue === option.value"
-			name="confetti-editor"
-			@update:modelValue="onChange(option.value, $event)">
+			class="confetti-editor__switch"
+			type="switch"
+			:model-value="normalizedValue === true"
+			@update:modelValue="onChange">
 			<div class="confetti-editor__copy">
-				<strong>{{ option.label }}</strong>
-				<p>{{ option.description }}</p>
+				<strong>{{ title }}</strong>
+				<p>{{ description }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
 	</div>
@@ -40,18 +37,8 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
-const options = [
-	{
-		value: true,
-		label: t('libresign', 'Enabled'),
-		description: t('libresign', 'Show confetti animation after successful signing.'),
-	},
-	{
-		value: false,
-		label: t('libresign', 'Disabled'),
-		description: t('libresign', 'Do not show confetti animation after signing.'),
-	},
-]
+const title = t('libresign', 'Confetti animation')
+const description = t('libresign', 'Show a confetti animation after successful signing.')
 
 const normalizedValue = computed<boolean | null>(() => {
 	if (typeof props.modelValue === 'boolean') {
@@ -69,12 +56,8 @@ const normalizedValue = computed<boolean | null>(() => {
 	return null
 })
 
-function onChange(value: boolean, selected?: unknown) {
-	if (selected === false) {
-		return
-	}
-
-	emit('update:modelValue', value)
+function onChange(enabled: boolean) {
+	emit('update:modelValue', enabled)
 }
 </script>
 
@@ -82,23 +65,23 @@ function onChange(value: boolean, selected?: unknown) {
 .confetti-editor {
 	display: flex;
 	flex-direction: column;
-	gap: 0.75rem;
+	gap: 0.5rem;
 
 	&__copy p {
 		margin: 0.35rem 0 0;
 		color: var(--color-text-maxcontrast);
 	}
 
-	:deep(.confetti-editor__option.checkbox-radio-switch) {
+	:deep(.confetti-editor__switch.checkbox-radio-switch) {
 		width: 100%;
 	}
 
-	:deep(.confetti-editor__option .checkbox-radio-switch__content) {
+	:deep(.confetti-editor__switch .checkbox-radio-switch__content) {
 		width: 100%;
 		max-width: none;
 	}
 
-	:deep(.confetti-editor__option.checkbox-radio-switch--checked:focus-within .checkbox-radio-switch__content) {
+	:deep(.confetti-editor__switch.checkbox-radio-switch--checked:focus-within .checkbox-radio-switch__content) {
 		background-color: transparent;
 	}
 }

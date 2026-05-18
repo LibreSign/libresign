@@ -360,7 +360,7 @@ describe('useRealPolicyWorkbench', () => {
 		})
 	})
 
-	it('hydrates persisted user rules beyond the first users page', async () => {
+	it('does not scan beyond the first users page during hydration', async () => {
 		axiosGet.mockImplementation((url: string, config?: { params?: { offset?: number } }) => {
 			if (url === 'cloud/groups/details') {
 				return Promise.resolve({
@@ -424,14 +424,14 @@ describe('useRealPolicyWorkbench', () => {
 		})
 
 		fetchUserPolicyForUser.mockImplementation(async (userId: string) => {
-			if (userId !== 'user21') {
+			if (userId !== 'user1') {
 				return null
 			}
 
 			return {
 				policyKey: 'signature_flow',
 				scope: 'user_policy',
-				targetId: 'user21',
+				targetId: 'user1',
 				value: 'ordered_numeric',
 				allowChildOverride: false,
 			}
@@ -441,12 +441,14 @@ describe('useRealPolicyWorkbench', () => {
 		state.openSetting('signature_flow')
 
 		await vi.waitFor(() => {
-			expect(fetchUserPolicyForUser).toHaveBeenCalledWith('user21', 'signature_flow')
+			expect(fetchUserPolicyForUser).toHaveBeenCalledWith('user1', 'signature_flow')
 			expect(state.visibleUserRules).toHaveLength(1)
 		})
 
+		expect(fetchUserPolicyForUser).not.toHaveBeenCalledWith('user21', 'signature_flow')
+
 		expect(state.visibleUserRules[0]).toMatchObject({
-			targetId: 'user21',
+			targetId: 'user1',
 			value: 'ordered_numeric',
 		})
 	})
@@ -962,7 +964,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(state.inheritedSystemRule).not.toBeNull()
 		expect(state.inheritedSystemRule?.value).toBe('none')
-		expect(state.summary?.currentBaseValue).toBe('User choice')
+		expect(state.summary?.currentBaseValue).toBe('Using instance default')
 	})
 
 	it('keeps persisted numeric system default visible after reload', () => {
@@ -977,7 +979,7 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(state.inheritedSystemRule).not.toBeNull()
 		expect(state.inheritedSystemRule?.value).toBe(0)
-		expect(state.summary?.currentBaseValue).toBe('User choice')
+		expect(state.summary?.currentBaseValue).toBe('Using instance default')
 	})
 
 	it('does not treat group-sourced effective value as explicit instance rule', () => {
@@ -1051,7 +1053,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.policyResolutionMode).toBe('precedence')
 		expect(state.summary).not.toBeNull()
 		expect(state.summary?.currentBaseValue).toBe('Sequential')
-		expect(state.summary?.platformFallback).toBe('User choice')
+		expect(state.summary?.platformFallback).toBe('Using instance default')
 		expect(state.summary?.baseSource).toBe('Global default')
 	})
 

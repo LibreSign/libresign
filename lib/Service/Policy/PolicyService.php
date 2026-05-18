@@ -75,6 +75,14 @@ class PolicyService {
 		return $this->source->loadUserPolicyConfig($definition->key(), $userId);
 	}
 
+	/**
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	public function listUserPolicies(string|\BackedEnum $policyKey): array {
+		$definition = $this->registry->get($policyKey);
+		return $this->source->listUserPoliciesByKey($definition->key());
+	}
+
 	public function saveSystem(string|\BackedEnum $policyKey, mixed $value, bool $allowChildOverride = false): ResolvedPolicy {
 		$context = $this->contextFactory->forCurrentUser();
 		$definition = $this->registry->get($policyKey);
@@ -91,6 +99,14 @@ class PolicyService {
 	public function getGroupPolicy(string|\BackedEnum $policyKey, string $groupId): ?PolicyLayer {
 		$definition = $this->registry->get($policyKey);
 		return $this->source->loadGroupPolicyConfig($definition->key(), $groupId);
+	}
+
+	/**
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	public function listGroupPolicies(string|\BackedEnum $policyKey): array {
+		$definition = $this->registry->get($policyKey);
+		return $this->source->listGroupPoliciesByKey($definition->key());
 	}
 
 	public function saveGroupPolicy(string|\BackedEnum $policyKey, string $groupId, mixed $value, bool $allowChildOverride): PolicyLayer {

@@ -13,7 +13,8 @@ use Imagick;
 use ImagickPixel;
 use OCA\Libresign\Files\TSimpleFile;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Policy\Provider\SignatureBackground\SignatureBackgroundPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -45,6 +46,7 @@ class SignatureBackgroundService {
 			return $this->appData->newFolder('signature');
 		}
 	}
+
 	public function updateImage(string $tmpFile): void {
 		$folder = $this->getRootFolder();
 		$detectedMimeType = mime_content_type($tmpFile);
@@ -60,7 +62,10 @@ class SignatureBackgroundService {
 	}
 
 	public function getSignatureBackgroundType(): string {
-		$value = $this->policyService->resolve(SignatureBackgroundPolicy::KEY)->getEffectiveValue();
+		$stampValue = SignatureTextPolicyValue::normalize(
+			$this->policyService->resolve(SignatureTextPolicy::KEY)->getEffectiveValue(),
+		);
+		$value = $stampValue['background_type'] ?? 'default';
 		if (!is_string($value)) {
 			return 'default';
 		}
@@ -139,8 +144,17 @@ class SignatureBackgroundService {
 	}
 
 	private function saveSystemBackgroundType(string $value): void {
-		$allowChildOverride = $this->policyService->getSystemPolicy(SignatureBackgroundPolicy::KEY)?->isAllowChildOverride() ?? false;
-		$this->policyService->saveSystem(SignatureBackgroundPolicy::KEY, $value, $allowChildOverride);
+		$stampValue = SignatureTextPolicyValue::normalize(
+			$this->policyService->resolve(SignatureTextPolicy::KEY)->getEffectiveValue(),
+		);
+		$stampValue['background_type'] = $value;
+
+		$allowChildOverride = $this->policyService->getSystemPolicy(SignatureTextPolicy::KEY)?->isAllowChildOverride() ?? false;
+		$this->policyService->saveSystem(
+			SignatureTextPolicy::KEY,
+			SignatureTextPolicyValue::encode($stampValue),
+			$allowChildOverride,
+		);
 	}
 
 	public function getImage(): ISimpleFile {

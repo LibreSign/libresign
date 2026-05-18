@@ -6,16 +6,12 @@
 <template>
 	<div class="envelope-editor">
 		<NcCheckboxRadioSwitch
-			v-for="option in options"
-			:key="String(option.value)"
-			class="envelope-editor__option"
-			type="radio"
-			:model-value="normalizedValue === option.value"
-			name="envelope-editor"
-			@update:modelValue="onChange(option.value, $event)">
+			type="switch"
+			:model-value="normalizedValue"
+			@update:modelValue="onChange">
 			<div class="envelope-editor__copy">
-				<strong>{{ option.label }}</strong>
-				<p>{{ option.description }}</p>
+				<span>{{ t('libresign', 'Signing envelopes') }}</span>
+				<p>{{ t('libresign', 'Allow users to group multiple files into envelopes for signing.') }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
 	</div>
@@ -40,20 +36,7 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
-const options = [
-	{
-		value: true,
-		label: t('libresign', 'Enabled'),
-		description: t('libresign', 'Allow users to group multiple files into envelopes for signing.'),
-	},
-	{
-		value: false,
-		label: t('libresign', 'Disabled'),
-		description: t('libresign', 'Do not allow envelope creation.'),
-	},
-]
-
-const normalizedValue = computed<boolean | null>(() => {
+const normalizedValue = computed<boolean>(() => {
 	if (typeof props.modelValue === 'boolean') {
 		return props.modelValue
 	}
@@ -66,15 +49,11 @@ const normalizedValue = computed<boolean | null>(() => {
 		return false
 	}
 
-	return null
+	return false
 })
 
-function onChange(value: boolean, selected?: unknown) {
-	if (selected === false) {
-		return
-	}
-
-	emit('update:modelValue', value)
+function onChange(enabled: boolean) {
+	emit('update:modelValue', enabled)
 }
 </script>
 
@@ -87,19 +66,6 @@ function onChange(value: boolean, selected?: unknown) {
 	&__copy p {
 		margin: 0.35rem 0 0;
 		color: var(--color-text-maxcontrast);
-	}
-
-	:deep(.envelope-editor__option.checkbox-radio-switch) {
-		width: 100%;
-	}
-
-	:deep(.envelope-editor__option .checkbox-radio-switch__content) {
-		width: 100%;
-		max-width: none;
-	}
-
-	:deep(.envelope-editor__option.checkbox-radio-switch--checked:focus-within .checkbox-radio-switch__content) {
-		background-color: transparent;
 	}
 }
 </style>
