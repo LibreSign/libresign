@@ -10,20 +10,40 @@ Feature: admin/footer_template_preview
     And the response body should not be empty
     And the response body should match the regular expression "^%PDF"
 
-  Scenario: Non-admin user cannot save footer template
+  Scenario: Non-admin footer template access follows allow and deny policy states
     Given user "signer1" exists
     And as user "signer1"
     When sending "post" to ocs "/apps/libresign/api/v1/footer-template"
-      | template | <p>Should be denied</p> |
+      | template | <p>Signer allowed flow</p> |
+      | width    | 595 |
+      | height   | 100 |
+    Then the response should have a status code 200
+    And the response header "Content-Type" should contain "application/pdf"
+    And the response body should not be empty
+    And the response body should match the regular expression "^%PDF"
+    When sending "get" to ocs "/apps/libresign/api/v1/footer-template"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq).ocs.data.template\|type | string |
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template/preview-pdf"
+      | template | <p>Signer preview allowed</p> |
+      | width    | 595 |
+      | height   | 100 |
+    Then the response should have a status code 200
+    And the response header "Content-Type" should contain "application/pdf"
+    And the response body should not be empty
+    And the response body should match the regular expression "^%PDF"
+    And sending "put" to ocs "/apps/libresign/api/v1/policies/user/add_footer"
+      | value | false |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/footer-template/preview-pdf"
+      | template | <p>Signer preview denied</p> |
       | width    | 595 |
       | height   | 100 |
     Then the response should have a status code 403
-
-  Scenario: Non-admin user cannot read footer template
-    Given user "signer1" exists
-    And as user "signer1"
-    When sending "get" to ocs "/apps/libresign/api/v1/footer-template"
-    Then the response should have a status code 403
+    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/add_footer"
+    And the response should have a status code 200
 
   Scenario: Footer preview endpoint returns non-empty PDF with a minimal template
     Given as user "admin"
@@ -36,30 +56,20 @@ Feature: admin/footer_template_preview
     And the response body should not be empty
     And the response body should match the regular expression "^%PDF"
 
-  Scenario: Non-admin user can preview footer template through dedicated endpoint
-    Given user "signer1" exists
-    And as user "signer1"
-    When sending "post" to ocs "/apps/libresign/api/v1/footer-template/preview-pdf"
-      | template | <p>Signer preview</p> |
-      | width    | 595 |
-      | height   | 100 |
-    Then the response should have a status code 200
-    And the response header "Content-Type" should contain "application/pdf"
-    And the response body should not be empty
-    And the response body should match the regular expression "^%PDF"
-
-  Scenario: User with disabled add_footer policy cannot preview footer template
-    Given user "signer1" exists
-    And as user "signer1"
-    And sending "put" to ocs "/apps/libresign/api/v1/policies/user/add_footer"
+  Scenario: Admin cannot preview footer template while add_footer policy is disabled
+    Given as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/add_footer"
       | value | false |
+      | allowChildOverride | true |
     And the response should have a status code 200
     When sending "post" to ocs "/apps/libresign/api/v1/footer-template/preview-pdf"
-      | template | <p>Signer preview denied</p> |
+      | template | <p>Admin preview bypass</p> |
       | width    | 595 |
       | height   | 100 |
     Then the response should have a status code 403
-    And sending "delete" to ocs "/apps/libresign/api/v1/policies/user/add_footer"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/add_footer"
+      | value | true |
+      | allowChildOverride | true |
     And the response should have a status code 200
 
   Scenario: Reset footer template clears customization and allows a new template
