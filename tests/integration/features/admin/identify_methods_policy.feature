@@ -44,3 +44,17 @@ Feature: admin/identify_methods_policy
       | key | value |
       | (jq).ocs.data.policies.identify_methods.sourceScope | user_policy |
       | (jq).ocs.data.policies.identify_methods.effectiveValue.factors[0].name | email |
+
+  Scenario: Empty identify_methods payload still exposes available factors in effective policy
+    Given as user "admin"
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string)[] |
+      | allowChildOverride | true |
+    Then the response should have a status code 200
+
+    When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value |
+      | (jq)(.ocs.data.policies.identify_methods.effectiveValue.factors \| map(select(.name == "account")) \| length) | 1 |
+      | (jq)(.ocs.data.policies.identify_methods.effectiveValue.factors \| map(select(.name == "email")) \| length) | 1 |

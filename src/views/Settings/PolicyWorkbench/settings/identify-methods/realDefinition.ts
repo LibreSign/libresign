@@ -12,12 +12,26 @@ import { normalizeIdentifyMethodsPolicy, serializeIdentifyMethodsPolicy } from '
 import type { EffectivePoliciesResponse, EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 
-function getInitialIdentifyMethods(): string {
+function getInitialIdentifyMethodsCatalog(): EffectivePolicyValue {
+	return loadState<EffectivePolicyValue>('libresign', 'identify_methods_catalog', [])
+}
+
+function getEffectiveIdentifyMethodsPolicyValue(): EffectivePolicyValue {
 	const effectivePolicies = loadState<EffectivePoliciesResponse>('libresign', 'effective_policies', { policies: {} })
-	const identifyMethodsPolicyValue = effectivePolicies.policies?.identify_methods?.effectiveValue
-	const normalized = normalizeIdentifyMethodsPolicy(
-		identifyMethodsPolicyValue ?? [],
-	)
+	return effectivePolicies.policies?.identify_methods?.effectiveValue ?? []
+}
+
+function getCreateSeedEntries() {
+	const effectiveEntries = normalizeIdentifyMethodsPolicy(getEffectiveIdentifyMethodsPolicyValue())
+	if (effectiveEntries.length > 0) {
+		return effectiveEntries
+	}
+
+	return normalizeIdentifyMethodsPolicy(getInitialIdentifyMethodsCatalog())
+}
+
+function getInitialIdentifyMethods(): string {
+	const normalized = getCreateSeedEntries()
 
 	const permissiveDefaults = normalized.map((entry) => ({
 		...entry,
@@ -49,7 +63,7 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 			return policyValue
 		}
 
-		return serializeIdentifyMethodsPolicy([])
+		return getInitialIdentifyMethods()
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const normalized = normalizeIdentifyMethodsPolicy(value)
