@@ -12,7 +12,8 @@ Feature: admin/initial_state
     Then the response should contain the initial state "libresign-effective_policies" json that match with:
       | key | value |
       | (jq).policies.identify_methods.policyKey | identify_methods |
-      | (jq).policies.identify_methods.effectiveValue.factors\|length | 0 |
+      | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "account")) \| length) | 1 |
+      | (jq)(.policies.identify_methods.effectiveValue.factors \| map(select(.name == "email")) \| length) | 1 |
 
   Scenario: Identify methods stored as invalid string can be normalized through the API contract
     Given as user "admin"

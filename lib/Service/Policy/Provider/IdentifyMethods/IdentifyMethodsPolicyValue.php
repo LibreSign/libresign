@@ -168,6 +168,15 @@ final class IdentifyMethodsPolicyValue {
 		}
 
 		if ($identifyMethodService !== null) {
+			if ($normalized === []) {
+				$fallbackPayload = self::normalize($identifyMethodService->getIdentifyMethodsSettings(), null);
+				$normalized = self::extractFactors($fallbackPayload);
+
+				if ($legacyGlobalCanCreateAccount === null && array_key_exists('can_create_account', $fallbackPayload)) {
+					$legacyGlobalCanCreateAccount = (bool)$fallbackPayload['can_create_account'];
+				}
+			}
+
 			$friendlyNames = $identifyMethodService->getFriendlyNamesMap();
 			foreach ($normalized as &$entry) {
 				if (!isset($entry['friendly_name']) && isset($entry['name'], $friendlyNames[$entry['name']])) {

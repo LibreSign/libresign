@@ -310,10 +310,10 @@ test('footer template reset reverts to inherited default after save and reload',
 	await saveRule(ruleDialog)
 	const persistedAfterReset = await getPersistedSystemFooterPolicy(page)
 	expect(persistedAfterReset.footerTemplate).not.toBe(customTemplate)
-	expect(persistedAfterReset.footerTemplate.length).toBeGreaterThan(0)
+	expect(persistedAfterReset.customizeFooterTemplate).toBe(false)
 
 	await page.reload()
 	const persistedAfterReload = await getPersistedSystemFooterPolicy(page)
 	expect(persistedAfterReload.footerTemplate).toBe(persistedAfterReset.footerTemplate)
-	expect(typeof persistedAfterReload.customizeFooterTemplate).toBe('boolean')
+	expect(persistedAfterReload.customizeFooterTemplate).toBe(false)
 })

@@ -17,10 +17,18 @@ const { identifyMethodsState } = vi.hoisted(() => ({
 	},
 }))
 
+const { identifyMethodsCatalogState } = vi.hoisted(() => ({
+	identifyMethodsCatalogState: [] as unknown[],
+}))
+
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((_app, key: string, defaultValue: unknown) => {
 		if (key === 'effective_policies') {
 			return identifyMethodsState
+		}
+
+		if (key === 'identify_methods_catalog') {
+			return identifyMethodsCatalogState
 		}
 
 		return defaultValue
@@ -32,6 +40,7 @@ import { identifyMethodsRealDefinition } from '../../../../views/Settings/Policy
 describe('identifyMethodsRealDefinition', () => {
 	beforeEach(() => {
 		identifyMethodsState.policies.identify_methods.effectiveValue = []
+		identifyMethodsCatalogState.splice(0, identifyMethodsCatalogState.length)
 	})
 
 	it('reads identify_methods from effective policies at create-time, not module-load time', () => {
@@ -52,6 +61,26 @@ describe('identifyMethodsRealDefinition', () => {
 		expect(second.factors).toHaveLength(1)
 		expect(second.factors[0]).toMatchObject({
 			name: 'email',
+			enabled: true,
+			requirement: 'optional',
+		})
+	})
+
+	it('falls back to identify methods catalog when effective policy factors are empty', () => {
+		identifyMethodsCatalogState.push(
+			{
+				name: 'account',
+				enabled: true,
+				signatureMethods: {
+					clickToSign: { enabled: true },
+				},
+			},
+		)
+
+		const value = JSON.parse(String(identifyMethodsRealDefinition.createEmptyValue()))
+		expect(value.factors).toHaveLength(1)
+		expect(value.factors[0]).toMatchObject({
+			name: 'account',
 			enabled: true,
 			requirement: 'optional',
 		})
