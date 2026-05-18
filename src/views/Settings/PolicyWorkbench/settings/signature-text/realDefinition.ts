@@ -4,9 +4,11 @@
  */
 
 import { t } from '@nextcloud/l10n'
+
+import SignatureTextRuleEditor from './SignatureTextRuleEditor.vue'
+
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
-import SignatureTextRuleEditor from './SignatureTextRuleEditor.vue'
 import {
 	getDefaultSignatureTextPolicyConfig,
 	normalizeSignatureTextPolicyConfig,
@@ -14,9 +16,9 @@ import {
 } from './model'
 
 export const signatureTextRealDefinition: RealPolicySettingDefinition = {
-	key: 'signature_text',
-	title: t('libresign', 'Signature text'),
-	description: t('libresign', 'Configure signature text template, font sizes, dimensions, and rendering mode.'),
+	key: 'signature_stamp',
+	title: t('libresign', 'Signature stamp'),
+	description: t('libresign', 'Configure the signature text, dimensions, rendering mode, and background image behavior.'),
 	editor: SignatureTextRuleEditor,
 	editorProps: {
 		preferenceAutoSave: true,
@@ -44,6 +46,7 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 		}
 
 		parts.push(`${normalized.signatureWidth}×${normalized.signatureHeight}px`)
+		parts.push(`${t('libresign', 'Background')}: ${normalized.backgroundType}`)
 		parts.push(`${t('libresign', 'Mode')}: ${normalized.renderMode}`)
 
 		return parts.join(' • ')

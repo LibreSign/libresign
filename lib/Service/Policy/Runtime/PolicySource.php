@@ -13,6 +13,7 @@ use OCA\Libresign\Db\PermissionSet;
 use OCA\Libresign\Db\PermissionSetBinding;
 use OCA\Libresign\Db\PermissionSetBindingMapper;
 use OCA\Libresign\Db\PermissionSetMapper;
+use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicySource;
 use OCA\Libresign\Service\Policy\Model\PolicyContext;
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
@@ -178,17 +179,49 @@ class PolicySource implements IPolicySource {
 			return null;
 		}
 
-		$decodedPayload = $this->deserializeStoredUserPolicyPayload($storedPayload);
-		if (!is_array($decodedPayload) || !array_key_exists('value', $decodedPayload) || $decodedPayload['value'] === null) {
-			return null;
+		return $this->createUserPolicyLayerFromPayload($definition, $storedPayload);
+	}
+
+	/**
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	#[\Override]
+	public function listUserPoliciesByKey(string $policyKey): array {
+		$definition = $this->registry->get($policyKey);
+		$assignedPolicyKey = $this->getAssignedUserPolicyKey($definition->getUserPreferenceKey());
+
+		$query = $this->db->getQueryBuilder();
+		$query->select('userid', 'configvalue')
+			->from('preferences')
+			->where($query->expr()->eq('appid', $query->createNamedParameter(Application::APP_ID)))
+			->andWhere($query->expr()->eq('configkey', $query->createNamedParameter($assignedPolicyKey)))
+			->andWhere($query->expr()->neq('configvalue', $query->createNamedParameter('')));
+
+		$result = $query->executeQuery();
+		$policies = [];
+		try {
+			while ($row = $result->fetchAssociative()) {
+				$userId = (string)($row['userid'] ?? '');
+				$payload = (string)($row['configvalue'] ?? '');
+				if ($userId === '' || $payload === '') {
+					continue;
+				}
+
+				$policyLayer = $this->createUserPolicyLayerFromPayload($definition, $payload);
+				if (!$policyLayer instanceof PolicyLayer) {
+					continue;
+				}
+
+				$policies[] = [
+					'targetId' => $userId,
+					'policy' => $policyLayer,
+				];
+			}
+		} finally {
+			$result->closeCursor();
 		}
 
-		return (new PolicyLayer())
-			->setScope('user_policy')
-			->setValue($definition->normalizeValue($decodedPayload['value']))
-			->setAllowChildOverride((bool)($decodedPayload['allowChildOverride'] ?? false))
-			->setVisibleToChild(true)
-			->setAllowedValues(((bool)($decodedPayload['allowChildOverride'] ?? false)) ? [] : [$definition->normalizeValue($decodedPayload['value'])]);
+		return $policies;
 	}
 
 	/**
@@ -379,6 +412,47 @@ class PolicySource implements IPolicySource {
 		}
 
 		return $this->createGroupPolicyLayer($policyConfig);
+	}
+
+	/**
+	 * @return list<array{targetId: string, policy: PolicyLayer}>
+	 */
+	#[\Override]
+	public function listGroupPoliciesByKey(string $policyKey): array {
+		$bindings = $this->bindingMapper->findByTargetType('group');
+		if ($bindings === []) {
+			return [];
+		}
+
+		$permissionSetIds = array_values(array_unique(array_map(
+			static fn (PermissionSetBinding $binding): int => $binding->getPermissionSetId(),
+			$bindings,
+		)));
+
+		$permissionSetsById = [];
+		foreach ($this->permissionSetMapper->findByIds($permissionSetIds) as $permissionSet) {
+			$permissionSetsById[$permissionSet->getId()] = $permissionSet;
+		}
+
+		$policies = [];
+		foreach ($bindings as $binding) {
+			$permissionSet = $permissionSetsById[$binding->getPermissionSetId()] ?? null;
+			if (!$permissionSet instanceof PermissionSet) {
+				continue;
+			}
+
+			$policyConfig = $permissionSet->getDecodedPolicyJson()[$policyKey] ?? null;
+			if (!is_array($policyConfig) || !array_key_exists('defaultValue', $policyConfig) || $policyConfig['defaultValue'] === null) {
+				continue;
+			}
+
+			$policies[] = [
+				'targetId' => $binding->getTargetId(),
+				'policy' => $this->createGroupPolicyLayer($policyConfig),
+			];
+		}
+
+		return $policies;
 	}
 
 	/**
@@ -682,6 +756,23 @@ class PolicySource implements IPolicySource {
 			'value' => $value,
 			'allowChildOverride' => $allowChildOverride,
 		], JSON_THROW_ON_ERROR);
+	}
+
+	private function createUserPolicyLayerFromPayload(IPolicyDefinition $definition, string $storedPayload): ?PolicyLayer {
+		$decodedPayload = $this->deserializeStoredUserPolicyPayload($storedPayload);
+		if (!is_array($decodedPayload) || !array_key_exists('value', $decodedPayload) || $decodedPayload['value'] === null) {
+			return null;
+		}
+
+		$normalizedValue = $definition->normalizeValue($decodedPayload['value']);
+		$allowChildOverride = (bool)($decodedPayload['allowChildOverride'] ?? false);
+
+		return (new PolicyLayer())
+			->setScope('user_policy')
+			->setValue($normalizedValue)
+			->setAllowChildOverride($allowChildOverride)
+			->setVisibleToChild(true)
+			->setAllowedValues($allowChildOverride ? [] : [$normalizedValue]);
 	}
 
 	private function deserializeStoredUserPolicyPayload(string $payload): mixed {

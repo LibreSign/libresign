@@ -9,6 +9,7 @@ export interface SignatureTextPolicyConfig {
 	signatureFontSize: number
 	signatureWidth: number
 	signatureHeight: number
+	backgroundType: string
 	renderMode: string
 }
 
@@ -19,6 +20,7 @@ export function getDefaultSignatureTextPolicyConfig(): SignatureTextPolicyConfig
 		signatureFontSize: 9.0,
 		signatureWidth: 90.0,
 		signatureHeight: 60.0,
+		backgroundType: 'default',
 		renderMode: 'default',
 	}
 }
@@ -30,6 +32,7 @@ export function serializeSignatureTextPolicyConfig(config: Partial<SignatureText
 		signature_font_size: config.signatureFontSize ?? 9.0,
 		signature_width: config.signatureWidth ?? 90.0,
 		signature_height: config.signatureHeight ?? 60.0,
+		background_type: config.backgroundType ?? 'default',
 		render_mode: config.renderMode ?? 'default',
 	})
 }
@@ -50,12 +53,13 @@ export function normalizeSignatureTextPolicyConfig(rawValue: unknown): Signature
 
 	if (obj) {
 		return {
-			template: String(obj.template ?? obj.signature_text_template ?? '').trim(),
-			templateFontSize: Number(obj.template_font_size ?? obj.templateFontSize ?? 9.0),
-			signatureFontSize: Number(obj.signature_font_size ?? obj.signatureFontSize ?? 9.0),
-			signatureWidth: Number(obj.signature_width ?? obj.signatureWidth ?? 90.0),
-			signatureHeight: Number(obj.signature_height ?? obj.signatureHeight ?? 60.0),
-			renderMode: String(obj.render_mode ?? obj.renderMode ?? 'default'),
+			template: String(obj.template ?? '').trim(),
+			templateFontSize: Number(obj.template_font_size ?? 9.0),
+			signatureFontSize: Number(obj.signature_font_size ?? 9.0),
+			signatureWidth: Number(obj.signature_width ?? 90.0),
+			signatureHeight: Number(obj.signature_height ?? 60.0),
+			backgroundType: String(obj.background_type ?? 'default').trim(),
+			renderMode: String(obj.render_mode ?? 'default'),
 		}
 	}
 

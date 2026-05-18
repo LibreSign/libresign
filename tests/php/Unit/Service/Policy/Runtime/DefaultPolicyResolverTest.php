@@ -379,6 +379,11 @@ final class InMemoryPolicySource implements IPolicySource {
 		return $this->groupLayers[0] ?? null;
 	}
 
+	/** @return list<array{targetId: string, policy: PolicyLayer}> */
+	public function listGroupPoliciesByKey(string $policyKey): array {
+		return [];
+	}
+
 	public function loadCirclePolicies(string $policyKey, PolicyContext $context): array {
 		$this->circlePoliciesLoaded = true;
 		return $this->circleLayers;
@@ -428,6 +433,11 @@ final class InMemoryPolicySource implements IPolicySource {
 
 	public function loadUserPolicyConfig(string $policyKey, string $userId): ?PolicyLayer {
 		return $this->userPolicy;
+	}
+
+	/** @return list<array{targetId: string, policy: PolicyLayer}> */
+	public function listUserPoliciesByKey(string $policyKey): array {
+		return [];
 	}
 
 	public function saveUserPreference(string $policyKey, PolicyContext $context, mixed $value): void {

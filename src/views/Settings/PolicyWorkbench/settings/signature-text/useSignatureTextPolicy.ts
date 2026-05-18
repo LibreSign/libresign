@@ -29,7 +29,7 @@ export function useSignatureTextPolicy(): { values: ComputedRef<SignatureTextVal
 	const policiesStore = usePoliciesStore()
 
 	const values = computed<SignatureTextValues>(() => {
-		const signatureTextPolicy = policiesStore.policies.signature_text
+		const signatureTextPolicy = policiesStore.policies.signature_stamp
 
 		return signatureTextPolicy?.effectiveValue
 			? normalizeSignatureTextPolicyConfig(signatureTextPolicy.effectiveValue)

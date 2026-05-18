@@ -457,7 +457,7 @@ test('admin can manage instance, group, and user rules when system default is fi
 		return
 	}
 	await expect(stableDialog).toContainText(userTarget)
-	await expect(stableDialog).toContainText('Simultaneous (Parallel)')
+	await expect(stableDialog).toContainText('Parallel')
 
 	// User rule: edit
 	await editRule(stableDialog, 'User', userTarget)

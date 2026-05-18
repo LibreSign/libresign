@@ -19,6 +19,7 @@ use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy as SignatureTextPolicyProvider;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -114,12 +115,14 @@ class SignatureTextService {
 		$template = strip_tags((string)$template);
 		$template = trim($template);
 		$template = html_entity_decode($template);
-		$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_TEMPLATE, $template);
-		$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH, $signatureWidth);
-		$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT, $signatureHeight);
-		$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE, $templateFontSize);
-		$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE, $signatureFontSize);
-		$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY_RENDER_MODE, $renderMode);
+		$resolvedConfig = $this->getSignatureStampPolicyConfig();
+		$resolvedConfig['template'] = $template;
+		$resolvedConfig['signature_width'] = $signatureWidth;
+		$resolvedConfig['signature_height'] = $signatureHeight;
+		$resolvedConfig['template_font_size'] = $templateFontSize;
+		$resolvedConfig['signature_font_size'] = $signatureFontSize;
+		$resolvedConfig['render_mode'] = $renderMode;
+		$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY, SignatureTextPolicyValue::encode($resolvedConfig));
 		return $this->parse($template);
 	}
 
@@ -195,7 +198,8 @@ class SignatureTextService {
 	}
 
 	public function getTemplate(): string {
-		return (string)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE)->getEffectiveValue();
+		$config = $this->getSignatureStampPolicyConfig();
+		return (string)($config['template'] ?? '');
 	}
 
 	public function getAvailableVariables(): array {
@@ -491,15 +495,16 @@ class SignatureTextService {
 	}
 
 	public function getFullSignatureWidth(): float {
-		return $this->getSanitizedDimension(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH, self::DEFAULT_SIGNATURE_WIDTH);
+		return $this->getSanitizedDimension('signature_width', self::DEFAULT_SIGNATURE_WIDTH);
 	}
 
 	public function getFullSignatureHeight(): float {
-		return $this->getSanitizedDimension(SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT, self::DEFAULT_SIGNATURE_HEIGHT);
+		return $this->getSanitizedDimension('signature_height', self::DEFAULT_SIGNATURE_HEIGHT);
 	}
 
 	public function getSignatureWidth(): float {
-		$current = (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH)->getEffectiveValue();
+		$config = $this->getSignatureStampPolicyConfig();
+		$current = (float)($config['signature_width'] ?? self::DEFAULT_SIGNATURE_WIDTH);
 		if ($this->getRenderMode() === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY || !$this->getTemplate()) {
 			return $current;
 		}
@@ -511,7 +516,8 @@ class SignatureTextService {
 	}
 
 	private function getSanitizedDimension(string $key, float $default): float {
-		$value = (float)$this->policyService->resolve($key)->getEffectiveValue();
+		$config = $this->getSignatureStampPolicyConfig();
+		$value = (float)($config[$key] ?? $default);
 		if (!is_finite($value) || $value < self::SIGNATURE_DIMENSION_MINIMUM) {
 			$this->logger->warning('Invalid signature dimension found in policy resolution. Falling back to default value in memory.', [
 				'key' => $key,
@@ -524,7 +530,8 @@ class SignatureTextService {
 	}
 
 	public function getTemplateFontSize(): float {
-		return (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE)->getEffectiveValue();
+		$config = $this->getSignatureStampPolicyConfig();
+		return (float)($config['template_font_size'] ?? self::TEMPLATE_DEFAULT_FONT_SIZE);
 	}
 
 	public function getDefaultTemplateFontSize(): float {
@@ -540,11 +547,13 @@ class SignatureTextService {
 	}
 
 	public function getSignatureFontSize(): float {
-		return (float)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE)->getEffectiveValue();
+		$config = $this->getSignatureStampPolicyConfig();
+		return (float)($config['signature_font_size'] ?? self::SIGNATURE_DEFAULT_FONT_SIZE);
 	}
 
 	public function getRenderMode(): string {
-		return (string)$this->policyService->resolve(SignatureTextPolicyProvider::KEY_RENDER_MODE)->getEffectiveValue();
+		$config = $this->getSignatureStampPolicyConfig();
+		return (string)($config['render_mode'] ?? SignerElementsService::RENDER_MODE_DEFAULT);
 	}
 
 	public function isEnabled(): bool {
@@ -563,5 +572,13 @@ class SignatureTextService {
 		return $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', [
 			'uuid' => $uuid,
 		]);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function getSignatureStampPolicyConfig(): array {
+		$rawValue = $this->policyService->resolve(SignatureTextPolicyProvider::KEY)->getEffectiveValue();
+		return SignatureTextPolicyValue::normalize($rawValue);
 	}
 }

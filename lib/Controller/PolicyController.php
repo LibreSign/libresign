@@ -146,6 +146,39 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * List all explicit group-level policy values for a policy key.
+	 *
+	 * @param string $policyKey Policy identifier to list group rules.
+	 * @return DataResponse<Http::STATUS_OK, array{policies: list<LibresignGroupPolicyState>}, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[NoAdminRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/by-policy/group/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
+	public function listGroupPolicies(string $policyKey): DataResponse {
+		$records = $this->policyService->listGroupPolicies($policyKey);
+		$policies = [];
+
+		foreach ($records as $record) {
+			$groupId = (string)($record['targetId'] ?? '');
+			$policy = $record['policy'] ?? null;
+			if ($groupId === '' || !$policy instanceof PolicyLayer) {
+				continue;
+			}
+
+			if (!$this->canManageGroupPolicy($groupId)) {
+				continue;
+			}
+
+			$policies[] = $this->serializeGroupPolicy($groupId, $policyKey, $policy);
+		}
+
+		return new DataResponse([
+			'policies' => $policies,
+		]);
+	}
+
+	/**
 	 * Read an explicit user-level policy for a target user (admin scope)
 	 *
 	 * @param string $userId Target user identifier that receives the policy assignment.
@@ -169,6 +202,38 @@ final class PolicyController extends AEnvironmentAwareController {
 		];
 
 		return new DataResponse($data);
+	}
+
+	/**
+	 * List all explicit user-level policy values for a policy key.
+	 *
+	 * @param string $policyKey Policy identifier to list user rules.
+	 * @return DataResponse<Http::STATUS_OK, array{policies: list<LibresignUserPolicyState>}, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/by-policy/user/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
+	public function listUserPolicies(string $policyKey): DataResponse {
+		$records = $this->policyService->listUserPolicies($policyKey);
+		$policies = [];
+
+		foreach ($records as $record) {
+			$userId = (string)($record['targetId'] ?? '');
+			$policy = $record['policy'] ?? null;
+			if ($userId === '' || !$policy instanceof PolicyLayer) {
+				continue;
+			}
+
+			if (!$this->canManageUserPolicy($userId)) {
+				continue;
+			}
+
+			$policies[] = $this->serializeUserPolicy($userId, $policyKey, $policy);
+		}
+
+		return new DataResponse([
+			'policies' => $policies,
+		]);
 	}
 
 	/**

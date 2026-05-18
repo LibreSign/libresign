@@ -11,29 +11,7 @@ const { identifyMethodsState } = vi.hoisted(() => ({
 	identifyMethodsState: {
 		policies: {
 			identify_methods: {
-				effectiveValue: [
-					{
-						name: 'account',
-						enabled: true,
-						requirement: 'required',
-						signatureMethods: {
-							clickToSign: { enabled: true },
-							emailToken: { enabled: false },
-							password: { enabled: false },
-						},
-						signatureMethodEnabled: 'clickToSign',
-					},
-					{
-						name: 'email',
-						enabled: true,
-						requirement: 'optional',
-						signatureMethods: {
-							emailToken: { enabled: true },
-							clickToSign: { enabled: false },
-						},
-						signatureMethodEnabled: 'emailToken',
-					},
-				] as unknown[],
+				effectiveValue: [] as unknown[],
 			},
 		},
 	},
@@ -57,49 +35,23 @@ import { identifyMethodsRealDefinition } from '../../../../views/Settings/Policy
 
 describe('identifyMethodsRealDefinition', () => {
 	beforeEach(() => {
-		identifyMethodsState.policies.identify_methods.effectiveValue = [
-			{
-				name: 'account',
-				enabled: true,
-				requirement: 'required',
-				signatureMethods: {
-					clickToSign: { enabled: true },
-					emailToken: { enabled: false },
-					password: { enabled: false },
-				},
-				signatureMethodEnabled: 'clickToSign',
-			},
-			{
-				name: 'email',
-				enabled: true,
-				requirement: 'optional',
-				signatureMethods: {
-					emailToken: { enabled: true },
-					clickToSign: { enabled: false },
-				},
-				signatureMethodEnabled: 'emailToken',
-			},
-		]
+		identifyMethodsState.policies.identify_methods.effectiveValue = []
 		loadStateMock.mockClear()
 	})
 
 	it('reads identify_methods from effective policies at create-time, not module-load time', () => {
 		const first = JSON.parse(String(identifyMethodsRealDefinition.createEmptyValue()))
-		expect(first.factors).toHaveLength(2)
-		expect(first.factors[0].name).toBe('account')
-		expect(first.factors[1].name).toBe('email')
+		expect(first.factors).toEqual([])
 
-		identifyMethodsState.policies.identify_methods.effectiveValue = [
-			{
-				name: 'email',
-				enabled: true,
-				requirement: 'required',
-				signatureMethods: {
-					emailToken: { enabled: true },
-				},
-				signatureMethodEnabled: 'emailToken',
+		identifyMethodsState.policies.identify_methods.effectiveValue.push({
+			name: 'email',
+			enabled: true,
+			requirement: 'required',
+			signatureMethods: {
+				emailToken: { enabled: true },
 			},
-		]
+			signatureMethodEnabled: 'emailToken',
+		})
 
 		const second = JSON.parse(String(identifyMethodsRealDefinition.createEmptyValue()))
 		expect(second.factors).toHaveLength(1)

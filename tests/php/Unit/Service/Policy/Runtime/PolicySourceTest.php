@@ -193,6 +193,71 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame(['ordered_numeric'], $layer->getAllowedValues());
 	}
 
+	/**
+	 * @dataProvider providerStoredUserPolicyPayloadCases
+	 */
+	public function testLoadUserPolicyConfigInterpretsStoredPayloads(
+		string $storedPayload,
+		?string $expectedValue,
+		bool $expectedAllowChildOverride,
+		array $expectedAllowedValues,
+	): void {
+		$this->config
+			->expects($this->once())
+			->method('getUserValue')
+			->with('john', Application::APP_ID, 'policy.signature_flow.assigned', '')
+			->willReturn($storedPayload);
+
+		$layer = $this->getSource()->loadUserPolicyConfig('signature_flow', 'john');
+
+		if ($expectedValue === null) {
+			$this->assertNull($layer);
+			return;
+		}
+
+		$this->assertNotNull($layer);
+		$this->assertSame('user_policy', $layer->getScope());
+		$this->assertSame($expectedValue, $layer->getValue());
+		$this->assertSame($expectedAllowChildOverride, $layer->isAllowChildOverride());
+		$this->assertSame($expectedAllowedValues, $layer->getAllowedValues());
+	}
+
+	/** @return array<string, array{0: string, 1: ?string, 2: bool, 3: array<int, string>}> */
+	public static function providerStoredUserPolicyPayloadCases(): array {
+		return [
+			'allow_child_override_disabled' => [
+				'{"value":"ordered_numeric","allowChildOverride":false}',
+				'ordered_numeric',
+				false,
+				['ordered_numeric'],
+			],
+			'allow_child_override_enabled' => [
+				'{"value":"ordered_numeric","allowChildOverride":true}',
+				'ordered_numeric',
+				true,
+				[],
+			],
+			'missing_value' => [
+				'{"allowChildOverride":true}',
+				null,
+				false,
+				[],
+			],
+			'null_value' => [
+				'{"value":null,"allowChildOverride":true}',
+				null,
+				false,
+				[],
+			],
+			'invalid_json' => [
+				'not-json',
+				null,
+				false,
+				[],
+			],
+		];
+	}
+
 	public function testSaveUserPolicyPersistsAssignedUserPayload(): void {
 		$this->config
 			->expects($this->once())
@@ -201,6 +266,48 @@ final class PolicySourceTest extends TestCase {
 
 		$source = $this->getSource();
 		$source->saveUserPolicy('signature_flow', PolicyContext::fromUserId('john'), 'ordered_numeric', true);
+	}
+
+	public function testLoadUserPolicyConfigReturnsNullWhenUserIdIsEmpty(): void {
+		$this->config->expects($this->never())->method('getUserValue');
+
+		$this->assertNull($this->getSource()->loadUserPolicyConfig('signature_flow', ''));
+	}
+
+	public function testListUserPoliciesByKeyReturnsMappedTargetsFromDatabase(): void {
+		$expr = $this->createMock(IExpressionBuilder::class);
+		$expr->method('eq')->willReturn('1=1');
+		$expr->method('in')->willReturn('1=1');
+		$expr->method('neq')->willReturn('1=1');
+
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('select')->willReturnSelf();
+		$qb->method('from')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('andWhere')->willReturnSelf();
+		$qb->method('expr')->willReturn($expr);
+		$qb->method('createNamedParameter')->willReturn(':p');
+
+		$dbResult = $this->createMock(IResult::class);
+		$dbResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
+			['userid' => 'john', 'configvalue' => '{"value":"ordered_numeric","allowChildOverride":true}'],
+			['userid' => '', 'configvalue' => '{"value":"parallel"}'],
+			['userid' => 'mary', 'configvalue' => 'not-json'],
+			false,
+		);
+		$dbResult->expects($this->once())->method('closeCursor');
+		$qb->method('executeQuery')->willReturn($dbResult);
+
+		$this->db->expects($this->once())->method('getQueryBuilder')->willReturn($qb);
+
+		$result = $this->getSource()->listUserPoliciesByKey('signature_flow');
+
+		$this->assertCount(1, $result);
+		$this->assertSame('john', $result[0]['targetId']);
+		$this->assertSame('user_policy', $result[0]['policy']->getScope());
+		$this->assertSame('ordered_numeric', $result[0]['policy']->getValue());
+		$this->assertTrue($result[0]['policy']->isAllowChildOverride());
+		$this->assertSame([], $result[0]['policy']->getAllowedValues());
 	}
 
 	public function testClearUserPolicyDeletesAssignedUserConfig(): void {
@@ -221,6 +328,60 @@ final class PolicySourceTest extends TestCase {
 
 		$source = $this->getSource();
 		$source->clearUserPreference('signature_flow', PolicyContext::fromUserId('john'));
+	}
+
+	public function testListGroupPoliciesByKeyReturnsOnlyValidTargets(): void {
+		$bindingOne = new PermissionSetBinding();
+		$bindingOne->setPermissionSetId(11);
+		$bindingOne->setTargetType('group');
+		$bindingOne->setTargetId('finance');
+
+		$bindingTwo = new PermissionSetBinding();
+		$bindingTwo->setPermissionSetId(12);
+		$bindingTwo->setTargetType('group');
+		$bindingTwo->setTargetId('legal');
+
+		$permissionSetOne = new PermissionSet();
+		$permissionSetOne->setId(11);
+		$permissionSetOne->setPolicyJson([
+			'signature_flow' => [
+				'defaultValue' => 'ordered_numeric',
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => ['ordered_numeric'],
+			],
+		]);
+
+		$permissionSetTwo = new PermissionSet();
+		$permissionSetTwo->setId(12);
+		$permissionSetTwo->setPolicyJson([
+			'signature_flow' => [
+				'allowChildOverride' => true,
+				'visibleToChild' => false,
+				'allowedValues' => ['parallel'],
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('findByTargetType')
+			->with('group')
+			->willReturn([$bindingOne, $bindingTwo]);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('findByIds')
+			->with([11, 12])
+			->willReturn([$permissionSetOne, $permissionSetTwo]);
+
+		$result = $this->getSource()->listGroupPoliciesByKey('signature_flow');
+
+		$this->assertCount(1, $result);
+		$this->assertSame('finance', $result[0]['targetId']);
+		$this->assertSame('group', $result[0]['policy']->getScope());
+		$this->assertSame('ordered_numeric', $result[0]['policy']->getValue());
+		$this->assertFalse($result[0]['policy']->isAllowChildOverride());
+		$this->assertSame(['ordered_numeric'], $result[0]['policy']->getAllowedValues());
 	}
 
 	public function testSaveSystemPolicyDeletesAppConfigWhenValueMatchesDefault(): void {
@@ -561,6 +722,10 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('ordered_numeric', $layer->getValue());
 	}
 
+	public function testLoadCirclePoliciesReturnsEmptyArray(): void {
+		$this->assertSame([], $this->getSource()->loadCirclePolicies('signature_flow', PolicyContext::fromUserId('john')));
+	}
+
 	public function testLoadAllGroupPoliciesBuildsLayersForAllPoliciesWithSingleQueryPair(): void {
 		$binding = new PermissionSetBinding();
 		$binding->setPermissionSetId(77);
@@ -663,6 +828,62 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('parallel', $result['signature_flow']->getValue());
 	}
 
+	public function testLoadAllUserPoliciesReturnsEmptyArrayWhenContextHasNoUser(): void {
+		$this->db->expects($this->never())->method('getQueryBuilder');
+
+		$this->assertSame([], $this->getSource()->loadAllUserPolicies(['signature_flow'], new PolicyContext()));
+	}
+
+	/**
+	 * @dataProvider providerStoredUserPolicyPayloadCases
+	 */
+	public function testLoadAllUserPoliciesInterpretsStoredPayloads(
+		string $storedPayload,
+		?string $expectedValue,
+		bool $expectedAllowChildOverride,
+		array $expectedAllowedValues,
+	): void {
+		$expr = $this->createMock(IExpressionBuilder::class);
+		$expr->method('eq')->willReturn('1=1');
+		$expr->method('in')->willReturn('1=1');
+		$expr->method('neq')->willReturn('1=1');
+
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('select')->willReturnSelf();
+		$qb->method('from')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('andWhere')->willReturnSelf();
+		$qb->method('groupBy')->willReturnSelf();
+		$qb->method('expr')->willReturn($expr);
+		$qb->method('createNamedParameter')->willReturn(':p');
+
+		$dbResult = $this->createMock(IResult::class);
+		$dbResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
+			['configkey' => 'policy.signature_flow.assigned', 'configvalue' => $storedPayload],
+			false,
+		);
+		$dbResult->expects($this->once())->method('closeCursor');
+		$qb->method('executeQuery')->willReturn($dbResult);
+
+		$this->db->expects($this->once())->method('getQueryBuilder')->willReturn($qb);
+
+		$result = $this->getSource()->loadAllUserPolicies(
+			['signature_flow'],
+			PolicyContext::fromUserId('john'),
+		);
+
+		if ($expectedValue === null) {
+			$this->assertSame([], $result);
+			return;
+		}
+
+		$this->assertArrayHasKey('signature_flow', $result);
+		$this->assertSame('user_policy', $result['signature_flow']->getScope());
+		$this->assertSame($expectedValue, $result['signature_flow']->getValue());
+		$this->assertSame($expectedAllowChildOverride, $result['signature_flow']->isAllowChildOverride());
+		$this->assertSame($expectedAllowedValues, $result['signature_flow']->getAllowedValues());
+	}
+
 	public function testLoadAllRuleCountsReturnsZeroCountsWhenNoBindingsExist(): void {
 		$this->bindingMapper
 			->expects($this->once())
@@ -698,6 +919,78 @@ final class PolicySourceTest extends TestCase {
 		$this->assertArrayHasKey('signature_flow', $result);
 		$this->assertSame(0, $result['signature_flow']['groupCount']);
 		$this->assertSame(0, $result['signature_flow']['userCount']);
+	}
+
+	public function testLoadRuleCountsCountsFilteredGroupAndUserRules(): void {
+		$binding = new PermissionSetBinding();
+		$binding->setPermissionSetId(42);
+		$binding->setTargetType('group');
+		$binding->setTargetId('finance');
+
+		$permissionSet = new PermissionSet();
+		$permissionSet->setId(42);
+		$permissionSet->setPolicyJson([
+			'signature_flow' => [
+				'defaultValue' => 'ordered_numeric',
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => ['ordered_numeric'],
+			],
+			'docmdp' => [
+				'defaultValue' => null,
+				'allowChildOverride' => false,
+				'visibleToChild' => true,
+				'allowedValues' => [],
+			],
+		]);
+
+		$this->bindingMapper
+			->expects($this->once())
+			->method('findByTargets')
+			->with('group', ['finance'])
+			->willReturn([$binding]);
+
+		$this->permissionSetMapper
+			->expects($this->once())
+			->method('findByIds')
+			->with([42])
+			->willReturn([$permissionSet]);
+
+		$expr = $this->createMock(IExpressionBuilder::class);
+		$expr->method('eq')->willReturn('1=1');
+		$expr->method('in')->willReturn('1=1');
+		$expr->method('neq')->willReturn('1=1');
+
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('select')->willReturnSelf();
+		$qb->method('selectAlias')->willReturnSelf();
+		$qb->method('from')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('andWhere')->willReturnSelf();
+		$qb->method('groupBy')->willReturnSelf();
+		$qb->method('expr')->willReturn($expr);
+		$qb->method('createNamedParameter')->willReturn(':p');
+		$qb->method('createFunction')->willReturn('COUNT(DISTINCT userid)');
+
+		$dbResult = $this->createMock(IResult::class);
+		$dbResult->method('fetchAssociative')->willReturnOnConsecutiveCalls(
+			['configkey' => 'policy.signature_flow.assigned', 'user_count' => '2'],
+			false,
+		);
+		$dbResult->expects($this->once())->method('closeCursor');
+		$qb->method('executeQuery')->willReturn($dbResult);
+
+		$this->db->expects($this->once())->method('getQueryBuilder')->willReturn($qb);
+
+		$result = $this->getSource()->loadRuleCounts(['', 'finance', 'finance'], ['', 'john', 'john']);
+
+		$this->assertArrayHasKey('signature_flow', $result);
+		$this->assertSame(1, $result['signature_flow']['groupCount']);
+		$this->assertSame(2, $result['signature_flow']['userCount']);
+
+		$this->assertArrayHasKey('docmdp', $result);
+		$this->assertSame(0, $result['docmdp']['groupCount']);
+		$this->assertSame(0, $result['docmdp']['userCount']);
 	}
 
 	public function testLoadAllRuleCountsAggregatesGroupAndUserCounts(): void {
