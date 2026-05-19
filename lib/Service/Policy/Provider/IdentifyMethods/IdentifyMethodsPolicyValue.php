@@ -23,6 +23,17 @@ final class IdentifyMethodsPolicyValue {
 			$defaultFactors = [];
 			if ($identifyMethodService !== null) {
 				$defaultFactors = $identifyMethodService->getDefaultIdentifyMethodsPolicy();
+				if ($defaultFactors === []) {
+					$friendlyNames = $identifyMethodService->getFriendlyNamesMap();
+					foreach ($friendlyNames as $name => $friendlyName) {
+						$defaultFactors[] = [
+							'name' => $name,
+							'enabled' => true,
+							'signatureMethods' => [],
+							'friendly_name' => $friendlyName,
+						];
+					}
+				}
 			}
 			return [
 				'factors' => $defaultFactors,
