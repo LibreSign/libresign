@@ -311,6 +311,7 @@ OC.L10N.register(
     "Define a password and sign the document." : "Zdefiniuj hasło i podpisz dokument.",
     "Sign the document." : "Podpisz dokument.",
     "Unable to sign." : "Nie można podpisać.",
+    "Forgot password?" : "Zapomniałeś hasła?",
     "Partial" : "Częściowe",
     "Complete" : "Zakończ",
     "This document is valid" : "Ten dokument jest prawidłowy",
