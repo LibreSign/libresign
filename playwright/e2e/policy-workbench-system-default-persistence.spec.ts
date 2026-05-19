@@ -48,7 +48,7 @@ async function waitForEditorIdle(dialog: Locator) {
 
 async function setSigningFlow(dialog: Locator, flow: 'parallel' | 'ordered_numeric' | 'none'): Promise<boolean> {
 	const label = flow === 'parallel'
-		? /Simultaneous \(Parallel\)/i
+		? /Simultaneous \(Parallel\)|Parallel/i
 		: flow === 'ordered_numeric'
 			? /Sequential/i
 			: /Let users choose/i

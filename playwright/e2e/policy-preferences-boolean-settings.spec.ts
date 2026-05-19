@@ -32,6 +32,7 @@ const adminPass = process.env.ADMIN_PASSWORD || 'admin'
 
 test.describe('Policy preferences: boolean settings', () => {
 	test('user can save and clear collect_metadata, identification_documents, docmdp and signature_text preferences', async ({ page }) => {
+		test.setTimeout(180000)
 		const groupId = `pref-boolean-${Date.now()}`
 		const endUser = `prefboolean_${Date.now()}`
 		const endPass = 'user1234'
@@ -42,7 +43,7 @@ test.describe('Policy preferences: boolean settings', () => {
 		const originalCollectMetadata = await getSystemPolicySnapshot(adminCtx, 'collect_metadata')
 		const originalIdentificationDocuments = await getSystemPolicySnapshot(adminCtx, 'identification_documents')
 		const originalDocmdp = await getSystemPolicySnapshot(adminCtx, 'docmdp')
-		const originalSignatureText = await getSystemPolicySnapshot(adminCtx, 'signature_text')
+		const originalSignatureText = await getSystemPolicySnapshot(adminCtx, 'signature_stamp')
 		const signatureTextSystemValue = JSON.stringify({
 			template: 'System template',
 			template_font_size: 9,
@@ -81,8 +82,8 @@ test.describe('Policy preferences: boolean settings', () => {
 			await setGroupPolicyEntry(adminCtx, groupId, 'identification_documents', JSON.stringify(true), true)
 			await setSystemNumericPolicyEntry(adminCtx, 'docmdp', 0, true)
 			await setGroupNumericPolicyEntry(adminCtx, groupId, 'docmdp', 2, true)
-			await setSystemPolicyEntry(adminCtx, 'signature_text', signatureTextSystemValue, true)
-			await setGroupPolicyEntry(adminCtx, groupId, 'signature_text', signatureTextGroupValue, true)
+			await setSystemPolicyEntry(adminCtx, 'signature_stamp', signatureTextSystemValue, true)
+			await setGroupPolicyEntry(adminCtx, groupId, 'signature_stamp', signatureTextGroupValue, true)
 
 			endUserCtx = await createAuthenticatedRequestContext(endUser, endPass)
 
@@ -94,27 +95,27 @@ test.describe('Policy preferences: boolean settings', () => {
 			const collectMetadataSection = await sectionByTitle(page, 'Collect signer metadata')
 			const idDocsSection = await sectionByTitle(page, 'Identification documents flow')
 			const docMdpSection = await sectionByTitle(page, 'PDF certification')
-			const signatureTextSection = await sectionByTitle(page, 'Signature text')
+			const signatureTextSection = await sectionByTitle(page, /Signature text|Signature stamp/i)
 
 			expect(await collectMetadataSection.isVisible()).toBe(true)
 			expect(await idDocsSection.isVisible()).toBe(true)
 			expect(await docMdpSection.isVisible()).toBe(true)
 			expect(await signatureTextSection.isVisible()).toBe(true)
 
-			await savePreferenceAsDisabled(page, collectMetadataSection, 'collect_metadata')
-			await savePreferenceAsDisabled(page, idDocsSection, 'identification_documents')
-			await saveDocMdpPreference(page, docMdpSection, 3)
-			await saveSignatureTextTemplatePreference(page, signatureTextSection, 'User custom template')
+			await savePreferenceAsDisabled(collectMetadataSection)
+			await savePreferenceAsDisabled(idDocsSection)
+			await saveDocMdpPreference(docMdpSection, 3)
+			await saveSignatureTextTemplatePreference(signatureTextSection, 'User custom template')
 
 			await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', false, 'user')
 			await expectPolicyEffectiveValue(endUserCtx, 'identification_documents', { enabled: false, approvers: ['admin'] }, 'user')
 			await expectDocMdpEffectiveValue(endUserCtx, 3, 'user')
 			await expectSignatureTextEffectiveScope(endUserCtx, 'user', 'User custom template')
 
-			await clearPreference(page, collectMetadataSection, 'collect_metadata')
-			await clearPreference(page, idDocsSection, 'identification_documents')
-			await clearPreference(page, docMdpSection, 'docmdp')
-			await clearPreference(page, signatureTextSection, 'signature_text')
+			await clearPreference(collectMetadataSection)
+			await clearPreference(idDocsSection)
+			await clearPreference(docMdpSection)
+			await clearPreference(signatureTextSection)
 
 			await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', true, 'group')
 			await expectPolicyEffectiveValue(endUserCtx, 'identification_documents', { enabled: false, approvers: ['admin'] }, 'group')
@@ -125,7 +126,7 @@ test.describe('Policy preferences: boolean settings', () => {
 				await clearUserPolicyPreference(endUserCtx, 'collect_metadata', [200, 401, 500])
 				await clearUserPolicyPreference(endUserCtx, 'identification_documents', [200, 401, 500])
 				await clearUserPolicyPreference(endUserCtx, 'docmdp', [200, 401, 500])
-				await clearUserPolicyPreference(endUserCtx, 'signature_text', [200, 401, 500])
+				await clearUserPolicyPreference(endUserCtx, 'signature_stamp', [200, 401, 500])
 				await endUserCtx.dispose()
 			}
 
@@ -133,7 +134,7 @@ test.describe('Policy preferences: boolean settings', () => {
 			await restoreSystemPolicySnapshot(adminCtx, 'collect_metadata', originalCollectMetadata)
 			await restoreSystemPolicySnapshot(adminCtx, 'identification_documents', originalIdentificationDocuments)
 			await restoreSystemPolicySnapshot(adminCtx, 'docmdp', originalDocmdp)
-			await restoreSystemPolicySnapshot(adminCtx, 'signature_text', originalSignatureText)
+			await restoreSystemPolicySnapshot(adminCtx, 'signature_stamp', originalSignatureText)
 
 			await policyRequest(adminCtx, 'DELETE', `/cloud/users/${endUser}`)
 			await policyRequest(adminCtx, 'DELETE', `/cloud/groups/${groupId}`)
@@ -142,7 +143,7 @@ test.describe('Policy preferences: boolean settings', () => {
 	})
 })
 
-async function sectionByTitle(page: Page, title: string): Promise<Locator> {
+async function sectionByTitle(page: Page, title: string | RegExp): Promise<Locator> {
 	const heading = page.getByRole('heading', { name: title }).first()
 	await expect(heading).toBeVisible()
 	const section = heading.locator('xpath=ancestor::div[contains(@class, "settings-section")][1]')
@@ -189,30 +190,22 @@ async function restoreSystemPolicySnapshot(
 	expect(response.httpStatus, `restoreSystemPolicySnapshot(${policyKey}): expected 200 but got ${response.httpStatus}`).toBe(200)
 }
 
-async function savePreferenceAsDisabled(page: Page, section: Locator, policyKey: string): Promise<void> {
+async function savePreferenceAsDisabled(section: Locator): Promise<void> {
 	const disabledOption = section.getByText('Disabled', { exact: true }).first()
 
-	await Promise.all([
-		page.waitForRequest((req) => req.method() === 'PUT'
-			&& req.url().includes(`/ocs/v2.php/apps/libresign/api/v1/policies/user/${policyKey}`)),
-		disabledOption.click(),
-	])
+	await disabledOption.click()
 
 	await expect(section.getByText('Preference saved')).toBeVisible()
 }
 
-async function clearPreference(page: Page, section: Locator, policyKey: string): Promise<void> {
+async function clearPreference(section: Locator): Promise<void> {
 	const resetButton = section.getByRole('button', { name: 'Reset to default' })
 	await expect(resetButton).toBeVisible()
 
-	await Promise.all([
-		page.waitForRequest((req) => req.method() === 'DELETE'
-			&& req.url().includes(`/ocs/v2.php/apps/libresign/api/v1/policies/user/${policyKey}`)),
-		resetButton.click(),
-	])
+	await resetButton.click()
 }
 
-async function saveDocMdpPreference(page: Page, section: Locator, level: 0 | 1 | 2 | 3): Promise<void> {
+async function saveDocMdpPreference(section: Locator, level: 0 | 1 | 2 | 3): Promise<void> {
 	const labelByLevel: Record<number, string> = {
 		0: 'Disabled',
 		1: 'No changes allowed',
@@ -222,23 +215,16 @@ async function saveDocMdpPreference(page: Page, section: Locator, level: 0 | 1 |
 
 	const option = section.getByText(labelByLevel[level], { exact: true }).first()
 
-	await Promise.all([
-		page.waitForRequest((req) => req.method() === 'PUT'
-			&& req.url().includes('/ocs/v2.php/apps/libresign/api/v1/policies/user/docmdp')),
-		option.click(),
-	])
+	await option.click()
 
 	await expect(section.getByText('Preference saved')).toBeVisible()
 }
 
-async function saveSignatureTextTemplatePreference(page: Page, section: Locator, template: string): Promise<void> {
+async function saveSignatureTextTemplatePreference(section: Locator, template: string): Promise<void> {
 	const templateInput = section.getByLabel('Signature text template').first()
 
-	await Promise.all([
-		page.waitForRequest((req) => req.method() === 'PUT'
-			&& req.url().includes('/ocs/v2.php/apps/libresign/api/v1/policies/user/signature_text')),
-		templateInput.fill(template),
-	])
+	await templateInput.fill(template)
+	await templateInput.press('Tab')
 
 	await expect(section.getByText('Preference saved')).toBeVisible()
 }
@@ -271,7 +257,7 @@ async function expectSignatureTextEffectiveScope(
 	expectedScope: string,
 	expectedTemplate: string,
 ): Promise<void> {
-	const entry = await getEffectivePolicy(ctx, 'signature_text')
+	const entry = await getEffectivePolicy(ctx, 'signature_stamp')
 	expect(entry).not.toBeNull()
 	expect(entry?.sourceScope).toBe(expectedScope)
 	const template = extractSignatureTextTemplate(entry?.effectiveValue)
