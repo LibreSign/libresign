@@ -121,7 +121,7 @@ class SignatureTextService {
 		$resolvedConfig['signature_height'] = $signatureHeight;
 		$resolvedConfig['template_font_size'] = $templateFontSize;
 		$resolvedConfig['signature_font_size'] = $signatureFontSize;
-		$resolvedConfig['render_mode'] = $renderMode;
+		$resolvedConfig['render_mode'] = $this->normalizePersistedRenderMode($renderMode);
 		$this->policyService->saveSystem(SignatureTextPolicyProvider::KEY, SignatureTextPolicyValue::encode($resolvedConfig));
 		return $this->parse($template);
 	}
@@ -553,7 +553,7 @@ class SignatureTextService {
 
 	public function getRenderMode(): string {
 		$config = $this->getSignatureStampPolicyConfig();
-		return (string)($config['render_mode'] ?? SignerElementsService::RENDER_MODE_DEFAULT);
+		return $this->normalizeRuntimeRenderMode((string)($config['render_mode'] ?? SignerElementsService::RENDER_MODE_DEFAULT));
 	}
 
 	public function isEnabled(): bool {
@@ -579,6 +579,64 @@ class SignatureTextService {
 	 */
 	private function getSignatureStampPolicyConfig(): array {
 		$rawValue = $this->policyService->resolve(SignatureTextPolicyProvider::KEY)->getEffectiveValue();
-		return SignatureTextPolicyValue::normalize($rawValue);
+		$normalized = SignatureTextPolicyValue::normalize($rawValue);
+
+		if ($this->hasConsolidatedStampPayload($rawValue)) {
+			return $normalized;
+		}
+
+		$template = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE)->getEffectiveValue();
+		$templateFontSize = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_TEMPLATE_FONT_SIZE)->getEffectiveValue();
+		$signatureFontSize = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_FONT_SIZE)->getEffectiveValue();
+		$signatureWidth = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_WIDTH)->getEffectiveValue();
+		$signatureHeight = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT)->getEffectiveValue();
+		$renderMode = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_RENDER_MODE)->getEffectiveValue();
+
+		$normalized['template'] = is_string($template) ? $template : (string)($template ?? '');
+		$normalized['template_font_size'] = max(0.1, (float)($templateFontSize ?? SignatureTextPolicyValue::DEFAULTS['template_font_size']));
+		$normalized['signature_font_size'] = max(0.1, (float)($signatureFontSize ?? SignatureTextPolicyValue::DEFAULTS['signature_font_size']));
+		$normalized['signature_width'] = max(0.1, (float)($signatureWidth ?? SignatureTextPolicyValue::DEFAULTS['signature_width']));
+		$normalized['signature_height'] = max(0.1, (float)($signatureHeight ?? SignatureTextPolicyValue::DEFAULTS['signature_height']));
+		$normalized['render_mode'] = (string)($renderMode ?? SignatureTextPolicyValue::DEFAULTS['render_mode']);
+
+		return $normalized;
+	}
+
+	private function hasConsolidatedStampPayload(mixed $rawValue): bool {
+		if (is_array($rawValue)) {
+			return true;
+		}
+
+		if (!is_string($rawValue) || trim($rawValue) === '') {
+			return false;
+		}
+
+		$decoded = json_decode($rawValue, true);
+		return is_array($decoded);
+	}
+
+	private function normalizeRuntimeRenderMode(string $renderMode): string {
+		return match ($renderMode) {
+			'default' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+			'graphic' => SignerElementsService::RENDER_MODE_GRAPHIC_ONLY,
+			'text' => SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
+			SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
+			SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
+			SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+			SignerElementsService::RENDER_MODE_GRAPHIC_ONLY => $renderMode,
+			default => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+		};
+	}
+
+	private function normalizePersistedRenderMode(string $renderMode): string {
+		return match ($renderMode) {
+			SignerElementsService::RENDER_MODE_GRAPHIC_ONLY, 'graphic' => 'graphic',
+			SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
+			SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
+			'text' => 'text',
+			SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+			'default' => 'default',
+			default => 'default',
+		};
 	}
 }

@@ -149,6 +149,35 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->assertEquals($parsed, $fromParse['parsed']);
 	}
 
+	public function testParseMapsDefaultRenderModeToRuntimeGraphicAndDescription(): void {
+		$this->policyValues[SignatureTextPolicyProvider::KEY] = SignatureTextPolicyValue::encode([
+			'template' => '',
+			'template_font_size' => SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE,
+			'signature_font_size' => SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE,
+			'signature_width' => SignatureTextService::DEFAULT_SIGNATURE_WIDTH,
+			'signature_height' => SignatureTextService::DEFAULT_SIGNATURE_HEIGHT,
+			'background_type' => 'default',
+			'render_mode' => 'default',
+		]);
+
+		$actual = $this->getClass()->parse('');
+
+		$this->assertSame(SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION, $actual['renderMode']);
+	}
+
+	public function testSavePersistsNormalizedRenderModeInConsolidatedPolicy(): void {
+		$this->getClass()->save(
+			template: 'Signed by {{SignerCommonName}}',
+			renderMode: SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
+		);
+
+		$storedPolicy = SignatureTextPolicyValue::normalize($this->policyValues[SignatureTextPolicyProvider::KEY]);
+
+		$this->assertSame('text', $storedPolicy['render_mode']);
+		$this->assertSame('default', $storedPolicy['background_type']);
+		$this->assertSame('Signed by {{SignerCommonName}}', $storedPolicy['template']);
+	}
+
 	public static function providerSave(): array {
 		return [
 			'empty' => ['', [], ''],

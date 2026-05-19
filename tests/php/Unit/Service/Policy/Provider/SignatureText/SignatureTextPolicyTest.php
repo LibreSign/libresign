@@ -107,4 +107,10 @@ class SignatureTextPolicyTest extends TestCase {
 		$this->expectExceptionMessage('Unknown policy key: invalid_key');
 		$this->policy->get('invalid_key');
 	}
+
+	public function testLegacySignatureTextKeyIsNotAccepted(): void {
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Unknown policy key: signature_text');
+		$this->policy->get('signature_text');
+	}
 }
