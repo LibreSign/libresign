@@ -27,6 +27,7 @@ use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPol
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCP\DB\ISchemaWrapper;
@@ -304,10 +305,10 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		// First, consolidate individual keys into a JSON payload
 		$consolidatedValue = [
 			'template' => $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE) ?? '',
-			'template_font_size' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE) ?? 9.0),
-			'signature_font_size' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE) ?? 9.0),
-			'signature_width' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH) ?? 90.0),
-			'signature_height' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT) ?? 60.0),
+			'template_font_size' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE) ?? SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE),
+			'signature_font_size' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE) ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE),
+			'signature_width' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH) ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH),
+			'signature_height' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT) ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT),
 			'background_type' => $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE) ?? 'default',
 			'render_mode' => $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE) ?? 'default',
 		];
@@ -372,10 +373,10 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 
 		$normalized = [
 			'template' => (string)($rawValue['template'] ?? ''),
-			'template_font_size' => max(0.1, (float)($rawValue['template_font_size'] ?? 9.0)),
-			'signature_font_size' => max(0.1, (float)($rawValue['signature_font_size'] ?? 9.0)),
-			'signature_width' => max(0.1, (float)($rawValue['signature_width'] ?? 90.0)),
-			'signature_height' => max(0.1, (float)($rawValue['signature_height'] ?? 60.0)),
+			'template_font_size' => max(0.1, (float)($rawValue['template_font_size'] ?? SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE)),
+			'signature_font_size' => max(0.1, (float)($rawValue['signature_font_size'] ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE)),
+			'signature_width' => max(0.1, (float)($rawValue['signature_width'] ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH)),
+			'signature_height' => max(0.1, (float)($rawValue['signature_height'] ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT)),
 			'background_type' => $backgroundType,
 			'render_mode' => $renderMode,
 		];
@@ -652,4 +653,3 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		return null;
 	}
 }
-
