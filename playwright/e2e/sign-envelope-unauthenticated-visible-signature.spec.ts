@@ -4,7 +4,7 @@
  */
 
 import { expect, test } from '@playwright/test'
-import type { APIRequestContext, Page } from '@playwright/test'
+import type { APIRequestContext, Locator, Page } from '@playwright/test'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, extractSignLink, waitForEmailTo } from '../support/mailpit'
 
@@ -166,6 +166,25 @@ async function openInvitationAsExternalSigner(page: Page, signLink: string) {
 	await page.goto(signLink)
 }
 
+async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
+	const canvas = signatureDialog.locator('canvas').first()
+	await expect(canvas).toBeVisible()
+	const box = await canvas.boundingBox()
+	if (!box) {
+		throw new Error('Signature canvas bounding box is not available')
+	}
+
+	const padding = 10
+	const startX = box.x + Math.max(padding, box.width * 0.2)
+	const endX = box.x + Math.min(box.width - padding, box.width * 0.8)
+	const y = box.y + Math.min(box.height - padding, Math.max(padding, box.height * 0.5))
+
+	await page.mouse.move(startX, y)
+	await page.mouse.down()
+	await page.mouse.move(endX, y)
+	await page.mouse.up()
+}
+
 async function defineVisibleSignature(page: Page) {
 	const deleteSignatureButton = page.getByRole('button', { name: 'Delete signature' })
 	await deleteSignatureButton.waitFor({ state: 'visible', timeout: 3_000 }).catch(() => null)
@@ -178,12 +197,7 @@ async function defineVisibleSignature(page: Page) {
 
 	const signatureDialog = page.getByRole('dialog', { name: 'Customize your signatures' })
 	await expect(signatureDialog).toBeVisible()
-	await signatureDialog.locator('canvas').click({
-		position: {
-			x: 156,
-			y: 132,
-		},
-	})
+	await drawSignatureOnCanvas(signatureDialog, page)
 	await signatureDialog.getByRole('button', { name: 'Save' }).click()
 
 	const confirmDialog = page.getByLabel('Confirm your signature')
