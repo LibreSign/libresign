@@ -34,7 +34,7 @@ describe('useSignatureTextPolicy', () => {
 			signatureWidth: 90,
 			signatureHeight: 60,
 			backgroundType: 'default',
-			renderMode: 'GRAPHIC_AND_DESCRIPTION',
+			renderMode: 'default',
 		})
 	})
 
@@ -62,7 +62,7 @@ describe('useSignatureTextPolicy', () => {
 			signatureWidth: 101,
 			signatureHeight: 66,
 			backgroundType: 'deleted',
-			renderMode: 'SIGNAME_AND_DESCRIPTION',
+			renderMode: 'text',
 		})
 	})
 
@@ -76,7 +76,7 @@ describe('useSignatureTextPolicy', () => {
 			signatureWidth: 90,
 			signatureHeight: 60,
 			backgroundType: 'default',
-			renderMode: 'GRAPHIC_AND_DESCRIPTION',
+			renderMode: 'default',
 		})
 	})
 })

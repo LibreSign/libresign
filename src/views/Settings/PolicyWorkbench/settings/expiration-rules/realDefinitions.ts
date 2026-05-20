@@ -8,41 +8,37 @@ import { t } from '@nextcloud/l10n'
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 import ExpiryInDaysRuleEditor from './ExpiryInDaysRuleEditor.vue'
-import MaximumValidityRuleEditor from './MaximumValidityRuleEditor.vue'
+import RequestExpirationRuleEditor from './RequestExpirationRuleEditor.vue'
 import RenewalIntervalRuleEditor from './RenewalIntervalRuleEditor.vue'
 import {
 	DEFAULT_EXPIRY_IN_DAYS,
 	DEFAULT_MAXIMUM_VALIDITY,
 	DEFAULT_RENEWAL_INTERVAL,
+	hasValidRequestExpirationCombination,
 	normalizeNonNegativeInt,
 	normalizePositiveInt,
+	normalizeRequestExpirationDraftValue,
+	summarizeRequestExpirationDraftValue,
 } from './model'
 
 export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 	key: 'maximum_validity',
-	title: t('libresign', 'Maximum validity'),
-	description: t('libresign', 'Maximum validity in seconds of a request to sign.'),
-	editor: MaximumValidityRuleEditor,
+	title: t('libresign', 'Request expiration'),
+	description: t('libresign', 'Configure expiration and renewal timing for signing requests.'),
+	editor: RequestExpirationRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => DEFAULT_MAXIMUM_VALIDITY,
-	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeNonNegativeInt(value, DEFAULT_MAXIMUM_VALIDITY),
-	hasSelectableDraftValue: () => true,
+	createEmptyValue: () => normalizeRequestExpirationDraftValue(DEFAULT_MAXIMUM_VALIDITY),
+	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeRequestExpirationDraftValue(value),
+	hasSelectableDraftValue: (value: EffectivePolicyValue) => hasValidRequestExpirationCombination(value),
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
-			return policyValue
+			return normalizeRequestExpirationDraftValue(policyValue)
 		}
 
-		return DEFAULT_MAXIMUM_VALIDITY
+		return normalizeRequestExpirationDraftValue(DEFAULT_MAXIMUM_VALIDITY)
 	},
-	summarizeValue: (value: EffectivePolicyValue) => {
-		const normalized = normalizeNonNegativeInt(value, DEFAULT_MAXIMUM_VALIDITY)
-		if (normalized <= 0) {
-			return t('libresign', 'Disabled')
-		}
-
-		return t('libresign', '{value} seconds', { value: String(normalized) })
-	},
+	summarizeValue: (value: EffectivePolicyValue) => summarizeRequestExpirationDraftValue(value, t),
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
 			? t('libresign', 'Groups and users can set their own rule')
