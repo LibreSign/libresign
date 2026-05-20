@@ -186,10 +186,10 @@ class SignatureBackgroundService {
 	 */
 	public function renderPreviewImage(
 		string $template = '',
-		float $templateFontSize = 10.0,
-		float $signatureFontSize = 10.0,
-		float $signatureWidth = 90.0,
-		float $signatureHeight = 60.0,
+		float $templateFontSize = SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+		float $signatureFontSize = SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+		float $signatureWidth = SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+		float $signatureHeight = SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 		string $renderMode = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
 		string $backgroundType = 'default',
 	): string {
@@ -315,10 +315,10 @@ class SignatureBackgroundService {
 	 */
 	public function renderPreviewPdf(
 		string $template = '',
-		float $templateFontSize = 10.0,
-		float $signatureFontSize = 10.0,
-		float $signatureWidth = 90.0,
-		float $signatureHeight = 60.0,
+		float $templateFontSize = SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+		float $signatureFontSize = SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+		float $signatureWidth = SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+		float $signatureHeight = SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 		string $renderMode = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
 		string $backgroundType = 'default',
 	): string {
