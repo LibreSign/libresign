@@ -13,6 +13,32 @@ export interface SignatureTextPolicyConfig {
 	renderMode: string
 }
 
+const RUNTIME_TO_UI_RENDER_MODE: Record<string, string> = {
+	GRAPHIC_AND_DESCRIPTION: 'default',
+	SIGNAME_AND_DESCRIPTION: 'text',
+	GRAPHIC_ONLY: 'graphic',
+	DESCRIPTION_ONLY: 'description_only',
+}
+
+function normalizeRenderMode(value: unknown): string {
+	const raw = String(value ?? 'default').trim()
+	if (raw in RUNTIME_TO_UI_RENDER_MODE) {
+		return RUNTIME_TO_UI_RENDER_MODE[raw]
+	}
+	if (['default', 'text', 'graphic', 'description_only'].includes(raw)) {
+		return raw
+	}
+	return 'default'
+}
+
+function normalizeBackgroundType(value: unknown): string {
+	const raw = String(value ?? 'default').trim().toLowerCase()
+	if (['default', 'custom', 'deleted'].includes(raw)) {
+		return raw
+	}
+	return 'default'
+}
+
 export function getDefaultSignatureTextPolicyConfig(): SignatureTextPolicyConfig {
 	return {
 		template: '',
@@ -58,8 +84,8 @@ export function normalizeSignatureTextPolicyConfig(rawValue: unknown): Signature
 			signatureFontSize: Number(obj.signature_font_size ?? 9.0),
 			signatureWidth: Number(obj.signature_width ?? 90.0),
 			signatureHeight: Number(obj.signature_height ?? 60.0),
-			backgroundType: String(obj.background_type ?? 'default').trim(),
-			renderMode: String(obj.render_mode ?? 'default'),
+			backgroundType: normalizeBackgroundType(obj.background_type),
+			renderMode: normalizeRenderMode(obj.render_mode),
 		}
 	}
 
