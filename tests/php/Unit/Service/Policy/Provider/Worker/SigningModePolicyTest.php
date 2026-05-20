@@ -13,7 +13,7 @@ use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
 use PHPUnit\Framework\TestCase;
 
 final class SigningModePolicyTest extends TestCase {
-	public function testProviderBuildsSigningModeWorkerTypeAndParallelWorkersDefinitions(): void {
+	public function testProviderBuildsSigningModeDefinition(): void {
 		$provider = new SigningModePolicy();
 		$this->assertSame([
 			SigningModePolicy::KEY_SIGNING_MODE,
@@ -33,25 +33,19 @@ final class SigningModePolicyTest extends TestCase {
 		$this->assertSame('local', $workerType->defaultSystemValue());
 		$this->assertSame(['local', 'external'], $workerType->allowedValues(new PolicyContext()));
 		$this->assertSame('external', $workerType->normalizeValue('external'));
-		$this->assertSame('local', $workerType->normalizeValue('invalid-value'));
+		$this->assertSame('local', $workerType->normalizeValue('invalid-worker'));
 
 		$parallelWorkers = $provider->get(SigningModePolicy::KEY_PARALLEL_WORKERS);
 		$this->assertSame(SigningModePolicy::KEY_PARALLEL_WORKERS, $parallelWorkers->key());
 		$this->assertSame(4, $parallelWorkers->defaultSystemValue());
-		$this->assertSame([], $parallelWorkers->allowedValues(new PolicyContext()));
-		$this->assertSame(6, $parallelWorkers->normalizeValue('6'));
-		$this->assertSame(2, $parallelWorkers->normalizeValue(2));
+		$this->assertSame(1, $parallelWorkers->normalizeValue(0));
+		$this->assertSame(32, $parallelWorkers->normalizeValue(33));
+		$this->assertSame(8, $parallelWorkers->normalizeValue(8));
 	}
 
-	public function testParallelWorkersValidationRequiresRangeBetweenOneAndThirtyTwo(): void {
+	public function testThrowsOnUnknownPolicyKey(): void {
 		$provider = new SigningModePolicy();
-		$parallelWorkers = $provider->get(SigningModePolicy::KEY_PARALLEL_WORKERS);
-		$context = new PolicyContext();
-
-		$parallelWorkers->validateValue(1, $context);
-		$parallelWorkers->validateValue(32, $context);
-
 		$this->expectException(\InvalidArgumentException::class);
-		$parallelWorkers->validateValue(0, $context);
+		$provider->get('unknown_policy_key');
 	}
 }
