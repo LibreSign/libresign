@@ -4,12 +4,31 @@
  */
 
 import { expect, test } from '@playwright/test'
-import type { Locator } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 
 function getVisiblePdfOverlay(dialog: Locator) {
 	return dialog.locator('.overlay:visible').first()
+}
+
+async function drawSignatureOnCanvas(signatureDialog: Locator, page: Page) {
+	const canvas = signatureDialog.locator('canvas').first()
+	await expect(canvas).toBeVisible()
+	const box = await canvas.boundingBox()
+	if (!box) {
+		throw new Error('Signature canvas bounding box is not available')
+	}
+
+	const padding = 10
+	const startX = box.x + Math.max(padding, box.width * 0.2)
+	const endX = box.x + Math.min(box.width - padding, box.width * 0.8)
+	const y = box.y + Math.min(box.height - padding, Math.max(padding, box.height * 0.5))
+
+	await page.mouse.move(startX, y)
+	await page.mouse.down()
+	await page.mouse.move(endX, y)
+	await page.mouse.up()
 }
 
 test('sign herself with drawn signature', async ({ page }) => {
@@ -99,13 +118,7 @@ test('sign herself with drawn signature', async ({ page }) => {
 
 	const signatureDialog = page.getByRole('dialog', { name: 'Customize your signatures' })
 	await expect(signatureDialog).toBeVisible()
-	await expect(signatureDialog.locator('canvas').first()).toBeVisible()
-	await signatureDialog.locator('canvas').first().click({
-		position: {
-			x: 156,
-			y: 132,
-		},
-	})
+	await drawSignatureOnCanvas(signatureDialog, page)
 	await page.getByRole('button', { name: 'Save' }).click();
 	await expect(page.getByRole('heading', { name: 'Confirm your signature' })).toBeVisible();
 	await page.getByLabel('Confirm your signature').getByRole('button', { name: 'Save' }).click();
