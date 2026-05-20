@@ -18,6 +18,7 @@ use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureHashAlgorithm\SignatureHashAlgorithmPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCA\Libresign\Service\SignatureBackgroundService;
@@ -36,7 +37,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 	private const MIN_PDF_VERSION_SHA256 = 1.6;
 	private const TARGET_PDF_VERSION_SHA256 = '1.6';
 	private const MIN_PDF_VERSION_SHA1_REJECT = 1.7;
-	private const SIGNATURE_DEFAULT_FONT_SIZE = 10.0;
 	private const PAGE_FIRST = 1;
 	private const SCALE_FACTOR_MIN = 5;
 
@@ -318,7 +318,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 			}
 
 			$fontSize = $this->parseSignatureText()['templateFontSize'];
-			if ($fontSize === self::SIGNATURE_DEFAULT_FONT_SIZE || !$fontSize || $params['--l2-text'] === '""') {
+			if ($fontSize === SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE || !$fontSize || $params['--l2-text'] === '""') {
 				$fontSize = 0;
 			}
 
