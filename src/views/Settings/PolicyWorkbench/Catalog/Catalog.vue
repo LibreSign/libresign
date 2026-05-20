@@ -427,6 +427,7 @@
 
 			<NcDialog
 				v-if="showCreateScopeDialog || state.editorDraft"
+				:key="ruleDialogInstanceKey"
 				:name="ruleDialogTitle"
 				:size="ruleEditorDialogSize"
 				:class="ruleEditorDialogClass"
@@ -570,6 +571,7 @@ const pendingRemoval = ref<{ ruleId: string, scope: 'system' | 'group' | 'user',
 const pendingDiscardAction = ref<'back-create-rule' | 'cancel-create-rule' | 'cancel-editor' | 'close-setting' | null>(null)
 const showCreateScopeDialog = ref(false)
 const selectedCreateScope = ref<'system' | 'group' | 'user' | null>(null)
+const ruleDialogInstanceKey = ref(0)
 const isRemovingRule = ref(false)
 const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)
@@ -1151,7 +1153,17 @@ function cancelRuleRemoval() {
 }
 
 function cancelDiscardDialog() {
+	const action = pendingDiscardAction.value
 	pendingDiscardAction.value = null
+
+	if (
+		(action === 'back-create-rule' || action === 'cancel-create-rule')
+		&& state.editorDraft
+	) {
+		// Re-mount editor dialog to avoid stale hidden state when discard prompt
+		// is dismissed via ESC while the editor close was already initiated.
+		ruleDialogInstanceKey.value += 1
+	}
 }
 
 function confirmDiscardDialog() {
