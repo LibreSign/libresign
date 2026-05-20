@@ -29,10 +29,10 @@ describe('useSignatureTextPolicy', () => {
 	it('reads canonical UI defaults without leaking effective render mode', () => {
 		expect(getSignatureTextUiDefaults()).toEqual({
 			template: '',
-			templateFontSize: 9,
-			signatureFontSize: 9,
-			signatureWidth: 90,
-			signatureHeight: 60,
+			templateFontSize: 9.8,
+			signatureFontSize: 9.8,
+			signatureWidth: 350,
+			signatureHeight: 100,
 			backgroundType: 'default',
 			renderMode: 'default',
 		})
@@ -71,10 +71,10 @@ describe('useSignatureTextPolicy', () => {
 
 		expect(values.value).toEqual({
 			template: '',
-			templateFontSize: 9,
-			signatureFontSize: 9,
-			signatureWidth: 90,
-			signatureHeight: 60,
+			templateFontSize: 9.8,
+			signatureFontSize: 9.8,
+			signatureWidth: 350,
+			signatureHeight: 100,
 			backgroundType: 'default',
 			renderMode: 'default',
 		})
