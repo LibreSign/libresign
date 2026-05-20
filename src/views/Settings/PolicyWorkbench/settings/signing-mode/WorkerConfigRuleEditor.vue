@@ -33,9 +33,12 @@
 			</NcCheckboxRadioSwitch>
 		</fieldset>
 
-		<div v-if="config.workerType === 'local'" class="worker-config-rule-editor__parallel">
+		<div class="worker-config-rule-editor__parallel">
 			<p class="worker-config-rule-editor__parallel-description">
-				{{ t('libresign', 'Set how many background workers process signing jobs in parallel (1-32).') }}
+				{{ t('libresign', 'Defines how many signing jobs may run concurrently.') }}
+			</p>
+			<p v-if="config.workerType === 'external'" class="worker-config-rule-editor__parallel-hint">
+				{{ t('libresign', 'Parallel workers is managed by the external worker service.') }}
 			</p>
 			<NcTextField
 				id="worker-config-parallel-input"
@@ -43,6 +46,7 @@
 				type="number"
 				min="1"
 				max="32"
+				:disabled="config.workerType === 'external'"
 				:model-value="localParallelValue"
 				@update:modelValue="onParallelChange"
 				@blur="emitNormalizedParallel" />
@@ -101,6 +105,10 @@ function onWorkerTypeChange(workerType: WorkerTypeValue, selected?: unknown) {
 }
 
 function onParallelChange(value: string | number) {
+	if (config.value.workerType === 'external') {
+		return
+	}
+
 	localParallelValue.value = String(value)
 	const parsed = Number.parseInt(String(value), 10)
 	if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= 32) {
@@ -109,6 +117,10 @@ function onParallelChange(value: string | number) {
 }
 
 function emitNormalizedParallel() {
+	if (config.value.workerType === 'external') {
+		return
+	}
+
 	const normalized = resolveParallelWorkers(localParallelValue.value)
 	localParallelValue.value = String(normalized)
 	emit('update:modelValue', serializeWorkerConfig({ ...config.value, parallelWorkers: normalized }))
@@ -150,6 +162,12 @@ function emitNormalizedParallel() {
 		margin: 0;
 		color: var(--color-text-maxcontrast);
 		font-size: 0.9rem;
+	}
+
+	&__parallel-hint {
+		margin: 0;
+		font-size: 0.82rem;
+		color: var(--color-text-maxcontrast);
 	}
 
 	:deep(.nc-text-field) {
