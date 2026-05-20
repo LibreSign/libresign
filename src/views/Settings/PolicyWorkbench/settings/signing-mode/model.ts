@@ -13,6 +13,12 @@ export interface WorkerConfigPolicyValue {
 	parallelWorkers: number
 }
 
+export interface SigningExecutionSettingsValue {
+	signingMode: SigningModeValue
+	workerType: WorkerTypeValue
+	parallelWorkers: number
+}
+
 export function resolveSigningMode(value: EffectivePolicyValue): SigningModeValue {
 	if (value === 'async') {
 		return 'async'
@@ -92,4 +98,24 @@ export function serializeWorkerConfig(config: WorkerConfigPolicyValue): string {
 		worker_type: config.workerType,
 		parallel_workers: config.parallelWorkers,
 	})
+}
+
+export function normalizeSigningExecutionSettings(rawValue: EffectivePolicyValue): SigningExecutionSettingsValue {
+	if (typeof rawValue === 'object' && rawValue !== null && !Array.isArray(rawValue)) {
+		const candidate = rawValue as Record<string, unknown>
+		const signingMode = resolveSigningMode(candidate.signingMode as EffectivePolicyValue)
+		const workerType = resolveWorkerType(candidate.workerType as EffectivePolicyValue)
+		const parallelWorkers = resolveParallelWorkers(candidate.parallelWorkers as EffectivePolicyValue)
+
+		return {
+			signingMode,
+			workerType,
+			parallelWorkers,
+		}
+	}
+
+	return {
+		signingMode: resolveSigningMode(rawValue),
+		...normalizeWorkerConfig(rawValue),
+	}
 }
