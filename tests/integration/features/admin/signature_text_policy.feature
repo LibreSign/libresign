@@ -68,20 +68,20 @@ Feature: admin/signature_text_policy
   Scenario: Manage signature dimensions policy layers through API
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_width"
-      | value | 100 |
+      | value | 350 |
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                | value |
       | (jq).ocs.data.policy.policyKey     | signature_width |
-      | (jq).ocs.data.policy.effectiveValue| 100   |
+      | (jq).ocs.data.policy.effectiveValue| 350   |
 
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_height"
-      | value | 60 |
+      | value | 100 |
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                                | value |
       | (jq).ocs.data.policy.policyKey     | signature_height |
-      | (jq).ocs.data.policy.effectiveValue| 60    |
+      | (jq).ocs.data.policy.effectiveValue| 100   |
 
   Scenario: Manage signature font sizes policy layers through API
     Given as user "admin"
