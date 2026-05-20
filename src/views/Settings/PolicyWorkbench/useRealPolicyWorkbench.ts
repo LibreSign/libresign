@@ -159,11 +159,14 @@ function isRequestExpirationPolicyKey(policyKey: string): boolean {
 	return policyKey === REQUEST_EXPIRATION_POLICY_KEY
 }
 
-function buildRequestExpirationValue(maximumValidity: EffectivePolicyValue, renewalInterval: EffectivePolicyValue): RequestExpirationDraftValue {
-	const normalizedMaximum = normalizeRequestExpirationDraftValue(maximumValidity)
+function buildRequestExpirationValue(
+	maximumValidity: EffectivePolicyValue | undefined,
+	renewalInterval: EffectivePolicyValue | undefined,
+): RequestExpirationDraftValue {
+	const normalizedMaximum = normalizeRequestExpirationDraftValue(maximumValidity ?? null)
 	const normalizedRenewal = normalizeRequestExpirationDraftValue({
 		maximumValidity: 0,
-		renewalInterval,
+		renewalInterval: renewalInterval ?? null,
 	})
 
 	return {
