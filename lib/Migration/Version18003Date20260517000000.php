@@ -57,6 +57,7 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		$this->migrateExpirationRulesType();
 		$this->migrateIdentifyMethodsType();
 		$this->migrateTsaSettings();
+		$this->migrateWorkerConfig();
 	}
 
 	private function migrateTsaSettings(): void {
@@ -588,8 +589,67 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 		return $default;
 	}
 
+	private function migrateWorkerConfig(): void {
+		// If unified key already exists, just clean up legacy keys
+		$existingConsolidated = $this->readLegacyString('policy.worker_config.system');
+		if ($existingConsolidated !== null && trim($existingConsolidated) !== '') {
+			$this->deleteLegacyWorkerKeys();
+			return;
+		}
+
+		$workerType = $this->readLegacyString('worker_type');
+		$parallelWorkers = $this->readLegacyString('parallel_workers');
+
+		// Nothing to migrate
+		if ($workerType === null && $parallelWorkers === null) {
+			return;
+		}
+
+		// Normalize values according to WorkerConfigPolicy logic
+		$normalizedWorkerType = $this->normalizeWorkerType($workerType);
+		$normalizedParallelWorkers = $this->normalizeParallelWorkers($parallelWorkers);
+
+		$value = [
+			'worker_type' => $normalizedWorkerType,
+			'parallel_workers' => $normalizedParallelWorkers,
+		];
+
+		$encoded = json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
+		$this->deleteLegacyWorkerKeys();
+		$this->appConfig->setValueString(Application::APP_ID, 'policy.worker_config.system', $encoded);
+	}
+
+	private function normalizeWorkerType(?string $value): string {
+		if ($value === null) {
+			return 'local';
+		}
+
+		$trimmed = strtolower(trim($value));
+		return in_array($trimmed, ['local', 'external'], true) ? $trimmed : 'local';
+	}
+
+	private function normalizeParallelWorkers(?string $value): int {
+		if ($value === null) {
+			return 4;
+		}
+
+		if (!is_numeric($value)) {
+			return 4;
+		}
+
+		$parsed = (int)$value;
+		return max(1, min(32, $parsed));
+	}
+
+	private function deleteLegacyWorkerKeys(): void {
+		$this->appConfig->deleteKey(Application::APP_ID, 'worker_type');
+		$this->appConfig->deleteKey(Application::APP_ID, 'parallel_workers');
+	}
+
 	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		return null;
 	}
 }
+

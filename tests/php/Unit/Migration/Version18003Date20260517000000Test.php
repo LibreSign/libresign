@@ -54,6 +54,7 @@ final class Version18003Date20260517000000Test extends TestCase {
 					'collect_metadata' => '',
 					'identification_documents' => '',
 					'identify_methods' => '',
+					'policy.worker_config.system' => '',
 				];
 				return $map[$key] ?? $default;
 			});

@@ -7,10 +7,14 @@ import { t } from '@nextcloud/l10n'
 
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
-import ParallelWorkersRuleEditor from './ParallelWorkersRuleEditor.vue'
 import SigningModeRuleEditor from './SigningModeRuleEditor.vue'
-import WorkerTypeRuleEditor from './WorkerTypeRuleEditor.vue'
-import { resolveParallelWorkers, resolveSigningMode, resolveWorkerType } from './model'
+import WorkerConfigRuleEditor from './WorkerConfigRuleEditor.vue'
+import {
+	getDefaultWorkerConfig,
+	normalizeWorkerConfig,
+	resolveSigningMode,
+	serializeWorkerConfig,
+} from './model'
 
 export const signingModeRealDefinition: RealPolicySettingDefinition = {
 	key: 'signing_mode',
@@ -38,52 +42,35 @@ export const signingModeRealDefinition: RealPolicySettingDefinition = {
 	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
 }
 
-export const workerTypeRealDefinition: RealPolicySettingDefinition = {
-	key: 'worker_type',
-	title: t('libresign', 'Worker service type'),
-	description: t('libresign', 'Choose if asynchronous jobs run in local or external workers.'),
+export const workerConfigRealDefinition: RealPolicySettingDefinition = {
+	key: 'worker_config',
+	title: t('libresign', 'Worker configuration'),
+	description: t('libresign', 'Choose whether workers run locally or externally, and set the parallelism level.'),
 	supportedScopes: ['system'],
-	editor: WorkerTypeRuleEditor,
+	editor: WorkerConfigRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => 'local',
-	normalizeDraftValue: (value: EffectivePolicyValue) => resolveWorkerType(value),
+	createEmptyValue: () => serializeWorkerConfig(getDefaultWorkerConfig()),
+	normalizeDraftValue: (value: EffectivePolicyValue) => serializeWorkerConfig(normalizeWorkerConfig(value)),
 	hasSelectableDraftValue: () => true,
 	normalizeAllowChildOverride: () => false,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
-			return resolveWorkerType(policyValue)
+			return serializeWorkerConfig(normalizeWorkerConfig(policyValue))
 		}
 
-		return 'local'
+		return serializeWorkerConfig(getDefaultWorkerConfig())
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
-		return resolveWorkerType(value) === 'external'
+		const config = normalizeWorkerConfig(value)
+		const workerTypeLabel = config.workerType === 'external'
 			? t('libresign', 'External worker')
 			: t('libresign', 'Local worker')
-	},
-	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
-}
 
-export const parallelWorkersRealDefinition: RealPolicySettingDefinition = {
-	key: 'parallel_workers',
-	title: t('libresign', 'Parallel workers'),
-	description: t('libresign', 'Control how many worker processes run signing jobs concurrently.'),
-	supportedScopes: ['system'],
-	editor: ParallelWorkersRuleEditor,
-	resolutionMode: 'precedence',
-	createEmptyValue: () => 4,
-	normalizeDraftValue: (value: EffectivePolicyValue) => resolveParallelWorkers(value),
-	hasSelectableDraftValue: () => true,
-	normalizeAllowChildOverride: () => false,
-	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
-		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
-			return resolveParallelWorkers(policyValue)
+		if (config.workerType === 'local') {
+			return t('libresign', '{type} • {count} parallel', { type: workerTypeLabel, count: String(config.parallelWorkers) })
 		}
 
-		return 4
-	},
-	summarizeValue: (value: EffectivePolicyValue) => {
-		return t('libresign', '{count} workers', { count: String(resolveParallelWorkers(value)) })
+		return workerTypeLabel
 	},
 	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
 }

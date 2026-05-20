@@ -43,13 +43,13 @@ const emit = defineEmits<{
 const options = [
 	{
 		value: true,
-		label: t('libresign', 'Enabled'),
-		description: t('libresign', 'Store signer IP address and user agent in signing metadata.'),
+		label: t('libresign', 'Collect signer metadata'),
+		description: t('libresign', 'Store signer IP address and browser information in signing metadata.'),
 	},
 	{
 		value: false,
-		label: t('libresign', 'Disabled'),
-		description: t('libresign', 'Do not store signer IP address and user agent metadata.'),
+		label: t('libresign', 'Disable metadata collection'),
+		description: t('libresign', 'Do not store signer IP address or browser information in signing metadata.'),
 	},
 ]
 
@@ -82,10 +82,10 @@ function onChange(value: boolean, selected?: unknown) {
 .collect-metadata-editor {
 	display: flex;
 	flex-direction: column;
-	gap: 0.75rem;
+	gap: 0.6rem;
 
 	&__copy p {
-		margin: 0.35rem 0 0;
+		margin: 0.2rem 0 0;
 		color: var(--color-text-maxcontrast);
 	}
 

@@ -28,6 +28,7 @@ use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
+use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 
 final class PolicyProviders {
 	/** @var array<string, class-string> */
@@ -50,8 +51,7 @@ final class PolicyProviders {
 		ValidationAccessPolicy::KEY => ValidationAccessPolicy::class,
 		SignatureFlowPolicy::KEY => SignatureFlowPolicy::class,
 		SigningModePolicy::KEY_SIGNING_MODE => SigningModePolicy::class,
-		SigningModePolicy::KEY_WORKER_TYPE => SigningModePolicy::class,
-		SigningModePolicy::KEY_PARALLEL_WORKERS => SigningModePolicy::class,
+		WorkerConfigPolicy::KEY => WorkerConfigPolicy::class,
 		IdentificationDocumentsPolicy::KEY => IdentificationDocumentsPolicy::class,
 		IdentifyMethodsPolicy::KEY => IdentifyMethodsPolicy::class,
 		SignatureTextPolicy::KEY => SignatureTextPolicy::class,

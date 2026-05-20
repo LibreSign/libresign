@@ -12,6 +12,10 @@ import { t } from '@nextcloud/l10n'
 
 import { realDefinitions } from './settings/realDefinitions'
 import type { RealPolicyResolutionMode } from './settings/realTypes'
+import {
+	normalizeRequestExpirationDraftValue,
+	type RequestExpirationDraftValue,
+} from './settings/expiration-rules/model'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
 import logger from '../../../logger.js'
@@ -148,6 +152,26 @@ function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
 	})
 }
 
+const REQUEST_EXPIRATION_POLICY_KEY = 'maximum_validity'
+const REQUEST_EXPIRATION_RENEWAL_KEY = 'renewal_interval'
+
+function isRequestExpirationPolicyKey(policyKey: string): boolean {
+	return policyKey === REQUEST_EXPIRATION_POLICY_KEY
+}
+
+function buildRequestExpirationValue(maximumValidity: EffectivePolicyValue, renewalInterval: EffectivePolicyValue): RequestExpirationDraftValue {
+	const normalizedMaximum = normalizeRequestExpirationDraftValue(maximumValidity)
+	const normalizedRenewal = normalizeRequestExpirationDraftValue({
+		maximumValidity: 0,
+		renewalInterval,
+	})
+
+	return {
+		maximumValidity: normalizedMaximum.maximumValidity,
+		renewalInterval: normalizedRenewal.renewalInterval,
+	}
+}
+
 export function createRealPolicyWorkbenchState() {
 	const policiesStore = usePoliciesStore()
 	const currentUser = getCurrentUser()
@@ -198,17 +222,37 @@ export function createRealPolicyWorkbenchState() {
 		return Object.values(realDefinitions)
 			.map((definition) => {
 				const policy = policiesStore.getPolicy(definition.key)
-				const hasEffectiveValue = policy?.effectiveValue !== null && policy?.effectiveValue !== undefined
+				const isRequestExpiration = isRequestExpirationPolicyKey(definition.key)
+				const renewalPolicy = isRequestExpiration
+					? policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)
+					: null
+				const hasEffectiveValue = isRequestExpiration
+					? (
+						(policy?.effectiveValue !== null && policy?.effectiveValue !== undefined)
+						|| (renewalPolicy?.effectiveValue !== null && renewalPolicy?.effectiveValue !== undefined)
+					)
+					: (policy?.effectiveValue !== null && policy?.effectiveValue !== undefined)
 				const isActiveSetting = activeSettingKey.value === definition.key
+				const summaryValue = isRequestExpiration
+					? buildRequestExpirationValue(policy?.effectiveValue, renewalPolicy?.effectiveValue)
+					: policy?.effectiveValue
+				const groupCount = isRequestExpiration
+					? Math.max(policy?.groupCount ?? 0, renewalPolicy?.groupCount ?? 0)
+					: (policy?.groupCount ?? 0)
+				const userCount = isRequestExpiration
+					? Math.max(policy?.userCount ?? 0, renewalPolicy?.userCount ?? 0)
+					: (policy?.userCount ?? 0)
 
 				return {
 					key: definition.key,
 					title: definition.title,
 					context: definition.context,
 					description: definition.description,
-					defaultSummary: hasEffectiveValue ? definition.summarizeValue(policy.effectiveValue) : t('libresign', 'Not configured'),
-					groupCount: isActiveSetting ? groupRules.value.length : (policy?.groupCount ?? 0),
-					userCount: isActiveSetting ? userRules.value.length : (policy?.userCount ?? 0),
+					defaultSummary: hasEffectiveValue && summaryValue !== null && summaryValue !== undefined
+						? definition.summarizeValue(summaryValue)
+						: t('libresign', 'Not configured'),
+					groupCount: isActiveSetting ? groupRules.value.length : groupCount,
+					userCount: isActiveSetting ? userRules.value.length : userCount,
 				}
 			})
 			.filter((summary) => {
@@ -253,21 +297,35 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		if (sourceScope === 'system') {
+			const value = isRequestExpirationPolicyKey(activeDefinition.value.key)
+				? buildRequestExpirationValue(
+					policy.effectiveValue,
+					policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)?.effectiveValue,
+				)
+				: policy.effectiveValue
+
 			return {
 				id: 'system-inherited-default',
 				scope: 'system',
 				targetId: null,
 				allowChildOverride: inferSystemAllowOverride(policy),
-				value: policy.effectiveValue,
+				value,
 			}
 		}
+
+		const explicitValue = isRequestExpirationPolicyKey(activeDefinition.value.key)
+			? buildRequestExpirationValue(
+				policy.effectiveValue,
+				policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)?.effectiveValue,
+			)
+			: policy.effectiveValue
 
 		explicitSystemRule.value = {
 			id: 'system-default',
 			scope: 'system',
 			targetId: null,
 			allowChildOverride: inferSystemAllowOverride(policy),
-			value: policy.effectiveValue,
+			value: explicitValue,
 		}
 
 		return explicitSystemRule.value
@@ -287,10 +345,15 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		const policy = activePolicyState.value
-		const fallbackValue = activeDefinition.value.getFallbackSystemDefault(
-			policy?.effectiveValue,
-			policy?.sourceScope,
-		)
+		const fallbackValue = isRequestExpirationPolicyKey(activeDefinition.value.key)
+			? buildRequestExpirationValue(
+				activeDefinition.value.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope),
+				policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)?.effectiveValue,
+			)
+			: activeDefinition.value.getFallbackSystemDefault(
+				policy?.effectiveValue,
+				policy?.sourceScope,
+			)
 
 		if (fallbackValue === null || fallbackValue === undefined) {
 			return null
@@ -540,22 +603,26 @@ export function createRealPolicyWorkbenchState() {
 	async function hydratePersistedRules(policyKey: string) {
 		const currentRequestId = hydratePersistedRulesRequestId.value + 1
 		hydratePersistedRulesRequestId.value = currentRequestId
+		const shouldMergeRequestExpiration = isRequestExpirationPolicyKey(policyKey)
 
 		await Promise.all([
 			loadTargets('group', ''),
 			loadTargets('user', ''),
 		])
 
-		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies] = await Promise.all([
-			policiesStore.fetchSystemPolicy(policyKey).catch((error) => {
+		const fetchSystemPolicySafe = async (key: string) => {
+			return policiesStore.fetchSystemPolicy(key).catch((error) => {
 				logger.debug('Could not load explicit system policy for workbench', {
 					error,
-					policyKey,
+					policyKey: key,
 				})
 				return null
-			}),
-			(typeof policiesStore.fetchGroupPoliciesByPolicyKey === 'function'
-				? policiesStore.fetchGroupPoliciesByPolicyKey(policyKey).then((policies) => {
+			})
+		}
+
+		const fetchPersistedGroupRulesForKey = async (key: string): Promise<PolicyRuleRecord[]> => {
+			if (typeof policiesStore.fetchGroupPoliciesByPolicyKey === 'function') {
+				return policiesStore.fetchGroupPoliciesByPolicyKey(key).then((policies) => {
 					return policies
 						.filter((policy) => policy.value !== null && policy.value !== undefined)
 						.map((policy) => ({
@@ -568,35 +635,42 @@ export function createRealPolicyWorkbenchState() {
 				}).catch((error) => {
 					logger.debug('Could not bulk load persisted group policies for workbench', {
 						error,
-						policyKey,
+						policyKey: key,
 					})
 					return []
 				})
-				: Promise.all(groups.value.map(async (group) => {
-					try {
-						const persistedPolicy = await policiesStore.fetchGroupPolicy(group.id, policyKey)
-						if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
-							return null
-						}
+			}
 
-						return {
-							id: `group-${group.id}-persisted`,
-							scope: 'group' as const,
-							targetId: group.id,
-							allowChildOverride: persistedPolicy.allowChildOverride,
-							value: persistedPolicy.value,
-						}
-					} catch (error) {
-						logger.debug('Could not load persisted group policy for target', {
-							error,
-							policyKey,
-							groupId: group.id,
-						})
+			const records = await Promise.all(groups.value.map(async (group) => {
+				try {
+					const persistedPolicy = await policiesStore.fetchGroupPolicy(group.id, key)
+					if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
 						return null
 					}
-				})).then((records) => records.filter((record): record is NonNullable<typeof record> => record !== null))),
-			(typeof policiesStore.fetchUserPoliciesByPolicyKey === 'function'
-				? policiesStore.fetchUserPoliciesByPolicyKey(policyKey).then((policies) => {
+
+					return {
+						id: `group-${group.id}-persisted`,
+						scope: 'group' as const,
+						targetId: group.id,
+						allowChildOverride: persistedPolicy.allowChildOverride,
+						value: persistedPolicy.value,
+					}
+				} catch (error) {
+					logger.debug('Could not load persisted group policy for target', {
+						error,
+						policyKey: key,
+						groupId: group.id,
+					})
+					return null
+				}
+			}))
+
+			return records.filter((record): record is NonNullable<typeof record> => record !== null)
+		}
+
+		const fetchPersistedUserRulesForKey = async (key: string): Promise<PolicyRuleRecord[]> => {
+			if (typeof policiesStore.fetchUserPoliciesByPolicyKey === 'function') {
+				return policiesStore.fetchUserPoliciesByPolicyKey(key).then((policies) => {
 					return policies
 						.filter((policy) => policy.value !== null && policy.value !== undefined)
 						.map((policy) => ({
@@ -609,40 +683,133 @@ export function createRealPolicyWorkbenchState() {
 				}).catch((error) => {
 					logger.debug('Could not bulk load persisted user policies for workbench', {
 						error,
-						policyKey,
+						policyKey: key,
 					})
 					return []
 				})
-				: Promise.all(users.value.map(async (user) => {
-					try {
-						const persistedPolicy = await policiesStore.fetchUserPolicyForUser(user.id, policyKey)
-						if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
-							return null
-						}
+			}
 
-						return {
-							id: `user-${user.id}-persisted`,
-							scope: 'user' as const,
-							targetId: user.id,
-							allowChildOverride: persistedPolicy.allowChildOverride,
-							value: persistedPolicy.value,
-						}
-					} catch (error) {
-						logger.debug('Could not load persisted user policy for target', {
-							error,
-							policyKey,
-							userId: user.id,
-						})
+			const records = await Promise.all(users.value.map(async (user) => {
+				try {
+					const persistedPolicy = await policiesStore.fetchUserPolicyForUser(user.id, key)
+					if (!persistedPolicy || persistedPolicy.value === null || persistedPolicy.value === undefined) {
 						return null
 					}
-				})).then((records) => records.filter((record): record is NonNullable<typeof record> => record !== null))),
+
+					return {
+						id: `user-${user.id}-persisted`,
+						scope: 'user' as const,
+						targetId: user.id,
+						allowChildOverride: persistedPolicy.allowChildOverride,
+						value: persistedPolicy.value,
+					}
+				} catch (error) {
+					logger.debug('Could not load persisted user policy for target', {
+						error,
+						policyKey: key,
+						userId: user.id,
+					})
+					return null
+				}
+			}))
+
+			return records.filter((record): record is NonNullable<typeof record> => record !== null)
+		}
+
+		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies, renewalSystemPolicy, renewalGroupPolicies, renewalUserPolicies] = await Promise.all([
+			fetchSystemPolicySafe(policyKey),
+			fetchPersistedGroupRulesForKey(policyKey),
+			fetchPersistedUserRulesForKey(policyKey),
+			shouldMergeRequestExpiration ? fetchSystemPolicySafe(REQUEST_EXPIRATION_RENEWAL_KEY) : Promise.resolve(null),
+			shouldMergeRequestExpiration ? fetchPersistedGroupRulesForKey(REQUEST_EXPIRATION_RENEWAL_KEY) : Promise.resolve([]),
+			shouldMergeRequestExpiration ? fetchPersistedUserRulesForKey(REQUEST_EXPIRATION_RENEWAL_KEY) : Promise.resolve([]),
 		])
 
 		if (currentRequestId !== hydratePersistedRulesRequestId.value || activeSettingKey.value !== policyKey) {
 			return
 		}
 
-		const hasPersistedRule = <TRule>(rule: TRule | null): rule is TRule => rule !== null
+		if (shouldMergeRequestExpiration) {
+			const maxHasValue = persistedSystemPolicy?.value !== null && persistedSystemPolicy?.value !== undefined
+			const renewalHasValue = renewalSystemPolicy?.value !== null && renewalSystemPolicy?.value !== undefined
+			explicitSystemRule.value = (persistedSystemPolicy?.scope === 'global' || renewalSystemPolicy?.scope === 'global') && (maxHasValue || renewalHasValue)
+				? {
+					id: 'system-default',
+					scope: 'system',
+					targetId: null,
+					allowChildOverride: persistedSystemPolicy?.allowChildOverride ?? renewalSystemPolicy?.allowChildOverride ?? true,
+					value: buildRequestExpirationValue(
+						persistedSystemPolicy?.value,
+						renewalSystemPolicy?.value,
+					),
+				}
+				: null
+
+			const mergedGroupRules = new Map<string, PolicyRuleRecord>()
+			for (const rule of persistedGroupPolicies) {
+				if (!rule.targetId) {
+					continue
+				}
+
+				mergedGroupRules.set(rule.targetId, {
+					id: rule.id,
+					scope: 'group',
+					targetId: rule.targetId,
+					allowChildOverride: rule.allowChildOverride,
+					value: buildRequestExpirationValue(rule.value, null),
+				})
+			}
+
+			for (const rule of renewalGroupPolicies) {
+				if (!rule.targetId) {
+					continue
+				}
+
+				const existing = mergedGroupRules.get(rule.targetId)
+				mergedGroupRules.set(rule.targetId, {
+					id: existing?.id ?? rule.id,
+					scope: 'group',
+					targetId: rule.targetId,
+					allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
+					value: buildRequestExpirationValue(existing?.value, rule.value),
+				})
+			}
+
+			const mergedUserRules = new Map<string, PolicyRuleRecord>()
+			for (const rule of persistedUserPolicies) {
+				if (!rule.targetId) {
+					continue
+				}
+
+				mergedUserRules.set(rule.targetId, {
+					id: rule.id,
+					scope: 'user',
+					targetId: rule.targetId,
+					allowChildOverride: rule.allowChildOverride,
+					value: buildRequestExpirationValue(rule.value, null),
+				})
+			}
+
+			for (const rule of renewalUserPolicies) {
+				if (!rule.targetId) {
+					continue
+				}
+
+				const existing = mergedUserRules.get(rule.targetId)
+				mergedUserRules.set(rule.targetId, {
+					id: existing?.id ?? rule.id,
+					scope: 'user',
+					targetId: rule.targetId,
+					allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
+					value: buildRequestExpirationValue(existing?.value, rule.value),
+				})
+			}
+
+			groupRules.value = Array.from(mergedGroupRules.values())
+			userRules.value = Array.from(mergedUserRules.values())
+			nextRuleNumber.value = groupRules.value.length + userRules.value.length + 1
+			return
+		}
 
 		explicitSystemRule.value = persistedSystemPolicy?.scope === 'global' && persistedSystemPolicy.value !== null && persistedSystemPolicy.value !== undefined
 			? {
@@ -654,8 +821,8 @@ export function createRealPolicyWorkbenchState() {
 			}
 			: null
 
-		groupRules.value = persistedGroupPolicies.filter(hasPersistedRule)
-		userRules.value = persistedUserPolicies.filter(hasPersistedRule)
+		groupRules.value = persistedGroupPolicies
+		userRules.value = persistedUserPolicies
 		nextRuleNumber.value = groupRules.value.length + userRules.value.length + 1
 	}
 
@@ -1022,20 +1189,38 @@ export function createRealPolicyWorkbenchState() {
 
 		const { scope, value, targetIds } = editorDraft.value
 		const policyKey = activeDefinition.value.key
+		const isRequestExpiration = isRequestExpirationPolicyKey(policyKey)
+		const normalizedRequestExpirationValue = isRequestExpiration
+			? normalizeRequestExpirationDraftValue(value)
+			: null
 		const allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, editorDraft.value.allowChildOverride)
 
 		try {
 			if (scope === 'system') {
-				await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
+				if (isRequestExpiration && normalizedRequestExpirationValue) {
+					await Promise.all([
+						policiesStore.saveSystemPolicy(policyKey, normalizedRequestExpirationValue.maximumValidity, allowChildOverride),
+						policiesStore.saveSystemPolicy(REQUEST_EXPIRATION_RENEWAL_KEY, normalizedRequestExpirationValue.renewalInterval, allowChildOverride),
+					])
+				} else {
+					await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
+				}
 				if (viewMode.value === 'system-admin' && isScopeSupported('user')) {
-					await policiesStore.clearUserPreference(policyKey)
+					if (isRequestExpiration) {
+						await Promise.all([
+							policiesStore.clearUserPreference(policyKey),
+							policiesStore.clearUserPreference(REQUEST_EXPIRATION_RENEWAL_KEY),
+						])
+					} else {
+						await policiesStore.clearUserPreference(policyKey)
+					}
 				}
 				explicitSystemRule.value = {
 					id: 'system-default',
 					scope: 'system',
 					targetId: null,
 					allowChildOverride,
-					value,
+					value: normalizedRequestExpirationValue ?? value,
 				}
 				await policiesStore.fetchEffectivePolicies()
 				cancelEditor()
@@ -1043,12 +1228,21 @@ export function createRealPolicyWorkbenchState() {
 			}
 
 			if (scope === 'group') {
-				await Promise.all(targetIds.map((targetId) => {
-					return policiesStore.saveGroupPolicy(targetId, policyKey, value, allowChildOverride)
-				}))
+				if (isRequestExpiration && normalizedRequestExpirationValue) {
+					await Promise.all(targetIds.map((targetId) => {
+						return Promise.all([
+							policiesStore.saveGroupPolicy(targetId, policyKey, normalizedRequestExpirationValue.maximumValidity, allowChildOverride),
+							policiesStore.saveGroupPolicy(targetId, REQUEST_EXPIRATION_RENEWAL_KEY, normalizedRequestExpirationValue.renewalInterval, allowChildOverride),
+						])
+					}))
+				} else {
+					await Promise.all(targetIds.map((targetId) => {
+						return policiesStore.saveGroupPolicy(targetId, policyKey, value, allowChildOverride)
+					}))
+				}
 
 				for (const targetId of targetIds) {
-					upsertRule(groupRules.value, 'group', targetId, value, allowChildOverride)
+					upsertRule(groupRules.value, 'group', targetId, normalizedRequestExpirationValue ?? value, allowChildOverride)
 				}
 
 				await policiesStore.fetchEffectivePolicies()
@@ -1056,12 +1250,21 @@ export function createRealPolicyWorkbenchState() {
 				return
 			}
 
-			await Promise.all(targetIds.map((targetId) => {
-				return policiesStore.saveUserPolicyForUser(targetId, policyKey, value, allowChildOverride)
-			}))
+			if (isRequestExpiration && normalizedRequestExpirationValue) {
+				await Promise.all(targetIds.map((targetId) => {
+					return Promise.all([
+						policiesStore.saveUserPolicyForUser(targetId, policyKey, normalizedRequestExpirationValue.maximumValidity, allowChildOverride),
+						policiesStore.saveUserPolicyForUser(targetId, REQUEST_EXPIRATION_RENEWAL_KEY, normalizedRequestExpirationValue.renewalInterval, allowChildOverride),
+					])
+				}))
+			} else {
+				await Promise.all(targetIds.map((targetId) => {
+					return policiesStore.saveUserPolicyForUser(targetId, policyKey, value, allowChildOverride)
+				}))
+			}
 
 			for (const targetId of targetIds) {
-				upsertRule(userRules.value, 'user', targetId, value, allowChildOverride)
+				upsertRule(userRules.value, 'user', targetId, normalizedRequestExpirationValue ?? value, allowChildOverride)
 			}
 
 			await policiesStore.fetchEffectivePolicies()
@@ -1077,6 +1280,7 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		const policyKey = activeDefinition.value.key
+		const isRequestExpiration = isRequestExpirationPolicyKey(policyKey)
 		const inheritedSystemRuleId = inheritedSystemRule.value?.id
 		const isEditingMode = editorMode.value === 'edit'
 
@@ -1089,7 +1293,14 @@ export function createRealPolicyWorkbenchState() {
 			&& editorDraft.value.ruleId === ruleId
 
 		if (ruleId === 'system-default' || (inheritedSystemRuleId !== null && ruleId === inheritedSystemRuleId)) {
-			await policiesStore.saveSystemPolicy(policyKey, null, false)
+			if (isRequestExpiration) {
+				await Promise.all([
+					policiesStore.saveSystemPolicy(policyKey, null, false),
+					policiesStore.saveSystemPolicy(REQUEST_EXPIRATION_RENEWAL_KEY, null, false),
+				])
+			} else {
+				await policiesStore.saveSystemPolicy(policyKey, null, false)
+			}
 			explicitSystemRule.value = null
 			highlightedRuleId.value = null
 			await policiesStore.fetchEffectivePolicies()
@@ -1103,7 +1314,14 @@ export function createRealPolicyWorkbenchState() {
 		if (groupIndex >= 0) {
 			const targetId = groupRules.value[groupIndex]?.targetId
 			if (targetId) {
-				await policiesStore.clearGroupPolicy(targetId, policyKey)
+				if (isRequestExpiration) {
+					await Promise.all([
+						policiesStore.clearGroupPolicy(targetId, policyKey),
+						policiesStore.clearGroupPolicy(targetId, REQUEST_EXPIRATION_RENEWAL_KEY),
+					])
+				} else {
+					await policiesStore.clearGroupPolicy(targetId, policyKey)
+				}
 			}
 			groupRules.value.splice(groupIndex, 1)
 			highlightedRuleId.value = null
@@ -1118,7 +1336,14 @@ export function createRealPolicyWorkbenchState() {
 		if (userIndex >= 0) {
 			const targetId = userRules.value[userIndex]?.targetId
 			if (targetId) {
-				await policiesStore.clearUserPolicyForUser(targetId, policyKey)
+				if (isRequestExpiration) {
+					await Promise.all([
+						policiesStore.clearUserPolicyForUser(targetId, policyKey),
+						policiesStore.clearUserPolicyForUser(targetId, REQUEST_EXPIRATION_RENEWAL_KEY),
+					])
+				} else {
+					await policiesStore.clearUserPolicyForUser(targetId, policyKey)
+				}
 			}
 			userRules.value.splice(userIndex, 1)
 			highlightedRuleId.value = null

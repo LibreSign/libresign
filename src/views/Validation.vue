@@ -47,6 +47,7 @@
 						<!-- TRANSLATORS: Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
 						<h1>{{ t('libresign', 'Validate signature') }}</h1>
 						<NcTextField v-model="uuidToValidate"
+							autofocus
 							:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
 							:helper-text="helperTextValidation" :error="!!uuidToValidate && !canValidate" />
 						<template #actions>

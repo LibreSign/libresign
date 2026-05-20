@@ -11852,7 +11852,7 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-stamp/preview": {
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature-stamp/preview": {
             "post": {
                 "operationId": "admin-signature-stamp-preview",
                 "summary": "Render a preview PNG image of the signature stamp with the provided configuration.",
@@ -11998,7 +11998,7 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-stamp/preview-pdf": {
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature-stamp/preview-pdf": {
             "post": {
                 "operationId": "admin-signature-stamp-preview-pdf",
                 "summary": "Render a preview PDF of the signature stamp with the provided configuration.",
