@@ -4,10 +4,10 @@ Feature: admin/signature_stamp_preview
 
     When sending "post" to ocs "/apps/libresign/api/v1/signature-stamp/preview-pdf"
       | template | Preview as admin {{SignerCommonName}} |
-      | templateFontSize | 9 |
-      | signatureFontSize | 9 |
-      | signatureWidth | 90 |
-      | signatureHeight | 60 |
+      | templateFontSize | 9.8 |
+      | signatureFontSize | 9.8 |
+      | signatureWidth | 350 |
+      | signatureHeight | 100 |
       | renderMode | default |
       | backgroundType | default |
     Then the response should have a status code 200
@@ -15,13 +15,14 @@ Feature: admin/signature_stamp_preview
     And the response body should not be empty
     And the response body should match the regular expression "^%PDF"
 
-    Given as user "signer1"
+    Given user "signer1" exists
+    And as user "signer1"
     When sending "post" to ocs "/apps/libresign/api/v1/signature-stamp/preview-pdf"
       | template | Preview as signer {{SignerCommonName}} |
-      | templateFontSize | 9 |
-      | signatureFontSize | 9 |
-      | signatureWidth | 90 |
-      | signatureHeight | 60 |
+      | templateFontSize | 9.8 |
+      | signatureFontSize | 9.8 |
+      | signatureWidth | 350 |
+      | signatureHeight | 100 |
       | renderMode | default |
       | backgroundType | default |
     Then the response should have a status code 403
