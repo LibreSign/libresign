@@ -217,8 +217,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(keys).toContain('signature_flow')
 		expect(keys).toContain('docmdp')
 		expect(keys).toContain('signing_mode')
-		expect(keys).toContain('worker_type')
-		expect(keys).toContain('parallel_workers')
+		expect(keys).toContain('worker_config')
 	})
 
 	it('keeps override counts isolated per setting after opening and closing dialogs', async () => {
