@@ -13,6 +13,18 @@ export interface SignatureTextPolicyConfig {
 	renderMode: string
 }
 
+// Default values must mirror SignatureTextPolicyValue::DEFAULT_* constants (PHP backend).
+// If you change a value here, update the corresponding constant in that class too.
+export const SIGNATURE_TEXT_DEFAULTS = Object.freeze({
+	template: '',
+	templateFontSize: 9.8,
+	signatureFontSize: 9.8,
+	signatureWidth: 350.0,
+	signatureHeight: 100.0,
+	backgroundType: 'default',
+	renderMode: 'default',
+})
+
 const RUNTIME_TO_UI_RENDER_MODE: Record<string, string> = {
 	GRAPHIC_AND_DESCRIPTION: 'default',
 	SIGNAME_AND_DESCRIPTION: 'text',
@@ -40,26 +52,18 @@ function normalizeBackgroundType(value: unknown): string {
 }
 
 export function getDefaultSignatureTextPolicyConfig(): SignatureTextPolicyConfig {
-	return {
-		template: '',
-		templateFontSize: 9.0,
-		signatureFontSize: 9.0,
-		signatureWidth: 90.0,
-		signatureHeight: 60.0,
-		backgroundType: 'default',
-		renderMode: 'default',
-	}
+	return { ...SIGNATURE_TEXT_DEFAULTS }
 }
 
 export function serializeSignatureTextPolicyConfig(config: Partial<SignatureTextPolicyConfig>): string {
 	return JSON.stringify({
-		template: config.template ?? '',
-		template_font_size: config.templateFontSize ?? 9.0,
-		signature_font_size: config.signatureFontSize ?? 9.0,
-		signature_width: config.signatureWidth ?? 90.0,
-		signature_height: config.signatureHeight ?? 60.0,
-		background_type: config.backgroundType ?? 'default',
-		render_mode: config.renderMode ?? 'default',
+		template: config.template ?? SIGNATURE_TEXT_DEFAULTS.template,
+		template_font_size: config.templateFontSize ?? SIGNATURE_TEXT_DEFAULTS.templateFontSize,
+		signature_font_size: config.signatureFontSize ?? SIGNATURE_TEXT_DEFAULTS.signatureFontSize,
+		signature_width: config.signatureWidth ?? SIGNATURE_TEXT_DEFAULTS.signatureWidth,
+		signature_height: config.signatureHeight ?? SIGNATURE_TEXT_DEFAULTS.signatureHeight,
+		background_type: config.backgroundType ?? SIGNATURE_TEXT_DEFAULTS.backgroundType,
+		render_mode: config.renderMode ?? SIGNATURE_TEXT_DEFAULTS.renderMode,
 	})
 }
 
@@ -79,11 +83,11 @@ export function normalizeSignatureTextPolicyConfig(rawValue: unknown): Signature
 
 	if (obj) {
 		return {
-			template: String(obj.template ?? '').trim(),
-			templateFontSize: Number(obj.template_font_size ?? 9.0),
-			signatureFontSize: Number(obj.signature_font_size ?? 9.0),
-			signatureWidth: Number(obj.signature_width ?? 90.0),
-			signatureHeight: Number(obj.signature_height ?? 60.0),
+			template: String(obj.template ?? SIGNATURE_TEXT_DEFAULTS.template).trim(),
+			templateFontSize: Number(obj.template_font_size ?? SIGNATURE_TEXT_DEFAULTS.templateFontSize),
+			signatureFontSize: Number(obj.signature_font_size ?? SIGNATURE_TEXT_DEFAULTS.signatureFontSize),
+			signatureWidth: Number(obj.signature_width ?? SIGNATURE_TEXT_DEFAULTS.signatureWidth),
+			signatureHeight: Number(obj.signature_height ?? SIGNATURE_TEXT_DEFAULTS.signatureHeight),
 			backgroundType: normalizeBackgroundType(obj.background_type),
 			renderMode: normalizeRenderMode(obj.render_mode),
 		}
