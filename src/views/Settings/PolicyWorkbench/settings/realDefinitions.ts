@@ -25,7 +25,6 @@ import { signatureHashAlgorithmRealDefinition } from './signature-hash-algorithm
 import { signatureTextRealDefinition } from './signature-text/realDefinition'
 import {
 	signingModeRealDefinition,
-	workerConfigRealDefinition,
 } from './signing-mode/realDefinitions'
 import { tsaRealDefinition } from './tsa/realDefinition'
 import { validationAccessRealDefinition } from './validation-access/realDefinition'
@@ -64,5 +63,4 @@ export const realDefinitions = {
 	default_user_folder: { ...defaultUserFolderRealDefinition, category: 'system-behavior' },
 	make_validation_url_private: { ...validationAccessRealDefinition, category: 'system-behavior' },
 	signing_mode: { ...signingModeRealDefinition, category: 'system-behavior' },
-	worker_config: { ...workerConfigRealDefinition, category: 'system-behavior' },
 } satisfies Record<string, RealPolicySettingDefinition>
