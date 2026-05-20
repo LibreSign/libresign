@@ -63,7 +63,21 @@ function mountWorkbench() {
 				NcNoteCard: { template: '<div class="note-card"><slot /></div>' },
 				NcDialog: {
 					props: ['name', 'buttons', 'size'],
-					template: '<div class="dialog" :data-size="size"><h2 v-if="name" class="dialog-title">{{ name }}</h2><slot /><div v-if="buttons" class="dialog-footer"><button v-for="button in buttons" :key="button.label" :disabled="button.disabled" @click="button.callback()">{{ button.label }}</button></div></div>',
+					data: () => ({
+						open: true,
+					}),
+					watch: {
+						name() {
+							this.open = true
+						},
+					},
+					methods: {
+						requestClose() {
+							this.$emit('closing')
+							this.open = false
+						},
+					},
+					template: '<div v-if="open" class="dialog" :data-size="size"><h2 v-if="name" class="dialog-title">{{ name }}</h2><button type="button" class="dialog-close-stub" @click="requestClose">Close</button><slot /><div v-if="buttons" class="dialog-footer"><button v-for="button in buttons" :key="button.label" :disabled="button.disabled" @click="button.callback()">{{ button.label }}</button></div></div>',
 				},
 				NcChip: { template: '<button class="nc-chip-stub">{{ text }}</button>', props: ['text'] },
 				NcCheckboxRadioSwitch: {
@@ -241,6 +255,39 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
 	})
 
+	it('keeps create-rule editor visible after dismissing discard dialog from ESC flow', async () => {
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await wrapper.find('button.policy-workbench__crud-create-cta').trigger('click')
+		await findButtonContainingText(wrapper, 'User')?.trigger('click')
+
+		const sha1Input = wrapper.find('input[type="radio"]')
+		expect(sha1Input.exists()).toBe(true)
+		await sha1Input.setValue(true)
+
+		const createRuleDialog = wrapper
+			.findAll('.dialog')
+			.find((dialog) => dialog.find('.dialog-title').text() === 'Create rule')
+		expect(createRuleDialog).toBeTruthy()
+		await createRuleDialog?.find('.dialog-close-stub').trigger('click')
+
+		const discardDialog = wrapper
+			.findAll('.dialog')
+			.find((dialog) => dialog.find('.dialog-title').text() === 'Discard unsaved changes?')
+		expect(discardDialog).toBeTruthy()
+		await discardDialog?.find('.dialog-close-stub').trigger('click')
+
+		expect(
+			wrapper
+				.findAll('.dialog-title')
+				.some((title) => title.text() === 'Create rule'),
+		).toBe(true)
+	})
+
 	it('shows instance option in create rule when only system default is active', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'signature_flow') {
@@ -402,6 +449,24 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).toContain('Request expiration')
 		expect(text).toContain('Configure expiration and renewal timing for signing requests.')
 		expect(text).not.toContain('Renewal interval in seconds of a subscription request.')
+	})
+
+	it('allows user, group, and everyone scopes for signature processing', async () => {
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signature processing')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		await findButtonByText(wrapper, 'Create rule')?.trigger('click')
+
+		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
+		expect(createScopeDialog.exists()).toBe(true)
+		const text = createScopeDialog.text()
+		expect(text).toContain('User')
+		expect(text).toContain('Group')
+		expect(text).toContain('Everyone')
+		expect(text).not.toContain('Not available for this setting.')
 	})
 
 })
