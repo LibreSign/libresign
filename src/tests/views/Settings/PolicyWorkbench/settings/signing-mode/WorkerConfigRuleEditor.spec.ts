@@ -28,8 +28,8 @@ const NcCheckboxRadioSwitchStub = {
 
 const NcTextFieldStub = {
 	name: 'NcTextField',
-	props: ['modelValue', 'label', 'type', 'min', 'max'],
-	template: '<div class="text-field-stub"><label>{{ label }}</label><input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" @blur="$emit(\'blur\')" /></div>',
+	props: ['modelValue', 'label', 'type', 'min', 'max', 'disabled'],
+	template: '<div class="text-field-stub"><label>{{ label }}</label><input :value="modelValue" :disabled="disabled" @input="$emit(\'update:modelValue\', $event.target.value)" @blur="$emit(\'blur\')" /></div>',
 	emits: ['update:modelValue', 'blur'],
 }
 
@@ -57,13 +57,15 @@ describe('WorkerConfigRuleEditor.vue', () => {
 			expect(wrapper.text()).toContain('Parallel workers')
 		})
 
-		it('hides parallel workers input when worker type is external', () => {
+		it('keeps parallel workers input visible and disabled when worker type is external', () => {
 			const wrapper = mount(WorkerConfigRuleEditor, {
 				props: { modelValue: makeModelValue('external', 4) },
 				global: { stubs: globalStubs },
 			})
 
-			expect(wrapper.find('.text-field-stub').exists()).toBe(false)
+			expect(wrapper.find('.text-field-stub').exists()).toBe(true)
+			expect(wrapper.find('.text-field-stub input').attributes('disabled')).toBeDefined()
+			expect(wrapper.text()).toContain('Parallel workers is managed by the external worker service.')
 		})
 
 		it('renders with default values for empty/null modelValue', () => {
