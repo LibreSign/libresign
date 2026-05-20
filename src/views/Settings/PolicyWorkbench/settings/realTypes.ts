@@ -25,6 +25,7 @@ export interface RealPolicySettingDefinition {
 	category?: RealPolicySettingCategory
 	description: string
 	supportedScopes?: ReadonlyArray<RealPolicyScope>
+	visibleInGroupAdmin?: boolean
 	editor: unknown
 	editorProps?: Record<string, unknown>
 	resolveEditorProps?: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => Record<string, unknown>
