@@ -91,7 +91,7 @@ test.describe('Policy preferences: boolean settings', () => {
 
 			const collectMetadataSection = await sectionByTitle(page, 'Collect signer metadata')
 			const docMdpSection = await sectionByTitle(page, 'PDF certification')
-			const signatureTextSection = await sectionByTitle(page, /Signature text|Signature stamp/i)
+			const signatureTextSection = await sectionByTitle(page, /Signature stamp text|Signature text|Signature stamp/i)
 
 			expect(await collectMetadataSection.isVisible()).toBe(true)
 			expect(await docMdpSection.isVisible()).toBe(true)
@@ -180,12 +180,12 @@ async function restoreSystemPolicySnapshot(
 }
 
 async function savePreferenceAsDisabled(section: Locator): Promise<void> {
-	const disabledOptionLabel = section.getByText('Disabled', { exact: true }).first()
-	await disabledOptionLabel.click({ force: true })
+	const disabledOption = section.getByRole('radio', { name: /^(Disable metadata collection|Disabled)\b/i }).first()
+	await disabledOption.click({ force: true })
 }
 
 async function clearPreference(section: Locator): Promise<void> {
-	const resetButton = section.getByRole('button', { name: 'Reset to default' })
+	const resetButton = section.getByRole('button').filter({ hasText: 'Reset to default' }).first()
 	await expect(resetButton).toBeVisible()
 
 	await resetButton.click()
