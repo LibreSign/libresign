@@ -90,12 +90,12 @@ Feature: admin/initial_state
       | collect_metadata                  | false                    |
       | legal_information                 |                          |
       | signature_background_type         | default                  |
-      | signature_font_size               | 20                       |
+      | signature_font_size               | 9.8                      |
       | signature_height                  | 100                      |
       | signature_engine                  | JSignPdf                 |
       | signature_render_mode             | GRAPHIC_AND_DESCRIPTION  |
       | signature_width                   | 350                      |
-      | template_font_size                | 10                       |
+      | template_font_size                | 9.8                      |
       | docmdp_level                      | 2                        |
       | policy.signature_flow.system      | none                     |
       | identification_documents          | false                    |
@@ -243,12 +243,12 @@ Feature: admin/initial_state
       | collect_metadata                  | false                    |
       | legal_information                 |                          |
       | signature_background_type         | default                  |
-      | signature_font_size               | 20                       |
+      | signature_font_size               | 9.8                      |
       | signature_height                  | 100                      |
       | signature_engine                  | JSignPdf                 |
       | signature_render_mode             | GRAPHIC_AND_DESCRIPTION  |
       | signature_width                   | 350                      |
-      | template_font_size                | 10                       |
+      | template_font_size                | 9.8                      |
       | docmdp_level                      | 2                        |
       | policy.signature_flow.system      | none                     |
       | identification_documents          | false                    |
