@@ -101,7 +101,7 @@ describe('MarkdownEditor', () => {
 					},
 				},
 			},
-		}) as MarkdownEditorWrapper
+		}) as unknown as MarkdownEditorWrapper
 
 		// Mock the syncHistoryState method to avoid EditorState complexity in tests
 		wrapper.vm.syncHistoryState = vi.fn()
