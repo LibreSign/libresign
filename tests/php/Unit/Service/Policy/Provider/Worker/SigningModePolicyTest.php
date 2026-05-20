@@ -27,6 +27,7 @@ final class SigningModePolicyTest extends TestCase {
 		$this->assertSame(['sync', 'async'], $signingMode->allowedValues(new PolicyContext()));
 		$this->assertSame('async', $signingMode->normalizeValue('async'));
 		$this->assertSame('sync', $signingMode->normalizeValue('invalid-value'));
+		$this->assertFalse($signingMode->supportsUserPreference());
 
 		$workerType = $provider->get(SigningModePolicy::KEY_WORKER_TYPE);
 		$this->assertSame(SigningModePolicy::KEY_WORKER_TYPE, $workerType->key());
