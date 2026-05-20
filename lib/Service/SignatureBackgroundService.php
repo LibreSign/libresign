@@ -10,11 +10,13 @@ namespace OCA\Libresign\Service;
 
 use Exception;
 use Imagick;
+use ImagickDraw;
 use ImagickPixel;
 use OCA\Libresign\Files\TSimpleFile;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
+use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -28,6 +30,7 @@ use OCP\ITempManager;
 class SignatureBackgroundService {
 	use TSimpleFile;
 	public const SCALE_FACTOR = 3;
+	private const POINT_TO_MILIMETER = 0.3527777778;
 
 	public function __construct(
 		private IAppData $appData,
@@ -125,6 +128,26 @@ class SignatureBackgroundService {
 		return ['width' => $returnWidth, 'height' => $returnHeight];
 	}
 
+	/**
+	 * @return array{width: int, height: int, x: int, y: int}
+	 */
+	private function fitWithinBounds(int $width, int $height, int $maxWidth, int $maxHeight): array {
+		if ($width <= 0 || $height <= 0 || $maxWidth <= 0 || $maxHeight <= 0) {
+			return ['width' => 0, 'height' => 0, 'x' => 0, 'y' => 0];
+		}
+
+		$scale = min($maxWidth / $width, $maxHeight / $height);
+		$fitWidth = max(1, (int)floor($width * $scale));
+		$fitHeight = max(1, (int)floor($height * $scale));
+
+		return [
+			'width' => $fitWidth,
+			'height' => $fitHeight,
+			'x' => (int)floor(max(0, $maxWidth - $fitWidth) / 2),
+			'y' => (int)floor(max(0, $maxHeight - $fitHeight) / 2),
+		];
+	}
+
 	public function delete(): void {
 		try {
 			$this->saveSystemBackgroundType('deleted');
@@ -155,6 +178,265 @@ class SignatureBackgroundService {
 			SignatureTextPolicyValue::encode($stampValue),
 			$allowChildOverride,
 		);
+	}
+
+	/**
+	 * Render a preview PNG of the signature stamp at 3× scale.
+	 *
+	 * @throws \Exception when Imagick is unavailable
+	 */
+	public function renderPreviewImage(
+		string $template = '',
+		float $templateFontSize = 10.0,
+		float $signatureFontSize = 10.0,
+		float $signatureWidth = 90.0,
+		float $signatureHeight = 60.0,
+		string $renderMode = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+		string $backgroundType = 'default',
+	): string {
+		if (!extension_loaded('imagick')) {
+			throw new Exception('Extension imagick is not loaded.');
+		}
+
+		$renderModeNormalized = match ($renderMode) {
+			'default', SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+			'graphic', SignerElementsService::RENDER_MODE_GRAPHIC_ONLY => SignerElementsService::RENDER_MODE_GRAPHIC_ONLY,
+			'text', SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION => SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
+			'description_only', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY => SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
+			default => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+		};
+
+		$scale = self::SCALE_FACTOR;
+		$w = (int)round($signatureWidth * $scale);
+		$h = (int)round($signatureHeight * $scale);
+
+		$canvas = new Imagick();
+		$canvas->newImage($w, $h, new ImagickPixel('white'));
+		$canvas->setImageFormat('png');
+
+		if ($backgroundType !== 'deleted') {
+			try {
+				$bgContent = $this->getImage()->getContent();
+				$bg = new Imagick();
+				$bg->readImageBlob($bgContent);
+				$placement = $this->fitWithinBounds($bg->getImageWidth(), $bg->getImageHeight(), $w, $h);
+				if ($placement['width'] > 0 && $placement['height'] > 0) {
+					$bg->resizeImage($placement['width'], $placement['height'], Imagick::FILTER_LANCZOS, 1);
+					$canvas->compositeImage($bg, Imagick::COMPOSITE_OVER, $placement['x'], $placement['y']);
+				}
+				$bg->destroy();
+			} catch (\Exception $e) {
+				// Background not available – continue with white canvas
+			}
+		}
+
+		// SIGNAME_AND_DESCRIPTION: composite signer name image on left half.
+		if ($renderModeNormalized === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
+			try {
+				$signerName = $this->signatureTextService->getPreviewSignerName();
+				$nameBlob = $this->signatureTextService->signerNameImage(
+					$signerName,
+					(int)($signatureWidth / 2),
+					(int)$signatureHeight,
+					'center',
+					$signatureFontSize,
+					false,
+					$scale,
+				);
+				$nameImg = new Imagick();
+				$nameImg->readImageBlob($nameBlob);
+				$nameImg->resizeImage((int)($w / 2), $h, Imagick::FILTER_LANCZOS, 1);
+				$canvas->compositeImage($nameImg, Imagick::COMPOSITE_OVER, 0, 0);
+				$nameImg->destroy();
+			} catch (\Exception $e) {
+				// Signer name rendering failed – skip left-half name
+			}
+		}
+
+		if ($renderModeNormalized !== SignerElementsService::RENDER_MODE_GRAPHIC_ONLY) {
+			$parsedText = '';
+			try {
+				$result = $this->signatureTextService->parse($template);
+				$parsedText = $result['parsed'];
+			} catch (\Exception $e) {
+				// Template render failed – skip text overlay
+			}
+
+			if (!empty($parsedText)) {
+				$draw = new ImagickDraw();
+				$fonts = Imagick::queryFonts();
+				if ($fonts) {
+					$draw->setFont($fonts[0]);
+				} else {
+					$fallback = __DIR__ . '/../../3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf';
+					if (file_exists($fallback)) {
+						$draw->setFont($fallback);
+					}
+				}
+				$draw->setFontSize($templateFontSize * $scale);
+				$draw->setFillColor(new ImagickPixel('#111111'));
+				$draw->setTextAlignment(Imagick::ALIGN_LEFT);
+
+				$fontPx = $templateFontSize * $scale;
+				$leftPadding = max(2.0 * $scale, $fontPx * 0.15);
+				$isDescriptionOnly = $renderModeNormalized === SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY;
+				$hasLeftPane = $renderModeNormalized === SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION
+					|| $renderModeNormalized === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION;
+
+				$textX = $isDescriptionOnly ? $leftPadding : ((float)$w / 2.0) + $leftPadding;
+				$availableWidth = $isDescriptionOnly
+					? max(1.0, (float)$w - ($leftPadding * 2.0))
+					: max(1.0, ((float)$w / 2.0) - ($leftPadding * 2.0));
+				if (!$hasLeftPane) {
+					$textX = $leftPadding;
+					$availableWidth = max(1.0, (float)$w - ($leftPadding * 2.0));
+				}
+
+				$normalizedText = str_replace(["\r\n", "\r"], "\n", $parsedText);
+				$wrappedLines = $this->wrapTextForPreview($canvas, $draw, $normalizedText, $availableWidth);
+				$textY = $fontPx + (2.0 * $scale);
+				$lineHeight = $fontPx * 1.0;
+				foreach ($wrappedLines as $line) {
+					if ($textY > $h) {
+						break;
+					}
+					$canvas->annotateImage($draw, $textX, $textY, 0.0, $line);
+					$textY += $lineHeight;
+				}
+			}
+		}
+
+		$blob = $canvas->getImagesBlob();
+		$canvas->destroy();
+		return $blob;
+	}
+
+	/**
+	 * Render a preview PDF that contains the stamp preview as a single page.
+	 */
+	public function renderPreviewPdf(
+		string $template = '',
+		float $templateFontSize = 10.0,
+		float $signatureFontSize = 10.0,
+		float $signatureWidth = 90.0,
+		float $signatureHeight = 60.0,
+		string $renderMode = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+		string $backgroundType = 'default',
+	): string {
+		$png = $this->renderPreviewImage(
+			template: $template,
+			templateFontSize: $templateFontSize,
+			signatureFontSize: $signatureFontSize,
+			signatureWidth: $signatureWidth,
+			signatureHeight: $signatureHeight,
+			renderMode: $renderMode,
+			backgroundType: $backgroundType,
+		);
+
+		$mpdfClass = '\\OCA\\Libresign\\Vendor\\Mpdf\\Mpdf';
+		$pdf = new $mpdfClass([
+			'tempDir' => $this->tempManager->getTempBaseDir(),
+			'orientation' => 'P',
+			'margin_left' => 0,
+			'margin_right' => 0,
+			'margin_top' => 0,
+			'margin_bottom' => 0,
+			'margin_header' => 0,
+			'margin_footer' => 0,
+			'format' => [
+				$signatureWidth * self::POINT_TO_MILIMETER,
+				$signatureHeight * self::POINT_TO_MILIMETER,
+			],
+		]);
+
+		$pdf->SetAutoPageBreak(false);
+		$pdf->AddPage(
+			orientation: 'P',
+			newformat: [
+				$signatureWidth * self::POINT_TO_MILIMETER,
+				$signatureHeight * self::POINT_TO_MILIMETER,
+			],
+		);
+		$pdf->WriteHTML(sprintf(
+			'<html><body style="margin:0;padding:0;"><img src="data:image/png;base64,%s" style="display:block;width:100%%;height:100%%;" /></body></html>',
+			base64_encode($png),
+		));
+
+		return $pdf->Output('', 'S');
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function wrapTextForPreview(Imagick $canvas, ImagickDraw $draw, string $text, float $maxWidth): array {
+		$lines = [];
+		foreach (explode("\n", $text) as $paragraph) {
+			if ($paragraph === '') {
+				$lines[] = '';
+				continue;
+			}
+
+			$currentLine = '';
+			$words = preg_split('/\s+/u', trim($paragraph)) ?: [];
+			foreach ($words as $word) {
+				if ($word === '') {
+					continue;
+				}
+				$candidate = $currentLine === '' ? $word : $currentLine . ' ' . $word;
+				$metrics = $canvas->queryFontMetrics($draw, $candidate);
+				if (($metrics['textWidth'] ?? 0.0) <= $maxWidth) {
+					$currentLine = $candidate;
+					continue;
+				}
+
+				if ($currentLine !== '') {
+					$lines[] = $currentLine;
+					$currentLine = '';
+				}
+
+				$wordMetrics = $canvas->queryFontMetrics($draw, $word);
+				if (($wordMetrics['textWidth'] ?? 0.0) <= $maxWidth) {
+					$currentLine = $word;
+					continue;
+				}
+
+				$chunks = $this->splitLongTokenByWidth($canvas, $draw, $word, $maxWidth);
+				$lastChunk = array_pop($chunks);
+				if ($chunks) {
+					array_push($lines, ...$chunks);
+				}
+				$currentLine = $lastChunk ?? '';
+			}
+
+			$lines[] = $currentLine;
+		}
+
+		return $lines;
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function splitLongTokenByWidth(Imagick $canvas, ImagickDraw $draw, string $word, float $maxWidth): array {
+		$chunks = [];
+		$current = '';
+		foreach (preg_split('//u', $word, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $char) {
+			$candidate = $current . $char;
+			$metrics = $canvas->queryFontMetrics($draw, $candidate);
+			if (($metrics['textWidth'] ?? 0.0) <= $maxWidth || $current === '') {
+				$current = $candidate;
+				continue;
+			}
+
+			$chunks[] = $current;
+			$current = $char;
+		}
+
+		if ($current !== '') {
+			$chunks[] = $current;
+		}
+
+		return $chunks;
 	}
 
 	public function getImage(): ISimpleFile {

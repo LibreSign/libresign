@@ -34,6 +34,7 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->config = $this->createMock(IConfig::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
+		$this->tempManager->method('getTempBaseDir')->willReturn(sys_get_temp_dir());
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
 		$this->policyService = $this->createMock(PolicyService::class);
 	}
@@ -48,6 +49,31 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 			$this->policyService,
 		);
 		return $this->service;
+	}
+
+	/**
+	 * @return array{width: int, height: int, x: int, y: int}
+	 */
+	#[DataProvider('providerFitWithinBounds')]
+	public function testFitWithinBounds(
+		int $width,
+		int $height,
+		int $maxWidth,
+		int $maxHeight,
+		array $expected,
+	): void {
+		$class = $this->getClass();
+		$result = self::invokePrivate($class, 'fitWithinBounds', [$width, $height, $maxWidth, $maxHeight]);
+
+		$this->assertSame($expected, $result);
+	}
+
+	public static function providerFitWithinBounds(): array {
+		return [
+			'fits with identical ratio' => [1000, 500, 200, 100, ['width' => 200, 'height' => 100, 'x' => 0, 'y' => 0]],
+			'letterbox horizontally' => [1000, 1000, 200, 100, ['width' => 100, 'height' => 100, 'x' => 50, 'y' => 0]],
+			'upscales small image without distortion' => [100, 50, 200, 100, ['width' => 200, 'height' => 100, 'x' => 0, 'y' => 0]],
+		];
 	}
 
 	#[DataProvider('providerScaleDimensions')]
@@ -82,5 +108,29 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 			'every return integer'
 				=> [2000, 1600, 200.7, 100.5, 376, 301],
 		];
+	}
+
+	public function testRenderPreviewPdfWrapsPreviewImageInPdf(): void {
+		$service = $this->getMockBuilder(SignatureBackgroundService::class)
+			->onlyMethods(['renderPreviewImage'])
+			->setConstructorArgs([
+				$this->appData,
+				$this->appConfig,
+				$this->config,
+				$this->tempManager,
+				$this->signatureTextService,
+				$this->policyService,
+			])
+			->getMock();
+
+		$previewPng = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6ZKqUAAAAASUVORK5CYII=');
+		self::assertIsString($previewPng);
+		$service->expects($this->once())
+			->method('renderPreviewImage')
+			->willReturn($previewPng);
+
+		$pdf = $service->renderPreviewPdf('Template', 10.0, 12.0, 90.0, 60.0, 'default', 'default');
+
+		$this->assertStringStartsWith('%PDF', $pdf);
 	}
 }

@@ -21,7 +21,7 @@ export type SignatureTextUiDefaults = SignatureTextPolicyConfig
 export function getSignatureTextUiDefaults(): SignatureTextUiDefaults {
 	return {
 		...SIGNATURE_TEXT_DEFAULTS,
-		renderMode: 'GRAPHIC_AND_DESCRIPTION',
+		renderMode: 'default',
 	}
 }
 

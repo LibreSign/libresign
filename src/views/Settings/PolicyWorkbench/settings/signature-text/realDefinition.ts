@@ -45,7 +45,7 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 			parts.push(t('libresign', 'Custom template'))
 		}
 
-		parts.push(`${normalized.signatureWidth}×${normalized.signatureHeight}px`)
+		parts.push(`${normalized.signatureWidth}×${normalized.signatureHeight}`)
 		parts.push(`${t('libresign', 'Background')}: ${normalized.backgroundType}`)
 		parts.push(`${t('libresign', 'Mode')}: ${normalized.renderMode}`)
 

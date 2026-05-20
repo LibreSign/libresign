@@ -20,10 +20,12 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SetupCheckResultService;
 use OCA\Libresign\Service\SignatureBackgroundService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
+use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\IAppConfig;
@@ -362,6 +364,93 @@ class AdminController extends AEnvironmentAwareController {
 				'status' => 'success',
 			]
 		);
+	}
+
+	/**
+	 * Render a preview PNG image of the signature stamp with the provided configuration.
+	 *
+	 * @param string $template Signature text template (Twig syntax)
+	 * @param float $templateFontSize Font size for template text in pt
+	 * @param float $signatureFontSize Font size for signer name in pt
+	 * @param float $signatureWidth Stamp width in mm
+	 * @param float $signatureHeight Stamp height in mm
+	 * @param string $renderMode Render mode: default, text, graphic, description_only (or GRAPHIC_AND_DESCRIPTION, SIGNAME_AND_DESCRIPTION, GRAPHIC_ONLY, DESCRIPTION_ONLY)
+	 * @param string $backgroundType Background: default, custom, deleted
+	 *
+	 * @return DataDownloadResponse<Http::STATUS_OK, string, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: Preview PNG image
+	 * 422: Rendering error
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-stamp/preview', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureStampPreview(
+		string $template = '',
+		float $templateFontSize = 10.0,
+		float $signatureFontSize = 10.0,
+		float $signatureWidth = 90.0,
+		float $signatureHeight = 60.0,
+		string $renderMode = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+		string $backgroundType = 'default',
+	): DataDownloadResponse|DataResponse {
+		try {
+			$png = $this->signatureBackgroundService->renderPreviewImage(
+				template: $template,
+				templateFontSize: $templateFontSize,
+				signatureFontSize: $signatureFontSize,
+				signatureWidth: $signatureWidth,
+				signatureHeight: $signatureHeight,
+				renderMode: $renderMode,
+				backgroundType: $backgroundType,
+			);
+		} catch (\Exception $e) {
+			return new DataResponse(['message' => $e->getMessage()], Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+		return new DataDownloadResponse($png, 'stamp-preview.png', 'image/png');
+	}
+
+	/**
+	 * Render a preview PDF of the signature stamp with the provided configuration.
+	 *
+	 * @param string $template Signature text template (Twig syntax)
+	 * @param float $templateFontSize Font size for template text in pt
+	 * @param float $signatureFontSize Font size for signer name in pt
+	 * @param float $signatureWidth Stamp width in mm
+	 * @param float $signatureHeight Stamp height in mm
+	 * @param string $renderMode Render mode: default, text, graphic, description_only (or GRAPHIC_AND_DESCRIPTION, SIGNAME_AND_DESCRIPTION, GRAPHIC_ONLY, DESCRIPTION_ONLY)
+	 * @param string $backgroundType Background: default, custom, deleted
+	 *
+	 * @return DataDownloadResponse<Http::STATUS_OK, string, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: Preview PDF
+	 * 422: Rendering error
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-stamp/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureStampPreviewPdf(
+		string $template = '',
+		float $templateFontSize = 10.0,
+		float $signatureFontSize = 10.0,
+		float $signatureWidth = 90.0,
+		float $signatureHeight = 60.0,
+		string $renderMode = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+		string $backgroundType = 'default',
+	): DataDownloadResponse|DataResponse {
+		try {
+			$pdf = $this->signatureBackgroundService->renderPreviewPdf(
+				template: $template,
+				templateFontSize: $templateFontSize,
+				signatureFontSize: $signatureFontSize,
+				signatureWidth: $signatureWidth,
+				signatureHeight: $signatureHeight,
+				renderMode: $renderMode,
+				backgroundType: $backgroundType,
+			);
+		} catch (\Exception $e) {
+			return new DataResponse(['message' => $e->getMessage()], Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+
+		return new DataDownloadResponse($pdf, 'stamp-preview.pdf', 'application/pdf');
 	}
 
 	/**
