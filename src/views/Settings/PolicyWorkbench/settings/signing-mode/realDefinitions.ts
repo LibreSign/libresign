@@ -44,8 +44,8 @@ export const signingModeRealDefinition: RealPolicySettingDefinition = {
 
 export const workerConfigRealDefinition: RealPolicySettingDefinition = {
 	key: 'worker_config',
-	title: t('libresign', 'Worker configuration'),
-	description: t('libresign', 'Choose whether workers run locally or externally, and set the parallelism level.'),
+	title: t('libresign', 'Background workers'),
+	description: t('libresign', 'Configure asynchronous signing job processing and concurrency.'),
 	supportedScopes: ['system'],
 	editor: WorkerConfigRuleEditor,
 	resolutionMode: 'precedence',
@@ -67,10 +67,13 @@ export const workerConfigRealDefinition: RealPolicySettingDefinition = {
 			: t('libresign', 'Local worker')
 
 		if (config.workerType === 'local') {
-			return t('libresign', '{type} • {count} parallel', { type: workerTypeLabel, count: String(config.parallelWorkers) })
+			return t('libresign', 'Service: {type} • Parallel workers: {count}', {
+				type: workerTypeLabel,
+				count: String(config.parallelWorkers),
+			})
 		}
 
-		return workerTypeLabel
+		return t('libresign', 'Service: {type}', { type: workerTypeLabel })
 	},
 	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
 }
