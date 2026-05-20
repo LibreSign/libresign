@@ -11,6 +11,7 @@ import {
 } from '../../../../views/Settings/PolicyWorkbench/settings/signing-mode/realDefinitions'
 import {
 	getDefaultWorkerConfig,
+	normalizeSigningExecutionSettings,
 	normalizeWorkerConfig,
 	resolveParallelWorkers,
 	resolveSigningMode,
@@ -86,10 +87,55 @@ describe('signing-mode policy real definitions', () => {
 
 	it('exposes policy definitions for the policy workbench', () => {
 		expect(signingModeRealDefinition.key).toBe('signing_mode')
+		expect(signingModeRealDefinition.title).toBe('Signature processing')
 		expect(workerConfigRealDefinition.key).toBe('worker_config')
 		expect(workerConfigRealDefinition.title).toBe('Background workers')
-		expect(signingModeRealDefinition.supportedScopes).toEqual(['system'])
+		expect(signingModeRealDefinition.visibleInGroupAdmin).toBe(false)
+		expect(signingModeRealDefinition.supportedScopes).toBeUndefined()
 		expect(workerConfigRealDefinition.supportedScopes).toEqual(['system'])
+		expect(signingModeRealDefinition.formatAllowOverride(true)).toBe('Lower-level customization is disabled for this setting')
+	})
+
+	it('summarizes immediate processing for sync mode', () => {
+		expect(signingModeRealDefinition.summarizeValue?.({
+			signingMode: 'sync',
+			workerType: 'local',
+			parallelWorkers: 4,
+		})).toBe('Process immediately')
+	})
+
+	it('summarizes background processing with local worker and concurrency', () => {
+		expect(signingModeRealDefinition.summarizeValue?.({
+			signingMode: 'async',
+			workerType: 'local',
+			parallelWorkers: 6,
+		})).toBe('Process in background · Local worker · 6 jobs')
+	})
+
+	it('summarizes background processing with external worker', () => {
+		expect(signingModeRealDefinition.summarizeValue?.({
+			signingMode: 'async',
+			workerType: 'external',
+			parallelWorkers: 4,
+		})).toBe('Process in background · External worker')
+	})
+
+	it('normalizes legacy persisted values for migration compatibility', () => {
+		expect(normalizeSigningExecutionSettings('async')).toEqual({
+			signingMode: 'async',
+			workerType: 'local',
+			parallelWorkers: 4,
+		})
+
+		expect(normalizeSigningExecutionSettings({
+			signingMode: 'sync',
+			workerType: 'external',
+			parallelWorkers: 7,
+		})).toEqual({
+			signingMode: 'sync',
+			workerType: 'external',
+			parallelWorkers: 7,
+		})
 	})
 
 	describe('workerConfigRealDefinition', () => {
