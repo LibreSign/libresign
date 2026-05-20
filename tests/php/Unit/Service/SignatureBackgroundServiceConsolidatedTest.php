@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\Files\IAppData;
@@ -58,10 +59,10 @@ final class SignatureBackgroundServiceConsolidatedTest extends \OCA\Libresign\Te
 	public function testGetSignatureBackgroundTypeReadsFromConsolidatedStampPolicy(): void {
 		$consolidatedValue = json_encode([
 			'template' => 'Dear @{firstname}',
-			'template_font_size' => 9.0,
-			'signature_font_size' => 9.0,
-			'signature_width' => 90.0,
-			'signature_height' => 60.0,
+			'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+			'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+			'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 			'background_type' => 'custom',
 			'render_mode' => 'default',
 		], JSON_THROW_ON_ERROR);
