@@ -54,7 +54,7 @@ describe('RequestExpirationRuleEditor.vue', () => {
 			},
 		})
 
-		const values = wrapper.findAll('input.field-value').map((input) => input.element.value)
+		const values = wrapper.findAll('input.field-value').map((input) => (input.element as HTMLInputElement).value)
 		expect(values).toEqual(['', ''])
 	})
 
