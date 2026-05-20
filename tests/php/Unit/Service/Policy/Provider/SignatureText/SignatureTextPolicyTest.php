@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\SignatureText;
 
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use Test\TestCase;
 
 class SignatureTextPolicyTest extends TestCase {
@@ -44,7 +45,7 @@ class SignatureTextPolicyTest extends TestCase {
 	public function testGetTemplateFontSizePolicy(): void {
 		$spec = $this->policy->get(SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE);
 		$this->assertEquals(SignatureTextPolicy::KEY_TEMPLATE_FONT_SIZE, $spec->key());
-		$this->assertEquals(9.0, $spec->defaultSystemValue());
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE, $spec->defaultSystemValue());
 		$this->assertEmpty($spec->allowedValues(new \OCA\Libresign\Service\Policy\Model\PolicyContext()));
 		$this->assertEquals(8.5, $spec->normalizeValue('8.5'));
 		$this->assertEquals(10.0, $spec->normalizeValue(10));
@@ -54,26 +55,26 @@ class SignatureTextPolicyTest extends TestCase {
 	public function testGetSignatureWidthPolicy(): void {
 		$spec = $this->policy->get(SignatureTextPolicy::KEY_SIGNATURE_WIDTH);
 		$this->assertEquals(SignatureTextPolicy::KEY_SIGNATURE_WIDTH, $spec->key());
-		$this->assertEquals(90.0, $spec->defaultSystemValue());
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH, $spec->defaultSystemValue());
 		$this->assertEmpty($spec->allowedValues(new \OCA\Libresign\Service\Policy\Model\PolicyContext()));
-		$this->assertEquals(90.0, $spec->normalizeValue(90));
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH, $spec->normalizeValue(350));
 		$this->assertEquals(120.5, $spec->normalizeValue('120.5'));
 	}
 
 	public function testGetSignatureHeightPolicy(): void {
 		$spec = $this->policy->get(SignatureTextPolicy::KEY_SIGNATURE_HEIGHT);
 		$this->assertEquals(SignatureTextPolicy::KEY_SIGNATURE_HEIGHT, $spec->key());
-		$this->assertEquals(60.0, $spec->defaultSystemValue());
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT, $spec->defaultSystemValue());
 		$this->assertEmpty($spec->allowedValues(new \OCA\Libresign\Service\Policy\Model\PolicyContext()));
-		$this->assertEquals(60.0, $spec->normalizeValue(60));
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT, $spec->normalizeValue(100));
 	}
 
 	public function testGetSignatureFontSizePolicy(): void {
 		$spec = $this->policy->get(SignatureTextPolicy::KEY_SIGNATURE_FONT_SIZE);
 		$this->assertEquals(SignatureTextPolicy::KEY_SIGNATURE_FONT_SIZE, $spec->key());
-		$this->assertEquals(9.0, $spec->defaultSystemValue());
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, $spec->defaultSystemValue());
 		$this->assertEmpty($spec->allowedValues(new \OCA\Libresign\Service\Policy\Model\PolicyContext()));
-		$this->assertEquals(9.0, $spec->normalizeValue(9));
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, $spec->normalizeValue(9.8));
 		$this->assertEquals(11.5, $spec->normalizeValue('11.5'));
 	}
 
