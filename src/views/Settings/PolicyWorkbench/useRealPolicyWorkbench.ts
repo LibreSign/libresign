@@ -249,7 +249,9 @@ export function createRealPolicyWorkbenchState() {
 					context: definition.context,
 					description: definition.description,
 					defaultSummary: hasEffectiveValue && summaryValue !== null && summaryValue !== undefined
-						? definition.summarizeValue(summaryValue)
+						? (typeof definition.summarizeValue === 'function'
+							? definition.summarizeValue(summaryValue)
+							: String(summaryValue))
 						: t('libresign', 'Not configured'),
 					groupCount: isActiveSetting ? groupRules.value.length : groupCount,
 					userCount: isActiveSetting ? userRules.value.length : userCount,
