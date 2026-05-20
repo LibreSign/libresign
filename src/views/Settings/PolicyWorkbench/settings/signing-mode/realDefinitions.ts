@@ -11,6 +11,7 @@ import SigningModeRuleEditor from './SigningModeRuleEditor.vue'
 import WorkerConfigRuleEditor from './WorkerConfigRuleEditor.vue'
 import {
 	getDefaultWorkerConfig,
+	normalizeSigningExecutionSettings,
 	normalizeWorkerConfig,
 	resolveSigningMode,
 	serializeWorkerConfig,
@@ -18,13 +19,13 @@ import {
 
 export const signingModeRealDefinition: RealPolicySettingDefinition = {
 	key: 'signing_mode',
-	title: t('libresign', 'Signing execution mode'),
-	description: t('libresign', 'Choose whether signatures run synchronously or in background processing.'),
-	supportedScopes: ['system'],
+	title: t('libresign', 'Signature processing'),
+	description: t('libresign', 'Choose how LibreSign processes signatures and configure background workers when needed.'),
+	visibleInGroupAdmin: false,
 	editor: SigningModeRuleEditor,
 	resolutionMode: 'precedence',
-	createEmptyValue: () => 'sync',
-	normalizeDraftValue: (value: EffectivePolicyValue) => resolveSigningMode(value),
+	createEmptyValue: () => normalizeSigningExecutionSettings('sync'),
+	normalizeDraftValue: (value: EffectivePolicyValue) => normalizeSigningExecutionSettings(value),
 	hasSelectableDraftValue: () => true,
 	normalizeAllowChildOverride: () => false,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
@@ -35,11 +36,26 @@ export const signingModeRealDefinition: RealPolicySettingDefinition = {
 		return 'sync'
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
-		return resolveSigningMode(value) === 'async'
-			? t('libresign', 'Asynchronous')
-			: t('libresign', 'Synchronous')
+		const settings = normalizeSigningExecutionSettings(value)
+		if (settings.signingMode === 'sync') {
+			return t('libresign', 'Process immediately')
+		}
+
+		const workerTypeLabel = settings.workerType === 'external'
+			? t('libresign', 'External worker')
+			: t('libresign', 'Local worker')
+
+		if (settings.workerType === 'local') {
+			return t('libresign', 'Process in background · {type} · {count} jobs', {
+				type: workerTypeLabel,
+				count: String(settings.parallelWorkers),
+			})
+		}
+
+		return t('libresign', 'Process in background · {type}', { type: workerTypeLabel })
 	},
-	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
+	formatAllowOverride: (allowChildOverride: boolean) =>
+		t('libresign', 'Lower-level customization is disabled for this setting'),
 }
 
 export const workerConfigRealDefinition: RealPolicySettingDefinition = {
