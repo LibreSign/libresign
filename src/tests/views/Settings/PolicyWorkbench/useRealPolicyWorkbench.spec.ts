@@ -217,7 +217,7 @@ describe('useRealPolicyWorkbench', () => {
 		expect(keys).toContain('signature_flow')
 		expect(keys).toContain('docmdp')
 		expect(keys).toContain('signing_mode')
-		expect(keys).toContain('worker_config')
+		expect(keys).not.toContain('worker_config')
 	})
 
 	it('keeps override counts isolated per setting after opening and closing dialogs', async () => {
@@ -1240,6 +1240,18 @@ describe('useRealPolicyWorkbench', () => {
 
 		expect(keys).toContain('docmdp')
 		expect(keys).not.toContain('add_footer')
+	})
+
+	it('hides signature processing from group-admin catalog while keeping system-admin visibility', () => {
+		currentUserState.isAdmin = false
+		getPolicy.mockReturnValue({ effectiveValue: 'parallel', groupCount: 0, userCount: 0, editableByCurrentActor: true })
+
+		const groupAdminState = createRealPolicyWorkbenchState()
+		expect(groupAdminState.visibleSettingSummaries.map((summary) => summary.key)).not.toContain('signing_mode')
+
+		currentUserState.isAdmin = true
+		const systemAdminState = createRealPolicyWorkbenchState()
+		expect(systemAdminState.visibleSettingSummaries.map((summary) => summary.key)).toContain('signing_mode')
 	})
 
 	it('requires changing the value before enabling system create save', () => {
