@@ -34,7 +34,6 @@ vi.mock('@libresign/pdf-elements', () => ({
 
 import SignatureTextRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-text/SignatureTextRuleEditor.vue'
 import { getDefaultSignatureTextPolicyConfig } from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-text/model'
-import type { EffectivePolicyValue } from '../../../../../../types/index'
 
 describe('SignatureTextRuleEditor.vue', () => {
 	const defaultConfig = getDefaultSignatureTextPolicyConfig()
@@ -69,7 +68,7 @@ describe('SignatureTextRuleEditor.vue', () => {
 		vi.useRealTimers()
 	})
 
-	const asModelValue = (value: Record<string, unknown>): EffectivePolicyValue => JSON.stringify(value)
+	const asModelValue = (value: object): string => JSON.stringify(value)
 
 	it('requests the pdf preview endpoint and renders it with pdf-elements', async () => {
 		const wrapper = mount(SignatureTextRuleEditor, {
