@@ -187,8 +187,8 @@ function applyNormalizedConfig(nextConfig: ReturnType<typeof normalizeSignatureT
 const previewScale = computed(() => Math.max(0.25, Math.min(5, previewZoom.value / 100)))
 
 const previewFrameStyle = computed(() => {
-	const safeWidth = Math.max(20, Number(config.signatureWidth) || 90)
-	const safeHeight = Math.max(10, Number(config.signatureHeight) || 60)
+	const safeWidth = Math.max(20, Number(config.signatureWidth) || defaultConfig.signatureWidth)
+	const safeHeight = Math.max(10, Number(config.signatureHeight) || defaultConfig.signatureHeight)
 	return {
 		width: `${Math.round(safeWidth * previewScale.value)}px`,
 		height: `${Math.round(safeHeight * previewScale.value)}px`,
