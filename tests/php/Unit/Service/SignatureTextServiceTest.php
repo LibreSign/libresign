@@ -60,10 +60,10 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			FooterPolicy::KEY => FooterPolicyValue::encode(FooterPolicyValue::defaults()),
 			SignatureTextPolicyProvider::KEY => SignatureTextPolicyValue::encode([
 				'template' => '',
-				'template_font_size' => SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE,
-				'signature_font_size' => SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE,
-				'signature_width' => SignatureTextService::DEFAULT_SIGNATURE_WIDTH,
-				'signature_height' => SignatureTextService::DEFAULT_SIGNATURE_HEIGHT,
+				'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+				'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+				'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+				'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 				'background_type' => 'default',
 				'render_mode' => SignerElementsService::RENDER_MODE_DEFAULT,
 			]),
@@ -152,10 +152,10 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	public function testParseMapsDefaultRenderModeToRuntimeGraphicAndDescription(): void {
 		$this->policyValues[SignatureTextPolicyProvider::KEY] = SignatureTextPolicyValue::encode([
 			'template' => '',
-			'template_font_size' => SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE,
-			'signature_font_size' => SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE,
-			'signature_width' => SignatureTextService::DEFAULT_SIGNATURE_WIDTH,
-			'signature_height' => SignatureTextService::DEFAULT_SIGNATURE_HEIGHT,
+			'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+			'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+			'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 			'background_type' => 'default',
 			'render_mode' => 'default',
 		]);
@@ -364,8 +364,8 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	public function testGetFullSignatureDimensionsShouldFallbackToDefaultsWhenConfigIsInvalid(): void {
 		$this->policyValues[SignatureTextPolicyProvider::KEY] = SignatureTextPolicyValue::encode([
 			'template' => '',
-			'template_font_size' => SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE,
-			'signature_font_size' => SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE,
+			'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 			'signature_width' => 0.0,
 			'signature_height' => -1.0,
 			'background_type' => 'default',
@@ -374,7 +374,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 
 		$class = $this->getClass();
 
-		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_WIDTH, $class->getFullSignatureWidth());
-		$this->assertEquals(SignatureTextService::DEFAULT_SIGNATURE_HEIGHT, $class->getFullSignatureHeight());
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH, $class->getFullSignatureWidth());
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT, $class->getFullSignatureHeight());
 	}
 }
