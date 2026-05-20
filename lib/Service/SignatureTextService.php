@@ -615,11 +615,16 @@ class SignatureTextService {
 		return is_array($decoded);
 	}
 
+	public function getPreviewSignerName(): string {
+		return $this->userSession?->getUser()?->getDisplayName() ?? 'John Doe';
+	}
+
 	private function normalizeRuntimeRenderMode(string $renderMode): string {
 		return match ($renderMode) {
 			'default' => SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
 			'graphic' => SignerElementsService::RENDER_MODE_GRAPHIC_ONLY,
 			'text' => SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
+			'description_only',
 			SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
 			SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
 			SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
@@ -631,11 +636,9 @@ class SignatureTextService {
 	private function normalizePersistedRenderMode(string $renderMode): string {
 		return match ($renderMode) {
 			SignerElementsService::RENDER_MODE_GRAPHIC_ONLY, 'graphic' => 'graphic',
-			SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY,
-			SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
-			'text' => 'text',
-			SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
-			'default' => 'default',
+			SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, 'description_only' => 'description_only',
+			SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION, 'text' => 'text',
+			SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION, 'default' => 'default',
 			default => 'default',
 		};
 	}
