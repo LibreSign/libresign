@@ -87,6 +87,7 @@ describe('signing-mode policy real definitions', () => {
 	it('exposes policy definitions for the policy workbench', () => {
 		expect(signingModeRealDefinition.key).toBe('signing_mode')
 		expect(workerConfigRealDefinition.key).toBe('worker_config')
+		expect(workerConfigRealDefinition.title).toBe('Background workers')
 		expect(signingModeRealDefinition.supportedScopes).toEqual(['system'])
 		expect(workerConfigRealDefinition.supportedScopes).toEqual(['system'])
 	})
@@ -110,7 +111,7 @@ describe('signing-mode policy real definitions', () => {
 
 		it('summarizeValue shows External worker for external type', () => {
 			const raw = JSON.stringify({ worker_type: 'external', parallel_workers: 4 })
-			expect(workerConfigRealDefinition.summarizeValue!(raw)).toBe('External worker')
+			expect(workerConfigRealDefinition.summarizeValue!(raw)).toBe('Service: External worker')
 		})
 
 		it('summarizeValue shows type and count for local type', () => {
