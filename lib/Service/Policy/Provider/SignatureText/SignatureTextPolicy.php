@@ -70,28 +70,28 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 			),
 			self::KEY_TEMPLATE_FONT_SIZE => new PolicySpec(
 				key: self::KEY_TEMPLATE_FONT_SIZE,
-				defaultSystemValue: 9.0,
+				defaultSystemValue: SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): float => (float)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE,
 			),
 			self::KEY_SIGNATURE_WIDTH => new PolicySpec(
 				key: self::KEY_SIGNATURE_WIDTH,
-				defaultSystemValue: 90.0,
+				defaultSystemValue: SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): float => (float)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH,
 			),
 			self::KEY_SIGNATURE_HEIGHT => new PolicySpec(
 				key: self::KEY_SIGNATURE_HEIGHT,
-				defaultSystemValue: 60.0,
+				defaultSystemValue: SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): float => (float)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT,
 			),
 			self::KEY_SIGNATURE_FONT_SIZE => new PolicySpec(
 				key: self::KEY_SIGNATURE_FONT_SIZE,
-				defaultSystemValue: 9.0,
+				defaultSystemValue: SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): float => (float)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE,
@@ -125,10 +125,10 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 	private function defaultConsolidatedValue(): array {
 		return [
 			'template' => '',
-			'template_font_size' => 9.0,
-			'signature_font_size' => 9.0,
-			'signature_width' => 90.0,
-			'signature_height' => 60.0,
+			'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+			'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+			'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 			'background_type' => 'default',
 			'render_mode' => 'default',
 		];
