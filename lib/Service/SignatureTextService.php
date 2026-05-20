@@ -38,14 +38,11 @@ use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
 class SignatureTextService {
-	public const TEMPLATE_DEFAULT_FONT_SIZE = 10;
-	public const SIGNATURE_DEFAULT_FONT_SIZE = 20;
 	public const SIGNATURE_DIMENSION_MINIMUM = 1;
 	public const FONT_SIZE_MINIMUM = 0.1;
 	public const FRONT_SIZE_MAX = 30;
-	public const DEFAULT_SIGNATURE_WIDTH = 350;
-	public const DEFAULT_SIGNATURE_HEIGHT = 100;
 	private const int QRCODE_SIZE = 100;
+
 	public function __construct(
 		private IL10N $l10n,
 		private IDateTimeZone $dateTimeZone,
@@ -63,10 +60,10 @@ class SignatureTextService {
 	 */
 	public function save(
 		string $template,
-		float $templateFontSize = self::TEMPLATE_DEFAULT_FONT_SIZE,
-		float $signatureFontSize = self::SIGNATURE_DEFAULT_FONT_SIZE,
-		float $signatureWidth = self::DEFAULT_SIGNATURE_WIDTH,
-		float $signatureHeight = self::DEFAULT_SIGNATURE_HEIGHT,
+		float $templateFontSize = SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
+		float $signatureFontSize = SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+		float $signatureWidth = SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+		float $signatureHeight = SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
 		string $renderMode = SignerElementsService::RENDER_MODE_DEFAULT,
 	): array {
 		if ($templateFontSize > self::FRONT_SIZE_MAX || $templateFontSize < self::FONT_SIZE_MINIMUM) {
@@ -495,16 +492,16 @@ class SignatureTextService {
 	}
 
 	public function getFullSignatureWidth(): float {
-		return $this->getSanitizedDimension('signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+		return $this->getSanitizedDimension('signature_width', SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH);
 	}
 
 	public function getFullSignatureHeight(): float {
-		return $this->getSanitizedDimension('signature_height', self::DEFAULT_SIGNATURE_HEIGHT);
+		return $this->getSanitizedDimension('signature_height', SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT);
 	}
 
 	public function getSignatureWidth(): float {
 		$config = $this->getSignatureStampPolicyConfig();
-		$current = (float)($config['signature_width'] ?? self::DEFAULT_SIGNATURE_WIDTH);
+		$current = (float)($config['signature_width'] ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH);
 		if ($this->getRenderMode() === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY || !$this->getTemplate()) {
 			return $current;
 		}
@@ -531,15 +528,15 @@ class SignatureTextService {
 
 	public function getTemplateFontSize(): float {
 		$config = $this->getSignatureStampPolicyConfig();
-		return (float)($config['template_font_size'] ?? self::TEMPLATE_DEFAULT_FONT_SIZE);
+		return (float)($config['template_font_size'] ?? SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE);
 	}
 
 	public function getDefaultTemplateFontSize(): float {
 		$collectMetadata = $this->isCollectMetadataEnabled();
 		if ($collectMetadata) {
-			return self::TEMPLATE_DEFAULT_FONT_SIZE - 0.2;
+			return SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE - 0.2;
 		}
-		return self::TEMPLATE_DEFAULT_FONT_SIZE;
+		return SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE;
 	}
 
 	private function isCollectMetadataEnabled(): bool {
@@ -548,7 +545,7 @@ class SignatureTextService {
 
 	public function getSignatureFontSize(): float {
 		$config = $this->getSignatureStampPolicyConfig();
-		return (float)($config['signature_font_size'] ?? self::SIGNATURE_DEFAULT_FONT_SIZE);
+		return (float)($config['signature_font_size'] ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE);
 	}
 
 	public function getRenderMode(): string {
