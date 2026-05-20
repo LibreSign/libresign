@@ -135,7 +135,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-stamp/preview": {
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature-stamp/preview": {
         parameters: {
             query?: never;
             header?: never;
@@ -155,7 +155,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-stamp/preview-pdf": {
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature-stamp/preview-pdf": {
         parameters: {
             query?: never;
             header?: never;

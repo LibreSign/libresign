@@ -12,7 +12,6 @@ import { envelopeRealDefinition } from './envelope/realDefinition'
 import {
 	expiryInDaysRealDefinition,
 	maximumValidityRealDefinition,
-	renewalIntervalRealDefinition,
 } from './expiration-rules/realDefinitions'
 import { identificationDocumentsRealDefinition } from './identification-documents/realDefinition'
 import { identifyMethodsRealDefinition } from './identify-methods/realDefinition'
@@ -25,9 +24,8 @@ import { signatureFooterRealDefinition } from './signature-footer/realDefinition
 import { signatureHashAlgorithmRealDefinition } from './signature-hash-algorithm/realDefinition'
 import { signatureTextRealDefinition } from './signature-text/realDefinition'
 import {
-	parallelWorkersRealDefinition,
 	signingModeRealDefinition,
-	workerTypeRealDefinition,
+	workerConfigRealDefinition,
 } from './signing-mode/realDefinitions'
 import { tsaRealDefinition } from './tsa/realDefinition'
 import { validationAccessRealDefinition } from './validation-access/realDefinition'
@@ -54,7 +52,6 @@ export const realDefinitions = {
 	// 5. Time & limits
 	expiry_in_days: { ...expiryInDaysRealDefinition, category: 'time-and-limits' },
 	maximum_validity: { ...maximumValidityRealDefinition, category: 'time-and-limits' },
-	renewal_interval: { ...renewalIntervalRealDefinition, category: 'time-and-limits' },
 	reminder_settings: { ...reminderRealDefinition, category: 'time-and-limits' },
 
 	// 6. Trust & verification
@@ -67,6 +64,5 @@ export const realDefinitions = {
 	default_user_folder: { ...defaultUserFolderRealDefinition, category: 'system-behavior' },
 	make_validation_url_private: { ...validationAccessRealDefinition, category: 'system-behavior' },
 	signing_mode: { ...signingModeRealDefinition, category: 'system-behavior' },
-	worker_type: { ...workerTypeRealDefinition, category: 'system-behavior' },
-	parallel_workers: { ...parallelWorkersRealDefinition, category: 'system-behavior' },
+	worker_config: { ...workerConfigRealDefinition, category: 'system-behavior' },
 } satisfies Record<string, RealPolicySettingDefinition>

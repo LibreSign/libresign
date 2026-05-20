@@ -76,6 +76,7 @@
 				{{ message }}
 			</NcNoteCard>
 			<NcTextField v-model="pdfUrl"
+				autofocus
 				:label="t('libresign', 'URL of a PDF file')">
 				<NcIconSvgWrapper :path="mdiLink" :size="20" />
 			</NcTextField>
@@ -99,6 +100,7 @@
 			@submit.prevent="handleEnvelopeNameSubmit()"
 			@closing="closeEnvelopeNameDialog">
 			<NcTextField v-model="envelopeNameInput"
+				autofocus
 				:label="t('libresign', 'Enter a name for the envelope')"
 				:placeholder="t('libresign', 'Envelope name')"
 				:minlength="ENVELOPE_NAME_MIN_LENGTH"

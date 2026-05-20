@@ -395,5 +395,14 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.text()).toContain('Edit rule')
 	})
 
+	it('shows one unified request expiration setting card', () => {
+		const wrapper = mountWorkbench()
+		const text = wrapper.text()
+
+		expect(text).toContain('Request expiration')
+		expect(text).toContain('Configure expiration and renewal timing for signing requests.')
+		expect(text).not.toContain('Renewal interval in seconds of a subscription request.')
+	})
+
 })
 
