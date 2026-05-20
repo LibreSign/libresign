@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { t } from '@nextcloud/l10n'
 
@@ -48,10 +48,21 @@ const emit = defineEmits<{
 	'update:modelValue': [value: EffectivePolicyValue]
 }>()
 
-const folderName = computed(() => normalizeDefaultUserFolder(props.modelValue))
-const customEnabled = computed(() => isCustomDefaultUserFolder(props.modelValue))
+const folderName = ref(normalizeDefaultUserFolder(props.modelValue))
+const customEnabled = ref(isCustomDefaultUserFolder(props.modelValue))
+
+watch(
+	() => props.modelValue,
+	(value) => {
+		folderName.value = normalizeDefaultUserFolder(value)
+		customEnabled.value = isCustomDefaultUserFolder(value)
+	},
+	{ immediate: true },
+)
 
 function onToggleCustom(enabled: boolean): void {
+	customEnabled.value = enabled
+
 	if (!enabled) {
 		emit('update:modelValue', DEFAULT_USER_FOLDER)
 		return
@@ -61,7 +72,8 @@ function onToggleCustom(enabled: boolean): void {
 }
 
 function onFolderNameChange(nextValue: string | number): void {
-	emit('update:modelValue', normalizeDefaultUserFolder(String(nextValue)))
+	folderName.value = normalizeDefaultUserFolder(String(nextValue))
+	emit('update:modelValue', folderName.value)
 }
 </script>
 
