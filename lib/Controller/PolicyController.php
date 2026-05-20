@@ -146,7 +146,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * List all explicit group-level policy values for a policy key.
+	 * List all explicit group-level policy values for a policy key
 	 *
 	 * @param string $policyKey Policy identifier to list group rules.
 	 * @return DataResponse<Http::STATUS_OK, array{policies: list<LibresignGroupPolicyState>}, array{}>
@@ -205,7 +205,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * List all explicit user-level policy values for a policy key.
+	 * List all explicit user-level policy values for a policy key
 	 *
 	 * @param string $policyKey Policy identifier to list user rules.
 	 * @return DataResponse<Http::STATUS_OK, array{policies: list<LibresignUserPolicyState>}, array{}>
