@@ -8646,7 +8646,7 @@
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/by-policy/group/{policyKey}": {
             "get": {
                 "operationId": "policy-list-group-policies",
-                "summary": "List all explicit group-level policy values for a policy key.",
+                "summary": "List all explicit group-level policy values for a policy key",
                 "tags": [
                     "policy"
                 ],
@@ -11025,6 +11025,324 @@
                 }
             }
         },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature-stamp/preview": {
+            "post": {
+                "operationId": "signature_stamp_preview-preview",
+                "summary": "Render a preview PNG image of the signature stamp with the provided configuration",
+                "tags": [
+                    "signature_stamp_preview"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "template": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Signature text template (Twig syntax)"
+                                    },
+                                    "templateFontSize": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "description": "Font size for template text in pt"
+                                    },
+                                    "signatureFontSize": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "description": "Font size for signer name in pt"
+                                    },
+                                    "signatureWidth": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "description": "Stamp width in mm"
+                                    },
+                                    "signatureHeight": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "description": "Stamp height in mm"
+                                    },
+                                    "renderMode": {
+                                        "type": "string",
+                                        "description": "Render mode: default, text, graphic, description_only"
+                                    },
+                                    "backgroundType": {
+                                        "type": "string",
+                                        "description": "Background: default, custom, deleted"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Preview PNG image",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Rendering error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature-stamp/preview-pdf": {
+            "post": {
+                "operationId": "signature_stamp_preview-preview-pdf",
+                "summary": "Render a preview PDF of the signature stamp with the provided configuration",
+                "tags": [
+                    "signature_stamp_preview"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "template": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Signature text template (Twig syntax)"
+                                    },
+                                    "templateFontSize": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "description": "Font size for template text in pt"
+                                    },
+                                    "signatureFontSize": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "description": "Font size for signer name in pt"
+                                    },
+                                    "signatureWidth": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "description": "Stamp width in mm"
+                                    },
+                                    "signatureHeight": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "description": "Stamp height in mm"
+                                    },
+                                    "renderMode": {
+                                        "type": "string",
+                                        "description": "Render mode: default, text, graphic, description_only"
+                                    },
+                                    "backgroundType": {
+                                        "type": "string",
+                                        "description": "Background: default, custom, deleted"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Preview PDF",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Rendering error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate/cfssl": {
             "post": {
                 "operationId": "admin-generate-certificate-cfssl",
@@ -11841,298 +12159,6 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/SuccessStatusResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature-stamp/preview": {
-            "post": {
-                "operationId": "admin-signature-stamp-preview",
-                "summary": "Render a preview PNG image of the signature stamp with the provided configuration.",
-                "description": "This endpoint requires admin access",
-                "tags": [
-                    "admin"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "templateFontSize",
-                                    "signatureFontSize",
-                                    "signatureWidth",
-                                    "signatureHeight",
-                                    "renderMode"
-                                ],
-                                "properties": {
-                                    "template": {
-                                        "type": "string",
-                                        "default": "",
-                                        "description": "Signature text template (Twig syntax)"
-                                    },
-                                    "templateFontSize": {
-                                        "type": "number",
-                                        "format": "double",
-                                        "description": "Font size for template text in pt"
-                                    },
-                                    "signatureFontSize": {
-                                        "type": "number",
-                                        "format": "double",
-                                        "description": "Font size for signer name in pt"
-                                    },
-                                    "signatureWidth": {
-                                        "type": "number",
-                                        "format": "double",
-                                        "description": "Stamp width in mm"
-                                    },
-                                    "signatureHeight": {
-                                        "type": "number",
-                                        "format": "double",
-                                        "description": "Stamp height in mm"
-                                    },
-                                    "renderMode": {
-                                        "type": "string",
-                                        "description": "Render mode: default, text, graphic, description_only (or GRAPHIC_AND_DESCRIPTION, SIGNAME_AND_DESCRIPTION, GRAPHIC_ONLY, DESCRIPTION_ONLY)"
-                                    },
-                                    "backgroundType": {
-                                        "type": "string",
-                                        "default": "default",
-                                        "description": "Background: default, custom, deleted"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
-                        }
-                    },
-                    {
-                        "name": "OCS-APIRequest",
-                        "in": "header",
-                        "description": "Required to be true for the API request to pass",
-                        "required": true,
-                        "schema": {
-                            "type": "boolean",
-                            "default": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Preview PNG image",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Rendering error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature-stamp/preview-pdf": {
-            "post": {
-                "operationId": "admin-signature-stamp-preview-pdf",
-                "summary": "Render a preview PDF of the signature stamp with the provided configuration.",
-                "description": "This endpoint requires admin access",
-                "tags": [
-                    "admin"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "templateFontSize",
-                                    "signatureFontSize",
-                                    "signatureWidth",
-                                    "signatureHeight",
-                                    "renderMode"
-                                ],
-                                "properties": {
-                                    "template": {
-                                        "type": "string",
-                                        "default": "",
-                                        "description": "Signature text template (Twig syntax)"
-                                    },
-                                    "templateFontSize": {
-                                        "type": "number",
-                                        "format": "double",
-                                        "description": "Font size for template text in pt"
-                                    },
-                                    "signatureFontSize": {
-                                        "type": "number",
-                                        "format": "double",
-                                        "description": "Font size for signer name in pt"
-                                    },
-                                    "signatureWidth": {
-                                        "type": "number",
-                                        "format": "double",
-                                        "description": "Stamp width in mm"
-                                    },
-                                    "signatureHeight": {
-                                        "type": "number",
-                                        "format": "double",
-                                        "description": "Stamp height in mm"
-                                    },
-                                    "renderMode": {
-                                        "type": "string",
-                                        "description": "Render mode: default, text, graphic, description_only (or GRAPHIC_AND_DESCRIPTION, SIGNAME_AND_DESCRIPTION, GRAPHIC_ONLY, DESCRIPTION_ONLY)"
-                                    },
-                                    "backgroundType": {
-                                        "type": "string",
-                                        "default": "default",
-                                        "description": "Background: default, custom, deleted"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
-                        }
-                    },
-                    {
-                        "name": "OCS-APIRequest",
-                        "in": "header",
-                        "description": "Required to be true for the API request to pass",
-                        "required": true,
-                        "schema": {
-                            "type": "boolean",
-                            "default": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Preview PDF",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Rendering error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
                                                 }
                                             }
                                         }
@@ -13641,7 +13667,7 @@
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/by-policy/user/{policyKey}": {
             "get": {
                 "operationId": "policy-list-user-policies",
-                "summary": "List all explicit user-level policy values for a policy key.",
+                "summary": "List all explicit user-level policy values for a policy key",
                 "description": "This endpoint requires admin access",
                 "tags": [
                     "policy"
