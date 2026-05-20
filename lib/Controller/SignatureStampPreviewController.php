@@ -11,6 +11,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Http;
@@ -34,7 +35,7 @@ final class SignatureStampPreviewController extends AEnvironmentAwareController 
 	}
 
 	/**
-	 * Render a preview PNG image of the signature stamp with the provided configuration.
+	 * Render a preview PNG image of the signature stamp with the provided configuration
 	 *
 	 * @param string $template Signature text template (Twig syntax)
 	 * @param float $templateFontSize Font size for template text in pt
@@ -55,13 +56,20 @@ final class SignatureStampPreviewController extends AEnvironmentAwareController 
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature-stamp/preview', requirements: ['apiVersion' => '(v1)'])]
 	public function preview(
 		string $template = '',
-		float $templateFontSize = 10.0,
-		float $signatureFontSize = 10.0,
-		float $signatureWidth = 90.0,
-		float $signatureHeight = 60.0,
-		string $renderMode = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
-		string $backgroundType = 'default',
+		?float $templateFontSize = null,
+		?float $signatureFontSize = null,
+		?float $signatureWidth = null,
+		?float $signatureHeight = null,
+		?string $renderMode = null,
+		?string $backgroundType = null,
 	): DataDownloadResponse|DataResponse {
+		$templateFontSize ??= SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE;
+		$signatureFontSize ??= SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE;
+		$signatureWidth ??= SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH;
+		$signatureHeight ??= SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT;
+		$renderMode ??= SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
+		$backgroundType ??= 'default';
+
 		if (!$this->canEditSignatureStampPolicy()) {
 			return new DataResponse([
 				'error' => 'Signature stamp preview is only available for users who can edit policies.',
@@ -86,7 +94,7 @@ final class SignatureStampPreviewController extends AEnvironmentAwareController 
 	}
 
 	/**
-	 * Render a preview PDF of the signature stamp with the provided configuration.
+	 * Render a preview PDF of the signature stamp with the provided configuration
 	 *
 	 * @param string $template Signature text template (Twig syntax)
 	 * @param float $templateFontSize Font size for template text in pt
@@ -107,13 +115,20 @@ final class SignatureStampPreviewController extends AEnvironmentAwareController 
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature-stamp/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
 	public function previewPdf(
 		string $template = '',
-		float $templateFontSize = 10.0,
-		float $signatureFontSize = 10.0,
-		float $signatureWidth = 90.0,
-		float $signatureHeight = 60.0,
-		string $renderMode = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
-		string $backgroundType = 'default',
+		?float $templateFontSize = null,
+		?float $signatureFontSize = null,
+		?float $signatureWidth = null,
+		?float $signatureHeight = null,
+		?string $renderMode = null,
+		?string $backgroundType = null,
 	): DataDownloadResponse|DataResponse {
+		$templateFontSize ??= SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE;
+		$signatureFontSize ??= SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE;
+		$signatureWidth ??= SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH;
+		$signatureHeight ??= SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT;
+		$renderMode ??= SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
+		$backgroundType ??= 'default';
+
 		if (!$this->canEditSignatureStampPolicy()) {
 			return new DataResponse([
 				'error' => 'Signature stamp preview is only available for users who can edit policies.',
