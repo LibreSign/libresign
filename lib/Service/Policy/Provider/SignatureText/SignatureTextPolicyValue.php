@@ -9,13 +9,18 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy\Provider\SignatureText;
 
 final class SignatureTextPolicyValue {
+	public const DEFAULT_TEMPLATE_FONT_SIZE = 9.8;
+	public const DEFAULT_SIGNATURE_FONT_SIZE = 9.8;
+	public const DEFAULT_SIGNATURE_WIDTH = 350.0;
+	public const DEFAULT_SIGNATURE_HEIGHT = 100.0;
+
 	/** @var array<string, mixed> */
 	public const DEFAULTS = [
 		'template' => '',
-		'template_font_size' => 9.0,
-		'signature_font_size' => 9.0,
-		'signature_width' => 90.0,
-		'signature_height' => 60.0,
+		'template_font_size' => self::DEFAULT_TEMPLATE_FONT_SIZE,
+		'signature_font_size' => self::DEFAULT_SIGNATURE_FONT_SIZE,
+		'signature_width' => self::DEFAULT_SIGNATURE_WIDTH,
+		'signature_height' => self::DEFAULT_SIGNATURE_HEIGHT,
 		'background_type' => 'default',
 		'render_mode' => 'default',
 	];
