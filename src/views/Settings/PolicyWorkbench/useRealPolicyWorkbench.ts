@@ -16,6 +16,13 @@ import {
 	normalizeRequestExpirationDraftValue,
 	type RequestExpirationDraftValue,
 } from './settings/expiration-rules/model'
+import {
+	normalizeSigningExecutionSettings,
+	normalizeWorkerConfig,
+	resolveSigningMode,
+	serializeWorkerConfig,
+	type SigningExecutionSettingsValue,
+} from './settings/signing-mode/model'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
 import logger from '../../../logger.js'
@@ -154,9 +161,15 @@ function toDraftSnapshot(draft: PolicyEditorDraft | null): string {
 
 const REQUEST_EXPIRATION_POLICY_KEY = 'maximum_validity'
 const REQUEST_EXPIRATION_RENEWAL_KEY = 'renewal_interval'
+const SIGNING_EXECUTION_POLICY_KEY = 'signing_mode'
+const SIGNING_EXECUTION_WORKER_KEY = 'worker_config'
 
 function isRequestExpirationPolicyKey(policyKey: string): boolean {
 	return policyKey === REQUEST_EXPIRATION_POLICY_KEY
+}
+
+function isUnifiedSigningExecutionPolicyKey(policyKey: string): boolean {
+	return policyKey === SIGNING_EXECUTION_POLICY_KEY
 }
 
 function buildRequestExpirationValue(
@@ -172,6 +185,20 @@ function buildRequestExpirationValue(
 	return {
 		maximumValidity: normalizedMaximum.maximumValidity,
 		renewalInterval: normalizedRenewal.renewalInterval,
+	}
+}
+
+function buildSigningExecutionValue(
+	signingMode: EffectivePolicyValue | undefined,
+	workerConfig: EffectivePolicyValue | undefined,
+): SigningExecutionSettingsValue {
+	const normalizedMode = normalizeSigningExecutionSettings(signingMode ?? null)
+	const normalizedWorker = normalizeWorkerConfig(workerConfig ?? null)
+
+	return {
+		signingMode: resolveSigningMode(normalizedMode.signingMode),
+		workerType: normalizedWorker.workerType,
+		parallelWorkers: normalizedWorker.parallelWorkers,
 	}
 }
 
@@ -223,27 +250,49 @@ export function createRealPolicyWorkbenchState() {
 		const isGroupAdminMode = viewMode.value === 'group-admin'
 
 		return Object.values(realDefinitions)
+			.filter((definition) => {
+				if (viewMode.value === 'group-admin' && definition.visibleInGroupAdmin === false) {
+					return false
+				}
+
+				return true
+			})
 			.map((definition) => {
 				const policy = policiesStore.getPolicy(definition.key)
 				const isRequestExpiration = isRequestExpirationPolicyKey(definition.key)
+				const isUnifiedSigningExecution = isUnifiedSigningExecutionPolicyKey(definition.key)
 				const renewalPolicy = isRequestExpiration
 					? policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)
+					: null
+				const workerPolicy = isUnifiedSigningExecution
+					? policiesStore.getPolicy(SIGNING_EXECUTION_WORKER_KEY)
 					: null
 				const hasEffectiveValue = isRequestExpiration
 					? (
 						(policy?.effectiveValue !== null && policy?.effectiveValue !== undefined)
 						|| (renewalPolicy?.effectiveValue !== null && renewalPolicy?.effectiveValue !== undefined)
 					)
+					: isUnifiedSigningExecution
+						? (
+							(policy?.effectiveValue !== null && policy?.effectiveValue !== undefined)
+							|| (workerPolicy?.effectiveValue !== null && workerPolicy?.effectiveValue !== undefined)
+						)
 					: (policy?.effectiveValue !== null && policy?.effectiveValue !== undefined)
 				const isActiveSetting = activeSettingKey.value === definition.key
 				const summaryValue = isRequestExpiration
 					? buildRequestExpirationValue(policy?.effectiveValue, renewalPolicy?.effectiveValue)
+					: isUnifiedSigningExecution
+						? buildSigningExecutionValue(policy?.effectiveValue, workerPolicy?.effectiveValue)
 					: policy?.effectiveValue
 				const groupCount = isRequestExpiration
 					? Math.max(policy?.groupCount ?? 0, renewalPolicy?.groupCount ?? 0)
+					: isUnifiedSigningExecution
+						? Math.max(policy?.groupCount ?? 0, workerPolicy?.groupCount ?? 0)
 					: (policy?.groupCount ?? 0)
 				const userCount = isRequestExpiration
 					? Math.max(policy?.userCount ?? 0, renewalPolicy?.userCount ?? 0)
+					: isUnifiedSigningExecution
+						? Math.max(policy?.userCount ?? 0, workerPolicy?.userCount ?? 0)
 					: (policy?.userCount ?? 0)
 
 				return {
@@ -307,6 +356,11 @@ export function createRealPolicyWorkbenchState() {
 					policy.effectiveValue,
 					policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)?.effectiveValue,
 				)
+				: isUnifiedSigningExecutionPolicyKey(activeDefinition.value.key)
+					? buildSigningExecutionValue(
+						policy.effectiveValue,
+						policiesStore.getPolicy(SIGNING_EXECUTION_WORKER_KEY)?.effectiveValue,
+					)
 				: policy.effectiveValue
 
 			return {
@@ -323,6 +377,11 @@ export function createRealPolicyWorkbenchState() {
 				policy.effectiveValue,
 				policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)?.effectiveValue,
 			)
+			: isUnifiedSigningExecutionPolicyKey(activeDefinition.value.key)
+				? buildSigningExecutionValue(
+					policy.effectiveValue,
+					policiesStore.getPolicy(SIGNING_EXECUTION_WORKER_KEY)?.effectiveValue,
+				)
 			: policy.effectiveValue
 
 		explicitSystemRule.value = {
@@ -355,6 +414,11 @@ export function createRealPolicyWorkbenchState() {
 				activeDefinition.value.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope),
 				policiesStore.getPolicy(REQUEST_EXPIRATION_RENEWAL_KEY)?.effectiveValue,
 			)
+			: isUnifiedSigningExecutionPolicyKey(activeDefinition.value.key)
+				? buildSigningExecutionValue(
+					activeDefinition.value.getFallbackSystemDefault(policy?.effectiveValue, policy?.sourceScope),
+					policiesStore.getPolicy(SIGNING_EXECUTION_WORKER_KEY)?.effectiveValue,
+				)
 			: activeDefinition.value.getFallbackSystemDefault(
 				policy?.effectiveValue,
 				policy?.sourceScope,
@@ -609,6 +673,7 @@ export function createRealPolicyWorkbenchState() {
 		const currentRequestId = hydratePersistedRulesRequestId.value + 1
 		hydratePersistedRulesRequestId.value = currentRequestId
 		const shouldMergeRequestExpiration = isRequestExpirationPolicyKey(policyKey)
+		const shouldMergeSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
 
 		await Promise.all([
 			loadTargets('group', ''),
@@ -721,13 +786,16 @@ export function createRealPolicyWorkbenchState() {
 			return records.filter((record): record is NonNullable<typeof record> => record !== null)
 		}
 
-		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies, renewalSystemPolicy, renewalGroupPolicies, renewalUserPolicies] = await Promise.all([
+		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies, renewalSystemPolicy, renewalGroupPolicies, renewalUserPolicies, workerSystemPolicy, workerGroupPolicies, workerUserPolicies] = await Promise.all([
 			fetchSystemPolicySafe(policyKey),
 			fetchPersistedGroupRulesForKey(policyKey),
 			fetchPersistedUserRulesForKey(policyKey),
 			shouldMergeRequestExpiration ? fetchSystemPolicySafe(REQUEST_EXPIRATION_RENEWAL_KEY) : Promise.resolve(null),
 			shouldMergeRequestExpiration ? fetchPersistedGroupRulesForKey(REQUEST_EXPIRATION_RENEWAL_KEY) : Promise.resolve([]),
 			shouldMergeRequestExpiration ? fetchPersistedUserRulesForKey(REQUEST_EXPIRATION_RENEWAL_KEY) : Promise.resolve([]),
+			shouldMergeSigningExecution ? fetchSystemPolicySafe(SIGNING_EXECUTION_WORKER_KEY) : Promise.resolve(null),
+			shouldMergeSigningExecution ? fetchPersistedGroupRulesForKey(SIGNING_EXECUTION_WORKER_KEY) : Promise.resolve([]),
+			shouldMergeSigningExecution ? fetchPersistedUserRulesForKey(SIGNING_EXECUTION_WORKER_KEY) : Promise.resolve([]),
 		])
 
 		if (currentRequestId !== hydratePersistedRulesRequestId.value || activeSettingKey.value !== policyKey) {
@@ -807,6 +875,88 @@ export function createRealPolicyWorkbenchState() {
 					targetId: rule.targetId,
 					allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
 					value: buildRequestExpirationValue(existing?.value, rule.value),
+				})
+			}
+
+			groupRules.value = Array.from(mergedGroupRules.values())
+			userRules.value = Array.from(mergedUserRules.values())
+			nextRuleNumber.value = groupRules.value.length + userRules.value.length + 1
+			return
+		}
+
+		if (shouldMergeSigningExecution) {
+			const modeHasValue = persistedSystemPolicy?.value !== null && persistedSystemPolicy?.value !== undefined
+			const workerHasValue = workerSystemPolicy?.value !== null && workerSystemPolicy?.value !== undefined
+			explicitSystemRule.value = (persistedSystemPolicy?.scope === 'global' || workerSystemPolicy?.scope === 'global') && (modeHasValue || workerHasValue)
+				? {
+					id: 'system-default',
+					scope: 'system',
+					targetId: null,
+					allowChildOverride: persistedSystemPolicy?.allowChildOverride ?? workerSystemPolicy?.allowChildOverride ?? true,
+					value: buildSigningExecutionValue(
+						persistedSystemPolicy?.value,
+						workerSystemPolicy?.value,
+					),
+				}
+				: null
+
+			const mergedGroupRules = new Map<string, PolicyRuleRecord>()
+			for (const rule of persistedGroupPolicies) {
+				if (!rule.targetId) {
+					continue
+				}
+
+				mergedGroupRules.set(rule.targetId, {
+					id: rule.id,
+					scope: 'group',
+					targetId: rule.targetId,
+					allowChildOverride: rule.allowChildOverride,
+					value: buildSigningExecutionValue(rule.value, null),
+				})
+			}
+
+			for (const rule of workerGroupPolicies) {
+				if (!rule.targetId) {
+					continue
+				}
+
+				const existing = mergedGroupRules.get(rule.targetId)
+				mergedGroupRules.set(rule.targetId, {
+					id: existing?.id ?? rule.id,
+					scope: 'group',
+					targetId: rule.targetId,
+					allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
+					value: buildSigningExecutionValue(existing?.value, rule.value),
+				})
+			}
+
+			const mergedUserRules = new Map<string, PolicyRuleRecord>()
+			for (const rule of persistedUserPolicies) {
+				if (!rule.targetId) {
+					continue
+				}
+
+				mergedUserRules.set(rule.targetId, {
+					id: rule.id,
+					scope: 'user',
+					targetId: rule.targetId,
+					allowChildOverride: rule.allowChildOverride,
+					value: buildSigningExecutionValue(rule.value, null),
+				})
+			}
+
+			for (const rule of workerUserPolicies) {
+				if (!rule.targetId) {
+					continue
+				}
+
+				const existing = mergedUserRules.get(rule.targetId)
+				mergedUserRules.set(rule.targetId, {
+					id: existing?.id ?? rule.id,
+					scope: 'user',
+					targetId: rule.targetId,
+					allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
+					value: buildSigningExecutionValue(existing?.value, rule.value),
 				})
 			}
 
@@ -1195,8 +1345,12 @@ export function createRealPolicyWorkbenchState() {
 		const { scope, value, targetIds } = editorDraft.value
 		const policyKey = activeDefinition.value.key
 		const isRequestExpiration = isRequestExpirationPolicyKey(policyKey)
+		const isUnifiedSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
 		const normalizedRequestExpirationValue = isRequestExpiration
 			? normalizeRequestExpirationDraftValue(value)
+			: null
+		const normalizedSigningExecutionValue = isUnifiedSigningExecution
+			? normalizeSigningExecutionSettings(value)
 			: null
 		const allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, editorDraft.value.allowChildOverride)
 
@@ -1207,6 +1361,18 @@ export function createRealPolicyWorkbenchState() {
 						policiesStore.saveSystemPolicy(policyKey, normalizedRequestExpirationValue.maximumValidity, allowChildOverride),
 						policiesStore.saveSystemPolicy(REQUEST_EXPIRATION_RENEWAL_KEY, normalizedRequestExpirationValue.renewalInterval, allowChildOverride),
 					])
+				} else if (isUnifiedSigningExecution && normalizedSigningExecutionValue) {
+					await Promise.all([
+						policiesStore.saveSystemPolicy(policyKey, normalizedSigningExecutionValue.signingMode, allowChildOverride),
+						policiesStore.saveSystemPolicy(
+							SIGNING_EXECUTION_WORKER_KEY,
+							serializeWorkerConfig({
+								workerType: normalizedSigningExecutionValue.workerType,
+								parallelWorkers: normalizedSigningExecutionValue.parallelWorkers,
+							}),
+							allowChildOverride,
+						),
+					])
 				} else {
 					await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
 				}
@@ -1215,6 +1381,11 @@ export function createRealPolicyWorkbenchState() {
 						await Promise.all([
 							policiesStore.clearUserPreference(policyKey),
 							policiesStore.clearUserPreference(REQUEST_EXPIRATION_RENEWAL_KEY),
+						])
+					} else if (isUnifiedSigningExecution) {
+						await Promise.all([
+							policiesStore.clearUserPreference(policyKey),
+							policiesStore.clearUserPreference(SIGNING_EXECUTION_WORKER_KEY),
 						])
 					} else {
 						await policiesStore.clearUserPreference(policyKey)
@@ -1225,7 +1396,7 @@ export function createRealPolicyWorkbenchState() {
 					scope: 'system',
 					targetId: null,
 					allowChildOverride,
-					value: normalizedRequestExpirationValue ?? value,
+					value: normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? value,
 				}
 				await policiesStore.fetchEffectivePolicies()
 				cancelEditor()
@@ -1240,6 +1411,21 @@ export function createRealPolicyWorkbenchState() {
 							policiesStore.saveGroupPolicy(targetId, REQUEST_EXPIRATION_RENEWAL_KEY, normalizedRequestExpirationValue.renewalInterval, allowChildOverride),
 						])
 					}))
+				} else if (isUnifiedSigningExecution && normalizedSigningExecutionValue) {
+					await Promise.all(targetIds.map((targetId) => {
+						return Promise.all([
+							policiesStore.saveGroupPolicy(targetId, policyKey, normalizedSigningExecutionValue.signingMode, allowChildOverride),
+							policiesStore.saveGroupPolicy(
+								targetId,
+								SIGNING_EXECUTION_WORKER_KEY,
+								serializeWorkerConfig({
+									workerType: normalizedSigningExecutionValue.workerType,
+									parallelWorkers: normalizedSigningExecutionValue.parallelWorkers,
+								}),
+								allowChildOverride,
+							),
+						])
+					}))
 				} else {
 					await Promise.all(targetIds.map((targetId) => {
 						return policiesStore.saveGroupPolicy(targetId, policyKey, value, allowChildOverride)
@@ -1247,7 +1433,13 @@ export function createRealPolicyWorkbenchState() {
 				}
 
 				for (const targetId of targetIds) {
-					upsertRule(groupRules.value, 'group', targetId, normalizedRequestExpirationValue ?? value, allowChildOverride)
+					upsertRule(
+						groupRules.value,
+						'group',
+						targetId,
+						normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? value,
+						allowChildOverride,
+					)
 				}
 
 				await policiesStore.fetchEffectivePolicies()
@@ -1262,6 +1454,21 @@ export function createRealPolicyWorkbenchState() {
 						policiesStore.saveUserPolicyForUser(targetId, REQUEST_EXPIRATION_RENEWAL_KEY, normalizedRequestExpirationValue.renewalInterval, allowChildOverride),
 					])
 				}))
+			} else if (isUnifiedSigningExecution && normalizedSigningExecutionValue) {
+				await Promise.all(targetIds.map((targetId) => {
+					return Promise.all([
+						policiesStore.saveUserPolicyForUser(targetId, policyKey, normalizedSigningExecutionValue.signingMode, allowChildOverride),
+						policiesStore.saveUserPolicyForUser(
+							targetId,
+							SIGNING_EXECUTION_WORKER_KEY,
+							serializeWorkerConfig({
+								workerType: normalizedSigningExecutionValue.workerType,
+								parallelWorkers: normalizedSigningExecutionValue.parallelWorkers,
+							}),
+							allowChildOverride,
+						),
+					])
+				}))
 			} else {
 				await Promise.all(targetIds.map((targetId) => {
 					return policiesStore.saveUserPolicyForUser(targetId, policyKey, value, allowChildOverride)
@@ -1269,7 +1476,13 @@ export function createRealPolicyWorkbenchState() {
 			}
 
 			for (const targetId of targetIds) {
-				upsertRule(userRules.value, 'user', targetId, normalizedRequestExpirationValue ?? value, allowChildOverride)
+				upsertRule(
+					userRules.value,
+					'user',
+					targetId,
+					normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? value,
+					allowChildOverride,
+				)
 			}
 
 			await policiesStore.fetchEffectivePolicies()
@@ -1286,6 +1499,7 @@ export function createRealPolicyWorkbenchState() {
 
 		const policyKey = activeDefinition.value.key
 		const isRequestExpiration = isRequestExpirationPolicyKey(policyKey)
+		const isUnifiedSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
 		const inheritedSystemRuleId = inheritedSystemRule.value?.id
 		const isEditingMode = editorMode.value === 'edit'
 
@@ -1302,6 +1516,11 @@ export function createRealPolicyWorkbenchState() {
 				await Promise.all([
 					policiesStore.saveSystemPolicy(policyKey, null, false),
 					policiesStore.saveSystemPolicy(REQUEST_EXPIRATION_RENEWAL_KEY, null, false),
+				])
+			} else if (isUnifiedSigningExecution) {
+				await Promise.all([
+					policiesStore.saveSystemPolicy(policyKey, null, false),
+					policiesStore.saveSystemPolicy(SIGNING_EXECUTION_WORKER_KEY, null, false),
 				])
 			} else {
 				await policiesStore.saveSystemPolicy(policyKey, null, false)
@@ -1324,6 +1543,11 @@ export function createRealPolicyWorkbenchState() {
 						policiesStore.clearGroupPolicy(targetId, policyKey),
 						policiesStore.clearGroupPolicy(targetId, REQUEST_EXPIRATION_RENEWAL_KEY),
 					])
+				} else if (isUnifiedSigningExecution) {
+					await Promise.all([
+						policiesStore.clearGroupPolicy(targetId, policyKey),
+						policiesStore.clearGroupPolicy(targetId, SIGNING_EXECUTION_WORKER_KEY),
+					])
 				} else {
 					await policiesStore.clearGroupPolicy(targetId, policyKey)
 				}
@@ -1345,6 +1569,11 @@ export function createRealPolicyWorkbenchState() {
 					await Promise.all([
 						policiesStore.clearUserPolicyForUser(targetId, policyKey),
 						policiesStore.clearUserPolicyForUser(targetId, REQUEST_EXPIRATION_RENEWAL_KEY),
+					])
+				} else if (isUnifiedSigningExecution) {
+					await Promise.all([
+						policiesStore.clearUserPolicyForUser(targetId, policyKey),
+						policiesStore.clearUserPolicyForUser(targetId, SIGNING_EXECUTION_WORKER_KEY),
 					])
 				} else {
 					await policiesStore.clearUserPolicyForUser(targetId, policyKey)
