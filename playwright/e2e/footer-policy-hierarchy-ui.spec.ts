@@ -178,7 +178,6 @@ async function selectTarget(dialogScope: Locator, label: 'Target groups' | 'Targ
 	if (await searchInput.count()) {
 		for (let attempt = 0; attempt < 3; attempt += 1) {
 			await searchInput.fill(target)
-			await page.waitForTimeout(250)
 
 			const matchingOption = page.getByRole('option', { name: new RegExp(target, 'i') }).first()
 			const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
