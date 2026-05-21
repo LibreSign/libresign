@@ -448,10 +448,10 @@
 									<td colspan="5" class="policy-workbench__table-empty">
 										<NcEmptyContent
 											class="policy-workbench__table-empty-content"
-											:name="t('libresign', 'No rules match the current filters.')"
-											:description="t('libresign', 'Try adjusting or clearing the current filters.')">
+											:name="crudEmptyStateName"
+											:description="crudEmptyStateDescription">
 											<template #icon>
-												<NcIconSvgWrapper :path="mdiFilterVariant" :size="20" />
+												<NcIconSvgWrapper :path="crudEmptyStateIconPath" :size="20" />
 											</template>
 										</NcEmptyContent>
 									</td>
@@ -872,6 +872,22 @@ const defaultSourceLabel = computed(() => {
 	return state.hasGlobalDefault
 		? t('libresign', 'custom')
 		: t('libresign', 'default')
+})
+
+const crudEmptyStateName = computed(() => {
+	return hasActiveFilter.value
+		? t('libresign', 'No rules match the current filters.')
+		: t('libresign', 'No custom rules created yet.')
+})
+
+const crudEmptyStateDescription = computed(() => {
+	return hasActiveFilter.value
+		? t('libresign', 'Try adjusting or clearing the current filters.')
+		: t('libresign', 'Create a rule to override the default behavior for specific users or groups.')
+})
+
+const crudEmptyStateIconPath = computed(() => {
+	return hasActiveFilter.value ? mdiFilterVariant : mdiPlus
 })
 
 const pendingRemovalMessage = computed(() => {
