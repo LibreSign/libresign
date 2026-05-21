@@ -524,7 +524,7 @@ export function createRealPolicyWorkbenchState() {
 		return {
 			currentBaseValue,
 			baseSource,
-			configurableLayers: t('libresign', 'Default > Group > User'),
+			configurableLayers: t('libresign', 'Default > Group > Account'),
 			platformFallback: fallbackLabel,
 			resolutionMode: policyResolutionMode.value,
 			activeGroupExceptions,

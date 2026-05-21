@@ -8,18 +8,18 @@
 		<div class="policy-workbench__editor-panel-content" :class="{ 'policy-workbench__editor-panel-content--saving': saveStatus === 'saving' }">
 			<div class="policy-workbench__editor-header">
 				<p v-if="editorHelp">{{ editorHelp }}</p>
-				<p class="policy-workbench__precedence-hint">{{ t('libresign', 'Priority: User > Group > Default') }}</p>
+				<p class="policy-workbench__precedence-hint">{{ t('libresign', 'Priority: Account > Group > Default') }}</p>
 			</div>
 
 			<div v-if="editorDraft.scope !== 'system'" class="policy-workbench__field">
 				<label class="policy-workbench__label">
-					{{ editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users') }}
+					{{ editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target accounts') }}
 				</label>
 				<NcSelectUsers
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
-					:aria-label="editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target users')"
-					:placeholder="editorDraft.scope === 'group' ? t('libresign', 'Search groups') : t('libresign', 'Search users')"
+					:aria-label="editorDraft.scope === 'group' ? t('libresign', 'Target groups') : t('libresign', 'Target accounts')"
+					:placeholder="editorDraft.scope === 'group' ? t('libresign', 'Search groups') : t('libresign', 'Search accounts')"
 					:loading="loadingTargets"
 					:multiple="true"
 					:keep-open="true"
@@ -145,18 +145,18 @@ defineEmits<{
 const allowOverrideDescription = computed(() => {
 	if (props.editorDraft.scope === 'user') {
 		return props.editorDraft.allowChildOverride
-			? t('libresign', 'This user can customize personal defaults and request-specific values.')
-			: t('libresign', 'This value is mandatory for this user.')
+			? t('libresign', 'This account can customize personal defaults and request-specific values.')
+			: t('libresign', 'This value is mandatory for this account.')
 	}
 
 	return props.editorDraft.allowChildOverride
-		? t('libresign', 'Groups and users can define a more specific value.')
-		: t('libresign', 'Groups and users must inherit this value.')
+		? t('libresign', 'Groups and accounts can define a more specific value.')
+		: t('libresign', 'Groups and accounts must inherit this value.')
 })
 
 const allowOverrideTitle = computed(() => {
 	if (props.editorDraft.scope === 'user') {
-		return t('libresign', 'Allow this user to customize')
+		return t('libresign', 'Allow this account to customize')
 	}
 
 	return t('libresign', 'Allow lower-level customization')

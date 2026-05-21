@@ -271,7 +271,7 @@
 						<p class="policy-workbench__dialog-description">{{ dialogDescription }}</p>
 						<div class="policy-workbench__table-priority-note" role="note" aria-live="polite">
 							<NcIconSvgWrapper :path="mdiInformationOutline" :size="16" />
-							<span>{{ t('libresign', 'Priority: User > Group > Default') }}</span>
+							<span>{{ t('libresign', 'Priority: Account > Group > Default') }}</span>
 						</div>
 					</header>
 
@@ -336,7 +336,7 @@
 											<template #icon>
 												<NcIconSvgWrapper :path="mdiAccountOutline" :size="16" />
 											</template>
-											{{ t('libresign', 'User') }}
+											{{ t('libresign', 'Account') }}
 										</NcActionButton>
 									</NcActions>
 								</template>
@@ -386,7 +386,7 @@
 					</p>
 
 					<p v-if="displayedCrudRows.length > 0 && state.createUserOverrideDisabledReason && crudScopeFilter === 'user'" class="policy-workbench__table-note">
-						{{ t('libresign', 'Some users may not allow personal rules because their group rule requires inheritance.') }}
+						{{ t('libresign', 'Some accounts may not allow personal rules because their group rule requires inheritance.') }}
 					</p>
 
 					<div v-if="state.rulesLoading" class="policy-workbench__table-loading" aria-live="polite" aria-busy="true">
@@ -543,7 +543,7 @@
 				</div>
 				<ul class="policy-workbench__create-scope-notes">
 					<li v-if="scopeCreateDisabledReason('group')">{{ t('libresign', 'Group') }}: {{ scopeCreateDisabledReason('group') }}</li>
-					<li v-if="scopeCreateDisabledReason('user') && state.viewMode === 'system-admin'">{{ t('libresign', 'User') }}: {{ scopeCreateDisabledReason('user') }}</li>
+					<li v-if="scopeCreateDisabledReason('user') && state.viewMode === 'system-admin'">{{ t('libresign', 'Account') }}: {{ scopeCreateDisabledReason('user') }}</li>
 				</ul>
 			</div>
 		</NcDialog>
@@ -843,20 +843,20 @@ const createScopeOptions = computed<Array<{
 	const options = [
 		{
 			scope: 'user' as const,
-			label: t('libresign', 'User'),
-			description: t('libresign', 'Affects a specific user'),
+			label: t('libresign', 'Account'),
+			description: t('libresign', 'Affects a specific account'),
 			disabled: scopeCreateDisabledReason('user').length > 0,
 		},
 		{
 			scope: 'group' as const,
 			label: t('libresign', 'Group'),
-			description: t('libresign', 'Affects all users in a group'),
+			description: t('libresign', 'Affects all accounts in a group'),
 			disabled: scopeCreateDisabledReason('group').length > 0,
 		},
 		{
 			scope: 'system' as const,
 			label: t('libresign', 'Everyone'),
-			description: t('libresign', 'Affects all users'),
+			description: t('libresign', 'Affects all accounts'),
 			disabled: scopeCreateDisabledReason('system').length > 0,
 		},
 	]
@@ -897,7 +897,7 @@ const crudEmptyStateName = computed(() => {
 const crudEmptyStateDescription = computed(() => {
 	return hasActiveCrudFilters.value
 		? t('libresign', 'Try adjusting or clearing the current filters.')
-		: t('libresign', 'Create a rule to override the default behavior for specific users or groups.')
+		: t('libresign', 'Create a rule to override the default behavior for specific accounts or groups.')
 })
 
 const crudEmptyStateIconPath = computed(() => {
@@ -1138,7 +1138,7 @@ function formatOverrideSummary(groupCount?: number, userCount?: number) {
 		return t('libresign', 'none')
 	}
 
-	return t('libresign', '{groupCount} groups · {userCount} users', {
+	return t('libresign', '{groupCount} groups · {userCount} accounts', {
 		groupCount: String(groupCount),
 		userCount: String(userCount),
 	})
@@ -1212,7 +1212,7 @@ function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', t
 		? t('libresign', 'Removing this custom default restores the default behavior for everyone.')
 		: scope === 'group'
 			? t('libresign', 'Removing this rule restores inherited behavior for this group.')
-			: t('libresign', 'Removing this rule will restore inherited behavior for this user.')
+			: t('libresign', 'Removing this rule will restore inherited behavior for this account.')
 
 	pendingRemoval.value = { ruleId, scope, targetLabel, help }
 }
@@ -1332,7 +1332,7 @@ async function confirmRuleRemoval() {
 				? t('libresign', 'Custom default removed. The default behavior for everyone is active again.')
 				: pendingRemoval.value.scope === 'group'
 					? t('libresign', 'Group custom rule removed. Inherited behavior is now active.')
-					: t('libresign', 'User custom rule removed. Inherited behavior is now active.')
+					: t('libresign', 'Account custom rule removed. Inherited behavior is now active.')
 		clearCrudSelection()
 
 		if (removalFeedbackTimeout.value !== null) {
