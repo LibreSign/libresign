@@ -25,10 +25,6 @@ console.error = function (...args) {
 
 console.warn = function (...args) {
 	const message = args[0]
-	if (typeof message === 'string'
-		&& message.includes('Please use the `legacy` build in Node.js environments.')) {
-		return originalWarn.apply(console, args)
-	}
 	if (message instanceof Error || typeof message === 'string') {
 		throw new Error(String(message))
 	}
