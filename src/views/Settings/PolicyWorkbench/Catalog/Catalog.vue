@@ -298,7 +298,7 @@
 						</NcButton>
 					</div>
 
-					<div class="policy-workbench__table-toolbar-row policy-workbench__table-toolbar-row--crud">
+					<div v-if="displayedCrudRows.length > 0 || crudSearch || crudScopeFilter !== 'all'" class="policy-workbench__table-toolbar-row policy-workbench__table-toolbar-row--crud">
 						<div class="policy-workbench__search-with-chips">
 							<NcAppNavigationSearch
 								:model-value="crudSearch"
@@ -381,11 +381,11 @@
 						</NcButton>
 					</div>
 
-					<p v-if="createRuleDisabledReason" class="policy-workbench__table-note policy-workbench__table-note--align-right">
+					<p v-if="displayedCrudRows.length > 0 && createRuleDisabledReason" class="policy-workbench__table-note policy-workbench__table-note--align-right">
 						{{ createRuleDisabledReason }}
 					</p>
 
-					<p v-if="state.createUserOverrideDisabledReason && crudScopeFilter === 'user'" class="policy-workbench__table-note">
+					<p v-if="displayedCrudRows.length > 0 && state.createUserOverrideDisabledReason && crudScopeFilter === 'user'" class="policy-workbench__table-note">
 						{{ t('libresign', 'Some users may not allow personal rules because their group rule requires inheritance.') }}
 					</p>
 
@@ -395,73 +395,83 @@
 					</div>
 
 					<div v-else class="policy-workbench__table-scroll" @scroll.passive="handleCrudTableScroll">
-						<table class="policy-workbench__table">
-							<thead>
-								<tr>
-									<th class="policy-workbench__table-select-col">
-										<NcCheckboxRadioSwitch
-											:aria-label="t('libresign', 'Select all visible rules')"
-											:model-value="crudAllVisibleRowsSelected"
-											@update:modelValue="onVisibleCrudRowsSelectionChange" />
-									</th>
-									<th>{{ t('libresign', 'Type') }}</th>
-									<th>{{ t('libresign', 'Target') }}</th>
-									<th>{{ t('libresign', 'Value') }}</th>
-									<th>{{ t('libresign', 'Actions') }}</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr v-for="row in displayedCrudRows" :key="row.key" :class="{ 'policy-workbench__table-row--selected': isCrudRowSelected(row.ruleId ?? row.key) }">
-									<td class="policy-workbench__table-select-col">
-										<NcCheckboxRadioSwitch
-											:aria-label="t('libresign', 'Select rule for bulk delete')"
-											:model-value="isCrudRowSelected(row.ruleId ?? row.key)"
-											@update:modelValue="onCrudRowSelectionChange(row.ruleId ?? row.key, $event)" />
-									</td>
-									<td>{{ crudScopeLabel(row.scope) }}</td>
-									<td>{{ row.targetLabel }}</td>
-									<td>{{ row.valueLabel }}</td>
-									<td class="policy-workbench__table-actions">
-										<template v-if="row.ruleId">
-											<NcActions
-												:aria-label="t('libresign', 'Rule actions')"
-												:open="openRuleActionsKey === row.key"
-												@update:open="updateRuleActionsOpen(row.key, $event)">
-												<NcActionButton @click="handleEditRule(row.scope, row.ruleId)">
-													<template #icon>
-														<NcIconSvgWrapper :path="mdiPencil" :size="16" />
-													</template>
-													{{ t('libresign', 'Edit') }}
-												</NcActionButton>
-												<NcActionButton v-if="row.canRemove" @click="handlePromptRuleRemoval(row.ruleId, row.scope, row.targetLabel)">
-													<template #icon>
-														<NcIconSvgWrapper :path="mdiDelete" :size="16" />
-													</template>
-													{{ t('libresign', 'Remove') }}
-												</NcActionButton>
-											</NcActions>
-										</template>
-										<span v-else class="policy-workbench__table-note">{{ t('libresign', 'Read only') }}</span>
-									</td>
-								</tr>
-								<tr v-if="displayedCrudRows.length === 0">
-									<td colspan="5" class="policy-workbench__table-empty">
-										<NcEmptyContent
-											class="policy-workbench__table-empty-content"
-											:name="crudEmptyStateName"
-											:description="crudEmptyStateDescription">
-											<template #icon>
-												<NcIconSvgWrapper :path="crudEmptyStateIconPath" :size="20" />
+						<template v-if="displayedCrudRows.length > 0">
+							<table class="policy-workbench__table">
+								<thead>
+									<tr>
+										<th class="policy-workbench__table-select-col">
+											<NcCheckboxRadioSwitch
+												:aria-label="t('libresign', 'Select all visible rules')"
+												:model-value="crudAllVisibleRowsSelected"
+												@update:modelValue="onVisibleCrudRowsSelectionChange" />
+										</th>
+										<th>{{ t('libresign', 'Type') }}</th>
+										<th>{{ t('libresign', 'Target') }}</th>
+										<th>{{ t('libresign', 'Value') }}</th>
+										<th>{{ t('libresign', 'Actions') }}</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr v-for="row in displayedCrudRows" :key="row.key" :class="{ 'policy-workbench__table-row--selected': isCrudRowSelected(row.ruleId ?? row.key) }">
+										<td class="policy-workbench__table-select-col">
+											<NcCheckboxRadioSwitch
+												:aria-label="t('libresign', 'Select rule for bulk delete')"
+												:model-value="isCrudRowSelected(row.ruleId ?? row.key)"
+												@update:modelValue="onCrudRowSelectionChange(row.ruleId ?? row.key, $event)" />
+										</td>
+										<td>{{ crudScopeLabel(row.scope) }}</td>
+										<td>{{ row.targetLabel }}</td>
+										<td>{{ row.valueLabel }}</td>
+										<td class="policy-workbench__table-actions">
+											<template v-if="row.ruleId">
+												<NcActions
+													:aria-label="t('libresign', 'Rule actions')"
+													:open="openRuleActionsKey === row.key"
+													@update:open="updateRuleActionsOpen(row.key, $event)">
+													<NcActionButton @click="handleEditRule(row.scope, row.ruleId)">
+														<template #icon>
+															<NcIconSvgWrapper :path="mdiPencil" :size="16" />
+														</template>
+														{{ t('libresign', 'Edit') }}
+													</NcActionButton>
+													<NcActionButton v-if="row.canRemove" @click="handlePromptRuleRemoval(row.ruleId, row.scope, row.targetLabel)">
+														<template #icon>
+															<NcIconSvgWrapper :path="mdiDelete" :size="16" />
+														</template>
+														{{ t('libresign', 'Remove') }}
+													</NcActionButton>
+												</NcActions>
 											</template>
-										</NcEmptyContent>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-						<div v-if="loadingMoreCrudRows" class="policy-workbench__table-loading-more" aria-live="polite" aria-busy="true">
-							<NcLoadingIcon :size="20" />
-							<span>{{ t('libresign', 'Loading more rules…') }}</span>
-						</div>
+											<span v-else class="policy-workbench__table-note">{{ t('libresign', 'Read only') }}</span>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+							<div v-if="loadingMoreCrudRows" class="policy-workbench__table-loading-more" aria-live="polite" aria-busy="true">
+								<NcLoadingIcon :size="20" />
+								<span>{{ t('libresign', 'Loading more rules…') }}</span>
+							</div>
+						</template>
+						<template v-else>
+							<div class="policy-workbench__table-empty-state">
+								<NcEmptyContent
+									class="policy-workbench__table-empty-content"
+									:name="crudEmptyStateName"
+									:description="crudEmptyStateDescription">
+									<template #icon>
+										<NcIconSvgWrapper :path="crudEmptyStateIconPath" :size="20" />
+									</template>
+									<template v-if="!hasActiveCrudFilters" #action>
+										<NcButton
+											variant="primary"
+											:aria-label="t('libresign', 'Create rule')"
+											@click="requestCreateRule()">
+											{{ t('libresign', 'Create rule') }}
+										</NcButton>
+									</template>
+								</NcEmptyContent>
+							</div>
+						</template>
 					</div>
 				</div>
 
@@ -2246,7 +2256,7 @@ watch(
 		&__main {
 			flex: 1;
 			min-width: 0;
-			overflow-y: auto;
+			overflow: hidden;
 			max-height: calc(100vh - 9rem);
 		}
 
@@ -2672,32 +2682,37 @@ watch(
 		}
 	}
 
-	&__table-scroll {
-		overflow-x: auto;
-		border: none;
-		border-radius: 0;
-	}
+        &__table-scroll {
+                flex: 1;
+                min-height: 0;
+                overflow-x: auto;
+                overflow-y: auto;
+                border: none;
+                border-radius: 0;
+        }
 
-	&__table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.87rem;
+        &__table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.87rem;
 
-		th,
-		td {
-			text-align: left;
-			padding: 0.48rem 0.72rem;
-			vertical-align: middle;
+                th,
+                td {
+                        text-align: left;
+                        padding: 0.48rem 0.72rem;
+                        vertical-align: middle;
+                }
+
+                th {
+                        position: sticky;
+                        top: 0;
+                        z-index: 1;
+                        font-size: 0.78rem;
+                        font-weight: 600;
+                        color: var(--color-text-maxcontrast);
+                        border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+                        background: var(--color-main-background);
 		}
-
-		th {
-			font-size: 0.78rem;
-			font-weight: 600;
-			color: var(--color-text-maxcontrast);
-			border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
-			background: transparent;
-		}
-
 		tbody td {
 			border-bottom: 1px solid color-mix(in srgb, var(--color-border) 40%, transparent);
 		}
@@ -2770,6 +2785,14 @@ watch(
 
 	&__table-empty {
 		text-align: center;
+	}
+
+	&__table-empty-state {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 8rem;
+		padding-block: 0.75rem;
 	}
 
 	&__table-empty-content {
@@ -3459,7 +3482,7 @@ watch(
 	position: fixed !important;
 	inset-inline-end: 1.25rem;
 	bottom: 1.25rem;
-	z-index: 9999;
+	z-index: 9997;
 }
 
 .policy-workbench__back-to-top .button-vue {
