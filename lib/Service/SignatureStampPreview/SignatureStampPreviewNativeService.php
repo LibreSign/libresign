@@ -101,19 +101,15 @@ class SignatureStampPreviewNativeService {
 			return null;
 		}
 
-		try {
-			$assetPath = \OC::$SERVERROOT . '/apps-extra/libresign/img/preview_signature.png';
-			if (!file_exists($assetPath)) {
-				return null;
-			}
-			$blob = file_get_contents($assetPath);
-			if (!is_string($blob) || $blob === '') {
-				return null;
-			}
-			return $this->convertImageBlobToJpeg($blob);
-		} catch (\Throwable) {
+		$assetPath = __DIR__ . '/../../../img/preview_signature.png';
+		if (!file_exists($assetPath)) {
 			return null;
 		}
+		$blob = @file_get_contents($assetPath);
+		if (!is_string($blob) || $blob === '') {
+			return null;
+		}
+		return $this->convertImageBlobToJpeg($blob);
 	}
 
 	/**
