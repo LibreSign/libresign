@@ -445,7 +445,16 @@
 									</td>
 								</tr>
 								<tr v-if="displayedCrudRows.length === 0">
-									<td colspan="5" class="policy-workbench__table-empty">{{ t('libresign', 'No rules match the current filters.') }}</td>
+									<td colspan="5" class="policy-workbench__table-empty">
+										<NcEmptyContent
+											class="policy-workbench__table-empty-content"
+											:name="t('libresign', 'No rules match the current filters.')"
+											:description="t('libresign', 'Try adjusting or clearing the current filters.')">
+											<template #icon>
+												<NcIconSvgWrapper :path="mdiFilterVariant" :size="20" />
+											</template>
+										</NcEmptyContent>
+									</td>
 								</tr>
 							</tbody>
 						</table>
@@ -576,6 +585,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -2740,8 +2750,24 @@ watch(
 
 	&__table-empty {
 		text-align: center;
-		color: var(--color-text-maxcontrast);
-		font-style: italic;
+	}
+
+	&__table-empty-content {
+		padding-block: 0.45rem;
+
+		:deep(.empty-content__name),
+		:deep(.empty-content__description) {
+			margin: 0;
+		}
+
+		:deep(.empty-content__name) {
+			font-size: 0.86rem;
+		}
+
+		:deep(.empty-content__description) {
+			font-size: 0.82rem;
+			color: var(--color-text-maxcontrast);
+		}
 	}
 
 	&__table-note {
