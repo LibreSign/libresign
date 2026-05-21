@@ -1616,4 +1616,93 @@ describe('useRealPolicyWorkbench', () => {
 			renewalInterval: 600,
 		})
 	})
+
+	it('toggles rulesLoading while hydrating persisted rules', async () => {
+		const resolveGroupPolicies: Array<(value: unknown) => void> = []
+		fetchGroupPolicy.mockImplementation((groupId: string) => {
+			if (groupId !== 'finance') {
+				return Promise.resolve(null)
+			}
+
+			return new Promise((resolve) => {
+				resolveGroupPolicies.push(resolve)
+			})
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+
+		expect(state.rulesLoading).toBe(true)
+		await vi.waitFor(() => {
+			expect(resolveGroupPolicies.length).toBeGreaterThan(0)
+		})
+
+		for (const resolveGroupPolicy of resolveGroupPolicies) {
+			resolveGroupPolicy({
+				policyKey: 'signature_flow',
+				scope: 'group',
+				targetId: 'finance',
+				value: 'ordered_numeric',
+				allowChildOverride: true,
+			})
+		}
+
+		await vi.waitFor(() => {
+			expect(state.rulesLoading).toBe(false)
+			expect(state.visibleGroupRules).toHaveLength(1)
+		})
+	})
+
+	it('ignores stale hydration result after switching settings quickly', async () => {
+		let resolveSlowFetch: (value: unknown) => void = () => undefined
+
+		fetchGroupPolicy.mockImplementation((groupId: string, policyKey: string) => {
+			if (groupId !== 'finance') {
+				return Promise.resolve(null)
+			}
+
+			if (policyKey === 'signature_flow') {
+				return new Promise((resolve) => {
+					resolveSlowFetch = resolve
+				})
+			}
+
+			if (policyKey === 'docmdp') {
+				return Promise.resolve({
+					policyKey: 'docmdp',
+					scope: 'group',
+					targetId: 'finance',
+					value: 'allow',
+					allowChildOverride: true,
+				})
+			}
+
+			return Promise.resolve(null)
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.openSetting('docmdp')
+
+		await vi.waitFor(() => {
+			expect(state.activeDefinition?.key).toBe('docmdp')
+			expect(state.visibleGroupRules).toHaveLength(1)
+			expect(state.visibleGroupRules[0]?.value).toBe('allow')
+		})
+
+		resolveSlowFetch({
+			policyKey: 'signature_flow',
+			scope: 'group',
+			targetId: 'finance',
+			value: 'ordered_numeric',
+			allowChildOverride: false,
+		})
+
+		await vi.waitFor(() => {
+			expect(state.activeDefinition?.key).toBe('docmdp')
+			expect(state.visibleGroupRules).toHaveLength(1)
+			expect(state.visibleGroupRules[0]?.value).toBe('allow')
+			expect(state.rulesLoading).toBe(false)
+		})
+	})
 })
