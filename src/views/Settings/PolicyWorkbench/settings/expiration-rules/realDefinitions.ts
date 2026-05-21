@@ -41,8 +41,8 @@ export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => summarizeRequestExpirationDraftValue(value, t),
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
-			? t('libresign', 'Groups and users can set their own rule')
-			: t('libresign', 'Groups and users must follow this value'),
+			? t('libresign', 'Groups and accounts can set their own rule')
+			: t('libresign', 'Groups and accounts must follow this value'),
 }
 
 export const renewalIntervalRealDefinition: RealPolicySettingDefinition = {
@@ -72,8 +72,8 @@ export const renewalIntervalRealDefinition: RealPolicySettingDefinition = {
 	},
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
-			? t('libresign', 'Groups and users can set their own rule')
-			: t('libresign', 'Groups and users must follow this value'),
+			? t('libresign', 'Groups and accounts can set their own rule')
+			: t('libresign', 'Groups and accounts must follow this value'),
 }
 
 export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
@@ -99,6 +99,6 @@ export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
 	},
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
-			? t('libresign', 'Groups and users can set their own rule')
-			: t('libresign', 'Groups and users must follow this value'),
+			? t('libresign', 'Groups and accounts can set their own rule')
+			: t('libresign', 'Groups and accounts must follow this value'),
 }
