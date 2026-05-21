@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
 
 import axios from '@nextcloud/axios'
 import { t } from '@nextcloud/l10n'
@@ -345,6 +345,7 @@ async function fetchPreview(): Promise<void> {
 		)
 		pdfPreviewFile.value = new File([response.data as Blob], 'stamp-preview.pdf', { type: 'application/pdf' })
 		previewRenderKey.value += 1
+		await forcePreviewRelayout()
 	} catch (e: unknown) {
 		const name = e && typeof e === 'object' && 'name' in e ? (e as { name: string }).name : ''
 		if (name === 'CanceledError' || name === 'AbortError') {
@@ -357,6 +358,16 @@ async function fetchPreview(): Promise<void> {
 			previewLoading.value = false
 		}
 	}
+}
+
+async function forcePreviewRelayout(): Promise<void> {
+	if (typeof window === 'undefined') {
+		return
+	}
+	await nextTick()
+	window.requestAnimationFrame(() => {
+		window.dispatchEvent(new Event('resize'))
+	})
 }
 
 function schedulePreview(): void {
@@ -435,6 +446,7 @@ watch(previewZoom, (value) => {
 	}
 	previewZoomInput.value = String(clamped)
 	persistZoom(clamped)
+	void forcePreviewRelayout()
 })
 
 function setDisplayMode(value: DisplayMode): void {
