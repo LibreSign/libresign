@@ -125,11 +125,7 @@ async function scrollAppContentToRatio(page: Page, ratio: number) {
 		})
 	}
 
-	// Wait for page content to be rendered and scrollable, with longer timeout for slow layouts
-	await expect.poll(getMaxScrollable, { timeout: 20000, intervals: [500] }).toBeGreaterThan(400).catch(() => {
-		// Fallback: if content doesn't reach 400px, continue with available scroll space
-		return getMaxScrollable()
-	})
+await expect.poll(getMaxScrollable, { timeout: 20000, intervals: [500] }).toBeGreaterThan(400)
 
 	const scrollTarget = await page.evaluate((value) => {
 		const appContent = document.querySelector('#app-content')
