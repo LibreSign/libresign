@@ -156,6 +156,7 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "Ação de lote “{displayName}” executada com sucesso",
     "\"{displayName}\" action failed" : "\"{displayName}\" a ação falhou",
     "(selected)" : "(selecionado)",
+    "Valid from" : "Válido de",
     "Version" : "Versão",
     "Technical details" : "Detalhes técnicos",
     "Allowed" : "Permitido",
