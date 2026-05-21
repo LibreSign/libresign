@@ -23,7 +23,7 @@ export interface SignatureStampDraftValue {
 export const SIGNATURE_TEXT_DEFAULTS = Object.freeze({
 	template: '',
 	templateFontSize: 9.8,
-	signatureFontSize: 9.8,
+	signatureFontSize: 20,
 	signatureWidth: 350.0,
 	signatureHeight: 100.0,
 	backgroundType: 'default',

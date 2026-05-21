@@ -27,7 +27,7 @@ describe('signatureTextRealDefinition', () => {
 		expect(parsed).toEqual({
 			template: '',
 			template_font_size: 9.8,
-			signature_font_size: 9.8,
+			signature_font_size: 20,
 			signature_width: 350,
 			signature_height: 100,
 			background_type: 'default',
