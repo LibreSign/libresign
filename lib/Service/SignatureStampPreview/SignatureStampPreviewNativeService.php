@@ -58,9 +58,9 @@ class SignatureStampPreviewNativeService {
 		$contentStream = $xObject->stream;
 
 		$backgroundJpeg = $this->resolveBackgroundJpeg($backgroundType);
-		$previewSignatureJpeg = $this->getPreviewSignatureJpeg($width, $height, $renderMode);
+		$previewSignatureImage = $this->getPreviewSignatureImage($renderMode);
 
-		return $this->buildSinglePagePdf($width, $height, $contentStream, $backgroundJpeg, $previewSignatureJpeg);
+		return $this->buildSinglePagePdf($width, $height, $contentStream, $backgroundJpeg, $previewSignatureImage, $renderMode);
 	}
 
 	/**
@@ -91,9 +91,9 @@ class SignatureStampPreviewNativeService {
 	 * preview PDF for graphic modes. This simplifies the implementation significantly compared
 	 * to procedurally drawing Bezier curves, and makes the preview nature of the graphic clear.
 	 *
-	 * @return array{width:int,height:int,data:string}|null
+	 * @return array{kind:'rgba',width:int,height:int,rgbData:string,alphaData:string}|null
 	 */
-	private function getPreviewSignatureJpeg(float $width, float $height, string $renderMode): ?array {
+	private function getPreviewSignatureImage(string $renderMode): ?array {
 		if (
 			$renderMode !== SignerElementsService::RENDER_MODE_GRAPHIC_ONLY
 			&& $renderMode !== SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION
@@ -109,15 +109,15 @@ class SignatureStampPreviewNativeService {
 		if (!is_string($blob) || $blob === '') {
 			return null;
 		}
-		$result = $this->convertImageBlobToJpeg($blob);
-		return $result;
+
+		return $this->convertImageBlobToPdfRgbaImage($blob);
 	}
 
 	/**
 	 * @param array{width:int,height:int,data:string}|null $backgroundJpeg
-	 * @param array{width:int,height:int,data:string}|null $previewSignatureJpeg
+	 * @param array{kind:'rgba',width:int,height:int,rgbData:string,alphaData:string}|null $previewSignatureImage
 	 */
-	private function buildSinglePagePdf(float $width, float $height, string $contentStream, ?array $backgroundJpeg, ?array $previewSignatureJpeg): string {
+	private function buildSinglePagePdf(float $width, float $height, string $contentStream, ?array $backgroundJpeg, ?array $previewSignatureImage, string $renderMode): string {
 		$widthFormatted = number_format($width, 2, '.', '');
 		$heightFormatted = number_format($height, 2, '.', '');
 		$stream = '';
@@ -158,13 +158,16 @@ class SignatureStampPreviewNativeService {
 			}
 		}
 
-		if ($previewSignatureJpeg !== null) {
-			$graphicWidth = (int)round($width / 2.0);
+		if ($previewSignatureImage !== null) {
+			$maxSignatureWidth = $renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY
+				? (int)round($width)
+				: (int)round($width / 2.0);
 			$fit = $this->fitWithinBounds(
-				width: $previewSignatureJpeg['width'],
-				height: $previewSignatureJpeg['height'],
-				maxWidth: $graphicWidth,
+				width: $previewSignatureImage['width'],
+				height: $previewSignatureImage['height'],
+				maxWidth: $maxSignatureWidth,
 				maxHeight: (int)round($height),
+				allowUpscale: false,
 			);
 			if ($fit['width'] > 0 && $fit['height'] > 0) {
 				$stream .= sprintf(
@@ -176,13 +179,29 @@ class SignatureStampPreviewNativeService {
 				);
 				$signatureObjectId = $nextObjectId;
 				$nextObjectId += 1;
+
+				$alphaMaskObjectId = $nextObjectId;
+				$nextObjectId += 1;
+
 				$xObjectReferences[] = '/Im2 ' . $signatureObjectId . ' 0 R';
+
+				$alphaData = gzcompress($previewSignatureImage['alphaData']) ?: '';
+				$objects[$alphaMaskObjectId] = sprintf(
+					"<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length %d >>\nstream\n%sendstream",
+					$previewSignatureImage['width'],
+					$previewSignatureImage['height'],
+					strlen($alphaData),
+					$alphaData,
+				);
+
+				$rgbData = gzcompress($previewSignatureImage['rgbData']) ?: '';
 				$objects[$signatureObjectId] = sprintf(
-					"<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length %d >>\nstream\n%sendstream",
-					$previewSignatureJpeg['width'],
-					$previewSignatureJpeg['height'],
-					strlen($previewSignatureJpeg['data']),
-					$previewSignatureJpeg['data'],
+					"<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /SMask %d 0 R /Filter /FlateDecode /Length %d >>\nstream\n%sendstream",
+					$previewSignatureImage['width'],
+					$previewSignatureImage['height'],
+					$alphaMaskObjectId,
+					strlen($rgbData),
+					$rgbData,
 				);
 			}
 		}
@@ -269,12 +288,15 @@ class SignatureStampPreviewNativeService {
 	/**
 	 * @return array{width:int,height:int,x:int,y:int}
 	 */
-	private function fitWithinBounds(int $width, int $height, int $maxWidth, int $maxHeight): array {
+	private function fitWithinBounds(int $width, int $height, int $maxWidth, int $maxHeight, bool $allowUpscale = true): array {
 		if ($width <= 0 || $height <= 0 || $maxWidth <= 0 || $maxHeight <= 0) {
 			return ['width' => 0, 'height' => 0, 'x' => 0, 'y' => 0];
 		}
 
 		$scale = min($maxWidth / $width, $maxHeight / $height);
+		if (!$allowUpscale) {
+			$scale = min(1.0, $scale);
+		}
 		$fitWidth = max(1, (int)floor($width * $scale));
 		$fitHeight = max(1, (int)floor($height * $scale));
 
@@ -284,6 +306,69 @@ class SignatureStampPreviewNativeService {
 			'x' => (int)floor(max(0, $maxWidth - $fitWidth) / 2),
 			'y' => (int)floor(max(0, $maxHeight - $fitHeight) / 2),
 		];
+	}
+
+	/**
+	 * @return array{kind:'rgba',width:int,height:int,rgbData:string,alphaData:string}|null
+	 */
+	private function convertImageBlobToPdfRgbaImage(string $blob): ?array {
+		try {
+			$image = new Imagick();
+			$image->readImageBlob($blob);
+
+			$width = max(1, (int)$image->getImageWidth());
+			$height = max(1, (int)$image->getImageHeight());
+
+			$rgbPixels = $image->exportImagePixels(0, 0, $width, $height, 'RGB', Imagick::PIXEL_CHAR);
+			$alphaPixels = $image->exportImagePixels(0, 0, $width, $height, 'A', Imagick::PIXEL_CHAR);
+
+			if (!is_array($rgbPixels) || !is_array($alphaPixels)) {
+				$image->destroy();
+				return null;
+			}
+
+			$rgbData = $this->pixelsToBinary($rgbPixels);
+			$alphaData = $this->pixelsToBinary($alphaPixels);
+
+			$image->destroy();
+
+			if ($rgbData === '' || $alphaData === '') {
+				return null;
+			}
+
+			return [
+				'kind' => 'rgba',
+				'width' => $width,
+				'height' => $height,
+				'rgbData' => $rgbData,
+				'alphaData' => $alphaData,
+			];
+		} catch (\Throwable) {
+			return null;
+		}
+	}
+
+	/**
+	 * @param list<int|float|string> $pixels
+	 */
+	private function pixelsToBinary(array $pixels): string {
+		$data = '';
+		$chunk = [];
+		$chunkSize = 8192;
+
+		foreach ($pixels as $value) {
+			$chunk[] = (int)$value;
+			if (count($chunk) >= $chunkSize) {
+				$data .= pack('C*', ...$chunk);
+				$chunk = [];
+			}
+		}
+
+		if ($chunk !== []) {
+			$data .= pack('C*', ...$chunk);
+		}
+
+		return $data;
 	}
 
 	/**
