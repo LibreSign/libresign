@@ -101,7 +101,7 @@ class SignatureStampPreviewNativeService {
 			return null;
 		}
 
-		$assetPath = \OC::$SERVERROOT . '/apps-extra/libresign/img/preview_signature.png';
+		$assetPath = dirname(__DIR__, 3) . '/img/preview_signature.png';
 		if (!file_exists($assetPath)) {
 			return null;
 		}
