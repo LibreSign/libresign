@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\SignatureStampPreview;
 
-use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignatureTextService;
+use OCA\Libresign\Service\SignerElementsService;
 use SignerPHP\Application\DTO\SignatureAppearanceXObjectDto;
 
 class SignatureStampAppearanceBuilder {
