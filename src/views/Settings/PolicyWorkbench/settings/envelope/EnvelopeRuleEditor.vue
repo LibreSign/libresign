@@ -11,7 +11,7 @@
 			@update:modelValue="onChange">
 			<div class="envelope-editor__copy">
 				<span>{{ t('libresign', 'Signing envelopes') }}</span>
-				<p>{{ t('libresign', 'Allow users to group multiple files into envelopes for signing.') }}</p>
+				<p>{{ t('libresign', 'Allow accounts to group multiple files into envelopes for signing.') }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
 	</div>

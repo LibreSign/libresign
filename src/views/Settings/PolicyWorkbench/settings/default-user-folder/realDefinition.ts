@@ -31,6 +31,6 @@ export const defaultUserFolderRealDefinition: RealPolicySettingDefinition = {
 	summarizeValue: (value: EffectivePolicyValue) => normalizeDefaultUserFolder(value),
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
-			? t('libresign', 'Groups and users can set their own rule')
-			: t('libresign', 'Groups and users must follow this value'),
+			? t('libresign', 'Groups and accounts can set their own rule')
+			: t('libresign', 'Groups and accounts must follow this value'),
 }

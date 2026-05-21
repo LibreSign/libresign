@@ -106,7 +106,7 @@ describe('signatureTextRealDefinition', () => {
 	})
 
 	it('formats override text for both states', () => {
-		expect(signatureTextRealDefinition.formatAllowOverride(true)).toBe('Groups and users can set their own rule')
-		expect(signatureTextRealDefinition.formatAllowOverride(false)).toBe('Groups and users must follow this value')
+		expect(signatureTextRealDefinition.formatAllowOverride(true)).toBe('Groups and accounts can set their own rule')
+		expect(signatureTextRealDefinition.formatAllowOverride(false)).toBe('Groups and accounts must follow this value')
 	})
 })

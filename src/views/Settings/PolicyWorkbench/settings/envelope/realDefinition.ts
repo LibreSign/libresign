@@ -43,7 +43,7 @@ function resolveEnvelopeEnabled(value: EffectivePolicyValue): boolean | null {
 export const envelopeRealDefinition: RealPolicySettingDefinition = {
 	key: 'envelope_enabled',
 	title: t('libresign', 'Signing envelopes'),
-	description: t('libresign', 'Allow users to group multiple files into envelopes for signing.'),
+	description: t('libresign', 'Allow accounts to group multiple files into envelopes for signing.'),
 	editor: EnvelopeRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => true,
@@ -74,6 +74,6 @@ export const envelopeRealDefinition: RealPolicySettingDefinition = {
 	},
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
-			? t('libresign', 'Groups and users can set their own rule')
-			: t('libresign', 'Groups and users must follow this value'),
+			? t('libresign', 'Groups and accounts can set their own rule')
+			: t('libresign', 'Groups and accounts must follow this value'),
 }
