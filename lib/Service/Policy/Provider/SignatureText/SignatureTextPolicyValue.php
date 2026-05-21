@@ -10,7 +10,7 @@ namespace OCA\Libresign\Service\Policy\Provider\SignatureText;
 
 final class SignatureTextPolicyValue {
 	public const DEFAULT_TEMPLATE_FONT_SIZE = 9.8;
-	public const DEFAULT_SIGNATURE_FONT_SIZE = 9.8;
+	public const DEFAULT_SIGNATURE_FONT_SIZE = 20.0;
 	public const DEFAULT_SIGNATURE_WIDTH = 350.0;
 	public const DEFAULT_SIGNATURE_HEIGHT = 100.0;
 

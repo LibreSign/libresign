@@ -79,7 +79,7 @@ class SignatureTextPolicyTest extends TestCase {
 		$this->assertEquals(SignatureTextPolicy::KEY_SIGNATURE_FONT_SIZE, $spec->key());
 		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, $spec->defaultSystemValue());
 		$this->assertEmpty($spec->allowedValues(new \OCA\Libresign\Service\Policy\Model\PolicyContext()));
-		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, $spec->normalizeValue(9.8));
+		$this->assertEquals(SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, $spec->normalizeValue(20));
 		$this->assertEquals(11.5, $spec->normalizeValue('11.5'));
 	}
 
