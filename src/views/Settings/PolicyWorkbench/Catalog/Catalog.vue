@@ -347,6 +347,25 @@
 							</div>
 						</div>
 
+						<div v-if="crudSelectedRowsCount > 0" class="policy-workbench__bulk-actions">
+							<NcButton
+								variant="error"
+								size="small"
+								:disabled="isRemovingRule || state.rulesLoading"
+								:aria-label="t('libresign', 'Delete selected rules')"
+								@click="handlePromptBulkRuleRemoval">
+								{{ t('libresign', 'Delete selected ({count})', { count: String(crudSelectedRowsCount) }) }}
+							</NcButton>
+							<NcButton
+								variant="tertiary"
+								size="small"
+								:disabled="isRemovingRule || state.rulesLoading"
+								:aria-label="t('libresign', 'Clear selected rules')"
+								@click="clearCrudSelection">
+								{{ t('libresign', 'Clear selection') }}
+							</NcButton>
+						</div>
+
 						<NcButton
 							variant="primary"
 							size="small"
@@ -370,10 +389,21 @@
 						{{ t('libresign', 'Some users may not allow personal rules because their group rule requires inheritance.') }}
 					</p>
 
-					<div class="policy-workbench__table-scroll">
+					<div v-if="state.rulesLoading" class="policy-workbench__table-loading" aria-live="polite" aria-busy="true">
+						<NcLoadingIcon :size="32" />
+						<p>{{ t('libresign', 'Loading rules…') }}</p>
+					</div>
+
+					<div v-else class="policy-workbench__table-scroll" @scroll.passive="handleCrudTableScroll">
 						<table class="policy-workbench__table">
 							<thead>
 								<tr>
+									<th class="policy-workbench__table-select-col">
+										<NcCheckboxRadioSwitch
+											:aria-label="t('libresign', 'Select all visible rules')"
+											:model-value="crudAllVisibleRowsSelected"
+											@update:modelValue="onVisibleCrudRowsSelectionChange" />
+									</th>
 									<th>{{ t('libresign', 'Type') }}</th>
 									<th>{{ t('libresign', 'Target') }}</th>
 									<th>{{ t('libresign', 'Value') }}</th>
@@ -381,7 +411,13 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="row in pagedCrudRows" :key="row.key">
+								<tr v-for="row in displayedCrudRows" :key="row.key" :class="{ 'policy-workbench__table-row--selected': isCrudRowSelected(row.ruleId ?? row.key) }">
+									<td class="policy-workbench__table-select-col">
+										<NcCheckboxRadioSwitch
+											:aria-label="t('libresign', 'Select rule for bulk delete')"
+											:model-value="isCrudRowSelected(row.ruleId ?? row.key)"
+											@update:modelValue="onCrudRowSelectionChange(row.ruleId ?? row.key, $event)" />
+									</td>
 									<td>{{ crudScopeLabel(row.scope) }}</td>
 									<td>{{ row.targetLabel }}</td>
 									<td>{{ row.valueLabel }}</td>
@@ -408,17 +444,15 @@
 										<span v-else class="policy-workbench__table-note">{{ t('libresign', 'Read only') }}</span>
 									</td>
 								</tr>
-								<tr v-if="pagedCrudRows.length === 0">
-									<td colspan="4" class="policy-workbench__table-empty">{{ t('libresign', 'No rules match the current filters.') }}</td>
+								<tr v-if="displayedCrudRows.length === 0">
+									<td colspan="5" class="policy-workbench__table-empty">{{ t('libresign', 'No rules match the current filters.') }}</td>
 								</tr>
 							</tbody>
 						</table>
-					</div>
-
-					<div v-if="crudPageCount > 1" class="policy-workbench__pagination">
-						<NcButton variant="tertiary" size="small" :disabled="crudPage <= 1" @click="crudPage -= 1">{{ t('libresign', 'Previous') }}</NcButton>
-						<span>{{ t('libresign', 'Page {current} of {total}', { current: String(crudPage), total: String(crudPageCount) }) }}</span>
-						<NcButton variant="tertiary" size="small" :disabled="crudPage >= crudPageCount" @click="crudPage += 1">{{ t('libresign', 'Next') }}</NcButton>
+						<div v-if="loadingMoreCrudRows" class="policy-workbench__table-loading-more" aria-live="polite" aria-busy="true">
+							<NcLoadingIcon :size="20" />
+							<span>{{ t('libresign', 'Loading more rules…') }}</span>
+						</div>
 					</div>
 				</div>
 
@@ -539,9 +573,11 @@ import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcAppNavigationSearch from '@nextcloud/vue/components/NcAppNavigationSearch'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
@@ -567,7 +603,7 @@ const state = reactive(createRealPolicyWorkbenchState())
 const isSmallViewport = ref(false)
 const saveStatus = ref<'idle' | 'saving' | 'saved'>('idle')
 const saveFeedbackTimeout = ref<number | null>(null)
-const pendingRemoval = ref<{ ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string, help: string } | null>(null)
+const pendingRemoval = ref<{ ruleId?: string, ruleIds?: string[], scope?: 'system' | 'group' | 'user', targetLabel?: string, help: string } | null>(null)
 const pendingDiscardAction = ref<'back-create-rule' | 'cancel-create-rule' | 'cancel-editor' | 'close-setting' | null>(null)
 const showCreateScopeDialog = ref(false)
 const selectedCreateScope = ref<'system' | 'group' | 'user' | null>(null)
@@ -611,10 +647,18 @@ const {
 const {
 	crudSearch,
 	crudScopeFilter,
-	crudPage,
 	scopeFilterOpen,
-	crudPageCount,
-	pagedCrudRows,
+	displayedCrudRows,
+	hasMoreCrudRows,
+	loadingMoreCrudRows,
+	selectedCrudRowsCount: crudSelectedRowsCount,
+	allVisibleCrudRowsSelected: crudAllVisibleRowsSelected,
+	selectedCrudRuleIds,
+	isCrudRowSelected,
+	toggleCrudRowSelection,
+	toggleVisibleCrudRowsSelection,
+	clearCrudSelection,
+	loadMoreCrudRows,
 	activeScopeFilterChip,
 	crudScopeLabel,
 	onCrudSearchChange,
@@ -825,8 +869,15 @@ const pendingRemovalMessage = computed(() => {
 		return ''
 	}
 
+	if (pendingRemoval.value.ruleIds?.length) {
+		return t('libresign', 'You are about to remove {count} selected rules. {help}', {
+			count: String(pendingRemoval.value.ruleIds.length),
+			help: pendingRemoval.value.help,
+		})
+	}
+
 	return t('libresign', 'You are about to remove the rule for {target}. {help}', {
-		target: pendingRemoval.value.targetLabel,
+		target: pendingRemoval.value.targetLabel ?? '',
 		help: pendingRemoval.value.help,
 	})
 })
@@ -1126,6 +1177,17 @@ function promptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', t
 	pendingRemoval.value = { ruleId, scope, targetLabel, help }
 }
 
+function promptBulkRuleRemoval() {
+	if (crudSelectedRowsCount.value === 0) {
+		return
+	}
+
+	pendingRemoval.value = {
+		ruleIds: [...selectedCrudRuleIds.value],
+		help: t('libresign', 'Removing these rules restores inherited behavior for the selected targets.'),
+	}
+}
+
 function updateRuleActionsOpen(ruleKey: string, open: boolean) {
 	openRuleActionsKey.value = open ? ruleKey : (openRuleActionsKey.value === ruleKey ? null : openRuleActionsKey.value)
 }
@@ -1146,6 +1208,19 @@ function handleEditRule(scope: 'system' | 'group' | 'user', ruleId: string) {
 function handlePromptRuleRemoval(ruleId: string, scope: 'system' | 'group' | 'user', targetLabel: string) {
 	closeOpenActionsMenu()
 	promptRuleRemoval(ruleId, scope, targetLabel)
+}
+
+function handlePromptBulkRuleRemoval() {
+	closeOpenActionsMenu()
+	promptBulkRuleRemoval()
+}
+
+function onVisibleCrudRowsSelectionChange(selected: boolean) {
+	toggleVisibleCrudRowsSelection(selected)
+}
+
+function onCrudRowSelectionChange(ruleId: string, selected: boolean) {
+	toggleCrudRowSelection(ruleId, selected)
 }
 
 function cancelRuleRemoval() {
@@ -1209,13 +1284,16 @@ async function confirmRuleRemoval() {
 
 	isRemovingRule.value = true
 	try {
-		const scope = pendingRemoval.value.scope
-		await state.removeRule(pendingRemoval.value.ruleId)
-		removalFeedback.value = scope === 'system'
-			? t('libresign', 'Custom default removed. The default behavior for everyone is active again.')
-			: scope === 'group'
-				? t('libresign', 'Group custom rule removed. Inherited behavior is now active.')
-				: t('libresign', 'User custom rule removed. Inherited behavior is now active.')
+		const ruleIds = pendingRemoval.value.ruleIds ?? (pendingRemoval.value.ruleId ? [pendingRemoval.value.ruleId] : [])
+		await state.removeRules(ruleIds)
+		removalFeedback.value = pendingRemoval.value.ruleIds
+			? t('libresign', '{count} rules removed. Inherited behavior is now active.', { count: String(ruleIds.length) })
+			: pendingRemoval.value.scope === 'system'
+				? t('libresign', 'Custom default removed. The default behavior for everyone is active again.')
+				: pendingRemoval.value.scope === 'group'
+					? t('libresign', 'Group custom rule removed. Inherited behavior is now active.')
+					: t('libresign', 'User custom rule removed. Inherited behavior is now active.')
+		clearCrudSelection()
 
 		if (removalFeedbackTimeout.value !== null) {
 			window.clearTimeout(removalFeedbackTimeout.value)
@@ -1229,6 +1307,22 @@ async function confirmRuleRemoval() {
 		pendingRemoval.value = null
 	} finally {
 		isRemovingRule.value = false
+	}
+}
+
+function handleCrudTableScroll(event: Event) {
+	if (state.rulesLoading || loadingMoreCrudRows.value || !hasMoreCrudRows.value) {
+		return
+	}
+
+	const target = event.target as HTMLElement | null
+	if (!target) {
+		return
+	}
+
+	const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight
+	if (distanceToBottom <= 160) {
+		void loadMoreCrudRows()
 	}
 }
 
@@ -1849,7 +1943,7 @@ watch(
 
 	&__dialog {
 		width: min(1480px, 100%);
-		min-height: min(820px, calc(100vh - 7rem));
+		min-height: calc(100vh - 7rem);
 		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
@@ -2116,14 +2210,14 @@ watch(
 	@media (min-width: 961px) {
 		&__dialog {
 			flex-direction: row;
-			align-items: flex-start;
+			align-items: stretch;
 		}
 
 		&__main {
 			flex: 1;
 			min-width: 0;
 			overflow-y: auto;
-			max-height: calc(min(820px, 100vh - 7rem) - 2rem);
+			max-height: calc(100vh - 9rem);
 		}
 
 		&__editor-aside {
