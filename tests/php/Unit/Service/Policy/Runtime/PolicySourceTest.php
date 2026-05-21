@@ -20,6 +20,7 @@ use OCA\Libresign\Service\Policy\Provider\ApprovalGroups\ApprovalGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyManagedValue;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
@@ -65,14 +66,18 @@ final class PolicySourceTest extends TestCase {
 		$container = $this->createMock(ContainerInterface::class);
 		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$coreAppConfig = $this->coreAppConfig;
+		$l10n = $this->l10n;
 		$container
 			->method('get')
-			->willReturnCallback(static function (string $class) use ($identifyMethodService, $coreAppConfig): object {
+			->willReturnCallback(static function (string $class) use ($identifyMethodService, $coreAppConfig, $l10n): object {
 				if ($class === IdentifyMethodsPolicy::class) {
 					return new IdentifyMethodsPolicy($identifyMethodService);
 				}
 				if ($class === TsaPolicy::class) {
 					return new TsaPolicy(new TsaPolicyManagedValue($coreAppConfig));
+				}
+				if ($class === SignatureTextPolicy::class) {
+					return new SignatureTextPolicy($l10n);
 				}
 				if (!\class_exists($class)) {
 					throw new \RuntimeException('Unexpected provider class: ' . $class);
