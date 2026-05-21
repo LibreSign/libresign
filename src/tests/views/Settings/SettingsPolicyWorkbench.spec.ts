@@ -79,6 +79,10 @@ function mountWorkbench() {
 					},
 					template: '<div v-if="open" class="dialog" :data-size="size"><h2 v-if="name" class="dialog-title">{{ name }}</h2><button type="button" class="dialog-close-stub" @click="requestClose">Close</button><slot /><div v-if="buttons" class="dialog-footer"><button v-for="button in buttons" :key="button.label" :disabled="button.disabled" @click="button.callback()">{{ button.label }}</button></div></div>',
 				},
+				NcEmptyContent: {
+					props: ['name', 'description'],
+					template: '<div class="nc-empty-content-stub"><p class="nc-empty-content-stub__name">{{ name }}</p><p v-if="description" class="nc-empty-content-stub__description">{{ description }}</p><slot name="icon" /></div>',
+				},
 				NcChip: { template: '<button class="nc-chip-stub">{{ text }}</button>', props: ['text'] },
 				NcCheckboxRadioSwitch: {
 					props: ['modelValue', 'type', 'name', 'value'],
