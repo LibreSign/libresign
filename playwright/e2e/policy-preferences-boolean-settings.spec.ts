@@ -31,7 +31,7 @@ const adminUser = 'admin'
 const adminPass = process.env.ADMIN_PASSWORD || 'admin'
 
 test.describe('Policy preferences: boolean settings', () => {
-	test('user can save and clear collect_metadata, docmdp and signature_text preferences', async ({ page }) => {
+	test('user can save and clear collect_metadata/docmdp while signature_text follows group policy', async ({ page }) => {
 		test.setTimeout(180000)
 		const groupId = `pref-boolean-${Date.now()}`
 		const endUser = `prefboolean_${Date.now()}`
@@ -99,19 +99,24 @@ test.describe('Policy preferences: boolean settings', () => {
 
 			await savePreferenceAsDisabled(collectMetadataSection)
 			await saveDocMdpPreference(docMdpSection, 3)
-			await saveSignatureTextTemplatePreference(signatureTextSection, 'User custom template')
+			await saveSignatureTextCollectMetadataPreference(signatureTextSection, false)
 
 			await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', false, 'user')
 			await expectDocMdpEffectiveValue(endUserCtx, 3, 'user')
-			await expectSignatureTextEffectiveScope(endUserCtx, 'user', 'User custom template')
+			await expectSignatureTextEffectiveState(endUserCtx, 'group', {
+				templateContains: 'Group template',
+				renderMode: 'text',
+			})
 
 			await clearPreference(collectMetadataSection)
 			await clearPreference(docMdpSection)
-			await clearPreference(signatureTextSection)
 
 			await expectPolicyEffectiveValue(endUserCtx, 'collect_metadata', true, 'group')
 			await expectDocMdpEffectiveValue(endUserCtx, 2, 'group')
-			await expectSignatureTextEffectiveScope(endUserCtx, 'group', 'Group template')
+			await expectSignatureTextEffectiveState(endUserCtx, 'group', {
+				templateContains: 'Group template',
+				renderMode: 'text',
+			})
 		} finally {
 			if (endUserCtx) {
 				await clearUserPolicyPreference(endUserCtx, 'collect_metadata', [200, 401, 500])
@@ -203,15 +208,17 @@ async function saveDocMdpPreference(section: Locator, level: 0 | 1 | 2 | 3): Pro
 	await option.click({ force: true })
 }
 
-async function saveSignatureTextTemplatePreference(section: Locator, template: string): Promise<void> {
-	const templateInput = section.getByLabel('Signature text template').first()
-	await templateInput.click({ force: true })
-	await templateInput.fill(template)
-	await templateInput.press('Tab')
-}
-
 function escapeRegExp(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+async function saveSignatureTextCollectMetadataPreference(section: Locator, enabled: boolean): Promise<void> {
+	const toggle = section.getByRole('checkbox', { name: /Collect signer metadata/i }).first()
+	await expect(toggle).toBeVisible()
+	const checked = await toggle.isChecked()
+	if (checked !== enabled) {
+		await toggle.click({ force: true })
+	}
 }
 
 async function expectPolicyEffectiveValue(
@@ -249,46 +256,65 @@ async function expectDocMdpEffectiveValue(
 	})
 }
 
-async function expectSignatureTextEffectiveScope(
+async function expectSignatureTextEffectiveState(
 	ctx: APIRequestContext,
 	expectedScope: string,
-	expectedTemplate: string,
+	expected: {
+		templateContains?: string
+		renderMode?: string
+	},
 ): Promise<void> {
+	const expectedMatch: Record<string, unknown> = {
+		scope: expectedScope,
+	}
+	if (expected.templateContains) {
+		expectedMatch.template = expect.stringContaining(expected.templateContains)
+	}
+	if (expected.renderMode) {
+		expectedMatch.renderMode = expected.renderMode
+	}
+
 	await expect.poll(async () => {
 		const entry = await getEffectivePolicy(ctx, 'signature_stamp')
 		if (!entry) {
-			return { scope: '', template: '' }
+			return { scope: '', template: '', renderMode: '' }
 		}
+		const parsed = parseSignatureTextValue(entry.effectiveValue)
 		return {
 			scope: String(entry.sourceScope ?? ''),
-			template: extractSignatureTextTemplate(entry.effectiveValue),
+			template: parsed.template,
+			renderMode: parsed.renderMode,
 		}
-	}, { timeout: 15000 }).toMatchObject({
-		scope: expectedScope,
-		template: expect.stringContaining(expectedTemplate),
-	})
+	}, { timeout: 15000 }).toMatchObject(expectedMatch)
 }
 
-function extractSignatureTextTemplate(value: unknown): string {
+function parseSignatureTextValue(value: unknown): { template: string; renderMode: string } {
 	if (typeof value === 'string') {
 		const trimmed = value.trim()
-		if (trimmed.startsWith('{')) {
-			try {
-				const parsed = JSON.parse(trimmed) as { template?: string }
-				return parsed.template ?? ''
-			} catch {
-				return ''
-			}
+		if (!trimmed.startsWith('{')) {
+			return { template: trimmed, renderMode: '' }
 		}
 
-		return trimmed
+		try {
+			const parsed = JSON.parse(trimmed) as { template?: string; render_mode?: string }
+			return {
+				template: String(parsed.template ?? ''),
+				renderMode: String(parsed.render_mode ?? ''),
+			}
+		} catch {
+			return { template: '', renderMode: '' }
+		}
 	}
 
-	if (value && typeof value === 'object' && 'template' in (value as Record<string, unknown>)) {
-		return String((value as Record<string, unknown>).template ?? '')
+	if (value && typeof value === 'object') {
+		const raw = value as Record<string, unknown>
+		return {
+			template: String(raw.template ?? ''),
+			renderMode: String(raw.render_mode ?? ''),
+		}
 	}
 
-	return ''
+	return { template: '', renderMode: '' }
 }
 
 async function setSystemNumericPolicyEntry(
