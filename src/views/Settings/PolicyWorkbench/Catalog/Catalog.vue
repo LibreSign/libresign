@@ -874,20 +874,24 @@ const defaultSourceLabel = computed(() => {
 		: t('libresign', 'default')
 })
 
+const hasActiveCrudFilters = computed(() => {
+	return crudSearch.value.trim().length > 0 || crudScopeFilter.value !== 'all'
+})
+
 const crudEmptyStateName = computed(() => {
-	return hasActiveFilter.value
+	return hasActiveCrudFilters.value
 		? t('libresign', 'No rules match the current filters.')
 		: t('libresign', 'No custom rules created yet.')
 })
 
 const crudEmptyStateDescription = computed(() => {
-	return hasActiveFilter.value
+	return hasActiveCrudFilters.value
 		? t('libresign', 'Try adjusting or clearing the current filters.')
 		: t('libresign', 'Create a rule to override the default behavior for specific users or groups.')
 })
 
 const crudEmptyStateIconPath = computed(() => {
-	return hasActiveFilter.value ? mdiFilterVariant : mdiPlus
+	return hasActiveCrudFilters.value ? mdiFilterVariant : mdiPlus
 })
 
 const pendingRemovalMessage = computed(() => {

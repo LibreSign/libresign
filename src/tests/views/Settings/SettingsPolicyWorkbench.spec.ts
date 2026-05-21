@@ -5,6 +5,7 @@
 
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { mdiFilterVariant } from '@mdi/js'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
@@ -59,7 +60,7 @@ function mountWorkbench() {
 				NcTextField: { template: '<div><label>Find setting</label><input type="text" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>' },
 				NcAppNavigationSearch: { template: '<div class="nc-app-navigation-search-stub"><input type="text" @input="$emit(\'update:modelValue\', $event.target.value)" /><div class="nc-app-navigation-search-stub__actions"><slot name="actions" /></div></div>' },
 				NcButton: { template: '<button v-bind="$attrs" @click="$emit(\'click\', $event)"><slot /></button>' },
-				NcIconSvgWrapper: { template: '<span class="icon-stub" />' },
+				NcIconSvgWrapper: { props: ['path'], template: '<span class="icon-stub" :data-path="path" />' },
 				NcNoteCard: { template: '<div class="note-card"><slot /></div>' },
 				NcDialog: {
 					props: ['name', 'buttons', 'size'],
@@ -453,6 +454,29 @@ describe('RealPolicyWorkbench.vue', () => {
 
 		expect(wrapper.find('.nc-actions-stub__menu').exists()).toBe(false)
 		expect(wrapper.text()).toContain('Edit rule')
+	})
+
+	it('shows filter empty state copy and icon when CRUD filters have no matches', async () => {
+		const wrapper = mountWorkbench()
+
+		const openPolicyButton = findConfigureButtonForSetting(wrapper, 'Signing order')
+		expect(openPolicyButton).toBeTruthy()
+		await openPolicyButton?.trigger('click')
+
+		const scopeFilterTrigger = wrapper.find('button[aria-label="Filter rules by scope"]')
+		expect(scopeFilterTrigger.exists()).toBe(true)
+		await scopeFilterTrigger.trigger('click')
+
+		const groupFilterButton = wrapper.findAll('.nc-actions-stub__menu button').find((button) => button.text() === 'Group')
+		expect(groupFilterButton).toBeTruthy()
+		await groupFilterButton?.trigger('click')
+
+		await vi.waitFor(() => {
+			expect(wrapper.find('.nc-empty-content-stub__name').text()).toBe('No rules match the current filters.')
+		})
+
+		expect(wrapper.find('.nc-empty-content-stub__description').text()).toBe('Try adjusting or clearing the current filters.')
+		expect(wrapper.find('.policy-workbench__table-empty-content .icon-stub').attributes('data-path')).toBe(mdiFilterVariant)
 	})
 
 	it('shows one unified request expiration setting card', () => {
