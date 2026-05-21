@@ -167,13 +167,13 @@ class SignatureStampPreviewNativeService {
 				maxHeight: (int)round($height),
 			);
 			if ($fit['width'] > 0 && $fit['height'] > 0) {
-				$stream = sprintf(
+				$stream .= sprintf(
 					"q\n%d 0 0 %d %d %d cm\n/Im2 Do\nQ\n",
 					$fit['width'],
 					$fit['height'],
 					$fit['x'],
 					$fit['y'],
-				) . $stream;
+				);
 				$signatureObjectId = $nextObjectId;
 				$nextObjectId += 1;
 				$xObjectReferences[] = '/Im2 ' . $signatureObjectId . ' 0 R';
