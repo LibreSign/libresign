@@ -263,7 +263,6 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 	if (await searchInput.count()) {
 		for (let attempt = 0; attempt < 3; attempt += 1) {
 			await searchInput.fill(optionText)
-			await page.waitForTimeout(250)
 
 			const matchingOption = page.getByRole('option', { name: new RegExp(optionText, 'i') }).first()
 			const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
