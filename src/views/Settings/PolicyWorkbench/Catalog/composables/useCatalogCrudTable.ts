@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 type CrudScope = 'system' | 'group' | 'user'
@@ -40,7 +40,9 @@ export function useCatalogCrudTable(options: {
 }) {
 	const crudSearch = ref('')
 	const crudScopeFilter = ref<'all' | CrudScope>('all')
-	const crudPage = ref(1)
+	const visibleCrudCount = ref(CRUD_PAGE_SIZE)
+	const loadingMoreCrudRows = ref(false)
+	const selectedCrudRuleIds = ref<Set<string>>(new Set())
 	const scopeFilterOpen = ref(false)
 
 	function crudScopeLabel(scope: CrudScope) {
@@ -123,15 +125,11 @@ export function useCatalogCrudTable(options: {
 		})
 	})
 
-	const crudPageCount = computed(() => Math.max(1, Math.ceil(filteredCrudRows.value.length / CRUD_PAGE_SIZE)))
-	const pagedCrudRows = computed(() => {
-		if (crudPage.value > crudPageCount.value) {
-			crudPage.value = crudPageCount.value
-		}
-
-		const start = (crudPage.value - 1) * CRUD_PAGE_SIZE
-		return filteredCrudRows.value.slice(start, start + CRUD_PAGE_SIZE)
-	})
+	const displayedCrudRows = computed(() => filteredCrudRows.value.slice(0, visibleCrudCount.value))
+	const hasMoreCrudRows = computed(() => visibleCrudCount.value < filteredCrudRows.value.length)
+	const selectedCrudRowsCount = computed(() => selectedCrudRuleIds.value.size)
+	const selectedVisibleCrudRowsCount = computed(() => displayedCrudRows.value.filter((row) => selectedCrudRuleIds.value.has(row.ruleId ?? row.key)).length)
+	const allVisibleCrudRowsSelected = computed(() => displayedCrudRows.value.length > 0 && selectedVisibleCrudRowsCount.value === displayedCrudRows.value.length)
 
 	const activeScopeFilterChip = computed(() => {
 		if (crudScopeFilter.value === 'all') {
@@ -145,7 +143,8 @@ export function useCatalogCrudTable(options: {
 
 	function onCrudSearchChange(value: string | number) {
 		crudSearch.value = String(value ?? '')
-		crudPage.value = 1
+		visibleCrudCount.value = CRUD_PAGE_SIZE
+		selectedCrudRuleIds.value = new Set()
 	}
 
 	function setCrudScopeFilter(value: 'all' | CrudScope, selected: boolean) {
@@ -154,18 +153,90 @@ export function useCatalogCrudTable(options: {
 		}
 
 		crudScopeFilter.value = value
-		crudPage.value = 1
+		visibleCrudCount.value = CRUD_PAGE_SIZE
+		selectedCrudRuleIds.value = new Set()
 		scopeFilterOpen.value = false
 	}
+
+	function clearCrudSelection() {
+		selectedCrudRuleIds.value = new Set()
+	}
+
+	function isCrudRowSelected(ruleId: string) {
+		return selectedCrudRuleIds.value.has(ruleId)
+	}
+
+	function toggleCrudRowSelection(ruleId: string, selected: boolean) {
+		const nextSelection = new Set(selectedCrudRuleIds.value)
+		if (selected) {
+			nextSelection.add(ruleId)
+		} else {
+			nextSelection.delete(ruleId)
+		}
+		selectedCrudRuleIds.value = nextSelection
+	}
+
+	function toggleVisibleCrudRowsSelection(selected: boolean) {
+		const nextSelection = new Set(selectedCrudRuleIds.value)
+		for (const row of displayedCrudRows.value) {
+			const rowId = row.ruleId ?? row.key
+			if (selected) {
+				nextSelection.add(rowId)
+			} else {
+				nextSelection.delete(rowId)
+			}
+		}
+		selectedCrudRuleIds.value = nextSelection
+	}
+
+	async function loadMoreCrudRows() {
+		if (loadingMoreCrudRows.value || !hasMoreCrudRows.value) {
+			return
+		}
+
+		loadingMoreCrudRows.value = true
+		await nextTick()
+		visibleCrudCount.value = Math.min(visibleCrudCount.value + CRUD_PAGE_SIZE, filteredCrudRows.value.length)
+		await nextTick()
+		loadingMoreCrudRows.value = false
+	}
+
+	watch([crudSearch, crudScopeFilter], () => {
+		visibleCrudCount.value = CRUD_PAGE_SIZE
+		selectedCrudRuleIds.value = new Set()
+	})
+
+	watch(filteredCrudRows, (nextRows) => {
+		if (visibleCrudCount.value > nextRows.length) {
+			visibleCrudCount.value = Math.max(CRUD_PAGE_SIZE, nextRows.length)
+		}
+
+		const nextSelection = new Set<string>()
+		for (const row of nextRows) {
+			const rowId = row.ruleId ?? row.key
+			if (selectedCrudRuleIds.value.has(rowId)) {
+				nextSelection.add(rowId)
+			}
+		}
+		selectedCrudRuleIds.value = nextSelection
+	})
 
 	return {
 		crudSearch,
 		crudScopeFilter,
-		crudPage,
 		scopeFilterOpen,
 		filteredCrudRows,
-		crudPageCount,
-		pagedCrudRows,
+		displayedCrudRows,
+		hasMoreCrudRows,
+		loadingMoreCrudRows,
+		selectedCrudRowsCount,
+		allVisibleCrudRowsSelected,
+		selectedCrudRuleIds,
+		isCrudRowSelected,
+		toggleCrudRowSelection,
+		toggleVisibleCrudRowsSelection,
+		clearCrudSelection,
+		loadMoreCrudRows,
 		activeScopeFilterChip,
 		crudScopeLabel,
 		onCrudSearchChange,
