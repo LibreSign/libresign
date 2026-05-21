@@ -170,14 +170,16 @@ class SignatureStampPreviewNativeService {
 		$objects = [
 			1 => '<< /Type /Catalog /Pages 2 0 R >>',
 			2 => '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-			3 => sprintf(
-				'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %s %s] /Resources << /Font << /F1 4 0 R >> /XObject << %s >> >> /Contents 6 0 R >>',
-				$widthFormatted,
-				$heightFormatted,
-				$xObjectReferences,
-			),
-			4 => '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
 		];
+
+		$xObjectDict = $xObjectReferences !== '' ? " /XObject << $xObjectReferences >>" : '';
+		$objects[3] = sprintf(
+			'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %s %s] /Resources << /Font << /F1 4 0 R >>%s >> /Contents 6 0 R >>',
+			$widthFormatted,
+			$heightFormatted,
+			$xObjectDict,
+		);
+		$objects[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
 
 		if ($backgroundJpeg !== null) {
 			$objects[5] = sprintf(
