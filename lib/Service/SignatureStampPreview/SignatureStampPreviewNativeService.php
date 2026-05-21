@@ -121,8 +121,14 @@ class SignatureStampPreviewNativeService {
 		$widthFormatted = number_format($width, 2, '.', '');
 		$heightFormatted = number_format($height, 2, '.', '');
 		$stream = '';
-		$xObjectReferences = '';
-		$objectCount = 5;
+		$xObjectReferences = [];
+		$nextObjectId = 5;
+
+		$objects = [
+			1 => '<< /Type /Catalog /Pages 2 0 R >>',
+			2 => '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+			4 => '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+		];
 
 		if ($backgroundJpeg !== null) {
 			$fit = $this->fitWithinBounds(
@@ -139,11 +145,19 @@ class SignatureStampPreviewNativeService {
 					$fit['x'],
 					$fit['y'],
 				);
-				$xObjectReferences = '/Im1 5 0 R';
+				$backgroundObjectId = $nextObjectId;
+				$nextObjectId += 1;
+				$xObjectReferences[] = '/Im1 ' . $backgroundObjectId . ' 0 R';
+				$objects[$backgroundObjectId] = sprintf(
+					"<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length %d >>\nstream\n%sendstream",
+					$backgroundJpeg['width'],
+					$backgroundJpeg['height'],
+					strlen($backgroundJpeg['data']),
+					$backgroundJpeg['data'],
+				);
 			}
 		}
 
-		$signatureXObjectRef = null;
 		if ($previewSignatureJpeg !== null) {
 			$graphicWidth = (int)round($width / 2.0);
 			$fit = $this->fitWithinBounds(
@@ -160,53 +174,32 @@ class SignatureStampPreviewNativeService {
 					$fit['x'],
 					$fit['y'],
 				) . $stream;
-				$xObjectReferences .= ($xObjectReferences !== '' ? ' ' : '') . '/Im2 ' . ($objectCount + 1) . ' 0 R';
-				$signatureXObjectRef = $objectCount + 1;
-				$objectCount += 1;
-			} else {
+				$signatureObjectId = $nextObjectId;
+				$nextObjectId += 1;
+				$xObjectReferences[] = '/Im2 ' . $signatureObjectId . ' 0 R';
+				$objects[$signatureObjectId] = sprintf(
+					"<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length %d >>\nstream\n%sendstream",
+					$previewSignatureJpeg['width'],
+					$previewSignatureJpeg['height'],
+					strlen($previewSignatureJpeg['data']),
+					$previewSignatureJpeg['data'],
+				);
 			}
-		} else {
 		}
 
 		$stream .= "q\n" . $contentStream . "Q\n";
+		$contentObjectId = $nextObjectId;
 
-		$objects = [
-			1 => '<< /Type /Catalog /Pages 2 0 R >>',
-			2 => '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-		];
-
-		$xObjectDict = $xObjectReferences !== '' ? " /XObject << $xObjectReferences >>" : '';
+		$xObjectDict = $xObjectReferences !== [] ? ' /XObject << ' . implode(' ', $xObjectReferences) . ' >>' : '';
 		$objects[3] = sprintf(
-			'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %s %s] /Resources << /Font << /F1 4 0 R >>%s >> /Contents 6 0 R >>',
+			'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %s %s] /Resources << /Font << /F1 4 0 R >>%s >> /Contents %d 0 R >>',
 			$widthFormatted,
 			$heightFormatted,
 			$xObjectDict,
+			$contentObjectId,
 		);
-		$objects[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
 
-		if ($backgroundJpeg !== null) {
-			$objects[5] = sprintf(
-				"<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length %d >>\nstream\n%sendstream",
-				$backgroundJpeg['width'],
-				$backgroundJpeg['height'],
-				strlen($backgroundJpeg['data']),
-				$backgroundJpeg['data'],
-			);
-		} else {
-			$objects[5] = '<< /Length 0 >>\nstream\nendstream';
-		}
-
-		if ($signatureXObjectRef !== null) {
-			$objects[$signatureXObjectRef] = sprintf(
-				"<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length %d >>\nstream\n%sendstream",
-				$previewSignatureJpeg['width'],
-				$previewSignatureJpeg['height'],
-				strlen($previewSignatureJpeg['data']),
-				$previewSignatureJpeg['data'],
-			);
-		}
-
-		$objects[6] = sprintf(
+		$objects[$contentObjectId] = sprintf(
 			"<< /Length %d >>\nstream\n%sendstream",
 			strlen($stream),
 			$stream,
