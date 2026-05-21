@@ -75,6 +75,8 @@
 </template>
 
 <script setup lang="ts">
+import type { PropType } from 'vue'
+
 import PdfElements from '@libresign/pdf-elements'
 import { mdiMagnifyMinus, mdiMagnifyPlus, mdiUndoVariant } from '@mdi/js'
 
@@ -112,7 +114,7 @@ defineProps({
 		required: true,
 	},
 	pdfPreviewFile: {
-		type: Object,
+		type: Object as PropType<File | null>,
 		default: null,
 	},
 	previewLoading: {
