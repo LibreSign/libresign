@@ -101,7 +101,7 @@ class SignatureStampPreviewNativeService {
 			return null;
 		}
 
-		$assetPath = __DIR__ . '/../../../img/preview_signature.png';
+		$assetPath = \OC::$SERVERROOT . '/apps-extra/libresign/img/preview_signature.png';
 		if (!file_exists($assetPath)) {
 			return null;
 		}
@@ -109,7 +109,8 @@ class SignatureStampPreviewNativeService {
 		if (!is_string($blob) || $blob === '') {
 			return null;
 		}
-		return $this->convertImageBlobToJpeg($blob);
+		$result = $this->convertImageBlobToJpeg($blob);
+		return $result;
 	}
 
 	/**
@@ -162,7 +163,9 @@ class SignatureStampPreviewNativeService {
 				$xObjectReferences .= ($xObjectReferences !== '' ? ' ' : '') . '/Im2 ' . ($objectCount + 1) . ' 0 R';
 				$signatureXObjectRef = $objectCount + 1;
 				$objectCount += 1;
+			} else {
 			}
+		} else {
 		}
 
 		$stream .= "q\n" . $contentStream . "Q\n";
