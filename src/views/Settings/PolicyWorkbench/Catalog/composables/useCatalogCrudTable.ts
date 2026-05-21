@@ -54,7 +54,7 @@ export function useCatalogCrudTable(options: {
 			return t('libresign', 'Group')
 		}
 
-		return t('libresign', 'User')
+		return t('libresign', 'Account')
 	}
 
 	const filteredCrudRows = computed<CrudRow[]>(() => {

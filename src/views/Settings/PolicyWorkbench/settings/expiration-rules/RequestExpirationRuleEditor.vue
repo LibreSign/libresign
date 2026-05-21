@@ -31,7 +31,7 @@
 				{{ t('libresign', 'Leave empty to disable renewal.') }}
 			</p>
 			<p class="expiration-rule-editor__helper expiration-rule-editor__helper--secondary">
-				{{ t('libresign', 'Users may renew the signing request after expiration using the access link.') }}
+				{{ t('libresign', 'Accounts may renew the signing request after expiration using the access link.') }}
 			</p>
 			<p v-if="renewalRequiresExpiration" class="expiration-rule-editor__validation" role="alert">
 				{{ t('libresign', 'Maximum validity is required when renewal interval is set.') }}

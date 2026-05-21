@@ -172,7 +172,7 @@
 									{{ t('libresign', 'Intermediate CA') }}
 								</span>
 								<span v-else class="certificate-type certificate-type--user">
-									{{ t('libresign', 'User') }}
+									{{ t('libresign', 'Account') }}
 								</span>
 							</td>
 							<td>
@@ -534,7 +534,7 @@ function getCertificateTypeLabel(type: string) {
 	const labels: Record<string, string> = {
 		root: t('libresign', 'Root Certificate (CA)'),
 		intermediate: t('libresign', 'Intermediate Certificate (CA)'),
-		leaf: t('libresign', 'User Certificate'),
+		leaf: t('libresign', 'Account Certificate'),
 	}
 	return labels[type] || type
 }

@@ -6,7 +6,7 @@
 <template>
 	<div class="request-sign-groups-editor">
 		<p class="request-sign-groups-editor__hint">
-			{{ t('libresign', 'Only members of the selected groups can request signatures. Users outside these groups will not see signing configuration options.') }}
+			{{ t('libresign', 'Only members of the selected groups can request signatures. Accounts outside these groups will not see signing configuration options.') }}
 		</p>
 
 		<NcSelect

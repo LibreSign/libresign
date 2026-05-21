@@ -49,7 +49,7 @@ const options = [
 	{
 		value: true,
 		label: t('libresign', 'Authenticated-only validation page'),
-		description: t('libresign', 'Users must be authenticated to access the validation page URL.'),
+		description: t('libresign', 'Accounts must be authenticated to access the validation page URL.'),
 	},
 ]
 
