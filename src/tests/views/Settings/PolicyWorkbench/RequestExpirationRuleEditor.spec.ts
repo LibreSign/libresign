@@ -33,7 +33,7 @@ describe('RequestExpirationRuleEditor.vue', () => {
 		expect(wrapper.text()).toContain('Renewal interval (seconds)')
 		expect(wrapper.text()).toContain('Leave empty to disable expiration.')
 		expect(wrapper.text()).toContain('Leave empty to disable renewal.')
-		expect(wrapper.text()).toContain('Accounts may renew the signing request after expiration using the access link.')
+		expect(wrapper.text()).toContain('Users may renew the signing request after expiration using the access link.')
 	})
 
 	it('uses empty fields when values are disabled', () => {

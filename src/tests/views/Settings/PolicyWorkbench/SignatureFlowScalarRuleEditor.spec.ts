@@ -30,7 +30,7 @@ describe('SignatureFlowScalarRuleEditor.vue', () => {
 		expect(wrapper.text()).toContain('Parallel')
 		expect(wrapper.text()).toContain('Sequential')
 		expect(wrapper.text()).toContain('Using instance default')
-		expect(wrapper.text()).toContain('Accounts can choose the signing order unless an explicit rule is configured.')
+		expect(wrapper.text()).toContain('Users can choose the signing order unless an explicit rule is configured.')
 
 		const switches = wrapper.findAll('.switch')
 		expect(switches).toHaveLength(2)
@@ -98,7 +98,7 @@ describe('SignatureFlowScalarRuleEditor.vue', () => {
 		})
 
 		expect(wrapper.text()).toContain('Using instance default')
-		expect(wrapper.text()).toContain('Accounts can choose the signing order unless an explicit rule is configured.')
+		expect(wrapper.text()).toContain('Users can choose the signing order unless an explicit rule is configured.')
 		expect(wrapper.text()).not.toContain('User choice')
 		expect(wrapper.findAll('.switch-disabled')).toHaveLength(2)
 	})
