@@ -82,7 +82,7 @@ function mountWorkbench() {
 				},
 				NcEmptyContent: {
 					props: ['name', 'description'],
-					template: '<div class="nc-empty-content-stub"><p class="nc-empty-content-stub__name">{{ name }}</p><p v-if="description" class="nc-empty-content-stub__description">{{ description }}</p><slot name="icon" /></div>',
+					template: '<div class="nc-empty-content-stub"><p class="nc-empty-content-stub__name">{{ name }}</p><p v-if="description" class="nc-empty-content-stub__description">{{ description }}</p><slot name="icon" /><div class="nc-empty-content-stub__action"><slot name="action" /></div></div>',
 				},
 				NcChip: { template: '<button class="nc-chip-stub">{{ text }}</button>', props: ['text'] },
 				NcCheckboxRadioSwitch: {
@@ -115,6 +115,12 @@ function findButtonByText(wrapper: ReturnType<typeof mountWorkbench>, text: stri
 
 function findButtonContainingText(wrapper: ReturnType<typeof mountWorkbench>, text: string) {
 	return wrapper.findAll('button').find((button) => button.text().includes(text))
+}
+
+function findCreateRuleButton(wrapper: ReturnType<typeof mountWorkbench>) {
+	return wrapper.find('button.policy-workbench__crud-create-cta').exists()
+		? wrapper.find('button.policy-workbench__crud-create-cta')
+		: wrapper.find('.nc-empty-content-stub__action button')
 }
 
 function findConfigureButtonForSetting(wrapper: ReturnType<typeof mountWorkbench>, settingTitle: string) {
@@ -150,26 +156,32 @@ describe('RealPolicyWorkbench.vue', () => {
 		await openPolicyButton?.trigger('click')
 		await findButtonByText(wrapper, 'Create rule')?.trigger('click')
 
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
+
 		expect(wrapper.findAll('.dialog-title').some((title) => title.text() === 'What do you want to create?')).toBe(true)
 
 		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
 		expect(createScopeDialog.exists()).toBe(true)
 
 		const text = createScopeDialog.text()
-		expect(text).toContain('User')
+		expect(text).toContain('Account')
 		expect(text).toContain('Group')
 		expect(text).not.toContain('Instance')
 		expect(text).not.toContain('Where do you want to apply this rule?')
 
-		await findButtonContainingText(wrapper, 'User')?.trigger('click')
+		const accountScopeButton = createScopeDialog.findAll('button').find((button) => button.text().includes('Account'))
+		expect(accountScopeButton).toBeTruthy()
+		await accountScopeButton?.trigger('click')
 
 		const editorModal = wrapper.find('.policy-workbench__editor-modal-body')
 		expect(editorModal.exists()).toBe(true)
 		const editorText = editorModal.text()
-		expect(editorText).toContain('Priority: User > Group > Default')
+		expect(editorText).toContain('Priority: Account > Group > Default')
 		expect(editorText).not.toContain('This rule overrides group and default settings for selected users.')
-		expect(editorText).toContain('Target users')
-		expect(editorText).toContain('Search users')
+		expect(editorText).toContain('Target accounts')
+		expect(editorText).toContain('Search accounts')
 		expect(editorText).toContain('Parallel')
 		expect(editorText).toContain('Sequential')
 		expect(editorText).toContain('Using instance default')
@@ -203,7 +215,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.find('.policy-workbench__editor-aside').exists()).toBe(false)
 
 		const editorText = wrapper.find('.policy-workbench__editor-modal-body').text()
-		expect(editorText).toContain('Priority: User > Group > Default')
+		expect(editorText).toContain('Priority: Account > Group > Default')
 		expect(editorText).not.toContain('This sets the default signing order for everyone.')
 		expect(wrapper.text()).toContain('Save changes')
 		expect(wrapper.text()).toContain('Cancel')
@@ -245,9 +257,15 @@ describe('RealPolicyWorkbench.vue', () => {
 		const toolbarCreateRuleButton = wrapper.find('button.policy-workbench__crud-create-cta')
 		expect(toolbarCreateRuleButton.exists()).toBe(true)
 		await toolbarCreateRuleButton.trigger('click')
-		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
+		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
+		expect(createScopeDialog.exists()).toBe(true)
 
-		await findButtonContainingText(wrapper, 'User')?.trigger('click')
+		const accountScopeButton = createScopeDialog.findAll('button').find((button) => button.text().includes('Account'))
+		expect(accountScopeButton).toBeTruthy()
+		await accountScopeButton?.trigger('click')
 		expect(wrapper.find('.policy-workbench__editor-modal-body').exists()).toBe(true)
 
 		const dialogCancelButton = wrapper.findAll('.dialog-footer button').find((button) => button.text() === 'Cancel')
@@ -261,7 +279,9 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(toolbarCreateRuleButtonAfterSave.exists()).toBe(true)
 		expect(toolbarCreateRuleButtonAfterSave.attributes('disabled')).toBeUndefined()
 		await toolbarCreateRuleButtonAfterSave.trigger('click')
-		expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
 	})
 
 	it('keeps create-rule editor visible after dismissing discard dialog from ESC flow', async () => {
@@ -272,7 +292,13 @@ describe('RealPolicyWorkbench.vue', () => {
 		await openPolicyButton?.trigger('click')
 
 		await wrapper.find('button.policy-workbench__crud-create-cta').trigger('click')
-		await findButtonContainingText(wrapper, 'User')?.trigger('click')
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
+		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
+		const accountScopeButton = createScopeDialog.findAll('button').find((button) => button.text().includes('Account'))
+		expect(accountScopeButton).toBeTruthy()
+		await accountScopeButton?.trigger('click')
 
 		const sha1Input = wrapper.find('input[type="radio"]')
 		expect(sha1Input.exists()).toBe(true)
@@ -312,7 +338,15 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
-		await wrapper.find('button.policy-workbench__crud-create-cta').trigger('click')
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+		const createRuleButton = findCreateRuleButton(wrapper)
+		expect(createRuleButton.exists()).toBe(true)
+		await createRuleButton.trigger('click')
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
 
 		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
 		expect(createScopeDialog.exists()).toBe(true)
@@ -350,8 +384,19 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
-		await findButtonByText(wrapper, 'Create rule')?.trigger('click')
-		await findButtonContainingText(wrapper, 'User')?.trigger('click')
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+		const createRuleButton = findCreateRuleButton(wrapper)
+		expect(createRuleButton.exists()).toBe(true)
+		await createRuleButton.trigger('click')
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
+		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
+		const accountScopeButton = createScopeDialog.findAll('button').find((button) => button.text().includes('Account'))
+		expect(accountScopeButton).toBeTruthy()
+		await accountScopeButton?.trigger('click')
 
 		expect(wrapper.findAll('.dialog[data-size="large"]').length).toBeGreaterThan(0)
 		expect(wrapper.text()).toContain('Inherited template:')
@@ -364,7 +409,15 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
-		await findButtonByText(wrapper, 'Create rule')?.trigger('click')
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+		const createRuleButton = findCreateRuleButton(wrapper)
+		expect(createRuleButton.exists()).toBe(true)
+		await createRuleButton.trigger('click')
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
 
 		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
 		expect(createScopeDialog.exists()).toBe(true)
@@ -408,7 +461,7 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).toContain('Sequential')
 		expect(text).toContain('(custom)')
 		expect(text).toContain('Change')
-		expect(text).toContain('Priority: User > Group > Default')
+		expect(text).toContain('Priority: Account > Group > Default')
 		expect(text).not.toContain('Effective result:')
 
 		await vi.waitFor(() => {
@@ -495,12 +548,20 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
-		await findButtonByText(wrapper, 'Create rule')?.trigger('click')
+		await vi.waitFor(() => {
+			expect(findCreateRuleButton(wrapper).exists()).toBe(true)
+		})
+		const createRuleButton = findCreateRuleButton(wrapper)
+		expect(createRuleButton.exists()).toBe(true)
+		await createRuleButton.trigger('click')
+		await vi.waitFor(() => {
+			expect(wrapper.find('.policy-workbench__create-scope-dialog').exists()).toBe(true)
+		})
 
 		const createScopeDialog = wrapper.find('.policy-workbench__create-scope-dialog')
 		expect(createScopeDialog.exists()).toBe(true)
 		const text = createScopeDialog.text()
-		expect(text).toContain('User')
+		expect(text).toContain('Account')
 		expect(text).toContain('Group')
 		expect(text).toContain('Everyone')
 		expect(text).not.toContain('Not available for this setting.')
