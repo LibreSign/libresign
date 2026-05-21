@@ -5,11 +5,12 @@
 
 import { t } from '@nextcloud/l10n'
 
-import type { EffectivePolicyValue } from '../../../../../types/index'
-import type { RealPolicySettingDefinition } from '../realTypes'
 import SignatureTextRuleEditor from './SignatureTextRuleEditor.vue'
+import type { EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
+import type { RealPolicySettingDefinition } from '../realTypes'
 import {
 	getDefaultSignatureTextPolicyConfig,
+	normalizeSignatureStampDraftValue,
 	normalizeSignatureTextPolicyConfig,
 	serializeSignatureTextPolicyConfig,
 } from './model'
@@ -19,23 +20,44 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 	title: t('libresign', 'Signature stamp text'),
 	description: t('libresign', 'Configure signature stamp template, dimensions, render mode, and background.'),
 	editor: SignatureTextRuleEditor,
+	editorProps: {},
+	resolveEditorProps: (policy: EffectivePolicyState | null, baseEditorProps: Record<string, unknown>) => {
+		const policyWithInherited = policy as (EffectivePolicyState & { inheritedValue?: EffectivePolicyValue }) | null
+		if (!policyWithInherited || !Object.prototype.hasOwnProperty.call(policyWithInherited, 'inheritedValue')) {
+			return baseEditorProps
+		}
+
+		if (policyWithInherited.sourceScope === 'global' || policyWithInherited.sourceScope === 'system') {
+			return baseEditorProps
+		}
+
+		return {
+			...baseEditorProps,
+			inheritedValue: serializeSignatureTextPolicyConfig(normalizeSignatureTextPolicyConfig(policyWithInherited.inheritedValue ?? null)),
+		}
+	},
 	editorDialogLayout: 'wide',
 	resolutionMode: 'precedence',
 	createEmptyValue: () => serializeSignatureTextPolicyConfig(getDefaultSignatureTextPolicyConfig()),
 	normalizeDraftValue: (value: EffectivePolicyValue) => {
-		return serializeSignatureTextPolicyConfig(normalizeSignatureTextPolicyConfig(value))
+		const normalized = normalizeSignatureStampDraftValue(value)
+		return {
+			signatureStampValue: serializeSignatureTextPolicyConfig(normalizeSignatureTextPolicyConfig(normalized.signatureStampValue)),
+			collectMetadataEnabled: normalized.collectMetadataEnabled,
+		}
 	},
 	hasSelectableDraftValue: () => true,
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
-		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
+		if (policyValue !== null && policyValue !== undefined) {
 			return policyValue
 		}
 
 		return serializeSignatureTextPolicyConfig(getDefaultSignatureTextPolicyConfig())
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
-		const normalized = normalizeSignatureTextPolicyConfig(value)
+		const normalizedDraftValue = normalizeSignatureStampDraftValue(value)
+		const normalized = normalizeSignatureTextPolicyConfig(normalizedDraftValue.signatureStampValue)
 		const modeLabel = {
 			default: t('libresign', 'Signature + description'),
 			text: t('libresign', 'Signer name + description'),

@@ -32,6 +32,15 @@ vi.mock('@libresign/pdf-elements', () => ({
 	},
 }))
 
+vi.mock('../../../../../../components/CodeEditor.vue', () => ({
+	default: {
+		name: 'CodeEditor',
+		props: ['modelValue'],
+		emits: ['update:modelValue'],
+		template: '<div class="code-editor-wrapper-stub"><slot name="label-actions" /><textarea class="code-editor-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>',
+	},
+}))
+
 import SignatureTextRuleEditor from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-text/SignatureTextRuleEditor.vue'
 import { getDefaultSignatureTextPolicyConfig } from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-text/model'
 
@@ -118,6 +127,8 @@ describe('SignatureTextRuleEditor.vue', () => {
 		await Promise.resolve()
 		await Promise.resolve()
 
+		expect(ensurePdfWorkerMock).toHaveBeenCalled()
+
 		expect(axiosPostMock).toHaveBeenCalledWith(
 			'/apps/libresign/api/v1/signature-stamp/preview-pdf',
 			expect.objectContaining({
@@ -127,12 +138,105 @@ describe('SignatureTextRuleEditor.vue', () => {
 				signatureWidth: 350,
 				signatureHeight: 100,
 				backgroundType: 'default',
-				renderMode: 'default',
+				renderMode: 'GRAPHIC_AND_DESCRIPTION',
 			}),
 			expect.objectContaining({ responseType: 'blob' }),
 		)
 		expect(wrapper.find('.pdf-elements-stub').exists()).toBe(true)
 		expect(wrapper.find('img').exists()).toBe(false)
+	})
+
+	it('shows a preview error message when preview request fails', async () => {
+		axiosPostMock.mockRejectedValueOnce(new Error('Preview failed'))
+
+		const wrapper = mount(SignatureTextRuleEditor, {
+			props: {
+				modelValue: asModelValue({
+					template: 'Preview {{SignerCommonName}}',
+					template_font_size: 9,
+					signature_font_size: 9,
+					signature_width: 350,
+					signature_height: 100,
+					background_type: 'default',
+					render_mode: 'default',
+				}),
+			},
+		})
+
+		await vi.advanceTimersByTimeAsync(250)
+		await Promise.resolve()
+		await Promise.resolve()
+
+		expect(wrapper.text()).toContain('Unable to load preview. Please check the template and try again.')
+		expect(wrapper.find('.pdf-elements-stub').exists()).toBe(false)
+	})
+
+	it('hides reset actions while the rule matches the inherited defaults', async () => {
+		const wrapper = mount(SignatureTextRuleEditor, {
+			props: {
+				modelValue: asModelValue(defaultConfig),
+			},
+			global: {
+				stubs: {
+					NcButton: {
+						name: 'NcButton',
+						emits: ['click'],
+						template: '<button class="button-stub" @click="$emit(\'click\')"><slot /></button>',
+					},
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+					NcLoadingIcon: {
+						name: 'NcLoadingIcon',
+						template: '<span class="loading-stub" />',
+					},
+				},
+			},
+		})
+
+		await vi.advanceTimersByTimeAsync(250)
+		await Promise.resolve()
+		await Promise.resolve()
+
+		const resetButtons = wrapper.findAll('.button-stub').filter((button) => /Reset to default|Reset defaults|Undo/.test(button.text()))
+		expect(resetButtons).toHaveLength(0)
+	})
+
+	it('shows render mode reset when mode changes and hides it after undo', async () => {
+		const wrapper = mount(SignatureTextRuleEditor, {
+			props: {
+				modelValue: asModelValue(defaultConfig),
+			},
+			global: {
+				stubs: {
+					NcButton: {
+						name: 'NcButton',
+						emits: ['click'],
+						template: '<button class="button-stub" @click="$emit(\'click\')"><slot /></button>',
+					},
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+					NcLoadingIcon: {
+						name: 'NcLoadingIcon',
+						template: '<span class="loading-stub" />',
+					},
+				},
+			},
+		})
+
+		const modeButtons = wrapper.findAll('.ste__seg--modes .ste__seg-btn')
+		const graphicButton = modeButtons.find((button) => button.text().includes('Signature only'))
+		expect(graphicButton).toBeDefined()
+		await graphicButton!.trigger('click')
+
+		const undoButtons = wrapper.findAll('.button-stub').filter((button) => button.text().includes('Undo'))
+		expect(undoButtons.length).toBeGreaterThan(0)
+
+		await undoButtons[0].trigger('click')
+		expect(wrapper.findAll('.button-stub').filter((button) => button.text().includes('Undo'))).toHaveLength(0)
 	})
 
 	it('shows reset defaults action in preview controls', async () => {
@@ -146,6 +250,15 @@ describe('SignatureTextRuleEditor.vue', () => {
 					signature_height: 100,
 					background_type: 'default',
 					render_mode: 'default',
+				}),
+				inheritedValue: asModelValue({
+					template: 'Inherited template',
+					template_font_size: 9.8,
+					signature_font_size: 9.8,
+					signature_width: 250,
+					signature_height: 100,
+					background_type: 'none',
+					render_mode: 'description_only',
 				}),
 			},
 			global: {
@@ -180,6 +293,63 @@ describe('SignatureTextRuleEditor.vue', () => {
 		})
 
 		expect(wrapper.text()).toContain('Reset defaults')
+	})
+
+	it('updates template placeholders when collect metadata toggle changes', async () => {
+		const wrapper = mount(SignatureTextRuleEditor, {
+			props: {
+				modelValue: asModelValue({
+					template: 'Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}',
+					template_font_size: 9,
+					signature_font_size: 9,
+					signature_width: 350,
+					signature_height: 100,
+					background_type: 'default',
+					render_mode: 'default',
+				}),
+				collectMetadataEnabled: false,
+			},
+			global: {
+				stubs: {
+					NcCheckboxRadioSwitch: {
+						name: 'NcCheckboxRadioSwitch',
+						props: ['modelValue'],
+						emits: ['update:modelValue'],
+						template: '<label><input class="collect-metadata-switch" type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" /><slot /></label>',
+					},
+					NcButton: {
+						name: 'NcButton',
+						emits: ['click'],
+						template: '<button class="button-stub" @click="$emit(\'click\')"><slot /></button>',
+					},
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+					NcLoadingIcon: {
+						name: 'NcLoadingIcon',
+						template: '<span class="loading-stub" />',
+					},
+				},
+			},
+		})
+
+		await wrapper.find('.collect-metadata-switch').setValue(true)
+
+		const updates = wrapper.emitted('update:modelValue')
+		expect(updates).toBeTruthy()
+		const lastPayload = updates!.at(-1)![0] as { signatureStampValue: string; collectMetadataEnabled: boolean }
+		expect(lastPayload.collectMetadataEnabled).toBe(true)
+		expect(lastPayload.signatureStampValue).toContain('{{SignerIP}}')
+		expect(lastPayload.signatureStampValue).toContain('{{SignerUserAgent}}')
+
+		await wrapper.find('.collect-metadata-switch').setValue(false)
+
+		const updatesAfterDisable = wrapper.emitted('update:modelValue')
+		const disabledPayload = updatesAfterDisable!.at(-1)![0] as { signatureStampValue: string; collectMetadataEnabled: boolean }
+		expect(disabledPayload.collectMetadataEnabled).toBe(false)
+		expect(disabledPayload.signatureStampValue).not.toContain('{{SignerIP}}')
+		expect(disabledPayload.signatureStampValue).not.toContain('{{SignerUserAgent}}')
 	})
 
 	it('allows entering zoom manually, applies it to PDF scale, and persists it to localStorage', async () => {
@@ -303,7 +473,7 @@ describe('SignatureTextRuleEditor.vue', () => {
 			}),
 		})
 
-		expect((wrapper.find('textarea.ste__textarea').element as HTMLTextAreaElement).value).toBe('Updated from parent')
+		expect((wrapper.find('textarea.code-editor-stub').element as HTMLTextAreaElement).value).toBe('Updated from parent')
 
 		const numericInputs = wrapper.findAll('input.ste__num-input')
 		expect((numericInputs.at(0)!.element as HTMLInputElement).value).toBe('11')
@@ -433,13 +603,13 @@ describe('SignatureTextRuleEditor.vue', () => {
 			},
 		})
 
-		const templateInput = wrapper.find('textarea.ste__textarea')
+		const templateInput = wrapper.find('textarea.code-editor-stub')
 		expect(templateInput.exists()).toBe(true)
 
 		await templateInput.setValue('Template alterado')
 		expect((templateInput.element as HTMLTextAreaElement).value).toBe('Template alterado')
 
-		const templateField = wrapper.findAll('.ste__group').find((group) => group.find('textarea.ste__textarea').exists())
+		const templateField = wrapper.findAll('.ste__group').find((group) => group.find('textarea.code-editor-stub').exists())
 		expect(templateField).toBeDefined()
 
 		const resetButton = templateField!.findAll('.button-stub').at(-1)
@@ -447,6 +617,51 @@ describe('SignatureTextRuleEditor.vue', () => {
 		await resetButton!.trigger('click')
 
 		expect((templateInput.element as HTMLTextAreaElement).value).toBe(inheritedConfig.template)
+		expect(templateField!.findAll('.button-stub').filter((button) => button.text().includes('Undo'))).toHaveLength(0)
+	})
+
+	it('shows template reset action when composite draft has empty template and inherited template is non-empty', async () => {
+		const wrapper = mount(SignatureTextRuleEditor, {
+			props: {
+				modelValue: {
+					signatureStampValue: asModelValue({
+						template: '',
+						template_font_size: 9.8,
+						signature_font_size: 9.8,
+						signature_width: 350,
+						signature_height: 100,
+						background_type: 'default',
+						render_mode: 'default',
+					}),
+					collectMetadataEnabled: false,
+				},
+				inheritedValue: serializedInheritedValue,
+			},
+			global: {
+				stubs: {
+					NcButton: {
+						name: 'NcButton',
+						emits: ['click'],
+						template: '<button class="button-stub" @click="$emit(\'click\')"><slot /></button>',
+					},
+					NcIconSvgWrapper: {
+						name: 'NcIconSvgWrapper',
+						template: '<span class="icon-stub" />',
+					},
+					NcLoadingIcon: {
+						name: 'NcLoadingIcon',
+						template: '<span class="loading-stub" />',
+					},
+				},
+			},
+		})
+
+		const templateInput = wrapper.find('textarea.code-editor-stub')
+		expect(templateInput.exists()).toBe(true)
+		expect((templateInput.element as HTMLTextAreaElement).value).toBe('')
+
+		const templateResetButton = wrapper.find('button[aria-label="Reset to default"]')
+		expect(templateResetButton.exists()).toBe(true)
 	})
 
 	it('resets signer font to the inherited policy value in text mode', async () => {
@@ -573,9 +788,13 @@ describe('SignatureTextRuleEditor.vue', () => {
 		expect(resetBackgroundButton).toBeDefined()
 
 		await resetBackgroundButton.trigger('click')
+		await Promise.resolve()
 
 		const updates = wrapper.emitted('update:modelValue')
-		expect(updates?.at(-1)?.[0]).toContain(`"background_type":"${inheritedConfig.backgroundType}"`)
+		expect(updates).toBeTruthy()
+		const payload = updates!.at(-1)![0] as { signatureStampValue: string; collectMetadataEnabled: boolean }
+		expect(payload.collectMetadataEnabled).toBe(false)
+		expect(payload.signatureStampValue).toContain(`"background_type":"${inheritedConfig.backgroundType}"`)
 	})
 
 	it('resets all signature stamp settings to the inherited policy value', async () => {
@@ -615,9 +834,13 @@ describe('SignatureTextRuleEditor.vue', () => {
 		expect(resetDefaultsButton).toBeDefined()
 
 		await resetDefaultsButton!.trigger('click')
+		await Promise.resolve()
 
 		const updates = wrapper.emitted('update:modelValue')
-		expect(updates?.at(-1)?.[0]).toBe(JSON.stringify({
+		expect(updates).toBeTruthy()
+		const payload = updates!.at(-1)![0] as { signatureStampValue: string; collectMetadataEnabled: boolean }
+		expect(payload.collectMetadataEnabled).toBe(false)
+		expect(payload.signatureStampValue).toBe(JSON.stringify({
 			template: inheritedConfig.template,
 			template_font_size: inheritedConfig.templateFontSize,
 			signature_font_size: inheritedConfig.signatureFontSize,
@@ -628,7 +851,7 @@ describe('SignatureTextRuleEditor.vue', () => {
 		}))
 	})
 
-	it('falls back to instance defaults when no inherited value is provided', async () => {
+	it('uses initial editor value as baseline when no inherited value is provided', async () => {
 		const wrapper = mount(SignatureTextRuleEditor, {
 			props: {
 				modelValue: asModelValue({
@@ -661,19 +884,6 @@ describe('SignatureTextRuleEditor.vue', () => {
 		})
 
 		const resetDefaultsButton = wrapper.findAll('.button-stub').find((button) => button.text().includes('Reset defaults'))
-		expect(resetDefaultsButton).toBeDefined()
-
-		await resetDefaultsButton!.trigger('click')
-
-		const updates = wrapper.emitted('update:modelValue')
-		expect(updates?.at(-1)?.[0]).toBe(JSON.stringify({
-			template: defaultConfig.template,
-			template_font_size: defaultConfig.templateFontSize,
-			signature_font_size: defaultConfig.signatureFontSize,
-			signature_width: defaultConfig.signatureWidth,
-			signature_height: defaultConfig.signatureHeight,
-			background_type: defaultConfig.backgroundType,
-			render_mode: defaultConfig.renderMode,
-		}))
+		expect(resetDefaultsButton).toBeUndefined()
 	})
 })

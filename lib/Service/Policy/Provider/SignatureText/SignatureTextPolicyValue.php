@@ -30,7 +30,7 @@ final class SignatureTextPolicyValue {
 	 * @return array<string, mixed>
 	 */
 	public static function normalize(mixed $rawValue, ?array $defaults = null): array {
-		$defaults ??= self::DEFAULTS;
+		$defaults = $defaults === null ? self::DEFAULTS : array_replace(self::DEFAULTS, $defaults);
 
 		if (is_string($rawValue)) {
 			try {

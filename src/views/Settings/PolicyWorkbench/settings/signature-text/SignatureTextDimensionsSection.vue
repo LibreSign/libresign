@@ -8,6 +8,7 @@
 			<div class="ste__label-row">
 				<label :for="`ste-tfs-${id}`" class="ste__label ste__label--sm">{{ t('libresign', 'Text font') }}</label>
 				<NcButton
+					v-if="showResetTemplateFontSizeButton ?? true"
 					variant="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="$emit('resetTemplateFontSize')">
@@ -26,6 +27,7 @@
 			<div class="ste__label-row">
 				<label :for="`ste-sfs-${id}`" class="ste__label ste__label--sm">{{ t('libresign', 'Sig font') }}</label>
 				<NcButton
+					v-if="showResetSignatureFontSizeButton ?? true"
 					variant="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="$emit('resetSignatureFontSize')">
@@ -44,6 +46,7 @@
 			<div class="ste__label-row">
 				<label :for="`ste-w-${id}`" class="ste__label ste__label--sm">{{ t('libresign', 'Width') }}</label>
 				<NcButton
+					v-if="showResetWidthButton ?? true"
 					variant="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="$emit('resetWidth')">
@@ -62,6 +65,7 @@
 			<div class="ste__label-row">
 				<label :for="`ste-h-${id}`" class="ste__label ste__label--sm">{{ t('libresign', 'Height') }}</label>
 				<NcButton
+					v-if="showResetHeightButton ?? true"
 					variant="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="$emit('resetHeight')">
@@ -89,12 +93,16 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 type DisplayMode = 'default' | 'graphic' | 'text' | 'description_only'
 
 defineProps<{
-	id: string
-	renderMode: DisplayMode
-	templateFontSize: number
-	signatureFontSize: number
-	signatureWidth: number
-	signatureHeight: number
+	id: string;
+	renderMode: DisplayMode;
+	templateFontSize: number;
+	signatureFontSize: number;
+	signatureWidth: number;
+	signatureHeight: number;
+	showResetTemplateFontSizeButton?: boolean;
+	showResetSignatureFontSizeButton?: boolean;
+	showResetWidthButton?: boolean;
+	showResetHeightButton?: boolean;
 }>()
 
 const emit = defineEmits<{

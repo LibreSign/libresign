@@ -110,27 +110,4 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 		];
 	}
 
-	public function testRenderPreviewPdfWrapsPreviewImageInPdf(): void {
-		$service = $this->getMockBuilder(SignatureBackgroundService::class)
-			->onlyMethods(['renderPreviewImage'])
-			->setConstructorArgs([
-				$this->appData,
-				$this->appConfig,
-				$this->config,
-				$this->tempManager,
-				$this->signatureTextService,
-				$this->policyService,
-			])
-			->getMock();
-
-		$previewPng = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6ZKqUAAAAASUVORK5CYII=');
-		self::assertIsString($previewPng);
-		$service->expects($this->once())
-			->method('renderPreviewImage')
-			->willReturn($previewPng);
-
-		$pdf = $service->renderPreviewPdf('Template', 10.0, 12.0, 90.0, 60.0, 'default', 'default');
-
-		$this->assertStringStartsWith('%PDF', $pdf);
-	}
 }

@@ -1394,6 +1394,122 @@ describe('useRealPolicyWorkbench', () => {
 		expect(summaries.some((summary) => summary.key === 'renewal_interval')).toBe(false)
 	})
 
+	it('hydrates signature stamp group rule with collect metadata companion value', async () => {
+		const signatureStampValue = JSON.stringify({
+			template: 'Signed by {{SignerCommonName}}',
+			template_font_size: 9.8,
+			signature_font_size: 9.8,
+			signature_width: 350,
+			signature_height: 100,
+			background_type: 'default',
+			render_mode: 'default',
+		})
+
+		fetchGroupPolicy.mockImplementation(async (groupId: string, policyKey: string) => {
+			if (groupId !== 'finance') {
+				return null
+			}
+
+			if (policyKey === 'signature_stamp') {
+				return {
+					policyKey,
+					scope: 'group',
+					targetId: groupId,
+					value: signatureStampValue,
+					allowChildOverride: true,
+					visibleToChild: true,
+					allowedValues: [],
+				}
+			}
+
+			if (policyKey === 'collect_metadata') {
+				return {
+					policyKey,
+					scope: 'group',
+					targetId: groupId,
+					value: true,
+					allowChildOverride: true,
+					visibleToChild: true,
+					allowedValues: [],
+				}
+			}
+
+			return null
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_stamp')
+
+		await vi.waitFor(() => {
+			expect(state.visibleGroupRules).toHaveLength(1)
+		})
+
+		expect(state.visibleGroupRules[0]?.value).toEqual({
+			signatureStampValue,
+			collectMetadataEnabled: true,
+		})
+	})
+
+	it('saves signature stamp group rule and auto-saves collect metadata companion rule', async () => {
+		const signatureStampValue = JSON.stringify({
+			template: 'Signed by {{SignerCommonName}}',
+			template_font_size: 10,
+			signature_font_size: 10,
+			signature_width: 320,
+			signature_height: 90,
+			background_type: 'default',
+			render_mode: 'default',
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_stamp')
+		state.startEditor({ scope: 'group' })
+		state.updateDraftTargets(['finance'])
+		state.updateDraftValue({
+			signatureStampValue,
+			collectMetadataEnabled: true,
+		} as never)
+
+		await state.saveDraft()
+
+		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'signature_stamp', signatureStampValue, true)
+		expect(saveGroupPolicy).toHaveBeenCalledWith('finance', 'collect_metadata', true, true)
+	})
+
+	it('removes signature stamp group rule and auto-removes collect metadata companion rule', async () => {
+		const signatureStampValue = JSON.stringify({
+			template: 'Signed by {{SignerCommonName}}',
+			template_font_size: 10,
+			signature_font_size: 10,
+			signature_width: 320,
+			signature_height: 90,
+			background_type: 'default',
+			render_mode: 'default',
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_stamp')
+		state.startEditor({ scope: 'group' })
+		state.updateDraftTargets(['finance'])
+		state.updateDraftValue({
+			signatureStampValue,
+			collectMetadataEnabled: false,
+		} as never)
+
+		await state.saveDraft()
+
+		const ruleId = state.visibleGroupRules[0]?.id
+		expect(ruleId).toBeTruthy()
+		if (!ruleId) {
+			throw new Error('Expected a created group rule')
+		}
+
+		await state.removeRule(ruleId)
+
+		expect(clearGroupPolicy).toHaveBeenCalledWith('finance', 'signature_stamp')
+		expect(clearGroupPolicy).toHaveBeenCalledWith('finance', 'collect_metadata')
+	})
+
 	it('saves unified request expiration system draft to both policy keys', async () => {
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'maximum_validity') {

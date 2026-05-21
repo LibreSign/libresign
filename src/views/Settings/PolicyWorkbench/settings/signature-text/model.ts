@@ -13,6 +13,11 @@ export interface SignatureTextPolicyConfig {
 	renderMode: string
 }
 
+export interface SignatureStampDraftValue {
+	signatureStampValue: string
+	collectMetadataEnabled: boolean
+}
+
 // Default values must mirror SignatureTextPolicyValue::DEFAULT_* constants (PHP backend).
 // If you change a value here, update the corresponding constant in that class too.
 export const SIGNATURE_TEXT_DEFAULTS = Object.freeze({
@@ -32,6 +37,13 @@ const RUNTIME_TO_UI_RENDER_MODE: Record<string, string> = {
 	DESCRIPTION_ONLY: 'description_only',
 }
 
+const UI_TO_RUNTIME_RENDER_MODE: Record<string, string> = {
+	default: 'GRAPHIC_AND_DESCRIPTION',
+	text: 'SIGNAME_AND_DESCRIPTION',
+	graphic: 'GRAPHIC_ONLY',
+	description_only: 'DESCRIPTION_ONLY',
+}
+
 function normalizeRenderMode(value: unknown): string {
 	const raw = String(value ?? 'default').trim()
 	if (raw in RUNTIME_TO_UI_RENDER_MODE) {
@@ -41,6 +53,14 @@ function normalizeRenderMode(value: unknown): string {
 		return raw
 	}
 	return 'default'
+}
+
+/**
+ * Convert UI render mode to runtime format (for backend API calls)
+ */
+export function toRuntimeRenderMode(uiMode: unknown): string {
+	const normalized = normalizeRenderMode(uiMode)
+	return UI_TO_RUNTIME_RENDER_MODE[normalized] ?? 'GRAPHIC_AND_DESCRIPTION'
 }
 
 function normalizeBackgroundType(value: unknown): string {
@@ -94,4 +114,67 @@ export function normalizeSignatureTextPolicyConfig(rawValue: unknown): Signature
 	}
 
 	return getDefaultSignatureTextPolicyConfig()
+}
+
+export function resolveCollectMetadataValue(rawValue: unknown, fallback = false): boolean {
+	if (typeof rawValue === 'boolean') {
+		return rawValue
+	}
+
+	if (typeof rawValue === 'number') {
+		if (rawValue === 1) {
+			return true
+		}
+
+		if (rawValue === 0) {
+			return false
+		}
+
+		return fallback
+	}
+
+	if (typeof rawValue === 'string') {
+		const normalized = rawValue.trim().toLowerCase()
+		if (normalized === '1' || normalized === 'true') {
+			return true
+		}
+
+		if (normalized === '0' || normalized === 'false' || normalized === '') {
+			return false
+		}
+	}
+
+	return fallback
+}
+
+export function normalizeSignatureStampDraftValue(
+	rawValue: unknown,
+	fallbackCollectMetadata = false,
+): SignatureStampDraftValue {
+	if (rawValue && typeof rawValue === 'object') {
+		const candidate = rawValue as {
+			signatureStampValue?: unknown
+			collectMetadataEnabled?: unknown
+		}
+
+		if ('signatureStampValue' in candidate || 'collectMetadataEnabled' in candidate) {
+			const signatureStampValue = serializeSignatureTextPolicyConfig(
+				normalizeSignatureTextPolicyConfig(candidate.signatureStampValue ?? null),
+			)
+			const collectMetadataEnabled = resolveCollectMetadataValue(
+				candidate.collectMetadataEnabled,
+				fallbackCollectMetadata,
+			)
+
+			return {
+				signatureStampValue,
+				collectMetadataEnabled,
+			}
+		}
+	}
+
+	return {
+		signatureStampValue: serializeSignatureTextPolicyConfig(normalizeSignatureTextPolicyConfig(rawValue)),
+		collectMetadataEnabled: fallbackCollectMetadata,
+	}
 }

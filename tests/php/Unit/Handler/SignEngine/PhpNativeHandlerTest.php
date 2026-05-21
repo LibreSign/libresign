@@ -19,6 +19,7 @@ use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicy;
 use OCA\Libresign\Service\Policy\Provider\Tsa\TsaPolicyValue;
 use OCA\Libresign\Service\SignatureBackgroundService;
+use OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\File;
@@ -33,6 +34,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
 	private SignatureTextService&MockObject $signatureTextService;
+	private SignatureStampAppearanceBuilder $signatureStampAppearanceBuilder;
 	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private PolicyService&MockObject $policyService;
@@ -42,6 +44,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
+		$this->signatureStampAppearanceBuilder = new SignatureStampAppearanceBuilder($this->signatureTextService);
 		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->policyService = $this->createMock(PolicyService::class);
@@ -467,11 +470,13 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 		$signatureTextService->method('getTemplateFontSize')->willReturn(10.0);
 		$signatureTextService->method('getSignatureFontSize')->willReturn(20.0);
+		$appearanceBuilder = new SignatureStampAppearanceBuilder($signatureTextService);
 
 		$handler = new PhpNativeHandler(
 			$this->appConfig,
 			$this->docMdpConfigService,
 			$signatureTextService,
+			$appearanceBuilder,
 			$this->signatureBackgroundService,
 			$this->policyService,
 			$this->certificateEngineFactory,
@@ -479,6 +484,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->callPrivateMethod($handler, 'buildXObject', 100, 50, SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY);
 
+		$this->assertIsArray($capturedContext);
 		$this->assertArrayHasKey('ServerSignatureDate', $capturedContext);
 		$serverSignatureDate = $capturedContext['ServerSignatureDate'];
 
@@ -511,6 +517,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->appConfig,
 			$this->docMdpConfigService,
 			$this->signatureTextService,
+			$this->signatureStampAppearanceBuilder,
 			$this->signatureBackgroundService,
 			$this->policyService,
 			$this->certificateEngineFactory,
