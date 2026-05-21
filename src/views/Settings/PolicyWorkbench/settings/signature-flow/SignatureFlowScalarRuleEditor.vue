@@ -22,7 +22,7 @@
 		</div>
 		<div class="signature-flow-scalar-editor__info" role="note" aria-live="polite">
 			<strong>{{ t('libresign', 'Using instance default') }}</strong>
-			<p>{{ t('libresign', 'Users can choose the signing order unless an explicit rule is configured.') }}</p>
+			<p>{{ t('libresign', 'Accounts can choose the signing order unless an explicit rule is configured.') }}</p>
 		</div>
 	</div>
 </template>
