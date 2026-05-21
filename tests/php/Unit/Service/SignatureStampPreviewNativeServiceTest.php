@@ -98,4 +98,27 @@ final class SignatureStampPreviewNativeServiceTest extends \OCA\Libresign\Tests\
 			'Expected Im2 object to be an image XObject',
 		);
 	}
+
+	public function testRenderPreviewPdfDrawsBackgroundBeforeSignatureInGraphicMode(): void {
+		$backgroundBlob = file_get_contents(dirname(__DIR__, 4) . '/img/preview_signature.png');
+		$this->assertIsString($backgroundBlob);
+		$this->assertNotSame('', $backgroundBlob);
+
+		$this->signatureBackgroundService->expects($this->once())
+			->method('getDefaultImageBlob')
+			->willReturn($backgroundBlob);
+
+		$pdf = $this->service->renderPreviewPdf(
+			template: 'Ignored in graphic mode',
+			renderMode: SignerElementsService::RENDER_MODE_GRAPHIC_ONLY,
+			backgroundType: 'default',
+		);
+
+		$backgroundPosition = strpos($pdf, '/Im1 Do');
+		$signaturePosition = strpos($pdf, '/Im2 Do');
+
+		$this->assertNotFalse($backgroundPosition, 'Expected background image command (/Im1 Do) in preview stream');
+		$this->assertNotFalse($signaturePosition, 'Expected signature image command (/Im2 Do) in preview stream');
+		$this->assertLessThan($signaturePosition, $backgroundPosition, 'Expected background to be drawn before signature');
+	}
 }
