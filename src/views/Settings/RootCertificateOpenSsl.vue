@@ -64,7 +64,7 @@
 				<NcTextField id="commonName"
 					ref="commonName"
 					v-model="certificate.rootCert.commonName"
-					:helper-text="t('libresign', 'Full name of the main company or main account of this instance')"
+					:helper-text="t('libresign', 'Full name of the main company or main person of this instance')"
 					:minlength="1"
 					:success="certificate.rootCert.commonName !== ''"
 					:error="certificate.rootCert.commonName === ''"
