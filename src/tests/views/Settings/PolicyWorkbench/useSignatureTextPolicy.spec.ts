@@ -30,7 +30,7 @@ describe('useSignatureTextPolicy', () => {
 		expect(getSignatureTextUiDefaults()).toEqual({
 			template: '',
 			templateFontSize: 9.8,
-			signatureFontSize: 9.8,
+			signatureFontSize: 20,
 			signatureWidth: 350,
 			signatureHeight: 100,
 			backgroundType: 'default',
@@ -72,7 +72,7 @@ describe('useSignatureTextPolicy', () => {
 		expect(values.value).toEqual({
 			template: '',
 			templateFontSize: 9.8,
-			signatureFontSize: 9.8,
+			signatureFontSize: 20,
 			signatureWidth: 350,
 			signatureHeight: 100,
 			backgroundType: 'default',
