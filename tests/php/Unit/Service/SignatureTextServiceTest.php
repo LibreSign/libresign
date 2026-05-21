@@ -20,6 +20,7 @@ use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy as SignatureTextPolicyProvider;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
 use OCA\Libresign\Service\SignatureTextService;
+use OCA\Libresign\Service\SignatureTextTemplate;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
@@ -125,7 +126,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->assertArrayHasKey('{{qrcode}}', $actual);
 		$this->assertArrayHasKey('{{ValidationURL}}', $actual);
 
-		$template = $this->getClass()->getDefaultTemplate();
+		$template = SignatureTextTemplate::translated($this->l10n, true);
 		$this->assertStringContainsString('IP', $template);
 	}
 
@@ -138,7 +139,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->assertArrayHasKey('{{qrcode}}', $actual);
 		$this->assertArrayHasKey('{{ValidationURL}}', $actual);
 
-		$template = $this->getClass()->getDefaultTemplate();
+		$template = SignatureTextTemplate::translated($this->l10n, false);
 		$this->assertStringNotContainsString('IP', $template);
 	}
 

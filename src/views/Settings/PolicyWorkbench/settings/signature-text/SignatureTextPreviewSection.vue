@@ -6,10 +6,10 @@
 	<div class="ste__preview-section">
 		<div class="ste__preview-header">
 			<span class="ste__label">{{ t('libresign', 'Preview') }}</span>
-			<NcButton
+			<NcButton v-if="showResetDefaultsButton ?? true"
 				variant="tertiary"
 				:aria-label="t('libresign', 'Reset signature stamp settings to defaults')"
-				@click="$emit('resetDefaults')">
+				@click="$emit('reset-defaults')">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUndoVariant" :size="16" />
 				</template>
@@ -17,19 +17,17 @@
 			</NcButton>
 			<span class="ste__preview-meta">{{ signatureWidth }} × {{ signatureHeight }}</span>
 			<div class="ste__zoom">
-				<NcButton
-					variant="tertiary"
+				<NcButton variant="tertiary"
 					class="ste__zoom-btn"
 					:aria-label="t('libresign', 'Decrease zoom')"
-					@click="$emit('changeZoom', -10)">
+					@click="$emit('change-zoom', -10)">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiMagnifyMinus" :size="16" />
 					</template>
 				</NcButton>
 				<label class="hidden-visually" :for="`ste-zoom-${id}`">{{ t('libresign', 'Zoom') }}</label>
 				<div class="ste__zoom-input-wrap">
-					<input
-						:id="`ste-zoom-${id}`"
+					<input :id="`ste-zoom-${id}`"
 						class="ste__zoom-input"
 						type="number"
 						min="25"
@@ -37,16 +35,15 @@
 						step="1"
 						:aria-label="t('libresign', 'Zoom')"
 						:value="previewZoomInput"
-						@input="$emit('zoomInput', $event)"
-						@blur="$emit('commitZoomInput')"
-						@keydown.enter.prevent="$emit('commitZoomInput')" />
+						@input="$emit('zoom-input', $event)"
+						@blur="$emit('commit-zoom-input')"
+						@keydown.enter.prevent="$emit('commit-zoom-input')">
 					<span class="ste__zoom-percent">%</span>
 				</div>
-				<NcButton
-					variant="tertiary"
+				<NcButton variant="tertiary"
 					class="ste__zoom-btn"
 					:aria-label="t('libresign', 'Increase zoom')"
-					@click="$emit('changeZoom', 10)">
+					@click="$emit('change-zoom', 10)">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiMagnifyPlus" :size="16" />
 					</template>
@@ -55,8 +52,7 @@
 		</div>
 		<div class="ste__preview-stage">
 			<div class="ste__preview-frame" :style="previewFrameStyle">
-				<PDFElements
-					v-if="pdfPreviewFile"
+				<PdfElements v-if="pdfPreviewFile"
 					:key="previewRenderKey"
 					class="ste__preview-pdf"
 					:style="{ width: '100%', height: '100%' }"
@@ -67,6 +63,9 @@
 				<div v-else-if="previewLoading" class="ste__preview-placeholder">
 					<NcLoadingIcon :size="32" />
 				</div>
+				<div v-else-if="previewError" class="ste__preview-placeholder ste__preview-placeholder--error">
+					{{ previewError }}
+				</div>
 				<div v-else class="ste__preview-placeholder ste__preview-placeholder--empty">
 					{{ t('libresign', 'Preview will appear here') }}
 				</div>
@@ -76,34 +75,65 @@
 </template>
 
 <script setup lang="ts">
+import PdfElements from '@libresign/pdf-elements'
 import { mdiMagnifyMinus, mdiMagnifyPlus, mdiUndoVariant } from '@mdi/js'
 
-import PDFElements from '@libresign/pdf-elements'
-import '@libresign/pdf-elements/dist/index.css'
 import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
-defineProps<{
-	id: string
-	signatureWidth: number
-	signatureHeight: number
-	previewZoomInput: string
-	previewFrameStyle: { width: string; height: string }
-	previewScale: number
-	pdfPreviewFile: File | null
-	previewLoading: boolean
-	previewRenderKey: string
-}>()
+import '@libresign/pdf-elements/dist/index.css'
 
-defineEmits<{
-	(event: 'resetDefaults'): void
-	(event: 'changeZoom', delta: number): void
-	(event: 'zoomInput', value: Event): void
-	(event: 'commitZoomInput'): void
-}>()
+defineProps({
+	id: {
+		type: String,
+		required: true,
+	},
+	signatureWidth: {
+		type: Number,
+		required: true,
+	},
+	signatureHeight: {
+		type: Number,
+		required: true,
+	},
+	previewZoomInput: {
+		type: String,
+		required: true,
+	},
+	previewFrameStyle: {
+		type: Object,
+		required: true,
+	},
+	previewScale: {
+		type: Number,
+		required: true,
+	},
+	pdfPreviewFile: {
+		type: Object,
+		default: null,
+	},
+	previewLoading: {
+		type: Boolean,
+		required: true,
+	},
+	previewError: {
+		type: String,
+		default: '',
+	},
+	previewRenderKey: {
+		type: String,
+		required: true,
+	},
+	showResetDefaultsButton: {
+		type: Boolean,
+		default: true,
+	},
+})
+
+defineEmits(['reset-defaults', 'change-zoom', 'zoom-input', 'commit-zoom-input'])
 </script>
 
 <style scoped>
@@ -183,7 +213,6 @@ defineEmits<{
 	min-height: 120px;
 	padding: 1rem;
 	overflow: hidden;
-	border-radius: 12px;
 	background: repeating-conic-gradient(
 		color-mix(in srgb, var(--color-border) 50%, transparent) 0% 25%,
 		var(--color-main-background) 0% 50%
@@ -194,7 +223,6 @@ defineEmits<{
 .ste__preview-frame {
 	overflow: hidden;
 	border: none;
-	border-radius: 12px;
 	background: transparent;
 	box-shadow: none;
 	transition: width 200ms ease, height 200ms ease;
@@ -202,6 +230,10 @@ defineEmits<{
 
 .ste__preview-pdf {
 	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	padding: 0;
 }
 
 .ste__preview-pdf :deep(.pdf-elements-root) {
@@ -232,5 +264,12 @@ defineEmits<{
 	font-size: 0.82rem;
 	color: var(--color-text-maxcontrast);
 	padding: 1rem;
+}
+
+.ste__preview-placeholder--error {
+	font-size: 0.82rem;
+	color: var(--color-error-text);
+	padding: 1rem;
+	text-align: center;
 }
 </style>

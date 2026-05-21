@@ -8,8 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy\Provider\SignatureText;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue;
+use OCA\Libresign\Service\SignatureTextTemplate;
+use OCP\L10N\IFactory as IL10NFactory;
 use Test\TestCase;
 
 class SignatureTextPolicyTest extends TestCase {
@@ -17,7 +20,8 @@ class SignatureTextPolicyTest extends TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->policy = new SignatureTextPolicy();
+		$l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->policy = new SignatureTextPolicy($l10n);
 	}
 
 	public function testKeysReturnsAllPolicyKeys(): void {
@@ -35,7 +39,8 @@ class SignatureTextPolicyTest extends TestCase {
 	public function testGetTemplatePolicy(): void {
 		$spec = $this->policy->get(SignatureTextPolicy::KEY_TEMPLATE);
 		$this->assertEquals(SignatureTextPolicy::KEY_TEMPLATE, $spec->key());
-		$this->assertEquals('', $spec->defaultSystemValue());
+		$l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->assertEquals(SignatureTextTemplate::translated($l10n, false), $spec->defaultSystemValue());
 		$this->assertEmpty($spec->allowedValues(new \OCA\Libresign\Service\Policy\Model\PolicyContext()));
 		$this->assertEquals('', $spec->normalizeValue(''));
 		$this->assertEquals('test template', $spec->normalizeValue('test template'));

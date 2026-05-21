@@ -6,6 +6,16 @@
 	<div class="ste__group">
 		<div class="ste__label-row">
 			<label class="ste__label">{{ t('libresign', 'Render mode') }}</label>
+			<NcButton
+				v-if="showResetRenderModeButton ?? true"
+				variant="tertiary"
+				:aria-label="t('libresign', 'Reset render mode to default')"
+				@click="$emit('resetRenderMode')">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
+				</template>
+				{{ t('libresign', 'Undo') }}
+			</NcButton>
 		</div>
 		<div class="ste__seg ste__seg--modes" role="radiogroup" :aria-label="t('libresign', 'Render mode')">
 			<button
@@ -23,33 +33,33 @@
 	</div>
 
 	<div v-if="renderMode !== 'graphic'" class="ste__group">
-		<div class="ste__label-row">
-			<label :for="`ste-tpl-${id}`" class="ste__label">{{ t('libresign', 'Signature text template') }}</label>
-			<NcButton
-				variant="tertiary"
-				:aria-label="t('libresign', 'Show available variables')"
-				@click="showVariablesDialog = true">
-				<template #icon>
-					<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="20" />
-				</template>
-				{{ t('libresign', 'Available variables') }}
-			</NcButton>
-			<NcButton
-				variant="tertiary"
-				:aria-label="t('libresign', 'Reset to default')"
-				@click="$emit('resetTemplate')">
-				<template #icon>
-					<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
-				</template>
-			</NcButton>
-		</div>
-		<textarea
-			:id="`ste-tpl-${id}`"
-			:value="template"
-			class="ste__textarea"
+		<CodeEditor
+			:model-value="template"
+			:label="t('libresign', 'Signature text template')"
 			:placeholder="t('libresign', 'Enter signature text template…')"
-			spellcheck="false"
-			@input="onTemplateInput" />
+			@update:modelValue="(value) => emit('update:template', value)">
+			<template #label-actions>
+				<NcButton
+					variant="tertiary"
+					:aria-label="t('libresign', 'Show available variables')"
+					@click="showVariablesDialog = true">
+					<template #icon>
+						<NcIconSvgWrapper :path="mdiHelpCircleOutline" :size="20" />
+					</template>
+					{{ t('libresign', 'Available variables') }}
+				</NcButton>
+				<NcButton
+					v-if="showResetTemplateButton ?? true"
+					variant="tertiary"
+					:aria-label="t('libresign', 'Reset to default')"
+					@click="$emit('resetTemplate')">
+					<template #icon>
+						<NcIconSvgWrapper :path="mdiUndoVariant" :size="20" />
+					</template>
+					{{ t('libresign', 'Undo') }}
+				</NcButton>
+			</template>
+		</CodeEditor>
 	</div>
 
 	<NcDialog
@@ -93,30 +103,29 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcFormBoxButton from '@nextcloud/vue/components/NcFormBoxButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import CodeEditor from '../../../../../components/CodeEditor.vue'
 
 type DisplayMode = 'default' | 'graphic' | 'text' | 'description_only'
 
-defineProps<{
-	id: string
-	renderMode: DisplayMode
-	template: string
-	displayModeOptions: Array<{ value: DisplayMode; label: string; description: string }>
-	availableVariables: Array<{ value: string; description: string }>
+const props = defineProps<{
+	id: string;
+	renderMode: DisplayMode;
+	template: string;
+	displayModeOptions: Array<{ value: DisplayMode; label: string; description: string }>;
+	availableVariables: Array<{ value: string; description: string }>;
+	showResetRenderModeButton?: boolean;
+	showResetTemplateButton?: boolean;
 }>()
 
 const emit = defineEmits<{
 	(event: 'update:renderMode', value: DisplayMode): void
 	(event: 'update:template', value: string): void
+	(event: 'resetRenderMode'): void
 	(event: 'resetTemplate'): void
 }>()
 
 const showVariablesDialog = ref(false)
 const copiedVariable = ref<string | null>(null)
-
-function onTemplateInput(event: Event): void {
-	const target = event.target
-	emit('update:template', target instanceof HTMLTextAreaElement ? target.value : '')
-}
 
 function copyVariableToClipboard(value: string): void {
 	if (copiedVariable.value === value) {
@@ -200,25 +209,6 @@ function copyVariableToClipboard(value: string): void {
 .ste__seg-btn:not(.ste__seg-btn--active):hover {
 	background: var(--color-background-hover);
 	color: var(--color-main-text);
-}
-
-.ste__textarea {
-	width: 100%;
-	min-height: 9rem;
-	resize: vertical;
-	padding: 0.65rem 0.8rem;
-	border: 1px solid var(--color-border);
-	border-radius: 8px;
-	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-	font-size: 0.88rem;
-	line-height: 1.55;
-	background: var(--color-main-background);
-	color: var(--color-main-text);
-}
-
-.ste__textarea:focus {
-	outline: 2px solid var(--color-primary-element);
-	outline-offset: -1px;
 }
 
 .ste__vars-dialog {
