@@ -120,7 +120,7 @@ class SignatureStampPreviewNativeService {
 		$widthFormatted = number_format($width, 2, '.', '');
 		$heightFormatted = number_format($height, 2, '.', '');
 		$stream = '';
-		$resourceXObject = '';
+		$xObjectReferences = '';
 		$objectCount = 5;
 
 		if ($backgroundJpeg !== null) {
@@ -138,7 +138,7 @@ class SignatureStampPreviewNativeService {
 					$fit['x'],
 					$fit['y'],
 				);
-				$resourceXObject = ' /XObject << /Im1 5 0 R';
+				$xObjectReferences = '/Im1 5 0 R';
 			}
 		}
 
@@ -159,14 +159,10 @@ class SignatureStampPreviewNativeService {
 					$fit['x'],
 					$fit['y'],
 				) . $stream;
-				$resourceXObject .= ' /Im2 ' . ($objectCount + 1) . ' 0 R';
+				$xObjectReferences .= ($xObjectReferences !== '' ? ' ' : '') . '/Im2 ' . ($objectCount + 1) . ' 0 R';
 				$signatureXObjectRef = $objectCount + 1;
 				$objectCount += 1;
 			}
-		}
-
-		if ($resourceXObject !== '') {
-			$resourceXObject .= ' >>';
 		}
 
 		$stream .= "q\n" . $contentStream . "Q\n";
@@ -178,7 +174,7 @@ class SignatureStampPreviewNativeService {
 				'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %s %s] /Resources << /Font << /F1 4 0 R >> /XObject << %s >> >> /Contents 6 0 R >>',
 				$widthFormatted,
 				$heightFormatted,
-				ltrim($resourceXObject),
+				$xObjectReferences,
 			),
 			4 => '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
 		];
