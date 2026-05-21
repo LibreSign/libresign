@@ -87,5 +87,15 @@ final class SignatureStampPreviewNativeServiceTest extends \OCA\Libresign\Tests\
 
 		// The preview signature asset should be embedded as XObject Im2 in GRAPHIC_ONLY mode
 		$this->assertStringContainsString('/Im2 Do', $pdf);
+		$this->assertMatchesRegularExpression('/\/Im2\s+(\d+)\s+0\s+R/', $pdf, 'Expected Im2 XObject reference in page resources');
+
+		preg_match('/\/Im2\s+(\d+)\s+0\s+R/', $pdf, $matches);
+		$im2ObjectId = (int)($matches[1] ?? 0);
+		$this->assertGreaterThan(0, $im2ObjectId, 'Expected a valid Im2 object id');
+		$this->assertStringContainsString(
+			sprintf("%d 0 obj\n<< /Type /XObject /Subtype /Image", $im2ObjectId),
+			$pdf,
+			'Expected Im2 object to be an image XObject',
+		);
 	}
 }
