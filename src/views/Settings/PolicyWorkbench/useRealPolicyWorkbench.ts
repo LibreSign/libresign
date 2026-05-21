@@ -23,6 +23,10 @@ import {
 	serializeWorkerConfig,
 	type SigningExecutionSettingsValue,
 } from './settings/signing-mode/model'
+import {
+	normalizeSignatureStampDraftValue,
+	resolveCollectMetadataValue,
+} from './settings/signature-text/model'
 import { usePoliciesStore } from '../../../store/policies'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../types/index'
 import logger from '../../../logger.js'
@@ -163,6 +167,8 @@ const REQUEST_EXPIRATION_POLICY_KEY = 'maximum_validity'
 const REQUEST_EXPIRATION_RENEWAL_KEY = 'renewal_interval'
 const SIGNING_EXECUTION_POLICY_KEY = 'signing_mode'
 const SIGNING_EXECUTION_WORKER_KEY = 'worker_config'
+const SIGNATURE_STAMP_POLICY_KEY = 'signature_stamp'
+const COLLECT_METADATA_POLICY_KEY = 'collect_metadata'
 
 function isRequestExpirationPolicyKey(policyKey: string): boolean {
 	return policyKey === REQUEST_EXPIRATION_POLICY_KEY
@@ -170,6 +176,10 @@ function isRequestExpirationPolicyKey(policyKey: string): boolean {
 
 function isUnifiedSigningExecutionPolicyKey(policyKey: string): boolean {
 	return policyKey === SIGNING_EXECUTION_POLICY_KEY
+}
+
+function isSignatureStampPolicyKey(policyKey: string): boolean {
+	return policyKey === SIGNATURE_STAMP_POLICY_KEY
 }
 
 function buildRequestExpirationValue(
@@ -200,6 +210,16 @@ function buildSigningExecutionValue(
 		workerType: normalizedWorker.workerType,
 		parallelWorkers: normalizedWorker.parallelWorkers,
 	}
+}
+
+function buildSignatureStampDraftValue(
+	signatureStampValue: EffectivePolicyValue | undefined,
+	collectMetadataValue: EffectivePolicyValue | undefined,
+) {
+	return normalizeSignatureStampDraftValue(
+		signatureStampValue,
+		resolveCollectMetadataValue(collectMetadataValue, false),
+	)
 }
 
 export function createRealPolicyWorkbenchState() {
@@ -674,6 +694,7 @@ export function createRealPolicyWorkbenchState() {
 		hydratePersistedRulesRequestId.value = currentRequestId
 		const shouldMergeRequestExpiration = isRequestExpirationPolicyKey(policyKey)
 		const shouldMergeSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
+		const shouldMergeSignatureStamp = isSignatureStampPolicyKey(policyKey)
 
 		await Promise.all([
 			loadTargets('group', ''),
@@ -786,7 +807,7 @@ export function createRealPolicyWorkbenchState() {
 			return records.filter((record): record is NonNullable<typeof record> => record !== null)
 		}
 
-		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies, renewalSystemPolicy, renewalGroupPolicies, renewalUserPolicies, workerSystemPolicy, workerGroupPolicies, workerUserPolicies] = await Promise.all([
+		const [persistedSystemPolicy, persistedGroupPolicies, persistedUserPolicies, renewalSystemPolicy, renewalGroupPolicies, renewalUserPolicies, workerSystemPolicy, workerGroupPolicies, workerUserPolicies, collectMetadataSystemPolicy, collectMetadataGroupPolicies, collectMetadataUserPolicies] = await Promise.all([
 			fetchSystemPolicySafe(policyKey),
 			fetchPersistedGroupRulesForKey(policyKey),
 			fetchPersistedUserRulesForKey(policyKey),
@@ -796,6 +817,9 @@ export function createRealPolicyWorkbenchState() {
 			shouldMergeSigningExecution ? fetchSystemPolicySafe(SIGNING_EXECUTION_WORKER_KEY) : Promise.resolve(null),
 			shouldMergeSigningExecution ? fetchPersistedGroupRulesForKey(SIGNING_EXECUTION_WORKER_KEY) : Promise.resolve([]),
 			shouldMergeSigningExecution ? fetchPersistedUserRulesForKey(SIGNING_EXECUTION_WORKER_KEY) : Promise.resolve([]),
+			shouldMergeSignatureStamp ? fetchSystemPolicySafe(COLLECT_METADATA_POLICY_KEY) : Promise.resolve(null),
+			shouldMergeSignatureStamp ? fetchPersistedGroupRulesForKey(COLLECT_METADATA_POLICY_KEY) : Promise.resolve([]),
+			shouldMergeSignatureStamp ? fetchPersistedUserRulesForKey(COLLECT_METADATA_POLICY_KEY) : Promise.resolve([]),
 		])
 
 		if (currentRequestId !== hydratePersistedRulesRequestId.value || activeSettingKey.value !== policyKey) {
@@ -957,6 +981,59 @@ export function createRealPolicyWorkbenchState() {
 					targetId: rule.targetId,
 					allowChildOverride: existing?.allowChildOverride ?? rule.allowChildOverride,
 					value: buildSigningExecutionValue(existing?.value, rule.value),
+				})
+			}
+
+			groupRules.value = Array.from(mergedGroupRules.values())
+			userRules.value = Array.from(mergedUserRules.values())
+			nextRuleNumber.value = groupRules.value.length + userRules.value.length + 1
+			return
+		}
+
+		if (shouldMergeSignatureStamp) {
+			explicitSystemRule.value = (persistedSystemPolicy?.scope === 'global' || collectMetadataSystemPolicy?.scope === 'global')
+				&& (persistedSystemPolicy?.value !== null && persistedSystemPolicy?.value !== undefined)
+				? {
+					id: 'system-default',
+					scope: 'system',
+					targetId: null,
+					allowChildOverride: persistedSystemPolicy?.allowChildOverride ?? collectMetadataSystemPolicy?.allowChildOverride ?? true,
+					value: buildSignatureStampDraftValue(
+						persistedSystemPolicy?.value,
+						collectMetadataSystemPolicy?.value,
+					),
+				}
+				: null
+
+			const mergedGroupRules = new Map<string, PolicyRuleRecord>()
+			for (const rule of persistedGroupPolicies) {
+				if (!rule.targetId) {
+					continue
+				}
+
+				const collectMetadataRule = collectMetadataGroupPolicies.find((metadataRule) => metadataRule.targetId === rule.targetId)
+				mergedGroupRules.set(rule.targetId, {
+					id: rule.id,
+					scope: 'group',
+					targetId: rule.targetId,
+					allowChildOverride: rule.allowChildOverride,
+					value: buildSignatureStampDraftValue(rule.value, collectMetadataRule?.value),
+				})
+			}
+
+			const mergedUserRules = new Map<string, PolicyRuleRecord>()
+			for (const rule of persistedUserPolicies) {
+				if (!rule.targetId) {
+					continue
+				}
+
+				const collectMetadataRule = collectMetadataUserPolicies.find((metadataRule) => metadataRule.targetId === rule.targetId)
+				mergedUserRules.set(rule.targetId, {
+					id: rule.id,
+					scope: 'user',
+					targetId: rule.targetId,
+					allowChildOverride: rule.allowChildOverride,
+					value: buildSignatureStampDraftValue(rule.value, collectMetadataRule?.value),
 				})
 			}
 
@@ -1257,6 +1334,13 @@ export function createRealPolicyWorkbenchState() {
 			editorDraft.value.value = activeDefinition.value.createEmptyValue()
 		}
 
+		if (isSignatureStampPolicyKey(activeDefinition.value.key)) {
+			editorDraft.value.value = buildSignatureStampDraftValue(
+				editorDraft.value.value,
+				policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue,
+			)
+		}
+
 		editorInitialSnapshot.value = toDraftSnapshot(editorDraft.value)
 		editorInitialTouchVersion.value = draftTouchVersion.value
 
@@ -1346,11 +1430,18 @@ export function createRealPolicyWorkbenchState() {
 		const policyKey = activeDefinition.value.key
 		const isRequestExpiration = isRequestExpirationPolicyKey(policyKey)
 		const isUnifiedSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
+		const isSignatureStamp = isSignatureStampPolicyKey(policyKey)
 		const normalizedRequestExpirationValue = isRequestExpiration
 			? normalizeRequestExpirationDraftValue(value)
 			: null
 		const normalizedSigningExecutionValue = isUnifiedSigningExecution
 			? normalizeSigningExecutionSettings(value)
+			: null
+		const normalizedSignatureStampValue = isSignatureStamp
+			? normalizeSignatureStampDraftValue(
+				value,
+				resolveCollectMetadataValue(policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue, false),
+			)
 			: null
 		const allowChildOverride = activeDefinition.value.normalizeAllowChildOverride(scope, editorDraft.value.allowChildOverride)
 
@@ -1373,6 +1464,11 @@ export function createRealPolicyWorkbenchState() {
 							allowChildOverride,
 						),
 					])
+				} else if (isSignatureStamp && normalizedSignatureStampValue) {
+					await Promise.all([
+						policiesStore.saveSystemPolicy(policyKey, normalizedSignatureStampValue.signatureStampValue, allowChildOverride),
+						policiesStore.saveSystemPolicy(COLLECT_METADATA_POLICY_KEY, normalizedSignatureStampValue.collectMetadataEnabled, allowChildOverride),
+					])
 				} else {
 					await policiesStore.saveSystemPolicy(policyKey, value, allowChildOverride)
 				}
@@ -1387,6 +1483,11 @@ export function createRealPolicyWorkbenchState() {
 							policiesStore.clearUserPreference(policyKey),
 							policiesStore.clearUserPreference(SIGNING_EXECUTION_WORKER_KEY),
 						])
+					} else if (isSignatureStamp) {
+						await Promise.all([
+							policiesStore.clearUserPreference(policyKey),
+							policiesStore.clearUserPreference(COLLECT_METADATA_POLICY_KEY),
+						])
 					} else {
 						await policiesStore.clearUserPreference(policyKey)
 					}
@@ -1396,7 +1497,7 @@ export function createRealPolicyWorkbenchState() {
 					scope: 'system',
 					targetId: null,
 					allowChildOverride,
-					value: normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? value,
+					value: normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? normalizedSignatureStampValue ?? value,
 				}
 				await policiesStore.fetchEffectivePolicies()
 				cancelEditor()
@@ -1426,6 +1527,13 @@ export function createRealPolicyWorkbenchState() {
 							),
 						])
 					}))
+				} else if (isSignatureStamp && normalizedSignatureStampValue) {
+					await Promise.all(targetIds.map((targetId) => {
+						return Promise.all([
+							policiesStore.saveGroupPolicy(targetId, policyKey, normalizedSignatureStampValue.signatureStampValue, allowChildOverride),
+							policiesStore.saveGroupPolicy(targetId, COLLECT_METADATA_POLICY_KEY, normalizedSignatureStampValue.collectMetadataEnabled, allowChildOverride),
+						])
+					}))
 				} else {
 					await Promise.all(targetIds.map((targetId) => {
 						return policiesStore.saveGroupPolicy(targetId, policyKey, value, allowChildOverride)
@@ -1437,7 +1545,7 @@ export function createRealPolicyWorkbenchState() {
 						groupRules.value,
 						'group',
 						targetId,
-						normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? value,
+						normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? normalizedSignatureStampValue ?? value,
 						allowChildOverride,
 					)
 				}
@@ -1469,6 +1577,13 @@ export function createRealPolicyWorkbenchState() {
 						),
 					])
 				}))
+			} else if (isSignatureStamp && normalizedSignatureStampValue) {
+				await Promise.all(targetIds.map((targetId) => {
+					return Promise.all([
+						policiesStore.saveUserPolicyForUser(targetId, policyKey, normalizedSignatureStampValue.signatureStampValue, allowChildOverride),
+						policiesStore.saveUserPolicyForUser(targetId, COLLECT_METADATA_POLICY_KEY, normalizedSignatureStampValue.collectMetadataEnabled, allowChildOverride),
+					])
+				}))
 			} else {
 				await Promise.all(targetIds.map((targetId) => {
 					return policiesStore.saveUserPolicyForUser(targetId, policyKey, value, allowChildOverride)
@@ -1480,7 +1595,7 @@ export function createRealPolicyWorkbenchState() {
 					userRules.value,
 					'user',
 					targetId,
-					normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? value,
+					normalizedRequestExpirationValue ?? normalizedSigningExecutionValue ?? normalizedSignatureStampValue ?? value,
 					allowChildOverride,
 				)
 			}
@@ -1500,6 +1615,7 @@ export function createRealPolicyWorkbenchState() {
 		const policyKey = activeDefinition.value.key
 		const isRequestExpiration = isRequestExpirationPolicyKey(policyKey)
 		const isUnifiedSigningExecution = isUnifiedSigningExecutionPolicyKey(policyKey)
+		const isSignatureStamp = isSignatureStampPolicyKey(policyKey)
 		const inheritedSystemRuleId = inheritedSystemRule.value?.id
 		const isEditingMode = editorMode.value === 'edit'
 
@@ -1521,6 +1637,11 @@ export function createRealPolicyWorkbenchState() {
 				await Promise.all([
 					policiesStore.saveSystemPolicy(policyKey, null, false),
 					policiesStore.saveSystemPolicy(SIGNING_EXECUTION_WORKER_KEY, null, false),
+				])
+			} else if (isSignatureStamp) {
+				await Promise.all([
+					policiesStore.saveSystemPolicy(policyKey, null, false),
+					policiesStore.saveSystemPolicy(COLLECT_METADATA_POLICY_KEY, null, false),
 				])
 			} else {
 				await policiesStore.saveSystemPolicy(policyKey, null, false)
@@ -1548,6 +1669,11 @@ export function createRealPolicyWorkbenchState() {
 						policiesStore.clearGroupPolicy(targetId, policyKey),
 						policiesStore.clearGroupPolicy(targetId, SIGNING_EXECUTION_WORKER_KEY),
 					])
+				} else if (isSignatureStamp) {
+					await Promise.all([
+						policiesStore.clearGroupPolicy(targetId, policyKey),
+						policiesStore.clearGroupPolicy(targetId, COLLECT_METADATA_POLICY_KEY),
+					])
 				} else {
 					await policiesStore.clearGroupPolicy(targetId, policyKey)
 				}
@@ -1574,6 +1700,11 @@ export function createRealPolicyWorkbenchState() {
 					await Promise.all([
 						policiesStore.clearUserPolicyForUser(targetId, policyKey),
 						policiesStore.clearUserPolicyForUser(targetId, SIGNING_EXECUTION_WORKER_KEY),
+					])
+				} else if (isSignatureStamp) {
+					await Promise.all([
+						policiesStore.clearUserPolicyForUser(targetId, policyKey),
+						policiesStore.clearUserPolicyForUser(targetId, COLLECT_METADATA_POLICY_KEY),
 					])
 				} else {
 					await policiesStore.clearUserPolicyForUser(targetId, policyKey)

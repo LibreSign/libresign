@@ -36,15 +36,18 @@ describe('signatureTextRealDefinition', () => {
 	})
 
 	it('normalizes draft values from mixed payload', () => {
-		const normalized = String(signatureTextRealDefinition.normalizeDraftValue({
+		const normalized = signatureTextRealDefinition.normalizeDraftValue({
 			template: 'Signed by {{SignerCommonName}}',
 			template_font_size: '10.5',
 			signature_font_size: '12',
 			signature_width: '120',
 			signature_height: '66',
 			render_mode: 'graphic',
-		}))
-		const parsed = JSON.parse(normalized)
+		}) as {
+			signatureStampValue: string
+			collectMetadataEnabled: boolean
+		}
+		const parsed = JSON.parse(normalized.signatureStampValue)
 
 		expect(parsed).toEqual({
 			template: 'Signed by {{SignerCommonName}}',
@@ -55,6 +58,7 @@ describe('signatureTextRealDefinition', () => {
 			background_type: 'default',
 			render_mode: 'graphic',
 		})
+		expect(normalized.collectMetadataEnabled).toBe(false)
 	})
 
 	it('returns defaults as fallback when not system scoped', () => {

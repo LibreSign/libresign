@@ -302,15 +302,35 @@ class Version18003Date20260517000000 extends SimpleMigrationStep {
 	}
 
 	private function migrateSignatureTextSettingsType(): void {
+		$legacyTemplate = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE);
+		$legacyTemplateFontSize = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE);
+		$legacySignatureFontSize = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE);
+		$legacySignatureWidth = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH);
+		$legacySignatureHeight = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT);
+		$legacyBackgroundType = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE);
+		$legacyRenderMode = $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE);
+
+		$hasLegacyValues = ($legacyTemplate !== null && trim($legacyTemplate) !== '')
+			|| ($legacyTemplateFontSize !== null && trim($legacyTemplateFontSize) !== '')
+			|| ($legacySignatureFontSize !== null && trim($legacySignatureFontSize) !== '')
+			|| ($legacySignatureWidth !== null && trim($legacySignatureWidth) !== '')
+			|| ($legacySignatureHeight !== null && trim($legacySignatureHeight) !== '')
+			|| ($legacyBackgroundType !== null && trim($legacyBackgroundType) !== '')
+			|| ($legacyRenderMode !== null && trim($legacyRenderMode) !== '');
+
+		if (!$hasLegacyValues) {
+			return;
+		}
+
 		// First, consolidate individual keys into a JSON payload
 		$consolidatedValue = [
-			'template' => $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE) ?? '',
-			'template_font_size' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_TEMPLATE_FONT_SIZE) ?? SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE),
-			'signature_font_size' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_FONT_SIZE) ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE),
-			'signature_width' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_WIDTH) ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH),
-			'signature_height' => (float)($this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_SIGNATURE_HEIGHT) ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT),
-			'background_type' => $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_BACKGROUND_TYPE) ?? 'default',
-			'render_mode' => $this->readLegacyString(SignatureTextPolicy::SYSTEM_APP_CONFIG_KEY_RENDER_MODE) ?? 'default',
+			'template' => $legacyTemplate ?? '',
+			'template_font_size' => (float)($legacyTemplateFontSize ?? SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE),
+			'signature_font_size' => (float)($legacySignatureFontSize ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE),
+			'signature_width' => (float)($legacySignatureWidth ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH),
+			'signature_height' => (float)($legacySignatureHeight ?? SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT),
+			'background_type' => $legacyBackgroundType ?? 'default',
+			'render_mode' => $legacyRenderMode ?? 'default',
 		];
 
 		// Normalize and encode the consolidated value

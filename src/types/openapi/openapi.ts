@@ -840,23 +840,6 @@ export type paths = {
         patch: operations["signature_elements-patch-signature-element"];
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature-stamp/preview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Render a preview PNG image of the signature stamp with the provided configuration */
-        post: operations["signature_stamp_preview-preview"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature-stamp/preview-pdf": {
         parameters: {
             query?: never;
@@ -4850,93 +4833,6 @@ export interface operations {
             };
         };
     };
-    "signature_stamp_preview-preview": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /**
-                     * @description Signature text template (Twig syntax)
-                     * @default
-                     */
-                    template?: string;
-                    /**
-                     * Format: double
-                     * @description Font size for template text in pt
-                     */
-                    templateFontSize?: number;
-                    /**
-                     * Format: double
-                     * @description Font size for signer name in pt
-                     */
-                    signatureFontSize?: number;
-                    /**
-                     * Format: double
-                     * @description Stamp width in mm
-                     */
-                    signatureWidth?: number;
-                    /**
-                     * Format: double
-                     * @description Stamp height in mm
-                     */
-                    signatureHeight?: number;
-                    /** @description Render mode: default, text, graphic, description_only */
-                    renderMode?: string;
-                    /** @description Background: default, custom, deleted */
-                    backgroundType?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Preview PNG image */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": string;
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-            /** @description Rendering error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ErrorResponse"];
-                        };
-                    };
-                };
-            };
-        };
-    };
     "signature_stamp_preview-preview-pdf": {
         parameters: {
             query?: never;
@@ -4991,7 +4887,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": string;
+                    "application/pdf": string;
                 };
             };
             /** @description Forbidden */

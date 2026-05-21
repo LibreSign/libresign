@@ -11,8 +11,15 @@ namespace OCA\Libresign\Service\Policy\Provider\SignatureText;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\SignatureTextTemplate;
+use OCP\IL10N;
 
 final class SignatureTextPolicy implements IPolicyDefinitionProvider {
+	public function __construct(
+		private IL10N $l10n,
+	) {
+	}
+
 	// Canonical consolidated key (signature stamp)
 	public const KEY = 'signature_stamp';
 	public const SYSTEM_APP_CONFIG_KEY = 'signature_text';
@@ -63,7 +70,7 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 			),
 			self::KEY_TEMPLATE => new PolicySpec(
 				key: self::KEY_TEMPLATE,
-				defaultSystemValue: '',
+				defaultSystemValue: SignatureTextTemplate::translated($this->l10n, false),
 				allowedValues: [],
 				normalizer: fn (mixed $rawValue): string => (string)$rawValue,
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY_TEMPLATE,
@@ -124,7 +131,7 @@ final class SignatureTextPolicy implements IPolicyDefinitionProvider {
 	 */
 	private function defaultConsolidatedValue(): array {
 		return [
-			'template' => '',
+			'template' => SignatureTextTemplate::translated($this->l10n, false),
 			'template_font_size' => SignatureTextPolicyValue::DEFAULT_TEMPLATE_FONT_SIZE,
 			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
 			'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,

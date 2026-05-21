@@ -12,7 +12,7 @@ use OCA\Libresign\Controller\SignatureStampPreviewController;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicy;
-use OCA\Libresign\Service\SignatureBackgroundService;
+use OCA\Libresign\Service\SignatureStampPreview\SignatureStampPreviewNativeService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
@@ -22,17 +22,17 @@ use PHPUnit\Framework\TestCase;
 
 final class SignatureStampPreviewControllerTest extends TestCase {
 	private SignatureStampPreviewController $controller;
-	private SignatureBackgroundService&MockObject $signatureBackgroundService;
+	private SignatureStampPreviewNativeService&MockObject $signatureStampPreviewNativeService;
 	private PolicyService&MockObject $policyService;
 
 	protected function setUp(): void {
 		$request = $this->createMock(IRequest::class);
-		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
+		$this->signatureStampPreviewNativeService = $this->createMock(SignatureStampPreviewNativeService::class);
 		$this->policyService = $this->createMock(PolicyService::class);
 
 		$this->controller = new SignatureStampPreviewController(
 			$request,
-			$this->signatureBackgroundService,
+			$this->signatureStampPreviewNativeService,
 			$this->policyService,
 		);
 	}
@@ -65,7 +65,7 @@ final class SignatureStampPreviewControllerTest extends TestCase {
 					->setEditableByCurrentActor(true)
 			);
 
-		$this->signatureBackgroundService
+		$this->signatureStampPreviewNativeService
 			->expects($this->once())
 			->method('renderPreviewPdf')
 			->willReturn('%PDF-1.4');
@@ -76,20 +76,4 @@ final class SignatureStampPreviewControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
-	public function testPreviewReturnsForbiddenWhenPolicyIsHidden(): void {
-		$this->policyService
-			->expects($this->once())
-			->method('resolve')
-			->with(SignatureTextPolicy::KEY)
-			->willReturn(
-				(new ResolvedPolicy())
-					->setVisible(false)
-					->setEditableByCurrentActor(true)
-			);
-
-		$response = $this->controller->preview(template: 'Denied');
-
-		$this->assertInstanceOf(DataResponse::class, $response);
-		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
-	}
 }

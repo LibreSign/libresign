@@ -4,14 +4,28 @@
 -->
 <template>
 	<div class="ste">
+		<section class="ste__metadata-policy">
+			<NcCheckboxRadioSwitch
+				type="switch"
+				:model-value="collectMetadataEnabled"
+				@update:modelValue="onCollectMetadataToggle">
+				<div>
+					<strong>{{ t('libresign', 'Collect signer metadata') }}</strong>
+				</div>
+			</NcCheckboxRadioSwitch>
+		</section>
+
 		<SignatureTextTemplateSection
 			:id="id"
 			:render-mode="config.renderMode"
 			:template="config.template"
 			:display-mode-options="displayModeOptions"
 			:available-variables="availableVariables"
+			:show-reset-render-mode-button="showResetRenderModeButton"
+			:show-reset-template-button="showResetTemplateButton"
 			@update:render-mode="setDisplayMode"
 			@update:template="(value) => { config.template = value }"
+			@reset-render-mode="resetRenderModeToDefault"
 			@reset-template="resetTemplateToDefault" />
 
 		<SignatureTextDimensionsSection
@@ -21,6 +35,10 @@
 			:signature-font-size="config.signatureFontSize"
 			:signature-width="config.signatureWidth"
 			:signature-height="config.signatureHeight"
+			:show-reset-template-font-size-button="showResetTemplateFontSizeButton"
+			:show-reset-signature-font-size-button="showResetSignatureFontSizeButton"
+			:show-reset-width-button="showResetWidthButton"
+			:show-reset-height-button="showResetHeightButton"
 			@update:template-font-size="(value) => { config.templateFontSize = value }"
 			@update:signature-font-size="(value) => { config.signatureFontSize = value }"
 			@update:signature-width="(value) => { config.signatureWidth = value }"
@@ -49,7 +67,9 @@
 			:preview-scale="previewScale"
 			:pdf-preview-file="pdfPreviewFile"
 			:preview-loading="previewLoading"
+			:preview-error="previewError"
 			:preview-render-key="previewPdfRenderKey"
+			:show-reset-defaults-button="showResetDefaultsButton"
 			@reset-defaults="resetToDefaults"
 			@change-zoom="changeZoom"
 			@zoom-input="onZoomInput"
@@ -63,15 +83,20 @@ import { computed, onUnmounted, reactive, ref, watch } from 'vue'
 import axios from '@nextcloud/axios'
 import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 
 import SignatureTextBackgroundSection from './SignatureTextBackgroundSection.vue'
 import SignatureTextDimensionsSection from './SignatureTextDimensionsSection.vue'
 import SignatureTextPreviewSection from './SignatureTextPreviewSection.vue'
 import SignatureTextTemplateSection from './SignatureTextTemplateSection.vue'
+import { ensurePdfWorker } from '../../../../../helpers/pdfWorker'
 import {
 	getDefaultSignatureTextPolicyConfig,
+	normalizeSignatureStampDraftValue,
 	normalizeSignatureTextPolicyConfig,
+	resolveCollectMetadataValue,
 	serializeSignatureTextPolicyConfig,
+	toRuntimeRenderMode,
 } from './model'
 
 type BackgroundType = 'default' | 'custom' | 'deleted'
@@ -89,9 +114,15 @@ const props = defineProps({
 		type: [String, Number, Boolean, Object, Array],
 		default: null,
 	},
+	collectMetadataEnabled: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+ensurePdfWorker()
 
 const backgroundOptions: Array<{ value: BackgroundType; label: string; description: string }> = [
 	{
@@ -149,9 +180,16 @@ const availableVariables = [
 ]
 
 const id = Math.random().toString(36).substring(7)
-const normalized = normalizeSignatureTextPolicyConfig(props.modelValue)
+const initialDraftValue = normalizeSignatureStampDraftValue(
+	props.modelValue,
+	resolveCollectMetadataValue(props.collectMetadataEnabled, false),
+)
+const normalized = normalizeSignatureTextPolicyConfig(initialDraftValue.signatureStampValue)
 const defaultConfig = getDefaultSignatureTextPolicyConfig()
-const inheritedConfig = computed(() => normalizeSignatureTextPolicyConfig(props.inheritedValue ?? defaultConfig))
+const inheritedConfig = computed(() => props.inheritedValue === null
+	|| props.inheritedValue === undefined
+	? normalized
+	: normalizeSignatureTextPolicyConfig(props.inheritedValue))
 
 const showLoading = ref(false)
 const errorMessage = ref('')
@@ -160,6 +198,7 @@ const previewZoomInput = ref(String(previewZoom.value))
 
 const pdfPreviewFile = ref<File | null>(null)
 const previewLoading = ref(false)
+const previewError = ref('')
 const previewRenderKey = ref(0)
 let previewTimer: ReturnType<typeof setTimeout> | null = null
 let previewAbortController: AbortController | null = null
@@ -173,6 +212,41 @@ const config = reactive({
 	backgroundType: normalized.backgroundType as BackgroundType,
 	renderMode: normalized.renderMode as DisplayMode,
 })
+
+const collectMetadataEnabled = ref(initialDraftValue.collectMetadataEnabled)
+const signerIpTemplateLine = t('libresign', 'IP: {{SignerIP}}')
+const signerUserAgentTemplateLine = t('libresign', 'User agent: {{SignerUserAgent}}')
+
+function syncTemplateWithCollectMetadata(template: string, enabled: boolean): string {
+	const normalized = String(template ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+	const lines = normalized.split('\n')
+
+	if (!enabled) {
+		const filtered = lines.filter((line) => !line.includes('{{SignerIP}}') && !line.includes('{{SignerUserAgent}}'))
+		return filtered.join('\n')
+	}
+
+	const hasSignerIp = lines.some((line) => line.includes('{{SignerIP}}'))
+	const hasSignerUserAgent = lines.some((line) => line.includes('{{SignerUserAgent}}'))
+
+	if (!hasSignerIp) {
+		lines.push(signerIpTemplateLine)
+	}
+
+	if (!hasSignerUserAgent) {
+		lines.push(signerUserAgentTemplateLine)
+	}
+
+	return lines.join('\n')
+}
+
+function applyCollectMetadataEnabled(nextValue: boolean): void {
+	collectMetadataEnabled.value = nextValue
+	const syncedTemplate = syncTemplateWithCollectMetadata(config.template, nextValue)
+	if (syncedTemplate !== config.template) {
+		config.template = syncedTemplate
+	}
+}
 
 function applyNormalizedConfig(nextConfig: ReturnType<typeof normalizeSignatureTextPolicyConfig>): void {
 	config.template = nextConfig.template
@@ -196,9 +270,22 @@ const previewFrameStyle = computed(() => {
 })
 
 const previewPdfRenderKey = computed(() => `${previewRenderKey.value}-${previewZoom.value}`)
+const showResetRenderModeButton = computed(() => config.renderMode !== inheritedConfig.value.renderMode)
+const showResetTemplateButton = computed(() => config.template !== inheritedConfig.value.template)
+const showResetTemplateFontSizeButton = computed(() => config.templateFontSize !== inheritedConfig.value.templateFontSize)
+const showResetSignatureFontSizeButton = computed(() => config.signatureFontSize !== inheritedConfig.value.signatureFontSize)
+const showResetWidthButton = computed(() => config.signatureWidth !== inheritedConfig.value.signatureWidth)
+const showResetHeightButton = computed(() => config.signatureHeight !== inheritedConfig.value.signatureHeight)
+const showResetDefaultsButton = computed(() => (
+	serializeSignatureTextPolicyConfig(config) !== serializeSignatureTextPolicyConfig(inheritedConfig.value)
+	|| previewZoom.value !== 100
+))
 
 const emitUpdate = () => {
-	emit('update:modelValue', serializeSignatureTextPolicyConfig(config))
+	emit('update:modelValue', {
+		signatureStampValue: serializeSignatureTextPolicyConfig(config),
+		collectMetadataEnabled: collectMetadataEnabled.value,
+	})
 }
 
 watch(() => config.template, emitUpdate)
@@ -210,12 +297,28 @@ watch(() => config.backgroundType, emitUpdate)
 watch(() => config.renderMode, emitUpdate)
 
 watch(() => props.modelValue, (nextValue) => {
-	const nextConfig = normalizeSignatureTextPolicyConfig(nextValue)
+	const normalizedDraftValue = normalizeSignatureStampDraftValue(
+		nextValue,
+		collectMetadataEnabled.value,
+	)
+	const nextConfig = normalizeSignatureTextPolicyConfig(normalizedDraftValue.signatureStampValue)
 	if (serializeSignatureTextPolicyConfig(config) === serializeSignatureTextPolicyConfig(nextConfig)) {
+		collectMetadataEnabled.value = normalizedDraftValue.collectMetadataEnabled
 		return
 	}
+	collectMetadataEnabled.value = normalizedDraftValue.collectMetadataEnabled
 	applyNormalizedConfig(nextConfig)
 })
+
+watch(() => props.collectMetadataEnabled, (nextValue) => {
+	const normalizedValue = resolveCollectMetadataValue(nextValue, collectMetadataEnabled.value)
+	if (collectMetadataEnabled.value === normalizedValue) {
+		return
+	}
+	applyCollectMetadataEnabled(normalizedValue)
+})
+
+watch(collectMetadataEnabled, emitUpdate)
 
 async function fetchPreview(): Promise<void> {
 	if (previewAbortController) {
@@ -223,6 +326,7 @@ async function fetchPreview(): Promise<void> {
 		previewAbortController = null
 	}
 	previewLoading.value = true
+	previewError.value = ''
 	const controller = new AbortController()
 	previewAbortController = controller
 	try {
@@ -234,7 +338,7 @@ async function fetchPreview(): Promise<void> {
 				signatureFontSize: config.signatureFontSize,
 				signatureWidth: config.signatureWidth,
 				signatureHeight: config.signatureHeight,
-				renderMode: config.renderMode,
+				renderMode: toRuntimeRenderMode(config.renderMode),
 				backgroundType: config.backgroundType,
 			},
 			{ responseType: 'blob', signal: controller.signal },
@@ -246,6 +350,8 @@ async function fetchPreview(): Promise<void> {
 		if (name === 'CanceledError' || name === 'AbortError') {
 			return
 		}
+		pdfPreviewFile.value = null
+		previewError.value = t('libresign', 'Unable to load preview. Please check the template and try again.')
 	} finally {
 		if (previewAbortController === controller) {
 			previewLoading.value = false
@@ -340,6 +446,10 @@ function setBackgroundType(value: BackgroundType): void {
 	config.backgroundType = value
 }
 
+function onCollectMetadataToggle(value: boolean | unknown): void {
+	applyCollectMetadataEnabled(resolveCollectMetadataValue(value, collectMetadataEnabled.value))
+}
+
 function resetToDefaults(): void {
 	applyNormalizedConfig(inheritedConfig.value)
 	previewZoom.value = 100
@@ -348,6 +458,10 @@ function resetToDefaults(): void {
 
 function resetTemplateToDefault(): void {
 	config.template = inheritedConfig.value.template
+}
+
+function resetRenderModeToDefault(): void {
+	config.renderMode = inheritedConfig.value.renderMode as DisplayMode
 }
 
 function resetTemplateFontSizeToDefault(): void {

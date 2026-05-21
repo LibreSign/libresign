@@ -445,50 +445,19 @@ class SignatureTextService {
 		return implode($break, $lines);
 	}
 
-	public function getDefaultTemplate(): string {
-		$collectMetadata = $this->isCollectMetadataEnabled();
-		if ($collectMetadata) {
-			// TRANSLATORS Variables enclosed in double curly braces {{variableName}} are template placeholders.
-			//
-			// DO NOT translate or remove these variables:
-			// - {{SignerCommonName}}
-			// - {{IssuerCommonName}}
-			// - {{ServerSignatureDate}}
-			// - {{SignerIP}}
-			// - {{SignerUserAgent}}
-			//
-			// Only translate the text outside the curly braces, such as:
-			// - "Signed with LibreSign"
-			// - "Issuer:"
-			// - "Date:"
-			// - "IP:"
-			// - "User agent:"
-			return $this->l10n->t(
-				"Signed with LibreSign\n"
-				. "{{SignerCommonName}}\n"
-				. "Issuer: {{IssuerCommonName}}\n"
-				. "Date: {{ServerSignatureDate}}\n"
-				. "IP: {{SignerIP}}\n"
-				. 'User agent: {{SignerUserAgent}}'
-			);
-		}
-		// TRANSLATORS Variables enclosed in double curly braces {{variableName}} are template placeholders.
-		//
-		// DO NOT translate or remove these variables:
-		// - {{SignerCommonName}}
-		// - {{IssuerCommonName}}
-		// - {{ServerSignatureDate}}
-		//
-		// Only translate the text outside the curly braces, such as:
-		// - "Signed with LibreSign"
-		// - "Issuer:"
-		// - "Date:"
-		return $this->l10n->t(
-			"Signed with LibreSign\n"
-			. "{{SignerCommonName}}\n"
-			. "Issuer: {{IssuerCommonName}}\n"
-			. 'Date: {{ServerSignatureDate}}'
-		);
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function getDefaultSignatureStampConfig(): array {
+		return [
+			'template' => SignatureTextTemplate::translated($this->l10n, $this->isCollectMetadataEnabled()),
+			'template_font_size' => $this->getDefaultTemplateFontSize(),
+			'signature_font_size' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE,
+			'signature_width' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_WIDTH,
+			'signature_height' => SignatureTextPolicyValue::DEFAULT_SIGNATURE_HEIGHT,
+			'background_type' => 'default',
+			'render_mode' => 'default',
+		];
 	}
 
 	public function getFullSignatureWidth(): float {
@@ -576,7 +545,7 @@ class SignatureTextService {
 	 */
 	private function getSignatureStampPolicyConfig(): array {
 		$rawValue = $this->policyService->resolve(SignatureTextPolicyProvider::KEY)->getEffectiveValue();
-		$normalized = SignatureTextPolicyValue::normalize($rawValue);
+		$normalized = SignatureTextPolicyValue::normalize($rawValue, $this->getDefaultSignatureStampConfig());
 
 		if ($this->hasConsolidatedStampPayload($rawValue)) {
 			return $normalized;
@@ -589,8 +558,10 @@ class SignatureTextService {
 		$signatureHeight = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_SIGNATURE_HEIGHT)->getEffectiveValue();
 		$renderMode = $this->policyService->resolve(SignatureTextPolicyProvider::KEY_RENDER_MODE)->getEffectiveValue();
 
-		$normalized['template'] = is_string($template) ? $template : (string)($template ?? '');
-		$normalized['template_font_size'] = max(0.1, (float)($templateFontSize ?? SignatureTextPolicyValue::DEFAULTS['template_font_size']));
+		$normalized['template'] = is_string($template)
+			? $template
+			: (string)($template ?? SignatureTextTemplate::translated($this->l10n, $this->isCollectMetadataEnabled()));
+		$normalized['template_font_size'] = max(0.1, (float)($templateFontSize ?? $this->getDefaultTemplateFontSize()));
 		$normalized['signature_font_size'] = max(0.1, (float)($signatureFontSize ?? SignatureTextPolicyValue::DEFAULTS['signature_font_size']));
 		$normalized['signature_width'] = max(0.1, (float)($signatureWidth ?? SignatureTextPolicyValue::DEFAULTS['signature_width']));
 		$normalized['signature_height'] = max(0.1, (float)($signatureHeight ?? SignatureTextPolicyValue::DEFAULTS['signature_height']));
