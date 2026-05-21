@@ -50,6 +50,15 @@ vi.mock('vue-select', () => ({
 	},
 }))
 
+vi.mock('@libresign/pdf-elements', () => ({
+	default: {
+		name: 'PDFElements',
+		template: '<div class="pdf-elements-mock"></div>',
+	},
+	ensureWorkerReady: vi.fn(async () => undefined),
+	setWorkerPath: vi.fn(),
+}))
+
 vi.mock('@nextcloud/vue/components/NcSelect', () => ({
 	default: {
 		name: 'NcSelect',
