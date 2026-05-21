@@ -184,8 +184,10 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
+		await vi.waitFor(() => {
+			expect(wrapper.find('button[aria-label="Rule actions"]').exists()).toBe(true)
+		})
 		const actionsTrigger = wrapper.find('button[aria-label="Rule actions"]')
-		expect(actionsTrigger.exists()).toBe(true)
 		await actionsTrigger.trigger('click')
 
 		const editButton = wrapper.findAll('.nc-actions-stub__menu button').find((button) => button.text() === 'Edit')
@@ -218,8 +220,10 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
+		await vi.waitFor(() => {
+			expect(wrapper.find('button[aria-label="Rule actions"]').exists()).toBe(true)
+		})
 		const actionsTrigger = wrapper.find('button[aria-label="Rule actions"]')
-		expect(actionsTrigger.exists()).toBe(true)
 		await actionsTrigger.trigger('click')
 
 		const removeButton = wrapper.findAll('.nc-actions-stub__menu button').find((button) => button.text() === 'Remove')
@@ -402,6 +406,9 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(text).toContain('Priority: User > Group > Default')
 		expect(text).not.toContain('Effective result:')
 
+		await vi.waitFor(() => {
+			expect(wrapper.findAll('th').length).toBeGreaterThan(0)
+		})
 		const tableHeaders = wrapper.findAll('th').map((header) => header.text())
 		expect(tableHeaders).toContain('Type')
 		expect(tableHeaders).toContain('Target')
@@ -428,8 +435,10 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(openPolicyButton).toBeTruthy()
 		await openPolicyButton?.trigger('click')
 
+		await vi.waitFor(() => {
+			expect(wrapper.find('button[aria-label="Rule actions"]').exists()).toBe(true)
+		})
 		const actionsTrigger = wrapper.find('button[aria-label="Rule actions"]')
-		expect(actionsTrigger.exists()).toBe(true)
 		await actionsTrigger.trigger('click')
 
 		expect(wrapper.find('.nc-actions-stub__menu').exists()).toBe(true)
