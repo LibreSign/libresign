@@ -13,8 +13,8 @@ import { DEFAULT_USER_FOLDER, normalizeDefaultUserFolder } from './model'
 
 export const defaultUserFolderRealDefinition: RealPolicySettingDefinition = {
 	key: 'default_user_folder',
-	title: t('libresign', 'Customize default user folder'),
-	description: t('libresign', 'Name of the folder that will contain the user\'s digital certificate, visible signature images, and other files related to LibreSign.'),
+	title: t('libresign', 'Customize default account folder'),
+	description: t('libresign', 'Name of the folder that will contain the account\'s digital certificate, visible signature images, and other files related to LibreSign.'),
 	editor: DefaultUserFolderRuleEditor,
 	resolutionMode: 'precedence',
 	createEmptyValue: () => DEFAULT_USER_FOLDER,

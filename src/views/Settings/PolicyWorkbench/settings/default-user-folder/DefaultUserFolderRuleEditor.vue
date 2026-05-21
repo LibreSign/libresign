@@ -9,7 +9,7 @@
 			type="switch"
 			:model-value="customEnabled"
 			@update:modelValue="onToggleCustom">
-			{{ t('libresign', 'Customize default user folder') }}
+			{{ t('libresign', 'Customize default account folder') }}
 		</NcCheckboxRadioSwitch>
 
 		<NcTextField
