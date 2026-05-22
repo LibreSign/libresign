@@ -42,7 +42,7 @@ Feature: admin/docmdp_policy
       | key                               | value  |
       | (jq).ocs.data.policy.policyKey    | docmdp |
       | (jq).ocs.data.policy.scope        | group  |
-      | (jq).ocs.data.policy.effectiveValue| 2     |
+      | (jq).ocs.data.policy.value        | 2      |
 
     When sending "get" to ocs "/apps/libresign/api/v1/policies/effective"
     Then the response should have a status code 200

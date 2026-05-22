@@ -45,6 +45,10 @@ final class DocMdpPolicy implements IPolicyDefinitionProvider {
 						return $rawValue;
 					}
 
+					if (is_numeric($rawValue)) {
+						return (int)$rawValue;
+					}
+
 					return $rawValue;
 				},
 				appConfigKey: self::SYSTEM_APP_CONFIG_KEY,
