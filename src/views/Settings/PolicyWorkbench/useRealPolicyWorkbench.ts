@@ -1456,9 +1456,12 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		if (isSignatureStampPolicyKey(activeDefinition.value.key)) {
+			const fallbackCollectMetadataValue = isEdit && ruleId
+				? undefined
+				: policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue
 			editorDraft.value.value = buildSignatureStampDraftValue(
 				editorDraft.value.value,
-				policiesStore.getPolicy(COLLECT_METADATA_POLICY_KEY)?.effectiveValue,
+				fallbackCollectMetadataValue,
 			)
 		}
 
