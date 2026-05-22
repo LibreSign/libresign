@@ -133,8 +133,6 @@ type SignerToEdit = {
 type FilesStore = ReturnType<typeof useFilesStore>
 type StoredSigner = NonNullable<ReturnType<FilesStore['getFile']>['signers']>[number]
 
-// TRANSLATORS Default placeholder in signer picker input field.
-const namePlaceholder = t('libresign', 'Name')
 // TRANSLATORS Field label for signer display name.
 const signerNameLabel = t('libresign', 'Signer name')
 // TRANSLATORS Field label for optional personalized message sent to signer.
@@ -158,7 +156,8 @@ const props = withDefaults(defineProps<{
 		identifyMethods: [],
 	}),
 	method: 'all',
-	placeholder: namePlaceholder,
+	// TRANSLATORS Default placeholder in signer picker input field.
+	placeholder: t('libresign', 'Name'),
 	methods: () => [],
 	disabled: false,
 })
