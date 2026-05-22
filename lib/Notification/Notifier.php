@@ -37,6 +37,7 @@ class Notifier implements INotifier {
 
 	#[\Override]
 	public function getName(): string {
+		// TRANSLATORS Notification app category label shown in Nextcloud notification settings.
 		return $this->factory->get(Application::APP_ID)->t('File sharing');
 	}
 
@@ -87,6 +88,7 @@ class Notifier implements INotifier {
 		if (isset($parameters['file'])) {
 			$notification->setLink($parameters['file']['link']);
 			$signAction = $notification->createAction()
+				// TRANSLATORS Action button opening the related file from a LibreSign notification.
 				->setParsedLabel($l->t('View'))
 				->setPrimary(true)
 				->setLink(
@@ -95,6 +97,7 @@ class Notifier implements INotifier {
 				);
 			$notification->addParsedAction($signAction);
 			if (isset($parameters['from'])) {
+				// TRANSLATORS Notification subject. {from} is the user who requested a signature, {file} is the document name.
 				$subject = $l->t('{from} requested your signature on {file}');
 				$notification->setParsedSubject(
 					str_replace(
@@ -109,11 +112,13 @@ class Notifier implements INotifier {
 			}
 		}
 		if ($update) {
+			// TRANSLATORS Notification message informing the signer that a pending document changed and should be reviewed again.
 			$notification->setParsedMessage($l->t('Changes have been made in a file that you have to sign.'));
 		}
 
 		if (isset($parameters['signRequest']) && isset($parameters['signRequest']['id'])) {
 			$dismissAction = $notification->createAction()
+				// TRANSLATORS Action button that dismisses this notification from the notification list.
 				->setParsedLabel($l->t('Dismiss notification'))
 				->setLink(
 					$this->url->linkToOCSRouteAbsolute(
@@ -163,6 +168,7 @@ class Notifier implements INotifier {
 		if (isset($parameters['file'])) {
 			$notification->setLink($parameters['file']['link']);
 			$signAction = $notification->createAction()
+				// TRANSLATORS Action button opening the signed file from a notification.
 				->setParsedLabel($l->t('View'))
 				->setPrimary(true)
 				->setLink(
@@ -171,6 +177,7 @@ class Notifier implements INotifier {
 				);
 			$notification->addParsedAction($signAction);
 			if (isset($parameters['from'])) {
+				// TRANSLATORS Notification subject. {from} is the signer name and {file} is the document name that was signed.
 				$subject = $l->t('{from} signed {file}');
 				$notification->setParsedSubject(
 					str_replace(
@@ -187,6 +194,7 @@ class Notifier implements INotifier {
 
 		if (isset($parameters['signedFile']) && isset($parameters['signedFile']['id'])) {
 			$dismissAction = $notification->createAction()
+				// TRANSLATORS Action button that dismisses this notification from the notification list.
 				->setParsedLabel($l->t('Dismiss notification'))
 				->setLink(
 					$this->url->linkToOCSRouteAbsolute(
@@ -235,6 +243,7 @@ class Notifier implements INotifier {
 		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
 
 		if (isset($parameters['from']) && isset($parameters['file'])) {
+			// TRANSLATORS Notification subject. {from} is the actor who canceled, {file} is the document name whose signature request was canceled.
 			$subject = $l->t('{from} canceled the signature request for {file}');
 			$notification->setParsedSubject(
 				str_replace(
@@ -250,6 +259,7 @@ class Notifier implements INotifier {
 
 		if (isset($parameters['signRequest']) && isset($parameters['signRequest']['id'])) {
 			$dismissAction = $notification->createAction()
+				// TRANSLATORS Action button that dismisses this cancellation notification.
 				->setParsedLabel($l->t('Dismiss notification'))
 				->setLink(
 					$this->url->linkToOCSRouteAbsolute(
