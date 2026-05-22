@@ -27,19 +27,19 @@ enum FileStatus: int {
 
 	public function getLabel(IL10N $l10n): string {
 		return match($this) {
-			// TRANSLATORS Name of the status when document is not a LibreSign file
+			// TRANSLATORS File status shown when the file is not part of any LibreSign signing flow.
 			self::NOT_LIBRESIGN_FILE => $l10n->t('Not LibreSign file'),
-			// TRANSLATORS Name of the status that the document is still as a draft
+			// TRANSLATORS File status shown while the signature request is still being prepared.
 			self::DRAFT => $l10n->t('Draft'),
-			// TRANSLATORS Name of the status that the document can be signed
+			// TRANSLATORS File status shown when at least one signer can sign now.
 			self::ABLE_TO_SIGN => $l10n->t('Ready to sign'),
-			// TRANSLATORS Name of the status when the document has already been partially signed
+			// TRANSLATORS File status shown when some required signers have signed, but not all.
 			self::PARTIAL_SIGNED => $l10n->t('Partially signed'),
-			// TRANSLATORS Name of the status when the document has been completely signed
+			// TRANSLATORS File status shown when all required signatures are complete.
 			self::SIGNED => $l10n->t('Signed'),
-			// TRANSLATORS Name of the status when the document was deleted
+			// TRANSLATORS File status shown when the LibreSign file record was deleted.
 			self::DELETED => $l10n->t('Deleted'),
-			// TRANSLATORS Name of the status when the document is currently being signed
+			// TRANSLATORS File status shown during asynchronous background signing operations.
 			self::SIGNING_IN_PROGRESS => $l10n->t('Signing in progress'),
 		};
 	}
