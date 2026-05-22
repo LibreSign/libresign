@@ -8,30 +8,31 @@
 		<NcCheckboxRadioSwitch type="switch"
 			:model-value="enabled"
 			@update:modelValue="onToggleEnabled">
+			<!-- TRANSLATORS Toggle label to enable or disable use of a TSA (Time-Stamp Authority) server during digital signing. -->
 			{{ t('libresign', 'Use timestamp server') }}
 		</NcCheckboxRadioSwitch>
 
 		<div v-if="enabled" class="tsa-editor__fields">
 			<NcTextField :model-value="config.url"
-				:label="t('libresign', 'TSA Server URL')"
-				:placeholder="t('libresign', 'Enter the timestamp server URL')"
+				:label="tsaServerUrlLabel"
+				:placeholder="tsaServerUrlPlaceholder"
 				@update:modelValue="onUrlChange" />
 
 			<NcTextField :model-value="config.policy_oid"
-				:label="t('libresign', 'TSA Policy OID')"
-				:placeholder="t('libresign', 'Optional')"
+				:label="tsaPolicyOidLabel"
+				:placeholder="optionalPlaceholder"
 				@update:modelValue="onPolicyOidChange" />
 
 			<NcSelect v-model="selectedAuthType"
 				:options="authOptions"
-				:input-label="t('libresign', 'TSA Authentication')"
+				:input-label="tsaAuthenticationLabel"
 				clearable />
 
 			<NcTextField v-if="config.auth_type === 'basic'"
 				:model-value="config.username"
-				:label="t('libresign', 'Username')"
-				:placeholder="t('libresign', 'Username')"
-				:helper-text="t('libresign', 'TSA password remains in secure storage and is not changed here.')"
+				:label="usernameLabel"
+				:placeholder="usernameLabel"
+				:helper-text="tsaPasswordSecureStorageHelper"
 				@update:modelValue="onUsernameChange" />
 		</div>
 	</div>
@@ -69,8 +70,25 @@ const emit = defineEmits<{
 const config = computed(() => normalizeTsaSettings(props.modelValue))
 const enabled = computed(() => config.value.url.length > 0)
 
+// TRANSLATORS Field label for TSA endpoint URL. TSA means Time-Stamp Authority.
+const tsaServerUrlLabel = t('libresign', 'TSA Server URL')
+// TRANSLATORS Placeholder asking for the full TSA (Time-Stamp Authority) service URL used to request trusted timestamps.
+const tsaServerUrlPlaceholder = t('libresign', 'Enter the timestamp server URL')
+// TRANSLATORS Field label for optional TSA (Time-Stamp Authority) policy OID (Object Identifier) required by some timestamp authorities.
+const tsaPolicyOidLabel = t('libresign', 'TSA Policy OID')
+// TRANSLATORS Placeholder indicating this TSA (Time-Stamp Authority) policy OID field can be left empty.
+const optionalPlaceholder = t('libresign', 'Optional')
+// TRANSLATORS Select label for choosing authentication type when connecting to TSA (Time-Stamp Authority) service.
+const tsaAuthenticationLabel = t('libresign', 'TSA Authentication')
+// TRANSLATORS Username field label for TSA (Time-Stamp Authority) basic authentication credentials.
+const usernameLabel = t('libresign', 'Username')
+// TRANSLATORS Helper text explaining that the TSA (Time-Stamp Authority) password is stored securely and is not edited in this form.
+const tsaPasswordSecureStorageHelper = t('libresign', 'TSA password remains in secure storage and is not changed here.')
+
 const authOptions: AuthOption[] = [
+	// TRANSLATORS Authentication option meaning no credentials are sent to the TSA (Time-Stamp Authority) server.
 	{ id: 'none', label: t('libresign', 'Without authentication') },
+	// TRANSLATORS Authentication option meaning TSA (Time-Stamp Authority) requests use HTTP Basic auth with username and password.
 	{ id: 'basic', label: t('libresign', 'Username / Password') },
 ]
 
