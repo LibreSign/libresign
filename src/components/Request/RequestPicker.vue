@@ -10,6 +10,7 @@
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiLink" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button label to import a PDF for signing by providing a direct URL. -->
 				{{ t('libresign', 'Upload from URL') }}
 			</NcButton>
 			<NcButton variant="secondary"
@@ -18,6 +19,7 @@
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFolder" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button label to pick existing PDF file(s) from Nextcloud Files app. -->
 				{{ t('libresign', 'Choose from Files') }}
 			</NcButton>
 			<NcButton variant="secondary"
@@ -25,11 +27,12 @@
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button label to upload PDF file(s) from local device storage. -->
 				{{ t('libresign', 'Upload') }}
 			</NcButton>
 		</div>
 		<NcActions v-else
-			:menu-name="t('libresign', 'Request')"
+			:menu-name="requestMenuName"
 			:variant="variant"
 			v-model:open="openedMenu">
 			<template #icon>
@@ -65,7 +68,7 @@
 			:upload-start-time="uploadStartTime"
 			@cancel="cancelUpload" />
 		<NcDialog v-if="modalUploadFromUrl"
-			:name="t('libresign', 'URL of a PDF file')"
+			:name="urlOfPdfFileTitle"
 			:no-close="loading"
 			is-form
 			@submit.prevent="uploadUrl()"
@@ -77,7 +80,7 @@
 			</NcNoteCard>
 			<NcTextField v-model="pdfUrl"
 				autofocus
-				:label="t('libresign', 'URL of a PDF file')">
+				:label="urlOfPdfFileTitle">
 				<NcIconSvgWrapper :path="mdiLink" :size="20" />
 			</NcTextField>
 			<template #actions>
@@ -94,15 +97,15 @@
 			</template>
 		</NcDialog>
 		<NcDialog v-if="showEnvelopeNameDialog"
-			:name="t('libresign', 'Envelope name')"
+			:name="envelopeNameTitle"
 			:no-close="false"
 			is-form
 			@submit.prevent="handleEnvelopeNameSubmit()"
 			@closing="closeEnvelopeNameDialog">
 			<NcTextField v-model="envelopeNameInput"
 				autofocus
-				:label="t('libresign', 'Enter a name for the envelope')"
-				:placeholder="t('libresign', 'Envelope name')"
+				:label="enterEnvelopeNameLabel"
+				:placeholder="envelopeNameTitle"
 				:minlength="ENVELOPE_NAME_MIN_LENGTH"
 				:maxlength="ENVELOPE_NAME_MAX_LENGTH"
 				:helper-text="`${envelopeNameInput.length} / ${ENVELOPE_NAME_MAX_LENGTH}`" />
@@ -223,6 +226,19 @@ const envelopeName = ref('')
 const showEnvelopeNameDialog = ref(false)
 const envelopeNameInput = ref('')
 
+// TRANSLATORS Dropdown menu label for actions that start a new signature request.
+const requestMenuName = t('libresign', 'Request')
+// TRANSLATORS Dialog title and field label requesting a direct URL to a PDF document.
+const urlOfPdfFileTitle = t('libresign', 'URL of a PDF file')
+// TRANSLATORS Dialog title shown when naming an envelope (a container with multiple files).
+const envelopeNameTitle = t('libresign', 'Envelope name')
+// TRANSLATORS Field label asking user to define a custom name for the envelope.
+const enterEnvelopeNameLabel = t('libresign', 'Enter a name for the envelope')
+// TRANSLATORS File-picker title when multi-file envelope mode is available.
+const selectYourFilesTitle = t('libresign', 'Select your files')
+// TRANSLATORS File-picker title when only a single file can be selected.
+const selectYourFileTitle = t('libresign', 'Select your file')
+
 function getLibresignConfig() {
 	const capabilities = getCapabilities() as LibresignCapabilities | undefined
 	return capabilities?.libresign?.config ?? null
@@ -251,12 +267,13 @@ async function openFilePicker() {
 
 	const filePicker = getFilePickerBuilder(
 		envelopeEnabled.value
-			? t('libresign', 'Select your files')
-			: t('libresign', 'Select your file')
+			? selectYourFilesTitle
+			: selectYourFileTitle
 	)
 		.setMultiSelect(envelopeEnabled.value)
 		.setMimeTypeFilter(['application/pdf'])
 		.addButton({
+			// TRANSLATORS File-picker confirmation button label.
 			label: t('libresign', 'Choose'),
 			callback: (nodes: FilePickerNode[]) => handleFileChoose(nodes),
 		})
@@ -278,6 +295,7 @@ function getMaxFileUploads() {
 function validateMaxFileUploads(filesCount: number) {
 	const maxFileUploads = getMaxFileUploads()
 	if (filesCount > maxFileUploads) {
+		// TRANSLATORS {max} is the maximum number of files allowed in one upload action.
 		showError(t('libresign', 'You can upload at most {max} files at once.', { max: maxFileUploads }))
 		return false
 	}
@@ -366,6 +384,7 @@ async function upload(files: UploadFile[], selectedEnvelopeName: string | null =
 			if (error.response?.data?.ocs?.data?.message) {
 				showError(error.response.data.ocs.data.message)
 			} else {
+				// TRANSLATORS Generic error message when file upload fails and server did not provide details.
 				showError(t('libresign', 'Upload failed'))
 			}
 		})
