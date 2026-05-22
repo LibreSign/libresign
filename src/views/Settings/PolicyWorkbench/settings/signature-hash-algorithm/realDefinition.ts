@@ -13,7 +13,9 @@ import { DEFAULT_HASH_ALGORITHM, normalizeHashAlgorithm } from './model'
 
 export const signatureHashAlgorithmRealDefinition: RealPolicySettingDefinition = {
 	key: 'signature_hash_algorithm',
+	// TRANSLATORS Policy title for selecting the cryptographic hash algorithm used while creating digital signatures.
 	title: t('libresign', 'Signature hash algorithm'),
+	// TRANSLATORS Policy description shown in admin settings. It refers to the digest/hash algorithm used by the signature engine.
 	description: t('libresign', 'Hash algorithm used for signature.'),
 	editor: SignatureHashAlgorithmRuleEditor,
 	resolutionMode: 'precedence',
@@ -31,6 +33,8 @@ export const signatureHashAlgorithmRealDefinition: RealPolicySettingDefinition =
 	summarizeValue: (value: EffectivePolicyValue) => normalizeHashAlgorithm(value),
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride
+			// TRANSLATORS Policy inheritance message indicating group and user scopes may select a different hash algorithm.
 			? t('libresign', 'Groups and accounts can set their own rule')
+			// TRANSLATORS Policy inheritance message indicating child scopes must use the hash algorithm configured at this scope.
 			: t('libresign', 'Groups and accounts must follow this value'),
 }
